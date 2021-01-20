@@ -348,61 +348,89 @@ export const getVocabInfoAsync = (uri, field) => {
         });
 };
 
-export const getSuggestionsAsync = data => {
-    return Rx.Observable.forkJoin(
-        silkStore
-            .request({
-                // call the DI matchVocabularyClassDataset endpoint
-                topic: 'transform.task.rule.suggestions',
-                data: {...getApiDetails(), ...data},
-            })
-            .catch(err => {
-                // It comes always {title: "Not Found", detail: "Not Found"} when the endpoint is not found.
-                // see: SilkErrorHandler.scala
-                const errorBody = _.get(err, 'response.body');
+interface ISuggestAsyncProps {
+    // Restrict matching by a list of target class URIs
+    targetClassUris: string[]
+    // (Root / object) rule ID this matching is done for
+    ruleId: string
+    // If the matching should be done from source view, else it will be from vocabulary view
+    matchFromDataset: boolean
+    // The max. number of returned candidates per source path / property. Defaults to 1.
+    nrCandidates?: number
+    // Optional list of target vocabulary URIs / IDs to restrict the vocabularies to match against.
+    targetVocabularies?: string[]
+}
 
-                if (err.status === 404 && errorBody.title === 'Not Found' && errorBody.detail === 'Not Found') {
-                    return Rx.Observable.return(null);
-                }
-                errorBody.code = err.status;
-                return Rx.Observable.return({error: errorBody});
-            })
-            .map(returned => {
-                const data = _.get(returned, 'body.matches', {});
-                const error = _.get(returned, 'error', []);
+// Fetches vocabulary matching results from the DI matchVocabularyClassDataset endpoint
+const fetchVocabularyMatchingResults = (data: ISuggestAsyncProps) => {
+    return silkStore
+        .request({
+            topic: 'transform.task.rule.suggestions',
+            data: {...getApiDetails(), ...data},
+        })
+        .catch(err => {
+            // It comes always {title: "Not Found", detail: "Not Found"} when the endpoint is not found.
+            // see: SilkErrorHandler.scala
+            const errorBody = _.get(err, 'response.body');
 
-                if (error) {
-                    return {
-                        error,
-                    };
-                }
+            if (err.status === 404 && errorBody.title === 'Not Found' && errorBody.detail === 'Not Found') {
+                return Rx.Observable.return(null);
+            }
+            errorBody.code = err.status;
+            return Rx.Observable.return({error: errorBody});
+        })
+        .map(returned => {
+            const data = _.get(returned, 'body.matches', {});
+            const error = _.get(returned, 'error', []);
+
+            if (error) {
                 return {
-                    data
-                }
-            }),
-        silkStore
-            .request({
-                // call the silk endpoint valueSourcePaths
-                topic: 'transform.task.rule.valueSourcePaths',
-                data: {unusedOnly: true, ...getApiDetails(), ...data},
-            })
-            .catch(err => {
-                const errorBody = _.get(err, 'response.body');
-                errorBody.code = err.status;
-                return Rx.Observable.return({error: errorBody});
-            })
-            .map(returned => {
-                const data = _.get(returned, 'body', []);
-                const error = _.get(returned, 'error', []);
-                if (error) {
-                    return {
-                        error,
-                    };
-                }
-                return {
-                    data
+                    error,
                 };
-            }),
+            }
+            return {
+                data
+            }
+        })
+}
+
+/** Fetches (unused) source value paths to prevent showing matches of already mapped source paths. */
+const fetchValueSourcePaths = (data: ISuggestAsyncProps) => {
+    return silkStore
+        .request({
+            // call the silk endpoint valueSourcePaths
+            topic: 'transform.task.rule.valueSourcePaths',
+            data: {unusedOnly: true, ...getApiDetails(), ...data},
+        })
+        .catch(err => {
+            const errorBody = _.get(err, 'response.body');
+            errorBody.code = err.status;
+            return Rx.Observable.return({error: errorBody});
+        })
+        .map(returned => {
+            const data = _.get(returned, 'body', []);
+            const error = _.get(returned, 'error', []);
+            if (error) {
+                return {
+                    error,
+                };
+            }
+            return {
+                data
+            };
+        })
+}
+
+/** Empty matching results in case no matching is executed. */
+const emptyMatchResult = new Promise(resolve =>
+    resolve({data: []})
+)
+
+export const getSuggestionsAsync = (data: ISuggestAsyncProps,
+                                    executeVocabularyMatching: boolean = true) => {
+    const vocabularyMatches = executeVocabularyMatching ? fetchVocabularyMatchingResults(data) : emptyMatchResult
+    return Rx.Observable.forkJoin(
+        vocabularyMatches, fetchValueSourcePaths(data),
         (vocabDatasetsResponse, sourcePathsResponse) => {
             const suggestions = [];
             if (vocabDatasetsResponse.data) {

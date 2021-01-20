@@ -9,13 +9,20 @@ import {
     Section,
     SectionHeader,
     TitleMainsection,
-    TableContainer,
+    TableContainer, Spacing,
 } from "@gui-elements/index";
 import SuggestionList from "./SuggestionList";
 import SuggestionHeader from "./SuggestionHeader";
-import {generateRuleAsync, getSuggestionsAsync, prefixesAsync, schemaExampleValuesAsync} from "../../store";
+import {
+    generateRuleAsync,
+    getApiDetails,
+    getSuggestionsAsync,
+    prefixesAsync,
+    schemaExampleValuesAsync
+} from "../../store";
 import {IAddedSuggestion, ITransformedSuggestion, IVocabularyInfo} from "./suggestion.typings";
 import silkApi from "../../../api/silkRestApi";
+import VocabularyMatchingDialog from "./VocabularyMatchingDialog";
 
 interface ISuggestionListContext {
     // Can be deleted when popup issue gone
@@ -41,7 +48,9 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     // Loading indicator
     const [loading, setLoading] = useState(false);
 
-    const [vocabularies, setVocabularies] = useState<IVocabularyInfo[]>([])
+    const [vocabularies, setVocabularies] = useState<IVocabularyInfo[] | undefined>(undefined)
+
+    const [showMatchingDialog, setShowMatchingDialog] = useState<boolean>(false)
 
     const [error, setError] = useState<any[]>([]);
 
@@ -61,64 +70,88 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
     const portalContainerRef = useRef();
 
-    useEffect(() => {
-        // silkApi.retrieveTransformVocabularyInfos(BAS)
-    })
+    const vocabsAvailable = vocabularies && vocabularies.length > 0
 
     useEffect(() => {
-        (async function () {
-            setLoading(true);
-            try {
-                await Promise.all([
-                    loadData(isFromDataset),
-                    loadExampleValues(),
-                    loadPrefixes()
-                ])
-            } catch (e)  {
-                setError([
-                    ...error,
-                    e
-                ])
-            } finally {
-                setLoading(false);
-            }
-        })()
-    }, []);
+        fetchVocabularyInfos()
+    }, [])
+
+    // Fetch vocabulary information for the transform task, i.e. the available vocabs.
+    const fetchVocabularyInfos = () => {
+        const {baseUrl, project, transformTask} = getApiDetails()
+        silkApi.retrieveTransformVocabularyInfos(baseUrl, project, transformTask)
+            .then(({ data }) => {
+                setVocabularies(data.vocabularies)
+            })
+            .catch(err => {
+                // TODO: error handling
+                setVocabularies([])
+            })
+    }
+
+    useEffect(() => {
+        if(vocabularies) {
+            (async function () {
+                setLoading(true);
+                try {
+                    await Promise.all([
+                        loadVocabularyMatches(isFromDataset, false, vocabsAvailable),
+                        loadExampleValues(),
+                        loadPrefixes()
+                    ])
+                } catch (e) {
+                    setError([
+                        ...error,
+                        e
+                    ])
+                } finally {
+                    setLoading(false);
+                }
+            })()
+        }
+    }, [vocabularies]);
 
     const handleSwapAction = async () => {
         setIsFromDataset(!isFromDataset);
         setError([]);
-        setLoading(true);
         try {
-            await loadData(!isFromDataset);
+            await loadVocabularyMatches(!isFromDataset, true, vocabsAvailable);
         } catch (e) {
             setError(e);
-        } finally {
-            setLoading(false);
         }
     };
 
-    const loadData = (matchFromDataset: boolean) => {
+    const loadVocabularyMatches = (matchFromDataset: boolean, setLoader: boolean, executeMatching: boolean, selectedVocabularies?: string[]) => {
         return new Promise((resolve, reject) => {
-            getSuggestionsAsync({
-                targetClassUris,
-                ruleId,
-                matchFromDataset,
-                nrCandidates: 20,
-            }).subscribe(
+            setLoader && setLoading(true)
+            getSuggestionsAsync(
+                {
+                    targetClassUris,
+                    ruleId,
+                    matchFromDataset,
+                    nrCandidates: 20,
+                    targetVocabularies: selectedVocabularies && selectedVocabularies.length > 0 ? selectedVocabularies : undefined,
+                },
+                executeMatching
+            ).subscribe(
                 ({suggestions, warnings}) => {
-                    if (warnings.length) {
-                        setError([
-                            ...error,
-                            ...warnings
-                        ]);
-                        reject(warnings);
+                    try {
+                        if (warnings.length) {
+                            setError([
+                                ...error,
+                                ...warnings
+                            ]);
+                            reject(warnings);
+                        }
+                        setData(suggestions);
+                        handleFilter(suggestions);
+                        resolve(suggestions);
+                    } finally {
+                        setLoader && setLoading(false)
                     }
-                    setData(suggestions);
-                    handleFilter(suggestions);
-                    resolve(suggestions);
                 },
                 (error) => {
+                    setLoader && setLoading(false)
                     reject(error);
                 }
             )
@@ -215,21 +248,23 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         setSubmittedSearch(search);
     };
 
+
     return (
         <Section>
             <SectionHeader>
                 <Grid>
                     <GridRow>
-                        <GridColumn small verticalAlign="center">
-                            <TitleMainsection>Mapping Suggestion for {ruleId}</TitleMainsection>
+                        <GridColumn verticalAlign="center">
+                            <TitleMainsection>Mapping Suggestions</TitleMainsection>
                         </GridColumn>
                     </GridRow>
-                    <GridRow>
+                    <Spacing size={"small"} />
+                    { vocabsAvailable && <GridRow>
                         <GridColumn>
-                            <Button affirmative onClick={() => handleFilter(data)} data-test-id={'find_matches'}>Find
+                            <Button affirmative onClick={() => setShowMatchingDialog(true)} data-test-id={'find_matches'}>Find
                                 Matches</Button>
                         </GridColumn>
-                    </GridRow>
+                    </GridRow> }
                 </Grid>
             </SectionHeader>
             <Divider addSpacing="medium"/>
@@ -247,27 +282,32 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                     </ul>
                 </Notification>
             }
-            <TableContainer>
-                <div ref={portalContainerRef}>
-                    <SuggestionListContext.Provider value={{
-                        portalContainer: portalContainerRef.current,
-                        exampleValues,
-                        search: submittedSearch,
-                        isFromDataset,
-                    }}>
-                        <SuggestionHeader onSearch={handleSearch}/>
-                        <SuggestionList
-                            rows={filteredData}
-                            prefixList={prefixList}
-                            onSwapAction={handleSwapAction}
-                            onAdd={handleAdd}
-                            onAskDiscardChanges={onAskDiscardChanges}
-                            loading={loading}
-                        />
-                    </SuggestionListContext.Provider>
-                </div>
-            </TableContainer>
+            <div ref={portalContainerRef}>
+                <SuggestionListContext.Provider value={{
+                    portalContainer: portalContainerRef.current,
+                    exampleValues,
+                    search: submittedSearch,
+                    isFromDataset,
+                }}>
+                    <TableContainer>
 
+                                <SuggestionHeader onSearch={handleSearch}/>
+                                <SuggestionList
+                                    rows={filteredData}
+                                    prefixList={prefixList}
+                                    onSwapAction={handleSwapAction}
+                                    onAdd={handleAdd}
+                                    onAskDiscardChanges={onAskDiscardChanges}
+                                    loading={loading}
+                                />
+                    </TableContainer>
+                    { showMatchingDialog && vocabsAvailable && <VocabularyMatchingDialog
+                        availableVocabularies={vocabularies}
+                        onClose={() => setShowMatchingDialog(false)}
+                        executeMatching={(vocabs) => loadVocabularyMatches(isFromDataset, true, true, vocabs)}
+                    /> }
+                </SuggestionListContext.Provider>
+            </div>
         </Section>
     )
 }

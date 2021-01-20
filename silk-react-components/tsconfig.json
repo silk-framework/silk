@@ -9,7 +9,8 @@
     "lib": [
       "dom",
       "dom.iterable",
-      "esnext"
+      "esnext",
+      "es2015.promise"
     ],
     "allowJs": true,
     "skipLibCheck": true,

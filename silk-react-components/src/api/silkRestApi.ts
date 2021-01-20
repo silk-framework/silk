@@ -104,7 +104,7 @@ const silkApi = {
     },
 
     /** Retrieves information of the registered vocabularies of this transformation */
-    retrieveTransformVocabularyInfos: (baseUrl: string, projectId: string, transformTaskId: string) => {
+    retrieveTransformVocabularyInfos: function(baseUrl: string, projectId: string, transformTaskId: string) {
         const requestUrl = this.vocabularyInfoEndpoint(baseUrl, projectId, transformTaskId)
 
         const promise = superagent
@@ -135,7 +135,7 @@ const silkApi = {
      * @param bodyHandler       function to convert the body or set the data field with a constant value.
      * @returns Promise
      */
-    handleErrorCode: function(superAgentPromise) {
+    handleErrorCode: (superAgentPromise) => {
         return new Promise((resolve, reject) => {
             superAgentPromise
                 .then(({ status, body }) => {
@@ -178,8 +178,8 @@ const silkApi = {
         return `${baseUrl}/api/workspace/reports/report?projectId=${projectId}&taskId=${taskId}&time=${time}`;
     },
 
-    vocabularyInfoEndpoint: (baseUrl: string, projectId: string, transformTaskId: string) => {
-        return `${baseUrl}/transform//tasks/${projectId}/${transformTaskId}/targetVocabulary/vocabularies`;
+    vocabularyInfoEndpoint: function(baseUrl: string, projectId: string, transformTaskId: string) {
+        return `${baseUrl}/transform/tasks/${projectId}/${transformTaskId}/targetVocabulary/vocabularies`;
     },
 };
 

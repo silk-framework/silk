@@ -61,7 +61,7 @@ silkStore
 silkStore
     .subject('transform.task.rule.suggestions')
     .subscribe(({data, replySubject}) => {
-        const {ruleId, targetClassUris, baseUrl, project, transformTask, matchFromDataset, nrCandidates } = data;
+        const {ruleId, targetClassUris, baseUrl, project, transformTask, matchFromDataset, nrCandidates, targetVocabularies } = data;
 
         const json = {
             projectName: project,
@@ -72,7 +72,8 @@ silkStore
             addMetaData: true,
             dataTypePropertiesOnly: false,
             ruleId,
-            matchFromDataset
+            matchFromDataset,
+            targetVocabularies,
         };
 
         superagent
