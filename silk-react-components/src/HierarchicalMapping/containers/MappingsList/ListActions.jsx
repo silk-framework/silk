@@ -8,7 +8,7 @@ const openToBottomFn = () => {
     let toBottom = false;
     try {
         const floatButtonRect = document.querySelectorAll('.ecc-floatingactionlist button.mdl-button')[0].getBoundingClientRect();
-        const navHeaderRect = document.querySelectorAll('.ecc-silk-mapping__navheader div.mdl-card--stretch')[0].getBoundingClientRect();
+        const navHeaderRect = document.querySelectorAll('.ecc-silk-mapping__navheader div.eccgui-card')[0].getBoundingClientRect();
         const availableSpace = floatButtonRect.top - navHeaderRect.bottom;
         const spaceNeededForMenuList = 200; // This is not known before the menu list is rendered, so we assume at most 4 elements
         toBottom = availableSpace < spaceNeededForMenuList;

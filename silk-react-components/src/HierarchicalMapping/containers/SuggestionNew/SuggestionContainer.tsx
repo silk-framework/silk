@@ -1,6 +1,11 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {
     Button,
+    Card,
+    CardTitle,
+    CardHeader,
+    CardContent,
+    CardOptions,
     Divider,
     Grid,
     GridColumn,
@@ -216,58 +221,54 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     };
 
     return (
-        <Section>
-            <SectionHeader>
-                <Grid>
-                    <GridRow>
-                        <GridColumn small verticalAlign="center">
-                            <TitleMainsection>Mapping Suggestion for {ruleId}</TitleMainsection>
-                        </GridColumn>
-                    </GridRow>
-                    <GridRow>
-                        <GridColumn>
-                            <Button affirmative onClick={() => handleFilter(data)} data-test-id={'find_matches'}>Find
-                                Matches</Button>
-                        </GridColumn>
-                    </GridRow>
-                </Grid>
-            </SectionHeader>
-            <Divider addSpacing="medium"/>
-            {
-                (!loading && !!error.length) && <Notification danger>
-                    <ul>
-                        {
-                            error.map(err => <>
-                                <li key={err.detail}>
-                                    <h3>{err.title}</h3>
-                                    <p>{err.detail}</p>
-                                </li>
-                            </>)
-                        }
-                    </ul>
-                </Notification>
-            }
-            <TableContainer>
-                <div ref={portalContainerRef}>
-                    <SuggestionListContext.Provider value={{
-                        portalContainer: portalContainerRef.current,
-                        exampleValues,
-                        search: submittedSearch,
-                        isFromDataset,
-                    }}>
-                        <SuggestionHeader onSearch={handleSearch}/>
-                        <SuggestionList
-                            rows={filteredData}
-                            prefixList={prefixList}
-                            onSwapAction={handleSwapAction}
-                            onAdd={handleAdd}
-                            onAskDiscardChanges={onAskDiscardChanges}
-                            loading={loading}
-                        />
-                    </SuggestionListContext.Provider>
-                </div>
-            </TableContainer>
-
-        </Section>
+        <Card>
+            <CardHeader>
+                <CardTitle>
+                    Mapping Suggestion for {ruleId}
+                </CardTitle>
+                <CardOptions>
+                    <Button affirmative onClick={() => handleFilter(data)} data-test-id={'find_matches'}>
+                        Find Matches
+                    </Button>
+                </CardOptions>
+            </CardHeader>
+            <Divider />
+            <CardContent>
+                {
+                    (!loading && !!error.length) && <Notification danger>
+                        <ul>
+                            {
+                                error.map(err => <>
+                                    <li key={err.detail}>
+                                        <h3>{err.title}</h3>
+                                        <p>{err.detail}</p>
+                                    </li>
+                                </>)
+                            }
+                        </ul>
+                    </Notification>
+                }
+                <TableContainer>
+                    <div ref={portalContainerRef}>
+                        <SuggestionListContext.Provider value={{
+                            portalContainer: portalContainerRef.current,
+                            exampleValues,
+                            search: submittedSearch,
+                            isFromDataset,
+                        }}>
+                            <SuggestionHeader onSearch={handleSearch}/>
+                            <SuggestionList
+                                rows={filteredData}
+                                prefixList={prefixList}
+                                onSwapAction={handleSwapAction}
+                                onAdd={handleAdd}
+                                onAskDiscardChanges={onAskDiscardChanges}
+                                loading={loading}
+                            />
+                        </SuggestionListContext.Provider>
+                    </div>
+                </TableContainer>
+            </CardContent>
+        </Card>
     )
 }

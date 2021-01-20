@@ -35,7 +35,7 @@ class MappingsWorkview extends React.Component {
         currentRuleId: PropTypes.string, // selected rule id
         askForDiscardData: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]), // selected rule id
     };
-    
+
     state = {
         loading: true,
         ruleData: {},
@@ -45,7 +45,7 @@ class MappingsWorkview extends React.Component {
         showSuggestions: false,
         askForChilds: false,
     };
-    
+
     constructor(props) {
         super(props);
         this.onRuleCreate = this.onRuleCreate.bind(this);
@@ -63,7 +63,7 @@ class MappingsWorkview extends React.Component {
         this.handlePaste = this.handlePaste.bind(this);
         this.handleClone = this.handleClone.bind(this);
     }
-    
+
     componentDidMount() {
         this.loadData({initialLoad: true});
         EventEmitter.on(MESSAGES.RELOAD, this.loadData);
@@ -72,7 +72,7 @@ class MappingsWorkview extends React.Component {
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.handleRuleEditOpen);
         EventEmitter.on(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
     }
-    
+
     componentWillUnmount() {
         EventEmitter.off(MESSAGES.RELOAD, this.loadData);
         EventEmitter.off(MESSAGES.RULE_VIEW.UNCHANGED, this.handleRuleEditClose);
@@ -80,13 +80,13 @@ class MappingsWorkview extends React.Component {
         EventEmitter.off(MESSAGES.RULE_VIEW.CHANGE, this.handleRuleEditOpen);
         EventEmitter.off(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
     }
-    
+
     componentDidUpdate(prevProps, prevState) {
         if (prevProps.currentRuleId !== this.props.currentRuleId) {
             this.loadData();
         }
     }
-    
+
     onRuleCreate({type}) {
         this.setState({
             ruleEditView: {
@@ -94,7 +94,7 @@ class MappingsWorkview extends React.Component {
             },
         });
     };
-    
+
     handleRuleEditOpen({id}) {
         if (!_.includes(this.state.editing, id)) {
             this.setState({
@@ -102,7 +102,7 @@ class MappingsWorkview extends React.Component {
             });
         }
     };
-    
+
     handleRuleEditClose({id}) {
         if (id === 0) {
             this.setState({
@@ -115,14 +115,14 @@ class MappingsWorkview extends React.Component {
             });
         }
     };
-    
+
     discardAll() {
         this.setState({
             editing: [],
             showSuggestions: false,
         });
     };
-    
+
     handleShowSuggestions() {
         if (this.state.editing.length === 0) {
             this.setState({
@@ -135,7 +135,7 @@ class MappingsWorkview extends React.Component {
             });
         }
     };
-    
+
     loadData(params = {}) {
         const {initialLoad = false, onFinish} = params;
         this.setState({
@@ -147,7 +147,7 @@ class MappingsWorkview extends React.Component {
                 ({rule}) => {
                     if (initialLoad && this.props.currentRuleId && rule.id !== this.props.currentRuleId) {
                         let toBeOpened;
-                        
+
                         // If the currentRuleId equals the uriRule's id, we want to expand the object mapping
                         if (_.get(rule, 'rules.uriRule.id') === this.props.currentRuleId) {
                             toBeOpened = rule.id;
@@ -173,13 +173,13 @@ class MappingsWorkview extends React.Component {
                 }
             );
     };
-    
+
     handleDiscardChanges(event) {
         event.stopPropagation();
         const type = _.get(this.props.askForDiscardData, 'type');
         const suggestions = _.get(this.props.askForDiscardData, 'suggestions');
         const expanded = _.get(this.props.askForDiscardData, 'expanded', false);
-        
+
         if (type) {
             this.onRuleCreate({type})
         } else if (suggestions) {
@@ -195,12 +195,12 @@ class MappingsWorkview extends React.Component {
         EventEmitter.emit(MESSAGES.RULE_VIEW.DISCARD_ALL);
         this.props.onAskDiscardChanges(false);
     };
-    
+
     handleCancelDiscard(event) {
         event.stopPropagation();
         this.props.onAskDiscardChanges(false);
     };
-    
+
     // sends event to expand / collapse all mapping rules
     handleToggleRuleDetails({expanded}) {
         if (this.state.editing.length === 0 || expanded) {
@@ -211,7 +211,7 @@ class MappingsWorkview extends React.Component {
             });
         }
     }
-    
+
     // jumps to selected rule as new center of view
     handleCreate({type}) {
         if (this.state.editing.length === 0) {
@@ -222,12 +222,12 @@ class MappingsWorkview extends React.Component {
             });
         }
     };
-    
+
     handleCloseSuggestions() {
         this.setState({showSuggestions: false});
         EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, {id: 0});
     };
-    
+
     handleCopy(id, type) {
         errorChannel.subject('message.info').onNext({
             message: 'Mapping rule copied. Use "+" button to paste',
@@ -246,7 +246,7 @@ class MappingsWorkview extends React.Component {
             isCopying: !this.state.isCopying,
         });
     };
-    
+
     handlePaste(cloning = false) {
         const copyingData = JSON.parse(sessionStorage.getItem('copyingData')),
             {breadcrumbs, id} = this.state.ruleData;
@@ -278,7 +278,7 @@ class MappingsWorkview extends React.Component {
                 });
         }
     };
-    
+
     handleClone(id, type, parent = false) {
         const apiDetails = getApiDetails();
         const copyingData = {
@@ -296,18 +296,18 @@ class MappingsWorkview extends React.Component {
         });
         this.handlePaste(true);
     };
-    
+
     handleAddNewRule = (callback) => {
         EventEmitter.emit(MESSAGES.RELOAD, {
             onFinish: callback
         });
     };
-    
+
     render() {
         const {rules = {}, id} = this.state.ruleData;
         const loading = this.state.loading ? <Spinner/> : false;
         const createType = _.get(this.state, 'ruleEditView.type', false);
-        
+
         const createRuleForm = createType ? (
             <div className="ecc-silk-mapping__createrule">
                 {createType === MAPPING_RULE_TYPE_OBJECT ? (
@@ -333,12 +333,12 @@ class MappingsWorkview extends React.Component {
         ) : (
             false
         );
-        
+
         const types = !createRuleForm && this.state.showSuggestions && _.has(this.state, 'ruleData.rules.typeRules')
                 ? _.map(this.state.ruleData.rules.typeRules, v =>
                     v.typeUri.replace('<', '').replace('>', ''))
                 : [];
-        
+
         // !createRuleForm && this.state.showSuggestions &&_.has(this.state, 'ruleData.rules.typeRules') &&
         const listSuggestions = !createRuleForm && this.state.showSuggestions &&_.has(this.state, 'ruleData.rules.typeRules') && (
                 <SuggestionsListContainer
@@ -372,7 +372,7 @@ class MappingsWorkview extends React.Component {
             ) : (
                 false
             );
-        
+
         return (
             <div className="ecc-silk-mapping__rules">
                 {loading}
@@ -384,7 +384,7 @@ class MappingsWorkview extends React.Component {
                     onToggleDetails={this.handleToggleRuleDetails}
                     onRuleIdChange={this.props.onRuleIdChange}
                 />
-                <div className="mdl-shadow--2dp">
+                <div className="bp3-elevation-1">
                     <RootMappingRule
                         rule={this.state.ruleData}
                         key={`objhead_${id}`}
