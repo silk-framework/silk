@@ -1,16 +1,11 @@
-import React from 'react';
-
-// Todo: use our gui elements wrappers instead of native carbon elements
+import React, { useState } from 'react';
 
 import {
-    TableToolbar,
-    TableToolbarAction,
-    TableToolbarContent,
-    TableToolbarMenu,
-    TableToolbarSearch
-} from 'carbon-components-react/lib/components/DataTable';
+    SearchField
+} from "@gui-elements/index";
 
 export default function SuggestionHeader({ onSearch }) {
+    /*
     return (
         <TableToolbar>
             <TableToolbarContent>
@@ -22,5 +17,40 @@ export default function SuggestionHeader({ onSearch }) {
             </TableToolbarContent>
         </TableToolbar>
 
+    )
+    */
+
+    const [searchValue, setSearchValue] = useState("");
+
+    const onClearanceHandler = () => {
+        onSearch("");
+        setSearchValue("");
+    };
+
+    const handleChange = (e) => {
+        // when input is empty then apply filter
+        if (e.target.value === "" && searchValue) {
+            onSearch("");
+        }
+        setSearchValue(e.target.value);
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === "Enter") {
+            onSearch(searchValue);
+        }
+    };
+
+    return (
+        <SearchField
+            data-test-id={'search_input'}
+            value={searchValue}
+            emptySearchInputMessage={"Search in table"}
+            autoFocus={false}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            onBlur={()=>{}}
+            onClearanceHandler={onClearanceHandler}
+        />
     )
 }

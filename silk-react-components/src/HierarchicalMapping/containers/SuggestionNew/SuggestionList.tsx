@@ -1,5 +1,14 @@
 import React, {useContext, useEffect, useState} from 'react';
-import {AlertDialog, Button, Pagination, Spinner, Table} from '@gui-elements/index';
+import {
+    AlertDialog,
+    Button,
+    CardActions,
+    Notification,
+    Pagination,
+    Spacing,
+    Spinner,
+    Table,
+} from '@gui-elements/index';
 import {
     IAddedSuggestion,
     IPageSuggestion,
@@ -381,7 +390,9 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
                 />
             }
             {
-                allRows.length === 0 ? <p>No results found.</p> : (
+                allRows.length === 0 ? (
+                    <Notification>No results found.</Notification>
+                ) : (
                     <Table>
                         <STableHeader
                             headers={headers}
@@ -403,7 +414,7 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
                 )
             }
             {
-                allRows.length > 0 && <>
+                allRows.length > 0 && (
                     <Pagination
                         onChange={handlePageChange}
                         totalItems={allRows.length}
@@ -416,11 +427,15 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
                         itemRangeText={(min, max, total) => `${min}–${max} of ${total} items`}
                         pageRangeText={(current, total) => `of ${total} pages`}
                     />
-                    <Button affirmative={true} onClick={handleAdd} data-test-id='add_button'>Add
-                    ({selectedSources.length})</Button>
-                </>
+                )
             }
-            <Button disruptive={true} onClick={onAskDiscardChanges}>Cancel</Button>
+            <Spacing size="small"/>
+            <CardActions>
+                <Button affirmative={allRows.length > 0} disabled={allRows.length < 1} onClick={handleAdd} data-test-id='add_button'>
+                    Add ({selectedSources.length})
+                </Button>
+                <Button onClick={onAskDiscardChanges}>Cancel</Button>
+            </CardActions>
             <AlertDialog
                 warning={true}
                 isOpen={warningDialog}

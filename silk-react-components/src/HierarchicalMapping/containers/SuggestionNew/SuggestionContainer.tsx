@@ -7,6 +7,7 @@ import {
     CardContent,
     CardOptions,
     Divider,
+    Spacing,
     Grid,
     GridColumn,
     GridRow,
@@ -271,45 +272,50 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
             <Divider />
             <CardContent>
                 {
-                    (!loading && !!error.length) && <Notification danger>
-                        <ul>
-                            {
-                                error.map(err => <>
-                                    <li key={err.detail}>
-                                        <h3>{err.title}</h3>
-                                        <p>{err.detail}</p>
-                                    </li>
-                                </>)
-                            }
-                        </ul>
-                    </Notification>
+                    (!loading && !!error.length) && <>
+                        <Notification danger>
+                            <ul>
+                                {
+                                    error.map(err => <>
+                                        <li key={err.detail}>
+                                            <h3>{err.title}</h3>
+                                            <p>{err.detail}</p>
+                                        </li>
+                                    </>)
+                                }
+                            </ul>
+                        </Notification>
+                        <Spacing size="small" />
+                    </>
                 }
-                <div ref={portalContainerRef}>
-                    <SuggestionListContext.Provider value={{
-                        portalContainer: portalContainerRef.current,
-                        exampleValues,
-                        search: submittedSearch,
-                        isFromDataset,
-                    }}>
-                        <TableContainer>
-
-                                    <SuggestionHeader onSearch={handleSearch}/>
-                                    <SuggestionList
-                                        rows={filteredData}
-                                        prefixList={prefixList}
-                                        onSwapAction={handleSwapAction}
-                                        onAdd={handleAdd}
-                                        onAskDiscardChanges={onAskDiscardChanges}
-                                        loading={loading}
-                                    />
-                        </TableContainer>
-                        { showMatchingDialog && vocabsAvailable && <VocabularyMatchingDialog
-                            availableVocabularies={vocabularies}
-                            onClose={() => setShowMatchingDialog(false)}
-                            executeMatching={(vocabs) => loadVocabularyMatches(isFromDataset, true, true, vocabs)}
-                        /> }
-                    </SuggestionListContext.Provider>
-                </div>
+                {
+                    (loading || !error.length) && <div ref={portalContainerRef}>
+                        <SuggestionListContext.Provider value={{
+                            portalContainer: portalContainerRef.current,
+                            exampleValues,
+                            search: submittedSearch,
+                            isFromDataset,
+                        }}>
+                            <SuggestionHeader onSearch={handleSearch} />
+                            <Spacing size="tiny" />
+                            <TableContainer>
+                                <SuggestionList
+                                    rows={filteredData}
+                                    prefixList={prefixList}
+                                    onSwapAction={handleSwapAction}
+                                    onAdd={handleAdd}
+                                    onAskDiscardChanges={onAskDiscardChanges}
+                                    loading={loading}
+                                />
+                            </TableContainer>
+                            { showMatchingDialog && vocabsAvailable && <VocabularyMatchingDialog
+                                availableVocabularies={vocabularies}
+                                onClose={() => setShowMatchingDialog(false)}
+                                executeMatching={(vocabs) => loadVocabularyMatches(isFromDataset, true, true, vocabs)}
+                            /> }
+                        </SuggestionListContext.Provider>
+                    </div>
+                }
             </CardContent>
         </Card>
     )
