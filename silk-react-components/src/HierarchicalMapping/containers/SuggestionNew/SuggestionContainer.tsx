@@ -8,9 +8,9 @@ import {
     Notification,
     Section,
     SectionHeader,
-    TitleMainsection
+    TitleMainsection,
+    TableContainer,
 } from "@gui-elements/index";
-import {TableContainer} from 'carbon-components-react';
 import SuggestionList from "./SuggestionList";
 import SuggestionHeader from "./SuggestionHeader";
 import {generateRuleAsync, getSuggestionsAsync, prefixesAsync, schemaExampleValuesAsync} from "../../store";
