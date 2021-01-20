@@ -65,7 +65,7 @@ lazy val commonSettings = Seq(
   publishArtifact in (Test, packageBin) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
   publishArtifact in (Test, packageSrc) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
   // Testing
-  libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.7" % "test",
+  libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.9" % "test",
   libraryDependencies += "net.codingwell" %% "scala-guice" % "4.2.11" % "test",
   libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.11",
   libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % "test",
