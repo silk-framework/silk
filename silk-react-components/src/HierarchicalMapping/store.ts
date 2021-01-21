@@ -437,7 +437,7 @@ export const getSuggestionsAsync = (data: ISuggestAsyncProps,
                 vocabDatasetsResponse.data.map(match => {
                     const {uri: sourceUri, description, label, candidates} = match;
                     suggestions.push({
-                        source: sourceUri,
+                        uri: sourceUri,
                         candidates,
                         description,
                         label
@@ -446,10 +446,10 @@ export const getSuggestionsAsync = (data: ISuggestAsyncProps,
 
                 if (data.matchFromDataset) {
                     sourcePathsResponse.data.forEach(sourcePath => {
-                        const isExists = suggestions.some(suggestion => suggestion.source === sourcePath);
+                        const isExists = suggestions.some(suggestion => suggestion.uri === sourcePath);
                         if (!isExists) {
                             suggestions.push({
-                                source: sourcePath,
+                                uri: sourcePath,
                                 candidates: []
                             });
                         }

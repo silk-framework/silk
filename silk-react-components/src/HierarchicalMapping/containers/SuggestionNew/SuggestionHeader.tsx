@@ -4,21 +4,8 @@ import {
     SearchField
 } from "@gui-elements/index";
 
+/** Mapping suggestion header including search widget etc. */
 export default function SuggestionHeader({ onSearch }) {
-    /*
-    return (
-        <TableToolbar>
-            <TableToolbarContent>
-                <TableToolbarSearch
-                    data-test-id={'search_input'}
-                    tabIndex={0}
-                    onChange={e => onSearch(e.target.value)}
-                />
-            </TableToolbarContent>
-        </TableToolbar>
-
-    )
-    */
 
     const [searchValue, setSearchValue] = useState("");
 

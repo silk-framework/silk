@@ -11,8 +11,6 @@ export default function TargetInfoBox({selectedTarget}: IProps) {
     const context = useContext(SuggestionListContext);
     const {portalContainer} = context;
 
-    const correctUri = (selectedTarget as ITargetWithSelected).uri || (selectedTarget as IPageSuggestion).source;
-
     return <ContextMenu
         portalContainer={portalContainer}
         togglerElement={'item-info'}
@@ -20,7 +18,7 @@ export default function TargetInfoBox({selectedTarget}: IProps) {
         <ul>
             <li><b>Label:</b> {selectedTarget.label}</li>
             <li><b>Description:</b> {selectedTarget.description}</li>
-            <li><b>Uri:</b> {correctUri}</li>
+            <li><b>Uri:</b> {selectedTarget.uri}</li>
             <li><b>Link:</b>
                 <a href={selectedTarget.link || 'http://dummy.link'}
                    target='_blank'>{selectedTarget.link || 'http://dummy.link'}

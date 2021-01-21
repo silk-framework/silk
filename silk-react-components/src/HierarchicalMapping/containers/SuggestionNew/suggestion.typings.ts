@@ -42,8 +42,8 @@ export interface ISuggestionCandidate {
 }
 
 export interface ITransformedSuggestion {
-    // source name
-    source: string;
+    // URI or source path of the left side of the suggestion table. Either source path or target URI depending on matching direction.
+    uri: string;
 
     // targets array
     candidates: ISuggestionCandidate[];

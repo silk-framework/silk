@@ -26,9 +26,11 @@ import {
     prefixesAsync,
     schemaExampleValuesAsync
 } from "../../store";
-import {IAddedSuggestion, ITransformedSuggestion, IVocabularyInfo} from "./suggestion.typings";
+import {IAddedSuggestion, ISuggestionCandidate, ITransformedSuggestion, IVocabularyInfo} from "./suggestion.typings";
 import silkApi from "../../../api/silkRestApi";
 import VocabularyMatchingDialog from "./VocabularyMatchingDialog";
+import {createMultiWordRegex} from "@gui-elements/src/components/Typography/Highlighter";
+import {extractSearchWords} from "../../elements/Highlighter/Highlighter";
 
 interface ISuggestionListContext {
     // Can be deleted when popup issue gone
@@ -94,6 +96,13 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                 setVocabularies([])
             })
     }
+
+    // React to search input
+    useEffect(() => {
+        if(data.length > 0) {
+            handleFilter(data)
+        }
+    }, [search, data])
 
     useEffect(() => {
         if(vocabularies) {
@@ -238,18 +247,32 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         setSearch(value);
     };
 
-    const handleFilter = (arrayData: ITransformedSuggestion[]) => {
-        const filteredFields = ['uri', 'label', 'description'];
-        const filtered = arrayData.filter(o =>
-            o.source.includes(search) ||
-            o.label?.includes(search) ||
-            o.description?.includes(search) ||
-            o.candidates.some(
-                t => filteredFields.some(
-                    field => t[field] ? t[field].includes(search) : false
-                )
-            )
-        );
+    const itemText = (item: ITransformedSuggestion | ISuggestionCandidate): string => {
+        const title = item.label ? `${item.label} ${item.uri}` : item.uri
+        const description = item.description || ""
+        return `${title} ${description}`
+    }
+
+    /** Filters the table based on the search query. */
+    const handleFilter = (inputMappingSuggestions: ITransformedSuggestion[]) => {
+        let filtered: ITransformedSuggestion[] = inputMappingSuggestions
+        if (search.trim() !== "") {
+            filtered = []
+            const searchWords = extractSearchWords(search).map((w) => w.toLowerCase());
+            inputMappingSuggestions.forEach((suggestion) => {
+                const sourceText = itemText(suggestion)
+                let targetCandidate = suggestion.candidates.length > 0 && suggestion.candidates[0]
+                // const selectedCandidate = suggestion.candidates.filter((candidate) => candidate._selected)
+                // if(selectedCandidate.length > 0) {
+                //     targetCandidate = selectedCandidate[0]
+                // }
+                const targetCandidateText = targetCandidate ? itemText(targetCandidate) : ""
+                const matchText = `${sourceText} ${targetCandidateText}`.toLowerCase()
+                if (searchWords.every(searchWord => matchText.includes(searchWord))) {
+                    filtered.push(suggestion);
+                }
+            });
+        }
         setFilteredData(filtered);
         setSubmittedSearch(search);
     };

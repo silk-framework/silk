@@ -10,7 +10,7 @@ import { ExampleInfoBox } from "./ExampleInfoBox";
 
 export default function STableRow({row, onRowSelect, selected, onModifyTarget}) {
     const context = useContext(SuggestionListContext);
-    const {source, candidates} = row;
+    const {uri, candidates} = row;
 
     const handleModifyTarget = (uri: string, type?: SuggestionTypeValues) => {
         const modified = candidates.map(target => {
@@ -37,10 +37,10 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
         <TableCell>
             {
                 context.isFromDataset
-                    ? <SourceCellData label={source} search={search}/>
+                    ? <SourceCellData label={uri} search={search}/>
                     : <>
-                        <p><OverflowText><Highlighter label={row.label} searchValue={search}/></OverflowText></p>
-                        <p><OverflowText><Highlighter label={row.uri} searchValue={search}/></OverflowText></p>
+                        {row.label && <p><OverflowText><Highlighter label={row.label} searchValue={search}/></OverflowText></p>}
+                        {row.uri && <p><OverflowText><Highlighter label={row.uri} searchValue={search}/></OverflowText></p>}
                         {
                             row.description &&
                             <p><OverflowText><Highlighter label={row.description} searchValue={search}/></OverflowText></p>

@@ -7,11 +7,11 @@ export default function STableBody({pageRows, selectedSources, toggleRowSelect, 
     return <TableBody>
         {
             pageRows.map((row: IPageSuggestion) => {
-                const {source} = row;
-                const selected = selectedSources.find(selected => selected === source);
+                const {uri} = row;
+                const selected = selectedSources.find(selected => selected === uri);
 
                 return <STableRow
-                    key={source}
+                    key={uri}
                     row={row}
                     onRowSelect={toggleRowSelect}
                     selected={selected}
