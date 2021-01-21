@@ -91,14 +91,29 @@ jest.mock('../../../../src/HierarchicalMapping/store', () => {
     }
     const fetchExampleValuesMock = (subscribeFn: (any) => void) => subscribeFn(mockExampleValues())
     const fetchPrefixes = (subscribeFn: (any) => void) => subscribeFn(mockPrefixes)
+    const apiDetails = () => ({baseUrl: ""})
     return {
         __esModule: true,
         getSuggestionsAsync: jest.fn().mockImplementation(getSuggestionsAsyncMock),
         schemaExampleValuesAsync: jest.fn().mockImplementation(jest.fn().mockReturnValue({ subscribe: fetchExampleValuesMock})),
         prefixesAsync: jest.fn().mockImplementation(jest.fn().mockReturnValue({ subscribe: fetchPrefixes})),
         generateRuleAsync: jest.fn().mockImplementation(jest.fn().mockReturnValue({ subscribe: jest.fn()})),
+        getApiDetails: jest.fn().mockImplementation(apiDetails)
     }
 });
+
+jest.mock('../../../../src/api/silkRestApi', () => {
+    const mockVocabularyInfos = () => ({
+        then: (thenFn) => {
+            thenFn({data: {vocabularies: ["dummyVocab"]}})
+            return {catch: () => {}}
+        }
+    })
+    return {
+        ...jest.requireActual('../../../../src/api/silkRestApi'),
+        retrieveTransformVocabularyInfos: jest.fn().mockImplementation(mockVocabularyInfos)
+    }
+})
 
 const {getSuggestionsAsync, schemaExampleValuesAsync, prefixesAsync, generateRuleAsync } = require('../../../../src/HierarchicalMapping/store');
 
@@ -114,12 +129,15 @@ describe("Suggestion Container Component", () => {
 
     it('should request suggestions, examples and prefixes on mount', async () => {
         getWrapper();
-        expect(getSuggestionsAsync).toBeCalledWith({
-            targetClassUris: props.targetClassUris,
-            ruleId: props.ruleId,
-            matchFromDataset: true,
-            nrCandidates: 20,
-        });
+        expect(getSuggestionsAsync).toBeCalledWith(
+            {
+                targetClassUris: props.targetClassUris,
+                ruleId: props.ruleId,
+                matchFromDataset: true,
+                nrCandidates: 20,
+            },
+            true
+        );
         expect(schemaExampleValuesAsync).toBeCalled();
         expect(prefixesAsync).toBeCalled();
     });
@@ -138,7 +156,7 @@ describe("Suggestion Container Component", () => {
             ruleId: props.ruleId,
             matchFromDataset: false,
             nrCandidates: 20,
-        });
+        }, true);
     });
 
     it('should add action works without selected items', async () => {
