@@ -38,13 +38,29 @@ export default function VocabularyMatchingDialog({availableVocabularies, execute
         />
     }
 
+    const removeVocabFromSelection = (vocabUri: string) => {
+        setSelectedVocabs(selectedVocabs.filter((v) => v.uri !== vocabUri))
+    }
+
     const handleVocabSelect = (vocab: IVocabularyInfo) => {
         if(vocabSelected(vocab)) {
-            setSelectedVocabs(selectedVocabs.filter((v) => v.uri !== vocab.uri))
+            removeVocabFromSelection(vocab.uri)
         } else {
             setSelectedVocabs([...selectedVocabs, vocab])
         }
     }
+
+    const handleVocabRemove = (vocabUri) => {
+        removeVocabFromSelection(vocabUri)
+    }
+
+    const handleClear = () => {
+        setSelectedVocabs([])
+    }
+
+    const clearButton =
+        selectedVocabs.length > 0 ? <Button icon="operation-clear" minimal={true} onClick={handleClear} /> : undefined;
+
     return <SimpleDialog
         portalContainer={context.portalContainer}
         size="small"
@@ -68,22 +84,25 @@ export default function VocabularyMatchingDialog({availableVocabularies, execute
             </Button>,
         ]}>
         <VocabularyMultiSelect
-            popoverProps={{portalContainer: context.portalContainer}}
-            //            {...filmSelectProps}
-            //{...flags}
+            popoverProps={{
+                portalContainer: context.portalContainer,
+                minimal: true,
+                fill: true,
+                position: "bottom-left"
+            }}
+            fill={true}
             itemRenderer={renderVocabulary}
             itemsEqual={((a, b) => a.uri === b.uri)}
             items={availableVocabularies}
-            noResults={<MenuItem disabled={true} text="No results." />}
+            noResults={<MenuItem disabled={true} text="No results."/>}
             onItemSelect={handleVocabSelect}
-            //popoverProps={{}}
             tagRenderer={(vocab) => vocabLabel(vocab)}
-//            tagInputProps={{
-//                onRemove: this.handleTagRemove,
-//                rightElement: clearButton,
-//                tagProps: getTagProps,
-//            }}
+            tagInputProps={{
+                onRemove: handleVocabRemove,
+                rightElement: clearButton,
+                tagProps: {minimal: true},
+            }}
             selectedItems={selectedVocabs}
-            />
+        />
     </SimpleDialog>
 }
