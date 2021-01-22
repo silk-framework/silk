@@ -1,4 +1,4 @@
-import {Button, FieldItem, MenuItem, Select, SimpleDialog} from "@gui-elements/index";
+import {Button, FieldItem, Label, MenuItem, Select, SimpleDialog} from "@gui-elements/index";
 import React, {useContext, useEffect, useState} from "react";
 import {IVocabularyInfo} from "./suggestion.typings";
 import {SuggestionListContext} from "./SuggestionContainer";
@@ -102,6 +102,7 @@ export default function VocabularyMatchingDialog(
                 Cancel
             </Button>,
         ]}>
+        <p>Select vocabularies:</p>
         <VocabularyMultiSelect
             popoverProps={{
                 portalContainer: context.portalContainer,
