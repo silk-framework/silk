@@ -1,8 +1,6 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 
-import {
-    SearchField
-} from "@gui-elements/index";
+import {SearchField} from "@gui-elements/index";
 
 /** Mapping suggestion header including search widget etc. */
 export default function SuggestionHeader({ onSearch }) {

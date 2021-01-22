@@ -1,6 +1,6 @@
 // @TODO: can be moved to another place as a utils
 import {IPageSuggestion, ISortDirection, ITargetWithSelected} from "./suggestion.typings";
-import { FILTER_ACTIONS } from "./constants";
+import {FILTER_ACTIONS} from "./constants";
 import _ from "lodash";
 
 export const filterRowsByColumnModifier = (filters: {[key: string]: string}, selectedSources: string[], rows: IPageSuggestion[]): IPageSuggestion[] => {

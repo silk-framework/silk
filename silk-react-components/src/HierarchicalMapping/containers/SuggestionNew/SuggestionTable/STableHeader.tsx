@@ -1,9 +1,9 @@
-import { Button, Checkbox, ContextMenu, Icon, MenuItem, TableHead, TableHeader, TableRow } from "@gui-elements/index";
-import React, { useContext, useState } from "react";
-import { COLUMN_FILTERS } from "../constants";
-import { ISortDirection, ITableHeader } from "../suggestion.typings";
+import {Button, ContextMenu, Icon, MenuItem, TableHead, TableHeader, TableRow} from "@gui-elements/index";
+import React, {useContext} from "react";
+import {COLUMN_FILTERS} from "../constants";
+import {ISortDirection, ITableHeader} from "../suggestion.typings";
 import ColumnFilter from "./ColumnFilter";
-import { SuggestionListContext } from "../SuggestionContainer";
+import {SuggestionListContext} from "../SuggestionContainer";
 
 interface IProps {
     // table headers

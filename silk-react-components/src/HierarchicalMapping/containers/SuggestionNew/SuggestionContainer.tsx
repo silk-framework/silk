@@ -2,19 +2,13 @@ import React, {useEffect, useRef, useState} from 'react';
 import {
     Button,
     Card,
-    CardTitle,
-    CardHeader,
     CardContent,
+    CardHeader,
     CardOptions,
+    CardTitle,
     Divider,
-    Spacing,
-    Grid,
-    GridColumn,
-    GridRow,
     Notification,
-    Section,
-    SectionHeader,
-    TitleMainsection,
+    Spacing,
     TableContainer,
 } from "@gui-elements/index";
 import SuggestionList from "./SuggestionList";
@@ -29,7 +23,6 @@ import {
 import {IAddedSuggestion, ISuggestionCandidate, ITransformedSuggestion, IVocabularyInfo} from "./suggestion.typings";
 import silkApi from "../../../api/silkRestApi";
 import VocabularyMatchingDialog from "./VocabularyMatchingDialog";
-import {createMultiWordRegex} from "@gui-elements/src/components/Typography/Highlighter";
 import {extractSearchWords} from "../../elements/Highlighter/Highlighter";
 
 interface ISuggestionListContext {
@@ -80,9 +73,15 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
     const vocabsAvailable = vocabularies && vocabularies.length > 0
 
+    const [selectedVocabs, setSelectedVocabs] = useState<string[]>([])
+
     useEffect(() => {
         fetchVocabularyInfos()
     }, [])
+
+    const handleSelectedVocabs = (selected: IVocabularyInfo[]) => {
+        setSelectedVocabs(selected.map((v) => v.uri))
+    }
 
     // Fetch vocabulary information for the transform task, i.e. the available vocabs.
     const fetchVocabularyInfos = () => {
@@ -339,11 +338,14 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                                     loading={loading}
                                 />
                             </TableContainer>
-                            { showMatchingDialog && vocabsAvailable && <VocabularyMatchingDialog
+                            {showMatchingDialog && vocabsAvailable &&
+                            <VocabularyMatchingDialog
                                 availableVocabularies={vocabularies}
                                 onClose={() => setShowMatchingDialog(false)}
                                 executeMatching={(vocabs) => loadVocabularyMatches(isFromDataset, true, true, vocabs)}
-                            /> }
+                                onSelection={handleSelectedVocabs}
+                                preselection={selectedVocabs}
+                            />}
                         </SuggestionListContext.Provider>
                     </div>
                 }

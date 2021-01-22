@@ -1,5 +1,5 @@
 import {Button, FieldItem, MenuItem, Select, SimpleDialog} from "@gui-elements/index";
-import React, {useContext, useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {IVocabularyInfo} from "./suggestion.typings";
 import {SuggestionListContext} from "./SuggestionContainer";
 import {MultiSelect} from "@blueprintjs/select";
@@ -11,6 +11,10 @@ interface IProps {
     executeMatching: (vocabFilter: string[]) => any
     // Executed when the 'Cancel' button is clicked
     onClose: () => void
+    // Optional preselection of vocabularies by URI
+    preselection?: string[]
+    // Callback when the selection changes. This is e.g. used to cache the last selection externally.
+    onSelection?: (selectedVocabs: IVocabularyInfo[]) => any
 }
 
 const VocabularyMultiSelect = MultiSelect.ofType<IVocabularyInfo>();
@@ -18,9 +22,24 @@ const VocabularyMultiSelect = MultiSelect.ofType<IVocabularyInfo>();
 const vocabLabel = (vocabInfo: IVocabularyInfo) => vocabInfo.label ? vocabInfo.label : vocabInfo.uri
 
 /** Vocabulary matching dialog that allows to match against a subset of vocabularies. */
-export default function VocabularyMatchingDialog({availableVocabularies, executeMatching, onClose}: IProps) {
+export default function VocabularyMatchingDialog(
+    {
+        availableVocabularies, executeMatching, onClose, onSelection, preselection
+    }: IProps) {
     const context = useContext(SuggestionListContext);
     const [selectedVocabs, setSelectedVocabs] = useState<IVocabularyInfo[]>([])
+
+    useEffect(() => {
+        if(preselection) {
+            setSelectedVocabs(availableVocabularies.filter((v) => preselection.includes(v.uri)))
+        }
+    }, [])
+
+    useEffect(() => {
+        if(onSelection) {
+            onSelection(selectedVocabs)
+        }
+    }, [selectedVocabs.map((v) => v.uri).join(",")])
 
     const vocabSelected = (vocab: IVocabularyInfo): boolean => {
         return selectedVocabs.some((v) => v.uri === vocab.uri)

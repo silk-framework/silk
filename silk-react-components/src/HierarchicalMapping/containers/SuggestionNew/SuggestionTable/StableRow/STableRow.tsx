@@ -1,12 +1,12 @@
-import React, { useContext } from "react";
+import React, {useContext} from "react";
 import TypesList from "../TypesList";
-import { IPageSuggestion, ITargetWithSelected, SuggestionTypeValues } from "../../suggestion.typings";
-import { Checkbox, Highlighter, OverflowText, TableCell, TableRow } from "@gui-elements/index";
-import { SuggestionListContext } from "../../SuggestionContainer";
-import { SourceCellData } from "./SourceCellData";
+import {SuggestionTypeValues} from "../../suggestion.typings";
+import {Checkbox, Highlighter, OverflowText, TableCell, TableRow} from "@gui-elements/index";
+import {SuggestionListContext} from "../../SuggestionContainer";
+import {SourceCellData} from "./SourceCellData";
 import TargetList from "../TargetList";
 import TargetInfoBox from "./TargetInfoBox";
-import { ExampleInfoBox } from "./ExampleInfoBox";
+import {ExampleInfoBox} from "./ExampleInfoBox";
 
 export default function STableRow({row, onRowSelect, selected, onModifyTarget}) {
     const context = useContext(SuggestionListContext);
