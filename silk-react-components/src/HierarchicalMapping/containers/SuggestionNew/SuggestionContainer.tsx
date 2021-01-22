@@ -104,6 +104,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         }
     }, [search, data])
 
+    // As soon as the initial vocabularies are loaded, fetch the actual data, i.e. source paths, matchings etc.
     useEffect(() => {
         if(vocabularies) {
             (async function () {
@@ -126,6 +127,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         }
     }, [vocabularies]);
 
+    // Swapping between source and target (vocabulary) view
     const handleSwapAction = async () => {
         setIsFromDataset(!isFromDataset);
         setError([]);
@@ -136,6 +138,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         }
     };
 
+    // Fetches necessary data to generate the mapping suggestions
     const loadVocabularyMatches = (matchFromDataset: boolean, setLoader: boolean, executeMatching: boolean, selectedVocabularies?: string[]) => {
         return new Promise((resolve, reject) => {
             setLoader && setLoading(true)
@@ -173,6 +176,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         });
     };
 
+    // Load example values for the source paths. This will be shown in an info box / tooltip
     const loadExampleValues = () => {
         return new Promise((resolve, reject) => {
             schemaExampleValuesAsync().subscribe(
@@ -188,6 +192,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
     };
 
+    // Load prefixes. These are needed for generating target properties automatically based on the the source name.
     const loadPrefixes = () => {
         return new Promise((resolve, reject) => {
             prefixesAsync().subscribe(
@@ -206,6 +211,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         });
     };
 
+    // Add mapping suggestions, i.e. generate mapping rules from selected mapping suggestions.
     const handleAdd = (selectedRows: IAddedSuggestion[], selectedPrefix?: string) => {
         setLoading(true);
 
@@ -243,10 +249,12 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         );
     }
 
+    // Search value submitted for filtering the mapping suggestion table based on a multi-word text query
     const handleSearch = (value: string) => {
         setSearch(value);
     };
 
+    // Extracts the relevant text of a source or target item used for text filtering
     const itemText = (item: ITransformedSuggestion | ISuggestionCandidate): string => {
         const title = item.label ? `${item.label} ${item.uri}` : item.uri
         const description = item.description || ""

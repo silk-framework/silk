@@ -390,7 +390,7 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
                 />
             }
             {
-                allRows.length === 0 ? (
+                filteredRows.length === 0 ? (
                     <Notification>No results found.</Notification>
                 ) : (
                     <Table>
@@ -414,10 +414,10 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
                 )
             }
             {
-                allRows.length > 0 && (
+                filteredRows.length > 0 && (
                     <Pagination
                         onChange={handlePageChange}
-                        totalItems={allRows.length}
+                        totalItems={filteredRows.length}
                         pageSizes={[5, 10, 25, 50, 100]}
                         page={pagination.page}
                         pageSize={pagination.pageSize}
