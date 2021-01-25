@@ -39,6 +39,8 @@ interface ISuggestionListContext {
     isFromDataset: boolean;
     // Needed to create DM links
     frontendInitData: IInitFrontend
+    // Flag if vocabularies are available to match against
+    vocabulariesAvailable: boolean
 }
 
 export const SuggestionListContext = React.createContext<ISuggestionListContext>({
@@ -47,6 +49,7 @@ export const SuggestionListContext = React.createContext<ISuggestionListContext>
     search: '',
     isFromDataset: true,
     frontendInitData: undefined,
+    vocabulariesAvailable: false,
 });
 
 export default function SuggestionContainer({ruleId, targetClassUris, onAskDiscardChanges, onClose}) {
@@ -75,7 +78,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
     const portalContainerRef = useRef();
 
-    const vocabsAvailable = vocabularies && vocabularies.length > 0
+    const vocabulariesAvailable = vocabularies && vocabularies.length > 0
     const noVocabsAvailable = vocabularies && vocabularies.length === 0
 
     const [selectedVocabs, setSelectedVocabs] = useState<string[]>([])
@@ -83,15 +86,15 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     const frontendInitData = useInitFrontend()
 
     // Updates the current error array depending on the type of the added error object
-    const setErrorSafe = (newErrors: any | any[], currentErrors: any[] = error) => {
+    const setErrorSafe = (newErrors: any | any[], keepOldErrors: boolean = true) => {
         if(Array.isArray(newErrors)) {
-            setError([
-                ...currentErrors,
+            setError((oldErrors) => [
+                ...(keepOldErrors ? oldErrors : []),
                 ...newErrors
             ])
         } else if(typeof newErrors === "object") {
-            setError([
-                ...currentErrors,
+            setError((oldErrors) => [
+                ...(keepOldErrors ? oldErrors : []),
                 newErrors
             ])
         }
@@ -132,7 +135,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                 setLoading(true);
                 try {
                     await Promise.all([
-                        loadVocabularyMatches(isFromDataset, false, vocabsAvailable),
+                        loadVocabularyMatches(isFromDataset, false, vocabulariesAvailable),
                         loadExampleValues(),
                         loadPrefixes()
                     ])
@@ -150,14 +153,16 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         setIsFromDataset(!isFromDataset);
         setError([]);
         try {
-            await loadVocabularyMatches(!isFromDataset, true, vocabsAvailable);
+            await loadVocabularyMatches(!isFromDataset, true, vocabulariesAvailable);
         } catch (e) {
-            setErrorSafe(e, []);
+            setErrorSafe(e, false);
         }
     };
 
     // Fetches necessary data to generate the mapping suggestions
     const loadVocabularyMatches = (matchFromDataset: boolean, setLoader: boolean, executeMatching: boolean, selectedVocabularies?: string[]) => {
+        setData([])
+        setError([])
         return new Promise((resolve, reject) => {
             setLoader && setLoading(true)
             getSuggestionsAsync(
@@ -173,7 +178,6 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                 ({suggestions, warnings}) => {
                     try {
                         if (warnings.length) {
-                            setErrorSafe(warnings)
                             reject(warnings);
                         }
                         setData(suggestions);
@@ -300,6 +304,51 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         setSubmittedSearch(search);
     };
 
+    // Actions regarding vocabulary matching, e.g. matching dialog
+    const mappingOptions = <CardOptions>
+            { vocabulariesAvailable && (
+                <Button affirmative onClick={() => setShowMatchingDialog(true)} data-test-id={'find_matches'}>
+                    Find Matches
+                </Button>
+            )}
+        </CardOptions>
+
+    // Error widget that displays errors that have occurred
+    const errorLevel = (errors: any[]): object => {
+        const onlyMinorErrors = errors.every((error) => error.title === "Not Found")
+        return onlyMinorErrors ? {warning: true} : {danger: true}
+    }
+    const errorWidget = (!loading && !!error.length) && <>
+        <Notification {...errorLevel(error)}>
+            <ul>
+                {
+                    error.map(err => <>
+                        <li key={err.detail}>
+                            <h3>{err.title}</h3>
+                            <p>{err.detail}</p>
+                        </li>
+                    </>)
+                }
+            </ul>
+        </Notification>
+        <Spacing size="small" />
+    </>
+
+    // Widget that shows infos about the vocabularies, e.g. that no vocab is loaded.
+    const vocabularyInfoNotification = (noVocabsAvailable) && <>
+        <Notification>There is currently no vocabulary loaded for this transformation. Vocabulary matching is not available.</Notification>
+        <Spacing size="small" />
+    </>
+
+    // Execute vocabulary matching from vocabulary matching dialog
+    const executeVocabMatchingFromDialog = async (vocabs) => {
+            try {
+                await loadVocabularyMatches(isFromDataset, true, true, vocabs)
+            } catch (e) {
+                setErrorSafe(e, false)
+            }
+
+    }
 
     return (
         <Card>
@@ -307,47 +356,21 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                 <CardTitle>
                    Mapping Suggestions
                 </CardTitle>
-                <CardOptions>
-                    { vocabsAvailable && (
-                        <Button affirmative onClick={() => setShowMatchingDialog(true)} data-test-id={'find_matches'}>
-                            Find Matches
-                        </Button>
-                    )}
-                </CardOptions>
+                {mappingOptions}
             </CardHeader>
             <Divider />
             <CardContent>
+                {errorWidget}
+                {vocabularyInfoNotification}
                 {
-                    (!loading && !!error.length) && <>
-                        <Notification danger>
-                            <ul>
-                                {
-                                    error.map(err => <>
-                                        <li key={err.detail}>
-                                            <h3>{err.title}</h3>
-                                            <p>{err.detail}</p>
-                                        </li>
-                                    </>)
-                                }
-                            </ul>
-                        </Notification>
-                        <Spacing size="small" />
-                    </>
-                }
-                {
-                    (noVocabsAvailable) && <>
-                        <Notification>There is currently no vocabulary loaded for this transformation. Vocabulary matching is not available.</Notification>
-                        <Spacing size="small" />
-                    </>
-                }
-                {
-                    (loading || !error.length) && <div ref={portalContainerRef}>
+                    <div ref={portalContainerRef}>
                         <SuggestionListContext.Provider value={{
                             portalContainer: portalContainerRef.current,
                             exampleValues,
                             search: submittedSearch,
                             isFromDataset,
                             frontendInitData,
+                            vocabulariesAvailable,
                         }}>
                             <SuggestionHeader onSearch={handleSearch} />
                             <Spacing size="tiny" />
@@ -361,14 +384,15 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                                     loading={loading}
                                 />
                             </TableContainer>
-                            {showMatchingDialog && vocabsAvailable &&
-                            <VocabularyMatchingDialog
-                                availableVocabularies={vocabularies}
-                                onClose={() => setShowMatchingDialog(false)}
-                                executeMatching={(vocabs) => loadVocabularyMatches(isFromDataset, true, true, vocabs)}
-                                onSelection={handleSelectedVocabs}
-                                preselection={selectedVocabs}
-                            />}
+                            {showMatchingDialog && vocabulariesAvailable &&
+                                <VocabularyMatchingDialog
+                                    availableVocabularies={vocabularies}
+                                    onClose={() => setShowMatchingDialog(false)}
+                                    executeMatching={executeVocabMatchingFromDialog}
+                                    onSelection={handleSelectedVocabs}
+                                    preselection={selectedVocabs}
+                                />
+                            }
                         </SuggestionListContext.Provider>
                     </div>
                 }

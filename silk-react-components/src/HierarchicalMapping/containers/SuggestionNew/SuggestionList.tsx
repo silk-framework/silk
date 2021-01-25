@@ -388,9 +388,7 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
                 />
             }
             {
-                filteredRows.length === 0 ? (
-                    <Notification>No results found.</Notification>
-                ) : (
+                <>
                     <Table>
                         <STableHeader
                             headers={headers}
@@ -410,7 +408,8 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
                             onModifyTarget={handleModifyTarget}
                         />
                     </Table>
-                )
+                    {filteredRows.length === 0 && <Notification>No results found.</Notification>}
+                </>
             }
             {
                 filteredRows.length > 0 && (

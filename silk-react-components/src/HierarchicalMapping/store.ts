@@ -466,18 +466,18 @@ export const getSuggestionsAsync = (data: ISuggestAsyncProps,
                         graph,
                     });
                 });
+            }
 
-                if (data.matchFromDataset) {
-                    sourcePathsResponse.data.forEach(sourcePath => {
-                        const isExists = suggestions.some(suggestion => suggestion.uri === sourcePath);
-                        if (!isExists) {
-                            suggestions.push({
-                                uri: sourcePath,
-                                candidates: []
-                            });
-                        }
-                    });
-                }
+            if (data.matchFromDataset) {
+                sourcePathsResponse.data.forEach(sourcePath => {
+                    const isExists = suggestions.some(suggestion => suggestion.uri === sourcePath);
+                    if (!isExists) {
+                        suggestions.push({
+                            uri: sourcePath,
+                            candidates: []
+                        });
+                    }
+                });
             }
             return {
                 suggestions,

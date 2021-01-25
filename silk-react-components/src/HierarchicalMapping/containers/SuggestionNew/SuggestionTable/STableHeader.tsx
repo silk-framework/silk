@@ -79,6 +79,12 @@ export default function STableHeader({
         toggleSelectAll(scope as 'all' | 'page', action as 'select' | 'unselect');
     }
 
+    // Optional swap button
+    const swapButton = (header: ITableHeader) => {
+        return (context.vocabulariesAvailable || !context.isFromDataset) &&
+            <Button onClick={onSwap} data-test-id={header.key}>Swap</Button>
+    }
+
     return <TableHead>
         <TableRow>
             <TableHeader>
@@ -111,7 +117,7 @@ export default function STableHeader({
                 <TableHeader key={header.key}>
                     {
                         header.key === 'SWAP_BUTTON'
-                            ? <Button onClick={onSwap} data-test-id={header.key}>Swap</Button>
+                            ? swapButton(header)
                             : <Toolbar noWrap={true}>
                                 <ToolbarSection canShrink={true}>
                                     {header.header}
