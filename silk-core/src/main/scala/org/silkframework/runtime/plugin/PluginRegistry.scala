@@ -9,7 +9,7 @@ import java.net.{URL, URLClassLoader}
 import java.util.ServiceLoader
 import java.util.logging.Logger
 import javax.inject.Inject
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 
@@ -115,7 +115,7 @@ object PluginRegistry {
       // Retrieve plugin id
       val pluginId = config.getString("plugin")
       // Check if there are any configuration parameters available for this plugin
-      val configValues = if(config.hasPath(pluginId)) config.getConfig(pluginId).entrySet().toSet else Set.empty
+      val configValues = if(config.hasPath(pluginId)) config.getConfig(pluginId).entrySet().asScala else Set.empty
       // Instantiate plugin with configured parameters
       val pluginParams = for (entry <- configValues) yield (entry.getKey, entry.getValue.unwrapped().toString)
       val plugin = create[T](pluginId, pluginParams.toMap)
@@ -201,7 +201,7 @@ object PluginRegistry {
   def registerFromClasspath(classLoader: ClassLoader = Thread.currentThread.getContextClassLoader): Unit = {
     // Load all plugin classes
     val loader = ServiceLoader.load(classOf[PluginModule], classLoader)
-    val modules = loader.iterator().toList
+    val modules = loader.iterator().asScala.toList
     val pluginClasses = for(module <- modules; pluginClass <- module.pluginClasses) yield pluginClass
 
     // Create a plugin description for each plugin class (can be done in parallel)

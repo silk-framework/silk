@@ -1,20 +1,18 @@
 package org.silkframework.execution.local
 
-import java.util
-import java.util.logging.{Level, Logger}
-
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
+import org.silkframework.dataset.CloseableDataset.using
 import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetSpec}
-import org.silkframework.dataset.rdf._
 import org.silkframework.dataset._
+import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
 import org.silkframework.execution.{DatasetExecutor, ExecutionReport, ExecutionReportUpdater, TaskException}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
-import CloseableDataset.using
 
-import scala.util.control.NonFatal
+import java.util
+import java.util.logging.{Level, Logger}
 
 /**
   * Local dataset executor that handles read and writes to [[Dataset]] tasks.
@@ -357,6 +355,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
             val Seq(s, p, o, encodedType, context) = entity.values.map(_.head)
             val valueType = TripleEntityTable.convertToValueType(encodedType)
             sink.writeTriple(s, p, o, valueType)  //FIXME CMEM-1759 quad context is ignored for now, change when quad sink is available
+          case _ =>
+            throw new scala.RuntimeException("Unexpected entity schema format: " + entity.schema)
         }
       } catch {
         case ex: Exception =>
