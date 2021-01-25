@@ -1,9 +1,20 @@
-import {Button, ContextMenu, Icon, MenuItem, TableHead, TableHeader, TableRow} from "@gui-elements/index";
 import React, {useContext} from "react";
+import {
+    Button,
+    ContextMenu,
+    IconButton,
+    MenuItem,
+    Spacing,
+    TableHead,
+    TableHeader,
+    TableRow,
+    Toolbar,
+    ToolbarSection,
+} from "@gui-elements/index";
 import {COLUMN_FILTERS} from "../constants";
 import {ISortDirection, ITableHeader} from "../suggestion.typings";
-import ColumnFilter from "./ColumnFilter";
 import {SuggestionListContext} from "../SuggestionContainer";
+import ColumnFilter from "./ColumnFilter";
 
 interface IProps {
     // table headers
@@ -31,6 +42,9 @@ interface IProps {
     appliedFilters: {
         [key: string]: string
     };
+
+    // percentage of selected suggestion rules
+    ratioSelection: number;
 }
 
 const checkAllFilterOptions = [{
@@ -54,7 +68,8 @@ export default function STableHeader({
      sortDirections,
      onSort,
      onApplyFilter,
-     appliedFilters
+     appliedFilters,
+     ratioSelection
  }: IProps) {
     const context = useContext(SuggestionListContext);
     const {portalContainer} = context;
@@ -67,25 +82,29 @@ export default function STableHeader({
     return <TableHead>
         <TableRow>
             <TableHeader>
-                <ContextMenu
-                    portalContainer={portalContainer}
-                    togglerElement={'item-info'}
-                >
-                    {
-                        checkAllFilterOptions.map(o => (
-                            <MenuItem
-                                key={o.value}
-                                text={o.text}
-                                onClick={() => handleSort(o.value)}
-                            />
-                        ))
-                    }
-                </ContextMenu>
-                <ColumnFilter
-                    selectedFilter={appliedFilters.checkbox}
-                    filters={COLUMN_FILTERS.checkbox}
-                    onApplyFilter={(filter) => onApplyFilter('checkbox', filter)}
-                />
+                <Toolbar>
+                    <ToolbarSection noWrap={true}>
+                        <ContextMenu
+                            portalContainer={portalContainer}
+                            togglerElement={ratioSelection === 0 ? "state-unchecked" : ratioSelection === 1 ? "state-checked" : "state-partlychecked"}
+                        >
+                            {
+                                checkAllFilterOptions.map(o => (
+                                    <MenuItem
+                                        key={o.value}
+                                        text={o.text}
+                                        onClick={() => handleSort(o.value)}
+                                    />
+                                ))
+                            }
+                        </ContextMenu>
+                        <ColumnFilter
+                            selectedFilter={appliedFilters.checkbox}
+                            filters={COLUMN_FILTERS.checkbox}
+                            onApplyFilter={(filter) => onApplyFilter('checkbox', filter)}
+                        />
+                    </ToolbarSection>
+                </Toolbar>
             </TableHeader>
 
             {headers.map(header => (
@@ -93,25 +112,34 @@ export default function STableHeader({
                     {
                         header.key === 'SWAP_BUTTON'
                             ? <Button onClick={onSwap} data-test-id={header.key}>Swap</Button>
-                            : <>
-                                {header.header}
-                                <Icon
-                                    small
-                                    name={
-                                        sortDirections.column !== header.key
-                                            ? 'list-sort'
-                                            : sortDirections.modifier === 'asc' ? 'list-sortasc' : 'list-sortdesc'
-                                    }
-                                    onClick={() => onSort(header.key)}
-                                />
-                                {
-                                    COLUMN_FILTERS[header.key] && <ColumnFilter
-                                        selectedFilter={appliedFilters[header.key]}
-                                        filters={COLUMN_FILTERS[header.key]}
-                                        onApplyFilter={(filter) => onApplyFilter(header.key, filter)}
+                            : <Toolbar noWrap={true}>
+                                <ToolbarSection canShrink={true}>
+                                    {header.header}
+                                </ToolbarSection>
+                                <ToolbarSection>
+                                    <Spacing size="tiny" vertical={true} />
+                                    <IconButton
+                                        name={
+                                            sortDirections.column !== header.key
+                                                ? 'list-sort'
+                                                : sortDirections.modifier === 'asc' ? 'list-sortasc' : 'list-sortdesc'
+                                        }
+                                        text={"Sort column: " +
+                                            (sortDirections.column !== header.key
+                                                ? 'ascending'
+                                                : (sortDirections.modifier === 'asc' ? 'descending' : 'remove'))
+                                        }
+                                        onClick={() => onSort(header.key)}
                                     />
-                                }
-                            </>
+                                    {
+                                        COLUMN_FILTERS[header.key] && <ColumnFilter
+                                            selectedFilter={appliedFilters[header.key]}
+                                            filters={COLUMN_FILTERS[header.key]}
+                                            onApplyFilter={(filter) => onApplyFilter(header.key, filter)}
+                                        />
+                                    }
+                                </ToolbarSection>
+                            </Toolbar>
                     }
                 </TableHeader>
             ))}

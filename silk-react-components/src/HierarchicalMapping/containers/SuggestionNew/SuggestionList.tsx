@@ -403,6 +403,7 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
                             onApplyFilter={handleFilterColumn}
                             sortDirections={sortDirections}
                             appliedFilters={columnFilters}
+                            ratioSelection={selectedSources.length / rows.length}
                         />
                         <STableBody
                             pageRows={pageRows}
