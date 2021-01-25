@@ -103,13 +103,19 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     // FIXME: Extension for access control should happen here.
     if (!initialized) { // Avoid lock
       if(loadProjectsLock.tryLock(waitForWorkspaceInitialization, TimeUnit.MILLISECONDS)) {
-        if(!initialized) { // Should have changed by now, but loadProjects() could also have failed, so double-check
-          loadProjects()
-          initialized = true
+        try {
+          if (!initialized) { // Should have changed by now, but loadProjects() could also have failed, so double-check
+            loadProjects()
+            initialized = true
+          }
+        } finally {
+          loadProjectsLock.unlock()
         }
       } else {
         // Timeout
-        throw ServiceUnavailableException("The DataIntegration workspace is currently being initialized. The request has timed out. Please try again later.")
+        if(!initialized) {
+          throw ServiceUnavailableException("The DataIntegration workspace is currently being initialized. The request has timed out. Please try again later.")
+        }
       }
     }
   }
@@ -299,13 +305,14 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
       log.info("Finished loading project '" + projectConfig.id + "'.")
       project
     }
+    log.info("Loading registered prefixes...")
+    reloadPrefixes()
     log.info("Starting workspace activities...")
     startWorkspaceActivities()
     log.info("Starting project activities...")
     for(project <- cachedProjects) {
       project.startActivities()
     }
-    reloadPrefixes()
     log.info(s"${cachedProjects.size} projects loaded.")
   }
 }
