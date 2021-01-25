@@ -388,9 +388,7 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
                 />
             }
             {
-                filteredRows.length === 0 ? (
-                    <Notification>No results found.</Notification>
-                ) : (
+                <>
                     <Table style={{tableLayout: "fixed"}}>
                         <colgroup>
                             <col style={{width: "60px"}} />
@@ -410,14 +408,17 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
                             appliedFilters={columnFilters}
                             ratioSelection={selectedSources.length / rows.length}
                         />
-                        <STableBody
-                            pageRows={pageRows}
-                            selectedSources={selectedSources}
-                            toggleRowSelect={toggleRowSelect}
-                            onModifyTarget={handleModifyTarget}
-                        />
+                        {
+                            filteredRows.length > 0 && <STableBody
+                                pageRows={pageRows}
+                                selectedSources={selectedSources}
+                                toggleRowSelect={toggleRowSelect}
+                                onModifyTarget={handleModifyTarget}
+                            />
+                        }
                     </Table>
-                )
+                    { filteredRows.length === 0 && <><Spacing size="tiny" /><Notification>No results found.</Notification></> }
+                </>
             }
             {
                 filteredRows.length > 0 && (
