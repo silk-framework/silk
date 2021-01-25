@@ -1,8 +1,20 @@
 import React, {useContext} from "react";
-import TypesList from "../TypesList";
+import {
+    Checkbox,
+    Highlighter,
+    OverviewItem,
+    OverviewItemDescription,
+    OverviewItemLine,
+    OverviewItemActions,
+    OverflowText,
+    TableCell,
+    TableRow,
+    Toolbar,
+    ToolbarSection,
+} from "@gui-elements/index";
 import {SuggestionTypeValues} from "../../suggestion.typings";
-import {Checkbox, Highlighter, OverflowText, TableCell, TableRow} from "@gui-elements/index";
 import {SuggestionListContext} from "../../SuggestionContainer";
+import TypesList from "../TypesList";
 import {SourceCellData} from "./SourceCellData";
 import TargetList from "../TargetList";
 import TargetInfoBox from "./TargetInfoBox";
@@ -38,28 +50,40 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
             {
                 context.isFromDataset
                     ? <SourceCellData label={uri} search={search}/>
-                    : <div style={{ maxWidth: "50vw"}}>
-                        {row.label && <p><OverflowText><Highlighter label={row.label} searchValue={search}/></OverflowText></p>}
-                        {row.uri && <p><OverflowText><Highlighter label={row.uri} searchValue={search}/></OverflowText></p>}
-                        {
-                            row.description &&
-                            <p><OverflowText><Highlighter label={row.description} searchValue={search}/></OverflowText></p>
-                        }
-                        <TargetInfoBox selectedTarget={row} />
-                    </div>
+                    : <>
+                        <OverviewItem>
+                            <OverviewItemDescription>
+                                {row.label && <OverviewItemLine><OverflowText><Highlighter label={row.label} searchValue={search}/></OverflowText></OverviewItemLine>}
+                                {row.uri && <OverviewItemLine><OverflowText><Highlighter label={row.uri} searchValue={search}/></OverflowText></OverviewItemLine>}
+                                {
+                                    row.description &&
+                                    <OverviewItemLine><OverflowText><Highlighter label={row.description} searchValue={search}/></OverflowText></OverviewItemLine>
+                                }
+                            </OverviewItemDescription>
+                            <OverviewItemActions>
+                                <TargetInfoBox selectedTarget={row} />
+                            </OverviewItemActions>
+                        </OverviewItem>
+                    </>
             }
         </TableCell>
         <TableCell>
             <div/>
         </TableCell>
         <TableCell>
-            <TargetList targets={candidates} onChange={handleModifyTarget}/>
-            {
-                context.isFromDataset
-                    ? <TargetInfoBox selectedTarget={selectedTarget}/>
-                    : <ExampleInfoBox source={selectedTarget.uri}/>
+            <Toolbar noWrap={true}>
+                <ToolbarSection canShrink={true}>
+                    <TargetList targets={candidates} onChange={handleModifyTarget}/>
+                </ToolbarSection>
+                <ToolbarSection>
+                {
+                    context.isFromDataset
+                        ? <TargetInfoBox selectedTarget={selectedTarget}/>
+                        : <ExampleInfoBox source={selectedTarget.uri}/>
 
-            }
+                }
+                </ToolbarSection>
+            </Toolbar>
         </TableCell>
         <TableCell>
             <TypesList

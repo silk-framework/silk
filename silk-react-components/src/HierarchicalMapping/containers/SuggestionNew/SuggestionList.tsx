@@ -388,8 +388,17 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
                 />
             }
             {
-                <>
-                    <Table>
+                filteredRows.length === 0 ? (
+                    <Notification>No results found.</Notification>
+                ) : (
+                    <Table style={{tableLayout: "fixed"}}>
+                        <colgroup>
+                            <col style={{width: "60px"}} />
+                            <col style={{width: headers[0].key === "source" ? "15em" : "20em"}} />
+                            <col style={{width: "60px"}} />
+                            <col style={{width: headers[0].key === "source" ? "30em" : "15em"}} />
+                            <col style={{width: "10em"}} />
+                        </colgroup>
                         <STableHeader
                             headers={headers}
                             isAllSelected={isAllSelected()}
@@ -408,8 +417,7 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
                             onModifyTarget={handleModifyTarget}
                         />
                     </Table>
-                    {filteredRows.length === 0 && <Notification>No results found.</Notification>}
-                </>
+                )
             }
             {
                 filteredRows.length > 0 && (

@@ -1,5 +1,15 @@
 import React, { useContext, useEffect, useState } from "react";
-import { MenuItem, Select, Button, Highlighter, OverflowText } from '@gui-elements/index';
+import {
+    MenuItem,
+    Select,
+    Button,
+    Highlighter,
+    OverflowText,
+    OverviewItem,
+    OverviewItemDescription,
+    OverviewItemLine,
+    OverviewItemActions,
+} from '@gui-elements/index';
 import { ITargetWithSelected } from "../suggestion.typings";
 import { SuggestionListContext } from "../SuggestionContainer";
 
@@ -33,15 +43,17 @@ export default function TargetList({targets, onChange}: IProps) {
         onChange(uri);
     };
 
-    const itemLabel = (target: ITargetWithSelected, search: string) => <div style={{ maxWidth: "60vw" }}>
-        {target.label && <p><OverflowText><Highlighter label={target.label} searchValue={search} /></OverflowText></p>}
-        {target.uri && <p><OverflowText><Highlighter label={target.uri} searchValue={search} /></OverflowText></p>}
-        {target.description && <p><OverflowText><Highlighter label={target.description} searchValue={search} /></OverflowText></p>}
-    </div>;
+    const itemLabel = (target: ITargetWithSelected, search: string) => <OverviewItem>
+        <OverviewItemDescription>
+            {target.label && <OverviewItemLine><OverflowText><Highlighter label={target.label} searchValue={search} /></OverflowText></OverviewItemLine>}
+            {target.uri && <OverviewItemLine><OverflowText><Highlighter label={target.uri} searchValue={search} /></OverflowText></OverviewItemLine>}
+            {target.description && <OverviewItemLine><OverflowText><Highlighter label={target.description} searchValue={search} /></OverflowText></OverviewItemLine>}
+        </OverviewItemDescription>
+    </OverviewItem>;
 
     const itemRenderer = (target: ITargetWithSelected, {handleClick}) => {
         return <MenuItem
-            text={itemLabel(target, inputQuery)}
+            text={<div style={{width: "40em", maxWidth: "90vw"}}>{itemLabel(target, inputQuery)}</div>}
             key={target.uri}
             onClick={handleClick}
             active={target.uri === selected.uri}
@@ -76,6 +88,7 @@ export default function TargetList({targets, onChange}: IProps) {
         query={inputQuery}
     >
         <Button
+            fill={true}
             rightIcon="select-caret"
             text={itemLabel(selected, context.search)}
         />
