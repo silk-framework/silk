@@ -33,11 +33,11 @@ export default function TargetList({targets, onChange}: IProps) {
         onChange(uri);
     };
 
-    const itemLabel = (target: ITargetWithSelected, search: string) => <>
+    const itemLabel = (target: ITargetWithSelected, search: string) => <div style={{ maxWidth: "60vw" }}>
         {target.label && <p><OverflowText><Highlighter label={target.label} searchValue={search} /></OverflowText></p>}
         {target.uri && <p><OverflowText><Highlighter label={target.uri} searchValue={search} /></OverflowText></p>}
         {target.description && <p><OverflowText><Highlighter label={target.description} searchValue={search} /></OverflowText></p>}
-    </>;
+    </div>;
 
     const itemRenderer = (target: ITargetWithSelected, {handleClick}) => {
         return <MenuItem

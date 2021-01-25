@@ -14,6 +14,7 @@ import {
 } from './utils/constants';
 import EventEmitter from './utils/EventEmitter';
 import { isDebugMode } from './utils/isDebugMode';
+import React, {useState} from "react";
 
 const silkStore = rxmq.channel('silk.api');
 export const errorChannel = rxmq.channel('errors');
@@ -22,11 +23,32 @@ let rootId = null;
 
 const vocabularyCache = {};
 
-let _apiDetails = {};
+interface IApiDetails  {
+    baseUrl?: string,
+    project?: string,
+    transformTask?: string,
+}
+
+let _setApiDetails: React.Dispatch<React.SetStateAction<IApiDetails>> = undefined
+let _apiDetails: IApiDetails = {};
 export const setApiDetails = data => {
-    _apiDetails = {...data};
+    const details = {...data}
+    if(_setApiDetails) {
+        _setApiDetails(details)
+    }
+    _apiDetails = details;
 };
-export const getApiDetails = (): any => _apiDetails;
+export const getApiDetails = (): IApiDetails => _apiDetails;
+
+/** API details hook. Makes sure that a component gets the API details. */
+export const useApiDetails = () => {
+    const [apiDetails, setApiDetails] = useState<IApiDetails>({})
+    _setApiDetails = setApiDetails
+    if(apiDetails.baseUrl === undefined && typeof _apiDetails.baseUrl === "string") {
+        setApiDetails(_apiDetails)
+    }
+    return apiDetails;
+}
 
 const mapPeakResult = (returned) => {
     if (_.get(returned, 'body.status.id') !== 'success') {

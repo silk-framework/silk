@@ -38,7 +38,7 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
             {
                 context.isFromDataset
                     ? <SourceCellData label={uri} search={search}/>
-                    : <>
+                    : <div style={{ maxWidth: "50vw"}}>
                         {row.label && <p><OverflowText><Highlighter label={row.label} searchValue={search}/></OverflowText></p>}
                         {row.uri && <p><OverflowText><Highlighter label={row.uri} searchValue={search}/></OverflowText></p>}
                         {
@@ -46,7 +46,7 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
                             <p><OverflowText><Highlighter label={row.description} searchValue={search}/></OverflowText></p>
                         }
                         <TargetInfoBox selectedTarget={row} />
-                    </>
+                    </div>
             }
         </TableCell>
         <TableCell>

@@ -10,6 +10,10 @@ interface IProps {
 export default function TargetInfoBox({selectedTarget}: IProps) {
     const context = useContext(SuggestionListContext);
     const {portalContainer} = context;
+    const dmBaseUrl = context.frontendInitData?.dmBaseUrl
+    const dmResourceLink = () => {
+        return `${context.frontendInitData.dmBaseUrl}/explore?resource=${encodeURIComponent(selectedTarget.uri)}&graph=${encodeURIComponent(selectedTarget.graph)}`
+    }
 
     return <ContextMenu
         portalContainer={portalContainer}
@@ -18,12 +22,12 @@ export default function TargetInfoBox({selectedTarget}: IProps) {
         <ul>
             <li><b>Label:</b> {selectedTarget.label}</li>
             <li><b>Description:</b> {selectedTarget.description}</li>
-            <li><b>Uri:</b> {selectedTarget.uri}</li>
-            <li><b>Link:</b>
-                <a href={selectedTarget.link || 'http://dummy.link'}
-                   target='_blank'>{selectedTarget.link || 'http://dummy.link'}
+            {selectedTarget.uri && <li><b>Uri:</b> {selectedTarget.uri}</li>}
+            {dmBaseUrl && selectedTarget.graph && <li><b>Show in DataManager:&nbsp;</b>
+                <a href={dmResourceLink()}
+                   target='_blank'>{selectedTarget.label}
                 </a>
-            </li>
+            </li>}
         </ul>
     </ContextMenu>
 

@@ -24,6 +24,7 @@ import {IAddedSuggestion, ISuggestionCandidate, ITransformedSuggestion, IVocabul
 import silkApi from "../../../api/silkRestApi";
 import VocabularyMatchingDialog from "./VocabularyMatchingDialog";
 import {extractSearchWords} from "../../elements/Highlighter/Highlighter";
+import {IInitFrontend, useInitFrontend} from "../../../api/silkRestApi.hooks";
 
 interface ISuggestionListContext {
     // Can be deleted when popup issue gone
@@ -36,6 +37,8 @@ interface ISuggestionListContext {
     search: string;
     // indicator shows the swap state, by default it's true source->target
     isFromDataset: boolean;
+    // Needed to create DM links
+    frontendInitData: IInitFrontend
 }
 
 export const SuggestionListContext = React.createContext<ISuggestionListContext>({
@@ -43,6 +46,7 @@ export const SuggestionListContext = React.createContext<ISuggestionListContext>
     exampleValues: {},
     search: '',
     isFromDataset: true,
+    frontendInitData: undefined,
 });
 
 export default function SuggestionContainer({ruleId, targetClassUris, onAskDiscardChanges, onClose}) {
@@ -74,6 +78,8 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     const vocabsAvailable = vocabularies && vocabularies.length > 0
 
     const [selectedVocabs, setSelectedVocabs] = useState<string[]>([])
+
+    const frontendInitData = useInitFrontend()
 
     useEffect(() => {
         fetchVocabularyInfos()
@@ -325,6 +331,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                             exampleValues,
                             search: submittedSearch,
                             isFromDataset,
+                            frontendInitData,
                         }}>
                             <SuggestionHeader onSearch={handleSearch} />
                             <Spacing size="tiny" />

@@ -129,6 +129,17 @@ const silkApi = {
         return this.handleErrorCode(promise);
     },
 
+    /** Returns information relevant for initializing the UI. */
+    initFrontendInfo: function(baseUrl) {
+        const requestUrl = this.initFrontendEndpoint(baseUrl)
+
+        return this.handleErrorCode(
+            superagent
+                .get(requestUrl)
+                .accept(CONTENT_TYPE_JSON)
+        )
+    },
+
     /**
      * Handles the HTTP status. Calls reject for error codes != 2xx
      * @param superAgentPromise The promise from the superagent API
@@ -146,6 +157,21 @@ const silkApi = {
                 })
                 .catch(err => reject(err))
         });
+    },
+
+    // Root URL of the (new) REST API
+    apiBase: function(baseUrl) {
+        return `${baseUrl}/api`
+    },
+
+    // Root URL of the (new) workspace REST API
+    workspaceApi: function(baseUrl) {
+        return `${this.apiBase(baseUrl)}/workspace`
+    },
+
+    // Endpoint the returns basis information for the (new) frontend UI to initialize.
+    initFrontendEndpoint: function (baseUrl) {
+        return `${this.workspaceApi(baseUrl)}/initFrontend`
     },
 
     genericTaskEndpoint: function(baseUrl, projectId, taskId) {
