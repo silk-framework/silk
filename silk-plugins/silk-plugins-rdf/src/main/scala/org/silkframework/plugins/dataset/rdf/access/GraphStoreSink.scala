@@ -76,7 +76,7 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
       log.fine("Initialized graph store sink.")
     }
     if (writeGraphType) {
-      writeTriple(this.graphUri, "rdf:Type", "di:Dataset", ValueType.URI)
+      writeTriple(this.graphUri, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://com.eccenca.di.rdf.namespaces.di.dataset", ValueType.URI)
       log.fine("Type to indicate that the dataset was written by Dataintegration was set.")
     }
   }
