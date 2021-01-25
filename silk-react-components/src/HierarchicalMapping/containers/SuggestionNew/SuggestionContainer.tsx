@@ -81,6 +81,21 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
     const frontendInitData = useInitFrontend()
 
+    // Updates the current error array depending on the type of the added error object
+    const setErrorSafe = (newErrors: any | any[], currentErrors: any[] = error) => {
+        if(Array.isArray(newErrors)) {
+            setError([
+                ...currentErrors,
+                ...newErrors
+            ])
+        } else if(typeof newErrors === "object") {
+            setError([
+                ...currentErrors,
+                newErrors
+            ])
+        }
+    }
+
     useEffect(() => {
         fetchVocabularyInfos()
     }, [])
@@ -121,10 +136,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                         loadPrefixes()
                     ])
                 } catch (e) {
-                    setError([
-                        ...error,
-                        e
-                    ])
+                    setErrorSafe(e)
                 } finally {
                     setLoading(false);
                 }
@@ -139,7 +151,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         try {
             await loadVocabularyMatches(!isFromDataset, true, vocabsAvailable);
         } catch (e) {
-            setError(e);
+            setErrorSafe(e, []);
         }
     };
 
@@ -160,10 +172,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                 ({suggestions, warnings}) => {
                     try {
                         if (warnings.length) {
-                            setError([
-                                ...error,
-                                ...warnings
-                            ]);
+                            setErrorSafe(warnings)
                             reject(warnings);
                         }
                         setData(suggestions);
@@ -248,7 +257,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                 const error = err.failedRules
                     ? err.failedRules
                     : [{error: err}];
-                setError(error);
+                setErrorSafe(error);
             },
             () => setLoading(false)
         );
