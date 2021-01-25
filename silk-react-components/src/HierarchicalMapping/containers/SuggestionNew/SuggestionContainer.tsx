@@ -76,6 +76,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     const portalContainerRef = useRef();
 
     const vocabsAvailable = vocabularies && vocabularies.length > 0
+    const noVocabsAvailable = vocabularies && vocabularies.length === 0
 
     const [selectedVocabs, setSelectedVocabs] = useState<string[]>([])
 
@@ -330,6 +331,12 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                                 }
                             </ul>
                         </Notification>
+                        <Spacing size="small" />
+                    </>
+                }
+                {
+                    (noVocabsAvailable) && <>
+                        <Notification>There is currently no vocabulary loaded for this transformation. Vocabulary matching is not available.</Notification>
                         <Spacing size="small" />
                     </>
                 }
