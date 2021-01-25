@@ -21,7 +21,10 @@ export default function ColumnFilter({ filters, onApplyFilter, selectedFilter }:
     const handleApplyFilter = (filter: string) => {
         onApplyFilter(filter);
     }
-    return <ContextMenu portalContainer={context.portalContainer}>
+    return <ContextMenu
+        portalContainer={context.portalContainer}
+        togglerElement={selectedFilter ? "operation-filteredit" : "operation-filter"}
+    >
         {
             filters.map(filter => <MenuItem
                 key={filter.action}
