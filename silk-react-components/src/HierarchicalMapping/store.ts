@@ -457,12 +457,13 @@ export const getSuggestionsAsync = (data: ISuggestAsyncProps,
             const suggestions = [];
             if (vocabDatasetsResponse.data) {
                 vocabDatasetsResponse.data.map(match => {
-                    const {uri: sourceUri, description, label, candidates} = match;
+                    const {uri: sourceUri, description, label, candidates, graph} = match;
                     suggestions.push({
                         uri: sourceUri,
                         candidates,
                         description,
-                        label
+                        label,
+                        graph,
                     });
                 });
 
