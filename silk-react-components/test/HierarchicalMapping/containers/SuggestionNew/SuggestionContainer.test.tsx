@@ -98,7 +98,8 @@ jest.mock('../../../../src/HierarchicalMapping/store', () => {
         schemaExampleValuesAsync: jest.fn().mockImplementation(jest.fn().mockReturnValue({ subscribe: fetchExampleValuesMock})),
         prefixesAsync: jest.fn().mockImplementation(jest.fn().mockReturnValue({ subscribe: fetchPrefixes})),
         generateRuleAsync: jest.fn().mockImplementation(jest.fn().mockReturnValue({ subscribe: jest.fn()})),
-        getApiDetails: jest.fn().mockImplementation(apiDetails)
+        getApiDetails: jest.fn().mockImplementation(apiDetails),
+        useApiDetails: jest.fn().mockImplementation(apiDetails),
     }
 });
 
@@ -111,7 +112,8 @@ jest.mock('../../../../src/api/silkRestApi', () => {
     })
     return {
         ...jest.requireActual('../../../../src/api/silkRestApi'),
-        retrieveTransformVocabularyInfos: jest.fn().mockImplementation(mockVocabularyInfos)
+        retrieveTransformVocabularyInfos: jest.fn().mockImplementation(mockVocabularyInfos),
+        initFrontendInfo: jest.fn().mockImplementation(mockVocabularyInfos), // No valid value, but doesn't matter.
     }
 })
 
