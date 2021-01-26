@@ -174,6 +174,7 @@ export function CreateArtefactModal() {
                 }
             }
         } finally {
+            setSearchValue("");
             setActionLoading(false);
         }
     };
