@@ -47,19 +47,25 @@ interface IProps {
     ratioSelection: number;
 }
 
-const checkAllFilterOptions = [{
-    text: 'Select all page items',
-    value: 'page_select',
-},{
-    text: 'Select all items',
-    value: 'all_select',
-},{
-    text: 'Unselect all page items',
-    value: 'page_unselect',
-},{
-    text: 'Unselect all items',
-    value: 'all_unselect',
-}];
+const checkAllFilterOptions = [
+    // FIXME: Select all page items is not additive
+    // {
+    //     text: 'Select items on current page',
+    //     value: 'page_select',
+    // },
+    {
+        text: 'Select all items',
+        value: 'all_select',
+    },
+    // {
+    //     text: 'Unselect all items on current page',
+    //     value: 'page_unselect',
+    // },
+    {
+        text: 'Unselect all items',
+        value: 'all_unselect',
+    }
+];
 
 export default function STableHeader({
      headers,
