@@ -1,20 +1,22 @@
 package org.silkframework.plugins.dataset.rdf.access
 
-import java.io.{BufferedOutputStream, File, FileOutputStream, OutputStream}
-import java.nio.file.Files
-import java.util.logging.Logger
 import org.silkframework.config.Prefixes
-import org.silkframework.dataset.rdf.{GraphStoreFileUploadTrait, GraphStoreTrait, Quad}
 import org.silkframework.dataset._
-import org.silkframework.entity.{Link, StringValueType, ValueType}
+import org.silkframework.dataset.rdf.{GraphStoreFileUploadTrait, GraphStoreTrait}
+import org.silkframework.entity.{Link, ValueType}
 import org.silkframework.plugins.dataset.rdf.formatters.RdfFormatter
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
+import java.io.{BufferedOutputStream, File, FileOutputStream, OutputStream}
+import java.nio.file.Files
+import java.util.logging.Logger
 import scala.util.Try
 
 /**
   * An RDF sink based on the graph store protocol.
+  *
+  * @param graphTypeUri If defined, an extra statement "<graphURI> rdf:type <writeGraphType>" will be written.
   *
   * @see https://www.w3.org/TR/sparql11-http-rdf-update/
   */
@@ -23,7 +25,7 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
                           formatterOpt: Option[RdfFormatter],
                           comment: Option[String],
                           dropGraphOnClear: Boolean,
-                          writeGraphType: Boolean) extends EntitySink with LinkSink with TripleSink with RdfSink {
+                          graphTypeUri: Option[String] = None) extends EntitySink with LinkSink with TripleSink with RdfSink {
 
   private var properties = Seq[TypedProperty]()
   private var output: Option[OutputStream] = None
@@ -75,8 +77,8 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
       output = initOutputStream
       log.fine("Initialized graph store sink.")
     }
-    if (writeGraphType) {
-      writeTriple(this.graphUri, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", "http://com.eccenca.di.rdf.namespaces.di.dataset", ValueType.URI)
+    for(typeUri <- graphTypeUri) {
+      writeTriple(this.graphUri, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", typeUri, ValueType.URI)
       log.fine("Type to indicate that the dataset was written by Dataintegration was set.")
     }
   }
