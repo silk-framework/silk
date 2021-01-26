@@ -348,6 +348,8 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
     }
 
+    const askForDiscardFn = () => onAskDiscardChanges(ruleId)
+
     console.log(document.body);
 
     return (
@@ -380,7 +382,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                                 onSwapAction={handleSwapAction}
                                 onAdd={handleAdd}
                                 onClose={onClose}
-                                onAskDiscardChanges={onAskDiscardChanges}
+                                onAskDiscardChanges={askForDiscardFn}
                                 loading={loading}
                             />
                         </TableContainer>

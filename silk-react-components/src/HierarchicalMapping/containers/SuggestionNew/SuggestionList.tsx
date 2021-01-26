@@ -48,7 +48,7 @@ interface IProps {
     onSwapAction();
 
     // call parent discard(cancel) action
-    onAskDiscardChanges(e);
+    onAskDiscardChanges();
 
     // Close suggestions (when nothing is selected)
     onClose()
@@ -444,7 +444,7 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
                 <Button affirmative={allRows.length > 0} disabled={allRows.length < 1} onClick={handleAdd} data-test-id='add_button'>
                     Add ({selectedSources.length})
                 </Button>
-                <Button onClick={(e) => selectedSources.length > 0 ? onAskDiscardChanges(e) : onClose()}>Cancel</Button>
+                <Button onClick={() => selectedSources.length > 0 ? onAskDiscardChanges() : onClose()}>Cancel</Button>
             </CardActions>
             <AlertDialog
                 warning={true}
