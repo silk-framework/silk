@@ -5,8 +5,8 @@ import {
     OverviewItem,
     OverviewItemDescription,
     OverviewItemLine,
-    OverviewItemActions,
     OverflowText,
+    Spacing,
     TableCell,
     TableRow,
     Toolbar,
@@ -50,21 +50,23 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
             {
                 context.isFromDataset
                     ? <SourceCellData label={uri} search={search}/>
-                    : <>
-                        <OverviewItem>
-                            <OverviewItemDescription>
-                                {row.label && <OverviewItemLine><OverflowText><Highlighter label={row.label} searchValue={search}/></OverflowText></OverviewItemLine>}
-                                {row.uri && <OverviewItemLine><OverflowText><Highlighter label={row.uri} searchValue={search}/></OverflowText></OverviewItemLine>}
-                                {
-                                    row.description &&
-                                    <OverviewItemLine><OverflowText><Highlighter label={row.description} searchValue={search}/></OverflowText></OverviewItemLine>
-                                }
-                            </OverviewItemDescription>
-                            <OverviewItemActions>
-                                <TargetInfoBox selectedTarget={row} />
-                            </OverviewItemActions>
-                        </OverviewItem>
-                    </>
+                    : <Toolbar noWrap={true}>
+                        <ToolbarSection canShrink={true}>
+                            <OverviewItem>
+                                <OverviewItemDescription>
+                                    {row.label && <OverviewItemLine><OverflowText><Highlighter label={row.label} searchValue={search}/></OverflowText></OverviewItemLine>}
+                                    {row.uri && <OverviewItemLine><OverflowText><Highlighter label={row.uri} searchValue={search}/></OverflowText></OverviewItemLine>}
+                                    {
+                                        row.description &&
+                                        <OverviewItemLine><OverflowText><Highlighter label={row.description} searchValue={search}/></OverflowText></OverviewItemLine>
+                                    }
+                                </OverviewItemDescription>
+                            </OverviewItem>
+                        </ToolbarSection>
+                        <ToolbarSection>
+                            <TargetInfoBox selectedTarget={row} />
+                        </ToolbarSection>
+                    </Toolbar>
             }
         </TableCell>
         <TableCell>
@@ -76,12 +78,13 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
                     <TargetList targets={candidates} onChange={handleModifyTarget}/>
                 </ToolbarSection>
                 <ToolbarSection>
-                {
-                    context.isFromDataset
-                        ? <TargetInfoBox selectedTarget={selectedTarget}/>
-                        : <ExampleInfoBox source={selectedTarget.uri}/>
+                    <Spacing vertical={true} size="tiny" />
+                    {
+                        context.isFromDataset
+                            ? <TargetInfoBox selectedTarget={selectedTarget}/>
+                            : <ExampleInfoBox source={selectedTarget.uri}/>
 
-                }
+                    }
                 </ToolbarSection>
             </Toolbar>
         </TableCell>

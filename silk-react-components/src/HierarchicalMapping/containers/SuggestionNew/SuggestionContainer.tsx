@@ -350,8 +350,6 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
     const askForDiscardFn = () => onAskDiscardChanges(ruleId)
 
-    console.log(document.body);
-
     return (
         <Card>
             <CardHeader>

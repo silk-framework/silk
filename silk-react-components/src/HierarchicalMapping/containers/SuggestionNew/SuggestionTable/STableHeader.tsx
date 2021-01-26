@@ -95,7 +95,7 @@ export default function STableHeader({
         <TableRow>
             <TableHeader>
                 <Toolbar>
-                    <ToolbarSection noWrap={true}>
+                    <ToolbarSection>
                         <ContextMenu
                             portalContainer={portalContainer}
                             togglerElement={ratioSelection === 0 ? "state-unchecked" : ratioSelection === 1 ? "state-checked" : "state-partlychecked"}
