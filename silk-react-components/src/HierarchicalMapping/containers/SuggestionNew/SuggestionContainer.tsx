@@ -379,6 +379,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                                 prefixList={prefixList}
                                 onSwapAction={handleSwapAction}
                                 onAdd={handleAdd}
+                                onClose={onClose}
                                 onAskDiscardChanges={onAskDiscardChanges}
                                 loading={loading}
                             />

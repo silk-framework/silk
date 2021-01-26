@@ -48,13 +48,16 @@ interface IProps {
     onSwapAction();
 
     // call parent discard(cancel) action
-    onAskDiscardChanges();
+    onAskDiscardChanges(e);
+
+    // Close suggestions (when nothing is selected)
+    onClose()
 
     // call parent add action
     onAdd(selected: IAddedSuggestion[], selectedPrefix: string);
 }
 
-export default function SuggestionList({rows, prefixList, loading, onSwapAction, onAskDiscardChanges, onAdd}: IProps) {
+export default function SuggestionList({rows, prefixList, loading, onSwapAction, onAskDiscardChanges, onAdd, onClose}: IProps) {
     const context = useContext(SuggestionListContext);
 
     const [headers, setHeaders] = useState<ITableHeader[]>(
@@ -441,7 +444,7 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
                 <Button affirmative={allRows.length > 0} disabled={allRows.length < 1} onClick={handleAdd} data-test-id='add_button'>
                     Add ({selectedSources.length})
                 </Button>
-                <Button onClick={onAskDiscardChanges}>Cancel</Button>
+                <Button onClick={(e) => selectedSources.length > 0 ? onAskDiscardChanges(e) : onClose()}>Cancel</Button>
             </CardActions>
             <AlertDialog
                 warning={true}
