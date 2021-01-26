@@ -196,7 +196,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     // Load example values for the source paths. This will be shown in an info box / tooltip
     const loadExampleValues = () => {
         return new Promise((resolve, reject) => {
-            schemaExampleValuesAsync().subscribe(
+            schemaExampleValuesAsync(ruleId).subscribe(
                 (data) => {
                     setExampleValues(data);
                     resolve(data);

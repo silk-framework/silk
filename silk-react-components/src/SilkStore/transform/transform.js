@@ -395,11 +395,11 @@ silkStore
 silkStore
     .subject('transform.task.rule.example')
     .subscribe(({data, replySubject}) => {
-        const {baseUrl, project, transformTask} = data;
-        
+        const {baseUrl, project, transformTask, ruleId} = data;
+        const ruleIdQuery = ruleId ? `?ruleId=${encodeURIComponent(ruleId)}` : ""
         superagent
             .get(
-                `${baseUrl}/profiling/schemaClass/${project}/${transformTask}/ruleExampleValues`
+                `${baseUrl}/profiling/schemaClass/${project}/${transformTask}/ruleExampleValues${ruleIdQuery}`
             )
             .accept('application/json')
             .observe()

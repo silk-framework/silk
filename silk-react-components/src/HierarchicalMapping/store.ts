@@ -658,7 +658,7 @@ export const copyRuleAsync = data => {
         .map(returned => returned.body.id);
 };
 
-export const schemaExampleValuesAsync = () => {
+export const schemaExampleValuesAsync = (ruleId: string) => {
     const {baseUrl, project, transformTask} = getApiDetails();
     return silkStore
         .request({
@@ -667,6 +667,7 @@ export const schemaExampleValuesAsync = () => {
                 baseUrl,
                 project,
                 transformTask,
+                ruleId,
             },
         })
         .map(returned => returned.body);
