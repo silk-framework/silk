@@ -167,7 +167,7 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
         const filteredRows = filterRowsByColumnModifier(columnFilters, selectedSources, arr);
         setFilteredRows(filteredRows);
 
-        const ordered = sortRows(filteredRows, sortDirections);
+        const ordered = sortRows(filteredRows, sortDirections, context.isFromDataset);
         setPageRows(
             paginate(ordered, pagination)
         );
@@ -283,7 +283,7 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
             newDirection.column = headerKey;
             newDirection.modifier = direction;
 
-            sortedArray = sortRows(filteredRows, newDirection);
+            sortedArray = sortRows(filteredRows, newDirection, context.isFromDataset);
         }
         setSortDirections(newDirection);
 
