@@ -27,6 +27,7 @@ import {SuggestionListContext} from "./SuggestionContainer";
 import {PrefixDialog} from "./PrefixDialog";
 import {filterRowsByColumnModifier, sortRows} from "./utils";
 import AppliedFilters from "./AppliedFilters";
+import {Set} from "immutable"
 
 interface IPagination {
     // store current page number
@@ -85,7 +86,7 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
     });
 
     // stored selected source labels or uris
-    const [selectedSources, setSelectedSources] = useState<string[]>([]);
+    const [selectedSources, setSelectedSources] = useState<Set<string>>(Set<string>());
 
     // store hashmap for source->target, invert values on swap action
     const [sourceToTargetMap, setSourceToTargetMap] = useState<IPlainObject>({});
@@ -127,7 +128,7 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
             };
 
             // keep changes for selected items only after swap action
-            if (selectedSources.includes(row.uri)) {
+            if (selectedSources.has(row.uri)) {
                 modifiedRow.candidates = modifiedRow.candidates.map(targetItem => {
                     const {label, description, uri, type, confidence} = targetItem;
                     return {
@@ -190,16 +191,12 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
     };
 
     const toggleRowSelect = ({uri, candidates}: IPageSuggestion) => {
-        const selectedRow = selectedSources.find(selected => selected === uri);
-        if (selectedRow) {
+        if (selectedSources.has(uri)) {
             setSelectedSources(
-                selectedSources.filter(selected => selected !== uri)
+                selectedSources.delete(uri)
             );
         } else {
-            setSelectedSources(prevState => ([
-                ...prevState,
-                uri,
-            ]));
+            setSelectedSources(prevState => prevState.add(uri));
             updateRelations(uri, candidates);
         }
     };
@@ -207,15 +204,16 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
     const toggleSelectAll = (scope: 'all' | 'page', action: 'select' | 'unselect') => {
         const scopeRows = scope === 'all' ? allRows : pageRows;
         if (action === 'select') {
-            setSelectedSources(
-                scopeRows.map(row => {
-                    updateRelations(row.uri, row.candidates);
-                    return row.uri;
-                })
+            setSelectedSources(Set(
+                    scopeRows.map(row => {
+                        updateRelations(row.uri, row.candidates);
+                        return row.uri;
+                    })
+                )
             );
         } else {
             if (scope === 'all')  {
-                setSelectedSources([]);
+                setSelectedSources(Set());
             } else {
                 const pageRowSources = pageRows.map(r => r.uri);
                 setSelectedSources(
@@ -262,7 +260,7 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
           }
         }
 
-        onAdd(addedRows, prefix);
+        onAdd(addedRows.toArray(), prefix);
     }
 
     const handleSort = (headerKey: string) => {
@@ -380,7 +378,7 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
         }
     }
 
-    const isAllSelected = () => filteredRows.length && pageRows.length === selectedSources.length;
+    const isAllSelected = () => filteredRows.length && pageRows.length === selectedSources.size;
 
     return loading ? <Spinner/> :
         <>
@@ -409,7 +407,7 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
                             onApplyFilter={handleFilterColumn}
                             sortDirections={sortDirections}
                             appliedFilters={columnFilters}
-                            ratioSelection={selectedSources.length / rows.length}
+                            ratioSelection={selectedSources.size / rows.length}
                         />
                         {
                             filteredRows.length > 0 && <STableBody
@@ -442,9 +440,9 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
             <Spacing size="small"/>
             <CardActions>
                 <Button affirmative={allRows.length > 0} disabled={allRows.length < 1} onClick={handleAdd} data-test-id='add_button'>
-                    Add ({selectedSources.length})
+                    Add ({selectedSources.size})
                 </Button>
-                <Button onClick={() => selectedSources.length > 0 ? onAskDiscardChanges() : onClose()}>Cancel</Button>
+                <Button onClick={() => selectedSources.size > 0 ? onAskDiscardChanges() : onClose()}>Cancel</Button>
             </CardActions>
             <AlertDialog
                 warning={true}

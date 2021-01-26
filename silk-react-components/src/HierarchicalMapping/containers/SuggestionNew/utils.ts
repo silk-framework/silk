@@ -8,8 +8,9 @@ import {
 } from "./suggestion.typings";
 import {FILTER_ACTIONS} from "./constants";
 import _ from "lodash";
+import {Set} from "immutable"
 
-export const filterRowsByColumnModifier = (filters: {[key: string]: string}, selectedSources: string[], rows: IPageSuggestion[]): IPageSuggestion[] => {
+export const filterRowsByColumnModifier = (filters: {[key: string]: string}, selectedSources: Set<string>, rows: IPageSuggestion[]): IPageSuggestion[] => {
     let filteredResults = [...rows];
 
     Object.values(filters).forEach(filter => {
@@ -18,8 +19,8 @@ export const filterRowsByColumnModifier = (filters: {[key: string]: string}, sel
             case FILTER_ACTIONS.SHOW_UNSELECTED: {
                 filteredResults = filteredResults.filter(
                     row => filter === FILTER_ACTIONS.SHOW_SELECTED
-                        ? selectedSources.includes(row.uri)
-                        : !selectedSources.includes(row.uri)
+                        ? selectedSources.has(row.uri)
+                        : !selectedSources.has(row.uri)
                 );
                 break;
             }
