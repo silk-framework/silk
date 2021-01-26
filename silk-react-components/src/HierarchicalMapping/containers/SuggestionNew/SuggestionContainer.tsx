@@ -1,4 +1,4 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     Button,
     Card,
@@ -28,7 +28,7 @@ import {IInitFrontend, useInitFrontend} from "../../../api/silkRestApi.hooks";
 
 interface ISuggestionListContext {
     // Can be deleted when popup issue gone
-    portalContainer: HTMLDivElement;
+    portalContainer: HTMLElement;
     // sharing example values for source data
     exampleValues: {
         [key: string]: string[]
@@ -75,8 +75,6 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     const [exampleValues, setExampleValues] = useState({});
 
     const [prefixList, setPrefixList] = useState([]);
-
-    const portalContainerRef = useRef();
 
     const vocabulariesAvailable = vocabularies && vocabularies.length > 0
     const noVocabsAvailable = vocabularies && vocabularies.length === 0
@@ -350,6 +348,8 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
     }
 
+    console.log(document.body);
+
     return (
         <Card>
             <CardHeader>
@@ -363,38 +363,36 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                 {errorWidget}
                 {vocabularyInfoNotification}
                 {
-                    <div ref={portalContainerRef}>
-                        <SuggestionListContext.Provider value={{
-                            portalContainer: portalContainerRef.current,
-                            exampleValues,
-                            search: submittedSearch,
-                            isFromDataset,
-                            frontendInitData,
-                            vocabulariesAvailable,
-                        }}>
-                            <SuggestionHeader onSearch={handleSearch} />
-                            <Spacing size="tiny" />
-                            <TableContainer>
-                                <SuggestionList
-                                    rows={filteredData}
-                                    prefixList={prefixList}
-                                    onSwapAction={handleSwapAction}
-                                    onAdd={handleAdd}
-                                    onAskDiscardChanges={onAskDiscardChanges}
-                                    loading={loading}
-                                />
-                            </TableContainer>
-                            {showMatchingDialog && vocabulariesAvailable &&
-                                <VocabularyMatchingDialog
-                                    availableVocabularies={vocabularies}
-                                    onClose={() => setShowMatchingDialog(false)}
-                                    executeMatching={executeVocabMatchingFromDialog}
-                                    onSelection={handleSelectedVocabs}
-                                    preselection={selectedVocabs}
-                                />
-                            }
-                        </SuggestionListContext.Provider>
-                    </div>
+                    <SuggestionListContext.Provider value={{
+                        portalContainer: document.body,
+                        exampleValues,
+                        search: submittedSearch,
+                        isFromDataset,
+                        frontendInitData,
+                        vocabulariesAvailable,
+                    }}>
+                        <SuggestionHeader onSearch={handleSearch} />
+                        <Spacing size="tiny" />
+                        <TableContainer>
+                            <SuggestionList
+                                rows={filteredData}
+                                prefixList={prefixList}
+                                onSwapAction={handleSwapAction}
+                                onAdd={handleAdd}
+                                onAskDiscardChanges={onAskDiscardChanges}
+                                loading={loading}
+                            />
+                        </TableContainer>
+                        {showMatchingDialog && vocabulariesAvailable &&
+                            <VocabularyMatchingDialog
+                                availableVocabularies={vocabularies}
+                                onClose={() => setShowMatchingDialog(false)}
+                                executeMatching={executeVocabMatchingFromDialog}
+                                onSelection={handleSelectedVocabs}
+                                preselection={selectedVocabs}
+                            />
+                        }
+                    </SuggestionListContext.Provider>
                 }
             </CardContent>
         </Card>
