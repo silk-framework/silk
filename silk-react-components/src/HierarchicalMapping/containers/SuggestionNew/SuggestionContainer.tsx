@@ -305,8 +305,8 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     // Actions regarding vocabulary matching, e.g. matching dialog
     const mappingOptions = <CardOptions>
             { vocabulariesAvailable && (
-                <Button affirmative onClick={() => setShowMatchingDialog(true)} data-test-id={'find_matches'}>
-                    Find Matches
+                <Button onClick={() => setShowMatchingDialog(true)} data-test-id={'find_matches'}>
+                    Refine matches
                 </Button>
             )}
         </CardOptions>

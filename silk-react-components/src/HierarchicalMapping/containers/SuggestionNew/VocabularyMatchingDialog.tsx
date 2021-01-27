@@ -88,7 +88,7 @@ export default function VocabularyMatchingDialog(
     return <SimpleDialog
         portalContainer={context.portalContainer}
         size="small"
-        title={"Vocabulary matching"}
+        title={"Refine matching options"}
         isOpen={true}
         onClose={handleCancel}
         actions={[
@@ -101,7 +101,7 @@ export default function VocabularyMatchingDialog(
                 }
                 data-test-id={"vocab-match-execute-btn"}
             >
-                Match
+                Refine matches
             </Button>,
             <Button key="cancel" onClick={handleCancel}>
                 Cancel
@@ -109,7 +109,7 @@ export default function VocabularyMatchingDialog(
         ]}>
         <FieldItem
             labelAttributes={{
-                text: "Select vocabularies",
+                text: "Select vocabularies used to match data attributes",
                 htmlFor: "vocselect",
             }}
         >
