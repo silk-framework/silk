@@ -1,4 +1,4 @@
-import {Button, FieldItem, Label, MenuItem, Select, SimpleDialog} from "@gui-elements/index";
+import {Button, FieldItem, MenuItem, Select, SimpleDialog} from "@gui-elements/index";
 import React, {useContext, useEffect, useState} from "react";
 import {IVocabularyInfo} from "./suggestion.typings";
 import {SuggestionListContext} from "./SuggestionContainer";
@@ -47,7 +47,7 @@ export default function VocabularyMatchingDialog(
 
     const renderVocabulary = (vocabInfo: IVocabularyInfo, { modifiers, handleClick }) => {
         return <MenuItem
-            icon={vocabSelected(vocabInfo) && "item-remove"}
+            icon={vocabSelected(vocabInfo) ? "state-checked" : "state-unchecked" }
             active={modifiers.active}
             key={vocabInfo.uri}
             label={"property count: " + vocabInfo.nrProperties}
@@ -77,6 +77,11 @@ export default function VocabularyMatchingDialog(
         setSelectedVocabs([])
     }
 
+    const handleCancel = () => {
+        // TODO: set back to initial selection
+        onClose();
+    }
+
     const clearButton =
         selectedVocabs.length > 0 ? <Button icon="operation-clear" minimal={true} onClick={handleClear} /> : undefined;
 
@@ -85,7 +90,7 @@ export default function VocabularyMatchingDialog(
         size="small"
         title={"Vocabulary matching"}
         isOpen={true}
-        onClose={onClose}
+        onClose={handleCancel}
         actions={[
             <Button
                 key="match"
@@ -98,31 +103,40 @@ export default function VocabularyMatchingDialog(
             >
                 Match
             </Button>,
-            <Button key="cancel" onClick={onClose}>
+            <Button key="cancel" onClick={handleCancel}>
                 Cancel
             </Button>,
         ]}>
-        <p>Select vocabularies:</p>
-        <VocabularyMultiSelect
-            popoverProps={{
-                portalContainer: context.portalContainer,
-                minimal: true,
-                fill: true,
-                position: "bottom-left"
+        <FieldItem
+            labelAttributes={{
+                text: "Select vocabularies",
+                htmlFor: "vocselect",
             }}
-            fill={true}
-            itemRenderer={renderVocabulary}
-            itemsEqual={((a, b) => a.uri === b.uri)}
-            items={availableVocabularies}
-            noResults={<MenuItem disabled={true} text="No results."/>}
-            onItemSelect={handleVocabSelect}
-            tagRenderer={(vocab) => vocabLabel(vocab)}
-            tagInputProps={{
-                onRemove: handleVocabRemove,
-                rightElement: clearButton,
-                tagProps: {minimal: true},
-            }}
-            selectedItems={selectedVocabs}
-        />
+        >
+            <VocabularyMultiSelect
+                popoverProps={{
+                    portalContainer: context.portalContainer,
+                    minimal: true,
+                    fill: true,
+                    position: "bottom-left"
+                }}
+                fill={true}
+                itemRenderer={renderVocabulary}
+                itemsEqual={((a, b) => a.uri === b.uri)}
+                items={availableVocabularies}
+                noResults={<MenuItem disabled={true} text="No results."/>}
+                onItemSelect={handleVocabSelect}
+                tagRenderer={(vocab) => vocabLabel(vocab)}
+                tagInputProps={{
+                    inputProps: {
+                        id: "vocselect",
+                    },
+                    onRemove: handleVocabRemove,
+                    rightElement: clearButton,
+                    tagProps: {minimal: true},
+                }}
+                selectedItems={selectedVocabs}
+            />
+        </FieldItem>
     </SimpleDialog>
 }
