@@ -439,7 +439,7 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
             }
             <Spacing size="small"/>
             <CardActions>
-                <Button affirmative={allRows.length > 0} disabled={allRows.length < 1} onClick={handleAdd} data-test-id='add_button'>
+                <Button affirmative={allRows.length > 0} disabled={allRows.length < 1 || selectedSources.size === 0} onClick={handleAdd} data-test-id='add_button'>
                     Add ({selectedSources.size})
                 </Button>
                 <Button onClick={() => selectedSources.size > 0 ? onAskDiscardChanges() : onClose()}>Cancel</Button>
