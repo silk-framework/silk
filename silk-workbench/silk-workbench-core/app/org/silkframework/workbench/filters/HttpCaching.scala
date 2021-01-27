@@ -5,7 +5,6 @@ import javax.inject.Inject
 import play.api.http.HeaderNames._
 import play.api.mvc.{Filter, RequestHeader, Result}
 
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
 /**

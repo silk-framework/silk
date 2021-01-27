@@ -50,7 +50,7 @@ lazy val commonSettings = Seq(
     }
   },
   // Building
-  scalaVersion := "2.11.12",
+  scalaVersion := "2.12.10",
   publishTo := {
     val artifactory = "https://artifactory.eccenca.com/"
     // Assumes that version strings for releases, e.g. v3.0.0 or v3.0.0-rc3, do not have a postfix of length 5 or longer.
@@ -65,8 +65,8 @@ lazy val commonSettings = Seq(
   publishArtifact in (Test, packageBin) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
   publishArtifact in (Test, packageSrc) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
   // Testing
-  libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.7" % "test",
-  libraryDependencies += "net.codingwell" %% "scala-guice" % "4.0.0" % "test",
+  libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.9" % "test",
+  libraryDependencies += "net.codingwell" %% "scala-guice" % "4.2.11" % "test",
   libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.11",
   libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % "test",
   libraryDependencies += "com.google.inject" % "guice" % "4.0" % "test",
@@ -106,8 +106,7 @@ lazy val core = (project in file("silk-core"))
   .settings(
     name := "Silk Core",
     libraryDependencies += "com.typesafe" % "config" % "1.3.1", // Should always use the same version as the Play Framework dependency
-    libraryDependencies += "com.rockymadden.stringmetric" % "stringmetric-core_2.11" % "0.27.4",
-    libraryDependencies += "com.thoughtworks.paranamer" % "paranamer" % "2.7",
+    libraryDependencies += "com.github.halfmatthalfcat" %% "stringmetric-core" % "0.28.0",
     // Additional scala standard libraries
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.1.0",
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
@@ -139,7 +138,7 @@ lazy val workspace = (project in file("silk-workspace"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workspace",
-    libraryDependencies += "com.typesafe.play" % "play-ws_2.11" % "2.6.23"
+    libraryDependencies += "com.typesafe.play" %% "play-ws" % "2.6.23"
   )
 
 /////////////////////////////////////////////// ///////////////////////////////
@@ -179,7 +178,7 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
     libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.8.6",
     libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.6",
     libraryDependencies += "com.fasterxml.jackson.dataformat" % "jackson-dataformat-xml" % "2.8.6",
-    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.6.12",
+    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.12",
     libraryDependencies += "org.json" % "json" % "20201115"
   )
 
@@ -210,7 +209,7 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Serialization JSON",
-    libraryDependencies += "com.typesafe.play" % "play-json_2.11" % "2.6.12"
+    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.12"
   )
 
 // Aggregate all plugins
@@ -381,18 +380,18 @@ lazy val singlemachine = (project in file("silk-tools/silk-singlemachine"))
     }
   )
 
-lazy val mapreduce = (project in file("silk-tools/silk-mapreduce"))
-  .dependsOn(core, plugins)
-  .aggregate(core, plugins)
-  .settings(commonSettings: _*)
-  .settings(
-    name := "Silk MapReduce"
-  )
+//lazy val mapreduce = (project in file("silk-tools/silk-mapreduce"))
+//  .dependsOn(core, plugins)
+//  .aggregate(core, plugins)
+//  .settings(commonSettings: _*)
+//  .settings(
+//    name := "Silk MapReduce"
+//  )
 
 //////////////////////////////////////////////////////////////////////////////
 // Root
 //////////////////////////////////////////////////////////////////////////////
 
 lazy val root = (project in file("."))
-  .aggregate(core, plugins, mapreduce, singlemachine, learning, workspace, workbench)
+  .aggregate(core, plugins, singlemachine, learning, workspace, workbench)
   .settings(commonSettings: _*)

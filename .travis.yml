@@ -3,7 +3,7 @@ language: scala
 jdk:
   - openjdk8
 scala:
-  - 2.11.12
+  - 2.12.10
 
 before_install:
   - nvm install 12.16.1

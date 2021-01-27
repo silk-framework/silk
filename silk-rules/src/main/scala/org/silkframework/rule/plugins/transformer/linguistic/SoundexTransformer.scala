@@ -1,6 +1,6 @@
 package org.silkframework.rule.plugins.transformer.linguistic
 
-import com.rockymadden.stringmetric.phonetic.{RefinedSoundexAlgorithm, SoundexAlgorithm}
+import com.github.halfmatthalfcat.stringmetric.phonetic.{RefinedSoundexAlgorithm, SoundexAlgorithm}
 import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.annotations.Plugin
 
