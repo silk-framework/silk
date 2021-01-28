@@ -33,10 +33,14 @@ export default function VocabularyMatchingDialog(
     const [selectedVocabs, setSelectedVocabs] = useState<IVocabularyInfo[]>([])
     const [filteredVocabs, setFilteredVocabs] = useState<IVocabularyInfo[]>([])
     const [searchQuery, setSearchQuery] = useState<string | undefined>(undefined)
+    const [preselectedVocabs, setPreselectedVocabs] = useState<IVocabularyInfo[]>([])
+
+    const preselect = () => availableVocabularies.filter((v) => preselection.includes(v.uri))
 
     useEffect(() => {
         if(preselection) {
-            setSelectedVocabs(availableVocabularies.filter((v) => preselection.includes(v.uri)))
+            setSelectedVocabs(preselect())
+            setPreselectedVocabs(preselect())
         }
     }, [])
 
@@ -102,7 +106,7 @@ export default function VocabularyMatchingDialog(
     }
 
     const handleCancel = () => {
-        // TODO: set back to initial selection
+        onSelection && onSelection(preselectedVocabs)
         onClose();
     }
 
