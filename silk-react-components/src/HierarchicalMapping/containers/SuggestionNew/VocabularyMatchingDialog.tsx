@@ -1,8 +1,9 @@
-import {Button, FieldItem, MenuItem, Select, SimpleDialog} from "@gui-elements/index";
+import {Button, FieldItem, Highlighter, MenuItem, SimpleDialog} from "@gui-elements/index";
 import React, {useContext, useEffect, useState} from "react";
 import {IVocabularyInfo} from "./suggestion.typings";
 import {SuggestionListContext} from "./SuggestionContainer";
 import {MultiSelect} from "@blueprintjs/select";
+import {extractSearchWords, matchesAllWords} from "../../elements/Highlighter/Highlighter";
 
 interface IProps {
     // The available vocabularies to match against
@@ -19,7 +20,9 @@ interface IProps {
 
 const VocabularyMultiSelect = MultiSelect.ofType<IVocabularyInfo>();
 
-const vocabLabel = (vocabInfo: IVocabularyInfo) => vocabInfo.label ? vocabInfo.label : vocabInfo.uri
+const vocabLabel = (vocabInfo: IVocabularyInfo) => {
+    return vocabInfo.label ? vocabInfo.label : vocabInfo.uri
+}
 
 /** Vocabulary matching dialog that allows to match against a subset of vocabularies. */
 export default function VocabularyMatchingDialog(
@@ -28,6 +31,8 @@ export default function VocabularyMatchingDialog(
     }: IProps) {
     const context = useContext(SuggestionListContext);
     const [selectedVocabs, setSelectedVocabs] = useState<IVocabularyInfo[]>([])
+    const [filteredVocabs, setFilteredVocabs] = useState<IVocabularyInfo[]>([])
+    const [searchQuery, setSearchQuery] = useState<string | undefined>(undefined)
 
     useEffect(() => {
         if(preselection) {
@@ -41,6 +46,25 @@ export default function VocabularyMatchingDialog(
         }
     }, [selectedVocabs.map((v) => v.uri).join(",")])
 
+    useEffect(() => {
+        if(searchQuery) {
+            const searchWords = extractSearchWords(searchQuery, true)
+            const filtered = availableVocabularies.filter((vocab) => {
+                const vocabLabel = vocab.label ? vocab.label : ""
+                const searchIn = `${vocabLabel} ${vocab.uri}`.toLowerCase()
+                return matchesAllWords(searchIn, searchWords)
+            })
+            setFilteredVocabs(filtered)
+        } else {
+            setFilteredVocabs(availableVocabularies)
+        }
+    }, [searchQuery])
+
+    // Renders the entries of the (search) options list
+    const optionRenderer = (vocabInfo: IVocabularyInfo) => {
+        return <Highlighter label={vocabLabel(vocabInfo)} searchValue={searchQuery} />
+    }
+
     const vocabSelected = (vocab: IVocabularyInfo): boolean => {
         return selectedVocabs.some((v) => v.uri === vocab.uri)
     }
@@ -52,7 +76,7 @@ export default function VocabularyMatchingDialog(
             key={vocabInfo.uri}
             label={"property count: " + vocabInfo.nrProperties}
             onClick={handleClick}
-            text={vocabLabel(vocabInfo)}
+            text={optionRenderer(vocabInfo)}
             shouldDismissPopover={false}
         />
     }
@@ -85,11 +109,17 @@ export default function VocabularyMatchingDialog(
     const clearButton =
         selectedVocabs.length > 0 ? <Button icon="operation-clear" minimal={true} onClick={handleClear} /> : undefined;
 
+    const onQueryChange = (query: string) => {
+        setSearchQuery(query)
+    }
+
     return <SimpleDialog
         portalContainer={context.portalContainer}
         size="small"
         title={"Refine matching options"}
         isOpen={true}
+        preventSimpleClosing={true}
+        canOutsideClickClose={true}
         onClose={handleCancel}
         actions={[
             <Button
@@ -121,9 +151,10 @@ export default function VocabularyMatchingDialog(
                     position: "bottom-left"
                 }}
                 fill={true}
+                onQueryChange={onQueryChange}
                 itemRenderer={renderVocabulary}
                 itemsEqual={((a, b) => a.uri === b.uri)}
-                items={availableVocabularies}
+                items={filteredVocabs}
                 noResults={<MenuItem disabled={true} text="No results."/>}
                 onItemSelect={handleVocabSelect}
                 tagRenderer={(vocab) => vocabLabel(vocab)}
