@@ -28,6 +28,7 @@ import {PrefixDialog} from "./PrefixDialog";
 import {filterRowsByColumnModifier, sortRows} from "./utils";
 import AppliedFilters from "./AppliedFilters";
 import {Set} from "immutable"
+import {MAPPING_DEFAULTS} from "./constants";
 
 interface IPagination {
     // store current page number
@@ -466,7 +467,7 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
                 onAdd={handleAdd}
                 onDismiss={() => setPrefixModal(false)}
                 prefixList={prefixList}
-                selectedPrefix={localStorage.getItem('prefix') || ''}
+                selectedPrefix={localStorage.getItem('prefix') || MAPPING_DEFAULTS.DEFAULT_URI_PREFIX}
             />
         </>
 }

@@ -32,3 +32,8 @@ export const COLUMN_FILTERS: { [key: string]: IColumnFilters[] } = {
         action: FILTER_ACTIONS.SHOW_OBJECT_MAPPINGS
     }]
 };
+
+export const MAPPING_DEFAULTS = {
+    // The default prefix for generated mapping properties
+    DEFAULT_URI_PREFIX: 'urn:ruleProperty:'
+};

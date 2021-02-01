@@ -1,4 +1,4 @@
-import { Button, SimpleDialog, FieldItem, TextField, Checkbox } from "@gui-elements/index";
+import {Button, SimpleDialog, FieldItem, TextField, Checkbox, ContextMenu} from "@gui-elements/index";
 import PrefixList from "./PrefixList";
 import React, { useContext, useState } from "react";
 import { SuggestionListContext } from "./SuggestionContainer";
@@ -64,8 +64,13 @@ export function PrefixDialog({ isOpen, onAdd, onDismiss, prefixList, selectedPre
         />
         <Checkbox
             onChange={handleNotIncludePrefix}
-            label={'Not include prefix'}
+            label={'Keep source properties'}
         />
-
+        <ContextMenu
+            portalContainer={context.portalContainer}
+            togglerElement={'item-info'}
+        >
+            If checked, the source properties are transferred unchanged to the target properties.
+        </ContextMenu>
     </SimpleDialog>
 };
