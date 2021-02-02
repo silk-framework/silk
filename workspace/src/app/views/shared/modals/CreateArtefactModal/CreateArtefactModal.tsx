@@ -12,9 +12,7 @@ import {
     HelperClasses,
     Highlighter,
     HtmlContentBlock,
-    Icon,
     IconButton,
-    Link,
     Notification,
     OverflowText,
     OverviewItem,
@@ -349,13 +347,14 @@ export function CreateArtefactModal() {
                     />
                 )) ||
                 (projectArtefactSelected && (
-                    <p>
-                        <Icon name="state-info" style={{ verticalAlign: "middle" }} />{" "}
-                        {t("ProjectImportModal.restoreNotice", "Want to restore an existing project?")}{" "}
-                        <Link key="importProject" onClick={switchToProjectImport} href="#import-project">
-                            {t("ProjectImportModal.restoreStarter", "Import project file")}
-                        </Link>
-                    </p>
+                    <Notification
+                        message={t("ProjectImportModal.restoreNotice", "Want to restore an existing project?")}
+                        actions={[
+                            <Button key="importProject" onClick={switchToProjectImport} href="#import-project">
+                                {t("ProjectImportModal.restoreStarter", "Import project file")}
+                            </Button>,
+                        ]}
+                    />
                 ))
             }
         >
@@ -377,7 +376,7 @@ export function CreateArtefactModal() {
                                             description={t("CreateModal.loading", "Loading artefact type list.")}
                                         />
                                     ) : artefactListWithProject.length === 0 ? (
-                                        <p>{t("CreateModal.noMatch", "No match found.")}</p>
+                                        <Notification message={t("CreateModal.noMatch", "No match found.")} />
                                     ) : (
                                         <OverviewItemList hasSpacing columns={2}>
                                             {artefactListWithProject.map((artefact) => (
