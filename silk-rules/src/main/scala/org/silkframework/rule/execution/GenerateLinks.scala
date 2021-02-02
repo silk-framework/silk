@@ -14,10 +14,6 @@
 
 package org.silkframework.rule.execution
 
-import java.io.File
-import java.util.UUID
-import java.util.logging.{LogRecord, Logger}
-
 import org.silkframework.cache.{EntityCache, FileEntityCache, MemoryEntityCache}
 import org.silkframework.config.Task
 import org.silkframework.dataset.{DataSource, LinkSink}
@@ -26,8 +22,11 @@ import org.silkframework.rule.execution.rdb.RDBEntityIndex
 import org.silkframework.rule.{LinkSpec, LinkingExecutionBackend, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity._
 import org.silkframework.util.FileUtils._
-import org.silkframework.util.{CollectLogs, DPair, Identifier}
+import org.silkframework.util.{CollectLogs, DPair}
 
+import java.io.File
+import java.util.UUID
+import java.util.logging.{LogRecord, Logger}
 import scala.util.Try
 
 /**
@@ -98,6 +97,7 @@ class GenerateLinks(task: Task[LinkSpec],
     matcher.value.subscribe(updateLinks)
     children ::= matcher
     matcher.startBlocking()
+    updateLinks(matcher.value())
 
     stopLoading(context, loaders)
     cleanUpCaches(caches)

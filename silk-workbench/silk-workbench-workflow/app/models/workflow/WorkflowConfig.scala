@@ -21,26 +21,4 @@ object WorkflowConfig {
     }
   }
 
-  /**
-    * Given a task in the workflow, returns the URI of the corresponding details page.
-    */
-  def editorLink(taskActions: TaskActions, workflowId: Identifier): Option[String] = {
-    if(ProductionConfig.betaWorkspaceSwitchEnabled) {
-      val projectId = taskActions.task.project.name
-      val taskId = taskActions.task.id
-      val taskType = taskActions.task.data match {
-        case _: GenericDatasetSpec => "dataset"
-        case _: TransformSpec => "transform"
-        case _: LinkSpec => "linking"
-        case _: Workflow => "workflow"
-        case _ => "task"
-      }
-      Some(s"${config.baseUrl}/workbench/projects/$projectId/$taskType/$taskId")
-    } else {
-      for(path <- taskActions.openPath(Some(workflowId), Some(taskActions.task.id.toString))) yield {
-        s"${config.baseUrl}/$path"
-      }
-    }
-  }
-
 }

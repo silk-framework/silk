@@ -1,19 +1,28 @@
 package controllers.workspaceApi.coreApi
 
-import controllers.util.{SerializationUtils, TextSearchUtils}
+import config.WorkbenchLinks
+import controllers.core.RequestUserContextAction
+import controllers.util.{PluginUsageCollector, SerializationUtils, TextSearchUtils}
+
 import javax.inject.Inject
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
-import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.rule.input.{Input, PathInput, TransformInput}
+import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
+import org.silkframework.rule.{LinkSpec, Operator, TransformRule, TransformSpec}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{PluginDescription, PluginList, PluginRegistry}
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.serialization.json.PluginSerializers.PluginListJsonFormat
+import org.silkframework.util.Identifier
+import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.workflow.Workflow
-import play.api.libs.json.{JsObject, JsString, JsValue, Json}
+import play.api.libs.json.{JsArray, JsObject, JsString, JsValue, Json}
 import play.api.mvc._
 
 import scala.collection.immutable.ListMap
+import scala.collection.mutable
 
 /**
   * Workspace task plugin related endpoints.
@@ -49,6 +58,25 @@ class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedControlle
       case None =>
         NotFound
     }
+  }
+
+  def pluginUsages(pluginId: String): Action[AnyContent] = RequestUserContextAction { request =>implicit userContext =>
+    val usages = mutable.Buffer[JsObject]()
+
+    for(project <- WorkspaceFactory().workspace.projects) {
+      for(task <- project.allTasks) {
+        val pluginIds = PluginUsageCollector.pluginUsages(task.data)
+        if(pluginIds.contains(pluginId)) {
+          usages += Json.obj(
+            "project" -> project.name.toString,
+            "task" -> task.id.toString,
+            "link" -> WorkbenchLinks.editorLink(task)
+          )
+        }
+      }
+    }
+
+    Ok(JsArray(usages))
   }
 
   private def result(pretty: Boolean, resultJson: JsValue): Result = {

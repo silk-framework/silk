@@ -4,7 +4,7 @@ import java.io.{File, InputStream}
 import java.time.Instant
 import java.util.zip.{ZipEntry, ZipFile}
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import org.silkframework.runtime.resource.{Resource, ResourceLoader, ResourceNotFoundException}
 
 /**
@@ -20,7 +20,7 @@ case class ZipFileResourceLoader(zip: ZipFile, basePath: String) extends Resourc
     * Lists all available files at the given base path.
     */
   override def list: List[String] = {
-    val filesBelowBasePath = zip.entries.toList.filterNot(_.isDirectory).filter(_.getName.startsWith(basePath)).map(_.getName.stripPrefix(basePath + "/"))
+    val filesBelowBasePath = zip.entries.asScala.toList.filterNot(_.isDirectory).filter(_.getName.startsWith(basePath)).map(_.getName.stripPrefix(basePath + "/"))
     filesBelowBasePath.filterNot(_.contains("/"))
   }
 
@@ -28,7 +28,7 @@ case class ZipFileResourceLoader(zip: ZipFile, basePath: String) extends Resourc
     * Lists all available directories at the given base path.
     */
   override def listChildren: List[String] = {
-    val entriesBelowBasePath = zip.entries.toList.filter(_.getName.startsWith(basePath)).map(_.getName.stripPrefix(basePath + "/"))
+    val entriesBelowBasePath = zip.entries.asScala.toList.filter(_.getName.startsWith(basePath)).map(_.getName.stripPrefix(basePath + "/"))
     val localNames = entriesBelowBasePath.filter(_.contains("/")).map(_.takeWhile(_ != '/'))
     localNames.distinct
   }
