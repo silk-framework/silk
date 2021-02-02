@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { MenuItem, Select, Button, Highlighter } from '@gui-elements/index';
+import { MenuItem, FieldItem, Select, Button, Highlighter } from '@gui-elements/index';
 import { SuggestionListContext } from "./SuggestionContainer";
 import { IPrefix } from "./suggestion.typings";
 
@@ -86,27 +86,31 @@ export default function PrefixList({prefixes, selectedPrefix, onChange, disabled
             shouldDismissPopover={false}
         />
     );
-    return <PrefixSelect
-        filterable={true}
-        onItemSelect={t => handleSelectTarget(t.uri)}
-        items={items}
-        itemRenderer={itemRenderer}
-        itemsEqual={areTargetsEqual}
-        onQueryChange={handleQueryChange}
-        disabled={disabled}
-        query={inputQuery}
-        createNewItemFromQuery={createPrefix}
-        createNewItemRenderer={renderCreatePrefixOptionRenderer}
-        createNewItemPosition={"last"}
-        popoverProps={{
-            minimal: true,
-            portalContainer: context.portalContainer
-        }}
-    >
-        <Button
-            rightIcon="select-caret"
-            text={selectedItem || 'Select the Auto generation prefix'}
-        />
-    </PrefixSelect>
+
+    return <FieldItem labelAttributes={{text: 'Use known prefix'}}>
+        <PrefixSelect
+            filterable={true}
+            onItemSelect={t => handleSelectTarget(t.uri)}
+            items={items}
+            itemRenderer={itemRenderer}
+            itemsEqual={areTargetsEqual}
+            onQueryChange={handleQueryChange}
+            disabled={disabled}
+            query={inputQuery}
+            createNewItemFromQuery={createPrefix}
+            createNewItemRenderer={renderCreatePrefixOptionRenderer}
+            createNewItemPosition={"last"}
+            popoverProps={{
+                minimal: true,
+                portalContainer: context.portalContainer
+            }}
+        >
+            <Button
+                rightIcon="select-caret"
+                text={(selectedItem === selectedPrefix) ? selectedItem : 'Select prefix for auto-generated properties'}
+                disabled={disabled}
+            />
+        </PrefixSelect>
+    </FieldItem>
 
 }
