@@ -1,7 +1,8 @@
 import React, { useContext } from "react";
-import { ContextMenu } from "@gui-elements/index";
+import { HtmlContentBlock } from "@gui-elements/index";
 import { ITargetWithSelected } from "../../suggestion.typings";
 import { SuggestionListContext } from "../../SuggestionContainer";
+import { InfoBoxOverlay } from "./InfoBoxOverlay";
 
 interface IProps {
     source?: string | ITargetWithSelected[];
@@ -22,19 +23,20 @@ export function ExampleInfoBox({source}: IProps) {
         }
     }
 
-    return (
-        examples && examples.length ? <ContextMenu
-            portalContainer={portalContainer}
-            togglerElement={'item-info'}
-        >
-            Example values:
-            <ul>
-                {
-                    examples.map(example =>
-                        <li key={example}><p>{example}</p></li>
-                    )
-                }
-            </ul>
-        </ContextMenu> : null
-    )
+    return <InfoBoxOverlay
+        data={[
+            {
+                key: "Example data",
+                value: <code>
+                    <HtmlContentBlock>
+                        <ul>
+                            {Array.from(new Set(examples)).sort().slice(0, 9).map((item) => {
+                                    return <li>{item}</li>;
+                                })}
+                        </ul>
+                    </HtmlContentBlock>
+                </code>,
+            }
+        ]}
+    />;
 }
