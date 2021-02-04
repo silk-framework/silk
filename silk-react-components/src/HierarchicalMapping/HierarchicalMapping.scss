@@ -1,5 +1,5 @@
 @import "~@eccenca/gui-elements/src/configuration.default";
-@import "~@gui-elements/src/configuration/variables";
+@import '@gui-elements/index';
 .ecc-component-messagehandler {
     .ecc-temp__appmessages & {
         position: fixed;
@@ -13,6 +13,11 @@
         padding: 0.5rem 1rem;
         z-index: 1;
     }
+}
+
+* {
+    // TODO (left here as marker): switch back from gui elements reset to prevent display problems with other parts of the app
+    box-sizing: inherit;
 }
 
 .ecc-silk-mapping {
