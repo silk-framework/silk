@@ -52,7 +52,7 @@ export const SuggestionListContext = React.createContext<ISuggestionListContext>
     vocabulariesAvailable: false,
 });
 
-export default function SuggestionContainer({ruleId, targetClassUris, onAskDiscardChanges, onClose}) {
+export default function SuggestionContainer({ruleId, targetClassUris, onAskDiscardChanges, onClose, selectedVocabs, setSelectedVocabs}) {
     // Loading indicator
     const [loading, setLoading] = useState(false);
 
@@ -78,8 +78,6 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
     const vocabulariesAvailable = vocabularies && vocabularies.length > 0
     const noVocabsAvailable = vocabularies && vocabularies.length === 0
-
-    const [selectedVocabs, setSelectedVocabs] = useState<string[]>([])
 
     const frontendInitData = useInitFrontend()
 

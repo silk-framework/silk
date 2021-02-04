@@ -44,6 +44,7 @@ class MappingsWorkview extends React.Component {
         isCopying: !!sessionStorage.getItem('copyingData'),
         showSuggestions: false,
         askForChilds: false,
+        selectedVocabs: [],
     };
 
     constructor(props) {
@@ -62,6 +63,7 @@ class MappingsWorkview extends React.Component {
         this.handleCopy = this.handleCopy.bind(this);
         this.handlePaste = this.handlePaste.bind(this);
         this.handleClone = this.handleClone.bind(this);
+        this.handleVocabSelection = this.handleVocabSelection.bind(this);
     }
 
     componentDidMount() {
@@ -303,6 +305,12 @@ class MappingsWorkview extends React.Component {
         });
     };
 
+    handleVocabSelection(vocabs) {
+        this.setState({
+            selectedVocabs: vocabs,
+        });
+    };
+
     render() {
         const {rules = {}, id} = this.state.ruleData;
         const loading = this.state.loading ? <Spinner/> : false;
@@ -351,6 +359,8 @@ class MappingsWorkview extends React.Component {
                     }}
                     targetClassUris={types}
                     onAskDiscardChanges={this.props.onAskDiscardChanges}
+                    selectedVocabs={this.state.selectedVocabs}
+                    setSelectedVocabs={this.handleVocabSelection}
                 />
             )
         const listMappings =
