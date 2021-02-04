@@ -71,7 +71,9 @@ const props = {
     ruleId: 'root',
     targetClassUris: '',
     onAskDiscardChanges: jest.fn(),
-    onClose: jest.fn()
+    onClose: jest.fn(),
+    selectedVocabs: [],
+    setSelectedVocabs: jest.fn(),
 };
 
 const getWrapper = (args = props): ReactWrapper<any, any> => mount(
