@@ -15,10 +15,11 @@
     }
 }
 
-* {
-    // TODO (left here as marker): switch back from gui elements reset to prevent display problems with other parts of the app
+// TODO (left here as marker): switch back from gui elements reset to prevent display problems with other parts of the app
+*:not([class*=#{$eccgui}]) {
     box-sizing: inherit;
 }
+
 
 .ecc-silk-mapping {
 
