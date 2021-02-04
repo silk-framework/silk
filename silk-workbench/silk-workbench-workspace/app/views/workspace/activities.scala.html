@@ -175,6 +175,9 @@
     <div class="activity-button-stop">
       <img title="Stop activity" width="16" height="16" src="@Assets.at("img/control-stop.png")" onclick="post('@ActivityApi.cancelActivity("", "", activity.name).url')" />
     </div>
+    <div class="activity-button-value" style="top: -57px;">
+      <img title="Show current value" width="16" height="16" src="@Assets.at("img/magnifier.png")" onclick="window.open('@ActivityApi.getActivityValue("", "", activity.name).url', '_blank')" />
+    </div>
   </li>
 }
 
