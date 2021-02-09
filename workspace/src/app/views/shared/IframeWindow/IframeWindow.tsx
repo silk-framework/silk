@@ -11,6 +11,8 @@ import {
     CardOptions,
     CardTitle,
     Divider,
+    Grid,
+    GridRow,
     IconButton,
     Modal,
     Spacing,
@@ -186,7 +188,11 @@ export function IframeWindow({
         </Modal>
     ) : (
         <section className={"diapp-iframewindow"} {...otherProps}>
-            <div className="diapp-iframewindow__placeholder" />
+            <div className="diapp-iframewindow__placeholder">
+                <Grid fullWidth={true}>
+                    <GridRow fullHeight={true} />
+                </Grid>
+            </div>
             <div className={displayFullscreen ? "diapp-iframewindow--fullscreen" : ""}>{iframeWidget}</div>
         </section>
     );
