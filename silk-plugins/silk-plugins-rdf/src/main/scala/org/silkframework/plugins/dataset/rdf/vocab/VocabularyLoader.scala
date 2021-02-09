@@ -12,11 +12,39 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
 
   def retrieveVocabulary(uri: String)(implicit userContext: UserContext): Option[Vocabulary] = {
     val classes = retrieveClasses(uri)
+    val vocabGenericInfo = retrieveGenericVocabularyInfo(uri)
     Some(Vocabulary(
-      info = GenericInfo(uri, None, None, Seq.empty),
+      info = vocabGenericInfo,
       classes = classes,
       properties = retrieveProperties(uri, classes)
     ))
+  }
+
+  def retrieveGenericVocabularyInfo(vocabularyGraphUri: String)
+                                   (implicit userContext: UserContext): GenericInfo = {
+    val vocabQuery =
+      s"""
+         | $prefixes
+         |
+         | SELECT * WHERE {
+         |   GRAPH <$vocabularyGraphUri> {
+         |     { ?v a owl:Ontology }
+         |     ${genericInfoPropertiesPattern("v")}
+         |   }
+         | }
+         | ORDER BY ?v
+      """.stripMargin
+    val bindings = endpoint.select(vocabQuery).bindings
+    val vocabUri = collectObjectNodes("v", bindings).headOption
+    val label = rankValues(labelVars.flatMap(collectObjectNodes(_, bindings))).headOption
+    val description = rankValues(commentVars.flatMap(collectObjectNodes(_, bindings))).headOption
+    val altLabels = rankValues(altLabelVars.flatMap(collectObjectNodes(_, bindings)))
+    GenericInfo(
+      vocabUri.map(_.value).getOrElse(vocabularyGraphUri),
+      label = label,
+      description = description,
+      altLabels = altLabels
+    )
   }
 
   def genericInfoPropertiesPattern(varName: String): String =
