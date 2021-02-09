@@ -88,7 +88,14 @@ export default function STableHeader({
     // Optional swap button
     const swapButton = (header: ITableHeader) => {
         return (context.vocabulariesAvailable || !context.isFromDataset) &&
-            <Button onClick={onSwap} data-test-id={header.key}>Swap</Button>
+            <Button
+                onClick={onSwap}
+                data-test-id={header.key}
+                tooltip="Swap view of source data and target vocabulary"
+                tooltipProperties={{ portalContainer: portalContainer }}
+            >
+                Swap
+            </Button>
     }
 
     return <TableHead>
@@ -141,6 +148,7 @@ export default function STableHeader({
                                                 ? 'ascending'
                                                 : (sortDirections.modifier === 'asc' ? 'descending' : 'remove'))
                                         }
+                                        tooltipProperties={{ portalContainer: portalContainer }}
                                         onClick={() => onSort(header.key)}
                                     />
                                     {
