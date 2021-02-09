@@ -40,7 +40,7 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
     val description = rankValues(commentVars.flatMap(collectObjectNodes(_, bindings))).headOption
     val altLabels = rankValues(altLabelVars.flatMap(collectObjectNodes(_, bindings)))
     GenericInfo(
-      vocabUri.map(_.value).getOrElse(vocabularyGraphUri),
+      vocabularyGraphUri, // FIXME: At the moment we expect the graph to be the same as the vocab URI
       label = label,
       description = description,
       altLabels = altLabels
