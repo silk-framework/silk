@@ -159,7 +159,8 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with Controll
     transformTask.activity[VocabularyCache].control.waitUntilFinished()
     val vocabularies = VocabularyCacheValue.targetVocabularies(transformTask)
     val vocabInfoSeq = vocabularies map { vocab =>
-      VocabularyInfo(vocab.info.uri, vocab.info.label, nrClasses = vocab.classes.size, nrProperties = vocab.properties.size)
+      val label = vocab.info.label.orElse(vocab.info.altLabels.headOption)
+      VocabularyInfo(vocab.info.uri, label, nrClasses = vocab.classes.size, nrProperties = vocab.properties.size)
     }
     Ok(Json.toJson(VocabularyInfos(vocabInfoSeq)))
   }

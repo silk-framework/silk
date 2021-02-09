@@ -59,6 +59,7 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
       |     # alternative labels
       |     OPTIONAL { ?$varName skos:altLabel ?skosAltLabel }
       |     OPTIONAL { ?$varName dct:title ?dctTitle }
+      |     OPTIONAL { ?$varName dc:title ?dcTitle }
       |     OPTIONAL { ?$varName skos:prefLabel ?skosPrefLabel }
       |     OPTIONAL { ?$varName dc:identifier ?dcIdentifier }
       |     OPTIONAL { ?$varName dct:identifier ?dctIdentifier }
@@ -68,7 +69,7 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
 
   val commentVars: Seq[String] = Seq("rdfsComment", "skosDefinition", "dctDescription", "scopeNote")
   val labelVars: Seq[String] = Seq("label", "skosPrefLabel")
-  val altLabelVars: Seq[String] = Seq("skosAltLabel", "dctTitle", "skosPrefLabel", "dcIdentifier", "dctIdentifier", "foafName", "skosNotation")
+  val altLabelVars: Seq[String] = Seq("skosAltLabel", "dctTitle", "dcTitle", "skosPrefLabel", "dcIdentifier", "dctIdentifier", "foafName", "skosNotation")
 
   val prefixes: String =
     """PREFIX owl: <http://www.w3.org/2002/07/owl#>
