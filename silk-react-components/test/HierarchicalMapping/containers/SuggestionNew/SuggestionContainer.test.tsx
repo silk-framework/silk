@@ -3,8 +3,8 @@ import React from 'react';
 import SuggestionContainer from '../../../../src/HierarchicalMapping/containers/SuggestionNew/SuggestionContainer';
 import {waitFor} from "@testing-library/react";
 import {
-    byTestId,
-    clickElement,
+    byTestId, changeValue,
+    clickElement, clickWrapperElement,
     findAll,
     findSingleElement,
     logWrapperHtmlOnError,
@@ -146,15 +146,10 @@ describe("Suggestion Container Component", () => {
         expect(prefixesAsync).toBeCalled();
     });
 
-    it('should swap action load suggestion with reverted `matchFromDataset` value', async () => {
+    it('should load suggestion with reverted `matchFromDataset` value on swap action', async () => {
         const wrapper = getWrapper();
-        const btn = await waitFor(() => {
-            findSingleElement(wrapper, byTestId("SWAP_BUTTON"))
-            const btn = wrapper.find('[data-test-id="SWAP_BUTTON"]').first()
-            expect(btn.length).toBe(1)
-            return btn
-        }, {onTimeout: (err) => {console.log(wrapper.html()) ;return err}})
-        btn.simulate('click');
+        const btn = await waitFor(() => findSingleElement(wrapper, byTestId("SWAP_BUTTON")))
+        clickWrapperElement(btn)
         expect(getSuggestionsAsync).toBeCalledWith({
             targetClassUris: props.targetClassUris,
             ruleId: props.ruleId,
@@ -171,15 +166,5 @@ describe("Suggestion Container Component", () => {
         },{onTimeout: logWrapperHtmlOnError(wrapper)})
         clickElement(wrapper, byTestId("add_button"))
         expect(generateRuleAsync).toBeCalledWith([], props.ruleId, undefined);
-    });
-
-    it('should search input filtering the values', () => {
-        const wrapper = getWrapper();
-
-        const input = wrapper.find('[data-test-id="search_input"]').first();
-        input.simulate('change', { target: { value: 'Hello' } });
-
-        const btn  = wrapper.find('[data-test-id="find_matches"]').first();
-        btn.simulate('click');
     });
 });
