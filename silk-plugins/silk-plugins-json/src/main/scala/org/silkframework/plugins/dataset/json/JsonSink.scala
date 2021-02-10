@@ -1,11 +1,7 @@
 package org.silkframework.plugins.dataset.json
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, FileOutputStream, InputStream, OutputStream, StringReader, StringWriter}
-
-import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.transform.dom.DOMSource
-import javax.xml.transform.stream.StreamResult
 import com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl
+import org.json.XML
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{EntitySink, TypedProperty}
 import org.silkframework.entity.ValueType
@@ -15,8 +11,11 @@ import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 import org.w3c.dom.{Document, Element, Node, ProcessingInstruction}
 
-import org.json.XML
-
+import java.io.{ByteArrayOutputStream, OutputStreamWriter, StringReader, StringWriter}
+import java.nio.charset.StandardCharsets
+import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.stream.StreamResult
 import scala.collection.mutable
 import scala.xml.InputSource
 
@@ -101,18 +100,22 @@ class JsonSink (resource: WritableResource, outputTemplate: String = "<Result><?
     transformer.transform(xmlSource, stream)
 
     if (!topLevelObject) {
-      resource.writeString("[", append = false)
-      var node = xmlSource.getNode.getFirstChild.getFirstChild
-      while (node != null) {
-        val xmlOutput = new StringWriter
-        transformer.transform(new DOMSource(node), new StreamResult(xmlOutput))
-        val unwrapped = removeEntityWrapper(xmlOutput.toString)
-        val json = XML.toJSONObject(unwrapped)
-        resource.writeString(json.toString(2), append = true)
-        node = node.getNextSibling
-        if (node!=null) resource.writeString(", ", append = true)
+      resource.write() { outputStream =>
+        val writer = new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)
+        writer.write("[")
+        var node = xmlSource.getNode.getFirstChild.getFirstChild
+        while (node != null) {
+          val xmlOutput = new StringWriter
+          transformer.transform(new DOMSource(node), new StreamResult(xmlOutput))
+          val unwrapped = removeEntityWrapper(xmlOutput.toString)
+          val json = XML.toJSONObject(unwrapped)
+          writer.write(json.toString(2))
+          node = node.getNextSibling
+          if (node != null) writer.write(", ")
+        }
+        writer.write("]")
+        writer.close()
       }
-      resource.writeString("]", append = true)
     }
     else {
       val node = xmlSource.getNode.getFirstChild.getFirstChild
@@ -121,7 +124,7 @@ class JsonSink (resource: WritableResource, outputTemplate: String = "<Result><?
         transformer.transform(new DOMSource(node), new StreamResult(xmlOutput))
         val cleaned = removeEntityWrapper(xmlOutput.toString)
         val json = XML.toJSONObject(cleaned)
-        resource.writeString(json.toString(2), append = true)
+        resource.writeString(json.toString(2))
       }
     }
 
