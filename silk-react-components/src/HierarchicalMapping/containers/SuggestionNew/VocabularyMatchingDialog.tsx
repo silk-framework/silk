@@ -165,6 +165,7 @@ export default function VocabularyMatchingDialog(
                 tagInputProps={{
                     inputProps: {
                         id: "vocselect",
+                        autocomplete: "off"
                     },
                     onRemove: handleVocabRemove,
                     rightElement: clearButton,
