@@ -124,7 +124,7 @@ class JsonSink (resource: WritableResource, outputTemplate: String = "<Result><?
         transformer.transform(new DOMSource(node), new StreamResult(xmlOutput))
         val cleaned = removeEntityWrapper(xmlOutput.toString)
         val json = XML.toJSONObject(cleaned)
-        resource.writeString(json.toString(2), append = true)
+        resource.writeString(json.toString(2))
       }
     }
 
