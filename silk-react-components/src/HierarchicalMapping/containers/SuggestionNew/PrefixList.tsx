@@ -41,7 +41,7 @@ export default function PrefixList({prefixes, selectedPrefix, onChange, disabled
     };
 
     const itemLabel = (prefix: IPrefix, search: string) => <>
-        {prefix.uri && <p><Highlighter label={prefix.uri} searchValue={search} /></p>}
+        {prefix.uri && <p><Highlighter label={`${prefix.key}: ${prefix.uri}`} searchValue={search} /></p>}
     </>;
 
     const itemRenderer = (prefix: IPrefix, {handleClick}) => {
@@ -79,7 +79,7 @@ export default function PrefixList({prefixes, selectedPrefix, onChange, disabled
         handleClick: React.MouseEventHandler<HTMLElement>,
     ) => (
         <MenuItem
-            icon="add"
+            icon="item-add-artefact"
             text={`Create "${query}"`}
             active={active}
             onClick={handleClick}
