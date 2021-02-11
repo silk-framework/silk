@@ -114,6 +114,9 @@ const unAllowedChars = /[<>]/g
  * This version only takes the last local name of a path.
  **/
 export const getLocalNameLabelFromPath = (path: string): string => {
+    if(typeof path !== "string") {
+        return path
+    }
     const parts = path.split(pathSplitRegex).filter(part => part !== "")
     if(parts.length > 0) {
         const localName = parts[parts.length - 1]
