@@ -29,7 +29,7 @@ import {PrefixDialog} from "./PrefixDialog";
 import {filterRowsByColumnModifier, sortRows} from "./utils";
 import AppliedFilters from "./AppliedFilters";
 import {Set} from "immutable"
-import {MAPPING_DEFAULTS} from "./constants";
+import {LOCAL_STORAGE_KEYS, MAPPING_DEFAULTS} from "./constants";
 
 interface IPagination {
     // store current page number
@@ -60,8 +60,15 @@ interface IProps {
     onAdd(selected: IAddedSuggestion[], selectedPrefix: string);
 }
 
+const defaultPrefix = {key: 'default', uri: MAPPING_DEFAULTS.DEFAULT_URI_PREFIX}
+
 export default function SuggestionList({rows, prefixList, loading, onSwapAction, onAskDiscardChanges, onAdd, onClose}: IProps) {
     const context = useContext(SuggestionListContext);
+    const [prefixes, setPrefixes] = useState<IPrefix[]>([...prefixList, defaultPrefix])
+
+    useEffect(() => {
+        setPrefixes([...prefixList, defaultPrefix])
+    }, [prefixList.length])
 
     const [headers, setHeaders] = useState<ITableHeader[]>(
         [
@@ -258,7 +265,7 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
               setPrefixModal(true);
               return;
           }  else {
-              localStorage.setItem('prefix', prefix);
+              localStorage.setItem(LOCAL_STORAGE_KEYS.SELECTED_PREFIX, prefix);
           }
         }
 
@@ -467,8 +474,8 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
                 isOpen={prefixModal}
                 onAdd={handleAdd}
                 onDismiss={() => setPrefixModal(false)}
-                prefixList={prefixList}
-                selectedPrefix={localStorage.getItem('prefix') || MAPPING_DEFAULTS.DEFAULT_URI_PREFIX}
+                prefixList={prefixes}
+                selectedPrefix={localStorage.getItem(LOCAL_STORAGE_KEYS.SELECTED_PREFIX) || MAPPING_DEFAULTS.DEFAULT_URI_PREFIX}
             />
         </>
 }

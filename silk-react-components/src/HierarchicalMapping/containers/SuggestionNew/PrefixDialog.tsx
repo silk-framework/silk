@@ -16,6 +16,7 @@ interface IProps {
     selectedPrefix: string;
 }
 
+/** Let's the user choose the URI prefix that is used for auto-generated target property URIs. */
 export function PrefixDialog({ isOpen, onAdd, onDismiss, prefixList, selectedPrefix }: IProps) {
     const context = useContext(SuggestionListContext);
 

@@ -33,6 +33,10 @@ export const COLUMN_FILTERS: { [key: string]: IColumnFilters[] } = {
     }]
 };
 
+export const LOCAL_STORAGE_KEYS = {
+    SELECTED_PREFIX: "suggestion_selected_prefix"
+}
+
 export const MAPPING_DEFAULTS = {
     // The default prefix for generated mapping properties
     DEFAULT_URI_PREFIX: 'urn:ruleProperty:'
