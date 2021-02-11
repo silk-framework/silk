@@ -76,10 +76,10 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}: 
                             <OverviewItem>
                                 <OverviewItemDescription>
                                     {row.label && <OverviewItemLine><OverflowText><Highlighter label={row.label} searchValue={search}/></OverflowText></OverviewItemLine>}
-                                    {row.uri && <OverviewItemLine><OverflowText><Highlighter label={row.uri} searchValue={search}/></OverflowText></OverviewItemLine>}
+                                    {row.uri && <OverviewItemLine small={true}><OverflowText ellipsis={"reverse"}><Highlighter label={row.uri} searchValue={search}/></OverflowText></OverviewItemLine>}
                                     {
                                         row.description &&
-                                        <OverviewItemLine><OverflowText><Highlighter label={row.description} searchValue={search}/></OverflowText></OverviewItemLine>
+                                        <OverviewItemLine small={true}><OverflowText><Highlighter label={row.description} searchValue={search}/></OverflowText></OverviewItemLine>
                                     }
                                 </OverviewItemDescription>
                             </OverviewItem>

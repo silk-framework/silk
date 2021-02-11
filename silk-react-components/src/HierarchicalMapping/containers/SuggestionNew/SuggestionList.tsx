@@ -408,7 +408,7 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
                             <col style={{width: "60px"}} />
                             <col style={{width: headers[0].key === "source" ? "15em" : "20em"}} />
                             <col style={{width: "60px"}} />
-                            <col style={{width: headers[0].key === "source" ? "30em" : "15em"}} />
+                            <col style={{width: headers[0].key === "source" ? "20em" : "15em"}} />
                             <col style={{width: "10em"}} />
                         </colgroup>
                         <STableHeader

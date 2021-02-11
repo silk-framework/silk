@@ -16,7 +16,7 @@ interface IProps {
 export function SourceCellData({label, search}: IProps) {
     return <Toolbar noWrap={true}>
         <ToolbarSection canShrink={true}>
-            <OverflowText ellipsis={"reverse"}><Highlighter label={label} searchValue={search}/></OverflowText>
+            <OverflowText ellipsis={"reverse"} inline={true}><Highlighter label={label} searchValue={search}/></OverflowText>
         </ToolbarSection>
         <ToolbarSection>
             <Spacing vertical={true} size="tiny" />

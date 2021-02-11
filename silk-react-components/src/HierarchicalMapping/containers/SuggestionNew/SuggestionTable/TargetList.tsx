@@ -80,8 +80,8 @@ export default function TargetList({targets, onChange}: IProps) {
     const itemLabel = (target: ITargetWithSelected, search: string) => <OverviewItem>
         <OverviewItemDescription>
             {target.label && <OverviewItemLine><OverflowText><Highlighter label={target.label} searchValue={search} /></OverflowText></OverviewItemLine>}
-            {target.uri && <OverviewItemLine><OverflowText><Highlighter label={target.uri} searchValue={search} /></OverflowText></OverviewItemLine>}
-            {target.description && <OverviewItemLine><OverflowText><Highlighter label={target.description} searchValue={search} /></OverflowText></OverviewItemLine>}
+            {target.uri && <OverviewItemLine small={!!target.label ? true : false }><OverflowText ellipsis={"reverse"}><Highlighter label={target.uri} searchValue={search} /></OverflowText></OverviewItemLine>}
+            {target.description && <OverviewItemLine small={true}><OverflowText><Highlighter label={target.description} searchValue={search} /></OverflowText></OverviewItemLine>}
         </OverviewItemDescription>
     </OverviewItem>;
 
