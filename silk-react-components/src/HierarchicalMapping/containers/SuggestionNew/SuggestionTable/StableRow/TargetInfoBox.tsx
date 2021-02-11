@@ -23,7 +23,7 @@ export default function TargetInfoBox({selectedTarget}: IProps) {
             },
             {
                 key: "URI",
-                value: selectedTarget.uri,
+                value: (<span style={{ wordBreak: "break-all" }}>{ selectedTarget.uri }</span>),
             },
             {
                 key: "Explore in DataManager",

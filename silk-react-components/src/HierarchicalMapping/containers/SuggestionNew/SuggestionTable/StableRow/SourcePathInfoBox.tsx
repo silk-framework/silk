@@ -29,7 +29,7 @@ export function SourcePathInfoBox({source}: IProps) {
         data={[
             {
               key: "Source path",
-              value: sourcePath
+              value: (<span style={{ wordBreak: "break-all" }}>{ sourcePath }</span>)
             },
             {
                 key: "Example data",
