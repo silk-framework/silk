@@ -12,7 +12,7 @@ import {
     Toolbar,
     ToolbarSection,
 } from "@gui-elements/index";
-import {SuggestionTypeValues} from "../../suggestion.typings";
+import {IPageSuggestion, ITargetWithSelected, SuggestionTypeValues} from "../../suggestion.typings";
 import {SuggestionListContext} from "../../SuggestionContainer";
 import TypesList from "../TypesList";
 import {SourceCellData} from "./SourceCellData";
@@ -20,13 +20,28 @@ import TargetList from "../TargetList";
 import TargetInfoBox from "./TargetInfoBox";
 import {ExampleInfoBox} from "./ExampleInfoBox";
 
-export default function STableRow({row, onRowSelect, selected, onModifyTarget}) {
+interface IProps {
+    // A single suggestion row
+    row: IPageSuggestion
+    // Triggered when a row is selected (via checkbox)
+    onRowSelect: (pageSuggestion: IPageSuggestion) => void
+    // If the row is selected
+    selected: boolean
+    // Triggered when the target selection changes with changed elements
+    onModifyTarget: (targets: ITargetWithSelected[]) => void
+}
+
+/** A single suggestion row of the table. */
+export default function STableRow({row, onRowSelect, selected, onModifyTarget}: IProps) {
+
     const context = useContext(SuggestionListContext);
     const {uri, candidates} = row;
 
-    const handleModifyTarget = (uri: string, type?: SuggestionTypeValues) => {
+    const handleModifyTarget = (selectedTarget: ITargetWithSelected, type?: SuggestionTypeValues) => {
+        let targetAlreadyExists = false
         const modified = candidates.map(target => {
-            const isSelected = uri === target.uri;
+            const isSelected = selectedTarget.uri === target.uri;
+            targetAlreadyExists = targetAlreadyExists || isSelected
 
             return {
                 ...target,
@@ -34,6 +49,12 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
                 type: isSelected ? type || target.type : target.type
             }
         });
+        if(!targetAlreadyExists) {
+            modified.unshift({
+                ...selectedTarget,
+                _selected: true
+            })
+        }
 
         onModifyTarget(modified);
     };
@@ -90,7 +111,7 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}) 
         </TableCell>
         <TableCell>
             <TypesList
-                onChange={(type) => handleModifyTarget(selectedTarget.uri, type)}
+                onChange={(type) => handleModifyTarget(selectedTarget, type)}
                 selected={selectedType}
             />
         </TableCell>

@@ -2,20 +2,22 @@ package controllers.transform
 
 import java.net.URLDecoder
 import java.util.logging.Logger
-
 import controllers.core.UserContextAction
 import controllers.transform.AutoCompletionApi.Categories
+
 import javax.inject.Inject
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.{CustomValueType, ValueType, ValueTypeAnnotation}
 import org.silkframework.entity.paths._
 import org.silkframework.rule.TransformSpec
+import org.silkframework.rule.vocab.ObjectPropertyType
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
 import org.silkframework.runtime.validation.NotFoundException
+import org.silkframework.util.StringUtils
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache, VocabularyCacheValue}
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
-import play.api.libs.json.{JsArray, JsValue, Json}
+import play.api.libs.json.{JsArray, JsObject, JsString, JsValue, Json}
 import play.api.mvc._
 
 import scala.language.implicitConversions
@@ -107,13 +109,13 @@ class AutoCompletionApi @Inject() () extends InjectedController {
     * @param term        The search term
     * @return
     */
-  def targetProperties(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
+  def targetProperties(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int, fullUris: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
-    var completions = vocabularyPropertyCompletions(task)
+    val completions = vocabularyPropertyCompletions(task, fullUris)
     // Removed as they currently cannot be edited in the UI: completions += prefixCompletions(project.config.prefixes)
 
-    Ok(completions.filterAndSort(term, maxResults).toJson)
+    Ok(completions.filterAndSort(term, maxResults, multiWordFilter = true).toJson)
   }
 
   /**
@@ -232,7 +234,9 @@ class AutoCompletionApi @Inject() () extends InjectedController {
     typeCompletions.distinct
   }
 
-  private def vocabularyPropertyCompletions(task: ProjectTask[TransformSpec])
+  private def vocabularyPropertyCompletions(task: ProjectTask[TransformSpec],
+                                           // Return full URIs instead of prefixed URIs
+                                            fullUris: Boolean)
                                            (implicit userContext: UserContext): Completions = {
     val prefixes = task.project.config.prefixes
     val vocabularyCache = VocabularyCacheValue.targetVocabularies(task)
@@ -240,11 +244,15 @@ class AutoCompletionApi @Inject() () extends InjectedController {
     val propertyCompletions =
       for(vocab <- vocabularyCache.vocabularies; prop <- vocab.properties) yield {
         Completion(
-          value = prefixes.shorten(prop.info.uri.toString),
+          value = if(fullUris) prop.info.uri else prefixes.shorten(prop.info.uri),
           label = prop.info.label,
           description = prop.info.description,
           category = Categories.vocabularyProperties,
-          isCompletion = true
+          isCompletion = true,
+          extra = Some(Json.obj(
+            "type" -> (if (prop.propertyType == ObjectPropertyType) "object" else "value"),
+            "graph" -> vocab.info.uri // FIXME: Currently the vocab URI and graph URI are the same. This might change in the future.
+          ))
         )
       }
 
@@ -278,17 +286,32 @@ class AutoCompletionApi @Inject() () extends InjectedController {
     /**
       * Filters and ranks all completions using a search term.
       */
-    def filterAndSort(term: String, maxResults: Int, sortEmptyTermResult: Boolean = true): Completions = {
+    def filterAndSort(term: String,
+                      maxResults: Int,
+                      sortEmptyTermResult: Boolean = true,
+                      multiWordFilter: Boolean = false): Completions = {
       if (term.isEmpty) {
         // If the term is empty, return some completions anyway
         val sortedValues = if(sortEmptyTermResult) values.sortBy(_.labelOrGenerated.length) else values
         Completions(sortedValues.take(maxResults))
       } else {
         // Filter all completions that match the search term and sort them by score
-        val normalizedTerm = normalizeTerm(term)
-        val scoredValues = for(value <- values; score <- value.matches(normalizedTerm)) yield (value, score)
+        val fm = filterMethod(term, multiWordFilter)
+        val scoredValues = for(value <- values; score <- fm(value)) yield (value, score)
         val sortedValues = scoredValues.sortBy(-_._2).map(_._1)
         Completions(sortedValues.take(maxResults))
+      }
+    }
+
+    // Choose the filter / ranking method
+    private def filterMethod(term: String,
+                             multiWordFilter: Boolean): (Completion => Option[Double]) = {
+      if(multiWordFilter) {
+        val searchWords = StringUtils.extractSearchTerms(term)
+        completion: Completion => completion.matchesMultiWordQuery(searchWords)
+      } else {
+        val normalizedTerm = normalizeTerm(term)
+        completion: Completion => completion.matches(normalizedTerm)
       }
     }
 
@@ -301,19 +324,21 @@ class AutoCompletionApi @Inject() () extends InjectedController {
   /**
     * A single completion.
     *
-    * @param value The value to be filled if the user selects this completion.
-    * @param confidence The confidence of this completion.
-    * @param label A user readable label if available
-    * @param description A user readable description if available
-    * @param category The category to be shown in the autocompletion
+    * @param value        The value to be filled if the user selects this completion.
+    * @param confidence   The confidence of this completion.
+    * @param label        A user readable label if available
+    * @param description  A user readable description if available
+    * @param category     The category to be shown in the autocompletion
     * @param isCompletion True, if this is a valid completion. False, if this is a (error) message.
+    * @param extra        Some extra values depending on the category
     */
   case class Completion(value: String,
                         confidence: Double = Double.MinValue,
                         label: Option[String],
                         description: Option[String],
                         category: String,
-                        isCompletion: Boolean) {
+                        isCompletion: Boolean,
+                        extra: Option[JsValue] = None) {
 
     /**
       * Returns the label if present or generates a label from the value if no label is set.
@@ -342,6 +367,24 @@ class AutoCompletionApi @Inject() () extends InjectedController {
         Some(scores.max)
     }
 
+    /** Match against a multi word query, rank matches higher that have more matches in the label, then value and then description. */
+    def matchesMultiWordQuery(lowerCaseTerms: Array[String]): Option[Double] = {
+      val lowerCaseValue = value.toLowerCase
+      val lowerCaseLabel = label.getOrElse("").toLowerCase
+      val lowerCaseDescription = description.getOrElse("").toLowerCase
+      val searchIn = s"$lowerCaseValue $lowerCaseLabel $lowerCaseDescription"
+      val matches = StringUtils.matchesSearchTerm(lowerCaseTerms, searchIn)
+      if(matches) {
+        var score = 0.0
+        score += 0.5 * StringUtils.matchCount(lowerCaseTerms, lowerCaseLabel)
+        score += 0.2 * StringUtils.matchCount(lowerCaseTerms, lowerCaseValue)
+        score += 0.1 * StringUtils.matchCount(lowerCaseTerms, lowerCaseDescription)
+        Some(score)
+      } else {
+        None
+      }
+    }
+
     /**
       * Ranks a term, the higher the result the higher the ranking.
       */
@@ -355,18 +398,19 @@ class AutoCompletionApi @Inject() () extends InjectedController {
     }
 
     def toJson: JsValue = {
-      Json.obj(
+      val genericObject = Json.obj(
         "value" -> value,
         "label" -> labelOrGenerated,
         "description" -> description,
         "category" -> category,
         "isCompletion" -> isCompletion
       )
+      extra match {
+        case Some(ex) => genericObject ++ JsObject(Seq("extra" -> ex))
+        case None => genericObject
+      }
     }
-
   }
-
-
 }
 
 object AutoCompletionApi {

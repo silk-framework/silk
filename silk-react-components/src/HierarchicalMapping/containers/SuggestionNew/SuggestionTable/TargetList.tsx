@@ -8,10 +8,10 @@ import {
     OverviewItem,
     OverviewItemDescription,
     OverviewItemLine,
-    OverviewItemActions,
 } from '@gui-elements/index';
 import { ITargetWithSelected } from "../suggestion.typings";
 import { SuggestionListContext } from "../SuggestionContainer";
+import {extractSearchWords, matchesAllWords} from "../../../elements/Highlighter/Highlighter";
 
 // Select<T> is a generic component to work with your data types.
 // In TypeScript, you must first obtain a non-generic reference:
@@ -20,7 +20,7 @@ const TargetSelect = Select.ofType<ITargetWithSelected>();
 interface IProps {
     targets: ITargetWithSelected[];
 
-    onChange(uri: string);
+    onChange(uri: ITargetWithSelected);
 }
 export default function TargetList({targets, onChange}: IProps) {
     const context = useContext(SuggestionListContext);
@@ -34,14 +34,48 @@ export default function TargetList({targets, onChange}: IProps) {
         setItems(items);
     }, [targets]);
 
+    /* Filter words on entering a search query in the target selection input field
+       In source view mode this will also search in all target properties from all vocabularies.
+     */
+    useEffect(() => {
+        if (!inputQuery) {
+            setItems(targets);
+        } else {
+            const words = extractSearchWords(inputQuery, true)
+            const filtered = targets.filter(o => {
+                    const searchIn = `${o?.uri || ""} ${o?.label || ""} ${o?.description || ""}`.toLowerCase()
+                    matchesAllWords(searchIn, words)
+                }
+            );
+            const existingUris = new Set(filtered.map(f => f.uri))
+            if(suggestVocabularyProperties && context.fetchTargetPropertySuggestions) {
+                const timeout: number = window.setTimeout(async () => {
+                    // Search in all target properties
+                    const propertySuggestions = await context.fetchTargetPropertySuggestions(inputQuery)
+                    const propertySuggestionsWithSelect = propertySuggestions
+                        .filter(ps => !existingUris.has(ps.uri))
+                        .map(ps => ({
+                            ...ps,
+                            _selected: false}))
+                    setItems([...filtered, ...propertySuggestionsWithSelect])
+                }, 200)
+                return () => clearTimeout(timeout)
+            } else {
+                setItems(filtered);
+            }
+        }
+    }, [inputQuery])
+
+    const suggestVocabularyProperties = context.isFromDataset
+
     const areTargetsEqual = (targetA: ITargetWithSelected, targetB: ITargetWithSelected) => {
         // Compare only the titles (ignoring case) just for simplicity.
         return targetA.uri?.toLowerCase() === targetB.uri?.toLowerCase();
     }
 
-    const handleSelectTarget = (uri) => {
-        onChange(uri);
-    };
+    const handleSelectTarget = (target: ITargetWithSelected) => {
+        onChange(target);
+    }
 
     const itemLabel = (target: ITargetWithSelected, search: string) => <OverviewItem>
         <OverviewItemDescription>
@@ -62,24 +96,23 @@ export default function TargetList({targets, onChange}: IProps) {
 
     const handleQueryChange = (value) => {
         if (!value) {
-            setItems(targets);
+            setInputQuery('');
         } else {
-            const filtered = targets.filter(o =>
-                o.uri?.includes(value) ||
-                o.label?.includes(value) ||
-                o.description?.includes(value)
-            );
-            setItems(filtered);
+            setInputQuery(value)
         }
-        setInputQuery(value);
     }
 
     return <TargetSelect
-        filterable={targets.length > 1}
-        onItemSelect={t => handleSelectTarget(t.uri)}
+        filterable={suggestVocabularyProperties || targets.length > 1}
+        onItemSelect={handleSelectTarget}
         items={items}
         itemRenderer={itemRenderer}
         itemsEqual={areTargetsEqual}
+        resetOnSelect={true}
+        resetOnClose={true}
+        inputProps={{
+            placeholder: context.isFromDataset ? "Enter text to search in all target properties..." : "Filter candidates..."
+        }}
         popoverProps={{
             minimal: true,
             portalContainer: context.portalContainer

@@ -21,7 +21,8 @@ import {
 } from "./suggestion.typings";
 import _ from 'lodash';
 import paginate from "../../utils/paginate";
-import STableBody from "./SuggestionTable/STableBody";
+import
+    STableBody from "./SuggestionTable/STableBody";
 import STableHeader from "./SuggestionTable/STableHeader";
 import {SuggestionListContext} from "./SuggestionContainer";
 import {PrefixDialog} from "./PrefixDialog";

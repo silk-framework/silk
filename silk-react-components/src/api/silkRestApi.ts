@@ -3,6 +3,13 @@ import Promise from 'bluebird';
 
 const CONTENT_TYPE_JSON = 'application/json';
 
+export interface IHttpResponse {
+    status: number
+    data: any
+}
+
+export type HttpResponsePromise = Promise<IHttpResponse>
+
 /**
  * API for the DataIntegration REST API. This includes the pure REST calls returning the results as JSON without any
  * further business logic.
@@ -104,8 +111,20 @@ const silkApi = {
     },
 
     /** Retrieves information of the registered vocabularies of this transformation */
-    retrieveTransformVocabularyInfos: function(baseUrl: string, projectId: string, transformTaskId: string) {
+    retrieveTransformVocabularyInfos: function(baseUrl: string, projectId: string, transformTaskId: string): HttpResponsePromise {
         const requestUrl = this.vocabularyInfoEndpoint(baseUrl, projectId, transformTaskId)
+
+        const promise = superagent
+            .get(requestUrl)
+            .accept(CONTENT_TYPE_JSON);
+
+        return this.handleErrorCode(promise);
+    },
+
+    /** Retrieves target properties that are valid for the specific transform rule as target property. */
+    retrieveTransformTargetProperties: function(baseUrl: string, projectId: string, taskId: string, ruleId: string,
+                                                searchTerm?: string, maxResults: number = 30, fullUris: boolean = true): HttpResponsePromise {
+        const requestUrl = this.transformTargetPropertyEndpoint(baseUrl, projectId, taskId, ruleId, searchTerm, maxResults, fullUris);
 
         const promise = superagent
             .get(requestUrl)
@@ -146,7 +165,7 @@ const silkApi = {
      * @param bodyHandler       function to convert the body or set the data field with a constant value.
      * @returns Promise
      */
-    handleErrorCode: (superAgentPromise) => {
+    handleErrorCode: (superAgentPromise): HttpResponsePromise => {
         return new Promise((resolve, reject) => {
             superAgentPromise
                 .then(({ status, body }) => {
@@ -206,6 +225,12 @@ const silkApi = {
 
     vocabularyInfoEndpoint: function(baseUrl: string, projectId: string, transformTaskId: string) {
         return `${baseUrl}/transform/tasks/${projectId}/${transformTaskId}/targetVocabulary/vocabularies`;
+    },
+
+    transformTargetPropertyEndpoint: function(baseUrl: string, projectId: string, transformTaskId: string, ruleId: string,
+                                              searchTerm: string, maxResults: number, fullUris: boolean): string {
+        const encodedSearchTerm = searchTerm ? encodeURIComponent(searchTerm) : ""
+        return `${baseUrl}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/targetProperties?term=${encodedSearchTerm}&maxResults=${maxResults}&fullUris=${fullUris}`
     },
 };
 

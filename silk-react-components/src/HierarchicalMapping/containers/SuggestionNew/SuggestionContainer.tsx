@@ -23,7 +23,7 @@ import {
 import {IAddedSuggestion, ISuggestionCandidate, ITransformedSuggestion, IVocabularyInfo} from "./suggestion.typings";
 import silkApi from "../../../api/silkRestApi";
 import VocabularyMatchingDialog from "./VocabularyMatchingDialog";
-import {extractSearchWords} from "../../elements/Highlighter/Highlighter";
+import {extractSearchWords, matchesAllWords} from "../../elements/Highlighter/Highlighter";
 import {IInitFrontend, useInitFrontend} from "../../../api/silkRestApi.hooks";
 
 interface ISuggestionListContext {
@@ -41,6 +41,8 @@ interface ISuggestionListContext {
     frontendInitData: IInitFrontend
     // Flag if vocabularies are available to match against
     vocabulariesAvailable: boolean
+    // Fetch target property suggestions from the vocabulary cache
+    fetchTargetPropertySuggestions?: (textQuery: string) => Promise<ISuggestionCandidate[]>,
 }
 
 export const SuggestionListContext = React.createContext<ISuggestionListContext>({
@@ -115,6 +117,32 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                 // TODO: error handling
                 setVocabularies([])
             })
+    }
+
+    // Fetch target properties from the available target properties based on a text query
+    const fetchTargetPropertySuggestions = async (textQuery: string): Promise<ISuggestionCandidate[]> => {
+        const {baseUrl, project, transformTask} = getApiDetails()
+        const maxResults = 20
+        try {
+            const {data} = await silkApi.retrieveTransformTargetProperties(baseUrl, project, transformTask, ruleId, textQuery, maxResults)
+            if (Array.isArray(data)) {
+                return data.map(tp => {
+                    return {
+                        uri: tp.value,
+                        label: tp.label,
+                        confidence: 0,
+                        type: tp.extra.type,
+                        graph: tp.extra.graph, // TODO: This might be prefixed
+                        description: tp.description
+                    }
+                })
+            } else {
+                return []
+            }
+        } catch (err) {
+            // TODO: What to display on error?
+            return []
+        }
     }
 
     // React to search input
@@ -212,10 +240,12 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         return new Promise((resolve, reject) => {
             prefixesAsync().subscribe(
                 data => {
-                    const arr = Object.keys(data).map(key => ({
-                        key,
-                        uri: data[key]
-                    }));
+                    const arr = Object.keys(data).map(key => {
+                        return {
+                            key,
+                            uri: data[key]
+                        }
+                    });
                     setPrefixList(arr);
                     resolve(arr);
                 },
@@ -281,17 +311,13 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         let filtered: ITransformedSuggestion[] = inputMappingSuggestions
         if (search.trim() !== "") {
             filtered = []
-            const searchWords = extractSearchWords(search).map((w) => w.toLowerCase());
+            const searchWords = extractSearchWords(search, true);
             inputMappingSuggestions.forEach((suggestion) => {
                 const sourceText = itemText(suggestion)
                 let targetCandidate = suggestion.candidates.length > 0 && suggestion.candidates[0]
-                // const selectedCandidate = suggestion.candidates.filter((candidate) => candidate._selected)
-                // if(selectedCandidate.length > 0) {
-                //     targetCandidate = selectedCandidate[0]
-                // }
                 const targetCandidateText = targetCandidate ? itemText(targetCandidate) : ""
                 const matchText = `${sourceText} ${targetCandidateText}`.toLowerCase()
-                if (searchWords.every(searchWord => matchText.includes(searchWord))) {
+                if (matchesAllWords(matchText, searchWords)) {
                     filtered.push(suggestion);
                 }
             });
@@ -368,6 +394,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                         isFromDataset,
                         frontendInitData,
                         vocabulariesAvailable,
+                        fetchTargetPropertySuggestions,
                     }}>
                         <SuggestionHeader onSearch={handleSearch} />
                         <Spacing size="tiny" />
