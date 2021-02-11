@@ -17,6 +17,7 @@ interface IProps {
     selectedPrefix: string;
 }
 
+/** The selection of URI prefixes used for auto-generated properties */
 export default function PrefixList({prefixes, selectedPrefix, onChange, disabled}: IProps) {
     const context = useContext(SuggestionListContext);
 

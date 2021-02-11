@@ -104,3 +104,21 @@ export const selectedCandidate = (target: IPageSuggestion): ITargetWithSelected 
         return undefined
     }
 }
+
+const pathSplitRegex = /[\/\\#:]+/g
+const unAllowedChars = /[<>]/g
+
+/** Returns a path string representation of path labels, instead of URIs
+ * This is only an approximation of the much more complicated algorithm used in the backend that
+ * parses the Silk paths first.
+ * This version only takes the last local name of a path.
+ **/
+export const getLocalNameLabelFromPath = (path: string): string => {
+    const parts = path.split(pathSplitRegex).filter(part => part !== "")
+    if(parts.length > 0) {
+        const localName = parts[parts.length - 1]
+        return localName.replaceAll(unAllowedChars, '')
+    } else {
+        return path
+    }
+}

@@ -40,7 +40,7 @@ export function PrefixDialog({ isOpen, onAdd, onDismiss, prefixList, selectedPre
         portalContainer={context.portalContainer}
         actions={[
             <Button key="confirm" onClick={handleAdd} affirmative={true}>
-                Set prefix
+                Add
             </Button>,
             <Button key="cancel" onClick={onDismiss}>
                 Cancel
@@ -69,7 +69,7 @@ export function PrefixDialog({ isOpen, onAdd, onDismiss, prefixList, selectedPre
             onChange={handleInputPrefix}
             disabled={withoutPrefix}
         />
-        <FieldItem labelAttributes={{text: 'Prefix for auto-generated properties', htmlFor:"prefix"}}>
+        <FieldItem labelAttributes={{text: 'Selected URI prefix for auto-generated properties', htmlFor:"prefix"}}>
             <TextField
                 name={'prefix'}
                 id="prefix"
