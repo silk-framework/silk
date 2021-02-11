@@ -11,12 +11,12 @@ interface IProps {
 }
 
 /**
- * File widget menu with 3 options: New, Select, Empty
+ * Option menu to pick from where the file should be selected. It comes with 3 options: New (upload), Select (existing), Empty
  * @param onChange
  * @param selectedFileMenu
  * @constructor
  */
-export function FileMenu({ onChange, selectedFileMenu }: IProps) {
+export function FileSelectionOptions({ onChange, selectedFileMenu }: IProps) {
     const [t] = useTranslation();
 
     const menuItems = [

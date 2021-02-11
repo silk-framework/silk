@@ -89,7 +89,12 @@ export function SearchList() {
                 }
                 textCallout={<strong>{t("common.messages.createFirstItems", { items: itemTypeLabel() })}</strong>}
                 actionButtons={[
-                    <Button key={"create"} onClick={handleCreateArtefact} elevated>
+                    <Button
+                        data-test-id={"create-first-item-btn"}
+                        key={"create"}
+                        onClick={handleCreateArtefact}
+                        elevated
+                    >
                         {t("common.action.CreateSmth", { smth: itemTypeLabel() })}
                     </Button>,
                 ]}
@@ -101,7 +106,13 @@ export function SearchList() {
     return (
         <>
             <AppliedFacets />
-            <DataList isEmpty={isEmpty} isLoading={isLoading} hasSpacing emptyContainer={EmptyContainer}>
+            <DataList
+                data-test-id="search-result-list"
+                isEmpty={isEmpty}
+                isLoading={isLoading}
+                hasSpacing
+                emptyContainer={EmptyContainer}
+            >
                 {data.map((item) => (
                     <SearchItem
                         key={`${item.id}_${item.projectId}`}

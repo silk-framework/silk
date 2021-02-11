@@ -47,6 +47,8 @@ interface IIframeWindowProps {
     startFullscreen?: boolean;
     // integrate only as modal that can be closed by this handler
     handlerRemoveModal?: () => void;
+    // name attribute value of the i-frame
+    iFrameName?: string;
 }
 
 /**
@@ -162,6 +164,7 @@ export function IframeWindow({
             <CardContent style={{ padding: 0, position: "relative" }}>
                 {!!activeSource ? (
                     <iframe
+                        name={otherProps.iFrameName}
                         src={createIframeUrl(activeSource.path)}
                         title={tLabel(activeSource.label)}
                         style={{

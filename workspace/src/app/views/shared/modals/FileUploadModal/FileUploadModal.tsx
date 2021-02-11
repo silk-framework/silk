@@ -3,7 +3,7 @@ import { Button, SimpleDialog } from "@gui-elements/index";
 import FileUploader from "../../FileUploader";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import { IUploaderOptions } from "../../FileUploader/FileUploader";
+import { IUploaderOptions } from "../../FileUploader/FileSelectionMenu";
 import { useTranslation } from "react-i18next";
 
 export interface IFileUploadModalProps {
@@ -47,13 +47,14 @@ export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFi
     return (
         <>
             <SimpleDialog
+                data-test-id="file-upload-dialog"
                 title={t("FileUploader.modalTitle", "Upload file")}
                 size="small"
                 isOpen={isOpen}
                 onClose={handleDiscard}
                 preventSimpleClosing={true}
                 actions={
-                    <Button key="close" onClick={onDiscard}>
+                    <Button data-test-id="file-upload-dialog-close-btn" key="close" onClick={onDiscard}>
                         Close
                     </Button>
                 }
