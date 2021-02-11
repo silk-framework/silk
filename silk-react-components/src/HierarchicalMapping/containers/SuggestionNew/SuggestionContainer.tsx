@@ -54,7 +54,17 @@ export const SuggestionListContext = React.createContext<ISuggestionListContext>
     vocabulariesAvailable: false,
 });
 
-export default function SuggestionContainer({ruleId, targetClassUris, onAskDiscardChanges, onClose, selectedVocabs, setSelectedVocabs}) {
+interface IProps {
+    ruleId: string
+    targetClassUris: string[]
+    onAskDiscardChanges: (ruleId: string) => any
+    onClose: () => any
+    selectedVocabs: string[]
+    setSelectedVocabs: (vocabs: string[]) => any
+}
+
+/** The mapping suggestion widget */
+export default function SuggestionContainer({ruleId, targetClassUris, onAskDiscardChanges, onClose, selectedVocabs, setSelectedVocabs}: IProps) {
     // Loading indicator
     const [loading, setLoading] = useState(false);
 
@@ -185,6 +195,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
     // Fetches necessary data to generate the mapping suggestions
     const loadVocabularyMatches = (matchFromDataset: boolean, setLoader: boolean, executeMatching: boolean, selectedVocabularies?: string[]) => {
+        const vocabs = selectedVocabularies ? selectedVocabularies : selectedVocabs
         setData([])
         setError([])
         return new Promise((resolve, reject) => {
@@ -195,7 +206,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                     ruleId,
                     matchFromDataset,
                     nrCandidates: 20,
-                    targetVocabularies: selectedVocabularies && selectedVocabularies.length > 0 ? selectedVocabularies : undefined,
+                    targetVocabularies: vocabs && vocabs.length > 0 ? vocabs : undefined,
                 },
                 executeMatching
             ).subscribe(
