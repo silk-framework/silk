@@ -6,7 +6,7 @@ import {
     Toolbar,
     ToolbarSection,
 } from "@gui-elements/index";
-import { ExampleInfoBox } from "./ExampleInfoBox";
+import { SourcePathInfoBox } from "./SourcePathInfoBox";
 
 interface IProps {
     label: string;
@@ -16,11 +16,11 @@ interface IProps {
 export function SourceCellData({label, search}: IProps) {
     return <Toolbar noWrap={true}>
         <ToolbarSection canShrink={true}>
-            <OverflowText><Highlighter label={label} searchValue={search}/></OverflowText>
+            <OverflowText ellipsis={"reverse"}><Highlighter label={label} searchValue={search}/></OverflowText>
         </ToolbarSection>
         <ToolbarSection>
             <Spacing vertical={true} size="tiny" />
-            <ExampleInfoBox source={label}/>
+            <SourcePathInfoBox source={label}/>
         </ToolbarSection>
     </Toolbar>
 }

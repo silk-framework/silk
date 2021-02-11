@@ -18,7 +18,7 @@ import TypesList from "../TypesList";
 import {SourceCellData} from "./SourceCellData";
 import TargetList from "../TargetList";
 import TargetInfoBox from "./TargetInfoBox";
-import {ExampleInfoBox} from "./ExampleInfoBox";
+import {SourcePathInfoBox} from "./SourcePathInfoBox";
 
 interface IProps {
     // A single suggestion row
@@ -103,7 +103,7 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}: 
                     {
                         context.isFromDataset
                             ? <TargetInfoBox selectedTarget={selectedTarget}/>
-                            : <ExampleInfoBox source={selectedTarget.uri}/>
+                            : <SourcePathInfoBox source={selectedTarget.uri}/>
 
                     }
                 </ToolbarSection>

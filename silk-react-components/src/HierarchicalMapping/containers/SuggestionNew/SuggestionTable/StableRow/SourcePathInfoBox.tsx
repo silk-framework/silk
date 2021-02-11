@@ -9,15 +9,17 @@ interface IProps {
 }
 
 /** Shows additional information for a dataset source path, e.g. examples values. */
-export function ExampleInfoBox({source}: IProps) {
+export function SourcePathInfoBox({source}: IProps) {
     const context = useContext(SuggestionListContext);
     const {exampleValues, portalContainer} = context;
 
     let examples = [];
+    let sourcePath = source
     if (typeof source === 'string') {
         examples = exampleValues[source as string];
     } else if (Array.isArray(source)) {
         const selected = source.find(t => t._selected);
+        sourcePath = selected.uri
         if (selected && exampleValues[selected.uri]) {
             examples.push(exampleValues[selected.uri]);
         }
@@ -25,6 +27,10 @@ export function ExampleInfoBox({source}: IProps) {
 
     return <InfoBoxOverlay
         data={[
+            {
+              key: "Source path",
+              value: sourcePath
+            },
             {
                 key: "Example data",
                 value: <code>
