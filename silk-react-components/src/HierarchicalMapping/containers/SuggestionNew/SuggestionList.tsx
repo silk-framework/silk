@@ -455,7 +455,7 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
                 <Button affirmative={allRows.length > 0} disabled={allRows.length < 1 || selectedSources.size === 0} onClick={handleAdd} data-test-id='add_button'>
                     Add ({selectedSources.size})
                 </Button>
-                <Button onClick={() => selectedSources.size > 0 ? onAskDiscardChanges() : onClose()}>Cancel</Button>
+                <Button onClick={() => selectedSources.size > 0 ? onAskDiscardChanges() : onClose()} data-test-id='suggestion_cancel_button'>Cancel</Button>
             </CardActions>
             <AlertDialog
                 warning={true}
