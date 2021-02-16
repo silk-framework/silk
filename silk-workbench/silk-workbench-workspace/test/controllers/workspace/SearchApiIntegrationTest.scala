@@ -58,7 +58,7 @@ class SearchApiIntegrationTest extends FlatSpec
     }
   }
 
-  private val projectLabel = "Facet Search Workspace Project"
+  private val projectLabel = "Facet Search Workspace Project Label"
   private val projectDescription = "Facet Search Workspace Project Description"
   private val allDatasets = Seq("csvA", "csvB", "csvC", "jsonXYZ", "output", "xmlA1", "xmlA2")
   private val allResults = Seq("singleProject", "csvA", "csvB", "csvC", "jsonXYZ", "output", "xmlA1", "xmlA2", "transformA")
@@ -269,6 +269,14 @@ class SearchApiIntegrationTest extends FlatSpec
     } finally {
       WorkspaceFactory().workspace.removeProject(newProject)
     }
+  }
+
+  it should "consider project label and description as a whole" in {
+    val results = facetedSearchRequest(
+      FacetedSearchRequest(textQuery = Some(s"facet search project label description"))
+    )._1.results
+    results must have size 1
+    (results.head \ ID).as[String] mustBe projectId
   }
 
   private val testAutoCompletionProvider = TestAutoCompletionProvider()
