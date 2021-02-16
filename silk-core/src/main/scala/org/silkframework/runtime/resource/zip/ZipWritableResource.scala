@@ -20,10 +20,15 @@ case class ZipWritableResource(
   closeEntriesAutomatically: Boolean = true
 ) extends WritableResource {
 
-  override def write(append: Boolean)(write: OutputStream => Unit): Unit = {
+  /**
+    * Creates an output stream for writing to this resource.
+    * The caller is responsible for closing the stream after writing.
+    * Using [[write()]] is preferred as it takes care of closing the output stream.
+    */
+  def createOutputStream(append: Boolean = false): OutputStream = {
     if(closeEntriesAutomatically)
       zip.putNextEntry(new ZipEntry(path))
-    write(zip)
+    zip
   }
 
   override def exists: Boolean = false

@@ -1,6 +1,7 @@
 package org.silkframework.runtime.resource
 
 import java.io._
+import java.time.Instant
 
 /**
   * A resource manager which holds all data in memory
@@ -76,14 +77,14 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
 
     override def exists: Boolean = resources.contains(name)
 
-    override def size = {
+    override def size: Option[Long] = {
       resources.get(name) match {
         case Some(data) => Some(data.length.toLong)
         case None => None
       }
     }
 
-    override def modificationTime = None
+    override def modificationTime: Option[Instant] = None
 
     override def inputStream: InputStream = {
       resources.get(name) match {
@@ -92,19 +93,13 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
       }
     }
 
-    override def write(append: Boolean = false)(write: (OutputStream) => Unit): Unit = {
-      val outputStream = new ByteArrayOutputStream()
-      write(outputStream)
-
-      val bytes =
-        resources.get(name) match {
-          case Some(data) if append =>
-            data ++ outputStream.toByteArray
-          case _ =>
-            outputStream.toByteArray
-        }
-
-      resources += ((name, bytes))
+    /**
+      * Creates an output stream for writing to this resource.
+      * The caller is responsible for closing the stream after writing.
+      * Using [[write()]] is preferred as it takes care of closing the output stream.
+      */
+    override def createOutputStream(append: Boolean = false): OutputStream = {
+      new InMemoryOutputStream(append)
     }
 
     /**
@@ -127,6 +122,27 @@ class InMemoryResourceManagerBase(val basePath: String = "", parentMgr: Option[I
       resources -= name
       children -= name
     }
+
+    private class InMemoryOutputStream(append: Boolean) extends OutputStream {
+      private val outputStream = new ByteArrayOutputStream()
+
+      override def write(b: Int): Unit = outputStream.write(b)
+      override def write(b: Array[Byte]): Unit = outputStream.write(b)
+      override def write(b: Array[Byte], off: Int, len: Int): Unit = outputStream.write(b, off, len)
+      override def flush(): Unit = outputStream.flush()
+      override def close(): Unit = {
+        val bytes =
+          resources.get(name) match {
+            case Some(data) if append =>
+              data ++ outputStream.toByteArray
+            case _ =>
+              outputStream.toByteArray
+          }
+
+        resources += ((name, bytes))
+      }
+    }
+
   }
 
 }
