@@ -241,7 +241,18 @@ ul.ecc-hierarchical-mapping-error-list {
     }
 }
 
+.ecc-silk-mapping__suggestionlist__target-dropdown {
+    // workaround to prevent to high select dropdowns without providing own rendering functions
+    .#{$ns}-menu {
+        max-height: 45vh;
+        overflow: auto;
+    }
 
+    .#{$ns}-input {
+        width: 40rem;
+        max-width: 90vw;
+    }
+}
 
 .ecc-silk-mapping__ruleitem {
     @include typo-body-1();

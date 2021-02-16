@@ -87,7 +87,7 @@ export default function TargetList({targets, onChange}: IProps) {
 
     const itemRenderer = (target: ITargetWithSelected, {handleClick}) => {
         return <MenuItem
-            text={<div style={{width: "40em", maxWidth: "90vw"}}>{itemLabel(target, inputQuery)}</div>}
+            text={<div style={{width: "40rem", maxWidth: "90vw"}}>{itemLabel(target, inputQuery)}</div>}
             key={target.uri}
             onClick={handleClick}
             active={target.uri === selected.uri}
@@ -115,6 +115,7 @@ export default function TargetList({targets, onChange}: IProps) {
         }}
         popoverProps={{
             minimal: true,
+            popoverClassName: "ecc-silk-mapping__suggestionlist__target-dropdown",
             portalContainer: context.portalContainer
         }}
         onQueryChange={handleQueryChange}
