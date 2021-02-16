@@ -341,7 +341,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     const mappingOptions = <CardOptions>
             { vocabulariesAvailable && (
                 <Button onClick={() => setShowMatchingDialog(true)} data-test-id={'find_matches'}>
-                    Refine matches
+                    Refine matches{selectedVocabs.length > 0 ? ` (${selectedVocabs.length}/${vocabularies.length})`: ""}
                 </Button>
             )}
         </CardOptions>
