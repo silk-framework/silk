@@ -25,7 +25,7 @@ export const EmptyWorkspace = () => {
                 )}
             </TitleMainsection>
             <Spacing size="large" />
-            <Button onClick={openCreateProjectModal} large elevated>
+            <Button data-test-id={"empty-workspace-create-project-btn"} onClick={openCreateProjectModal} large elevated>
                 {t("pages.workspace.createProject", "Create Project")}
             </Button>
         </div>

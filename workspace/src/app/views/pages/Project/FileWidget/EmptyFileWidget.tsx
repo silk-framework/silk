@@ -9,7 +9,7 @@ export function EmptyFileWidget({ onFileAdd }) {
         <div data-test-id={"project-files-widget-empty"}>
             <Notification
                 actions={
-                    <Button kind={"primary"} onClick={onFileAdd}>
+                    <Button data-test-id="project-files-widget-add-file-btn" kind={"primary"} onClick={onFileAdd}>
                         {t("common.action.AddSmth", { smth: t("widget.FileWidget.file", "File") })}
                     </Button>
                 }

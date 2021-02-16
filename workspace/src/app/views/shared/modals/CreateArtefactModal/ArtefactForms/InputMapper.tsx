@@ -4,7 +4,7 @@ import { Switch, TextArea, TextField } from "@gui-elements/index";
 import { CodeEditor } from "../../../QueryEditor/CodeEditor";
 import { ITaskParameter } from "@ducks/common/typings";
 import { Intent } from "@blueprintjs/core";
-import { FileUploader } from "../../../FileUploader/FileUploader";
+import { FileSelectionMenu } from "../../../FileUploader/FileSelectionMenu";
 import { AppToaster } from "../../../../../services/toaster";
 import { requestResourcesList } from "@ducks/shared/requests";
 import { defaultValueAsJs, stringValueAsJs } from "../../../../../utils/transformers";
@@ -92,7 +92,7 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
         case INPUT_TYPES.RESOURCE:
             const resourceNameFn = (item) => item.name;
             return (
-                <FileUploader
+                <FileSelectionMenu
                     projectId={projectId}
                     advanced={true}
                     allowMultiple={false}
