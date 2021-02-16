@@ -120,7 +120,7 @@ export const getLocalNameLabelFromPath = (path: string): string => {
     const parts = path.split(pathSplitRegex).filter(part => part !== "")
     if(parts.length > 0) {
         const localName = parts[parts.length - 1]
-        return localName.replaceAll(unAllowedChars, '')
+        return localName.replace(unAllowedChars, '')
     } else {
         return path
     }
