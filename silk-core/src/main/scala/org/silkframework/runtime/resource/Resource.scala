@@ -1,10 +1,9 @@
 package org.silkframework.runtime.resource
 
+import org.silkframework.config.DefaultConfig
+
 import java.io.{ByteArrayOutputStream, IOException, InputStream}
 import java.time.Instant
-
-import org.silkframework.config.{Config, DefaultConfig}
-
 import scala.io.{Codec, Source}
 
 /**
