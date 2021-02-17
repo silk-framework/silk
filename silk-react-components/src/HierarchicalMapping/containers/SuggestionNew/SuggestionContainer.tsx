@@ -134,7 +134,8 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         const {baseUrl, project, transformTask} = getApiDetails()
         const maxResults = 20
         try {
-            const {data} = await silkApi.retrieveTransformTargetProperties(baseUrl, project, transformTask, ruleId, textQuery, maxResults)
+            const {data} = await silkApi.retrieveTransformTargetProperties(baseUrl, project, transformTask, ruleId,
+                textQuery, maxResults, selectedVocabs)
             if (Array.isArray(data)) {
                 return data.map(tp => {
                     return {

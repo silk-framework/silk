@@ -123,12 +123,15 @@ const silkApi = {
 
     /** Retrieves target properties that are valid for the specific transform rule as target property. */
     retrieveTransformTargetProperties: function(baseUrl: string, projectId: string, taskId: string, ruleId: string,
-                                                searchTerm?: string, maxResults: number = 30, fullUris: boolean = true): HttpResponsePromise {
+                                                searchTerm?: string, maxResults: number = 30, vocabularies?: string[],
+                                                fullUris: boolean = true): HttpResponsePromise {
         const requestUrl = this.transformTargetPropertyEndpoint(baseUrl, projectId, taskId, ruleId, searchTerm, maxResults, fullUris);
 
         const promise = superagent
-            .get(requestUrl)
-            .accept(CONTENT_TYPE_JSON);
+            .post(requestUrl)
+            .accept(CONTENT_TYPE_JSON)
+            .set('Content-Type', CONTENT_TYPE_JSON)
+            .send({vocabularies: vocabularies})
 
         return this.handleErrorCode(promise);
     },

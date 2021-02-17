@@ -1,9 +1,12 @@
 package controllers.transform
 
+import controllers.core.util.JsonUtils
+
 import java.net.URLDecoder
 import java.util.logging.Logger
-import controllers.core.UserContextAction
+import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.transform.AutoCompletionApi.Categories
+import controllers.transform.autoCompletion.TargetPropertyAutoCompleteRequest
 
 import javax.inject.Inject
 import org.silkframework.config.Prefixes
@@ -14,6 +17,7 @@ import org.silkframework.rule.vocab.ObjectPropertyType
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
 import org.silkframework.runtime.validation.NotFoundException
+import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.util.StringUtils
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache, VocabularyCacheValue}
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
@@ -109,10 +113,22 @@ class AutoCompletionApi @Inject() () extends InjectedController {
     * @param term        The search term
     * @return
     */
-  def targetProperties(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int, fullUris: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
+  def targetProperties(projectName: String,
+                       taskName: String,
+                       ruleName: String,
+                       term: String,
+                       maxResults: Int,
+                       fullUris: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    var vocabularyFilter: Option[Seq[String]] = None
+    if(request.hasBody) {
+      request.body.asJson.foreach { json =>
+        val request = JsonHelpers.fromJsonValidated[TargetPropertyAutoCompleteRequest](json)
+        vocabularyFilter = request.vocabularies
+      }
+    }
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
-    val completions = vocabularyPropertyCompletions(task, fullUris)
+    val completions = vocabularyPropertyCompletions(task, fullUris, vocabularyFilter)
     // Removed as they currently cannot be edited in the UI: completions += prefixCompletions(project.config.prefixes)
 
     Ok(completions.filterAndSort(term, maxResults, multiWordFilter = true).toJson)
@@ -129,7 +145,7 @@ class AutoCompletionApi @Inject() () extends InjectedController {
   def targetTypes(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
-    var completions = vocabularyTypeCompletions(task)
+    val completions = vocabularyTypeCompletions(task)
     // Removed as they currently cannot be edited in the UI: completions += prefixCompletions(project.config.prefixes)
 
     Ok(completions.filterAndSort(term, maxResults).toJson)
@@ -236,10 +252,12 @@ class AutoCompletionApi @Inject() () extends InjectedController {
 
   private def vocabularyPropertyCompletions(task: ProjectTask[TransformSpec],
                                            // Return full URIs instead of prefixed URIs
-                                            fullUris: Boolean)
+                                            fullUris: Boolean,
+                                           // Filter by vocabularies if non-empty
+                                            vocabularyFilter: Option[Seq[String]])
                                            (implicit userContext: UserContext): Completions = {
     val prefixes = task.project.config.prefixes
-    val vocabularyCache = VocabularyCacheValue.targetVocabularies(task)
+    val vocabularyCache = VocabularyCacheValue.targetVocabularies(task, vocabularyFilter.filter(_.nonEmpty))
 
     val propertyCompletions =
       for(vocab <- vocabularyCache.vocabularies; prop <- vocab.properties) yield {
