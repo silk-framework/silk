@@ -2,6 +2,7 @@ import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import {
+    Button,
     Divider,
     Grid,
     GridColumn,
@@ -65,7 +66,15 @@ const Artefacts = () => {
                             </GridColumn>
                             <GridColumn full>
                                 {error.detail ? (
-                                    <Notification danger>
+                                    <Notification
+                                        danger={true}
+                                        actions={
+                                            <Button
+                                                text={t("common.action.retry", "Retry")}
+                                                onClick={() => { window.location.reload(); }}
+                                            />
+                                        }
+                                    >
                                         <h3>{t("http.error.fetchNotResult", "Error, cannot fetch results.")}</h3>
                                         <p>{error.detail}</p>
                                     </Notification>
