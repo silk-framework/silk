@@ -290,7 +290,7 @@ class AutoCompletionApi @Inject() () extends InjectedController {
                       maxResults: Int,
                       sortEmptyTermResult: Boolean = true,
                       multiWordFilter: Boolean = false): Completions = {
-      if (term.isEmpty) {
+      if (term.trim.isEmpty) {
         // If the term is empty, return some completions anyway
         val sortedValues = if(sortEmptyTermResult) values.sortBy(_.labelOrGenerated.length) else values
         Completions(sortedValues.take(maxResults))
@@ -308,7 +308,8 @@ class AutoCompletionApi @Inject() () extends InjectedController {
                              multiWordFilter: Boolean): (Completion => Option[Double]) = {
       if(multiWordFilter) {
         val searchWords = StringUtils.extractSearchTerms(term)
-        completion: Completion => completion.matchesMultiWordQuery(searchWords)
+        val termMinLength = if(searchWords.length > 0) searchWords.map(_.length).min.toDouble else 1.0
+        completion: Completion => completion.matchesMultiWordQuery(searchWords, termMinLength)
       } else {
         val normalizedTerm = normalizeTerm(term)
         completion: Completion => completion.matches(normalizedTerm)
@@ -368,7 +369,8 @@ class AutoCompletionApi @Inject() () extends InjectedController {
     }
 
     /** Match against a multi word query, rank matches higher that have more matches in the label, then value and then description. */
-    def matchesMultiWordQuery(lowerCaseTerms: Array[String]): Option[Double] = {
+    def matchesMultiWordQuery(lowerCaseTerms: Array[String],
+                              termMinLength: Double): Option[Double] = {
       val lowerCaseValue = value.toLowerCase
       val lowerCaseLabel = label.getOrElse("").toLowerCase
       val lowerCaseDescription = description.getOrElse("").toLowerCase
@@ -376,7 +378,9 @@ class AutoCompletionApi @Inject() () extends InjectedController {
       val matches = StringUtils.matchesSearchTerm(lowerCaseTerms, searchIn)
       if(matches) {
         var score = 0.0
-        score += 0.5 * StringUtils.matchCount(lowerCaseTerms, lowerCaseLabel)
+        val labelMatchCount = StringUtils.matchCount(lowerCaseTerms, lowerCaseLabel)
+        val labelLengthBonus = termMinLength / lowerCaseLabel.size
+        score += (0.5 + labelLengthBonus) * labelMatchCount
         score += 0.2 * StringUtils.matchCount(lowerCaseTerms, lowerCaseValue)
         score += 0.1 * StringUtils.matchCount(lowerCaseTerms, lowerCaseDescription)
         Some(score)
