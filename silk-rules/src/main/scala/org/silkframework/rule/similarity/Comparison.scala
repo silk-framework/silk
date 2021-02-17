@@ -21,6 +21,7 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFo
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{DPair, Identifier}
 
+import scala.util.Try
 import scala.xml.Node
 
 /**
@@ -45,8 +46,8 @@ case class Comparison(id: Identifier = Operator.generateId,
    * @return The confidence as a value between -1.0 and 1.0.
    */
   override def apply(entities: DPair[Entity], limit: Double): Option[Double] = {
-    val values1 = inputs.source(entities.source)
-    val values2 = inputs.target(entities.target)
+    val values1 = Try(inputs.source(entities.source)).getOrElse(Seq.empty)
+    val values2 = Try(inputs.target(entities.target)).getOrElse(Seq.empty)
 
     if (values1.isEmpty || values2.isEmpty)
       None
@@ -73,7 +74,7 @@ case class Comparison(id: Identifier = Operator.generateId,
     * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
     */
   override def index(entity: Entity, sourceOrTarget: Boolean, limit: Double): Index = {
-    val values = if(sourceOrTarget) inputs.source(entity) else inputs.target(entity)
+    val values = Try(inputs.select(sourceOrTarget)(entity)).getOrElse(Seq.empty)
 
     val distanceLimit = threshold * (1.0 - limit)
 

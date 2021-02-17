@@ -2,9 +2,8 @@ package controllers.linking
 
 import akka.actor.ActorSystem
 import akka.stream.Materializer
-import controllers.core.{RequestUserContextAction, UserContextAction}
+ import controllers.core.RequestUserContextAction
 import controllers.util.AkkaUtils
-import javax.inject.Inject
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking.{EvalLink, LinkResolver, LinkSorter}
 import org.silkframework.rule.LinkSpec
@@ -17,6 +16,8 @@ import org.silkframework.workspace.activity.linking.EvaluateLinkingActivity
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, InjectedController, WebSocket}
 
+import javax.inject.Inject
+
 class EvaluateLinkingController @Inject() (implicit system: ActorSystem, mat: Materializer, accessMonitor: WorkbenchAccessMonitor) extends InjectedController {
 
   def generateLinks(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
@@ -25,7 +26,7 @@ class EvaluateLinkingController @Inject() (implicit system: ActorSystem, mat: Ma
     Ok(views.html.evaluateLinking.evaluateLinking(context))
   }
 
-  def links(projectName: String, taskName: String, sorting: String, filter: String, page: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
+  def links(projectName: String, taskName: String, sorting: String, filter: String, page: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val linkSorter = LinkSorter.fromId(sorting)
