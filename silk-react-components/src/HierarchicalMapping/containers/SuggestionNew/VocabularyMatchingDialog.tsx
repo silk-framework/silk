@@ -89,6 +89,10 @@ export default function VocabularyMatchingDialog(
         setSelectedVocabs(selectedVocabs.filter((v) => v.uri !== vocabUri))
     }
 
+    const removeVocabFromSelectionViaIndex = (vocabLabel: string, index: number) => {
+        setSelectedVocabs([...selectedVocabs.slice(0,index), ...selectedVocabs.slice(index + 1)])
+    }
+
     const handleVocabSelect = (vocab: IVocabularyInfo) => {
         if(vocabSelected(vocab)) {
             removeVocabFromSelection(vocab.uri)
@@ -167,7 +171,7 @@ export default function VocabularyMatchingDialog(
                         id: "vocselect",
                         autocomplete: "off"
                     },
-                    onRemove: handleVocabRemove,
+                    onRemove: removeVocabFromSelectionViaIndex,
                     rightElement: clearButton,
                     tagProps: {minimal: true},
                 }}
