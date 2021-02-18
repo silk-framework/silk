@@ -44,7 +44,7 @@ export default function TargetList({targets, onChange}: IProps) {
             const words = extractSearchWords(inputQuery, true)
             const filtered = targets.filter(o => {
                     const searchIn = `${o?.uri || ""} ${o?.label || ""} ${o?.description || ""}`.toLowerCase()
-                    matchesAllWords(searchIn, words)
+                    return matchesAllWords(searchIn, words)
                 }
             );
             const existingUris = new Set(filtered.map(f => f.uri))
