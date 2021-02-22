@@ -43,7 +43,7 @@
                 "label": "Max. value"
             },
             "count": {
-                "comment": "The overall count of profiled values.",
+                "comment": "The count of profiled values. Note that usually only a sample of the dataset is profiled, i.e., the total number of values in the dataset may be higher",
                 "label": "Count"
             },
             "uniqueCount": {
@@ -81,8 +81,8 @@
         "profilingRunning": "Running profiling on"
     },
     "DeleteModal": {
-        "confirmMsg": "Task {{name}} is used by other tasks! Deleting this task will also delete all depending tasks listed below:",
-        "deleteResource": "{{type}} {{name}} will be deleted"
+        "confirmMsg": "The {{itemType}} '{{name}}' is used by other items! Deleting this item will also delete all depending items listed below:",
+        "deleteResource": "{{type}} '{{name}}' will be deleted"
     },
     "Deletedialog": {
         "loading": "Loading delete dialog."
@@ -105,7 +105,7 @@
         "retryMessage": "Something going wrong during upload process for {{fileName}}",
         "selectFromProject": "Select file from projects",
         "successfullyUploaded": "{{uploadedName}} was successfully uploaded",
-        "uploadError": "An upload error has occurred for file {{fileName}}. Details: {{errorDetails}}",
+        "uploadError": "An upload error has occurred for file '{{fileName}}'. Details: {{errorDetails}}",
         "waitFor": "File '{{fileName}}' is being uploaded."
     },
     "Metadata": {
@@ -123,7 +123,7 @@
         "pageRangeText": "of {{total}} pages"
     },
     "PrefixDialog": {
-        "deletePrefix": "Prefix {{prefixName}} will be deleted."
+        "deletePrefix": "Prefix '{{prefixName}}' will be deleted."
     },
     "ProjectImportModal": {
         "importBtn": "Import project",
@@ -138,6 +138,11 @@
         "title": "Project import",
         "openExistingProject": "Open existing project page",
         "warningExistingProject": "A project with the same ID already exists! Choose to either overwrite the existing project or import the project under a freshly generated ID."
+    },
+    "RecentlyViewedModal": {
+        "title": "Quick search",
+        "placeholder": "Search recently viewed items or in workspace",
+        "globalSearch": "Search in workspace for '{{query}}'"
     },
     "RelatedItems": {
         "title": "Related items"
@@ -181,7 +186,12 @@
         "dataTypes": {
             "project": "Project",
             "projectDesc": "Projects let you group related items. All items that depend on each other need to be in the same project.",
-            "task": "Task"
+            "genericArtefactLabel": "item",
+            "workflow": "workflow",
+            "dataset": "dataset",
+            "transform": "transform",
+            "linking": "linking",
+            "task": "task"
         },
         "messages": {
             "actionFailed": "{{action}} action failed. Details: {{error}}",
@@ -192,7 +202,22 @@
             "errorDataTypes": "Fetch error for dataset types",
             "noItems": "No {{items}} found.",
             "noResults": "No results.",
-            "noTypes": "No types found"
+            "noTypes": "No types found",
+            "serverError": "Server error"
+        },
+        "iframeWindow": {
+            "Workflow editor": "Workflow editor",
+            "Workflow report": "Workflow report",
+            "Mapping editor": "Mapping editor",
+            "Transform evaluation": "Transform evaluation",
+            "Transform execution": "Transform execution",
+            "Linking editor": "Linking editor",
+            "Linking evaluation": "Linking evaluation",
+            "Linking execution": "Linking execution",
+            "Reference links" : "Reference links",
+            "Learning": "Learning",
+            "Explore": "Data exploration",
+            "Query": "Query editor"
         },
         "sorter": {
             "recentlyViewed": "Recently viewed"
@@ -245,7 +270,7 @@
             "requestFailed": "Preview request failed",
             "server": "Server error",
             "timeout": "Timeout",
-            "networkFileUpload": "Can't upload the file, please check your connection and try again"
+            "networkFileUpload": "Can't upload file '{{fileName}}', please check your connection and try again"
         }
     },
     "navigation": {
@@ -280,7 +305,7 @@
         "workspace": {
             "contents": "Contents",
             "createProject": "Create Project",
-            "empty": "Workspace is empty, so start please create your first project"
+            "empty": "Your workspace is empty. In order to start, create a new project or import an existing project from an exported project file."
         }
     },
     "widget": {
@@ -353,7 +378,12 @@
                 },
                 "valueLabels": {
                     "itemType": {
-                        "project": "Project"
+                        "project": "Project",
+                        "workflow": "Workflow",
+                        "dataset": "Dataset",
+                        "linking": "Linking",
+                        "task": "Task",
+                        "transform": "Transform"
                     }
                 }
             }

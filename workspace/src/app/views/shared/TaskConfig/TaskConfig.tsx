@@ -102,7 +102,12 @@ export function TaskConfig(props: IProps) {
                     </h3>
                 </CardTitle>
                 <CardOptions>
-                    <IconButton name={"item-edit"} text={"Configure"} onClick={openConfigModal} />
+                    <IconButton
+                        data-test-id="task-config-edit-btn"
+                        name={"item-edit"}
+                        text={"Configure"}
+                        onClick={openConfigModal}
+                    />
                 </CardOptions>
             </CardHeader>
             <Divider />

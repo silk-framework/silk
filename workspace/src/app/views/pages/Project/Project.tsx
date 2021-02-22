@@ -11,6 +11,7 @@ import FileWidget from "./FileWidget";
 import Loading from "../../shared/Loading";
 
 import {
+    Button,
     Divider,
     Grid,
     GridColumn,
@@ -55,7 +56,7 @@ const Project = () => {
 
         // Fetch the list of projects
         dispatch(workspaceOp.fetchListAsync());
-    }, [qs]);
+    }, [qs, projectId]);
 
     const handleSort = (sortBy: string) => {
         dispatch(workspaceOp.applySorterOp(sortBy));
@@ -100,7 +101,15 @@ const Project = () => {
                             </GridColumn>
                             <GridColumn full>
                                 {!data.length && error.detail ? (
-                                    <Notification danger>
+                                    <Notification
+                                        danger={true}
+                                        actions={
+                                            <Button
+                                                text={t("common.action.retry", "Retry")}
+                                                onClick={() => { window.location.reload(); }}
+                                            />
+                                        }
+                                    >
                                         <h3>{t("http.error.fetchNotResult", "Error, cannot fetch results.")}</h3>
                                         <p>{error.detail}</p>
                                     </Notification>

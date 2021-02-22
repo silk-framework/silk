@@ -1,4 +1,4 @@
-import { IArtefactItem, IArtefactModal, ICommonState } from "./typings";
+import { IArtefactModal, ICommonState } from "./typings";
 import Store from "store";
 
 export function initialArtefactModalState(): IArtefactModal {
@@ -6,7 +6,7 @@ export function initialArtefactModalState(): IArtefactModal {
         isOpen: false,
         error: {},
         artefactsList: [],
-        selectedArtefact: {} as IArtefactItem,
+        selectedArtefact: undefined,
         cachedArtefactProperties: {},
         selectedDType: "all",
         loading: false,
@@ -23,7 +23,7 @@ export function initialCommonState(): ICommonState {
         searchQuery: "",
         error: {},
         availableDataTypes: {},
-        initialSettings: {},
+        initialSettings: { emptyWorkspace: true, initialLanguage: "en", hotKeys: {} },
         exportTypes: [],
         artefactModal: initialArtefactModalState(),
     };

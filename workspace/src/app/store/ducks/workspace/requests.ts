@@ -3,12 +3,12 @@ import {
     IFacetState,
     IProjectExecutionStatus,
     IProjectImportDetails,
+    IRecentlyViewedItem,
     ISorterListItemState,
     ITaskLink,
 } from "@ducks/workspace/typings";
 import fetch from "../../../services/fetch";
 import { legacyApiEndpoint, workspaceApi } from "../../../utils/getApiEndpoint";
-import { VoidOrNever } from "../../../../app";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 
 export interface ISearchListRequest {
@@ -51,16 +51,22 @@ export const requestSearchList = async (payload: ISearchListRequest): Promise<IS
     }
 };
 
-export const requestRemoveProject = async (itemId: string): Promise<VoidOrNever> => {
-    await fetch({
+export const requestRemoveProject = async (itemId: string): Promise<FetchResponse<void>> => {
+    return await fetch({
         url: legacyApiEndpoint(`/projects/${itemId}`),
         method: "DELETE",
     });
 };
 
-export const requestRemoveTask = async (itemId: string, projectId?: string): Promise<VoidOrNever> => {
-    await fetch({
-        url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}?removeDependentTasks=true`),
+export const requestRemoveTask = async (
+    itemId: string,
+    projectId?: string,
+    removeDependentTasks: boolean = false
+): Promise<FetchResponse<void>> => {
+    return await fetch({
+        url:
+            legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}`) +
+            (removeDependentTasks ? "?removeDependentTasks=true" : ""),
         method: "DELETE",
     });
 };
@@ -278,5 +284,12 @@ export const requestProjectImportExecutionStatus = async (
 ): Promise<FetchResponse<IProjectExecutionStatus>> => {
     return fetch({
         url: projectImportEndpoint(projectImportId) + "/status",
+    });
+};
+
+/** Fetch the recently viewed items of the current user. */
+export const recentlyViewedItems = async (): Promise<FetchResponse<IRecentlyViewedItem[]>> => {
+    return fetch({
+        url: workspaceApi("/recentlyViewedItems"),
     });
 };

@@ -6,8 +6,9 @@ import { Intent } from "@gui-elements/blueprint/constants";
 import Metadata from "../../shared/Metadata";
 import { datasetSel } from "@ducks/dataset";
 
-import { Section, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@gui-elements/index";
+import { Section, WorkspaceContent, WorkspaceMain, WorkspaceSide, Spacing } from "@gui-elements/index";
 import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
+import { IframeWindow } from "../../shared/IframeWindow/IframeWindow";
 
 export default function () {
     const error = useSelector(datasetSel.errorSelector);
@@ -27,11 +28,13 @@ export default function () {
             <WorkspaceMain>
                 <Section>
                     <Metadata />
+                    <Spacing />
+                    <IframeWindow iFrameName={"detail-page-iframe"} />
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>
                 <Section>
-                    <RelatedItems />
+                    <RelatedItems messageEventReloadTrigger={(messageId) => messageId === "workflowSaved"} />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>
