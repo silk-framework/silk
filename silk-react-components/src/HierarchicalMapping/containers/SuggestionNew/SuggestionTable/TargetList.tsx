@@ -44,7 +44,7 @@ export default function TargetList({targets, onChange}: IProps) {
             const words = extractSearchWords(inputQuery, true)
             const filtered = targets.filter(o => {
                     const searchIn = `${o?.uri || ""} ${o?.label || ""} ${o?.description || ""}`.toLowerCase()
-                    matchesAllWords(searchIn, words)
+                    return matchesAllWords(searchIn, words)
                 }
             );
             const existingUris = new Set(filtered.map(f => f.uri))
@@ -103,6 +103,7 @@ export default function TargetList({targets, onChange}: IProps) {
     }
 
     return <TargetSelect
+        className={"ecc-silk-mapping__suggestionlist__target-select"}
         filterable={suggestVocabularyProperties || targets.length > 1}
         onItemSelect={handleSelectTarget}
         items={items}
@@ -111,7 +112,8 @@ export default function TargetList({targets, onChange}: IProps) {
         resetOnSelect={true}
         resetOnClose={true}
         inputProps={{
-            placeholder: context.isFromDataset ? "Enter text to search in all target properties..." : "Filter candidates..."
+            placeholder: context.isFromDataset ? "Enter text to search in all target properties..." : "Filter candidates...",
+            className: "ecc-silk-mapping__suggestionlist__target-property-search"
         }}
         popoverProps={{
             minimal: true,
