@@ -16,10 +16,13 @@ import scala.io.Codec
   label = "Text",
   description= "Reads and writes plain text files.")
 case class TextFileDataset(
+   @Param("The plain text file.")
    file: WritableResource,
    @Param(value = "The file encoding, e.g., UTF-8, UTF-8-BOM, ISO-8859-1", autoCompletionProvider = classOf[CharsetAutocompletionProvider])
    charset: String = "UTF-8",
+   @Param(value = "A type name that represents this file.", advanced = true)
    typeName: String = "type",
+   @Param(value = "The single property that holds the text.", advanced = true)
    property: String = "text",
 ) extends Dataset {
 
