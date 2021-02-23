@@ -4,10 +4,10 @@ import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.TypedProperty
 import org.silkframework.entity.{EntitySchema, ValueType}
-import org.silkframework.runtime.activity.TestUserContextTrait
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
 
-class TextFileDatasetTest extends FlatSpec with Matchers with TestUserContextTrait {
+class TextFileDatasetTest extends FlatSpec with Matchers {
 
   behavior of "TextFileDataset"
 
@@ -17,7 +17,9 @@ class TextFileDatasetTest extends FlatSpec with Matchers with TestUserContextTra
 
   private val dataset = TextFileDataset(resource)
 
-  private implicit val prefixes = Prefixes.empty
+  private implicit def userContext: UserContext = UserContext.Empty
+
+  private implicit val prefixes: Prefixes = Prefixes.empty
 
   private val testValue = "value"
 
