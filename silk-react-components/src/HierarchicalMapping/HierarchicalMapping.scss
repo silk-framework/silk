@@ -1,4 +1,5 @@
 @import "~@eccenca/gui-elements/src/configuration.default";
+@import '@gui-elements/index';
 .ecc-component-messagehandler {
     .ecc-temp__appmessages & {
         position: fixed;
@@ -13,6 +14,12 @@
         z-index: 1;
     }
 }
+
+// TODO (left here as marker): switch back from gui elements reset to prevent display problems with other parts of the app
+*:not([class*=#{$eccgui}]) {
+    box-sizing: inherit;
+}
+
 
 .ecc-silk-mapping {
 
@@ -60,7 +67,9 @@ ul.ecc-hierarchical-mapping-error-list {
     height: 100%;
     flex-shrink: 1;
     flex-grow: 1;
-    position: relative;
+    position: sticky;
+    left: 0;
+    top: 0;
     margin: $ecc-size-block-whitespace/2;
     box-sizing: border-box;
 
@@ -77,13 +86,9 @@ ul.ecc-hierarchical-mapping-error-list {
         }
     }
 
-    & > .mdl-card {
-        position: sticky;
-        left: 0;
-        top: 0;
-        width: 100%;
+    & > .#{$eccgui}-card {
 
-        .mdl-card__content {
+        .#{$eccgui}__content {
             max-height: calc(100vh - #{$layout-header-desktop-row-height} - #{$tab-height} - #{2 * $ecc-size-block-whitespace});
             overflow: auto;
         }
@@ -160,11 +165,7 @@ ul.ecc-hierarchical-mapping-error-list {
     }
 
     .mdl-card__title-back {
-        position: relative;
-        margin-left: -1 * $ecc-size-block-whitespace;
         align-self: flex-start;
-        margin-top: -0.5 * ($button-icon-size - $typo-icon-font-size);
-        margin-bottom: -0.5 * ($button-icon-size - $typo-icon-font-size);
     }
 
     .mdl-card__title-text {
@@ -183,6 +184,10 @@ ul.ecc-hierarchical-mapping-error-list {
     top: 0;
     z-index: 10;
     margin-bottom: $ecc-size-block-whitespace;
+}
+
+.ecc-silk-mapping__navheader-row {
+    //overflow: visible;
 }
 
 .ecc-silk-mapping__rulesobject {
@@ -236,7 +241,18 @@ ul.ecc-hierarchical-mapping-error-list {
     }
 }
 
+.ecc-silk-mapping__suggestionlist__target-dropdown {
+    // workaround to prevent to high select dropdowns without providing own rendering functions
+    .#{$ns}-menu {
+        max-height: 45vh;
+        overflow: auto;
+    }
 
+    .#{$ns}-input {
+        width: 40rem;
+        max-width: 90vw;
+    }
+}
 
 .ecc-silk-mapping__ruleitem {
     @include typo-body-1();

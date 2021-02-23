@@ -1,9 +1,8 @@
 package controllers.transform
 
-import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.core.util.ControllerUtilsTrait
+import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.SerializationUtils._
-import javax.inject.Inject
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.vocab.{VocabularyClass, VocabularyProperty}
 import org.silkframework.runtime.activity.UserContext
@@ -14,8 +13,10 @@ import org.silkframework.util.Uri
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.transform.{VocabularyCache, VocabularyCacheValue}
 import org.silkframework.workspace.{Project, WorkspaceFactory}
-import play.api.libs.json.{JsValue, Json, Writes}
+import play.api.libs.json.{Format, JsValue, Json, Writes}
 import play.api.mvc.{Action, AnyContent, InjectedController}
+
+import javax.inject.Inject
 
 /**
   * Provides access to the target vocabulary.
@@ -152,4 +153,32 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with Controll
     Ok(Json.toJson(classRelations))
   }
 
+  /** Get information over the loaded vocabularies. */
+  def vocabularyInfos(projectId: String, transformTaskId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    implicit val (project, transformTask) = projectAndTask[TransformSpec](projectId, transformTaskId)
+    transformTask.activity[VocabularyCache].control.waitUntilFinished()
+    val vocabularies = VocabularyCacheValue.targetVocabularies(transformTask)
+    val vocabInfoSeq = vocabularies map { vocab =>
+      val label = vocab.info.label.orElse(vocab.info.altLabels.headOption)
+      VocabularyInfo(vocab.info.uri, label, nrClasses = vocab.classes.size, nrProperties = vocab.properties.size)
+    }
+    Ok(Json.toJson(VocabularyInfos(vocabInfoSeq)))
+  }
+}
+
+/** Vocabulary information.
+  *
+  * @param uri          URI of the vocabulary (graph).
+  * @param label        Preferred label of the vocabulary.
+  * @param nrClasses    Number of classes in the vocabulary.
+  * @param nrProperties Number of properties in the vocabulary.
+  */
+case class VocabularyInfo(uri: String, label: Option[String], nrClasses: Int, nrProperties: Int)
+
+object VocabularyInfo {
+  implicit val vocabularyInfoJsonFormat: Format[VocabularyInfo] = Json.format[VocabularyInfo]
+}
+case class VocabularyInfos(vocabularies: Seq[VocabularyInfo])
+object VocabularyInfos {
+  implicit val vocabularyInfosJsonFormat: Format[VocabularyInfos] = Json.format[VocabularyInfos]
 }

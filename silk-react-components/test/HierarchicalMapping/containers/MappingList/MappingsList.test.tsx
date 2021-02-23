@@ -116,7 +116,7 @@ const props = {
                 "isAttribute":false
             }
         }],
-    parentRuleId: 'root',
+    currentRuleId: 'root',
 };
 
 const getWrapper = (renderer = shallow, args = props) => renderer(
@@ -129,7 +129,7 @@ describe("MappingsList Component", () => {
         beforeEach(() => {
             wrapper = getWrapper(shallow);
         });
-        
+
         it('should render EmptyList component, when rules array is empty', () => {
             const wrapper = getWrapper(shallow, {
                 ...props,
@@ -137,31 +137,31 @@ describe("MappingsList Component", () => {
             });
             expect(wrapper.find(EmptyList)).toHaveLength(1);
         });
-        
+
         it('should render DragDropContext component, when rules is NOT empty', () => {
             expect(wrapper.find(DragDropContext)).toHaveLength(1);
         });
-    
+
         it('should render DraggableItem component, the right count', () => {
             const wrapper = getWrapper(mount);
             expect(wrapper.find(DraggableItem)).toHaveLength(2);
         });
-        
+
         it('should render ListActions component', () => {
            expect(wrapper.find(ListActions)).toHaveLength(1);
         });
-        
+
         afterEach(() => {
             wrapper.unmount();
         })
     });
-    
+
     describe('on component receive updates', () => {
         let wrapper;
         beforeEach(() => {
             wrapper = getWrapper(shallow);
         });
-        
+
         it('should update the rules, when new data is passed', () => {
             const wrapper = getWrapper(mount);
             wrapper.setProps({
@@ -206,7 +206,7 @@ describe("MappingsList Component", () => {
             });
             expect(wrapper.find(DraggableItem)).toHaveLength(1);
         });
-        
+
         afterEach(() => {
             wrapper.unmount();
         })

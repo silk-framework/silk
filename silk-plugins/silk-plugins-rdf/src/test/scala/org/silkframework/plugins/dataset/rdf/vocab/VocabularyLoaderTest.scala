@@ -20,9 +20,18 @@ class VocabularyLoaderTest extends FlatSpec with Matchers {
 
   private lazy val loader = load("vocabulary.ttl")
 
+  lazy val vocabulary: Option[Vocabulary] = loader.retrieveVocabulary(graphUri)
   lazy val classes: Seq[VocabularyClass] = loader.retrieveClasses(graphUri).toSeq.sortBy(_.info.uri)
   lazy val classMap: Map[String, VocabularyClass] = classes.map(c => (c.info.uri, c)).toMap
   lazy val properties: Seq[VocabularyProperty] = loader.retrieveProperties(graphUri, classes).toSeq.sortBy(_.info.uri)
+
+  it should "load the label of the vocabulary" in {
+    vocabulary shouldBe defined
+    val info = vocabulary.get.info
+    info.label shouldBe Some("Test Ontology")
+    info.description shouldBe Some("Test Ontology description")
+    info.altLabels shouldBe Seq("Alternative test ontology label")
+  }
 
   it should "load classes" in {
     classes.size shouldBe 3

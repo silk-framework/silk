@@ -23,7 +23,7 @@ class RootMappingRule extends React.Component {
         expanded: false,
         editing: false,
     };
-    
+
     constructor(props) {
         super(props);
         this.handleRuleToggle = this.handleRuleToggle.bind(this);
@@ -33,28 +33,28 @@ class RootMappingRule extends React.Component {
         this.handleToggleExpand = this.handleToggleExpand.bind(this);
         this.discardAll = this.discardAll.bind(this);
     }
-    
+
     componentDidMount() {
         EventEmitter.on(MESSAGES.RULE_VIEW.TOGGLE, this.handleRuleToggle);
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
     }
-    
+
     componentWillUnmount() {
         EventEmitter.off(MESSAGES.RULE_VIEW.TOGGLE, this.handleRuleToggle);
         EventEmitter.off(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.off(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
         EventEmitter.off(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
     }
-    
+
     handleRuleToggle({expanded, id}) {
         // only trigger state / render change if necessary
         if ((id === true || id === this.props.rule.id) && expanded !== this.state.expanded) {
             this.setState({expanded});
         }
     };
-    
+
     onOpenEdit(obj) {
         if (this.props.rule.id === obj.id) {
             this.setState({
@@ -62,7 +62,7 @@ class RootMappingRule extends React.Component {
             });
         }
     };
-    
+
     onCloseEdit(obj) {
         if (this.props.rule.id === obj.id) {
             this.setState({
@@ -70,7 +70,7 @@ class RootMappingRule extends React.Component {
             });
         }
     };
-    
+
     handleDiscardChanges() {
         this.setState({
             expanded: !this.state.expanded,
@@ -78,7 +78,7 @@ class RootMappingRule extends React.Component {
         this.props.onAskDiscardChanges(false);
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, {id: this.props.rule.id});
     };
-    
+
     handleToggleExpand() {
         if (this.state.editing) {
             this.props.onAskDiscardChanges(true);
@@ -88,30 +88,30 @@ class RootMappingRule extends React.Component {
             });
         }
     };
-    
+
     discardAll() {
         this.setState({
             editing: false,
         });
     };
-    
+
     render() {
         if (_.isEmpty(this.props.rule)) {
             return false;
         }
-        
+
         const breadcrumbs = _.get(this.props, 'rule.breadcrumbs', []);
         const parent = _.last(breadcrumbs);
-        
+
         let uriPattern = <NotAvailable label="automatic default pattern" inline/>;
-        
+
         const uriRuleType = _.get(this.props.rule.rules, 'uriRule.type', false);
         if (uriRuleType === MAPPING_RULE_TYPE_URI) {
             uriPattern = _.get(this, 'props.rule.rules.uriRule.pattern');
         } else if (uriRuleType === MAPPING_RULE_TYPE_COMPLEX_URI) {
             uriPattern = 'URI formula';
         }
-        
+
         return (
             <div className="ecc-silk-mapping__rulesobject">
                 <Card shadow={0}>

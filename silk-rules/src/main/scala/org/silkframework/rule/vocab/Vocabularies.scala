@@ -2,8 +2,10 @@ package org.silkframework.rule.vocab
 
 import org.silkframework.rule.vocab.Vocabulary.VocabularyFormat
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
+
 import scala.xml.Node
 import language.implicitConversions
+import scala.util.control.Breaks.{break, breakable}
 
 /**
   * Holds multiple vocabularies.
@@ -24,6 +26,20 @@ case class Vocabularies(vocabularies: Seq[Vocabulary]) {
     */
   def findProperty(uri: String): Option[VocabularyProperty] = {
     vocabularies.flatMap(_.getProperty(uri)).headOption
+  }
+
+  /** Returns the vocabulary given the property URI. */
+  def findVocabularyOfProperty(uri: String): Option[Vocabulary] = {
+    var vocabulary: Option[Vocabulary] = None
+    breakable {
+      for(vocab <- vocabularies) {
+        vocab.getProperty(uri) foreach { _ =>
+          vocabulary = Some(vocab)
+          break()
+        }
+      }
+    }
+    vocabulary
   }
 
   def forwardPropertiesOfClass(classUri: String): Seq[VocabularyProperty] = {

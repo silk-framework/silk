@@ -37,11 +37,6 @@ export class ObjectRuleForm extends Component {
     static propTypes = {
         id: PropTypes.string,
         parentId: PropTypes.string.isRequired,
-        parent: PropTypes.shape({
-            id: PropTypes.string,
-            // property,
-            type: PropTypes.string,
-        }).isRequired,
         scrollIntoView: PropTypes.func.isRequired,
         onAddNewRule: PropTypes.func.isRequired,
         scrollElementIntoView: PropTypes.func.isRequired,

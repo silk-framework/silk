@@ -6,32 +6,56 @@ const eccencaLogo = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZAAAABmCAYAA
 
 // jest.config.js
 module.exports = {
-    globals: {
+    "globals": {
         __WEBPACK__: false,
         __DEBUG__: false,
         __VERSION__: 'SNAPSHOT',
     },
-    setupTestFrameworkScriptFile: '<rootDir>/test/setup.js',
-    moduleFileExtensions: [
-        'js',
-        'jsx',
-        'json',
+    "roots": [
+        "<rootDir>/test/"
     ],
-    transform: {
-        '.+\\.(md)$': 'jest-raw-loader',
-        '^.+\\.js$': 'babel-jest',
-        '^.+\\.jsx$': 'babel-jest',
-    },
-    transformIgnorePatterns: [
-        '<rootDir>/node_modules/',
-    ],
-    moduleNameMapper: {
-        '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': '<rootDir>/test/file.js',
-    },
-    collectCoverageFrom: [
+    "collectCoverageFrom": [
         "src/HierarchicalMapping/**/*.{js,jsx}",
-        "!**/node_modules/**",
-        "!**/vendor/**"
+        "test/**/*.{js,jsx,ts,tsx}",
+        "src/**/*.{js,jsx,ts,tsx}",
+        "!src/**/*.d.ts"
+    ],
+    "resolver": "jest-pnp-resolver",
+    "setupFiles": [
+        "react-app-polyfill/jsdom"
+    ],
+    "setupFilesAfterEnv": [
+        "<rootDir>/test/setup.js"
+    ],
+    "testMatch": [
+        "<rootDir>/test/**/?(*.)(spec|test).{js,jsx,ts,tsx}"
+    ],
+    "testEnvironment": "jest-environment-jsdom-fourteen",
+    "transform": {
+        "^.+\\.(js|jsx|ts|tsx)$": "<rootDir>/node_modules/babel-jest",
+        "^.+\\.css$": "<rootDir>/test/config/cssTransform.js",
+        "^(?!.*\\.(js|jsx|ts|tsx|css|json)$)": "<rootDir>/test/config/fileTransform.js"
+    },
+    "transformIgnorePatterns": [
+        "[/\\\\]node_modules[/\\\\].+\\.(js|jsx|ts|tsx)$",
+        "^.+\\.module\\.(css|sass|scss)$"
+    ],
+    "moduleNameMapper": {
+        "^react-native$": "react-native-web",
+        "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy",
+        "@gui-elements(.*)$": "<rootDir>/src/libs/gui-elements/$1",
+    },
+    "moduleFileExtensions": [
+        "js",
+        "ts",
+        "tsx",
+        "json",
+        "jsx",
+        "node"
+    ],
+    "watchPlugins": [
+        "jest-watch-typeahead/filename",
+        "jest-watch-typeahead/testname"
     ],
     coverageDirectory: './test/reports/coverage',
     reporters: [

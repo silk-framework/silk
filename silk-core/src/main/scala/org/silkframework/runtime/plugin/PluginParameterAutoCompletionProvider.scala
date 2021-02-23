@@ -3,6 +3,7 @@ package org.silkframework.runtime.plugin
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
+import org.silkframework.util.StringUtils
 import org.silkframework.workspace.WorkspaceReadTrait
 
 /**
@@ -35,17 +36,12 @@ trait PluginParameterAutoCompletionProvider {
   /** Match search terms against string. Returns only true if all search terms match. */
   protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String],
                                   searchIn: String): Boolean = {
-    if(lowerCaseSearchTerms.isEmpty) {
-      true
-    } else {
-      val lowerCaseText = searchIn.toLowerCase
-      lowerCaseSearchTerms forall lowerCaseText.contains
-    }
+    StringUtils.matchesSearchTerm(lowerCaseSearchTerms, searchIn)
   }
 
   /** Split text query into multi term search */
   protected def extractSearchTerms(term: String): Array[String] = {
-    term.toLowerCase.split("\\s+").filter(_.nonEmpty)
+    StringUtils.extractSearchTerms(term)
   }
 
   /** Auto-completion based on a text query with limit and offset. */
