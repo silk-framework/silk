@@ -37,12 +37,10 @@ case class TextFileDataset(
   /**
     * Returns a link sink for writing entity links to the data set.
     */
-  override def linkSink(implicit userContext: UserContext): LinkSink = ???
+  override def linkSink(implicit userContext: UserContext): LinkSink = new TextFileSink(this)
 
   /**
     * Returns a entity sink for writing entities to the data set.
     */
-  override def entitySink(implicit userContext: UserContext): EntitySink = ???
+  override def entitySink(implicit userContext: UserContext): EntitySink = new TextFileSink(this)
 }
-
-
