@@ -211,7 +211,7 @@ object ValueType {
 @Plugin(
   id = "UntypedValueType",
   label = "Untyped",
-  description = "The data type is decided automatically, based on the lexical form of each value."
+  description = "The data type is unknown and the value will be serialized to the most generic data type, e.g. a plain literal."
 )
 case class UntypedValueType() extends ValueType with Serializable {//renamed from AutoDetectValueType
 
