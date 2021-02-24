@@ -1,20 +1,19 @@
-package org.silkframework.caching
-
-import java.io.{File, IOException}
-import java.nio.ByteBuffer
-import java.nio.ByteBuffer.allocateDirect
-import java.nio.charset.StandardCharsets.UTF_8
-import java.nio.file.Files
-import java.util
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.logging.{Level, Logger}
+package org.silkframework.runtime.caching
 
 import org.lmdbjava.DbiFlags.MDB_CREATE
 import org.lmdbjava.Env.create
 import org.lmdbjava._
 import org.silkframework.config.DefaultConfig
 import org.silkframework.dataset.rdf.ClosableIterator
-import org.silkframework.util.Identifier;
+import org.silkframework.util.Identifier
+
+import java.io.{File, IOException}
+import java.nio.ByteBuffer
+import java.nio.ByteBuffer.allocateDirect
+import java.nio.charset.StandardCharsets.UTF_8
+import java.util
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.logging.{Level, Logger};
 
 /**
   * A file system backed ordered key value store containing a single DB.

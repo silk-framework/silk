@@ -1,4 +1,4 @@
-package org.silkframework.caching
+package org.silkframework.runtime.caching
 
 /**
   * Config properties for the persistent, sorted key value store.

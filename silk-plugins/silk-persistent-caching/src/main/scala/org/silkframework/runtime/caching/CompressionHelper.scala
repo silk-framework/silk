@@ -1,4 +1,4 @@
-package org.silkframework.caching
+package org.silkframework.runtime.caching
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.nio.ByteBuffer
