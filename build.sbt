@@ -212,10 +212,18 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
     libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.12"
   )
 
+lazy val persistentCaching = (project in file("silk-plugins/silk-persistent-caching"))
+  .dependsOn(core)
+  .settings(commonSettings: _*)
+  .settings(
+    name := "Persistent caching",
+    libraryDependencies += "org.lmdbjava" % "lmdbjava" % "0.8.1"
+  )
+
 // Aggregate all plugins
 lazy val plugins = (project in file("silk-plugins"))
-  .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson)
-  .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson)
+  .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson, persistentCaching)
+  .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson, persistentCaching)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins"
