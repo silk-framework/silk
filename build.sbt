@@ -171,7 +171,7 @@ lazy val pluginsXml = (project in file("silk-plugins/silk-plugins-xml"))
   )
 
 lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
-  .dependsOn(core % "compile->compile;test->test")
+  .dependsOn(core % "compile->compile;test->test", persistentCaching)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins JSON",
