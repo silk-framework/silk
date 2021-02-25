@@ -127,10 +127,10 @@ export class ValueRuleForm extends React.Component {
             () => {
                 if (this.props.onAddNewRule) {
                     this.props.onAddNewRule(() => {
-                        this.handleClose(event);
+                        this.handleCloseWithChanges(event)
                     });
                 } else {
-                    this.handleClose(event);
+                    this.handleCloseWithChanges(event)
                 }
             },
             err => {
@@ -191,6 +191,12 @@ export class ValueRuleForm extends React.Component {
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id });
         EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, { id });
     };
+
+    // Closes the edit form. Reacts to changes in the mapping rules.
+    handleCloseWithChanges = () => {
+        this.handleClose()
+        EventEmitter.emit(MESSAGES.RELOAD, true)
+    }
 
     allowConfirmation() {
         const targetPropertyNotEmpty = !_.isEmpty(this.state.targetProperty);
