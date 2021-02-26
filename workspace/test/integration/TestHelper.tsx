@@ -191,6 +191,9 @@ export const logPageHtml = (): void => {
     process.stdout.write(window.document.documentElement.outerHTML);
 };
 
+/** Get the page HTML */
+export const pageHtml = (): string => window.document.documentElement.outerHTML;
+
 /** Returns a function that logs the page HTML and returns the error. */
 export const logPageOnError = (err: Error) => {
     console.log(logPageHtml());
@@ -259,11 +262,40 @@ export const mockedAxiosResponse = ({ status = 200, data = "" }: IAxiosResponse 
 };
 
 /** Returns the Axios queue item based on the given criteria. */
-const axiosMockItemByCriteria = (criteria: string | AxiosMockRequestCriteria): AxiosMockQueueItem => {
+const axiosMockItemByCriteria = (criteria: string | ExtendedAxiosMockRequestCriteria): AxiosMockQueueItem => {
     if (typeof criteria === "string") {
         return mockAxios.getReqByUrl(criteria);
     } else {
-        return mockAxios.getReqMatching(criteria);
+        if (criteria.partialPayload) {
+            const matchingQueueItems = mockAxios.queue().filter((queueItem) => {
+                const methodMatch = criteria.method
+                    ? criteria.method.toLowerCase() === queueItem.method.toLowerCase()
+                    : true;
+                const urlMatch = criteria.url ? criteria.url === queueItem.url : true;
+                let dataMatch = true;
+                if (criteria.partialPayload) {
+                    try {
+                        expect(queueItem.data).toEqual(expect.objectContaining(criteria.partialPayload));
+                    } catch {
+                        dataMatch = false;
+                    }
+                }
+                return methodMatch && urlMatch && dataMatch;
+            });
+            switch (matchingQueueItems.length) {
+                case 0:
+                    return undefined;
+                case 1:
+                    return matchingQueueItems[0];
+                default:
+                    console.warn(
+                        "More than 1 request found for request criteria. Returning last match. Criteria: " + criteria
+                    );
+                    return matchingQueueItems[matchingQueueItems.length - 1];
+            }
+        } else {
+            return mockAxios.getReqMatching(criteria);
+        }
     }
 };
 
@@ -285,9 +317,15 @@ export const mockedAxiosError = (httpStatus?: number, errorData?: any): AxiosErr
     };
 };
 
+/** Extends the Axios request criteria by a payload object that needs to partially match the actual payload data. */
+interface ExtendedAxiosMockRequestCriteria extends AxiosMockRequestCriteria {
+    // Payload that must partially match. NOTE: This is not recursive, ONLY the root object level is partially matched!
+    partialPayload: any;
+}
+
 /** Mock an Axios request. Depending on the response object this is either a valid response or an error. */
 export const mockAxiosResponse = (
-    criteria: string | AxiosMockRequestCriteria,
+    criteria: string | ExtendedAxiosMockRequestCriteria,
     response?: HttpResponse | AxiosError,
     silentMode?: boolean
 ): void => {

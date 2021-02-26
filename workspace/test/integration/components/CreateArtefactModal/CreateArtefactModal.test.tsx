@@ -15,9 +15,13 @@ import {
     findAll,
     findSingleElement,
     legacyApiUrl,
+    logPageHtml,
+    logRequests,
+    logWrapperHtml,
     mockAxiosResponse,
     mockedAxiosError,
     mockedAxiosResponse,
+    pageHtml,
     RecursivePartial,
     testWrapper,
     withMount,
@@ -29,11 +33,10 @@ import {
     IOverviewArtefactItemList,
     IProjectTaskUpdatePayload,
 } from "../../../../src/app/store/ducks/common/typings";
-import { atomicParamDescription, objectParamDescription } from "./CreateArtefactModalHelper";
+import { atomicParamDescription, mockAutoCompleteResponse, objectParamDescription } from "./CreateArtefactModalHelper";
 import { INPUT_TYPES } from "../../../../src/app/constants";
 import { TaskTypes } from "../../../../src/app/store/ducks/shared/typings";
 import { MemoryHistory } from "history/createMemoryHistory";
-import { Simulate } from "react-dom/test-utils";
 
 describe("Task creation widget", () => {
     beforeAll(() => {
@@ -97,6 +100,7 @@ describe("Task creation widget", () => {
 
     const pluginCreationDialogWrapper = async (
         doubleClickToAdd: boolean = true,
+        // The current data of a task that is being updated
         existingTask?: RecursivePartial<IProjectTaskUpdatePayload>
     ) => {
         const wrapper = await createMockedListWrapper(existingTask);
@@ -168,6 +172,14 @@ describe("Task creation widget", () => {
             resourceParam: atomicParamDescription({ title: "resource param", parameterType: INPUT_TYPES.RESOURCE }),
             enumerationParam: atomicParamDescription(
                 { title: "enumeration param", parameterType: INPUT_TYPES.ENUMERATION },
+                {}
+            ),
+            autoCompletionParamCustom: atomicParamDescription(
+                { title: "auto-complete param that allows custom values", parameterType: INPUT_TYPES.STRING },
+                { allowOnlyAutoCompletedValues: false }
+            ),
+            optionalAutoCompletionParamCustom: atomicParamDescription(
+                { title: "auto-complete param that allows resetting it's value", parameterType: INPUT_TYPES.STRING },
                 {}
             ),
             objectParameter: objectParamDescription(
@@ -324,6 +336,20 @@ describe("Task creation widget", () => {
         });
     });
 
+    it("should allow to reset optional auto-completed values", async () => {
+        const { wrapper } = await pluginCreationDialogWrapper();
+        changeValue(findSingleElement(wrapper, "#optionalAutoCompletionParamCustom"), "abc");
+        const beforePortals = window.document.querySelectorAll("div.bp3-portal").length;
+        mockAutoCompleteResponse(
+            { textQuery: "abc" },
+            mockedAxiosResponse({ data: [{ value: "abc1" }, { value: "abc2" }] })
+        );
+        // FIXME: Blueprint portal not found
+        // await waitFor(() => {
+        //     expect(window.document.querySelectorAll("div.bp3-portal").length).toBeGreaterThan(beforePortals)
+        // })
+    });
+
     const value = (value: string, label?: string) => {
         const result: { value: string; label?: string } = { value };
         if (label) {
@@ -340,6 +366,8 @@ describe("Task creation widget", () => {
         passwordParam: value("password value"),
         resourceParam: value("resource value"),
         enumerationParam: value("enumeration value", "enumeration label"),
+        autoCompletionParamCustom: value(""),
+        optionalAutoCompletionParamCustom: value(""),
         objectParameter: {
             value: {
                 subProperty: value("subProperty value", "subProperty label"),
