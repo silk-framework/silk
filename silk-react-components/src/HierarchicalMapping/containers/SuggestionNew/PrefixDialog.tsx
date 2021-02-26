@@ -39,10 +39,10 @@ export function PrefixDialog({ isOpen, onAdd, onDismiss, prefixList, selectedPre
         hasBorder={true}
         portalContainer={context.portalContainer}
         actions={[
-            <Button key="confirm" onClick={handleAdd} affirmative={true}>
+            <Button data-test-id="suggest-mapping-prefix-ok-btn" key="confirm" onClick={handleAdd} affirmative={true}>
                 Add
             </Button>,
-            <Button key="cancel" onClick={onDismiss}>
+            <Button data-test-id="suggest-mapping-prefix-cancel-btn" key="cancel" onClick={onDismiss}>
                 Cancel
             </Button>,
         ]}

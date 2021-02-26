@@ -103,6 +103,7 @@ export default function TargetList({targets, onChange}: IProps) {
     }
 
     return <TargetSelect
+        className={"ecc-silk-mapping__suggestionlist__target-select"}
         filterable={suggestVocabularyProperties || targets.length > 1}
         onItemSelect={handleSelectTarget}
         items={items}
@@ -111,7 +112,8 @@ export default function TargetList({targets, onChange}: IProps) {
         resetOnSelect={true}
         resetOnClose={true}
         inputProps={{
-            placeholder: context.isFromDataset ? "Enter text to search in all target properties..." : "Filter candidates..."
+            placeholder: context.isFromDataset ? "Enter text to search in all target properties..." : "Filter candidates...",
+            className: "ecc-silk-mapping__suggestionlist__target-property-search"
         }}
         popoverProps={{
             minimal: true,
