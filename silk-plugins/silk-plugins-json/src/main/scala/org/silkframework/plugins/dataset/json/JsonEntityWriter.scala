@@ -12,6 +12,7 @@ import java.math.{BigDecimal, BigInteger}
 class JsonEntityWriter(outputStream: OutputStream, topLevelObject: Boolean) extends HierarchicalEntityWriter {
 
   private val generator = (new JsonFactory).createGenerator(outputStream, JsonEncoding.UTF8)
+  generator.useDefaultPrettyPrinter()
 
   private var firstEntity = true
 

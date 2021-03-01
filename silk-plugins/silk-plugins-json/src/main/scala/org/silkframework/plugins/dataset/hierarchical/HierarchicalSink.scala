@@ -13,7 +13,7 @@ import scala.collection.mutable
 
 abstract class HierarchicalSink extends EntitySink {
 
-  private val cache: HierarchicalEntityCache = HierarchicalEntityCache()
+  private val cache: EntityCache = EntityCache()
 
   private val properties: mutable.Buffer[Seq[TypedProperty]] = mutable.Buffer.empty
 
@@ -45,21 +45,24 @@ abstract class HierarchicalSink extends EntitySink {
     if(properties.size == 1) {
       rootEntities.append(subjectURI)
     }
-    cache.putEntity(HierarchicalEntity(subjectURI, values, properties.size - 1))
+    cache.putEntity(CachedEntity(subjectURI, values, properties.size - 1))
   }
 
   override def closeTable()(implicit userContext: UserContext): Unit = {
   }
 
   override def close()(implicit userContext: UserContext): Unit = {
-    resource.write() { outputStream =>
-      val writer = createWriter(outputStream)
-      //writer.startProperty(rootEntities.size)
-      for(entityUri <- rootEntities) {
-        writeEntity(entityUri, writer)
+    try {
+      resource.write() { outputStream =>
+        val writer = createWriter(outputStream)
+        try {
+          writeEntities(writer)
+        } finally {
+          writer.close()
+        }
       }
-      //writer.endProperty()
-      writer.close()
+    } finally {
+      cache.close()
     }
   }
 
@@ -68,6 +71,12 @@ abstract class HierarchicalSink extends EntitySink {
    */
   override def clear()(implicit userContext: UserContext): Unit = {
     resource.delete()
+  }
+
+  private def writeEntities(writer: HierarchicalEntityWriter): Unit = {
+    for (entityUri <- rootEntities) {
+      writeEntity(entityUri, writer)
+    }
   }
 
   private def writeEntity(uri: String, writer: HierarchicalEntityWriter): Unit = {
@@ -79,7 +88,7 @@ abstract class HierarchicalSink extends EntitySink {
     }
   }
 
-  private def writeEntity(entity: HierarchicalEntity, writer: HierarchicalEntityWriter): Unit = {
+  private def writeEntity(entity: CachedEntity, writer: HierarchicalEntityWriter): Unit = {
     writer.startEntity()
     for((value, property) <- entity.values zip properties(entity.tableIndex)) {
       writer.startProperty(property, value.size)
