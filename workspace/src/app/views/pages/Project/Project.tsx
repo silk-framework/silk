@@ -11,6 +11,7 @@ import FileWidget from "./FileWidget";
 import Loading from "../../shared/Loading";
 
 import {
+    Button,
     Divider,
     Grid,
     GridColumn,
@@ -100,7 +101,17 @@ const Project = () => {
                             </GridColumn>
                             <GridColumn full>
                                 {!data.length && error.detail ? (
-                                    <Notification danger>
+                                    <Notification
+                                        danger={true}
+                                        actions={
+                                            <Button
+                                                text={t("common.action.retry", "Retry")}
+                                                onClick={() => {
+                                                    window.location.reload();
+                                                }}
+                                            />
+                                        }
+                                    >
                                         <h3>{t("http.error.fetchNotResult", "Error, cannot fetch results.")}</h3>
                                         <p>{error.detail}</p>
                                     </Notification>

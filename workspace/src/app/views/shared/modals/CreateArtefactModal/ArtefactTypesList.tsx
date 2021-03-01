@@ -4,6 +4,7 @@ import { commonSel } from "@ducks/common";
 import { Menu, MenuItem, TitleSubsection } from "@gui-elements/index";
 import { useTranslation } from "react-i18next";
 
+/** Shows the item categories on the left side of the item type selection dialog. */
 function ArtefactTypesList({ onSelect }) {
     const { selectedDType } = useSelector(commonSel.artefactModalSelector);
     const typeModifier = useSelector(commonSel.availableDTypesSelector).type;

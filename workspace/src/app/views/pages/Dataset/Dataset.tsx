@@ -66,11 +66,12 @@ export function Dataset() {
 
     const additionalContent = () => {
         if (pluginId === "eccencaDataPlatform") {
-            return dmBaseUrl && <IframeWindow />;
+            return dmBaseUrl && <IframeWindow iFrameName={"detail-page-iframe"} />;
         } else {
             return (
                 showPreview && (
                     <DataPreview
+                        id={"datasetPageDataPreview"}
                         title={t("pages.dataset.title", "Data preview")}
                         preview={{ project: projectId, dataset: taskId }}
                         autoLoad={showPreviewAutomatically}

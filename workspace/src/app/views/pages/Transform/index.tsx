@@ -32,7 +32,7 @@ export default function () {
                 <Section>
                     <Metadata />
                     <Spacing />
-                    <IframeWindow />
+                    <IframeWindow iFrameName={"detail-page-iframe"} />
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>

@@ -1,3 +1,3 @@
-import { FileUploader } from "./FileUploader";
+import { FileSelectionMenu } from "./FileSelectionMenu";
 
-export default FileUploader;
+export default FileSelectionMenu;

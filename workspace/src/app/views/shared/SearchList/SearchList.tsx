@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { Button, Icon, Spacing } from "@gui-elements/index";
+import { Button, Icon, Spacing, Notification } from "@gui-elements/index";
 import Pagination from "../Pagination";
 import DataList from "../Datalist";
 import CloneModal from "../modals/CloneModal";
@@ -89,19 +89,30 @@ export function SearchList() {
                 }
                 textCallout={<strong>{t("common.messages.createFirstItems", { items: itemTypeLabel() })}</strong>}
                 actionButtons={[
-                    <Button key={"create"} onClick={handleCreateArtefact} elevated>
+                    <Button
+                        data-test-id={"create-first-item-btn"}
+                        key={"create"}
+                        onClick={handleCreateArtefact}
+                        elevated
+                    >
                         {t("common.action.CreateSmth", { smth: itemTypeLabel() })}
                     </Button>,
                 ]}
             />
         ) : (
-            <p>{t("common.messages.noItems", { items: "items" })}</p>
+            <Notification>{t("common.messages.noItems", { items: "items" })}</Notification>
         );
 
     return (
         <>
             <AppliedFacets />
-            <DataList isEmpty={isEmpty} isLoading={isLoading} hasSpacing emptyContainer={EmptyContainer}>
+            <DataList
+                data-test-id="search-result-list"
+                isEmpty={isEmpty}
+                isLoading={isLoading}
+                hasSpacing
+                emptyContainer={EmptyContainer}
+            >
                 {data.map((item) => (
                     <SearchItem
                         key={`${item.id}_${item.projectId}`}
