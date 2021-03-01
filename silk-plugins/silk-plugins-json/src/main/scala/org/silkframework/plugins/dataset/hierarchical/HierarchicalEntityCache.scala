@@ -1,9 +1,10 @@
 package org.silkframework.plugins.dataset.hierarchical
 
+import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream
 import org.silkframework.dataset.rdf.ClosableIterator
 import org.silkframework.runtime.caching.{PersistentSortedKeyValueStore, PersistentSortedKeyValueStoreConfig}
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
+import java.io.{ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
@@ -19,13 +20,16 @@ case class HierarchicalEntityCache() {
   def putEntity(entity: HierarchicalEntity): Unit = {
     val keyBuffer = cache.createKeyBuffer(entity.uri)
 
-    val bytesOut = new ByteArrayOutputStream
-    val oos = new ObjectOutputStream(bytesOut)
-    oos.writeObject(entity.values)
-    oos.writeInt(entity.tableIndex)
-    oos.flush()
-    val valueBuffer = cache.createValueBuffer(bytesOut.toByteArray)
-    oos.close()
+    // Write entity into ByteBuffer
+    val byteStream = new ByteArrayOutputStream
+    val objectStream = new ObjectOutputStream(byteStream)
+    try {
+      objectStream.writeObject(entity.values)
+      objectStream.writeInt(entity.tableIndex)
+    } finally {
+      objectStream.close()
+    }
+    val valueBuffer = cache.createValueBuffer(byteStream.toByteArray)
 
     cache.put(keyBuffer, valueBuffer, None)
   }
@@ -41,13 +45,14 @@ case class HierarchicalEntityCache() {
   }
 
   private def readEntity(uri: String, buffer: ByteBuffer): HierarchicalEntity = {
-    val arrayBuffer = ByteBuffer.allocate(buffer.remaining())
-    arrayBuffer.put(buffer)
-    val bytesIn = new ByteArrayInputStream(arrayBuffer.array())
-    val ois = new ObjectInputStream(bytesIn)
-    val values = ois.readObject().asInstanceOf[Seq[Seq[String]]]
-    val index = ois.readInt()
-    HierarchicalEntity(uri, values, index)
+    val inputStream = new ObjectInputStream(new ByteBufferBackedInputStream(buffer))
+    try {
+      val values = inputStream.readObject().asInstanceOf[Seq[Seq[String]]]
+      val index = inputStream.readInt()
+      HierarchicalEntity(uri, values, index)
+    } finally {
+      inputStream.close()
+    }
   }
 
   private class EntityIterator(iterator: ClosableIterator[(ByteBuffer, ByteBuffer)]) extends ClosableIterator[HierarchicalEntity] {
