@@ -239,6 +239,8 @@ export const ParameterWidget = (props: IProps) => {
                             intent: errors ? Intent.DANGER : Intent.NONE,
                         }}
                         resetPossible={!required}
+                        resetValue={""}
+                        resettableValue={(v) => !!v.value}
                         itemKey={(item) => item.value}
                         itemRenderer={autoCompleteLabel}
                         itemValueRenderer={autoCompleteLabel}

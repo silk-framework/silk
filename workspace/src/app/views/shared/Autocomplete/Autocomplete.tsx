@@ -72,11 +72,11 @@ export interface IAutocompleteProps<T extends any, U extends any> {
     inputProps?: IInputGroupProps & HTMLInputProps;
 
     /** If true, then a selection can be reset.
-     * Both emptySelectedValue and emptyValue must also be defined in order to reset to function correctly. */
+     * Both resettableValue and resetValue must also be defined in order to reset to function correctly. */
     resetPossible?: boolean;
 
-    /** Returns if the selected value is "empty". This must be defined if resetPossible is true. */
-    emptySelectedValue?: (T) => boolean;
+    /** Returns true if the currently set value can be reset, i.e. set to the resetValue. This must be defined if resetPossible is true. */
+    resettableValue?(value: T): boolean;
 
     /** The value onChange is called with when a reset is triggered. */
     resetValue?: U;
@@ -115,6 +115,7 @@ Autocomplete.defaultProps = {
     resetValue: null,
 };
 
+/** Auto-complete input widget. */
 export function Autocomplete<T extends any, U extends any>(props: IAutocompleteProps<T, U>) {
     const {
         resetPossible,
@@ -124,7 +125,7 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
         onChange,
         initialValue,
         dependentValues,
-        emptySelectedValue,
+        resettableValue,
         resetValue,
         autoFocus,
         itemKey,
@@ -204,9 +205,13 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
     const clearButton = resetPossible &&
         selectedItem !== undefined &&
         selectedItem !== null &&
-        emptySelectedValue &&
-        !emptySelectedValue(selectedItem) && (
+        resetValue !== undefined &&
+        resettableValue &&
+        resettableValue(selectedItem) && (
             <IconButton
+                data-test-id={
+                    (otherProps.inputProps.id ? `${otherProps.inputProps.id}-` : "") + "auto-complete-clear-btn"
+                }
                 name="operation-clear"
                 text={t("common.action.resetSelection", "Reset selection")}
                 onClick={clearSelection}
