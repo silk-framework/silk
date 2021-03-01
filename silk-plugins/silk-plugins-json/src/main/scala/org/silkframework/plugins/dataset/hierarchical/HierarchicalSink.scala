@@ -54,11 +54,11 @@ abstract class HierarchicalSink extends EntitySink {
   override def close()(implicit userContext: UserContext): Unit = {
     resource.write() { outputStream =>
       val writer = createWriter(outputStream)
-      writer.startArray(rootEntities.size)
+      //writer.startProperty(rootEntities.size)
       for(entityUri <- rootEntities) {
         writeEntity(entityUri, writer)
       }
-      writer.endArray()
+      //writer.endProperty()
       writer.close()
     }
   }
@@ -82,16 +82,15 @@ abstract class HierarchicalSink extends EntitySink {
   private def writeEntity(entity: HierarchicalEntity, writer: HierarchicalEntityWriter): Unit = {
     writer.startEntity()
     for((value, property) <- entity.values zip properties(entity.tableIndex)) {
-      writer.writeField(property)
+      writer.startProperty(property, value.size)
       if(property.valueType == ValueType.URI) {
-        writer.startArray(value.size)
         for(v <- value) {
           writeEntity(v, writer)
         }
-        writer.endArray()
       } else {
         writer.writeValue(value, property)
       }
+      writer.endProperty(property)
     }
     writer.endEntity()
   }

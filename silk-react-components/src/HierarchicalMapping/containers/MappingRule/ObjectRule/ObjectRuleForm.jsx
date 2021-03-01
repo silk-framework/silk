@@ -11,7 +11,7 @@ import {
     RadioGroup,
     TextField,
     Spinner,
-    ScrollingHOC,
+    ScrollingHOC, Checkbox,
 } from '@eccenca/gui-elements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
@@ -96,6 +96,7 @@ export class ObjectRuleForm extends Component {
             sourceProperty: trimValue(modifiedValues.sourceProperty),
             targetProperty: trimValue(modifiedValues.targetProperty),
             targetEntityType: modifiedValues.targetEntityType,
+            isAttribute: modifiedValues.isAttribute,
             pattern: trimValue(modifiedValues.pattern),
             entityConnection: modifiedValues.entityConnection === 'to',
         }, true)
@@ -185,6 +186,7 @@ export class ObjectRuleForm extends Component {
         const title = !id && <CardTitle>Add object mapping</CardTitle>;
 
         let targetPropertyInput = false;
+        let isAttributeInput = false;
         let entityRelationInput = false;
         let sourcePropertyInput = false;
 
@@ -203,6 +205,17 @@ export class ObjectRuleForm extends Component {
                     value={modifiedValues.targetProperty}
                     onChange={value => { this.handleChangeValue('targetProperty', value); }}
                 />
+
+            );
+            isAttributeInput = (
+                <Checkbox
+                    checked={modifiedValues.isAttribute}
+                    className="ecc-silk-mapping__ruleseditor__isAttribute"
+                    onChange={() => this.handleChangeValue('isAttribute', !modifiedValues.isAttribute)}
+                >
+                    Write values as attributes (if supported by the
+                    target dataset)
+                </Checkbox>
             );
             entityRelationInput = (
                 <RadioGroup
@@ -284,6 +297,7 @@ export class ObjectRuleForm extends Component {
                         {errorMessage}
                         {targetPropertyInput}
                         {entityRelationInput}
+                        {isAttributeInput}
                         <AutoComplete
                             placeholder="Target entity type"
                             className="ecc-silk-mapping__ruleseditor__targetEntityType"

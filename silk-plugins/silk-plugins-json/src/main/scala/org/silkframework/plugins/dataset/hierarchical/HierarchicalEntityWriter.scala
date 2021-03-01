@@ -8,15 +8,11 @@ trait HierarchicalEntityWriter {
 
   def endEntity(): Unit
 
-  def startArray(size: Int): Unit
+  def startProperty(property: TypedProperty, numberOfValues: Int): Unit
 
-  def endArray(): Unit
-
-  def writeField(property: TypedProperty): Unit
+  def endProperty(property: TypedProperty): Unit
 
   def writeValue(value: Seq[String], property: TypedProperty): Unit
-
-  def writeValue(value: String, property: TypedProperty): Unit
 
   def close(): Unit
 

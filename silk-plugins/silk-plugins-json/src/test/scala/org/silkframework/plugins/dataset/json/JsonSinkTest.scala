@@ -20,7 +20,7 @@ class JsonSinkTest extends FlatSpec with Matchers {
           IndexedSeq(
             TypedPath(UntypedPath("id"), ValueType.STRING, isAttribute = true),
             TypedPath(UntypedPath("Name"), ValueType.URI, isAttribute = false),
-            TypedPath(UntypedPath("Year"), ValueType.INT, isAttribute = false)
+            TypedPath(UntypedPath("Year"), ValueType.INT, isAttribute = true)
           )
       )
 
@@ -34,8 +34,8 @@ class JsonSinkTest extends FlatSpec with Matchers {
         typeUri = "",
         typedPaths =
           IndexedSeq(
-            TypedPath(UntypedPath("FirstName"), ValueType.STRING, isAttribute = false),
-            TypedPath(UntypedPath("LastName"), ValueType.STRING, isAttribute = false)
+            TypedPath(UntypedPath("FirstName"), ValueType.STRING, isAttribute = true),
+            TypedPath(UntypedPath("LastName"), ValueType.STRING, isAttribute = true)
           )
       )
 
@@ -81,7 +81,7 @@ class JsonSinkTest extends FlatSpec with Matchers {
     implicit val prefixes: Prefixes = Prefixes.empty
 
     val resource = InMemoryResourceManager().get("temp")
-    val sink = new JsonSink(resource, topLevelObject = false)
+    val sink = new JsonSink(resource, topLevelObject = true)
 
     for (entityTable <- entityTables) {
       val schema = entityTable.head.schema

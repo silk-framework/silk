@@ -4,15 +4,22 @@ import com.fasterxml.jackson.core.{JsonEncoding, JsonFactory}
 import org.silkframework.dataset.TypedProperty
 import org.silkframework.entity.ValueType
 import org.silkframework.plugins.dataset.hierarchical.HierarchicalEntityWriter
+import org.silkframework.runtime.validation.ValidationException
 
 import java.io.OutputStream
 import java.math.{BigDecimal, BigInteger}
 
-class JsonEntityWriter(outputStream: OutputStream) extends HierarchicalEntityWriter {
+class JsonEntityWriter(outputStream: OutputStream, topLevelObject: Boolean) extends HierarchicalEntityWriter {
 
   private val generator = (new JsonFactory).createGenerator(outputStream, JsonEncoding.UTF8)
 
+  private var firstEntity = true
+
   override def startEntity(): Unit = {
+    if(firstEntity && topLevelObject) {
+      generator.writeStartArray()
+    }
+    firstEntity = false
     generator.writeStartObject()
   }
 
@@ -20,31 +27,28 @@ class JsonEntityWriter(outputStream: OutputStream) extends HierarchicalEntityWri
     generator.writeEndObject()
   }
 
-  override def startArray(size: Int): Unit = {
-    generator.writeStartArray(size)
-  }
-
-  override def endArray(): Unit = {
-    generator.writeEndArray()
-  }
-
-  override def writeField(property: TypedProperty): Unit = {
+  override def startProperty(property: TypedProperty, numberOfValues: Int): Unit = {
     generator.writeFieldName(property.propertyUri)
+    if(!property.isAttribute) {
+      generator.writeStartArray(numberOfValues)
+    } else if(numberOfValues != 1) {
+      throw new ValidationException(s"Property ${property.propertyUri} is only allowed to have one value, but got multiple values")
+    }
   }
 
-  override def writeValue(value: Seq[String], property: TypedProperty): Unit = {
-    if(value.size == 1) {
-      writeValue(value.head, property)
-    } else {
-      generator.writeStartArray(value.size)
-      for(v <- value) {
-        writeValue(v, property)
-      }
+  override def endProperty(property: TypedProperty): Unit = {
+    if(!property.isAttribute) {
       generator.writeEndArray()
     }
   }
 
-  override def writeValue(value: String, property: TypedProperty): Unit = {
+  override def writeValue(value: Seq[String], property: TypedProperty): Unit = {
+    for(v <- value) {
+      writeValue(v, property)
+    }
+  }
+
+  private def writeValue(value: String, property: TypedProperty): Unit = {
     property.valueType match {
       case ValueType.INTEGER =>
         generator.writeNumber(new BigInteger(value))
@@ -66,6 +70,9 @@ class JsonEntityWriter(outputStream: OutputStream) extends HierarchicalEntityWri
   }
 
   override def close(): Unit = {
+    if(topLevelObject) {
+      generator.writeEndArray()
+    }
     generator.close()
   }
 

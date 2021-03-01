@@ -254,6 +254,7 @@ const prepareObjectMappingPayload = data => {
             valueType: {
                 nodeType: 'UriValueType',
             },
+            isAttribute: data.isAttribute
         },
         sourcePath: data.sourceProperty
             ? handleCreatedSelectBoxValue(data, 'sourceProperty')

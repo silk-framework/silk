@@ -8,7 +8,7 @@ import java.io.OutputStream
 class JsonSink (val resource: WritableResource, topLevelObject: Boolean) extends HierarchicalSink {
 
   override protected def createWriter(outputStream: OutputStream): HierarchicalEntityWriter = {
-    new JsonEntityWriter(outputStream)
+    new JsonEntityWriter(outputStream, topLevelObject)
   }
 
 }
