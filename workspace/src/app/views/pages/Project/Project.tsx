@@ -106,7 +106,9 @@ const Project = () => {
                                         actions={
                                             <Button
                                                 text={t("common.action.retry", "Retry")}
-                                                onClick={() => { window.location.reload(); }}
+                                                onClick={() => {
+                                                    window.location.reload();
+                                                }}
                                             />
                                         }
                                     >
