@@ -72,10 +72,10 @@ export default function SuggestionList({rows, prefixList, loading, onSwapAction,
 
     const [headers, setHeaders] = useState<ITableHeader[]>(
         [
-            {header: 'Source data', key: 'source'},
+            {header: 'Source data', key: 'source', sortDataTestId: 'suggest-table-source-sorting-btn'},
             {header: null, key: 'SWAP_BUTTON'},
-            {header: 'Target data', key: 'target',},
-            {header: 'Mapping type', key: 'type'}
+            {header: 'Target data', key: 'target', sortDataTestId: 'suggest-table-target-sorting-btn', filterDataTestId: 'suggest-table-target-filter-btn'},
+            {header: 'Mapping type', key: 'type', sortDataTestId: 'suggest-table-type-sorting-btn', filterDataTestId: 'suggest-table-type-filter-btn'}
         ]
     );
 

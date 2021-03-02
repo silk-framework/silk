@@ -65,7 +65,7 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}: 
     const {search} = context;
     return <TableRow>
         <TableCell>
-            <Checkbox onChange={() => onRowSelect(row)} checked={!!selected}/>
+            <Checkbox onChange={() => onRowSelect(row)} checked={!!selected} />
         </TableCell>
         <TableCell>
             {

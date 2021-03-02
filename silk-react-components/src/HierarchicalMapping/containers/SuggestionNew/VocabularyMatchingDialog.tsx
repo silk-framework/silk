@@ -115,7 +115,7 @@ export default function VocabularyMatchingDialog(
     }
 
     const clearButton =
-        selectedVocabs.length > 0 ? <Button icon="operation-clear" minimal={true} onClick={handleClear} /> : undefined;
+        selectedVocabs.length > 0 ? <Button icon="operation-clear" data-test-id="clear-all-vocabs" minimal={true} onClick={handleClear} /> : undefined;
 
     const onQueryChange = (query: string) => {
         setSearchQuery(query)
@@ -139,7 +139,7 @@ export default function VocabularyMatchingDialog(
                 }
                 data-test-id={"vocab-match-execute-btn"}
             >
-                Refine matches
+                Confirm selection
             </Button>,
             <Button key="cancel" onClick={handleCancel}>
                 Cancel
