@@ -5,12 +5,14 @@ import org.lmdbjava.Env.create
 import org.lmdbjava._
 import org.silkframework.config.DefaultConfig
 import org.silkframework.dataset.rdf.ClosableIterator
+import org.silkframework.util.FileUtils.toFileUtils
 import org.silkframework.util.Identifier
 
 import java.io.{File, IOException}
 import java.nio.ByteBuffer
 import java.nio.ByteBuffer.allocateDirect
 import java.nio.charset.StandardCharsets.UTF_8
+import java.nio.file.Files
 import java.util
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.logging.{Level, Logger};
@@ -41,7 +43,7 @@ case class PersistentSortedKeyValueStore(databaseId: Identifier,
         new File(PersistentSortedKeyValueStore.cacheDirectory, databaseId)
       }
     }
-    dir.mkdirs()
+    dir.safeMkdirs()
     dir
   }
   @volatile
@@ -387,13 +389,13 @@ object PersistentSortedKeyValueStore {
     val file = if(cfg.hasPathOrNull(cacheDirectoryConfigKey)) {
       new File(cfg.getString(cacheDirectoryConfigKey))
     } else {
-      val tempDir = File.createTempFile("tempDiCache", "")
+      val tempDir = Files.createTempDirectory("tempDiCache").toFile
       log.warning(s"No persistent cache directory specified. Please set config parameter 'caches.persistence.directory' " +
           s"appropriately. Using temporary directory ${tempDir.getAbsolutePath}.")
       tempDir
     }
     if(!file.exists()) {
-      file.mkdirs()
+      file.safeMkdirs()
     }
     file
   }
@@ -407,7 +409,7 @@ object PersistentSortedKeyValueStore {
     log.info("Cleaning tmp key/value database directory.")
     try {
       org.apache.commons.io.FileUtils.deleteDirectory(tempCacheDirectory)
-      tempCacheDirectory.mkdirs()
+      tempCacheDirectory.safeMkdirs()
     } catch {
       case exception: IOException =>
         log.log(Level.WARNING, "Could not clean up temp cache dir " + tempCacheDirectory.getAbsolutePath, exception)

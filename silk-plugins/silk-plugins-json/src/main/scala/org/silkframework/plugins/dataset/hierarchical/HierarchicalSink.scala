@@ -13,7 +13,7 @@ import scala.collection.mutable
 
 abstract class HierarchicalSink extends EntitySink {
 
-  private val cache: EntityCache = EntityCache()
+  private lazy val cache: EntityCache = EntityCache()
 
   private val properties: mutable.Buffer[Seq[TypedProperty]] = mutable.Buffer.empty
 
