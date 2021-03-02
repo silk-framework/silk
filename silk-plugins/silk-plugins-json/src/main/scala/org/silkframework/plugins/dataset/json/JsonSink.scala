@@ -5,10 +5,9 @@ import org.silkframework.runtime.resource.WritableResource
 
 import java.io.OutputStream
 
-class JsonSink (val resource: WritableResource, topLevelObject: Boolean) extends HierarchicalSink {
-
+class JsonSink (val resource: WritableResource, template: JsonTemplate = JsonTemplate.default) extends HierarchicalSink {
   override protected def createWriter(outputStream: OutputStream): HierarchicalEntityWriter = {
-    new JsonEntityWriter(outputStream, topLevelObject)
+    new JsonEntityWriter(outputStream, template)
   }
 
 }

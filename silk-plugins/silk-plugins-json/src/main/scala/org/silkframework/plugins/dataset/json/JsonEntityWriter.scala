@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.json
 
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter
 import com.fasterxml.jackson.core.{JsonEncoding, JsonFactory}
 import org.silkframework.dataset.TypedProperty
 import org.silkframework.entity.ValueType
@@ -8,19 +9,18 @@ import org.silkframework.runtime.validation.ValidationException
 
 import java.io.OutputStream
 import java.math.{BigDecimal, BigInteger}
+import java.nio.charset.StandardCharsets
 
-class JsonEntityWriter(outputStream: OutputStream, topLevelObject: Boolean) extends HierarchicalEntityWriter {
+class JsonEntityWriter(outputStream: OutputStream, template: JsonTemplate) extends HierarchicalEntityWriter {
 
   private val generator = (new JsonFactory).createGenerator(outputStream, JsonEncoding.UTF8)
-  generator.useDefaultPrettyPrinter()
+  generator.setPrettyPrinter(new DefaultPrettyPrinter(", "))
 
-  private var firstEntity = true
+  override def open(): Unit = {
+    outputStream.write(template.prefix.getBytes(StandardCharsets.UTF_8))
+  }
 
   override def startEntity(): Unit = {
-    if(firstEntity && topLevelObject) {
-      generator.writeStartArray()
-    }
-    firstEntity = false
     generator.writeStartObject()
   }
 
@@ -71,10 +71,8 @@ class JsonEntityWriter(outputStream: OutputStream, topLevelObject: Boolean) exte
   }
 
   override def close(): Unit = {
-    if(topLevelObject) {
-      generator.writeEndArray()
-    }
     generator.close()
+    outputStream.write(template.suffix.getBytes(StandardCharsets.UTF_8))
   }
 
 }

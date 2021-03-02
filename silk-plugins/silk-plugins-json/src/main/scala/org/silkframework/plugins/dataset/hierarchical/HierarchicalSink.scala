@@ -11,6 +11,9 @@ import org.silkframework.util.Uri
 import java.io.OutputStream
 import scala.collection.mutable
 
+/**
+  * Sink that writes entities into a hierarchical output, such as JSON or XML.
+  */
 abstract class HierarchicalSink extends EntitySink {
 
   private lazy val cache: EntityCache = EntityCache()
@@ -19,8 +22,16 @@ abstract class HierarchicalSink extends EntitySink {
 
   private val rootEntities: mutable.Buffer[String] = mutable.Buffer.empty
 
+  /**
+    * The resource this sink is writing to.
+    * Must be implemented in sub classes.
+    */
   protected def resource: WritableResource
 
+  /**
+    * Creates a new HierarchicalEntityWriter instance that will be used to write the output.
+    * Must be implemented in sub classes.
+    */
   protected def createWriter(outputStream: OutputStream): HierarchicalEntityWriter
 
   /**
@@ -74,6 +85,7 @@ abstract class HierarchicalSink extends EntitySink {
   }
 
   private def writeEntities(writer: HierarchicalEntityWriter): Unit = {
+    writer.open()
     for (entityUri <- rootEntities) {
       writeEntity(entityUri, writer)
     }

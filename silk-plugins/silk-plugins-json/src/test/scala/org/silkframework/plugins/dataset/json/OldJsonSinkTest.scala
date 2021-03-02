@@ -21,7 +21,7 @@ class OldJsonSinkTest extends FlatSpec with Matchers {
     val tempFile = File.createTempFile("json-write-test-1", ".json")
     tempFile.deleteOnExit()
     val inputEntites = getEntities
-    val sink = new JsonSink(FileResource(tempFile), topLevelObject = false)
+    val sink = new JsonSink(FileResource(tempFile))
 
     val typedProps: Seq[TypedProperty] = inputEntites.head.schema.typedPaths.map(_.property.get)
     sink.openTable("typeUri", typedProps)
@@ -52,7 +52,7 @@ class OldJsonSinkTest extends FlatSpec with Matchers {
     val tempFile = File.createTempFile("json-write-test-2", ".json")
     tempFile.deleteOnExit()
     val inputEntites = getEntities
-    val sink = new JsonSink(FileResource(tempFile), topLevelObject = true)
+    val sink = new JsonSink(FileResource(tempFile))
     sink.clear()
     val typedProps: Seq[TypedProperty] = inputEntites.head.schema.typedPaths.map(_.property.get)
     sink.openTable("typeUri", typedProps)
@@ -78,7 +78,7 @@ class OldJsonSinkTest extends FlatSpec with Matchers {
     val tempFile = File.createTempFile("json-write-test-3", ".json")
     tempFile.deleteOnExit()
     val inputEntites = getArrayEntities
-    val sink = new JsonSink(FileResource(tempFile), topLevelObject = false)
+    val sink = new JsonSink(FileResource(tempFile))
 
     val typedProps: Seq[TypedProperty] = inputEntites.head.schema.typedPaths.map(_.property.get)
     sink.openTable("typeUri", typedProps)
@@ -197,7 +197,7 @@ class OldJsonSinkTest extends FlatSpec with Matchers {
     implicit val prefixes: Prefixes = Prefixes.empty
 
     val resource = new FileResource(tempFile)
-    val sink = new JsonSink(resource, topLevelObject = false)
+    val sink = new JsonSink(resource)
 
     for (entityTable <- entityTables) {
       val schema = entityTable.head.schema

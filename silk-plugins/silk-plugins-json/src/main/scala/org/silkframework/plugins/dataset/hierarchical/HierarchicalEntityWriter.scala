@@ -10,6 +10,12 @@ import java.io.Closeable
 trait HierarchicalEntityWriter extends Closeable {
 
   /**
+    * Open this writer.
+    * Must be called once at the beginning.
+    */
+  def open(): Unit
+
+  /**
     * Adds a new entity.
     * Must be followed by calls to [[startProperty]] to write property values.
     */
