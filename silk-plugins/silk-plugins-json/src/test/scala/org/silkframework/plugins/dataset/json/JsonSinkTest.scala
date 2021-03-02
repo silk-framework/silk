@@ -12,6 +12,75 @@ class JsonSinkTest extends FlatSpec with Matchers {
 
   behavior of "JsonSink"
 
+  it should "write entities to json using the first object as the root" in {
+    val schema =
+      EntitySchema(
+        typeUri = "",
+        typedPaths =
+          IndexedSeq(
+            TypedPath(UntypedPath("key"), ValueType.STRING, isAttribute = true),
+          )
+      )
+
+    val entities = Seq(Entity("someUri", IndexedSeq(Seq("value")), schema))
+
+    test(
+      entityTables = Seq(entities),
+      template = JsonTemplate("", ""),
+      expected = """{
+                   |  "key": "value"
+                   |}""".stripMargin
+    )
+  }
+
+  it should "write flat structures nested under root element" in {
+    val schema =
+      EntitySchema(
+        typeUri = "",
+        typedPaths =
+          IndexedSeq(
+            TypedPath(UntypedPath("IntegerValue"), ValueType.INT, isAttribute = true),
+            TypedPath(UntypedPath("FloatValue"), ValueType.FLOAT, isAttribute = true),
+            TypedPath(UntypedPath("StringValue"), ValueType.STRING, isAttribute = true)
+          )
+      )
+
+    val entities = Seq(Entity("someUri", IndexedSeq(Seq("1"), Seq("1.0"), Seq("one")), schema))
+
+    test(
+      entityTables = Seq(entities),
+      expected = """[{
+                   |  "IntegerValue": 1,
+                   |  "FloatValue": 1.0,
+                   |  "StringValue": "one"
+                   |}]""".stripMargin
+    )
+  }
+
+  it should "write entities with arrays to json" in {
+    val schema =
+      EntitySchema(
+        typeUri = "",
+        typedPaths =
+          IndexedSeq(
+            TypedPath(UntypedPath("SingleValue"), ValueType.STRING, isAttribute = true),
+            TypedPath(UntypedPath("ArrayValue1"), ValueType.STRING, isAttribute = false),
+            TypedPath(UntypedPath("ArrayValue2"), ValueType.STRING, isAttribute = false)
+          )
+      )
+
+    val entities = Seq(Entity("someUri", IndexedSeq(Seq("a"), Seq("a"), Seq("a", "b")), schema))
+
+    test(
+      entityTables = Seq(entities),
+      expected = """[{
+                   |  "SingleValue": "a",
+                   |  "ArrayValue1": ["a"],
+                   |  "ArrayValue2": ["a", "b"]
+                   |}]""".stripMargin
+    )
+  }
+
   it should "write nested structures" in {
     val personSchema =
       EntitySchema(
@@ -76,12 +145,12 @@ class JsonSinkTest extends FlatSpec with Matchers {
     )
   }
 
-  private def test(entityTables: Seq[Seq[Entity]], expected: String): Unit = {
+  private def test(entityTables: Seq[Seq[Entity]], template: JsonTemplate = JsonTemplate.default, expected: String): Unit = {
     implicit val userContext: UserContext = UserContext.Empty
     implicit val prefixes: Prefixes = Prefixes.empty
 
     val resource = InMemoryResourceManager().get("temp")
-    val sink = new JsonSink(resource)
+    val sink = new JsonSink(resource, template)
 
     for (entityTable <- entityTables) {
       val schema = entityTable.head.schema
