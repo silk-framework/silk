@@ -3,7 +3,7 @@ import { matchPath, useLocation } from "react-router";
 import { useDebugValue, useEffect, useState } from "react";
 import appRoutes from "../../../appRoutes";
 import { getFullRoutePath } from "../../../utils/routerUtils";
-import { IBreadcrumb } from "./Header";
+import { IBreadcrumb } from "./ViewHeaderContentProvider";
 import { SERVE_PATH } from "../../../constants/path";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { useTranslation } from "react-i18next";
