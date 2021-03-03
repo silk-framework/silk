@@ -11,6 +11,7 @@ import {
     workspacePath,
 } from "../../../TestHelper";
 import { Header } from "../../../../../src/app/views/layout/Header/Header";
+import { ViewHeaderContentProvider } from "../../../../../src/app/views/layout/Header/ViewHeaderContentProvider";
 import { waitFor } from "@testing-library/react";
 import { Helmet } from "react-helmet";
 import { ContextMenu } from "../../../../../src/libs/gui-elements";
@@ -18,13 +19,13 @@ import { ContextMenu } from "../../../../../src/libs/gui-elements";
 describe("Header", () => {
     let hostPath = process.env.HOST;
     let wrapper;
+    let history = createBrowserHistory();
 
     beforeEach(() => {
-        const history = createBrowserHistory();
         history.location.pathname = workspacePath("/projects/SomeProjectId/dataset/SomeTaskId");
 
         wrapper = withMount(
-            testWrapper(<Header breadcrumbs={[{ href: "/someHref", text: "dummy bread" }]} />, history, {
+            testWrapper(<Header />, history, {
                 common: { initialSettings: { dmBaseUrl: "http://docker.local" } },
             })
         );
@@ -35,6 +36,18 @@ describe("Header", () => {
     });
 
     it("should page title is correct", () => {
+        const history = createBrowserHistory();
+        history.location.pathname = workspacePath("/projects/SomeProjectId/dataset/SomeTaskId");
+
+        wrapper = withMount(
+            testWrapper(
+                <ViewHeaderContentProvider breadcrumbs={[{ href: "/someHref", text: "dummy bread" }]} />,
+                history,
+                {
+                    common: { initialSettings: { dmBaseUrl: "http://docker.local" } },
+                }
+            )
+        );
         expect(wrapper.find(Helmet).prop("title")).toEqual("dummy bread (dataset) at  – eccenca Corporate Memory");
     });
 
