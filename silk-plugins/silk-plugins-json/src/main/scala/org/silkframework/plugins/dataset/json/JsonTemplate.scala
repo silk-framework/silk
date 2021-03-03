@@ -2,6 +2,8 @@ package org.silkframework.plugins.dataset.json
 
 import org.silkframework.runtime.validation.ValidationException
 
+import scala.util.matching.Regex
+
 /**
   * Simple template to specify an envelope around generated JSON objects.
   */
@@ -15,18 +17,23 @@ object JsonTemplate {
   val default: JsonTemplate = JsonTemplate("[", "]")
 
   /**
-    * Parses templates of the form "prefix{{entities}}suffix"
+    * The placeholder variable for the writen entities.
+    */
+  val placeholder: String = "{{entities}}"
+
+  /**
+    * Parses templates of the form "prefix[[placeholder]]suffix"
     */
   def parse(templateStr: String): JsonTemplate = {
-    if(!templateStr.contains("{{entities}}")) {
-      throw new ValidationException("Template must contain {{entities}}.")
+    if(!templateStr.contains(placeholder)) {
+      throw new ValidationException(s"Template must contain $placeholder.")
     }
-    val parts = templateStr.split("""\{\{entities\}\}""")
+    val parts = templateStr.split(Regex.quote(placeholder))
     parts.length match {
       case 0 => JsonTemplate("", "")
       case 1 => JsonTemplate(parts(0), "")
       case 2 => JsonTemplate(parts(0), parts(1))
-      case _ => throw new ValidationException("Template must contain {{entities}} exactly once.")
+      case _ => throw new ValidationException(s"Template must contain $placeholder exactly once.")
     }
   }
 

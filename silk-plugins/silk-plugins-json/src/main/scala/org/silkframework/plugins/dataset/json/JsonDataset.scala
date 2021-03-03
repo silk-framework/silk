@@ -17,7 +17,7 @@ case class JsonDataset(
   @Param("Json file.")
   file: WritableResource,
   @Param("Template for writing JSON. The term {{entities}} will be replaced by the written entities formatted as a comma-separated list of JSON objects.")
-  template: MultilineStringParameter = "[{{entities}}]",
+  template: MultilineStringParameter = s"[${JsonTemplate.placeholder}]",
   @Param(value = "The path to the elements to be read, starting from the root element, e.g., '/Persons/Person'. If left empty, all direct children of the root element will be read.", advanced = true)
   basePath: String = "",
   @deprecated("This will be removed in the next release.", "")
