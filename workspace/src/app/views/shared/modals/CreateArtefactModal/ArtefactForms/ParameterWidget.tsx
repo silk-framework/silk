@@ -13,6 +13,7 @@ import { useTranslation } from "react-i18next";
 import { firstNonEmptyLine } from "../../../ContentBlobToggler";
 import { ContentBlobToggler } from "../../../ContentBlobToggler/ContentBlobToggler";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
+import { createNewItemRendererFactory } from "../../../Autocomplete/autoCompletionParameterUtils";
 
 const MAXLENGTH_TOOLTIP = 40;
 const MAXLENGTH_SIMPLEHELP = 288;
@@ -62,11 +63,7 @@ export const errorMessage = (title: string, errors: any) => {
 // Label of auto-completion results
 const autoCompleteLabel = (item: IAutocompleteDefaultResponse) => {
     const label = item.label || item.value;
-    if (label === "") {
-        return "\u00A0";
-    } else {
-        return label;
-    }
+    return label;
 };
 
 /** Widget for a single parameter of a task. */
@@ -238,12 +235,25 @@ export const ParameterWidget = (props: IProps) => {
                             id: formParamId,
                             intent: errors ? Intent.DANGER : Intent.NONE,
                         }}
-                        resetPossible={!required}
-                        resetValue={""}
-                        resettableValue={(v) => !!v.value}
+                        reset={{
+                            resetValue: "",
+                            resettableValue: (v) => !!v.value,
+                        }}
                         itemKey={(item) => item.value}
                         itemRenderer={autoCompleteLabel}
                         itemValueRenderer={autoCompleteLabel}
+                        itemValueSelector={(item) => item.value}
+                        createNewItem={{
+                            itemFromQuery: autoCompletion.allowOnlyAutoCompletedValues
+                                ? undefined
+                                : (query) => ({ value: query }),
+                            itemRenderer: autoCompletion.allowOnlyAutoCompletedValues
+                                ? undefined
+                                : createNewItemRendererFactory(
+                                      (query) => t("ParameterWidget.AutoComplete.createNewItem", { query }),
+                                      "item-add-artefact"
+                                  ),
+                        }}
                     />
                 ) : (
                     <InputMapper

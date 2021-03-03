@@ -181,6 +181,18 @@ export const findSingleElement = (
     return element[0];
 };
 
+/** Adds the document.createRange method */
+export const addDocumentCreateRangeMethod = () => {
+    (global as any).document.createRange = () => ({
+        setStart: () => {},
+        setEnd: () => {},
+        commonAncestorContainer: {
+            nodeName: "BODY",
+            ownerDocument: document,
+        },
+    });
+};
+
 /** Returns a data test id selector. */
 export const byTestId = (testId: string): EnzymePropSelector => {
     return { "data-test-id": testId };

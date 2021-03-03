@@ -36,7 +36,7 @@ export interface IAutocompleteProps<T extends any, U extends any> {
     /**
      * Either the label of the select option or an option element that should be displayed as option in the selection.
      * If the return value is a string, a default render component will be displayed with search highlighting.
-     * @param item  The item that should be displayed as an option in the selectiong.
+     * @param item  The item that should be displayed as an option in the select list.
      * @param query The current search query
      * @param active If the item is currently active
      * @param handleClick The function that needs to be called when the rendered item gets clicked. Else a selection
@@ -50,11 +50,10 @@ export interface IAutocompleteProps<T extends any, U extends any> {
     itemValueRenderer(item: T): string;
 
     /**
-     * The part from the auto-completion item that is called with the onChange callback.
+     * Selects the part from the auto-completion item that is called with the onChange callback.
      * @param item
-     * @default (item) => item.value
      */
-    itemValueSelector?(item: T): U;
+    itemValueSelector(item: T): U;
 
     /** Generates the key of the item. This needs to be a unique string. */
     itemKey?(item: T): string;
@@ -71,34 +70,35 @@ export interface IAutocompleteProps<T extends any, U extends any> {
      */
     inputProps?: IInputGroupProps & HTMLInputProps;
 
-    /** If true, then a selection can be reset.
-     * Both resettableValue and resetValue must also be defined in order to reset to function correctly. */
-    resetPossible?: boolean;
+    /** Defines if a value can be reset, i.e. a reset icon is shown and the value is set to a specific value.
+     *  When undefined, a value cannot be reset.
+     */
+    reset?: {
+        /** Returns true if the currently set value can be reset, i.e. set to the resetValue. The reset icon is only shown if true. */
+        resettableValue(value: T): boolean;
 
-    /** Returns true if the currently set value can be reset, i.e. set to the resetValue. This must be defined if resetPossible is true. */
-    resettableValue?(value: T): boolean;
-
-    /** The value onChange is called with when a reset is triggered. */
-    resetValue?: U;
+        /** The value onChange is called with when a reset is triggered. */
+        resetValue: U;
+    };
 
     // If enabled the auto completion component will auto focus
     autoFocus?: boolean;
 
-    /** Creates a new item from the query. If this is defined, creation of new items will be allowed. */
-    createNewItemFromQuery?: (query: string) => T;
+    // Contains methods for new item creation
+    createNewItem?: {
+        /** Creates a new item from the query. If this is defined, creation of new items will be allowed. */
+        itemFromQuery: (query: string) => T;
 
-    /** Renders how newly created items should look like. */
-    createNewItemRenderer?: (
-        query: string,
-        active: boolean,
-        handleClick: React.MouseEventHandler<HTMLElement>
-    ) => JSX.Element | undefined;
+        /** Renders how newly created items should look like. */
+        itemRenderer: (
+            query: string,
+            active: boolean,
+            handleClick: React.MouseEventHandler<HTMLElement>
+        ) => JSX.Element | undefined;
+    };
 }
 
 Autocomplete.defaultProps = {
-    itemValueSelector: (item) => {
-        return item.value;
-    },
     dependentValues: [],
     resetPossible: false,
     itemKey: (item) => {
@@ -112,31 +112,28 @@ Autocomplete.defaultProps = {
         }
     },
     autoFocus: false,
-    resetValue: null,
 };
 
 /** Auto-complete input widget. */
 export function Autocomplete<T extends any, U extends any>(props: IAutocompleteProps<T, U>) {
     const {
-        resetPossible,
+        reset,
         itemValueSelector,
         itemRenderer,
         onSearch,
         onChange,
         initialValue,
         dependentValues,
-        resettableValue,
-        resetValue,
         autoFocus,
         itemKey,
-        createNewItemFromQuery,
-        createNewItemRenderer,
+        createNewItem,
         itemValueRenderer,
         ...otherProps
     } = props;
     const [selectedItem, setSelectedItem] = useState<T | undefined>(initialValue);
 
     const [query, setQuery] = useState<string>("");
+    const [hasFocus, setHasFocus] = useState<boolean>(false);
 
     // The suggestions that match the user's input
     const [filtered, setFiltered] = useState<T[]>([]);
@@ -145,16 +142,43 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
 
     const SuggestAutocomplete = Suggest.ofType<T>();
 
+    // Sets the query to the item value if it has a valid string value
+    const setQueryToSelectedValue = (item: T) => {
+        if (item) {
+            setQuery(itemValueRenderer(item));
+        }
+    };
+
+    useEffect(() => {
+        setQueryToSelectedValue(selectedItem);
+    }, [selectedItem]);
+
     useEffect(() => {
         // Don't fetch auto-completion values when
-        if (dependentValues.length === props.autoCompletion.autoCompletionDependsOnParameters.length) {
-            handleQueryChange(query, {});
+        if (dependentValues.length === props.autoCompletion.autoCompletionDependsOnParameters.length && hasFocus) {
+            const timeout: number = window.setTimeout(async () => {
+                fetchQueryResults(query);
+            }, 200);
+            return () => clearTimeout(timeout);
         }
-    }, [dependentValues.join("|")]);
+    }, [dependentValues.join("|"), hasFocus, query]);
+
+    // We need to fire some actions when the auto-complete widget gets or loses focus
+    const handleOnFocusIn = () => {
+        setHasFocus(true);
+    };
+
+    const handleOnFocusOut = () => {
+        setHasFocus(false);
+        // Reset query to selected value when loosing focus, so the selected value can always be edited.
+        setQueryToSelectedValue(selectedItem);
+        setFiltered([]);
+    };
 
     const onSelectionChange = (value, e) => {
         setSelectedItem(value);
         onItemSelect(value, e);
+        setQueryToSelectedValue(value);
     };
 
     const areEqualItems = (itemA, itemB) => itemValueSelector(itemA) === itemValueSelector(itemB);
@@ -163,17 +187,35 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
         onChange(itemValueSelector(item), e);
     };
 
-    //@Note: issue https://github.com/palantir/blueprint/issues/2983
-    const handleQueryChange = async (input = "", event) => {
-        // This function is fired twice because of above-mentioned issue, only allow the call with defined event.
-        if (event) {
-            setQuery(input);
-            try {
-                const result = await onSearch(input);
-                setFiltered(result);
-            } catch (e) {
-                console.log(e);
+    const itemIndexOf = (arr: T[], searchItem: T): number => {
+        let idx = -1;
+        const searchItemString = itemValueRenderer(searchItem);
+        arr.forEach((v, i) => {
+            if (itemValueRenderer(v) === searchItemString) {
+                idx = i;
             }
+        });
+        return idx;
+    };
+
+    // Fetches the results for the given query
+    const fetchQueryResults = async (input: string) => {
+        try {
+            let result = await onSearch(input);
+            if (result.length <= 1 && selectedItem && input.length > 0 && itemValueRenderer(selectedItem) === input) {
+                // If the auto-completion only returns no suggestion or the selected item itself, query with empty string.
+                const emptyStringResults = await onSearch("");
+                // Put selected item at the top, remove it from other places in the result list
+                if (result.length === 1 && itemIndexOf(emptyStringResults, selectedItem) > -1) {
+                    const idx = itemIndexOf(emptyStringResults, selectedItem);
+                    result = [selectedItem, ...emptyStringResults.slice(0, idx), ...emptyStringResults.slice(idx + 1)];
+                } else {
+                    result = [selectedItem, ...emptyStringResults];
+                }
+            }
+            setFiltered(result);
+        } catch (e) {
+            console.log(e);
         }
     };
 
@@ -197,29 +239,29 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
         }
     };
     // Resets the selection
-    const clearSelection = () => {
+    const clearSelection = (resetValue: U) => () => {
         setSelectedItem(undefined);
         onChange(resetValue);
         setQuery("");
     };
-    const clearButton = resetPossible &&
+    const clearButton = reset &&
         selectedItem !== undefined &&
         selectedItem !== null &&
-        resetValue !== undefined &&
-        resettableValue &&
-        resettableValue(selectedItem) && (
+        reset.resettableValue(selectedItem) && (
             <IconButton
                 data-test-id={
                     (otherProps.inputProps.id ? `${otherProps.inputProps.id}-` : "") + "auto-complete-clear-btn"
                 }
                 name="operation-clear"
                 text={t("common.action.resetSelection", "Reset selection")}
-                onClick={clearSelection}
+                onClick={clearSelection(reset.resetValue)}
             />
         );
-    const updatedInputProps = {
+    const updatedInputProps: IInputGroupProps & HTMLInputProps = {
         rightElement: clearButton,
         autoFocus: autoFocus,
+        onBlur: handleOnFocusOut,
+        onFocus: handleOnFocusIn,
         ...otherProps.inputProps,
     };
     return (
@@ -231,7 +273,8 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
             itemsEqual={areEqualItems}
             noResults={<MenuItem disabled={true} text={t("common.messages.noResults", "No results.")} />}
             onItemSelect={onSelectionChange}
-            onQueryChange={handleQueryChange}
+            onQueryChange={(q) => setQuery(q)}
+            closeOnSelect={true}
             query={query}
             popoverProps={{
                 minimal: true,
@@ -241,8 +284,8 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
             }}
             selectedItem={selectedItem}
             fill
-            createNewItemFromQuery={createNewItemFromQuery}
-            createNewItemRenderer={createNewItemRenderer}
+            createNewItemFromQuery={createNewItem?.itemFromQuery}
+            createNewItemRenderer={createNewItem?.itemRenderer}
             {...otherProps}
             inputProps={updatedInputProps}
         />

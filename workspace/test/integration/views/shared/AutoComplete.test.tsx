@@ -1,6 +1,6 @@
 import React from "react";
 import { Autocomplete, IAutocompleteProps } from "../../../../src/app/views/shared/Autocomplete/Autocomplete";
-import { changeValue, findSingleElement, logRequests, logWrapperHtml, testWrapper, withMount } from "../../TestHelper";
+import { addDocumentCreateRangeMethod, changeValue, findSingleElement, testWrapper, withMount } from "../../TestHelper";
 import { waitFor } from "@testing-library/react";
 
 describe("AutoComplete", () => {
@@ -8,7 +8,9 @@ describe("AutoComplete", () => {
         return withMount(testWrapper(<Autocomplete {...props} />));
     };
 
-    it("should send exactly one request after query change", async () => {
+    it("should send exactly one request when receiving focus", async () => {
+        // document.createRange is needed from the popover of the auto-complete element
+        addDocumentCreateRangeMethod();
         let counter = 0;
         const onSearch = () => {
             counter += 1;
@@ -17,12 +19,12 @@ describe("AutoComplete", () => {
         const autoCompletion = {
             allowOnlyAutoCompletedValues: true,
             autoCompleteValueWithLabels: false,
-            autoCompletionDependsOnParameters: ["val"],
+            autoCompletionDependsOnParameters: [],
         };
         const autoComplete = wrapper({ autoCompletion, onSearch });
         expect(counter).toBe(0);
         const inputField = findSingleElement(autoComplete, "input");
-        changeValue(inputField, "query");
+        inputField.simulate("focus");
         await waitFor(() => {
             expect(counter).toBe(1);
         });

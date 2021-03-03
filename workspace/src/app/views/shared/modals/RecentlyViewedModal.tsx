@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import {
     Button,
     Highlighter,
-    Icon,
     Notification,
     OverflowText,
     OverviewItem,
@@ -28,6 +27,7 @@ import { commonSel } from "@ducks/common";
 import { absolutePageUrl } from "@ducks/router/operations";
 import Tag from "@gui-elements/src/components/Tag/Tag";
 import { ItemDepiction } from "../ItemDepiction/ItemDepiction";
+import { createNewItemRendererFactory } from "../Autocomplete/autoCompletionParameterUtils";
 
 /** Shows the recently viewed items a user has visited. Also allows to trigger a workspace search. */
 export function RecentlyViewedModal() {
@@ -177,22 +177,11 @@ export function RecentlyViewedModal() {
         };
     };
     // Displays the 'search in workspace' option in the list.
-    const createNewItemRenderer = (query: string, active: boolean) => {
-        return (
-            <OverviewItem
-                className={active ? `${eccguiprefix}-overviewitem__item--active` : ""}
-                key={query}
-                densityHigh
-            >
-                <OverviewItemDescription>
-                    <OverviewItemLine>
-                        <Icon name={"operation-search"} small={true} />
-                        <span>{t("RecentlyViewedModal.globalSearch", { query })}</span>
-                    </OverviewItemLine>
-                </OverviewItemDescription>
-            </OverviewItem>
-        );
-    };
+    const createNewItemRenderer = createNewItemRendererFactory(
+        (query) => t("RecentlyViewedModal.globalSearch", { query }),
+        "operation-search"
+    );
+
     // The auto-completion of the recently viewed items
     const recentlyViewedAutoCompletion = () => {
         return (
@@ -205,8 +194,10 @@ export function RecentlyViewedModal() {
                 autoFocus={true}
                 itemKey={(item) => (item.taskId ? item.taskId : item.projectId)}
                 inputProps={{ placeholder: t("RecentlyViewedModal.placeholder") }}
-                createNewItemFromQuery={globalSearch}
-                createNewItemRenderer={createNewItemRenderer}
+                createNewItem={{
+                    itemFromQuery: globalSearch,
+                    itemRenderer: createNewItemRenderer,
+                }}
                 // Since nothing ever gets displayed in the input field (we immediately navigate away), return empty string
                 itemValueRenderer={() => ""}
             />

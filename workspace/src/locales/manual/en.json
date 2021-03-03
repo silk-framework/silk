@@ -122,6 +122,11 @@
         "itemsPerPage": "Items per page:",
         "pageRangeText": "of {{total}} pages"
     },
+    "ParameterWidget": {
+        "AutoComplete": {
+            "createNewItem": "Custom entry: '{{query}}'"
+        }
+    },
     "PrefixDialog": {
         "deletePrefix": "Prefix '{{prefixName}}' will be deleted."
     },

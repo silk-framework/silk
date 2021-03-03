@@ -6,6 +6,7 @@ import { SERVE_PATH } from "../../../../src/app/constants/path";
 import { createMemoryHistory } from "history";
 
 import {
+    addDocumentCreateRangeMethod,
     apiUrl,
     byName,
     byTestId,
@@ -337,13 +338,21 @@ describe("Task creation widget", () => {
     });
 
     it("should allow to reset optional auto-completed values", async () => {
+        // document.createRange is needed from the popover of the auto-complete element
+        addDocumentCreateRangeMethod();
         const { wrapper } = await pluginCreationDialogWrapper();
-        changeValue(findSingleElement(wrapper, "#optionalAutoCompletionParamCustom"), "abc");
+        const autoCompleteInput = findSingleElement(wrapper, "#optionalAutoCompletionParamCustom");
+        changeValue(autoCompleteInput, "abc");
+        // input must be focused in order to fire requests
+        autoCompleteInput.simulate("focus");
         const beforePortals = window.document.querySelectorAll("div.bp3-portal").length;
-        mockAutoCompleteResponse(
-            { textQuery: "abc" },
-            mockedAxiosResponse({ data: [{ value: "abc1" }, { value: "abc2" }] })
-        );
+        await waitFor(() => {
+            // Request is delayed by 200ms
+            mockAutoCompleteResponse(
+                { textQuery: "abc" },
+                mockedAxiosResponse({ data: [{ value: "abc1" }, { value: "abc2" }] })
+            );
+        });
         // FIXME: Blueprint portal not found
         // await waitFor(() => {
         //     expect(window.document.querySelectorAll("div.bp3-portal").length).toBeGreaterThan(beforePortals)
