@@ -9,7 +9,6 @@ import org.silkframework.runtime.validation.ValidationException
 
 import java.io.OutputStream
 import java.math.{BigDecimal, BigInteger}
-import java.nio.charset.StandardCharsets
 
 class JsonEntityWriter(outputStream: OutputStream, template: JsonTemplate) extends HierarchicalEntityWriter {
 
@@ -17,7 +16,7 @@ class JsonEntityWriter(outputStream: OutputStream, template: JsonTemplate) exten
   generator.setPrettyPrinter(new DefaultPrettyPrinter(", "))
 
   override def open(): Unit = {
-    outputStream.write(template.prefix.getBytes(StandardCharsets.UTF_8))
+    generator.writeRaw(template.prefix)
   }
 
   override def startEntity(): Unit = {
@@ -71,8 +70,13 @@ class JsonEntityWriter(outputStream: OutputStream, template: JsonTemplate) exten
   }
 
   override def close(): Unit = {
-    generator.close()
-    outputStream.write(template.suffix.getBytes(StandardCharsets.UTF_8))
+    if(!generator.isClosed) {
+      try {
+        generator.writeRaw(template.suffix)
+      } finally {
+        generator.close()
+      }
+    }
   }
 
 }
