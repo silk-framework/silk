@@ -25,6 +25,7 @@ import { MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES } from '.
 import EventEmitter from '../../../utils/EventEmitter';
 import { wasTouched } from '../../../utils/wasTouched';
 import { newValueIsIRI } from '../../../utils/newValueIsIRI';
+import TargetCardinality from "../../../components/TargetCardinality";
 
 const LANGUAGES_LIST = [
     'en', 'de', 'es', 'fr', 'bs', 'bg', 'ca', 'ce', 'zh', 'hr', 'cs', 'da', 'nl', 'eo', 'fi', 'ka', 'el', 'hu', 'ga', 'is', 'it',
@@ -279,14 +280,6 @@ export class ValueRuleForm extends React.Component {
                                 'targetProperty'
                             )}
                         />
-                        <Checkbox
-                            checked={this.state.isAttribute}
-                            className="ecc-silk-mapping__ruleseditor__isAttribute"
-                            onChange={() => this.handleChangeValue('isAttribute', !this.state.isAttribute)}
-                        >
-                            Write values as attributes (if supported by the
-                            target dataset)
-                        </Checkbox>
                         <AutoComplete
                             placeholder="Data type"
                             className="ecc-silk-mapping__ruleseditor__propertyType"
@@ -315,6 +308,11 @@ export class ValueRuleForm extends React.Component {
                             searchable={true} // whether to behave like a type-ahead or not
                         />
                         }
+                        <TargetCardinality
+                            id={this.props.id}
+                            isAttribute={this.state.isAttribute}
+                            onChange={(value) => this.handleChangeValue('isAttribute', value)}
+                        />
                         {sourcePropertyInput}
                         {exampleView}
                         <TextField

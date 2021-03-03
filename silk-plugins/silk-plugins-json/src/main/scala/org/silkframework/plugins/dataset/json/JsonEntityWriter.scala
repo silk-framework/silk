@@ -10,28 +10,46 @@ import org.silkframework.runtime.validation.ValidationException
 import java.io.OutputStream
 import java.math.{BigDecimal, BigInteger}
 
-class JsonEntityWriter(outputStream: OutputStream, template: JsonTemplate) extends HierarchicalEntityWriter {
+class JsonEntityWriter(outputStream: OutputStream, outputSingleJsonObject: Boolean = true, template: JsonTemplate) extends HierarchicalEntityWriter {
 
   private val generator = (new JsonFactory).createGenerator(outputStream, JsonEncoding.UTF8)
   generator.setPrettyPrinter(new DefaultPrettyPrinter(", "))
 
+  private var firstRootEntity = true
+
+  private var level = 0
+
   override def open(): Unit = {
     generator.writeRaw(template.prefix)
+    if(!outputSingleJsonObject) {
+      generator.writeStartArray()
+    }
   }
 
   override def startEntity(): Unit = {
+    if(level == 0) {
+      if(firstRootEntity) {
+        firstRootEntity = false
+      } else if(outputSingleJsonObject) {
+          throw new ValidationException("Writing multiple entities is not possible if 'output single JSON object' is set on the JSON dataset.")
+      }
+    }
+    level += 1
     generator.writeStartObject()
   }
 
   override def endEntity(): Unit = {
+    level -= 1
     generator.writeEndObject()
   }
 
   override def startProperty(property: TypedProperty, numberOfValues: Int): Unit = {
-    generator.writeFieldName(property.propertyUri)
     if(!property.isAttribute) {
+      generator.writeFieldName(property.propertyUri)
       generator.writeStartArray(numberOfValues)
-    } else if(numberOfValues != 1) {
+    } else if(numberOfValues == 1) {
+      generator.writeFieldName(property.propertyUri)
+    } else if(numberOfValues > 1) {
       throw new ValidationException(s"Property ${property.propertyUri} is only allowed to have one value, but got multiple values")
     }
   }
@@ -72,6 +90,9 @@ class JsonEntityWriter(outputStream: OutputStream, template: JsonTemplate) exten
   override def close(): Unit = {
     if(!generator.isClosed) {
       try {
+        if(!outputSingleJsonObject) {
+          generator.writeEndArray()
+        }
         generator.writeRaw(template.suffix)
       } finally {
         generator.close()

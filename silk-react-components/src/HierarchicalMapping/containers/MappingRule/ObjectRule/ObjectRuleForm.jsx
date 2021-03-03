@@ -28,6 +28,7 @@ import EventEmitter from '../../../utils/EventEmitter';
 import { trimValue } from '../../../utils/trimValue';
 import { wasTouched } from '../../../utils/wasTouched';
 import { newValueIsIRI } from '../../../utils/newValueIsIRI';
+import TargetCardinality from "../../../components/TargetCardinality";
 
 /**
  * Provides the editable form for object mappings.
@@ -186,7 +187,7 @@ export class ObjectRuleForm extends Component {
         const title = !id && <CardTitle>Add object mapping</CardTitle>;
 
         let targetPropertyInput = false;
-        let isAttributeInput = false;
+        let targetCardinality = false;
         let entityRelationInput = false;
         let sourcePropertyInput = false;
 
@@ -206,16 +207,6 @@ export class ObjectRuleForm extends Component {
                     onChange={value => { this.handleChangeValue('targetProperty', value); }}
                 />
 
-            );
-            isAttributeInput = (
-                <Checkbox
-                    checked={modifiedValues.isAttribute}
-                    className="ecc-silk-mapping__ruleseditor__isAttribute"
-                    onChange={() => this.handleChangeValue('isAttribute', !modifiedValues.isAttribute)}
-                >
-                    Write values as attributes (if supported by the
-                    target dataset)
-                </Checkbox>
             );
             entityRelationInput = (
                 <RadioGroup
@@ -249,7 +240,13 @@ export class ObjectRuleForm extends Component {
                     />
                 </RadioGroup>
             );
-
+            targetCardinality = (
+                <TargetCardinality
+                    id={this.props.id}
+                    isAttribute={this.state.isAttribute}
+                    onChange={(value) => this.handleChangeValue('isAttribute', value)}
+                />
+            );
             sourcePropertyInput = (
                 <AutoComplete
                     placeholder="Value path"
@@ -297,7 +294,6 @@ export class ObjectRuleForm extends Component {
                         {errorMessage}
                         {targetPropertyInput}
                         {entityRelationInput}
-                        {isAttributeInput}
                         <AutoComplete
                             placeholder="Target entity type"
                             className="ecc-silk-mapping__ruleseditor__targetEntityType"
@@ -309,6 +305,7 @@ export class ObjectRuleForm extends Component {
                             creatable
                             onChange={value => { this.handleChangeValue('targetEntityType', value); }}
                         />
+                        {targetCardinality}
                         {patternInput}
                         {sourcePropertyInput}
                         {

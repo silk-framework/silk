@@ -26,6 +26,7 @@ class JsonSinkTest extends FlatSpec with Matchers {
 
     test(
       entityTables = Seq(entities),
+      outputSingleJsonObject = true,
       template = JsonTemplate("", ""),
       expected = """{
                    |  "key": "value"
@@ -145,12 +146,12 @@ class JsonSinkTest extends FlatSpec with Matchers {
     )
   }
 
-  private def test(entityTables: Seq[Seq[Entity]], template: JsonTemplate = JsonTemplate.default, expected: String): Unit = {
+  private def test(entityTables: Seq[Seq[Entity]], outputSingleJsonObject: Boolean = false, template: JsonTemplate = JsonTemplate.default, expected: String): Unit = {
     implicit val userContext: UserContext = UserContext.Empty
     implicit val prefixes: Prefixes = Prefixes.empty
 
     val resource = InMemoryResourceManager().get("temp")
-    val sink = new JsonSink(resource, template)
+    val sink = new JsonSink(resource, outputSingleJsonObject, template)
 
     for (entityTable <- entityTables) {
       val schema = entityTable.head.schema
