@@ -12,13 +12,14 @@ class JsonTemplateTest extends FlatSpec with Matchers {
     an[ValidationException] should be thrownBy { JsonTemplate.parse("") }
     an[ValidationException] should be thrownBy { JsonTemplate.parse("[]") }
     an[ValidationException] should be thrownBy { JsonTemplate.parse(s"[$placeholder,$placeholder]") }
+    an[ValidationException] should be thrownBy { JsonTemplate.parse("no valid JSON") }
   }
 
   it should "parse templates" in {
     JsonTemplate.parse(s"$placeholder") shouldBe JsonTemplate("", "")
-    JsonTemplate.parse(s"prefix$placeholder") shouldBe JsonTemplate("prefix", "")
-    JsonTemplate.parse(s"${placeholder}suffix") shouldBe JsonTemplate("", "suffix")
     JsonTemplate.parse(s"[$placeholder]") shouldBe JsonTemplate("[", "]")
+    JsonTemplate.parse(s"""{ "metaData": { "timestamp": "2021-01-01" }, "data": $placeholder }""") shouldBe
+      JsonTemplate("""{ "metaData": { "timestamp": "2021-01-01" }, "data": """, " }")
   }
 
 }
