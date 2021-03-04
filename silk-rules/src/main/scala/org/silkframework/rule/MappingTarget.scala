@@ -15,7 +15,8 @@ import scala.xml.Node
   * @param propertyUri The URI of the property.
   * @param valueType The target type against which all values are validated.
   * @param isBackwardProperty In data sinks that with graph-like data models, a relation from the target to the source is generated.
-  * @param isAttribute In data sinks that support attributes, such as XML, an attribute is generated.
+  * @param isAttribute If true, a single value is expected and supporting datasets will not use arrays etc.
+  *                    In XML, attributes will be used instead of nested elements.
   */
 case class MappingTarget(propertyUri: Uri,
                          valueType: ValueType = ValueType.STRING,
@@ -32,7 +33,7 @@ case class MappingTarget(propertyUri: Uri,
       sb.insert(0, '\\')
     }
     if(isAttribute) {
-      sb ++= " (Attribute)"
+      sb ++= " (single value)"
     }
     sb.toString()
   }

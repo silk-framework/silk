@@ -25,7 +25,7 @@ const TargetProperty = ({ mappingTargetUri, isAttribute = false }) => {
                         </div>
                     </InfoBox>
                     {isAttribute ? <div>
-                        Values will be written as a single value if the target dataset supports it.
+                        A single value will be written if the target dataset supports it.
                     </div> : null}
                 </dd>
             </dl>

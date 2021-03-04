@@ -33,10 +33,10 @@ class TargetCardinality extends React.Component {
                         value="single"
                         label={
                             <div>
-                                <div id="ecc-target-cardinality-single">Write as a single value</div>
+                                <div id="ecc-target-cardinality-single">Single value</div>
                                 <div className="mdl-tooltip" data-mdl-for="ecc-target-cardinality-single">
                                     <div style={{textAlign: "left"}}>
-                                        Write as a single value.
+                                        Write a single value.
                                         <br/>
                                         This will have an effect on the following datasets:
                                         <br/>
@@ -53,10 +53,10 @@ class TargetCardinality extends React.Component {
                         value="multiple"
                         label={
                             <div>
-                                <div id="ecc-target-cardinality-multiple">Write as multiple values</div>
+                                <div id="ecc-target-cardinality-multiple">Multiple values</div>
                                 <div className="mdl-tooltip" data-mdl-for="ecc-target-cardinality-multiple">
                                     <div style={{textAlign: "left"}}>
-                                        Write as multiple values.
+                                        Write multiple values.
                                         <br/>
                                         This will have an effect on the following datasets:
                                         <br/>
