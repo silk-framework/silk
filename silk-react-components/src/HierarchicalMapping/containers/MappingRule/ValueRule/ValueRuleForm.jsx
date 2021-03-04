@@ -309,6 +309,7 @@ export class ValueRuleForm extends React.Component {
                         />
                         }
                         <TargetCardinality
+                            className="ecc-silk-mapping__ruleseditor__isAttribute"
                             isAttribute={this.state.isAttribute}
                             onChange={(value) => this.handleChangeValue('isAttribute', value)}
                         />

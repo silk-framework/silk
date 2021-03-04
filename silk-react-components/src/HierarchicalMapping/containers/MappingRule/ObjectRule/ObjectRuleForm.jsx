@@ -242,6 +242,7 @@ export class ObjectRuleForm extends Component {
             );
             targetCardinality = (
                 <TargetCardinality
+                    className="ecc-silk-mapping__ruleseditor__isAttribute"
                     isAttribute={modifiedValues.isAttribute}
                     onChange={(value) => this.handleChangeValue('isAttribute', value)}
                 />

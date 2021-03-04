@@ -2,6 +2,7 @@ import React from 'react';
 import { ThingName } from './ThingName';
 import { ThingDescription } from './ThingDescription';
 import { InfoBox } from './InfoBox';
+import TargetCardinality from "./TargetCardinality";
 
 const TargetProperty = ({ mappingTargetUri, isAttribute = false }) => {
     return (
@@ -24,11 +25,7 @@ const TargetProperty = ({ mappingTargetUri, isAttribute = false }) => {
                             <ThingDescription id={mappingTargetUri}/>
                         </div>
                     </InfoBox>
-                    {isAttribute ? <div>
-                        Only single values are allowed
-                    </div> : <div>
-                        Multiple values are allowed
-                    </div>}
+                    <TargetCardinality isAttribute={isAttribute} editable={false}/>
                 </dd>
             </dl>
         </div>
