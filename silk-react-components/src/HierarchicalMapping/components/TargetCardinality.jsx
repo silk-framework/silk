@@ -20,10 +20,8 @@ class TargetCardinality extends React.Component {
 
     render() {
         return (
-            <div>
+            <div className="ecc-silk-mapping__ruleseditor__isAttribute">
                 <RadioGroup
-                    id="TargetCardinality"
-                    className="ecc-silk-mapping__ruleseditor__isAttribute"
                     value={this.state.isAttribute ? 'single' : 'multiple'}
                     name = ""
                     onChange={({ value }) => { this.onChange(value === "single") }}
@@ -36,13 +34,14 @@ class TargetCardinality extends React.Component {
                                 <div id="ecc-target-cardinality-single">Single value</div>
                                 <div className="mdl-tooltip" data-mdl-for="ecc-target-cardinality-single">
                                     <div style={{textAlign: "left"}}>
-                                        Write a single value.
+                                        A single value is expected for this property.
+                                        Receiving multiple values will trigger a validation error.
                                         <br/>
-                                        This will have an effect on the following datasets:
+                                        In addition, the following datasets will adapt the generated schema:
                                         <br/>
                                         <b>XML:</b> Values will be written as an attribute.
                                         <br/>
-                                        <b>JSON:</b> No arrays will be used for writing values. If multiple values are generated, it will fail.
+                                        <b>JSON:</b> No arrays will be used for writing values.
                                     </div>
                                 </div>
                             </div>
@@ -56,9 +55,9 @@ class TargetCardinality extends React.Component {
                                 <div id="ecc-target-cardinality-multiple">Multiple values</div>
                                 <div className="mdl-tooltip" data-mdl-for="ecc-target-cardinality-multiple">
                                     <div style={{textAlign: "left"}}>
-                                        Write multiple values.
+                                        Multiple values may be generated for this property.
                                         <br/>
-                                        This will have an effect on the following datasets:
+                                        In addition, the following datasets will adapt the generated schema:
                                         <br/>
                                         <b>XML:</b> Values will be written as nested elements.
                                         <br/>

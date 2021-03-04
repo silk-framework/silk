@@ -309,7 +309,6 @@ export class ValueRuleForm extends React.Component {
                         />
                         }
                         <TargetCardinality
-                            id={this.props.id}
                             isAttribute={this.state.isAttribute}
                             onChange={(value) => this.handleChangeValue('isAttribute', value)}
                         />

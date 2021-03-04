@@ -242,7 +242,6 @@ export class ObjectRuleForm extends Component {
             );
             targetCardinality = (
                 <TargetCardinality
-                    id={this.props.id}
                     isAttribute={modifiedValues.isAttribute}
                     onChange={(value) => this.handleChangeValue('isAttribute', value)}
                 />

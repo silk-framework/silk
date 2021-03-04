@@ -1,7 +1,5 @@
 package org.silkframework.rule
 
-import java.net.URI
-
 import org.silkframework.config.MetaData.MetaDataXmlFormat
 import org.silkframework.config.{MetaData, Prefixes}
 import org.silkframework.dataset.TypedProperty
@@ -14,11 +12,12 @@ import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.{UriFixTransformer, UrlEncodeTransformer}
 import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer, EmptyValueTransformer}
-import org.silkframework.runtime.plugin.{PluginObjectParameter, PluginObjectParameterNoSchema}
+import org.silkframework.runtime.plugin.PluginObjectParameterNoSchema
 import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
 
+import java.net.URI
 import scala.language.implicitConversions
 import scala.util.Try
 import scala.xml.{Node, Null}
@@ -62,14 +61,7 @@ sealed trait TransformRule extends Operator {
   def apply(entity: Entity): Seq[String] = {
     val values = operator(entity)
     // Validate values
-    for {
-      valueType <- target.map(_.valueType)
-      value <- values
-    } {
-      if(!valueType.validate(value)) {
-        throw new ValidationException(s"Value '$value' is not a valid ${valueType.label}")
-      }
-    }
+    target.foreach(_.validate(values))
     values
   }
 
