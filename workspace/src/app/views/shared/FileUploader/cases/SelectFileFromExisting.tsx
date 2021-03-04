@@ -52,7 +52,6 @@ export function SelectFileFromExisting(props: IProps) {
                 {...autocomplete}
                 onChange={handleChange}
                 itemValueSelector={itemStringValue}
-                itemKey={itemStringValue}
                 itemValueRenderer={itemStringValue}
             />
         </FieldItem>

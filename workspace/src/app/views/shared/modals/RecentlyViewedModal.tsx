@@ -192,14 +192,13 @@ export function RecentlyViewedModal() {
                 itemRenderer={itemOption}
                 onChange={onChange}
                 autoFocus={true}
-                itemKey={(item) => (item.taskId ? item.taskId : item.projectId)}
                 inputProps={{ placeholder: t("RecentlyViewedModal.placeholder") }}
                 createNewItem={{
                     itemFromQuery: globalSearch,
                     itemRenderer: createNewItemRenderer,
                 }}
-                // Since nothing ever gets displayed in the input field (we immediately navigate away), return empty string
-                itemValueRenderer={() => ""}
+                // This is used for the key generation of the option React elements, even though this is not displayed anywhere.
+                itemValueRenderer={(item) => `${item.projectId} ${item.taskId ? item.taskId : ""}`}
             />
         );
     };

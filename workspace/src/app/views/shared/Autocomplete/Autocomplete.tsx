@@ -55,9 +55,6 @@ export interface IAutocompleteProps<T extends any, U extends any> {
      */
     itemValueSelector(item: T): U;
 
-    /** Generates the key of the item. This needs to be a unique string. */
-    itemKey?(item: T): string;
-
     /**
      * The values of the parameters this auto-completion depends on.
      */
@@ -101,16 +98,6 @@ export interface IAutocompleteProps<T extends any, U extends any> {
 Autocomplete.defaultProps = {
     dependentValues: [],
     resetPossible: false,
-    itemKey: (item) => {
-        if (typeof item === "string") {
-            return item;
-        } else {
-            console.warn(
-                `Application error: Auto-completion item is not of type string, but of type ${typeof item}, and no custom 'itemKey' method defined.`
-            );
-            return "" + Math.random();
-        }
-    },
     autoFocus: false,
 };
 
@@ -125,7 +112,6 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
         initialValue,
         dependentValues,
         autoFocus,
-        itemKey,
         createNewItem,
         itemValueRenderer,
         ...otherProps
@@ -147,6 +133,15 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
         if (item) {
             setQuery(itemValueRenderer(item));
         }
+    };
+
+    // The key for the option elements
+    const itemKey = (item: T): string => {
+        let itemValue: U | string = itemValueSelector(item);
+        if (typeof itemValue !== "string") {
+            itemValue = itemValueRenderer(item);
+        }
+        return itemValue;
     };
 
     useEffect(() => {
@@ -187,6 +182,7 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
         onChange(itemValueSelector(item), e);
     };
 
+    // Return the index of the item in the array based on the itemValueRenderer value
     const itemIndexOf = (arr: T[], searchItem: T): number => {
         let idx = -1;
         const searchItemString = itemValueRenderer(searchItem);
