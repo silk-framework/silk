@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { HTMLInputProps, IInputGroupProps } from "@blueprintjs/core";
-import { Highlighter, IconButton, MenuItem, Suggest } from "@gui-elements/index";
+import { Highlighter, IconButton, MenuItem, Spinner, Suggest } from "@gui-elements/index";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { useTranslation } from "react-i18next";
 
@@ -117,6 +117,8 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
         ...otherProps
     } = props;
     const [selectedItem, setSelectedItem] = useState<T | undefined>(initialValue);
+    // If the selection list elements are currently fetched from the backend
+    const [listLoading, setListLoading] = useState<boolean>(false);
 
     const [query, setQuery] = useState<string>("");
     const [hasFocus, setHasFocus] = useState<boolean>(false);
@@ -152,10 +154,14 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
     useEffect(() => {
         // Don't fetch auto-completion values when the dependent values are not available yet
         if (dependentValues.length === props.autoCompletion.autoCompletionDependsOnParameters.length && hasFocus) {
+            setListLoading(true);
             const timeout: number = window.setTimeout(async () => {
                 fetchQueryResults(query);
             }, 200);
-            return () => clearTimeout(timeout);
+            return () => {
+                clearTimeout(timeout);
+                setListLoading(false);
+            };
         }
     }, [dependentValues.join("|"), hasFocus, query]);
 
@@ -194,6 +200,7 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
 
     // Fetches the results for the given query
     const fetchQueryResults = async (input: string) => {
+        setListLoading(true);
         try {
             let result = await onSearch(input);
             let enableHighlighting = true;
@@ -214,6 +221,8 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
             setFiltered(result);
         } catch (e) {
             console.log(e);
+        } finally {
+            setListLoading(false);
         }
     };
 
@@ -291,6 +300,7 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
             createNewItemRenderer={createNewItem?.itemRenderer}
             {...otherProps}
             inputProps={updatedInputProps}
+            itemListRenderer={listLoading ? () => <Spinner position={"inline"} /> : undefined}
         />
     );
 }
