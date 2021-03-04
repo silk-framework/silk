@@ -149,7 +149,7 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
     }, [selectedItem]);
 
     useEffect(() => {
-        // Don't fetch auto-completion values when
+        // Don't fetch auto-completion values when the dependent values are not available yet
         if (dependentValues.length === props.autoCompletion.autoCompletionDependsOnParameters.length && hasFocus) {
             const timeout: number = window.setTimeout(async () => {
                 fetchQueryResults(query);
@@ -160,27 +160,24 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
 
     // We need to fire some actions when the auto-complete widget gets or loses focus
     const handleOnFocusIn = () => {
+        setFiltered([]);
+        // Reset query to selected value when loosing focus, so the selected value can always be edited.
+        setQueryToSelectedValue(selectedItem);
         setHasFocus(true);
     };
 
     const handleOnFocusOut = () => {
         setHasFocus(false);
-        // Reset query to selected value when loosing focus, so the selected value can always be edited.
-        setQueryToSelectedValue(selectedItem);
-        setFiltered([]);
     };
 
+    // Triggered when an item from the selection list gets selected
     const onSelectionChange = (value, e) => {
         setSelectedItem(value);
-        onItemSelect(value, e);
+        onChange(itemValueSelector(value), e);
         setQueryToSelectedValue(value);
     };
 
     const areEqualItems = (itemA, itemB) => itemValueSelector(itemA) === itemValueSelector(itemB);
-
-    const onItemSelect = (item, e) => {
-        onChange(itemValueSelector(item), e);
-    };
 
     // Return the index of the item in the array based on the itemValueRenderer value
     const itemIndexOf = (arr: T[], searchItem: T): number => {
@@ -215,6 +212,7 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
         }
     };
 
+    // Renders the item in the selection list
     const optionRenderer = (item, { handleClick, modifiers, query }) => {
         if (!modifiers.matchesPredicate) {
             return null;
@@ -240,6 +238,7 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
         onChange(resetValue);
         setQuery("");
     };
+    // Optional clear button to reset the selected value
     const clearButton = reset &&
         selectedItem !== undefined &&
         selectedItem !== null &&
@@ -253,6 +252,7 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
                 onClick={clearSelection(reset.resetValue)}
             />
         );
+    // Additional properties for the input element of the auto-completion widget
     const updatedInputProps: IInputGroupProps & HTMLInputProps = {
         rightElement: clearButton,
         autoFocus: autoFocus,
