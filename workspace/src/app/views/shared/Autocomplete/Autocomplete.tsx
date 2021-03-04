@@ -120,6 +120,7 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
 
     const [query, setQuery] = useState<string>("");
     const [hasFocus, setHasFocus] = useState<boolean>(false);
+    const [highlightingEnabled, setHighlightingEnabled] = useState<boolean>(true);
 
     // The suggestions that match the user's input
     const [filtered, setFiltered] = useState<T[]>([]);
@@ -195,17 +196,21 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
     const fetchQueryResults = async (input: string) => {
         try {
             let result = await onSearch(input);
+            let enableHighlighting = true;
             if (result.length <= 1 && selectedItem && input.length > 0 && itemValueRenderer(selectedItem) === input) {
                 // If the auto-completion only returns no suggestion or the selected item itself, query with empty string.
                 const emptyStringResults = await onSearch("");
                 // Put selected item at the top, remove it from other places in the result list
                 if (result.length === 1 && itemIndexOf(emptyStringResults, selectedItem) > -1) {
                     const idx = itemIndexOf(emptyStringResults, selectedItem);
+                    // Disable highlighting, since we used empty string search
+                    enableHighlighting = false;
                     result = [selectedItem, ...emptyStringResults.slice(0, idx), ...emptyStringResults.slice(idx + 1)];
                 } else {
                     result = [selectedItem, ...emptyStringResults];
                 }
             }
+            setHighlightingEnabled(enableHighlighting);
             setFiltered(result);
         } catch (e) {
             console.log(e);
@@ -225,7 +230,9 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
                     disabled={modifiers.disabled}
                     key={itemKey(item)}
                     onClick={handleClick}
-                    text={<Highlighter label={renderedItem} searchValue={query} />}
+                    text={
+                        !highlightingEnabled ? renderedItem : <Highlighter label={renderedItem} searchValue={query} />
+                    }
                 />
             );
         } else {
