@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Helmet } from "react-helmet";
 import { IPageLabels } from "@ducks/router/operations";
 import { IItemLink } from "@ducks/shared/typings";
 import { IExportTypes } from "@ducks/common/typings";
@@ -13,7 +12,6 @@ import { ItemDeleteModal } from "../../shared/modals/ItemDeleteModal";
 import CloneModal from "../../shared/modals/CloneModal";
 import { IframeWindow } from "../../shared/IframeWindow/IframeWindow";
 import { downloadResource } from "../../../utils/downloadResource";
-import { APPLICATION_CORPORATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { DATA_TYPES } from "../../../constants";
 import withBreadcrumbLabels from "./withBreadcrumbLabels";
 import { ViewHeader } from "./ViewHeader";
@@ -35,9 +33,7 @@ function ViewHeaderContentProviderComponent({ breadcrumbs }: IViewHeaderContentP
     const taskId = useSelector(commonSel.currentTaskIdSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
-    const startTitle = `${t("common.app.build")} — ${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}`;
 
-    const [windowTitle, setWindowTitle] = useState<string>(startTitle);
     const [displayItemLink, setDisplayItemLink] = useState<IItemLink | null>(null);
     const [itemLinks, setItemLinks] = useState<IItemLink[]>([]);
     const [itemType, setItemType] = useState<string | null>(null);
@@ -49,11 +45,6 @@ function ViewHeaderContentProviderComponent({ breadcrumbs }: IViewHeaderContentP
         projectId: taskId ? projectId : undefined,
         type: itemType ? itemType : undefined,
     };
-
-    // Set window title
-    useEffect(() => {
-        getWindowTitle(projectId);
-    }, [projectId, taskId, lastBreadcrumb ? lastBreadcrumb.href : ""]);
 
     // Update item links for more menu
     useEffect(() => {
@@ -82,33 +73,6 @@ function ViewHeaderContentProviderComponent({ breadcrumbs }: IViewHeaderContentP
             }
         }
     }, [projectId, taskId]);
-
-    const getWindowTitle = (projectId) => {
-        // $title ($artefactLabel) at $breadcrumbsWithoutTitle — $companyName $applicationTitle
-        let fullTitle = startTitle;
-
-        if (lastBreadcrumb && projectId) {
-            // when projectId is provided
-            const breadcrumbWithoutTitle = breadcrumbs
-                .slice(0, breadcrumbs.length - 1)
-                .map((o) => o.text)
-                .join(" / ");
-
-            // select datatype from the url /projectId/type/taskId pattern
-            const paths = location.pathname.split("/");
-            const projectInd = paths.indexOf(projectId);
-
-            let datasetType = DATA_TYPES.PROJECT;
-            // for task type it next to project id
-            if (paths[projectInd + 1]) {
-                datasetType = paths[projectInd + 1];
-            }
-            fullTitle = `${
-                lastBreadcrumb.text ? lastBreadcrumb.text : ""
-            } (${datasetType}) at ${breadcrumbWithoutTitle} – ${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}`;
-        }
-        setWindowTitle(fullTitle);
-    };
 
     const getItemLinks = async () => {
         try {
@@ -208,9 +172,9 @@ function ViewHeaderContentProviderComponent({ breadcrumbs }: IViewHeaderContentP
 
     return (
         <>
-            <Helmet title={windowTitle} />
             <ViewHeader
-                depiction={itemType ? "artefact-" + itemType : "application-homepage"}
+                type={itemType}
+                alternateDepiction={"application-homepage"}
                 breadcrumbs={breadcrumbs}
                 pagetitle={lastBreadcrumb ? lastBreadcrumb.text : ""}
                 actionsSecondary={
