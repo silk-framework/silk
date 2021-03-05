@@ -19,6 +19,7 @@ import {
     MenuItem,
     TitleSubsection,
     Spacing,
+    WorkspaceHeader,
 } from "@gui-elements/index";
 import { commonOp, commonSel } from "@ducks/common";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
@@ -29,6 +30,7 @@ import { triggerHotkeyHandler } from "../../shared/HotKeyHandler/HotKeyHandler";
 import { APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { CONTEXT_PATH } from "../../../constants/path";
 import { ViewHeaderContentProvider } from "./ViewHeaderContentProvider";
+import { APP_VIEWHEADER_ID } from "./ViewHeader";
 
 interface IProps {
     onClickApplicationSidebarExpand: any;
@@ -119,7 +121,9 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                 </Menu>
             </ApplicationSidebarNavigation>
 
-            <ViewHeaderContentProvider />
+            <WorkspaceHeader id={APP_VIEWHEADER_ID}>
+                <ViewHeaderContentProvider />
+            </WorkspaceHeader>
 
             <ApplicationToolbar>
                 <ApplicationToolbarSection>

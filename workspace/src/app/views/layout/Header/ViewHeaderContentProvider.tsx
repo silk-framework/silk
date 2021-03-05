@@ -3,21 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Helmet } from "react-helmet";
-import {
-    BreadcrumbList,
-    ContextMenu,
-    Icon,
-    IconButton,
-    MenuItem,
-    OverflowText,
-    OverviewItem,
-    OverviewItemActions,
-    OverviewItemDepiction,
-    OverviewItemDescription,
-    OverviewItemLine,
-    TitlePage,
-    WorkspaceHeader,
-} from "@gui-elements/index";
 import { IPageLabels } from "@ducks/router/operations";
 import { IItemLink } from "@ducks/shared/typings";
 import { IExportTypes } from "@ducks/common/typings";
@@ -28,9 +13,10 @@ import { ItemDeleteModal } from "../../shared/modals/ItemDeleteModal";
 import CloneModal from "../../shared/modals/CloneModal";
 import { IframeWindow } from "../../shared/IframeWindow/IframeWindow";
 import { downloadResource } from "../../../utils/downloadResource";
-import withBreadcrumbLabels from "./withBreadcrumbLabels";
 import { APPLICATION_CORPORATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { DATA_TYPES } from "../../../constants";
+import withBreadcrumbLabels from "./withBreadcrumbLabels";
+import { ViewHeader } from "./ViewHeader";
 
 export interface IBreadcrumb {
     href: string;
@@ -147,13 +133,6 @@ function ViewHeaderContentProviderComponent({ breadcrumbs }: IViewHeaderContentP
         }
     };
 
-    const handleBreadcrumbItemClick = (itemUrl, e) => {
-        e.preventDefault();
-        if (itemUrl) {
-            dispatch(routerOp.goToPage(itemUrl, {}));
-        }
-    };
-
     const handleExport = (type: IExportTypes) => {
         downloadResource(itemData.id, type.id);
     };
@@ -185,74 +164,74 @@ function ViewHeaderContentProviderComponent({ breadcrumbs }: IViewHeaderContentP
         setCloneModalOpen(!cloneModalOpen);
     };
 
+    const getFullMenu = () => {
+        // TODO: typescript code check throws error when not each member has the same attributes, even if they are not necessary in every single item
+        const fullMenu = [
+            {
+                text: t("common.action.clone", "Clone"),
+                actionHandler: toggleCloneModal,
+                // subitems: [],
+                "data-test-id": "header-clone-button",
+            },
+        ];
+
+        if (itemType === DATA_TYPES.PROJECT && !!exportTypes.length) {
+            const subitems = [];
+            exportTypes.forEach((type) => {
+                subitems.push({
+                    text: type.label,
+                    actionHandler: () => handleExport(type),
+                });
+            });
+
+            fullMenu.push({
+                text: t("common.action.exportTo", "Export to"),
+                // actionHandler: () => {},
+                subitems: subitems,
+                // "data-test-id": "",
+            });
+        }
+
+        if (itemLinks && itemLinks.length > 0) {
+            itemLinks.forEach((itemLink) => {
+                fullMenu.push({
+                    text: t("common.legacyGui." + itemLink.label, itemLink.label),
+                    actionHandler: () => toggleItemLink(itemLink),
+                    // subitems: [],
+                    // "data-test-id": "",
+                });
+            });
+        }
+
+        return fullMenu;
+    };
+
     return (
-        <WorkspaceHeader>
+        <>
             <Helmet title={windowTitle} />
-            <OverviewItem>
-                <OverviewItemDepiction>
-                    <Icon name={itemType ? "artefact-" + itemType : "application-homepage"} large />
-                </OverviewItemDepiction>
-                <OverviewItemDescription>
-                    <OverviewItemLine small>
-                        <BreadcrumbList items={breadcrumbs} onItemClick={handleBreadcrumbItemClick} />
-                    </OverviewItemLine>
-                    {lastBreadcrumb && (
-                        <OverviewItemLine large>
-                            <TitlePage>
-                                <h1>
-                                    <OverflowText>{lastBreadcrumb.text}</OverflowText>
-                                </h1>
-                            </TitlePage>
-                        </OverviewItemLine>
-                    )}
-                </OverviewItemDescription>
-                <OverviewItemActions>
-                    {projectId || taskId ? (
-                        <>
-                            <IconButton
-                                name="item-remove"
-                                text={t("common.action.RemoveSmth", {
-                                    smth: taskId
-                                        ? t("common.dataTypes.task", "Task")
-                                        : t("common.dataTypes.project", "Project"),
-                                })}
-                                disruptive
-                                onClick={toggleDeleteModal}
-                                data-test-id={"header-remove-button"}
-                            />
-                            <ContextMenu>
-                                <MenuItem
-                                    key={"clone"}
-                                    text={t("common.action.clone", "Clone")}
-                                    onClick={toggleCloneModal}
-                                    data-test-id={"header-clone-button"}
-                                />
-                                {itemType === DATA_TYPES.PROJECT && !!exportTypes.length && (
-                                    <MenuItem key="export" text={t("common.action.exportTo", "Export to")}>
-                                        {exportTypes.map((type) => (
-                                            <MenuItem
-                                                key={type.id}
-                                                onClick={() => handleExport(type)}
-                                                text={
-                                                    <OverflowText inline>{type.label}</OverflowText>
-                                                    /* TODO: change this OverflowText later to a multiline=false option on MenuItem, seenms to be a new one*/
-                                                }
-                                            />
-                                        ))}
-                                    </MenuItem>
-                                )}
-                                {itemLinks.map((itemLink) => (
-                                    <MenuItem
-                                        key={itemLink.path}
-                                        text={t("common.legacyGui." + itemLink.label, itemLink.label)}
-                                        onClick={() => toggleItemLink(itemLink)}
-                                    />
-                                ))}
-                            </ContextMenu>
-                        </>
-                    ) : null}
-                </OverviewItemActions>
-            </OverviewItem>
+            <ViewHeader
+                depiction={itemType ? "artefact-" + itemType : "application-homepage"}
+                breadcrumbs={breadcrumbs}
+                pagetitle={lastBreadcrumb ? lastBreadcrumb.text : ""}
+                actionsSecondary={
+                    projectId || taskId
+                        ? [
+                              {
+                                  text: t("common.action.RemoveSmth", {
+                                      smth: taskId
+                                          ? t("common.dataTypes.task", "Task")
+                                          : t("common.dataTypes.project", "Project"),
+                                  }),
+                                  icon: "item-remove",
+                                  actionHandler: toggleDeleteModal,
+                                  disruptive: true,
+                                  "data-test-id": "header-remove-button",
+                              },
+                          ]
+                        : []
+                }
+                actionsFullMenu={projectId || taskId ? getFullMenu() : []}
+            />
             {deleteModalOpen && (
                 <ItemDeleteModal item={itemData} onClose={toggleDeleteModal} onConfirmed={handleDeleteConfirm} />
             )}
@@ -268,7 +247,7 @@ function ViewHeaderContentProviderComponent({ breadcrumbs }: IViewHeaderContentP
                     handlerRemoveModal={() => toggleItemLink(null)}
                 />
             )}
-        </WorkspaceHeader>
+        </>
     );
 }
 
