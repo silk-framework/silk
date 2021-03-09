@@ -12,6 +12,7 @@ import {
     byTestId,
     changeValue,
     checkRequestMade,
+    cleanUpDOM,
     clickWrapperElement,
     findAll,
     findSingleElement,
@@ -29,7 +30,7 @@ import {
     withMount,
 } from "../../TestHelper";
 import { CreateArtefactModal } from "../../../../src/app/views/shared/modals/CreateArtefactModal/CreateArtefactModal";
-import { waitFor } from "@testing-library/react";
+import { cleanup, waitFor } from "@testing-library/react";
 import {
     IDetailedArtefactItem,
     IOverviewArtefactItemList,
@@ -47,6 +48,7 @@ describe("Task creation widget", () => {
 
     afterEach(() => {
         mockAxios.reset();
+        cleanUpDOM();
     });
 
     const PROJECT_ID = "projectId";

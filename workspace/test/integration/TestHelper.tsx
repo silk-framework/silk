@@ -428,3 +428,6 @@ export const checkRequestMade = (
         }
     }
 };
+
+/** Cleans up the DOM. This is needed to avoid DOM elements from one test interfering with the subsequent tests. */
+export const cleanUpDOM = () => (document.body.innerHTML = "");

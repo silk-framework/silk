@@ -1,11 +1,14 @@
 import React from "react";
-import { Autocomplete, IAutocompleteProps } from "../../../../src/app/views/shared/Autocomplete/Autocomplete";
+import {
+    AutoCompleteField,
+    IAutoCompleteFieldProps,
+} from "../../../../src/libs/gui-elements/src/components/AutocompleteField/AutoCompleteField";
 import { addDocumentCreateRangeMethod, changeValue, findSingleElement, testWrapper, withMount } from "../../TestHelper";
 import { waitFor } from "@testing-library/react";
 
 describe("AutoComplete", () => {
-    const wrapper = (props: IAutocompleteProps<any, any>) => {
-        return withMount(testWrapper(<Autocomplete {...props} />));
+    const wrapper = (props: IAutoCompleteFieldProps<any, any>) => {
+        return withMount(testWrapper(<AutoCompleteField {...props} />));
     };
 
     it("should send exactly one request when receiving focus", async () => {
@@ -21,7 +24,7 @@ describe("AutoComplete", () => {
             autoCompleteValueWithLabels: false,
             autoCompletionDependsOnParameters: [],
         };
-        const autoComplete = wrapper({ autoCompletion, onSearch });
+        const autoComplete = wrapper({ onSearch });
         expect(counter).toBe(0);
         const inputField = findSingleElement(autoComplete, "input");
         inputField.simulate("focus");

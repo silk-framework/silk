@@ -4,7 +4,7 @@ import { sharedOp } from "@ducks/shared";
 import { ITaskParameter } from "@ducks/common/typings";
 import { WhiteSpaceContainer, FieldItem, FieldSet, Label, TitleSubsection } from "@gui-elements/index";
 import { Intent } from "@gui-elements/blueprint/constants";
-import { Autocomplete } from "../../../Autocomplete/Autocomplete";
+import { AutoCompleteField } from "@gui-elements/src/components/AutocompleteField/AutoCompleteField";
 import { InputMapper } from "./InputMapper";
 import { AppToaster } from "../../../../../services/toaster";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
 import { firstNonEmptyLine } from "../../../ContentBlobToggler";
 import { ContentBlobToggler } from "../../../ContentBlobToggler/ContentBlobToggler";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
-import { createNewItemRendererFactory } from "../../../Autocomplete/autoCompletionParameterUtils";
+import { createNewItemRendererFactory } from "@gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
 
 const MAXLENGTH_TOOLTIP = 40;
 const MAXLENGTH_SIMPLEHELP = 288;
@@ -220,8 +220,7 @@ export const ParameterWidget = (props: IProps) => {
                 messageText={errorMessage(title, errors)}
             >
                 {!!autoCompletion ? (
-                    <Autocomplete<IAutocompleteDefaultResponse, string>
-                        autoCompletion={autoCompletion}
+                    <AutoCompleteField<IAutocompleteDefaultResponse, string>
                         onSearch={handleAutoCompleteInput}
                         onChange={changeHandlers[formParamId]}
                         initialValue={
@@ -243,6 +242,7 @@ export const ParameterWidget = (props: IProps) => {
                                 ? {
                                       resetValue: "",
                                       resettableValue: (v) => !!v.value,
+                                      resetButtonText: t("common.action.resetSelection", "Reset selection"),
                                   }
                                 : undefined
                         }
@@ -260,6 +260,7 @@ export const ParameterWidget = (props: IProps) => {
                                       "item-add-artefact"
                                   ),
                         }}
+                        noResultText={t("common.messages.noResults")}
                     />
                 ) : (
                     <InputMapper

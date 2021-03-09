@@ -10,6 +10,7 @@ import { requestResourcesList } from "@ducks/shared/requests";
 import { defaultValueAsJs, stringValueAsJs } from "../../../../../utils/transformers";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
+import { useTranslation } from "react-i18next";
 
 interface IProps {
     projectId: string;
@@ -41,6 +42,7 @@ interface IInputAttributes {
 
 /** Maps an atomic value to the corresponding value type widget. */
 export function InputMapper({ projectId, parameter, intent, onChange, initialValues }: IProps) {
+    const [t] = useTranslation();
     const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
     const { paramId, param } = parameter;
     const initialValue =
@@ -98,15 +100,11 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
                     allowMultiple={false}
                     maxFileUploadSizeBytes={maxFileUploadSize}
                     autocomplete={{
-                        autoCompletion: {
-                            allowOnlyAutoCompletedValues: true,
-                            autoCompleteValueWithLabels: true,
-                            autoCompletionDependsOnParameters: [],
-                        },
                         onSearch: handleFileSearch,
                         itemRenderer: resourceNameFn,
                         itemValueRenderer: resourceNameFn,
                         itemValueSelector: resourceNameFn,
+                        noResultText: t("common.messages.noResults", "No results."),
                     }}
                     onUploadSuccess={(file) => {
                         // FIXME: the onChange function is not called on upload success, so this is a workaround

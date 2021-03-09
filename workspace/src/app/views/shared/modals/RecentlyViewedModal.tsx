@@ -21,13 +21,13 @@ import { Loading } from "../Loading/Loading";
 import { IItemLink } from "@ducks/shared/typings";
 import { useDispatch, useSelector } from "react-redux";
 import { routerOp } from "@ducks/router";
-import { Autocomplete } from "../Autocomplete/Autocomplete";
+import { AutoCompleteField } from "@gui-elements/src/components/AutocompleteField/AutoCompleteField";
 import { useLocation } from "react-router";
 import { commonSel } from "@ducks/common";
 import { absolutePageUrl } from "@ducks/router/operations";
 import Tag from "@gui-elements/src/components/Tag/Tag";
 import { ItemDepiction } from "../ItemDepiction/ItemDepiction";
-import { createNewItemRendererFactory } from "../Autocomplete/autoCompletionParameterUtils";
+import { createNewItemRendererFactory } from "@gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
 
 /** Shows the recently viewed items a user has visited. Also allows to trigger a workspace search. */
 export function RecentlyViewedModal() {
@@ -149,12 +149,6 @@ export function RecentlyViewedModal() {
             return searchWords.every((word) => label.includes(word));
         });
     };
-    // Auto-completion parameters necessary for auto-completion widget. FIXME: This shouldn't be needed.
-    const autoCompletion = {
-        allowOnlyAutoCompletedValues: true,
-        autoCompleteValueWithLabels: true,
-        autoCompletionDependsOnParameters: [],
-    };
     // Warning when an error has occurred
     const errorView = () => {
         return (
@@ -185,9 +179,8 @@ export function RecentlyViewedModal() {
     // The auto-completion of the recently viewed items
     const recentlyViewedAutoCompletion = () => {
         return (
-            <Autocomplete<IRecentlyViewedItem, IItemLink[]>
+            <AutoCompleteField<IRecentlyViewedItem, IItemLink[]>
                 onSearch={handleSearch}
-                autoCompletion={autoCompletion}
                 itemValueSelector={(value) => value.itemLinks}
                 itemRenderer={itemOption}
                 onChange={onChange}
@@ -199,6 +192,7 @@ export function RecentlyViewedModal() {
                 }}
                 // This is used for the key generation of the option React elements, even though this is not displayed anywhere.
                 itemValueRenderer={(item) => `${item.projectId} ${item.taskId ? item.taskId : ""}`}
+                noResultText={t("common.messages.noResults")}
             />
         );
     };

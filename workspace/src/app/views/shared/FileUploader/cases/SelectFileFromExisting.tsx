@@ -1,11 +1,14 @@
-import { Autocomplete, IAutocompleteProps } from "../../Autocomplete/Autocomplete";
+import {
+    AutoCompleteField,
+    IAutoCompleteFieldProps,
+} from "@gui-elements/src/components/AutocompleteField/AutoCompleteField";
 import { FieldItem } from "@gui-elements/index";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IProjectResource } from "@ducks/shared/typings";
 
 interface IProps {
-    autocomplete: IAutocompleteProps<IProjectResource, string>;
+    autocomplete: IAutoCompleteFieldProps<IProjectResource, string>;
 
     /**
      * Fire when autocomplete value selected
@@ -48,7 +51,7 @@ export function SelectFileFromExisting(props: IProps) {
             }}
             messageText={error ? t("FileUploader.fileNotSpecified") : ""}
         >
-            <Autocomplete<IProjectResource, string>
+            <AutoCompleteField<IProjectResource, string>
                 {...autocomplete}
                 onChange={handleChange}
                 itemValueSelector={itemStringValue}
