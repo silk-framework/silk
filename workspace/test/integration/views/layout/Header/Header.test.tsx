@@ -11,8 +11,8 @@ import {
     workspacePath,
 } from "../../../TestHelper";
 import { Header } from "../../../../../src/app/views/layout/Header/Header";
-import { APP_VIEWHEADER_ID } from "../../../../../src/app/views/layout/Header/ViewHeader";
-import { ViewHeaderContentProvider } from "../../../../../src/app/views/layout/Header/ViewHeaderContentProvider";
+import { ViewHeader, APP_VIEWHEADER_ID } from "../../../../../src/app/views/layout/Header/ViewHeader";
+// import { ViewHeaderContentProvider } from "../../../../../src/app/views/layout/Header/ViewHeaderContentProvider";
 import { waitFor } from "@testing-library/react";
 import { Helmet } from "react-helmet";
 import { ContextMenu } from "../../../../../src/libs/gui-elements";
@@ -23,6 +23,11 @@ describe("Header", () => {
     let history = createBrowserHistory();
 
     beforeEach(() => {
+        // add explicitely extra tragets for portals, @see https://stackoverflow.com/a/48094582
+        const portalroot = global.document.createElement("div");
+        portalroot.setAttribute("id", APP_VIEWHEADER_ID);
+        global.document.querySelector("body").appendChild(portalroot);
+
         history.location.pathname = workspacePath("/projects/SomeProjectId/dataset/SomeTaskId");
 
         wrapper = withMount(
@@ -33,19 +38,25 @@ describe("Header", () => {
     });
 
     afterEach(() => {
+        wrapper.unmount();
         mockAxios.reset();
     });
 
-    // TODO: reactivate, probably problem cause by portal usage
-    xit("should page title is correct", () => {
-        const history = createBrowserHistory();
-        history.location.pathname = workspacePath("/projects/SomeProjectId/dataset/SomeTaskId");
-
+    it("should page title is correct", () => {
         wrapper = withMount(
             testWrapper(
-                <div id={APP_VIEWHEADER_ID}>
-                    <ViewHeaderContentProvider breadcrumbs={[{ href: "/someHref", text: "dummy bread" }]} />
-                </div>,
+                <ViewHeader
+                    pagetitle="My Page Title"
+                    type="artefacttype"
+                    breadcrumbs={[
+                        { href: "/workbench", text: "Workbench" },
+                        { href: "/workbench/projects/SomeProjectId", text: "My Project" },
+                        {
+                            href: "/workbench/projects/SomeProjectId/transform/SomeTransformId",
+                            text: "My Transform Title",
+                        },
+                    ]}
+                />,
                 history,
                 {
                     common: { initialSettings: { dmBaseUrl: "http://docker.local" } },
@@ -53,11 +64,12 @@ describe("Header", () => {
             )
         );
 
-        expect(wrapper.find(Helmet).prop("title")).toEqual("dummy bread (dataset) – eccenca Corporate Memory");
+        expect(wrapper.find(Helmet).prop("title")).toEqual(
+            "My Page Title (artefacttype) at Workbench / My Project — eccenca Corporate Memory"
+        );
     });
 
-    // TODO: reactivate, probably problem cause by portal usage
-    xit("should delete button works properly", async () => {
+    it("should delete button works properly", async () => {
         clickElement(wrapper, byTestId("header-remove-button"));
         clickElement(wrapper, byTestId("remove-item-button"));
         mockAxios.mockResponseFor(
