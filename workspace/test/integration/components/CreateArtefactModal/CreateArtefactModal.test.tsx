@@ -342,9 +342,9 @@ describe("Task creation widget", () => {
         addDocumentCreateRangeMethod();
         const { wrapper } = await pluginCreationDialogWrapper();
         const autoCompleteInput = findSingleElement(wrapper, "#optionalAutoCompletionParamCustom");
-        changeValue(autoCompleteInput, "abc");
         // input must be focused in order to fire requests
         autoCompleteInput.simulate("focus");
+        changeValue(autoCompleteInput, "abc");
         const beforePortals = window.document.querySelectorAll("div.bp3-portal").length;
         await waitFor(() => {
             // Request is delayed by 200ms
