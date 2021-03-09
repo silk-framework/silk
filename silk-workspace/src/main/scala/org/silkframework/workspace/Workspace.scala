@@ -268,7 +268,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   private def reloadProject(id: Identifier)
                            (implicit userContext: UserContext): Unit = synchronized {
     // remove project
-    Try(project(id).activities.foreach(_.control.cancel()))
+    Try(project(id).cancelActivities())
     removeProjectFromCache(id)
     provider.readProject(id) match {
       case Some(projectConfig) =>
