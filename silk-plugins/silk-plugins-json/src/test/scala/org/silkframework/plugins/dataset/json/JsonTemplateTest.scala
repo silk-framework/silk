@@ -12,7 +12,7 @@ class JsonTemplateTest extends FlatSpec with Matchers {
     an[ValidationException] should be thrownBy { JsonTemplate.parse("") }
     an[ValidationException] should be thrownBy { JsonTemplate.parse("[]") }
     an[ValidationException] should be thrownBy { JsonTemplate.parse(s"[$placeholder,$placeholder]") }
-    an[ValidationException] should be thrownBy { JsonTemplate.parse("no valid JSON") }
+    an[ValidationException] should be thrownBy { JsonTemplate.parse(s"no valid JSON $placeholder") }
   }
 
   it should "parse templates" in {
