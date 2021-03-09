@@ -229,6 +229,9 @@ export const ParameterWidget = (props: IProps) => {
                                 ? initialValues[formParamId]
                                 : { value: defaultValueAsJs(propertyDetails) }
                         }
+                        disabled={
+                            selectDependentValues().length < autoCompletion.autoCompletionDependsOnParameters.length
+                        }
                         dependentValues={selectDependentValues()}
                         inputProps={{
                             name: formParamId,

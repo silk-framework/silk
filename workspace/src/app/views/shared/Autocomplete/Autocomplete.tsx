@@ -56,11 +56,6 @@ export interface IAutocompleteProps<T extends any, U extends any> {
     itemValueSelector(item: T): U;
 
     /**
-     * The values of the parameters this auto-completion depends on.
-     */
-    dependentValues?: string[];
-
-    /**
      * Props to spread to the query `InputGroup`. To control this input, use
      * `query` and `onQueryChange` instead of `inputProps.value` and
      * `inputProps.onChange`.
@@ -93,24 +88,28 @@ export interface IAutocompleteProps<T extends any, U extends any> {
             handleClick: React.MouseEventHandler<HTMLElement>
         ) => JSX.Element | undefined;
     };
+
+    // If the input field should be disabled
+    disabled?: boolean;
 }
 
 Autocomplete.defaultProps = {
     dependentValues: [],
     resetPossible: false,
     autoFocus: false,
+    disabled: false,
 };
 
 /** Auto-complete input widget. */
 export function Autocomplete<T extends any, U extends any>(props: IAutocompleteProps<T, U>) {
     const {
         reset,
+        disabled,
         itemValueSelector,
         itemRenderer,
         onSearch,
         onChange,
         initialValue,
-        dependentValues,
         autoFocus,
         createNewItem,
         itemValueRenderer,
@@ -153,7 +152,7 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
 
     useEffect(() => {
         // Don't fetch auto-completion values when the dependent values are not available yet
-        if (dependentValues.length === props.autoCompletion.autoCompletionDependsOnParameters.length && hasFocus) {
+        if (!disabled && hasFocus) {
             setListLoading(true);
             const timeout: number = window.setTimeout(async () => {
                 fetchQueryResults(query);
@@ -163,7 +162,7 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
                 setListLoading(false);
             };
         }
-    }, [dependentValues.join("|"), hasFocus, query]);
+    }, [hasFocus, query]);
 
     // We need to fire some actions when the auto-complete widget gets or loses focus
     const handleOnFocusIn = () => {
@@ -278,6 +277,7 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
     return (
         <SuggestAutocomplete
             className="app_di-autocomplete__input"
+            disabled={disabled}
             items={filtered}
             inputValueRenderer={selectedItem !== undefined ? itemValueRenderer : () => ""}
             itemRenderer={optionRenderer}
