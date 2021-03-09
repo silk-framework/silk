@@ -207,14 +207,13 @@ export function Autocomplete<T extends any, U extends any>(props: IAutocompleteP
             if (result.length <= 1 && selectedItem && input.length > 0 && itemValueRenderer(selectedItem) === input) {
                 // If the auto-completion only returns no suggestion or the selected item itself, query with empty string.
                 const emptyStringResults = await onSearch("");
-                // Put selected item at the top, remove it from other places in the result list
-                if (result.length === 1 && itemIndexOf(emptyStringResults, selectedItem) > -1) {
-                    const idx = itemIndexOf(emptyStringResults, selectedItem);
-                    // Disable highlighting, since we used empty string search
-                    enableHighlighting = false;
-                    result = [selectedItem, ...emptyStringResults.slice(0, idx), ...emptyStringResults.slice(idx + 1)];
-                } else {
+                // Disable highlighting, since we used empty string search
+                enableHighlighting = false;
+                // Put selected item at the top if it is not in the result list
+                if (itemIndexOf(emptyStringResults, selectedItem) === -1) {
                     result = [selectedItem, ...emptyStringResults];
+                } else {
+                    result = emptyStringResults;
                 }
             }
             setHighlightingEnabled(enableHighlighting);
