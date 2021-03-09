@@ -23,6 +23,7 @@ import {
     mockedAxiosError,
     mockedAxiosResponse,
     pageHtml,
+    pressKey,
     RecursivePartial,
     testWrapper,
     withMount,
@@ -342,10 +343,14 @@ describe("Task creation widget", () => {
         addDocumentCreateRangeMethod();
         const { wrapper } = await pluginCreationDialogWrapper();
         const autoCompleteInput = findSingleElement(wrapper, "#optionalAutoCompletionParamCustom");
+        expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(0);
         // input must be focused in order to fire requests
         autoCompleteInput.simulate("focus");
         changeValue(autoCompleteInput, "abc");
         const beforePortals = window.document.querySelectorAll("div.bp3-portal").length;
+        await waitFor(() => {
+            expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(1);
+        });
         await waitFor(() => {
             // Request is delayed by 200ms
             mockAutoCompleteResponse(
@@ -353,7 +358,10 @@ describe("Task creation widget", () => {
                 mockedAxiosResponse({ data: [{ value: "abc1" }, { value: "abc2" }] })
             );
         });
-        // FIXME: Blueprint portal not found
+        await waitFor(() => {
+            expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(0);
+        });
+        // FIXME: Blueprint portal with suggestion results is not shown
         // await waitFor(() => {
         //     expect(window.document.querySelectorAll("div.bp3-portal").length).toBeGreaterThan(beforePortals)
         // })
