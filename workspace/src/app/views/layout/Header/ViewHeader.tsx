@@ -43,7 +43,7 @@ interface IActionsMenuParentItemProps extends IActionBasicProps {
     subitems: IActionsMenuActionItemProps[];
 }
 
-type ActionsMenuItem = IActionsMenuActionItemProps | IActionsMenuParentItemProps;
+export type ActionsMenuItem = IActionsMenuActionItemProps | IActionsMenuParentItemProps;
 
 interface IViewHeaderrProps extends React.HTMLAttributes<HTMLDivElement> {
     type?: string;

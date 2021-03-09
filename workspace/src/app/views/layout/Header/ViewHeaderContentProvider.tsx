@@ -14,7 +14,7 @@ import { IframeWindow } from "../../shared/IframeWindow/IframeWindow";
 import { downloadResource } from "../../../utils/downloadResource";
 import { DATA_TYPES } from "../../../constants";
 import withBreadcrumbLabels from "./withBreadcrumbLabels";
-import { ViewHeader } from "./ViewHeader";
+import { ViewHeader, ActionsMenuItem } from "./ViewHeader";
 
 export interface IBreadcrumb {
     href: string;
@@ -130,7 +130,7 @@ function ViewHeaderContentProviderComponent({ breadcrumbs }: IViewHeaderContentP
 
     const getFullMenu = () => {
         // TODO: typescript code check throws error when not each member has the same attributes, even if they are not necessary in every single item
-        const fullMenu = [
+        const fullMenu:ActionsMenuItem[] = [
             {
                 text: t("common.action.clone", "Clone"),
                 actionHandler: toggleCloneModal,
