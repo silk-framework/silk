@@ -240,7 +240,6 @@ export const ParameterWidget = (props: IProps) => {
                         disabled={
                             selectDependentValues().length < autoCompletion.autoCompletionDependsOnParameters.length
                         }
-                        dependentValues={selectDependentValues()}
                         inputProps={{
                             name: formParamId,
                             id: formParamId,
