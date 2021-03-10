@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
+    AutoCompleteField,
     Button,
     Highlighter,
     Notification,
@@ -21,7 +22,6 @@ import { Loading } from "../Loading/Loading";
 import { IItemLink } from "@ducks/shared/typings";
 import { useDispatch, useSelector } from "react-redux";
 import { routerOp } from "@ducks/router";
-import { AutoCompleteField } from "@gui-elements/src/components/AutocompleteField/AutoCompleteField";
 import { useLocation } from "react-router";
 import { commonSel } from "@ducks/common";
 import { absolutePageUrl } from "@ducks/router/operations";
