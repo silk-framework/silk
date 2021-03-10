@@ -6,9 +6,9 @@ import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
 import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.dataset.rdf.{LinkFormatter, RdfDataset, SparqlParams}
+import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.rdf.SparqlRestriction
-import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.plugins.dataset.rdf.access.SparqlSource
@@ -16,8 +16,8 @@ import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEn
 import org.silkframework.plugins.dataset.rdf.formatters._
 import org.silkframework.plugins.dataset.rdf.sparql.EntityRetriever
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.MultilineStringParameter
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.{Resource, WritableResource}
 import org.silkframework.util.{Identifier, Uri}
 
@@ -36,10 +36,6 @@ case class RdfFileDataset(
   format: String = "",
   @Param("The graph name to be read. If not provided, the default graph will be used. Must be provided if the format is N-Quads.")
   graph: String = "",
-  @Param(label = "Max. read size (MB)",
-    value = "The maximum size of the RDF file resource for read operations. Since the whole dataset will be kept in-memory, this value should be kept low to guarantee stability.",
-    advanced = true)
-  maxReadSize: Long = 10,
   @Param(value = "A list of entities to be retrieved. If not given, all entities will be retrieved. Multiple entities are separated by whitespace.", advanced = true)
   entityList: MultilineStringParameter = MultilineStringParameter(""),
   @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
@@ -156,14 +152,9 @@ case class RdfFileDataset(
     private def load(): Unit = synchronized {
       val modificationTime = file.modificationTime.map(mt => (mt.getEpochSecond, mt.getNano))
       if (endpoint == null || modificationTime != lastModificationTime) {
-        if (file.size.isEmpty) {
-          throw new RuntimeException("File size could not be determined, ")
-        } else if (file.size.get > maxReadSize * 1000 * 1000) {
-          throw new RuntimeException(s"File size (${file.size.get / 1000000.0} MB) is larger than configured max. read size ($maxReadSize MB).")
-        } else {
-          endpoint = createSparqlEndpoint(Seq(resource))
-          lastModificationTime = modificationTime
-        }
+        file.checkSizeForInMemory()
+        endpoint = createSparqlEndpoint(Seq(resource))
+        lastModificationTime = modificationTime
       }
     }
 
