@@ -2,9 +2,15 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import { sharedOp } from "@ducks/shared";
 import { ITaskParameter } from "@ducks/common/typings";
-import { WhiteSpaceContainer, FieldItem, FieldSet, Label, TitleSubsection } from "@gui-elements/index";
+import {
+    AutoCompleteField,
+    WhiteSpaceContainer,
+    FieldItem,
+    FieldSet,
+    Label,
+    TitleSubsection,
+} from "@gui-elements/index";
 import { Intent } from "@gui-elements/blueprint/constants";
-import { AutoCompleteField } from "@gui-elements/src/components/AutocompleteField/AutoCompleteField";
 import { InputMapper } from "./InputMapper";
 import { AppToaster } from "../../../../../services/toaster";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
