@@ -152,5 +152,5 @@ ExecutionReport.propTypes = {
     baseUrl: PropTypes.string.isRequired, // Base URL of the DI service
     project: PropTypes.string.isRequired, // project ID
     nodeId: PropTypes.string.isRequired, // workflow node ID
-    executionReport: PropTypes.object // The transform execution report to render
+    executionReport: PropTypes.object // The execution report to render
 };

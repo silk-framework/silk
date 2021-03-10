@@ -14,6 +14,11 @@ export default class WorkflowExecutionReport extends React.Component {
     this.displayName = 'WorkflowExecutionReport';
     this.state = {
       executionReport: {
+        summary: [],
+        warnings: [],
+        task: {
+          id: "workflow"
+        },
         taskReports: {}
       },
       selectedNode: null
@@ -39,8 +44,27 @@ export default class WorkflowExecutionReport extends React.Component {
         this.props.task,
         this.props.time)
         .then((report) => {
+          let executionReport = report.value;
+          executionReport.summary = [
+            {
+              key: "Started",
+              value: report.metaData.startedAt
+            },
+            {
+              key: "Finished",
+              value: report.metaData.finishedAt
+            },
+            {
+              key: "User",
+              value: (report.metaData.startedByUser == null) ? "Unknown" : report.metaData.startedByUser
+            },
+            {
+              key: "Final status",
+              value: report.metaData.finishStatus.message
+            }
+          ]
           this.setState({
-            executionReport: report.value
+            executionReport: executionReport,
           });
         })
         .catch((error) => {
@@ -57,6 +81,7 @@ export default class WorkflowExecutionReport extends React.Component {
                   </CardTitle>
                   <CardContent>
                     <ul className="mdl-list">
+                      { this.renderTaskItem(this.state.executionReport.task.id, this.state.executionReport) }
                       { Object.entries(this.state.executionReport.taskReports).map(e => this.renderTaskItem(e[0], e[1])) }
                     </ul>
                   </CardContent>
@@ -103,11 +128,10 @@ export default class WorkflowExecutionReport extends React.Component {
                               nodeId={nodeId}
                               executionReport={this.state.executionReport.taskReports[this.state.selectedNode]}/>
     } else {
-      return  <div className="silk-report-card mdl-card mdl-shadow--2dp mdl-card--stretch">
-                <div className="mdl-card__supporting-text">
-                  Select a task for detailed results.
-                </div>
-              </div>
+      return <ExecutionReport baseUrl={this.props.baseUrl}
+                              project={this.props.project}
+                              nodeId={this.state.executionReport.task.id}
+                              executionReport={this.state.executionReport}/>
     }
   }
 }
