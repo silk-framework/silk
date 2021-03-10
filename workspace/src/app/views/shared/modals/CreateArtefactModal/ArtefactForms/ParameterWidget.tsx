@@ -66,6 +66,15 @@ const autoCompleteLabel = (item: IAutocompleteDefaultResponse) => {
     return label;
 };
 
+const displayAutoCompleteLabel = (item: IAutocompleteDefaultResponse) => {
+    const label = autoCompleteLabel(item);
+    if (label === "") {
+        return "\u00A0";
+    } else {
+        return label;
+    }
+};
+
 /** Widget for a single parameter of a task. */
 export const ParameterWidget = (props: IProps) => {
     const {
@@ -246,7 +255,7 @@ export const ParameterWidget = (props: IProps) => {
                                   }
                                 : undefined
                         }
-                        itemRenderer={autoCompleteLabel}
+                        itemRenderer={displayAutoCompleteLabel}
                         itemValueRenderer={autoCompleteLabel}
                         itemValueSelector={(item) => item.value}
                         createNewItem={{
