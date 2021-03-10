@@ -125,14 +125,27 @@ export function ViewHeader({
         return `${pagetitle} ${typeinfo} ${position} — ${application}`;
     };
 
+    const getDepictionIcons = () => {
+        const iconNames = [];
+        if (!!type) {
+            iconNames.push("artefact-" + type);
+        }
+        if (!!alternateDepiction) {
+            iconNames.push(alternateDepiction);
+        }
+        return iconNames;
+    };
+
+    let iconNames = getDepictionIcons();
+
     return portalEnabled ? (
         <>
             <Helmet title={renderWindowTitle()} />
             {ReactDOM.createPortal(
                 <OverviewItem>
-                    {(!!type || !!alternateDepiction) && (
+                    {iconNames.length > 0 && (
                         <OverviewItemDepiction>
-                            <Icon name={["artefact-" + type, alternateDepiction]} large />
+                            <Icon name={iconNames} large />
                         </OverviewItemDepiction>
                     )}
                     <OverviewItemDescription>
