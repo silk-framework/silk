@@ -13,26 +13,15 @@ import CloneModal from "../../shared/modals/CloneModal";
 import { IframeWindow } from "../../shared/IframeWindow/IframeWindow";
 import { downloadResource } from "../../../utils/downloadResource";
 import { DATA_TYPES } from "../../../constants";
-import withBreadcrumbLabels from "./withBreadcrumbLabels";
-import { ViewHeader, ActionsMenuItem } from "./ViewHeader";
+import { ActionsMenuItem, usePageHeader } from "./ViewHeader";
 
-export interface IBreadcrumb {
-    href: string;
-    text: string;
-}
-
-interface IViewHeaderContentProviderProps {
-    breadcrumbs?: IBreadcrumb[];
-}
-
-function ViewHeaderContentProviderComponent({ breadcrumbs }: IViewHeaderContentProviderProps) {
+export function ViewHeaderContentProvider() {
     const dispatch = useDispatch();
     const location = useLocation<any>();
     const [t] = useTranslation();
     const exportTypes = useSelector(commonSel.exportTypesSelector);
     const taskId = useSelector(commonSel.currentTaskIdSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
-    const lastBreadcrumb = breadcrumbs[breadcrumbs.length - 1];
 
     const [displayItemLink, setDisplayItemLink] = useState<IItemLink | null>(null);
     const [itemLinks, setItemLinks] = useState<IItemLink[]>([]);
@@ -57,21 +46,22 @@ function ViewHeaderContentProviderComponent({ breadcrumbs }: IViewHeaderContentP
 
     // Update task type
     useEffect(() => {
+        let itemType = "unknown";
         if (location.state?.pageLabels?.itemType) {
-            setItemType(location.state.pageLabels.itemType);
+            itemType = location.state.pageLabels.itemType;
         } else {
             if (projectId && !taskId) {
-                setItemType(DATA_TYPES.PROJECT);
+                itemType = DATA_TYPES.PROJECT;
             } else if (projectId && taskId) {
                 if (!location.state?.pageLabels) {
                     location.state = { ...location.state };
                     location.state.pageLabels = {};
                 }
                 updateItemType(location.state.pageLabels, location.pathname);
-            } else {
-                setItemType(null);
             }
         }
+        updateType(itemType);
+        setItemType(itemType);
     }, [projectId, taskId]);
 
     const getItemLinks = async () => {
@@ -89,6 +79,7 @@ function ViewHeaderContentProviderComponent({ breadcrumbs }: IViewHeaderContentP
                 const response = await requestTaskItemInfo(projectId, taskId);
                 const itemType = response.data.itemType.id;
                 if (window.location.pathname === locationPathName) {
+                    updateType(itemType);
                     setItemType(itemType);
                 }
             } catch (ex) {
@@ -129,12 +120,10 @@ function ViewHeaderContentProviderComponent({ breadcrumbs }: IViewHeaderContentP
     };
 
     const getFullMenu = () => {
-        // TODO: typescript code check throws error when not each member has the same attributes, even if they are not necessary in every single item
-        const fullMenu:ActionsMenuItem[] = [
+        const fullMenu: ActionsMenuItem[] = [
             {
                 text: t("common.action.clone", "Clone"),
                 actionHandler: toggleCloneModal,
-                // subitems: [],
                 "data-test-id": "header-clone-button",
             },
         ];
@@ -150,9 +139,7 @@ function ViewHeaderContentProviderComponent({ breadcrumbs }: IViewHeaderContentP
 
             fullMenu.push({
                 text: t("common.action.exportTo", "Export to"),
-                // actionHandler: () => {},
                 subitems: subitems,
-                // "data-test-id": "",
             });
         }
 
@@ -161,8 +148,6 @@ function ViewHeaderContentProviderComponent({ breadcrumbs }: IViewHeaderContentP
                 fullMenu.push({
                     text: t("common.legacyGui." + itemLink.label, itemLink.label),
                     actionHandler: () => toggleItemLink(itemLink),
-                    // subitems: [],
-                    // "data-test-id": "",
                 });
             });
         }
@@ -170,32 +155,33 @@ function ViewHeaderContentProviderComponent({ breadcrumbs }: IViewHeaderContentP
         return fullMenu;
     };
 
+    const { pageHeader, updateType } = usePageHeader({
+        type: itemType,
+        alternateDepiction: "application-homepage",
+        autoBreadcrumbs: true,
+        autoPagetitle: true,
+        actionsSecondary:
+            projectId || taskId
+                ? [
+                      {
+                          text: t("common.action.RemoveSmth", {
+                              smth: taskId
+                                  ? t("common.dataTypes.task", "Task")
+                                  : t("common.dataTypes.project", "Project"),
+                          }),
+                          icon: "item-remove",
+                          actionHandler: toggleDeleteModal,
+                          disruptive: true,
+                          "data-test-id": "header-remove-button",
+                      },
+                  ]
+                : [],
+        actionsFullMenu: projectId || taskId ? getFullMenu() : [],
+    });
+
     return (
         <>
-            <ViewHeader
-                type={itemType}
-                alternateDepiction={"application-homepage"}
-                breadcrumbs={breadcrumbs}
-                pagetitle={lastBreadcrumb ? lastBreadcrumb.text : ""}
-                actionsSecondary={
-                    projectId || taskId
-                        ? [
-                              {
-                                  text: t("common.action.RemoveSmth", {
-                                      smth: taskId
-                                          ? t("common.dataTypes.task", "Task")
-                                          : t("common.dataTypes.project", "Project"),
-                                  }),
-                                  icon: "item-remove",
-                                  actionHandler: toggleDeleteModal,
-                                  disruptive: true,
-                                  "data-test-id": "header-remove-button",
-                              },
-                          ]
-                        : []
-                }
-                actionsFullMenu={projectId || taskId ? getFullMenu() : []}
-            />
+            {pageHeader}
             {deleteModalOpen && (
                 <ItemDeleteModal item={itemData} onClose={toggleDeleteModal} onConfirmed={handleDeleteConfirm} />
             )}
@@ -214,5 +200,3 @@ function ViewHeaderContentProviderComponent({ breadcrumbs }: IViewHeaderContentP
         </>
     );
 }
-
-export const ViewHeaderContentProvider = withBreadcrumbLabels(ViewHeaderContentProviderComponent);

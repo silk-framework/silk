@@ -121,9 +121,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                 </Menu>
             </ApplicationSidebarNavigation>
 
-            <WorkspaceHeader id={APP_VIEWHEADER_ID}>
-                <ViewHeaderContentProvider />
-            </WorkspaceHeader>
+            <WorkspaceHeader id={APP_VIEWHEADER_ID}>{<ViewHeaderContentProvider />}</WorkspaceHeader>
 
             <ApplicationToolbar>
                 <ApplicationToolbarSection>

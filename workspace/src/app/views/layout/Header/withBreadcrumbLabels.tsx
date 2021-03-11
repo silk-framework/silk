@@ -1,14 +1,13 @@
-import React from "react";
+import React, { useDebugValue, useEffect, useState } from "react";
 import { matchPath, useLocation } from "react-router";
-import { useDebugValue, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { IBreadcrumbItemProps } from "@gui-elements/src/components/Breadcrumb/BreadcrumbItem";
+import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import appRoutes from "../../../appRoutes";
 import { getFullRoutePath } from "../../../utils/routerUtils";
-import { IBreadcrumb } from "./ViewHeaderContentProvider";
 import { SERVE_PATH } from "../../../constants/path";
-import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
-import { useTranslation } from "react-i18next";
 
-export default function withBreadcrumbLabels(WrappedComponent) {
+export function withBreadcrumbLabels(WrappedComponent) {
     // Valid breadcrumb IDs
     const breadcrumbOrder = ["projectId", "taskId"];
     // Mappings from breadcrumb IDs to breadcrumb label properties
@@ -16,7 +15,7 @@ export default function withBreadcrumbLabels(WrappedComponent) {
 
     return function (props) {
         const location = useLocation<any>();
-        const [breadcrumbs, setBreadcrumbs] = useState<IBreadcrumb[]>([]);
+        const [breadcrumbs, setBreadcrumbs] = useState<IBreadcrumbItemProps[]>([]);
         const [t] = useTranslation();
 
         useEffect(() => {
