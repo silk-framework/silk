@@ -21,12 +21,51 @@ export default class ExecutionReport extends React.Component {
     }
     
     renderSummary() {
+        let executionMetaData = [];
+        if(this.props.executionMetaData != null) {
+            executionMetaData = executionMetaData.concat([
+                <tr key="startedAt">
+                    <td className="silk-report-table-bold">Started at</td>
+                    <td>{this.props.executionMetaData.startedAt}</td>
+                </tr>,
+                <tr key="startedByUser">
+                    <td className="silk-report-table-bold">Started by</td>
+                    <td>{(this.props.executionMetaData.startedByUser == null) ? "Unknown" : this.props.executionMetaData.startedByUser}</td>
+                </tr>,
+                <tr key="finishedAt">
+                    <td className="silk-report-table-bold">Finished at</td>
+                    <td>{this.props.executionMetaData.finishedAt}</td>
+                </tr>,
+                <tr key="finishStatus">
+                    <td className="silk-report-table-bold">Finish status</td>
+                    <td>{this.props.executionMetaData.finishStatus.message}</td>
+                </tr>
+            ]);
+            if(this.props.executionMetaData.cancelledAt != null) {
+                executionMetaData.push(
+                    <tr key="cancelledAt">
+                        <td className="silk-report-table-bold">Cancelled at</td>
+                        <td>{this.props.executionMetaData.cancelledAt}</td>
+                    </tr>
+                )
+            }
+            if(this.props.executionMetaData.cancelledBy != null) {
+                executionMetaData.push(
+                    <tr key="cancelledBy">
+                        <td className="silk-report-table-bold">Cancelled by</td>
+                        <td>{this.props.executionMetaData.cancelledBy}</td>
+                    </tr>
+                )
+            }
+        }
+
         const summaryRows = this.props.executionReport.summary.map(v =>
             <tr key={v.key}>
                 <td className="silk-report-table-bold">{v.key}</td>
                 <td>{v.value}</td>
             </tr>
         );
+
         return <Card className="silk-report-card">
             <CardTitle>
                 Execution Report
@@ -37,6 +76,7 @@ export default class ExecutionReport extends React.Component {
                         <thead>
                         </thead>
                         <tbody>
+                        {executionMetaData}
                         {summaryRows}
                         </tbody>
                     </table>
@@ -152,5 +192,6 @@ ExecutionReport.propTypes = {
     baseUrl: PropTypes.string.isRequired, // Base URL of the DI service
     project: PropTypes.string.isRequired, // project ID
     nodeId: PropTypes.string.isRequired, // workflow node ID
-    executionReport: PropTypes.object // The execution report to render
+    executionReport: PropTypes.object, // The execution report to render
+    executionMetaData: PropTypes.object // Optional execution meta data that includes start time, user, etc.
 };

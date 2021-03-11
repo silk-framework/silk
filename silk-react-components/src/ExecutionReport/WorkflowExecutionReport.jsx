@@ -13,6 +13,7 @@ export default class WorkflowExecutionReport extends React.Component {
     super(props);
     this.displayName = 'WorkflowExecutionReport';
     this.state = {
+      executionMetaData: null,
       executionReport: {
         summary: [],
         warnings: [],
@@ -44,27 +45,9 @@ export default class WorkflowExecutionReport extends React.Component {
         this.props.task,
         this.props.time)
         .then((report) => {
-          let executionReport = report.value;
-          executionReport.summary = [
-            {
-              key: "Started",
-              value: report.metaData.startedAt
-            },
-            {
-              key: "Finished",
-              value: report.metaData.finishedAt
-            },
-            {
-              key: "User",
-              value: (report.metaData.startedByUser == null) ? "Unknown" : report.metaData.startedByUser
-            },
-            {
-              key: "Final status",
-              value: report.metaData.finishStatus.message
-            }
-          ]
           this.setState({
-            executionReport: executionReport,
+            executionReport: report.value,
+            executionMetaData: report.metaData
           });
         })
         .catch((error) => {
@@ -131,7 +114,8 @@ export default class WorkflowExecutionReport extends React.Component {
       return <ExecutionReport baseUrl={this.props.baseUrl}
                               project={this.props.project}
                               nodeId={this.state.executionReport.task.id}
-                              executionReport={this.state.executionReport}/>
+                              executionReport={this.state.executionReport}
+                              executionMetaData={this.state.executionMetaData}/>
     }
   }
 }
