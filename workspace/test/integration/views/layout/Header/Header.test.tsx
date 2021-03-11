@@ -11,8 +11,7 @@ import {
     workspacePath,
 } from "../../../TestHelper";
 import { Header } from "../../../../../src/app/views/layout/Header/Header";
-import { ViewHeader, APP_VIEWHEADER_ID } from "../../../../../src/app/views/layout/Header/ViewHeader";
-// import { ViewHeaderContentProvider } from "../../../../../src/app/views/layout/Header/ViewHeaderContentProvider";
+import { PageHeader, APP_VIEWHEADER_ID } from "../../../../../src/app/views/shared/PageHeader/PageHeader";
 import { waitFor } from "@testing-library/react";
 import { Helmet } from "react-helmet";
 import { ContextMenu } from "../../../../../src/libs/gui-elements";
@@ -45,8 +44,8 @@ describe("Header", () => {
     it("should page title is correct", () => {
         wrapper = withMount(
             testWrapper(
-                <ViewHeader
-                    pagetitle="My Page Title"
+                <PageHeader
+                    pageTitle="My Page Title"
                     type="artefacttype"
                     breadcrumbs={[
                         { href: "/workbench", text: "Workbench" },

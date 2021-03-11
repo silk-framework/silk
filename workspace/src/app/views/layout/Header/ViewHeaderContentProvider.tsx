@@ -13,7 +13,8 @@ import CloneModal from "../../shared/modals/CloneModal";
 import { IframeWindow } from "../../shared/IframeWindow/IframeWindow";
 import { downloadResource } from "../../../utils/downloadResource";
 import { DATA_TYPES } from "../../../constants";
-import { ActionsMenuItem, usePageHeader } from "../../shared/PageHeader/PageHeader";
+import { usePageHeader } from "../../shared/PageHeader/PageHeader";
+import { TActionsMenuItem } from "../../shared/ActionsMenu/ActionsMenu";
 
 export function ViewHeaderContentProvider() {
     const dispatch = useDispatch();
@@ -120,7 +121,7 @@ export function ViewHeaderContentProvider() {
     };
 
     const getFullMenu = () => {
-        const fullMenu: ActionsMenuItem[] = [
+        const fullMenu: TActionsMenuItem[] = [
             {
                 text: t("common.action.clone", "Clone"),
                 actionHandler: toggleCloneModal,
