@@ -40,7 +40,7 @@ export function ActionsMenu({ actionPrimary, actionsSecondary, actionsFullMenu }
                     {...otherProps}
                     key={"menuitem_" + index}
                     text={
-                        <OverflowText inline>{text}</OverflowText>
+                        <OverflowText>{text}</OverflowText>
                         /* TODO: change this OverflowText later to a multiline=false option on MenuItem, seenms to be a new one*/
                     }
                 >
@@ -50,7 +50,7 @@ export function ActionsMenu({ actionPrimary, actionsSecondary, actionsFullMenu }
                 <MenuItem
                     {...otherProps}
                     key={"menuitem_" + index}
-                    text={<OverflowText inline>{text}</OverflowText>}
+                    text={<OverflowText>{text}</OverflowText>}
                     onClick={actionHandler}
                     disabled={disabled ? true : false}
                 />
