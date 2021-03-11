@@ -7,7 +7,7 @@ import appRoutes from "../../../appRoutes";
 import { getFullRoutePath } from "../../../utils/routerUtils";
 import { SERVE_PATH } from "../../../constants/path";
 
-export function withBreadcrumbLabels(WrappedComponent) {
+export function fetchBreadcrumbs(WrappedComponent) {
     // Valid breadcrumb IDs
     const breadcrumbOrder = ["projectId", "taskId"];
     // Mappings from breadcrumb IDs to breadcrumb label properties

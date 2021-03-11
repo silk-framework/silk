@@ -13,7 +13,7 @@ import CloneModal from "../../shared/modals/CloneModal";
 import { IframeWindow } from "../../shared/IframeWindow/IframeWindow";
 import { downloadResource } from "../../../utils/downloadResource";
 import { DATA_TYPES } from "../../../constants";
-import { ActionsMenuItem, usePageHeader } from "./ViewHeader";
+import { ActionsMenuItem, usePageHeader } from "../../shared/PageHeader/PageHeader";
 
 export function ViewHeaderContentProvider() {
     const dispatch = useDispatch();
@@ -158,8 +158,8 @@ export function ViewHeaderContentProvider() {
     const { pageHeader, updateType } = usePageHeader({
         type: itemType,
         alternateDepiction: "application-homepage",
-        autoBreadcrumbs: true,
-        autoPagetitle: true,
+        autogenerateBreadcrumbs: true,
+        autogeneratePageTitle: true,
         actionsSecondary:
             projectId || taskId
                 ? [
