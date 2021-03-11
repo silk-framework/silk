@@ -75,6 +75,7 @@
                 "label": "Regex patterns"
             }
         },
+        "noAttributeProfile": "No profiling data available.",
         "profilingInfoHeader": "Profiling info for {{path}} data",
         "profilingInfoTooltip": "Show extended profiling info for {{path}}",
         "profilingNotAvailable": "No profiling data available, yet.",
