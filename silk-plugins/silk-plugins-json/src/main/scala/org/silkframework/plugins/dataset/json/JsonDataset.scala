@@ -30,8 +30,5 @@ case class JsonDataset(
 
   override def linkSink(implicit userContext: UserContext): LinkSink = throw new NotImplementedError("JSON files cannot be written at the moment")
 
-  override def entitySink(implicit userContext: UserContext): EntitySink = {
-    file.checkSizeForInMemory()
-    new JsonSink(file, topLevelObject = makeFirstEntityJsonObject)
-  }
+  override def entitySink(implicit userContext: UserContext): EntitySink = new JsonSink(file, topLevelObject = makeFirstEntityJsonObject)
 }

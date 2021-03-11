@@ -72,11 +72,9 @@ class XmlDatasetTest extends FlatSpec with MustMatchers with TestUserContextTrai
 
     val streamingDataset = XmlDataset(resource, streaming = true)
     noException should be thrownBy streamingDataset.source
-    an[ResourceTooLargeException] should be thrownBy streamingDataset.entitySink
 
     val nonStreamingDataset = XmlDataset(resource, streaming = false)
     an[ResourceTooLargeException] should be thrownBy nonStreamingDataset.source
-    an[ResourceTooLargeException] should be thrownBy nonStreamingDataset.entitySink
   }
 
   private def retrieveIDs(dataset: XmlDataset) = {

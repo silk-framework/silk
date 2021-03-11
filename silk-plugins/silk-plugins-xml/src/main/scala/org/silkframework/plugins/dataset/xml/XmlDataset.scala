@@ -48,10 +48,7 @@ case class XmlDataset( @Param("The XML file. This may also be a zip archive of m
 
   override def linkSink(implicit userContext: UserContext): LinkSink = throw new NotImplementedError("Links cannot be written at the moment")
 
-  override def entitySink(implicit userContext: UserContext): EntitySink = {
-    file.checkSizeForInMemory()
-    new XmlSink(file, outputTemplate.str)
-  }
+  override def entitySink(implicit userContext: UserContext): EntitySink = new XmlSink(file, outputTemplate.str)
 
   /**
     * Validates the output template parameter

@@ -26,7 +26,6 @@ class JsonDatasetTest extends FlatSpec with Matchers with TestUserContextTrait {
 
     val dataset = JsonDataset(resource)
     an[ResourceTooLargeException] should be thrownBy dataset.source
-    an[ResourceTooLargeException] should be thrownBy dataset.entitySink
   }
 
 }
