@@ -61,7 +61,6 @@ export function ViewHeaderContentProvider() {
                 updateItemType(location.state.pageLabels, location.pathname);
             }
         }
-        updateType(itemType);
         setItemType(itemType);
     }, [projectId, taskId]);
 
@@ -80,7 +79,6 @@ export function ViewHeaderContentProvider() {
                 const response = await requestTaskItemInfo(projectId, taskId);
                 const itemType = response.data.itemType.id;
                 if (window.location.pathname === locationPathName) {
-                    updateType(itemType);
                     setItemType(itemType);
                 }
             } catch (ex) {
@@ -156,8 +154,7 @@ export function ViewHeaderContentProvider() {
         return fullMenu;
     };
 
-    const { pageHeader, updateType, updatePageHeader } = usePageHeader({
-        type: itemType,
+    const { pageHeader, updatePageHeader } = usePageHeader({
         alternateDepiction: "application-homepage",
         autogenerateBreadcrumbs: true,
         autogeneratePageTitle: true,
@@ -165,6 +162,7 @@ export function ViewHeaderContentProvider() {
 
     useEffect(() => {
         updatePageHeader({
+            type: itemType,
             actionsSecondary:
                 projectId || taskId
                     ? [
@@ -183,7 +181,7 @@ export function ViewHeaderContentProvider() {
                     : [],
             actionsFullMenu: projectId || taskId ? getFullMenu() : [],
         });
-    }, [projectId, taskId, exportTypes, itemLinks]);
+    }, [projectId, taskId, itemType, exportTypes, itemLinks]);
 
     return (
         <>
