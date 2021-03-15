@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     AffirmativeButton,
     DismissiveButton,
@@ -25,50 +25,90 @@ import { MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES } from '.
 import EventEmitter from '../../../utils/EventEmitter';
 import { wasTouched } from '../../../utils/wasTouched';
 import { newValueIsIRI } from '../../../utils/newValueIsIRI';
+import {AutoCompleteField} from "@gui-elements/index";
 
 const LANGUAGES_LIST = [
     'en', 'de', 'es', 'fr', 'bs', 'bg', 'ca', 'ce', 'zh', 'hr', 'cs', 'da', 'nl', 'eo', 'fi', 'ka', 'el', 'hu', 'ga', 'is', 'it',
     'ja', 'kn', 'ko', 'lb', 'no', 'pl', 'pt', 'ru', 'sk', 'sl', 'sv', 'tr', 'uk',
 ];
 
-export class ValueRuleForm extends React.Component {
-    state = {
-        loading: false,
-        changed: false,
-        create: true,
-        type: MAPPING_RULE_TYPE_DIRECT,
-        valueType: { nodeType: 'StringValueType' },
-        sourceProperty: '',
-        isAttribute: false,
-        initialValues: {},
-        error: null,
-    };
+interface INodeType {
+    nodeType: string,
+    lang?: string
+}
 
-    componentDidMount() {
-        this.loadData();
+interface IState {
+    loading: boolean
+    changed: boolean
+    create: boolean
+    type: string
+    valueType: {
+        nodeType: string
+        [key: string]: any
+    }
+    sourceProperty: string
+    comment?: string
+    label?: string
+    targetProperty?: string
+    isAttribute: boolean
+}
+
+interface IProps {
+    id?: string
+    scrollIntoView: (({topOffset: number}) => any)
+    parentId?: string
+    onAddNewRule?: (call: () => any) => any
+}
+
+export function ValueRuleForm(props: IProps) {
+    const [loading, setLoading] = useState<boolean>(false)
+    const [changed, setChanged] = useState(false)
+    const [create, setCreate] = useState(true)
+    const [type, setType] = useState(MAPPING_RULE_TYPE_DIRECT)
+    const [valueType, setValueType] = useState<INodeType>({ nodeType: 'StringValueType'})
+    const [sourceProperty, setSourceProperty] = useState<string | {value: string}>("")
+    const [isAttribute, setIsAttribute] = useState(false)
+    const [initialValues, setInitialValues] = useState<Partial<IState>>({})
+    const [error, setError] = useState<any>(null)
+    const [label, setLabel] = useState<string | undefined>(undefined)
+    const [comment, setComment] = useState<string | undefined>(undefined)
+    const [targetProperty, setTargetProperty] = useState<string | undefined>(undefined)
+
+    const state = {
+        loading,
+        changed,
+        create,
+        type,
+        valueType,
+        sourceProperty,
+        isAttribute,
+        initialValues,
+        error,
+        label,
+        comment,
+        targetProperty
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        if (
-            prevState.loading === true &&
-            _.get(this.state, 'loading', false) === false
-        ) {
-            this.props.scrollIntoView({
+    useEffect(() => {
+        loadData()
+    }, [])
+
+    useEffect(() => {
+        if(!loading) {
+            props.scrollIntoView({
                 topOffset: 75,
             });
         }
-    }
+    }, [loading])
 
-    loadData() {
-        this.setState({
-            loading: true,
-        });
-        if (this.props.id) {
-            getRuleAsync(this.props.id)
+    const loadData = () => {
+        setLoading(true)
+        if (props.id) {
+            getRuleAsync(props.id)
                 .subscribe(
                     ({ rule }) => {
-                        const initialValues = {
-                            type: _.get(rule, 'type', MAPPING_RULE_TYPE_DIRECT),
+                        const initialValues: Partial<IState> = {
+                            type: _.get(rule, 'type', MAPPING_RULE_TYPE_DIRECT) as string,
                             comment: _.get(rule, 'metadata.description', ''),
                             label: _.get(rule, 'metadata.label', ''),
                             targetProperty: _.get(
@@ -89,88 +129,86 @@ export class ValueRuleForm extends React.Component {
                             ),
                         };
 
-                        this.setState({
-                            loading: false,
-                            ...initialValues,
-                            initialValues,
-                        });
+                        setType(initialValues.type)
+                        setComment(initialValues.comment)
+                        setLabel(initialValues.label)
+                        setTargetProperty(initialValues.targetProperty)
+                        setValueType(initialValues.valueType)
+                        setSourceProperty(initialValues.sourceProperty)
+                        setIsAttribute(initialValues.isAttribute)
+                        setInitialValues(initialValues)
+                        setLoading(false)
                     },
                     err => {
-                        this.setState({ loading: false });
+                        setLoading(false)
                     }
                 );
         } else {
-            this.setState({
-                loading: false,
-            });
+            setLoading(false)
             EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, { id: 0 });
         }
     }
 
-    handleConfirm = event => {
+    const handleConfirm = event => {
         event.stopPropagation();
         event.persist();
-        this.setState({
-            loading: true,
-        });
+        setLoading(true)
         createMappingAsync({
-            id: this.props.id,
-            parentId: this.props.parentId,
-            type: this.state.type,
-            comment: this.state.comment,
-            label: this.state.label,
-            targetProperty: trimValue(this.state.targetProperty),
-            valueType: this.state.valueType,
-            sourceProperty: trimValue(this.state.sourceProperty),
-            isAttribute: this.state.isAttribute,
+            id: props.id,
+            parentId: props.parentId,
+            type: type,
+            comment: comment,
+            label: label,
+            targetProperty: trimValue(targetProperty),
+            valueType: valueType,
+            sourceProperty: trimValue(sourceProperty),
+            isAttribute: isAttribute,
         }).subscribe(
             () => {
-                if (this.props.onAddNewRule) {
-                    this.props.onAddNewRule(() => {
-                        this.handleCloseWithChanges(event)
+                if (props.onAddNewRule) {
+                    props.onAddNewRule(() => {
+                        handleCloseWithChanges()
                     });
                 } else {
-                    this.handleCloseWithChanges(event)
+                    handleCloseWithChanges()
                 }
             },
             err => {
-                this.setState({
-                    error: err,
-                    loading: false,
-                });
+                setError(err)
+                setLoading(false)
             }
         );
     }
 
     // remove rule
-    handleChangeTextfield = (state, { value }) => {
-        this.handleChangeValue(state, value);
+    const handleChangeTextfield = (statePropertyName: string, setValueFunction: (v: any) => void, { value }) => {
+        handleChangeValue(statePropertyName, value, setValueFunction);
     };
 
-    handleChangeSelectBox = (state, value) => {
-        this.handleChangeValue(state, value);
+    const handleChangeSelectBox = (statePropertyName: string, setValueFunction: (v: any) => void, value) => {
+        handleChangeValue(statePropertyName, value, setValueFunction);
     };
 
-    handleChangePropertyType = value => {
+    const handleChangePropertyType = value => {
         const valueType = { nodeType: value.value };
-        this.handleChangeValue('valueType', valueType);
+        handleChangeValue('valueType', valueType, setValueType);
     };
 
-    handleChangeLanguageTag = value => {
+    const handleChangeLanguageTag = value => {
         let lang = value;
         if (typeof lang === 'object') {
             lang = value.value;
         }
         const valueType = { nodeType: 'LanguageValueType', lang };
-        this.handleChangeValue('valueType', valueType);
+        handleChangeValue('valueType', valueType, setValueType);
     };
 
-    handleChangeValue = (name, value) => {
-        const { initialValues, create, ...currValues } = this.state;
-        currValues[name] = value;
+    const handleChangeValue = (stateProperty: string, value, setValueFunction: (v: any) => void) => {
+        const { initialValues, create, ...currValues } = state;
+        currValues[stateProperty] = value;
 
         const touched = create || wasTouched(initialValues, currValues);
-        const id = _.get(this.props, 'id', 0);
+        const id = _.get(props, 'id', 0);
 
         if (id !== 0) {
             if (touched) {
@@ -180,66 +218,80 @@ export class ValueRuleForm extends React.Component {
             }
         }
 
-        this.setState({
-            [name]: value,
-            changed: touched,
-        });
+        setValueFunction(value)
+        setChanged(touched)
     };
 
-    handleClose = () => {
-        const id = _.get(this.props, 'id', 0);
+    const handleClose = () => {
+        const id = _.get(props, 'id', 0);
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id });
         EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, { id });
     };
 
     // Closes the edit form. Reacts to changes in the mapping rules.
-    handleCloseWithChanges = () => {
-        this.handleClose()
+    const handleCloseWithChanges = () => {
+        handleClose()
         EventEmitter.emit(MESSAGES.RELOAD, true)
     }
 
-    allowConfirmation() {
-        const targetPropertyNotEmpty = !_.isEmpty(this.state.targetProperty);
-        const valueType = this.state.valueType;
+    const allowConfirmation = () => {
+        const targetPropertyNotEmpty = !_.isEmpty(targetProperty);
         const languageTagSet = valueType.nodeType !== 'LanguageValueType' || typeof valueType.lang === 'string';
         return targetPropertyNotEmpty && languageTagSet;
     }
 
     // template rendering
-    render() {
-        const { id, parentId } = this.props;
+    const render = () => {
+        const { id, parentId } = props;
 
         const autoCompleteRuleId = id || parentId;
 
-        const { type, error, loading } = this.state;
         if (loading) {
             return <Spinner />;
         }
-        const errorMessage = error ? (
+        const errorMessage = error ?
             <ErrorView {...error.response.body} />
-        ) : (
+            :
             false
-        );
+        ;
 
-        const allowConfirm = this.allowConfirmation();
+        const allowConfirm = allowConfirmation();
 
         const title = !id ? <CardTitle>Add value mapping</CardTitle> : false;
 
         // TODO: Unfold complex mapping
-        let sourcePropertyInput = false;
+        let sourcePropertyInput: React.ReactElement | undefined = undefined;
 
         if (type === MAPPING_RULE_TYPE_DIRECT) {
             sourcePropertyInput = (
+                // <AutoCompleteField
+                //     //     className="ecc-silk-mapping__ruleseditor__sourcePath" TODO
+                //     inputProps={{
+                //         placeholder: "Value path"
+                //     }}
+                //     onChange={handleChangeSelectBox.bind(
+                //         null,
+                //         'sourceProperty',
+                //         setSourceProperty
+                //     )}
+                //     initialValue={sourceProperty}
+                //     itemValueSelector={item => item}
+                //     onSearch={() => []}
+                //     itemRenderer={item => item}
+                //     itemValueRenderer={item => item}
+                //     noResultText={"No result."}
+                // />
                 <AutoComplete
                     placeholder="Value path"
                     className="ecc-silk-mapping__ruleseditor__sourcePath"
                     entity="sourcePath"
                     creatable
-                    value={this.state.sourceProperty}
+                    value={sourceProperty}
                     ruleId={autoCompleteRuleId}
-                    onChange={this.handleChangeSelectBox.bind(
+                    onChange={handleChangeSelectBox.bind(
                         null,
-                        'sourceProperty'
+                        'sourceProperty',
+                        setSourceProperty
                     )}
                 />
             );
@@ -253,13 +305,13 @@ export class ValueRuleForm extends React.Component {
                 />
             );
         }
-        const exampleView = !_.isEmpty(this.state.sourceProperty) ? (
+        const exampleView = !_.isEmpty(sourceProperty) ? (
             <ExampleView
-                id={this.props.parentId || 'root'}
+                id={props.parentId || 'root'}
                 key={
-                    this.state.sourceProperty.value || this.state.sourceProperty
+                    typeof sourceProperty === "string" ? sourceProperty : sourceProperty.value
                 }
-                rawRule={this.state}
+                rawRule={state}
                 ruleType={type}
             />
         ) : (
@@ -278,17 +330,18 @@ export class ValueRuleForm extends React.Component {
                             newOptionCreator={convertToUri}
                             isValidNewOption={newValueIsIRI}
                             creatable
-                            value={this.state.targetProperty}
+                            value={targetProperty}
                             ruleId={autoCompleteRuleId}
-                            onChange={this.handleChangeSelectBox.bind(
+                            onChange={handleChangeSelectBox.bind(
                                 null,
-                                'targetProperty'
+                                'targetProperty',
+                                setTargetProperty
                             )}
                         />
                         <Checkbox
-                            checked={this.state.isAttribute}
+                            checked={isAttribute}
                             className="ecc-silk-mapping__ruleseditor__isAttribute"
-                            onChange={() => this.handleChangeValue('isAttribute', !this.state.isAttribute)}
+                            onChange={() => handleChangeValue('isAttribute', !isAttribute, setIsAttribute)}
                         >
                             Write values as attributes (if supported by the
                             target dataset)
@@ -298,18 +351,18 @@ export class ValueRuleForm extends React.Component {
                             className="ecc-silk-mapping__ruleseditor__propertyType"
                             entity="propertyType"
                             ruleId={autoCompleteRuleId}
-                            value={this.state.valueType.nodeType}
+                            value={valueType.nodeType}
                             clearable={false}
-                            onChange={this.handleChangePropertyType}
+                            onChange={handleChangePropertyType}
                         />
-                        { (this.state.valueType.nodeType === 'LanguageValueType') &&
+                        { (valueType.nodeType === 'LanguageValueType') &&
                         <SelectBox
                             data-id="lng-select-box"
                             placeholder="Language Tag"
                             options={LANGUAGES_LIST}
                             optionsOnTop={true} // option list opens up on top of select input (default: false)
-                            value={this.state.valueType.lang}
-                            onChange={this.handleChangeLanguageTag}
+                            value={valueType.lang}
+                            onChange={handleChangeLanguageTag}
                             isValidNewOption={({ label = '' }) =>
                                 !_.isNull(label.match(/^[a-z]{2}(-[A-Z]{2})?$/))
                             }
@@ -326,20 +379,22 @@ export class ValueRuleForm extends React.Component {
                         <TextField
                             label="Label"
                             className="ecc-silk-mapping__ruleseditor__label"
-                            value={this.state.label}
-                            onChange={this.handleChangeTextfield.bind(
+                            value={label}
+                            onChange={handleChangeTextfield.bind(
                                 null,
-                                'label'
+                                'label',
+                                setLabel
                             )}
                         />
                         <TextField
                             multiline
                             label="Description"
                             className="ecc-silk-mapping__ruleseditor__comment"
-                            value={this.state.comment}
-                            onChange={this.handleChangeTextfield.bind(
+                            value={comment}
+                            onChange={handleChangeTextfield.bind(
                                 null,
-                                'comment'
+                                'comment',
+                                setComment
                             )}
                         />
                     </CardContent>
@@ -347,15 +402,15 @@ export class ValueRuleForm extends React.Component {
                         <AffirmativeButton
                             className="ecc-silk-mapping__ruleseditor__actionrow-save"
                             raised
-                            onClick={this.handleConfirm}
-                            disabled={!allowConfirm || !this.state.changed}
+                            onClick={handleConfirm}
+                            disabled={!allowConfirm || !changed}
                         >
                             Save
                         </AffirmativeButton>
                         <DismissiveButton
                             className="ecc-silk-mapping__ruleseditor___actionrow-cancel"
                             raised
-                            onClick={this.handleClose}
+                            onClick={handleClose}
                         >
                             Cancel
                         </DismissiveButton>
@@ -364,5 +419,6 @@ export class ValueRuleForm extends React.Component {
             </div>
         );
     }
+    return render()
 }
 export default ScrollingHOC(ValueRuleForm);
