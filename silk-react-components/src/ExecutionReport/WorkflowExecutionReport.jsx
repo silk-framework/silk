@@ -79,7 +79,7 @@ export default class WorkflowExecutionReport extends React.Component {
   renderTaskItem(report, index) {
     return <li key={"report-" + index} className="mdl-list__item mdl-list__item--two-line silk-report-list-item" onClick={() => this.setState({selectedIndex: index})} >
              <span className="mdl-list__item-primary-content">
-               { report.label } { (report.task.id !== report.nodeId) ? '(' + report.nodeId + ')' : ''}
+               { report.label } { (report.operation != null) ? '(' + report.operation + ')' : ''}
                { this.renderTaskDescription(report) }
              </span>
              <span className="mdl-list__item-secondary-content">

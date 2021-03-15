@@ -39,7 +39,8 @@ object ExecutionReportSerializers {
         SimpleExecutionReport(
           task = GenericTaskJsonFormat.read(requiredValue(value, TASK)),
           summary = arrayValue(value, SUMMARY).value.map(deserializeValue),
-          warnings = arrayValue(value, WARNINGS).value.map(_.as[String])
+          warnings = arrayValue(value, WARNINGS).value.map(_.as[String]),
+          operation = stringValueOption(value, OPERATION))
         )
       }
     }
@@ -47,9 +48,10 @@ object ExecutionReportSerializers {
     def serializeBasicValues(value: ExecutionReport)(implicit writeContext: WriteContext[JsValue]): JsObject = {
       Json.obj(
         LABEL -> value.task.taskLabel(),
+        OPERATION -> value.operation,
         TASK -> GenericTaskJsonFormat.write(value.task),
         SUMMARY -> value.summary.map(serializeValue),
-        WARNINGS -> value.warnings
+        WARNINGS -> value.warnings,
       )
     }
 
@@ -190,6 +192,7 @@ object ExecutionReportSerializers {
 
   object Keys {
 
+    final val OPERATION = "operation"
     final val TASK = "task"
     final val LABEL = "label"
     final val SUMMARY = "summary"

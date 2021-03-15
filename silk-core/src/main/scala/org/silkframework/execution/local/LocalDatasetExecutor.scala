@@ -374,10 +374,12 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   case class WriteEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def operationLabel: Option[String] = Some("write")
     override def entityProcessVerb: String = "written"
   }
 
   case class ReadEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def operationLabel: Option[String] = Some("read")
     override def entityProcessVerb: String = "read"
   }
 
