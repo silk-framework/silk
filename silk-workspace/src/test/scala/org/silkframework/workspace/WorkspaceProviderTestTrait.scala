@@ -5,8 +5,8 @@ import org.scalatestplus.mockito.MockitoSugar
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{DatasetSpec, MockDataset}
-import org.silkframework.entity.{EntitySchema, Restriction}
 import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.{EntitySchema, Restriction}
 import org.silkframework.rule._
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.distance.characterbased.QGramsMetric
@@ -16,7 +16,7 @@ import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.runtime.users.DefaultUserManager
-import org.silkframework.util.{DPair, Identifier, Uri}
+import org.silkframework.util.{Identifier, Uri}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
 import org.silkframework.workspace.resources.InMemoryResourceRepository
 
@@ -117,17 +117,20 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   val transformTaskUpdated =
     PlainTask(
       id = TRANSFORM_ID,
-      data = transformTask.data.copy(mappingRule =
-        RootMappingRule(
-          id = "root",
-          rules =
-            MappingRules(DirectMapping(
-              id = TRANSFORM_ID + 2,
-              sourcePath = UntypedPath("prop5"),
-              metaData = MetaData("Direct Rule New Label", Some("Direct Rule New Description"))
-            )),
-          metaData = MetaData("Root Rule New Label", Some("Root Rule New Description"))
-        )),
+      data = transformTask.data.copy(
+        mappingRule =
+          RootMappingRule(
+            id = "root",
+            rules =
+              MappingRules(DirectMapping(
+                id = TRANSFORM_ID + 2,
+                sourcePath = UntypedPath("prop5"),
+                metaData = MetaData("Direct Rule New Label", Some("Direct Rule New Description"))
+              )),
+            metaData = MetaData("Root Rule New Label", Some("Root Rule New Description"))
+          ),
+       abortIfErrorsOccur = true
+      ),
       metaData = metaDataUpdated
     )
 

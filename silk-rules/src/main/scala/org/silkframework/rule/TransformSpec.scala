@@ -61,7 +61,10 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
                              "of this transformation.",
                              autoCompletionProvider = classOf[TargetVocabularyAutoCompletionProvider],
                            autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = false)
-                         targetVocabularies: TargetVocabularyParameter = TargetVocabularyCategory(TargetVocabularyParameterEnum.allInstalled)
+                         targetVocabularies: TargetVocabularyParameter = TargetVocabularyCategory(TargetVocabularyParameterEnum.allInstalled),
+                         @Param("If true, a validation error (such as a data type mismatch) will abort the execution. " +
+                                "If false, the execution will continue, adding a validation error to the execution report.")
+                         abortIfErrorsOccur: Boolean = false
                         ) extends TaskSpec {
 
   /** Retrieves the root rules of this transform spec. */
@@ -368,15 +371,17 @@ object TransformSpec {
         }
       }
 
+      val abortIfErrorsOccur = (node \ "@abortIfErrorsOccur").headOption.exists(_.text.toBoolean)
+
       // Create and return a TransformSpecification instance.
-      TransformSpec(datasetSelection, rootMappingRule, sink, errorSink, targetVocabularyParameter)
+      TransformSpec(datasetSelection, rootMappingRule, sink, errorSink, targetVocabularyParameter, abortIfErrorsOccur)
     }
 
     /**
       * Serialize a value to XML.
       */
     override def write(value: TransformSpec)(implicit writeContext: WriteContext[Node]): Node = {
-      <TransformSpec>
+      <TransformSpec abortIfErrorsOccur={value.abortIfErrorsOccur.toString}>
         {value.selection.toXML(true)}{toXml(value.mappingRule)}<Outputs>
         {value.output.value.toSeq.map(o => <Output id={o}></Output>)}
       </Outputs>{if (value.errorOutput.isEmpty) {

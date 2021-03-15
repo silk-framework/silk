@@ -60,16 +60,19 @@ abstract class HierarchicalSink extends EntitySink {
   }
 
   override def closeTable()(implicit userContext: UserContext): Unit = {
+    this.properties.clear()
   }
 
   override def close()(implicit userContext: UserContext): Unit = {
     try {
-      resource.write() { outputStream =>
-        val writer = createWriter(outputStream)
-        try {
-          writeEntities(writer)
-        } finally {
-          writer.close()
+      if(this.properties.isEmpty) { // only write if the current table has been closed regularly
+        resource.write() { outputStream =>
+          val writer = createWriter(outputStream)
+          try {
+            writeEntities(writer)
+          } finally {
+            writer.close()
+          }
         }
       }
     } finally {
