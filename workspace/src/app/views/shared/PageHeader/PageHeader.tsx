@@ -17,9 +17,9 @@ import { IBreadcrumbItemProps } from "@gui-elements/src/components/Breadcrumb/Br
 import { routerOp } from "@ducks/router";
 import { APPLICATION_CORPORATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { IActionButtonItemProps, TActionsMenuItem, ActionsMenu } from "../ActionsMenu/ActionsMenu";
-import { fetchBreadcrumbs } from "./fetchBreadcrumbs";
+import { fetchBreadcrumbs } from "./breadcrumbsHelper";
 
-interface IPageHeaderContentProps extends React.HTMLAttributes<HTMLDivElement> {
+interface IPageHeaderContentBasicProps extends React.HTMLAttributes<HTMLDivElement> {
     type?: string;
     alternateDepiction?: string;
     breadcrumbs?: IBreadcrumbItemProps[];
@@ -31,14 +31,22 @@ interface IPageHeaderContentProps extends React.HTMLAttributes<HTMLDivElement> {
     actionsFullMenu?: TActionsMenuItem[];
 }
 
-interface IPageHeaderProps extends IPageHeaderContentProps {
-    autogenerateBreadcrumbs?: boolean;
+interface IPageHeaderContentAutogenerateBreadcrumbsProps extends IPageHeaderContentBasicProps {
+    autogenerateBreadcrumbs: true;
+    breadcrumbs?: never;
 }
+
+interface IPageHeaderContentAutogeneratePageTitleProps extends IPageHeaderContentAutogenerateBreadcrumbsProps {
+    autogeneratePageTitle: true;
+    pageTitle?: never;
+}
+
+type TPageHeader = IPageHeaderContentBasicProps & IPageHeaderContentAutogenerateBreadcrumbsProps & IPageHeaderContentAutogeneratePageTitleProps;
 
 export const APP_VIEWHEADER_ID = "diapp__viewheader";
 
 // Header element that uses portal function to get rendered in one special place regardless from where it is used
-export function PageHeader({ autogenerateBreadcrumbs = false, ...headerProps }: IPageHeaderProps) {
+export function PageHeader({ autogenerateBreadcrumbs = false, ...headerProps }: IPageHeaderContentBasicProps) {
     const PageHeader = autogenerateBreadcrumbs ? PageHeaderContentWithBreadCrumbs : PageHeaderContent;
 
     return (
@@ -71,7 +79,7 @@ function PageHeaderContent({
     actionPrimary,
     actionsSecondary,
     actionsFullMenu,
-}: IPageHeaderContentProps) {
+}: IPageHeaderContentBasicProps) {
     const dispatch = useDispatch();
 
     const handleBreadcrumbItemClick = (itemUrl, e) => {
@@ -156,34 +164,24 @@ function PageHeaderContent({
 const PageHeaderContentWithBreadCrumbs = fetchBreadcrumbs(PageHeaderContent);
 
 // Custom hook to update single properties of the element
-export const usePageHeader = ({ autogenerateBreadcrumbs = false, ...propsHeader }: IPageHeaderProps) => {
-    const [type, setType] = useState<string>(propsHeader.type);
-    const [pageTitle, setPageTitle] = useState<string>(propsHeader.pageTitle);
-    const [breadcrumbs, setBreadcrumbs] = useState(propsHeader.breadcrumbs);
-    /*
-    const [actionPrimary, setActionPrimary ] = useState<IActionButtonItemProps>(propsHeader.actionPrimary);
-    const [actionsSecondary, setActionsSecondary ] = useState<IActionButtonItemProps[]>(propsHeader.actionsSecondary);
-    const [actionsFullMenu, setActionsFullMenu ] = useState<ActionsMenuItem[]>(propsHeader.actionsFullMenu);
-    */
+export function usePageHeader({ ...propsHeader }: IPageHeaderContentBasicProps) {
 
-    const propsBreadcrumbs = autogenerateBreadcrumbs ? { autogenerateBreadcrumbs: true } : { breadcrumbs: breadcrumbs };
+    const [ pageHeaderProps, setPageHeaderProps ] = useState<IPageHeaderContentBasicProps>({...propsHeader});
+
+    const updatePageHeader = (propsUpdate: IPageHeaderContentBasicProps) => {
+        setPageHeaderProps({...pageHeaderProps, ...propsUpdate});
+    }
 
     const pageHeader = (
         <PageHeader
-            type={type}
-            alternateDepiction={propsHeader.alternateDepiction}
-            pageTitle={pageTitle}
-            autogeneratePageTitle={propsHeader.autogeneratePageTitle}
-            actionPrimary={propsHeader.actionPrimary}
-            actionsSecondary={propsHeader.actionsSecondary}
-            actionsFullMenu={propsHeader.actionsFullMenu}
-            {...propsBreadcrumbs}
+            {...pageHeaderProps}
         />
     );
     return {
         pageHeader,
-        updateType: setType,
-        updatePageTitle: setPageTitle,
-        updateBreadcrumbs: setBreadcrumbs,
+        updateType: (update) => { updatePageHeader({type: update}); },
+        updatePageTitle: (update) => { updatePageHeader({pageTitle: update, autogeneratePageTitle: false}); },
+        updateBreadcrumbs: (update) => { updatePageHeader({breadcrumbs: update, autogenerateBreadcrumbs: false }); },
+        updatePageHeader,
     } as const;
 };
