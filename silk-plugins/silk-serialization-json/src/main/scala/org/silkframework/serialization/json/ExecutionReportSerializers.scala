@@ -1,23 +1,23 @@
 package org.silkframework.serialization.json
 
 import org.silkframework.execution.{ExecutionReport, SimpleExecutionReport}
+import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.{RuleError, RuleResult}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.serialization.json.ExecutionReportSerializers.Keys._
 import org.silkframework.serialization.json.JsonHelpers._
+import org.silkframework.serialization.json.JsonSerializers.{GenericTaskJsonFormat, TaskJsonFormat, TransformSpecJsonFormat}
+import org.silkframework.serialization.json.WorkflowSerializers.WorkflowJsonFormat
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowExecutionReport, WorkflowExecutionReportWithProvenance}
+import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowExecutionReport, WorkflowExecutionReportWithProvenance, WorkflowTaskReport}
 import play.api.libs.json._
-import ExecutionReportSerializers.Keys._
-import org.silkframework.rule.TransformSpec
-import org.silkframework.serialization.json.JsonSerializers.{GenericTaskJsonFormat, TaskJsonFormat, TaskSpecJsonFormat, TransformSpecJsonFormat}
-import WorkflowSerializers.WorkflowJsonFormat
 
 object ExecutionReportSerializers {
 
   implicit object ExecutionReportJsonFormat extends JsonFormat[ExecutionReport] {
 
-    override def write(value: ExecutionReport)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+    override def write(value: ExecutionReport)(implicit writeContext: WriteContext[JsValue]): JsObject = {
       value match {
         case transformReport: TransformReport =>
           TransformReportJsonFormat.write(transformReport)
@@ -67,7 +67,7 @@ object ExecutionReportSerializers {
 
   implicit object TransformReportJsonFormat extends JsonFormat[TransformReport] {
 
-    override def write(value: TransformReport)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+    override def write(value: TransformReport)(implicit writeContext: WriteContext[JsValue]): JsObject = {
       ExecutionReportJsonFormat.serializeBasicValues(value) ++
         Json.obj(
           ENTITY_COUNTER -> value.entityCounter,
@@ -136,35 +136,48 @@ object ExecutionReportSerializers {
 
   implicit object WorkflowExecutionReportJsonFormat extends JsonFormat[WorkflowExecutionReport] {
 
-    override def write(value: WorkflowExecutionReport)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      ExecutionReportJsonFormat.serializeBasicValues(value) ++
-        Json.obj(
-          TASK_REPORTS -> JsObject(value.taskReports.map(serializeTaskReport))
-        )
+    override def write(value: WorkflowExecutionReport)(implicit writeContext: WriteContext[JsValue]): JsObject = {
+      ExecutionReportJsonFormat.serializeBasicValues(value) +
+        (TASK_REPORTS -> JsArray(value.taskReports.map(serializeTaskReport)))
     }
 
     override def read(value: JsValue)(implicit readContext: ReadContext): WorkflowExecutionReport = {
       implicit val taskFormat = new TaskJsonFormat[Workflow]()
-      val taskReports =
-        for((key, value) <- objectValue(value, TASK_REPORTS).value) yield {
-          (Identifier(key) -> ExecutionReportJsonFormat.read(value))
-        }
+      val taskReports = requiredValue(value, TASK_REPORTS) match {
+        case jsArray: JsArray =>
+          for(report <- jsArray.value) yield {
+            WorkflowTaskReport(
+              nodeId = stringValue(report, NODE),
+              report = ExecutionReportJsonFormat.read(report)
+            )
+          }
+        case jsObject: JsObject =>
+          // deprecated format
+          for((key, objValue) <- jsObject.value.toSeq) yield {
+            WorkflowTaskReport(
+              nodeId = Identifier(key),
+              report = ExecutionReportJsonFormat.read(objValue)
+            )
+          }
+        case _ =>
+          throw JsonParseException(s"$TASK_REPORTS must be an array or an object")
+      }
+
       WorkflowExecutionReport(
         task = taskFormat.read(requiredValue(value, TASK)),
-        taskReports = taskReports.toMap
+        taskReports = IndexedSeq(taskReports: _*)
       )
     }
 
-    private def serializeTaskReport(taskAndReport: (Identifier, ExecutionReport))
-                                   (implicit writeContext: WriteContext[JsValue]): (String, JsValue) = {
-      val (task, report) = taskAndReport
-      val reportJson = report match {
+    private def serializeTaskReport(workflowReport: WorkflowTaskReport)
+                                   (implicit writeContext: WriteContext[JsValue]): JsValue = {
+      val reportJson = workflowReport.report match {
         case t: TransformReport =>
           TransformReportJsonFormat.write(t)
-        case _ =>
+        case report: ExecutionReport =>
           ExecutionReportJsonFormat.write(report)
       }
-      (task.toString, reportJson)
+      reportJson + (NODE -> JsString(workflowReport.nodeId.toString))
     }
   }
 
@@ -181,6 +194,7 @@ object ExecutionReportSerializers {
     final val LABEL = "label"
     final val SUMMARY = "summary"
     final val WARNINGS = "warnings"
+    final val NODE = "nodeId" // node id within a workflow
 
     final val KEY = "key"
     final val VALUE = "value"

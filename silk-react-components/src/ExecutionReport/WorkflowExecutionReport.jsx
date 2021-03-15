@@ -20,9 +20,9 @@ export default class WorkflowExecutionReport extends React.Component {
         task: {
           id: "workflow"
         },
-        taskReports: {}
+        taskReports: []
       },
-      selectedNode: null
+      selectedIndex: -1 // the index of the selected task report or -1 for the workflow itself
     };
   }
 
@@ -64,22 +64,22 @@ export default class WorkflowExecutionReport extends React.Component {
                   </CardTitle>
                   <CardContent>
                     <ul className="mdl-list">
-                      { this.renderTaskItem(this.state.executionReport.task.id, this.state.executionReport) }
-                      { Object.entries(this.state.executionReport.taskReports).map(e => this.renderTaskItem(e[0], e[1])) }
+                      { this.renderTaskItem(this.state.executionReport, -1) }
+                      { this.state.executionReport.taskReports.map((report, index) => this.renderTaskItem(report, index)) }
                     </ul>
                   </CardContent>
                 </Card>
               </div>
               <div className="mdl-cell mdl-cell--10-col">
-                { this.renderReport(this.state.selectedNode) }
+                { this.renderReport(this.state.executionReport.nodeId) }
               </div>
             </div>
   }
 
-  renderTaskItem(nodeId, report) {
-    return <li key={nodeId} className="mdl-list__item mdl-list__item--two-line silk-report-list-item" onClick={() => this.setState({selectedNode: nodeId})} >
+  renderTaskItem(report, index) {
+    return <li key={"report-" + index} className="mdl-list__item mdl-list__item--two-line silk-report-list-item" onClick={() => this.setState({selectedIndex: index})} >
              <span className="mdl-list__item-primary-content">
-               { report.label } { (report.task.id !== nodeId) ? '(' + nodeId + ')' : ''}
+               { report.label } { (report.task.id !== report.nodeId) ? '(' + report.nodeId + ')' : ''}
                { this.renderTaskDescription(report) }
              </span>
              <span className="mdl-list__item-secondary-content">
@@ -105,11 +105,11 @@ export default class WorkflowExecutionReport extends React.Component {
   }
 
   renderReport(nodeId) {
-    if(this.state.executionReport.taskReports.hasOwnProperty(this.state.selectedNode)) {
+    if(this.state.selectedIndex >= 0) {
       return <ExecutionReport baseUrl={this.props.baseUrl}
                               project={this.props.project}
                               nodeId={nodeId}
-                              executionReport={this.state.executionReport.taskReports[this.state.selectedNode]}/>
+                              executionReport={this.state.executionReport.taskReports[this.state.selectedIndex]}/>
     } else {
       return <ExecutionReport baseUrl={this.props.baseUrl}
                               project={this.props.project}
