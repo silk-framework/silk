@@ -156,29 +156,34 @@ export function ViewHeaderContentProvider() {
         return fullMenu;
     };
 
-    const { pageHeader, updateType } = usePageHeader({
+    const { pageHeader, updateType, updatePageHeader } = usePageHeader({
         type: itemType,
         alternateDepiction: "application-homepage",
         autogenerateBreadcrumbs: true,
         autogeneratePageTitle: true,
-        actionsSecondary:
-            projectId || taskId
-                ? [
-                      {
-                          text: t("common.action.RemoveSmth", {
-                              smth: taskId
-                                  ? t("common.dataTypes.task", "Task")
-                                  : t("common.dataTypes.project", "Project"),
-                          }),
-                          icon: "item-remove",
-                          actionHandler: toggleDeleteModal,
-                          disruptive: true,
-                          "data-test-id": "header-remove-button",
-                      },
-                  ]
-                : [],
-        actionsFullMenu: projectId || taskId ? getFullMenu() : [],
     });
+
+    useEffect(() => {
+        updatePageHeader({
+            actionsSecondary:
+                projectId || taskId
+                    ? [
+                          {
+                              text: t("common.action.RemoveSmth", {
+                                  smth: taskId
+                                      ? t("common.dataTypes.task", "Task")
+                                      : t("common.dataTypes.project", "Project"),
+                              }),
+                              icon: "item-remove",
+                              actionHandler: toggleDeleteModal,
+                              disruptive: true,
+                              "data-test-id": "header-remove-button",
+                          },
+                      ]
+                    : [],
+            actionsFullMenu: projectId || taskId ? getFullMenu() : [],
+        });
+    }, [projectId, taskId, exportTypes, itemLinks]);
 
     return (
         <>
