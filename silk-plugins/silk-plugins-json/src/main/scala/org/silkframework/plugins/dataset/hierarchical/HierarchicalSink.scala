@@ -22,6 +22,8 @@ abstract class HierarchicalSink extends EntitySink {
 
   private val rootEntities: mutable.Buffer[String] = mutable.Buffer.empty
 
+  private var tableOpen: Boolean = false
+
   /**
     * The resource this sink is writing to.
     * Must be implemented in sub classes.
@@ -42,6 +44,7 @@ abstract class HierarchicalSink extends EntitySink {
   override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
                         (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     this.properties.append(properties)
+    tableOpen = true
   }
 
   /**
@@ -60,12 +63,12 @@ abstract class HierarchicalSink extends EntitySink {
   }
 
   override def closeTable()(implicit userContext: UserContext): Unit = {
-    this.properties.clear()
+    tableOpen = false
   }
 
   override def close()(implicit userContext: UserContext): Unit = {
     try {
-      if(this.properties.isEmpty) { // only write if the current table has been closed regularly
+      if(!tableOpen) { // only write if the current table has been closed regularly
         resource.write() { outputStream =>
           val writer = createWriter(outputStream)
           try {
