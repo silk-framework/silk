@@ -40,7 +40,7 @@ object ExecutionReportSerializers {
           task = GenericTaskJsonFormat.read(requiredValue(value, TASK)),
           summary = arrayValue(value, SUMMARY).value.map(deserializeValue),
           warnings = arrayValue(value, WARNINGS).value.map(_.as[String]),
-          operation = stringValueOption(value, OPERATION))
+          operation = stringValueOption(value, OPERATION)
         )
       }
     }
