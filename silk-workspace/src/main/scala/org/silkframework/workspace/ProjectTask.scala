@@ -14,18 +14,16 @@
 
 package org.silkframework.workspace
 
-import java.time.Instant
-import java.util.logging.{Level, Logger}
-
 import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.runtime.activity.{HasValue, Status, UserContext, ValueHolder}
-import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.activity.{CachedActivity, TaskActivity, TaskActivityFactory}
 
+import java.time.Instant
+import java.util.logging.{Level, Logger}
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
@@ -97,6 +95,15 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   def startActivities()(implicit userContext: UserContext): Unit = {
     for (activity <- taskActivities if shouldAutoRun(activity) && activity.status() == Status.Idle())
       activity.control.start()
+  }
+
+  /**
+    * Cancels all activities.
+    */
+  def cancelActivities()(implicit userContext: UserContext): Unit = {
+    for (activity <- taskActivities) {
+      activity.control.cancel()
+    }
   }
 
   private def shouldAutoRun(activity: TaskActivity[_, _]): Boolean = {
