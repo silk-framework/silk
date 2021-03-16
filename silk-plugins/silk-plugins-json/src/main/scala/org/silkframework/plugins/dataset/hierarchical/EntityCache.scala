@@ -12,7 +12,7 @@ import java.util.UUID
 /**
   * Holds entities in a persistent cache.
   */
-case class EntityCache() extends Closeable {
+private case class EntityCache() extends Closeable {
 
   private lazy val cacheId: String = "entities-" + UUID.randomUUID().toString
 
@@ -90,11 +90,3 @@ case class EntityCache() extends Closeable {
 
 }
 
-/**
-  * A cached entity.
-  *
-  * @param uri The URI of the entity
-  * @param values The values of the entity
-  * @param tableIndex The index of the table this entity belongs to.
-  */
-case class CachedEntity(uri: String, values: Seq[Seq[String]], tableIndex: Int)

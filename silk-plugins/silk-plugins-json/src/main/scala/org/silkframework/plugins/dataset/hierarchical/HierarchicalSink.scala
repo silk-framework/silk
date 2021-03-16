@@ -20,7 +20,7 @@ abstract class HierarchicalSink extends EntitySink {
 
   private val properties: mutable.Buffer[Seq[TypedProperty]] = mutable.Buffer.empty
 
-  private val rootEntities: mutable.Buffer[String] = mutable.Buffer.empty
+  private val rootEntities: SequentialEntityCache = SequentialEntityCache()
 
   private var tableOpen: Boolean = false
 
@@ -57,7 +57,7 @@ abstract class HierarchicalSink extends EntitySink {
   override def writeEntity(subjectURI: String, values: Seq[Seq[String]])
                           (implicit userContext: UserContext): Unit = {
     if(properties.size == 1) {
-      rootEntities.append(subjectURI)
+      rootEntities.putEntity(subjectURI, values)
     }
     cache.putEntity(CachedEntity(subjectURI, values, properties.size - 1))
   }
@@ -92,8 +92,8 @@ abstract class HierarchicalSink extends EntitySink {
 
   private def writeEntities(writer: HierarchicalEntityWriter): Unit = {
     writer.open()
-    for (entityUri <- rootEntities) {
-      writeEntity(entityUri, writer)
+    rootEntities.readAndClose { entity =>
+      writeEntity(entity, writer)
     }
   }
 
