@@ -25,7 +25,7 @@ interface IActionsMenuParentItemProps extends IActionBasicProps {
 
 export type TActionsMenuItem = IActionsMenuActionItemProps | IActionsMenuParentItemProps;
 
-interface IActionsMenuProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface IActionsMenuProps extends React.HTMLAttributes<HTMLDivElement> {
     actionPrimary?: IActionButtonItemProps;
     actionsSecondary?: IActionButtonItemProps[];
     actionsFullMenu?: TActionsMenuItem[];

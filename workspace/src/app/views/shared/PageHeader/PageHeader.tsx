@@ -16,7 +16,7 @@ import {
 import { IBreadcrumbItemProps } from "@gui-elements/src/components/Breadcrumb/BreadcrumbItem";
 import { routerOp } from "@ducks/router";
 import { APPLICATION_CORPORATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
-import { IActionButtonItemProps, TActionsMenuItem, ActionsMenu } from "../ActionsMenu/ActionsMenu";
+import { ActionsMenu } from "../ActionsMenu/ActionsMenu";
 import { fetchBreadcrumbs } from "./breadcrumbsHelper";
 
 interface IPageHeaderContentBasicProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -26,9 +26,7 @@ interface IPageHeaderContentBasicProps extends React.HTMLAttributes<HTMLDivEleme
     autogenerateBreadcrumbs?: boolean;
     pageTitle?: string;
     autogeneratePageTitle?: boolean;
-    actionPrimary?: IActionButtonItemProps;
-    actionsSecondary?: IActionButtonItemProps[];
-    actionsFullMenu?: TActionsMenuItem[];
+    actionsMenu?: typeof ActionsMenu;
 }
 
 interface IPageHeaderContentAutogenerateBreadcrumbsProps extends IPageHeaderContentBasicProps {
@@ -41,7 +39,9 @@ interface IPageHeaderContentAutogeneratePageTitleProps extends IPageHeaderConten
     pageTitle?: never;
 }
 
-type TPageHeader = IPageHeaderContentBasicProps & IPageHeaderContentAutogenerateBreadcrumbsProps & IPageHeaderContentAutogeneratePageTitleProps;
+type TPageHeader = IPageHeaderContentBasicProps &
+    IPageHeaderContentAutogenerateBreadcrumbsProps &
+    IPageHeaderContentAutogeneratePageTitleProps;
 
 export const APP_VIEWHEADER_ID = "diapp__viewheader";
 
@@ -76,9 +76,7 @@ function PageHeaderContent({
     breadcrumbs,
     pageTitle,
     autogeneratePageTitle = false,
-    actionPrimary,
-    actionsSecondary,
-    actionsFullMenu,
+    actionsMenu,
 }: IPageHeaderContentBasicProps) {
     const dispatch = useDispatch();
 
@@ -147,15 +145,7 @@ function PageHeaderContent({
                         </OverviewItemLine>
                     )}
                 </OverviewItemDescription>
-                {(actionPrimary || actionsSecondary || actionsFullMenu) && (
-                    <OverviewItemActions>
-                        <ActionsMenu
-                            actionPrimary={actionPrimary}
-                            actionsSecondary={actionsSecondary}
-                            actionsFullMenu={actionsFullMenu}
-                        />
-                    </OverviewItemActions>
-                )}
+                {!!actionsMenu && <OverviewItemActions>{actionsMenu}</OverviewItemActions>}
             </OverviewItem>
         </>
     );
@@ -165,23 +155,27 @@ const PageHeaderContentWithBreadCrumbs = fetchBreadcrumbs(PageHeaderContent);
 
 // Custom hook to update single properties of the element
 export function usePageHeader({ ...propsHeader }: IPageHeaderContentBasicProps) {
-
-    const [ pageHeaderProps, setPageHeaderProps ] = useState<IPageHeaderContentBasicProps>({...propsHeader});
+    const [pageHeaderProps, setPageHeaderProps] = useState<IPageHeaderContentBasicProps>({ ...propsHeader });
 
     const updatePageHeader = (propsUpdate: IPageHeaderContentBasicProps) => {
-        setPageHeaderProps({...pageHeaderProps, ...propsUpdate});
-    }
+        setPageHeaderProps({ ...pageHeaderProps, ...propsUpdate });
+    };
 
-    const pageHeader = (
-        <PageHeader
-            {...pageHeaderProps}
-        />
-    );
+    const pageHeader = <PageHeader {...pageHeaderProps} />;
     return {
         pageHeader,
-        updateType: (update) => { updatePageHeader({type: update}); },
-        updatePageTitle: (update) => { updatePageHeader({pageTitle: update, autogeneratePageTitle: false}); },
-        updateBreadcrumbs: (update) => { updatePageHeader({breadcrumbs: update, autogenerateBreadcrumbs: false }); },
+        updateType: (update) => {
+            updatePageHeader({ type: update });
+        },
+        updatePageTitle: (update) => {
+            updatePageHeader({ pageTitle: update, autogeneratePageTitle: false });
+        },
+        updateBreadcrumbs: (update) => {
+            updatePageHeader({ breadcrumbs: update, autogenerateBreadcrumbs: false });
+        },
+        updateActionsMenu: (update) => {
+            updatePageHeader({ actionsMenu: update });
+        },
         updatePageHeader,
     } as const;
-};
+}
