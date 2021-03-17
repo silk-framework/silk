@@ -14,7 +14,7 @@ import {
 } from '@eccenca/gui-elements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
-import { createMappingAsync, getRuleAsync } from '../../../store';
+import store from '../../../store';
 import { convertToUri } from '../../../utils/convertToUri';
 import ErrorView from '../../../components/ErrorView';
 import AutoComplete from '../../../components/AutoComplete';
@@ -25,59 +25,66 @@ import { MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES } from '.
 import EventEmitter from '../../../utils/EventEmitter';
 import { wasTouched } from '../../../utils/wasTouched';
 import { newValueIsIRI } from '../../../utils/newValueIsIRI';
-import {AutoCompleteField} from "@gui-elements/index";
 
 const LANGUAGES_LIST = [
     'en', 'de', 'es', 'fr', 'bs', 'bg', 'ca', 'ce', 'zh', 'hr', 'cs', 'da', 'nl', 'eo', 'fi', 'ka', 'el', 'hu', 'ga', 'is', 'it',
     'ja', 'kn', 'ko', 'lb', 'no', 'pl', 'pt', 'ru', 'sk', 'sl', 'sv', 'tr', 'uk',
 ];
 
-interface INodeType {
+// The type of the value of the mapping rule, e.g. string, URI
+interface IValueType {
+    // The type ID
     nodeType: string,
+    // If this is a lang type value, this property specifies the language code
     lang?: string
 }
 
 interface IState {
+    // If the form is loading
     loading: boolean
+    // If the rule has been changed
     changed: boolean
-    create: boolean
+    // The type of the mapping rule
     type: string
-    valueType: {
-        nodeType: string
-        [key: string]: any
-    }
+    valueType: IValueType
+    // The source path / property
     sourceProperty: string
+    // Optional comment
     comment?: string
+    // Optional label
     label?: string
+    // The target property / attribute
     targetProperty?: string
+    // If the target property is an attribute (only relevant for XML as target)
     isAttribute: boolean
 }
 
 interface IProps {
+    // ID of the rule
     id?: string
+    //
     scrollIntoView: (({topOffset: number}) => any)
     parentId?: string
     onAddNewRule?: (call: () => any) => any
 }
 
+/** The edit form of a value mapping rule. */
 export function ValueRuleForm(props: IProps) {
     const [loading, setLoading] = useState<boolean>(false)
     const [changed, setChanged] = useState(false)
-    const [create, setCreate] = useState(true)
     const [type, setType] = useState(MAPPING_RULE_TYPE_DIRECT)
-    const [valueType, setValueType] = useState<INodeType>({ nodeType: 'StringValueType'})
+    const [valueType, setValueType] = useState<IValueType>({ nodeType: 'StringValueType'})
     const [sourceProperty, setSourceProperty] = useState<string | {value: string}>("")
     const [isAttribute, setIsAttribute] = useState(false)
     const [initialValues, setInitialValues] = useState<Partial<IState>>({})
     const [error, setError] = useState<any>(null)
-    const [label, setLabel] = useState<string | undefined>(undefined)
-    const [comment, setComment] = useState<string | undefined>(undefined)
-    const [targetProperty, setTargetProperty] = useState<string | undefined>(undefined)
+    const [label, setLabel] = useState<string>("")
+    const [comment, setComment] = useState<string>("")
+    const [targetProperty, setTargetProperty] = useState<string>("")
 
     const state = {
         loading,
         changed,
-        create,
         type,
         valueType,
         sourceProperty,
@@ -104,7 +111,7 @@ export function ValueRuleForm(props: IProps) {
     const loadData = () => {
         setLoading(true)
         if (props.id) {
-            getRuleAsync(props.id)
+            store.getRuleAsync(props.id)
                 .subscribe(
                     ({ rule }) => {
                         const initialValues: Partial<IState> = {
@@ -153,7 +160,7 @@ export function ValueRuleForm(props: IProps) {
         event.stopPropagation();
         event.persist();
         setLoading(true)
-        createMappingAsync({
+        store.createMappingAsync({
             id: props.id,
             parentId: props.parentId,
             type: type,
@@ -204,10 +211,10 @@ export function ValueRuleForm(props: IProps) {
     };
 
     const handleChangeValue = (stateProperty: string, value, setValueFunction: (v: any) => void) => {
-        const { initialValues, create, ...currValues } = state;
+        const { initialValues, ...currValues } = state;
         currValues[stateProperty] = value;
 
-        const touched = create || wasTouched(initialValues, currValues);
+        const touched = wasTouched(initialValues, currValues);
         const id = _.get(props, 'id', 0);
 
         if (id !== 0) {
@@ -264,23 +271,6 @@ export function ValueRuleForm(props: IProps) {
 
         if (type === MAPPING_RULE_TYPE_DIRECT) {
             sourcePropertyInput = (
-                // <AutoCompleteField
-                //     //     className="ecc-silk-mapping__ruleseditor__sourcePath" TODO
-                //     inputProps={{
-                //         placeholder: "Value path"
-                //     }}
-                //     onChange={handleChangeSelectBox.bind(
-                //         null,
-                //         'sourceProperty',
-                //         setSourceProperty
-                //     )}
-                //     initialValue={sourceProperty}
-                //     itemValueSelector={item => item}
-                //     onSearch={() => []}
-                //     itemRenderer={item => item}
-                //     itemValueRenderer={item => item}
-                //     noResultText={"No result."}
-                // />
                 <AutoComplete
                     placeholder="Value path"
                     className="ecc-silk-mapping__ruleseditor__sourcePath"
@@ -403,7 +393,7 @@ export function ValueRuleForm(props: IProps) {
                             className="ecc-silk-mapping__ruleseditor__actionrow-save"
                             raised
                             onClick={handleConfirm}
-                            disabled={!allowConfirm || !changed}
+                            disabled={!allowConfirm || !changed && !!id}
                         >
                             Save
                         </AffirmativeButton>
