@@ -24,6 +24,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
     const [label, setLabel] = useState<string | null>(item.label);
     const [t] = useTranslation();
 
+    console.log(item);
     useEffect(() => {
         prepareCloning();
     }, [item]);
@@ -35,8 +36,9 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                 item.projectId && item.id
                     ? await requestTaskMetadata(item.id, item.projectId)
                     : await requestProjectMetadata(item.id ? item.id : item.projectId);
-            setLabel(response.data.label);
-            setNewLabel(t("common.messages.cloneOf", { item: response.data.label }));
+            const currentLabel = !!response.data.label ? response.data.label : item.id;
+            setLabel(currentLabel);
+            setNewLabel(t("common.messages.cloneOf", { item: currentLabel }));
         } catch (ex) {
             // swallow exception, fallback to ID
         } finally {
@@ -56,9 +58,9 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                 },
             };
 
-            const response = projectId
+            const response = id
                 ? await requestCloneTask(id, projectId, payload)
-                : await requestCloneProject(id, payload);
+                : await requestCloneProject(projectId, payload);
             onConfirmed && onConfirmed(newLabel, response.data.detailsPage);
         } catch (e) {
             if (e.isFetchError) {
@@ -78,7 +80,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
             size="small"
             title={
                 t("common.action.CloneSmth", {
-                    smth: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
+                    smth: t(item.id ? "common.dataTypes.task" : "common.dataTypes.project"),
                 }) +
                     ": " +
                     label ||
@@ -107,7 +109,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
                 labelAttributes={{
                     htmlFor: "label",
                     text: t("common.messages.cloneModalTitle", {
-                        item: item.projectId ? t("common.dataTypes.task") : t("common.dataTypes.project"),
+                        item: item.id ? t("common.dataTypes.task") : t("common.dataTypes.project"),
                     }),
                 }}
             >

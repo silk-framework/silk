@@ -26,7 +26,7 @@ export function ArtefactManagementOptions({ projectId, taskId, itemType, updateA
     const exportTypes = useSelector(commonSel.exportTypesSelector);
 
     const itemData = {
-        id: taskId ? taskId : projectId,
+        id: taskId ? taskId : undefined,
         projectId: projectId ? projectId : undefined,
         type: itemType ? itemType : undefined,
     };
