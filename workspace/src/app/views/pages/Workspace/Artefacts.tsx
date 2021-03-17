@@ -19,6 +19,7 @@ import Filterbar from "./Filterbar";
 import SearchList from "../../shared/SearchList";
 import SearchBar from "../../shared/SearchBar";
 import { useTranslation } from "react-i18next";
+import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 
 const Artefacts = () => {
     const dispatch = useDispatch();
@@ -36,8 +37,15 @@ const Artefacts = () => {
         dispatch(workspaceOp.applyFiltersOp({ textQuery }));
     };
 
+    const { pageHeader } = usePageHeader({
+        alternateDepiction: "application-homepage",
+        autogenerateBreadcrumbs: true,
+        autogeneratePageTitle: true,
+    });
+
     return (
         <WorkspaceContent className="eccapp-di__workspace">
+            {pageHeader}
             <WorkspaceMain>
                 <Section>
                     <SectionHeader>
