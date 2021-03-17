@@ -24,7 +24,6 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
     const [label, setLabel] = useState<string | null>(item.label);
     const [t] = useTranslation();
 
-    console.log(item);
     useEffect(() => {
         prepareCloning();
     }, [item]);
@@ -35,8 +34,8 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
             const response =
                 item.projectId && item.id
                     ? await requestTaskMetadata(item.id, item.projectId)
-                    : await requestProjectMetadata(item.id ? item.id : item.projectId);
-            const currentLabel = !!response.data.label ? response.data.label : item.id;
+                    : await requestProjectMetadata(item.projectId);
+            const currentLabel = !!response.data.label ? response.data.label : !!item.id ? item.id : item.projectId;
             setLabel(currentLabel);
             setNewLabel(t("common.messages.cloneOf", { item: currentLabel }));
         } catch (ex) {
