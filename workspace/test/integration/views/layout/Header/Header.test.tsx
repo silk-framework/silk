@@ -9,8 +9,11 @@ import {
     withMount,
     withWindowLocation,
     workspacePath,
+    logRequests,
+    setUseParams,
 } from "../../../TestHelper";
 import { Header } from "../../../../../src/app/views/layout/Header/Header";
+import Task from "../../../../../src/app/views/pages/Task";
 import { PageHeader, APP_VIEWHEADER_ID } from "../../../../../src/app/views/shared/PageHeader/PageHeader";
 import { waitFor } from "@testing-library/react";
 import { Helmet } from "react-helmet";
@@ -28,6 +31,8 @@ describe("Header", () => {
         global.document.querySelector("body").appendChild(portalroot);
 
         history.location.pathname = workspacePath("/projects/SomeProjectId/dataset/SomeTaskId");
+
+        setUseParams("SomeProjectId", "SomeTaskId");
 
         wrapper = withMount(
             testWrapper(<Header />, history, {
@@ -69,8 +74,15 @@ describe("Header", () => {
     });
 
     it("should delete button works properly", async () => {
+        wrapper = withMount(
+            testWrapper(<Task />, history, {
+                common: { initialSettings: { dmBaseUrl: "http://docker.local" } },
+            })
+        );
+
         clickElement(wrapper, byTestId("header-remove-button"));
         clickElement(wrapper, byTestId("remove-item-button"));
+        logRequests();
         mockAxios.mockResponseFor(
             {
                 url: hostPath + "/workspace/projects/SomeProjectId/tasks/SomeTaskId",
@@ -85,7 +97,14 @@ describe("Header", () => {
     });
 
     xit("should clone button works properly", async () => {
+        wrapper = withMount(
+            testWrapper(<Task />, history, {
+                common: { initialSettings: { dmBaseUrl: "http://docker.local" } },
+            })
+        );
+
         wrapper.find(ContextMenu).simulate("click");
+        clickElement(wrapper, byTestId("header-clone-button"));
         clickElement(wrapper, byTestId("clone-modal-button"));
 
         mockAxios.mockResponseFor(
