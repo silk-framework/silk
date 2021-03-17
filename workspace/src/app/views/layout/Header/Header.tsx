@@ -29,7 +29,6 @@ import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/Cre
 import { triggerHotkeyHandler } from "../../shared/HotKeyHandler/HotKeyHandler";
 import { APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { CONTEXT_PATH } from "../../../constants/path";
-import { ViewHeaderContentProvider } from "./ViewHeaderContentProvider";
 import { APP_VIEWHEADER_ID } from "../../shared/PageHeader/PageHeader";
 
 interface IProps {
@@ -121,7 +120,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                 </Menu>
             </ApplicationSidebarNavigation>
 
-            <WorkspaceHeader id={APP_VIEWHEADER_ID}>{<ViewHeaderContentProvider />}</WorkspaceHeader>
+            <WorkspaceHeader id={APP_VIEWHEADER_ID} />
 
             <ApplicationToolbar>
                 <ApplicationToolbarSection>
