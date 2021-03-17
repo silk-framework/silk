@@ -55,7 +55,9 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
 
     const prepareDelete = async () => {
         const itemType = t(
-            item.id ? `common.dataTypes.${item.type ? item.type : "genericArtefactLabel"}` : "common.dataTypes.project"
+            item.id
+                ? `common.dataTypes.${item.type ? item.type.toLowerCase() : "genericArtefactLabel"}`
+                : "common.dataTypes.project"
         );
         setDeleteModalOptions({
             render: () => <Loading description={t("Deletedialog.loading", "Loading delete dialog.")} />,
