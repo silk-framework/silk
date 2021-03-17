@@ -110,7 +110,7 @@ function PageHeaderContent({
     const getDepictionIcons = () => {
         const iconNames = [];
         if (!!type) {
-            iconNames.push("artefact-" + type);
+            iconNames.push("artefact-" + type.toLowerCase());
         }
         if (!!alternateDepiction) {
             iconNames.push(alternateDepiction);
