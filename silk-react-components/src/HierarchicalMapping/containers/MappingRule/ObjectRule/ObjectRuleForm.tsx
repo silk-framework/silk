@@ -28,6 +28,7 @@ import EventEmitter from '../../../utils/EventEmitter';
 import { trimValue } from '../../../utils/trimValue';
 import { wasTouched } from '../../../utils/wasTouched';
 import { newValueIsIRI } from '../../../utils/newValueIsIRI';
+import MultiAutoComplete from "../../../components/MultiAutoComplete";
 
 interface IProps {
     id?: string
@@ -298,14 +299,13 @@ export class ObjectRuleForm extends Component<IProps, any> {
                         {errorMessage}
                         {targetPropertyInput}
                         {entityRelationInput}
-                        <AutoComplete
+                        <MultiAutoComplete
                             placeholder="Target entity type"
                             className="ecc-silk-mapping__ruleseditor__targetEntityType"
                             entity="targetEntityType"
                             isValidNewOption={newValueIsIRI}
                             ruleId={autoCompleteRuleId}
                             value={modifiedValues.targetEntityType}
-                            // multi={true} // allow multi selection TODO!!!!!!!
                             creatable
                             onChange={value => { this.handleChangeValue('targetEntityType', value); }}
                         />
