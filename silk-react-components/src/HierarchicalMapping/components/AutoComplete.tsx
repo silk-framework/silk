@@ -152,7 +152,7 @@ const AutoComplete = ({ entity, ruleId, className, placeholder, creatable, onCha
                 itemValueRenderer={itemLabel(itemDisplayLabel)}
                 noResultText={"No result."}
                 createNewItem={create}
-                resetQueryToValue={item => item.value}
+                resetQueryToValue={resetQueryToValue ? (item) => item.value : undefined}
             />
         </FieldItem>
     </div>
