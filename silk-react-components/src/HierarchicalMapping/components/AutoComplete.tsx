@@ -5,7 +5,7 @@ import {
     FieldItem, Highlighter, MenuItem, OverflowText,
     OverviewItem,
     OverviewItemDescription,
-    OverviewItemLine
+    OverviewItemLine, Spacing
 } from "@gui-elements/index";
 import {createNewItemRendererFactory} from "@gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
 import {IRenderModifiers} from "@gui-elements/src/components/AutocompleteField/AutoCompleteField";
@@ -131,6 +131,7 @@ const AutoComplete = ({ entity, ruleId, className, placeholder, creatable, onCha
         itemRenderer: createNewItemRendererFactory((query: string) => `Create option '${query}'`, "item-add-artefact")
     } : undefined
     return <div className={className}>
+        <Spacing size={"tiny"} />
         <FieldItem
             labelAttributes={{
                 text: placeholder,
@@ -155,6 +156,7 @@ const AutoComplete = ({ entity, ruleId, className, placeholder, creatable, onCha
                 resetQueryToValue={resetQueryToValue ? (item) => item.value : undefined}
             />
         </FieldItem>
+        <Spacing size={"tiny"} />
     </div>
 };
 
