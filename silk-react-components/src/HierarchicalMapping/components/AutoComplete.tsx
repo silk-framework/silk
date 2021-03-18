@@ -88,20 +88,23 @@ const itemRenderer = (autoCompleteItem: IAutoCompleteItem, query: string, modifi
         label = autoCompleteItem.value
     }
     const highlighter = (value: string) => modifiers.highlightingEnabled ? <Highlighter label={value} searchValue={query} /> : value
+    const item = value || autoCompleteItem.description ? (
+        <OverviewItem style={modifiers.styleWidth}>
+            <OverviewItemDescription>
+                <OverviewItemLine><OverflowText ellipsis={"reverse"}>{highlighter(label)}</OverflowText></OverviewItemLine>
+                {value &&
+                  <OverviewItemLine small={true}><OverflowText ellipsis={"reverse"}>{highlighter(value)}</OverflowText></OverviewItemLine>}
+                {autoCompleteItem.description &&
+                  <OverviewItemLine small={true}><OverflowText>{highlighter(autoCompleteItem.description)}</OverflowText></OverviewItemLine>}
+            </OverviewItemDescription>
+        </OverviewItem> ) : (
+            <OverflowText style={modifiers.styleWidth} ellipsis={"reverse"}>{highlighter(label)}</OverflowText> )
     return <MenuItem
         active={modifiers.active}
         disabled={modifiers.disabled}
         key={autoCompleteItem.value}
         onClick={handleClick}
-        text={
-            <OverviewItem style={modifiers.styleWidth}>
-                <OverviewItemDescription>
-                    <OverviewItemLine><OverflowText ellipsis={"reverse"}>{highlighter(label)}</OverflowText></OverviewItemLine>
-                    {value && <OverviewItemLine small={true}><OverflowText ellipsis={"reverse"}>{highlighter(value)}</OverflowText></OverviewItemLine>}
-                    {autoCompleteItem.description && <OverviewItemLine small={true}><OverflowText ellipsis={"reverse"}>{highlighter(autoCompleteItem.description)}</OverflowText></OverviewItemLine>}
-                </OverviewItemDescription>
-            </OverviewItem>
-        }
+        text={item}
     />
 }
 
