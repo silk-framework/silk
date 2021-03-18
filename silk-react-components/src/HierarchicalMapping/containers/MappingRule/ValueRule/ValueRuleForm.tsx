@@ -283,6 +283,8 @@ export function ValueRuleForm(props: IProps) {
                         'sourceProperty',
                         setSourceProperty
                     )}
+                    resetQueryToValue={true}
+                    itemDisplayLabel={(item) => item.label ? `${item.label} <${item.value}>` : item.value}
                 />
             );
         } else if (type === MAPPING_RULE_TYPE_COMPLEX) {
@@ -327,6 +329,8 @@ export function ValueRuleForm(props: IProps) {
                                 'targetProperty',
                                 setTargetProperty
                             )}
+                            resetQueryToValue={true}
+                            itemDisplayLabel={(item) => item.label ? `${item.label} <${item.value}>` : item.value}
                         />
                         <Checkbox
                             checked={isAttribute}

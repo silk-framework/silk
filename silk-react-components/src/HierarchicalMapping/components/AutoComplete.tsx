@@ -1,6 +1,14 @@
 import React from 'react';
 import {autocompleteAsync} from '../store';
-import {AutoCompleteField, FieldItem} from "@gui-elements/index";
+import {
+    AutoCompleteField,
+    FieldItem, Highlighter, MenuItem, OverflowText,
+    OverviewItem,
+    OverviewItemDescription,
+    OverviewItemLine
+} from "@gui-elements/index";
+import {createNewItemRendererFactory} from "@gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
+import {IRenderModifiers} from "@gui-elements/src/components/AutocompleteField/AutoCompleteField";
 
 // Creates a search function for the auto-complete field
 const onSearchFactory = (ruleId: string,
@@ -52,6 +60,10 @@ interface IProps {
     isValidNewOption?: (input: IIsValidNewOptionParams) => any
     // If the selected value can be cleared
     clearable?: boolean
+    // If true the query will be reset to the value and not the optional label
+    resetQueryToValue?: boolean
+    // The string that should be displayed in the input field of the selected item. By default it is the optional label or value.
+    itemDisplayLabel?: (item: IAutoCompleteItem) => string
 }
 
 // Auto-complete interface as it is returned by the auto-complete backend APIs
@@ -61,10 +73,52 @@ interface IAutoCompleteItem {
     description?: string | null
 }
 
-const portalContainer = () => document.body
-const queryToNewOption: (label: string) => INewOptionCreatorParams = (label: string) => ({label: label, labelKey: "label", valueKey: "value"})
+// Checks if a label exists that is distinct enough from the value
+const hasDistinctLabel = (autoCompleteItem: IAutoCompleteItem) => autoCompleteItem.label && autoCompleteItem.label.toLowerCase() !== autoCompleteItem.value.toLowerCase()
 
-const AutoComplete = ({ entity, ruleId, className, placeholder, creatable, onChange, value, clearable = true, ...otherProps}: IProps) => {
+// Renders an option item in the suggest list
+const itemRenderer = (autoCompleteItem: IAutoCompleteItem, query: string, modifiers: IRenderModifiers, handleClick: () => any): JSX.Element => {
+    let label: string | undefined
+    let value: string | undefined = undefined
+    // Do not display value and label if they are basically the same
+    if(hasDistinctLabel(autoCompleteItem)) {
+        label = autoCompleteItem.label
+        value = autoCompleteItem.value
+    } else {
+        label = autoCompleteItem.value
+    }
+    const highlighter = (value: string) => modifiers.highlightingEnabled ? <Highlighter label={value} searchValue={query} /> : value
+    return <MenuItem
+        active={modifiers.active}
+        disabled={modifiers.disabled}
+        key={autoCompleteItem.value}
+        onClick={handleClick}
+        text={
+            <OverviewItem style={modifiers.styleWidth}>
+                <OverviewItemDescription>
+                    <OverviewItemLine><OverflowText ellipsis={"reverse"}>{highlighter(label)}</OverflowText></OverviewItemLine>
+                    {value && <OverviewItemLine small={true}><OverflowText ellipsis={"reverse"}>{highlighter(value)}</OverflowText></OverviewItemLine>}
+                    {autoCompleteItem.description && <OverviewItemLine small={true}><OverflowText ellipsis={"reverse"}>{highlighter(autoCompleteItem.description)}</OverflowText></OverviewItemLine>}
+                </OverviewItemDescription>
+            </OverviewItem>
+        }
+    />
+}
+
+// Necessary because else popovers won't be shown (still unclear why, maybe interaction with MDL)
+const portalContainer = () => document.body
+// Creates a new, custom option element
+const queryToNewOption: (label: string) => INewOptionCreatorParams = (label: string) => ({label: label, labelKey: "label", valueKey: "value"})
+const itemLabel = (itemDisplayLabel?: (item: IAutoCompleteItem) => string) => (autoCompleteItem: IAutoCompleteItem) => {
+    if(hasDistinctLabel(autoCompleteItem)) {
+        return itemDisplayLabel ? itemDisplayLabel(autoCompleteItem) : autoCompleteItem.label
+    } else {
+        return autoCompleteItem.value
+    }
+}
+
+const AutoComplete = ({ entity, ruleId, className, placeholder, creatable, onChange, value,
+                          clearable = true, resetQueryToValue = false, itemDisplayLabel, ...otherProps}: IProps) => {
     const reset = clearable ? {
         resetValue: "",
         resetButtonText: "Clear value",
@@ -74,13 +128,7 @@ const AutoComplete = ({ entity, ruleId, className, placeholder, creatable, onCha
     const newOptionCreator = otherProps.newOptionCreator ? otherProps.newOptionCreator : ({label}) => ({value: label})
     const create = creatable ? {
         itemFromQuery: (query: string) => isValidNewOption({label: query}) ? newOptionCreator(queryToNewOption(query)) : undefined,
-        itemRenderer: (
-            query: string,
-            active: boolean,
-            handleClick: React.MouseEventHandler<HTMLElement>
-        ) => {
-            return <div>{query}</div>
-        }
+        itemRenderer: createNewItemRendererFactory((query: string) => `Create option '${query}'`, "item-add-artefact")
     } : undefined
     return <div className={className}>
         <FieldItem
@@ -90,7 +138,7 @@ const AutoComplete = ({ entity, ruleId, className, placeholder, creatable, onCha
         >
             <AutoCompleteField<IAutoCompleteItem, string>
                 inputProps={{
-                    placeholder: "Value path"
+                    placeholder: placeholder
                 }}
                 popoverProps={{
                     portalContainer: portalContainer()
@@ -100,10 +148,11 @@ const AutoComplete = ({ entity, ruleId, className, placeholder, creatable, onCha
                 initialValue={typeof value === "string" ? {value} : value}
                 itemValueSelector={item => item.value}
                 onSearch={onSearchFactory(ruleId, entity)}
-                itemRenderer={item => item.value}
-                itemValueRenderer={item => item.value}
+                itemRenderer={itemRenderer}
+                itemValueRenderer={itemLabel(itemDisplayLabel)}
                 noResultText={"No result."}
                 createNewItem={create}
+                resetQueryToValue={item => item.value}
             />
         </FieldItem>
     </div>

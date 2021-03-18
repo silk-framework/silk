@@ -29,10 +29,20 @@ import { trimValue } from '../../../utils/trimValue';
 import { wasTouched } from '../../../utils/wasTouched';
 import { newValueIsIRI } from '../../../utils/newValueIsIRI';
 
+interface IProps {
+    id?: string
+    parentId: string
+    scrollIntoView: ({topOffset: number}) => any
+    onAddNewRule: (callback: () => any) => any
+    scrollElementIntoView: () => any
+    ruleData: object
+    parent: any
+}
+
 /**
  * Provides the editable form for object mappings.
  */
-export class ObjectRuleForm extends Component {
+export class ObjectRuleForm extends Component<IProps, any> {
     // define property types
     static propTypes = {
         id: PropTypes.string,
@@ -184,9 +194,9 @@ export class ObjectRuleForm extends Component {
         // TODO: add source path if: parent, not edit, not root element
         const title = !id && <CardTitle>Add object mapping</CardTitle>;
 
-        let targetPropertyInput = false;
-        let entityRelationInput = false;
-        let sourcePropertyInput = false;
+        let targetPropertyInput: JSX.Element | undefined = undefined
+        let entityRelationInput: JSX.Element | undefined = undefined
+        let sourcePropertyInput: JSX.Element | undefined = undefined
 
         if (modifiedValues.type !== MAPPING_RULE_TYPE_ROOT) {
             // TODO: where to get get list of target properties
@@ -202,6 +212,8 @@ export class ObjectRuleForm extends Component {
                     data-id="autocomplete_target_prop"
                     value={modifiedValues.targetProperty}
                     onChange={value => { this.handleChangeValue('targetProperty', value); }}
+                    resetQueryToValue={true}
+                    itemDisplayLabel={(item) => item.label ? `${item.label} <${item.value}>` : item.value}
                 />
             );
             entityRelationInput = (
@@ -247,11 +259,13 @@ export class ObjectRuleForm extends Component {
                     ruleId={parentId}
                     onChange={value => { this.handleChangeValue('sourceProperty', value); }}
                     data-id="autocomplete_source_prop"
+                    resetQueryToValue={true}
+                    itemDisplayLabel={(item) => item.label ? `${item.label} <${item.value}>` : item.value}
                 />
             );
         }
 
-        let patternInput = false;
+        let patternInput: JSX.Element | undefined = undefined
 
         if (id) {
             if (modifiedValues.uriRuleType === 'uri') {
@@ -291,7 +305,7 @@ export class ObjectRuleForm extends Component {
                             isValidNewOption={newValueIsIRI}
                             ruleId={autoCompleteRuleId}
                             value={modifiedValues.targetEntityType}
-                            multi // allow multi selection
+                            // multi={true} // allow multi selection TODO!!!!!!!
                             creatable
                             onChange={value => { this.handleChangeValue('targetEntityType', value); }}
                         />
