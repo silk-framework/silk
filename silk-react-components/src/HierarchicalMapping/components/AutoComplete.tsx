@@ -120,6 +120,7 @@ const itemLabel = (itemDisplayLabel?: (item: IAutoCompleteItem) => string) => (a
     }
 }
 
+/** Input field supporting auto-complete support. */
 const AutoComplete = ({ entity, ruleId, className, placeholder, creatable, onChange, value,
                           clearable = true, resetQueryToValue = false, itemDisplayLabel, ...otherProps}: IProps) => {
     const reset = clearable ? {
@@ -131,7 +132,8 @@ const AutoComplete = ({ entity, ruleId, className, placeholder, creatable, onCha
     const newOptionCreator = otherProps.newOptionCreator ? otherProps.newOptionCreator : ({label}) => ({value: label})
     const create = creatable ? {
         itemFromQuery: (query: string) => isValidNewOption({label: query}) ? newOptionCreator(queryToNewOption(query)) : undefined,
-        itemRenderer: createNewItemRendererFactory((query: string) => `Create option '${query}'`, "item-add-artefact")
+        itemRenderer: createNewItemRendererFactory((query: string) => `Create option '${query}'`, "item-add-artefact"),
+        showNewItemOptionFirst: true
     } : undefined
     return <div className={className}>
         <Spacing size={"tiny"} />
