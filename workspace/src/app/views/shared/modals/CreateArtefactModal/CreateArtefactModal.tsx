@@ -350,7 +350,12 @@ export function CreateArtefactModal() {
                     <Notification
                         message={t("ProjectImportModal.restoreNotice", "Want to restore an existing project?")}
                         actions={[
-                            <Button data-test-id="project-import-link" key="importProject" onClick={switchToProjectImport} href="#import-project">
+                            <Button
+                                data-test-id="project-import-link"
+                                key="importProject"
+                                onClick={switchToProjectImport}
+                                href="#import-project"
+                            >
                                 {t("ProjectImportModal.restoreStarter", "Import project file")}
                             </Button>,
                         ]}
