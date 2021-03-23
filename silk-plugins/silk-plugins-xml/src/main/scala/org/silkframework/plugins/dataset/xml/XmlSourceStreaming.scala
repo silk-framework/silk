@@ -113,6 +113,9 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
         case Some(value) => paths.take(value)
         case None => paths
       }
+    } catch {
+      case _: PathNotExistsException =>
+        IndexedSeq.empty
     } finally {
       inputStream.close()
     }
@@ -152,7 +155,10 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
               count += 1
 
             } while (reader.isStartElement && limit.forall(count < _))
-          } finally {
+          } catch {
+            case _: PathNotExistsException =>
+              // do nothing, no entity will be output
+          }finally {
             inputStream.close()
           }
         }
@@ -180,9 +186,11 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     }
 
     if(remainingOperators.nonEmpty) {
-      throw new Exception(s"No elements at path $path.")
+      throw new PathNotExistsException(s"No elements at path $path.")
     }
   }
+
+  class PathNotExistsException(msg: String) extends Exception(msg: String)
 
   /**
     * Moves the parser to the next element with the provided name on the same hierarchy level.
