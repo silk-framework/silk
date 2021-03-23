@@ -5,7 +5,7 @@ import Filterbar from "../Workspace/Filterbar";
 import Metadata from "../../shared/Metadata";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import SearchList from "../../shared/SearchList";
-import ConfigurationWidget from "./ConfigWidget";
+import ConfigurationWidget from "./ProjectNamespacePrefixManagementWidget";
 import WarningWidget from "./WarningWidget";
 import FileWidget from "./FileWidget";
 import Loading from "../../shared/Loading";
