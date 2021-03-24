@@ -450,7 +450,12 @@ export function CreateArtefactModal() {
                                                             size="small"
                                                         >
                                                             <HtmlContentBlock>
-                                                                <ReactMarkdown source={artefact.description} />
+                                                                <ReactMarkdown
+                                                                    source={
+                                                                        artefact.markdownDocumentation ||
+                                                                        artefact.description
+                                                                    }
+                                                                />
                                                             </HtmlContentBlock>
                                                         </SimpleDialog>
                                                     )}
