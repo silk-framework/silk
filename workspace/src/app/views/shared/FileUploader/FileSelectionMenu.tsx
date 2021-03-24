@@ -5,7 +5,7 @@ import "@uppy/drag-drop/dist/style.css";
 import "@uppy/progress-bar/dist/style.css";
 
 import { Button, Divider, FieldItem, Icon, TextField } from "@gui-elements/index";
-import { IAutocompleteProps } from "../Autocomplete/Autocomplete";
+import { IAutoCompleteFieldProps } from "@gui-elements/src/components/AutocompleteField/AutoCompleteField";
 import { UploadNewFile } from "./cases/UploadNewFile/UploadNewFile";
 import { FileSelectionOptions, FileMenuItems } from "./FileSelectionOptions";
 import { SelectFileFromExisting } from "./cases/SelectFileFromExisting";
@@ -78,7 +78,7 @@ export interface IUploaderOptions {
     /**
      * autocomplete option useful when advanced is true
      */
-    autocomplete?: IAutocompleteProps<any, any>;
+    autocomplete?: IAutoCompleteFieldProps<any, any>;
 
     /**
      * Called when:

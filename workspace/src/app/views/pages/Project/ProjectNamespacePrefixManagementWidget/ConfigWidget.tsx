@@ -22,7 +22,8 @@ import { useTranslation } from "react-i18next";
 
 const VISIBLE_COUNT = 5;
 
-export const ConfigurationWidget = () => {
+/** The project namespace prefix management widget that allows adding, updating and removing namespace prefixes. */
+export const ProjectNamespacePrefixManagementWidget = () => {
     const dispatch = useDispatch();
     const prefixList = useSelector(workspaceSel.prefixListSelector);
 
