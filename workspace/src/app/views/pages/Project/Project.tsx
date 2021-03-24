@@ -27,7 +27,7 @@ import { DATA_TYPES } from "../../../constants";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
 import Filterbar from "../Workspace/Filterbar";
-import ConfigurationWidget from "./ConfigWidget";
+import ConfigurationWidget from "./ProjectNamespacePrefixManagementWidget";
 import WarningWidget from "./WarningWidget";
 import FileWidget from "./FileWidget";
 
