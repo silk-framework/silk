@@ -74,7 +74,7 @@ describe("Task creation widget", () => {
     const createMockedListWrapper = async (existingTask?: RecursivePartial<IProjectTaskUpdatePayload>) => {
         const wrapper = createArtefactWrapper(`${SERVE_PATH}/projects/${PROJECT_ID}`, existingTask);
         mockAxios.mockResponseFor(
-            { url: apiUrl("core/taskPlugins") },
+            { url: apiUrl("core/taskPlugins?addMarkdownDocumentation=true") },
             mockedAxiosResponse({ data: mockArtefactListResponse })
         );
         if (!existingTask) {
