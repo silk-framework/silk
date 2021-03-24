@@ -290,6 +290,8 @@ export function CreateArtefactModal() {
                     ? t("CreateModal.createTitle", { type: selectedArtefactTitle })
                     : t("CreateModal.createTitleGeneric")
             }
+            shouldShowInfo={!!selectedArtefactTitle}
+            handleInfoClick={(e) => handleShowEnhancedDescription(e, selectedArtefactKey)}
             onClose={closeModal}
             isOpen={isOpen}
             actions={
@@ -363,6 +365,27 @@ export function CreateArtefactModal() {
                 ))
             }
         >
+            {idEnhancedDescription === selectedArtefactKey && (
+                <SimpleDialog
+                    isOpen
+                    title={selectedArtefactTitle}
+                    actions={
+                        <Button
+                            text="Close"
+                            onClick={() => {
+                                setIdEnhancedDescription("");
+                            }}
+                        />
+                    }
+                    size="small"
+                >
+                    <HtmlContentBlock>
+                        <ReactMarkdown
+                            source={selectedArtefact?.markdownDocumentation ?? selectedArtefact?.description}
+                        />
+                    </HtmlContentBlock>
+                </SimpleDialog>
+            )}
             {
                 <>
                     {artefactForm ? (
