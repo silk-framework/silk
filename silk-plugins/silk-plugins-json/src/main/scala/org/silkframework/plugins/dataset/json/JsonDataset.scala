@@ -3,9 +3,7 @@ package org.silkframework.plugins.dataset.json
 import org.silkframework.dataset._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.resource.{Resource, WritableResource}
-
-import scala.io.Codec
+import org.silkframework.runtime.resource.WritableResource
 
 @Plugin(
   id = "json",
@@ -25,7 +23,10 @@ case class JsonDataset(
   @Param(label = "Output first entity as JSON object", value = "Specifies whether an Array or JSON objects is returned or a single object is returned for the first entity when writing to JSON files.", advanced = true)
   makeFirstEntityJsonObject: Boolean = false) extends Dataset with ResourceBasedDataset {
 
-  override def source(implicit userContext: UserContext): DataSource = JsonSource(file, basePath, uriPattern)
+  override def source(implicit userContext: UserContext): DataSource = {
+    file.checkSizeForInMemory()
+    JsonSource(file, basePath, uriPattern)
+  }
 
   override def linkSink(implicit userContext: UserContext): LinkSink = throw new NotImplementedError("JSON files cannot be written at the moment")
 

@@ -41,6 +41,7 @@ case class XmlDataset( @Param("The XML file. This may also be a zip archive of m
       new XmlSourceStreaming(resource, basePath, uriPattern)
     }
     else {
+      resource.checkSizeForInMemory()
       new XmlSourceInMemory(resource, basePath, uriPattern)
     }
   }

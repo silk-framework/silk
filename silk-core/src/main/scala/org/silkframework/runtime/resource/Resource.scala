@@ -2,14 +2,17 @@ package org.silkframework.runtime.resource
 
 import org.silkframework.config.DefaultConfig
 
-import java.io.{ByteArrayOutputStream, IOException, InputStream}
+import java.io.{ByteArrayOutputStream, InputStream}
 import java.time.Instant
+import java.util.logging.Logger
 import scala.io.{Codec, Source}
 
 /**
  * A resource, such as a file.
  */
 trait Resource {
+
+  protected lazy val log: Logger = Logger.getLogger(getClass.getName)
 
   /**
    * The local name of this resource.
@@ -133,14 +136,19 @@ trait Resource {
 
   /**
     * Checks if this resource is not too large to be loaded into memory.
+    * Called by all methods that load the resource contents into memory.
     *
-    * @throws IOException If this resource is too large to be loaded into memory.
+    * @throws ResourceTooLargeException If this resource is too large to be loaded into memory.
     */
-  protected def checkSizeForInMemory(): Unit = {
-    for(s <- size) {
-      if(s > Resource.maxInMemorySize) {
-        throw new IOException(s"Resource $name is too large to be loaded into memory (size: $size, maximum allowed size: ${Resource.maxInMemorySize}).")
-      }
+  def checkSizeForInMemory(): Unit = {
+    size match {
+      case Some(s) =>
+        if(s > Resource.maxInMemorySize) {
+          throw new ResourceTooLargeException(s"Resource $name is too large to be loaded into memory (size: $s, maximum size: ${Resource.maxInMemorySize}). " +
+            s"Configure '${classOf[Resource].getName}.maxInMemorySize' in order to increase this limit.")
+        }
+      case None =>
+        log.warning(s"Could not determine size of resource $name for loading contents into memory.")
     }
   }
 }
