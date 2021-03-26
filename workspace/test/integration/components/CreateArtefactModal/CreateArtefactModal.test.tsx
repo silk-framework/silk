@@ -374,4 +374,24 @@ describe("Task creation widget", () => {
         expectedObject.objectParameter = objectParameterObject;
         expect(updateRequest.data.parameters).toEqual(expectedObject);
     });
+
+    it("should check if the info Icon for task artefact exist", async () => {
+        const { wrapper } = createArtefactWrapper();
+        const dialog = await fetchDialog(wrapper);
+        const items = selectionItems(dialog);
+        const randomItem = items[0];
+        const iconButton = randomItem.find(".eccgui-overviewitem__actions .eccgui-button--icon");
+        expect(iconButton.exists()).toBeTruthy();
+    });
+
+    it("should show the info dialog when info icon is clicked", async () => {
+        const { wrapper } = createArtefactWrapper();
+        const dialog = await fetchDialog(wrapper);
+        const items = selectionItems(dialog);
+        const randomItem = items[0];
+        const iconButton = randomItem.find(".eccgui-overviewitem__actions button.eccgui-button--icon");
+        iconButton.simulate("click");
+        const infoDialog = wrapper.find(".eccgui-card");
+        expect(infoDialog.exists()).toBeTruthy();
+    });
 });
