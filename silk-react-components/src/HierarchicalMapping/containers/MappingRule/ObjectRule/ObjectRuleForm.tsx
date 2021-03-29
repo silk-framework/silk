@@ -1,8 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import {
-    AffirmativeButton,
-    DismissiveButton,
     Card,
     CardTitle,
     CardContent,
@@ -13,6 +11,10 @@ import {
     Spinner,
     ScrollingHOC,
 } from '@eccenca/gui-elements';
+import {
+    AffirmativeButton,
+    DismissiveButton,
+} from '@gui-elements/legacy-replacements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import { ParentElement } from '../../../components/ParentElement';

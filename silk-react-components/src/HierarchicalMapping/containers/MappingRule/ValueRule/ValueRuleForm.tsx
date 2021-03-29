@@ -1,7 +1,5 @@
 import React, {useEffect, useState} from 'react';
 import {
-    AffirmativeButton,
-    DismissiveButton,
     Card,
     CardTitle,
     CardContent,
@@ -12,6 +10,10 @@ import {
     Checkbox,
     SelectBox,
 } from '@eccenca/gui-elements';
+import {
+    AffirmativeButton,
+    DismissiveButton,
+} from '@gui-elements/legacy-replacements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import store from '../../../store';
