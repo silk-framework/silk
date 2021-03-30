@@ -13,6 +13,7 @@ import { ItemDeleteModal } from "../modals/ItemDeleteModal";
 import CloneModal from "../modals/CloneModal";
 import { IframeWindow } from "../IframeWindow/IframeWindow";
 import { ActionsMenu, TActionsMenuItem, IActionsMenuProps } from "./ActionsMenu";
+import CopyToModal from "../modals/CopyToModal";
 
 export function ArtefactManagementOptions({ projectId, taskId, itemType, updateActionsMenu }: any) {
     const dispatch = useDispatch();
@@ -21,6 +22,7 @@ export function ArtefactManagementOptions({ projectId, taskId, itemType, updateA
     const [displayItemLink, setDisplayItemLink] = useState<IItemLink | null>(null);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [cloneModalOpen, setCloneModalOpen] = useState(false);
+    const [copyToModalOpen, setCopyToModalOpen] = useState<boolean>(false);
     const [itemLinks, setItemLinks] = useState<IItemLink[]>([]);
     const [menuItems, setMenuItems] = useState<IActionsMenuProps>({});
     const exportTypes = useSelector(commonSel.exportTypesSelector);
@@ -63,6 +65,10 @@ export function ArtefactManagementOptions({ projectId, taskId, itemType, updateA
         dispatch(routerOp.goToPage(detailsPage));
     };
 
+    const handleCopyConfirmed = () => {
+        toggleCopyToModal();
+    };
+
     const handleExport = (type: IExportTypes) => {
         downloadResource(itemData.id, type.id);
     };
@@ -80,8 +86,17 @@ export function ArtefactManagementOptions({ projectId, taskId, itemType, updateA
         setCloneModalOpen(!cloneModalOpen);
     };
 
+    const toggleCopyToModal = () => {
+        setCopyToModalOpen(!copyToModalOpen);
+    };
+
     const getFullMenu = () => {
         const fullMenu: TActionsMenuItem[] = [
+            {
+                text: t("common.action.copy", "Copy to"),
+                actionHandler: toggleCopyToModal,
+                "data-test-id": "header-copy-button",
+            },
             {
                 text: t("common.action.clone", "Clone"),
                 actionHandler: toggleCloneModal,
@@ -150,6 +165,10 @@ export function ArtefactManagementOptions({ projectId, taskId, itemType, updateA
 
             {cloneModalOpen && (
                 <CloneModal item={itemData} onDiscard={toggleCloneModal} onConfirmed={handleCloneConfirmed} />
+            )}
+
+            {copyToModalOpen && (
+                <CopyToModal item={itemData} onDiscard={toggleCopyToModal} onConfirmed={handleCopyConfirmed} />
             )}
             {displayItemLink && (
                 <IframeWindow

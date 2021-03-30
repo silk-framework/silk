@@ -38,6 +38,8 @@ interface IProps {
 
     onOpenDuplicateModal(item: ISearchResultsServer);
 
+    onOpenCopyToModal(item: ISearchResultsServer);
+
     onRowClick?();
 
     parentProjectId?: string;
@@ -48,6 +50,7 @@ export default function SearchItem({
     searchValue,
     onOpenDeleteModal,
     onOpenDuplicateModal,
+    onOpenCopyToModal,
     onRowClick,
     parentProjectId,
 }: IProps) {
@@ -170,6 +173,13 @@ export default function SearchItem({
                             icon={"item-remove"}
                             onClick={onOpenDeleteModal}
                             text={t("common.action.delete", "Delete")}
+                        />
+                        <MenuItem
+                            data-test-id="search-item-copy-btn"
+                            key="copy"
+                            icon="item-clone"
+                            onClick={onOpenCopyToModal}
+                            text={t("common.action.copy", "Copy")}
                         />
                     </ContextMenu>
                 </OverviewItemActions>

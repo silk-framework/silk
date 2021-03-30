@@ -13,6 +13,7 @@ import { ItemDeleteModal } from "../modals/ItemDeleteModal";
 import { routerOp } from "@ducks/router";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { useTranslation } from "react-i18next";
+import CopyToModal from "../modals/CopyToModal";
 
 export function SearchList() {
     const dispatch = useDispatch();
@@ -27,12 +28,14 @@ export function SearchList() {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<ISearchResultsServer | null>(null);
     const [showCloneModal, setShowCloneModal] = useState(false);
+    const [copyToModalOpen, setCopyToModalOpen] = useState<boolean>(false);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const [t] = useTranslation();
 
     const onDiscardModals = () => {
         setShowCloneModal(false);
         setDeleteModalOpen(false);
+        setCopyToModalOpen(false);
         setSelectedItem(null);
     };
 
@@ -53,6 +56,11 @@ export function SearchList() {
 
     const onOpenDeleteModal = (item: ISearchResultsServer) => {
         setDeleteModalOpen(true);
+        setSelectedItem(fixItemIdSettings(item));
+    };
+
+    const onOpenCopyToModal = (item: ISearchResultsServer) => {
+        setCopyToModalOpen(true);
         setSelectedItem(fixItemIdSettings(item));
     };
 
@@ -129,6 +137,7 @@ export function SearchList() {
                         item={item}
                         onOpenDeleteModal={() => onOpenDeleteModal(item)}
                         onOpenDuplicateModal={() => onOpenDuplicateModal(item)}
+                        onOpenCopyToModal={() => onOpenCopyToModal(item)}
                         searchValue={appliedFilters.textQuery}
                         parentProjectId={projectId}
                     />
@@ -146,6 +155,13 @@ export function SearchList() {
 
                     {deleteModalOpen && selectedItem && (
                         <ItemDeleteModal item={selectedItem} onClose={onDiscardModals} onConfirmed={handleDeleted} />
+                    )}
+                    {copyToModalOpen && (
+                        <CopyToModal
+                            item={selectedItem}
+                            onDiscard={onDiscardModals}
+                            onConfirmed={() => setCopyToModalOpen(false)}
+                        />
                     )}
                     {showCloneModal && selectedItem && (
                         <CloneModal
