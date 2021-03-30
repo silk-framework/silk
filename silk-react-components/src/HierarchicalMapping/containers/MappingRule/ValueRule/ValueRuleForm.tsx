@@ -6,12 +6,15 @@ import {
     CardActions,
     Spinner,
     ScrollingHOC,
-    Checkbox,
     SelectBox,
 } from '@eccenca/gui-elements';
 import {
+    FieldItem
+} from '@gui-elements/index';
+import {
     AffirmativeButton,
     DismissiveButton,
+    Checkbox,
     TextField,
 } from '@gui-elements/legacy-replacements';
 import _ from 'lodash';
@@ -334,14 +337,16 @@ export function ValueRuleForm(props: IProps) {
                             resetQueryToValue={true}
                             itemDisplayLabel={(item) => item.label ? `${item.label} <${item.value}>` : item.value}
                         />
-                        <Checkbox
-                            checked={isAttribute}
-                            className="ecc-silk-mapping__ruleseditor__isAttribute"
-                            onChange={() => handleChangeValue('isAttribute', !isAttribute, setIsAttribute)}
-                        >
-                            Write values as attributes (if supported by the
-                            target dataset)
-                        </Checkbox>
+                        <FieldItem>
+                            <Checkbox
+                                checked={isAttribute}
+                                className="ecc-silk-mapping__ruleseditor__isAttribute"
+                                onChange={() => handleChangeValue('isAttribute', !isAttribute, setIsAttribute)}
+                            >
+                                Write values as attributes (if supported by the
+                                target dataset)
+                            </Checkbox>
+                        </FieldItem>
                         <AutoComplete
                             placeholder="Data type"
                             className="ecc-silk-mapping__ruleseditor__propertyType"

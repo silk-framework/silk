@@ -5,14 +5,17 @@ import {
     CardTitle,
     CardContent,
     CardActions,
-    Radio,
     RadioGroup,
     Spinner,
     ScrollingHOC,
 } from '@eccenca/gui-elements';
 import {
+    FieldItem
+} from '@gui-elements/index';
+import {
     AffirmativeButton,
     DismissiveButton,
+    Radio,
     TextField,
 } from '@gui-elements/legacy-replacements';
 import _ from 'lodash';
@@ -220,36 +223,38 @@ export class ObjectRuleForm extends Component<IProps, any> {
                 />
             );
             entityRelationInput = (
-                <RadioGroup
-                    onChange={({ value }) => { this.handleChangeValue('entityConnection', value); }}
-                    value={
-                        !_.isEmpty(modifiedValues.entityConnection)
-                            ? modifiedValues.entityConnection
-                            : 'from'
-                    }
-                    name=""
-                    disabled={false}
-                    data-id="entity_radio_group"
-                >
-                    <Radio
-                        value="from"
-                        label={
-                            <div>
-                                Connect from{' '}
-                                <ParentElement parent={parent} />
-                            </div>
+                <FieldItem>
+                    <RadioGroup
+                        onChange={({ value }) => { this.handleChangeValue('entityConnection', value); }}
+                        value={
+                            !_.isEmpty(modifiedValues.entityConnection)
+                                ? modifiedValues.entityConnection
+                                : 'from'
                         }
-                    />
-                    <Radio
-                        value="to"
-                        label={
-                            <div>
-                                Connect to{' '}
-                                <ParentElement parent={parent} />
-                            </div>
-                        }
-                    />
-                </RadioGroup>
+                        name=""
+                        disabled={false}
+                        data-id="entity_radio_group"
+                    >
+                        <Radio
+                            value="from"
+                            label={
+                                <span>
+                                    Connect from{' '}
+                                    <ParentElement parent={parent} />
+                                </span>
+                            }
+                        />
+                        <Radio
+                            value="to"
+                            label={
+                                <span>
+                                    Connect to{' '}
+                                    <ParentElement parent={parent} />
+                                </span>
+                            }
+                        />
+                    </RadioGroup>
+                </FieldItem>
             );
 
             sourcePropertyInput = (
