@@ -7,13 +7,13 @@ import {
     CardActions,
     Radio,
     RadioGroup,
-    TextField,
     Spinner,
     ScrollingHOC,
 } from '@eccenca/gui-elements';
 import {
     AffirmativeButton,
     DismissiveButton,
+    TextField,
 } from '@gui-elements/legacy-replacements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';

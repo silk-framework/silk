@@ -4,7 +4,6 @@ import {
     CardTitle,
     CardContent,
     CardActions,
-    TextField,
     Spinner,
     ScrollingHOC,
     Checkbox,
@@ -13,6 +12,7 @@ import {
 import {
     AffirmativeButton,
     DismissiveButton,
+    TextField,
 } from '@gui-elements/legacy-replacements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
