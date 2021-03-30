@@ -85,6 +85,7 @@ GET           /projects/:project/:task/exportLinkSpec                           
 PUT           /projects/:project/prefixes                                       controllers.workspace.WorkspaceApi.updatePrefixes(project: String)
 POST          /projects/:project/execute                                        controllers.workspace.WorkspaceApi.executeProject(project: String)
 POST          /projects/:project/clone                                          controllers.workspace.WorkspaceApi.cloneProject(project, newProject)
+POST          /projects/:project/copy                                           controllers.workspace.WorkspaceApi.copyProject(project: String)
 
 # Resources
 GET           /projects/:project/resources                                      controllers.workspace.WorkspaceApi.getResources(project: String, searchText: Option[String] ?= None, limit: Option[Int] ?= None, offset: Option[Int] ?= None)

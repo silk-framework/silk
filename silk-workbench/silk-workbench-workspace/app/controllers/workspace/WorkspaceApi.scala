@@ -1,25 +1,17 @@
 package controllers.workspace
 
-import java.io.File
-import java.net.URL
-import java.util.logging.Logger
-
 import akka.stream.scaladsl.Source
-import akka.util.ByteString
 import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
-import controllers.workspace.workspaceRequests.UpdateGlobalVocabularyRequest
 import controllers.workspace.workspaceApi.TaskLinkInfo
+import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse, UpdateGlobalVocabularyRequest}
 import controllers.workspaceApi.coreApi.PluginApiCache
 import controllers.workspaceApi.search.ResourceSearchRequest
-import javax.inject.Inject
 import org.silkframework.config._
-import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.ResourceBasedDataset
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.resource.{ResourceManager, ResourceNotFoundException, UrlResource, WritableResource}
+import org.silkframework.runtime.resource.{ResourceManager, UrlResource, WritableResource}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
@@ -31,10 +23,13 @@ import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, W
 import play.api.libs.Files
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.iteratee.streams.IterateeStreams
-import play.api.libs.json.{JsArray, JsString, Json}
-import play.api.libs.json.{JsArray, JsString, JsValue}
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
 
+import java.io.File
+import java.net.URL
+import java.util.logging.Logger
+import javax.inject.Inject
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.existentials
 import scala.util.Try
@@ -96,6 +91,15 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor, pluginApiC
     }
 
     Ok
+  }
+
+  def copyProject(projectName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>implicit userContext =>
+    implicit val jsonReader = Json.reads[CopyTasksRequest]
+    implicit val jsonWriter = Json.writes[CopyTasksResponse]
+    validateJson[CopyTasksRequest] { copyRequest =>
+      val result = copyRequest.copyProject(projectName)
+      Ok(Json.toJson(result))
+    }
   }
 
   def executeProject(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>

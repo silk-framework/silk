@@ -1,11 +1,9 @@
 package controllers.workspace
 
-import java.util.logging.Logger
-
 import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.SerializationUtils
-import javax.inject.Inject
+import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse}
 import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.ResourceBasedDataset
@@ -14,18 +12,16 @@ import org.silkframework.runtime.plugin.{ParameterAutoCompletion, PluginDescript
 import org.silkframework.runtime.resource.{FileResource, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.serialization.json.JsonFormat
-import org.silkframework.serialization.json.JsonSerializers
-import org.silkframework.serialization.json.JsonSerializers.{GenericTaskJsonFormat, MetaDataJsonFormat, TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat, fromJson, toJson}
-import org.silkframework.serialization.json.JsonSerializers._
+import org.silkframework.serialization.json.JsonSerializers.{GenericTaskJsonFormat, MetaDataJsonFormat, TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat, fromJson, toJson, _}
 import org.silkframework.serialization.json.{JsonSerialization, JsonSerializers}
-import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc._
 
+import java.util.logging.Logger
+import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -225,10 +221,10 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
 
   def copyTask(projectName: String,
                taskName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
-    implicit val jsonReader = Json.reads[CopyTaskRequest]
-    implicit val jsonWriter = Json.writes[CopyTaskResponse]
-    validateJson[CopyTaskRequest] { copyRequest =>
-      val result = copyRequest.copy(projectName, taskName)
+    implicit val jsonReader = Json.reads[CopyTasksRequest]
+    implicit val jsonWriter = Json.writes[CopyTasksResponse]
+    validateJson[CopyTasksRequest] { copyRequest =>
+      val result = copyRequest.copyTask(projectName, taskName)
       Ok(Json.toJson(result))
     }
   }
@@ -264,54 +260,5 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
         ErrorResult(BAD_REQUEST, "No output dataset", "This task does not specify an output dataset.")
     }
   }
-
-  /**
-    * Request to copy a task to another project.
-    */
-  case class CopyTaskRequest(dryRun: Option[Boolean], targetProject: String) {
-
-    def copy(sourceProject: String, taskName: String)
-            (implicit userContext: UserContext): CopyTaskResponse = {
-      val sourceProj = WorkspaceFactory().workspace.project(sourceProject)
-      val targetProj = WorkspaceFactory().workspace.project(targetProject)
-
-      sourceProj.synchronized {
-        targetProj.synchronized {
-          // Collect all tasks to be copied
-          val tasksToCopy = collectTasks(sourceProj, taskName)
-          val overwrittenTasks = for(task <- tasksToCopy if targetProj.anyTaskOption(task.id).isDefined) yield task.id.toString
-          val copyResources = sourceProj.resources.basePath != targetProj.resources.basePath
-
-          // Copy tasks
-          if(!dryRun.contains(true)) {
-            for (task <- tasksToCopy) {
-              targetProj.updateAnyTask(task.id, task.data, Some(task.metaData))
-              // Copy resources
-              if(copyResources) {
-                for (resource <- task.referencedResources) {
-                  targetProj.resources.get(resource.name).writeResource(resource)
-                }
-              }
-            }
-          }
-
-          // Generate response
-          CopyTaskResponse(tasksToCopy.map(_.id.toString).toSet, overwrittenTasks.toSet)
-        }
-      }
-    }
-
-    /**
-      * Returns a task and all its referenced tasks.
-      */
-    private def collectTasks(project: Project, taskName: Identifier)
-                            (implicit userContext: UserContext): Seq[Task[_ <:TaskSpec]] = {
-      val task = project.anyTask(taskName)
-      Seq(task) ++ task.data.referencedTasks.flatMap(collectTasks(project, _))
-    }
-
-  }
-
-  case class CopyTaskResponse(copiedTasks: Set[String], overwrittenTasks: Set[String])
 
 }
