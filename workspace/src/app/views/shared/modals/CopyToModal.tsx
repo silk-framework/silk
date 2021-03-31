@@ -24,6 +24,11 @@ interface CopyToModalProps extends ICloneOptions {
     onConfirmed: () => void;
 }
 
+interface CopyPayloadProps {
+    targetProject: string;
+    dryRun: boolean;
+}
+
 const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed }) => {
     const [newLabel, setNewLabel] = React.useState<string>(item.label || item.id);
     const [error, setError] = React.useState<ErrorResponse | null>(null);
@@ -31,11 +36,42 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
     const [label, setLabel] = React.useState<string | null>(item.label);
     const [targetProject, setTargetProject] = React.useState();
     const [results, setResults] = React.useState<any[]>([]);
+    const [info, setInfo] = React.useState<string>("");
+
     const [t] = useTranslation();
 
+    /*****************@TODO refactor useEffect calls into separate hooks, maybe :) *****************/
     React.useEffect(() => {
         copyingSetup();
     }, [item]);
+
+    //preload the project lists with default data
+    React.useEffect(() => {
+        (async () => {
+            const payload = {
+                limit: 10,
+                offset: 0,
+                itemType: "project",
+            };
+            setResults(await (await requestSearchList(payload)).results);
+        })();
+    }, []);
+
+    /***************** END of side effects *****************/
+
+    /**
+     *
+     * @param info
+     * @returns {String}
+     */
+    const compressInfoToReadableText = (info: {
+        overwrittenTasks: Array<string>;
+        copiedTasks: Array<string>;
+    }): string => {
+        return `Copying (${info.copiedTasks.length}) tasks, ${info.copiedTasks.join(",")}, Overwriting (${
+            info.overwrittenTasks.length
+        }) ${info.overwrittenTasks.join(",")}`;
+    };
 
     const copyingSetup = async () => {
         setLoading(true);
@@ -55,6 +91,13 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
         }
     };
 
+    const copyTaskOrProject = async (id: string, projectId: string, payload: CopyPayloadProps) => {
+        const response = id
+            ? await requestCopyTask(projectId, id, payload)
+            : await requestCopyProject(projectId, payload);
+        return response;
+    };
+
     const handleCopyingAction = async () => {
         const { projectId, id } = item;
         setError(null);
@@ -64,10 +107,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                 targetProject,
                 dryRun: false,
             };
-            const response = id
-                ? await requestCopyTask(projectId, id, payload)
-                : await requestCopyProject(projectId, payload);
-            console.log({ response });
+            await copyTaskOrProject(id, projectId, payload);
             onConfirmed();
         } catch (e) {
             if (e.isFetchError) {
@@ -127,7 +167,8 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                 </Button>,
             ]}
         >
-            <FieldItem
+            {/** will be added in subsequent iterations */}
+            {/* <FieldItem
                 key={"label"}
                 labelAttributes={{
                     htmlFor: "label",
@@ -137,7 +178,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                 }}
             >
                 <TextField onChange={(e) => setNewLabel(e.target.value)} value={newLabel} />
-            </FieldItem>
+            </FieldItem> */}
             <FieldItem
                 key={"copy-label"}
                 labelAttributes={{
@@ -150,7 +191,16 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                         handleSearch(textQuery);
                         return results;
                     }}
-                    onChange={(value) => setTargetProject(value)}
+                    onChange={async (value) => {
+                        setTargetProject(value);
+                        const { projectId, id } = item;
+                        const payload = {
+                            targetProject: value,
+                            dryRun: true,
+                        };
+                        const response = await copyTaskOrProject(id, projectId, payload);
+                        setInfo(compressInfoToReadableText(response?.data));
+                    }}
                     itemValueRenderer={(item) => item.label}
                     itemValueSelector={(item: any) => item.id}
                     itemRenderer={(item) => item.label}
@@ -159,6 +209,13 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                     })}
                 />
             </FieldItem>
+
+            {info && (
+                <>
+                    <Spacing />
+                    <Notification message={info} warning />
+                </>
+            )}
             {error && (
                 <>
                     <Spacing />
