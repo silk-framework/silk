@@ -293,7 +293,7 @@ export function CreateArtefactModal() {
             headerOptions={
                 selectedArtefactTitle ? (
                     <IconButton
-                        name="item-info"
+                        name="item-question"
                         onClick={(e) => handleShowEnhancedDescription(e, selectedArtefactKey)}
                     />
                 ) : null
@@ -457,7 +457,7 @@ export function CreateArtefactModal() {
                                                         </OverviewItemDescription>
                                                         <OverviewItemActions>
                                                             <IconButton
-                                                                name="item-info"
+                                                                name="item-question"
                                                                 onClick={(e) => {
                                                                     handleShowEnhancedDescription(e, artefact.key);
                                                                 }}
