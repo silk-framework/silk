@@ -290,8 +290,14 @@ export function CreateArtefactModal() {
                     ? t("CreateModal.createTitle", { type: selectedArtefactTitle })
                     : t("CreateModal.createTitleGeneric")
             }
-            shouldShowInfo={!!selectedArtefactTitle}
-            handleInfoClick={(e) => handleShowEnhancedDescription(e, selectedArtefactKey)}
+            headerOptions={
+                selectedArtefactTitle ? (
+                    <IconButton
+                        name="item-info"
+                        onClick={(e) => handleShowEnhancedDescription(e, selectedArtefactKey)}
+                    />
+                ) : null
+            }
             onClose={closeModal}
             isOpen={isOpen}
             actions={
