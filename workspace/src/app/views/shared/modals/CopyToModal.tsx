@@ -17,6 +17,7 @@ import { ErrorResponse, FetchError } from "services/fetch/responseInterceptor";
 import { useTranslation } from "react-i18next";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { requestCopyProject, requestCopyTask, requestSearchList } from "@ducks/workspace/requests";
+import { debounce } from "../../../utils/debounce";
 
 //Component Interface
 interface CopyToModalProps extends ICloneOptions {
@@ -29,6 +30,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
     const [loading, setLoading] = React.useState<boolean>(false);
     const [label, setLabel] = React.useState<string | null>(item.label);
     const [targetProject, setTargetProject] = React.useState();
+    const [results, setResults] = React.useState<any[]>([]);
     const [t] = useTranslation();
 
     React.useEffect(() => {
@@ -42,10 +44,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                 item.projectId && item.id
                     ? await requestTaskMetadata(item.id, item.projectId)
                     : await requestProjectMetadata(item.projectId);
-            /**
-             * response - project
-             * item - item of a project
-             */
+
             const currentLabel = !!response.data.label ? response.data.label : !!item.id ? item.id : item.projectId;
             setLabel(currentLabel);
             setNewLabel(t("common.messages.cloneOf", { item: currentLabel }));
@@ -81,7 +80,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
         }
     };
 
-    const handleSearch = async (textQuery: string) => {
+    const handleSearch = debounce(async (textQuery: string) => {
         try {
             const payload = {
                 limit: 10,
@@ -89,12 +88,11 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                 itemType: "project",
                 textQuery,
             };
-            const results = await (await requestSearchList(payload)).results;
-            return results;
+            setResults(await (await requestSearchList(payload)).results);
         } catch (err) {
-            // do nothing
+            console.warn({ err });
         }
-    };
+    }, 500);
 
     if (loading) {
         return <Loading />;
@@ -148,7 +146,10 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                 }}
             >
                 <AutoCompleteField
-                    onSearch={handleSearch}
+                    onSearch={(textQuery: string) => {
+                        handleSearch(textQuery);
+                        return results;
+                    }}
                     onChange={(value) => setTargetProject(value)}
                     itemValueRenderer={(item) => item.label}
                     itemValueSelector={(item: any) => item.id}
