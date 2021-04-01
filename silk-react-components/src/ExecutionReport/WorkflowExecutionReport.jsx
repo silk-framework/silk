@@ -56,48 +56,55 @@ export default class WorkflowExecutionReport extends React.Component {
   }
 
   render() {
-    return  <div className="mdl-grid mdl-grid--no-spacing">
-              <div className="mdl-cell mdl-cell--2-col">
-                <Card className="silk-report-card">
-                  <CardTitle>
-                    Tasks
-                  </CardTitle>
-                  <CardContent>
-                    <ul className="mdl-list">
-                      { this.renderTaskItem(this.state.executionReport, -1) }
-                      { this.state.executionReport.taskReports.map((report, index) => this.renderTaskItem(report, index)) }
-                    </ul>
-                  </CardContent>
-                </Card>
+      let executionWarnings = [];
+      if(this.state.executionMetaData != null && this.state.executionMetaData.finishStatus.cancelled) {
+        executionWarnings = [ "Executed cancelled" ]
+      } else if(this.state.executionMetaData != null && this.state.executionMetaData.finishStatus.failed) {
+        executionWarnings = [ "Executed failed" ]
+      }
+
+      return  <div className="mdl-grid mdl-grid--no-spacing">
+                <div className="mdl-cell mdl-cell--2-col">
+                  <Card className="silk-report-card">
+                    <CardTitle>
+                      Tasks
+                    </CardTitle>
+                    <CardContent>
+                      <ul className="mdl-list">
+                        { this.renderTaskItem(this.state.executionReport, -1, executionWarnings) }
+                        { this.state.executionReport.taskReports.map((report, index) => this.renderTaskItem(report, index, report.warnings)) }
+                      </ul>
+                    </CardContent>
+                  </Card>
+                </div>
+                <div className="mdl-cell mdl-cell--10-col">
+                  { this.renderReport(this.state.executionReport.nodeId) }
+                </div>
               </div>
-              <div className="mdl-cell mdl-cell--10-col">
-                { this.renderReport(this.state.executionReport.nodeId) }
-              </div>
-            </div>
   }
 
-  renderTaskItem(report, index) {
+  renderTaskItem(report, index, warnings) {
     return <li key={"report-" + index} className="mdl-list__item mdl-list__item--two-line silk-report-list-item" onClick={() => this.setState({selectedIndex: index})} >
              <span className="mdl-list__item-primary-content">
                { report.label } { (report.operation != null) ? '(' + report.operation + ')' : ''}
-               { this.renderTaskDescription(report) }
+               { this.renderTaskDescription(warnings) }
              </span>
              <span className="mdl-list__item-secondary-content">
-               { this.renderTaskIcon(report) }
+               { this.renderTaskIcon(warnings) }
              </span>
            </li>
   }
 
-  renderTaskDescription(report) {
-    if(report.hasOwnProperty("warnings") && report.warnings.length > 0) {
-      return <span className="mdl-list__item-sub-title">{report.warnings.length} warnings</span>
+  renderTaskDescription(warnings) {
+    if(warnings != null && warnings.length > 0) {
+      return <span className="mdl-list__item-sub-title">{warnings.length} warnings</span>
     } else {
       return <span className="mdl-list__item-sub-title">no issues</span>
     }
   }
 
-  renderTaskIcon(report) {
-    if(report.hasOwnProperty("warnings") && report.warnings.length > 0) {
+  renderTaskIcon(warnings) {
+    if(warnings != null && warnings.length > 0) {
       return <Icon name="warning" className="silk-report-list-item-icon-red" />
     } else {
       return <Icon name="done" className="silk-report-list-item-icon-green" />
@@ -106,11 +113,13 @@ export default class WorkflowExecutionReport extends React.Component {
 
   renderReport(nodeId) {
     if(this.state.selectedIndex >= 0) {
+      // Render the report of the selected task
       return <ExecutionReport baseUrl={this.props.baseUrl}
                               project={this.props.project}
                               nodeId={nodeId}
                               executionReport={this.state.executionReport.taskReports[this.state.selectedIndex]}/>
     } else {
+      // Render the report of the workflow itself
       return <ExecutionReport baseUrl={this.props.baseUrl}
                               project={this.props.project}
                               nodeId={this.state.executionReport.task.id}

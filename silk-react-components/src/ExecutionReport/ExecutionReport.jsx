@@ -71,6 +71,7 @@ export default class ExecutionReport extends React.Component {
                 Execution Report
             </CardTitle>
             <CardContent>
+                {this.renderWarning()}
                 <div>
                     <table className="silk-report-table">
                         <thead>
@@ -81,31 +82,36 @@ export default class ExecutionReport extends React.Component {
                         </tbody>
                     </table>
                 </div>
-                {this.renderWarning()}
             </CardContent>
         </Card>
     }
 
     renderWarning() {
-        if(this.props.executionReport.warnings.length > 0) {
-            const warnings = this.props.executionReport.warnings.map(warning =>
-                <div className="mdl-alert mdl-alert--info mdl-alert--border mdl-alert--spacing">
+        let messages = [];
+        let alertClass = "mdl-alert--info"
+        if(this.props.executionMetaData != null && this.props.executionMetaData.finishStatus.cancelled) {
+            messages = [ `Task '${this.props.executionReport.label}' has been cancelled.` ];
+            alertClass = "mdl-alert--warning";
+        } else if(this.props.executionMetaData != null && this.props.executionMetaData.finishStatus.failed) {
+            messages = [ `Task '${this.props.executionReport.label}' failed to execute.` ]
+            alertClass = "mdl-alert--danger"
+        } else if(this.props.executionReport.warnings.length > 0) {
+            messages = this.props.executionReport.warnings;
+            alertClass = "mdl-alert--info"
+        } else {
+            messages = [ `Task '${this.props.executionReport.label}' has been executed without any issues.` ];
+            alertClass = "mdl-alert--success";
+        }
+
+        return <div className="silk-report-warning">{
+            messages.map(warning =>
+                <div className={alertClass + " mdl-alert mdl-alert--border mdl-alert--spacing"}>
                     <div className="mdl-alert__content">
                         <p>{warning}</p>
                     </div>
                 </div>
-            );
-
-            return <div className="silk-report-warning">{warnings}</div>
-        } else {
-            return <div className="silk-report-warning">
-                        <div className="mdl-alert mdl-alert--info mdl-alert--border mdl-alert--spacing">
-                            <div className="mdl-alert__content">
-                                <p>Task '{this.props.executionReport.label}' has been executed without any issues.</p>
-                            </div>
-                        </div>
-                   </div>
-        }
+            )
+        }</div>
     }
     
     renderTransformReport() {
