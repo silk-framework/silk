@@ -75,6 +75,7 @@
                 "label": "Regex patterns"
             }
         },
+        "noAttributeProfile": "No profiling data available.",
         "profilingInfoHeader": "Profiling info for {{path}} data",
         "profilingInfoTooltip": "Show extended profiling info for {{path}}",
         "profilingNotAvailable": "No profiling data available, yet.",
@@ -121,6 +122,11 @@
         "itemRangeText": "{{min}}–{{max}} of {{total}} items",
         "itemsPerPage": "Items per page:",
         "pageRangeText": "of {{total}} pages"
+    },
+    "ParameterWidget": {
+        "AutoComplete": {
+            "createNewItem": "Custom entry: '{{query}}'"
+        }
     },
     "PrefixDialog": {
         "deletePrefix": "Prefix '{{prefixName}}' will be deleted."

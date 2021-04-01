@@ -1,6 +1,6 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import { useTranslation } from "react-i18next";
 import {
     Button,
     Divider,
@@ -15,10 +15,11 @@ import {
     WorkspaceMain,
     WorkspaceSide,
 } from "@gui-elements/index";
-import Filterbar from "./Filterbar";
+import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import SearchList from "../../shared/SearchList";
 import SearchBar from "../../shared/SearchBar";
-import { useTranslation } from "react-i18next";
+import { usePageHeader } from "../../shared/PageHeader/PageHeader";
+import Filterbar from "./Filterbar";
 
 const Artefacts = () => {
     const dispatch = useDispatch();
@@ -36,8 +37,15 @@ const Artefacts = () => {
         dispatch(workspaceOp.applyFiltersOp({ textQuery }));
     };
 
+    const { pageHeader } = usePageHeader({
+        alternateDepiction: "application-homepage",
+        autogenerateBreadcrumbs: true,
+        autogeneratePageTitle: true,
+    });
+
     return (
         <WorkspaceContent className="eccapp-di__workspace">
+            {pageHeader}
             <WorkspaceMain>
                 <Section>
                     <SectionHeader>
