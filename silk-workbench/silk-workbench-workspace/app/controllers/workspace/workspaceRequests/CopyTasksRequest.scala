@@ -40,7 +40,7 @@ case class CopyTasksRequest(dryRun: Option[Boolean], targetProject: String) {
     sourceProj.synchronized {
       targetProj.synchronized {
 
-        val overwrittenTasks = for(task <- tasksToCopy if targetProj.anyTaskOption(task.id).isDefined) yield task.id.toString
+        val overwrittenTasks = for(task <- tasksToCopy if targetProj.anyTaskOption(task.id).isDefined) yield task.taskLabel()
         val copyResources = sourceProj.resources.basePath != targetProj.resources.basePath
 
         // Copy tasks
@@ -57,7 +57,7 @@ case class CopyTasksRequest(dryRun: Option[Boolean], targetProject: String) {
         }
 
         // Generate response
-        CopyTasksResponse(tasksToCopy.map(_.id.toString).toSet, overwrittenTasks.toSet)
+        CopyTasksResponse(tasksToCopy.map(_.taskLabel()).toSet, overwrittenTasks.toSet)
       }
     }
   }

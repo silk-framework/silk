@@ -26,8 +26,10 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
   protected override def routes = Some(classOf[testWorkspace.Routes])
 
   private val datasetId = "testDataset"
+  private val datasetLabel = "I am a dataset"
 
   private val transformId = "testTransform"
+  private val transformLabel = "testTransform"
 
   private val linkTaskId = "testLinkTask"
 
@@ -333,7 +335,6 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
   }
 
   "get tasks with parameter value labels" in {
-    val datasetLabel = "I am a dataset"
     retrieveOrCreateProject(project).anyTask(datasetId).updateMetaData(MetaData(label = datasetLabel))
     def taskValuesWithLabel(taskId: String): Seq[(JsValue, Option[String])] = {
       val parameters = (checkResponse(client.url(s"$baseUrl/workspace/projects/$project/tasks/$taskId?withLabels=true").
@@ -383,7 +384,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
         ))
 
       val responseJson = checkResponse(response).json
-      (responseJson \ "copiedTasks").asStringArray must contain theSameElementsAs Seq(datasetId, transformId, TRANSFORM_OUTPUT_DATASET)
+      (responseJson \ "copiedTasks").asStringArray must contain theSameElementsAs Seq(datasetLabel, transformLabel, OUTPUT_DATASET_LABEL)
       (responseJson \ "overwrittenTasks").asStringArray mustBe Seq.empty
 
       // Assert that no tasks have been copied
@@ -403,7 +404,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
         ))
 
       val responseJson = checkResponse(response).json
-      (responseJson \ "copiedTasks").asStringArray must contain theSameElementsAs Seq(datasetId, transformId, TRANSFORM_OUTPUT_DATASET)
+      (responseJson \ "copiedTasks").asStringArray must contain theSameElementsAs Seq(datasetLabel, transformLabel, OUTPUT_DATASET_LABEL)
       (responseJson \ "overwrittenTasks").asStringArray mustBe Seq.empty
 
       // Assert that tasks have been copied
@@ -428,8 +429,8 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
           """.stripMargin
         ))
       val responseJson = checkResponse(response).json
-      (responseJson \ "copiedTasks").asStringArray must contain theSameElementsAs Seq(datasetId, transformId, TRANSFORM_OUTPUT_DATASET)
-      (responseJson \ "overwrittenTasks").asStringArray must contain theSameElementsAs Seq(datasetId, transformId, TRANSFORM_OUTPUT_DATASET)
+      (responseJson \ "copiedTasks").asStringArray must contain theSameElementsAs Seq("changed label", transformLabel, OUTPUT_DATASET_LABEL)
+      (responseJson \ "overwrittenTasks").asStringArray must contain theSameElementsAs Seq("changed label", transformLabel, OUTPUT_DATASET_LABEL)
 
       // Assert that the dataset has been overwritten
       val datasetResponse = client.url(s"$baseUrl/workspace/projects/$targetProject/tasks/$datasetId")
