@@ -67,11 +67,20 @@ export default class WorkflowExecutionReport extends React.Component {
                 <div className="mdl-cell mdl-cell--2-col">
                   <Card className="silk-report-card">
                     <CardTitle>
-                      Tasks
+                      Workflow
                     </CardTitle>
                     <CardContent>
                       <ul className="mdl-list">
                         { this.renderTaskItem(this.state.executionReport, -1, executionWarnings) }
+                      </ul>
+                    </CardContent>
+                  </Card>
+                  <Card className="silk-report-card">
+                    <CardTitle>
+                      Tasks
+                    </CardTitle>
+                    <CardContent>
+                      <ul className="mdl-list">
                         { this.state.executionReport.taskReports.map((report, index) => this.renderTaskItem(report, index, report.warnings)) }
                       </ul>
                     </CardContent>
