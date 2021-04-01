@@ -1,13 +1,15 @@
 package org.silkframework.dataset.rdf
 
-import java.io.{BufferedOutputStream, InputStream, OutputStream}
+import java.io.{BufferedOutputStream, File, FileOutputStream, InputStream, OutputStream}
 import java.net.{HttpURLConnection, SocketTimeoutException, URL, URLEncoder}
 import java.util.logging.Logger
-
 import org.silkframework.config.DefaultConfig
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.resource.FileResource
 import org.silkframework.util.HttpURLConnectionUtils._
 
+import java.nio.file.Files
+import scala.util.Try
 import scala.util.control.NonFatal
 
 /**
@@ -61,6 +63,34 @@ trait GraphStoreTrait {
                       chunkedStreamingMode: Option[Int] = Some(1000),
                       comment: Option[String] = None)
                      (implicit userContext: UserContext): OutputStream = {
+    this match {
+      case uploadGraphStore: GraphStoreFileUploadTrait =>
+        // If file upload is available, use different approach. GSP file upload is much more stable and usually offers a retry mechanism.
+        postDataToGraphViaFileUpload(uploadGraphStore, graph, contentType, comment)
+      case _ =>
+        postDataToGraphViaPostRequest(graph, contentType, chunkedStreamingMode, comment)
+    }
+  }
+
+  private def postDataToGraphViaFileUpload(fileUploadGraphStore: GraphStoreFileUploadTrait,
+                                           graph: String,
+                                           contentType: String,
+                                           comment: Option[String])
+                                          (implicit userContext: UserContext): OutputStream = {
+    GraphStoreUploadOutputStream(
+      fileUploadGraphStore,
+      graph = graph,
+      contentType = contentType,
+      comment = comment,
+      userContext = userContext
+    )
+  }
+
+  private def postDataToGraphViaPostRequest(graph: String,
+                                            contentType: String = "application/n-triples",
+                                            chunkedStreamingMode: Option[Int],
+                                            comment: Option[String])
+                                           (implicit userContext: UserContext): OutputStream = {
     log.fine("Initiating Graph Store POST request to: " + graph + comment.map(c => s" ($c)").getOrElse(""))
 
     val connection: HttpURLConnection = initConnection(graph, comment)
@@ -219,6 +249,55 @@ case class ConnectionClosingInputStream(createConnection: () => HttpURLConnectio
         connection.disconnect()
         connection = null
       }
+    }
+  }
+}
+
+/** Output stream that writes to a local temporary file and uploads the file via the graph store file upload on close.
+  * This uses potential retry mechanisms of the file upload method and keeps the duration of the connection low. */
+case class GraphStoreUploadOutputStream(fileUploadGraphStore: GraphStoreFileUploadTrait,
+                                        graph: String,
+                                        contentType: String,
+                                        comment: Option[String],
+                                        userContext: UserContext) extends OutputStream {
+  private val log: Logger = Logger.getLogger(this.getClass.getName)
+  implicit private val uc: UserContext = userContext
+
+  @volatile
+  private var initialized = false
+  private var fileResource: Option[FileResource] = None
+
+  private lazy val tempFile: File = {
+    val file = Files.createTempFile("graphStoreUpload", ".nt").toFile
+    file.deleteOnExit()
+    // Make sure this file is also deleted if the output stream is not correctly closed
+    val resource = FileResource(file)
+    resource.setDeleteOnGC(true)
+    fileResource = Some(resource)
+    initialized = true
+    file
+  }
+
+  private lazy val outputStream = {
+    log.fine("Created temporary file for GSP file upload.")
+    new BufferedOutputStream(new FileOutputStream(tempFile))
+  }
+
+  override def write(i: Int): Unit = {
+    outputStream.write(i)
+  }
+
+  override def close(): Unit = {
+    try {
+      if (initialized) {
+        outputStream.flush()
+        outputStream.close()
+        if(tempFile.exists() && tempFile.isFile && tempFile.length() > 0) {
+          fileUploadGraphStore.uploadFileToGraph(graph, tempFile, contentType, comment)
+        }
+      }
+    } finally {
+      Try(tempFile.delete())
     }
   }
 }

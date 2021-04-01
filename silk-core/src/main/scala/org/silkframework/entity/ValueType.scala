@@ -1,20 +1,16 @@
 package org.silkframework.entity
 
 
-import java.time.LocalDateTime
-import java.time.temporal.TemporalAccessor
-
-import javax.xml.datatype.{DatatypeConstants, DatatypeFactory, Duration, XMLGregorianCalendar}
-import javax.xml.namespace.QName
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.ValueType.XSD
-import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.plugin.AnyPlugin
+import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Uri
 
+import javax.xml.datatype.{DatatypeConstants, DatatypeFactory, Duration, XMLGregorianCalendar}
+import javax.xml.namespace.QName
 import scala.util.Try
-import scala.util.control.NonFatal
 import scala.util.matching.Regex
 import scala.xml.Node
 
@@ -57,10 +53,12 @@ object ValueType {
   final val LANGUAGE_VALUE_TYPE_ID = "LanguageValueType"
   final val OUTDATED_AUTO_DETECT_ID = "AutoDetectValueType"
 
+  // Core types
   final val UNTYPED: ValueType = UntypedValueType()
   final val STRING: ValueType = StringValueType()
   final val URI: ValueType = UriValueType()
 
+  // Numbers and booleans
   final val INTEGER: ValueType = IntegerValueType()
   final val INT: ValueType = IntValueType()
   final val LONG: ValueType = LongValueType()
@@ -69,8 +67,11 @@ object ValueType {
   final val DECIMAL: ValueType = DecimalValueType()
   final val BOOLEAN: ValueType = BooleanValueType()
 
+  // RDF specific
+  final val URI_LITERAL: ValueType = UriLiteralValueType()
   final val BLANK_NODE: ValueType = BlankNodeValueType()
 
+  // Date and time
   final val DATE: DateAndTimeValueType = DateValueType()
   final val YEAR: DateAndTimeValueType = YearDateValueType()
   final val YEAR_MONTH: DateAndTimeValueType = YearMonthDateValueType()
@@ -94,6 +95,7 @@ object ValueType {
     Right(UNTYPED),
     Right(STRING),
     Right(URI),
+    Right(URI_LITERAL),
     Right(INTEGER),
     Right(INT),
     Right(LONG),
@@ -439,7 +441,7 @@ case class BooleanValueType() extends ValueType with Serializable {
 @Plugin(
   id = "UriValueType",
   label = "URI",
-  description = "Suited for values which are Unique Resource Identifiers."
+  description = "Suited for values which are Unique Resource Identifiers. For Knowledge Graphs, a resource object will be created."
 )
 case class UriValueType() extends ValueType with Serializable {
 
@@ -449,6 +451,24 @@ case class UriValueType() extends ValueType with Serializable {
 
   /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
   override def uri: Option[String] = None
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = ValueType.DefaultOrdering
+}
+
+@Plugin(
+  id = "UriLiteralValueType",
+  label = "URI literal",
+  description = "Suited for values which are Unique Resource Identifiers. For Knowledge Graphs, a literal will be created that will be typed as xsd:anyURI."
+)
+case class UriLiteralValueType() extends ValueType with Serializable {
+
+  override def validate(lexicalString: String): Boolean = {
+    new Uri(lexicalString).isValidUri
+  }
+
+  /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
+  override def uri: Option[String] = Some(XSD + "anyURI")
 
   /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
   override def ordering: Ordering[String] = ValueType.DefaultOrdering
