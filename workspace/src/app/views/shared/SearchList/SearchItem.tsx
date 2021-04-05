@@ -181,6 +181,19 @@ export default function SearchItem({
                             onClick={onOpenCopyToModal}
                             text={t("common.action.copy", "Copy")}
                         />
+                        <MenuItem
+                            icon="item-viewdetails"
+                            text={t("common.action.showDetails", "Show details")}
+                            key="view"
+                            onClick={goToDetailsPage}
+                            href={item.itemLinks[0].path}
+                        />
+                        <MenuItem
+                            data-test-id={"open-duplicate-modal"}
+                            icon="item-clone"
+                            text={t("common.action.clone", "Clone")}
+                            onClick={onOpenDuplicateModal}
+                        />
                     </ContextMenu>
                 </OverviewItemActions>
             </OverviewItem>
