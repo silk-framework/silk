@@ -2,14 +2,17 @@ import React from "react";
 
 //components
 import {
+    AccordionItem,
     AutoCompleteField,
     Button,
     FieldItem,
     Notification,
+    OverviewItem,
     Select,
     SimpleDialog,
     Spacing,
     TextField,
+    TitleSubsection,
 } from "@gui-elements/index";
 import { Loading } from "../Loading/Loading";
 import { ICloneOptions } from "./CloneModal";
@@ -18,6 +21,7 @@ import { useTranslation } from "react-i18next";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { requestCopyProject, requestCopyTask, requestSearchList } from "@ducks/workspace/requests";
 import { debounce } from "../../../utils/debounce";
+import { Accordion } from "carbon-components-react";
 
 //Component Interface
 interface CopyToModalProps extends ICloneOptions {
@@ -29,6 +33,11 @@ interface CopyPayloadProps {
     dryRun: boolean;
 }
 
+interface CopyResponsePayload {
+    overwrittenTasks: Array<string>;
+    copiedTasks: Array<string>;
+}
+
 const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed }) => {
     const [newLabel, setNewLabel] = React.useState<string>(item.label || item.id);
     const [error, setError] = React.useState<ErrorResponse | null>(null);
@@ -36,7 +45,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
     const [label, setLabel] = React.useState<string | null>(item.label);
     const [targetProject, setTargetProject] = React.useState();
     const [results, setResults] = React.useState<any[]>([]);
-    const [info, setInfo] = React.useState<string>("");
+    const [info, setInfo] = React.useState<CopyResponsePayload | undefined>();
 
     const [t] = useTranslation();
 
@@ -68,19 +77,16 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
     }, [item, label]);
 
     /***************** END of side effects *****************/
-    /**
-     *
-     * @param info
-     * @returns {String}
-     */
-    const compressInfoToReadableText = (info: {
-        overwrittenTasks: Array<string>;
-        copiedTasks: Array<string>;
-    }): string => {
-        return `Copying (${info.copiedTasks.length}) tasks, ${info.copiedTasks.join(",")}, Overwriting (${
-            info.overwrittenTasks.length
-        }) ${info.overwrittenTasks.join(",")}`;
-    };
+    // /**
+    //  *
+    //  * @param info
+    //  * @returns {String}
+    //  */
+    // const compressInfoToReadableText = (info: any): string => {
+    //     return `Copying (${info.copiedTasks.length}) tasks, ${info.copiedTasks.join(",")}, Overwriting (${
+    //         info.overwrittenTasks.length
+    //     }) ${info.overwrittenTasks.join(",")}`;
+    // };
 
     const copyingSetup = async () => {
         setLoading(true);
@@ -201,7 +207,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             dryRun: true,
                         };
                         const response = await copyTaskOrProject(id, projectId, payload);
-                        setInfo(compressInfoToReadableText(response?.data));
+                        setInfo(response?.data);
                     }}
                     itemValueRenderer={(item) => item.label}
                     itemValueSelector={(item: any) => item.id}
@@ -215,7 +221,34 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
             {info && (
                 <>
                     <Spacing />
-                    <Notification message={info} warning />
+                    <Accordion>
+                        <AccordionItem
+                            title={
+                                <TitleSubsection>
+                                    Overwritten tasks {info.overwrittenTasks?.length ?? 0}
+                                </TitleSubsection>
+                            }
+                            fullWidth
+                            elevated
+                            condensed
+                            open={false}
+                        >
+                            {info.overwrittenTasks?.map((t) => (
+                                <OverviewItem key={t}>{t}</OverviewItem>
+                            ))}
+                        </AccordionItem>
+                        <AccordionItem
+                            title={<TitleSubsection>Copied tasks {info.copiedTasks?.length ?? 0}</TitleSubsection>}
+                            fullWidth
+                            elevated
+                            condensed
+                            open={false}
+                        >
+                            {info.copiedTasks?.map((t) => (
+                                <OverviewItem key={t}>{t}</OverviewItem>
+                            ))}
+                        </AccordionItem>
+                    </Accordion>
                 </>
             )}
             {error && (
