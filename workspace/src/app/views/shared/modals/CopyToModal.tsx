@@ -45,6 +45,16 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
         copyingSetup();
     }, [item]);
 
+    const removeFromList = (list: Array<any>) => {
+        /** if task filter using project label */
+        if (item.id && item.projectLabel) {
+            return list.filter((l) => l.label !== item.projectLabel);
+        } else {
+            // else if project artefact
+            return list.filter((l) => l.label !== label);
+        }
+    };
+
     //preload the project lists with default data
     React.useEffect(() => {
         (async () => {
@@ -53,12 +63,11 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                 offset: 0,
                 itemType: "project",
             };
-            setResults(await (await requestSearchList(payload)).results);
+            setResults(removeFromList(await (await requestSearchList(payload)).results));
         })();
-    }, []);
+    }, [item, label]);
 
     /***************** END of side effects *****************/
-
     /**
      *
      * @param info
@@ -128,7 +137,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                 itemType: "project",
                 textQuery,
             };
-            setResults(await (await requestSearchList(payload)).results);
+            setResults(removeFromList(await (await requestSearchList(payload)).results));
         } catch (err) {
             console.warn({ err });
         }
@@ -138,23 +147,16 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
         return <Loading />;
     }
 
+    const modalTitle = item.id ? t("common.action.CopyItems") : t("common.action.CopyProject");
     return (
         <SimpleDialog
             size="small"
-            title={
-                t("common.action.CopySmth", {
-                    smth: t(item.id ? "common.dataTypes.task" : "common.dataTypes.project"),
-                }) +
-                    ": " +
-                    label ||
-                item.label ||
-                item.id
-            }
+            title={modalTitle}
             isOpen={true}
             onClose={onDiscard}
             actions={[
                 <Button
-                    key="clone"
+                    key="copy"
                     affirmative
                     onClick={handleCopyingAction}
                     disabled={!newLabel}
