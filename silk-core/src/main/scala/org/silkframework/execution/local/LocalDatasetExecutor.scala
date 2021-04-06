@@ -153,6 +153,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   case class SparqlUpdateExecutionReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     var remainingQueries = 0
 
+    override def operationLabel: Option[String] = Some("generate queries")
+
     override def entityProcessVerb: String = "executed"
 
     override def entityLabelSingle: String = "Update query"
