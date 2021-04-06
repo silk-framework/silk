@@ -148,7 +148,7 @@ export default function SearchItem({
                 <OverviewItemActions>
                     <IconButton
                         data-test-id={"open-duplicate-modal"}
-                        name="item-clone"
+                        name="item-copyfile"
                         text={t("common.action.clone", "Clone")}
                         onClick={onOpenDuplicateModal}
                     />
@@ -190,7 +190,7 @@ export default function SearchItem({
                         />
                         <MenuItem
                             data-test-id={"open-duplicate-modal"}
-                            icon="item-clone"
+                            icon="item-copyfile"
                             text={t("common.action.clone", "Clone")}
                             onClick={onOpenDuplicateModal}
                         />
