@@ -225,7 +225,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                         <AccordionItem
                             title={
                                 <TitleSubsection>
-                                    Overwritten tasks {info.overwrittenTasks?.length ?? 0}
+                                    Overwritten tasks ({info.overwrittenTasks?.length ?? 0})
                                 </TitleSubsection>
                             }
                             fullWidth
@@ -238,7 +238,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             ))}
                         </AccordionItem>
                         <AccordionItem
-                            title={<TitleSubsection>Copied tasks {info.copiedTasks?.length ?? 0}</TitleSubsection>}
+                            title={<TitleSubsection>Copied tasks ({info.copiedTasks?.length ?? 0})</TitleSubsection>}
                             fullWidth
                             elevated
                             condensed
