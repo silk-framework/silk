@@ -32,7 +32,7 @@ object WorkflowInfo {
     val variableDatasets = workflow.variableDatasets(project)
     WorkflowInfo(
       workflow.id,
-      workflow.taskLabel(Int.MaxValue),
+      workflow.fullTaskLabel,
       project.name,
       project.config.metaData.formattedLabel(project.name, Int.MaxValue),
       variableDatasets.dataSources,

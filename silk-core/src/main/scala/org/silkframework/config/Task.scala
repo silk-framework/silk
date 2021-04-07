@@ -53,6 +53,8 @@ trait Task[+TaskType <: TaskSpec] {
     metaData.formattedLabel(id, maxLength)
   }
 
+  def fullTaskLabel: String = taskLabel(Int.MaxValue)
+
   override def equals(obj: scala.Any): Boolean = obj match {
     case task: Task[_] =>
       id == task.id &&

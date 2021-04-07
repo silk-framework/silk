@@ -28,7 +28,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with ControllerUtils
     val relatedItems = relatedTasks map { task =>
       val itemType = ItemType.itemType(task)
       val itemLinks = ItemType.itemTypeLinks(itemType, projectId, task.id, Some(task.data))
-      RelatedItem(task.id, task.taskLabel(Int.MaxValue), task.metaData.description, itemType.label, itemLinks)
+      RelatedItem(task.id, task.fullTaskLabel, task.metaData.description, itemType.label, itemLinks)
     }
     val filteredItems = filterRelatedItems(relatedItems, textQuery)
     val total = relatedItems.size
