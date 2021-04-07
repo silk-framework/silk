@@ -13,6 +13,7 @@ import scala.util.{Failure, Success, Try}
 trait MockServerTestTrait extends StatusCodeTestTrait {
   // The start port where to look for open ports to start the mock server
   final val START_PORT = 10600
+  @volatile
   var servers: List[HttpServer] = List.empty
 
   // From https://stackoverflow.com/questions/3732109/simple-http-server-in-java-using-only-java-se-api
