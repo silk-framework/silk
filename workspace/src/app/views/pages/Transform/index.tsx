@@ -1,16 +1,17 @@
 import React, { useEffect } from "react";
-
+import { useParams } from "react-router";
 import { useSelector } from "react-redux";
-import { AppToaster } from "../../../services/toaster";
-import { Intent } from "@gui-elements/blueprint/constants";
-import Metadata from "../../shared/Metadata";
-import { datasetSel } from "@ducks/dataset";
-
 import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@gui-elements/index";
+import { Intent } from "@gui-elements/blueprint/constants";
+import { datasetSel } from "@ducks/dataset";
+import { DATA_TYPES } from "../../../constants";
+import { AppToaster } from "../../../services/toaster";
+import Metadata from "../../shared/Metadata";
 import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
 import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
 import { IframeWindow } from "../../shared/IframeWindow/IframeWindow";
-import { useParams } from "react-router";
+import { usePageHeader } from "../../shared/PageHeader/PageHeader";
+import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
 
 export default function () {
     const error = useSelector(datasetSel.errorSelector);
@@ -26,8 +27,21 @@ export default function () {
         }
     }, [error.detail]);
 
+    const { pageHeader, updateActionsMenu } = usePageHeader({
+        type: DATA_TYPES.TRANSFORM,
+        autogenerateBreadcrumbs: true,
+        autogeneratePageTitle: true,
+    });
+
     return (
         <WorkspaceContent className="eccapp-di__transformation">
+            {pageHeader}
+            <ArtefactManagementOptions
+                projectId={projectId}
+                taskId={taskId}
+                itemType={DATA_TYPES.TRANSFORM}
+                updateActionsMenu={updateActionsMenu}
+            />
             <WorkspaceMain>
                 <Section>
                     <Metadata />

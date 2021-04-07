@@ -36,10 +36,10 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
         setError(null);
         try {
             setLoading(true);
-            if (projectId) {
+            if (id) {
                 await requestRemoveTask(id, projectId, withDependentTaskDeletion);
             } else {
-                await requestRemoveProject(id);
+                await requestRemoveProject(projectId);
             }
             onConfirmed && onConfirmed();
         } catch (e) {
@@ -55,8 +55,8 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
 
     const prepareDelete = async () => {
         const itemType = t(
-            item.projectId
-                ? `common.dataTypes.${item.type ? item.type : "genericArtefactLabel"}`
+            item.id
+                ? `common.dataTypes.${item.type ? item.type.toLowerCase() : "genericArtefactLabel"}`
                 : "common.dataTypes.project"
         );
         setDeleteModalOptions({
@@ -71,7 +71,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
             const data =
                 item.projectId && item.id
                     ? (await requestTaskMetadata(item.id, item.projectId)).data
-                    : (await requestProjectMetadata(item.id ? item.id : item.projectId)).data;
+                    : (await requestProjectMetadata(item.projectId)).data;
 
             // Skip check the relations for projects
             if (
@@ -103,7 +103,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                         <p>
                             {t("DeleteModal.deleteResource", {
                                 type: itemType,
-                                name: data.label || item.id,
+                                name: data.label || item.id || item.projectId,
                             })}
                         </p>
                     ),

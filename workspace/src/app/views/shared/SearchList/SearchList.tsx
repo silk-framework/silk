@@ -36,14 +36,24 @@ export function SearchList() {
         setSelectedItem(null);
     };
 
+    const fixItemIdSettings = (item) => {
+        // provide only projectId for projects
+        if (typeof item.projectId === "undefined") {
+            const correctedItem = { ...item, projectId: item.id };
+            delete correctedItem.id;
+            return correctedItem;
+        }
+        return item;
+    };
+
     const onOpenDuplicateModal = (item) => {
         setShowCloneModal(true);
-        setSelectedItem(item);
+        setSelectedItem(fixItemIdSettings(item));
     };
 
     const onOpenDeleteModal = (item: ISearchResultsServer) => {
         setDeleteModalOpen(true);
-        setSelectedItem(item);
+        setSelectedItem(fixItemIdSettings(item));
     };
 
     const handleCloneConfirmed = (newLabel, detailsPage) => {
