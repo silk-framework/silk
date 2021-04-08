@@ -290,7 +290,7 @@ object TransformSpec {
         Some(this)
       } else {
         for(childRule <- transformRule.rules.allRules.find(c => c.isInstanceOf[ValueTransformRule] && c.id == ruleId)) yield {
-          val inputPaths = childRule.sourcePaths.map(p => TypedPath(p.operators, ValueType.STRING, xmlAttribute = false)).toIndexedSeq
+          val inputPaths = childRule.sourcePaths.map(p => TypedPath(p.operators, ValueType.STRING, isAttribute = false)).toIndexedSeq
           val outputPaths = childRule.target.map(t => UntypedPath(t.propertyUri).asStringTypedPath).toIndexedSeq
           RuleSchemata(
             transformRule = childRule,
@@ -326,8 +326,8 @@ object TransformSpec {
   private def extractTypedPaths(rule: TransformRule): IndexedSeq[TypedPath] = {
     val rules = rule.rules.allRules
     val (objectRulesWithDefaultPattern, valueRules) = rules.partition ( _.representsDefaultUriRule )
-    val valuePaths = valueRules.flatMap(_.sourcePaths).map(p => TypedPath(p.operators, ValueType.STRING, xmlAttribute = false)).distinct.toIndexedSeq
-    val objectPaths = objectRulesWithDefaultPattern.flatMap(_.sourcePaths).map(p => TypedPath(p.operators, ValueType.URI, xmlAttribute = false)).distinct.toIndexedSeq
+    val valuePaths = valueRules.flatMap(_.sourcePaths).map(p => TypedPath(p.operators, ValueType.STRING, isAttribute = false)).distinct.toIndexedSeq
+    val objectPaths = objectRulesWithDefaultPattern.flatMap(_.sourcePaths).map(p => TypedPath(p.operators, ValueType.URI, isAttribute = false)).distinct.toIndexedSeq
 
     /** Value paths must come before object paths to not, because later algorithms rely on this order, e.g. PathInput only considers the Path not the value type.
       * If an object type path would come before the value path, the path input would take the wrong values. The other way round
