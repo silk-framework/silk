@@ -78,7 +78,7 @@ interface IClonedItem {
 
 export const requestCopyProject = async (projectId: string, payload: any) => {
     return fetch({
-        url: `/workspace/projects/${projectId}/copy`,
+        url: legacyApiEndpoint(`/projects/${projectId}/copy`),
         method: "POST",
         body: payload,
     });
@@ -86,7 +86,7 @@ export const requestCopyProject = async (projectId: string, payload: any) => {
 
 export const requestCopyTask = async (projectId: string, taskId: string, payload: any) => {
     return fetch({
-        url: `/workspace/projects/${projectId}/tasks/${taskId}/copy`,
+        url: legacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/copy`),
         method: "POST",
         body: payload,
     });
