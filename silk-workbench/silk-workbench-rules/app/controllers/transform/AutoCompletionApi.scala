@@ -20,7 +20,6 @@ import play.api.mvc._
 
 import java.util.logging.Logger
 import javax.inject.Inject
-import scala.collection.immutable
 import scala.language.implicitConversions
 
 /**
@@ -55,25 +54,39 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
     sourcePath.filter(op => op.isInstanceOf[ForwardOperator] || op.isInstanceOf[BackwardOperator])
   }
 
+  final val DEFAULT_AUTO_COMPLETE_RESULTS = 30
+
   /** A more fine-grained auto-completion of a source path that suggests auto-completion in parts of a path. */
   def partialSourcePath(projectId: String,
                         transformTaskId: String,
                         ruleId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>
     implicit userContext =>
       val (project, transformTask) = projectAndTask[TransformSpec](projectId, transformTaskId)
+      implicit val prefixes: Prefixes = project.config.prefixes
       validateJson[PartialSourcePathAutoCompletionRequest] { autoCompletionRequest =>
         withRule(transformTask, ruleId) { case (_, sourcePath) =>
           val simpleSourcePath = simplePath(sourcePath)
-          // TODO
-          val from = math.min(autoCompletionRequest.cursorPosition, 1)
-          val to = math.max(autoCompletionRequest.cursorPosition, autoCompletionRequest.inputString.length - 1)
+          val forwardOnlySourcePath = forwardOnlyPath(simpleSourcePath)
+          val allPaths = pathsCacheCompletions(transformTask, simpleSourcePath)
+          val isRdfInput = transformTask.activity[TransformPathsCache].value().isRdfInput(transformTask)
+          val relativeForwardPaths = relativePaths(simpleSourcePath, forwardOnlySourcePath, allPaths, isRdfInput)
+          // Add known paths
+          val completions: Completions = relativeForwardPaths
+          val from = 0 // TODO: What part to replace
+          val length = autoCompletionRequest.inputString.length
+          // Return filtered result
+          val filteredResults = completions.
+            filterAndSort(
+              autoCompletionRequest.inputString,
+              autoCompletionRequest.maxSuggestions.getOrElse(DEFAULT_AUTO_COMPLETE_RESULTS),
+              sortEmptyTermResult = false,
+              multiWordFilter = true
+            )
           val response = PartialSourcePathAutoCompletionResponse(
             autoCompletionRequest.inputString,
             autoCompletionRequest.cursorPosition,
-            Some((from, to)),
-            Completions(Seq(
-              Completion("dummy", label = Some("dummy value"), description = Some("dummy value description"), category = Categories.partialSourcePaths, isCompletion = true)
-            )).toCompletionsBase
+            Some(ReplacementInterval(from, length)),
+            filteredResults.toCompletionsBase
           )
           Ok(Json.toJson(response))
         }

@@ -26,10 +26,18 @@ object PartialSourcePathAutoCompletionRequest {
   */
 case class PartialSourcePathAutoCompletionResponse(inputString: String,
                                                    cursorPosition: Int,
-                                                   replacementInterval: Option[(Int, Int)],
+                                                   replacementInterval: Option[ReplacementInterval],
                                                    replacementResults: CompletionsBase)
 
+/** The part of a string to replace.
+  *
+  * @param from The start index of the string to be replaced.
+  * @param length The length in characters that should be replaced.
+  */
+case class ReplacementInterval(from: Int, length: Int)
+
 object PartialSourcePathAutoCompletionResponse {
+  implicit val ReplacementIntervalFormat: Format[ReplacementInterval] = Json.format[ReplacementInterval]
   implicit val partialSourcePathAutoCompletionResponseFormat: Format[PartialSourcePathAutoCompletionResponse] = Json.format[PartialSourcePathAutoCompletionResponse]
 }
 
