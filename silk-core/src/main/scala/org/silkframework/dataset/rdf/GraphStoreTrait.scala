@@ -146,7 +146,7 @@ trait GraphStoreTrait {
   private def errorHandler: ErrorHandler = ErrorHandler(handleError, handleAuthenticationError)
 
   def getDataFromGraph(graph: String,
-                       acceptType: String = "text/turtle; charset=utf-8")
+                       acceptType: String = "application/n-triples; charset=utf-8")
                       (implicit userContext: UserContext): InputStream = {
     log.fine(s"Initiating Graph Store GET request to: $graph")
     def connection(): HttpURLConnection = {
