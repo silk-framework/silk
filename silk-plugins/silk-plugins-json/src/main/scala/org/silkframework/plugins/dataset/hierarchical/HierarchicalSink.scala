@@ -16,12 +16,16 @@ import scala.collection.mutable
   */
 abstract class HierarchicalSink extends EntitySink {
 
-  private lazy val cache: EntityCache = EntityCache()
-
-  private val properties: mutable.Buffer[Seq[TypedProperty]] = mutable.Buffer.empty
-
+  // Holds root entities
   private val rootEntities: SequentialEntityCache = SequentialEntityCache()
 
+  // Holds nested entities
+  private lazy val cache: EntityCache = EntityCache()
+
+  // All properties for each table.
+  private val properties: mutable.Buffer[Seq[TypedProperty]] = mutable.Buffer.empty
+
+  // True, if a table is open at the moment.
   private var tableOpen: Boolean = false
 
   /**
@@ -72,7 +76,7 @@ abstract class HierarchicalSink extends EntitySink {
         resource.write() { outputStream =>
           val writer = createWriter(outputStream)
           try {
-            writeEntities(writer)
+            outputEntities(writer)
           } finally {
             writer.close()
           }
@@ -90,29 +94,39 @@ abstract class HierarchicalSink extends EntitySink {
     resource.delete()
   }
 
-  private def writeEntities(writer: HierarchicalEntityWriter): Unit = {
+  /**
+    * Outputs all entities in the cache to a HierarchicalEntityWriter.
+    */
+  private def outputEntities(writer: HierarchicalEntityWriter): Unit = {
     writer.open()
     rootEntities.readAndClose { entity =>
-      writeEntity(entity, writer)
+      outputEntity(entity, writer)
     }
   }
 
-  private def writeEntity(uri: String, writer: HierarchicalEntityWriter): Unit = {
+  /**
+    * Outputs a single entity and its referenced entities to the HierarchicalEntityWriter.
+    * The entity is loaded from the cache by its URI.
+    */
+  private def outputEntityByUri(uri: String, writer: HierarchicalEntityWriter): Unit = {
     cache.getEntity(uri) match {
       case Some(entity) =>
-        writeEntity(entity, writer)
+        outputEntity(entity, writer)
       case None =>
         throw new ValidationException("Could not find entity with URI: " + uri)
     }
   }
 
-  private def writeEntity(entity: CachedEntity, writer: HierarchicalEntityWriter): Unit = {
+  /**
+    * Outputs a single entity and its referenced entities to the HierarchicalEntityWriter.
+    */
+  private def outputEntity(entity: CachedEntity, writer: HierarchicalEntityWriter): Unit = {
     writer.startEntity()
     for((value, property) <- entity.values zip properties(entity.tableIndex)) {
       writer.startProperty(property, value.size)
       if(property.valueType == ValueType.URI) {
         for(v <- value) {
-          writeEntity(v, writer)
+          outputEntityByUri(v, writer)
         }
       } else {
         writer.writeValue(value, property)
