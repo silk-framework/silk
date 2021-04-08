@@ -4,7 +4,7 @@ import { ThingDescription } from './ThingDescription';
 import { InfoBox } from './InfoBox';
 import TargetCardinality from "./TargetCardinality";
 
-const TargetProperty = ({ mappingTargetUri, isAttribute = false }) => {
+const TargetProperty = ({ mappingTargetUri, isObjectMapping, isAttribute = false }) => {
     return (
         <div className="ecc-silk-mapping__rulesviewer__targetProperty">
             <dl className="ecc-silk-mapping__rulesviewer__attribute">
@@ -25,7 +25,7 @@ const TargetProperty = ({ mappingTargetUri, isAttribute = false }) => {
                             <ThingDescription id={mappingTargetUri}/>
                         </div>
                     </InfoBox>
-                    <TargetCardinality isAttribute={isAttribute} editable={false}/>
+                    <TargetCardinality isAttribute={isAttribute} isObjectMapping={isObjectMapping} editable={false}/>
                 </dd>
             </dl>
         </div>

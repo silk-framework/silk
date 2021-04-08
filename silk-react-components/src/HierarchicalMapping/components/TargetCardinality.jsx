@@ -51,43 +51,71 @@ class TargetCardinality extends React.Component {
     }
 
     renderSingleValue() {
-        return <Tooltip
-                 label={
-                     <div style={{textAlign: "left"}}>
-                         A single value is expected for this property.
-                         Receiving multiple values will trigger a validation error.
-                         <br/>
-                         In addition, the following datasets will adapt the generated schema:
-                         <br/>
-                         <b>XML:</b> Values will be written as an attribute.
-                         <br/>
-                         <b>JSON:</b> No arrays will be used for writing values.
-                     </div>
-                 }>
-            Only a single value is allowed
-        </Tooltip>
+        if(this.props.isObjectMapping) {
+            return <Tooltip
+                label={
+                    <div style={{textAlign: "left"}}>
+                        A single entity is expected for each parent entity.
+                        Receiving multiple entities will trigger a validation error.
+                        <br/>
+                        In addition, the JSON dataset will write objects, which are not wrapped by an array.
+                    </div>
+                }>
+                Only a single entity is allowed
+            </Tooltip>
+        } else {
+            return <Tooltip
+                label={
+                    <div style={{textAlign: "left"}}>
+                        A single value is expected for this property.
+                        Receiving multiple values will trigger a validation error.
+                        <br/>
+                        In addition, the following datasets will adapt the generated schema:
+                        <br/>
+                        <b>XML:</b> Values will be written as an attribute.
+                        <br/>
+                        <b>JSON:</b> Values will be written as literals, which are not wrapped in an array.
+                    </div>
+                }>
+                Only a single value is allowed
+            </Tooltip>
+        }
     }
 
     renderMultipleValues() {
-        return <Tooltip
-            label={
-                <div style={{textAlign: "left"}}>
-                    Multiple values may be generated for this property.
-                    <br/>
-                    In addition, the following datasets will adapt the generated schema:
-                    <br/>
-                    <b>XML:</b> Values will be written as nested elements.
-                    <br/>
-                    <b>JSON:</b> Arrays will be used for writing values.
-                </div>
-            }>
-            Multiple values are allowed
-        </Tooltip>
+        if(this.props.isObjectMapping) {
+            return <Tooltip
+                label={
+                    <div style={{textAlign: "left"}}>
+                        Multiple entities may be generated for each parent entity.
+                        <br/>
+                        In addition, the JSON dataset will wrap all entities in an array.
+                    </div>
+                }>
+                Multiple entities are allowed
+            </Tooltip>
+        } else {
+            return <Tooltip
+                label={
+                    <div style={{textAlign: "left"}}>
+                        Multiple values may be generated for this property.
+                        <br/>
+                        In addition, the following datasets will adapt the generated schema:
+                        <br/>
+                        <b>XML:</b> Values will be written as nested elements.
+                        <br/>
+                        <b>JSON:</b> Values will be written as an array of literals.
+                    </div>
+                }>
+                Multiple values are allowed
+            </Tooltip>
+        }
     }
 }
 
 TargetCardinality.propTypes = {
     isAttribute: PropTypes.bool.isRequired,
+    isObjectMapping: PropTypes.bool.isRequired,
     editable: PropTypes.bool,
     onChange: PropTypes.func
 };
