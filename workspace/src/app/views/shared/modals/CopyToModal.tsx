@@ -13,6 +13,7 @@ import {
     Spacing,
     TextField,
     TitleSubsection,
+    Accordion,
 } from "@gui-elements/index";
 import { Loading } from "../Loading/Loading";
 import { ICloneOptions } from "./CloneModal";
@@ -21,7 +22,6 @@ import { useTranslation } from "react-i18next";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { requestCopyProject, requestCopyTask, requestSearchList } from "@ducks/workspace/requests";
 import { debounce } from "../../../utils/debounce";
-import { Accordion } from "carbon-components-react";
 
 //Component Interface
 interface CopyToModalProps extends ICloneOptions {
@@ -225,7 +225,9 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                         <AccordionItem
                             title={
                                 <TitleSubsection>
-                                    Overwritten tasks ({info.overwrittenTasks?.length ?? 0})
+                                    {t("common.messages.copyModalOverwrittenTasks", {
+                                        tasks: info.overwrittenTasks?.length ?? 0,
+                                    })}
                                 </TitleSubsection>
                             }
                             fullWidth
@@ -238,7 +240,13 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             ))}
                         </AccordionItem>
                         <AccordionItem
-                            title={<TitleSubsection>Copied tasks ({info.copiedTasks?.length ?? 0})</TitleSubsection>}
+                            title={
+                                <TitleSubsection>
+                                    {t("common.messages.copyModalCopiedTasks", {
+                                        tasks: info.copiedTasks?.length ?? 0,
+                                    })}
+                                </TitleSubsection>
+                            }
                             fullWidth
                             elevated
                             condensed
