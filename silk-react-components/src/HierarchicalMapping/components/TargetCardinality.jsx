@@ -58,7 +58,11 @@ class TargetCardinality extends React.Component {
                         A single entity is expected for each parent entity.
                         Receiving multiple entities will trigger a validation error.
                         <br/>
-                        In addition, the JSON dataset will write objects, which are not wrapped by an array.
+                        In addition, the following datasets will adapt the generated schema:
+                        <br/>
+                        <b>XML:</b> Entities will be written as a nested element. The name of the element tag is specified by the property name.
+                        <br/>
+                        <b>JSON:</b> Entities will be written as an object, which is not wrapped by an array.
                     </div>
                 }>
                 Only a single entity is allowed
@@ -72,7 +76,7 @@ class TargetCardinality extends React.Component {
                         <br/>
                         In addition, the following datasets will adapt the generated schema:
                         <br/>
-                        <b>XML:</b> Values will be written as an attribute.
+                        <b>XML:</b> Values will be written as an attribute. The name of the attribute is specified by the property name.
                         <br/>
                         <b>JSON:</b> Values will be written as literals, which are not wrapped in an array.
                     </div>
@@ -89,7 +93,11 @@ class TargetCardinality extends React.Component {
                     <div style={{textAlign: "left"}}>
                         Multiple entities may be generated for each parent entity.
                         <br/>
-                        In addition, the JSON dataset will wrap all entities in an array.
+                        In addition, the following datasets will adapt the generated schema:
+                        <br/>
+                        <b>XML:</b> Entities will be written as nested elements. The name of the element tags is specified by the property name.
+                        <br/>
+                        <b>JSON:</b> Entities will be wrapped in an array.
                     </div>
                 }>
                 Multiple entities are allowed
@@ -102,7 +110,7 @@ class TargetCardinality extends React.Component {
                         <br/>
                         In addition, the following datasets will adapt the generated schema:
                         <br/>
-                        <b>XML:</b> Values will be written as nested elements.
+                        <b>XML:</b> Values will be written as nested elements. The name of the element is specified by the property name.
                         <br/>
                         <b>JSON:</b> Values will be written as an array of literals.
                     </div>
