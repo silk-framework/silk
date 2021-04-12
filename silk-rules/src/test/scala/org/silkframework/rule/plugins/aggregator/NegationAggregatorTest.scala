@@ -30,5 +30,9 @@ class NegationAggregatorTest extends PluginTest {
     aggregator.evaluateValue(WeightedSimilarityScore(0.0, 1)).score.get should be(approximatelyEqualTo(0.0))
   }
 
+  it should "interpret missing values as a similarity score of 1" in {
+    aggregator.evaluateValue(WeightedSimilarityScore(None)).score.get should be(approximatelyEqualTo(1.0))
+  }
+
   override def pluginObject: Aggregator = NegationAggregator()
 }

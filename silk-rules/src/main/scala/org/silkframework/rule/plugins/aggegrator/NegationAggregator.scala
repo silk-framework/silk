@@ -1,7 +1,7 @@
 package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.{Aggregator, SimilarityScore, SingleValueAggregator, WeightedSimilarityScore}
+import org.silkframework.rule.similarity.{SimilarityScore, SingleValueAggregator, WeightedSimilarityScore}
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
@@ -13,7 +13,13 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 case class NegationAggregator() extends SingleValueAggregator {
 
   override def evaluateValue(value: WeightedSimilarityScore): SimilarityScore = {
-    SimilarityScore(value.score.map(score => 0.0 - score))
+    value.score match {
+      case Some(score) =>
+        SimilarityScore(0.0 - score)
+      case None =>
+        SimilarityScore(1.0)
+    }
+
   }
 
   /* Since it's impossible for the aggregator to know how to create an inverse index, map to default index */
