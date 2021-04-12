@@ -138,14 +138,19 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case graphStoreFiles: LocalGraphStoreFileUploadTable =>
         uploadFilesViaGraphStore(dataset, graphStoreFiles)
       case sparqlUpdateTable: SparqlUpdateEntityTable =>
-        executeSparqlUpdateQueries(dataset, sparqlUpdateTable)
+        executeSparqlUpdateQueries(dataset, sparqlUpdateTable, execution)
       case et: LocalEntities =>
-        implicit val report: ExecutionReportUpdater = WriteEntitiesReportUpdater(dataset, context)
-        withEntitySink(dataset, execution) { entitySink =>
-          writeEntities(entitySink, et)
-        }
-        report.executionDone()
+        writeGenericLocalEntities(dataset, et, execution)
     }
+  }
+
+  private def writeGenericLocalEntities(dataset: Task[DatasetSpec[DatasetType]], et: LocalEntities, execution: LocalExecution)
+                                       (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): Unit = {
+    implicit val report: ExecutionReportUpdater = WriteEntitiesReportUpdater(dataset, context)
+    withEntitySink(dataset, execution) { entitySink =>
+      writeEntities(entitySink, et)
+    }
+    report.executionDone()
   }
 
   final val remainingSparqlUpdateQueryBufferSize = 1000
@@ -194,9 +199,10 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     }
   }
 
-  private def executeSparqlUpdateQueries(dataset: Task[DatasetSpec[Dataset]],
-                                         sparqlUpdateTable: SparqlUpdateEntityTable)
-                                        (implicit userContext: UserContext, context: ActivityContext[ExecutionReport]): Unit = {
+  private def executeSparqlUpdateQueries(dataset: Task[DatasetSpec[DatasetType]],
+                                         sparqlUpdateTable: SparqlUpdateEntityTable,
+                                         execution: LocalExecution)
+                                        (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): Unit = {
     dataset.plugin match {
       case rdfDataset: RdfDataset =>
         val endpoint = rdfDataset.sparqlEndpoint
@@ -210,7 +216,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         }
         executionReport.update(force = true, addEndTime = true)
       case _ =>
-        throw new ValidationException(s"Dataset task ${dataset.id} is not an RDF dataset!")
+        writeGenericLocalEntities(dataset, sparqlUpdateTable, execution)
     }
   }
 

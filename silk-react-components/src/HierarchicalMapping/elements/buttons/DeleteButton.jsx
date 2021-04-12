@@ -1,5 +1,5 @@
 import React from 'react';
-import { DisruptiveButton } from '@eccenca/gui-elements';
+import { DisruptiveButton } from '@gui-elements/legacy-replacements';
 
 const DeleteButton = ({ onDelete }) => {
     return (
