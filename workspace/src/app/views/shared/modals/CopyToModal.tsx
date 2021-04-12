@@ -207,7 +207,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             dryRun: true,
                         };
                         const response = await copyTaskOrProject(id, projectId, payload);
-                        setInfo(response?.data);
+                        setInfo((prevInfo) => ({ ...prevInfo, ...response?.data }));
                     }}
                     itemValueRenderer={(item) => item.label}
                     itemValueSelector={(item: any) => item.id}
