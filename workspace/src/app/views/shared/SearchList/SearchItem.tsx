@@ -24,7 +24,7 @@ import { IPageLabels } from "@ducks/router/operations";
 import { DATA_TYPES } from "../../../constants";
 import { commonSel } from "@ducks/common";
 import { IExportTypes } from "@ducks/common/typings";
-import { downloadResource } from "../../../utils/downloadResource";
+import { downloadProject } from "../../../utils/downloadProject";
 import { useTranslation } from "react-i18next";
 import ItemDepiction from "../../shared/ItemDepiction";
 import { useIFrameWindowLinks } from "../IframeWindow/iframewindowHooks";
@@ -103,7 +103,7 @@ export default function SearchItem({
     };
 
     const handleExport = async (type: IExportTypes) => {
-        downloadResource(item.id, type.id);
+        downloadProject(item.id, type.id);
     };
 
     return (
