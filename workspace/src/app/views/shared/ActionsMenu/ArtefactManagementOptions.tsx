@@ -7,7 +7,7 @@ import { IItemLink } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
 import { requestItemLinks } from "@ducks/shared/requests";
 import { IExportTypes } from "@ducks/common/typings";
-import { downloadResource } from "../../../utils/downloadResource";
+import { downloadProject } from "../../../utils/downloadProject";
 import { DATA_TYPES } from "../../../constants";
 import { ItemDeleteModal } from "../modals/ItemDeleteModal";
 import CloneModal from "../modals/CloneModal";
@@ -63,8 +63,8 @@ export function ArtefactManagementOptions({ projectId, taskId, itemType, updateA
         dispatch(routerOp.goToPage(detailsPage));
     };
 
-    const handleExport = (type: IExportTypes) => {
-        downloadResource(itemData.id, type.id);
+    const handleProjectExport = (type: IExportTypes) => {
+        downloadProject(itemData.projectId, type.id);
     };
 
     // handler for link change
@@ -94,7 +94,7 @@ export function ArtefactManagementOptions({ projectId, taskId, itemType, updateA
             exportTypes.forEach((type) => {
                 subitems.push({
                     text: type.label,
-                    actionHandler: () => handleExport(type),
+                    actionHandler: () => handleProjectExport(type),
                 });
             });
 
