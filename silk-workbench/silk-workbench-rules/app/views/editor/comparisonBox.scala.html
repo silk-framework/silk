@@ -1,11 +1,9 @@
 @import views.editor.GenerateId
 @import org.silkframework.workspace.Project
-
 @import org.silkframework.runtime.activity.UserContext
 
-@import org.silkframework.rule.similarity.MissingValueStrategy
 @(id: String,
-  missingValueStrategy: MissingValueStrategy, weight: Int, threshold: Double,
+  weight: Int, threshold: Double,
   plugin: org.silkframework.runtime.plugin.PluginDescription[_],
   parameterValues: Seq[String],
   x: Int, y: Int, display: Boolean,
@@ -28,5 +26,4 @@
     </div>
     <input class="param_value" type="text" name="weight" value="@weight"/>
   </div>
-  @missingValueStrategyParameter(GenerateId(id, display) + "_missingValueStrategy", missingValueStrategy)
 }

@@ -15,11 +15,11 @@
 package org.silkframework.learning.individual
 
 import org.silkframework.config.Prefixes
-import org.silkframework.rule.similarity.{Comparison, DistanceMeasure, MissingValueStrategy}
+import org.silkframework.rule.similarity.{Comparison, DistanceMeasure}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.{DPair, IdentifierGenerator}
 
-case class ComparisonNode(inputs: DPair[InputNode], threshold: Double, weight: Int, required: Boolean, metric: FunctionNode[DistanceMeasure]) extends OperatorNode {
+case class ComparisonNode(inputs: DPair[InputNode], threshold: Double, weight: Int, metric: FunctionNode[DistanceMeasure]) extends OperatorNode {
   require(inputs.source.isSource && !inputs.target.isSource, "inputs.source.isSource && !inputs.target.isSource")
 
   override val children = inputs.source :: inputs.target :: metric :: Nil
@@ -29,7 +29,7 @@ case class ComparisonNode(inputs: DPair[InputNode], threshold: Double, weight: I
     val targetInput = newChildren.collect{ case c: InputNode if !c.isSource => c }.head
     val metricNode = newChildren.collect{ case c: FunctionNode[DistanceMeasure] @unchecked => c }.head
 
-    ComparisonNode(DPair(sourceInput, targetInput), threshold, weight, required, metricNode)
+    ComparisonNode(DPair(sourceInput, targetInput), threshold, weight, metricNode)
   }
 
   override def build(implicit identifiers: IdentifierGenerator) = {
@@ -38,8 +38,7 @@ case class ComparisonNode(inputs: DPair[InputNode], threshold: Double, weight: I
       threshold = threshold,
       weight = weight,
       inputs = inputs.map(_.build),
-      metric = metric.build,
-      missingValueStrategy = MissingValueStrategy.fromDeprecatedBoolean(required)
+      metric = metric.build
     )
   }
 }
@@ -51,6 +50,6 @@ object ComparisonNode {
 
     val metricNode = FunctionNode.load(comparison.metric, DistanceMeasure)
 
-    ComparisonNode(DPair(sourceInputNode, targetInputNode), comparison.threshold, comparison.weight, comparison.missingValueStrategy.toDeprecatedBoolean.forall(_.booleanValue()), metricNode)
+    ComparisonNode(DPair(sourceInputNode, targetInputNode), comparison.threshold, comparison.weight, metricNode)
   }
 }

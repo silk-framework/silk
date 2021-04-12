@@ -19,7 +19,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.plugins.aggegrator.AverageAggregator
 import org.silkframework.rule.Operator
-import org.silkframework.rule.similarity.{Aggregation, MissingValueStrategy, SimilarityOperator}
+import org.silkframework.rule.similarity.{Aggregation, SimilarityOperator}
 import org.silkframework.testutil.approximatelyEqualToOption
 import org.silkframework.util.{DPair, Identifier}
 
@@ -71,7 +71,6 @@ class AggregationTest extends FlatSpec with Matchers {
     new SimilarityOperator {
       val id: Identifier = Identifier.random
       val weight: Int = _weight
-      val missingValueStrategy: MissingValueStrategy = MissingValueStrategy.fromDeprecatedBoolean(_required)
       val indexing: Boolean = true
       def apply(entities: DPair[Entity], limit: Double): Option[Double] = value
       def index(entity: Entity, sourceOrTarget: Boolean, limit: Double): Index = indices

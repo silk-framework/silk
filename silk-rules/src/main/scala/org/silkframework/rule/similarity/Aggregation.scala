@@ -27,8 +27,7 @@ import scala.xml.{Node, Text}
 case class Aggregation(id: Identifier = Operator.generateId,
                        weight: Int = 1,
                        aggregator: Aggregator,
-                       operators: Seq[SimilarityOperator],
-                       missingValueStrategy: MissingValueStrategy = MissingValueStrategy.required) extends SimilarityOperator {
+                       operators: Seq[SimilarityOperator]) extends SimilarityOperator {
 
   require(weight > 0, "weight > 0")
   //TODO learning currently may produce empty aggreagations when cleaning
@@ -50,19 +49,8 @@ case class Aggregation(id: Identifier = Operator.generateId,
     var weightedValues: List[WeightedSimilarityScore] = Nil
     for(op <- operators) {
       val opThreshold = aggregator.computeThreshold(limit, op.weight.toDouble / totalWeights)
-      op(entities, opThreshold) match {
-        case Some(v) =>
-          weightedValues ::= WeightedSimilarityScore(v, op.weight)
-        case None =>
-          op.missingValueStrategy match {
-            case MissingValueStrategy.required =>
-              weightedValues ::= WeightedSimilarityScore(None, op.weight)
-            case MissingValueStrategy.failFast =>
-              return None
-            case MissingValueStrategy.optional =>
-              // don't add to weighted values
-          }
-      }
+      val score = op(entities, opThreshold)
+      weightedValues ::= WeightedSimilarityScore(score, op.weight)
     }
 
     aggregator.evaluate(weightedValues).score
@@ -82,9 +70,6 @@ case class Aggregation(id: Identifier = Operator.generateId,
       for (op <- operators if op.indexing) yield {
         val opThreshold = aggregator.computeThreshold(threshold, op.weight.toDouble / totalWeights)
         val index = op.index(entity, sourceOrTarget, opThreshold)
-
-        if (op.missingValueStrategy == MissingValueStrategy.failFast && index.isEmpty) return Index.empty
-
         index
       }
     }.filterNot(_.isEmpty)
@@ -120,15 +105,14 @@ object Aggregation {
         id = Operator.readId(node),
         weight = if (weightStr.isEmpty) 1 else weightStr.toInt,
         operators = node.child.filter(n => n.label == "Aggregate" || n.label == "Compare").map(fromXml[SimilarityOperator]),
-        aggregator = aggregator,
-        missingValueStrategy = MissingValueStrategy.fromDeprecatedBoolean(requiredStr)
+        aggregator = aggregator
       )
     }
 
     def write(value: Aggregation)(implicit writeContext: WriteContext[Node]): Node = {
       value.aggregator match {
         case Aggregator(plugin, params) =>
-          <Aggregate id={value.id} required={value.missingValueStrategy.toDeprecatedBoolean.map(b => new Text(b.toString))} weight={value.weight.toString} type={plugin.id}>
+          <Aggregate id={value.id} weight={value.weight.toString} type={plugin.id}>
             {value.operators.map(toXml[SimilarityOperator])}
           </Aggregate>
       }

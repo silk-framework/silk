@@ -19,7 +19,7 @@
  * Renders a linkage rule operator.
  *@
 @renderOperator(op: Operator) = { @op match {
-  case Aggregation(id, weight, aggregator, operators, missingValueStrategy) => {
+  case Aggregation(id, weight, aggregator, operators) => {
     <li>
       <span class="aggregation">Aggregation: @aggregator.pluginSpec.id</span>
       <ul>
@@ -27,7 +27,7 @@
       </ul>
     </li>
   }
-  case Comparison(id, weight, threshold, indexing, metric, DPair(input1, input2), missingValueStrategy) => {
+  case Comparison(id, weight, threshold, indexing, metric, DPair(input1, input2)) => {
     <li>
       <span class="comparison">Comparison: @metric.pluginSpec.id (@threshold.toString)</span>
       <ul>

@@ -7,8 +7,8 @@
 @import org.silkframework.runtime.plugin.PluginDescription
 @import views.editor.GenerateId
 @import org.silkframework.workspace.Project
-
 @import org.silkframework.runtime.activity.UserContext
+
 @(rule: org.silkframework.rule.Operator,
   project: Project)(implicit userContext: UserContext)
 
@@ -58,11 +58,11 @@
 
 @drawOperator(op: Operator, x: Int, y: Int) = {
   @op match {
-    case Aggregation(id, weight, aggregator, operators, missingValueStrategy) => {
-      @aggregationBox(id, missingValueStrategy, weight, aggregator.pluginSpec, parameterValues(aggregator, aggregator.pluginSpec), x, y, true, project)
+    case Aggregation(id, weight, aggregator, operators) => {
+      @aggregationBox(id, weight, aggregator.pluginSpec, parameterValues(aggregator, aggregator.pluginSpec), x, y, true, project)
     }
-    case Comparison(id, weight, threshold, indexing, metric, inputs, missingValueStrategy) => {
-      @comparisonBox(id, missingValueStrategy, weight, threshold, metric.pluginSpec, parameterValues(metric, metric.pluginSpec), x, y, true, project)
+    case Comparison(id, weight, threshold, indexing, metric, inputs) => {
+      @comparisonBox(id, weight, threshold, metric.pluginSpec, parameterValues(metric, metric.pluginSpec), x, y, true, project)
     }
     case TransformInput(id, transformer, inputs) => {
       @transformationBox(id, transformer.pluginSpec, parameterValues(transformer, transformer.pluginSpec), x, y, true, project)
@@ -133,7 +133,7 @@
 
 @connectOperator(op: Operator) = {
   @op match {
-    case Aggregation(id, weight, aggregator, operators, missingValueStrategy) => {
+    case Aggregation(id, weight, aggregator, operators) => {
       @* Handle children *@
       @for(op <- operators) {
         @connectOperator(op)
@@ -151,7 +151,7 @@
         });
       }
     }
-    case Comparison(id, weight, threshold, indexing, metric, inputs, missingValueStrategy) => {
+    case Comparison(id, weight, threshold, indexing, metric, inputs) => {
       @* Handle children *@
       @connectOperator(inputs.source)
       @connectOperator(inputs.target)

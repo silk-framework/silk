@@ -28,8 +28,6 @@ import scala.xml.Node
  */
 trait SimilarityOperator extends Operator {
 
-  def missingValueStrategy: MissingValueStrategy
-
   def weight: Int
 
   def indexing: Boolean

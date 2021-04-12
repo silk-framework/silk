@@ -32,8 +32,7 @@ case class Comparison(id: Identifier = Operator.generateId,
                       threshold: Double = 0.0,
                       indexing: Boolean = true,
                       metric: DistanceMeasure,
-                      inputs: DPair[Input],
-                      missingValueStrategy: MissingValueStrategy = MissingValueStrategy.required) extends SimilarityOperator {
+                      inputs: DPair[Input]) extends SimilarityOperator {
 
   require(weight > 0, "weight > 0")
   require(threshold >= 0.0, "threshold >= 0.0")
@@ -58,8 +57,6 @@ case class Comparison(id: Identifier = Operator.generateId,
         Some(1.0)
       else if (distance <= 2.0 * threshold)
         Some(1.0 - distance / threshold)
-      else if (missingValueStrategy == MissingValueStrategy.failFast)
-        None
       else
         Some(-1.0)
     }
@@ -117,8 +114,7 @@ object Comparison {
           weight = if (weightStr.isEmpty) 1 else weightStr.toInt,
           indexing = if (indexingStr.isEmpty) true else indexingStr.toBoolean,
           inputs = DPair(inputs(0), inputs(1)),
-          metric = metric,
-          missingValueStrategy = MissingValueStrategy.fromDeprecatedBoolean(requiredStr)
+          metric = metric
         )
       } catch {
         case ex: Exception => throw new ValidationException(ex.getMessage, id, "Comparison")
@@ -128,7 +124,7 @@ object Comparison {
     def write(value: Comparison)(implicit writeContext: WriteContext[Node]): Node = {
       value.metric match {
         case DistanceMeasure(plugin, params) =>
-          <Compare id={value.id} required={value.missingValueStrategy.toDeprecatedBoolean.map(b => new Text(b.toString))} weight={value.weight.toString} metric={plugin.id} threshold={value.threshold.toString} indexing={value.indexing.toString}>
+          <Compare id={value.id} weight={value.weight.toString} metric={plugin.id} threshold={value.threshold.toString} indexing={value.indexing.toString}>
             {toXml(value.inputs.source)}{toXml(value.inputs.target)}{XmlSerialization.serializeParameter(params)}
           </Compare>
       }

@@ -15,15 +15,15 @@
 package org.silkframework.learning.individual
 
 import org.silkframework.config.Prefixes
-import org.silkframework.rule.similarity.{Aggregation, Aggregator, MissingValueStrategy}
+import org.silkframework.rule.similarity.{Aggregation, Aggregator}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.util.IdentifierGenerator
 
-case class AggregationNode(aggregation: String, weight: Int, required: Boolean, operators: List[OperatorNode]) extends OperatorNode {
+case class AggregationNode(aggregation: String, weight: Int, operators: List[OperatorNode]) extends OperatorNode {
   override val children = operators
 
   override def updateChildren(children: List[Node]) = {
-    AggregationNode(aggregation, weight, required, children.map(_.asInstanceOf[OperatorNode]))
+    AggregationNode(aggregation, weight, children.map(_.asInstanceOf[OperatorNode]))
   }
 
   def build(implicit identifiers: IdentifierGenerator): Aggregation = {
@@ -31,8 +31,7 @@ case class AggregationNode(aggregation: String, weight: Int, required: Boolean, 
       identifiers.generate(aggregation),
       weight = weight,
       operators = operators.map(_.build),
-      aggregator = Aggregator(aggregation, Map.empty)(Prefixes.empty, EmptyResourceManager()),
-      missingValueStrategy = MissingValueStrategy.fromDeprecatedBoolean(required)
+      aggregator = Aggregator(aggregation, Map.empty)(Prefixes.empty, EmptyResourceManager())
     )
   }
 }
@@ -46,6 +45,6 @@ object AggregationNode {
 
     val operatorNodes = aggregation.operators.map(OperatorNode.load).toList
 
-    AggregationNode(aggregatorId, aggregation.weight, aggregation.missingValueStrategy.toDeprecatedBoolean.forall(_.booleanValue()), operatorNodes)
+    AggregationNode(aggregatorId, aggregation.weight, operatorNodes)
   }
 }

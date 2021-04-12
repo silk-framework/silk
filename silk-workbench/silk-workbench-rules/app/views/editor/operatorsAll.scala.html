@@ -1,7 +1,6 @@
 @import org.silkframework.runtime.plugin.PluginDescription
 @import org.silkframework.workspace.Project
 @import org.silkframework.runtime.activity.UserContext
-@import org.silkframework.rule.similarity.MissingValueStrategy
 
 @(name: String,
 opType: String,
@@ -28,8 +27,8 @@ project: Project)(implicit userContext: UserContext)
 @operatorExpanded(plugin: PluginDescription[_]) = {
   @opType match {
     case "transform" => { @transformationBox(plugin.id + "_", plugin, parameterValues(plugin), 0, 0, false, project) }
-    case "compare" => { @comparisonBox(plugin.id + "_", MissingValueStrategy.required, 1, 0.0, plugin, parameterValues(plugin), 0, 0, false, project) }
-    case "aggregate" => { @aggregationBox(plugin.id + "_", MissingValueStrategy.required, 1, plugin, parameterValues(plugin), 0, 0, false, project) }
+    case "compare" => { @comparisonBox(plugin.id + "_", 1, 0.0, plugin, parameterValues(plugin), 0, 0, false, project) }
+    case "aggregate" => { @aggregationBox(plugin.id + "_", 1, plugin, parameterValues(plugin), 0, 0, false, project) }
   }
 }
 

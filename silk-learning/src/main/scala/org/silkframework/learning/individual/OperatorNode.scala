@@ -23,8 +23,6 @@ trait OperatorNode extends Node {
 
   def weight: Int
 
-  def required: Boolean
-
   def build(implicit identifiers: IdentifierGenerator): SimilarityOperator
 }
 
