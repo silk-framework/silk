@@ -6,13 +6,14 @@ import java.io.{IOException, InputStream, OutputStream}
  * Created by andreas on 1/27/16.
  */
 case class OutputStreamWritableResource(outputStream: OutputStream) extends WritableResource {
+
   /**
-   * Preferred method for writing to a resource.
-   *
-   * @param write A function that accepts an output stream and writes to it.
-   */
-  override def write(append: Boolean = false)(write: (OutputStream) => Unit): Unit = {
-    write(outputStream)
+    * Creates an output stream for writing to this resource.
+    * The caller is responsible for closing the stream after writing.
+    * Using [[write()]] is preferred as it takes care of closing the output stream.
+    */
+  def createOutputStream(append: Boolean = false): OutputStream = {
+    outputStream
   }
 
   /**

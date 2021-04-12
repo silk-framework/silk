@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.rdf.endpoint
 import org.apache.jena.query.{QuerySolution, ResultSet}
 import org.silkframework.dataset.rdf._
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.immutable.SortedMap
 
 /**
@@ -13,7 +13,7 @@ object JenaResultsReader {
 
   def read[U](resultSet: ResultSet, f: SortedMap[String, RdfNode] => U): Int = {
     var count = 0
-    for (result: QuerySolution <- resultSet) {
+    for (result: QuerySolution <- resultSet.asScala) {
       f(toSilkBinding(result))
       count += 1
     }
@@ -25,7 +25,7 @@ object JenaResultsReader {
     */
   def toSilkBinding(querySolution: QuerySolution): SortedMap[String, RdfNode] = {
     val values =
-      for (varName <- querySolution.varNames.toList;
+      for (varName <- querySolution.varNames.asScala.toList;
            value <- Option(querySolution.get(varName))) yield {
         (varName, toSilkNode(value))
       }

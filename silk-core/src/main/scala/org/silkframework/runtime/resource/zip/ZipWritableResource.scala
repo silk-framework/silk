@@ -1,10 +1,10 @@
 package org.silkframework.runtime.resource.zip
 
+import org.silkframework.runtime.resource.WritableResource
+
 import java.io.{InputStream, OutputStream}
 import java.time.Instant
 import java.util.zip.{ZipEntry, ZipOutputStream}
-
-import org.silkframework.runtime.resource.WritableResource
 
 
 /**
@@ -20,10 +20,16 @@ case class ZipWritableResource(
   closeEntriesAutomatically: Boolean = true
 ) extends WritableResource {
 
-  override def write(append: Boolean)(write: OutputStream => Unit): Unit = {
-    if(closeEntriesAutomatically)
+  /**
+    * Creates an output stream for writing to this resource.
+    * The caller is responsible for closing the stream after writing.
+    * Using [[write()]] is preferred as it takes care of closing the output stream.
+    */
+  def createOutputStream(append: Boolean = false): OutputStream = {
+    if(closeEntriesAutomatically) {
       zip.putNextEntry(new ZipEntry(path))
-    write(zip)
+    }
+    new NonClosingOutputStream(zip)
   }
 
   override def exists: Boolean = false
@@ -35,6 +41,17 @@ case class ZipWritableResource(
   override def delete(): Unit = throw ZipDeleteException()
 
   override def inputStream: InputStream = throw ZipReadException()
+
+  // An output stream wrapper that does not close the underlying stream on close.
+  private class NonClosingOutputStream(os: OutputStream) extends OutputStream {
+    override def write(b: Int): Unit = os.write(b)
+    override def write(b: Array[Byte]): Unit = os.write(b)
+    override def write(b: Array[Byte], off: Int, len: Int): Unit = os.write(b, off, len)
+    override def flush(): Unit = os.flush()
+    override def close(): Unit = {
+      // do not close the underlying stream
+    }
+  }
 }
 
 case class ZipReadException() extends UnsupportedOperationException(s"${classOf[ZipWritableResource]} does not support any read operations.")

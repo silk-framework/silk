@@ -20,6 +20,8 @@ import DiscardChangesDialog from './elements/DiscardChangesDialog';
 import EventEmitter from './utils/EventEmitter';
 import { isDebugMode } from './utils/isDebugMode';
 
+require('./HierarchicalMapping.scss');
+
 class HierarchicalMapping extends React.Component {
     // define property types
     static propTypes = {

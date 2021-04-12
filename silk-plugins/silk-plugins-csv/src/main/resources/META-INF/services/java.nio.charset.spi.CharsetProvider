@@ -1,1 +1,1 @@
-org.silkframework.plugins.dataset.csv.charset.Utf8BomCharsetProvider
+org.silkframework.plugins.dataset.charset.Utf8BomCharsetProvider

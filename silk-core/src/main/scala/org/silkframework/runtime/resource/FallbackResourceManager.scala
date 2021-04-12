@@ -78,15 +78,15 @@ case class FallbackResourceManager(resourceMgr: ResourceManager, fallbackLoader:
     }
 
     /**
-      * Preferred method for writing to a resource.
-      *
-      * @param write A function that accepts an output stream and writes to it.
+      * Creates an output stream for writing to this resource.
+      * The caller is responsible for closing the stream after writing.
+      * Using [[write()]] is preferred as it takes care of closing the output stream.
       */
-    override def write(append: Boolean = false)(write: (OutputStream) => Unit): Unit = {
+    def createOutputStream(append: Boolean = false): OutputStream = {
       if(writeIntoFallbackLoader && !primaryResource.exists && fallbackResource.exists) {
-        fallbackResource.write(append)(write)
+        fallbackResource.createOutputStream(append)
       } else {
-        primaryResource.write(append)(write)
+        primaryResource.createOutputStream(append)
       }
     }
 

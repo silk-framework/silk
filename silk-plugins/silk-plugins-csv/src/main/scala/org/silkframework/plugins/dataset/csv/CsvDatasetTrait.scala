@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.csv
 
-import org.silkframework.plugins.dataset.csv.charset.CharsetUtils
+import org.silkframework.plugins.dataset.charset.CharsetUtils
 
 import scala.io.Codec
 

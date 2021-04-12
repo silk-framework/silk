@@ -13,6 +13,8 @@ const ObjectEntityRelation = ({ isBackwardProperty, parent }) => {
             disabled
         >
             <Radio
+                name="from"
+                checked={!isBackwardProperty}
                 value="from"
                 label={
                     <div>
@@ -22,6 +24,8 @@ const ObjectEntityRelation = ({ isBackwardProperty, parent }) => {
                 }
             />
             <Radio
+                name="to"
+                checked={isBackwardProperty}
                 value="to"
                 label={
                     <div>

@@ -60,7 +60,7 @@ object EmptyResourceManager {
       throw new ResourceNotFoundException(s"Cannot read from resource $path as no resource manager is available.")
     }
 
-    override def write(append: Boolean)(write: OutputStream => Unit): Unit = {
+    override def createOutputStream(append: Boolean = false): OutputStream = {
       throw new ResourceNotFoundException(s"Cannot write to resource $path as no resource manager is available.")
     }
   }

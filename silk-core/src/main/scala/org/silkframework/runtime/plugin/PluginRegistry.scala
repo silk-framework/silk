@@ -1,16 +1,15 @@
 package org.silkframework.runtime.plugin
 
-import java.io.File
-import java.net.{URL, URLClassLoader}
-import java.util.ServiceLoader
-import java.util.logging.Logger
-
-import javax.inject.Inject
 import org.silkframework.config.{Config, DefaultConfig, Prefixes}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.util.Identifier
 
-import scala.collection.JavaConversions._
+import java.io.File
+import java.net.{URL, URLClassLoader}
+import java.util.ServiceLoader
+import java.util.logging.Logger
+import javax.inject.Inject
+import scala.collection.JavaConverters._
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 
@@ -116,7 +115,7 @@ object PluginRegistry {
       // Retrieve plugin id
       val pluginId = config.getString("plugin")
       // Check if there are any configuration parameters available for this plugin
-      val configValues = if(config.hasPath(pluginId)) config.getConfig(pluginId).entrySet().toSet else Set.empty
+      val configValues = if(config.hasPath(pluginId)) config.getConfig(pluginId).entrySet().asScala else Set.empty
       // Instantiate plugin with configured parameters
       val pluginParams = for (entry <- configValues) yield (entry.getKey, entry.getValue.unwrapped().toString)
       val plugin = create[T](pluginId, pluginParams.toMap)
@@ -202,11 +201,11 @@ object PluginRegistry {
   def registerFromClasspath(classLoader: ClassLoader = Thread.currentThread.getContextClassLoader): Unit = {
     // Load all plugin classes
     val loader = ServiceLoader.load(classOf[PluginModule], classLoader)
-    val modules = loader.iterator().toList
+    val modules = loader.iterator().asScala.toList
     val pluginClasses = for(module <- modules; pluginClass <- module.pluginClasses) yield pluginClass
 
     // Create a plugin description for each plugin class (can be done in parallel)
-    val pluginDescs = for(pluginClass <- pluginClasses.par) yield PluginDescription.create(pluginClass)
+    val pluginDescs = pluginClasses.par.map(PluginDescriptionFactory)
 
     // Register plugins (must currently be done sequentially as registerPlugin is not thread safe)
     for(pluginDesc <- pluginDescs.seq)
@@ -327,5 +326,14 @@ object PluginRegistry {
       // Build a map from each category to all corresponding plugins
       categoriesAndPlugins.groupBy(_._1).mapValues(_.map(_._2))
     }
+  }
+}
+
+/**
+  * Function that creates a plugin description from a Java class.
+  */
+private object PluginDescriptionFactory extends (Class[_] => PluginDescription[_]) {
+  override def apply(v1: Class[_]): PluginDescription[_] = {
+    PluginDescription.create(v1)
   }
 }

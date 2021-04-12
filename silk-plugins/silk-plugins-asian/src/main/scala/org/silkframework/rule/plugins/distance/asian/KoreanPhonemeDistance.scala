@@ -20,7 +20,6 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.util.StringUtils._
 
 import scala.Array._
-import scala.collection.JavaConversions._
 import scala.math.{abs, max, min}
 
 @Plugin(
@@ -153,12 +152,12 @@ case class KoreanPhonemeDistance(minChar: Char = '0', maxChar: Char = 'z') exten
 	private def buildShStrLongMatrix( list: java.util.ArrayList[String], str_len:Int, sh_chAr:Array[Char]): Array[String]  = {
 
 		//initialization
-		var chArr = new Array[Array[Char]](list.length)
-		for (i <- (0 to list.length - 1)) {
+		var chArr = new Array[Array[Char]](list.size)
+		for (i <- (0 to list.size - 1)) {
 		   chArr(i) = new Array[Char](str_len)
 		}
 
-		var strArr = new Array[String](list.length)
+		var strArr = new Array[String](list.size)
 		var I = list.listIterator()
 		var o=0;
 		while(I.hasNext()) {

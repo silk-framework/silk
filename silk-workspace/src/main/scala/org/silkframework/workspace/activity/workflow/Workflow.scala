@@ -48,7 +48,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     val pureOutputNodes = outputs.toSet -- inputs
     var done = pureOutputNodes
     var sortedOperators = Vector.empty[(WorkflowNode, Int)]
-    val (start, rest) = nodes.partition(node => pureOutputNodes.contains(node.nodeId))
+    val (start, rest) = nodes.toList.partition(node => pureOutputNodes.contains(node.nodeId))
     var layer = 1
     sortedOperators ++= start.map((_, layer))
     var operatorsToSort = rest

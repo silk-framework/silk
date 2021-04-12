@@ -19,7 +19,7 @@ case class ReadOnlyResource(resource: Resource) extends WritableResource {
 
   override def inputStream: InputStream = resource.inputStream
 
-  override def write(append: Boolean = false)(write: (OutputStream) => Unit): Unit = {
+  override def createOutputStream(append: Boolean): OutputStream = {
     throw new UnsupportedOperationException("This resource can not be written.")
   }
 

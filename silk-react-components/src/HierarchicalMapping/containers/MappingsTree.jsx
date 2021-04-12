@@ -5,10 +5,12 @@ import {
     Spinner,
     Button,
     Icon,
-    Card,
-    CardContent,
     Info,
 } from '@eccenca/gui-elements';
+import {
+    Card,
+    CardContent,
+} from '@gui-elements';
 
 import RuleTypes from '../elements/RuleTypes';
 import RuleTitle from '../elements/RuleTitle';
@@ -291,7 +293,7 @@ class MappingsTree extends React.Component {
 
         return (
             <div className="ecc-silk-mapping__treenav">
-                <Card>
+                <Card isOnlyLayout={true}>
                     <CardContent>
                         {navigationLoading && <Spinner />}
                         {navigationLoading && _.isUndefined(data) && (

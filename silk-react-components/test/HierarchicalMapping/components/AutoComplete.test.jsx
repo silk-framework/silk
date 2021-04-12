@@ -1,7 +1,7 @@
 import React from "react";
 import { shallow } from 'enzyme';
 import AutoComplete from '../../../src/HierarchicalMapping/components/AutoComplete';
-import { AutoCompleteBox } from '@eccenca/gui-elements';
+import {AutoCompleteField} from "../../../src/libs/gui-elements";
 
 const props = {
     input: 'text',
@@ -23,7 +23,7 @@ describe("AutoComplete Component", () => {
         });
         
         it("should render AutoCompleteBox component", () => {
-            expect(wrapper.find(AutoCompleteBox)).toHaveLength(1);
+            expect(wrapper.find(AutoCompleteField)).toHaveLength(1);
         });
         
         afterEach(() => {

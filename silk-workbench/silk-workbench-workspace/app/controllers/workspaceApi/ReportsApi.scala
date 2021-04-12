@@ -14,8 +14,9 @@ import play.api.mvc.{Action, AnyContent, InjectedController}
 class ReportsApi @Inject() () extends InjectedController {
 
   def listReports(projectId: Option[String], taskId: Option[String]): Action[AnyContent] = Action(parse.json) {
+    val reports = ExecutionReportManager().listReports(projectId.map(Identifier(_)), taskId.map(Identifier(_)))
     val jsonObjects =
-      for(report <- ExecutionReportManager().listReports(projectId.map(Identifier(_)), taskId.map(Identifier(_)))) yield {
+      for(report <- reports.sortBy(_.time)) yield {
         Json.obj(
           "project" -> report.projectId.toString,
           "task" -> report.taskId.toString,

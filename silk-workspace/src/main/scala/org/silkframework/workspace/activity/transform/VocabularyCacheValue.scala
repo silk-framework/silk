@@ -49,10 +49,15 @@ object VocabularyCacheValue {
     }
   }
 
-  /** Returns the target vocabularies of a transform task. */
-  def targetVocabularies(transformTask: ProjectTask[TransformSpec])
+  /** Returns the target vocabularies of a transform task.
+    *
+    * @param transformTask The transform task the target vocabularies should be fetched for.
+    * @param targetVocabularySelection An optional selection of the requested target vocabularies (by URI/ID).
+    */
+  def targetVocabularies(transformTask: ProjectTask[TransformSpec],
+                         targetVocabularySelection: Option[Seq[String]] = None)
                         (implicit userContext: UserContext): VocabularyCacheValue = {
-    transformTask.targetVocabularies match {
+    val vocabularies = transformTask.targetVocabularies match {
       case TargetVocabularyCategory(category) =>
         val vocabularies: Seq[Vocabulary] = category match {
           case TargetVocabularyParameterEnum.`allInstalled` =>
@@ -64,6 +69,12 @@ object VocabularyCacheValue {
         new VocabularyCacheValue(vocabularies)
       case TargetVocabularyListParameter(_) =>
         transformTask.activity[VocabularyCache].value()
+    }
+    targetVocabularySelection match {
+      case Some(selection) =>
+        new VocabularyCacheValue(vocabularies.filter(v => selection.contains(v.info.uri)))
+      case None =>
+        vocabularies
     }
   }
 

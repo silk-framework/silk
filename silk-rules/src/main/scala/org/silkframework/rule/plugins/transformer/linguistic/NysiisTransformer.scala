@@ -1,6 +1,6 @@
 package org.silkframework.rule.plugins.transformer.linguistic
 
-import com.rockymadden.stringmetric.phonetic.{NysiisAlgorithm, RefinedNysiisAlgorithm}
+import com.github.halfmatthalfcat.stringmetric.phonetic.{NysiisAlgorithm, RefinedNysiisAlgorithm}
 import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.annotations.Plugin
 

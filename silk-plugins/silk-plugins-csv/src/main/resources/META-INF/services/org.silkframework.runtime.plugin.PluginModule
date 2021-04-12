@@ -1,1 +1,2 @@
 org.silkframework.plugins.dataset.csv.CsvPlugins
+org.silkframework.plugins.dataset.text.TextPlugins

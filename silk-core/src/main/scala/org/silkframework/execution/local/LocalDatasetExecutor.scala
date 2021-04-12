@@ -1,20 +1,18 @@
 package org.silkframework.execution.local
 
-import java.util
-import java.util.logging.{Level, Logger}
-
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
+import org.silkframework.dataset.CloseableDataset.using
 import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetSpec}
-import org.silkframework.dataset.rdf._
 import org.silkframework.dataset._
+import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
 import org.silkframework.execution.{DatasetExecutor, ExecutionReport, ExecutionReportUpdater, TaskException}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
-import CloseableDataset.using
 
-import scala.util.control.NonFatal
+import java.util
+import java.util.logging.{Level, Logger}
 
 /**
   * Local dataset executor that handles read and writes to [[Dataset]] tasks.
@@ -140,14 +138,19 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       case graphStoreFiles: LocalGraphStoreFileUploadTable =>
         uploadFilesViaGraphStore(dataset, graphStoreFiles)
       case sparqlUpdateTable: SparqlUpdateEntityTable =>
-        executeSparqlUpdateQueries(dataset, sparqlUpdateTable)
+        executeSparqlUpdateQueries(dataset, sparqlUpdateTable, execution)
       case et: LocalEntities =>
-        implicit val report: ExecutionReportUpdater = WriteEntitiesReportUpdater(dataset, context)
-        withEntitySink(dataset, execution) { entitySink =>
-          writeEntities(entitySink, et)
-        }
-        report.executionDone()
+        writeGenericLocalEntities(dataset, et, execution)
     }
+  }
+
+  private def writeGenericLocalEntities(dataset: Task[DatasetSpec[DatasetType]], et: LocalEntities, execution: LocalExecution)
+                                       (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): Unit = {
+    implicit val report: ExecutionReportUpdater = WriteEntitiesReportUpdater(dataset, context)
+    withEntitySink(dataset, execution) { entitySink =>
+      writeEntities(entitySink, et)
+    }
+    report.executionDone()
   }
 
   final val remainingSparqlUpdateQueryBufferSize = 1000
@@ -194,9 +197,10 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     }
   }
 
-  private def executeSparqlUpdateQueries(dataset: Task[DatasetSpec[Dataset]],
-                                         sparqlUpdateTable: SparqlUpdateEntityTable)
-                                        (implicit userContext: UserContext, context: ActivityContext[ExecutionReport]): Unit = {
+  private def executeSparqlUpdateQueries(dataset: Task[DatasetSpec[DatasetType]],
+                                         sparqlUpdateTable: SparqlUpdateEntityTable,
+                                         execution: LocalExecution)
+                                        (implicit userContext: UserContext, context: ActivityContext[ExecutionReport], prefixes: Prefixes): Unit = {
     dataset.plugin match {
       case rdfDataset: RdfDataset =>
         val endpoint = rdfDataset.sparqlEndpoint
@@ -210,7 +214,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         }
         executionReport.update(force = true, addEndTime = true)
       case _ =>
-        throw new ValidationException(s"Dataset task ${dataset.id} is not an RDF dataset!")
+        writeGenericLocalEntities(dataset, sparqlUpdateTable, execution)
     }
   }
 
@@ -357,6 +361,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
             val Seq(s, p, o, encodedType, context) = entity.values.map(_.head)
             val valueType = TripleEntityTable.convertToValueType(encodedType)
             sink.writeTriple(s, p, o, valueType)  //FIXME CMEM-1759 quad context is ignored for now, change when quad sink is available
+          case _ =>
+            throw new scala.RuntimeException("Unexpected entity schema format: " + entity.schema)
         }
       } catch {
         case ex: Exception =>
