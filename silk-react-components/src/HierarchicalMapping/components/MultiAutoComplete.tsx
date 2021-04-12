@@ -3,8 +3,8 @@ import { AutoCompleteBox } from '@eccenca/gui-elements';
 import { autocompleteAsync } from '../store';
 
 const loadOptionsRaw = ({
-    input, callback, ruleId, entity,
-}) => {
+                            input, callback, ruleId, entity,
+                        }) => {
     autocompleteAsync({
         entity,
         input,
@@ -17,12 +17,14 @@ const loadOptionsRaw = ({
     });
 };
 
-const AutoComplete = ({ entity, ruleId, ...otherProps }) => {
+/** Multi-selection auto-complete component */
+const MultiAutoComplete = ({ entity, ruleId, ...otherProps }) => {
     return (
         <AutoCompleteBox
             {...otherProps}
             filterOption={() => true}
             async
+            multi
             loadOptions={(input, callback) => loadOptionsRaw({
                 input,
                 callback,
@@ -33,4 +35,4 @@ const AutoComplete = ({ entity, ruleId, ...otherProps }) => {
     );
 };
 
-export default AutoComplete;
+export default MultiAutoComplete;
