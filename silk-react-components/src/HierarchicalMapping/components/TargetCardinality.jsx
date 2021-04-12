@@ -35,7 +35,7 @@ class TargetCardinality extends React.Component {
 
     renderRadioBox() {
         return (
-            <FieldItem>
+            <FieldItem className={this.props.className}>
                 <RadioGroup
                     value={this.state.isAttribute ? 'single' : 'multiple'}
                     name = ""
