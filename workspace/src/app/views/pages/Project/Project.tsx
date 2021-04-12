@@ -1,16 +1,8 @@
 import React, { useEffect } from "react";
-import { commonOp, commonSel } from "@ducks/common";
 import { useDispatch, useSelector } from "react-redux";
-import Filterbar from "../Workspace/Filterbar";
-import Metadata from "../../shared/Metadata";
-import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import SearchList from "../../shared/SearchList";
-import ConfigurationWidget from "./ConfigWidget";
-import WarningWidget from "./WarningWidget";
-import FileWidget from "./FileWidget";
-import Loading from "../../shared/Loading";
-
+import { useTranslation } from "react-i18next";
 import {
+    Button,
     Divider,
     Grid,
     GridColumn,
@@ -24,9 +16,20 @@ import {
     WorkspaceMain,
     WorkspaceSide,
 } from "@gui-elements/index";
-import { SearchBar } from "../../shared/SearchBar/SearchBar";
+import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { routerSel } from "@ducks/router";
-import { useTranslation } from "react-i18next";
+import { commonOp, commonSel } from "@ducks/common";
+import Metadata from "../../shared/Metadata";
+import SearchList from "../../shared/SearchList";
+import Loading from "../../shared/Loading";
+import { SearchBar } from "../../shared/SearchBar/SearchBar";
+import { DATA_TYPES } from "../../../constants";
+import { usePageHeader } from "../../shared/PageHeader/PageHeader";
+import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
+import Filterbar from "../Workspace/Filterbar";
+import ConfigurationWidget from "./ProjectNamespacePrefixManagementWidget";
+import WarningWidget from "./WarningWidget";
+import FileWidget from "./FileWidget";
 
 const Project = () => {
     const dispatch = useDispatch();
@@ -55,7 +58,7 @@ const Project = () => {
 
         // Fetch the list of projects
         dispatch(workspaceOp.fetchListAsync());
-    }, [qs]);
+    }, [qs, projectId]);
 
     const handleSort = (sortBy: string) => {
         dispatch(workspaceOp.applySorterOp(sortBy));
@@ -65,10 +68,22 @@ const Project = () => {
         dispatch(workspaceOp.applyFiltersOp({ textQuery }));
     };
 
+    const { pageHeader, updateActionsMenu } = usePageHeader({
+        type: DATA_TYPES.PROJECT,
+        autogenerateBreadcrumbs: true,
+        autogeneratePageTitle: true,
+    });
+
     return !projectId ? (
         <Loading posGlobal description={t("pages.project.loading", "Loading project data")} />
     ) : (
         <WorkspaceContent className="eccapp-di__project">
+            {pageHeader}
+            <ArtefactManagementOptions
+                projectId={projectId}
+                itemType={DATA_TYPES.PROJECT}
+                updateActionsMenu={updateActionsMenu}
+            />
             <WorkspaceMain>
                 <Section>
                     <Metadata />
@@ -100,7 +115,17 @@ const Project = () => {
                             </GridColumn>
                             <GridColumn full>
                                 {!data.length && error.detail ? (
-                                    <Notification danger>
+                                    <Notification
+                                        danger={true}
+                                        actions={
+                                            <Button
+                                                text={t("common.action.retry", "Retry")}
+                                                onClick={() => {
+                                                    window.location.reload();
+                                                }}
+                                            />
+                                        }
+                                    >
                                         <h3>{t("http.error.fetchNotResult", "Error, cannot fetch results.")}</h3>
                                         <p>{error.detail}</p>
                                     </Notification>

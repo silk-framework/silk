@@ -2,9 +2,15 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import { sharedOp } from "@ducks/shared";
 import { ITaskParameter } from "@ducks/common/typings";
-import { WhiteSpaceContainer, FieldItem, FieldSet, Label, TitleSubsection } from "@gui-elements/index";
+import {
+    AutoCompleteField,
+    WhiteSpaceContainer,
+    FieldItem,
+    FieldSet,
+    Label,
+    TitleSubsection,
+} from "@gui-elements/index";
 import { Intent } from "@gui-elements/blueprint/constants";
-import { Autocomplete } from "../../../Autocomplete/Autocomplete";
 import { InputMapper } from "./InputMapper";
 import { AppToaster } from "../../../../../services/toaster";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
@@ -13,6 +19,7 @@ import { useTranslation } from "react-i18next";
 import { firstNonEmptyLine } from "../../../ContentBlobToggler";
 import { ContentBlobToggler } from "../../../ContentBlobToggler/ContentBlobToggler";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
+import { createNewItemRendererFactory } from "@gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
 
 const MAXLENGTH_TOOLTIP = 40;
 const MAXLENGTH_SIMPLEHELP = 288;
@@ -56,6 +63,21 @@ export const errorMessage = (title: string, errors: any) => {
         return `${title} must be specified.`;
     } else {
         return "";
+    }
+};
+
+// Label of auto-completion results
+const autoCompleteLabel = (item: IAutocompleteDefaultResponse) => {
+    const label = item.label || item.value;
+    return label;
+};
+
+const displayAutoCompleteLabel = (item: IAutocompleteDefaultResponse) => {
+    const label = autoCompleteLabel(item);
+    if (label === "") {
+        return "\u00A0";
+    } else {
+        return label;
     }
 };
 
@@ -213,8 +235,7 @@ export const ParameterWidget = (props: IProps) => {
                 messageText={errorMessage(title, errors)}
             >
                 {!!autoCompletion ? (
-                    <Autocomplete<IAutocompleteDefaultResponse, string>
-                        autoCompletion={autoCompletion}
+                    <AutoCompleteField<IAutocompleteDefaultResponse, string>
                         onSearch={handleAutoCompleteInput}
                         onChange={changeHandlers[formParamId]}
                         initialValue={
@@ -222,14 +243,38 @@ export const ParameterWidget = (props: IProps) => {
                                 ? initialValues[formParamId]
                                 : { value: defaultValueAsJs(propertyDetails) }
                         }
-                        dependentValues={selectDependentValues()}
+                        disabled={
+                            selectDependentValues().length < autoCompletion.autoCompletionDependsOnParameters.length
+                        }
                         inputProps={{
                             name: formParamId,
                             id: formParamId,
                             intent: errors ? Intent.DANGER : Intent.NONE,
                         }}
-                        resetPossible={!required}
-                        itemKey={(item) => item.value}
+                        reset={
+                            !required
+                                ? {
+                                      resetValue: "",
+                                      resettableValue: (v) => !!v.value,
+                                      resetButtonText: t("common.action.resetSelection", "Reset selection"),
+                                  }
+                                : undefined
+                        }
+                        itemRenderer={displayAutoCompleteLabel}
+                        itemValueRenderer={autoCompleteLabel}
+                        itemValueSelector={(item) => item.value}
+                        createNewItem={{
+                            itemFromQuery: autoCompletion.allowOnlyAutoCompletedValues
+                                ? undefined
+                                : (query) => ({ value: query }),
+                            itemRenderer: autoCompletion.allowOnlyAutoCompletedValues
+                                ? undefined
+                                : createNewItemRendererFactory(
+                                      (query) => t("ParameterWidget.AutoComplete.createNewItem", { query }),
+                                      "item-add-artefact"
+                                  ),
+                        }}
+                        noResultText={t("common.messages.noResults")}
                     />
                 ) : (
                     <InputMapper

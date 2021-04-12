@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import {
+    AutoCompleteField,
     Button,
     Highlighter,
-    Icon,
     Notification,
     OverflowText,
     OverviewItem,
@@ -12,6 +12,7 @@ import {
     SimpleDialog,
 } from "@gui-elements/index";
 import { extractSearchWords } from "@gui-elements/src/components/Typography/Highlighter";
+import { CLASSPREFIX as eccguiprefix } from "@gui-elements/src/configuration/constants";
 import useHotKey from "../HotKeyHandler/HotKeyHandler";
 import { useTranslation } from "react-i18next";
 import { recentlyViewedItems } from "@ducks/workspace/requests";
@@ -21,12 +22,12 @@ import { Loading } from "../Loading/Loading";
 import { IItemLink } from "@ducks/shared/typings";
 import { useDispatch, useSelector } from "react-redux";
 import { routerOp } from "@ducks/router";
-import { Autocomplete } from "../Autocomplete/Autocomplete";
 import { useLocation } from "react-router";
 import { commonSel } from "@ducks/common";
 import { absolutePageUrl } from "@ducks/router/operations";
 import Tag from "@gui-elements/src/components/Tag/Tag";
 import { ItemDepiction } from "../ItemDepiction/ItemDepiction";
+import { createNewItemRendererFactory } from "@gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
 
 /** Shows the recently viewed items a user has visited. Also allows to trigger a workspace search. */
 export function RecentlyViewedModal() {
@@ -102,13 +103,14 @@ export function RecentlyViewedModal() {
         return taskLabel ? `${taskLabel} (${projectLabel})` : projectLabel;
     };
     // The representation of an item as an option in the selection list
-    const itemOption = (item: IRecentlyViewedItem, query: string, active: boolean) => {
+    const itemOption = (item: IRecentlyViewedItem, query: string, active: boolean, handleSelectClick: () => any) => {
         const label = item.taskLabel || item.taskId || item.projectLabel || item.projectId;
         return (
             <OverviewItem
+                className={active ? `${eccguiprefix}-overviewitem__item--active` : ""}
                 key={item.projectId + item.taskId}
                 hasSpacing
-                style={active ? { backgroundColor: "#0a67a3", color: "#fff" } : undefined}
+                onClick={handleSelectClick}
             >
                 <OverviewItemDepiction>
                     <ItemDepiction itemType={item.itemType} pluginId={item.pluginId} />
@@ -147,12 +149,6 @@ export function RecentlyViewedModal() {
             return searchWords.every((word) => label.includes(word));
         });
     };
-    // Auto-completion parameters necessary for auto-completion widget. FIXME: This shouldn't be needed.
-    const autoCompletion = {
-        allowOnlyAutoCompletedValues: true,
-        autoCompleteValueWithLabels: true,
-        autoCompletionDependsOnParameters: [],
-    };
     // Warning when an error has occurred
     const errorView = () => {
         return (
@@ -175,36 +171,28 @@ export function RecentlyViewedModal() {
         };
     };
     // Displays the 'search in workspace' option in the list.
-    const createNewItemRenderer = (query: string, active: boolean) => {
-        return (
-            <OverviewItem
-                key={query}
-                densityHigh
-                style={active ? { backgroundColor: "#0a67a3", color: "#fff" } : undefined}
-            >
-                <OverviewItemDescription>
-                    <OverviewItemLine>
-                        <Icon name={"operation-search"} small={true} />
-                        <span>{t("RecentlyViewedModal.globalSearch", { query })}</span>
-                    </OverviewItemLine>
-                </OverviewItemDescription>
-            </OverviewItem>
-        );
-    };
+    const createNewItemRenderer = createNewItemRendererFactory(
+        (query) => t("RecentlyViewedModal.globalSearch", { query }),
+        "operation-search"
+    );
+
     // The auto-completion of the recently viewed items
     const recentlyViewedAutoCompletion = () => {
         return (
-            <Autocomplete<IRecentlyViewedItem, IItemLink[]>
+            <AutoCompleteField<IRecentlyViewedItem, IItemLink[]>
                 onSearch={handleSearch}
-                autoCompletion={autoCompletion}
                 itemValueSelector={(value) => value.itemLinks}
                 itemRenderer={itemOption}
                 onChange={onChange}
                 autoFocus={true}
-                itemKey={(item) => (item.taskId ? item.taskId : item.projectId)}
                 inputProps={{ placeholder: t("RecentlyViewedModal.placeholder") }}
-                createNewItemFromQuery={globalSearch}
-                createNewItemRenderer={createNewItemRenderer}
+                createNewItem={{
+                    itemFromQuery: globalSearch,
+                    itemRenderer: createNewItemRenderer,
+                }}
+                // This is used for the key generation of the option React elements, even though this is not displayed anywhere.
+                itemValueRenderer={(item) => `${item.projectId} ${item.taskId ? item.taskId : ""}`}
+                noResultText={t("common.messages.noResults")}
             />
         );
     };

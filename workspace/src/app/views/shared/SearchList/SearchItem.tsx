@@ -24,7 +24,7 @@ import { IPageLabels } from "@ducks/router/operations";
 import { DATA_TYPES } from "../../../constants";
 import { commonSel } from "@ducks/common";
 import { IExportTypes } from "@ducks/common/typings";
-import { downloadResource } from "../../../utils/downloadResource";
+import { downloadProject } from "../../../utils/downloadProject";
 import { useTranslation } from "react-i18next";
 import ItemDepiction from "../../shared/ItemDepiction";
 import { useIFrameWindowLinks } from "../IframeWindow/iframewindowHooks";
@@ -103,7 +103,7 @@ export default function SearchItem({
     };
 
     const handleExport = async (type: IExportTypes) => {
-        downloadResource(item.id, type.id);
+        downloadProject(item.id, type.id);
     };
 
     return (
@@ -127,7 +127,12 @@ export default function SearchItem({
                         <OverviewItemLine small>
                             <OverflowText>
                                 {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
-                                    <Tag>{item.projectLabel ? item.projectLabel : item.projectId}</Tag>
+                                    <Tag>
+                                        <Highlighter
+                                            label={item.projectLabel ? item.projectLabel : item.projectId}
+                                            searchValue={searchValue}
+                                        />
+                                    </Tag>
                                 )}
                                 {item.description && !parentProjectId && item.type !== DATA_TYPES.PROJECT && (
                                     <Spacing vertical size="small" />
@@ -160,6 +165,7 @@ export default function SearchItem({
                             </>
                         ) : null}
                         <MenuItem
+                            data-test-id="search-item-delete-btn"
                             key="delete"
                             icon={"item-remove"}
                             onClick={onOpenDeleteModal}

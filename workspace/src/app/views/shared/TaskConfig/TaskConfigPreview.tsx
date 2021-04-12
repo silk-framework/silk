@@ -1,5 +1,12 @@
 import { IProjectTask } from "@ducks/shared/typings";
-import { OverflowText, PropertyValueList, PropertyValuePair, PropertyName, PropertyValue } from "@gui-elements/index";
+import {
+    OverflowText,
+    PropertyValueList,
+    PropertyValuePair,
+    PropertyName,
+    PropertyValue,
+    Notification,
+} from "@gui-elements/index";
 import React from "react";
 import { IArtefactItemProperty, IDetailedArtefactItem } from "@ducks/common/typings";
 import { useTranslation } from "react-i18next";
@@ -19,7 +26,7 @@ interface IProps {
 export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
     const [t] = useTranslation();
     if (!taskData) {
-        return <p>{t("widget.TaskConfigWidget.noPreview", "No preview available")}</p>;
+        return <Notification>{t("widget.TaskConfigWidget.noPreview", "No preview available")}</Notification>;
     }
 
     // Generates a flat object of (nested) parameter labels and their display values, i.e. their label if it exists
@@ -74,6 +81,8 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
             return parameterValue;
         }
     };
+    // Because of line_height: 1, underscores are not rendered
+    const fixStyle = { lineHeight: "normal" };
     // TODO: only return list when it has items, so we need calculate content before rendering
     return (
         <OverflowText passDown>
@@ -86,7 +95,7 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                             <PropertyValuePair hasDivider key={paramId}>
                                 <PropertyName>{paramId}</PropertyName>
                                 <PropertyValue>
-                                    <code>{value}</code>
+                                    <code style={fixStyle}>{value}</code>
                                 </PropertyValue>
                             </PropertyValuePair>
                         );

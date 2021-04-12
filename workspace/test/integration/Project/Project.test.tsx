@@ -10,15 +10,17 @@ import {
     findSingleElement,
     keyDown,
     legacyApiUrl,
+    logRequests,
     mockAxiosResponse,
     testWrapper,
     withMount,
     workspacePath,
     wrapperHtml,
 } from "../TestHelper";
-import { createBrowserHistory } from "history";
+import { createBrowserHistory, History, LocationState } from "history";
 import Project from "../../../src/app/views/pages/Project";
 import qs from "qs";
+import { ReactWrapper } from "enzyme";
 
 //jest.setTimeout(50000);
 
@@ -56,10 +58,10 @@ describe("Project page", () => {
             },
         },
     };
-    let hostPath = process.env.HOST;
     let projectPageWrapper: ReactWrapper<any, any> = null;
+    let history: History<LocationState> = null;
     beforeEach(() => {
-        const history = createBrowserHistory();
+        history = createBrowserHistory();
         history.location.pathname = workspacePath("/projects/" + testProjectId);
 
         projectPageWrapper = withMount(testWrapper(<Project />, history, reducerState));
@@ -85,6 +87,19 @@ describe("Project page", () => {
 
     it("should get prefixes for configuration widget", () => {
         checkRequestMade(apiUrl("/workspace/projects/" + testProjectId + "/prefixes"));
+    });
+
+    it("should search items for that project", () => {
+        checkRequestMade(apiUrl("/workspace/searchItems"), "POST", { project: testProjectId }, true);
+    });
+
+    it("should search items when switching from one project to another", async () => {
+        const otherProject = "otherProject";
+        checkRequestMade(apiUrl("/workspace/searchItems"), "POST", { project: testProjectId }, true);
+        history.push(workspacePath("/projects/" + otherProject));
+        await waitFor(() => {
+            checkRequestMade(apiUrl("/workspace/searchItems"), "POST", { project: otherProject }, true);
+        });
     });
 
     it("should filter items, by given criteria from URL search params", async () => {

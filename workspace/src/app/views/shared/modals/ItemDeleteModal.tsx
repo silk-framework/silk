@@ -36,10 +36,10 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
         setError(null);
         try {
             setLoading(true);
-            if (projectId) {
+            if (id) {
                 await requestRemoveTask(id, projectId, withDependentTaskDeletion);
             } else {
-                await requestRemoveProject(id);
+                await requestRemoveProject(projectId);
             }
             onConfirmed && onConfirmed();
         } catch (e) {
@@ -54,19 +54,24 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
     };
 
     const prepareDelete = async () => {
+        const itemType = t(
+            item.id
+                ? `common.dataTypes.${item.type ? item.type.toLowerCase() : "genericArtefactLabel"}`
+                : "common.dataTypes.project"
+        );
         setDeleteModalOptions({
             render: () => <Loading description={t("Deletedialog.loading", "Loading delete dialog.")} />,
             onConfirm: handleConfirmRemove(false),
         });
         const deleteTitle = t("common.action.DeleteSmth", {
-            smth: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
+            smth: itemType,
         });
 
         try {
             const data =
                 item.projectId && item.id
                     ? (await requestTaskMetadata(item.id, item.projectId)).data
-                    : (await requestProjectMetadata(item.id ? item.id : item.projectId)).data;
+                    : (await requestProjectMetadata(item.projectId)).data;
 
             // Skip check the relations for projects
             if (
@@ -77,7 +82,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                     confirmationRequired: true,
                     render: () => (
                         <div>
-                            {t("DeleteModal.confirmMsg", { name: data.label || item.id })}
+                            {t("DeleteModal.confirmMsg", { name: data.label || item.id, itemType: itemType })}
                             <Spacing />
                             <ul>
                                 {(data as ITaskMetadataResponse).relations.dependentTasksDirect.map((rel) => (
@@ -87,7 +92,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                         </div>
                     ),
                     title: t("common.action.DeleteSmth", {
-                        smth: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
+                        smth: itemType,
                     }),
                     onConfirm: handleConfirmRemove(true),
                 });
@@ -97,8 +102,8 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                     render: () => (
                         <p>
                             {t("DeleteModal.deleteResource", {
-                                type: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
-                                name: data.label || item.id,
+                                type: itemType,
+                                name: data.label || item.id || item.projectId,
                             })}
                         </p>
                     ),
@@ -112,7 +117,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                 render: () => (
                     <p>
                         {t("DeleteModal.deleteResource", {
-                            type: t(item.projectId ? "common.dataTypes.task" : "common.dataTypes.project"),
+                            type: itemType,
                             name: item.label || item.id || item.projectId,
                         })}
                     </p>

@@ -4,12 +4,13 @@ import { Switch, TextArea, TextField } from "@gui-elements/index";
 import { CodeEditor } from "../../../QueryEditor/CodeEditor";
 import { ITaskParameter } from "@ducks/common/typings";
 import { Intent } from "@blueprintjs/core";
-import { FileUploader } from "../../../FileUploader/FileUploader";
+import { FileSelectionMenu } from "../../../FileUploader/FileSelectionMenu";
 import { AppToaster } from "../../../../../services/toaster";
 import { requestResourcesList } from "@ducks/shared/requests";
 import { defaultValueAsJs, stringValueAsJs } from "../../../../../utils/transformers";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
+import { useTranslation } from "react-i18next";
 
 interface IProps {
     projectId: string;
@@ -41,6 +42,7 @@ interface IInputAttributes {
 
 /** Maps an atomic value to the corresponding value type widget. */
 export function InputMapper({ projectId, parameter, intent, onChange, initialValues }: IProps) {
+    const [t] = useTranslation();
     const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
     const { paramId, param } = parameter;
     const initialValue =
@@ -90,21 +92,19 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
         case INPUT_TYPES.PASSWORD:
             return <TextField {...inputAttributes} type={"password"} />;
         case INPUT_TYPES.RESOURCE:
+            const resourceNameFn = (item) => item.name;
             return (
-                <FileUploader
+                <FileSelectionMenu
                     projectId={projectId}
                     advanced={true}
                     allowMultiple={false}
                     maxFileUploadSizeBytes={maxFileUploadSize}
                     autocomplete={{
-                        autoCompletion: {
-                            allowOnlyAutoCompletedValues: true,
-                            autoCompleteValueWithLabels: true,
-                            autoCompletionDependsOnParameters: [],
-                        },
                         onSearch: handleFileSearch,
-                        itemRenderer: (item) => item.name,
-                        itemValueSelector: (item) => item.name,
+                        itemRenderer: resourceNameFn,
+                        itemValueRenderer: resourceNameFn,
+                        itemValueSelector: resourceNameFn,
+                        noResultText: t("common.messages.noResults", "No results."),
                     }}
                     onUploadSuccess={(file) => {
                         // FIXME: the onChange function is not called on upload success, so this is a workaround

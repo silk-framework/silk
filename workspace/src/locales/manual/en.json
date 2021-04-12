@@ -75,14 +75,15 @@
                 "label": "Regex patterns"
             }
         },
+        "noAttributeProfile": "No profiling data available.",
         "profilingInfoHeader": "Profiling info for {{path}} data",
         "profilingInfoTooltip": "Show extended profiling info for {{path}}",
         "profilingNotAvailable": "No profiling data available, yet.",
         "profilingRunning": "Running profiling on"
     },
     "DeleteModal": {
-        "confirmMsg": "Task {{name}} is used by other tasks! Deleting this task will also delete all depending tasks listed below:",
-        "deleteResource": "{{type}} {{name}} will be deleted"
+        "confirmMsg": "The {{itemType}} '{{name}}' is used by other items! Deleting this item will also delete all depending items listed below:",
+        "deleteResource": "{{type}} '{{name}}' will be deleted"
     },
     "Deletedialog": {
         "loading": "Loading delete dialog."
@@ -122,8 +123,13 @@
         "itemsPerPage": "Items per page:",
         "pageRangeText": "of {{total}} pages"
     },
+    "ParameterWidget": {
+        "AutoComplete": {
+            "createNewItem": "Custom entry: '{{query}}'"
+        }
+    },
     "PrefixDialog": {
-        "deletePrefix": "Prefix {{prefixName}} will be deleted."
+        "deletePrefix": "Prefix '{{prefixName}}' will be deleted."
     },
     "ProjectImportModal": {
         "importBtn": "Import project",
@@ -186,7 +192,12 @@
         "dataTypes": {
             "project": "Project",
             "projectDesc": "Projects let you group related items. All items that depend on each other need to be in the same project.",
-            "task": "Task"
+            "genericArtefactLabel": "item",
+            "workflow": "workflow",
+            "dataset": "dataset",
+            "transform": "transform",
+            "linking": "linking",
+            "task": "task"
         },
         "messages": {
             "actionFailed": "{{action}} action failed. Details: {{error}}",
@@ -210,7 +221,9 @@
             "Linking evaluation": "Linking evaluation",
             "Linking execution": "Linking execution",
             "Reference links" : "Reference links",
-            "Learning": "Learning"
+            "Learning": "Learning",
+            "Explore": "Data exploration",
+            "Query": "Query editor"
         },
         "sorter": {
             "recentlyViewed": "Recently viewed"
@@ -298,7 +311,7 @@
         "workspace": {
             "contents": "Contents",
             "createProject": "Create Project",
-            "empty": "Workspace is empty, so start please create your first project"
+            "empty": "Your workspace is empty. In order to start, create a new project or import an existing project from an exported project file."
         }
     },
     "widget": {

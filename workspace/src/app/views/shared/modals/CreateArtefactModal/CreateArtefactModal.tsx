@@ -10,11 +10,9 @@ import {
     GridColumn,
     GridRow,
     HelperClasses,
-    HtmlContentBlock,
     Highlighter,
-    Icon,
+    HtmlContentBlock,
     IconButton,
-    Link,
     Notification,
     OverflowText,
     OverviewItem,
@@ -26,7 +24,7 @@ import {
     SimpleDialog,
     Spacing,
 } from "@gui-elements/index";
-import { extractSearchWords, createMultiWordRegex } from "@gui-elements/src/components/Typography/Highlighter";
+import { createMultiWordRegex, extractSearchWords } from "@gui-elements/src/components/Typography/Highlighter";
 import { commonOp, commonSel } from "@ducks/common";
 import { IArtefactItem, IArtefactModal, IDetailedArtefactItem } from "@ducks/common/typings";
 import Loading from "../../Loading";
@@ -40,7 +38,7 @@ import { useTranslation } from "react-i18next";
 import { TaskType } from "@ducks/shared/typings";
 import { ProjectImportModal } from "../ProjectImportModal";
 import ItemDepiction from "../../../shared/ItemDepiction";
-import { ErrorBoundary } from "carbon-components-react";
+import { ErrorBoundary } from "carbon-components-react/lib/components/ErrorBoundary";
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
@@ -79,12 +77,16 @@ export function CreateArtefactModal() {
 
     // Fetch Artefact list
     useEffect(() => {
-        if (projectId) {
-            dispatch(commonOp.fetchArtefactsListAsync());
+        if (projectId && isOpen) {
+            dispatch(
+                commonOp.fetchArtefactsListAsync({
+                    textQuery: searchValue,
+                })
+            );
         } else {
             dispatch(commonOp.resetArtefactsList());
         }
-    }, [projectId]);
+    }, [!!projectId, isOpen]);
 
     const handleAdd = () => {
         if (toBeAddedKey === DATA_TYPES.PROJECT) {
@@ -94,15 +96,14 @@ export function CreateArtefactModal() {
     };
 
     const handleSearch = (textQuery: string) => {
-        if (!projectId) {
-            return;
-        }
         setSearchValue(textQuery);
-        dispatch(
-            commonOp.fetchArtefactsListAsync({
-                textQuery,
-            })
-        );
+        if (projectId) {
+            dispatch(
+                commonOp.fetchArtefactsListAsync({
+                    textQuery,
+                })
+            );
+        }
     };
 
     // Handles that an artefact is selected (highlighted) in the artefact selection list (not added, yet    )
@@ -171,11 +172,13 @@ export function CreateArtefactModal() {
                 }
             }
         } finally {
+            setSearchValue("");
             setActionLoading(false);
         }
     };
 
     const closeModal = () => {
+        setSearchValue("");
         resetModal(true);
     };
 
@@ -309,7 +312,7 @@ export function CreateArtefactModal() {
                             </Button>,
                             <CardActionsAux key="aux">
                                 {!updateExistingTask && (
-                                    <Button key="back" onClick={handleBack}>
+                                    <Button data-test-id={"create-dialog-back-btn"} key="back" onClick={handleBack}>
                                         {t("common.words.back", "Back")}
                                     </Button>
                                 )}
@@ -327,7 +330,7 @@ export function CreateArtefactModal() {
                         >
                             {t("common.action.add")}
                         </Button>,
-                        <Button key="cancel" onClick={closeModal}>
+                        <Button data-test-id="create-dialog-cancel-btn" key="cancel" onClick={closeModal}>
                             {t("common.action.cancel")}
                         </Button>,
                     ]
@@ -344,13 +347,19 @@ export function CreateArtefactModal() {
                     />
                 )) ||
                 (projectArtefactSelected && (
-                    <p>
-                        <Icon name="state-info" style={{ verticalAlign: "middle" }} />{" "}
-                        {t("ProjectImportModal.restoreNotice", "Want to restore an existing project?")}{" "}
-                        <Link key="importProject" onClick={switchToProjectImport} href="#import-project">
-                            {t("ProjectImportModal.restoreStarter", "Import project file")}
-                        </Link>
-                    </p>
+                    <Notification
+                        message={t("ProjectImportModal.restoreNotice", "Want to restore an existing project?")}
+                        actions={[
+                            <Button
+                                data-test-id="project-import-link"
+                                key="importProject"
+                                onClick={switchToProjectImport}
+                                href="#import-project"
+                            >
+                                {t("ProjectImportModal.restoreStarter", "Import project file")}
+                            </Button>,
+                        ]}
+                    />
                 ))
             }
         >
@@ -372,9 +381,13 @@ export function CreateArtefactModal() {
                                             description={t("CreateModal.loading", "Loading artefact type list.")}
                                         />
                                     ) : artefactListWithProject.length === 0 ? (
-                                        <p>{t("CreateModal.noMatch", "No match found.")}</p>
+                                        <Notification message={t("CreateModal.noMatch", "No match found.")} />
                                     ) : (
-                                        <OverviewItemList hasSpacing columns={2}>
+                                        <OverviewItemList
+                                            data-test-id="item-to-create-selection-list"
+                                            hasSpacing
+                                            columns={2}
+                                        >
                                             {artefactListWithProject.map((artefact) => (
                                                 <Card
                                                     isOnlyLayout
@@ -385,6 +398,7 @@ export function CreateArtefactModal() {
                                                 >
                                                     <OverviewItem
                                                         hasSpacing
+                                                        data-test-id={`artefact-plugin-${artefact.key}`}
                                                         onClick={() => handleArtefactSelect(artefact)}
                                                         onKeyDown={handleEnter}
                                                     >
