@@ -118,6 +118,7 @@ export default function STableHeader({
                             }
                         </ContextMenu>
                         <ColumnFilter
+                            data-test-id={"suggest-table-selection-filter-btn"}
                             selectedFilter={appliedFilters.checkbox}
                             filters={COLUMN_FILTERS.checkbox}
                             onApplyFilter={(filter) => onApplyFilter('checkbox', filter)}
@@ -138,6 +139,7 @@ export default function STableHeader({
                                 <ToolbarSection>
                                     <Spacing size="tiny" vertical={true} />
                                     <IconButton
+                                        data-test-id={header.sortDataTestId}
                                         name={
                                             sortDirections.column !== header.key
                                                 ? 'list-sort'
@@ -153,6 +155,7 @@ export default function STableHeader({
                                     />
                                     {
                                         COLUMN_FILTERS[header.key] && <ColumnFilter
+                                            data-test-id={header.filterDataTestId}
                                             selectedFilter={appliedFilters[header.key]}
                                             filters={COLUMN_FILTERS[header.key]}
                                             onApplyFilter={(filter) => onApplyFilter(header.key, filter)}

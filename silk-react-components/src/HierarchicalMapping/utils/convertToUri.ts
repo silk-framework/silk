@@ -1,8 +1,10 @@
 import { URI } from 'ecc-utils';
+import {INewOptionCreatorParams} from "../components/AutoComplete";
+
 
 /** Converts a string to a normalized URI. Used when the user is expected to enter a valid (possibly relative) URI.
  * Usable in auto complete widget as newOptionCreator function. */
-export const convertToUri = ({label, labelKey, valueKey}) => {
+export const convertToUri = ({label, labelKey, valueKey}: INewOptionCreatorParams) => {
     let value = label;
     try {
         const regex = /^Create option "(.*)"$/;

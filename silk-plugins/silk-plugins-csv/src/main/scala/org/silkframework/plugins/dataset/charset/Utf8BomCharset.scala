@@ -1,4 +1,4 @@
-package org.silkframework.plugins.dataset.csv.charset
+package org.silkframework.plugins.dataset.charset
 
 import java.nio.charset._
 import java.nio.charset.spi.CharsetProvider

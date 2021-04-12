@@ -64,6 +64,16 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   }
 
   /**
+    * Cancels all activities in this project.
+    */
+  def cancelActivities()(implicit userContext: UserContext): Unit = {
+    // Project activities
+    activities.foreach(_.control.cancel())
+    // Task activities
+    allTasks.foreach(_.cancelActivities())
+  }
+
+  /**
     * The name of this project.
     */
   override def name: Identifier = cachedConfig.id

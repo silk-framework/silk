@@ -239,14 +239,12 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   /**
     * Reloads this workspace.
     */
-  def reload()(implicit userContext: UserContext): Unit = {
+  def reload()(implicit userContext: UserContext): Unit = synchronized {
     loadUserProjects()
 
-    // TODO: Should global workspace activities also be reloaded?
     // Stop all activities
-    for{ project <- projects // Should not work directly on the cached projects
-         activity <- project.activities } {
-      activity.control.cancel()
+    for(project <- projects) { // Should not work directly on the cached projects
+      project.cancelActivities()
     }
     for(workspaceActivity <- activities) {
       workspaceActivity.control.cancel()
@@ -270,7 +268,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   private def reloadProject(id: Identifier)
                            (implicit userContext: UserContext): Unit = synchronized {
     // remove project
-    Try(project(id).activities.foreach(_.control.cancel()))
+    Try(project(id).cancelActivities())
     removeProjectFromCache(id)
     provider.readProject(id) match {
       case Some(projectConfig) =>

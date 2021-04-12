@@ -77,6 +77,12 @@ export interface ITableHeader {
 
     // the column keycode
     key: string;
+
+    // For testing purposes, the test ID of the sort button/icon
+    sortDataTestId?: string
+
+    // For testing purposes, the test ID of the filter button/icon
+    filterDataTestId?: string
 }
 
 export interface ISortDirection {

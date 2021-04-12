@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.csv
 
 import org.silkframework.dataset._
 import org.silkframework.dataset.bulk.BulkResourceBasedDataset
-import org.silkframework.plugins.dataset.csv.charset.CharsetAutocompletionProvider
+import org.silkframework.plugins.dataset.charset.CharsetAutocompletionProvider
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource._

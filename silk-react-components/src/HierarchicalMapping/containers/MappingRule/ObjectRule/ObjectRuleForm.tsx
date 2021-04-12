@@ -1,18 +1,24 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import {
-    AffirmativeButton,
-    DismissiveButton,
     Card,
     CardTitle,
     CardContent,
     CardActions,
-    Radio,
     RadioGroup,
-    TextField,
     Spinner,
-    ScrollingHOC, Checkbox,
+    ScrollingHOC,
+    Checkbox,
 } from '@eccenca/gui-elements';
+import {
+    FieldItem
+} from '@gui-elements/index';
+import {
+    AffirmativeButton,
+    DismissiveButton,
+    Radio,
+    TextField,
+} from '@gui-elements/legacy-replacements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import { ParentElement } from '../../../components/ParentElement';
@@ -29,11 +35,22 @@ import { trimValue } from '../../../utils/trimValue';
 import { wasTouched } from '../../../utils/wasTouched';
 import { newValueIsIRI } from '../../../utils/newValueIsIRI';
 import TargetCardinality from "../../../components/TargetCardinality";
+import MultiAutoComplete from "../../../components/MultiAutoComplete";
+
+interface IProps {
+    id?: string
+    parentId: string
+    scrollIntoView: ({topOffset: number}) => any
+    onAddNewRule: (callback: () => any) => any
+    scrollElementIntoView: () => any
+    ruleData: object
+    parent: any
+}
 
 /**
  * Provides the editable form for object mappings.
  */
-export class ObjectRuleForm extends Component {
+export class ObjectRuleForm extends Component<IProps, any> {
     // define property types
     static propTypes = {
         id: PropTypes.string,
@@ -186,10 +203,10 @@ export class ObjectRuleForm extends Component {
         // TODO: add source path if: parent, not edit, not root element
         const title = !id && <CardTitle>Add object mapping</CardTitle>;
 
-        let targetPropertyInput = false;
-        let targetCardinality = false;
-        let entityRelationInput = false;
-        let sourcePropertyInput = false;
+        let targetPropertyInput: JSX.Element | undefined = undefined
+        let targetCardinality: JSX.Element | undefined = undefined
+        let entityRelationInput: JSX.Element | undefined = undefined
+        let sourcePropertyInput: JSX.Element | undefined = undefined
 
         if (modifiedValues.type !== MAPPING_RULE_TYPE_ROOT) {
             // TODO: where to get get list of target properties
@@ -205,40 +222,43 @@ export class ObjectRuleForm extends Component {
                     data-id="autocomplete_target_prop"
                     value={modifiedValues.targetProperty}
                     onChange={value => { this.handleChangeValue('targetProperty', value); }}
+                    resetQueryToValue={true}
+                    itemDisplayLabel={(item) => item.label ? `${item.label} <${item.value}>` : item.value}
                 />
-
             );
             entityRelationInput = (
-                <RadioGroup
-                    onChange={({ value }) => { this.handleChangeValue('entityConnection', value); }}
-                    value={
-                        !_.isEmpty(modifiedValues.entityConnection)
-                            ? modifiedValues.entityConnection
-                            : 'from'
-                    }
-                    name=""
-                    disabled={false}
-                    data-id="entity_radio_group"
-                >
-                    <Radio
-                        value="from"
-                        label={
-                            <div>
-                                Connect from{' '}
-                                <ParentElement parent={parent} />
-                            </div>
+                <FieldItem>
+                    <RadioGroup
+                        onChange={({ value }) => { this.handleChangeValue('entityConnection', value); }}
+                        value={
+                            !_.isEmpty(modifiedValues.entityConnection)
+                                ? modifiedValues.entityConnection
+                                : 'from'
                         }
-                    />
-                    <Radio
-                        value="to"
-                        label={
-                            <div>
-                                Connect to{' '}
-                                <ParentElement parent={parent} />
-                            </div>
-                        }
-                    />
-                </RadioGroup>
+                        name=""
+                        disabled={false}
+                        data-id="entity_radio_group"
+                    >
+                        <Radio
+                            value="from"
+                            label={
+                                <span>
+                                    Connect from{' '}
+                                    <ParentElement parent={parent} />
+                                </span>
+                            }
+                        />
+                        <Radio
+                            value="to"
+                            label={
+                                <span>
+                                    Connect to{' '}
+                                    <ParentElement parent={parent} />
+                                </span>
+                            }
+                        />
+                    </RadioGroup>
+                </FieldItem>
             );
             targetCardinality = (
                 <TargetCardinality
@@ -258,11 +278,13 @@ export class ObjectRuleForm extends Component {
                     ruleId={parentId}
                     onChange={value => { this.handleChangeValue('sourceProperty', value); }}
                     data-id="autocomplete_source_prop"
+                    resetQueryToValue={true}
+                    itemDisplayLabel={(item) => item.label ? `${item.label} <${item.value}>` : item.value}
                 />
             );
         }
 
-        let patternInput = false;
+        let patternInput: JSX.Element | undefined = undefined
 
         if (id) {
             if (modifiedValues.uriRuleType === 'uri') {
@@ -295,14 +317,13 @@ export class ObjectRuleForm extends Component {
                         {errorMessage}
                         {targetPropertyInput}
                         {entityRelationInput}
-                        <AutoComplete
+                        <MultiAutoComplete
                             placeholder="Target entity type"
                             className="ecc-silk-mapping__ruleseditor__targetEntityType"
                             entity="targetEntityType"
                             isValidNewOption={newValueIsIRI}
                             ruleId={autoCompleteRuleId}
                             value={modifiedValues.targetEntityType}
-                            multi // allow multi selection
                             creatable
                             onChange={value => { this.handleChangeValue('targetEntityType', value); }}
                         />

@@ -1,7 +1,9 @@
 import { URI } from 'ecc-utils';
+import {IIsValidNewOptionParams} from "../components/AutoComplete";
+
 
 /** Tests if the value is a relative or absolute IRI or URN? */
-export const newValueIsIRI = ({label}) => {
+export const newValueIsIRI = ({label}: IIsValidNewOptionParams) => {
     try {
         if (label.length > 0) {
             const uri = new URI(label.replace(/^<|>$/g, ''));

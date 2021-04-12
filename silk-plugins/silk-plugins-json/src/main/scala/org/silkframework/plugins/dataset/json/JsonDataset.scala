@@ -31,7 +31,10 @@ case class JsonDataset(
 
   private val jsonTemplate = JsonTemplate.parse(template)
 
-  override def source(implicit userContext: UserContext): DataSource = JsonSource(file, basePath, uriPattern)
+  override def source(implicit userContext: UserContext): DataSource = {
+    file.checkSizeForInMemory()
+    JsonSource(file, basePath, uriPattern)
+  }
 
   override def linkSink(implicit userContext: UserContext): LinkSink = new TableLinkSink(new JsonSink(file, outputSingleJsonObject = false, maxDepth = maxDepth))
 

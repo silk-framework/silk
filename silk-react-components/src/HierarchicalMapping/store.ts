@@ -607,7 +607,9 @@ export const autocompleteAsync = data => {
             topic: channel,
             data: {...getApiDetails(), term: input, ruleId},
         })
-        .map(returned => ({options: returned.body}));
+        .map(returned => {
+            return {options: returned.body}
+        });
 };
 
 export const createMappingAsync = (data, isObject = false) => {
@@ -686,3 +688,11 @@ export const prefixesAsync = () => {
         })
         .map(returned => returned.body);
 };
+
+const exportFunctions = {
+    getHierarchyAsync,
+    getRuleAsync,
+    createMappingAsync,
+}
+
+export default exportFunctions
