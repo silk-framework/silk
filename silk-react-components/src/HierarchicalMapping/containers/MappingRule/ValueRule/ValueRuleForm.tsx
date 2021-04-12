@@ -9,12 +9,8 @@ import {
     SelectBox,
 } from '@eccenca/gui-elements';
 import {
-    FieldItem
-} from '@gui-elements/index';
-import {
     AffirmativeButton,
     DismissiveButton,
-    Checkbox,
     TextField,
 } from '@gui-elements/legacy-replacements';
 import _ from 'lodash';
@@ -368,9 +364,9 @@ export function ValueRuleForm(props: IProps) {
                         }
                         <TargetCardinality
                             className="ecc-silk-mapping__ruleseditor__isAttribute"
-                            isAttribute={this.state.isAttribute}
+                            isAttribute={isAttribute}
                             isObjectMapping={false}
-                            onChange={(value) => this.handleChangeValue('isAttribute', value)}
+                            onChange={() => handleChangeValue('isAttribute', !isAttribute, setIsAttribute)}
                         />
                         {sourcePropertyInput}
                         {exampleView}

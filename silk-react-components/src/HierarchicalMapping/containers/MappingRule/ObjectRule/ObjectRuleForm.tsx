@@ -8,7 +8,6 @@ import {
     RadioGroup,
     Spinner,
     ScrollingHOC,
-    Checkbox,
 } from '@eccenca/gui-elements';
 import {
     FieldItem

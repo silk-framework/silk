@@ -1,11 +1,15 @@
 import React from 'react';
 import {
     Tooltip,
-    Radio,
     RadioGroup,
 } from '@eccenca/gui-elements';
+import {
+    Radio,
+} from '@gui-elements/legacy-replacements';
 import * as PropTypes from "prop-types";
+import {FieldItem} from "@gui-elements/index";
 
+/** Let's a user choose if a target property is single or multi-valued. Depending on the dataset type this will have different implications. */
 class TargetCardinality extends React.Component {
     constructor(props) {
         super(props);
@@ -31,22 +35,24 @@ class TargetCardinality extends React.Component {
 
     renderRadioBox() {
         return (
-            <RadioGroup
-                value={this.state.isAttribute ? 'single' : 'multiple'}
-                name = ""
-                onChange={({ value }) => { this.onChange(value === "single") }}
-            >
-                <Radio
-                    name="single"
-                    value="single"
-                    label={ this.renderSingleValue() }
-                />
-                <Radio
-                    name="multiple"
-                    value="multiple"
-                    label={ this.renderMultipleValues() }
-                />
-            </RadioGroup>
+            <FieldItem>
+                <RadioGroup
+                    value={this.state.isAttribute ? 'single' : 'multiple'}
+                    name = ""
+                    onChange={({ value }) => { this.onChange(value === "single") }}
+                >
+                    <Radio
+                        name="single"
+                        value="single"
+                        label={ this.renderSingleValue() }
+                    />
+                    <Radio
+                        name="multiple"
+                        value="multiple"
+                        label={ this.renderMultipleValues() }
+                    />
+                </RadioGroup>
+            </FieldItem>
         )
     }
 
@@ -54,7 +60,7 @@ class TargetCardinality extends React.Component {
         if(this.props.isObjectMapping) {
             return <Tooltip
                 label={
-                    <div style={{textAlign: "left"}}>
+                    <span style={{textAlign: "left"}}>
                         A single entity is expected for each parent entity.
                         Receiving multiple entities will trigger a validation error.
                         <br/>
@@ -63,14 +69,14 @@ class TargetCardinality extends React.Component {
                         <b>XML:</b> Entities will be written as a nested element. The name of the element tag is specified by the property name.
                         <br/>
                         <b>JSON:</b> Entities will be written as an object, which is not wrapped by an array.
-                    </div>
+                    </span>
                 }>
                 Only a single entity is allowed
             </Tooltip>
         } else {
             return <Tooltip
                 label={
-                    <div style={{textAlign: "left"}}>
+                    <span style={{textAlign: "left"}}>
                         A single value is expected for this property.
                         Receiving multiple values will trigger a validation error.
                         <br/>
@@ -79,7 +85,7 @@ class TargetCardinality extends React.Component {
                         <b>XML:</b> Values will be written as an attribute. The name of the attribute is specified by the property name.
                         <br/>
                         <b>JSON:</b> Values will be written as literals, which are not wrapped in an array.
-                    </div>
+                    </span>
                 }>
                 Only a single value is allowed
             </Tooltip>
