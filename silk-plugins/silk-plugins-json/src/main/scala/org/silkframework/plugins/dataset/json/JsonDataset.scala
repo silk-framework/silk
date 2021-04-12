@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.json
 
 import org.silkframework.dataset._
+import org.silkframework.plugins.dataset.hierarchical.HierarchicalSink.DEFAULT_MAX_SIZE
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.MultilineStringParameter
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
@@ -24,14 +25,15 @@ case class JsonDataset(
   basePath: String = "",
   @deprecated("This will be removed in the next release.", "")
   @Param(label = "URI pattern (deprecated)", value = "A URI pattern, e.g., http://namespace.org/{ID}, where {path} may contain relative paths to elements", advanced = true)
-  uriPattern: String = ""
-  ) extends Dataset with ResourceBasedDataset {
+  uriPattern: String = "",
+  @Param(value = "Maximum depth of written JSON. This acts as a safe guard if a recursive structure is written.", advanced = true)
+  maxDepth: Int = DEFAULT_MAX_SIZE) extends Dataset with ResourceBasedDataset {
 
   private val jsonTemplate = JsonTemplate.parse(template)
 
   override def source(implicit userContext: UserContext): DataSource = JsonSource(file, basePath, uriPattern)
 
-  override def linkSink(implicit userContext: UserContext): LinkSink = new TableLinkSink(new JsonSink(file, outputSingleJsonObject = false))
+  override def linkSink(implicit userContext: UserContext): LinkSink = new TableLinkSink(new JsonSink(file, outputSingleJsonObject = false, maxDepth = maxDepth))
 
-  override def entitySink(implicit userContext: UserContext): EntitySink = new JsonSink(file, outputSingleJsonObject, jsonTemplate)
+  override def entitySink(implicit userContext: UserContext): EntitySink = new JsonSink(file, outputSingleJsonObject, jsonTemplate, maxDepth)
 }

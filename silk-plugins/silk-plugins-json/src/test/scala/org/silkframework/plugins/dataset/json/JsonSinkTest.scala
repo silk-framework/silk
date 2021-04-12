@@ -4,6 +4,7 @@ import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
+import org.silkframework.plugins.dataset.hierarchical.MaxDepthExceededException
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import play.api.libs.json.Json
@@ -144,6 +145,31 @@ class JsonSinkTest extends FlatSpec with Matchers {
                    |  }
                    |]""".stripMargin
     )
+  }
+
+  it should "fail if the written entities contain a recursion" in {
+    val schema =
+      EntitySchema(
+        typeUri = "",
+        typedPaths =
+          IndexedSeq(
+            TypedPath(UntypedPath("path1"), ValueType.URI, isAttribute = false),
+            TypedPath(UntypedPath("path2"), ValueType.URI, isAttribute = false)
+          )
+      )
+
+    val entityTables = Seq(
+      Seq(Entity("e1_1", IndexedSeq(Seq("e2_1"), Seq()), schema)),
+      Seq(Entity("e2_1", IndexedSeq(Seq("e3_1"), Seq("e3_2")), schema)),
+      Seq(Entity("e3_1", IndexedSeq(Seq("e1_1"), Seq()), schema), Entity("e3_2", IndexedSeq(Seq(), Seq("e1_1")), schema)),
+    )
+
+    intercept[MaxDepthExceededException] {
+      test(
+        entityTables = entityTables,
+        expected = """should never generate a JSON""".stripMargin
+      )
+    }
   }
 
   private def test(entityTables: Seq[Seq[Entity]], outputSingleJsonObject: Boolean = false, template: JsonTemplate = JsonTemplate.default, expected: String): Unit = {
