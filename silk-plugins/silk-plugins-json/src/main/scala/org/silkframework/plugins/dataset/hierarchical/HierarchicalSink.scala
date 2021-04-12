@@ -104,7 +104,7 @@ abstract class HierarchicalSink extends EntitySink {
   private def outputEntities(writer: HierarchicalEntityWriter): Unit = {
     writer.open()
     rootEntities.readAndClose { entity =>
-      outputEntity(entity, writer, 2)
+      outputEntity(entity, writer, 1)
     }
   }
 
