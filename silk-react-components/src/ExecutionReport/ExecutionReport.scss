@@ -3,6 +3,31 @@
   margin: 0.5rem;
 }
 
+.silk-report-sidebar {
+  display: flex;
+  flex-flow: column nowrap;
+  max-height: calc(100vh - 70px);
+}
+
+.silk-report-sidebar-overview {
+  margin: 0.5rem;
+  flex-shrink: 0;
+  flex-grow: 0;
+}
+
+.silk-report-sidebar-tasks {
+  margin: 0.5rem;
+  flex-grow: 1;
+}
+
+.silk-report-sidebar-tasks-title {
+  flex-shrink: 0
+}
+
+.silk-report-sidebar-tasks-content {
+  overflow-y: auto
+}
+
 .silk-report-table {
   border: none;
   float: left;
