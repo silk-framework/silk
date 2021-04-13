@@ -8,7 +8,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   id = "negate",
   categories = Array("All"),
   label = "Negate",
-  description = "Negates the result of the first input comparison. All other inputs are ignored."
+  description = "Negates the result of the input comparison. A single input is expected."
 )
 case class NegationAggregator() extends SingleValueAggregator {
 
