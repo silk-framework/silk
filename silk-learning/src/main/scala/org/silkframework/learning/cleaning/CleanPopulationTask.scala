@@ -67,7 +67,7 @@ class CleanPopulationTask(population: Population, fitnessFunction: (LinkageRule 
       agg1 == agg2 &&
           ops1.forall(op1 => ops2.exists(op2 => compareOperators(op1, op2)))
     }
-    case (ComparisonNode(inputs1, limit1, weight1, metric1), ComparisonNode(inputs2, limit2, weight2, metric2)) => {
+    case (ComparisonNode(inputs1, limit1, weight1, required1, metric1), ComparisonNode(inputs2, limit2, weight2, required2, metric2)) => {
       metric1 == metric2 &&
           compareInputs(inputs1.source, inputs2.source) &&
           compareInputs(inputs1.target, inputs2.target)
