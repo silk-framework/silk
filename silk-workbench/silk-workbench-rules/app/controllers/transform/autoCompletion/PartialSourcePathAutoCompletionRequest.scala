@@ -27,6 +27,7 @@ object PartialSourcePathAutoCompletionRequest {
 case class PartialSourcePathAutoCompletionResponse(inputString: String,
                                                    cursorPosition: Int,
                                                    replacementInterval: Option[ReplacementInterval],
+                                                   extractedQuery: String,
                                                    replacementResults: CompletionsBase)
 
 /** The part of a string to replace.

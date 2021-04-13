@@ -15,6 +15,10 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
   private val rdfTransform = "17fef5a5-a920-4665-92f5-cc729900e8f1_TransformRDF"
   private val jsonTransform = "2a997fb4-1bc7-4344-882e-868193568e87_TransformJSON"
 
+  val allJsonPaths = Seq("department", "department/id", "department/tags",
+    "department/tags/evenMoreNested", "department/tags/evenMoreNested/value", "department/tags/tagId", "id", "name",
+    "phoneNumbers", "phoneNumbers/number", "phoneNumbers/type")
+
   /**
     * Returns the path of the XML zip project that should be loaded before the test suite starts.
     */
@@ -26,17 +30,32 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
 
   it should "auto-complete all paths when input is an empty string" in {
     val result = partialSourcePathAutoCompleteRequest(jsonTransform)
-    result.copy(replacementResults = null) mustBe PartialSourcePathAutoCompletionResponse("", 0, Some(ReplacementInterval(0, 0)), null)
-    suggestedValues(result) mustBe Seq("department", "department/id", "department/tags",
-      "department/tags/evenMoreNested", "department/tags/evenMoreNested/value", "department/tags/tagId", "id", "name",
-      "phoneNumbers", "phoneNumbers/number", "phoneNumbers/type")
+    result.copy(replacementResults = null) mustBe PartialSourcePathAutoCompletionResponse("", 0, Some(ReplacementInterval(0, 0)), "", null)
+    suggestedValues(result) mustBe allJsonPaths
   }
 
   it should "auto-complete with multi-word text filter if there is a one hop path entered" in {
     val inputText = "depart id"
     val result = partialSourcePathAutoCompleteRequest(jsonTransform, inputText = inputText, cursorPosition = 2)
-    result.copy(replacementResults = null) mustBe PartialSourcePathAutoCompletionResponse(inputText, 2, Some(ReplacementInterval(0, inputText.length)), null)
+    result.copy(replacementResults = null) mustBe PartialSourcePathAutoCompletionResponse(inputText, 2, Some(ReplacementInterval(0, inputText.length)), inputText,null)
     suggestedValues(result) mustBe Seq("department/id", "department/tags/tagId")
+  }
+
+  it should "auto-complete JSON paths at any level" in {
+    val level1EndInput = "department/id"
+    val level1Prefix = "department/"
+    // Return all relative paths that match "id" for any cursor position after the first slash
+    for(cursorPosition <- level1EndInput.length - 1 to level1EndInput.length) { // TODO: Change to -2
+      jsonSuggestions(level1EndInput, cursorPosition) mustBe Seq("id", "tags/tagId")
+    }
+  }
+
+  private def jsonSuggestions(inputText: String, cursorPosition: Int): Seq[String] = {
+    suggestedValues(partialSourcePathAutoCompleteRequest(jsonTransform, inputText = inputText, cursorPosition = cursorPosition))
+  }
+
+  private def rdfSuggestions(inputText: String, cursorPosition: Int): Set[String] = {
+    suggestedValues(partialSourcePathAutoCompleteRequest(rdfTransform, inputText = inputText, cursorPosition = cursorPosition)).toSet
   }
 
   private def suggestedValues(result: PartialSourcePathAutoCompletionResponse): Seq[String] = {

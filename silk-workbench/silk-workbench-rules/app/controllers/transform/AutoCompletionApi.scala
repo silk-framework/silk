@@ -69,15 +69,22 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
           val forwardOnlySourcePath = forwardOnlyPath(simpleSourcePath)
           val allPaths = pathsCacheCompletions(transformTask, simpleSourcePath)
           val isRdfInput = transformTask.activity[TransformPathsCache].value().isRdfInput(transformTask)
-          val relativeForwardPaths = relativePaths(simpleSourcePath, forwardOnlySourcePath, allPaths, isRdfInput)
+          var relativeForwardPaths = relativePaths(simpleSourcePath, forwardOnlySourcePath, allPaths, isRdfInput)
+          val openWorld = false  // TODO: set openWorld correctly
+          val pathToReplace = PartialSourcePathAutocompletionHelper.pathToReplace(autoCompletionRequest, openWorld)
+          if(!openWorld && pathToReplace.from > 0) {
+            val pathBeforeReplacement = UntypedPath.parse(autoCompletionRequest.inputString.take(pathToReplace.from))
+            val simplePathBeforeReplacement = simplePath(pathBeforeReplacement.operators)
+            relativeForwardPaths = relativePaths(simplePathBeforeReplacement, forwardOnlyPath(simplePathBeforeReplacement), relativeForwardPaths, isRdfInput)
+          }
           // Add known paths
           val completions: Completions = relativeForwardPaths
-          val from = 0 // TODO: What part to replace
-          val length = autoCompletionRequest.inputString.length
+          val from = pathToReplace.from
+          val length = pathToReplace.length
           // Return filtered result
           val filteredResults = completions.
             filterAndSort(
-              autoCompletionRequest.inputString,
+              pathToReplace.query.map(_.mkString(" ")).getOrElse(""),
               autoCompletionRequest.maxSuggestions.getOrElse(DEFAULT_AUTO_COMPLETE_RESULTS),
               sortEmptyTermResult = false,
               multiWordFilter = true
@@ -86,6 +93,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
             autoCompletionRequest.inputString,
             autoCompletionRequest.cursorPosition,
             Some(ReplacementInterval(from, length)),
+            pathToReplace.query.map(_.mkString(" ")).getOrElse(""),
             filteredResults.toCompletionsBase
           )
           Ok(Json.toJson(response))

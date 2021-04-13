@@ -119,4 +119,8 @@ object UntypedPath {
       path
     }
   }
+
+  def partialParse(pathStr: String)(implicit prefixes: Prefixes = Prefixes.empty): PartialParseResult = {
+    new PathParser(prefixes).parseUntilError(pathStr)
+  }
 }
