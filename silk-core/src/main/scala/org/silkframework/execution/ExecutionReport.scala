@@ -18,7 +18,7 @@ trait ExecutionReport {
   def label: String = task.taskLabel()
 
   /**
-    * Short label for the operation thas has been executed, e.g., read or write.
+    * Short label for the executed operation, e.g., read or write (optional).
     */
   def operation: Option[String] = None
 
