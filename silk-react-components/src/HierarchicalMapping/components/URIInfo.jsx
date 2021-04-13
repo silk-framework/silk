@@ -12,10 +12,10 @@ export class URIInfo extends React.Component {
     componentDidMount() {
         this.loadData(this.props);
     }
-    
-    componentDidUpdate(nextProps) {
-        if (!_.isEqual(this.props, nextProps)) {
-            this.loadData(nextProps);
+
+    componentDidUpdate(prevProps) {
+        if (!_.isEqual(this.props, prevProps)) {
+            this.loadData(this.props);
         }
     }
     

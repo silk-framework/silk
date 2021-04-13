@@ -13,7 +13,7 @@ export class ExampleView extends React.Component {
     static propTypes = {
         id: PropTypes.string,
         rawRule: PropTypes.object,
-        ruleType: PropTypes.object,
+        ruleType: PropTypes.string,
     };
 
     state = {

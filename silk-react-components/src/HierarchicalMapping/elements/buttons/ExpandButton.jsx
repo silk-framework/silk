@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '@eccenca/gui-elements';
+import { Button } from '@gui-elements/legacy-replacements';
 
 const ExpandButton = ({ onToggle, id, expanded }) => {
     return (
