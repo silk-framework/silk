@@ -49,24 +49,37 @@ private[entity] class PathParser(prefixes: Prefixes) extends RegexParsers {
     val addedOffset = completePath.length - pathStr.length
     val inputSequence = new CharSequenceReader(completePath)
     var partialPathOps: Vector[PathOperator] = Vector.empty
-    var errorPosition: Option[PartialParseError] = None
+    var partialParseError: Option[PartialParseError] = None
     val variableResult = parse(variable, inputSequence) // Ignore variable
     var parseOffset = variableResult.next.offset
-    while(errorPosition.isEmpty && parseOffset < completePath.length) {
-      parse(ops, inputSequence.drop(parseOffset)) match {
-        case Success(pathOperator, next) => {
-          partialPathOps :+= pathOperator
-          parseOffset = next.offset
-        }
-        case error: NoSuccess =>
-          errorPosition = Some(PartialParseError(
+    def originalParseOffset = math.max(0, parseOffset - addedOffset)
+    while(partialParseError.isEmpty && parseOffset < completePath.length) {
+      try {
+        parse(ops, inputSequence.drop(parseOffset)) match {
+          case Success(pathOperator, next) => {
+            partialPathOps :+= pathOperator
+            parseOffset = next.offset
+          }
+          case error: NoSuccess =>
             // Subtract 1 because next is positioned after the character that lead to the parse error.
-            error.next.offset - addedOffset - 1,
-            error.msg
+            val originalErrorOffset = math.max(error.next.offset - addedOffset - 1, 0)
+            partialParseError = Some(PartialParseError(
+              originalErrorOffset,
+              error.msg,
+              pathStr.substring(originalParseOffset, originalErrorOffset + 1) // + 1 since we want to have the character where it failed
+            ))
+        }
+      } catch {
+        case validationException: ValidationException =>
+          // Can happen e.g. when a qualified name used an invalid/unknown prefix name
+          partialParseError = Some(PartialParseError(
+            originalParseOffset,
+            validationException.getMessage,
+            ""
           ))
       }
     }
-    PartialParseResult(UntypedPath(partialPathOps.toList), errorPosition)
+    PartialParseResult(UntypedPath(partialPathOps.toList), partialParseError)
   }
 
   // Normalizes the path syntax in case a simplified syntax has been used
@@ -132,4 +145,4 @@ private[entity] class PathParser(prefixes: Prefixes) extends RegexParsers {
 case class PartialParseResult(partialPath: UntypedPath, error: Option[PartialParseError])
 
 /** Offset and error message of the parse error. The offset defines the position before the character that lead to the parse error. */
-case class PartialParseError(offset: Int, message: String)
+case class PartialParseError(offset: Int, message: String, inputLeadingToError: String)

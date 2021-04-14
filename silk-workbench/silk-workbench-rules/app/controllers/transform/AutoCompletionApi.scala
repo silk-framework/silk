@@ -70,9 +70,8 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
           val allPaths = pathsCacheCompletions(transformTask, simpleSourcePath)
           val isRdfInput = transformTask.activity[TransformPathsCache].value().isRdfInput(transformTask)
           var relativeForwardPaths = relativePaths(simpleSourcePath, forwardOnlySourcePath, allPaths, isRdfInput)
-          val openWorld = false  // TODO: set openWorld correctly
-          val pathToReplace = PartialSourcePathAutocompletionHelper.pathToReplace(autoCompletionRequest, openWorld)
-          if(!openWorld && pathToReplace.from > 0) {
+          val pathToReplace = PartialSourcePathAutocompletionHelper.pathToReplace(autoCompletionRequest, isRdfInput)
+          if(!isRdfInput && pathToReplace.from > 0) {
             val pathBeforeReplacement = UntypedPath.parse(autoCompletionRequest.inputString.take(pathToReplace.from))
             val simplePathBeforeReplacement = simplePath(pathBeforeReplacement.operators)
             relativeForwardPaths = relativePaths(simplePathBeforeReplacement, forwardOnlyPath(simplePathBeforeReplacement), relativeForwardPaths, isRdfInput)
@@ -84,7 +83,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
           // Return filtered result
           val filteredResults = completions.
             filterAndSort(
-              pathToReplace.query.map(_.mkString(" ")).getOrElse(""),
+              pathToReplace.query.getOrElse(""),
               autoCompletionRequest.maxSuggestions.getOrElse(DEFAULT_AUTO_COMPLETE_RESULTS),
               sortEmptyTermResult = false,
               multiWordFilter = true
@@ -93,7 +92,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
             autoCompletionRequest.inputString,
             autoCompletionRequest.cursorPosition,
             Some(ReplacementInterval(from, length)),
-            pathToReplace.query.map(_.mkString(" ")).getOrElse(""),
+            pathToReplace.query.getOrElse(""),
             filteredResults.toCompletionsBase
           )
           Ok(Json.toJson(response))

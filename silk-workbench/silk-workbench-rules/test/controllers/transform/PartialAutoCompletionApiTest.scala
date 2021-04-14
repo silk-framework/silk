@@ -41,11 +41,11 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     suggestedValues(result) mustBe Seq("department/id", "department/tags/tagId")
   }
 
-  it should "auto-complete JSON paths at any level" in {
+  it should "auto-complete JSON (also XML) paths at any level" in {
     val level1EndInput = "department/id"
     val level1Prefix = "department/"
     // Return all relative paths that match "id" for any cursor position after the first slash
-    for(cursorPosition <- level1EndInput.length - 1 to level1EndInput.length) { // TODO: Change to -2
+    for(cursorPosition <- level1EndInput.length - 2 to level1EndInput.length) {
       jsonSuggestions(level1EndInput, cursorPosition) mustBe Seq("id", "tags/tagId")
     }
   }

@@ -11,7 +11,21 @@ import play.api.libs.json.{Format, Json}
   */
 case class PartialSourcePathAutoCompletionRequest(inputString: String,
                                                   cursorPosition: Int,
-                                                  maxSuggestions: Option[Int])
+                                                  maxSuggestions: Option[Int]) {
+  /** The path until the cursor position. */
+  lazy val pathUntilCursor: String = inputString.take(cursorPosition)
+
+  /** The remaining characters from the cursor position to the end of the current path operator. */
+  lazy val remainingStringInOperator: String = {
+    // TODO: This does not consider being in a literal string, i.e. "...^..." where /, \ and [ would be allowed
+    val operatorStartChars = Set('/', '\\', '[')
+    inputString
+      .substring(cursorPosition)
+      .takeWhile { char =>
+        !operatorStartChars.contains(char)
+      }
+  }
+}
 
 object PartialSourcePathAutoCompletionRequest {
   implicit val partialSourcePathAutoCompletionRequestFormat: Format[PartialSourcePathAutoCompletionRequest] = Json.format[PartialSourcePathAutoCompletionRequest]
