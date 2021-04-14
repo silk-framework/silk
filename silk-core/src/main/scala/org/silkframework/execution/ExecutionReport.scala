@@ -18,6 +18,11 @@ trait ExecutionReport {
   def label: String = task.taskLabel()
 
   /**
+    * Short label for the executed operation, e.g., read or write (optional).
+    */
+  def operation: Option[String] = None
+
+  /**
     * Generates a short summary of this report.
     *
     * @return A sequence of key-value pairs representing the summary table.

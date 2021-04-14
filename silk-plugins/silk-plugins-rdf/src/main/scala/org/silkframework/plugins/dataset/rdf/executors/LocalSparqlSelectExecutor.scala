@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.rdf.executors
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DataSource
 import org.silkframework.dataset.rdf.{SparqlEndpointEntityTable, SparqlResults}
-import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.entity.Entity
 import org.silkframework.execution.local.{GenericEntityTable, LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.execution.{ExecutionReport, ExecutionReportUpdater, ExecutorOutput, TaskException}
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
@@ -88,6 +88,9 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
 
 case class SparqlSelectExecutionReportUpdater(task: Task[TaskSpec],
                                               context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+
+  override def operationLabel: Option[String] = Some("generate queries")
+
   override def entityLabelSingle: String = "Row"
 
   override def entityLabelPlural: String = "Rows"
