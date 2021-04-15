@@ -33,9 +33,17 @@ interface CopyPayloadProps {
     dryRun: boolean;
 }
 
+interface TaskToBeCopied {
+    taskType: string;
+    id: string;
+    label: string;
+    originalTaskLink: string;
+    overwrittenTaskLink?: string;
+}
+
 interface CopyResponsePayload {
-    overwrittenTasks: Array<string>;
-    copiedTasks: Array<string>;
+    overwrittenTasks: Array<TaskToBeCopied>;
+    copiedTasks: Array<TaskToBeCopied>;
 }
 
 const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed }) => {
@@ -236,7 +244,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             open={false}
                         >
                             {info.overwrittenTasks?.map((t) => (
-                                <OverviewItem key={t}>{t}</OverviewItem>
+                                <OverviewItem key={t.id}>{t.label}</OverviewItem>
                             ))}
                         </AccordionItem>
                         <AccordionItem
@@ -253,7 +261,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             open={false}
                         >
                             {info.copiedTasks?.map((t) => (
-                                <OverviewItem key={t}>{t}</OverviewItem>
+                                <OverviewItem key={t.id}>{t.label}</OverviewItem>
                             ))}
                         </AccordionItem>
                     </Accordion>
