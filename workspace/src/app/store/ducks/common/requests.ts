@@ -43,7 +43,7 @@ export const requestSearchConfig = async (projectId?: string): Promise<any | nev
 export const requestArtefactList = async (payload: any): Promise<IOverviewArtefactItemList | never> => {
     try {
         const { data } = await fetch({
-            url: coreApi("/taskPlugins"),
+            url: coreApi("/taskPlugins?addMarkdownDocumentation=true"),
             body: payload,
         });
         return data;
