@@ -1,5 +1,6 @@
 package controllers.workspace
 
+import controllers.workspace.workspaceRequests.CopyTasksResponse
 import helper.IntegrationTestTrait
 import org.scalatest.MustMatchers
 import org.scalatestplus.play.PlaySpec
@@ -383,9 +384,9 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
           """.stripMargin
         ))
 
-      val responseJson = checkResponse(response).json
-      (responseJson \ "copiedTasks").asStringArray must contain theSameElementsAs Seq(datasetLabel, transformLabel, OUTPUT_DATASET_LABEL)
-      (responseJson \ "overwrittenTasks").asStringArray mustBe Seq.empty
+      val parsedResponse = Json.fromJson[CopyTasksResponse](checkResponse(response).json).get
+      parsedResponse.copiedTasks.map(_.id) must contain theSameElementsAs Seq(datasetId, transformId, TRANSFORM_OUTPUT_DATASET)
+      parsedResponse.overwrittenTasks.map(_.id) must contain theSameElementsAs Seq.empty
 
       // Assert that no tasks have been copied
       val projectResponse = client.url(s"$baseUrl/workspace/projects/$targetProject").get()
@@ -403,9 +404,9 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
           """.stripMargin
         ))
 
-      val responseJson = checkResponse(response).json
-      (responseJson \ "copiedTasks").asStringArray must contain theSameElementsAs Seq(datasetLabel, transformLabel, OUTPUT_DATASET_LABEL)
-      (responseJson \ "overwrittenTasks").asStringArray mustBe Seq.empty
+      val parsedResponse = Json.fromJson[CopyTasksResponse](checkResponse(response).json).get
+      parsedResponse.copiedTasks.map(_.id) must contain theSameElementsAs Seq(datasetId, transformId, TRANSFORM_OUTPUT_DATASET)
+      parsedResponse.overwrittenTasks.map(_.id) must contain theSameElementsAs Seq.empty
 
       // Assert that tasks have been copied
       val projectResponse = client.url(s"$baseUrl/workspace/projects/$targetProject").get()
@@ -428,9 +429,9 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
              |  }
           """.stripMargin
         ))
-      val responseJson = checkResponse(response).json
-      (responseJson \ "copiedTasks").asStringArray must contain theSameElementsAs Seq("changed label", transformLabel, OUTPUT_DATASET_LABEL)
-      (responseJson \ "overwrittenTasks").asStringArray must contain theSameElementsAs Seq("changed label", transformLabel, OUTPUT_DATASET_LABEL)
+      val parsedResponse = Json.fromJson[CopyTasksResponse](checkResponse(response).json).get
+      parsedResponse.copiedTasks.map(_.id) must contain theSameElementsAs Seq(datasetId, transformId, TRANSFORM_OUTPUT_DATASET)
+      parsedResponse.overwrittenTasks.map(_.id) must contain theSameElementsAs Seq(datasetId, transformId, TRANSFORM_OUTPUT_DATASET)
 
       // Assert that the dataset has been overwritten
       val datasetResponse = client.url(s"$baseUrl/workspace/projects/$targetProject/tasks/$datasetId")

@@ -2,6 +2,7 @@ package controllers.workspace
 
 import controllers.workspace.routes.WorkspaceApi
 import controllers.workspace.workspaceApi.TaskLinkInfo
+import controllers.workspace.workspaceRequests.CopyTasksResponse
 import helper.IntegrationTestTrait
 import org.scalatest.{BeforeAndAfterAll, MustMatchers}
 import org.scalatestplus.play.PlaySpec
@@ -86,9 +87,9 @@ class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with MustMatch
         ))
 
       // Check response
-      val responseJson = checkResponse(response).json
-      (responseJson \ "copiedTasks").as[Array[String]] must contain theSameElementsAs Seq(datasetName, transformName)
-      (responseJson \ "overwrittenTasks").as[Array[String]]  mustBe Seq.empty
+      val parsedResponse = Json.fromJson[CopyTasksResponse](checkResponse(response).json).get
+      parsedResponse.copiedTasks.map(_.id) must contain theSameElementsAs Seq(datasetName, transformName)
+      parsedResponse.overwrittenTasks.map(_.id) must contain theSameElementsAs Seq.empty
 
       // Make sure that tasks have been actually copied
       targetProj.allTasks.map(_.id.toString) must contain theSameElementsAs Seq(datasetName, transformName)

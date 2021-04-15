@@ -1,9 +1,10 @@
 package controllers.workspace.workspaceRequests
 
-import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.{Project, WorkspaceFactory}
+import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
+import play.api.libs.json.{Json, OFormat}
 
 /**
   * Request to copy a project or a task to another project.
@@ -33,15 +34,19 @@ case class CopyTasksRequest(dryRun: Option[Boolean], targetProject: String) {
   /**
     * Copies all provided tasks to the target project.
     */
-  private def copyTasks(sourceProj: Project, tasksToCopy: Seq[Task[_ <:TaskSpec]])
+  private def copyTasks(sourceProj: Project, tasksToCopy: Seq[ProjectTask[_ <:TaskSpec]])
                        (implicit userContext: UserContext): CopyTasksResponse = {
     val targetProj = WorkspaceFactory().workspace.project(targetProject)
 
     sourceProj.synchronized {
       targetProj.synchronized {
-
-        val overwrittenTasks = for(task <- tasksToCopy if targetProj.anyTaskOption(task.id).isDefined) yield task.taskLabel()
+        // Only copy resources if they are at different base paths
         val copyResources = sourceProj.resources.basePath != targetProj.resources.basePath
+
+        // Tasks to be overwritten
+        val overwrittenTasks =
+          for{ task <- tasksToCopy
+               overwrittenTask <- targetProj.anyTaskOption(task.id) } yield TaskToBeCopied.fromTask(task, Some(overwrittenTask))
 
         // Copy tasks
         if(!dryRun.contains(true)) {
@@ -57,7 +62,8 @@ case class CopyTasksRequest(dryRun: Option[Boolean], targetProject: String) {
         }
 
         // Generate response
-        CopyTasksResponse(tasksToCopy.map(_.taskLabel()).toSet, overwrittenTasks.toSet)
+        val copiedTasks = for(task <- tasksToCopy) yield TaskToBeCopied.fromTask(task, None)
+        CopyTasksResponse(copiedTasks.toSet, overwrittenTasks.toSet)
       }
     }
   }
@@ -66,9 +72,15 @@ case class CopyTasksRequest(dryRun: Option[Boolean], targetProject: String) {
     * Returns a task and all its referenced tasks.
     */
   private def collectTasks(project: Project, taskName: Identifier)
-                          (implicit userContext: UserContext): Seq[Task[_ <:TaskSpec]] = {
+                          (implicit userContext: UserContext): Seq[ProjectTask[_ <:TaskSpec]] = {
     val task = project.anyTask(taskName)
     Seq(task) ++ task.data.referencedTasks.flatMap(collectTasks(project, _))
   }
+
+}
+
+object CopyTasksRequest {
+
+  implicit val jsonFormat: OFormat[CopyTasksRequest] = Json.format[CopyTasksRequest]
 
 }

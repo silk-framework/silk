@@ -3,7 +3,7 @@ package controllers.workspace
 import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.SerializationUtils
-import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse}
+import controllers.workspace.workspaceRequests.CopyTasksRequest
 import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.ResourceBasedDataset
@@ -221,8 +221,6 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
 
   def copyTask(projectName: String,
                taskName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
-    implicit val jsonReader = Json.reads[CopyTasksRequest]
-    implicit val jsonWriter = Json.writes[CopyTasksResponse]
     validateJson[CopyTasksRequest] { copyRequest =>
       val result = copyRequest.copyTask(projectName, taskName)
       Ok(Json.toJson(result))

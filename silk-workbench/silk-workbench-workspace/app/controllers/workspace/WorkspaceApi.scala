@@ -4,7 +4,7 @@ import akka.stream.scaladsl.Source
 import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.workspace.workspaceApi.TaskLinkInfo
-import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse, UpdateGlobalVocabularyRequest}
+import controllers.workspace.workspaceRequests.{CopyTasksRequest, UpdateGlobalVocabularyRequest}
 import controllers.workspaceApi.coreApi.PluginApiCache
 import controllers.workspaceApi.search.ResourceSearchRequest
 import org.silkframework.config._
@@ -94,8 +94,6 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor, pluginApiC
   }
 
   def copyProject(projectName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>implicit userContext =>
-    implicit val jsonReader = Json.reads[CopyTasksRequest]
-    implicit val jsonWriter = Json.writes[CopyTasksResponse]
     validateJson[CopyTasksRequest] { copyRequest =>
       val result = copyRequest.copyProject(projectName)
       Ok(Json.toJson(result))
