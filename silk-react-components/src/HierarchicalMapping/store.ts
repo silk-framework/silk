@@ -689,6 +689,25 @@ export const prefixesAsync = () => {
         .map(returned => returned.body);
 };
 
+
+export const getSuggestion = (ruleId:string,inputString: string, cursorPosition:number) => {
+    const { baseUrl, transformTask, project } = getApiDetails();
+    return silkApi.getSuggestionsForAutoCompletion(
+        baseUrl,
+        project,
+        transformTask,
+        ruleId,
+        inputString,
+        cursorPosition
+    );
+}
+
+export const pathValidation = (inputString:string) => {
+    const {baseUrl, project} = getApiDetails()
+    return silkApi.validatePathExpression(baseUrl,project,inputString)
+} 
+
+
 const exportFunctions = {
     getHierarchyAsync,
     getRuleAsync,
