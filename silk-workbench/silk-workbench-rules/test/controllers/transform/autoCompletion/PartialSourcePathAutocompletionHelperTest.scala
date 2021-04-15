@@ -31,4 +31,9 @@ class PartialSourcePathAutocompletionHelperTest extends FlatSpec with MustMatche
       replace(input, cursorPosition, subPathOnly = true) mustBe PathToReplace(initialCursorPosition - 1, "/qns:propper".length, Some("propper"))
     }
   }
+
+  it should "correctly find out what to replace in filter expressions" in {
+    replace("""a/b[@lang  =  "en"]/error now""", """a/b[@lang  =  "en"]/err""".length) mustBe
+      PathToReplace("a/b[@lang  =  \"en\"]".length, "/error now".length, Some("error now"))
+  }
 }

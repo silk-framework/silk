@@ -18,6 +18,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
+import scala.util.matching.Regex
 import scala.util.parsing.combinator.RegexParsers
 import scala.util.parsing.input.CharSequenceReader
 
@@ -66,7 +67,8 @@ private[entity] class PathParser(prefixes: Prefixes) extends RegexParsers {
             partialParseError = Some(PartialParseError(
               originalErrorOffset,
               error.msg,
-              pathStr.substring(originalParseOffset, originalErrorOffset + 1) // + 1 since we want to have the character where it failed
+              pathStr.substring(originalParseOffset, originalErrorOffset + 1), // + 1 since we want to have the character where it failed
+              originalParseOffset
             ))
         }
       } catch {
@@ -75,7 +77,8 @@ private[entity] class PathParser(prefixes: Prefixes) extends RegexParsers {
           partialParseError = Some(PartialParseError(
             originalParseOffset,
             validationException.getMessage,
-            ""
+            "",
+            originalParseOffset
           ))
       }
     }
@@ -124,7 +127,7 @@ private[entity] class PathParser(prefixes: Prefixes) extends RegexParsers {
   }
 
   // An identifier that is either a URI enclosed in angle brackets (e.g., <URI>) or a plain identifier (e.g., name or prefix:name)
-  private def identifier = """<[^>]+>|[^\\/\[\]<>=!" ]+""".r
+  private def identifier: Regex = PathParser.Regexes.identifier
 
   // A language tag according to the Sparql spec
   private def languageTag = """[a-zA-Z]+('-'[a-zA-Z0-9]+)*""".r
@@ -136,6 +139,17 @@ private[entity] class PathParser(prefixes: Prefixes) extends RegexParsers {
   private def compOperator = ">" | "<" | ">=" | "<=" | "=" | "!="
 }
 
+object PathParser {
+  object RegexParts {
+    val uriExpression = "<[^>]+>"
+    val plainIdentifier = """[^\\/\[\]<>=!" ]+"""
+  }
+  object Regexes {
+    import RegexParts._
+    val identifier: Regex = (s"$uriExpression|$plainIdentifier").r
+  }
+}
+
 /**
   * A partial path parse result.
   *
@@ -145,4 +159,4 @@ private[entity] class PathParser(prefixes: Prefixes) extends RegexParsers {
 case class PartialParseResult(partialPath: UntypedPath, error: Option[PartialParseError])
 
 /** Offset and error message of the parse error. The offset defines the position before the character that lead to the parse error. */
-case class PartialParseError(offset: Int, message: String, inputLeadingToError: String)
+case class PartialParseError(offset: Int, message: String, inputLeadingToError: String, nextParseOffset: Int)

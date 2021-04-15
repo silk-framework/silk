@@ -43,11 +43,32 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
 
   it should "auto-complete JSON (also XML) paths at any level" in {
     val level1EndInput = "department/id"
-    val level1Prefix = "department/"
     // Return all relative paths that match "id" for any cursor position after the first slash
     for(cursorPosition <- level1EndInput.length - 2 to level1EndInput.length) {
       jsonSuggestions(level1EndInput, cursorPosition) mustBe Seq("id", "tags/tagId")
     }
+    val level2EndInput = "department/tags/id"
+    for(cursorPosition <- level2EndInput.length - 2 to level2EndInput.length) {
+      jsonSuggestions(level2EndInput, cursorPosition) mustBe Seq("tagId")
+    }
+  }
+
+  it should "return a client error on invalid requests" in {
+    intercept[AssertionError] {
+      partialSourcePathAutoCompleteRequest(jsonTransform, cursorPosition = -1)
+    }
+    intercept[AssertionError] {
+      partialSourcePathAutoCompleteRequest(jsonTransform, maxSuggestions = Some(0))
+    }
+  }
+
+  it should "auto-complete JSON paths inside filter expressions" in {
+    val inputWithFilter = """department[id = "department X"]/tags[id = ""]/tagId"""
+    val filterStartIdx = "department[".length
+    val secondFilterStartIdx = """department[id = "department X"]/tags[""".length
+    jsonSuggestions(inputWithFilter, filterStartIdx + 2) mustBe Seq("id")
+    jsonSuggestions(inputWithFilter, filterStartIdx) mustBe Seq("id")
+    jsonSuggestions(inputWithFilter, secondFilterStartIdx) mustBe Seq("tagId")
   }
 
   private def jsonSuggestions(inputText: String, cursorPosition: Int): Seq[String] = {

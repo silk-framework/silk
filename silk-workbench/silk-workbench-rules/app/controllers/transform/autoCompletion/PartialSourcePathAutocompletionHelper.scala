@@ -1,7 +1,7 @@
 package controllers.transform.autoCompletion
 
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.paths.{DirectionalPathOperator, PartialParseResult, PathOperator, PathParser, UntypedPath}
+import org.silkframework.entity.paths.{DirectionalPathOperator, PartialParseError, PartialParseResult, PathOperator, PathParser, UntypedPath}
 import org.silkframework.util.StringUtils
 
 object PartialSourcePathAutocompletionHelper {
@@ -13,6 +13,7 @@ object PartialSourcePathAutocompletionHelper {
   def pathToReplace(request: PartialSourcePathAutoCompletionRequest,
                     subPathOnly: Boolean)
                    (implicit prefixes: Prefixes): PathToReplace = {
+    // TODO: Refactor method, clean up
     val unfilteredQuery: Option[String] = Some("")
     if(request.inputString.isEmpty) {
       return PathToReplace(0, 0, unfilteredQuery)
@@ -23,9 +24,7 @@ object PartialSourcePathAutocompletionHelper {
         val errorOffsetCharacter = request.inputString.substring(error.offset, error.offset + 1)
         val parseStartCharacter = if(error.inputLeadingToError.isEmpty) errorOffsetCharacter else error.inputLeadingToError.take(1)
         if(error.inputLeadingToError.startsWith("[")) {
-          // Error happened inside of a filter
-          // TODO: Find out where in the filter we are and try to auto-complete the correct thing
-          PathToReplace(0, 0, unfilteredQuery)
+          handleFilter(request, unfilteredQuery, error)
         } else if(parseStartCharacter == "/" || parseStartCharacter == "\\") {
           // It tried to parse a forward or backward path and failed, replace path and use path value as query
           val operatorValue = request.inputString.substring(error.offset + 1, request.cursorPosition) + request.remainingStringInOperator
@@ -44,6 +43,45 @@ object PartialSourcePathAutocompletionHelper {
         PathToReplace(0, 0, unfilteredQuery)
     }
     handleSubPathOnly(request, replacement, subPathOnly)
+  }
+
+  private def handleFilter(request: PartialSourcePathAutoCompletionRequest, unfilteredQuery: Option[String], error: PartialParseError): PathToReplace = {
+    // Error happened inside of a filter
+    // Characters that will usually end an identifier in a filter expression. For some URIs this could lead to false positives, e.g. that contain '='.
+    val stopChars = Set('!', '=', '<', '>', ']')
+    val pathFromFilter = request.inputString.substring(error.nextParseOffset)
+    val insideFilterExpression = pathFromFilter.drop(1).trim
+    if (insideFilterExpression.startsWith("@lang")) {
+      // Not sure what to propose inside a lang filter
+      PathToReplace(0, 0, None)
+    } else {
+      var identifier = ""
+      if (insideFilterExpression.startsWith("<")) {
+        // URI following
+        val uriEndingIdx = insideFilterExpression.indexOf('>')
+        if (uriEndingIdx > 0) {
+          identifier = insideFilterExpression.take(uriEndingIdx + 1)
+        } else {
+          // URI is not closed, just take everything until either an operator or filter closing
+          identifier = insideFilterExpression.take(1) + insideFilterExpression.drop(1).takeWhile(c => !stopChars.contains(c))
+        }
+      } else {
+        identifier = insideFilterExpression.takeWhile(c => !stopChars.contains(c))
+      }
+      if(identifier.nonEmpty) {
+        val pathFromFilterToCursor = request.inputString.substring(error.nextParseOffset, request.cursorPosition)
+        if(pathFromFilterToCursor.contains(identifier)) {
+          // The cursor is behind the identifier / URI TODO: auto-complete comparison operator
+          PathToReplace(0, 0, Some("TODO"))
+        } else {
+          // Suggest to replace the identifier
+          PathToReplace(error.nextParseOffset + 1, error.nextParseOffset + 1 + identifier.stripSuffix(" ").length, Some(extractQuery(identifier)), insideFilter = true)
+        }
+      } else {
+        // Not sure what to replace TODO: Handle case of empty filter expression
+        PathToReplace(request.cursorPosition, 0, None, insideFilter = true)
+      }
+    }
   }
 
   private def handleSubPathOnly(request: PartialSourcePathAutoCompletionRequest, pathToReplace: PathToReplace, subPathOnly: Boolean): PathToReplace = {
@@ -90,7 +128,7 @@ object PartialSourcePathAutocompletionHelper {
   private val startsWithPrefix = s"""^$prefixRegex:""".r
 
   private def extractQuery(input: String): String = {
-    var inputToProcess: String = input
+    var inputToProcess: String = input.trim
     if(!input.contains("<") && input.contains(":") && !input.contains(" ") && startsWithPrefix.findFirstMatchIn(input).isDefined) {
       // heuristic to detect qualified names
       inputToProcess = input.drop(input.indexOf(":") + 1)
@@ -101,9 +139,11 @@ object PartialSourcePathAutocompletionHelper {
 
 /**
   * The part of the input path that should be replaced.
-  * @param from   The start index of the substring that should be replaced.
-  * @param length The length in characters of the string that should be replaced.
-  * @param query  Extracted query from the characters around the position of the cursor.
-  *               If it is None this means that no query should be asked to find suggestions, i.e. only suggest operator or nothing.
+  *
+  * @param from         The start index of the substring that should be replaced.
+  * @param length       The length in characters of the string that should be replaced.
+  * @param query        Extracted query from the characters around the position of the cursor.
+  *                     If it is None this means that no query should be asked to find suggestions, i.e. only suggest operator or nothing.
+  * @param insideFilter If the path to be replaced is inside a filter expression
   */
-case class PathToReplace(from: Int, length: Int, query: Option[String])
+case class PathToReplace(from: Int, length: Int, query: Option[String], insideFilter: Boolean = false)

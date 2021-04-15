@@ -11,7 +11,7 @@ import org.silkframework.rule.vocab.ObjectPropertyType
 import org.silkframework.rule.{TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
-import org.silkframework.runtime.validation.NotFoundException
+import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCacheValue}
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
@@ -64,6 +64,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
       val (project, transformTask) = projectAndTask[TransformSpec](projectId, transformTaskId)
       implicit val prefixes: Prefixes = project.config.prefixes
       validateJson[PartialSourcePathAutoCompletionRequest] { autoCompletionRequest =>
+        validatePartialSourcePathAutoCompletionRequest(autoCompletionRequest)
         withRule(transformTask, ruleId) { case (_, sourcePath) =>
           val simpleSourcePath = simplePath(sourcePath)
           val forwardOnlySourcePath = forwardOnlyPath(simpleSourcePath)
@@ -72,9 +73,9 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
           var relativeForwardPaths = relativePaths(simpleSourcePath, forwardOnlySourcePath, allPaths, isRdfInput)
           val pathToReplace = PartialSourcePathAutocompletionHelper.pathToReplace(autoCompletionRequest, isRdfInput)
           if(!isRdfInput && pathToReplace.from > 0) {
-            val pathBeforeReplacement = UntypedPath.parse(autoCompletionRequest.inputString.take(pathToReplace.from))
+            val pathBeforeReplacement = UntypedPath.partialParse(autoCompletionRequest.inputString.take(pathToReplace.from)).partialPath
             val simplePathBeforeReplacement = simplePath(pathBeforeReplacement.operators)
-            relativeForwardPaths = relativePaths(simplePathBeforeReplacement, forwardOnlyPath(simplePathBeforeReplacement), relativeForwardPaths, isRdfInput)
+            relativeForwardPaths = relativePaths(simplePathBeforeReplacement, forwardOnlyPath(simplePathBeforeReplacement), relativeForwardPaths, isRdfInput, oneHopOnly = pathToReplace.insideFilter)
           }
           // Add known paths
           val completions: Completions = relativeForwardPaths
@@ -100,6 +101,15 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
       }
   }
 
+  private def validatePartialSourcePathAutoCompletionRequest(request: PartialSourcePathAutoCompletionRequest): Unit = {
+    var error = ""
+    if(request.cursorPosition < 0) error = "Cursor position must be >= 0"
+    if(request.maxSuggestions.nonEmpty && request.maxSuggestions.get <= 0) error = "Max suggestions must be larger zero"
+    if(error != "") {
+      throw BadUserInputException(error)
+    }
+  }
+
   private def withRule[T](transformTask: ProjectTask[TransformSpec],
                           ruleId: String)
                          (block: ((TransformRule, List[PathOperator])) => T): T = {
@@ -116,23 +126,33 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
   private def relativePaths(simpleSourcePath: List[PathOperator],
                             forwardOnlySourcePath: List[PathOperator],
                             pathCacheCompletions: Completions,
-                            isRdfInput: Boolean)
+                            isRdfInput: Boolean,
+                            oneHopOnly: Boolean = false)
                            (implicit prefixes: Prefixes): Seq[Completion] = {
     pathCacheCompletions.values.filter { p =>
       val path = UntypedPath.parse(p.value)
-      isRdfInput || // FIXME: Currently there are no paths longer 1 in cache, that why return full path
-      path.operators.startsWith(forwardOnlySourcePath) && path.operators.size > forwardOnlySourcePath.size ||
-      path.operators.startsWith(simpleSourcePath) && path.operators.size > simpleSourcePath.size
+      val matchesPrefix = isRdfInput || // FIXME: Currently there are no paths longer 1 in cache, that why return full path
+        path.operators.startsWith(forwardOnlySourcePath) && path.operators.size > forwardOnlySourcePath.size ||
+        path.operators.startsWith(simpleSourcePath) && path.operators.size > simpleSourcePath.size
+      val truncatedOps = truncatePath(path, simpleSourcePath, forwardOnlySourcePath, isRdfInput)
+      matchesPrefix && (!oneHopOnly || truncatedOps.size == 1)
     } map { completion =>
       val path = UntypedPath.parse(completion.value)
-      val truncatedOps = if (path.operators.startsWith(forwardOnlySourcePath)) {
-        path.operators.drop(forwardOnlySourcePath.size)
-      } else if(isRdfInput) {
-        path.operators
-      } else {
-        path.operators.drop(simpleSourcePath.size)
-      }
+      val truncatedOps = truncatePath(path, simpleSourcePath, forwardOnlySourcePath, isRdfInput)
       completion.copy(value = UntypedPath(truncatedOps).serialize())
+    }
+  }
+
+  private def truncatePath(path: UntypedPath,
+                           simpleSourcePath: List[PathOperator],
+                           forwardOnlySourcePath: List[PathOperator],
+                           isRdfInput: Boolean): List[PathOperator] = {
+    if (path.operators.startsWith(forwardOnlySourcePath)) {
+      path.operators.drop(forwardOnlySourcePath.size)
+    } else if(isRdfInput) {
+      path.operators
+    } else {
+      path.operators.drop(simpleSourcePath.size)
     }
   }
 

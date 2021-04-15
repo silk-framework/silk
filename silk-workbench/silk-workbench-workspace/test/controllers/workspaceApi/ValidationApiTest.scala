@@ -22,7 +22,7 @@ class ValidationApiTest extends FlatSpec with IntegrationTestTrait with MustMatc
     validateSourcePathRequest("""/valid/path[subPath = "filter value"]""") mustBe SourcePathValidationResponse(true, None)
     val invalidResult = validateSourcePathRequest("""/invalid/path with spaces at the wrong place""")
     invalidResult.valid mustBe false
-    invalidResult.parseError.get.copy(message = "") mustBe PartialParseError("/invalid/path".length, "", " ")
+    invalidResult.parseError.get.copy(message = "") mustBe PartialParseError("/invalid/path".length, "", " ", "/invalid/path".length)
   }
 
   private def validateSourcePathRequest(pathExpression: String): SourcePathValidationResponse = {
