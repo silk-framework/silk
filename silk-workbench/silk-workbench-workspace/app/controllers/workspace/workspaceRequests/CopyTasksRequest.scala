@@ -2,6 +2,7 @@ package controllers.workspace.workspaceRequests
 
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{Json, OFormat}
@@ -9,7 +10,10 @@ import play.api.libs.json.{Json, OFormat}
 /**
   * Request to copy a project or a task to another project.
   */
-case class CopyTasksRequest(dryRun: Option[Boolean], targetProject: String) {
+case class CopyTasksRequest(dryRun: Option[Boolean], overwriteTasks: Option[Boolean], targetProject: String) {
+
+  private def isDryRun: Boolean = dryRun.contains(true)
+  private def overwriteConfirmed: Boolean = overwriteTasks.contains(true)
 
   /**
     * Copies all tasks in a project to the target project.
@@ -49,7 +53,11 @@ case class CopyTasksRequest(dryRun: Option[Boolean], targetProject: String) {
                overwrittenTask <- targetProj.anyTaskOption(task.id) } yield TaskToBeCopied.fromTask(task, Some(overwrittenTask))
 
         // Copy tasks
-        if(!dryRun.contains(true)) {
+        if(!isDryRun) {
+          if(overwrittenTasks.nonEmpty && !overwriteConfirmed) {
+            throw BadUserInputException("Please confirm that you intend to overwrite tasks in the target project.")
+          }
+
           for (task <- tasksToCopy) {
             targetProj.updateAnyTask(task.id, task.data, Some(task.metaData))
             // Copy resources
