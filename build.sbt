@@ -171,15 +171,12 @@ lazy val pluginsXml = (project in file("silk-plugins/silk-plugins-xml"))
   )
 
 lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
-  .dependsOn(core % "compile->compile;test->test")
+  .dependsOn(core % "compile->compile;test->test", persistentCaching)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins JSON",
-    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.8.6",
-    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-databind" % "2.8.6",
-    libraryDependencies += "com.fasterxml.jackson.dataformat" % "jackson-dataformat-xml" % "2.8.6",
-    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.12",
-    libraryDependencies += "org.json" % "json" % "20201115"
+    libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.12.1",
+    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.12"
   )
 
 // pluginsSpatialTemporal has been removed as it uses dependencies from external unreliable repositories
@@ -212,10 +209,18 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
     libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.12"
   )
 
+lazy val persistentCaching = (project in file("silk-plugins/silk-persistent-caching"))
+  .dependsOn(core)
+  .settings(commonSettings: _*)
+  .settings(
+    name := "Persistent caching",
+    libraryDependencies += "org.lmdbjava" % "lmdbjava" % "0.8.1"
+  )
+
 // Aggregate all plugins
 lazy val plugins = (project in file("silk-plugins"))
-  .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson)
-  .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson)
+  .dependsOn(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson, persistentCaching)
+  .aggregate(pluginsRdf, pluginsCsv, pluginsXml, pluginsJson, pluginsAsian, serializationJson, persistentCaching)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins"

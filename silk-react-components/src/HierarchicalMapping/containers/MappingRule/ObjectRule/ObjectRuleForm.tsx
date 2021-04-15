@@ -33,6 +33,7 @@ import EventEmitter from '../../../utils/EventEmitter';
 import { trimValue } from '../../../utils/trimValue';
 import { wasTouched } from '../../../utils/wasTouched';
 import { newValueIsIRI } from '../../../utils/newValueIsIRI';
+import TargetCardinality from "../../../components/TargetCardinality";
 import MultiAutoComplete from "../../../components/MultiAutoComplete";
 
 interface IProps {
@@ -112,6 +113,7 @@ export class ObjectRuleForm extends Component<IProps, any> {
             sourceProperty: trimValue(modifiedValues.sourceProperty),
             targetProperty: trimValue(modifiedValues.targetProperty),
             targetEntityType: modifiedValues.targetEntityType,
+            isAttribute: modifiedValues.isAttribute,
             pattern: trimValue(modifiedValues.pattern),
             entityConnection: modifiedValues.entityConnection === 'to',
         }, true)
@@ -201,6 +203,7 @@ export class ObjectRuleForm extends Component<IProps, any> {
         const title = !id && <CardTitle>Add object mapping</CardTitle>;
 
         let targetPropertyInput: JSX.Element | undefined = undefined
+        let targetCardinality: JSX.Element | undefined = undefined
         let entityRelationInput: JSX.Element | undefined = undefined
         let sourcePropertyInput: JSX.Element | undefined = undefined
 
@@ -256,7 +259,14 @@ export class ObjectRuleForm extends Component<IProps, any> {
                     </RadioGroup>
                 </FieldItem>
             );
-
+            targetCardinality = (
+                <TargetCardinality
+                    className="ecc-silk-mapping__ruleseditor__isAttribute"
+                    isAttribute={modifiedValues.isAttribute}
+                    isObjectMapping={true}
+                    onChange={(value) => this.handleChangeValue('isAttribute', value)}
+                />
+            );
             sourcePropertyInput = (
                 <AutoComplete
                     placeholder="Value path"
@@ -316,6 +326,7 @@ export class ObjectRuleForm extends Component<IProps, any> {
                             creatable
                             onChange={value => { this.handleChangeValue('targetEntityType', value); }}
                         />
+                        {targetCardinality}
                         {patternInput}
                         {sourcePropertyInput}
                         {

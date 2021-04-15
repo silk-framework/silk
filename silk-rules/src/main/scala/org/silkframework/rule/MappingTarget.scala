@@ -4,6 +4,7 @@ import org.silkframework.dataset.TypedProperty
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{BackwardOperator, ForwardOperator, TypedPath, UntypedPath}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
 import scala.language.implicitConversions
@@ -15,12 +16,32 @@ import scala.xml.Node
   * @param propertyUri The URI of the property.
   * @param valueType The target type against which all values are validated.
   * @param isBackwardProperty In data sinks that with graph-like data models, a relation from the target to the source is generated.
-  * @param isAttribute In data sinks that support attributes, such as XML, an attribute is generated.
+  * @param isAttribute If true, a single value is expected and supporting datasets will not use arrays etc.
+  *                    In XML, attributes will be used instead of nested elements.
   */
 case class MappingTarget(propertyUri: Uri,
                          valueType: ValueType = ValueType.STRING,
                          isBackwardProperty: Boolean = false,
                          isAttribute: Boolean = false) {
+
+  /**
+    * Asserts that the given values are valid for this target.
+    *
+    * @throws ValidationException If the provided values are not valid.
+    */
+  def validate(values: Seq[String]): Unit = {
+    // value type
+    for {
+      value <- values
+      if !valueType.validate(value)
+    } {
+      throw new ValidationException(s"Value '$value' is not a valid ${valueType.label}")
+    }
+    // cardinality
+    if(isAttribute && values.size > 1) {
+      throw new ValidationException(s"Property ${propertyUri} is only allowed to have one value, but got multiple values")
+    }
+  }
 
   override def toString: String = {
     val sb = new StringBuilder(propertyUri.uri)
@@ -32,7 +53,7 @@ case class MappingTarget(propertyUri: Uri,
       sb.insert(0, '\\')
     }
     if(isAttribute) {
-      sb ++= " (Attribute)"
+      sb ++= " (single value)"
     }
     sb.toString()
   }

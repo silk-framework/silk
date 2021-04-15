@@ -37,7 +37,7 @@ class PathWithMetadata (
 
 object PathWithMetadata{
 
-  val META_FIELD_XML_ATTRIBUTE: String = "isXmlAttribute"
+  val META_FIELD_IS_ATTRIBUTE: String = "isAttribute"
   val META_FIELD_ORIGIN_NAME: String = "originalName"
   val META_FIELD_VALUE_TYPE: String = "valueType"
 
@@ -49,13 +49,13 @@ object PathWithMetadata{
   def fromTypedPath(tp: TypedPath): PathWithMetadata = tp match {
     case pwm: PathWithMetadata => pwm
     case tp: TypedPath => apply(tp.operators, tp.valueType, Map[String, Any](
-        META_FIELD_XML_ATTRIBUTE -> tp.isAttribute,
+      META_FIELD_IS_ATTRIBUTE -> tp.isAttribute,
         META_FIELD_ORIGIN_NAME -> tp.normalizedSerialization,
         META_FIELD_VALUE_TYPE -> PlainValueTypeSerialization.write(tp.valueType)(vtwc)
       ))
   }
 
-  private val requiredMetadataKeys = Seq(META_FIELD_XML_ATTRIBUTE, META_FIELD_ORIGIN_NAME, META_FIELD_VALUE_TYPE)
+  private val requiredMetadataKeys = Seq(META_FIELD_IS_ATTRIBUTE, META_FIELD_ORIGIN_NAME, META_FIELD_VALUE_TYPE)
   private val vtwc: WriteContext[String] = WriteContext[String]()
   /**
     * the default apply method
@@ -71,7 +71,7 @@ object PathWithMetadata{
     */
   def apply(path: String, valueType: ValueType, isAttribute: Boolean)(implicit prefixes: Prefixes): PathWithMetadata = {
     val metadata = Map(
-      META_FIELD_XML_ATTRIBUTE -> isAttribute,
+      META_FIELD_IS_ATTRIBUTE -> isAttribute,
       META_FIELD_ORIGIN_NAME -> path.trim,
       META_FIELD_VALUE_TYPE -> PlainValueTypeSerialization.write(valueType)(vtwc)
     )
@@ -85,7 +85,7 @@ object PathWithMetadata{
     */
   def apply(path: String, valueType: ValueType, metadata: Map[String, Any])(implicit prefixes: Prefixes = Prefixes.empty): PathWithMetadata = {
     val m = Map(
-      META_FIELD_XML_ATTRIBUTE -> metadata.getOrElse(META_FIELD_XML_ATTRIBUTE, false),
+      META_FIELD_IS_ATTRIBUTE -> metadata.getOrElse(META_FIELD_IS_ATTRIBUTE, false),
       META_FIELD_ORIGIN_NAME -> metadata.getOrElse(META_FIELD_ORIGIN_NAME, path.trim),
       META_FIELD_VALUE_TYPE -> metadata.getOrElse(META_FIELD_VALUE_TYPE, PlainValueTypeSerialization.write(valueType)(vtwc))
     )
@@ -94,11 +94,11 @@ object PathWithMetadata{
   }
 
   /**
-    * determines whether or not the given PathWithMetadata is an XML attribute, based on the provided metadata.
+    * determines whether or not the given PathWithMetadata is an attribute, based on the provided metadata.
     * @param path - the PathWithMetadata
     */
-  def isXmlAttribute(path: PathWithMetadata): Boolean = isXmlAttribute(path.metadata)
+  def isAttribute(path: PathWithMetadata): Boolean = isXmlAttribute(path.metadata)
 
-  private def isXmlAttribute(metadata: Map[String, Any]): Boolean = metadata.get(META_FIELD_XML_ATTRIBUTE).exists(x =>
-    Try(x.asInstanceOf[Boolean]).getOrElse(throw new IllegalArgumentException(META_FIELD_XML_ATTRIBUTE + " needs a boolean value")))
+  private def isXmlAttribute(metadata: Map[String, Any]): Boolean = metadata.get(META_FIELD_IS_ATTRIBUTE).exists(x =>
+    Try(x.asInstanceOf[Boolean]).getOrElse(throw new IllegalArgumentException(META_FIELD_IS_ATTRIBUTE + " needs a boolean value")))
 }

@@ -192,6 +192,8 @@ class ObjectRule extends React.Component {
                                 <TargetProperty
                                     key={'ObjectTargetProperty'}
                                     mappingTargetUri={_.get(ruleData, 'mappingTarget.uri')}
+                                    isObjectMapping={true}
+                                    isAttribute={_.get(ruleData, 'mappingTarget.isAttribute')}
                                 />,
                                 <ObjectEntityRelation
                                     key={'ObjectEntityRelation'}

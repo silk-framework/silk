@@ -2,7 +2,6 @@ package org.silkframework.plugins.dataset.json
 
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset.DatasetSpec
-import org.silkframework.entity.EntitySchema
 import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
 import org.silkframework.execution.{ExecutionReport, ExecutorOutput, ExecutorRegistry, TaskException}
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
@@ -41,7 +40,7 @@ case class LocalJsonParserTaskExecutor() extends LocalExecutor[JsonParserTask] {
               case Some(jsonInputString) =>
                 val resource = InMemoryResourceManager().get("temp")
                 resource.writeBytes(jsonInputString.getBytes)
-                val dataset = JsonDataset(resource, spec.basePath, entity.uri.toString + spec.uriSuffixPattern)
+                val dataset = JsonDataset(resource, basePath = spec.basePath, uriPattern = entity.uri.toString + spec.uriSuffixPattern)
                 ExecutorRegistry.execute(PlainTask(task.id, DatasetSpec(dataset)),
                   Seq.empty, output, execution)
               case None =>

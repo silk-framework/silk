@@ -9,12 +9,8 @@ import {
     SelectBox,
 } from '@eccenca/gui-elements';
 import {
-    FieldItem
-} from '@gui-elements/index';
-import {
     AffirmativeButton,
     DismissiveButton,
-    Checkbox,
     TextField,
 } from '@gui-elements/legacy-replacements';
 import _ from 'lodash';
@@ -30,6 +26,7 @@ import { MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES } from '.
 import EventEmitter from '../../../utils/EventEmitter';
 import { wasTouched } from '../../../utils/wasTouched';
 import { newValueIsIRI } from '../../../utils/newValueIsIRI';
+import TargetCardinality from "../../../components/TargetCardinality";
 
 const LANGUAGES_LIST = [
     'en', 'de', 'es', 'fr', 'bs', 'bg', 'ca', 'ce', 'zh', 'hr', 'cs', 'da', 'nl', 'eo', 'fi', 'ka', 'el', 'hu', 'ga', 'is', 'it',
@@ -337,16 +334,6 @@ export function ValueRuleForm(props: IProps) {
                             resetQueryToValue={true}
                             itemDisplayLabel={(item) => item.label ? `${item.label} <${item.value}>` : item.value}
                         />
-                        <FieldItem>
-                            <Checkbox
-                                checked={isAttribute}
-                                className="ecc-silk-mapping__ruleseditor__isAttribute"
-                                onChange={() => handleChangeValue('isAttribute', !isAttribute, setIsAttribute)}
-                            >
-                                Write values as attributes (if supported by the
-                                target dataset)
-                            </Checkbox>
-                        </FieldItem>
                         <AutoComplete
                             placeholder="Data type"
                             className="ecc-silk-mapping__ruleseditor__propertyType"
@@ -375,6 +362,12 @@ export function ValueRuleForm(props: IProps) {
                             searchable={true} // whether to behave like a type-ahead or not
                         />
                         }
+                        <TargetCardinality
+                            className="ecc-silk-mapping__ruleseditor__isAttribute"
+                            isAttribute={isAttribute}
+                            isObjectMapping={false}
+                            onChange={() => handleChangeValue('isAttribute', !isAttribute, setIsAttribute)}
+                        />
                         {sourcePropertyInput}
                         {exampleView}
                         <TextField

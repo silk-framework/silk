@@ -1,8 +1,5 @@
 package org.silkframework.serialization.json
 
-import java.time.Instant
-import java.util.UUID
-
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec, DatasetTask}
@@ -25,6 +22,8 @@ import org.silkframework.util.{DPair, Identifier, Uri}
 import org.silkframework.workspace.activity.transform.{CachedEntitySchemata, VocabularyCacheValue}
 import play.api.libs.json._
 
+import java.time.Instant
+import java.util.UUID
 import scala.reflect.ClassTag
 
 /**
@@ -711,6 +710,7 @@ object JsonSerializers {
     final val OUTPUT: String = "output"
     final val ERROR_OUTPUT: String = "errorOutput"
     final val TARGET_VOCABULARIES: String = "targetVocabularies"
+    final val ABORT_IF_ERRORS_OCCUR: String = "abortIfErrorsOccur"
 
     /** Deprecated property names */
     final val DEPRECATED_RULES_PROPERTY: String = "root"
@@ -738,7 +738,8 @@ object JsonSerializers {
                   map(TargetVocabularyParameterType.fromString).
                   getOrElse(TargetVocabularyListParameter(Seq.empty))
               vocabs
-            }
+            },
+            abortIfErrorsOccur = stringValueOption(parametersObj, ABORT_IF_ERRORS_OCCUR).map(_.toBoolean).getOrElse(false)
           )
       }
     }
@@ -766,7 +767,8 @@ object JsonSerializers {
           RULES_PROPERTY -> toJson(value.mappingRule),
           OUTPUT -> JsString(value.output.map(_.toString).getOrElse("")),
           ERROR_OUTPUT -> JsString(value.errorOutput.map(_.toString).getOrElse("")),
-          TARGET_VOCABULARIES -> JsString(TargetVocabularyParameterType.toString(value.targetVocabularies))
+          TARGET_VOCABULARIES -> JsString(TargetVocabularyParameterType.toString(value.targetVocabularies)),
+          ABORT_IF_ERRORS_OCCUR -> JsString(value.abortIfErrorsOccur.toString)
         ))
       )
     }
