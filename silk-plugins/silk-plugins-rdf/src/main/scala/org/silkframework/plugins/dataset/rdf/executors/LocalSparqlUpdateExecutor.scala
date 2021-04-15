@@ -98,6 +98,9 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
 
 case class SparqlUpdateExecutionReportUpdater(task: Task[TaskSpec],
                                               context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+
+  override def operationLabel: Option[String] = Some("generate queries")
+
   override def entityLabelSingle: String = "Query"
 
   override def entityLabelPlural: String = "Queries"

@@ -36,8 +36,8 @@ export default class WorkflowReportManager extends React.Component {
                     // Select the report provided in the props
                     selectedReport = this.props.report;
                 } else {
-                    // Select last (i.e., most recent) report
-                    selectedReport = reports[reports.length-1].time;
+                    // Select the first (i.e., most recent) report
+                    selectedReport = reports[0].time;
                 }
                 // Set initial state
                 this.setState({
