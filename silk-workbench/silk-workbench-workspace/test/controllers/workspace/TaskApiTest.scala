@@ -1,6 +1,6 @@
 package controllers.workspace
 
-import controllers.workspace.workspaceRequests.CopyTasksResponse
+import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse}
 import helper.IntegrationTestTrait
 import org.scalatest.MustMatchers
 import org.scalatestplus.play.PlaySpec
@@ -17,6 +17,8 @@ import org.silkframework.util.Uri
 import org.silkframework.workspace.TestCustomTask
 import play.api.http.Status
 import play.api.libs.json._
+import scala.concurrent.duration._
+import scala.concurrent.Await
 
 class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
 
@@ -375,18 +377,9 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
     "simulate copying a task in a dry run" in {
       createProject(targetProject)
 
-      val response = client.url(s"$baseUrl/workspace/projects/$project/tasks/$transformId/copy")
-        .post(Json.parse(
-          s""" {
-            |    "targetProject": "$targetProject",
-            |    "dryRun": true
-            |  }
-          """.stripMargin
-        ))
-
-      val parsedResponse = Json.fromJson[CopyTasksResponse](checkResponse(response).json).get
-      parsedResponse.copiedTasks.map(_.id) must contain theSameElementsAs Seq(datasetId, transformId, TRANSFORM_OUTPUT_DATASET)
-      parsedResponse.overwrittenTasks.map(_.id) must contain theSameElementsAs Seq.empty
+      val copyResponse = copyTransformTaskRequest(CopyTasksRequest(dryRun = Some(true), overwriteTasks = None, targetProject = targetProject))
+      copyResponse.copiedTasks.map(_.id) must contain theSameElementsAs Seq(datasetId, transformId, TRANSFORM_OUTPUT_DATASET)
+      copyResponse.overwrittenTasks.map(_.id) must contain theSameElementsAs Seq.empty
 
       // Assert that no tasks have been copied
       val projectResponse = client.url(s"$baseUrl/workspace/projects/$targetProject").get()
@@ -395,18 +388,9 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
     }
 
     "copy a task" in {
-      val response = client.url(s"$baseUrl/workspace/projects/$project/tasks/$transformId/copy")
-        .post(Json.parse(
-          s""" {
-             |    "targetProject": "$targetProject",
-             |    "dryRun": false
-             |  }
-          """.stripMargin
-        ))
-
-      val parsedResponse = Json.fromJson[CopyTasksResponse](checkResponse(response).json).get
-      parsedResponse.copiedTasks.map(_.id) must contain theSameElementsAs Seq(datasetId, transformId, TRANSFORM_OUTPUT_DATASET)
-      parsedResponse.overwrittenTasks.map(_.id) must contain theSameElementsAs Seq.empty
+      val copyResponse = copyTransformTaskRequest(CopyTasksRequest(dryRun = Some(false), overwriteTasks = None, targetProject = targetProject))
+      copyResponse.copiedTasks.map(_.id) must contain theSameElementsAs Seq(datasetId, transformId, TRANSFORM_OUTPUT_DATASET)
+      copyResponse.overwrittenTasks.map(_.id) must contain theSameElementsAs Seq.empty
 
       // Assert that tasks have been copied
       val projectResponse = client.url(s"$baseUrl/workspace/projects/$targetProject").get()
@@ -421,17 +405,9 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
       checkResponse(updateDatasetRequest.patch(Json.parse("""{ "metadata": { "label": "changed label" } }""")))
 
       // Copy transform task that references the changed dataset
-      val response = client.url(s"$baseUrl/workspace/projects/$project/tasks/$transformId/copy")
-        .post(Json.parse(
-          s""" {
-             |    "targetProject": "$targetProject",
-             |    "dryRun": false
-             |  }
-          """.stripMargin
-        ))
-      val parsedResponse = Json.fromJson[CopyTasksResponse](checkResponse(response).json).get
-      parsedResponse.copiedTasks.map(_.id) must contain theSameElementsAs Seq(datasetId, transformId, TRANSFORM_OUTPUT_DATASET)
-      parsedResponse.overwrittenTasks.map(_.id) must contain theSameElementsAs Seq(datasetId, transformId, TRANSFORM_OUTPUT_DATASET)
+      val copyResponse = copyTransformTaskRequest(CopyTasksRequest(dryRun = Some(false), overwriteTasks = Some(true), targetProject = targetProject))
+      copyResponse.copiedTasks.map(_.id) must contain theSameElementsAs Seq(datasetId, transformId, TRANSFORM_OUTPUT_DATASET)
+      copyResponse.overwrittenTasks.map(_.id) must contain theSameElementsAs Seq(datasetId, transformId, TRANSFORM_OUTPUT_DATASET)
 
       // Assert that the dataset has been overwritten
       val datasetResponse = client.url(s"$baseUrl/workspace/projects/$targetProject/tasks/$datasetId")
@@ -439,6 +415,29 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
                                 .get()
       val datasetJson = checkResponse(datasetResponse).json
       (datasetJson \ "metadata" \ "label").as[JsString].value mustBe "changed label"
+    }
+
+    "fail if tasks should be overwritten, but 'overwriteTasks' is not set" in {
+      val response1 = client.url(s"$baseUrl/workspace/projects/$project/tasks/$transformId/copy")
+        .post(Json.parse(
+          s""" {
+             |    "targetProject": "$targetProject",
+             |    "dryRun": false
+             |  }
+          """.stripMargin
+        ))
+      Await.result(response1, 200.seconds).status mustBe 400
+
+      val response2 = client.url(s"$baseUrl/workspace/projects/$project/tasks/$transformId/copy")
+        .post(Json.parse(
+          s""" {
+             |    "targetProject": "$targetProject",
+             |    "dryRun": false,
+             |    "overwriteTasks": false
+             |  }
+          """.stripMargin
+        ))
+      Await.result(response2, 200.seconds).status mustBe 400
     }
   }
 
@@ -457,6 +456,11 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
       checkResponse(client.url(s"$baseUrl/workspace/projects/$project/tasks/$datasetName/clone?newTask=$newDatasetName").post(""))
       p.task[GenericDatasetSpec](newDatasetName).data.source.retrievePaths("") mustBe Seq()
     }
+  }
+
+  private def copyTransformTaskRequest(request: CopyTasksRequest): CopyTasksResponse = {
+    val response = client.url(s"$baseUrl/workspace/projects/$project/tasks/$transformId/copy").post(Json.toJson(request))
+    Json.fromJson[CopyTasksResponse](checkResponse(response).json).get
   }
 
   /**
