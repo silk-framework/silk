@@ -31,6 +31,7 @@ interface CopyToModalProps extends ICloneOptions {
 interface CopyPayloadProps {
     targetProject: string;
     dryRun: boolean;
+    overwriteTasks?: boolean;
 }
 
 interface TaskToBeCopied {
@@ -129,6 +130,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
             const payload = {
                 targetProject,
                 dryRun: false,
+                overwriteTasks: true, // TODO should only be set to true if confirmed by the user
             };
             await copyTaskOrProject(id, projectId, payload);
             onConfirmed();
