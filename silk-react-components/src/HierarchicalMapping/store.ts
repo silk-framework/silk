@@ -15,6 +15,7 @@ import {
 import EventEmitter from './utils/EventEmitter';
 import { isDebugMode } from './utils/isDebugMode';
 import React, {useState} from "react";
+import silkApi from '../api/silkRestApi'
 
 const silkStore = rxmq.channel('silk.api');
 export const errorChannel = rxmq.channel('errors');

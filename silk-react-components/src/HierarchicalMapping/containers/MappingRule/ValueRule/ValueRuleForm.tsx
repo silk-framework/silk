@@ -17,7 +17,7 @@ import {
     Checkbox,
     TextField,
 } from '@gui-elements/legacy-replacements';
-import _ from 'lodash';
+import _, { debounce } from 'lodash';
 import ExampleView from '../ExampleView';
 import store from '../../../store';
 import { convertToUri } from '../../../utils/convertToUri';
@@ -30,6 +30,8 @@ import { MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES } from '.
 import EventEmitter from '../../../utils/EventEmitter';
 import { wasTouched } from '../../../utils/wasTouched';
 import { newValueIsIRI } from '../../../utils/newValueIsIRI';
+import AutoSuggestion from '../../../components/AutoSuggestion/AutoSuggestion'
+import {getSuggestion, pathValidation} from '../../../store'
 
 const LANGUAGES_LIST = [
     'en', 'de', 'es', 'fr', 'bs', 'bg', 'ca', 'ce', 'zh', 'hr', 'cs', 'da', 'nl', 'eo', 'fi', 'ka', 'el', 'hu', 'ga', 'is', 'it',
@@ -86,6 +88,8 @@ export function ValueRuleForm(props: IProps) {
     const [label, setLabel] = useState<string>("")
     const [comment, setComment] = useState<string>("")
     const [targetProperty, setTargetProperty] = useState<string>("")
+    const [suggestions, setSuggestions] = useState([]);
+    const [pathExpressIsInvalid, setPathExpressValidity] = React.useState(true);
 
     const state = {
         loading,
@@ -252,6 +256,36 @@ export function ValueRuleForm(props: IProps) {
         return targetPropertyNotEmpty && languageTagSet;
     }
 
+     // Autosuggestion handlers editor change
+
+    //editor onChange handler
+    const handleEditorParamsChange = debounce(
+        (autoCompleteRuleId, inputString, cursorPosition,getReplacementIndexes) => {
+            getSuggestion(autoCompleteRuleId, inputString, cursorPosition).then(
+                (suggestions) => {
+                    if (suggestions) {
+                        setSuggestions(
+                            suggestions.data.replacementResults.completions
+                        );
+                        getReplacementIndexes(suggestions.data.replacementInterval)
+                    }
+                }
+            ).catch(() =>setPathExpressValidity(false));
+        },
+        500
+    );
+    
+    const checkPathValidity = debounce((inputString) => {
+         pathValidation(inputString).then((response) =>{
+            setPathExpressValidity(response?.data?.valid ?? false)
+         }).catch(() =>setPathExpressValidity(false)) 
+    },200)
+
+
+
+
+
+
     // template rendering
     const render = () => {
         const { id, parentId } = props;
@@ -276,21 +310,27 @@ export function ValueRuleForm(props: IProps) {
 
         if (type === MAPPING_RULE_TYPE_DIRECT) {
             sourcePropertyInput = (
-                <AutoComplete
-                    placeholder="Value path"
-                    className="ecc-silk-mapping__ruleseditor__sourcePath"
-                    entity="sourcePath"
-                    creatable
-                    value={sourceProperty}
-                    ruleId={autoCompleteRuleId}
-                    onChange={handleChangeSelectBox.bind(
-                        null,
-                        'sourceProperty',
-                        setSourceProperty
-                    )}
-                    resetQueryToValue={true}
-                    itemDisplayLabel={(item) => item.label ? `${item.label} <${item.value}>` : item.value}
-                />
+                <AutoSuggestion
+                checkPathValidity={checkPathValidity}
+                pathIsValid={pathExpressIsInvalid}
+                suggestions={suggestions}
+                onEditorParamsChange={(
+                    inputString: string,
+                    cursorPosition: number,
+                    getReplacementIndexes: (replacementIndexes: {
+                        from: number;
+                        length: number;
+                    }) => void
+                ) =>
+                    handleEditorParamsChange(
+                        autoCompleteRuleId,
+                        inputString,
+                        cursorPosition,
+                        getReplacementIndexes
+                    )
+                }
+            />
+
             );
         } else if (type === MAPPING_RULE_TYPE_COMPLEX) {
             sourcePropertyInput = (
