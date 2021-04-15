@@ -54,7 +54,7 @@ case class CopyTasksRequest(dryRun: Option[Boolean], targetProject: String) {
             targetProj.updateAnyTask(task.id, task.data, Some(task.metaData))
             // Copy resources
             if(copyResources) {
-              for (resource <- task.referencedResources) {
+              for (resource <- task.referencedResources if resource.exists) {
                 targetProj.resources.get(resource.name).writeResource(resource)
               }
             }
