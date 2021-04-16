@@ -14,6 +14,7 @@ import {
     TextField,
     TitleSubsection,
     Accordion,
+    Checkbox,
 } from "@gui-elements/index";
 import { Loading } from "../Loading/Loading";
 import { ICloneOptions } from "./CloneModal";
@@ -46,6 +47,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
     const [targetProject, setTargetProject] = React.useState();
     const [results, setResults] = React.useState<any[]>([]);
     const [info, setInfo] = React.useState<CopyResponsePayload | undefined>();
+    const [overWrittenAcknowledgement, setOverWrittenAcknowledgement] = React.useState(false);
 
     const [t] = useTranslation();
 
@@ -154,6 +156,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
     }
 
     const modalTitle = item.id ? t("common.action.CopyItems") : t("common.action.CopyProject");
+    const [copiedTasks, overwrittenTasks] = [info?.copiedTasks.length ?? 0, info?.overwrittenTasks.length ?? 0];
     return (
         <SimpleDialog
             size="small"
@@ -165,7 +168,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                     key="copy"
                     affirmative
                     onClick={handleCopyingAction}
-                    disabled={!newLabel}
+                    disabled={!newLabel || !overWrittenAcknowledgement}
                     data-test-id={"copy-modal-button"}
                 >
                     {t("common.action.copy")}
@@ -226,14 +229,14 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             title={
                                 <TitleSubsection>
                                     {t("common.messages.copyModalOverwrittenTasks", {
-                                        tasks: info.overwrittenTasks?.length ?? 0,
+                                        tasks: overwrittenTasks,
                                     })}
                                 </TitleSubsection>
                             }
                             fullWidth
                             elevated
                             condensed
-                            open={false}
+                            open
                         >
                             {info.overwrittenTasks?.map((t) => (
                                 <OverviewItem key={t}>{t}</OverviewItem>
@@ -243,7 +246,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             title={
                                 <TitleSubsection>
                                     {t("common.messages.copyModalCopiedTasks", {
-                                        tasks: info.copiedTasks?.length ?? 0,
+                                        tasks: copiedTasks,
                                     })}
                                 </TitleSubsection>
                             }
@@ -259,6 +262,13 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                     </Accordion>
                 </>
             )}
+            <Spacing size="large" />
+            <Checkbox
+                checked={overWrittenAcknowledgement}
+                onChange={() => setOverWrittenAcknowledgement(!overWrittenAcknowledgement)}
+            >
+                {t("common.messages.taskOverwrittenPrompt")}
+            </Checkbox>
             {error && (
                 <>
                     <Spacing />
