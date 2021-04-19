@@ -29,7 +29,7 @@ interface IApiDetails  {
     transformTask?: string,
 }
 
-let _setApiDetails: React.Dispatch<React.SetStateAction<IApiDetails>> = undefined
+let _setApiDetails: React.Dispatch<React.SetStateAction<IApiDetails>> | undefined = undefined
 let _apiDetails: IApiDetails = {};
 export const setApiDetails = data => {
     const details = {...data}
@@ -39,6 +39,17 @@ export const setApiDetails = data => {
     _apiDetails = details;
 };
 export const getApiDetails = (): IApiDetails => _apiDetails;
+/** This should be used where it is guaranteed that the API details have been set before, e.g. inside the hierarchical mappings view. */
+export const getDefinedApiDetails: () => { baseUrl: string; project: string; transformTask: string } = () => {
+    if(typeof _apiDetails.baseUrl !== "string" || !_apiDetails.project || !_apiDetails.transformTask) {
+        throw new Error("Requested API details, but API details are not set!")
+    }
+    return {
+        baseUrl: _apiDetails.baseUrl as string,
+        project: _apiDetails.project as string,
+        transformTask: _apiDetails.transformTask as string,
+    }
+}
 
 /** API details hook. Makes sure that a component gets the API details. */
 export const useApiDetails = () => {
@@ -98,7 +109,7 @@ function findRule(curr, id, isObjectMapping, breadcrumbs) {
     if (element.id === id || _.get(element, 'rules.uriRule.id') === id) {
         return element;
     } else if (_.has(element, 'rules.propertyRules')) {
-        let result = null;
+        let result: any = null;
         const bc = [
             ...breadcrumbs,
             {
@@ -455,7 +466,7 @@ export const getSuggestionsAsync = (data: ISuggestAsyncProps,
     return Rx.Observable.forkJoin(
         vocabularyMatches, fetchValueSourcePaths(data),
         (vocabDatasetsResponse, sourcePathsResponse) => {
-            const suggestions = [];
+            const suggestions: any[] = [];
             if (vocabDatasetsResponse.data) {
                 vocabDatasetsResponse.data.map(match => {
                     const {uri: sourceUri, description, label, candidates, graph} = match;

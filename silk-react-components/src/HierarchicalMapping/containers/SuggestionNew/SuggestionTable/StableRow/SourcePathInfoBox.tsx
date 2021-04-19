@@ -13,15 +13,16 @@ export function SourcePathInfoBox({source}: IProps) {
     const context = useContext(SuggestionListContext);
     const {exampleValues, portalContainer} = context;
 
-    let examples = [];
+    let examples: string[] = [];
     let sourcePath = source
     if (typeof source === 'string') {
         examples = exampleValues[source as string];
     } else if (Array.isArray(source)) {
-        const selected = source.find(t => t._selected);
+        // There is always one item selected from the target list
+        const selected = source.find(t => t._selected) as ITargetWithSelected;
         sourcePath = selected.uri
         if (selected && exampleValues[selected.uri]) {
-            examples.push(exampleValues[selected.uri]);
+            examples = exampleValues[selected.uri]
         }
     }
 

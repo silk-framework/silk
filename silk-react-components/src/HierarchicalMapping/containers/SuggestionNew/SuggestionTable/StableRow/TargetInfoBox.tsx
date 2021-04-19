@@ -9,10 +9,9 @@ interface IProps {
 
 export default function TargetInfoBox({selectedTarget}: IProps) {
     const context = useContext(SuggestionListContext);
-    const {portalContainer} = context;
     const dmBaseUrl = context.frontendInitData?.dmBaseUrl
-    const dmResourceLink = () => {
-        return `${context.frontendInitData.dmBaseUrl}/explore?resource=${encodeURIComponent(selectedTarget.uri)}&graph=${encodeURIComponent(selectedTarget.graph)}`
+    const dmResourceLink = (graph: string, dmBaseUrl: string) => {
+        return `${dmBaseUrl}/explore?resource=${encodeURIComponent(selectedTarget.uri)}&graph=${encodeURIComponent(graph)}`
     }
 
     return <InfoBoxOverlay
@@ -27,7 +26,7 @@ export default function TargetInfoBox({selectedTarget}: IProps) {
             },
             {
                 key: "Explore in DataManager",
-                value: (dmBaseUrl && selectedTarget.graph) ? <a href={dmResourceLink()}
+                value: (dmBaseUrl && selectedTarget.graph) ? <a href={dmResourceLink(selectedTarget.graph, dmBaseUrl)}
                    target='_blank'>{selectedTarget.label}
                 </a> : '',
             },

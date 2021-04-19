@@ -11,7 +11,7 @@ import {
 } from '@gui-elements/index';
 import { ITargetWithSelected } from "../suggestion.typings";
 import { SuggestionListContext } from "../SuggestionContainer";
-import {extractSearchWords, matchesAllWords} from "../../../elements/Highlighter/Highlighter";
+import {extractSearchWords, matchesAllWords} from "@gui-elements/src/components/Typography/Highlighter";
 
 // Select<T> is a generic component to work with your data types.
 // In TypeScript, you must first obtain a non-generic reference:
@@ -28,7 +28,8 @@ export default function TargetList({targets, onChange}: IProps) {
     const [items, setItems] = useState<ITargetWithSelected[]>(targets);
 
     const [inputQuery, setInputQuery] = useState<string>('');
-    const selected = targets.find(t => t._selected);
+    // There must always be one item selected from the target list, e.g. auto-generated
+    const selected = targets.find(t => t._selected) as ITargetWithSelected;
 
     useEffect(() => {
         setItems(items);
@@ -50,14 +51,18 @@ export default function TargetList({targets, onChange}: IProps) {
             const existingUris = new Set(filtered.map(f => f.uri))
             if(suggestVocabularyProperties && context.fetchTargetPropertySuggestions) {
                 const timeout: number = window.setTimeout(async () => {
-                    // Search in all target properties
-                    const propertySuggestions = await context.fetchTargetPropertySuggestions(inputQuery)
-                    const propertySuggestionsWithSelect = propertySuggestions
-                        .filter(ps => !existingUris.has(ps.uri))
-                        .map(ps => ({
-                            ...ps,
-                            _selected: false}))
-                    setItems([...filtered, ...propertySuggestionsWithSelect])
+                    // For some reason the compiler cannot infer that context.fetchTargetPropertySuggestions is defined
+                    if(context.fetchTargetPropertySuggestions) {
+                        // Search in all target properties
+                        const propertySuggestions = await context.fetchTargetPropertySuggestions(inputQuery)
+                        const propertySuggestionsWithSelect = propertySuggestions
+                            .filter(ps => !existingUris.has(ps.uri))
+                            .map(ps => ({
+                                ...ps,
+                                _selected: false
+                            }))
+                        setItems([...filtered, ...propertySuggestionsWithSelect])
+                    }
                 }, 200)
                 return () => clearTimeout(timeout)
             } else {
