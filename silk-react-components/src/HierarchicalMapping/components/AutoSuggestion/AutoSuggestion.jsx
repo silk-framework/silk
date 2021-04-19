@@ -50,11 +50,10 @@ const AutoSuggestion = ({
 
     const handleDropdownChange = (item) => {
         const { from, length } = replacementIndexes;
+        const to = from + length;
         setValue(
             (value) =>
-                `${value.substring(0, from)}${item.value}${value.substring(
-                    length
-                )}`
+                `${value.substring(0, from)}${item.value}${value.substring(to)}`
         );
         setShouldShowDropdown(false);
     };
