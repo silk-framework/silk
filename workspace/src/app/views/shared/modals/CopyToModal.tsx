@@ -16,6 +16,7 @@ import {
     OverviewItemLine,
     Tag,
     Highlighter,
+    OverviewItemDepiction,
 } from "@gui-elements/index";
 import { Loading } from "../Loading/Loading";
 import { ICloneOptions } from "./CloneModal";
@@ -27,6 +28,7 @@ import { debounce } from "../../../utils/debounce";
 import { ResourceLink } from "../ResourceLink/ResourceLink";
 import { useDispatch } from "react-redux";
 import { routerOp } from "@ducks/router";
+import ItemDepiction from "../ItemDepiction";
 
 //Component Interface
 interface CopyToModalProps extends ICloneOptions {
@@ -261,25 +263,28 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             open
                         >
                             {orderTasksByLabel(info.overwrittenTasks)?.map((t) => (
-                                <OverviewItem key={t.id}>
+                                <OverviewItem key={t.id} hasSpacing>
+                                    <OverviewItemDepiction>
+                                        <ItemDepiction itemType={t.taskType} size={{ small: true }} />
+                                    </OverviewItemDepiction>
                                     <OverviewItemLine>
                                         <span>
                                             <Tag>(old link)</Tag>
+                                            {"  "}
+                                            <ResourceLink
+                                                url={t.originalTaskLink}
+                                                handlerResourcePageLoader={(e) =>
+                                                    goToDetailsPage(t.originalTaskLink, t.label, t.taskType, e)
+                                                }
+                                            >
+                                                <Highlighter label={t.label} searchValue={t.label}></Highlighter>
+                                            </ResourceLink>
                                         </span>
-
-                                        <ResourceLink
-                                            url={t.originalTaskLink}
-                                            handlerResourcePageLoader={(e) =>
-                                                goToDetailsPage(t.originalTaskLink, t.label, t.taskType, e)
-                                            }
-                                        >
-                                            <Highlighter label={t.label} searchValue={t.label}></Highlighter>
-                                        </ResourceLink>
                                     </OverviewItemLine>
                                     <OverviewItemLine>
                                         <span>
-                                            <Tag>(new link)</Tag>
-
+                                            <Tag> (new link)</Tag>
+                                            {"  "}
                                             <ResourceLink
                                                 url={t.originalTaskLink}
                                                 handlerResourcePageLoader={(e) =>
@@ -307,10 +312,14 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             open={false}
                         >
                             {orderTasksByLabel(info.copiedTasks)?.map((t) => (
-                                <OverviewItem key={t.id}>
+                                <OverviewItem key={t.id} hasSpacing>
+                                    <OverviewItemDepiction>
+                                        <ItemDepiction itemType={t.taskType} size={{ small: true }} />
+                                    </OverviewItemDepiction>
                                     <OverviewItemLine>
                                         <span>
-                                            <Tag>(link)</Tag>
+                                            <Tag> (link)</Tag>
+                                            {"  "}
                                             <ResourceLink
                                                 url={t.originalTaskLink}
                                                 handlerResourcePageLoader={(e) =>
