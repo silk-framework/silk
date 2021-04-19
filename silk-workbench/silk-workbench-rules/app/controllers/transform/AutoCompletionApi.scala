@@ -75,7 +75,8 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
           if(!isRdfInput && pathToReplace.from > 0) {
             val pathBeforeReplacement = UntypedPath.partialParse(autoCompletionRequest.inputString.take(pathToReplace.from)).partialPath
             val simplePathBeforeReplacement = simplePath(pathBeforeReplacement.operators)
-            relativeForwardPaths = relativePaths(simplePathBeforeReplacement, forwardOnlyPath(simplePathBeforeReplacement), relativeForwardPaths, isRdfInput, oneHopOnly = pathToReplace.insideFilter)
+            relativeForwardPaths = relativePaths(simplePathBeforeReplacement, forwardOnlyPath(simplePathBeforeReplacement),
+              relativeForwardPaths, isRdfInput, oneHopOnly = pathToReplace.insideFilter, serializeFull = true)
           }
           // Add known paths
           val completions: Completions = relativeForwardPaths
@@ -127,7 +128,8 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
                             forwardOnlySourcePath: List[PathOperator],
                             pathCacheCompletions: Completions,
                             isRdfInput: Boolean,
-                            oneHopOnly: Boolean = false)
+                            oneHopOnly: Boolean = false,
+                            serializeFull: Boolean = false)
                            (implicit prefixes: Prefixes): Seq[Completion] = {
     pathCacheCompletions.values.filter { p =>
       val path = UntypedPath.parse(p.value)
@@ -139,7 +141,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
     } map { completion =>
       val path = UntypedPath.parse(completion.value)
       val truncatedOps = truncatePath(path, simpleSourcePath, forwardOnlySourcePath, isRdfInput)
-      completion.copy(value = UntypedPath(truncatedOps).serialize())
+      completion.copy(value = UntypedPath(truncatedOps).serialize(stripForwardSlash = !serializeFull))
     }
   }
 
