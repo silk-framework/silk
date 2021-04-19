@@ -62,15 +62,13 @@ object DetailedEvaluator {
    */
   def apply(rules: Seq[TransformRule], entity: Entity): DetailedEntity = {
     val subjectRule = rules.find(_.target.isEmpty)
-    val propertyRules = rules.filter(_.target.isDefined)
-
     val uris = subjectRule match {
       case Some(rule) => rule(entity)
       case None => Seq(entity.uri.toString)
     }
 
-    val values = for(rule <- propertyRules) yield apply(rule, entity)
-    DetailedEntity(uris, values, propertyRules)
+    val values = for(rule <- rules) yield apply(rule, entity)
+    DetailedEntity(uris, values, rules)
   }
 
   /**
