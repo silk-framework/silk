@@ -260,8 +260,37 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             condensed
                             open
                         >
-                            {info.overwrittenTasks?.map((t) => (
-                                <OverviewItem key={t}>{t}</OverviewItem>
+                            {orderTasksByLabel(info.overwrittenTasks)?.map((t) => (
+                                <OverviewItem key={t.id}>
+                                    <OverviewItemLine>
+                                        <span>
+                                            <Tag>(old link)</Tag>
+                                        </span>
+
+                                        <ResourceLink
+                                            url={t.originalTaskLink}
+                                            handlerResourcePageLoader={(e) =>
+                                                goToDetailsPage(t.originalTaskLink, t.label, t.taskType, e)
+                                            }
+                                        >
+                                            <Highlighter label={t.label} searchValue={t.label}></Highlighter>
+                                        </ResourceLink>
+                                    </OverviewItemLine>
+                                    <OverviewItemLine>
+                                        <span>
+                                            <Tag>(new link)</Tag>
+
+                                            <ResourceLink
+                                                url={t.originalTaskLink}
+                                                handlerResourcePageLoader={(e) =>
+                                                    goToDetailsPage(t.overwrittenTaskLink, t.label, t.taskType, e)
+                                                }
+                                            >
+                                                <Highlighter label={t.label} searchValue={t.label}></Highlighter>
+                                            </ResourceLink>
+                                        </span>
+                                    </OverviewItemLine>
+                                </OverviewItem>
                             ))}
                         </AccordionItem>
                         <AccordionItem
@@ -277,8 +306,22 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             condensed
                             open={false}
                         >
-                            {info.copiedTasks?.map((t) => (
-                                <OverviewItem key={t}>{t}</OverviewItem>
+                            {orderTasksByLabel(info.copiedTasks)?.map((t) => (
+                                <OverviewItem key={t.id}>
+                                    <OverviewItemLine>
+                                        <span>
+                                            <Tag>(link)</Tag>
+                                            <ResourceLink
+                                                url={t.originalTaskLink}
+                                                handlerResourcePageLoader={(e) =>
+                                                    goToDetailsPage(t.originalTaskLink, t.label, t.taskType, e)
+                                                }
+                                            >
+                                                <Highlighter label={t.label} searchValue={t.label}></Highlighter>
+                                            </ResourceLink>
+                                        </span>
+                                    </OverviewItemLine>
+                                </OverviewItem>
                             ))}
                         </AccordionItem>
                     </Accordion>
