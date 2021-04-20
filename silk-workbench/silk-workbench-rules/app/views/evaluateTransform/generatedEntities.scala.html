@@ -4,6 +4,7 @@
 @import controllers.rules.routes.Assets
 @import java.util.UUID
 @import org.silkframework.entity.ValueType
+@import org.silkframework.rule.MappingTarget
 
 @(entities: Seq[org.silkframework.rule.evaluation.DetailedEntity], prefixes: Prefixes)
 
@@ -53,12 +54,7 @@
         @for((value, rule) <- entity.values zip entity.rules) {
           <li>
             <span class="property">
-              @for(target <- rule.target) {
-                @target.propertyUri.serialize(prefixes)
-                @if(target.valueType != ValueType.UNTYPED) {
-                  (@target.valueType.label)
-                }
-              }
+              @renderTarget(rule.target)
             </span>
             <ul>
               @renderValue(value)
@@ -78,11 +74,25 @@
   }
 }
 
+@renderTarget(mappingTarget: Option[MappingTarget]) = {
+  @mappingTarget match {
+    case None => {
+      URI
+    }
+    case Some(target) => {
+      @target.propertyUri.serialize(prefixes)
+      @if(target.valueType != ValueType.UNTYPED) {
+        (@target.valueType.label)
+      }
+    }
+  }
+}
+
 @renderValue(value: Value) = { @value match {
   case TransformedValue(transform, values, children, error) => {
     <li>
       <span class="input">
-    Transform:@transform.transformer.pluginSpec.id (@transform.id)
+        Transform: @transform.transformer.pluginSpec.id (@transform.id)
         @values.map(v => <span class="transformed-value">{v}</span>)
         @renderException(error)
       </span>
@@ -96,7 +106,7 @@
   case InputValue(input, values, error) => {
     <li>
       <span class="input">
-    Input: @input.path.serialize()(prefixes) (@input.id)
+        Input: @input.path.serialize()(prefixes) (@input.id)
         @values.map(v => <span class="input-value">{v}</span>)
         @renderException(error)
       </span>
