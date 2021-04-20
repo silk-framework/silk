@@ -13,6 +13,7 @@ import scala.xml.Node
   * @param typedPaths The list of paths
   * @param filter A filter for restricting the entity set
   * @param subPath Specifies the path starting from the root that is used for enumerating the entities.
+  * @param singleEntity If true, at most a single entity is expected.
   */
 case class EntitySchema(
   typeUri: Uri,
@@ -277,7 +278,8 @@ object EntitySchema {
     EntitySchema(
       typeUri = Uri((node \ "Type").text),
       typedPaths =  paths,
-      filter = Restriction.parse((node \ "Restriction").text)(readContext.prefixes)
+      filter = Restriction.parse((node \ "Restriction").text)(readContext.prefixes),
+      singleEntity = (node \ "@singleEntity").headOption.exists(_.text.toBoolean)
     )
   }
 
@@ -285,7 +287,7 @@ object EntitySchema {
     * Serialize an EntitySchema to XML.
     */
   def write(desc: EntitySchema)(implicit writeContext: WriteContext[Node]): Node =
-    <EntityDescription>
+    <EntityDescription singleEntity={desc.singleEntity.toString}>
       <Type>{desc.typeUri}</Type>
       <Restriction>{desc.filter.serialize}</Restriction>
       <Paths> {

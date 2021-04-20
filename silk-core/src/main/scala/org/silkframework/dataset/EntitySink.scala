@@ -16,6 +16,7 @@ trait EntitySink extends DataSink {
    *
    * @param typeUri The type of the entities to be written.
    * @param properties The list of properties of the entities to be written.
+   * @param singleEntity If true, at most a single entity is expected.
    */
   def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)(implicit userContext: UserContext, prefixes: Prefixes): Unit
 
