@@ -1,7 +1,6 @@
 package org.silkframework.plugins.dataset.xml
 
 import java.util.logging.{Level, Logger}
-
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
@@ -110,6 +109,8 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
     * @return
     */
   override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(file.name), DatasetSpec(EmptyDataset))   //FIXME CMEM-1352 replace with actual task
+
+  override def characteristics: DataSourceCharacteristics = XmlSourceTrait.characteristics
 }
 
 

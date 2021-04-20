@@ -202,6 +202,8 @@ object DatasetSpec {
       * @return
       */
     override def underlyingTask: Task[DatasetSpec[Dataset]] = source.underlyingTask
+
+    override def characteristics: DataSourceCharacteristics = source.characteristics
   }
 
   case class EntitySinkWrapper(entitySink: EntitySink, datasetSpec: DatasetSpec[Dataset]) extends EntitySink {

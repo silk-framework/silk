@@ -62,6 +62,11 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     }
   }
 
+  it should "auto-complete JSON paths that have backward paths in the path prefix" in {
+    val inputPath = "department/tags\\../id"
+    jsonSuggestions(inputPath, inputPath.length) mustBe Seq("id", "tags/tagId")
+  }
+
   it should "auto-complete JSON paths inside filter expressions" in {
     val inputWithFilter = """department[id = "department X"]/tags[id = ""]/tagId"""
     val filterStartIdx = "department[".length
@@ -69,6 +74,10 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     jsonSuggestions(inputWithFilter, filterStartIdx + 2) mustBe Seq("id")
     jsonSuggestions(inputWithFilter, filterStartIdx) mustBe Seq("id")
     jsonSuggestions(inputWithFilter, secondFilterStartIdx) mustBe Seq("tagId")
+    // Multi word query
+    jsonSuggestions(inputWithFilter.take(secondFilterStartIdx) + "ta id" + inputWithFilter.drop(secondFilterStartIdx + 2), secondFilterStartIdx) mustBe Seq("tagId")
+    // Empty query
+    jsonSuggestions(inputWithFilter.take(secondFilterStartIdx) + "" + inputWithFilter.drop(secondFilterStartIdx + 2), secondFilterStartIdx) mustBe Seq("evenMoreNested", "tagId")
   }
 
   private def jsonSuggestions(inputText: String, cursorPosition: Int): Seq[String] = {

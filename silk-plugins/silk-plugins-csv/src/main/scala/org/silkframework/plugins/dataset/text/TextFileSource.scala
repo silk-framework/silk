@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.text
 
 import org.silkframework.config.{PlainTask, Task}
-import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, EmptyDataset}
+import org.silkframework.dataset.{DataSource, DataSourceCharacteristics, Dataset, DatasetSpec, EmptyDataset}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.execution.EntityHolder
@@ -51,4 +51,6 @@ class TextFileSource(ds: TextFileDataset) extends DataSource {
   }
 
   override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(ds.file.name), DatasetSpec(EmptyDataset))
+
+  override def characteristics: DataSourceCharacteristics = DataSourceCharacteristics()
 }

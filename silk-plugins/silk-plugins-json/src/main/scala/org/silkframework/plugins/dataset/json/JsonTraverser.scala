@@ -120,14 +120,14 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
     path match {
       case ForwardOperator(prop) :: tail =>
         prop.uri match {
-          case "#id" =>
+          case JsonSource.specialPaths.ID =>
             Seq(nodeId(value))
-          case "#text" =>
+          case JsonSource.specialPaths.TEXT =>
             nodeToValue(value, generateUris)
           case _ =>
             children(prop).flatMap(child => child.evaluate(tail, generateUris))
         }
-      case BackwardOperator(prop) :: tail =>
+      case BackwardOperator(_) :: tail =>
         parentOpt match {
           case Some(parent) =>
             parent.traverser.evaluate(tail, generateUris)
@@ -138,7 +138,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
         evaluatePropertyFilter(path, p, tail, generateUris)
       case Nil =>
         nodeToValue(value, generateUris)
-      case l: LanguageFilter =>
+      case _: LanguageFilter =>
         throw new IllegalArgumentException("For JSON, language filters are not applicable.")
     }
   }

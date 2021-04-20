@@ -182,4 +182,17 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
         SparqlSamplePathsCollector(sparqlEndpoint, params.graph, restriction, limit).toIndexedSeq
     }
   }
+
+  override def characteristics: DataSourceCharacteristics = SparqlSource.characteristics
+}
+
+object SparqlSource {
+  final val characteristics: DataSourceCharacteristics = DataSourceCharacteristics(
+    SupportedPathExpressions(
+      multiHopPaths = true,
+      backwardPaths = true,
+      propertyFilter = true,
+      languageFilter = true
+    )
+  )
 }

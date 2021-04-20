@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.access
 
 import org.silkframework.config.Task
-import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
+import org.silkframework.dataset.{DataSource, DataSourceCharacteristics, Dataset, DatasetSpec}
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
@@ -59,4 +59,6 @@ case class CombinedSparqlSource(underlyingTask: Task[DatasetSpec[Dataset]], spar
 
   override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])
                             (implicit userContext: UserContext): IndexedSeq[TypedPath] = IndexedSeq.empty
+
+  override def characteristics: DataSourceCharacteristics = SparqlSource.characteristics
 }

@@ -124,4 +124,6 @@ class BulkDataSource(bulkContainerName: String,
   }
 
   override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(bulkContainerName), DatasetSpec(EmptyDataset))   //FIXME CMEM-1352 replace with actual task
+
+  override def characteristics: DataSourceCharacteristics = sources.headOption.map(_.source.characteristics).getOrElse(DataSourceCharacteristics())
 }

@@ -54,4 +54,6 @@ case class EntityDatasource(underlyingTask: Task[DatasetSpec[Dataset]], entities
                             (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
     entitySchema.typedPaths
   }
+
+  override def characteristics: DataSourceCharacteristics = DataSourceCharacteristics()
 }

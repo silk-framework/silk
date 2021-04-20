@@ -20,6 +20,8 @@ object SafeModeDataSource extends DataSource {
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])(implicit userContext: UserContext): EntityHolder = SafeModeException.throwSafeModeException()
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])(implicit userContext: UserContext): EntityHolder = SafeModeException.throwSafeModeException()
+
+  override def characteristics: DataSourceCharacteristics = SafeModeException.throwSafeModeException()
 }
 
 object SafeModeSink extends DataSink with LinkSink with EntitySink {
