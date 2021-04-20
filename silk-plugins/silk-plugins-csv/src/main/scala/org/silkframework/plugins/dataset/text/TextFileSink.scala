@@ -19,7 +19,7 @@ class TextFileSink(ds: TextFileDataset) extends EntitySink with LinkSink {
     }
   }
 
-  override def openTable(typeUri: Uri, properties: Seq[TypedProperty])(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     init()
   }
 

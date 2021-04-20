@@ -207,6 +207,15 @@ export class ObjectRuleForm extends Component<IProps, any> {
         let entityRelationInput: JSX.Element | undefined = undefined
         let sourcePropertyInput: JSX.Element | undefined = undefined
 
+        targetCardinality = (
+            <TargetCardinality
+                className="ecc-silk-mapping__ruleseditor__isAttribute"
+                isAttribute={modifiedValues.isAttribute}
+                isObjectMapping={true}
+                onChange={(value) => this.handleChangeValue('isAttribute', value)}
+            />
+        );
+
         if (modifiedValues.type !== MAPPING_RULE_TYPE_ROOT) {
             // TODO: where to get get list of target properties
             targetPropertyInput = (
@@ -258,14 +267,6 @@ export class ObjectRuleForm extends Component<IProps, any> {
                         />
                     </RadioGroup>
                 </FieldItem>
-            );
-            targetCardinality = (
-                <TargetCardinality
-                    className="ecc-silk-mapping__ruleseditor__isAttribute"
-                    isAttribute={modifiedValues.isAttribute}
-                    isObjectMapping={true}
-                    onChange={(value) => this.handleChangeValue('isAttribute', value)}
-                />
             );
             sourcePropertyInput = (
                 <AutoComplete

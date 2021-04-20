@@ -177,11 +177,11 @@ class JsonSinkTest extends FlatSpec with Matchers {
     implicit val prefixes: Prefixes = Prefixes.empty
 
     val resource = InMemoryResourceManager().get("temp")
-    val sink = new JsonSink(resource, outputSingleJsonObject, template)
+    val sink = new JsonSink(resource, template)
 
-    for (entityTable <- entityTables) {
+    for ((entityTable, index) <- entityTables.zipWithIndex) {
       val schema = entityTable.head.schema
-      sink.openTable(schema.typeUri, schema.typedPaths.flatMap(_.property))
+      sink.openTable(schema.typeUri, schema.typedPaths.flatMap(_.property), index == 0 && outputSingleJsonObject)
       for (entity <- entityTable) {
         sink.writeEntity(entity.uri, entity.values)
       }

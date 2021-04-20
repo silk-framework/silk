@@ -13,7 +13,7 @@ trait HierarchicalEntityWriter extends Closeable {
     * Open this writer.
     * Must be called once at the beginning.
     */
-  def open(): Unit
+  def open(singleRootEntity: Boolean): Unit
 
   /**
     * Adds a new entity.

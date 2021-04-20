@@ -39,7 +39,7 @@ class XmlSink(resource: WritableResource, outputTemplate: String) extends Entity
     *
     * @param properties The list of properties of the entities to be written.
     */
-  override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
                         (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     if(atRoot) {
       val builder = DocumentBuilderFactory.newInstance.newDocumentBuilder

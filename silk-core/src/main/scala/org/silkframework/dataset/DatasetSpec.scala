@@ -213,7 +213,7 @@ object DatasetSpec {
     /**
       * Initializes this writer.
       */
-    override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
+    override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
                           (implicit userContext: UserContext, prefixes: Prefixes){
       if (isOpen) {
         entitySink.close()
