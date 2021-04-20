@@ -67,8 +67,8 @@ case class Completions(values: Seq[Completion] = Seq.empty) {
 
 /** The base properties for auto-completion results. */
 case class CompletionBase(value: String,
-                          label: Option[String],
-                          description: Option[String])
+                          label: Option[String] = None,
+                          description: Option[String] = None)
 
 object CompletionBase {
   implicit val completionBaseFormat: Format[CompletionBase] = Json.format[CompletionBase]

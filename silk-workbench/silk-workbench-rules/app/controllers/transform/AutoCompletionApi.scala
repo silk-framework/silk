@@ -5,6 +5,9 @@ import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.transform.AutoCompletionApi.Categories
 import controllers.transform.autoCompletion._
 import org.silkframework.config.Prefixes
+import org.silkframework.dataset.{DataSourceCharacteristics, SupportedPathExpressions}
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.entity.paths.{PathOperator, _}
 import org.silkframework.entity.{ValueType, ValueTypeAnnotation}
 import org.silkframework.rule.vocab.ObjectPropertyType
@@ -70,13 +73,14 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
           val forwardOnlySourcePath = forwardOnlyPath(simpleSourcePath)
           val allPaths = pathsCacheCompletions(transformTask, simpleSourcePath)
           val isRdfInput = transformTask.activity[TransformPathsCache].value().isRdfInput(transformTask)
+          val dataSourceCharacteristicsOpt = dataSourceCharacteristics(transformTask)
           var relativeForwardPaths = relativePaths(simpleSourcePath, forwardOnlySourcePath, allPaths, isRdfInput)
           val pathToReplace = PartialSourcePathAutocompletionHelper.pathToReplace(autoCompletionRequest, isRdfInput)
           if(!isRdfInput && pathToReplace.from > 0) {
             val pathBeforeReplacement = UntypedPath.partialParse(autoCompletionRequest.inputString.take(pathToReplace.from)).partialPath
             val simplePathBeforeReplacement = simplePath(pathBeforeReplacement.operators)
             relativeForwardPaths = relativePaths(simplePathBeforeReplacement, forwardOnlyPath(simplePathBeforeReplacement),
-              relativeForwardPaths, isRdfInput, oneHopOnly = pathToReplace.insideFilter, serializeFull = true)
+              relativeForwardPaths, isRdfInput, oneHopOnly = pathToReplace.insideFilter, serializeFull = !pathToReplace.insideFilter)
           }
           // Add known paths
           val completions: Completions = relativeForwardPaths
@@ -93,13 +97,48 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
           val response = PartialSourcePathAutoCompletionResponse(
             autoCompletionRequest.inputString,
             autoCompletionRequest.cursorPosition,
-            Some(ReplacementInterval(from, length)),
-            pathToReplace.query.getOrElse(""),
-            filteredResults.toCompletionsBase
+            replacementResults = Seq(
+              ReplacementResults(
+                ReplacementInterval(from, length),
+                pathToReplace.query.getOrElse(""),
+                filteredResults.toCompletionsBase
+              )
+            ) ++ operatorCompletions(dataSourceCharacteristicsOpt, pathToReplace, autoCompletionRequest)
           )
           Ok(Json.toJson(response))
         }
       }
+  }
+
+  private def operatorCompletions(dataSourceCharacteristicsOpt: Option[DataSourceCharacteristics],
+                                  pathToReplace: PathToReplace,
+                                  autoCompletionRequest: PartialSourcePathAutoCompletionRequest): Option[ReplacementResults] = {
+    def completion(predicate: Boolean, value: String, description: String): Option[CompletionBase] = {
+      if(predicate) Some(CompletionBase(value, description = Some(description))) else None
+    }
+    // Propose operators
+    if (!pathToReplace.insideFilter
+      && !autoCompletionRequest.charBeforeCursor.contains('/') && !autoCompletionRequest.charBeforeCursor.contains('\\')) {
+      val supportedPathExpressions = dataSourceCharacteristicsOpt.getOrElse(DataSourceCharacteristics()).supportedPathExpressions
+      val forwardOp = completion(autoCompletionRequest.cursorPosition > 0 && supportedPathExpressions.multiHopPaths, "/", "Starts a forward path segment")
+      val backwardOp = completion(supportedPathExpressions.backwardPaths && supportedPathExpressions.multiHopPaths, "\\", "Starts a backward path segment")
+      val langFilterOp = completion(supportedPathExpressions.languageFilter, "[@lang ", "Starts a language filter expression")
+      val propertyFilter = completion(supportedPathExpressions.propertyFilter, "[", "Starts a property filter expression")
+      Some(ReplacementResults(
+        ReplacementInterval(autoCompletionRequest.cursorPosition, 0),
+        "",
+        CompletionsBase(forwardOp.toSeq ++ backwardOp ++ propertyFilter ++ langFilterOp)
+      ))
+    }
+    else {
+      None
+    }
+  }
+
+  private def dataSourceCharacteristics(task: ProjectTask[TransformSpec])
+                (implicit userContext: UserContext): Option[DataSourceCharacteristics] = {
+    task.project.taskOption[GenericDatasetSpec](task.selection.inputId)
+      .map(_.data.source.characteristics)
   }
 
   private def validatePartialSourcePathAutoCompletionRequest(request: PartialSourcePathAutoCompletionRequest): Unit = {
