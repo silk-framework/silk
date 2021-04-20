@@ -31,7 +31,7 @@ interface IApiDetails  {
 
 let _setApiDetails: React.Dispatch<React.SetStateAction<IApiDetails>> | undefined = undefined
 let _apiDetails: IApiDetails = {};
-export const setApiDetails = data => {
+export const setApiDetails = (data: IApiDetails) => {
     const details = {...data}
     if(_setApiDetails) {
         _setApiDetails(details)
@@ -39,17 +39,6 @@ export const setApiDetails = data => {
     _apiDetails = details;
 };
 export const getApiDetails = (): IApiDetails => _apiDetails;
-/** This should be used where it is guaranteed that the API details have been set before, e.g. inside the hierarchical mappings view. */
-export const getDefinedApiDetails: () => { baseUrl: string; project: string; transformTask: string } = () => {
-    if(typeof _apiDetails.baseUrl !== "string" || !_apiDetails.project || !_apiDetails.transformTask) {
-        throw new Error("Requested API details, but API details are not set!")
-    }
-    return {
-        baseUrl: _apiDetails.baseUrl as string,
-        project: _apiDetails.project as string,
-        transformTask: _apiDetails.transformTask as string,
-    }
-}
 
 /** API details hook. Makes sure that a component gets the API details. */
 export const useApiDetails = () => {
@@ -59,6 +48,19 @@ export const useApiDetails = () => {
         setApiDetails(_apiDetails)
     }
     return apiDetails;
+}
+
+/** Make sure all API details are set. */
+export function getDefinedApiDetails() {
+    const apiDetails = getApiDetails()
+    if(typeof apiDetails.baseUrl !== "string" || !apiDetails.project || !apiDetails.transformTask) {
+        throw new Error("Requested API details, but API details are not set!")
+    }
+    return {
+        baseUrl: apiDetails.baseUrl as string,
+        project: apiDetails.project as string,
+        transformTask: apiDetails.transformTask as string,
+    }
 }
 
 const mapPeakResult = (returned) => {
@@ -704,6 +706,8 @@ const exportFunctions = {
     getHierarchyAsync,
     getRuleAsync,
     createMappingAsync,
+    getApiDetails,
+    setApiDetails
 }
 
 export default exportFunctions

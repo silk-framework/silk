@@ -14,11 +14,10 @@ import {
 import SuggestionList from "./SuggestionList";
 import SuggestionHeader from "./SuggestionHeader";
 import {
-    generateRuleAsync,
-    getApiDetails, getDefinedApiDetails,
+    generateRuleAsync, getApiDetails,
     getSuggestionsAsync,
     prefixesAsync,
-    schemaExampleValuesAsync
+    schemaExampleValuesAsync, useApiDetails,
 } from "../../store";
 import {
     IAddedSuggestion,
@@ -98,6 +97,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     const noVocabsAvailable = vocabularies && vocabularies.length === 0
 
     const frontendInitData = useInitFrontend()
+    const apiDetails = useApiDetails()
 
     // Updates the current error array depending on the type of the added error object
     const setErrorSafe = (newErrors: any | any[], keepOldErrors: boolean = true) => {
@@ -114,7 +114,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         }
     }
 
-    const {baseUrl, project, transformTask} = getDefinedApiDetails()
+    const {baseUrl, project, transformTask} = apiDetails
 
     useEffect(() => {
         fetchVocabularyInfos()
@@ -126,7 +126,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
     // Fetch vocabulary information for the transform task, i.e. the available vocabs.
     const fetchVocabularyInfos = () => {
-        silkApi.retrieveTransformVocabularyInfos(baseUrl, project, transformTask)
+        silkApi.retrieveTransformVocabularyInfos(baseUrl as string, project as string, transformTask as string)
             .then(({ data }) => {
                 setVocabularies(data.vocabularies)
             })
@@ -140,7 +140,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     const fetchTargetPropertySuggestions = async (textQuery: string): Promise<ISuggestionCandidate[]> => {
         const maxResults = 20
         try {
-            const {data} = await silkApi.retrieveTransformTargetProperties(baseUrl, project, transformTask, ruleId,
+            const {data} = await silkApi.retrieveTransformTargetProperties(baseUrl as string, project as string, transformTask as string, ruleId,
                 textQuery, maxResults, selectedVocabs)
             if (Array.isArray(data)) {
                 return data.map(tp => {
