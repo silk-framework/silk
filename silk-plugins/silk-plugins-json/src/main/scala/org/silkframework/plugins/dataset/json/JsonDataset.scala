@@ -18,7 +18,7 @@ case class JsonDataset(
   @Param("Json file.")
   file: WritableResource,
   @Param(label = "Output single JSON object", value = "If checked, a single JSON object will be written and writing multiple entities will fail. Otherwise, an array of JSON objects is written.")
-  outputSingleJsonObject: Boolean = true,
+  outputSingleJsonObject: Boolean = false,
   @Param("Template for writing JSON. The term {{output}} will be replaced by the written JSON.")
   template: MultilineStringParameter = s"${JsonTemplate.placeholder}",
   @Param(value = "The path to the elements to be read, starting from the root element, e.g., '/Persons/Person'. If left empty, all direct children of the root element will be read.", advanced = true)
