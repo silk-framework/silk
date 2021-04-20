@@ -5,9 +5,8 @@ import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.transform.AutoCompletionApi.Categories
 import controllers.transform.autoCompletion._
 import org.silkframework.config.Prefixes
-import org.silkframework.dataset.{DataSourceCharacteristics, SupportedPathExpressions}
+import org.silkframework.dataset.DataSourceCharacteristics
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.entity.paths.{PathOperator, _}
 import org.silkframework.entity.{ValueType, ValueTypeAnnotation}
 import org.silkframework.rule.vocab.ObjectPropertyType
@@ -53,7 +52,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
     }
   }
 
-  private def simplePath(sourcePath: List[PathOperator]) = {
+  private def simplePath(sourcePath: List[PathOperator]): List[PathOperator] = {
     sourcePath.filter(op => op.isInstanceOf[ForwardOperator] || op.isInstanceOf[BackwardOperator])
   }
 
@@ -101,7 +100,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
               ReplacementResults(
                 ReplacementInterval(from, length),
                 pathToReplace.query.getOrElse(""),
-                filteredResults.toCompletionsBase
+                filteredResults.toCompletionsBase.completions
               )
             ) ++ operatorCompletions(dataSourceCharacteristicsOpt, pathToReplace, autoCompletionRequest)
           )
@@ -127,7 +126,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
       Some(ReplacementResults(
         ReplacementInterval(autoCompletionRequest.cursorPosition, 0),
         "",
-        CompletionsBase(forwardOp.toSeq ++ backwardOp ++ propertyFilter ++ langFilterOp)
+        forwardOp.toSeq ++ backwardOp ++ propertyFilter ++ langFilterOp
       ))
     }
     else {

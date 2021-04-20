@@ -50,7 +50,7 @@ case class PartialSourcePathAutoCompletionResponse(inputString: String,
   */
 case class ReplacementResults(replacementInterval: ReplacementInterval,
                               extractedQuery: String,
-                              replacements: CompletionsBase)
+                              replacements: Seq[CompletionBase])
 
 /** The part of a string to replace.
   *

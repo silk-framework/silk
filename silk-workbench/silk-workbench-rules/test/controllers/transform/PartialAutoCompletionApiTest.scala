@@ -37,6 +37,8 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
       replacementResults(completions = null)
     ))
     suggestedValues(result) mustBe allJsonPaths ++ jsonOps.drop(1)
+    // Path ops don't count for maxSuggestions
+    suggestedValues(partialSourcePathAutoCompleteRequest(jsonTransform, maxSuggestions = Some(1))) mustBe allJsonPaths.take(1) ++ jsonOps.drop(1)
   }
 
   it should "auto-complete with multi-word text filter if there is a one hop path entered" in {
@@ -100,7 +102,7 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
   private def replacementResults(from: Int = 0,
                                  to: Int = 0,
                                  query: String = "",
-                                 completions: CompletionsBase
+                                 completions: Seq[CompletionBase]
                                 ): ReplacementResults = ReplacementResults(
     ReplacementInterval(from, to),
     query,
@@ -120,7 +122,7 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
   }
 
   private def suggestedValues(result: PartialSourcePathAutoCompletionResponse): Seq[String] = {
-    result.replacementResults.flatMap(_.replacements.completions.map(_.value))
+    result.replacementResults.flatMap(_.replacements.map(_.value))
   }
 
   private def partialSourcePathAutoCompleteRequest(transformId: String,
