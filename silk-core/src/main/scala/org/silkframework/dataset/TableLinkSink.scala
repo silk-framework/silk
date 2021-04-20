@@ -15,7 +15,7 @@ class TableLinkSink(entitySink: EntitySink) extends LinkSink {
     implicit val prefixes = Prefixes.empty
     entitySink.openTable(LINKS_TYPE, Seq(
       TypedProperty(SOURCE_COLUMN, ValueType.STRING, isBackwardProperty = false, isAttribute = true),
-      TypedProperty(TARGET_COLUMN, ValueType.STRING, isBackwardProperty = false, isAttribute = true)))
+      TypedProperty(TARGET_COLUMN, ValueType.STRING, isBackwardProperty = false, isAttribute = true)), singleEntity = false)
   }
 
   override def writeLink(link: Link, predicateUri: String)

@@ -14,8 +14,6 @@
 
 package org.silkframework.dataset
 
-import java.util.logging.Logger
-
 import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.UriAttributeNotUniqueException
@@ -24,13 +22,12 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginObjectParameter
 import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{Identifier, Uri}
 
+import java.util.logging.Logger
 import scala.language.implicitConversions
-import scala.reflect.ClassTag
 import scala.xml.Node
 
 /**
@@ -227,7 +224,7 @@ object DatasetSpec {
           TypedProperty(property.uri, ValueType.URI, isBackwardProperty = false)
         }
 
-      entitySink.openTable(typeUri, uriTypedProperty ++ properties)
+      entitySink.openTable(typeUri, uriTypedProperty ++ properties, singleEntity)
       isOpen = true
     }
 

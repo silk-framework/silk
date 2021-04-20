@@ -18,7 +18,8 @@ case class EntitySchema(
   typeUri: Uri,
   typedPaths: IndexedSeq[TypedPath],
   filter: Restriction = Restriction.empty,
-  subPath: UntypedPath = UntypedPath.empty
+  subPath: UntypedPath = UntypedPath.empty,
+  singleEntity: Boolean = false
  ) extends Serializable {
 
   /**

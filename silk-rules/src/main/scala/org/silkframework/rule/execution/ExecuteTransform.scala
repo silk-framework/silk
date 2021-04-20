@@ -54,8 +54,9 @@ class ExecuteTransform(task: Task[TransformSpec],
                                 errorEntitySink: Option[EntitySink],
                                 context: ActivityContext[TransformReport])
                                (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
-    entitySink.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get))
-    errorEntitySink.foreach(_.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get) :+ ErrorOutputWriter.errorProperty))
+    val singleEntity = rule.transformRule.target.exists(_.isAttribute)
+    entitySink.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get), singleEntity)
+    errorEntitySink.foreach(_.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get) :+ ErrorOutputWriter.errorProperty, singleEntity))
 
     val entityTable = dataSource.retrieve(rule.inputSchema)
     val transformedEntities = new TransformedEntities(task, entityTable.entities, rule.transformRule.rules, rule.outputSchema,
