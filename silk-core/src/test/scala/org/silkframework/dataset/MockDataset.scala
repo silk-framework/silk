@@ -49,6 +49,8 @@ case class DummyDataSource(retrieveFn: (EntitySchema, Option[Int]) => Traversabl
                             (implicit userContext: UserContext): Traversable[(String, Double)] = Traversable.empty
 
   override def underlyingTask: Task[DatasetSpec[Dataset]] = EmptySource.underlyingTask
+
+  override def characteristics: DataSourceCharacteristics = DataSourceCharacteristics()
 }
 
 case class DummyLinkSink(writeLinkFn: (Link, String) => Unit,

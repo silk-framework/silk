@@ -218,6 +218,18 @@ case class JsonSource(taskId: Identifier, input: JsValue, basePath: String, uriP
     * @return
     */
   override lazy val underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(taskId, DatasetSpec(EmptyDataset))     //FIXME CMEM 1352 replace with actual task
+
+  override def characteristics: DataSourceCharacteristics = DataSourceCharacteristics(
+    SupportedPathExpressions(
+      multiHopPaths = true,
+      backwardPaths = true,
+      propertyFilter = true,
+      specialPaths = Seq(
+        SpecialPathInfo(JsonSource.specialPaths.ID, Some("Hash value of the JSON node or value.")),
+        SpecialPathInfo(JsonSource.specialPaths.TEXT, Some("The string value of a node. This will turn a JSON object into it's string representation."))
+      )
+    )
+  )
 }
 
 object JsonSource{
@@ -228,4 +240,8 @@ object JsonSource{
     apply(Identifier.fromAllowed(file.name), file.read(Json.parse), basePath, uriPattern)
   }
 
+  object specialPaths {
+    final val TEXT = "#text"
+    final val ID = "#id"
+  }
 }

@@ -33,4 +33,6 @@ object EmptySource extends DataSource {
   }
 
   override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask("empty_dataset", DatasetSpec(EmptyDataset))
+
+  override def characteristics: DataSourceCharacteristics = DataSourceCharacteristics()
 }

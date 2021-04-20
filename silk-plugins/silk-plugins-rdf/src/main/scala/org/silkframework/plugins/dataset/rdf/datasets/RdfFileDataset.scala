@@ -109,6 +109,7 @@ case class RdfFileDataset(
   // restrict the fetched entities to following URIs
   private def entityRestriction: Seq[Uri] = SparqlParams.splitEntityList(entityList.str).map(Uri(_))
 
+  /** RDF file data source. */
   class FileSource(resource: Resource) extends DataSource with PeakDataSource with Serializable with SamplingDataSource
     with SchemaExtractionSource with SparqlRestrictionDataSource {
 
@@ -190,6 +191,8 @@ case class RdfFileDataset(
     }
 
     private def sparqlSource = new SparqlSource(SparqlParams(graph = graphOpt), endpoint)
+
+    override def characteristics: DataSourceCharacteristics = SparqlSource.characteristics
   }
 
   override def tripleSink(implicit userContext: UserContext): TripleSink = new FormattedEntitySink(file, formatter)

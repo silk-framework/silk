@@ -1,7 +1,7 @@
 package org.silkframework.rule
 
 import org.silkframework.config.Task
-import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
+import org.silkframework.dataset.{DataSource, DataSourceCharacteristics, Dataset, DatasetSpec, SupportedPathExpressions}
 import org.silkframework.entity.metadata.GenericExecutionFailure
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
@@ -128,4 +128,8 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @return
     */
   override def underlyingTask: Task[DatasetSpec[Dataset]] = source.underlyingTask
+
+  override def characteristics: DataSourceCharacteristics = DataSourceCharacteristics(SupportedPathExpressions(
+    backwardPaths = true
+  ))
 }

@@ -18,7 +18,7 @@ const AutoSuggestion = ({
     const [coords, setCoords] = React.useState({});
     const [shouldShowDropdown, setShouldShowDropdown] = React.useState(false);
     const [inputSelection, setInputSelection] = React.useState("");
-    const [replacementIndexes, setReplacementIndexes] = React.useState({});
+    const [replacementIndexes, setReplacementIndexes] = React.useState({from:0, length: 0});
 
     React.useEffect(() => {
         setInputString(() => value);
@@ -68,7 +68,6 @@ const AutoSuggestion = ({
         <div className="ecc-auto-suggestion-box">
             <div className="ecc-auto-suggestion-box__editor-box">
                 <CodeEditor
-                    name="auto-suggest"
                     onChange={handleChange}
                     onCursorChange={handleCursorChange}
                     onSelection={handleInputEditorSelection}

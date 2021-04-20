@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.xml
 
-import org.silkframework.dataset.DataSource
+import org.silkframework.dataset.{DataSource, DataSourceCharacteristics, SpecialPathInfo, SupportedPathExpressions}
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
@@ -29,5 +29,29 @@ trait XmlSourceTrait { this: DataSource =>
       retrieve(entitySchema).filter(entity => uriSet.contains(entity.uri.toString))
     }
   }
+}
 
+object XmlSourceTrait {
+  object SpecialXmlPaths {
+    final val ID = "#id"
+    final val TAG = "#tag"
+    final val TEXT = "#text"
+    final val ALL_CHILDREN = "*"
+    final val ALL_CHILDREN_RECURSIVE = "**"
+  }
+  import SpecialXmlPaths._
+  final val characteristics = DataSourceCharacteristics(
+    SupportedPathExpressions(
+      multiHopPaths = true,
+      propertyFilter = true,
+      specialPaths = Seq(
+        SpecialPathInfo("\\..", Some("Navigate to parent element.")),
+        SpecialPathInfo(ID, Some("A document-wide unique ID of the entity.")),
+        SpecialPathInfo(TAG, Some("The element tag of the entity.")),
+        SpecialPathInfo(TEXT, Some("The concatenated text inside an element.")),
+        SpecialPathInfo(ALL_CHILDREN, Some("Selects all direct children of the entity.")),
+        SpecialPathInfo(ALL_CHILDREN_RECURSIVE, Some("Selects all children nested below the entity at any depth."))
+      )
+    )
+  )
 }
