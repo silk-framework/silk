@@ -4,8 +4,10 @@ import controllers.transform.autoCompletion._
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.plugins.dataset.json.JsonSource
+import org.silkframework.rule.TransformSpec
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
+import org.silkframework.workspace.activity.transform.TransformPathsCache
 import play.api.libs.json.Json
 import test.Routes
 
@@ -23,6 +25,9 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
   private val jsonSpecialPaths = JsonSource.specialPaths.all
   private val jsonSpecialPathsFull = jsonSpecialPaths.map(p => s"/$p")
   val jsonOps = Seq("/", "\\", "[")
+
+  val allRdfPaths = Seq("<https://ns.eccenca.com/source/address>", "<https://ns.eccenca.com/source/age>", "<https://ns.eccenca.com/source/name>", "rdf:type")
+  val rdfOps: Seq[String] = jsonOps ++ Seq("[@lang ")
 
   /**
     * Returns the path of the XML zip project that should be loaded before the test suite starts.
@@ -102,6 +107,22 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     jsonSuggestions(inputWithFilter, inputWithFilter.length) mustBe Seq("tagId") ++ jsonSpecialPaths.filter(_.contains("id"))
   }
 
+  it should "not suggest anything when inside quotes" in {
+    val pathWithQuotes = """department[b = "some value"]"""
+    jsonSuggestions(pathWithQuotes, pathWithQuotes.length - 3) mustBe Seq.empty
+  }
+
+  it should "suggest all path operators for RDF sources" in {
+    rdfSuggestions("", 0) mustBe allRdfPaths ++ Seq("\\")
+    rdfSuggestions("rdf:type/") mustBe allRdfPaths
+    rdfSuggestions("rdf:type/<urn:test:test>/") mustBe allRdfPaths
+    rdfSuggestions("rdf:type/<urn:test:test>\\") mustBe allRdfPaths
+  }
+
+  it should "suggest URIs based on multi line queries for RDF sources" in {
+    rdfSuggestions("rdf:type/eccenca ad") mustBe allRdfPaths.filter(_.contains("address")) ++ rdfOps
+  }
+
   private def partialAutoCompleteResult(inputString: String = "",
                                         cursorPosition: Int = 0,
                                         replacementResult: Seq[ReplacementResults]): PartialSourcePathAutoCompletionResponse = {
@@ -123,12 +144,16 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
   }
 
   private def jsonSuggestions(inputText: String, cursorPosition: Int): Seq[String] = {
+    project.task[TransformSpec](jsonTransform).activity[TransformPathsCache].control.waitUntilFinished()
     suggestedValues(partialSourcePathAutoCompleteRequest(jsonTransform, inputText = inputText, cursorPosition = cursorPosition))
   }
 
-  private def rdfSuggestions(inputText: String, cursorPosition: Int): Set[String] = {
-    suggestedValues(partialSourcePathAutoCompleteRequest(rdfTransform, inputText = inputText, cursorPosition = cursorPosition)).toSet
+  private def rdfSuggestions(inputText: String, cursorPosition: Int): Seq[String] = {
+    project.task[TransformSpec](rdfTransform).activity[TransformPathsCache].control.waitUntilFinished()
+    suggestedValues(partialSourcePathAutoCompleteRequest(rdfTransform, inputText = inputText, cursorPosition = cursorPosition))
   }
+
+  private def rdfSuggestions(inputText: String): Seq[String] = rdfSuggestions(inputText, inputText.length)
 
   private def suggestedValues(result: PartialSourcePathAutoCompletionResponse): Seq[String] = {
     result.replacementResults.flatMap(_.replacements.map(_.value))

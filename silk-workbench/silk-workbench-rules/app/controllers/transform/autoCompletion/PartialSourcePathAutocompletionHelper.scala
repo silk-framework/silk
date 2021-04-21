@@ -18,6 +18,10 @@ object PartialSourcePathAutocompletionHelper {
       return PathToReplace(0, 0, unfilteredQuery)
     }
     val partialResult = UntypedPath.partialParse(request.pathUntilCursor)
+    if(request.cursorPositionStatus.insideQuotes) {
+      // Do not auto-complete inside quotes
+      return PathToReplace(request.cursorPosition, 0, None, insideQuotes = true)
+    }
     val replacement = partialResult.error match {
       case Some(error) =>
         handleParseErrorCases(request, unfilteredQuery, partialResult, error)
@@ -49,7 +53,9 @@ object PartialSourcePathAutocompletionHelper {
                                     partialResult: PartialParseResult, error: PartialParseError): PathToReplace = {
     val errorOffsetCharacter = request.inputString.substring(error.offset, error.offset + 1)
     val parseStartCharacter = if (error.inputLeadingToError.isEmpty) errorOffsetCharacter else error.inputLeadingToError.take(1)
-    if (error.inputLeadingToError.startsWith("[")) {
+    if(error.offset < request.pathOperatorIdxBeforeCursor.getOrElse(0)) {
+      PathToReplace(request.cursorPosition, 0, None, insideQuotes = request.cursorPositionStatus.insideQuotes, insideUri = request.cursorPositionStatus.insideUri)
+    } else if (error.inputLeadingToError.startsWith("[")) {
       handleFilter(request, unfilteredQuery, error)
     } else if (parseStartCharacter == "/" || parseStartCharacter == "\\") {
       // It tried to parse a forward or backward path and failed, replace path and use path value as query
@@ -97,14 +103,13 @@ object PartialSourcePathAutocompletionHelper {
           replaceIdentifierInsideFilter(error, identifier)
         } else if(pathFromFilterToCursor.contains(identifier)) {
           // The cursor is behind the identifier / URI TODO: auto-complete comparison operator
-          PathToReplace(0, 0, Some("TODO"))
+          PathToReplace(0, 0, None)
         } else {
           // Suggest to replace the identifier
           replaceIdentifierInsideFilter(error, identifier)
         }
       } else {
-        // Not sure what to replace TODO: Handle case of empty filter expression
-        PathToReplace(request.cursorPosition, 0, None, insideFilter = true)
+        replaceIdentifierInsideFilter(error, "")
       }
     }
   }
@@ -186,4 +191,6 @@ object PartialSourcePathAutocompletionHelper {
   *                     If it is None this means that no query should be asked to find suggestions, i.e. only suggest operator or nothing.
   * @param insideFilter If the path to be replaced is inside a filter expression
   */
-case class PathToReplace(from: Int, length: Int, query: Option[String], insideFilter: Boolean = false)
+case class PathToReplace(from: Int, length: Int, query: Option[String], insideFilter: Boolean = false, insideQuotes: Boolean = false, insideUri: Boolean = false) {
+  def insideQuotesOrUri: Boolean = insideQuotes || insideUri
+}

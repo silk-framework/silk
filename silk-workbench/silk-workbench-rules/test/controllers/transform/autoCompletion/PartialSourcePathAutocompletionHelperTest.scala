@@ -66,4 +66,15 @@ class PartialSourcePathAutocompletionHelperTest extends FlatSpec with MustMatche
     replace(pathWithUri, 0) mustBe PathToReplace(0, pathWithUri.length, query = expectedQuery)
     replace(pathWithUri, 1) mustBe PathToReplace(0, pathWithUri.length, query = expectedQuery)
   }
+
+  it should "not auto-complete values inside quotes" in {
+    val pathWithQuotes = """a[b = "some value"]"""
+    replace(pathWithQuotes, pathWithQuotes.length - 4) mustBe PathToReplace(pathWithQuotes.length - 4, 0, None, insideQuotes = true)
+  }
+
+  it should "should not suggest anything if path in the beginning is invalid" in {
+    // some prefix does not exist
+    val qualifiedNamePath = "some:uri/"
+    replace(qualifiedNamePath, qualifiedNamePath.length) mustBe PathToReplace(qualifiedNamePath.length, 0, None)
+  }
 }

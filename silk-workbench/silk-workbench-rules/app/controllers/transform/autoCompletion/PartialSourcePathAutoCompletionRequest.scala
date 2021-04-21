@@ -29,6 +29,19 @@ case class PartialSourcePathAutoCompletionRequest(inputString: String,
       }
   }
 
+  /** Index of the path operator before the cursor.*/
+  def pathOperatorIdxBeforeCursor: Option[Int] = {
+    val positionStatus = cursorPositionStatus
+    val strBackToOperator = inputString.substring(0, cursorPosition).reverse
+      .takeWhile { char =>
+        // Reverse open and close brackets of URI since we are going backwards
+        val reversedChar = if(char == '<') '>' else if(char == '>') '<' else char
+        positionStatus.update(reversedChar)
+        positionStatus.insideQuotesOrUri || !operatorStartChars.contains(char)
+      }
+    Some(cursorPosition - strBackToOperator.length - 1).filter(_ >= 0)
+  }
+
   class PositionStatus(initialInsideQuotes: Boolean, initialInsideUri: Boolean) {
     private var _insideQuotes = initialInsideQuotes
     private var _insideUri = initialInsideUri
@@ -50,7 +63,7 @@ case class PartialSourcePathAutoCompletionRequest(inputString: String,
   }
 
   // Checks if the cursor position is inside quotes or URI
-  private def cursorPositionStatus: PositionStatus = {
+  def cursorPositionStatus: PositionStatus = {
     val positionStatus = new PositionStatus(false, false)
     inputString.take(cursorPosition).foreach(positionStatus.update)
     positionStatus
