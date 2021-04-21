@@ -260,14 +260,13 @@ export function ValueRuleForm(props: IProps) {
 
     //editor onChange handler
     const handleEditorParamsChange = debounce(
-        (autoCompleteRuleId, inputString, cursorPosition,getReplacementIndexes) => {
+        (autoCompleteRuleId, inputString, cursorPosition) => {
             getSuggestion(autoCompleteRuleId, inputString, cursorPosition).then(
                 (suggestions) => {
                     if (suggestions) {
                         setSuggestions(
-                            suggestions.data.replacementResults.completions
+                            suggestions.data
                         );
-                        getReplacementIndexes(suggestions.data.replacementInterval)
                     }
                 }
             ).catch(() =>setPathExpressValidity(false));
@@ -311,26 +310,20 @@ export function ValueRuleForm(props: IProps) {
         if (type === MAPPING_RULE_TYPE_DIRECT) {
             sourcePropertyInput = (
                 <AutoSuggestion
-                checkPathValidity={checkPathValidity}
-                pathIsValid={pathExpressIsInvalid}
-                suggestions={suggestions}
-                onEditorParamsChange={(
-                    inputString: string,
-                    cursorPosition: number,
-                    getReplacementIndexes: (replacementIndexes: {
-                        from: number;
-                        length: number;
-                    }) => void
-                ) =>
-                    handleEditorParamsChange(
-                        autoCompleteRuleId,
-                        inputString,
-                        cursorPosition,
-                        getReplacementIndexes
-                    )
-                }
-            />
-
+                    checkPathValidity={checkPathValidity}
+                    pathIsValid={pathExpressIsInvalid}
+                    data={suggestions}
+                    onEditorParamsChange={(
+                        inputString: string,
+                        cursorPosition: number
+                    ) =>
+                        handleEditorParamsChange(
+                            autoCompleteRuleId,
+                            inputString,
+                            cursorPosition
+                        )
+                    }
+                />
             );
         } else if (type === MAPPING_RULE_TYPE_COMPLEX) {
             sourcePropertyInput = (

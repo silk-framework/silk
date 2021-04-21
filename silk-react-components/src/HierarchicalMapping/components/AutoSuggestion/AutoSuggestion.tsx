@@ -1,34 +1,75 @@
 import React from "react";
-import Dropdown from "react-dropdown";
+import CodeMirror from "codemirror";
 import { Icon } from "@eccenca/gui-elements";
 
+//custom components
 import { CodeEditor } from "../CodeEditor";
+import Dropdown from "./Dropdown";
+import { replace } from "lodash";
 
+//styles
 require("./AutoSuggestion.scss");
 
 const AutoSuggestion = ({
     onEditorParamsChange,
-    suggestions = [],
+    data,
     checkPathValidity,
     pathIsValid,
 }) => {
     const [value, setValue] = React.useState("");
     const [inputString, setInputString] = React.useState("");
     const [cursorPosition, setCursorPosition] = React.useState(0);
-    const [coords, setCoords] = React.useState({});
+    const [coords, setCoords] = React.useState({ left: 0 });
     const [shouldShowDropdown, setShouldShowDropdown] = React.useState(false);
-    const [inputSelection, setInputSelection] = React.useState("");
-    const [replacementIndexes, setReplacementIndexes] = React.useState({from:0, length: 0});
+    const [
+        replacementIndexesDict,
+        setReplacementIndexesDict,
+    ] = React.useState({});
+    const [suggestions, setSuggestions] = React.useState<
+        Array<{ value: string; description?: string; label?: string }>
+    >([]);
+    const [
+        editorInstance,
+        setEditorInstance,
+    ] = React.useState<CodeMirror.Editor>();
+    
+
+    React.useEffect(() => {
+        //perform linting
+    },[pathIsValid])
+
+    /** generate suggestions and also populate the replacement indexes dict */
+    React.useEffect(() => {
+        let newSuggestions = [];
+        let newReplacementIndexesDict = {};
+        if(data?.replacementResults?.length === 1 && !(data?.replacementResults?.replacements?.length)){
+            setShouldShowDropdown(false)
+        }
+        if (data?.replacementResults?.length) {
+            data.replacementResults.forEach(
+                ({ replacements, replacementInterval: { from, length } }) => {
+                    newSuggestions = [...newSuggestions, ...replacements];
+                    replacements.forEach((replacement) => {
+                        newReplacementIndexesDict = {
+                            ...newReplacementIndexesDict,
+                            [replacement.value]: {
+                                from,
+                                length,
+                            },
+                        };
+                    });
+                }
+            );
+            setSuggestions(() => newSuggestions)
+            setReplacementIndexesDict(() => newReplacementIndexesDict)
+        }
+    }, [data]);
 
     React.useEffect(() => {
         setInputString(() => value);
         setShouldShowDropdown(true);
         checkPathValidity(inputString);
-        onEditorParamsChange(
-            inputString,
-            cursorPosition,
-            handleReplacementIndexes
-        );
+        onEditorParamsChange(inputString, cursorPosition);
     }, [cursorPosition, value, inputString]);
 
     const handleChange = (val) => {
@@ -40,22 +81,30 @@ const AutoSuggestion = ({
         setCoords(() => coords);
     };
 
-    const handleInputEditorSelection = (selectedText) => {
-        setInputSelection(selectedText);
+    const handleTextHighlighting = (focusedSuggestion: string) => {
+        editorInstance.refresh()
+        const indexes = replacementIndexesDict[focusedSuggestion];
+        if (indexes) {
+            const { from, length } = indexes;
+            const to = from + length;
+            editorInstance.markText({ line: 1, ch: 0}, { line: 1, ch: 10 }, {css:"color: red"});
+        }
     };
 
-    const handleReplacementIndexes = (indexes) => {
-        setReplacementIndexes(() => ({ ...indexes }));
-    };
-
-    const handleDropdownChange = (item) => {
-        const { from, length } = replacementIndexes;
-        const to = from + length;
-        setValue(
-            (value) =>
-                `${value.substring(0, from)}${item.value}${value.substring(to)}`
-        );
-        setShouldShowDropdown(false);
+    const handleDropdownChange = (selectedSuggestion:string) => {
+        const indexes = replacementIndexesDict[selectedSuggestion];
+        if (indexes) {
+            const { from, length } = indexes;
+            const to = from + length;
+            setValue(
+                (value) =>
+                    `${value.substring(0, from)}${selectedSuggestion}${value.substring(
+                        to
+                    )}`
+            );
+            setShouldShowDropdown(false);
+            editorInstance.setCursor({ line: 1, ch: to });
+        }
     };
 
     const handleInputEditorClear = () => {
@@ -68,9 +117,9 @@ const AutoSuggestion = ({
         <div className="ecc-auto-suggestion-box">
             <div className="ecc-auto-suggestion-box__editor-box">
                 <CodeEditor
+                    setEditorInstance={setEditorInstance}
                     onChange={handleChange}
                     onCursorChange={handleCursorChange}
-                    onSelection={handleInputEditorSelection}
                     value={value}
                 />
                 <div onClick={handleInputEditorClear}>
@@ -82,16 +131,20 @@ const AutoSuggestion = ({
                     />
                 </div>
             </div>
-            <div className="ecc-auto-suggestion-box__dropdown">
-                {shouldShowDropdown ? (
+            {shouldShowDropdown ? (
+                <div
+                    className="ecc-auto-suggestion-box__dropdown"
+                    style={{ left: coords.left }}
+                >
                     <Dropdown
+                        query={value}
                         options={suggestions}
-                        onChange={handleDropdownChange}
-                        value={value}
-                        placeholder="Select from suggestions"
+                        isOpen={shouldShowDropdown}
+                        onItemSelectionChange={handleDropdownChange}
+                        onMouseOverItem={handleTextHighlighting}
                     />
-                ) : null}
-            </div>
+                </div>
+            ) : null}
         </div>
     );
 };

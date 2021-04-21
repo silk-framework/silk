@@ -4,25 +4,26 @@ import "codemirror/mode/sparql/sparql.js";
 import PropTypes from "prop-types";
 
 export function CodeEditor({
+    setEditorInstance,
     onChange,
     onCursorChange,
-    onSelection,
     mode = "sparql",
     value,
 }) {
     return (
         <div className="ecc-input-editor">
             <ControlledEditor
+                editorDidMount={(editor) => setEditorInstance(editor)}
                 value={value}
-                onSelection={(editor) => onSelection(editor.getSelection())}
                 options={{
                     mode: mode,
-                    lineWrapping: true,
                     lineNumbers: false,
                     theme: "xq-light",
+                    lint:true, 
+                    gutters:["CodeMirror-lint-markers"]
                 }}
                 onCursor={(editor, data) => {
-                    onCursorChange(data, editor.cursorCoords(true));
+                    onCursorChange(data, editor.cursorCoords(true, "div"));
                 }}
                 onBeforeChange={(editor, data, value) => onChange(value)}
             />
