@@ -3,7 +3,7 @@ import React, {useContext, useEffect, useState} from "react";
 import {IVocabularyInfo} from "./suggestion.typings";
 import {SuggestionListContext} from "./SuggestionContainer";
 import {MultiSelect} from "@blueprintjs/select";
-import {extractSearchWords, matchesAllWords} from "../../elements/Highlighter/Highlighter";
+import {extractSearchWords, matchesAllWords} from "@gui-elements/src/components/Typography/Highlighter";
 
 interface IProps {
     // The available vocabularies to match against
@@ -35,7 +35,7 @@ export default function VocabularyMatchingDialog(
     const [searchQuery, setSearchQuery] = useState<string | undefined>(undefined)
     const [preselectedVocabs, setPreselectedVocabs] = useState<IVocabularyInfo[]>([])
 
-    const preselect = () => availableVocabularies.filter((v) => preselection.includes(v.uri))
+    const preselect = () => preselection ? availableVocabularies.filter((v) => preselection.includes(v.uri)) : availableVocabularies
 
     useEffect(() => {
         if(preselection) {

@@ -138,13 +138,13 @@ export function ValueRuleForm(props: IProps) {
                             ),
                         };
 
-                        setType(initialValues.type)
-                        setComment(initialValues.comment)
-                        setLabel(initialValues.label)
-                        setTargetProperty(initialValues.targetProperty)
-                        setValueType(initialValues.valueType)
-                        setSourceProperty(initialValues.sourceProperty)
-                        setIsAttribute(initialValues.isAttribute)
+                        initialValues.type && setType(initialValues.type)
+                        initialValues.comment && setComment(initialValues.comment)
+                        initialValues.label && setLabel(initialValues.label)
+                        initialValues.targetProperty && setTargetProperty(initialValues.targetProperty)
+                        initialValues.valueType && setValueType(initialValues.valueType)
+                        initialValues.sourceProperty && setSourceProperty(initialValues.sourceProperty)
+                        initialValues.isAttribute && setIsAttribute(initialValues.isAttribute)
                         setInitialValues(initialValues)
                         setLoading(false)
                     },
@@ -199,7 +199,7 @@ export function ValueRuleForm(props: IProps) {
     };
 
     const handleChangePropertyType = value => {
-        const valueType = { nodeType: value.value };
+        const valueType = { nodeType: value };
         handleChangeValue('valueType', valueType, setValueType);
     };
 
@@ -343,23 +343,21 @@ export function ValueRuleForm(props: IProps) {
                             clearable={false}
                             onChange={handleChangePropertyType}
                         />
-                        { (valueType.nodeType === 'LanguageValueType') &&
-                        <SelectBox
+                        {(valueType.nodeType === 'LanguageValueType') &&
+                        <AutoComplete
                             data-id="lng-select-box"
                             placeholder="Language Tag"
+                            className="ecc-silk-mapping__ruleseditor__languageTag"
+                            entity="langTag"
+                            ruleId={autoCompleteRuleId}
                             options={LANGUAGES_LIST}
-                            optionsOnTop={true} // option list opens up on top of select input (default: false)
                             value={valueType.lang}
                             onChange={handleChangeLanguageTag}
-                            isValidNewOption={({ label = '' }) =>
-                                !_.isNull(label.match(/^[a-z]{2}(-[A-Z]{2})?$/))
-                            }
-                            creatable={true} // allow creation of new values
+                            isValidNewOption={option => !_.isNull(option.label.match(/^[a-z]{2}(-[A-Z]{2})?$/))}
+                            creatable={true}
                             noResultsText="Not a valid language tag"
-                            promptTextCreator={newLabel => (`Create language tag: ${newLabel}`)}
-                            multi={false} // allow multi selection
+                            newOptionText={newLabel => (`Create language tag: ${newLabel}`)}
                             clearable={false} // hide 'remove all selected values' button
-                            searchable={true} // whether to behave like a type-ahead or not
                         />
                         }
                         <TargetCardinality

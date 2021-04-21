@@ -1,10 +1,11 @@
-import {mount, ReactWrapper} from 'enzyme';
+import {mount, ReactWrapper, render} from 'enzyme';
 import React from 'react';
 import SuggestionContainer from '../../../../src/HierarchicalMapping/containers/SuggestionNew/SuggestionContainer';
 import {waitFor} from "@testing-library/react";
 import {
-    byTestId, changeValue,
-    clickElement, clickWrapperElement,
+    byTestId,
+    clickElement,
+    clickWrapperElement,
     findAll,
     findSingleElement,
     logWrapperHtmlOnError,
@@ -121,11 +122,7 @@ jest.mock('../../../../src/api/silkRestApi', () => {
 
 const {getSuggestionsAsync, schemaExampleValuesAsync, prefixesAsync, generateRuleAsync } = require('../../../../src/HierarchicalMapping/store');
 
-
 describe("Suggestion Container Component", () => {
-    beforeEach(() => {
-
-    });
 
     afterEach(() => {
         jest.resetModules();

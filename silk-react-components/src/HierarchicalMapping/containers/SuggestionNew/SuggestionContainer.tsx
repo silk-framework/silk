@@ -14,21 +14,26 @@ import {
 import SuggestionList from "./SuggestionList";
 import SuggestionHeader from "./SuggestionHeader";
 import {
-    generateRuleAsync,
-    getApiDetails,
+    generateRuleAsync, getApiDetails,
     getSuggestionsAsync,
     prefixesAsync,
-    schemaExampleValuesAsync
+    schemaExampleValuesAsync, useApiDetails,
 } from "../../store";
-import {IAddedSuggestion, ISuggestionCandidate, ITransformedSuggestion, IVocabularyInfo} from "./suggestion.typings";
+import {
+    IAddedSuggestion,
+    IPrefix,
+    ISuggestionCandidate,
+    ITransformedSuggestion,
+    IVocabularyInfo
+} from "./suggestion.typings";
 import silkApi from "../../../api/silkRestApi";
 import VocabularyMatchingDialog from "./VocabularyMatchingDialog";
-import {extractSearchWords, matchesAllWords} from "../../elements/Highlighter/Highlighter";
 import {IInitFrontend, useInitFrontend} from "../../../api/silkRestApi.hooks";
+import {extractSearchWords, matchesAllWords} from "@gui-elements/src/components/Typography/Highlighter";
 
 interface ISuggestionListContext {
     // Can be deleted when popup issue gone
-    portalContainer: HTMLElement;
+    portalContainer: HTMLElement | undefined;
     // sharing example values for source data
     exampleValues: {
         [key: string]: string[]
@@ -38,7 +43,7 @@ interface ISuggestionListContext {
     // indicator shows the swap state, by default it's true source->target
     isFromDataset: boolean;
     // Needed to create DM links
-    frontendInitData: IInitFrontend
+    frontendInitData?: IInitFrontend
     // Flag if vocabularies are available to match against
     vocabulariesAvailable: boolean
     // Fetch target property suggestions from the vocabulary cache
@@ -46,11 +51,10 @@ interface ISuggestionListContext {
 }
 
 export const SuggestionListContext = React.createContext<ISuggestionListContext>({
-    portalContainer: null,
+    portalContainer: undefined,
     exampleValues: {},
     search: '',
     isFromDataset: true,
-    frontendInitData: undefined,
     vocabulariesAvailable: false,
 });
 
@@ -86,12 +90,14 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
     const [exampleValues, setExampleValues] = useState({});
 
-    const [prefixList, setPrefixList] = useState([]);
+    const [prefixList, setPrefixList] = useState<IPrefix[]>([]);
 
-    const vocabulariesAvailable = vocabularies && vocabularies.length > 0
+    const vocabulariesAvailable = vocabularies !== undefined && vocabularies.length > 0
+
     const noVocabsAvailable = vocabularies && vocabularies.length === 0
 
     const frontendInitData = useInitFrontend()
+    const apiDetails = useApiDetails()
 
     // Updates the current error array depending on the type of the added error object
     const setErrorSafe = (newErrors: any | any[], keepOldErrors: boolean = true) => {
@@ -108,6 +114,8 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         }
     }
 
+    const {baseUrl, project, transformTask} = apiDetails
+
     useEffect(() => {
         fetchVocabularyInfos()
     }, [])
@@ -118,8 +126,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
     // Fetch vocabulary information for the transform task, i.e. the available vocabs.
     const fetchVocabularyInfos = () => {
-        const {baseUrl, project, transformTask} = getApiDetails()
-        silkApi.retrieveTransformVocabularyInfos(baseUrl, project, transformTask)
+        silkApi.retrieveTransformVocabularyInfos(baseUrl as string, project as string, transformTask as string)
             .then(({ data }) => {
                 setVocabularies(data.vocabularies)
             })
@@ -131,10 +138,9 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
     // Fetch target properties from the available target properties based on a text query
     const fetchTargetPropertySuggestions = async (textQuery: string): Promise<ISuggestionCandidate[]> => {
-        const {baseUrl, project, transformTask} = getApiDetails()
         const maxResults = 20
         try {
-            const {data} = await silkApi.retrieveTransformTargetProperties(baseUrl, project, transformTask, ruleId,
+            const {data} = await silkApi.retrieveTransformTargetProperties(baseUrl as string, project as string, transformTask as string, ruleId,
                 textQuery, maxResults, selectedVocabs)
             if (Array.isArray(data)) {
                 return data.map(tp => {
@@ -252,7 +258,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         return new Promise((resolve, reject) => {
             prefixesAsync().subscribe(
                 data => {
-                    const arr = Object.keys(data).map(key => {
+                    const arr: any[] = Object.keys(data).map(key => {
                         return {
                             key,
                             uri: data[key]
@@ -342,7 +348,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     const mappingOptions = <CardOptions>
             { vocabulariesAvailable && (
                 <Button onClick={() => setShowMatchingDialog(true)} data-test-id={'find_matches'}>
-                    {selectedVocabs.length > 0 ? `Selected vocabularies (${selectedVocabs.length}/${vocabularies.length})`: "Select vocabularies"}
+                    {selectedVocabs.length > 0 && vocabularies ? `Selected vocabularies (${selectedVocabs.length}/${vocabularies.length})`: "Select vocabularies"}
                 </Button>
             )}
         </CardOptions>
@@ -423,7 +429,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                         </TableContainer>
                         {showMatchingDialog && vocabulariesAvailable &&
                             <VocabularyMatchingDialog
-                                availableVocabularies={vocabularies}
+                                availableVocabularies={vocabularies as IVocabularyInfo[]}
                                 onClose={() => setShowMatchingDialog(false)}
                                 executeMatching={executeVocabMatchingFromDialog}
                                 onSelection={handleSelectedVocabs}

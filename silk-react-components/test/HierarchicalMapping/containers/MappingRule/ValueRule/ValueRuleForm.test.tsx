@@ -1,5 +1,5 @@
 import React from "react";
-import { CardTitle, Spinner } from '@eccenca/gui-elements';
+import { Spinner } from '@eccenca/gui-elements';
 import ErrorView from '../../../../../src/HierarchicalMapping/components/ErrorView';
 import ExampleView from '../../../../../src/HierarchicalMapping/containers/MappingRule/ExampleView';
 import * as Store from '../../../../../src/HierarchicalMapping/store';
