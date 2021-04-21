@@ -17,10 +17,8 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
 
   private val rdfTransform = "17fef5a5-a920-4665-92f5-cc729900e8f1_TransformRDF"
   private val jsonTransform = "2a997fb4-1bc7-4344-882e-868193568e87_TransformJSON"
-
-  val allJsonPaths = Seq("department", "department/id", "department/tags",
-    "department/tags/evenMoreNested", "department/tags/evenMoreNested/value", "department/tags/tagId", "id", "name",
-    "phoneNumbers", "phoneNumbers/number", "phoneNumbers/type")
+  val allJsonPaths = Seq("department", "id", "name", "phoneNumbers", "department/id", "department/tags", "phoneNumbers/number",
+    "phoneNumbers/type", "department/tags/evenMoreNested", "department/tags/tagId", "department/tags/evenMoreNested/value")
 
   private val jsonSpecialPaths = JsonSource.specialPaths.all
   private val jsonSpecialPathsFull = jsonSpecialPaths.map(p => s"/$p")

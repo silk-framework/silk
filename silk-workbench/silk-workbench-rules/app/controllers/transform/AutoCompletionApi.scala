@@ -348,7 +348,17 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
                                    (implicit userContext: UserContext): Completions = {
     if (Option(task.activity[TransformPathsCache].value).isDefined) {
       val paths = fetchCachedPaths(task, sourcePath)
-      val serializedPaths = paths.map(_.toUntypedPath.serialize()(task.project.config.prefixes)).sorted.distinct
+      val serializedPaths = paths
+        // Sort primarily by path operator length then name
+        .sortWith { (p1, p2) =>
+          if (p1.operators.length == p2.operators.length) {
+            p1.serialize() < p2.serialize()
+          } else {
+            p1.operators.length < p2.operators.length
+          }
+        }
+        .map(_.toUntypedPath.serialize()(task.project.config.prefixes))
+        .distinct
       for(pathStr <- serializedPaths) yield {
         Completion(
           value = pathStr,
