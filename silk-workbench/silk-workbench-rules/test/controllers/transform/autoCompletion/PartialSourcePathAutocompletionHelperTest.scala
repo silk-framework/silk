@@ -54,4 +54,16 @@ class PartialSourcePathAutocompletionHelperTest extends FlatSpec with MustMatche
     val path = """department[id = "department X"]/tags[id"""
     replace(path, path.length).insideFilter mustBe true
   }
+
+  it should "handle URIs correctly" in {
+    val pathWithUri = "<https://ns.eccenca.com/source/address>"
+    val expectedQuery = Some(pathWithUri.drop(1).dropRight(1))
+    replace(pathWithUri, pathWithUri.length) mustBe PathToReplace(0, pathWithUri.length, query = expectedQuery)
+    replace("/" + pathWithUri, pathWithUri.length - 3) mustBe PathToReplace(0, pathWithUri.length + 1, query = expectedQuery)
+    replace("/" + pathWithUri, 0, subPathOnly = true) mustBe PathToReplace(0, 0, query = Some(""))
+    replace("/" + pathWithUri, 0, subPathOnly = false) mustBe PathToReplace(0, pathWithUri.length + 1, query = Some(""))
+    replace(pathWithUri, pathWithUri.length - 3) mustBe PathToReplace(0, pathWithUri.length, query = expectedQuery)
+    replace(pathWithUri, 0) mustBe PathToReplace(0, pathWithUri.length, query = expectedQuery)
+    replace(pathWithUri, 1) mustBe PathToReplace(0, pathWithUri.length, query = expectedQuery)
+  }
 }

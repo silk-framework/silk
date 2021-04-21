@@ -13,7 +13,6 @@ object PartialSourcePathAutocompletionHelper {
   def pathToReplace(request: PartialSourcePathAutoCompletionRequest,
                     subPathOnly: Boolean)
                    (implicit prefixes: Prefixes): PathToReplace = {
-    // TODO: Refactor method, clean up
     val unfilteredQuery: Option[String] = Some("")
     if(request.inputString.isEmpty) {
       return PathToReplace(0, 0, unfilteredQuery)
@@ -21,28 +20,51 @@ object PartialSourcePathAutocompletionHelper {
     val partialResult = UntypedPath.partialParse(request.pathUntilCursor)
     val replacement = partialResult.error match {
       case Some(error) =>
-        val errorOffsetCharacter = request.inputString.substring(error.offset, error.offset + 1)
-        val parseStartCharacter = if(error.inputLeadingToError.isEmpty) errorOffsetCharacter else error.inputLeadingToError.take(1)
-        if(error.inputLeadingToError.startsWith("[")) {
-          handleFilter(request, unfilteredQuery, error)
-        } else if(parseStartCharacter == "/" || parseStartCharacter == "\\") {
-          // It tried to parse a forward or backward path and failed, replace path and use path value as query
-          val operatorValue = request.inputString.substring(error.offset + 1, request.cursorPosition) + request.remainingStringInOperator
-          PathToReplace(error.offset, operatorValue.length + 1, Some(extractQuery(operatorValue)))
-        } else {
-          // The parser parsed part of a forward or backward path as a path op and then failed on an invalid char, e.g. "/with space"
-          // parses "with" as forward op and then fails parsing the space.
-          assert(partialResult.partialPath.operators.nonEmpty, "Could not detect sub-path to be replaced.")
-          handleMiddleOfPathOp(partialResult, request)
-        }
+        handleParseErrorCases(request, unfilteredQuery, partialResult, error)
       case None if partialResult.partialPath.operators.nonEmpty =>
         // No parse problem, use the last path segment (must be forward or backward path op) for auto-completion
         handleMiddleOfPathOp(partialResult, request)
+      case None if partialResult.partialPath.operators.isEmpty =>
+        // Cursor position is 0.
+        if(operatorChars.contains(request.inputString.head)) {
+          // Right before another path operator, propose to that a new path op
+          PathToReplace(0, 0, unfilteredQuery)
+        } else {
+          // Replace the remaining string
+          val query = request.inputString.substring(0, request.indexOfOperatorEnd)
+          PathToReplace(0, request.indexOfOperatorEnd, Some(extractQuery(query)))
+        }
       case None =>
         // Should never come so far
         PathToReplace(0, 0, unfilteredQuery)
     }
     handleSubPathOnly(request, replacement, subPathOnly)
+  }
+
+  val operatorChars = Set('/', '\\', '[')
+
+  // Handles the cases where an error occurred parsing the path until the cursor position
+  private def handleParseErrorCases(request: PartialSourcePathAutoCompletionRequest,
+                                    unfilteredQuery: Option[String],
+                                    partialResult: PartialParseResult, error: PartialParseError): PathToReplace = {
+    val errorOffsetCharacter = request.inputString.substring(error.offset, error.offset + 1)
+    val parseStartCharacter = if (error.inputLeadingToError.isEmpty) errorOffsetCharacter else error.inputLeadingToError.take(1)
+    if (error.inputLeadingToError.startsWith("[")) {
+      handleFilter(request, unfilteredQuery, error)
+    } else if (parseStartCharacter == "/" || parseStartCharacter == "\\") {
+      // It tried to parse a forward or backward path and failed, replace path and use path value as query
+      val operatorValue = request.inputString.substring(error.offset + 1, request.cursorPosition) + request.remainingStringInOperator
+      PathToReplace(error.offset, operatorValue.length + 1, Some(extractQuery(operatorValue)))
+    } else if (error.nextParseOffset == 0) {
+      // It failed to parse the first path op, just take the whole string up to the next path operator as input to replace
+      val operatorValue = request.inputString.substring(0, request.indexOfOperatorEnd)
+      PathToReplace(0, operatorValue.length, Some(extractQuery(operatorValue)))
+    } else {
+      // The parser parsed part of a forward or backward path as a path op and then failed on an invalid char, e.g. "/with space"
+      // parses "with" as forward op and then fails parsing the space.
+      assert(partialResult.partialPath.operators.nonEmpty, "Could not detect sub-path to be replaced.")
+      handleMiddleOfPathOp(partialResult, request)
+    }
   }
 
   private def handleFilter(request: PartialSourcePathAutoCompletionRequest, unfilteredQuery: Option[String], error: PartialParseError): PathToReplace = {
@@ -144,7 +166,10 @@ object PartialSourcePathAutocompletionHelper {
 
   private def extractQuery(input: String): String = {
     var inputToProcess: String = input.trim
-    if(!input.contains("<") && input.contains(":") && !input.contains(" ") && startsWithPrefix.findFirstMatchIn(input).isDefined) {
+    if(input.startsWith("<") && input.endsWith(">")) {
+      inputToProcess = input.drop(1).dropRight(1)
+    } else if(!input.contains("<") && input.contains(":") && !input.contains(" ") && startsWithPrefix.findFirstMatchIn(input).isDefined
+      && !input.startsWith("http") && !input.startsWith("urn")) {
       // heuristic to detect qualified names
       inputToProcess = input.drop(input.indexOf(":") + 1)
     }
