@@ -75,11 +75,17 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
           val dataSourceCharacteristicsOpt = dataSourceCharacteristics(transformTask)
           var relativeForwardPaths = relativePaths(simpleSourcePath, forwardOnlySourcePath, allPaths, isRdfInput)
           val pathToReplace = PartialSourcePathAutocompletionHelper.pathToReplace(autoCompletionRequest, isRdfInput)
-          if(!isRdfInput && pathToReplace.from > 0) {
-            val pathBeforeReplacement = UntypedPath.partialParse(autoCompletionRequest.inputString.take(pathToReplace.from)).partialPath
-            val simplePathBeforeReplacement = simplePath(pathBeforeReplacement.operators)
-            relativeForwardPaths = relativePaths(simplePathBeforeReplacement, forwardOnlyPath(simplePathBeforeReplacement),
-              relativeForwardPaths, isRdfInput, oneHopOnly = pathToReplace.insideFilter, serializeFull = !pathToReplace.insideFilter)
+          if(pathToReplace.from > 0) {
+            if(!isRdfInput) {
+              // compute relative paths
+              val pathBeforeReplacement = UntypedPath.partialParse(autoCompletionRequest.inputString.take(pathToReplace.from)).partialPath
+              val simplePathBeforeReplacement = simplePath(pathBeforeReplacement.operators)
+              relativeForwardPaths = relativePaths(simplePathBeforeReplacement, forwardOnlyPath(simplePathBeforeReplacement),
+                relativeForwardPaths, isRdfInput, oneHopOnly = pathToReplace.insideFilter, serializeFull = !pathToReplace.insideFilter)
+            } else if(isRdfInput && !pathToReplace.insideFilter) {
+              // add forward operator for RDF paths when not in filter
+              relativeForwardPaths = relativeForwardPaths.map(c => if(!c.value.startsWith("/") && !c.value.startsWith("\\")) c.copy(value = "/" + c.value) else c)
+            }
           }
           val dataSourceSpecialPathCompletions = specialPathCompletions(dataSourceCharacteristicsOpt, pathToReplace)
           // Add known paths

@@ -27,6 +27,7 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
   val jsonOps = Seq("/", "\\", "[")
 
   val allRdfPaths = Seq("<https://ns.eccenca.com/source/address>", "<https://ns.eccenca.com/source/age>", "<https://ns.eccenca.com/source/name>", "rdf:type")
+  val allRdfPathsFull = allRdfPaths.map("/" + _)
   val rdfOps: Seq[String] = jsonOps ++ Seq("[@lang ")
 
   /**
@@ -114,13 +115,13 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
 
   it should "suggest all path operators for RDF sources" in {
     rdfSuggestions("", 0) mustBe allRdfPaths ++ Seq("\\")
-    rdfSuggestions("rdf:type/") mustBe allRdfPaths
-    rdfSuggestions("rdf:type/<urn:test:test>/") mustBe allRdfPaths
-    rdfSuggestions("rdf:type/<urn:test:test>\\") mustBe allRdfPaths
+    rdfSuggestions("rdf:type/") mustBe allRdfPathsFull
+    rdfSuggestions("rdf:type/<urn:test:test>/") mustBe allRdfPathsFull
+    rdfSuggestions("rdf:type/<urn:test:test>\\") mustBe allRdfPathsFull
   }
 
   it should "suggest URIs based on multi line queries for RDF sources" in {
-    rdfSuggestions("rdf:type/eccenca ad") mustBe allRdfPaths.filter(_.contains("address")) ++ rdfOps
+    rdfSuggestions("rdf:type/eccenca ad") mustBe allRdfPathsFull.filter(_.contains("address")) ++ rdfOps
   }
 
   private def partialAutoCompleteResult(inputString: String = "",
