@@ -129,6 +129,7 @@ const AutoSuggestion = ({
         <div className="ecc-auto-suggestion-box">
             <div className="ecc-auto-suggestion-box__editor-box">
                 <CodeEditor
+                    mode={'null'}
                     setEditorInstance={setEditorInstance}
                     onChange={handleChange}
                     onCursorChange={handleCursorChange}
