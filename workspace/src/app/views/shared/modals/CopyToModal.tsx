@@ -8,12 +8,15 @@ import {
     FieldItem,
     Notification,
     OverviewItem,
-    Select,
     SimpleDialog,
     Spacing,
-    TextField,
     TitleSubsection,
     Accordion,
+    Checkbox,
+    OverviewItemLine,
+    Tag,
+    Highlighter,
+    OverviewItemDepiction,
 } from "@gui-elements/index";
 import { Loading } from "../Loading/Loading";
 import { ICloneOptions } from "./CloneModal";
@@ -22,6 +25,10 @@ import { useTranslation } from "react-i18next";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { requestCopyProject, requestCopyTask, requestSearchList } from "@ducks/workspace/requests";
 import { debounce } from "../../../utils/debounce";
+import { ResourceLink } from "../ResourceLink/ResourceLink";
+import { useDispatch } from "react-redux";
+import { routerOp } from "@ducks/router";
+import ItemDepiction from "../ItemDepiction";
 
 //Component Interface
 interface CopyToModalProps extends ICloneOptions {
@@ -42,9 +49,17 @@ interface TaskToBeCopied {
     overwrittenTaskLink?: string;
 }
 
+interface ItemResponseType {
+    id: string;
+    label: string;
+    originalTaskLink: string;
+    overwrittenTaskLink?: string;
+    taskType: string;
+}
+
 interface CopyResponsePayload {
-    overwrittenTasks: Array<TaskToBeCopied>;
-    copiedTasks: Array<TaskToBeCopied>;
+    overwrittenTasks: Array<ItemResponseType>;
+    copiedTasks: Array<ItemResponseType>;
 }
 
 const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed }) => {
@@ -55,23 +70,14 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
     const [targetProject, setTargetProject] = React.useState();
     const [results, setResults] = React.useState<any[]>([]);
     const [info, setInfo] = React.useState<CopyResponsePayload | undefined>();
+    const [overWrittenAcknowledgement, setOverWrittenAcknowledgement] = React.useState(false);
+    const dispatch = useDispatch();
 
     const [t] = useTranslation();
 
-    /*****************@TODO refactor useEffect calls into separate hooks, maybe :) *****************/
     React.useEffect(() => {
         copyingSetup();
     }, [item]);
-
-    const removeFromList = (list: Array<any>) => {
-        /** if task filter using project label */
-        if (item.id && item.projectLabel) {
-            return list.filter((l) => l.label !== item.projectLabel);
-        } else {
-            // else if project artefact
-            return list.filter((l) => l.label !== label);
-        }
-    };
 
     //preload the project lists with default data
     React.useEffect(() => {
@@ -85,17 +91,16 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
         })();
     }, [item, label]);
 
-    /***************** END of side effects *****************/
-    // /**
-    //  *
-    //  * @param info
-    //  * @returns {String}
-    //  */
-    // const compressInfoToReadableText = (info: any): string => {
-    //     return `Copying (${info.copiedTasks.length}) tasks, ${info.copiedTasks.join(",")}, Overwriting (${
-    //         info.overwrittenTasks.length
-    //     }) ${info.overwrittenTasks.join(",")}`;
-    // };
+    /** remove the same project from possible project targets in the selection menu */
+    const removeFromList = (list: Array<any>) => {
+        /** if task filter using project label */
+        if (item.id && item.projectLabel) {
+            return list.filter((l) => l.label !== item.projectLabel);
+        } else {
+            // else if project artefact
+            return list.filter((l) => l.label !== label);
+        }
+    };
 
     const copyingSetup = async () => {
         setLoading(true);
@@ -159,11 +164,45 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
         }
     }, 500);
 
+    /** this orders the tasks in the accordion by the default/typical order in the DI project space
+     *  1.Project
+     *  2. Workflow
+     *  3. Dataset
+     *  4. Transform
+     *  5. Linking
+     *  6. Task
+     */
+    const orderTasksByLabel = (items: Array<ItemResponseType>) => {
+        const order = {
+            project: 1,
+            workflow: 2,
+            dataset: 3,
+            transform: 4,
+            linking: 5,
+            task: 6,
+        };
+        return items.sort((a, b) => order[a.taskType.toLowerCase()] - order[b.taskType.toLowerCase()]);
+    };
+
+    // Go to details page of related item
+    const goToDetailsPage = (link: string, label: string, taskType: string, event) => {
+        if (!event?.ctrlKey) {
+            event.preventDefault();
+            dispatch(
+                routerOp.goToPage(link, {
+                    taskLabel: label,
+                    itemType: taskType.toLowerCase(),
+                })
+            );
+        }
+    };
+
     if (loading) {
         return <Loading />;
     }
 
     const modalTitle = item.id ? t("common.action.CopyItems") : t("common.action.CopyProject");
+    const [copiedTasks, overwrittenTasks] = [info?.copiedTasks.length ?? 0, info?.overwrittenTasks.length ?? 0];
     return (
         <SimpleDialog
             size="small"
@@ -175,7 +214,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                     key="copy"
                     affirmative
                     onClick={handleCopyingAction}
-                    disabled={!newLabel}
+                    disabled={!newLabel || !overWrittenAcknowledgement}
                     data-test-id={"copy-modal-button"}
                 >
                     {t("common.action.copy")}
@@ -185,18 +224,6 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                 </Button>,
             ]}
         >
-            {/** will be added in subsequent iterations */}
-            {/* <FieldItem
-                key={"label"}
-                labelAttributes={{
-                    htmlFor: "label",
-                    text: t("common.messages.copyModalTitle", {
-                        item: item.id ? t("common.dataTypes.task") : t("common.dataTypes.project"),
-                    }),
-                }}
-            >
-                <TextField onChange={(e) => setNewLabel(e.target.value)} value={newLabel} />
-            </FieldItem> */}
             <FieldItem
                 key={"copy-label"}
                 labelAttributes={{
@@ -236,24 +263,56 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             title={
                                 <TitleSubsection>
                                     {t("common.messages.copyModalOverwrittenTasks", {
-                                        tasks: info.overwrittenTasks?.length ?? 0,
+                                        tasks: overwrittenTasks,
                                     })}
                                 </TitleSubsection>
                             }
                             fullWidth
                             elevated
                             condensed
-                            open={false}
+                            open
                         >
-                            {info.overwrittenTasks?.map((t) => (
-                                <OverviewItem key={t.id}>{t.label}</OverviewItem>
+                            {orderTasksByLabel(info.overwrittenTasks)?.map((t) => (
+                                <OverviewItem key={t.id} hasSpacing>
+                                    <OverviewItemDepiction>
+                                        <ItemDepiction itemType={t.taskType} size={{ small: true }} />
+                                    </OverviewItemDepiction>
+                                    <OverviewItemLine>
+                                        <span>
+                                            <Tag>(old link)</Tag>
+                                            {"  "}
+                                            <ResourceLink
+                                                url={t.originalTaskLink}
+                                                handlerResourcePageLoader={(e) =>
+                                                    goToDetailsPage(t.originalTaskLink, t.label, t.taskType, e)
+                                                }
+                                            >
+                                                <Highlighter label={t.label} searchValue={t.label}></Highlighter>
+                                            </ResourceLink>
+                                        </span>
+                                    </OverviewItemLine>
+                                    <OverviewItemLine>
+                                        <span>
+                                            <Tag> (new link)</Tag>
+                                            {"  "}
+                                            <ResourceLink
+                                                url={t.originalTaskLink}
+                                                handlerResourcePageLoader={(e) =>
+                                                    goToDetailsPage(t.overwrittenTaskLink, t.label, t.taskType, e)
+                                                }
+                                            >
+                                                <Highlighter label={t.label} searchValue={t.label}></Highlighter>
+                                            </ResourceLink>
+                                        </span>
+                                    </OverviewItemLine>
+                                </OverviewItem>
                             ))}
                         </AccordionItem>
                         <AccordionItem
                             title={
                                 <TitleSubsection>
                                     {t("common.messages.copyModalCopiedTasks", {
-                                        tasks: info.copiedTasks?.length ?? 0,
+                                        tasks: copiedTasks,
                                     })}
                                 </TitleSubsection>
                             }
@@ -262,13 +321,38 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             condensed
                             open={false}
                         >
-                            {info.copiedTasks?.map((t) => (
-                                <OverviewItem key={t.id}>{t.label}</OverviewItem>
+                            {orderTasksByLabel(info.copiedTasks)?.map((t) => (
+                                <OverviewItem key={t.id} hasSpacing>
+                                    <OverviewItemDepiction>
+                                        <ItemDepiction itemType={t.taskType} size={{ small: true }} />
+                                    </OverviewItemDepiction>
+                                    <OverviewItemLine>
+                                        <span>
+                                            <Tag> (link)</Tag>
+                                            {"  "}
+                                            <ResourceLink
+                                                url={t.originalTaskLink}
+                                                handlerResourcePageLoader={(e) =>
+                                                    goToDetailsPage(t.originalTaskLink, t.label, t.taskType, e)
+                                                }
+                                            >
+                                                <Highlighter label={t.label} searchValue={t.label}></Highlighter>
+                                            </ResourceLink>
+                                        </span>
+                                    </OverviewItemLine>
+                                </OverviewItem>
                             ))}
                         </AccordionItem>
                     </Accordion>
                 </>
             )}
+            <Spacing size="large" />
+            <Checkbox
+                checked={overWrittenAcknowledgement}
+                onChange={() => setOverWrittenAcknowledgement(!overWrittenAcknowledgement)}
+            >
+                {t("common.messages.taskOverwrittenPrompt")}
+            </Checkbox>
             {error && (
                 <>
                     <Spacing />
