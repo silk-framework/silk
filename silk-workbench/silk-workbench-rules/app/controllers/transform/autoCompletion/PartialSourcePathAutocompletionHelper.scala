@@ -70,12 +70,15 @@ object PartialSourcePathAutocompletionHelper {
       }
       if(identifier.nonEmpty) {
         val pathFromFilterToCursor = request.inputString.substring(error.nextParseOffset, request.cursorPosition)
-        if(pathFromFilterToCursor.contains(identifier)) {
+        if(pathFromFilterToCursor.endsWith(identifier)) {
+          // The cursor is directly behind the identifier
+          replaceIdentifierInsideFilter(error, identifier)
+        } else if(pathFromFilterToCursor.contains(identifier)) {
           // The cursor is behind the identifier / URI TODO: auto-complete comparison operator
           PathToReplace(0, 0, Some("TODO"))
         } else {
           // Suggest to replace the identifier
-          PathToReplace(error.nextParseOffset + 1, error.nextParseOffset + 1 + identifier.stripSuffix(" ").length, Some(extractQuery(identifier)), insideFilter = true)
+          replaceIdentifierInsideFilter(error, identifier)
         }
       } else {
         // Not sure what to replace TODO: Handle case of empty filter expression
@@ -84,8 +87,15 @@ object PartialSourcePathAutocompletionHelper {
     }
   }
 
-  private def handleSubPathOnly(request: PartialSourcePathAutoCompletionRequest, pathToReplace: PathToReplace, subPathOnly: Boolean): PathToReplace = {
-    if(subPathOnly || pathToReplace.query.isEmpty) {
+  private def replaceIdentifierInsideFilter(error: PartialParseError, identifier: String): PathToReplace = {
+    PathToReplace(error.nextParseOffset + 1, identifier.stripSuffix(" ").length, Some(extractQuery(identifier)), insideFilter = true)
+  }
+
+  /** Replace the complete path prefix if not only the sub-path should be replaced, e.g. for XML and JSON. */
+  private def handleSubPathOnly(request: PartialSourcePathAutoCompletionRequest,
+                                pathToReplace: PathToReplace,
+                                subPathOnly: Boolean): PathToReplace = {
+    if(subPathOnly || pathToReplace.query.isEmpty || pathToReplace.insideFilter) {
       pathToReplace
     } else {
       pathToReplace.copy(length = request.inputString.length - pathToReplace.from)

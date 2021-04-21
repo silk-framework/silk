@@ -97,6 +97,11 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     jsonSuggestions(inputWithFilter.take(secondFilterStartIdx) + "" + inputWithFilter.drop(secondFilterStartIdx + 2), secondFilterStartIdx) mustBe Seq("evenMoreNested", "tagId") ++ jsonSpecialPaths
   }
 
+  it should "auto-complete JSON paths inside started filter expressions" in {
+    val inputWithFilter = """department[id = "department X"]/tags[id"""
+    jsonSuggestions(inputWithFilter, inputWithFilter.length) mustBe Seq("tagId") ++ jsonSpecialPaths.filter(_.contains("id"))
+  }
+
   private def partialAutoCompleteResult(inputString: String = "",
                                         cursorPosition: Int = 0,
                                         replacementResult: Seq[ReplacementResults]): PartialSourcePathAutoCompletionResponse = {
