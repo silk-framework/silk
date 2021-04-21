@@ -45,6 +45,9 @@ private[entity] class PathParser(prefixes: Prefixes) extends RegexParsers {
     * @param pathStr The input path string.
     */
   def parseUntilError(pathStr: String): PartialParseResult = {
+    if(pathStr.isEmpty) {
+      return PartialParseResult(UntypedPath(List.empty), None)
+    }
     val completePath = normalized(pathStr)
     // Added characters because of normalization. Need to be removed when reporting the actual error offset.
     val addedOffset = completePath.length - pathStr.length
@@ -67,7 +70,7 @@ private[entity] class PathParser(prefixes: Prefixes) extends RegexParsers {
             partialParseError = Some(PartialParseError(
               originalErrorOffset,
               error.msg,
-              pathStr.substring(originalParseOffset, originalErrorOffset + 1), // + 1 since we want to have the character where it failed
+              pathStr.substring(originalParseOffset, math.min(originalErrorOffset + 1, pathStr.length)), // + 1 since we want to have the character where it failed
               originalParseOffset
             ))
         }
@@ -87,9 +90,9 @@ private[entity] class PathParser(prefixes: Prefixes) extends RegexParsers {
 
   // Normalizes the path syntax in case a simplified syntax has been used
   private def normalized(pathStr: String): String = {
-    pathStr.head match {
-      case '?' => pathStr // Path includes a variable
-      case '/' | '\\' => "?a" + pathStr // Variable has been left out
+    pathStr.headOption match {
+      case Some('?') => pathStr // Path includes a variable
+      case Some('/') | Some('\\') => "?a" + pathStr // Variable has been left out
       case _ => "?a/" + pathStr // Variable and leading '/' have been left out
     }
   }

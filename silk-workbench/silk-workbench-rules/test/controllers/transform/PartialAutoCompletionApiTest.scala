@@ -3,6 +3,7 @@ package controllers.transform
 import controllers.transform.autoCompletion._
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.plugins.dataset.json.JsonSource
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import play.api.libs.json.Json
@@ -19,6 +20,8 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     "department/tags/evenMoreNested", "department/tags/evenMoreNested/value", "department/tags/tagId", "id", "name",
     "phoneNumbers", "phoneNumbers/number", "phoneNumbers/type")
 
+  private val jsonSpecialPaths = JsonSource.specialPaths.all
+  private val jsonSpecialPathsFull = jsonSpecialPaths.map(p => s"/$p")
   val jsonOps = Seq("/", "\\", "[")
 
   /**
@@ -36,9 +39,10 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
       replacementResults(completions = null),
       replacementResults(completions = null)
     ))
-    suggestedValues(result) mustBe allJsonPaths ++ jsonOps.drop(1)
+    // Do not propose filter or forward operators at the beginning of a path. Filters are currently invalid in first position (FIXME: CMEM-226).
+    suggestedValues(result) mustBe allJsonPaths ++ jsonSpecialPaths ++ Seq("\\")
     // Path ops don't count for maxSuggestions
-    suggestedValues(partialSourcePathAutoCompleteRequest(jsonTransform, maxSuggestions = Some(1))) mustBe allJsonPaths.take(1) ++ jsonOps.drop(1)
+    suggestedValues(partialSourcePathAutoCompleteRequest(jsonTransform, maxSuggestions = Some(1))) mustBe allJsonPaths.take(1) ++ Seq("\\")
   }
 
   it should "auto-complete with multi-word text filter if there is a one hop path entered" in {
@@ -56,13 +60,13 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     val level1EndInput = "department/id"
     // Return all relative paths that match "id" for any cursor position after the first slash
     for(cursorPosition <- level1EndInput.length - 2 to level1EndInput.length) {
-      val opsSegments = if(level1EndInput(cursorPosition - 1) != '/')  jsonOps else Seq.empty
-      jsonSuggestions(level1EndInput, cursorPosition) mustBe Seq("/id", "/tags/tagId") ++ opsSegments
+      val opsSegments = if(level1EndInput(cursorPosition - 1) != '/') jsonOps else Seq.empty
+      jsonSuggestions(level1EndInput, cursorPosition) mustBe Seq("/id", "/tags/tagId") ++ jsonSpecialPathsFull.filter(_.contains("id")) ++ opsSegments
     }
     val level2EndInput = "department/tags/id"
     for(cursorPosition <- level2EndInput.length - 2 to level2EndInput.length) {
       val opsSegments = if(level2EndInput(cursorPosition - 1) != '/')  jsonOps else Seq.empty
-      jsonSuggestions(level2EndInput, cursorPosition) mustBe Seq("/tagId") ++ opsSegments
+      jsonSuggestions(level2EndInput, cursorPosition) mustBe Seq("/tagId") ++ jsonSpecialPathsFull.filter(_.contains("id")) ++ opsSegments
     }
   }
 
@@ -77,20 +81,20 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
 
   it should "auto-complete JSON paths that have backward paths in the path prefix" in {
     val inputPath = "department/tags\\../id"
-    jsonSuggestions(inputPath, inputPath.length) mustBe Seq("/id", "/tags/tagId") ++ jsonOps
+    jsonSuggestions(inputPath, inputPath.length) mustBe Seq("/id", "/tags/tagId") ++ jsonSpecialPathsFull.filter(_.contains("id")) ++ jsonOps
   }
 
   it should "auto-complete JSON paths inside filter expressions" in {
     val inputWithFilter = """department[id = "department X"]/tags[id = ""]/tagId"""
     val filterStartIdx = "department[".length
     val secondFilterStartIdx = """department[id = "department X"]/tags[""".length
-    jsonSuggestions(inputWithFilter, filterStartIdx + 2) mustBe Seq("id")
-    jsonSuggestions(inputWithFilter, filterStartIdx) mustBe Seq("id")
-    jsonSuggestions(inputWithFilter, secondFilterStartIdx) mustBe Seq("tagId")
+    jsonSuggestions(inputWithFilter, filterStartIdx + 2) mustBe Seq("id") ++ jsonSpecialPaths.filter(_.contains("id"))
+    jsonSuggestions(inputWithFilter, filterStartIdx) mustBe Seq("id") ++ jsonSpecialPaths.filter(_.contains("id"))
+    jsonSuggestions(inputWithFilter, secondFilterStartIdx) mustBe Seq("tagId") ++ jsonSpecialPaths.filter(_.contains("id"))
     // Multi word query
     jsonSuggestions(inputWithFilter.take(secondFilterStartIdx) + "ta id" + inputWithFilter.drop(secondFilterStartIdx + 2), secondFilterStartIdx) mustBe Seq("tagId")
     // Empty query
-    jsonSuggestions(inputWithFilter.take(secondFilterStartIdx) + "" + inputWithFilter.drop(secondFilterStartIdx + 2), secondFilterStartIdx) mustBe Seq("evenMoreNested", "tagId")
+    jsonSuggestions(inputWithFilter.take(secondFilterStartIdx) + "" + inputWithFilter.drop(secondFilterStartIdx + 2), secondFilterStartIdx) mustBe Seq("evenMoreNested", "tagId") ++ jsonSpecialPaths
   }
 
   private def partialAutoCompleteResult(inputString: String = "",
