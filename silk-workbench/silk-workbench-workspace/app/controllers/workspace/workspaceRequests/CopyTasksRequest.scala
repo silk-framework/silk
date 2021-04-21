@@ -49,8 +49,8 @@ case class CopyTasksRequest(dryRun: Option[Boolean], overwriteTasks: Option[Bool
 
         // Tasks to be overwritten
         val overwrittenTasks =
-          for{ task <- tasksToCopy
-               overwrittenTask <- targetProj.anyTaskOption(task.id) } yield TaskToBeCopied.fromTask(task, Some(overwrittenTask))
+          for { task <- tasksToCopy
+                overwrittenTask <- targetProj.anyTaskOption(task.id) } yield TaskToBeCopied.fromTask(task, Some(overwrittenTask))
 
         // Copy tasks
         if(!isDryRun) {
@@ -70,7 +70,8 @@ case class CopyTasksRequest(dryRun: Option[Boolean], overwriteTasks: Option[Bool
         }
 
         // Generate response
-        val copiedTasks = for(task <- tasksToCopy) yield TaskToBeCopied.fromTask(task, None)
+        val overwrittenTaskIds = overwrittenTasks.map(_.id).toSet
+        val copiedTasks = for(task <- tasksToCopy if !overwrittenTaskIds.contains(task.id)) yield TaskToBeCopied.fromTask(task, None)
         CopyTasksResponse(copiedTasks.toSet, overwrittenTasks.toSet)
       }
     }

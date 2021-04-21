@@ -406,7 +406,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
 
       // Copy transform task that references the changed dataset
       val copyResponse = copyTransformTaskRequest(CopyTasksRequest(dryRun = Some(false), overwriteTasks = Some(true), targetProject = targetProject))
-      copyResponse.copiedTasks.map(_.id) must contain theSameElementsAs Seq(datasetId, transformId, TRANSFORM_OUTPUT_DATASET)
+      copyResponse.copiedTasks.map(_.id) must contain theSameElementsAs Seq.empty
       copyResponse.overwrittenTasks.map(_.id) must contain theSameElementsAs Seq(datasetId, transformId, TRANSFORM_OUTPUT_DATASET)
 
       // Assert that the dataset has been overwritten
