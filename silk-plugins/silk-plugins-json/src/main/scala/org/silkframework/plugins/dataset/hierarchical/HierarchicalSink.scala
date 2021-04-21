@@ -26,6 +26,9 @@ abstract class HierarchicalSink extends EntitySink {
   // All properties for each table.
   private val properties: mutable.Buffer[Seq[TypedProperty]] = mutable.Buffer.empty
 
+  // True, if there is at most a single root entity.
+  private var singleRootEntity: Boolean = false
+
   // True, if a table is open at the moment.
   private var tableOpen: Boolean = false
 
@@ -49,8 +52,11 @@ abstract class HierarchicalSink extends EntitySink {
    *
    * @param properties The list of properties of the entities to be written.
    */
-  override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
                         (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+    if(this.properties.isEmpty) {
+      singleRootEntity = singleEntity
+    }
     this.properties.append(properties)
     tableOpen = true
   }
@@ -102,7 +108,7 @@ abstract class HierarchicalSink extends EntitySink {
     * Outputs all entities in the cache to a HierarchicalEntityWriter.
     */
   private def outputEntities(writer: HierarchicalEntityWriter): Unit = {
-    writer.open()
+    writer.open(singleRootEntity)
     rootEntities.readAndClose { entity =>
       outputEntity(entity, writer, 1)
     }

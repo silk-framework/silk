@@ -306,7 +306,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     var entityCount = 0
     val startTime = System.currentTimeMillis()
     var lastLog = startTime
-    sink.openTableWithPaths(entityTable.entitySchema.typeUri, entityTable.entitySchema.typedPaths)
+    sink.openTableWithPaths(entityTable.entitySchema.typeUri, entityTable.entitySchema.typedPaths, entityTable.entitySchema.singleEntity)
     for (entity <- entityTable.entities) {
       executionReport.increaseEntityCounter()
       sink.writeEntity(entity.uri, entity.values)

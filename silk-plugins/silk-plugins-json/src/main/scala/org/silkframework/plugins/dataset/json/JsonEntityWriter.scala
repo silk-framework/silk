@@ -10,16 +10,19 @@ import org.silkframework.runtime.validation.ValidationException
 import java.io.OutputStream
 import java.math.{BigDecimal, BigInteger}
 
-class JsonEntityWriter(outputStream: OutputStream, outputSingleJsonObject: Boolean = true, template: JsonTemplate) extends HierarchicalEntityWriter {
+class JsonEntityWriter(outputStream: OutputStream, template: JsonTemplate) extends HierarchicalEntityWriter {
 
   private val generator = (new JsonFactory).createGenerator(outputStream, JsonEncoding.UTF8)
   generator.setPrettyPrinter(new DefaultPrettyPrinter(", "))
 
   private var firstRootEntity = true
 
+  private var outputSingleJsonObject = false
+
   private var level = 0
 
-  override def open(): Unit = {
+  override def open(singleRootEntity: Boolean): Unit = {
+    outputSingleJsonObject = singleRootEntity
     generator.writeRaw(template.prefix)
     if(!outputSingleJsonObject) {
       generator.writeStartArray()
@@ -31,7 +34,7 @@ class JsonEntityWriter(outputStream: OutputStream, outputSingleJsonObject: Boole
       if(firstRootEntity) {
         firstRootEntity = false
       } else if(outputSingleJsonObject) {
-          throw new ValidationException("Writing multiple entities is not possible if 'output single JSON object' is set on the JSON dataset.")
+          throw new ValidationException("Writing multiple entities is not possible if the root mapping is configured to output a single entity.")
       }
     }
     level += 1

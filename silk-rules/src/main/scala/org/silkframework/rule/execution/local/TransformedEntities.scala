@@ -87,6 +87,10 @@ class TransformedEntities(task: Task[TransformSpec],
 
     if(uris.nonEmpty) {
       for (uri <- uris) {
+        if(outputSchema.singleEntity && count > 1) {
+          throw new ValidationException("Tried to generate multiple entities, but the root mapping is configured to output a single entity.")
+        }
+
         lazy val objectEntity = { // Constructs an entity that only contains object source paths for object mappings
           val uriTypePaths = entity.schema.typedPaths.zip(entity.values).filter(_._1.valueType == ValueType.URI)
           val typedPaths = uriTypePaths.map(_._1)
@@ -143,14 +147,18 @@ class TransformedEntities(task: Task[TransformSpec],
       case ex: ExecutionException if ex.abortExecution =>
         throw ex
       case NonFatal(ex) =>
-        log.fine("Error during execution of transform rule " + rule.id.toString + ": " + ex.getMessage)
-        report.addError(rule, entity, ex)
-        errors.append(ex)
-        errorFlag = true
-        if(abortIfErrorsOccur) {
-          throw AbortExecutionException(s"Failed to transform entity '${entity.uri}' in rule '${rule.metaData.label}': ${ex.getMessage}", Some(ex))
-        }
+        addError(report, rule, entity, ex)
         Seq.empty
+    }
+  }
+
+  private def addError(report: TransformReportBuilder, rule: TransformRule, entity: Entity, ex: Throwable): Unit = {
+    log.fine("Error during execution of transform rule " + rule.id.toString + ": " + ex.getMessage)
+    report.addError(rule, entity, ex)
+    errors.append(ex)
+    errorFlag = true
+    if(abortIfErrorsOccur) {
+      throw AbortExecutionException(s"Failed to transform entity '${entity.uri}' in rule '${rule.metaData.label}': ${ex.getMessage}", Some(ex))
     }
   }
 }

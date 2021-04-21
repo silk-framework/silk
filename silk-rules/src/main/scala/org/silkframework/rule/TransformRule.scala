@@ -13,6 +13,7 @@ import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.{UriFixTransformer, UrlEncodeTransformer}
 import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer, EmptyValueTransformer}
 import org.silkframework.runtime.plugin.PluginObjectParameterNoSchema
+import org.silkframework.runtime.serialization.XmlSerialization.fromXml
 import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
@@ -142,6 +143,7 @@ sealed trait ValueTransformRule extends TransformRule
   */
 case class RootMappingRule(override val rules: MappingRules,
                            id: Identifier = RootMappingRule.defaultId,
+                           mappingTarget: MappingTarget = RootMappingRule.defaultMappingTarget,
                            metaData: MetaData = MetaData(RootMappingRule.defaultLabel)) extends ContainerTransformRule with PluginObjectParameterNoSchema {
 
   override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
@@ -165,8 +167,8 @@ case class RootMappingRule(override val rules: MappingRules,
   /** The input operator tree. */
   override def operator: Input = TransformInput("root", EmptyValueTransformer())
 
-  /** The target property URI. */
-  override def target: Option[MappingTarget] = None
+  /** The the mapping target */
+  override def target: Option[MappingTarget] = Some(mappingTarget)
 
   /** String representation of rule type */
   override def typeString: String = "Root"
@@ -177,6 +179,8 @@ object RootMappingRule {
   def defaultId: String = "root"
 
   def defaultLabel: String = "Root Mapping"
+
+  def defaultMappingTarget: MappingTarget = MappingTarget(propertyUri = "", valueType = ValueType.URI)
 
   final val empty: RootMappingRule = RootMappingRule(MappingRules.empty)
 
@@ -191,6 +195,7 @@ object RootMappingRule {
       RootMappingRule(
         id = (value \ "@id").text,
         rules = MappingRulesFormat.read((value \ "MappingRules").head),
+        mappingTarget = (value \ "MappingTarget").headOption.map(fromXml[MappingTarget]).getOrElse(RootMappingRule.defaultMappingTarget),
         metaData = (value \ "MetaData").headOption.map(MetaDataXmlFormat.read).getOrElse(MetaData.empty)
       )
     }
@@ -200,6 +205,7 @@ object RootMappingRule {
       */
     override def write(value: RootMappingRule)(implicit writeContext: WriteContext[Node]): Node = {
       <RootMappingRule id={value.id}>
+        { MappingTargetFormat.write(value.mappingTarget) }
         { MappingRulesFormat.write(value.rules) }
         { MetaDataXmlFormat.write(value.metaData) }
       </RootMappingRule>

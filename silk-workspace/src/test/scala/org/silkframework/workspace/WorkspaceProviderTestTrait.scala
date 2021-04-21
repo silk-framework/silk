@@ -127,6 +127,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
                 sourcePath = UntypedPath("prop5"),
                 metaData = MetaData("Direct Rule New Label", Some("Direct Rule New Description"))
               )),
+            mappingTarget = transformTask.data.mappingRule.mappingTarget.copy(isAttribute = true),
             metaData = MetaData("Root Rule New Label", Some("Root Rule New Description"))
           ),
        abortIfErrorsOccur = true
