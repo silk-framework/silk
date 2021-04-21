@@ -92,16 +92,15 @@ const AutoSuggestion = ({
                 { line: 0, ch: from },
                 { line: 0, ch: to },
                 { className: "ecc-text-highlighting" }
-            )
-            setMarkers((previousMarkers) => [...previousMarkers, marker])
+            );
+            setMarkers((previousMarkers) => [...previousMarkers, marker]);
         }
     };
 
-
     const clearMarkers = () => {
-        markers.forEach(marker => marker.clear())
-    }
-    
+        markers.forEach((marker) => marker.clear());
+    };
+
     const handleDropdownChange = (selectedSuggestion: string) => {
         const indexes = replacementIndexesDict[selectedSuggestion];
         if (indexes) {
@@ -116,11 +115,9 @@ const AutoSuggestion = ({
             );
             setShouldShowDropdown(false);
             editorInstance.setCursor({ line: 0, ch: to });
-            clearMarkers()
+            clearMarkers();
         }
     };
-
-
 
     const handleInputEditorClear = () => {
         if (!pathIsValid) {

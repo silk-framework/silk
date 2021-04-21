@@ -13,18 +13,52 @@ case class PartialSourcePathAutoCompletionRequest(inputString: String,
                                                   cursorPosition: Int,
                                                   maxSuggestions: Option[Int]) {
   /** The path until the cursor position. */
-  lazy val pathUntilCursor: String = inputString.take(cursorPosition)
-  lazy val charBeforeCursor: Option[Char] = pathUntilCursor.reverse.headOption
+  def pathUntilCursor: String = inputString.take(cursorPosition)
+  def charBeforeCursor: Option[Char] = pathUntilCursor.reverse.headOption
+
+  private val operatorStartChars = Set('/', '\\', '[')
 
   /** The remaining characters from the cursor position to the end of the current path operator. */
-  lazy val remainingStringInOperator: String = {
-    // TODO: This does not consider being in a literal string, i.e. "...^..." where /, \ and [ would be allowed
-    val operatorStartChars = Set('/', '\\', '[')
+  def remainingStringInOperator: String = {
+    val positionStatus = cursorPositionStatus
     inputString
       .substring(cursorPosition)
       .takeWhile { char =>
-        !operatorStartChars.contains(char)
+        positionStatus.update(char)
+        positionStatus.insideQuotesOrUri || !operatorStartChars.contains(char)
       }
+  }
+
+  class PositionStatus(initialInsideQuotes: Boolean, initialInsideUri: Boolean) {
+    private var _insideQuotes = initialInsideQuotes
+    private var _insideUri = initialInsideUri
+
+    def update(char: Char): (Boolean, Boolean) = {
+      if(char == '"' && !_insideUri) {
+        _insideQuotes = !_insideQuotes
+      } else if(char == '<' && !_insideQuotes) {
+        _insideUri = true
+      } else if(char == '>' && !_insideQuotes) {
+        _insideUri = false
+      }
+      (_insideQuotes, _insideUri)
+    }
+
+    def insideQuotes: Boolean = _insideQuotes
+    def insideUri: Boolean = _insideUri
+    def insideQuotesOrUri: Boolean = insideQuotes || insideUri
+  }
+
+  // Checks if the cursor position is inside quotes or URI
+  private def cursorPositionStatus: PositionStatus = {
+    val positionStatus = new PositionStatus(false, false)
+    inputString.take(cursorPosition).foreach(positionStatus.update)
+    positionStatus
+  }
+
+  /** The index of the operator end, i.e. index in the input string from the cursor to the end of the current operator. */
+  def indexOfOperatorEnd: Int = {
+    cursorPosition + remainingStringInOperator.length
   }
 }
 
