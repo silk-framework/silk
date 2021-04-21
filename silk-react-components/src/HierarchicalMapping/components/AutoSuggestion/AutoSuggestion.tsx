@@ -87,7 +87,7 @@ const AutoSuggestion = ({
         if (indexes) {
             const { from, length } = indexes;
             const to = from + length;
-            editorInstance.markText({ line: 1, ch: 0}, { line: 1, ch: 10 }, {css:"color: red"});
+            editorInstance.markText({ line: 1, ch: from}, { line: 1, ch: to}, {css:"color: red"});
         }
     };
 
