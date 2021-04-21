@@ -21,29 +21,31 @@ const AutoSuggestion = ({
     const [cursorPosition, setCursorPosition] = React.useState(0);
     const [coords, setCoords] = React.useState({ left: 0 });
     const [shouldShowDropdown, setShouldShowDropdown] = React.useState(false);
-    const [
-        replacementIndexesDict,
-        setReplacementIndexesDict,
-    ] = React.useState({});
+    const [replacementIndexesDict, setReplacementIndexesDict] = React.useState(
+        {}
+    );
     const [suggestions, setSuggestions] = React.useState<
         Array<{ value: string; description?: string; label?: string }>
     >([]);
+    const [markers, setMarkers] = React.useState([]);
     const [
         editorInstance,
         setEditorInstance,
     ] = React.useState<CodeMirror.Editor>();
-    
 
     React.useEffect(() => {
         //perform linting
-    },[pathIsValid])
+    }, [pathIsValid]);
 
     /** generate suggestions and also populate the replacement indexes dict */
     React.useEffect(() => {
         let newSuggestions = [];
         let newReplacementIndexesDict = {};
-        if(data?.replacementResults?.length === 1 && !(data?.replacementResults?.replacements?.length)){
-            setShouldShowDropdown(false)
+        if (
+            data?.replacementResults?.length === 1 &&
+            !data?.replacementResults?.replacements?.length
+        ) {
+            setShouldShowDropdown(false);
         }
         if (data?.replacementResults?.length) {
             data.replacementResults.forEach(
@@ -60,8 +62,8 @@ const AutoSuggestion = ({
                     });
                 }
             );
-            setSuggestions(() => newSuggestions)
-            setReplacementIndexesDict(() => newReplacementIndexesDict)
+            setSuggestions(() => newSuggestions);
+            setReplacementIndexesDict(() => newReplacementIndexesDict);
         }
     }, [data]);
 
@@ -82,30 +84,43 @@ const AutoSuggestion = ({
     };
 
     const handleTextHighlighting = (focusedSuggestion: string) => {
-        editorInstance.refresh()
         const indexes = replacementIndexesDict[focusedSuggestion];
         if (indexes) {
             const { from, length } = indexes;
             const to = from + length;
-            editorInstance.markText({ line: 1, ch: from}, { line: 1, ch: to}, {css:"color: red"});
+            const marker = editorInstance.markText(
+                { line: 0, ch: from },
+                { line: 0, ch: to },
+                { className: "ecc-text-highlighting" }
+            )
+            setMarkers((previousMarkers) => [...previousMarkers, marker])
         }
     };
 
-    const handleDropdownChange = (selectedSuggestion:string) => {
+
+    const clearMarkers = () => {
+        markers.forEach(marker => marker.clear())
+    }
+    
+    const handleDropdownChange = (selectedSuggestion: string) => {
         const indexes = replacementIndexesDict[selectedSuggestion];
         if (indexes) {
             const { from, length } = indexes;
             const to = from + length;
             setValue(
                 (value) =>
-                    `${value.substring(0, from)}${selectedSuggestion}${value.substring(
-                        to
-                    )}`
+                    `${value.substring(
+                        0,
+                        from
+                    )}${selectedSuggestion}${value.substring(to)}`
             );
             setShouldShowDropdown(false);
-            editorInstance.setCursor({ line: 1, ch: to });
+            editorInstance.setCursor({ line: 0, ch: to });
+            clearMarkers()
         }
     };
+
+
 
     const handleInputEditorClear = () => {
         if (!pathIsValid) {
