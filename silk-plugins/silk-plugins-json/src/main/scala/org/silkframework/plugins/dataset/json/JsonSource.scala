@@ -243,5 +243,6 @@ object JsonSource{
   object specialPaths {
     final val TEXT = "#text"
     final val ID = "#id"
+    final val all = Seq(ID, TEXT)
   }
 }

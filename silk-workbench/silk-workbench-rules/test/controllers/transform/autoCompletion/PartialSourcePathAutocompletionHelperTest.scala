@@ -33,7 +33,17 @@ class PartialSourcePathAutocompletionHelperTest extends FlatSpec with MustMatche
   }
 
   it should "correctly find out what to replace in filter expressions" in {
-    replace("""a/b[@lang  =  "en"]/error now""", """a/b[@lang  =  "en"]/err""".length) mustBe
+    val inputString = """a/b[@lang  =  "en"]/error now"""
+    val inputString2 = """a/b[c = "val"]/d"""
+    // Check that expressions with filter containing a lot of whitespace lead to correct results
+    replace(inputString, inputString.length - 5) mustBe
       PathToReplace("a/b[@lang  =  \"en\"]".length, "/error now".length, Some("error now"))
+    replace(inputString2, "a/b[c".length) mustBe
+      PathToReplace("a/b[".length, 1, Some("c"), insideFilter = true)
+  }
+
+  it should "know if the cursor is inside a filter expression" in {
+    val path = """department[id = "department X"]/tags[id"""
+    replace(path, path.length).insideFilter mustBe true
   }
 }
