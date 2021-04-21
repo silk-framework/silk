@@ -56,11 +56,11 @@ const Dropdown: React.FC<IDropdownProps> = ({
                         onClick={() => onItemSelectionChange(item.value)}
                         text={<Item item={item} query={query} />}
                         onMouseEnter={() => onMouseOverItem(item.value)}
-                    ></MenuItem>
+                    />
                 )
             )}
         </Menu>
     );
 };
 
-export default Dropdown;
+export default React.memo(Dropdown);
