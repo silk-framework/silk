@@ -12,6 +12,12 @@ class PartialSourcePathAutocompletionHelperTest extends FlatSpec with MustMatche
     PartialSourcePathAutocompletionHelper.pathToReplace(PartialSourcePathAutoCompletionRequest(inputString, cursorPosition, None), subPathOnly)(Prefixes.empty)
   }
 
+  it should "replace simple multi word input paths" in {
+    def replaceFull(input: String) = replace(input, input.length)
+    replaceFull("some test") mustBe PathToReplace(0, 9, Some("some test"))
+    replace("some test", 3) mustBe PathToReplace(0, 9, Some("some test"))
+  }
+
   it should "correctly find out which part of a path to replace in simple forward paths for the sub path the cursor is in" in {
     val input = "a1/b1/c1"
     replace(input, 4, subPathOnly = true) mustBe PathToReplace(2, 3, Some("b1"))
@@ -36,6 +42,8 @@ class PartialSourcePathAutocompletionHelperTest extends FlatSpec with MustMatche
     val inputString = """a/b[@lang  =  "en"]/error now"""
     val inputString2 = """a/b[c = "val"]/d"""
     // Check that expressions with filter containing a lot of whitespace lead to correct results
+    replace(inputString, inputString.length) mustBe
+      PathToReplace("a/b[@lang  =  \"en\"]".length, "/error now".length, Some("error now"))
     replace(inputString, inputString.length - 5) mustBe
       PathToReplace("a/b[@lang  =  \"en\"]".length, "/error now".length, Some("error now"))
     replace(inputString2, "a/b[c".length) mustBe

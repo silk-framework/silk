@@ -13,18 +13,24 @@ case class PartialSourcePathAutoCompletionRequest(inputString: String,
                                                   cursorPosition: Int,
                                                   maxSuggestions: Option[Int]) {
   /** The path until the cursor position. */
-  lazy val pathUntilCursor: String = inputString.take(cursorPosition)
-  lazy val charBeforeCursor: Option[Char] = pathUntilCursor.reverse.headOption
+  def pathUntilCursor: String = inputString.take(cursorPosition)
+  def charBeforeCursor: Option[Char] = pathUntilCursor.reverse.headOption
+
+  private val operatorStartChars = Set('/', '\\', '[')
 
   /** The remaining characters from the cursor position to the end of the current path operator. */
-  lazy val remainingStringInOperator: String = {
+  def remainingStringInOperator: String = {
     // TODO: This does not consider being in a literal string, i.e. "...^..." where /, \ and [ would be allowed
-    val operatorStartChars = Set('/', '\\', '[')
     inputString
       .substring(cursorPosition)
       .takeWhile { char =>
         !operatorStartChars.contains(char)
       }
+  }
+
+  /** The index of the operator end, i.e. index in the input string from the cursor to the end of the current operator. */
+  def indexOfOperatorEnd: Int = {
+    cursorPosition + remainingStringInOperator.length
   }
 }
 

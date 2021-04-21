@@ -106,7 +106,11 @@ object PartialSourcePathAutocompletionHelper {
                                    request: PartialSourcePathAutoCompletionRequest): PathToReplace = {
     val lastPathOp = partialResult.partialPath.operators.last
     val extractedTextQuery = extractTextPart(lastPathOp)
-    val fullQuery = extractedTextQuery.map(q => extractQuery(q + request.remainingStringInOperator))
+    val remainingStringInOp = partialResult.error match {
+      case Some(error) => request.inputString.substring(error.nextParseOffset, request.indexOfOperatorEnd)
+      case None => request.remainingStringInOperator
+    }
+    val fullQuery = extractedTextQuery.map(q => extractQuery(q + remainingStringInOp))
     if(extractedTextQuery.isEmpty) {
       // This is the end of a valid filter expression, do not replace or suggest anything besides default completions
       PathToReplace(request.pathUntilCursor.length, 0, None)
@@ -116,7 +120,8 @@ object PartialSourcePathAutocompletionHelper {
     } else {
       // Replace the last path operator of the input path
       val lastOpLength = lastPathOp.serialize.length
-      PathToReplace(request.cursorPosition - lastOpLength, lastOpLength + request.remainingStringInOperator.length, fullQuery)
+      val from = math.max(partialResult.error.map(_.nextParseOffset).getOrElse(request.cursorPosition) - lastOpLength, 0)
+      PathToReplace(from, lastOpLength + request.remainingStringInOperator.length, fullQuery)
     }
   }
 
