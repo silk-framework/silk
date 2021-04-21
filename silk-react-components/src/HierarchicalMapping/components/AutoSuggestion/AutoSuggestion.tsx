@@ -134,14 +134,11 @@ const AutoSuggestion = ({
                     onCursorChange={handleCursorChange}
                     value={value}
                 />
-                <div onClick={handleInputEditorClear}>
-                    <Icon
-                        className={`editor__icon ${
-                            pathIsValid ? "confirm" : "clear"
-                        }`}
-                        name={pathIsValid ? "confirm" : "clear"}
-                    />
-                </div>
+                {!pathIsValid && (
+                    <div onClick={handleInputEditorClear}>
+                        <Icon className="editor__icon clear" name="clear" />
+                    </div>
+                )}
             </div>
             {shouldShowDropdown ? (
                 <div
