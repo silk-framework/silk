@@ -111,6 +111,7 @@ const AutoSuggestion = ({
         }
     };
 
+    //remove all the underline highlighting
     const clearMarkers = () => {
         markers.forEach((marker) => marker.clear());
     };
@@ -134,33 +135,38 @@ const AutoSuggestion = ({
     };
 
     const handleInputEditorClear = () => {
-        if (!pathIsValid) {
-            setValue("");
-        }
+        setValue("");
     };
 
     return (
         <div className="ecc-auto-suggestion-box">
             <div className="ecc-auto-suggestion-box__editor-box">
+                <div className="ecc-auto-suggestion-box__validation">
+                    {pathValidationPending && (
+                        <Spinner size="tiny" position="local" />
+                    )}
+                    {!pathIsValid && !pathValidationPending ? (
+                        <Icon className="editor__icon error" name="clear" />
+                    ) : null}
+                </div>
                 <CodeEditor
-                    mode={'null'}
+                    mode="null"
                     setEditorInstance={setEditorInstance}
                     onChange={handleChange}
                     onCursorChange={handleCursorChange}
                     value={value}
                 />
-                {!pathIsValid && (
-                    <div onClick={handleInputEditorClear}>
-                        <Icon className="editor__icon clear" name="clear" />
-                    </div>
-                )}
+                <div onClick={handleInputEditorClear}>
+                    <Icon className="editor__icon clear" name="clear" />
+                </div>
             </div>
-            {shouldShowDropdown ? (
+            {shouldShowDropdown || suggestionsPending ? (
                 <div
                     className="ecc-auto-suggestion-box__dropdown"
                     style={{ left: coords.left }}
                 >
                     <Dropdown
+                        loading={suggestionsPending}
                         query={value}
                         options={suggestions}
                         isOpen={shouldShowDropdown}
