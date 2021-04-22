@@ -36,7 +36,9 @@ const Item = ({ item, query }) => {
                 {item.description ? (
                     <OverviewItemLine small={true}>
                         <OverflowText ellipsis="reverse">
-                            {item.description}
+                            <Highlighter
+                                label={item.description}
+                                searchValue={query} />
                         </OverflowText>
                     </OverviewItemLine>
                 ) : null}

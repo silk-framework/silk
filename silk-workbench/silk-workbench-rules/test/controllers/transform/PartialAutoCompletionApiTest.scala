@@ -24,7 +24,7 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
   private val jsonSpecialPathsFull = jsonSpecialPaths.map(p => s"/$p")
   val jsonOps = Seq("/", "\\", "[")
 
-  val allRdfPaths = Seq("<https://ns.eccenca.com/source/address>", "<https://ns.eccenca.com/source/age>", "<https://ns.eccenca.com/source/name>", "rdf:type")
+  val allRdfPaths = Seq("rdf:type", "<https://ns.eccenca.com/source/address>", "<https://ns.eccenca.com/source/age>", "<https://ns.eccenca.com/source/name>")
   val allRdfPathsFull = allRdfPaths.map("/" + _)
   val rdfOps: Seq[String] = jsonOps ++ Seq("[@lang ")
 
@@ -111,6 +111,11 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     jsonSuggestions(pathWithQuotes, pathWithQuotes.length - 3) mustBe Seq.empty
   }
 
+  it should "not suggest path operators when inside a URI" in {
+    rdfSuggestions("""<urn:test""") mustBe Seq.empty
+    rdfSuggestions("""rdf:object[rdfs:label = <urn:test""") mustBe Seq.empty
+  }
+
   it should "suggest all path operators for RDF sources" in {
     rdfSuggestions("", 0) mustBe allRdfPaths ++ Seq("\\")
     rdfSuggestions("rdf:type/") mustBe allRdfPathsFull
@@ -120,6 +125,19 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
 
   it should "suggest URIs based on multi line queries for RDF sources" in {
     rdfSuggestions("rdf:type/eccenca ad") mustBe allRdfPathsFull.filter(_.contains("address")) ++ rdfOps
+  }
+
+  it should "not propose the exact same replacement if it is the only result" in {
+    rdfSuggestions("rdf:type") mustBe rdfOps
+    rdfSuggestions("<https://ns.eccenca.com/source/address>") mustBe rdfOps
+    // The special paths actually match "value" in the comments, that's why they show up here and /value is still proposed
+    jsonSuggestions("department/tags/evenMoreNested/value") mustBe Seq("/value", "/#id", "/#text") ++ jsonOps
+    // here it's not the case and only the path ops show up
+    jsonSuggestions("phoneNumbers/number") mustBe jsonOps
+  }
+
+  it should "not propose path ops inside a filter" in {
+    jsonSuggestions("department/[tags = ") must not contain allOf("/", "\\", "[")
   }
 
   private def partialAutoCompleteResult(inputString: String = "",
@@ -146,6 +164,8 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     project.task[TransformSpec](jsonTransform).activity[TransformPathsCache].control.waitUntilFinished()
     suggestedValues(partialSourcePathAutoCompleteRequest(jsonTransform, inputText = inputText, cursorPosition = cursorPosition))
   }
+
+  private def jsonSuggestions(inputText: String): Seq[String] = jsonSuggestions(inputText, inputText.length)
 
   private def rdfSuggestions(inputText: String, cursorPosition: Int): Seq[String] = {
     project.task[TransformSpec](rdfTransform).activity[TransformPathsCache].control.waitUntilFinished()

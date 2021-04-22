@@ -12,6 +12,8 @@ class PartialSourcePathAutocompletionHelperTest extends FlatSpec with MustMatche
     PartialSourcePathAutocompletionHelper.pathToReplace(PartialSourcePathAutoCompletionRequest(inputString, cursorPosition, None), subPathOnly)(Prefixes.empty)
   }
 
+  def replace(inputString: String): PathToReplace = replace(inputString, inputString.length)
+
   it should "replace simple multi word input paths" in {
     def replaceFull(input: String) = replace(input, input.length)
     replaceFull("some test") mustBe PathToReplace(0, 9, Some("some test"))
@@ -57,19 +59,27 @@ class PartialSourcePathAutocompletionHelperTest extends FlatSpec with MustMatche
 
   it should "handle URIs correctly" in {
     val pathWithUri = "<https://ns.eccenca.com/source/address>"
-    val expectedQuery = Some(pathWithUri.drop(1).dropRight(1))
+    val expectedQuery = Some("address")
     replace(pathWithUri, pathWithUri.length) mustBe PathToReplace(0, pathWithUri.length, query = expectedQuery)
-    replace("/" + pathWithUri, pathWithUri.length - 3) mustBe PathToReplace(0, pathWithUri.length + 1, query = expectedQuery)
+    replace("/" + pathWithUri, pathWithUri.length - 3) mustBe PathToReplace(0, pathWithUri.length + 1, query = expectedQuery, insideUri = true)
     replace("/" + pathWithUri, 0, subPathOnly = true) mustBe PathToReplace(0, 0, query = Some(""))
     replace("/" + pathWithUri, 0, subPathOnly = false) mustBe PathToReplace(0, pathWithUri.length + 1, query = Some(""))
-    replace(pathWithUri, pathWithUri.length - 3) mustBe PathToReplace(0, pathWithUri.length, query = expectedQuery)
+    replace(pathWithUri, pathWithUri.length - 3) mustBe PathToReplace(0, pathWithUri.length, query = expectedQuery, insideUri = true)
     replace(pathWithUri, 0) mustBe PathToReplace(0, pathWithUri.length, query = expectedQuery)
-    replace(pathWithUri, 1) mustBe PathToReplace(0, pathWithUri.length, query = expectedQuery)
+    replace(pathWithUri, 2) mustBe PathToReplace(0, pathWithUri.length, query = expectedQuery, insideUri = true)
+    replace(pathWithUri, 1) mustBe PathToReplace(0, pathWithUri.length, query = expectedQuery, insideUri = true)
+  }
+
+  it should "extract filter queries from URIs and qnames correctly" in {
+    replace("<https://ns.eccenca.com/source/address>").query mustBe Some("address")
+    replace("\\<urn:test:test>/<https://ns.eccenca.com/source/address>").query mustBe Some("address")
+    replace("\\<urn:test:prop>").query mustBe Some("prop")
+    replace("<https://eccenca.com/hashProp#prop>").query mustBe Some("prop")
   }
 
   it should "not auto-complete values inside quotes" in {
     val pathWithQuotes = """a[b = "some value"]"""
-    replace(pathWithQuotes, pathWithQuotes.length - 4) mustBe PathToReplace(pathWithQuotes.length - 4, 0, None, insideQuotes = true)
+    replace(pathWithQuotes, pathWithQuotes.length - 4) mustBe PathToReplace(pathWithQuotes.length - 4, 0, None, insideQuotes = true, insideFilter = true)
   }
 
   it should "should not suggest anything if path in the beginning is invalid" in {

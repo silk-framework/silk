@@ -2,11 +2,13 @@ package controllers.transform.autoCompletion
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.{DirectionalPathOperator, PartialParseError, PartialParseResult, PathOperator, PathParser, UntypedPath}
-import org.silkframework.util.StringUtils
+import org.silkframework.util.{StringUtils, Uri}
 
 object PartialSourcePathAutocompletionHelper {
+
   /**
     * Returns the part of the path that should be replaced and the extracted query words that can be used for search.
+    *
     * @param request   The partial source path auto-completion request payload.
     * @param subPathOnly If true, only a sub-part of the path is replaced, else a path suffix
     */
@@ -14,35 +16,47 @@ object PartialSourcePathAutocompletionHelper {
                     subPathOnly: Boolean)
                    (implicit prefixes: Prefixes): PathToReplace = {
     val unfilteredQuery: Option[String] = Some("")
-    if(request.inputString.isEmpty) {
-      return PathToReplace(0, 0, unfilteredQuery)
-    }
-    val partialResult = UntypedPath.partialParse(request.pathUntilCursor)
-    if(request.cursorPositionStatus.insideQuotes) {
+    val pathToReplace = if(request.inputString.isEmpty) {
+      // Empty input, just propose default results
+      PathToReplace(0, 0, unfilteredQuery)
+    } else if(request.cursorPositionStatus.insideQuotes) {
       // Do not auto-complete inside quotes
-      return PathToReplace(request.cursorPosition, 0, None, insideQuotes = true)
-    }
-    val replacement = partialResult.error match {
-      case Some(error) =>
-        handleParseErrorCases(request, unfilteredQuery, partialResult, error)
-      case None if partialResult.partialPath.operators.nonEmpty =>
-        // No parse problem, use the last path segment (must be forward or backward path op) for auto-completion
-        handleMiddleOfPathOp(partialResult, request)
-      case None if partialResult.partialPath.operators.isEmpty =>
-        // Cursor position is 0.
-        if(operatorChars.contains(request.inputString.head)) {
-          // Right before another path operator, propose to that a new path op
+      PathToReplace(request.cursorPosition, 0, None)
+    } else {
+      val partialResult = UntypedPath.partialParse(request.pathUntilCursor)
+      val replacement = partialResult.error match {
+        case Some(error) =>
+          handleParseErrorCases(request, unfilteredQuery, partialResult, error)
+        case None if partialResult.partialPath.operators.nonEmpty =>
+          // No parse problem, use the last path segment (must be forward or backward path op) for auto-completion
+          handleMiddleOfPathOp(partialResult, request)
+        case None if partialResult.partialPath.operators.isEmpty =>
+          // Cursor position is 0.
+          if(operatorChars.contains(request.inputString.head)) {
+            // Right before another path operator, propose to that a new path op
+            PathToReplace(0, 0, unfilteredQuery)
+          } else {
+            // Replace the remaining string
+            val query = request.inputString.substring(0, request.indexOfOperatorEnd)
+            PathToReplace(0, request.indexOfOperatorEnd, Some(extractQuery(query)))
+          }
+        case None =>
+          // Should never come so far
           PathToReplace(0, 0, unfilteredQuery)
-        } else {
-          // Replace the remaining string
-          val query = request.inputString.substring(0, request.indexOfOperatorEnd)
-          PathToReplace(0, request.indexOfOperatorEnd, Some(extractQuery(query)))
-        }
-      case None =>
-        // Should never come so far
-        PathToReplace(0, 0, unfilteredQuery)
+      }
+      handleSubPathOnly(request, replacement, subPathOnly)
     }
-    handleSubPathOnly(request, replacement, subPathOnly)
+    handleCursorStatusFlags(request, pathToReplace)
+  }
+
+  private def handleCursorStatusFlags(request: PartialSourcePathAutoCompletionRequest,
+                                      replacement: PathToReplace): PathToReplace = {
+    val positionStatus = request.cursorPositionStatus
+    replacement.copy(
+      insideUri = positionStatus.insideUri,
+      insideQuotes = positionStatus.insideQuotes,
+      insideFilter = positionStatus.insideFilter
+    )
   }
 
   val operatorChars = Set('/', '\\', '[')
@@ -172,7 +186,12 @@ object PartialSourcePathAutocompletionHelper {
   private def extractQuery(input: String): String = {
     var inputToProcess: String = input.trim
     if(input.startsWith("<") && input.endsWith(">")) {
-      inputToProcess = input.drop(1).dropRight(1)
+      // Extract local name from URI for filter query to get similarly named URIs
+      val uri = input.drop(1).dropRight(1)
+      inputToProcess = Uri(uri).localName.getOrElse(uri)
+    } else if((input.startsWith("http") || input.startsWith("urn")) && Uri(input).isValidUri) {
+      // Extract local name from URI for filter query to get similarly named URIs
+      inputToProcess = Uri(input).localName.getOrElse(input)
     } else if(!input.contains("<") && input.contains(":") && !input.contains(" ") && startsWithPrefix.findFirstMatchIn(input).isDefined
       && !input.startsWith("http") && !input.startsWith("urn")) {
       // heuristic to detect qualified names
