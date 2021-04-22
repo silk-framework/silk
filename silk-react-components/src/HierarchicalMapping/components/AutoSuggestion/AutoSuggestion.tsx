@@ -90,7 +90,7 @@ const AutoSuggestion = ({
             setShouldShowDropdown(true);
             //only change if the input has changed, regardless of the cursor change
             if (valueRef.current !== value) {
-                checkPathValidity(inputString);
+                checkPathValidity(value);
                 valueRef.current = value;
             }
             onEditorParamsChange(inputString, cursorPosition);
