@@ -5,7 +5,7 @@ import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.transform.AutoCompletionApi.Categories
 import controllers.transform.autoCompletion._
 import org.silkframework.config.Prefixes
-import org.silkframework.dataset.DataSourceCharacteristics
+import org.silkframework.dataset.{DataSourceCharacteristics, SupportedPathExpressions}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.paths.{PathOperator, _}
 import org.silkframework.entity.{ValueType, ValueTypeAnnotation}
@@ -170,26 +170,66 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
       if(predicate) Some(CompletionBase(value, description = Some(description))) else None
     }
     // Propose operators
-    if (!pathToReplace.insideFilter && !pathToReplace.insideQuotesOrUri
-      && !autoCompletionRequest.charBeforeCursor.contains('/') && !autoCompletionRequest.charBeforeCursor.contains('\\')) {
+    if (!pathToReplace.insideQuotesOrUri && !autoCompletionRequest.charBeforeCursor.contains('/') && !autoCompletionRequest.charBeforeCursor.contains('\\')) {
       val supportedPathExpressions = dataSourceCharacteristicsOpt.getOrElse(DataSourceCharacteristics()).supportedPathExpressions
-      val forwardOp = completion(autoCompletionRequest.cursorPosition > 0 && supportedPathExpressions.multiHopPaths, "/", "Starts a forward path segment")
-      val backwardOp = completion(supportedPathExpressions.backwardPaths && supportedPathExpressions.multiHopPaths, "\\", "Starts a backward path segment")
-      val langFilterOp = completion(autoCompletionRequest.cursorPosition > 0 && supportedPathExpressions.languageFilter, "[@lang ", "Starts a language filter expression")
-      val propertyFilter = completion(autoCompletionRequest.cursorPosition > 0  && supportedPathExpressions.propertyFilter, "[", "Starts a property filter expression")
+      val forwardOp = completion(autoCompletionRequest.cursorPosition > 0 && supportedPathExpressions.multiHopPaths && !pathToReplace.insideFilter,
+        "/", "Starts a forward path segment")
+      val backwardOp = completion(supportedPathExpressions.backwardPaths && supportedPathExpressions.multiHopPaths && !pathToReplace.insideFilter,
+        "\\", "Starts a backward path segment")
+      val langFilterOp = completion(autoCompletionRequest.cursorPosition > 0 && supportedPathExpressions.languageFilter && !pathToReplace.insideFilter,
+        "[@lang ", "Starts a language filter expression")
+      val propertyFilter = completion(autoCompletionRequest.cursorPosition > 0  && supportedPathExpressions.propertyFilter && !pathToReplace.insideFilter,
+        "[", "Starts a property filter expression")
+      val filterClose = completion(validEndOfFilter(pathToReplace, autoCompletionRequest, supportedPathExpressions),
+        "]", "End filter expression")
       Some(ReplacementResults(
         ReplacementInterval(autoCompletionRequest.cursorPosition, 0),
         "",
-        forwardOp.toSeq ++ backwardOp ++ propertyFilter ++ langFilterOp
+        forwardOp.toSeq ++ backwardOp ++ propertyFilter ++ langFilterOp ++ filterClose
       ))
-    }
-    else {
+    } else {
       None
     }
   }
 
+  private val operatorRegexReverse = ">|<|=>|=<|=|=!".r
+
+  /** Decide if the cursor position would be a valid end of filter expression in order to propose the filter end operator. */
+  private def validEndOfFilter(pathToReplace: PathToReplace,
+                               autoCompletionRequest: PartialSourcePathAutoCompletionRequest,
+                               supportedPathExpressions: SupportedPathExpressions): Boolean = {
+    if(pathToReplace.insideFilter &&
+      (supportedPathExpressions.propertyFilter || supportedPathExpressions.languageFilter) &&
+      !pathToReplace.insideQuotesOrUri &&
+      !autoCompletionRequest.remainingStringInOperator.endsWith("]") &&
+      autoCompletionRequest.remainingStringInOperator.trim == "") {
+      // Still need to check if there is a value and an operator to compare against
+      val beforeCursor = autoCompletionRequest.stringInOperatorToCursor.reverse.trim
+      beforeCursor.headOption match {
+        case Some(lastChar) =>
+          val filterWithoutValue = if(Set('\'', '"', '>').contains(lastChar)) {
+            val searchChar = if(lastChar == '>') '<' else lastChar
+            beforeCursor.drop(1).dropWhile(_ != searchChar).drop(1)
+          } else {
+            beforeCursor.dropWhile(c => !Set(' ', '\t', '!', '=', '<', '>').contains(c))
+          }
+          if(beforeCursor.length == filterWithoutValue.length) {
+            // No value found
+            false
+          } else {
+            // Find operator (reversed)
+            operatorRegexReverse.findFirstMatchIn(filterWithoutValue.trim).exists(_.start == 0)
+          }
+        case None =>
+          false
+      }
+    } else {
+      false
+    }
+  }
+
   private def dataSourceCharacteristics(task: ProjectTask[TransformSpec])
-                (implicit userContext: UserContext): Option[DataSourceCharacteristics] = {
+                                       (implicit userContext: UserContext): Option[DataSourceCharacteristics] = {
     task.project.taskOption[GenericDatasetSpec](task.selection.inputId)
       .map(_.data.source.characteristics)
   }
