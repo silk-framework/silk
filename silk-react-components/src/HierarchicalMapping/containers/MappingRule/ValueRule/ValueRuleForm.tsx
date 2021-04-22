@@ -89,7 +89,9 @@ export function ValueRuleForm(props: IProps) {
     const [comment, setComment] = useState<string>("")
     const [targetProperty, setTargetProperty] = useState<string>("")
     const [suggestions, setSuggestions] = useState([]);
-    const [pathExpressIsInvalid, setPathExpressValidity] = React.useState(true);
+    const [pathValidationResponse, setPathValidationResponse] = React.useState({});
+    const [suggestionsPending, setSuggestionsPending] = React.useState(false);
+    const [pathValidationPending, setPathValidationPending] = React.useState(false)
 
     const state = {
         loading,
@@ -261,24 +263,28 @@ export function ValueRuleForm(props: IProps) {
     //editor onChange handler
     const handleEditorParamsChange = debounce(
         (autoCompleteRuleId, inputString, cursorPosition) => {
-            getSuggestion(autoCompleteRuleId, inputString, cursorPosition).then(
-                (suggestions) => {
+            setSuggestionsPending(true);
+            getSuggestion(autoCompleteRuleId, inputString, cursorPosition)
+                .then((suggestions) => {
                     if (suggestions) {
-                        setSuggestions(
-                            suggestions.data
-                        );
+                        setSuggestions(suggestions.data);
                     }
-                }
-            ).catch(() =>setPathExpressValidity(false));
+                })
+                .catch(() => {})
+                .finally(() => setSuggestionsPending(false));
         },
-        500
+        200
     );
     
     const checkPathValidity = debounce((inputString) => {
-         pathValidation(inputString).then((response) =>{
-            setPathExpressValidity(response?.data?.valid ?? false)
-         }).catch(() =>setPathExpressValidity(false)) 
-    },200)
+        setPathValidationPending(true);
+        pathValidation(inputString)
+            .then((response) => {
+                setPathValidationResponse(() => response?.data);
+            })
+            .catch(() => {})
+            .finally(() => setPathValidationPending(false));
+    }, 200);
 
 
 
@@ -311,8 +317,10 @@ export function ValueRuleForm(props: IProps) {
             sourcePropertyInput = (
                 <AutoSuggestion
                     checkPathValidity={checkPathValidity}
-                    pathIsValid={pathExpressIsInvalid}
+                    validationResponse={pathValidationResponse}
                     data={suggestions}
+                    pathValidationPending={pathValidationPending}
+                    suggestionsPending={suggestionsPending}
                     onEditorParamsChange={(
                         inputString: string,
                         cursorPosition: number

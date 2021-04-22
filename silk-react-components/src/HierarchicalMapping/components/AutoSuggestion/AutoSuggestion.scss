@@ -13,6 +13,19 @@
         align-items: center;
     }
 
+    &__validation {
+        position: relative;
+        height:1rem;
+        width:1rem;
+        & > div {
+            position: absolute;
+            left: 0;
+            right:0;
+            bottom:0;
+            top:0;
+        }
+    }
+
     &__dropdown {
         transition: all 300ms;
         background-color:$color-white;
@@ -26,7 +39,6 @@
         max-height: 15rem;
         border: 1px solid $list-container-item-border-color;
         border-radius: 0.3rem;
-        // padding: $input-text-padding;
         overflow-x:hidden;
         overflow-y: auto;
     }
@@ -44,16 +56,24 @@
     color: $color-white;
     border-radius: 50%;
     font-size: 1rem !important;
-    &.confirm {
-        background-color: $palette-light-green-900;
+    cursor: pointer;
+
+    &.error {
+        background-color: $palette-deep-orange-A700;
     }
 
     &.clear {
-        background-color: $palette-deep-orange-A700;
+        background-color: $palette-grey-300;
     }
 }
 
 .ecc-text-highlighting {
     display: inline-block;
     border-bottom: 1px dashed $ecc-color-primary;
+}
+
+.ecc-text-error-highlighting {
+    background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAADCAYAAAC09K7GAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9sJDw4cOCW1/KIAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAAHElEQVQI12NggIL/DAz/GdA5/xkY/qPKMDAwAADLZwf5rvm+LQAAAABJRU5ErkJggg==");
+    background-position: left bottom;
+    background-repeat: repeat-x;
 }

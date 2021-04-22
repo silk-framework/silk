@@ -13,19 +13,27 @@ export function CodeEditor({
     return (
         <div className="ecc-input-editor">
             <ControlledEditor
-                editorDidMount={(editor) => setEditorInstance(editor)}
+                editorDidMount={(editor) => {
+                    editor.on("beforeChange", (_, change) => {
+                        var newtext = change.text.join("").replace(/\n/g, "");
+                        change.update(change.from, change.to, [newtext]);
+                        return true;
+                    });
+                    setEditorInstance(editor);
+                }}
                 value={value}
                 options={{
                     mode: mode,
                     lineNumbers: false,
                     theme: "xq-light",
-                    lint:true, 
-                    gutters:["CodeMirror-lint-markers"]
                 }}
                 onCursor={(editor, data) => {
                     onCursorChange(data, editor.cursorCoords(true, "div"));
                 }}
-                onBeforeChange={(editor, data, value) => onChange(value)}
+                onBeforeChange={(editor, data, value) => {
+                    const trimmedValue = value.replace(/\n/g, "");
+                    onChange(trimmedValue);
+                }}
             />
         </div>
     );

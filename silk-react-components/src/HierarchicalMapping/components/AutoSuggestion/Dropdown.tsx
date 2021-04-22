@@ -7,14 +7,17 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     OverflowText,
+    Spinner,
+    Spacing,
 } from "@gui-elements/index";
 
 interface IDropdownProps {
     options: Array<any>;
     onItemSelectionChange: (item) => void;
-    onMouseOverItem: (value:string) => void
+    onMouseOverItem: (value: string) => void;
     isOpen: boolean;
     query?: string;
+    loading?: boolean;
 }
 
 const Item = ({ item, query }) => {
@@ -31,7 +34,9 @@ const Item = ({ item, query }) => {
                 </OverviewItemLine>
                 {item.description ? (
                     <OverviewItemLine small={true}>
-                        <OverflowText ellipsis="reverse">{item.description}</OverflowText>
+                        <OverflowText ellipsis="reverse">
+                            {item.description}
+                        </OverflowText>
                     </OverviewItemLine>
                 ) : null}
             </OverviewItemDescription>
@@ -41,12 +46,21 @@ const Item = ({ item, query }) => {
 
 const Dropdown: React.FC<IDropdownProps> = ({
     options,
+    loading,
     onItemSelectionChange,
     isOpen = true,
     query,
-    onMouseOverItem
+    onMouseOverItem,
 }) => {
     if (!isOpen) return null;
+    if (loading)
+        return (
+            <OverviewItem hasSpacing>
+                <OverviewItemLine>Fetching suggestions</OverviewItemLine>
+                <Spacing size="tiny" vertical={true} />
+                <Spinner position="inline" description="" />
+            </OverviewItem>
+        );
     return (
         <Menu>
             {options.map(
