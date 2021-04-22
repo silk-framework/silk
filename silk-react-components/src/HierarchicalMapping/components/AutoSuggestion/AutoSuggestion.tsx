@@ -109,6 +109,7 @@ const AutoSuggestion = ({
     const handleTextHighlighting = (focusedSuggestion: string) => {
         const indexes = replacementIndexesDict[focusedSuggestion];
         if (indexes) {
+            clearMarkers()
             const { from, length } = indexes;
             const to = from + length;
             const marker = editorInstance.markText(
