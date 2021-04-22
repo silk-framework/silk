@@ -70,7 +70,9 @@
 
 .ecc-text-highlighting {
     display: inline-block;
-    border-bottom: 1px dashed $ecc-color-primary;
+    background-color: $ecc-color-primary;
+    opacity: 0.5;
+    color: $color-white;
 }
 
 .ecc-text-error-highlighting {
