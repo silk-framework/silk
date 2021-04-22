@@ -16,8 +16,15 @@ export function CodeEditor({
             <ControlledEditor
                 editorDidMount={(editor) => {
                     editor.on("beforeChange", (_, change) => {
+                        console.log({ change });
                         var newtext = change.text.join("").replace(/\n/g, "");
-                        change.update(change.from, change.to, [newtext]);
+                        //failing unexpectedly during undo and redo
+                        if (
+                            change.update &&
+                            typeof change.update === "function"
+                        ) {
+                            change.update(change.from, change.to, [newtext]);
+                        }
                         return true;
                     });
                     setEditorInstance(editor);
