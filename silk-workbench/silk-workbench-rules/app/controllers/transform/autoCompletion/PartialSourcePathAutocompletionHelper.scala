@@ -2,7 +2,7 @@ package controllers.transform.autoCompletion
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.{DirectionalPathOperator, PartialParseError, PartialParseResult, PathOperator, PathParser, UntypedPath}
-import org.silkframework.util.StringUtils
+import org.silkframework.util.{StringUtils, Uri}
 
 object PartialSourcePathAutocompletionHelper {
 
@@ -186,7 +186,12 @@ object PartialSourcePathAutocompletionHelper {
   private def extractQuery(input: String): String = {
     var inputToProcess: String = input.trim
     if(input.startsWith("<") && input.endsWith(">")) {
-      inputToProcess = input.drop(1).dropRight(1)
+      // Extract local name from URI for filter query to get similarly named URIs
+      val uri = input.drop(1).dropRight(1)
+      inputToProcess = Uri(uri).localName.getOrElse(uri)
+    } else if((input.startsWith("http") || input.startsWith("urn")) && Uri(input).isValidUri) {
+      // Extract local name from URI for filter query to get similarly named URIs
+      inputToProcess = Uri(input).localName.getOrElse(input)
     } else if(!input.contains("<") && input.contains(":") && !input.contains(" ") && startsWithPrefix.findFirstMatchIn(input).isDefined
       && !input.startsWith("http") && !input.startsWith("urn")) {
       // heuristic to detect qualified names
