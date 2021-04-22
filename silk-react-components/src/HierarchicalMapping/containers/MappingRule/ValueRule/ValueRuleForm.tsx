@@ -316,6 +316,7 @@ export function ValueRuleForm(props: IProps) {
         if (type === MAPPING_RULE_TYPE_DIRECT) {
             sourcePropertyInput = (
                 <AutoSuggestion
+                    label="Value Path"
                     checkPathValidity={checkPathValidity}
                     validationResponse={pathValidationResponse}
                     data={suggestions}

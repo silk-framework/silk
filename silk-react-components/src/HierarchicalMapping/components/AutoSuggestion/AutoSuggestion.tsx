@@ -1,6 +1,6 @@
 import React from "react";
 import CodeMirror from "codemirror";
-import { Icon, Spinner } from "@eccenca/gui-elements";
+import { Icon, Spinner, Label } from "@gui-elements/index";
 
 //custom components
 import { CodeEditor } from "../CodeEditor";
@@ -16,6 +16,7 @@ const AutoSuggestion = ({
     validationResponse,
     pathValidationPending,
     suggestionsPending,
+    label,
 }) => {
     const [value, setValue] = React.useState("");
     const [inputString, setInputString] = React.useState("");
@@ -90,7 +91,7 @@ const AutoSuggestion = ({
             setShouldShowDropdown(true);
             //only change if the input has changed, regardless of the cursor change
             if (valueRef.current !== value) {
-                checkPathValidity(inputString);
+                checkPathValidity(value);
                 valueRef.current = value;
             }
             onEditorParamsChange(inputString, cursorPosition);
@@ -109,7 +110,7 @@ const AutoSuggestion = ({
     const handleTextHighlighting = (focusedSuggestion: string) => {
         const indexes = replacementIndexesDict[focusedSuggestion];
         if (indexes) {
-            clearMarkers()
+            clearMarkers();
             const { from, length } = indexes;
             const to = from + length;
             const marker = editorInstance.markText(
@@ -140,6 +141,7 @@ const AutoSuggestion = ({
             );
             setShouldShowDropdown(false);
             editorInstance.setCursor({ line: 0, ch: to });
+            editorInstance.focus();
             clearMarkers();
         }
     };
@@ -150,13 +152,14 @@ const AutoSuggestion = ({
 
     return (
         <div className="ecc-auto-suggestion-box">
+            <Label text={label} />
             <div className="ecc-auto-suggestion-box__editor-box">
                 <div className="ecc-auto-suggestion-box__validation">
                     {pathValidationPending && (
                         <Spinner size="tiny" position="local" />
                     )}
                     {!pathIsValid && !pathValidationPending ? (
-                        <Icon className="editor__icon error" name="clear" />
+                        <Icon small className="editor__icon error" name="operation-clear" />
                     ) : null}
                 </div>
                 <CodeEditor
@@ -168,7 +171,7 @@ const AutoSuggestion = ({
                     onFocusChange={setIsFocused}
                 />
                 <div onClick={handleInputEditorClear}>
-                    <Icon className="editor__icon clear" name="clear" />
+                    <Icon small className="editor__icon clear" name="operation-clear" />
                 </div>
             </div>
             {shouldShowDropdown || suggestionsPending ? (
