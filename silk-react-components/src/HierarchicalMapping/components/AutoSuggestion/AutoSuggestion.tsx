@@ -140,6 +140,7 @@ const AutoSuggestion = ({
             );
             setShouldShowDropdown(false);
             editorInstance.setCursor({ line: 0, ch: to });
+            editorInstance.focus()
             clearMarkers();
         }
     };
@@ -147,6 +148,7 @@ const AutoSuggestion = ({
     const handleInputEditorClear = () => {
         setValue("");
     };
+
 
     return (
         <div className="ecc-auto-suggestion-box">
