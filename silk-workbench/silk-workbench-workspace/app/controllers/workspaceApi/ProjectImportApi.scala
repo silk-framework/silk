@@ -1,18 +1,10 @@
 package controllers.workspaceApi
 
-import java.io.{File, FileFilter, FileInputStream, FileOutputStream}
-import java.time.Instant
-import java.util.concurrent.{TimeUnit, TimeoutException}
-import java.util.logging.{Level, Logger}
-import java.util.zip.ZipFile
-import java.time.{Duration => JDuration}
-
 import config.WorkbenchConfig
 import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.workspace.ProjectMarshalingApi
 import controllers.workspaceApi.ProjectImportApi.{ProjectImport, ProjectImportDetails, ProjectImportExecution}
-import javax.inject.Inject
 import org.silkframework.config.{DefaultConfig, MetaData}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.execution.Execution
@@ -20,14 +12,20 @@ import org.silkframework.runtime.resource.zip.ZipFileResourceLoader
 import org.silkframework.runtime.resource.{FileResource, ResourceLoader}
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.{BadUserInputException, ConflictRequestException, NotFoundException}
+import org.silkframework.util.DurationConverters._
 import org.silkframework.util.StreamUtils
 import org.silkframework.workspace.xml.XmlZipWithResourcesProjectMarshaling
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, _}
-import org.silkframework.util.DurationConverters._
 
+import java.io.{File, FileInputStream, FileOutputStream}
+import java.time.{Instant, Duration => JDuration}
+import java.util.concurrent.{TimeUnit, TimeoutException}
+import java.util.logging.{Level, Logger}
+import java.util.zip.ZipFile
+import javax.inject.Inject
 import scala.collection.mutable
-import scala.concurrent.duration.{Duration, DurationInt, FiniteDuration}
+import scala.concurrent.duration.{Duration, DurationInt}
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
 import scala.io.Source
 import scala.util.control.NonFatal
@@ -251,7 +249,8 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
   /** Starts a project import based on the import ID. */
   def startProjectImport(projectImportId: String,
                          generateNewId: Boolean,
-                         overwriteExisting: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
+                         overwriteExisting: Boolean,
+                         newProjectId: Option[String]): Action[AnyContent] = UserContextAction { implicit userContext =>
     withProjectImportQueue {
       _.get(projectImportId) match {
         case Some(projectImport) =>
@@ -263,14 +262,18 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
               }
               // Create execution in a future, so this request returns immediately with a 201
               val details = fetchProjectImportDetails(projectImportId)
-              var newProjectId = details.projectId
-              if (generateNewId) {
-                newProjectId = IdentifierUtils.generateProjectId(details.label)
+              // Determine new project id
+              val projectId = (newProjectId, generateNewId) match {
+                case (None, false) => details.projectId
+                case (Some(newId), false) => newId
+                case (None, true) => IdentifierUtils.generateProjectId(details.label).toString
+                case (Some(_), true) =>
+                  throw new BadUserInputException("'generateNewId' and 'newProjectId' are mutually exclusive and cannot be set at the same time.")
               }
-              if(projectExists(newProjectId) && !overwriteExisting) {
-                throw ConflictRequestException(s"A project with ID $newProjectId already exists!")
+              if(projectExists(projectId) && !overwriteExisting) {
+                throw ConflictRequestException(s"A project with ID $projectId already exists!")
               }
-              executeProjectImportAsync(projectImport, details, newProjectId, overwriteExisting)
+              executeProjectImportAsync(projectImport, details, projectId, overwriteExisting)
             case _ =>
           }
           Created.
