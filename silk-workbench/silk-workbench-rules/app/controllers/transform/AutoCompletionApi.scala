@@ -326,7 +326,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
 
   private def valueTypeCompletion(valueType: PluginDescription[ValueType]): Completion = {
     val annotation = valueType.pluginClass.getAnnotation(classOf[ValueTypeAnnotation])
-    val annotationDescription =
+    val annotationDescription = {
       if(annotation != null) {
         val validValues = annotation.validValues().map(str => s"'$str'").mkString(", ")
         val invalidValues = annotation.invalidValues().map(str => s"'$str'").mkString(", ")
@@ -334,6 +334,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
       } else {
         ""
       }
+    }
 
     Completion(
       value = valueType.id,

@@ -24,7 +24,7 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
   private val jsonSpecialPathsFull = jsonSpecialPaths.map(p => s"/$p")
   val jsonOps = Seq("/", "\\", "[")
 
-  val allRdfPaths = Seq("<https://ns.eccenca.com/source/address>", "<https://ns.eccenca.com/source/age>", "<https://ns.eccenca.com/source/name>", "rdf:type")
+  val allRdfPaths = Seq("rdf:type", "<https://ns.eccenca.com/source/address>", "<https://ns.eccenca.com/source/age>", "<https://ns.eccenca.com/source/name>")
   val allRdfPathsFull = allRdfPaths.map("/" + _)
   val rdfOps: Seq[String] = jsonOps ++ Seq("[@lang ")
 
@@ -109,6 +109,11 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
   it should "not suggest anything when inside quotes" in {
     val pathWithQuotes = """department[b = "some value"]"""
     jsonSuggestions(pathWithQuotes, pathWithQuotes.length - 3) mustBe Seq.empty
+  }
+
+  it should "not suggest path operators when inside a URI" in {
+    rdfSuggestions("""<urn:test""") mustBe Seq.empty
+    rdfSuggestions("""rdf:object[rdfs:label = <urn:test""") mustBe Seq.empty
   }
 
   it should "suggest all path operators for RDF sources" in {
