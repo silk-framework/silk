@@ -14,7 +14,9 @@ const AutoSuggestion = ({
     onEditorParamsChange,
     data,
     checkPathValidity,
-    pathIsValid,
+    validationResponse,
+    pathValidationPending,
+    suggestionsPending,
 }) => {
     const [value, setValue] = React.useState("");
     const [inputString, setInputString] = React.useState("");
@@ -32,10 +34,23 @@ const AutoSuggestion = ({
         editorInstance,
         setEditorInstance,
     ] = React.useState<CodeMirror.Editor>();
+    const pathIsValid = validationResponse?.valid ?? true
 
+    //handle linting 
     React.useEffect(() => {
-        //perform linting
-    }, [pathIsValid]);
+        const parseError = validationResponse?.parseError
+        if(parseError){
+            clearMarkers()
+            const {offset:start, inputLeadingToError} = parseError
+            const end = start + inputLeadingToError?.length 
+            const marker = editorInstance.markText(
+                { line: 0, ch: start },
+                { line: 0, ch: end },
+                { className: "ecc-text-error-highlighting" }
+            );
+            setMarkers((previousMarkers) => [...previousMarkers, marker]);
+        }
+    },[validationResponse?.parseError])
 
     /** generate suggestions and also populate the replacement indexes dict */
     React.useEffect(() => {
