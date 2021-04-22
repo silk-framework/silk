@@ -93,7 +93,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
           val from = pathToReplace.from
           val length = pathToReplace.length
           // Return filtered result
-          val filteredResults = filterResults(autoCompletionRequest, pathToReplace, completions)
+          val filteredResults = filterResults(autoCompletionRequest, pathToReplace, completions, dataSourceSpecialPathCompletions)
           val response = PartialSourcePathAutoCompletionResponse(
             autoCompletionRequest.inputString,
             autoCompletionRequest.cursorPosition,
@@ -138,8 +138,12 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
   }
 
   // Filter results based on text query and limit number of results
-  private def filterResults(autoCompletionRequest: PartialSourcePathAutoCompletionRequest, pathToReplace: PathToReplace, completions: Completions): Completions = {
-    pathToReplace.query match {
+  private def filterResults(autoCompletionRequest: PartialSourcePathAutoCompletionRequest,
+                            pathToReplace: PathToReplace,
+                            completions: Completions,
+                            dataSourceSpecialPathCompletions: Seq[Completion]): Completions = {
+    val stringToBeReplaced = autoCompletionRequest.inputString.substring(pathToReplace.from, pathToReplace.from + pathToReplace.length)
+    val filteredCompletions: Completions = pathToReplace.query match {
       case Some(query) =>
         completions.
           filterAndSort(
@@ -150,6 +154,12 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
           )
       case None =>
         Seq.empty
+    }
+    if(filteredCompletions.values.size == 1 && filteredCompletions.values.head.value == stringToBeReplaced) {
+      // If only real search result has the exact same value as the string to be replaced, do not suggest anything.
+      Seq.empty
+    } else {
+      filteredCompletions
     }
   }
 

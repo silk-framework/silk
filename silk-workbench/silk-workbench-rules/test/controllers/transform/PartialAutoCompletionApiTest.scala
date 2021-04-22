@@ -127,6 +127,15 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     rdfSuggestions("rdf:type/eccenca ad") mustBe allRdfPathsFull.filter(_.contains("address")) ++ rdfOps
   }
 
+  it should "not propose the exact same replacement if it is the only result" in {
+    rdfSuggestions("rdf:type") mustBe rdfOps
+    rdfSuggestions("<https://ns.eccenca.com/source/address>") mustBe rdfOps
+    // The special paths actually match "value" in the comments, that's why they show up here and /value is still proposed
+    jsonSuggestions("department/tags/evenMoreNested/value") mustBe Seq("/value", "/#id", "/#text") ++ jsonOps
+    // here it's not the case and only the path ops show up
+    jsonSuggestions("phoneNumbers/number") mustBe jsonOps
+  }
+
   private def partialAutoCompleteResult(inputString: String = "",
                                         cursorPosition: Int = 0,
                                         replacementResult: Seq[ReplacementResults]): PartialSourcePathAutoCompletionResponse = {
@@ -151,6 +160,8 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     project.task[TransformSpec](jsonTransform).activity[TransformPathsCache].control.waitUntilFinished()
     suggestedValues(partialSourcePathAutoCompleteRequest(jsonTransform, inputText = inputText, cursorPosition = cursorPosition))
   }
+
+  private def jsonSuggestions(inputText: String): Seq[String] = jsonSuggestions(inputText, inputText.length)
 
   private def rdfSuggestions(inputText: String, cursorPosition: Int): Seq[String] = {
     project.task[TransformSpec](rdfTransform).activity[TransformPathsCache].control.waitUntilFinished()
