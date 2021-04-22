@@ -54,7 +54,8 @@ object PartialSourcePathAutocompletionHelper {
     val positionStatus = request.cursorPositionStatus
     replacement.copy(
       insideUri = positionStatus.insideUri,
-      insideQuotes = positionStatus.insideQuotes
+      insideQuotes = positionStatus.insideQuotes,
+      insideFilter = positionStatus.insideFilter
     )
   }
 

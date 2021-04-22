@@ -136,6 +136,10 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     jsonSuggestions("phoneNumbers/number") mustBe jsonOps
   }
 
+  it should "not propose path ops inside a filter" in {
+    jsonSuggestions("department/[tags = ") must not contain allOf("/", "\\", "[")
+  }
+
   private def partialAutoCompleteResult(inputString: String = "",
                                         cursorPosition: Int = 0,
                                         replacementResult: Seq[ReplacementResults]): PartialSourcePathAutoCompletionResponse = {

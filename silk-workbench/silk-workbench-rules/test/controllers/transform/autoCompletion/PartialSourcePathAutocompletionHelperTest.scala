@@ -70,7 +70,7 @@ class PartialSourcePathAutocompletionHelperTest extends FlatSpec with MustMatche
 
   it should "not auto-complete values inside quotes" in {
     val pathWithQuotes = """a[b = "some value"]"""
-    replace(pathWithQuotes, pathWithQuotes.length - 4) mustBe PathToReplace(pathWithQuotes.length - 4, 0, None, insideQuotes = true)
+    replace(pathWithQuotes, pathWithQuotes.length - 4) mustBe PathToReplace(pathWithQuotes.length - 4, 0, None, insideQuotes = true, insideFilter = true)
   }
 
   it should "should not suggest anything if path in the beginning is invalid" in {
