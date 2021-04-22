@@ -29,6 +29,11 @@ case class PartialSourcePathAutoCompletionRequest(inputString: String,
       }
   }
 
+  /** The string in the current operator up to the cursor. */
+  def stringInOperatorToCursor: String = {
+    inputString.substring(pathOperatorIdxBeforeCursor.getOrElse(0), cursorPosition)
+  }
+
   /** Index of the path operator before the cursor.*/
   def pathOperatorIdxBeforeCursor: Option[Int] = {
     val positionStatus = cursorPositionStatus
@@ -42,22 +47,27 @@ case class PartialSourcePathAutoCompletionRequest(inputString: String,
     Some(cursorPosition - strBackToOperator.length - 1).filter(_ >= 0)
   }
 
-  class PositionStatus(initialInsideQuotes: Boolean,
+  class PositionStatus(initialInsideDoubleQuotes: Boolean,
+                       initialInsideSingleQuotes: Boolean,
                        initialInsideUri: Boolean,
                        initialInsideFilter: Boolean) {
-    private var _insideQuotes = initialInsideQuotes
+    private var _insideDoubleQuotes = initialInsideDoubleQuotes
+    private var _insideSingleQuotes = initialInsideSingleQuotes
     private var _insideUri = initialInsideUri
     private var _insideFilter = initialInsideFilter
 
-    def update(char: Char): (Boolean, Boolean) = {
+    def update(char: Char): Unit = {
       // Track quotes status
-      if (!_insideUri) {
-        if (char == '"') {
-          _insideQuotes = !_insideQuotes
+      if (!insideUri) {
+        if (char == '"' && !_insideSingleQuotes) {
+          _insideDoubleQuotes = !_insideDoubleQuotes
+        }
+        if(char == '\'' && !_insideDoubleQuotes) {
+          _insideSingleQuotes = !_insideSingleQuotes
         }
       }
       // Track URI status
-      if (!_insideQuotes) {
+      if (!insideQuotes) {
         if (char == '<') {
           _insideUri = true
         } else if (char == '>') {
@@ -65,17 +75,17 @@ case class PartialSourcePathAutoCompletionRequest(inputString: String,
         }
       }
       // Track filter status
-      if (!_insideQuotes && !_insideUri) {
+      if (!insideQuotes && !insideUri) {
         if (char == '[') {
           _insideFilter = true
         } else if (char == ']') {
           _insideFilter = false
         }
       }
-      (_insideQuotes, _insideUri)
+      (insideQuotes, insideUri)
     }
 
-    def insideQuotes: Boolean = _insideQuotes
+    def insideQuotes: Boolean = _insideDoubleQuotes || _insideSingleQuotes
     def insideUri: Boolean = _insideUri
     def insideFilter: Boolean = _insideFilter
     def insideQuotesOrUri: Boolean = insideQuotes || insideUri
@@ -83,7 +93,7 @@ case class PartialSourcePathAutoCompletionRequest(inputString: String,
 
   // Checks if the cursor position is inside quotes or URI
   def cursorPositionStatus: PositionStatus = {
-    val positionStatus = new PositionStatus(false, false, false)
+    val positionStatus = new PositionStatus(false, false, false, false)
     inputString.take(cursorPosition).foreach(positionStatus.update)
     positionStatus
   }

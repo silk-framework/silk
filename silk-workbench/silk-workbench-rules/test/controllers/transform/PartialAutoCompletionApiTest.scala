@@ -137,7 +137,18 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
   }
 
   it should "not propose path ops inside a filter" in {
-    jsonSuggestions("department/[tags = ") must not contain allOf("/", "\\", "[")
+    jsonSuggestions("department/[tags = ") must not contain allOf("/", "\\", "[", "]")
+  }
+
+  it should "propose end of filter op only when the filter expression will be valid" in {
+    jsonSuggestions("department/[tags = ") must not contain("]")
+    jsonSuggestions("department/[@lang = 'en']") must not contain("]")
+    jsonSuggestions("department/[tags = <urn:test:test>") must contain("]")
+    jsonSuggestions("department/[rdf:type != rdf:Type") must contain("]")
+    jsonSuggestions("department/[rdf:type != \"text") must not contain("]")
+    jsonSuggestions("department/[rdf:type != <urn:start") must not contain("]")
+    jsonSuggestions("department/[@lang != 'de'") must contain("]")
+    jsonSuggestions("department/[<http://domain.org/label> != \"label\"") must contain("]")
   }
 
   private def partialAutoCompleteResult(inputString: String = "",
