@@ -1,11 +1,10 @@
 import React from "react";
 import CodeMirror from "codemirror";
-import { Icon } from "@eccenca/gui-elements";
+import { Icon, Spinner } from "@eccenca/gui-elements";
 
 //custom components
 import { CodeEditor } from "../CodeEditor";
 import Dropdown from "./Dropdown";
-import { replace } from "lodash";
 
 //styles
 require("./AutoSuggestion.scss");
@@ -58,7 +57,7 @@ const AutoSuggestion = ({
         let newReplacementIndexesDict = {};
         if (
             data?.replacementResults?.length === 1 &&
-            !data?.replacementResults?.replacements?.length
+            !data?.replacementResults[0]?.replacements?.length
         ) {
             setShouldShowDropdown(false);
         }
