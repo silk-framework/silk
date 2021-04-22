@@ -33,15 +33,16 @@ const AutoSuggestion = ({
         editorInstance,
         setEditorInstance,
     ] = React.useState<CodeMirror.Editor>();
-    const pathIsValid = validationResponse?.valid ?? true
+    const pathIsValid = validationResponse?.valid ?? true;
+    const valueRef = React.useRef("");
 
-    //handle linting 
+    //handle linting
     React.useEffect(() => {
-        const parseError = validationResponse?.parseError
-        if(parseError){
-            clearMarkers()
-            const {offset:start, inputLeadingToError} = parseError
-            const end = start + inputLeadingToError?.length 
+        const parseError = validationResponse?.parseError;
+        if (parseError) {
+            clearMarkers();
+            const { offset: start, inputLeadingToError } = parseError;
+            const end = start + inputLeadingToError?.length;
             const marker = editorInstance.markText(
                 { line: 0, ch: start },
                 { line: 0, ch: end },
@@ -49,7 +50,7 @@ const AutoSuggestion = ({
             );
             setMarkers((previousMarkers) => [...previousMarkers, marker]);
         }
-    },[validationResponse?.parseError])
+    }, [validationResponse?.parseError]);
 
     /** generate suggestions and also populate the replacement indexes dict */
     React.useEffect(() => {
@@ -84,7 +85,11 @@ const AutoSuggestion = ({
     React.useEffect(() => {
         setInputString(() => value);
         setShouldShowDropdown(true);
-        checkPathValidity(inputString);
+        //only change if the input has changed, regardless of the cursor change
+        if (valueRef.current !== value) {
+            checkPathValidity(inputString);
+            valueRef.current = value;
+        }
         onEditorParamsChange(inputString, cursorPosition);
     }, [cursorPosition, value, inputString]);
 
