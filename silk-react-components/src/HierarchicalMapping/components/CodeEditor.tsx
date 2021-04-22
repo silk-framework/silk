@@ -9,6 +9,7 @@ export function CodeEditor({
     onCursorChange,
     mode = "sparql",
     value,
+    onFocusChange,
 }) {
     return (
         <div className="ecc-input-editor">
@@ -22,6 +23,8 @@ export function CodeEditor({
                     setEditorInstance(editor);
                 }}
                 value={value}
+                onFocus={() => onFocusChange(true)}
+                onBlur={() => onFocusChange(false)}
                 options={{
                     mode: mode,
                     lineNumbers: false,

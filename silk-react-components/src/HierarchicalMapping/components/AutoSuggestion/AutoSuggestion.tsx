@@ -33,6 +33,8 @@ const AutoSuggestion = ({
         editorInstance,
         setEditorInstance,
     ] = React.useState<CodeMirror.Editor>();
+    const [isFocused, setIsFocused] = React.useState(false);
+
     const pathIsValid = validationResponse?.valid ?? true;
     const valueRef = React.useRef("");
 
@@ -83,15 +85,17 @@ const AutoSuggestion = ({
     }, [data]);
 
     React.useEffect(() => {
-        setInputString(() => value);
-        setShouldShowDropdown(true);
-        //only change if the input has changed, regardless of the cursor change
-        if (valueRef.current !== value) {
-            checkPathValidity(inputString);
-            valueRef.current = value;
+        if (isFocused) {
+            setInputString(() => value);
+            setShouldShowDropdown(true);
+            //only change if the input has changed, regardless of the cursor change
+            if (valueRef.current !== value) {
+                checkPathValidity(inputString);
+                valueRef.current = value;
+            }
+            onEditorParamsChange(inputString, cursorPosition);
         }
-        onEditorParamsChange(inputString, cursorPosition);
-    }, [cursorPosition, value, inputString]);
+    }, [cursorPosition, value, inputString, isFocused]);
 
     const handleChange = (val) => {
         setValue(val);
@@ -160,6 +164,7 @@ const AutoSuggestion = ({
                     onChange={handleChange}
                     onCursorChange={handleCursorChange}
                     value={value}
+                    onFocusChange={setIsFocused}
                 />
                 <div onClick={handleInputEditorClear}>
                     <Icon className="editor__icon clear" name="clear" />
