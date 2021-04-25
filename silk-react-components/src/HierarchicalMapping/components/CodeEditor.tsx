@@ -1,22 +1,21 @@
 import React from "react";
 import { Controlled as ControlledEditor } from "react-codemirror2";
 import "codemirror/mode/sparql/sparql.js";
-import PropTypes from "prop-types";
 
-export function CodeEditor({
+const CodeEditor = ({
     setEditorInstance,
     onChange,
     onCursorChange,
     mode = "sparql",
     value,
     onFocusChange,
-}) {
+    handleSpecialKeysPress,
+}) => {
     return (
         <div className="ecc-input-editor">
             <ControlledEditor
                 editorDidMount={(editor) => {
                     editor.on("beforeChange", (_, change) => {
-                        console.log({ change });
                         var newtext = change.text.join("").replace(/\n/g, "");
                         //failing unexpectedly during undo and redo
                         if (
@@ -31,7 +30,7 @@ export function CodeEditor({
                 }}
                 value={value}
                 onFocus={() => onFocusChange(true)}
-                onBlur={() => onFocusChange(false)}
+                // onBlur={() => onFocusChange(false)}
                 options={{
                     mode: mode,
                     lineNumbers: false,
@@ -44,15 +43,10 @@ export function CodeEditor({
                     const trimmedValue = value.replace(/\n/g, "");
                     onChange(trimmedValue);
                 }}
+                onKeyDown={(_, event) => handleSpecialKeysPress(event)}
             />
         </div>
     );
-}
-
-CodeEditor.propTypes = {
-    mode: PropTypes.string,
-    value: PropTypes.string.isRequired,
-    onChange: PropTypes.func.isRequired,
-    onCursorChange: PropTypes.func.isRequired,
-    onSelection: PropTypes.func,
 };
+
+export default CodeEditor;

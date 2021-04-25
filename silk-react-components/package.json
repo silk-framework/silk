@@ -49,6 +49,7 @@
     "carbon-components-react": "^7.25.0",
     "classnames": "^2.2.5",
     "codemirror": "^5.61.0",
+    "compute-scroll-into-view": "^1.0.17",
     "css-loader": "3.4.2",
     "dialog-polyfill": "0.4.4",
     "ecc-messagebus": "^3.6.0",

@@ -1,4 +1,5 @@
 import React from "react";
+import computeScrollIntoView from "compute-scroll-into-view";
 import {
     Menu,
     MenuItem,
@@ -10,74 +11,119 @@ import {
     Spinner,
     Spacing,
 } from "@gui-elements/index";
-// import {Suggest} from '@blueprintjs/core'
 
 interface IDropdownProps {
     options: Array<any>;
     onItemSelectionChange: (item) => void;
-    onMouseOverItem: (value: string) => void;
     isOpen: boolean;
     query?: string;
     loading?: boolean;
+    left?: number;
+    currentlyFocusedIndex?: number;
 }
 
-const Item = ({ item, query }) => {
+const RawItem = ({ item, query }, ref) => {
     return (
-        <OverviewItem>
-            <OverviewItemDescription>
-                <OverviewItemLine>
-                    <OverflowText ellipsis="reverse">
-                        <Highlighter
-                            label={item.value}
-                            searchValue={query}
-                        ></Highlighter>
-                    </OverflowText>
-                </OverviewItemLine>
-                {item.description ? (
-                    <OverviewItemLine small={true}>
+        <div ref={ref}>
+            <OverviewItem>
+                <OverviewItemDescription>
+                    <OverviewItemLine>
                         <OverflowText ellipsis="reverse">
                             <Highlighter
-                                label={item.description}
-                                searchValue={query} />
+                                label={item.value}
+                                searchValue={query}
+                            ></Highlighter>
                         </OverflowText>
                     </OverviewItemLine>
-                ) : null}
-            </OverviewItemDescription>
-        </OverviewItem>
+                    {item.description ? (
+                        <OverviewItemLine small={true}>
+                            <OverflowText ellipsis="reverse">
+                                <Highlighter
+                                    label={item.description}
+                                    searchValue={query}
+                                />
+                            </OverflowText>
+                        </OverviewItemLine>
+                    ) : null}
+                </OverviewItemDescription>
+            </OverviewItem>
+        </div>
     );
 };
 
+const Item = React.forwardRef(RawItem);
+
 const Dropdown: React.FC<IDropdownProps> = ({
+    isOpen,
     options,
     loading,
     onItemSelectionChange,
-    isOpen = true,
     query,
-    onMouseOverItem,
+    left,
+    currentlyFocusedIndex,
 }) => {
+    const dropdownRef = React.useRef();
+    const refs = {};
+    const generateRef = (index) => {
+        if (!refs.hasOwnProperty(`${index}`)) {
+            refs[`${index}`] = React.createRef();
+        }
+        return refs[`${index}`];
+    };
+
+    React.useEffect(() => {
+        const listIndexNode = refs[currentlyFocusedIndex];
+        if (dropdownRef.current && listIndexNode.current) {
+            const actions = computeScrollIntoView(listIndexNode.current, {
+                boundary: dropdownRef.current,
+                block: "nearest",
+                scrollMode: "if-needed",
+            });
+            actions.forEach(({ el, top, left }) => {
+                el.scrollTop = top;
+                el.scrollLeft = left;
+            });
+        }
+    }, [currentlyFocusedIndex]);
+
     if (!isOpen) return null;
-    if (loading)
-        return (
-            <OverviewItem hasSpacing>
-                <OverviewItemLine>Fetching suggestions</OverviewItemLine>
-                <Spacing size="tiny" vertical={true} />
-                <Spinner position="inline" description="" />
-            </OverviewItem>
-        );
+
+    const Loader = (
+        <OverviewItem hasSpacing>
+            <OverviewItemLine>Fetching suggestions</OverviewItemLine>
+            <Spacing size="tiny" vertical={true} />
+            <Spinner position="inline" description="" />
+        </OverviewItem>
+    );
+
     return (
-        <Menu>
-            {options.map(
-                (item: { value: string; description?: string }, index) => (
-                    <MenuItem
-                        key={index}
-                        onClick={() => onItemSelectionChange(item.value)}
-                        text={<Item item={item} query={query} />}
-                        onMouseEnter={() => onMouseOverItem(item.value)}
-                    />
-                )
+        <div
+            className="ecc-auto-suggestion-box__dropdown"
+            style={{ left }}
+            ref={dropdownRef}
+        >
+            {loading ? (
+                Loader
+            ) : (
+                <Menu>
+                    {options.map((item, index) => (
+                        <MenuItem
+                            active={currentlyFocusedIndex === index}
+                            key={index}
+                            onClick={() => onItemSelectionChange(item.value)}
+                            text={
+                                <Item
+                                    ref={generateRef(index)}
+                                    item={item}
+                                    query={query}
+                                />
+                            }
+                        ></MenuItem>
+                    ))}
+                </Menu>
             )}
-        </Menu>
+        </div>
     );
 };
 
-export default React.memo(Dropdown);
+export default Dropdown;

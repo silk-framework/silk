@@ -3,11 +3,18 @@ import CodeMirror from "codemirror";
 import { Icon, Spinner, Label } from "@gui-elements/index";
 
 //custom components
-import { CodeEditor } from "../CodeEditor";
+import CodeEditor from "../CodeEditor";
 import Dropdown from "./Dropdown";
 
 //styles
 require("./AutoSuggestion.scss");
+
+export enum OVERWRITTEN_KEYS {
+    ArrowUp = "ArrowUp",
+    ArrowDown = "ArrowDown",
+    Enter = "Enter",
+    Tab = "Tab",
+}
 
 const AutoSuggestion = ({
     onEditorParamsChange,
@@ -36,8 +43,21 @@ const AutoSuggestion = ({
     ] = React.useState<CodeMirror.Editor>();
     const [isFocused, setIsFocused] = React.useState(false);
 
-    const pathIsValid = validationResponse?.valid ?? true;
+    const [currentIndex, setCurrentIndex] = React.useState<number>(0);
+    const [keyPressCounter, setKeyPressCounter] = React.useState(0);
+    const [
+        keyPressedFromEditor,
+        setKeyPressedFromEditor,
+    ] = React.useState<OVERWRITTEN_KEYS>();
+
     const valueRef = React.useRef("");
+    const dropdownRef = React.useRef<any>();
+    const pathIsValid = validationResponse?.valid ?? true;
+
+    //handle keypress
+    React.useEffect(() => {
+        makeDropDownRespondToKeyPress(keyPressedFromEditor);
+    }, [keyPressCounter]);
 
     //handle linting
     React.useEffect(() => {
@@ -107,6 +127,15 @@ const AutoSuggestion = ({
         setCoords(() => coords);
     };
 
+    const handleInputEditorKeyPress = (event: KeyboardEvent) => {
+        const overWrittenKeys: Array<string> = Object.values(OVERWRITTEN_KEYS);
+        if (overWrittenKeys.includes(event.key)) {
+            event.preventDefault();
+            setKeyPressedFromEditor(OVERWRITTEN_KEYS[event.key]);
+            setKeyPressCounter((counter) => ++counter);
+        }
+    };
+
     const handleTextHighlighting = (focusedSuggestion: string) => {
         const indexes = replacementIndexesDict[focusedSuggestion];
         if (indexes) {
@@ -150,6 +179,77 @@ const AutoSuggestion = ({
         setValue("");
     };
 
+    const handleInputFocus = (focusState: boolean) => {
+        setIsFocused(focusState);
+        setShouldShowDropdown(focusState);
+    };
+
+    //keyboard handlers
+    const handleArrowDown = () => {
+        const lastSuggestionIndex = suggestions.length - 1;
+        let nextIndex;
+        if (currentIndex === lastSuggestionIndex) {
+            nextIndex = 0;
+            setCurrentIndex(nextIndex);
+            handleTextHighlighting(suggestions[nextIndex]?.value);
+        } else {
+            setCurrentIndex((index) => {
+                nextIndex = ++index;
+                handleTextHighlighting(suggestions[nextIndex]?.value);
+                return nextIndex;
+            });
+        }
+    };
+
+    const handleArrowUp = () => {
+        const lastSuggestionIndex = suggestions.length - 1;
+        let nextIndex;
+        if (currentIndex === 0) {
+            nextIndex = lastSuggestionIndex;
+            setCurrentIndex(nextIndex);
+            handleTextHighlighting(suggestions[nextIndex]?.value);
+        } else {
+            setCurrentIndex((index) => {
+                nextIndex = --index;
+                handleTextHighlighting(suggestions[nextIndex]?.value);
+                return nextIndex;
+            });
+        }
+        const chosenSuggestion = suggestions[nextIndex]?.value
+        handleTextHighlighting(chosenSuggestion);
+    };
+
+    const handleEnterPressed = () => {
+        handleDropdownChange(suggestions[currentIndex]?.value);
+        setCurrentIndex(0);
+    };
+
+    const handleTabPressed = () => {
+        handleDropdownChange(suggestions[currentIndex]?.value);
+    };
+
+    const makeDropDownRespondToKeyPress = (keyPressedFromInput) => {
+        if (shouldShowDropdown) {
+            switch (keyPressedFromInput) {
+                case OVERWRITTEN_KEYS.ArrowUp:
+                    handleArrowUp();
+                    break;
+                case OVERWRITTEN_KEYS.ArrowDown:
+                    handleArrowDown();
+                    break;
+                case OVERWRITTEN_KEYS.Enter:
+                    handleEnterPressed();
+                    break;
+                case OVERWRITTEN_KEYS.Tab:
+                    handleTabPressed();
+                    break;
+                default:
+                    //do nothing
+                    null;
+            }
+        }
+    };
+
     return (
         <div className="ecc-auto-suggestion-box">
             <Label text={label} />
@@ -159,7 +259,11 @@ const AutoSuggestion = ({
                         <Spinner size="tiny" position="local" />
                     )}
                     {!pathIsValid && !pathValidationPending ? (
-                        <Icon small className="editor__icon error" name="operation-clear" />
+                        <Icon
+                            small
+                            className="editor__icon error"
+                            name="operation-clear"
+                        />
                     ) : null}
                 </div>
                 <CodeEditor
@@ -168,27 +272,26 @@ const AutoSuggestion = ({
                     onChange={handleChange}
                     onCursorChange={handleCursorChange}
                     value={value}
-                    onFocusChange={setIsFocused}
+                    onFocusChange={handleInputFocus}
+                    handleSpecialKeysPress={handleInputEditorKeyPress}
                 />
                 <div onClick={handleInputEditorClear}>
-                    <Icon small className="editor__icon clear" name="operation-clear" />
-                </div>
-            </div>
-            {shouldShowDropdown || suggestionsPending ? (
-                <div
-                    className="ecc-auto-suggestion-box__dropdown"
-                    style={{ left: coords.left }}
-                >
-                    <Dropdown
-                        loading={suggestionsPending}
-                        query={value}
-                        options={suggestions}
-                        isOpen={shouldShowDropdown}
-                        onItemSelectionChange={handleDropdownChange}
-                        onMouseOverItem={handleTextHighlighting}
+                    <Icon
+                        small
+                        className="editor__icon clear"
+                        name="operation-clear"
                     />
                 </div>
-            ) : null}
+            </div>
+            <Dropdown
+                left={coords.left}
+                loading={suggestionsPending}
+                query={value}
+                options={suggestions}
+                isOpen={shouldShowDropdown}
+                onItemSelectionChange={handleDropdownChange}
+                currentlyFocusedIndex={currentIndex}
+            />
         </div>
     );
 };
