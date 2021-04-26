@@ -68,8 +68,9 @@ const AutoSuggestion = ({
         const parseError = validationResponse?.parseError;
         if (parseError) {
             clearMarkers();
-            const { offset: start, inputLeadingToError } = parseError;
-            const end = start + inputLeadingToError?.length;
+            const { offset, inputLeadingToError, message } = parseError;
+            const start = inputLeadingToError.length > 1 ? offset - inputLeadingToError.length + 1 : offset
+            const end = offset + 2;
             const marker = editorInstance.markText(
                 { line: 0, ch: start },
                 { line: 0, ch: end },

@@ -136,7 +136,7 @@ private[entity] class PathParser(prefixes: Prefixes) extends RegexParsers {
   private def languageTag = """[a-zA-Z]+('-'[a-zA-Z0-9]+)*""".r
 
   // A value that is either an identifier or a literal value enclosed in quotes (e.g., "literal").
-  private def value = identifier | "\"[^\"]+\"".r
+  private def value = identifier | "\"[^\"]*\"".r
 
   // A comparison operator
   private def compOperator = ">" | "<" | ">=" | "<=" | "=" | "!="
