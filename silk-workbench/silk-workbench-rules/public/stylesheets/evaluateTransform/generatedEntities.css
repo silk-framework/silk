@@ -64,6 +64,7 @@
   background-color: #d6fff0;
   border:1px solid #0ceba5;
   border-radius: 5px;
+  white-space: pre-wrap;
 }
 
 .input-value {
@@ -73,6 +74,7 @@
   background-color: #f2d7ff;
   border: 1px solid #c6a0c4;
   border-radius: 5px;
+  white-space: pre-wrap;
 }
 
 .plus {

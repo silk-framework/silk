@@ -16,6 +16,7 @@ import org.silkframework.runtime.validation.{BadUserInputException, ValidationEx
 import org.silkframework.serialization.json.EntitySerializers.EntitySchemaJsonFormat
 import org.silkframework.serialization.json.InputJsonSerializer._
 import org.silkframework.serialization.json.JsonHelpers._
+import org.silkframework.serialization.json.JsonSerializers.ObjectMappingJsonFormat.MAPPING_TARGET
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.LinkingSerializers._
 import org.silkframework.util.{DPair, Identifier, Uri}
@@ -386,7 +387,8 @@ object JsonSerializers {
       val mappingRules = fromJson[MappingRules](mustBeDefined(value, RULES_PROPERTY))
       val typeName = mappingRules.typeRules.flatMap(_.typeUri.localName).headOption
       val id = identifier(value, RootMappingRule.defaultId)
-      RootMappingRule(id = id, rules = mappingRules, metaData = metaData(value, typeName.getOrElse("RootMapping")))
+      val mappingTarget = optionalValue(value, MAPPING_TARGET).map(fromJson[MappingTarget]).getOrElse(RootMappingRule.defaultMappingTarget)
+      RootMappingRule(id = id, rules = mappingRules, mappingTarget = mappingTarget, metaData = metaData(value, typeName.getOrElse("RootMapping")))
     }
 
     /**
@@ -398,6 +400,7 @@ object JsonSerializers {
           TYPE -> JsString("root"),
           ID -> JsString(value.id),
           RULES_PROPERTY -> toJson(value.rules),
+          MAPPING_TARGET -> toJson(value.mappingTarget),
           METADATA -> toJson(value.metaData)
         )
       )
@@ -710,6 +713,7 @@ object JsonSerializers {
     final val OUTPUT: String = "output"
     final val ERROR_OUTPUT: String = "errorOutput"
     final val TARGET_VOCABULARIES: String = "targetVocabularies"
+    final val ABORT_IF_ERRORS_OCCUR: String = "abortIfErrorsOccur"
 
     /** Deprecated property names */
     final val DEPRECATED_RULES_PROPERTY: String = "root"
@@ -737,7 +741,8 @@ object JsonSerializers {
                   map(TargetVocabularyParameterType.fromString).
                   getOrElse(TargetVocabularyListParameter(Seq.empty))
               vocabs
-            }
+            },
+            abortIfErrorsOccur = stringValueOption(parametersObj, ABORT_IF_ERRORS_OCCUR).map(_.toBoolean).getOrElse(false)
           )
       }
     }
@@ -765,7 +770,8 @@ object JsonSerializers {
           RULES_PROPERTY -> toJson(value.mappingRule),
           OUTPUT -> JsString(value.output.map(_.toString).getOrElse("")),
           ERROR_OUTPUT -> JsString(value.errorOutput.map(_.toString).getOrElse("")),
-          TARGET_VOCABULARIES -> JsString(TargetVocabularyParameterType.toString(value.targetVocabularies))
+          TARGET_VOCABULARIES -> JsString(TargetVocabularyParameterType.toString(value.targetVocabularies)),
+          ABORT_IF_ERRORS_OCCUR -> JsString(value.abortIfErrorsOccur.toString)
         ))
       )
     }

@@ -29,9 +29,9 @@ interface IApiDetails  {
     transformTask?: string,
 }
 
-let _setApiDetails: React.Dispatch<React.SetStateAction<IApiDetails>> = undefined
+let _setApiDetails: React.Dispatch<React.SetStateAction<IApiDetails>> | undefined = undefined
 let _apiDetails: IApiDetails = {};
-export const setApiDetails = data => {
+export const setApiDetails = (data: IApiDetails) => {
     const details = {...data}
     if(_setApiDetails) {
         _setApiDetails(details)
@@ -48,6 +48,19 @@ export const useApiDetails = () => {
         setApiDetails(_apiDetails)
     }
     return apiDetails;
+}
+
+/** Make sure all API details are set. */
+export function getDefinedApiDetails() {
+    const apiDetails = getApiDetails()
+    if(typeof apiDetails.baseUrl !== "string" || !apiDetails.project || !apiDetails.transformTask) {
+        throw new Error("Requested API details, but API details are not set!")
+    }
+    return {
+        baseUrl: apiDetails.baseUrl as string,
+        project: apiDetails.project as string,
+        transformTask: apiDetails.transformTask as string,
+    }
 }
 
 const mapPeakResult = (returned) => {
@@ -98,7 +111,7 @@ function findRule(curr, id, isObjectMapping, breadcrumbs) {
     if (element.id === id || _.get(element, 'rules.uriRule.id') === id) {
         return element;
     } else if (_.has(element, 'rules.propertyRules')) {
-        let result = null;
+        let result: any = null;
         const bc = [
             ...breadcrumbs,
             {
@@ -254,6 +267,7 @@ const prepareObjectMappingPayload = data => {
             valueType: {
                 nodeType: 'UriValueType',
             },
+            isAttribute: data.isAttribute
         },
         sourcePath: data.sourceProperty
             ? handleCreatedSelectBoxValue(data, 'sourceProperty')
@@ -454,7 +468,7 @@ export const getSuggestionsAsync = (data: ISuggestAsyncProps,
     return Rx.Observable.forkJoin(
         vocabularyMatches, fetchValueSourcePaths(data),
         (vocabDatasetsResponse, sourcePathsResponse) => {
-            const suggestions = [];
+            const suggestions: any[] = [];
             if (vocabDatasetsResponse.data) {
                 vocabDatasetsResponse.data.map(match => {
                     const {uri: sourceUri, description, label, candidates, graph} = match;
@@ -692,6 +706,8 @@ const exportFunctions = {
     getHierarchyAsync,
     getRuleAsync,
     createMappingAsync,
+    getApiDetails,
+    setApiDetails
 }
 
 export default exportFunctions

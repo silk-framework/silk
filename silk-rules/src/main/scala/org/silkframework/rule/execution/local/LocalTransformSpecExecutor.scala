@@ -56,7 +56,7 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
       context.value() = context.value().copy(globalErrors = context.value().globalErrors ++ inputTable.globalErrors)
 
       val transformedEntities = new TransformedEntities(task, inputTable.entities, rules, outputSchema,
-        isRequestedSchema = output.requestedSchema.isDefined, context = context)
+        isRequestedSchema = output.requestedSchema.isDefined, abortIfErrorsOccur = task.data.abortIfErrorsOccur, context = context)
       outputTables.append(GenericEntityTable(transformedEntities, outputSchema, task))
 
       for(objectMapping @ ObjectMapping(_, relativePath, _, childRules, _, _) <- rules) {

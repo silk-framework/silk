@@ -18,7 +18,6 @@ import org.silkframework.entity.Entity
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator, WeightedSimilarityScore}
 import org.silkframework.rule.{LinkageRule, TransformRule}
-import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.DPair
 
 import scala.util.control.NonFatal
@@ -63,15 +62,13 @@ object DetailedEvaluator {
    */
   def apply(rules: Seq[TransformRule], entity: Entity): DetailedEntity = {
     val subjectRule = rules.find(_.target.isEmpty)
-    val propertyRules = rules.filter(_.target.isDefined)
-
     val uris = subjectRule match {
       case Some(rule) => rule(entity)
       case None => Seq(entity.uri.toString)
     }
 
-    val values = for(rule <- propertyRules) yield apply(rule, entity)
-    DetailedEntity(uris, values, propertyRules)
+    val values = for(rule <- rules) yield apply(rule, entity)
+    DetailedEntity(uris, values, rules)
   }
 
   /**
@@ -80,14 +77,15 @@ object DetailedEvaluator {
   def apply(rule: TransformRule, entity: Entity): Value = {
     val result = evaluateInput(rule.operator, entity)
     // Validate values
-    for {
-      valueType <- rule.target.map(_.valueType)
-      value <- result.values
-      if !valueType.validate(value)
-    } {
-      val ex = new ValidationException(s"Value '$value' is not a valid ${valueType.label}")
-      return result.withError(ex)
+    for(target <- rule.target) {
+      try {
+        target.validate(result.values)
+      } catch {
+        case NonFatal(ex) =>
+          return result.withError(ex)
+      }
     }
+    // Return validated result
     result
   }
 

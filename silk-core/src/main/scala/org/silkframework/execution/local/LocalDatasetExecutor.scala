@@ -158,6 +158,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   case class SparqlUpdateExecutionReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     var remainingQueries = 0
 
+    override def operationLabel: Option[String] = Some("generate queries")
+
     override def entityProcessVerb: String = "executed"
 
     override def entityLabelSingle: String = "Update query"
@@ -304,7 +306,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     var entityCount = 0
     val startTime = System.currentTimeMillis()
     var lastLog = startTime
-    sink.openTableWithPaths(entityTable.entitySchema.typeUri, entityTable.entitySchema.typedPaths)
+    sink.openTableWithPaths(entityTable.entitySchema.typeUri, entityTable.entitySchema.typedPaths, entityTable.entitySchema.singleEntity)
     for (entity <- entityTable.entities) {
       executionReport.increaseEntityCounter()
       sink.writeEntity(entity.uri, entity.values)
@@ -380,10 +382,12 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   case class WriteEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def operationLabel: Option[String] = Some("write")
     override def entityProcessVerb: String = "written"
   }
 
   case class ReadEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def operationLabel: Option[String] = Some("read")
     override def entityProcessVerb: String = "read"
   }
 

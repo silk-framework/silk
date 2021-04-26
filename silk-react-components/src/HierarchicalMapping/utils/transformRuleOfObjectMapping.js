@@ -23,6 +23,7 @@ const transformRuleOfObjectMapping = (rule = {}) => {
         label,
         targetEntityType: _.map(rules && rules.typeRules, 'typeUri'),
         entityConnection: isBackwardProperty ? 'to' : 'from',
+        isAttribute: mappingTarget.isAttribute === true,
         pattern: (uriRule && uriRule.pattern) || '',
         type,
         uriRuleType: (uriRule && uriRule.type) || MAPPING_RULE_TYPE_URI,

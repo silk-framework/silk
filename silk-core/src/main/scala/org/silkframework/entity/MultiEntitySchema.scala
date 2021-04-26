@@ -8,7 +8,8 @@ class MultiEntitySchema(private val pivot: EntitySchema, private val subs: Index
     getPivotSchema(pivot).typeUri,    //NOTE: using [[getPivotSchema]] will ensure that the pivot schema is not a MultiEntitySchema
     getPivotSchema(pivot).typedPaths,
     getPivotSchema(pivot).filter,
-    getPivotSchema(pivot).subPath
+    getPivotSchema(pivot).subPath,
+    getPivotSchema(pivot).singleEntity
   ){
 
   //NOTE: make sure not to use parameters pivot and subs (use these accessors instead)

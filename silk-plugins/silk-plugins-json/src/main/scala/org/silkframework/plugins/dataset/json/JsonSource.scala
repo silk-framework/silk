@@ -1,8 +1,5 @@
 package org.silkframework.plugins.dataset.json
 
-import java.net.URLEncoder
-import java.util.logging.{Level, Logger}
-
 import com.fasterxml.jackson.core.{JsonFactory, JsonToken}
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
@@ -13,10 +10,11 @@ import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsArray, JsValue, Json}
 
+import java.net.URLEncoder
+import java.util.logging.{Level, Logger}
 import scala.collection.mutable
-import scala.io.Codec
 
 /**
  * A data source that retrieves all entities from an JSON file.
@@ -220,12 +218,16 @@ case class JsonSource(taskId: Identifier, input: JsValue, basePath: String, uriP
   override lazy val underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(taskId, DatasetSpec(EmptyDataset))     //FIXME CMEM 1352 replace with actual task
 }
 
-object JsonSource{
+object JsonSource {
 
   def apply(taskId: Identifier, str: String, basePath: String, uriPattern: String): JsonSource = apply(taskId, Json.parse(str), basePath, uriPattern)
 
   def apply(file: Resource, basePath: String, uriPattern: String): JsonSource = {
-    apply(Identifier.fromAllowed(file.name), file.read(Json.parse), basePath, uriPattern)
+    if(file.nonEmpty) {
+      apply(Identifier.fromAllowed(file.name), file.read(Json.parse), basePath, uriPattern)
+    } else {
+      apply(Identifier.fromAllowed(file.name), JsArray(), basePath, uriPattern)
+    }
   }
 
 }

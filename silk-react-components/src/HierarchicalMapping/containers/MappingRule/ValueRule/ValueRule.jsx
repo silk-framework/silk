@@ -112,6 +112,7 @@ class ValueRule extends React.Component {
                                 ? <TargetProperty
                                     key={'ObjectTargetProperty'}
                                     mappingTargetUri={mappingTarget.uri}
+                                    isObjectMapping={false}
                                     isAttribute={mappingTarget.isAttribute}
                                 /> : null
                         }

@@ -9,10 +9,11 @@ import {
 } from "@gui-elements/index";
 import {createNewItemRendererFactory} from "@gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
 import {IRenderModifiers} from "@gui-elements/src/components/AutocompleteField/AutoCompleteField";
+import {extractSearchWords, matchesAllWords} from "@gui-elements/src/components/Typography/Highlighter";
 
 // Creates a search function for the auto-complete field
-const onSearchFactory = (ruleId: string,
-                         entity: string): (searchText: string) => Promise<any[]> => {
+const onSearchFactory = (ruleId?: string,
+                         entity?: string): (searchText: string) => Promise<any[]> => {
     return (searchText: string) => {
         return new Promise((resolve, reject) => {
             autocompleteAsync({
@@ -24,6 +25,16 @@ const onSearchFactory = (ruleId: string,
             },
                 err => reject(err))
         })
+    }
+}
+
+// Creates a search function from a list of options
+const onSearchOptionFactory = (options: string[]) => {
+    return (query: string) => {
+        const searchWords = extractSearchWords(query, true)
+        return options
+            .filter(o => matchesAllWords(o.toLowerCase(), searchWords))
+            .map(o => ({value: o}))
     }
 }
 
@@ -43,7 +54,9 @@ interface IProps {
     // The property of the rule that is changed, e.g. source path, target property etc.
     entity: string
     // The ID of the rule
-    ruleId: string
+    ruleId?: string
+    // Fixed array of options
+    options?: string[]
     // Class name of the container element
     className: string
     // The label and input field placeholder string of the auto-complete field
@@ -51,11 +64,13 @@ interface IProps {
     // If items can be created
     creatable?: boolean
     // The current selected value
-    value: string | IAutoCompleteItem
+    value?: string | IAutoCompleteItem
     // The function that is called when a new value gets selected
     onChange: (value: string) => any
     // Creates a new option
     newOptionCreator?: (params: INewOptionCreatorParams) => any
+    // New option label creator from the input query
+    newOptionText?: (query: string) => string
     // Checks if an input is a valid new options
     isValidNewOption?: (input: IIsValidNewOptionParams) => any
     // If the selected value can be cleared
@@ -64,6 +79,8 @@ interface IProps {
     resetQueryToValue?: boolean
     // The string that should be displayed in the input field of the selected item. By default it is the optional label or value.
     itemDisplayLabel?: (item: IAutoCompleteItem) => string
+    // The text that is displayed when no item was found and no item can be created
+    noResultsText?: string
 }
 
 // Auto-complete interface as it is returned by the auto-complete backend APIs
@@ -87,7 +104,7 @@ const itemRenderer = (autoCompleteItem: IAutoCompleteItem, query: string, modifi
     } else {
         label = autoCompleteItem.value
     }
-    const highlighter = (value: string) => modifiers.highlightingEnabled ? <Highlighter label={value} searchValue={query} /> : value
+    const highlighter = (value: string | undefined) => modifiers.highlightingEnabled ? <Highlighter label={value} searchValue={query} /> : value
     const item = value || autoCompleteItem.description ? (
         <OverviewItem style={modifiers.styleWidth}>
             <OverviewItemDescription>
@@ -114,7 +131,7 @@ const portalContainer = () => document.body
 const queryToNewOption: (label: string) => INewOptionCreatorParams = (label: string) => ({label: label, labelKey: "label", valueKey: "value"})
 const itemLabel = (itemDisplayLabel?: (item: IAutoCompleteItem) => string) => (autoCompleteItem: IAutoCompleteItem) => {
     if(hasDistinctLabel(autoCompleteItem)) {
-        return itemDisplayLabel ? itemDisplayLabel(autoCompleteItem) : autoCompleteItem.label
+        return itemDisplayLabel ? itemDisplayLabel(autoCompleteItem) : (autoCompleteItem.label as string)
     } else {
         return autoCompleteItem.value
     }
@@ -122,7 +139,8 @@ const itemLabel = (itemDisplayLabel?: (item: IAutoCompleteItem) => string) => (a
 
 /** Input field supporting auto-complete support. */
 const AutoComplete = ({ entity, ruleId, className, placeholder, creatable, onChange, value,
-                          clearable = true, resetQueryToValue = false, itemDisplayLabel, ...otherProps}: IProps) => {
+                          clearable = true, resetQueryToValue = false, itemDisplayLabel, newOptionText, options, noResultsText,
+                          ...otherProps}: IProps) => {
     const reset = clearable ? {
         resetValue: "",
         resetButtonText: "Clear value",
@@ -130,9 +148,15 @@ const AutoComplete = ({ entity, ruleId, className, placeholder, creatable, onCha
     } : undefined
     const isValidNewOption = otherProps.isValidNewOption ? otherProps.isValidNewOption : () => true
     const newOptionCreator = otherProps.newOptionCreator ? otherProps.newOptionCreator : ({label}) => ({value: label})
+    const newItemRenderer = (query: string, modifiers: IRenderModifiers, handleClick: React.MouseEventHandler<HTMLElement>) => {
+        if(isValidNewOption({label: query})) {
+            const newItemRenderer = createNewItemRendererFactory((query: string) => newOptionText ? newOptionText(query) : `Create option '${query}'`, "item-add-artefact")
+            return newItemRenderer(query, modifiers, handleClick)
+        }
+    }
     const create = creatable ? {
-        itemFromQuery: (query: string) => isValidNewOption({label: query}) ? newOptionCreator(queryToNewOption(query)) : undefined,
-        itemRenderer: createNewItemRendererFactory((query: string) => `Create option '${query}'`, "item-add-artefact"),
+        itemFromQuery: (query: string) => newOptionCreator(queryToNewOption(query)),
+        itemRenderer: newItemRenderer,
         showNewItemOptionFirst: true
     } : undefined
     return <div className={className}>
@@ -153,10 +177,10 @@ const AutoComplete = ({ entity, ruleId, className, placeholder, creatable, onCha
                 onChange={onChange}
                 initialValue={typeof value === "string" ? {value} : value}
                 itemValueSelector={item => item.value}
-                onSearch={onSearchFactory(ruleId, entity)}
+                onSearch={options ? onSearchOptionFactory(options) : onSearchFactory(ruleId, entity)}
                 itemRenderer={itemRenderer}
                 itemValueRenderer={itemLabel(itemDisplayLabel)}
-                noResultText={"No result."}
+                noResultText={noResultsText ? noResultsText : "No result."}
                 createNewItem={create}
                 resetQueryToValue={resetQueryToValue ? (item) => item.value : undefined}
             />

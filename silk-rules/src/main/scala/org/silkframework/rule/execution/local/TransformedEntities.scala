@@ -1,21 +1,18 @@
 package org.silkframework.rule.execution.local
 
-import java.util.logging.Logger
-
 import org.silkframework.config.Task
 import org.silkframework.entity.metadata.{EntityMetadata, EntityMetadataXml}
-import org.silkframework.entity.{Entity, EntitySchema, UriValueType, ValueType}
-import org.silkframework.execution.ExecutionException
+import org.silkframework.entity.{Entity, EntitySchema, ValueType}
+import org.silkframework.execution.{AbortExecutionException, ExecutionException}
 import org.silkframework.failures.EntityException
-import org.silkframework.rule.{TransformRule, TransformSpec}
 import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder}
+import org.silkframework.rule.{TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.Identifier
 
+import java.util.logging.Logger
 import scala.collection.mutable
 import scala.util.control.NonFatal
-import scala.xml.Node
 
 /**
   * Entities that come from a transform task.
@@ -33,6 +30,7 @@ class TransformedEntities(task: Task[TransformSpec],
                           rules: Seq[TransformRule],
                           outputSchema: EntitySchema,
                           isRequestedSchema: Boolean,
+                          abortIfErrorsOccur: Boolean,
                           context: ActivityContext[TransformReport]) extends Traversable[Entity] {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
@@ -89,6 +87,10 @@ class TransformedEntities(task: Task[TransformSpec],
 
     if(uris.nonEmpty) {
       for (uri <- uris) {
+        if(outputSchema.singleEntity && count > 1) {
+          throw new ValidationException("Tried to generate multiple entities, but the root mapping is configured to output a single entity.")
+        }
+
         lazy val objectEntity = { // Constructs an entity that only contains object source paths for object mappings
           val uriTypePaths = entity.schema.typedPaths.zip(entity.values).filter(_._1.valueType == ValueType.URI)
           val typedPaths = uriTypePaths.map(_._1)
@@ -145,11 +147,18 @@ class TransformedEntities(task: Task[TransformSpec],
       case ex: ExecutionException if ex.abortExecution =>
         throw ex
       case NonFatal(ex) =>
-        log.fine("Error during execution of transform rule " + rule.id.toString + ": " + ex.getMessage)
-        report.addError(rule, entity, ex)
-        errors.append(ex)
-        errorFlag = true
+        addError(report, rule, entity, ex)
         Seq.empty
+    }
+  }
+
+  private def addError(report: TransformReportBuilder, rule: TransformRule, entity: Entity, ex: Throwable): Unit = {
+    log.fine("Error during execution of transform rule " + rule.id.toString + ": " + ex.getMessage)
+    report.addError(rule, entity, ex)
+    errors.append(ex)
+    errorFlag = true
+    if(abortIfErrorsOccur) {
+      throw AbortExecutionException(s"Failed to transform entity '${entity.uri}' in rule '${rule.metaData.label}': ${ex.getMessage}", Some(ex))
     }
   }
 }

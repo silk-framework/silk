@@ -1,8 +1,7 @@
 package org.silkframework.rule.execution
 
 import org.silkframework.config.{Prefixes, Task}
-import org.silkframework.dataset.{DataSource, EntitySink, TypedProperty}
-import org.silkframework.entity.ValueType
+import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.execution.local.ErrorOutputWriter
 import org.silkframework.rule.TransformSpec.RuleSchemata
 import org.silkframework.rule._
@@ -55,12 +54,13 @@ class ExecuteTransform(task: Task[TransformSpec],
                                 errorEntitySink: Option[EntitySink],
                                 context: ActivityContext[TransformReport])
                                (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
-    entitySink.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get))
-    errorEntitySink.foreach(_.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get) :+ ErrorOutputWriter.errorProperty))
+    val singleEntity = rule.transformRule.target.exists(_.isAttribute)
+    entitySink.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get), singleEntity)
+    errorEntitySink.foreach(_.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get) :+ ErrorOutputWriter.errorProperty, singleEntity))
 
     val entityTable = dataSource.retrieve(rule.inputSchema)
     val transformedEntities = new TransformedEntities(task, entityTable.entities, rule.transformRule.rules, rule.outputSchema,
-      isRequestedSchema = false, context = context)
+      isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, context = context)
     var count = 0
     breakable {
       for (entity <- transformedEntities) {

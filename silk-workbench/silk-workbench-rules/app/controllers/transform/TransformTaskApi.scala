@@ -1,14 +1,14 @@
 package controllers.transform
 
-import java.util.logging.{Level, Logger}
-
 import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.transform.TransformTaskApi._
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
-import javax.inject.Inject
 import org.silkframework.config.{MetaData, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.rule.TransformSpec.{TargetVocabularyListParameter, TargetVocabularyParameterType}
 import org.silkframework.rule._
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.runtime.activity.{Activity, UserContext}
@@ -23,10 +23,9 @@ import org.silkframework.workspace.activity.transform.TransformPathsCache
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc._
-import TransformTaskApi._
-import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.rule.TransformSpec.{TargetVocabularyListParameter, TargetVocabularyParameterType}
-import org.silkframework.runtime.plugin.IdentifierOptionParameter
+
+import java.util.logging.{Level, Logger}
+import javax.inject.Inject
 
 class TransformTaskApi @Inject() () extends InjectedController {
 
@@ -257,8 +256,8 @@ class TransformTaskApi @Inject() () extends InjectedController {
   /** Converts a root mapping rule to an object mapping rule. */
   private def convertRootMappingRule(rule: TransformRule): TransformRule = {
     rule match {
-      case RootMappingRule(rules, id, metaData) =>
-        ObjectMapping(id, rules = rules, metaData = metaData, target = Some(MappingTarget(ROOT_COPY_TARGET_PROPERTY, ValueType.URI)))
+      case RootMappingRule(rules, id, target, metaData) =>
+        ObjectMapping(id, rules = rules, metaData = metaData, target = Some(target.copy(propertyUri = ROOT_COPY_TARGET_PROPERTY)))
       case other: TransformRule =>
         other
     }
