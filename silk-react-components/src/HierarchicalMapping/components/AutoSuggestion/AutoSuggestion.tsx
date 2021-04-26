@@ -4,7 +4,7 @@ import { Icon, Spinner, Label } from "@gui-elements/index";
 
 //custom components
 import CodeEditor from "../CodeEditor";
-import Dropdown from "./Dropdown";
+import {Dropdown} from "./Dropdown";
 
 //styles
 require("./AutoSuggestion.scss");
@@ -14,6 +14,13 @@ export enum OVERWRITTEN_KEYS {
     ArrowDown = "ArrowDown",
     Enter = "Enter",
     Tab = "Tab",
+}
+
+export interface ISuggestion {
+    value: string
+    label?: string
+    description?: string
+    query: string
 }
 
 const AutoSuggestion = ({
@@ -33,9 +40,7 @@ const AutoSuggestion = ({
     const [replacementIndexesDict, setReplacementIndexesDict] = React.useState(
         {}
     );
-    const [suggestions, setSuggestions] = React.useState<
-        Array<{ value: string; description?: string; label?: string }>
-    >([]);
+    const [suggestions, setSuggestions] = React.useState<ISuggestion[]>([]);
     const [markers, setMarkers] = React.useState([]);
     const [
         editorInstance,
@@ -76,7 +81,7 @@ const AutoSuggestion = ({
 
     /** generate suggestions and also populate the replacement indexes dict */
     React.useEffect(() => {
-        let newSuggestions = [];
+        let newSuggestions: ISuggestion[] = [];
         let newReplacementIndexesDict = {};
         if (
             data?.replacementResults?.length === 1 &&
@@ -86,8 +91,9 @@ const AutoSuggestion = ({
         }
         if (data?.replacementResults?.length) {
             data.replacementResults.forEach(
-                ({ replacements, replacementInterval: { from, length } }) => {
-                    newSuggestions = [...newSuggestions, ...replacements];
+                ({ replacements, replacementInterval: { from, length }, extractedQuery }) => {
+                    const replacementsWithMetaData = replacements.map(r => ({...r, query: extractedQuery}))
+                    newSuggestions = [...newSuggestions, ...replacementsWithMetaData];
                     replacements.forEach((replacement) => {
                         newReplacementIndexesDict = {
                             ...newReplacementIndexesDict,
@@ -99,8 +105,8 @@ const AutoSuggestion = ({
                     });
                 }
             );
-            setSuggestions(() => newSuggestions);
-            setReplacementIndexesDict(() => newReplacementIndexesDict);
+            setSuggestions(newSuggestions);
+            setReplacementIndexesDict(newReplacementIndexesDict)
         }
     }, [data]);
 
@@ -285,7 +291,6 @@ const AutoSuggestion = ({
             <Dropdown
                 left={coords.left}
                 loading={suggestionsPending}
-                query={value}
                 options={suggestions}
                 isOpen={shouldShowDropdown}
                 onItemSelectionChange={handleDropdownChange}

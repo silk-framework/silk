@@ -11,12 +11,12 @@ import {
     Spinner,
     Spacing,
 } from "@gui-elements/index";
+import {ISuggestion} from "./AutoSuggestion";
 
 interface IDropdownProps {
-    options: Array<any>;
+    options: Array<ISuggestion>;
     onItemSelectionChange: (item) => void;
     isOpen: boolean;
-    query?: string;
     loading?: boolean;
     left?: number;
     currentlyFocusedIndex?: number;
@@ -53,15 +53,14 @@ const RawItem = ({ item, query }, ref) => {
 
 const Item = React.forwardRef(RawItem);
 
-const Dropdown: React.FC<IDropdownProps> = ({
+export const Dropdown = ({
     isOpen,
     options,
     loading,
     onItemSelectionChange,
-    query,
     left,
     currentlyFocusedIndex,
-}) => {
+}: IDropdownProps) => {
     const dropdownRef = React.useRef();
     const refs = {};
     const generateRef = (index) => {
@@ -116,7 +115,7 @@ const Dropdown: React.FC<IDropdownProps> = ({
                                 <Item
                                     ref={generateRef(index)}
                                     item={item}
-                                    query={query}
+                                    query={item.query}
                                 />
                             }
                         ></MenuItem>
@@ -126,5 +125,3 @@ const Dropdown: React.FC<IDropdownProps> = ({
         </div>
     );
 };
-
-export default Dropdown;
