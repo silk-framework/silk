@@ -3,6 +3,11 @@
 silk-workbench/silk-workbench-workflow/app/views/workflow/editor/editor.scala.html
  */
 function commitWorkflow() {
+    const saveSpinner = $('#saveSpinner');
+    const saveButton = $('#saveButton');
+    saveSpinner.show();
+    saveButton.attr("disabled", true);
+
     $.ajax({
         type: 'PUT',
         url: apiUrl,
@@ -10,9 +15,13 @@ function commitWorkflow() {
         processData: false,
         data: serializeWorkflow(),
         success() {
+            saveSpinner.hide();
+            saveButton.removeAttr("disabled");
             notifyParentWindow();
         },
         error(req) {
+            saveSpinner.hide();
+            saveButton.removeAttr("disabled");
             alert(`Error committing workflow to backend: ${req.responseText}`);
         },
     });
