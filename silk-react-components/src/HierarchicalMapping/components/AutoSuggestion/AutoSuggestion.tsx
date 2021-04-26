@@ -31,6 +31,7 @@ const AutoSuggestion = ({
     pathValidationPending,
     suggestionsPending,
     label,
+    clearIconText,
 }) => {
     const [value, setValue] = React.useState("");
     const [inputString, setInputString] = React.useState("");
@@ -286,6 +287,8 @@ const AutoSuggestion = ({
                         small
                         className="editor__icon clear"
                         name="operation-clear"
+                        tooltipText={clearIconText}
+                        tooltipProperties={{usePortal: false}}
                     />
                 </div>
             </div>

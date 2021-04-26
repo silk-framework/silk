@@ -317,6 +317,7 @@ export function ValueRuleForm(props: IProps) {
             sourcePropertyInput = (
                 <AutoSuggestion
                     label="Value Path"
+                    clearIconText={"Clear value path"}
                     checkPathValidity={checkPathValidity}
                     validationResponse={pathValidationResponse}
                     data={suggestions}
