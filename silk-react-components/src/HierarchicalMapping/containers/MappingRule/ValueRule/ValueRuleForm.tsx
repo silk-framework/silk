@@ -318,6 +318,7 @@ export function ValueRuleForm(props: IProps) {
                 <AutoSuggestion
                     label="Value Path"
                     clearIconText={"Clear value path"}
+                    validationErrorText={"The entered value path is invalid."}
                     checkPathValidity={checkPathValidity}
                     validationResponse={pathValidationResponse}
                     data={suggestions}
