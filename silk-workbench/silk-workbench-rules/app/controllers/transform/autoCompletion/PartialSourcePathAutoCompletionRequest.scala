@@ -29,6 +29,13 @@ case class PartialSourcePathAutoCompletionRequest(inputString: String,
       }
   }
 
+  /** The full string of original representation of the path operator the cursor is currently placed in. */
+  def currentOperatorString: String = {
+    // Zero if in first path segment with stripped forward operator
+    val operatorIdx = pathOperatorIdxBeforeCursor.getOrElse(0)
+    inputString.substring(operatorIdx, indexOfOperatorEnd)
+  }
+
   /** The string in the current operator up to the cursor. */
   def stringInOperatorToCursor: String = {
     inputString.substring(pathOperatorIdxBeforeCursor.getOrElse(0), cursorPosition)

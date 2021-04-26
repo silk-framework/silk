@@ -151,6 +151,17 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     jsonSuggestions("department/[<http://domain.org/label> != \"label\"") must contain("]")
   }
 
+  it should "suggest the replacement of properties where the cursor is currently at" in {
+    val input = "<https://ns.eccenca.com/source/address>/rdf:type"
+    val secondPathOp = "/rdf:type"
+    val result = partialSourcePathAutoCompleteRequest(rdfTransform, inputText = input, cursorPosition = input.length)
+    result.replacementResults must have size 2
+    result.replacementResults.head.replacementInterval mustBe ReplacementInterval(input.length - secondPathOp.length, secondPathOp.length)
+    val resultFirstProp = partialSourcePathAutoCompleteRequest(rdfTransform, inputText = input, cursorPosition = 2)
+    resultFirstProp.replacementResults must have size 1
+    resultFirstProp.replacementResults.head.replacementInterval mustBe ReplacementInterval(0, input.length - secondPathOp.length)
+  }
+
   private def partialAutoCompleteResult(inputString: String = "",
                                         cursorPosition: Int = 0,
                                         replacementResult: Seq[ReplacementResults]): PartialSourcePathAutoCompletionResponse = {

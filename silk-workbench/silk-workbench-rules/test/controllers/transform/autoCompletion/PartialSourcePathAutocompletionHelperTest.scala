@@ -20,6 +20,12 @@ class PartialSourcePathAutocompletionHelperTest extends FlatSpec with MustMatche
     replace("some test", 3) mustBe PathToReplace(0, 9, Some("some test"))
   }
 
+  it should "replace multi word queries in the middle of a path" in {
+    def replaceFull(input: String) = replace(input, input.length)
+    replace("a/some test/b", cursorPosition = 2) mustBe PathToReplace(1, 12, Some("some test"))
+    replace("a/some test/b", "a/some t".length) mustBe PathToReplace(1, 12, Some("some test"))
+  }
+
   it should "correctly find out which part of a path to replace in simple forward paths for the sub path the cursor is in" in {
     val input = "a1/b1/c1"
     replace(input, 4, subPathOnly = true) mustBe PathToReplace(2, 3, Some("b1"))
@@ -68,6 +74,15 @@ class PartialSourcePathAutocompletionHelperTest extends FlatSpec with MustMatche
     replace(pathWithUri, 0) mustBe PathToReplace(0, pathWithUri.length, query = expectedQuery)
     replace(pathWithUri, 2) mustBe PathToReplace(0, pathWithUri.length, query = expectedQuery, insideUri = true)
     replace(pathWithUri, 1) mustBe PathToReplace(0, pathWithUri.length, query = expectedQuery, insideUri = true)
+  }
+
+  it should "suggest replacements for inputs containing URIs correctly" in {
+    val input = "<https://ns.eccenca.com/source/address>/rdf:type"
+    replace(input, input.length, subPathOnly = true) mustBe PathToReplace(
+      "<https://ns.eccenca.com/source/address>".length,
+      "/rdf:type".length,
+      query = Some("type")
+    )
   }
 
   it should "extract filter queries from URIs and qnames correctly" in {

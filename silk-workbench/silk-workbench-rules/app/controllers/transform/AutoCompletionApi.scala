@@ -56,8 +56,6 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
     sourcePath.filter(op => op.isInstanceOf[ForwardOperator] || op.isInstanceOf[BackwardOperator])
   }
 
-  final val DEFAULT_AUTO_COMPLETE_RESULTS = 30
-
   /** A more fine-grained auto-completion of a source path that suggests auto-completion in parts of a path. */
   def partialSourcePath(projectId: String,
                         transformTaskId: String,
@@ -87,13 +85,13 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
               relativeForwardPaths = relativeForwardPaths.map(c => if(!c.value.startsWith("/") && !c.value.startsWith("\\")) c.copy(value = "/" + c.value) else c)
             }
           }
-          val dataSourceSpecialPathCompletions = specialPathCompletions(dataSourceCharacteristicsOpt, pathToReplace)
+          val dataSourceSpecialPathCompletions = PartialSourcePathAutocompletionHelper.specialPathCompletions(dataSourceCharacteristicsOpt, pathToReplace)
           // Add known paths
           val completions: Completions = relativeForwardPaths ++ dataSourceSpecialPathCompletions
           val from = pathToReplace.from
           val length = pathToReplace.length
           // Return filtered result
-          val filteredResults = filterResults(autoCompletionRequest, pathToReplace, completions, dataSourceSpecialPathCompletions)
+          val filteredResults = PartialSourcePathAutocompletionHelper.filterResults(autoCompletionRequest, pathToReplace, completions)
           val response = PartialSourcePathAutoCompletionResponse(
             autoCompletionRequest.inputString,
             autoCompletionRequest.cursorPosition,
@@ -103,129 +101,11 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
                 pathToReplace.query.getOrElse(""),
                 filteredResults.toCompletionsBase.completions
               )
-            ) ++ operatorCompletions(dataSourceCharacteristicsOpt, pathToReplace, autoCompletionRequest)
+            ) ++ PartialSourcePathAutocompletionHelper.operatorCompletions(dataSourceCharacteristicsOpt, pathToReplace, autoCompletionRequest)
           )
           Ok(Json.toJson(response))
         }
       }
-  }
-
-  private def specialPathCompletions(dataSourceCharacteristicsOpt: Option[DataSourceCharacteristics],
-                                     pathToReplace: PathToReplace): Seq[Completion] = {
-    if(pathToReplace.insideQuotes) {
-      Seq.empty
-    } else {
-      dataSourceCharacteristicsOpt.toSeq.flatMap { characteristics =>
-        val pathOps = Seq("/", "\\", "[")
-
-        def pathWithoutOperator(specialPath: String): Boolean = pathOps.forall(op => !specialPath.startsWith(op))
-
-        characteristics.supportedPathExpressions.specialPaths
-          // No backward or filter paths allowed inside filters
-          .filter(p => !pathToReplace.insideFilter || !pathOps.drop(1).forall(disallowedOp => p.value.startsWith(disallowedOp)))
-          .map { p =>
-            val pathSegment = if (pathToReplace.from > 0 && !pathToReplace.insideFilter && pathWithoutOperator(p.value)) {
-              "/" + p.value
-            } else if ((pathToReplace.from == 0 || pathToReplace.insideFilter) && p.value.startsWith("/")) {
-              p.value.stripPrefix("/")
-            } else {
-              p.value
-            }
-            Completion(pathSegment, label = None, description = p.description, category = Categories.sourcePaths, isCompletion = true)
-          }
-      }
-    }
-  }
-
-  // Filter results based on text query and limit number of results
-  private def filterResults(autoCompletionRequest: PartialSourcePathAutoCompletionRequest,
-                            pathToReplace: PathToReplace,
-                            completions: Completions,
-                            dataSourceSpecialPathCompletions: Seq[Completion]): Completions = {
-    val stringToBeReplaced = autoCompletionRequest.inputString.substring(pathToReplace.from, pathToReplace.from + pathToReplace.length)
-    val filteredCompletions: Completions = pathToReplace.query match {
-      case Some(query) =>
-        completions.
-          filterAndSort(
-            query,
-            autoCompletionRequest.maxSuggestions.getOrElse(DEFAULT_AUTO_COMPLETE_RESULTS),
-            sortEmptyTermResult = false,
-            multiWordFilter = true
-          )
-      case None =>
-        Seq.empty
-    }
-    if(filteredCompletions.values.size == 1 && filteredCompletions.values.head.value == stringToBeReplaced) {
-      // If only real search result has the exact same value as the string to be replaced, do not suggest anything.
-      Seq.empty
-    } else {
-      filteredCompletions
-    }
-  }
-
-  private def operatorCompletions(dataSourceCharacteristicsOpt: Option[DataSourceCharacteristics],
-                                  pathToReplace: PathToReplace,
-                                  autoCompletionRequest: PartialSourcePathAutoCompletionRequest): Option[ReplacementResults] = {
-    def completion(predicate: Boolean, value: String, description: String): Option[CompletionBase] = {
-      if(predicate) Some(CompletionBase(value, description = Some(description))) else None
-    }
-    // Propose operators
-    if (!pathToReplace.insideQuotesOrUri && !autoCompletionRequest.charBeforeCursor.contains('/') && !autoCompletionRequest.charBeforeCursor.contains('\\')) {
-      val supportedPathExpressions = dataSourceCharacteristicsOpt.getOrElse(DataSourceCharacteristics()).supportedPathExpressions
-      val forwardOp = completion(autoCompletionRequest.cursorPosition > 0 && supportedPathExpressions.multiHopPaths && !pathToReplace.insideFilter,
-        "/", "Starts a forward path segment")
-      val backwardOp = completion(supportedPathExpressions.backwardPaths && supportedPathExpressions.multiHopPaths && !pathToReplace.insideFilter,
-        "\\", "Starts a backward path segment")
-      val langFilterOp = completion(autoCompletionRequest.cursorPosition > 0 && supportedPathExpressions.languageFilter && !pathToReplace.insideFilter,
-        "[@lang ", "Starts a language filter expression")
-      val propertyFilter = completion(autoCompletionRequest.cursorPosition > 0  && supportedPathExpressions.propertyFilter && !pathToReplace.insideFilter,
-        "[", "Starts a property filter expression")
-      val filterClose = completion(validEndOfFilter(pathToReplace, autoCompletionRequest, supportedPathExpressions),
-        "]", "End filter expression")
-      Some(ReplacementResults(
-        ReplacementInterval(autoCompletionRequest.cursorPosition, 0),
-        "",
-        forwardOp.toSeq ++ backwardOp ++ propertyFilter ++ langFilterOp ++ filterClose
-      ))
-    } else {
-      None
-    }
-  }
-
-  private val operatorRegexReverse = ">|<|=>|=<|=|=!".r
-
-  /** Decide if the cursor position would be a valid end of filter expression in order to propose the filter end operator. */
-  private def validEndOfFilter(pathToReplace: PathToReplace,
-                               autoCompletionRequest: PartialSourcePathAutoCompletionRequest,
-                               supportedPathExpressions: SupportedPathExpressions): Boolean = {
-    if(pathToReplace.insideFilter &&
-      (supportedPathExpressions.propertyFilter || supportedPathExpressions.languageFilter) &&
-      !pathToReplace.insideQuotesOrUri &&
-      !autoCompletionRequest.remainingStringInOperator.endsWith("]") &&
-      autoCompletionRequest.remainingStringInOperator.trim == "") {
-      // Still need to check if there is a value and an operator to compare against
-      val beforeCursor = autoCompletionRequest.stringInOperatorToCursor.reverse.trim
-      beforeCursor.headOption match {
-        case Some(lastChar) =>
-          val filterWithoutValue = if(Set('\'', '"', '>').contains(lastChar)) {
-            val searchChar = if(lastChar == '>') '<' else lastChar
-            beforeCursor.drop(1).dropWhile(_ != searchChar).drop(1)
-          } else {
-            beforeCursor.dropWhile(c => !Set(' ', '\t', '!', '=', '<', '>').contains(c))
-          }
-          if(beforeCursor.length == filterWithoutValue.length) {
-            // No value found
-            false
-          } else {
-            // Find operator (reversed)
-            operatorRegexReverse.findFirstMatchIn(filterWithoutValue.trim).exists(_.start == 0)
-          }
-        case None =>
-          false
-      }
-    } else {
-      false
-    }
   }
 
   private def dataSourceCharacteristics(task: ProjectTask[TransformSpec])
@@ -475,7 +355,6 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
 
     propertyCompletions.distinct
   }
-
 
   private implicit def createCompletion(completions: Seq[Completion]): Completions = Completions(completions)
 

@@ -1,10 +1,17 @@
 package controllers.transform.autoCompletion
 
+import controllers.transform.AutoCompletionApi.Categories
 import org.silkframework.config.Prefixes
+import org.silkframework.dataset.{DataSourceCharacteristics, SupportedPathExpressions}
 import org.silkframework.entity.paths.{DirectionalPathOperator, PartialParseError, PartialParseResult, PathOperator, PathParser, UntypedPath}
 import org.silkframework.util.{StringUtils, Uri}
 
+import scala.language.implicitConversions
+
+/** Utility methods for the partial source path auto-completion endpoint. */
 object PartialSourcePathAutocompletionHelper {
+
+  final val DEFAULT_AUTO_COMPLETE_RESULTS = 30
 
   /**
     * Returns the part of the path that should be replaced and the extracted query words that can be used for search.
@@ -48,6 +55,128 @@ object PartialSourcePathAutocompletionHelper {
     }
     handleCursorStatusFlags(request, pathToReplace)
   }
+
+  /** Returns completion results for data source specific "special" paths, e.g. "#idx" for CSV/Excel. */
+  def specialPathCompletions(dataSourceCharacteristicsOpt: Option[DataSourceCharacteristics],
+                             pathToReplace: PathToReplace): Seq[Completion] = {
+    if(pathToReplace.insideQuotes) {
+      Seq.empty
+    } else {
+      dataSourceCharacteristicsOpt.toSeq.flatMap { characteristics =>
+        val pathOps = Seq("/", "\\", "[")
+
+        def pathWithoutOperator(specialPath: String): Boolean = pathOps.forall(op => !specialPath.startsWith(op))
+
+        characteristics.supportedPathExpressions.specialPaths
+          // No backward or filter paths allowed inside filters
+          .filter(p => !pathToReplace.insideFilter || !pathOps.drop(1).forall(disallowedOp => p.value.startsWith(disallowedOp)))
+          .map { p =>
+            val pathSegment = if (pathToReplace.from > 0 && !pathToReplace.insideFilter && pathWithoutOperator(p.value)) {
+              "/" + p.value
+            } else if ((pathToReplace.from == 0 || pathToReplace.insideFilter) && p.value.startsWith("/")) {
+              p.value.stripPrefix("/")
+            } else {
+              p.value
+            }
+            Completion(pathSegment, label = None, description = p.description, category = Categories.sourcePaths, isCompletion = true)
+          }
+      }
+    }
+  }
+
+  /** Returns filter results based on text query and the number of results limit. */
+  def filterResults(autoCompletionRequest: PartialSourcePathAutoCompletionRequest,
+                            pathToReplace: PathToReplace,
+                            completions: Completions): Completions = {
+    val stringToBeReplaced = autoCompletionRequest.inputString.substring(pathToReplace.from, pathToReplace.from + pathToReplace.length)
+    val filteredCompletions: Completions = pathToReplace.query match {
+      case Some(query) =>
+        completions.
+          filterAndSort(
+            query,
+            autoCompletionRequest.maxSuggestions.getOrElse(DEFAULT_AUTO_COMPLETE_RESULTS),
+            sortEmptyTermResult = false,
+            multiWordFilter = true
+          )
+      case None =>
+        Seq.empty
+    }
+    if(filteredCompletions.values.size == 1 && filteredCompletions.values.head.value == stringToBeReplaced) {
+      // If only real search result has the exact same value as the string to be replaced, do not suggest anything.
+      Seq.empty
+    } else {
+      filteredCompletions
+    }
+  }
+
+  private implicit def createCompletion(completions: Seq[Completion]): Completions = Completions(completions)
+
+  /** Returns completions for path operators. */
+  def operatorCompletions(dataSourceCharacteristicsOpt: Option[DataSourceCharacteristics],
+                          pathToReplace: PathToReplace,
+                          autoCompletionRequest: PartialSourcePathAutoCompletionRequest): Option[ReplacementResults] = {
+    def completion(predicate: Boolean, value: String, description: String): Option[CompletionBase] = {
+      if(predicate) Some(CompletionBase(value, description = Some(description))) else None
+    }
+    // Propose operators
+    if (!pathToReplace.insideQuotesOrUri && !autoCompletionRequest.charBeforeCursor.contains('/') && !autoCompletionRequest.charBeforeCursor.contains('\\')) {
+      val supportedPathExpressions = dataSourceCharacteristicsOpt.getOrElse(DataSourceCharacteristics()).supportedPathExpressions
+      val forwardOp = completion(autoCompletionRequest.cursorPosition > 0 && supportedPathExpressions.multiHopPaths && !pathToReplace.insideFilter,
+        "/", "Starts a forward path segment")
+      val backwardOp = completion(supportedPathExpressions.backwardPaths && supportedPathExpressions.multiHopPaths && !pathToReplace.insideFilter,
+        "\\", "Starts a backward path segment")
+      val langFilterOp = completion(autoCompletionRequest.cursorPosition > 0 && supportedPathExpressions.languageFilter && !pathToReplace.insideFilter,
+        "[@lang ", "Starts a language filter expression")
+      val propertyFilter = completion(autoCompletionRequest.cursorPosition > 0  && supportedPathExpressions.propertyFilter && !pathToReplace.insideFilter,
+        "[", "Starts a property filter expression")
+      val filterClose = completion(validEndOfFilter(pathToReplace, autoCompletionRequest, supportedPathExpressions),
+        "]", "End filter expression")
+      Some(ReplacementResults(
+        ReplacementInterval(autoCompletionRequest.cursorPosition, 0),
+        "",
+        forwardOp.toSeq ++ backwardOp ++ propertyFilter ++ langFilterOp ++ filterClose
+      ))
+    } else {
+      None
+    }
+  }
+
+  private val operatorRegexReverse = ">|<|=>|=<|=|=!".r
+
+  /** Decide if the cursor position would be a valid end of filter expression in order to propose the filter end operator. */
+  private def validEndOfFilter(pathToReplace: PathToReplace,
+                               autoCompletionRequest: PartialSourcePathAutoCompletionRequest,
+                               supportedPathExpressions: SupportedPathExpressions): Boolean = {
+    if(pathToReplace.insideFilter &&
+      (supportedPathExpressions.propertyFilter || supportedPathExpressions.languageFilter) &&
+      !pathToReplace.insideQuotesOrUri &&
+      !autoCompletionRequest.remainingStringInOperator.endsWith("]") &&
+      autoCompletionRequest.remainingStringInOperator.trim == "") {
+      // Still need to check if there is a value and an operator to compare against
+      val beforeCursor = autoCompletionRequest.stringInOperatorToCursor.reverse.trim
+      beforeCursor.headOption match {
+        case Some(lastChar) =>
+          val filterWithoutValue = if(Set('\'', '"', '>').contains(lastChar)) {
+            val searchChar = if(lastChar == '>') '<' else lastChar
+            beforeCursor.drop(1).dropWhile(_ != searchChar).drop(1)
+          } else {
+            beforeCursor.dropWhile(c => !Set(' ', '\t', '!', '=', '<', '>').contains(c))
+          }
+          if(beforeCursor.length == filterWithoutValue.length) {
+            // No value found
+            false
+          } else {
+            // Find operator (reversed)
+            operatorRegexReverse.findFirstMatchIn(filterWithoutValue.trim).exists(_.start == 0)
+          }
+        case None =>
+          false
+      }
+    } else {
+      false
+    }
+  }
+
 
   private def handleCursorStatusFlags(request: PartialSourcePathAutoCompletionRequest,
                                       replacement: PathToReplace): PathToReplace = {
@@ -145,34 +274,17 @@ object PartialSourcePathAutocompletionHelper {
 
   private def handleMiddleOfPathOp(partialResult: PartialParseResult,
                                    request: PartialSourcePathAutoCompletionRequest): PathToReplace = {
-    val lastPathOp = partialResult.partialPath.operators.last
-    val extractedTextQuery = extractTextPart(lastPathOp)
-    val remainingStringInOp = partialResult.error match {
-      case Some(error) => request.inputString.substring(error.nextParseOffset, request.indexOfOperatorEnd)
-      case None => request.remainingStringInOperator
-    }
-    val fullQuery = extractedTextQuery.map(q => extractQuery(q + remainingStringInOp))
+    val currentPathOpString = request.currentOperatorString
+    val currentOpLength = currentPathOpString.length
+    val extractedTextQuery = currentPathOpString.stripPrefix("/").stripPrefix("\\")
+    val fullQuery = Some(extractQuery(extractedTextQuery))
     if(extractedTextQuery.isEmpty) {
       // This is the end of a valid filter expression, do not replace or suggest anything besides default completions
       PathToReplace(request.pathUntilCursor.length, 0, None)
-    } else if(lastPathOp.serialize.length >= request.pathUntilCursor.length) {
-      // The path op is the complete input path
-      PathToReplace(0, request.pathUntilCursor.length + request.remainingStringInOperator.length, fullQuery)
     } else {
-      // Replace the last path operator of the input path
-      val lastOpLength = lastPathOp.serialize.length
-      val from = math.max(partialResult.error.map(_.nextParseOffset).getOrElse(request.cursorPosition) - lastOpLength, 0)
-      PathToReplace(from, lastOpLength + request.remainingStringInOperator.length, fullQuery)
-    }
-  }
-
-  private def extractTextPart(pathOp: PathOperator): Option[String] = {
-    pathOp match {
-      case op: DirectionalPathOperator =>
-        Some(op.property.uri)
-      case _ =>
-        // This is the end of a complete filter expression, suggest nothing to replace it with.
-        None
+      // Replace the current path operator of the input path
+      val from = math.max(partialResult.error.map(_.nextParseOffset).getOrElse(request.cursorPosition) - currentOpLength, 0)
+      PathToReplace(request.pathOperatorIdxBeforeCursor.getOrElse(0), currentOpLength, fullQuery)
     }
   }
 
