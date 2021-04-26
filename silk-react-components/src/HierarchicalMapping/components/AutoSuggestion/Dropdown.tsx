@@ -110,6 +110,7 @@ const Dropdown: React.FC<IDropdownProps> = ({
                         <MenuItem
                             active={currentlyFocusedIndex === index}
                             key={index}
+                            onMouseDown={(e) => e.preventDefault()}
                             onClick={() => onItemSelectionChange(item.value)}
                             text={
                                 <Item

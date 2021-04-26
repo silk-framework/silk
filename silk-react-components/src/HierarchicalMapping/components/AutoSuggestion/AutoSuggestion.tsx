@@ -51,7 +51,6 @@ const AutoSuggestion = ({
     ] = React.useState<OVERWRITTEN_KEYS>();
 
     const valueRef = React.useRef("");
-    const dropdownRef = React.useRef<any>();
     const pathIsValid = validationResponse?.valid ?? true;
 
     //handle keypress
@@ -215,7 +214,7 @@ const AutoSuggestion = ({
                 return nextIndex;
             });
         }
-        const chosenSuggestion = suggestions[nextIndex]?.value
+        const chosenSuggestion = suggestions[nextIndex]?.value;
         handleTextHighlighting(chosenSuggestion);
     };
 
