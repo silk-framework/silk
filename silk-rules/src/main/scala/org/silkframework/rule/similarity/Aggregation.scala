@@ -94,7 +94,6 @@ object Aggregation {
     import XmlSerialization._
 
     def read(node: Node)(implicit readContext: ReadContext): Aggregation = {
-      val requiredStr = (node \ "@required").text
       val weightStr = (node \ "@weight").text
       implicit val prefixes = readContext.prefixes
       implicit val resourceManager = readContext.resources

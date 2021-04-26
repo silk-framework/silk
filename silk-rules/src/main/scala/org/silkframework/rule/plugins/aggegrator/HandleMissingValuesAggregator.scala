@@ -9,7 +9,8 @@ import org.silkframework.runtime.plugin.annotations.{AggregatorExample, Aggregat
   id = "handleMissingValues",
   categories = Array("All", PluginCategories.recommended),
   label = "Handle missing values",
-  description = "Generates a default similarity score, if no similarity score is provided (e.g., due to missing values)."
+  description = "Generates a default similarity score, if no similarity score is provided (e.g., due to missing values). " +
+    "Using this operator can have a performance impact, since it lowers the efficiency of the underlying computation."
 )
 @AggregatorExamples(Array(
   new AggregatorExample(

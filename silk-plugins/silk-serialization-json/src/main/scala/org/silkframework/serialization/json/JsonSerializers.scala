@@ -772,7 +772,6 @@ object JsonSerializers {
   }
 
   implicit object ComparisonJsonFormat extends JsonFormat[Comparison] {
-    final val REQUIRED = "required"
     final val WEIGHT = "weight"
     final val THRESHOLD = "threshold"
     final val INDEXING = "indexing"

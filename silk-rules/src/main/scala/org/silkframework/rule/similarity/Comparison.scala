@@ -102,7 +102,6 @@ object Comparison {
       implicit val resourceManager = readContext.resources
 
       try {
-        val requiredStr = (node \ "@required").text
         val threshold = (node \ "@threshold").headOption.map(_.text.toDouble).getOrElse(0.0)
         val weightStr = (node \ "@weight").text
         val indexingStr = (node \ "@indexing").text
