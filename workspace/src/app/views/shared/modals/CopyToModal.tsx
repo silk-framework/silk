@@ -15,8 +15,8 @@ import {
     Checkbox,
     OverviewItemLine,
     Tag,
-    Highlighter,
     OverviewItemDepiction,
+    Link,
 } from "@gui-elements/index";
 import { Loading } from "../Loading/Loading";
 import { ICloneOptions } from "./CloneModal";
@@ -25,7 +25,6 @@ import { useTranslation } from "react-i18next";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { requestCopyProject, requestCopyTask, requestSearchList } from "@ducks/workspace/requests";
 import { debounce } from "../../../utils/debounce";
-import { ResourceLink } from "../ResourceLink/ResourceLink";
 import { useDispatch } from "react-redux";
 import { routerOp } from "@ducks/router";
 import ItemDepiction from "../ItemDepiction";
@@ -39,14 +38,6 @@ interface CopyPayloadProps {
     targetProject: string;
     dryRun: boolean;
     overwriteTasks?: boolean;
-}
-
-interface TaskToBeCopied {
-    taskType: string;
-    id: string;
-    label: string;
-    originalTaskLink: string;
-    overwrittenTaskLink?: string;
 }
 
 interface ItemResponseType {
@@ -71,7 +62,6 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
     const [results, setResults] = React.useState<any[]>([]);
     const [info, setInfo] = React.useState<CopyResponsePayload | undefined>();
     const [overWrittenAcknowledgement, setOverWrittenAcknowledgement] = React.useState(false);
-    const dispatch = useDispatch();
 
     const [t] = useTranslation();
 
@@ -135,7 +125,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
             const payload = {
                 targetProject,
                 dryRun: false,
-                overwriteTasks: true, // TODO should only be set to true if confirmed by the user
+                overwriteTasks: overWrittenAcknowledgement,
             };
             await copyTaskOrProject(id, projectId, payload);
             onConfirmed();
@@ -184,25 +174,13 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
         return items.sort((a, b) => order[a.taskType.toLowerCase()] - order[b.taskType.toLowerCase()]);
     };
 
-    // Go to details page of related item
-    const goToDetailsPage = (link: string, label: string, taskType: string, event) => {
-        if (!event?.ctrlKey) {
-            event.preventDefault();
-            dispatch(
-                routerOp.goToPage(link, {
-                    taskLabel: label,
-                    itemType: taskType.toLowerCase(),
-                })
-            );
-        }
-    };
-
     if (loading) {
         return <Loading />;
     }
 
     const modalTitle = item.id ? t("common.action.CopyItems") : t("common.action.CopyProject");
     const [copiedTasks, overwrittenTasks] = [info?.copiedTasks.length ?? 0, info?.overwrittenTasks.length ?? 0];
+    const buttonDisabled = !newLabel || (info?.overwrittenTasks.length && !overWrittenAcknowledgement);
     return (
         <SimpleDialog
             size="small"
@@ -214,7 +192,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                     key="copy"
                     affirmative
                     onClick={handleCopyingAction}
-                    disabled={!newLabel || !overWrittenAcknowledgement}
+                    disabled={buttonDisabled}
                     data-test-id={"copy-modal-button"}
                 >
                     {t("common.action.copy")}
@@ -281,28 +259,16 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                                         <span>
                                             <Tag>(old link)</Tag>
                                             {"  "}
-                                            <ResourceLink
-                                                url={t.originalTaskLink}
-                                                handlerResourcePageLoader={(e) =>
-                                                    goToDetailsPage(t.originalTaskLink, t.label, t.taskType, e)
-                                                }
-                                            >
-                                                <Highlighter label={t.label} searchValue={t.label}></Highlighter>
-                                            </ResourceLink>
+                                            <Link href={t.originalTaskLink}>{t.label}</Link>
                                         </span>
                                     </OverviewItemLine>
                                     <OverviewItemLine>
                                         <span>
                                             <Tag> (new link)</Tag>
                                             {"  "}
-                                            <ResourceLink
-                                                url={t.originalTaskLink}
-                                                handlerResourcePageLoader={(e) =>
-                                                    goToDetailsPage(t.overwrittenTaskLink, t.label, t.taskType, e)
-                                                }
-                                            >
-                                                <Highlighter label={t.label} searchValue={t.label}></Highlighter>
-                                            </ResourceLink>
+                                            <Link href={t.originalTaskLink} target="_blank">
+                                                {t.label}
+                                            </Link>
                                         </span>
                                     </OverviewItemLine>
                                 </OverviewItem>
@@ -330,14 +296,9 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                                         <span>
                                             <Tag> (link)</Tag>
                                             {"  "}
-                                            <ResourceLink
-                                                url={t.originalTaskLink}
-                                                handlerResourcePageLoader={(e) =>
-                                                    goToDetailsPage(t.originalTaskLink, t.label, t.taskType, e)
-                                                }
-                                            >
-                                                <Highlighter label={t.label} searchValue={t.label}></Highlighter>
-                                            </ResourceLink>
+                                            <Link href={t.originalTaskLink} target="_blank">
+                                                {t.label}
+                                            </Link>
                                         </span>
                                     </OverviewItemLine>
                                 </OverviewItem>
@@ -347,12 +308,14 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                 </>
             )}
             <Spacing size="large" />
-            <Checkbox
-                checked={overWrittenAcknowledgement}
-                onChange={() => setOverWrittenAcknowledgement(!overWrittenAcknowledgement)}
-            >
-                {t("common.messages.taskOverwrittenPrompt")}
-            </Checkbox>
+            {info?.overwrittenTasks.length ? (
+                <Checkbox
+                    checked={overWrittenAcknowledgement}
+                    onChange={() => setOverWrittenAcknowledgement(!overWrittenAcknowledgement)}
+                >
+                    {t("common.messages.taskOverwrittenPrompt")}
+                </Checkbox>
+            ) : null}
             {error && (
                 <>
                     <Spacing />
