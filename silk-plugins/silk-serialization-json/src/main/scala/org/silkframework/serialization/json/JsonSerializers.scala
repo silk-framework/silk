@@ -778,7 +778,6 @@ object JsonSerializers {
   }
 
   implicit object ComparisonJsonFormat extends JsonFormat[Comparison] {
-    final val REQUIRED = "required"
     final val WEIGHT = "weight"
     final val THRESHOLD = "threshold"
     final val INDEXING = "indexing"
@@ -796,7 +795,6 @@ object JsonSerializers {
 
       Comparison(
         id = identifier(value, "comparison"),
-        required = booleanValue(value, REQUIRED),
         weight = numberValue(value, WEIGHT).intValue,
         threshold = numberValue(value, THRESHOLD).doubleValue,
         indexing = booleanValue(value, INDEXING),
@@ -813,7 +811,6 @@ object JsonSerializers {
       Json.obj(
         ID -> value.id.toString,
         TYPE -> COMPARISON_TYPE,
-        REQUIRED -> value.required,
         WEIGHT -> value.weight,
         THRESHOLD -> value.threshold,
         INDEXING -> value.indexing,
@@ -844,7 +841,6 @@ object JsonSerializers {
 
       Aggregation(
         id = identifier(value, "aggregation"),
-        required = booleanValue(value, REQUIRED),
         weight = numberValue(value, WEIGHT).intValue,
         aggregator = aggregator,
         operators = inputs
@@ -855,7 +851,6 @@ object JsonSerializers {
       Json.obj(
         ID -> value.id.toString,
         TYPE -> AGGREGATION_TYPE,
-        REQUIRED -> value.required,
         WEIGHT -> value.weight,
         AGGREGATOR -> value.aggregator.pluginSpec.id.toString,
         PARAMETERS -> Json.toJson(value.aggregator.parameters),

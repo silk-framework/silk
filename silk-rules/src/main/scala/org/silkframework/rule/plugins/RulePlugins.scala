@@ -97,6 +97,7 @@ class RulePlugins extends PluginModule {
         classOf[RandomNumberTransformer] ::
         classOf[EmptyValueTransformer] ::
         classOf[GenerateUUID] ::
+        classOf[DefaultValueTransformer] ::
         // Conditional
         classOf[IfContains] ::
         classOf[IfExists] ::
@@ -172,7 +173,8 @@ class RulePlugins extends PluginModule {
     classOf[QuadraticMeanAggregator] ::
     classOf[GeometricMeanAggregator] ::
     classOf[NegationAggregator] ::
-    classOf[ScalingAggregator] :: Nil
+    classOf[ScalingAggregator] ::
+    classOf[HandleMissingValuesAggregator] :: Nil
 
   private def serializers: List[Class[_]] =
     TransformSpecFormat.getClass ::

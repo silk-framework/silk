@@ -74,7 +74,6 @@ case class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGener
     AggregationNode(
       aggregation = aggregation,
       weight = random.nextInt(maxWeight) + 1,
-      required = random.nextBoolean(),
       operators = operators
     )
   }

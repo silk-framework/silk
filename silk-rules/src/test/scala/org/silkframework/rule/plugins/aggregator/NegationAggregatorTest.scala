@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.aggregator
 
 import org.silkframework.rule.plugins.aggegrator.NegationAggregator
-import org.silkframework.rule.similarity.Aggregator
+import org.silkframework.rule.similarity.{Aggregator, WeightedSimilarityScore}
 import org.silkframework.test.PluginTest
 import org.silkframework.testutil.approximatelyEqualTo
 
@@ -25,9 +25,13 @@ class NegationAggregatorTest extends PluginTest {
   val aggregator = NegationAggregator()
 
   it should "return the negation of the input" in {
-    aggregator.evaluate((1, 1.0) :: Nil).get should be(approximatelyEqualTo(-1.0))
-    aggregator.evaluate((1, -1.0) :: Nil).get should be(approximatelyEqualTo(1.0))
-    aggregator.evaluate((1, 0.0) :: Nil).get should be(approximatelyEqualTo(0.0))
+    aggregator.evaluateValue(WeightedSimilarityScore(1.0, 1)).score.get should be(approximatelyEqualTo(-1.0))
+    aggregator.evaluateValue(WeightedSimilarityScore(-1.0, 1)).score.get should be(approximatelyEqualTo(1.0))
+    aggregator.evaluateValue(WeightedSimilarityScore(0.0, 1)).score.get should be(approximatelyEqualTo(0.0))
+  }
+
+  it should "interpret missing values as a similarity score of 1" in {
+    aggregator.evaluateValue(WeightedSimilarityScore(None)).score.get should be(approximatelyEqualTo(1.0))
   }
 
   override def pluginObject: Aggregator = NegationAggregator()

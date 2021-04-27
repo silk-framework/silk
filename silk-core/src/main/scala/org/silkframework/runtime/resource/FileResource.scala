@@ -67,6 +67,6 @@ case class FileResource(file: File)
   override def delete(): Unit = file.delete()
 
   private def createDirectory(): Unit = {
-    file.getParentFile.safeMkdirs()
+    Option(file.getParentFile).foreach(_.safeMkdirs())
   }
 }

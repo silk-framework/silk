@@ -28,8 +28,6 @@ import scala.xml.Node
  */
 trait SimilarityOperator extends Operator {
 
-  def required: Boolean
-
   def weight: Int
 
   def indexing: Boolean
