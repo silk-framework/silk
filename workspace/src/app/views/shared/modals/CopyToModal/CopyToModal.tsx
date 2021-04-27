@@ -14,20 +14,23 @@ import {
     Accordion,
     Checkbox,
     OverviewItemLine,
-    Tag,
     OverviewItemDepiction,
     Link,
+    Tooltip,
+    OverflowText,
 } from "@gui-elements/index";
-import { Loading } from "../Loading/Loading";
-import { ICloneOptions } from "./CloneModal";
+import { Loading } from "../../Loading/Loading";
+import { ICloneOptions } from "../CloneModal";
 import { ErrorResponse, FetchError } from "services/fetch/responseInterceptor";
 import { useTranslation } from "react-i18next";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { requestCopyProject, requestCopyTask, requestSearchList } from "@ducks/workspace/requests";
-import { debounce } from "../../../utils/debounce";
-import { useDispatch } from "react-redux";
-import { routerOp } from "@ducks/router";
-import ItemDepiction from "../ItemDepiction";
+import { debounce } from "../../../../utils/debounce";
+import ItemDepiction from "../../ItemDepiction";
+import { CLASSPREFIX as eccgui } from "@gui-elements/src/configuration/constants";
+
+//custom styles
+require("./CopyToModal.scss");
 
 //Component Interface
 interface CopyToModalProps extends ICloneOptions {
@@ -251,26 +254,22 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             open
                         >
                             {orderTasksByLabel(info.overwrittenTasks)?.map((t) => (
-                                <OverviewItem key={t.id} hasSpacing>
+                                <OverviewItem key={t.id} className="copy-modal-item">
                                     <OverviewItemDepiction>
                                         <ItemDepiction itemType={t.taskType} size={{ small: true }} />
                                     </OverviewItemDepiction>
                                     <OverviewItemLine>
-                                        <span>
-                                            <Tag>(old link)</Tag>
-                                            {"  "}
-                                            <Link href={t.originalTaskLink}>{t.label}</Link>
-                                        </span>
-                                    </OverviewItemLine>
-                                    <OverviewItemLine>
-                                        <span>
-                                            <Tag> (new link)</Tag>
-                                            {"  "}
+                                        <Tooltip content={`open ${t.taskType} "${t.label}" in a new window`}>
                                             <Link href={t.originalTaskLink} target="_blank">
                                                 {t.label}
                                             </Link>
-                                        </span>
+                                        </Tooltip>
                                     </OverviewItemLine>
+                                    <Tooltip content={`open replaced ${t.taskType} "${t.label}" in a new window`}>
+                                        <Link href={t.overwrittenTaskLink} target="_blank">
+                                            [overwritten task]
+                                        </Link>
+                                    </Tooltip>
                                 </OverviewItem>
                             ))}
                         </AccordionItem>
@@ -288,18 +287,16 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             open={false}
                         >
                             {orderTasksByLabel(info.copiedTasks)?.map((t) => (
-                                <OverviewItem key={t.id} hasSpacing>
+                                <OverviewItem key={t.id} className="copy-modal-item">
                                     <OverviewItemDepiction>
                                         <ItemDepiction itemType={t.taskType} size={{ small: true }} />
                                     </OverviewItemDepiction>
                                     <OverviewItemLine>
-                                        <span>
-                                            <Tag> (link)</Tag>
-                                            {"  "}
-                                            <Link href={t.originalTaskLink} target="_blank">
+                                        <Link href={t.originalTaskLink} target="_blank">
+                                            <Tooltip content={`open ${t.taskType} "${t.label}" in a new window`}>
                                                 {t.label}
-                                            </Link>
-                                        </span>
+                                            </Tooltip>
+                                        </Link>
                                     </OverviewItemLine>
                                 </OverviewItem>
                             ))}

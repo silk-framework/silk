@@ -13,7 +13,7 @@ import { ItemDeleteModal } from "../modals/ItemDeleteModal";
 import CloneModal from "../modals/CloneModal";
 import { IframeWindow } from "../IframeWindow/IframeWindow";
 import { ActionsMenu, TActionsMenuItem, IActionsMenuProps } from "./ActionsMenu";
-import CopyToModal from "../modals/CopyToModal";
+import CopyToModal from "../modals/CopyToModal/CopyToModal";
 
 export function ArtefactManagementOptions({ projectId, taskId, itemType, updateActionsMenu }: any) {
     const dispatch = useDispatch();

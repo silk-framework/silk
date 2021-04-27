@@ -13,7 +13,7 @@ import { ItemDeleteModal } from "../modals/ItemDeleteModal";
 import { routerOp } from "@ducks/router";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { useTranslation } from "react-i18next";
-import CopyToModal from "../modals/CopyToModal";
+import CopyToModal from "../modals/CopyToModal/CopyToModal";
 
 export function SearchList() {
     const dispatch = useDispatch();
