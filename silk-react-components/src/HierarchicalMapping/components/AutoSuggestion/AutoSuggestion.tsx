@@ -372,6 +372,8 @@ const AutoSuggestion = ({
         }
     };
 
+    const hasError = !pathIsValid && !pathValidationPending;
+
     return (
         <FieldItem
             labelAttributes={{
@@ -383,11 +385,11 @@ const AutoSuggestion = ({
                         )}
                     </>)
             }}
-            hasStateDanger={!pathIsValid && !pathValidationPending}
-            messageText={!pathIsValid && !pathValidationPending ? validationErrorText : undefined}
+            hasStateDanger={hasError}
+            messageText={hasError ? validationErrorText : undefined}
         >
             <div id={id} className="ecc-auto-suggestion-box">
-                <div className={`ecc-auto-suggestion-box__editor-box ${BlueprintClassNames.INPUT_GROUP} ${BlueprintClassNames.FILL}`}>
+                <div className={`ecc-auto-suggestion-box__editor-box ${BlueprintClassNames.INPUT_GROUP} ${BlueprintClassNames.FILL} ${hasError ? BlueprintClassNames.INTENT_DANGER : ""}`}>
                     <SingleLineCodeEditor
                         mode="null"
                         setEditorInstance={setEditorInstance}
