@@ -1,10 +1,12 @@
-import React from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import CodeMirror from "codemirror";
 import { Icon, Spinner, Label } from "@gui-elements/index";
 
 //custom components
 import SingleLineCodeEditor from "../SingleLineCodeEditor";
 import {Dropdown} from "./Dropdown";
+import { debounce } from "lodash";
+import {pathValidation} from "../../store";
 
 //styles
 require("./AutoSuggestion.scss");
@@ -16,43 +18,84 @@ export enum OVERWRITTEN_KEYS {
     Tab = "Tab",
 }
 
-export interface ISuggestion {
+/** A single suggestion. */
+export interface ISuggestionBase {
+    // The actual value
     value: string
+    // Optional human-readable label
     label?: string
+    // Optional description of the value.
     description?: string
+}
+
+/** Same as ISuggestionBase, but with the query that was used to fetch this suggestion. */
+export interface ISuggestionWithQuery extends ISuggestionBase {
     query: string
 }
 
+/** The suggestions for a specific substring of the given input string. */
+export interface IReplacementResult {
+    // The range of the input string that should be replaced
+    replacementInterval: {
+        from: number
+        length: number
+    }
+    // The extracted query from the local value at the cursor position of the path that was used to retrieve the suggestions.
+    extractedQuery: string
+    // The suggested replacements for the substring that should be replaced.
+    replacements: ISuggestionBase[]
+}
+
+export interface IPartialAutoCompleteResult {
+    // Repeats the input string from the corresponding request
+    inputString: string
+    // Repeats the cursor position from the corresponding request
+    cursorPosition: number
+    replacementResults: IReplacementResult[]
+}
+
+/** Validation result */
+export interface IValidationResult {
+    // If the input value is valid or not
+    valid: boolean,
+    parseError?: {
+        // Where the error is located
+        offset: number
+        // Detail error message
+        message: string
+        // The input before the cursor that is considered invalid
+        inputLeadingToError: string
+    }
+}
+
 interface IProps {
-    // Text that should be shown if the input validation failed.
-    validationErrorText: string
-    // Text that should be shown when hovering over the clear icon
-    clearIconText: string
     // Optional label to be shown for the input (above)
     label?: string
     // The value the component is initialized with, do not use this to control value changes.
     initialValue: string
     // Callback on value change
     onChange: (currentValue: string) => any
-    // TODO: Add remaining parameters
-    [key: string]: any
+    // Fetches the suggestions
+    fetchSuggestions: (inputString: string, cursorPosition: number) => IPartialAutoCompleteResult | Promise<IPartialAutoCompleteResult | undefined>
+    // Checks if the input is valid
+    checkInput: (inputString: string) => IValidationResult | Promise<IValidationResult | undefined>
+    // Text that should be shown if the input validation failed.
+    validationErrorText: string
+    // Text that should be shown when hovering over the clear icon
+    clearIconText: string
 }
 
 /** Input component that allows partial, fine-grained auto-completion, i.e. of sub-strings of the input string.
  * This is comparable to a one line code editor. */
 const AutoSuggestion = ({
-    onEditorParamsChange,
-    data,
-    onChange,
-    checkPathValidity,
-    validationResponse,
-    pathValidationPending,
-    suggestionsPending,
-    label,
-    clearIconText,
-    validationErrorText,
-    initialValue,
-}: IProps) => {
+                            label,
+                            initialValue,
+                            onChange,
+                            fetchSuggestions,
+                            checkInput,
+                            validationErrorText,
+                            clearIconText,
+                        }: IProps) => {
     const [value, setValue] = React.useState(initialValue);
     const [inputString, setInputString] = React.useState(initialValue);
     const [cursorPosition, setCursorPosition] = React.useState(0);
@@ -61,9 +104,13 @@ const AutoSuggestion = ({
     const [replacementIndexesDict, setReplacementIndexesDict] = React.useState(
         {}
     );
-    const [suggestions, setSuggestions] = React.useState<ISuggestion[]>([]);
+    const [suggestions, setSuggestions] = React.useState<ISuggestionWithQuery[]>([]);
+    const [suggestionsPending, setSuggestionsPending] = React.useState(false);
+    const [pathValidationPending, setPathValidationPending] = React.useState(false)
     const [markers, setMarkers] = React.useState<CodeMirror.TextMarker[]>([]);
     const [, setErrorMarkers] = React.useState<CodeMirror.TextMarker[]>([]);
+    const [validationResponse, setValidationResponse] = useState<IValidationResult | undefined>(undefined)
+    const [suggestionResponse, setSuggestionResponse] = useState<IPartialAutoCompleteResult | undefined>(undefined)
     const [
         editorInstance,
         setEditorInstance,
@@ -114,16 +161,16 @@ const AutoSuggestion = ({
 
     /** generate suggestions and also populate the replacement indexes dict */
     React.useEffect(() => {
-        let newSuggestions: ISuggestion[] = [];
+        let newSuggestions: ISuggestionWithQuery[] = [];
         let newReplacementIndexesDict = {};
         if (
-            data?.replacementResults?.length === 1 &&
-            !data?.replacementResults[0]?.replacements?.length
+            suggestionResponse?.replacementResults?.length === 1 &&
+            !suggestionResponse?.replacementResults[0]?.replacements?.length
         ) {
             setShouldShowDropdown(false);
         }
-        if (data?.replacementResults?.length) {
-            data.replacementResults.forEach(
+        if (suggestionResponse?.replacementResults?.length) {
+            suggestionResponse.replacementResults.forEach(
                 ({ replacements, replacementInterval: { from, length }, extractedQuery }) => {
                     const replacementsWithMetaData = replacements.map(r => ({...r, query: extractedQuery}))
                     newSuggestions = [...newSuggestions, ...replacementsWithMetaData];
@@ -141,20 +188,56 @@ const AutoSuggestion = ({
             setSuggestions(newSuggestions);
             setReplacementIndexesDict(newReplacementIndexesDict)
         }
-    }, [data]);
+    }, [suggestionResponse]);
+
+    const asyncCheckInput = async (inputString: string) => {
+        setPathValidationPending(true)
+        try {
+            const result: IValidationResult | undefined = await checkInput(inputString)
+            setValidationResponse(result)
+        } catch(e) {
+            // TODO: Error handling
+        } finally {
+            setPathValidationPending(false)
+        }
+    }
+
+    const checkValuePathValidity = useCallback(
+        debounce((inputString: string) => asyncCheckInput(inputString), 200),
+        [checkInput]
+    )
 
     React.useEffect(() => {
         if (isFocused) {
             setInputString(value);
             setShouldShowDropdown(true);
-            //only change if the input has changed, regardless of the cursor change
-            if (valueRef.current !== value) {
-                checkPathValidity(value);
-                valueRef.current = value;
-            }
-            onEditorParamsChange(inputString, cursorPosition);
+            handleEditorInputChange(inputString, cursorPosition)
+            return handleEditorInputChange.cancel
         }
     }, [cursorPosition, value, inputString, isFocused]);
+
+    // Trigger input validation
+    useEffect(() => {
+        checkValuePathValidity(value)
+        return checkValuePathValidity.cancel
+    }, [inputString])
+
+    const asyncHandleEditorInputChange = async (inputString: string, cursorPosition: number) => {
+        setSuggestionsPending(true)
+        try {
+            const result: IPartialAutoCompleteResult = await fetchSuggestions(inputString, cursorPosition)
+            setSuggestionResponse(result)
+        } catch(e) {
+            // TODO: Error handling
+        } finally {
+            setSuggestionsPending(false)
+        }
+    }
+
+    const handleEditorInputChange = useCallback(
+        debounce((inputString: string, cursorPosition: number) => asyncHandleEditorInputChange(inputString, cursorPosition), 200),
+        [checkInput]
+    )
 
     const handleChange = (val: string) => {
         onChange(val)

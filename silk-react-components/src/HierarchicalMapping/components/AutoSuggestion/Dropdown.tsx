@@ -11,10 +11,10 @@ import {
     Spinner,
     Spacing,
 } from "@gui-elements/index";
-import {ISuggestion} from "./AutoSuggestion";
+import {ISuggestionWithQuery} from "./AutoSuggestion";
 
 interface IDropdownProps {
-    options: Array<ISuggestion>;
+    options: Array<ISuggestionWithQuery>;
     onItemSelectionChange: (item) => void;
     isOpen: boolean;
     loading?: boolean;

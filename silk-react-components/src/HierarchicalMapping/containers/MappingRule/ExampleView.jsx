@@ -9,6 +9,7 @@ import { childExampleAsync, ruleExampleAsync } from '../../store';
 import { InfoBox } from '../../components/InfoBox';
 import { isDebugMode } from '../../utils/isDebugMode';
 
+/** Shows example input and output values for a mapping rule. */
 export class ExampleView extends React.Component {
     static propTypes = {
         id: PropTypes.string,

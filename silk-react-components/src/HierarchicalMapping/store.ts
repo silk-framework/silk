@@ -15,7 +15,7 @@ import {
 import EventEmitter from './utils/EventEmitter';
 import { isDebugMode } from './utils/isDebugMode';
 import React, {useState} from "react";
-import silkApi from '../api/silkRestApi'
+import silkApi, {HttpResponsePromise} from '../api/silkRestApi'
 
 const silkStore = rxmq.channel('silk.api');
 export const errorChannel = rxmq.channel('errors');
@@ -690,7 +690,7 @@ export const prefixesAsync = () => {
 };
 
 
-export const getSuggestion = (ruleId:string,inputString: string, cursorPosition:number) => {
+export const getSuggestion = (ruleId:string, inputString: string, cursorPosition:number): HttpResponsePromise => {
     const { baseUrl, transformTask, project } = getApiDetails();
     return silkApi.getSuggestionsForAutoCompletion(
         baseUrl,

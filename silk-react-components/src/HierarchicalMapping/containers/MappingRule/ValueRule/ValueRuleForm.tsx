@@ -1,37 +1,22 @@
 import React, {useEffect, useState} from 'react';
-import {
-    Card,
-    CardTitle,
-    CardContent,
-    CardActions,
-    Spinner,
-    ScrollingHOC,
-    SelectBox,
-} from '@eccenca/gui-elements';
-import {
-    FieldItem
-} from '@gui-elements/index';
-import {
-    AffirmativeButton,
-    DismissiveButton,
-    Checkbox,
-    TextField,
-} from '@gui-elements/legacy-replacements';
-import _, { debounce } from 'lodash';
+import {Card, CardActions, CardContent, CardTitle, ScrollingHOC, SelectBox, Spinner,} from '@eccenca/gui-elements';
+import {FieldItem} from '@gui-elements/index';
+import {AffirmativeButton, Checkbox, DismissiveButton, TextField,} from '@gui-elements/legacy-replacements';
+import _ from 'lodash';
 import ExampleView from '../ExampleView';
-import store from '../../../store';
-import { convertToUri } from '../../../utils/convertToUri';
+import store, {getSuggestion, pathValidation} from '../../../store';
+import {convertToUri} from '../../../utils/convertToUri';
 import ErrorView from '../../../components/ErrorView';
 import AutoComplete from '../../../components/AutoComplete';
-import {
-    trimValue,
-} from '../../../utils/trimValue';
-import { MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES } from '../../../utils/constants';
+import {trimValue,} from '../../../utils/trimValue';
+import {MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES} from '../../../utils/constants';
 import EventEmitter from '../../../utils/EventEmitter';
-import { wasTouched } from '../../../utils/wasTouched';
-import { newValueIsIRI } from '../../../utils/newValueIsIRI';
-import AutoSuggestion from '../../../components/AutoSuggestion/AutoSuggestion'
-import {getSuggestion, pathValidation} from '../../../store'
+import {wasTouched} from '../../../utils/wasTouched';
+import {newValueIsIRI} from '../../../utils/newValueIsIRI';
+import AutoSuggestion, {
+    IPartialAutoCompleteResult,
+    IValidationResult
+} from '../../../components/AutoSuggestion/AutoSuggestion'
 
 const LANGUAGES_LIST = [
     'en', 'de', 'es', 'fr', 'bs', 'bg', 'ca', 'ce', 'zh', 'hr', 'cs', 'da', 'nl', 'eo', 'fi', 'ka', 'el', 'hu', 'ga', 'is', 'it',
@@ -88,10 +73,10 @@ export function ValueRuleForm(props: IProps) {
     const [label, setLabel] = useState<string>("")
     const [comment, setComment] = useState<string>("")
     const [targetProperty, setTargetProperty] = useState<string>("")
-    const [suggestions, setSuggestions] = useState([]);
-    const [pathValidationResponse, setPathValidationResponse] = React.useState({});
-    const [suggestionsPending, setSuggestionsPending] = React.useState(false);
-    const [pathValidationPending, setPathValidationPending] = React.useState(false)
+
+    const { id, parentId } = props;
+
+    const autoCompleteRuleId = id || parentId;
 
     const state = {
         loading,
@@ -258,45 +243,26 @@ export function ValueRuleForm(props: IProps) {
         return targetPropertyNotEmpty && languageTagSet;
     }
 
-     // Autosuggestion handlers editor change
-
-    //editor onChange handler
-    const handleEditorParamsChange = debounce(
-        (autoCompleteRuleId, inputString, cursorPosition) => {
-            setSuggestionsPending(true);
+    // Fetches (partial) auto-complete suggestions for the value path
+    const fetchSuggestions = (inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | null> => {
+        return new Promise((resolve, reject) => {
             getSuggestion(autoCompleteRuleId, inputString, cursorPosition)
-                .then((suggestions) => {
-                    if (suggestions) {
-                        setSuggestions(suggestions.data);
-                    }
-                })
-                .catch(() => {})
-                .finally(() => setSuggestionsPending(false));
-        },
-        200
-    );
-    
-    const checkPathValidity = debounce((inputString) => {
-        setPathValidationPending(true);
-        pathValidation(inputString)
-            .then((response) => {
-                setPathValidationResponse(() => response?.data);
-            })
-            .catch(() => {})
-            .finally(() => setPathValidationPending(false));
-    }, 200);
+                .then((suggestions) => resolve(suggestions.data))
+                .catch((err) => reject(err))
+        })
+    }
 
-
-
-
-
+    // Checks if the value path syntax is valid
+    const checkValuePathValidity = (inputString): Promise<IValidationResult | undefined> => {
+        return new Promise((resolve, reject) => {
+            pathValidation(inputString)
+                .then((response) => resolve(response?.data))
+                .catch((err) => reject(err))
+        })
+    }
 
     // template rendering
     const render = () => {
-        const { id, parentId } = props;
-
-        const autoCompleteRuleId = id || parentId;
-
         if (loading) {
             return <Spinner />;
         }
@@ -316,31 +282,17 @@ export function ValueRuleForm(props: IProps) {
         if (type === MAPPING_RULE_TYPE_DIRECT) {
             sourcePropertyInput = (
                 <AutoSuggestion
-                    label="Value Path"
+                    label="Value path"
                     initialValue={typeof sourceProperty === "string" ? sourceProperty : sourceProperty.value}
                     clearIconText={"Clear value path"}
                     validationErrorText={"The entered value path is invalid."}
-                    checkPathValidity={checkPathValidity}
-                    validationResponse={pathValidationResponse}
-                    data={suggestions}
-                    pathValidationPending={pathValidationPending}
-                    suggestionsPending={suggestionsPending}
                     onChange={handleChangeSelectBox.bind(
                         null,
                         'sourceProperty',
                         setSourceProperty
                     )}
-                    onEditorParamsChange={(
-                        inputString: string,
-                        cursorPosition: number
-                    ) =>
-                        handleEditorParamsChange(
-                            autoCompleteRuleId,
-                            inputString,
-                            cursorPosition
-                        )
-                    }
-                />
+                    fetchSuggestions={fetchSuggestions}
+                 checkInput={checkValuePathValidity}/>
             );
         } else if (type === MAPPING_RULE_TYPE_COMPLEX) {
             sourcePropertyInput = (
