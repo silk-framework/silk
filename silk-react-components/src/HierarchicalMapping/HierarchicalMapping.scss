@@ -640,6 +640,7 @@ ul.ecc-hierarchical-mapping-error-list {
     flex-grow: 1;
     flex-shrink: 1;
     width: 50vw; // this is a spooky hack but it prevents that the layout explodes
+    overflow: auto;
 
     .ecc-silk-mapping__rulesviewer__infobox-sub {
         @include typo-caption();
@@ -680,6 +681,10 @@ ul.ecc-hierarchical-mapping-error-list {
 
     thead {
         border: 0;
+    }
+
+    .mdl-chip {
+        max-width: 30rem;
     }
 
     tbody {
