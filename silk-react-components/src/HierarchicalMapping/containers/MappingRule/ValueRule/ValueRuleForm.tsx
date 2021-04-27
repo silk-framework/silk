@@ -73,6 +73,8 @@ export function ValueRuleForm(props: IProps) {
     const [label, setLabel] = useState<string>("")
     const [comment, setComment] = useState<string>("")
     const [targetProperty, setTargetProperty] = useState<string>("")
+    const [valuePathValid, setValuePathValid] = useState<boolean>(false)
+    const [valuePathInputHasFocus, setValuePathInputHasFocus] = useState<boolean>(false)
 
     const { id, parentId } = props;
 
@@ -256,8 +258,15 @@ export function ValueRuleForm(props: IProps) {
     const checkValuePathValidity = (inputString): Promise<IValidationResult | undefined> => {
         return new Promise((resolve, reject) => {
             pathValidation(inputString)
-                .then((response) => resolve(response?.data))
-                .catch((err) => reject(err))
+                .then((response) => {
+                    const payload = response?.data
+                    setValuePathValid(!!payload?.valid)
+                    resolve(payload)
+                })
+                .catch((err) => {
+                    setValuePathValid(false)
+                    reject(err)
+                })
         })
     }
 
@@ -292,7 +301,9 @@ export function ValueRuleForm(props: IProps) {
                         setSourceProperty
                     )}
                     fetchSuggestions={fetchSuggestions}
-                 checkInput={checkValuePathValidity}/>
+                    checkInput={checkValuePathValidity}
+                    onFocusChange={setValuePathInputHasFocus}
+                />
             );
         } else if (type === MAPPING_RULE_TYPE_COMPLEX) {
             sourcePropertyInput = (
@@ -304,7 +315,7 @@ export function ValueRuleForm(props: IProps) {
                 />
             );
         }
-        const exampleView = !_.isEmpty(sourceProperty) ? (
+        const exampleView = !_.isEmpty(sourceProperty) && valuePathValid && !valuePathInputHasFocus ? (
             <ExampleView
                 id={props.parentId || 'root'}
                 key={

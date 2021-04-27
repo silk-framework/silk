@@ -83,6 +83,8 @@ interface IProps {
     validationErrorText: string
     // Text that should be shown when hovering over the clear icon
     clearIconText: string
+    // Called when focus status changes
+    onFocusChange?: (hasFocus: boolean) => any
 }
 
 /** Input component that allows partial, fine-grained auto-completion, i.e. of sub-strings of the input string.
@@ -95,6 +97,7 @@ const AutoSuggestion = ({
                             checkInput,
                             validationErrorText,
                             clearIconText,
+                            onFocusChange,
                         }: IProps) => {
     const [value, setValue] = React.useState(initialValue);
     const [inputString, setInputString] = React.useState(initialValue);
@@ -296,8 +299,9 @@ const AutoSuggestion = ({
     };
 
     const handleInputFocus = (focusState: boolean) => {
-        setIsFocused(focusState);
-        setShouldShowDropdown(focusState);
+        onFocusChange && onFocusChange(focusState)
+        setIsFocused(focusState)
+        setShouldShowDropdown(focusState)
     };
 
     //keyboard handlers
