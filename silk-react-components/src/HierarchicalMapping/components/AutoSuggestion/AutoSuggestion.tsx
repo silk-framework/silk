@@ -3,7 +3,7 @@ import CodeMirror from "codemirror";
 import { Icon, Spinner, Label } from "@gui-elements/index";
 
 //custom components
-import CodeEditor from "../CodeEditor";
+import SingleLineCodeEditor from "../SingleLineCodeEditor";
 import {Dropdown} from "./Dropdown";
 
 //styles
@@ -23,6 +23,8 @@ export interface ISuggestion {
     query: string
 }
 
+/** Input component that allows partial, fine-grained auto-completion, i.e. of sub-strings of the input string.
+ * This is comparable to a one line code editor. */
 const AutoSuggestion = ({
     onEditorParamsChange,
     data,
@@ -43,7 +45,8 @@ const AutoSuggestion = ({
         {}
     );
     const [suggestions, setSuggestions] = React.useState<ISuggestion[]>([]);
-    const [markers, setMarkers] = React.useState([]);
+    const [markers, setMarkers] = React.useState<CodeMirror.TextMarker[]>([]);
+    const [, setErrorMarkers] = React.useState<CodeMirror.TextMarker[]>([]);
     const [
         editorInstance,
         setEditorInstance,
@@ -73,14 +76,24 @@ const AutoSuggestion = ({
             const { offset, inputLeadingToError, message } = parseError;
             const start = inputLeadingToError.length > 1 ? offset - inputLeadingToError.length + 1 : offset
             const end = offset + 2;
+            editorInstance.getDoc().getEditor()
             const marker = editorInstance.markText(
                 { line: 0, ch: start },
                 { line: 0, ch: end },
                 { className: "ecc-text-error-highlighting" }
             );
-            setMarkers((previousMarkers) => [...previousMarkers, marker]);
+            setErrorMarkers((previousMarkers) => {
+                previousMarkers.forEach(marker => marker.clear())
+                return [marker]
+            });
+        } else {
+            // Valid, clear all error markers
+            setErrorMarkers((previous) => {
+                previous.forEach(marker => marker.clear())
+                return []
+            })
         }
-    }, [validationResponse?.parseError]);
+    }, [validationResponse?.valid, validationResponse?.parseError]);
 
     /** generate suggestions and also populate the replacement indexes dict */
     React.useEffect(() => {
@@ -276,12 +289,12 @@ const AutoSuggestion = ({
                         />
                     ) : null}
                 </div>
-                <CodeEditor
+                <SingleLineCodeEditor
                     mode="null"
                     setEditorInstance={setEditorInstance}
                     onChange={handleChange}
                     onCursorChange={handleCursorChange}
-                    value={value}
+                    initialValue={value}
                     onFocusChange={handleInputFocus}
                     handleSpecialKeysPress={handleInputEditorKeyPress}
                 />

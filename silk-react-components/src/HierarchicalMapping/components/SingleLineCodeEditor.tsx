@@ -2,12 +2,12 @@ import React from "react";
 import { Controlled as ControlledEditor } from "react-codemirror2";
 import "codemirror/mode/sparql/sparql.js";
 
-const CodeEditor = ({
+const SingleLineCodeEditor = ({
   setEditorInstance,
   onChange,
   onCursorChange,
   mode = "sparql",
-  value,
+  initialValue,
   onFocusChange,
   handleSpecialKeysPress,
 }) => {
@@ -16,16 +16,17 @@ const CodeEditor = ({
       <ControlledEditor
         editorDidMount={(editor) => {
           editor.on("beforeChange", (_, change) => {
-            var newtext = change.text.join("").replace(/\n/g, "");
+            // Prevent the user from entering new-line characters, since this is supposed to be a one-line editor.
+            const newText = change.text.join("").replace(/\n/g, "");
             //failing unexpectedly during undo and redo
             if (change.update && typeof change.update === "function") {
-              change.update(change.from, change.to, [newtext]);
+              change.update(change.from, change.to, [newText]);
             }
             return true;
           });
           setEditorInstance(editor);
         }}
-        value={value}
+        value={initialValue}
         onFocus={() => onFocusChange(true)}
         onBlur={() => onFocusChange(false)}
         options={{
@@ -46,4 +47,4 @@ const CodeEditor = ({
   );
 };
 
-export default CodeEditor;
+export default SingleLineCodeEditor;
