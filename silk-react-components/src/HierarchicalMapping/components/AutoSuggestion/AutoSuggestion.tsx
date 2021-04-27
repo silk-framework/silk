@@ -397,15 +397,17 @@ const AutoSuggestion = ({
                         onFocusChange={handleInputFocus}
                         handleSpecialKeysPress={handleInputEditorKeyPress}
                     />
-                    <span className={BlueprintClassNames.INPUT_ACTION}>
-                        <IconButton
-                            data-test-id={"value-path-clear-btn"}
-                            name="operation-clear"
-                            tooltipText={clearIconText}
-                            tooltipProperties={{usePortal: false}}
-                            onClick={handleInputEditorClear}
-                        />
-                    </span>
+                    {!!value && (
+                        <span className={BlueprintClassNames.INPUT_ACTION}>
+                            <IconButton
+                                data-test-id={"value-path-clear-btn"}
+                                name="operation-clear"
+                                tooltipText={clearIconText}
+                                tooltipProperties={{usePortal: false}}
+                                onClick={handleInputEditorClear}
+                            />
+                        </span>
+                    )}
                 </div>
                 <Dropdown
                     left={coords.left}

@@ -25,7 +25,7 @@ interface IDropdownProps {
 const RawItem = ({ item, query }, ref) => {
     return (
         <div ref={ref}>
-            <OverviewItem>
+            <OverviewItem densityHigh={true}>
                 <OverviewItemDescription>
                     <OverviewItemLine>
                         <OverflowText ellipsis="reverse">

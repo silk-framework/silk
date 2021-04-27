@@ -49,16 +49,41 @@
 
     .CodeMirror-lines {
         padding: 0;
-        height: calc(#{$eccgui-size-textfield-height-regular} - 4px);
-        line-height: calc(#{$eccgui-size-textfield-height-regular} - 4px);
+        line-height: calc(#{$eccgui-size-textfield-height-regular} - 4px - 6px);
+    }
+
+    pre.CodeMirror-line {
+        font-family: $eccgui-font-family-monospace;
+        font-size: 0.9em;
+        padding: 3px 0;
+        height: calc(#{$eccgui-size-textfield-height-regular} - 4px - 6px);
+        box-sizing: content-box;
+    }
+
+    .CodeMirror-cursor {
+        border: none;
+        margin: 0;
+        width: 1px;
+        background-color: transparent;
+
+        &::after {
+            content: " ";
+            height: 1rem;
+            width: 1px;
+            overflow: hidden;
+            background-color: black;
+            position: absolute;
+            top: 50%;
+            right: 0;
+            margin-top: -0.5rem;
+        }
     }
 }
 
 .ecc-text-highlighting {
     display: inline-block;
-    background-color: $ecc-color-primary;
-    opacity: 0.5;
-    color: $color-white;
+    background-color: $eccgui-color-warning-background;
+    color:$eccgui-color-warning-text;
 }
 
 .ecc-text-error-highlighting {
