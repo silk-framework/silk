@@ -2,6 +2,7 @@ package controllers.workspace
 
 import controllers.workspace.routes.WorkspaceApi
 import controllers.workspace.workspaceApi.TaskLinkInfo
+import controllers.workspace.workspaceRequests.CopyTasksResponse
 import helper.IntegrationTestTrait
 import org.scalatest.{BeforeAndAfterAll, MustMatchers}
 import org.scalatestplus.play.PlaySpec
@@ -12,15 +13,15 @@ import org.silkframework.plugins.dataset.csv.CsvDataset
 import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
 import org.silkframework.plugins.dataset.xml.XSLTOperator
+import org.silkframework.rule._
 import org.silkframework.rule.input.{TransformInput, Transformer}
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric
-import org.silkframework.rule._
+import org.silkframework.rule.similarity.Comparison
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{DPair, Uri}
 import play.api.libs.json.Json
 import testWorkspace.Routes
-import org.silkframework.rule.similarity.Comparison
 
 /**
   * Workspace API integration tests.
@@ -55,6 +56,43 @@ class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with MustMatch
       clonedInmemoryDataset.data.plugin.asInstanceOf[InMemoryDataset].clearGraphBeforeExecution mustBe false
       // Check that this is a new instance and does not contain the old state
       clonedInmemoryDataset.source.retrievePaths("") mustBe Seq.empty
+    }
+  }
+
+  "Project copy endpoint" should {
+    "copy all tasks in the source project" in {
+      val sourceProj = retrieveOrCreateProject("sourceProject")
+      val targetProj = retrieveOrCreateProject("targetProject")
+
+      // Add some tasks to the source project
+      val datasetName = "dataset"
+      val transformName = "transform"
+
+      val resource = sourceProj.resources.get("resource")
+      val transformTask = TransformSpec(
+        DatasetSelection(datasetName),
+        RootMappingRule(MappingRules(Some(ComplexUriMapping(operator = transformInput(resource)))))
+      )
+      sourceProj.addAnyTask(datasetName, DatasetSpec(InMemoryDataset()))
+      sourceProj.addAnyTask(transformName, transformTask)
+
+      // Copy tasks to the target project
+      val response = client.url(s"$baseUrl/workspace/projects/${sourceProj.name}/copy")
+        .post(Json.parse(
+          s""" {
+             |    "targetProject": "${targetProj.name}",
+             |    "dryRun": false
+             |  }
+          """.stripMargin
+        ))
+
+      // Check response
+      val parsedResponse = Json.fromJson[CopyTasksResponse](checkResponse(response).json).get
+      parsedResponse.copiedTasks.map(_.id) must contain theSameElementsAs Seq(datasetName, transformName)
+      parsedResponse.overwrittenTasks.map(_.id) must contain theSameElementsAs Seq.empty
+
+      // Make sure that tasks have been actually copied
+      targetProj.allTasks.map(_.id.toString) must contain theSameElementsAs Seq(datasetName, transformName)
     }
   }
 
