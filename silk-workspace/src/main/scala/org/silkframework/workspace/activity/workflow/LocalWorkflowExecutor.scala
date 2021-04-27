@@ -139,7 +139,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       }
       log.info("Finished execution of " + operator.nodeId)
       workflowRunContext.alreadyExecuted.add(operatorNode.workflowNode)
-      updateProgress(operatorNode.nodeId)
+      updateProgress(operatorTask.taskLabel())
       writeErrorOutput(operatorNode, result)
 
       result
@@ -204,9 +204,9 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                     (implicit workflowRunContext: WorkflowRunContext): Option[LocalEntities] = {
     // Only execute a dataset once, i.e. only execute its inputs once and write them to the dataset.
     if (!workflowRunContext.alreadyExecuted.contains(datasetNode.workflowNode)) {
+      val task = datasetTask(datasetNode)
       // Execute all input nodes and write to this dataset
       datasetNode.inputNodes foreach { pNode =>
-        val task = datasetTask(datasetNode)
         executeWorkflowNode(pNode, ExecutorOutput(Some(task), None)) match {
           case Some(entityTable) =>
             writeEntityTableToDataset(datasetNode, entityTable)
@@ -215,7 +215,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         }
       }
       workflowRunContext.alreadyExecuted.add(datasetNode.workflowNode)
-      updateProgress(datasetNode.nodeId)
+      updateProgress(task.taskLabel())
       log.info("Finished writing of node " + datasetNode.nodeId)
     }
     // Read from the dataset
@@ -272,10 +272,10 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   }
 
   /** Update the progress of this activity. */
-  private def updateProgress(currentTask: String)
+  private def updateProgress(currentTaskLabel: String)
                             (implicit workflowRunContext: WorkflowRunContext): Unit = {
     val progress = workflowRunContext.alreadyExecuted.size.toDouble / workflowNodes.size
-    workflowRunContext.activityContext.status.update(s"$currentTask (${workflowRunContext.alreadyExecuted.size} / ${workflowNodes.size})", progress)
+    workflowRunContext.activityContext.status.update(s"$currentTaskLabel (${workflowRunContext.alreadyExecuted.size} / ${workflowNodes.size})", progress)
   }
 
   /** NOT USED ANYMORE, only here for documentation reasons, should be deleted after everything in here is supported. */
