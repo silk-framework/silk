@@ -30,12 +30,14 @@ class PartialSourcePathAutocompletionHelperTest extends FlatSpec with MustMatche
     val input = "a1/b1/c1"
     replace(input, 4, subPathOnly = true) mustBe PathToReplace(2, 3, Some("b1"))
     replace(input, 5, subPathOnly = true) mustBe PathToReplace(2, 3, Some("b1"))
+    replace(input, 2, subPathOnly = true) mustBe PathToReplace(0, 2, Some("a1"))
   }
 
-  it should "correctly find out which part of a path to replace in simple forward paths for the path prefix the cursor is in " in {
+  it should "correctly find out which part of a path to replace in simple forward paths for the path suffix the cursor is in" in {
     val input = "a1/b1/c1"
     replace(input, 4) mustBe PathToReplace(2, 6, Some("b1"))
     replace(input, 5) mustBe PathToReplace(2, 6, Some("b1"))
+    replace(input, 2) mustBe PathToReplace(0, 8, Some("a1"))
   }
 
   it should "correctly find out what part to replace in mixed forward and backward paths" in {

@@ -23,11 +23,27 @@ export interface ISuggestion {
     query: string
 }
 
+interface IProps {
+    // Text that should be shown if the input validation failed.
+    validationErrorText: string
+    // Text that should be shown when hovering over the clear icon
+    clearIconText: string
+    // Optional label to be shown for the input (above)
+    label?: string
+    // The value the component is initialized with, do not use this to control value changes.
+    initialValue: string
+    // Callback on value change
+    onChange: (currentValue: string) => any
+    // TODO: Add remaining parameters
+    [key: string]: any
+}
+
 /** Input component that allows partial, fine-grained auto-completion, i.e. of sub-strings of the input string.
  * This is comparable to a one line code editor. */
 const AutoSuggestion = ({
     onEditorParamsChange,
     data,
+    onChange,
     checkPathValidity,
     validationResponse,
     pathValidationPending,
@@ -35,9 +51,10 @@ const AutoSuggestion = ({
     label,
     clearIconText,
     validationErrorText,
-}) => {
-    const [value, setValue] = React.useState("");
-    const [inputString, setInputString] = React.useState("");
+    initialValue,
+}: IProps) => {
+    const [value, setValue] = React.useState(initialValue);
+    const [inputString, setInputString] = React.useState(initialValue);
     const [cursorPosition, setCursorPosition] = React.useState(0);
     const [coords, setCoords] = React.useState({ left: 0 });
     const [shouldShowDropdown, setShouldShowDropdown] = React.useState(false);
@@ -128,7 +145,7 @@ const AutoSuggestion = ({
 
     React.useEffect(() => {
         if (isFocused) {
-            setInputString(() => value);
+            setInputString(value);
             setShouldShowDropdown(true);
             //only change if the input has changed, regardless of the cursor change
             if (valueRef.current !== value) {
@@ -139,7 +156,8 @@ const AutoSuggestion = ({
         }
     }, [cursorPosition, value, inputString, isFocused]);
 
-    const handleChange = (val) => {
+    const handleChange = (val: string) => {
+        onChange(val)
         setValue(val);
     };
 
@@ -182,22 +200,16 @@ const AutoSuggestion = ({
         if (indexes) {
             const { from, length } = indexes;
             const to = from + length;
-            setValue(
-                (value) =>
-                    `${value.substring(
-                        0,
-                        from
-                    )}${selectedSuggestion}${value.substring(to)}`
-            );
+            editorInstance.replaceRange(selectedSuggestion, {line: 0, ch: from}, {line: 0, ch: to})
             setShouldShowDropdown(false);
-            editorInstance.setCursor({ line: 0, ch: to });
+            editorInstance.setCursor({ line: 0, ch: from + selectedSuggestion.length });
             editorInstance.focus();
             clearMarkers();
         }
     };
 
     const handleInputEditorClear = () => {
-        setValue("");
+        editorInstance.getDoc().setValue("")
     };
 
     const handleInputFocus = (focusState: boolean) => {
@@ -273,7 +285,7 @@ const AutoSuggestion = ({
 
     return (
         <div className="ecc-auto-suggestion-box">
-            <Label text={label} />
+            {label && <Label text={label} />}
             <div className="ecc-auto-suggestion-box__editor-box">
                 <div className="ecc-auto-suggestion-box__validation">
                     {pathValidationPending && (

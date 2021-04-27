@@ -317,6 +317,7 @@ export function ValueRuleForm(props: IProps) {
             sourcePropertyInput = (
                 <AutoSuggestion
                     label="Value Path"
+                    initialValue={typeof sourceProperty === "string" ? sourceProperty : sourceProperty.value}
                     clearIconText={"Clear value path"}
                     validationErrorText={"The entered value path is invalid."}
                     checkPathValidity={checkPathValidity}
@@ -324,6 +325,11 @@ export function ValueRuleForm(props: IProps) {
                     data={suggestions}
                     pathValidationPending={pathValidationPending}
                     suggestionsPending={suggestionsPending}
+                    onChange={handleChangeSelectBox.bind(
+                        null,
+                        'sourceProperty',
+                        setSourceProperty
+                    )}
                     onEditorParamsChange={(
                         inputString: string,
                         cursorPosition: number
