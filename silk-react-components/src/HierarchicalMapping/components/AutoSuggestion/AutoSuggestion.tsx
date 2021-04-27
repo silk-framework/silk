@@ -199,6 +199,7 @@ const AutoSuggestion = ({
             const result: IValidationResult | undefined = await checkInput(inputString)
             setValidationResponse(result)
         } catch(e) {
+            setValidationResponse(undefined)
             // TODO: Error handling
         } finally {
             setPathValidationPending(false)
@@ -231,6 +232,7 @@ const AutoSuggestion = ({
             const result: IPartialAutoCompleteResult = await fetchSuggestions(inputString, cursorPosition)
             setSuggestionResponse(result)
         } catch(e) {
+            setSuggestionResponse(undefined)
             // TODO: Error handling
         } finally {
             setSuggestionsPending(false)
