@@ -343,5 +343,7 @@ $(function() {
         editor = new WorkflowEditor();
         // Load workflow from backend
         editor.loadWorkflow();
+        // Enable the save button only after the workflow has been loaded
+        $('#saveButton').removeAttr("disabled");
     });
 });

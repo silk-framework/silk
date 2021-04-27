@@ -1,13 +1,15 @@
-// Commit workflow xml to backend
-/* exported commitWorkflow
-silk-workbench/silk-workbench-workflow/app/views/workflow/editor/editor.scala.html
- */
-function commitWorkflow() {
-    const saveSpinner = $('#saveSpinner');
-    const saveButton = $('#saveButton');
-    saveSpinner.show();
-    saveButton.attr("disabled", true);
+// Warn the user when he leaves the editor while the workflow is still being saved
+window.onbeforeunload = confirmExit;
 
+// True, while the workflow is being saved
+let saveInProgress = false
+
+// True, if window has been unloaded
+let windowUnloaded = false
+
+// Commit workflow xml to backend
+function commitWorkflow() {
+    savingStarted();
     $.ajax({
         type: 'PUT',
         url: apiUrl,
@@ -15,16 +17,35 @@ function commitWorkflow() {
         processData: false,
         data: serializeWorkflow(),
         success() {
-            saveSpinner.hide();
-            saveButton.removeAttr("disabled");
+            savingStopped();
             notifyParentWindow();
         },
         error(req) {
-            saveSpinner.hide();
-            saveButton.removeAttr("disabled");
-            alert(`Error committing workflow to backend: ${req.responseText}`);
+            if(!windowUnloaded) {
+                savingStopped();
+                alert(`Error committing workflow to backend: ${req.responseText}`);
+            }
         },
     });
+}
+
+function confirmExit() {
+    windowUnloaded = true;
+    if (saveInProgress) {
+        return 'The workflow is still being saved.';
+    }
+}
+
+function savingStarted() {
+    saveInProgress = true;
+    $('#saveSpinner').show();
+    $('#saveButton').attr("disabled", true);
+}
+
+function savingStopped() {
+    $('#saveSpinner').hide();
+    $('#saveButton').removeAttr("disabled");
+    saveInProgress = false;
 }
 
 // Send a message event that the workflow has been saved
