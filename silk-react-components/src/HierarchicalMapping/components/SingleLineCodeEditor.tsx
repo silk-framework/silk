@@ -1,5 +1,6 @@
 import React from "react";
 import { Controlled as ControlledEditor } from "react-codemirror2";
+import { Classes as BlueprintClassNames } from "@blueprintjs/core";
 import "codemirror/mode/sparql/sparql.js";
 
 const SingleLineCodeEditor = ({
@@ -12,7 +13,7 @@ const SingleLineCodeEditor = ({
   handleSpecialKeysPress,
 }) => {
   return (
-    <div className="ecc-input-editor">
+    <div className={"ecc-input-editor " + BlueprintClassNames.INPUT}>
       <ControlledEditor
         editorDidMount={(editor) => {
           editor.on("beforeChange", (_, change) => {

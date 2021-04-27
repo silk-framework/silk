@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useState} from "react";
 import CodeMirror from "codemirror";
-import { Icon, Spinner, Label } from "@gui-elements/index";
+import { FieldItem, IconButton, Spinner, Label } from "@gui-elements/index";
+import { Classes as BlueprintClassNames } from "@blueprintjs/core";
 
 //custom components
 import SingleLineCodeEditor from "../SingleLineCodeEditor";
@@ -9,7 +10,7 @@ import { debounce } from "lodash";
 import {pathValidation} from "../../store";
 
 //styles
-require("./AutoSuggestion.scss");
+//require("./AutoSuggestion.scss");
 
 export enum OVERWRITTEN_KEYS {
     ArrowUp = "ArrowUp",
@@ -70,7 +71,7 @@ export interface IValidationResult {
 
 interface IProps {
     // Optional label to be shown for the input (above)
-    label?: string
+    label: string
     // The value the component is initialized with, do not use this to control value changes.
     initialValue: string
     // Callback on value change
@@ -373,51 +374,49 @@ const AutoSuggestion = ({
     };
 
     return (
-        <div className="ecc-auto-suggestion-box">
-            {label && <Label text={label} />}
-            <div className="ecc-auto-suggestion-box__editor-box">
-                <div className="ecc-auto-suggestion-box__validation">
-                    {pathValidationPending && (
-                        <Spinner size="tiny" position="local" />
-                    )}
-                    {!pathIsValid && !pathValidationPending ? (
-                        <Icon
-                            small
-                            className="editor__icon error"
-                            name="operation-clear"
-                            tooltipText={validationErrorText}
-                            tooltipProperties={{usePortal: false}}
-                        />
-                    ) : null}
-                </div>
-                <SingleLineCodeEditor
-                    mode="null"
-                    setEditorInstance={setEditorInstance}
-                    onChange={handleChange}
-                    onCursorChange={handleCursorChange}
-                    initialValue={value}
-                    onFocusChange={handleInputFocus}
-                    handleSpecialKeysPress={handleInputEditorKeyPress}
-                />
-                <div onClick={handleInputEditorClear}>
-                    <Icon
-                        small
-                        className="editor__icon clear"
-                        name="operation-clear"
-                        tooltipText={clearIconText}
-                        tooltipProperties={{usePortal: false}}
+        <FieldItem
+            labelAttributes={{
+                text: (
+                    <>
+                        {label}
+                        {pathValidationPending && (
+                            <Spinner size="tiny" position="inline" description="Validating value path" />
+                        )}
+                    </>)
+            }}
+            hasStateDanger={!pathIsValid && !pathValidationPending}
+            messageText={!pathIsValid && !pathValidationPending ? validationErrorText : undefined}
+        >
+            <div className="ecc-auto-suggestion-box">
+                <div className={`ecc-auto-suggestion-box__editor-box ${BlueprintClassNames.INPUT_GROUP} ${BlueprintClassNames.FILL}`}>
+                    <SingleLineCodeEditor
+                        mode="null"
+                        setEditorInstance={setEditorInstance}
+                        onChange={handleChange}
+                        onCursorChange={handleCursorChange}
+                        initialValue={value}
+                        onFocusChange={handleInputFocus}
+                        handleSpecialKeysPress={handleInputEditorKeyPress}
                     />
+                    <span className={BlueprintClassNames.INPUT_ACTION}>
+                        <IconButton
+                            name="operation-clear"
+                            tooltipText={clearIconText}
+                            tooltipProperties={{usePortal: false}}
+                            onClick={handleInputEditorClear}
+                        />
+                    </span>
                 </div>
+                <Dropdown
+                    left={coords.left}
+                    loading={suggestionsPending}
+                    options={suggestions}
+                    isOpen={shouldShowDropdown}
+                    onItemSelectionChange={handleDropdownChange}
+                    currentlyFocusedIndex={currentIndex}
+                />
             </div>
-            <Dropdown
-                left={coords.left}
-                loading={suggestionsPending}
-                options={suggestions}
-                isOpen={shouldShowDropdown}
-                onItemSelectionChange={handleDropdownChange}
-                currentlyFocusedIndex={currentIndex}
-            />
-        </div>
+        </FieldItem>
     );
 };
 
