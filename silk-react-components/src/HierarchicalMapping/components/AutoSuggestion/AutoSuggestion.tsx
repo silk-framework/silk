@@ -404,7 +404,7 @@ const AutoSuggestion = ({
                             <IconButton
                                 data-test-id={"value-path-clear-btn"}
                                 name="operation-clear"
-                                tooltipText={clearIconText}
+                                text={clearIconText}
                                 tooltipProperties={{usePortal: false}}
                                 onClick={handleInputEditorClear}
                             />
