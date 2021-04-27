@@ -19,7 +19,7 @@ interface IDropdownProps {
     isOpen: boolean;
     loading?: boolean;
     left?: number;
-    currentlyFocusedIndex?: number;
+    currentlyFocusedIndex: number;
 }
 
 const RawItem = ({ item, query }, ref) => {
@@ -61,7 +61,7 @@ export const Dropdown = ({
     left,
     currentlyFocusedIndex,
 }: IDropdownProps) => {
-    const dropdownRef = React.useRef();
+    const dropdownRef = React.useRef<HTMLDivElement>(null);
     const refs = {};
     const generateRef = (index) => {
         if (!refs.hasOwnProperty(`${index}`)) {

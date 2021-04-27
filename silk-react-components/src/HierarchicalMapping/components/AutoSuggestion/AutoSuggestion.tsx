@@ -138,7 +138,7 @@ const AutoSuggestion = ({
     //handle linting
     React.useEffect(() => {
         const parseError = validationResponse?.parseError;
-        if (parseError) {
+        if (parseError && editorInstance) {
             clearMarkers();
             const { offset, inputLeadingToError, message } = parseError;
             const start = inputLeadingToError.length > 1 ? offset - inputLeadingToError.length + 1 : offset
@@ -229,7 +229,7 @@ const AutoSuggestion = ({
     const asyncHandleEditorInputChange = async (inputString: string, cursorPosition: number) => {
         setSuggestionsPending(true)
         try {
-            const result: IPartialAutoCompleteResult = await fetchSuggestions(inputString, cursorPosition)
+            const result: IPartialAutoCompleteResult | undefined = await fetchSuggestions(inputString, cursorPosition)
             setSuggestionResponse(result)
         } catch(e) {
             setSuggestionResponse(undefined)
@@ -265,7 +265,7 @@ const AutoSuggestion = ({
 
     const handleTextHighlighting = (focusedSuggestion: string) => {
         const indexes = replacementIndexesDict[focusedSuggestion];
-        if (indexes) {
+        if (indexes && editorInstance) {
             clearMarkers();
             const { from, length } = indexes;
             const to = from + length;
@@ -285,7 +285,7 @@ const AutoSuggestion = ({
 
     const handleDropdownChange = (selectedSuggestion: string) => {
         const indexes = replacementIndexesDict[selectedSuggestion];
-        if (indexes) {
+        if (indexes && editorInstance) {
             const { from, length } = indexes;
             const to = from + length;
             editorInstance.replaceRange(selectedSuggestion, {line: 0, ch: from}, {line: 0, ch: to})
@@ -297,7 +297,7 @@ const AutoSuggestion = ({
     };
 
     const handleInputEditorClear = () => {
-        editorInstance.getDoc().setValue("")
+        editorInstance && editorInstance.getDoc().setValue("")
     };
 
     const handleInputFocus = (focusState: boolean) => {

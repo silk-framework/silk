@@ -1,21 +1,6 @@
 import React, {useEffect, useState} from 'react';
-import {Card, CardActions, CardContent, CardTitle, ScrollingHOC, SelectBox, Spinner,} from '@eccenca/gui-elements';
-import {FieldItem} from '@gui-elements/index';
-import {AffirmativeButton, Checkbox, DismissiveButton, TextField,} from '@gui-elements/legacy-replacements';
-import {
-    Card,
-    CardTitle,
-    CardContent,
-    CardActions,
-    Spinner,
-    ScrollingHOC,
-    SelectBox,
-} from '@eccenca/gui-elements';
-import {
-    AffirmativeButton,
-    DismissiveButton,
-    TextField,
-} from '@gui-elements/legacy-replacements';
+import {Card, CardActions, CardContent, CardTitle, ScrollingHOC, Spinner,} from '@eccenca/gui-elements';
+import {AffirmativeButton, DismissiveButton, TextField,} from '@gui-elements/legacy-replacements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import store, {getSuggestion, pathValidation} from '../../../store';
@@ -25,11 +10,9 @@ import AutoComplete from '../../../components/AutoComplete';
 import {trimValue,} from '../../../utils/trimValue';
 import {MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES} from '../../../utils/constants';
 import EventEmitter from '../../../utils/EventEmitter';
-import { wasTouched } from '../../../utils/wasTouched';
-import { newValueIsIRI } from '../../../utils/newValueIsIRI';
-import TargetCardinality from "../../../components/TargetCardinality";
 import {wasTouched} from '../../../utils/wasTouched';
 import {newValueIsIRI} from '../../../utils/newValueIsIRI';
+import TargetCardinality from "../../../components/TargetCardinality";
 import AutoSuggestion, {
     IPartialAutoCompleteResult,
     IValidationResult
@@ -263,11 +246,15 @@ export function ValueRuleForm(props: IProps) {
     }
 
     // Fetches (partial) auto-complete suggestions for the value path
-    const fetchSuggestions = (inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | null> => {
+    const fetchSuggestions = (inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
         return new Promise((resolve, reject) => {
-            getSuggestion(autoCompleteRuleId, inputString, cursorPosition)
-                .then((suggestions) => resolve(suggestions.data))
-                .catch((err) => reject(err))
+            if(!autoCompleteRuleId) {
+                resolve(undefined)
+            } else {
+                getSuggestion(autoCompleteRuleId, inputString, cursorPosition)
+                    .then((suggestions) => resolve(suggestions?.data))
+                    .catch((err) => reject(err))
+            }
         })
     }
 

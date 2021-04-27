@@ -705,7 +705,7 @@ export const prefixesAsync = () => {
 
 
 export const getSuggestion = (ruleId:string, inputString: string, cursorPosition:number): HttpResponsePromise => {
-    const { baseUrl, transformTask, project } = getApiDetails();
+    const { baseUrl, transformTask, project } = getDefinedApiDetails();
     return silkApi.getSuggestionsForAutoCompletion(
         baseUrl,
         project,
@@ -717,7 +717,7 @@ export const getSuggestion = (ruleId:string, inputString: string, cursorPosition
 }
 
 export const pathValidation = (inputString:string) => {
-    const {baseUrl, project} = getApiDetails()
+    const {baseUrl, project} = getDefinedApiDetails()
     return silkApi.validatePathExpression(baseUrl,project,inputString)
 } 
 
