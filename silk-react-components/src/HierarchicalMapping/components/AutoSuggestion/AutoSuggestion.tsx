@@ -297,7 +297,9 @@ const AutoSuggestion = ({
     };
 
     const handleInputEditorClear = () => {
-        editorInstance && editorInstance.getDoc().setValue("")
+        //editorInstance && editorInstance.getDoc().setValue("")
+        handleChange("");
+        editorInstance && editorInstance.focus();
     };
 
     const handleInputFocus = (focusState: boolean) => {
@@ -372,7 +374,7 @@ const AutoSuggestion = ({
         }
     };
 
-    const hasError = !pathIsValid && !pathValidationPending;
+    const hasError = !!value && !pathIsValid && !pathValidationPending;
 
     return (
         <FieldItem
