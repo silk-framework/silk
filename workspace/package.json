@@ -28,6 +28,7 @@
         "i18n-parser": "node scripts/i18next-scanner.js"
     },
     "dependencies": {
+        "carbon-icons": "^7.0.7",
         "@babel/core": "7.9.0",
         "@blueprintjs/core": "^3.36.0",
         "@blueprintjs/select": "^3.15.0",

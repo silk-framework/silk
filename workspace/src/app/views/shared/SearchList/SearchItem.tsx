@@ -38,6 +38,8 @@ interface IProps {
 
     onOpenDuplicateModal(item: ISearchResultsServer);
 
+    onOpenCopyToModal(item: ISearchResultsServer);
+
     onRowClick?();
 
     parentProjectId?: string;
@@ -48,6 +50,7 @@ export default function SearchItem({
     searchValue,
     onOpenDeleteModal,
     onOpenDuplicateModal,
+    onOpenCopyToModal,
     onRowClick,
     parentProjectId,
 }: IProps) {
@@ -145,7 +148,7 @@ export default function SearchItem({
                 <OverviewItemActions>
                     <IconButton
                         data-test-id={"open-duplicate-modal"}
-                        name="item-clone"
+                        name="item-copy"
                         text={t("common.action.clone", "Clone")}
                         onClick={onOpenDuplicateModal}
                     />
@@ -170,6 +173,26 @@ export default function SearchItem({
                             icon={"item-remove"}
                             onClick={onOpenDeleteModal}
                             text={t("common.action.delete", "Delete")}
+                        />
+                        <MenuItem
+                            data-test-id="search-item-copy-btn"
+                            key="copy"
+                            icon="item-clone"
+                            onClick={onOpenCopyToModal}
+                            text={t("common.action.copy", "Copy")}
+                        />
+                        <MenuItem
+                            icon="item-viewdetails"
+                            text={t("common.action.showDetails", "Show details")}
+                            key="view"
+                            onClick={goToDetailsPage}
+                            href={item.itemLinks[0].path}
+                        />
+                        <MenuItem
+                            data-test-id={"open-duplicate-modal"}
+                            icon="item-copy"
+                            text={t("common.action.clone", "Clone")}
+                            onClick={onOpenDuplicateModal}
                         />
                     </ContextMenu>
                 </OverviewItemActions>
