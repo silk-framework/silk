@@ -1,0 +1,8 @@
+.copy-modal-item {
+    display: flex;
+    align-items: center;
+    & > div:first-child {
+        transform: scale(0.8);
+        margin-right: 1rem;
+    }
+}
