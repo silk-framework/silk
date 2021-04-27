@@ -7,10 +7,6 @@ import { Classes as BlueprintClassNames } from "@blueprintjs/core";
 import SingleLineCodeEditor from "../SingleLineCodeEditor";
 import {Dropdown} from "./Dropdown";
 import { debounce } from "lodash";
-import {pathValidation} from "../../store";
-
-//styles
-//require("./AutoSuggestion.scss");
 
 export enum OVERWRITTEN_KEYS {
     ArrowUp = "ArrowUp",
@@ -86,6 +82,8 @@ interface IProps {
     clearIconText: string
     // Called when focus status changes
     onFocusChange?: (hasFocus: boolean) => any
+    // Optional ID to attach to the outer element
+    id?: string
 }
 
 /** Input component that allows partial, fine-grained auto-completion, i.e. of sub-strings of the input string.
@@ -99,6 +97,7 @@ const AutoSuggestion = ({
                             validationErrorText,
                             clearIconText,
                             onFocusChange,
+                            id,
                         }: IProps) => {
     const [value, setValue] = React.useState(initialValue);
     const [inputString, setInputString] = React.useState(initialValue);
@@ -387,7 +386,7 @@ const AutoSuggestion = ({
             hasStateDanger={!pathIsValid && !pathValidationPending}
             messageText={!pathIsValid && !pathValidationPending ? validationErrorText : undefined}
         >
-            <div className="ecc-auto-suggestion-box">
+            <div id={id} className="ecc-auto-suggestion-box">
                 <div className={`ecc-auto-suggestion-box__editor-box ${BlueprintClassNames.INPUT_GROUP} ${BlueprintClassNames.FILL}`}>
                     <SingleLineCodeEditor
                         mode="null"
@@ -400,6 +399,7 @@ const AutoSuggestion = ({
                     />
                     <span className={BlueprintClassNames.INPUT_ACTION}>
                         <IconButton
+                            data-test-id={"value-path-clear-btn"}
                             name="operation-clear"
                             tooltipText={clearIconText}
                             tooltipProperties={{usePortal: false}}

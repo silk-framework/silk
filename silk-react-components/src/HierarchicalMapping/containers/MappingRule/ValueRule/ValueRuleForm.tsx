@@ -291,6 +291,7 @@ export function ValueRuleForm(props: IProps) {
         if (type === MAPPING_RULE_TYPE_DIRECT) {
             sourcePropertyInput = (
                 <AutoSuggestion
+                    id={"value-path-auto-suggestion"}
                     label="Value path"
                     initialValue={typeof sourceProperty === "string" ? sourceProperty : sourceProperty.value}
                     clearIconText={"Clear value path"}
