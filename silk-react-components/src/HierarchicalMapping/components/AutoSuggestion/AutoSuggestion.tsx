@@ -202,7 +202,7 @@ const AutoSuggestion = ({
             const to = from + length;
             editorInstance.replaceRange(selectedSuggestion, {line: 0, ch: from}, {line: 0, ch: to})
             setShouldShowDropdown(false);
-            editorInstance.setCursor({ line: 0, ch: from + selectedSuggestion.length });
+            editorInstance.setCursor({ line: 0, ch: to });
             editorInstance.focus();
             clearMarkers();
         }
