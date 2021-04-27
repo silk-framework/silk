@@ -3,6 +3,7 @@ package controllers.workflow
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils
+
 import javax.inject.Inject
 import org.silkframework.config.Task
 import org.silkframework.rule.execution.TransformReport
@@ -13,7 +14,7 @@ import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.UnsupportedMediaTypeException
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
 import org.silkframework.workspace.WorkspaceFactory
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowTaskReport}
 import play.api.libs.json.{JsArray, JsString, _}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, _}
 
@@ -81,7 +82,7 @@ class WorkflowApi @Inject() () extends InjectedController {
     lines :+= "Dataset;EntityCount;EntityErrorCount;Column;ColumnErrorCount"
 
     for {
-      (name, res: TransformReport) <- report.report.taskReports
+      WorkflowTaskReport(name, res: TransformReport) <- report.report.taskReports
       (column, RuleResult(count, _)) <- res.ruleResults
     } {
       lines :+= s"$name;${res.entityCounter};${res.entityErrorCounter};$column;$count"

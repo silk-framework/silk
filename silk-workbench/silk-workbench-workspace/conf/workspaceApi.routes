@@ -9,7 +9,7 @@ GET           /taskActivitiesStatus                                             
 POST          /projectImport                                                    controllers.workspaceApi.ProjectImportApi.uploadProjectArchiveFile()
 GET           /projectImport/:projectImportId                                   controllers.workspaceApi.ProjectImportApi.projectImportDetails(projectImportId: String)
 DELETE        /projectImport/:projectImportId                                   controllers.workspaceApi.ProjectImportApi.removeProjectImport(projectImportId: String)
-POST          /projectImport/:projectImportId                                   controllers.workspaceApi.ProjectImportApi.startProjectImport(projectImportId: String, generateNewId: Boolean ?= false, overwriteExisting: Boolean ?= false)
+POST          /projectImport/:projectImportId                                   controllers.workspaceApi.ProjectImportApi.startProjectImport(projectImportId: String, generateNewId: Boolean ?= false, overwriteExisting: Boolean ?= false, newProjectId: Option[String] ?= None)
 GET           /projectImport/:projectImportId/status                            controllers.workspaceApi.ProjectImportApi.projectImportExecutionStatus(projectImportId: String, timeout: Int ?= 20000)
 
 # Execution Report API

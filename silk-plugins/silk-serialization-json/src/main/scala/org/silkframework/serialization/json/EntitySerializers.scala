@@ -5,7 +5,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema, Restriction, ValueType}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
-import org.silkframework.serialization.json.JsonHelpers.{mustBeDefined, mustBeJsArray, requiredValue, stringValue}
+import org.silkframework.serialization.json.JsonHelpers._
 import org.silkframework.util.{DPair, Uri}
 import play.api.libs.json.{JsArray, JsString, JsValue, Json}
 
@@ -23,7 +23,8 @@ object EntitySerializers {
         typeUri = new Uri(stringValue(value, "typeUri")),
         typedPaths = mustBeJsArray(requiredValue(value, "paths"))(_.value.map(pathStr => TypedPath(pathStr.as[String], ValueType.STRING))),
         filter = Restriction.parse(stringValue(value, "filter")),
-        subPath = UntypedPath.parse(stringValue(value, "subPath"))
+        subPath = UntypedPath.parse(stringValue(value, "subPath")),
+        singleEntity = booleanValueOption(value, "singleEntity").getOrElse(false)
       )
     }
 
@@ -34,7 +35,8 @@ object EntitySerializers {
         "typeUri" -> value.typeUri.uri,
         "paths" -> JsArray(paths),
         "filter" -> value.filter.serialize,
-        "subPath" -> value.subPath.serialize()
+        "subPath" -> value.subPath.serialize(),
+        "singleEntity" -> value.singleEntity
       )
     }
   }

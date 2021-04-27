@@ -15,22 +15,13 @@
 package org.silkframework.rule.plugins.aggregator
 
 import org.silkframework.rule.plugins.aggegrator.ScalingAggregator
-import org.silkframework.rule.similarity.Aggregator
-import org.silkframework.test.PluginTest
-import org.silkframework.testutil.approximatelyEqualTo
+import org.silkframework.rule.test.AggregatorTest
 
 
-class ScalingAggregatorTest extends PluginTest {
-
-  it should "scale the input similarity values by the specified factor" in {
-    ScalingAggregator(factor = 0.5).evaluate((1, 1.0) :: Nil).get should be(approximatelyEqualTo(0.5))
-    ScalingAggregator(factor = 0.1).evaluate((1, 0.1) :: Nil).get should be(approximatelyEqualTo(0.01))
-  }
+class ScalingAggregatorTest extends AggregatorTest[ScalingAggregator] {
 
   it should "fail if factor is invalid" in {
-    an [IllegalArgumentException] should be thrownBy ScalingAggregator(factor = 1.1)
-    an [IllegalArgumentException] should be thrownBy ScalingAggregator(factor = -0.1)
+    an[IllegalArgumentException] should be thrownBy ScalingAggregator(factor = 1.1)
+    an[IllegalArgumentException] should be thrownBy ScalingAggregator(factor = -0.1)
   }
-
-  override def pluginObject: Aggregator = ScalingAggregator()
 }

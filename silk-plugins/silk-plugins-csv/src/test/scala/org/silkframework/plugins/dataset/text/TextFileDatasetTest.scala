@@ -25,7 +25,7 @@ class TextFileDatasetTest extends FlatSpec with Matchers {
 
   it should "write plain text files" in {
     val sink = dataset.entitySink
-    sink.openTable(dataset.typeName, Seq(TypedProperty(dataset.property, ValueType.STRING, isBackwardProperty = false)))
+    sink.openTable(dataset.typeName, Seq(TypedProperty(dataset.property, ValueType.STRING, isBackwardProperty = false)), singleEntity = false)
     sink.writeEntity("dummySubject", Seq(Seq(testValue)))
     sink.closeTable()
     sink.close()

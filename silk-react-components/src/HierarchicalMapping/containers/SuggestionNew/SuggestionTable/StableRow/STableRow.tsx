@@ -59,7 +59,8 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}: 
         onModifyTarget(modified);
     };
 
-    const selectedTarget = candidates.find(t => t._selected);
+    // There must always be one item selected from the target list
+    const selectedTarget = candidates.find(t => t._selected) as ITargetWithSelected;
     const selectedType = selectedTarget ? selectedTarget.type : 'value';
 
     const {search} = context;

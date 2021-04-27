@@ -19,13 +19,12 @@ import org.silkframework.rule.Operator
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{DPair, Identifier}
 
-import scala.xml.Node
+import scala.xml.{Node, Text}
 
 /**
  * An aggregation combines multiple similarity values into a single value.
  */
 case class Aggregation(id: Identifier = Operator.generateId,
-                       required: Boolean = false,
                        weight: Int = 1,
                        aggregator: Aggregator,
                        operators: Seq[SimilarityOperator]) extends SimilarityOperator {
@@ -47,17 +46,14 @@ case class Aggregation(id: Identifier = Operator.generateId,
   override def apply(entities: DPair[Entity], limit: Double): Option[Double] = {
     val totalWeights = operators.foldLeft(0)(_ + _.weight)
 
-    var weightedValues: List[(Int, Double)] = Nil
+    var weightedValues: List[WeightedSimilarityScore] = Nil
     for(op <- operators) {
       val opThreshold = aggregator.computeThreshold(limit, op.weight.toDouble / totalWeights)
-      op(entities, opThreshold) match {
-        case Some(v) => weightedValues ::= (op.weight, v)
-        case None if op.required => return None
-        case None =>
-      }
+      val score = op(entities, opThreshold)
+      weightedValues ::= WeightedSimilarityScore(score, op.weight)
     }
 
-    aggregator.evaluate(weightedValues)
+    aggregator.evaluate(weightedValues).score
   }
 
   /**
@@ -74,9 +70,6 @@ case class Aggregation(id: Identifier = Operator.generateId,
       for (op <- operators if op.indexing) yield {
         val opThreshold = aggregator.computeThreshold(threshold, op.weight.toDouble / totalWeights)
         val index = op.index(entity, sourceOrTarget, opThreshold)
-
-        if (op.required && index.isEmpty) return Index.empty
-
         index
       }
     }.filterNot(_.isEmpty)
@@ -101,7 +94,6 @@ object Aggregation {
     import XmlSerialization._
 
     def read(node: Node)(implicit readContext: ReadContext): Aggregation = {
-      val requiredStr = (node \ "@required").text
       val weightStr = (node \ "@weight").text
       implicit val prefixes = readContext.prefixes
       implicit val resourceManager = readContext.resources
@@ -110,7 +102,6 @@ object Aggregation {
 
       Aggregation(
         id = Operator.readId(node),
-        required = if (requiredStr.isEmpty) false else requiredStr.toBoolean,
         weight = if (weightStr.isEmpty) 1 else weightStr.toInt,
         operators = node.child.filter(n => n.label == "Aggregate" || n.label == "Compare").map(fromXml[SimilarityOperator]),
         aggregator = aggregator
@@ -120,7 +111,7 @@ object Aggregation {
     def write(value: Aggregation)(implicit writeContext: WriteContext[Node]): Node = {
       value.aggregator match {
         case Aggregator(plugin, params) =>
-          <Aggregate id={value.id} required={value.required.toString} weight={value.weight.toString} type={plugin.id}>
+          <Aggregate id={value.id} weight={value.weight.toString} type={plugin.id}>
             {value.operators.map(toXml[SimilarityOperator])}
           </Aggregate>
       }

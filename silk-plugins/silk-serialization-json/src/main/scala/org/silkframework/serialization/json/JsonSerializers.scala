@@ -1,8 +1,5 @@
 package org.silkframework.serialization.json
 
-import java.time.Instant
-import java.util.UUID
-
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec, DatasetTask}
@@ -19,12 +16,15 @@ import org.silkframework.runtime.validation.{BadUserInputException, ValidationEx
 import org.silkframework.serialization.json.EntitySerializers.EntitySchemaJsonFormat
 import org.silkframework.serialization.json.InputJsonSerializer._
 import org.silkframework.serialization.json.JsonHelpers._
+import org.silkframework.serialization.json.JsonSerializers.ObjectMappingJsonFormat.MAPPING_TARGET
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.LinkingSerializers._
 import org.silkframework.util.{DPair, Identifier, Uri}
 import org.silkframework.workspace.activity.transform.{CachedEntitySchemata, VocabularyCacheValue}
 import play.api.libs.json._
 
+import java.time.Instant
+import java.util.UUID
 import scala.reflect.ClassTag
 
 /**
@@ -387,7 +387,8 @@ object JsonSerializers {
       val mappingRules = fromJson[MappingRules](mustBeDefined(value, RULES_PROPERTY))
       val typeName = mappingRules.typeRules.flatMap(_.typeUri.localName).headOption
       val id = identifier(value, RootMappingRule.defaultId)
-      RootMappingRule(id = id, rules = mappingRules, metaData = metaData(value, typeName.getOrElse("RootMapping")))
+      val mappingTarget = optionalValue(value, MAPPING_TARGET).map(fromJson[MappingTarget]).getOrElse(RootMappingRule.defaultMappingTarget)
+      RootMappingRule(id = id, rules = mappingRules, mappingTarget = mappingTarget, metaData = metaData(value, typeName.getOrElse("RootMapping")))
     }
 
     /**
@@ -399,6 +400,7 @@ object JsonSerializers {
           TYPE -> JsString("root"),
           ID -> JsString(value.id),
           RULES_PROPERTY -> toJson(value.rules),
+          MAPPING_TARGET -> toJson(value.mappingTarget),
           METADATA -> toJson(value.metaData)
         )
       )
@@ -711,6 +713,7 @@ object JsonSerializers {
     final val OUTPUT: String = "output"
     final val ERROR_OUTPUT: String = "errorOutput"
     final val TARGET_VOCABULARIES: String = "targetVocabularies"
+    final val ABORT_IF_ERRORS_OCCUR: String = "abortIfErrorsOccur"
 
     /** Deprecated property names */
     final val DEPRECATED_RULES_PROPERTY: String = "root"
@@ -738,7 +741,8 @@ object JsonSerializers {
                   map(TargetVocabularyParameterType.fromString).
                   getOrElse(TargetVocabularyListParameter(Seq.empty))
               vocabs
-            }
+            },
+            abortIfErrorsOccur = stringValueOption(parametersObj, ABORT_IF_ERRORS_OCCUR).map(_.toBoolean).getOrElse(false)
           )
       }
     }
@@ -766,14 +770,14 @@ object JsonSerializers {
           RULES_PROPERTY -> toJson(value.mappingRule),
           OUTPUT -> JsString(value.output.map(_.toString).getOrElse("")),
           ERROR_OUTPUT -> JsString(value.errorOutput.map(_.toString).getOrElse("")),
-          TARGET_VOCABULARIES -> JsString(TargetVocabularyParameterType.toString(value.targetVocabularies))
+          TARGET_VOCABULARIES -> JsString(TargetVocabularyParameterType.toString(value.targetVocabularies)),
+          ABORT_IF_ERRORS_OCCUR -> JsString(value.abortIfErrorsOccur.toString)
         ))
       )
     }
   }
 
   implicit object ComparisonJsonFormat extends JsonFormat[Comparison] {
-    final val REQUIRED = "required"
     final val WEIGHT = "weight"
     final val THRESHOLD = "threshold"
     final val INDEXING = "indexing"
@@ -791,7 +795,6 @@ object JsonSerializers {
 
       Comparison(
         id = identifier(value, "comparison"),
-        required = booleanValue(value, REQUIRED),
         weight = numberValue(value, WEIGHT).intValue,
         threshold = numberValue(value, THRESHOLD).doubleValue,
         indexing = booleanValue(value, INDEXING),
@@ -808,7 +811,6 @@ object JsonSerializers {
       Json.obj(
         ID -> value.id.toString,
         TYPE -> COMPARISON_TYPE,
-        REQUIRED -> value.required,
         WEIGHT -> value.weight,
         THRESHOLD -> value.threshold,
         INDEXING -> value.indexing,
@@ -839,7 +841,6 @@ object JsonSerializers {
 
       Aggregation(
         id = identifier(value, "aggregation"),
-        required = booleanValue(value, REQUIRED),
         weight = numberValue(value, WEIGHT).intValue,
         aggregator = aggregator,
         operators = inputs
@@ -850,7 +851,6 @@ object JsonSerializers {
       Json.obj(
         ID -> value.id.toString,
         TYPE -> AGGREGATION_TYPE,
-        REQUIRED -> value.required,
         WEIGHT -> value.weight,
         AGGREGATOR -> value.aggregator.pluginSpec.id.toString,
         PARAMETERS -> Json.toJson(value.aggregator.parameters),

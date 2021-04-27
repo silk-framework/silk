@@ -40,7 +40,7 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
   private var tempFile: Option[File] = None
   private val maxBytesPerRequest = graphStore.defaultTimeouts.maxRequestSize // in bytes
 
-  override def openTable(typeUri: Uri, properties: Seq[TypedProperty])(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     internalInit()
     this.properties = properties
   }

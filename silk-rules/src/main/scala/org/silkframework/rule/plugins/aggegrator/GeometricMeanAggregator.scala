@@ -15,8 +15,8 @@
 package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.Aggregator
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.rule.similarity.{Aggregator, SimilarityScore, WeightedSimilarityScore}
+import org.silkframework.runtime.plugin.annotations.{AggregatorExample, AggregatorExamples, Plugin}
 
 import scala.math._
 
@@ -29,16 +29,59 @@ import scala.math._
   label = "Geometric mean",
   description = "Compute the (weighted) geometric mean."
 )
+@AggregatorExamples(Array(
+  new AggregatorExample(
+    inputs = Array(0.0, 0.0, 0.0),
+    weights = Array(1, 2, 1),
+    output = 0.0
+  ),
+  new AggregatorExample(
+    inputs = Array(1.0, 1.0, 1.0),
+    weights = Array(1, 2, 1),
+    output = 1.0
+  ),
+  new AggregatorExample(
+    inputs = Array(0.5, 1.0),
+    weights = Array(2, 1),
+    output = 0.629961
+  ),
+  new AggregatorExample(
+    inputs = Array(0.5, 1.0, 0.7),
+    weights = Array(2, 1, 5),
+    output = 0.672866
+  ),
+  new AggregatorExample(
+    inputs = Array(0.1, 0.9, 0.2),
+    weights = Array(10, 2, 3),
+    output = 0.153971
+  ),
+  new AggregatorExample(
+    description = "Missing scores always lead to an output of none.",
+    inputs = Array(-1.0, Double.NaN, 1.0),
+    output = Double.NaN
+  )
+))
 case class GeometricMeanAggregator() extends Aggregator {
-  override def evaluate(values: Traversable[(Int, Double)]) = {
-    if (!values.isEmpty) {
-      val weightedProduct = values.map { case (weight, value) => pow(value, weight) }.reduceLeft(_ * _)
-      val totalWeights = values.map { case (weight, value) => weight }.sum
 
-      Some(pow(weightedProduct, 1.0 / totalWeights))
+  override def evaluate(values: Seq[WeightedSimilarityScore]): SimilarityScore = {
+    if (values.nonEmpty) {
+      var sumWeights = 0
+      var weightedProduct = 1.0
+
+      for (WeightedSimilarityScore(score, weight) <- values) {
+        score match {
+          case Some(score) =>
+            sumWeights += weight
+            weightedProduct *= pow(score, weight)
+          case None =>
+            return SimilarityScore.none
+        }
+      }
+
+      SimilarityScore(pow(weightedProduct, 1.0 / sumWeights))
     }
     else {
-      None
+      SimilarityScore.none
     }
   }
 

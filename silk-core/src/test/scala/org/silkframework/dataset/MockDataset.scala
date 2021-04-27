@@ -69,7 +69,7 @@ case class DummyLinkSink(writeLinkFn: (Link, String) => Unit,
 
 case class DummyEntitySink(writeEntityFn: (String, Seq[Seq[String]]) => Unit,
                            clearFn: () => Unit) extends EntitySink {
-  override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
                         (implicit userContext: UserContext, prefixes: Prefixes): Unit = {}
 
   override def writeEntity(subject: String, values: Seq[Seq[String]])

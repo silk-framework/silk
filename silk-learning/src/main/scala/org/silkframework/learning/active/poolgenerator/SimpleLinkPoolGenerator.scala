@@ -14,10 +14,12 @@
 
 package org.silkframework.learning.active.poolgenerator
 
+import org.silkframework.config.PlainTask
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.learning.active.UnlabeledLinkPool
+import org.silkframework.learning.active.poolgenerator.LinkPoolGeneratorUtils._
 import org.silkframework.rule.execution.{GenerateLinks, Linking}
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric
@@ -27,8 +29,6 @@ import org.silkframework.rule.{LinkSpec, LinkageRule, Operator, RuntimeLinkingCo
 import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl, UserContext}
 import org.silkframework.util.{DPair, Identifier}
-import LinkPoolGeneratorUtils._
-import org.silkframework.config.PlainTask
 
 import scala.util.Random
 
@@ -123,8 +123,6 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
       }
 
       val id = Identifier.random
-
-      val required = false
 
       val weight = 1
 

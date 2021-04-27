@@ -7,4 +7,5 @@ import org.silkframework.config.{Task, TaskSpec}
   */
 case class SimpleExecutionReport(task: Task[TaskSpec],
                                  summary: Seq[(String, String)],
-                                 warnings: Seq[String]) extends ExecutionReport
+                                 warnings: Seq[String],
+                                 override val operation: Option[String] = None) extends ExecutionReport

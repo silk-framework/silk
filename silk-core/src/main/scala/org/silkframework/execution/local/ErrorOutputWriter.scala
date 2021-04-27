@@ -42,7 +42,7 @@ object ErrorOutputWriter {
     var entityCount = 0
     val startTime = System.currentTimeMillis()
     var lastLog = startTime
-    sink.openTable(entityTable.entitySchema.typeUri, entityTable.entitySchema.typedPaths.map(_.property.get) :+ errorProperty)
+    sink.openTable(entityTable.entitySchema.typeUri, entityTable.entitySchema.typedPaths.map(_.property.get) :+ errorProperty, singleEntity = false)
     for (entity <- entityTable.entities if entity.hasFailed) {
       sink.writeEntity(entity.uri, entity.values :+ Seq(entity.failure.get.message.getOrElse("Unknown error")))
       entityCount += 1

@@ -1,7 +1,6 @@
 package org.silkframework.workspace.activity.workflow
 
 import org.scalatest.{FlatSpec, Matchers}
-import org.silkframework.config.ConfigTest
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
@@ -33,7 +32,7 @@ class LocalWorkflowExecutorTest extends FlatSpec with Matchers with SingleProjec
     // Retrieve transform report
     val lastReport = executionMgr.retrieveReport(availableReports.last)
     val workflowReport = lastReport.resultValue.get.asInstanceOf[WorkflowExecutionReport]
-    val transformReport = workflowReport.taskReports("transform").asInstanceOf[TransformReport]
+    val transformReport = workflowReport.taskReports.find(_.nodeId.toString == "transform").get.report.asInstanceOf[TransformReport]
 
     // Check if expected errors have been recorded
     transformReport.ruleResults("uri").errorCount shouldBe 1

@@ -159,8 +159,7 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
     * Listeners for updates to task reports.
     * We need to hold them to prevent their garbage collection.
     */
-  @volatile
-  private var reportListeners: List[TaskReportListener] = List.empty
+  private val reportListeners: mutable.Buffer[TaskReportListener] = mutable.Buffer.empty
 
   /** Creates an activity context for a specific task that will be executed in the workflow.
     * Also wires the task execution report to the workflow execution report. */
@@ -174,17 +173,17 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
   // Creates a task report listener that will add that task report to the overall workflow report
   private def listenForTaskReports(nodeId: Identifier,
                                    taskContext: ActivityMonitor[ExecutionReport]): Unit = {
-    val listener = new TaskReportListener(nodeId)
+    val listener = new TaskReportListener(reportListeners.size, nodeId)
     taskContext.value.subscribe(listener)
-    reportListeners ::= listener
+    reportListeners.append(listener)
   }
 
   /**
     * Updates the workflow execution report on each update of a task report.
     */
-  private class TaskReportListener(task: Identifier) extends (ExecutionReport => Unit) {
+  private class TaskReportListener(index: Int, nodeId: Identifier) extends (ExecutionReport => Unit) {
     def apply(report: ExecutionReport): Unit = activityContext.value.synchronized {
-      activityContext.value() = activityContext.value().withReport(task, report)
+      activityContext.value() = activityContext.value().withReport(index, nodeId, report)
     }
   }
 }

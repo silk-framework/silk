@@ -1,5 +1,5 @@
 import React from "react";
-import { CardTitle, Spinner } from '@eccenca/gui-elements';
+import { Spinner } from '@eccenca/gui-elements';
 import ErrorView from '../../../../../src/HierarchicalMapping/components/ErrorView';
 import ExampleView from '../../../../../src/HierarchicalMapping/containers/MappingRule/ExampleView';
 import * as Store from '../../../../../src/HierarchicalMapping/store';
@@ -19,7 +19,7 @@ const selectors = {
     SOURCE_PROP_AUTOCOMPLETE: '.ecc-silk-mapping__ruleseditor__sourcePath',
     TARGET_PROP_AUTOCOMPLETE: '.ecc-silk-mapping__ruleseditor__targetProperty',
     DATA_TYPE_AUTOCOMPLETE: '.ecc-silk-mapping__ruleseditor__propertyType',
-    CHECKBOX: '.ecc-silk-mapping__ruleseditor__isAttribute',
+    TARGET_CARDINALITY: '.ecc-silk-mapping__ruleseditor__isAttribute',
     INPUT_COMPLEX: '[data-id="test-complex-input"]',
     LNG_SELECT_BOX: '[data-id="lng-select-box"]',
     RULE_LABEL_INPUT: '.ecc-silk-mapping__ruleseditor__label',
@@ -114,9 +114,9 @@ describe("ValueMappingRuleForm Component", () => {
             })
         });
     
-        it('should render the checkbox', async () => {
+        it('should render the target cardinality field', async () => {
             await waitFor(() => {
-                expect(findAll(wrapper, selectors.CHECKBOX)).toHaveLength(1);
+                expect(findAll(wrapper, selectors.TARGET_CARDINALITY)).toHaveLength(1);
             })
         });
     

@@ -668,9 +668,17 @@ ul.ecc-hierarchical-mapping-error-list {
         }
         &.ecc-silk-mapping__rulesviewer__examples-table__value {
             padding: $ecc-size-block-whitespace/2 0;
+
+            .mdl-chip {
+                white-space: pre-wrap;
+            }
         }
         &.ecc-silk-mapping__rulesviewer__examples-table__result {
             padding: $ecc-size-block-whitespace/2 0em $ecc-size-block-whitespace/2 $ecc-size-block-whitespace;
+
+            .mdl-chip {
+                white-space: pre-wrap;
+            }
         }
     }
 

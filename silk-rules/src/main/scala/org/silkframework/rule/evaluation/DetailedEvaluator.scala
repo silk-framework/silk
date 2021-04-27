@@ -15,11 +15,9 @@
 package org.silkframework.rule.evaluation
 
 import org.silkframework.entity.Entity
-import org.silkframework.rule.evaluation.DetailedEvaluator.evaluateOperator
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
-import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
+import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator, WeightedSimilarityScore}
 import org.silkframework.rule.{LinkageRule, TransformRule}
-import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.DPair
 
 import scala.util.control.NonFatal
@@ -64,15 +62,13 @@ object DetailedEvaluator {
    */
   def apply(rules: Seq[TransformRule], entity: Entity): DetailedEntity = {
     val subjectRule = rules.find(_.target.isEmpty)
-    val propertyRules = rules.filter(_.target.isDefined)
-
     val uris = subjectRule match {
       case Some(rule) => rule(entity)
       case None => Seq(entity.uri.toString)
     }
 
-    val values = for(rule <- propertyRules) yield apply(rule, entity)
-    DetailedEntity(uris, values, propertyRules)
+    val values = for(rule <- rules) yield apply(rule, entity)
+    DetailedEntity(uris, values, rules)
   }
 
   /**
@@ -81,14 +77,15 @@ object DetailedEvaluator {
   def apply(rule: TransformRule, entity: Entity): Value = {
     val result = evaluateInput(rule.operator, entity)
     // Validate values
-    for {
-      valueType <- rule.target.map(_.valueType)
-      value <- result.values
-      if !valueType.validate(value)
-    } {
-      val ex = new ValidationException(s"Value '$value' is not a valid ${valueType.label}")
-      return result.withError(ex)
+    for(target <- rule.target) {
+      try {
+        target.validate(result.values)
+      } catch {
+        case NonFatal(ex) =>
+          return result.withError(ex)
+      }
     }
+    // Return validated result
     result
   }
 
@@ -100,26 +97,21 @@ object DetailedEvaluator {
   private def evaluateAggregation(agg: Aggregation, entities: DPair[Entity], threshold: Double): AggregatorConfidence = {
     val totalWeights = agg.operators.map(_.weight).sum
 
-    var isNone = false
-
     val operatorValues = {
       for (operator <- agg.operators) yield {
         val updatedThreshold = agg.aggregator.computeThreshold(threshold, operator.weight.toDouble / totalWeights)
-        val value = evaluateOperator(operator, entities, updatedThreshold)
-        if (operator.required && value.score.isEmpty) isNone = true
-
-        value
+        evaluateOperator(operator, entities, updatedThreshold)
       }
     }
 
-    val weightedValues = for((weight, Some(value)) <- agg.operators.map(_.weight) zip operatorValues.map(_.score)) yield (weight, value)
+    var weightedValues = Seq[WeightedSimilarityScore]()
+
+    for((op, value) <- agg.operators zip operatorValues.map(_.score)) yield {
+      weightedValues :+= WeightedSimilarityScore(value, op.weight)
+    }
 
     val aggregatedValue = agg.aggregator.evaluate(weightedValues)
-
-    if (isNone)
-      AggregatorConfidence(None, agg, operatorValues)
-    else
-      AggregatorConfidence(aggregatedValue, agg, operatorValues)
+    AggregatorConfidence(aggregatedValue.score, agg, operatorValues)
   }
 
   private def evaluateComparison(comparison: Comparison, entities: DPair[Entity], threshold: Double): ComparisonConfidence = {

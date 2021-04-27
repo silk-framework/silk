@@ -15,9 +15,9 @@
 package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.Aggregator
+import org.silkframework.rule.similarity.{Aggregator, SimilarityScore, WeightedSimilarityScore}
 import org.silkframework.runtime.plugin.PluginCategories
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{AggregatorExample, AggregatorExamples, Plugin}
 
 @Plugin(
   id = "max",
@@ -25,19 +25,40 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   label = "Or",
   description = "At least one input score must be within the threshold. Selects the maximum score."
 )
+@AggregatorExamples(Array(
+  new AggregatorExample(
+    inputs = Array(0.5, 0.0),
+    output = 0.5
+  ),
+  new AggregatorExample(
+    inputs = Array(-1.0, -0.5, -0.3),
+    output = -0.3
+  ),
+  new AggregatorExample(
+    description = "Missing scores default to a similarity score of -1.",
+    inputs = Array(Double.NaN),
+    output = -1.0
+  ),
+  new AggregatorExample(
+    description = "Weights are ignored.",
+    inputs = Array(1.0, 0.0),
+    weights = Array(1000, 0),
+    output = 1.0
+  )
+))
 case class MaximumAggregator() extends Aggregator {
   /**
    * Returns the maximum of the provided values.
    */
-  override def evaluate(values: Traversable[(Int, Double)]): Option[Double] = {
+  override def evaluate(values: Seq[WeightedSimilarityScore]): SimilarityScore = {
     if (values.isEmpty) {
-      None
+      SimilarityScore.none
     } else {
-      var max = Double.MinValue
-      for(value <- values if value._2 > max) {
-        max = value._2
+      var maxScore = Double.MinValue
+      for(value <- values) {
+        maxScore = math.max(maxScore, value.score.getOrElse(-1.0))
       }
-      Some(max)
+      SimilarityScore(maxScore)
     }
   }
 

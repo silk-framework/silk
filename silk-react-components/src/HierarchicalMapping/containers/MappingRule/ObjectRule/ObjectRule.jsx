@@ -33,6 +33,7 @@ import MetadataLabel from '../../../components/Metadata/MetadataLabel';
 import MetadataDesc from '../../../components/Metadata/MetadataDesc';
 import { SourcePath } from '../../../components/SourcePath';
 import { isDebugMode } from '../../../utils/isDebugMode';
+import TargetCardinality from "../../../components/TargetCardinality";
 
 class ObjectRule extends React.Component {
     static propTypes = {
@@ -192,13 +193,19 @@ class ObjectRule extends React.Component {
                                 <TargetProperty
                                     key={'ObjectTargetProperty'}
                                     mappingTargetUri={_.get(ruleData, 'mappingTarget.uri')}
+                                    isObjectMapping={true}
+                                    isAttribute={_.get(ruleData, 'mappingTarget.isAttribute')}
                                 />,
                                 <ObjectEntityRelation
                                     key={'ObjectEntityRelation'}
                                     isBackwardProperty={_.get(ruleData, 'mappingTarget.isBackwardProperty')}
                                     parent={this.props.parent}
                                 />
-                            ] : null
+                            ] : <TargetCardinality
+                                    isAttribute={_.get(ruleData, 'mappingTarget.isAttribute')}
+                                    isObjectMapping={true}
+                                    editable={false}
+                                />
                         }
                         {
                             _.get(ruleData, 'rules.typeRules[0].uri')

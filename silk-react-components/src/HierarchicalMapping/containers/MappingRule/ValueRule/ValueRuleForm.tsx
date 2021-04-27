@@ -2,6 +2,20 @@ import React, {useEffect, useState} from 'react';
 import {Card, CardActions, CardContent, CardTitle, ScrollingHOC, SelectBox, Spinner,} from '@eccenca/gui-elements';
 import {FieldItem} from '@gui-elements/index';
 import {AffirmativeButton, Checkbox, DismissiveButton, TextField,} from '@gui-elements/legacy-replacements';
+import {
+    Card,
+    CardTitle,
+    CardContent,
+    CardActions,
+    Spinner,
+    ScrollingHOC,
+    SelectBox,
+} from '@eccenca/gui-elements';
+import {
+    AffirmativeButton,
+    DismissiveButton,
+    TextField,
+} from '@gui-elements/legacy-replacements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import store, {getSuggestion, pathValidation} from '../../../store';
@@ -11,6 +25,9 @@ import AutoComplete from '../../../components/AutoComplete';
 import {trimValue,} from '../../../utils/trimValue';
 import {MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES} from '../../../utils/constants';
 import EventEmitter from '../../../utils/EventEmitter';
+import { wasTouched } from '../../../utils/wasTouched';
+import { newValueIsIRI } from '../../../utils/newValueIsIRI';
+import TargetCardinality from "../../../components/TargetCardinality";
 import {wasTouched} from '../../../utils/wasTouched';
 import {newValueIsIRI} from '../../../utils/newValueIsIRI';
 import AutoSuggestion, {
@@ -134,13 +151,13 @@ export function ValueRuleForm(props: IProps) {
                             ),
                         };
 
-                        setType(initialValues.type)
-                        setComment(initialValues.comment)
-                        setLabel(initialValues.label)
-                        setTargetProperty(initialValues.targetProperty)
-                        setValueType(initialValues.valueType)
-                        setSourceProperty(initialValues.sourceProperty)
-                        setIsAttribute(initialValues.isAttribute)
+                        initialValues.type && setType(initialValues.type)
+                        initialValues.comment && setComment(initialValues.comment)
+                        initialValues.label && setLabel(initialValues.label)
+                        initialValues.targetProperty && setTargetProperty(initialValues.targetProperty)
+                        initialValues.valueType && setValueType(initialValues.valueType)
+                        initialValues.sourceProperty && setSourceProperty(initialValues.sourceProperty)
+                        initialValues.isAttribute && setIsAttribute(initialValues.isAttribute)
                         setInitialValues(initialValues)
                         setLoading(false)
                     },
@@ -195,7 +212,7 @@ export function ValueRuleForm(props: IProps) {
     };
 
     const handleChangePropertyType = value => {
-        const valueType = { nodeType: value.value };
+        const valueType = { nodeType: value };
         handleChangeValue('valueType', valueType, setValueType);
     };
 
@@ -351,16 +368,6 @@ export function ValueRuleForm(props: IProps) {
                             resetQueryToValue={true}
                             itemDisplayLabel={(item) => item.label ? `${item.label} <${item.value}>` : item.value}
                         />
-                        <FieldItem>
-                            <Checkbox
-                                checked={isAttribute}
-                                className="ecc-silk-mapping__ruleseditor__isAttribute"
-                                onChange={() => handleChangeValue('isAttribute', !isAttribute, setIsAttribute)}
-                            >
-                                Write values as attributes (if supported by the
-                                target dataset)
-                            </Checkbox>
-                        </FieldItem>
                         <AutoComplete
                             placeholder="Data type"
                             className="ecc-silk-mapping__ruleseditor__propertyType"
@@ -370,25 +377,29 @@ export function ValueRuleForm(props: IProps) {
                             clearable={false}
                             onChange={handleChangePropertyType}
                         />
-                        { (valueType.nodeType === 'LanguageValueType') &&
-                        <SelectBox
+                        {(valueType.nodeType === 'LanguageValueType') &&
+                        <AutoComplete
                             data-id="lng-select-box"
                             placeholder="Language Tag"
+                            className="ecc-silk-mapping__ruleseditor__languageTag"
+                            entity="langTag"
+                            ruleId={autoCompleteRuleId}
                             options={LANGUAGES_LIST}
-                            optionsOnTop={true} // option list opens up on top of select input (default: false)
                             value={valueType.lang}
                             onChange={handleChangeLanguageTag}
-                            isValidNewOption={({ label = '' }) =>
-                                !_.isNull(label.match(/^[a-z]{2}(-[A-Z]{2})?$/))
-                            }
-                            creatable={true} // allow creation of new values
+                            isValidNewOption={option => !_.isNull(option.label.match(/^[a-z]{2}(-[A-Z]{2})?$/))}
+                            creatable={true}
                             noResultsText="Not a valid language tag"
-                            promptTextCreator={newLabel => (`Create language tag: ${newLabel}`)}
-                            multi={false} // allow multi selection
+                            newOptionText={newLabel => (`Create language tag: ${newLabel}`)}
                             clearable={false} // hide 'remove all selected values' button
-                            searchable={true} // whether to behave like a type-ahead or not
                         />
                         }
+                        <TargetCardinality
+                            className="ecc-silk-mapping__ruleseditor__isAttribute"
+                            isAttribute={isAttribute}
+                            isObjectMapping={false}
+                            onChange={() => handleChangeValue('isAttribute', !isAttribute, setIsAttribute)}
+                        />
                         {sourcePropertyInput}
                         {exampleView}
                         <TextField

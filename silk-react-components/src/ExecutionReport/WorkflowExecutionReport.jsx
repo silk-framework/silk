@@ -13,10 +13,16 @@ export default class WorkflowExecutionReport extends React.Component {
     super(props);
     this.displayName = 'WorkflowExecutionReport';
     this.state = {
+      executionMetaData: null,
       executionReport: {
-        taskReports: {}
+        summary: [],
+        warnings: [],
+        task: {
+          id: "workflow"
+        },
+        taskReports: []
       },
-      selectedNode: null
+      selectedIndex: -1 // the index of the selected task report or -1 for the workflow itself
     };
   }
 
@@ -40,7 +46,8 @@ export default class WorkflowExecutionReport extends React.Component {
         this.props.time)
         .then((report) => {
           this.setState({
-            executionReport: report.value
+            executionReport: report.value,
+            executionMetaData: report.metaData
           });
         })
         .catch((error) => {
@@ -49,47 +56,64 @@ export default class WorkflowExecutionReport extends React.Component {
   }
 
   render() {
-    return  <div className="mdl-grid mdl-grid--no-spacing">
-              <div className="mdl-cell mdl-cell--2-col">
-                <Card className="silk-report-card">
-                  <CardTitle>
-                    Tasks
-                  </CardTitle>
-                  <CardContent>
-                    <ul className="mdl-list">
-                      { Object.entries(this.state.executionReport.taskReports).map(e => this.renderTaskItem(e[0], e[1])) }
-                    </ul>
-                  </CardContent>
-                </Card>
+      let executionWarnings = [];
+      if(this.state.executionMetaData != null && this.state.executionMetaData.finishStatus.cancelled) {
+        executionWarnings = [ "Executed cancelled" ]
+      } else if(this.state.executionMetaData != null && this.state.executionMetaData.finishStatus.failed) {
+        executionWarnings = [ "Executed failed" ]
+      }
+
+      return  <div className="mdl-grid mdl-grid--no-spacing">
+                <div className="mdl-cell mdl-cell--2-col silk-report-sidebar">
+                  <Card className="silk-report-sidebar-overview">
+                    <CardTitle>
+                      Workflow
+                    </CardTitle>
+                    <CardContent>
+                      <ul className="mdl-list">
+                        { this.renderTaskItem(this.state.executionReport, -1, executionWarnings) }
+                      </ul>
+                    </CardContent>
+                  </Card>
+                  <Card className="silk-report-sidebar-tasks">
+                    <CardTitle className="silk-report-sidebar-tasks-title">
+                      Tasks
+                    </CardTitle>
+                    <CardContent className="silk-report-sidebar-tasks-content">
+                      <ul className="mdl-list">
+                        { this.state.executionReport.taskReports.map((report, index) => this.renderTaskItem(report, index, report.warnings)) }
+                      </ul>
+                    </CardContent>
+                  </Card>
+                </div>
+                <div className="mdl-cell mdl-cell--10-col">
+                  { this.renderReport(this.state.executionReport.nodeId) }
+                </div>
               </div>
-              <div className="mdl-cell mdl-cell--10-col">
-                { this.renderReport(this.state.selectedNode) }
-              </div>
-            </div>
   }
 
-  renderTaskItem(nodeId, report) {
-    return <li key={nodeId} className="mdl-list__item mdl-list__item--two-line silk-report-list-item" onClick={() => this.setState({selectedNode: nodeId})} >
+  renderTaskItem(report, index, warnings) {
+    return <li key={"report-" + index} className="mdl-list__item mdl-list__item--two-line silk-report-list-item" onClick={() => this.setState({selectedIndex: index})} >
              <span className="mdl-list__item-primary-content">
-               { report.label } { (report.task.id !== nodeId) ? '(' + nodeId + ')' : ''}
-               { this.renderTaskDescription(report) }
+               { report.label } { (report.operation != null) ? '(' + report.operation + ')' : ''}
+               { this.renderTaskDescription(warnings) }
              </span>
              <span className="mdl-list__item-secondary-content">
-               { this.renderTaskIcon(report) }
+               { this.renderTaskIcon(warnings) }
              </span>
            </li>
   }
 
-  renderTaskDescription(report) {
-    if(report.hasOwnProperty("warnings") && report.warnings.length > 0) {
-      return <span className="mdl-list__item-sub-title">{report.warnings.length} warnings</span>
+  renderTaskDescription(warnings) {
+    if(warnings != null && warnings.length > 0) {
+      return <span className="mdl-list__item-sub-title">{warnings.length} warnings</span>
     } else {
       return <span className="mdl-list__item-sub-title">no issues</span>
     }
   }
 
-  renderTaskIcon(report) {
-    if(report.hasOwnProperty("warnings") && report.warnings.length > 0) {
+  renderTaskIcon(warnings) {
+    if(warnings != null && warnings.length > 0) {
       return <Icon name="warning" className="silk-report-list-item-icon-red" />
     } else {
       return <Icon name="done" className="silk-report-list-item-icon-green" />
@@ -97,17 +121,19 @@ export default class WorkflowExecutionReport extends React.Component {
   }
 
   renderReport(nodeId) {
-    if(this.state.executionReport.taskReports.hasOwnProperty(this.state.selectedNode)) {
+    if(this.state.selectedIndex >= 0) {
+      // Render the report of the selected task
       return <ExecutionReport baseUrl={this.props.baseUrl}
                               project={this.props.project}
                               nodeId={nodeId}
-                              executionReport={this.state.executionReport.taskReports[this.state.selectedNode]}/>
+                              executionReport={this.state.executionReport.taskReports[this.state.selectedIndex]}/>
     } else {
-      return  <div className="silk-report-card mdl-card mdl-shadow--2dp mdl-card--stretch">
-                <div className="mdl-card__supporting-text">
-                  Select a task for detailed results.
-                </div>
-              </div>
+      // Render the report of the workflow itself
+      return <ExecutionReport baseUrl={this.props.baseUrl}
+                              project={this.props.project}
+                              nodeId={this.state.executionReport.task.id}
+                              executionReport={this.state.executionReport}
+                              executionMetaData={this.state.executionMetaData}/>
     }
   }
 }

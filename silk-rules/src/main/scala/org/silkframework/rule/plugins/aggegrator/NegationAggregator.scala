@@ -1,24 +1,26 @@
 package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.Aggregator
+import org.silkframework.rule.similarity.{SimilarityScore, SingleValueAggregator, WeightedSimilarityScore}
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
   id = "negate",
   categories = Array("All"),
   label = "Negate",
-  description = "Negates the result of the first input comparison. All other inputs are ignored."
+  description = "Negates the result of the input comparison. A single input is expected. " +
+    "Using this operator can have a performance impact, since it lowers the efficiency of the underlying computation."
 )
-case class NegationAggregator() extends Aggregator {
+case class NegationAggregator() extends SingleValueAggregator {
 
-  override def evaluate(values: Traversable[(Int, Double)]): Option[Double] = {
-    if (values.isEmpty) {
-      None
-    } else {
-      require(values.size == 1, "Accepts exactly one input")
-      Some(0.0 - values.head._2)
+  override def evaluateValue(value: WeightedSimilarityScore): SimilarityScore = {
+    value.score match {
+      case Some(score) =>
+        SimilarityScore(0.0 - score)
+      case None =>
+        SimilarityScore(1.0)
     }
+
   }
 
   /* Since it's impossible for the aggregator to know how to create an inverse index, map to default index */

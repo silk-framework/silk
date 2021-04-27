@@ -31,7 +31,7 @@ object SafeModeSink extends DataSink with LinkSink with EntitySink {
 
   override def writeLink(link: Link, predicateUri: String)(implicit userContext: UserContext): Unit = SafeModeException.throwSafeModeException()
 
-  override def openTable(typeUri: Uri, properties: Seq[TypedProperty])(implicit userContext: UserContext, prefixes: Prefixes): Unit = SafeModeException.throwSafeModeException()
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)(implicit userContext: UserContext, prefixes: Prefixes): Unit = SafeModeException.throwSafeModeException()
 
   override def closeTable()(implicit userContext: UserContext): Unit = SafeModeException.throwSafeModeException()
 

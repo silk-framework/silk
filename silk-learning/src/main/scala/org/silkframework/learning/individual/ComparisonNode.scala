@@ -15,7 +15,8 @@
 package org.silkframework.learning.individual
 
 import org.silkframework.config.Prefixes
-import org.silkframework.rule.similarity.{Comparison, DistanceMeasure}
+import org.silkframework.rule.plugins.aggegrator.HandleMissingValuesAggregator
+import org.silkframework.rule.similarity.{Aggregation, Comparison, DistanceMeasure, SimilarityOperator}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.{DPair, IdentifierGenerator}
 
@@ -32,25 +33,34 @@ case class ComparisonNode(inputs: DPair[InputNode], threshold: Double, weight: I
     ComparisonNode(DPair(sourceInput, targetInput), threshold, weight, required, metricNode)
   }
 
-  override def build(implicit identifiers: IdentifierGenerator) = {
-    Comparison(
-      identifiers.generate(metric.id),
-      required = required,
-      threshold = threshold,
-      weight = weight,
-      inputs = inputs.map(_.build),
-      metric = metric.build
-    )
+  override def build(implicit identifiers: IdentifierGenerator): SimilarityOperator = {
+    val comparison =
+      Comparison(
+        identifiers.generate(metric.id),
+        threshold = threshold,
+        weight = weight,
+        inputs = inputs.map(_.build),
+        metric = metric.build
+      )
+    if(required) {
+      comparison
+    } else {
+      Aggregation(
+        identifiers.generate(metric.id + "_optional"),
+        aggregator = HandleMissingValuesAggregator(defaultValue = 1.0),
+        operators = Seq(comparison)
+      )
+    }
   }
 }
 
 object ComparisonNode {
-  def load(comparison: Comparison)(implicit prefixes: Prefixes, resourceManager: ResourceManager) = {
+  def load(comparison: Comparison)(implicit prefixes: Prefixes, resourceManager: ResourceManager): ComparisonNode = {
     val sourceInputNode = InputNode.load(comparison.inputs.source, true)
     val targetInputNode = InputNode.load(comparison.inputs.target, false)
 
     val metricNode = FunctionNode.load(comparison.metric, DistanceMeasure)
 
-    ComparisonNode(DPair(sourceInputNode, targetInputNode), comparison.threshold, comparison.weight, comparison.required, metricNode)
+    ComparisonNode(DPair(sourceInputNode, targetInputNode), comparison.threshold, comparison.weight, required = true, metricNode)
   }
 }
