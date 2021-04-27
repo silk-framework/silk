@@ -95,7 +95,7 @@ export const Dropdown = ({
         </OverviewItem>
     );
 
-    return (
+    return loading || options.length > 0 ? (
         <div
             className="ecc-auto-suggestion-box__dropdown"
             style={{ left }}
@@ -123,5 +123,7 @@ export const Dropdown = ({
                 </Menu>
             )}
         </div>
+    ) : (
+        <></>
     );
 };
