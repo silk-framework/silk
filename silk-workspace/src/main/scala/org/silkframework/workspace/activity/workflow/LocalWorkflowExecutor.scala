@@ -131,7 +131,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       if (inputResults.exists(_.isEmpty)) {
         throw WorkflowException("At least one input did not return a result for workflow node " + operatorNode.nodeId + "!")
       }
-      val result = execute(operatorNode.nodeId, operatorTask, inputResults.flatten, executorOutput)
+      val result = execute("Executing", operatorNode.nodeId, operatorTask, inputResults.flatten, executorOutput)
       // Throw exception if result was promised, but not returned
       if (operatorTask.data.outputSchemaOpt.isDefined && result.isEmpty) {
         throw WorkflowException(s"In workflow ${workflowTask.id.toString} operator node ${operatorNode.nodeId} defined an output " +
@@ -139,7 +139,6 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       }
       log.info("Finished execution of " + operator.nodeId)
       workflowRunContext.alreadyExecuted.add(operatorNode.workflowNode)
-      updateProgress(operatorTask.taskLabel())
       writeErrorOutput(operatorNode, result)
 
       result
@@ -215,7 +214,6 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         }
       }
       workflowRunContext.alreadyExecuted.add(datasetNode.workflowNode)
-      updateProgress(task.taskLabel())
       log.info("Finished writing of node " + datasetNode.nodeId)
     }
     // Read from the dataset
@@ -232,7 +230,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                        (implicit workflowRunContext: WorkflowRunContext): Unit = {
     try {
       val resolvedDataset = resolveDataset(datasetTask(workflowDataset), replaceSinks)
-      execute(workflowDataset.nodeId, resolvedDataset, Seq(entityTable), ExecutorOutput.empty)
+      execute("Writing", workflowDataset.nodeId, resolvedDataset, Seq(entityTable), ExecutorOutput.empty)
     } catch {
       case NonFatal(ex) =>
         throw WorkflowException("Exception occurred while writing to workflow dataset operator " + workflowDataset.nodeId +
@@ -262,20 +260,13 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                       outputTask: Task[_ <: TaskSpec])
                      (implicit workflowRunContext: WorkflowRunContext): LocalEntities = {
     val resolvedDataset = resolveDataset(datasetTask(workflowDataset), replaceDataSources)
-    execute(workflowDataset.nodeId, resolvedDataset, Seq.empty, ExecutorOutput(Some(outputTask), Some(entitySchema))) match {
+    execute("Reading", workflowDataset.nodeId, resolvedDataset, Seq.empty, ExecutorOutput(Some(outputTask), Some(entitySchema))) match {
       case Some(entityTable) =>
         entityTable
       case None =>
         throw WorkflowException(s"In workflow ${workflowTask.id.toString} the Dataset node ${workflowDataset.nodeId} did " +
             s"not return any result!")
     }
-  }
-
-  /** Update the progress of this activity. */
-  private def updateProgress(currentTaskLabel: String)
-                            (implicit workflowRunContext: WorkflowRunContext): Unit = {
-    val progress = workflowRunContext.alreadyExecuted.size.toDouble / workflowNodes.size
-    workflowRunContext.activityContext.status.update(s"$currentTaskLabel (${workflowRunContext.alreadyExecuted.size} / ${workflowNodes.size})", progress)
   }
 
   /** NOT USED ANYMORE, only here for documentation reasons, should be deleted after everything in here is supported. */
