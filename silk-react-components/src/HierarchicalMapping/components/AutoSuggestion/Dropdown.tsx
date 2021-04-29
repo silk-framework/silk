@@ -11,15 +11,18 @@ import {
     Spinner,
     Spacing,
 } from "@gui-elements/index";
-import {ISuggestionWithQuery} from "./AutoSuggestion";
+import {ISuggestionWithReplacementInfo} from "./AutoSuggestion";
+import {is} from "immutable";
 
 interface IDropdownProps {
-    options: Array<ISuggestionWithQuery>;
-    onItemSelectionChange: (item) => void;
-    isOpen: boolean;
-    loading?: boolean;
-    left?: number;
-    currentlyFocusedIndex: number;
+    options: Array<ISuggestionWithReplacementInfo>
+    onItemSelectionChange: (item: ISuggestionWithReplacementInfo) => any
+    isOpen: boolean
+    loading?: boolean
+    left?: number
+    currentlyFocusedIndex: number
+    // Callback indicating what item should currently being highlighted, i.e. is either active or is hovered over
+    itemToHighlight: (item: ISuggestionWithReplacementInfo | undefined) => any
 }
 
 const RawItem = ({ item, query }, ref) => {
@@ -54,13 +57,14 @@ const RawItem = ({ item, query }, ref) => {
 const Item = React.forwardRef(RawItem);
 
 export const Dropdown = ({
-    isOpen,
-    options,
-    loading,
-    onItemSelectionChange,
-    left,
-    currentlyFocusedIndex,
-}: IDropdownProps) => {
+                             isOpen,
+                             options,
+                             loading,
+                             onItemSelectionChange,
+                             left,
+                             currentlyFocusedIndex,
+                             itemToHighlight
+                         }: IDropdownProps) => {
     const dropdownRef = React.useRef<HTMLDivElement>(null);
     const refs = {};
     const generateRef = (index) => {
@@ -83,7 +87,12 @@ export const Dropdown = ({
                 el.scrollLeft = left;
             });
         }
-    }, [currentlyFocusedIndex]);
+    }, [currentlyFocusedIndex, ]);
+
+    React.useEffect(() => {
+        const item = options[currentlyFocusedIndex]
+        itemToHighlight(!isOpen ? undefined : item)
+    }, [currentlyFocusedIndex, options.map(o => o.value + o.from).join("|"), isOpen])
 
     if (!isOpen) return null;
 
@@ -110,7 +119,7 @@ export const Dropdown = ({
                             active={currentlyFocusedIndex === index}
                             key={index}
                             onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => onItemSelectionChange(item.value)}
+                            onClick={() => onItemSelectionChange(item)}
                             text={
                                 <Item
                                     ref={generateRef(index)}

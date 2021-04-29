@@ -26,8 +26,13 @@ export interface ISuggestionBase {
 }
 
 /** Same as ISuggestionBase, but with the query that was used to fetch this suggestion. */
-export interface ISuggestionWithQuery extends ISuggestionBase {
+export interface ISuggestionWithReplacementInfo extends ISuggestionBase {
+    // The query this result was filtered by
     query: string
+    // The offset of the original string that should be replaced
+    from: number
+    // The length of the original string that should be replaced
+    length: number
 }
 
 /** The suggestions for a specific substring of the given input string. */
@@ -104,22 +109,18 @@ const AutoSuggestion = ({
     const [cursorPosition, setCursorPosition] = React.useState(0);
     const [coords, setCoords] = React.useState({ left: 0 });
     const [shouldShowDropdown, setShouldShowDropdown] = React.useState(false);
-    const [replacementIndexesDict, setReplacementIndexesDict] = React.useState(
-        {}
-    );
-    const [suggestions, setSuggestions] = React.useState<ISuggestionWithQuery[]>([]);
+    const [suggestions, setSuggestions] = React.useState<ISuggestionWithReplacementInfo[]>([]);
     const [suggestionsPending, setSuggestionsPending] = React.useState(false);
     const [pathValidationPending, setPathValidationPending] = React.useState(false)
-    const [markers, setMarkers] = React.useState<CodeMirror.TextMarker[]>([]);
     const [, setErrorMarkers] = React.useState<CodeMirror.TextMarker[]>([]);
     const [validationResponse, setValidationResponse] = useState<IValidationResult | undefined>(undefined)
     const [suggestionResponse, setSuggestionResponse] = useState<IPartialAutoCompleteResult | undefined>(undefined)
+    const [highlightedElement, setHighlightedElement] = useState<ISuggestionWithReplacementInfo | undefined>(undefined)
     const [
         editorInstance,
         setEditorInstance,
     ] = React.useState<CodeMirror.Editor>();
     const [isFocused, setIsFocused] = React.useState(false);
-
     const [currentIndex, setCurrentIndex] = React.useState<number>(0);
     const [keyPressCounter, setKeyPressCounter] = React.useState(0);
     const [
@@ -127,7 +128,6 @@ const AutoSuggestion = ({
         setKeyPressedFromEditor,
     ] = React.useState<OVERWRITTEN_KEYS>();
 
-    const valueRef = React.useRef("");
     const pathIsValid = validationResponse?.valid ?? true;
 
     //handle keypress
@@ -135,11 +135,26 @@ const AutoSuggestion = ({
         makeDropDownRespondToKeyPress(keyPressedFromEditor);
     }, [keyPressCounter]);
 
+    // Clean up markers on "unmount"
+    useEffect(() => {
+        if (highlightedElement && editorInstance) {
+            const { from, length } = highlightedElement;
+            if(length > 0) {
+                const to = from + length;
+                const marker = editorInstance.markText(
+                    {line: 0, ch: from},
+                    {line: 0, ch: to},
+                    {className: "ecc-text-highlighting"}
+                );
+                return () => marker.clear()
+            }
+        }
+    }, [highlightedElement])
+
     //handle linting
     React.useEffect(() => {
         const parseError = validationResponse?.parseError;
         if (parseError && editorInstance) {
-            clearMarkers();
             const { offset, inputLeadingToError, message } = parseError;
             const start = inputLeadingToError.length > 1 ? offset - inputLeadingToError.length + 1 : offset
             const end = offset + 2;
@@ -164,8 +179,7 @@ const AutoSuggestion = ({
 
     /** generate suggestions and also populate the replacement indexes dict */
     React.useEffect(() => {
-        let newSuggestions: ISuggestionWithQuery[] = [];
-        let newReplacementIndexesDict = {};
+        let newSuggestions: ISuggestionWithReplacementInfo[] = [];
         if (
             suggestionResponse?.replacementResults?.length === 1 &&
             !suggestionResponse?.replacementResults[0]?.replacements?.length
@@ -175,21 +189,11 @@ const AutoSuggestion = ({
         if (suggestionResponse?.replacementResults?.length) {
             suggestionResponse.replacementResults.forEach(
                 ({ replacements, replacementInterval: { from, length }, extractedQuery }) => {
-                    const replacementsWithMetaData = replacements.map(r => ({...r, query: extractedQuery}))
+                    const replacementsWithMetaData = replacements.map(r => ({...r, query: extractedQuery, from, length}))
                     newSuggestions = [...newSuggestions, ...replacementsWithMetaData];
-                    replacements.forEach((replacement) => {
-                        newReplacementIndexesDict = {
-                            ...newReplacementIndexesDict,
-                            [replacement.value]: {
-                                from,
-                                length,
-                            },
-                        };
-                    });
                 }
             );
             setSuggestions(newSuggestions);
-            setReplacementIndexesDict(newReplacementIndexesDict)
         }
     }, [suggestionResponse]);
 
@@ -263,41 +267,23 @@ const AutoSuggestion = ({
         }
     };
 
-    const handleTextHighlighting = (focusedSuggestion: string) => {
-        const indexes = replacementIndexesDict[focusedSuggestion];
-        if (indexes && editorInstance) {
-            clearMarkers();
-            const { from, length } = indexes;
-            const to = from + length;
-            const marker = editorInstance.markText(
-                { line: 0, ch: from },
-                { line: 0, ch: to },
-                { className: "ecc-text-highlighting" }
-            );
-            setMarkers((previousMarkers) => [...previousMarkers, marker]);
-        }
-    };
+    const closeDropDown = () => {
+        setHighlightedElement(undefined)
+        setShouldShowDropdown(false)
+    }
 
-    //remove all the underline highlighting
-    const clearMarkers = () => {
-        markers.forEach((marker) => marker.clear());
-    };
-
-    const handleDropdownChange = (selectedSuggestion: string) => {
-        const indexes = replacementIndexesDict[selectedSuggestion];
-        if (indexes && editorInstance) {
-            const { from, length } = indexes;
+    const handleDropdownChange = (selectedSuggestion: ISuggestionWithReplacementInfo) => {
+        if (selectedSuggestion && editorInstance) {
+            const { from, length } = selectedSuggestion;
             const to = from + length;
-            editorInstance.replaceRange(selectedSuggestion, {line: 0, ch: from}, {line: 0, ch: to})
-            setShouldShowDropdown(false);
+            editorInstance.replaceRange(selectedSuggestion.value, {line: 0, ch: from}, {line: 0, ch: to})
+            closeDropDown()
             editorInstance.setCursor({ line: 0, ch: to });
             editorInstance.focus();
-            clearMarkers();
         }
     };
 
     const handleInputEditorClear = () => {
-        //editorInstance && editorInstance.getDoc().setValue("")
         handleChange("");
         editorInstance && editorInstance.focus();
     };
@@ -305,51 +291,37 @@ const AutoSuggestion = ({
     const handleInputFocus = (focusState: boolean) => {
         onFocusChange && onFocusChange(focusState)
         setIsFocused(focusState)
-        setShouldShowDropdown(focusState)
+        focusState ? setShouldShowDropdown(true) : closeDropDown()
     };
 
     //keyboard handlers
     const handleArrowDown = () => {
         const lastSuggestionIndex = suggestions.length - 1;
-        let nextIndex;
         if (currentIndex === lastSuggestionIndex) {
-            nextIndex = 0;
-            setCurrentIndex(nextIndex);
-            handleTextHighlighting(suggestions[nextIndex]?.value);
+            // wrap around
+            setCurrentIndex(0);
         } else {
-            setCurrentIndex((index) => {
-                nextIndex = ++index;
-                handleTextHighlighting(suggestions[nextIndex]?.value);
-                return nextIndex;
-            });
+            setCurrentIndex((index) => index + 1)
         }
     };
 
     const handleArrowUp = () => {
         const lastSuggestionIndex = suggestions.length - 1;
-        let nextIndex;
         if (currentIndex === 0) {
-            nextIndex = lastSuggestionIndex;
-            setCurrentIndex(nextIndex);
-            handleTextHighlighting(suggestions[nextIndex]?.value);
+            // wrap around
+            setCurrentIndex(lastSuggestionIndex);
         } else {
-            setCurrentIndex((index) => {
-                nextIndex = --index;
-                handleTextHighlighting(suggestions[nextIndex]?.value);
-                return nextIndex;
-            });
+            setCurrentIndex((index) => index - 1);
         }
-        const chosenSuggestion = suggestions[nextIndex]?.value;
-        handleTextHighlighting(chosenSuggestion);
     };
 
     const handleEnterPressed = () => {
-        handleDropdownChange(suggestions[currentIndex]?.value);
+        handleDropdownChange(suggestions[currentIndex]);
         setCurrentIndex(0);
     };
 
     const handleTabPressed = () => {
-        handleDropdownChange(suggestions[currentIndex]?.value);
+        handleDropdownChange(suggestions[currentIndex]);
     };
 
     const makeDropDownRespondToKeyPress = (keyPressedFromInput) => {
@@ -373,6 +345,10 @@ const AutoSuggestion = ({
             }
         }
     };
+
+    const handleItemHighlighting = (item: ISuggestionWithReplacementInfo | undefined) => {
+        setHighlightedElement(item)
+    }
 
     const hasError = !!value && !pathIsValid && !pathValidationPending;
 
@@ -420,6 +396,7 @@ const AutoSuggestion = ({
                     isOpen={shouldShowDropdown}
                     onItemSelectionChange={handleDropdownChange}
                     currentlyFocusedIndex={currentIndex}
+                    itemToHighlight={handleItemHighlighting}
                 />
             </div>
         </FieldItem>
