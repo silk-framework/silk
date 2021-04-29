@@ -56,6 +56,17 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
     sourcePath.filter(op => op.isInstanceOf[ForwardOperator] || op.isInstanceOf[BackwardOperator])
   }
 
+  private def validateAutoCompletionRequest(autoCompletionRequest: PartialSourcePathAutoCompletionRequest): Unit = {
+    if(autoCompletionRequest.cursorPosition > autoCompletionRequest.inputString.length) {
+      throw BadUserInputException("Cursor position must not be greater than the length of input string!")
+    }
+    autoCompletionRequest.maxSuggestions foreach { maxSuggestions =>
+      if(maxSuggestions < 0) {
+        throw BadUserInputException("Parameter 'maxSuggestions' must not be negative!")
+      }
+    }
+  }
+
   /** A more fine-grained auto-completion of a source path that suggests auto-completion in parts of a path. */
   def partialSourcePath(projectId: String,
                         transformTaskId: String,
@@ -64,6 +75,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
       val (project, transformTask) = projectAndTask[TransformSpec](projectId, transformTaskId)
       implicit val prefixes: Prefixes = project.config.prefixes
       validateJson[PartialSourcePathAutoCompletionRequest] { autoCompletionRequest =>
+        validateAutoCompletionRequest(autoCompletionRequest)
         validatePartialSourcePathAutoCompletionRequest(autoCompletionRequest)
         withRule(transformTask, ruleId) { case (_, sourcePath) =>
           val simpleSourcePath = simplePath(sourcePath)

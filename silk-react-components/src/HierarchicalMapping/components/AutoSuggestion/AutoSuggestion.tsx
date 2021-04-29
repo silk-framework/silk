@@ -105,7 +105,6 @@ const AutoSuggestion = ({
                             id,
                         }: IProps) => {
     const [value, setValue] = React.useState(initialValue);
-    const [inputString, setInputString] = React.useState(initialValue);
     const [cursorPosition, setCursorPosition] = React.useState(0);
     const [coords, setCoords] = React.useState({ left: 0 });
     const [shouldShowDropdown, setShouldShowDropdown] = React.useState(false);
@@ -135,7 +134,7 @@ const AutoSuggestion = ({
         makeDropDownRespondToKeyPress(keyPressedFromEditor);
     }, [keyPressCounter]);
 
-    // Clean up markers on "unmount"
+    // Handle replacement highlighting
     useEffect(() => {
         if (highlightedElement && editorInstance) {
             const { from, length } = highlightedElement;
@@ -217,18 +216,17 @@ const AutoSuggestion = ({
 
     React.useEffect(() => {
         if (isFocused) {
-            setInputString(value);
             setShouldShowDropdown(true);
-            handleEditorInputChange(inputString, cursorPosition)
+            handleEditorInputChange(value, cursorPosition)
             return handleEditorInputChange.cancel
         }
-    }, [cursorPosition, value, inputString, isFocused]);
+    }, [cursorPosition, value, isFocused]);
 
     // Trigger input validation
     useEffect(() => {
         checkValuePathValidity(value)
         return checkValuePathValidity.cancel
-    }, [inputString])
+    }, [value])
 
     const asyncHandleEditorInputChange = async (inputString: string, cursorPosition: number) => {
         setSuggestionsPending(true)
