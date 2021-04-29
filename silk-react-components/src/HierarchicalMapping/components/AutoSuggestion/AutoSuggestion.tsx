@@ -196,6 +196,7 @@ const AutoSuggestion = ({
         } else {
             setSuggestions([])
         }
+        setCurrentIndex(0)
     }, [suggestionResponse]);
 
     const asyncCheckInput = async (inputString: string) => {
