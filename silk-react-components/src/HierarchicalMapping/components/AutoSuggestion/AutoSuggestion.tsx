@@ -193,6 +193,8 @@ const AutoSuggestion = ({
                 }
             );
             setSuggestions(newSuggestions);
+        } else {
+            setSuggestions([])
         }
     }, [suggestionResponse]);
 
