@@ -249,8 +249,8 @@ const AutoSuggestion = ({
     )
 
     const handleChange = (val: string) => {
-        onChange(val)
         setValue(val);
+        onChange(val)
     };
 
     const handleCursorChange = (pos, coords) => {

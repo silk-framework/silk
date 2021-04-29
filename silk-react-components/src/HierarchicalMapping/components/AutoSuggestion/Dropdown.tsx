@@ -12,14 +12,18 @@ import {
     Spacing,
 } from "@gui-elements/index";
 import {ISuggestionWithReplacementInfo} from "./AutoSuggestion";
-import {is} from "immutable";
 
 interface IDropdownProps {
+    // The options of the drop down
     options: Array<ISuggestionWithReplacementInfo>
+    // Called when an item has been selected from the drop down
     onItemSelectionChange: (item: ISuggestionWithReplacementInfo) => any
+    // If the drop down is visible
     isOpen: boolean
+    // If the drop down should show a loading state
     loading?: boolean
     left?: number
+    // The item from the drop down that is active
     currentlyFocusedIndex: number
     // Callback indicating what item should currently being highlighted, i.e. is either active or is hovered over
     itemToHighlight: (item: ISuggestionWithReplacementInfo | undefined) => any
@@ -65,6 +69,7 @@ export const Dropdown = ({
                              currentlyFocusedIndex,
                              itemToHighlight
                          }: IDropdownProps) => {
+    const [hoveredItem, setHoveredItem] = React.useState<ISuggestionWithReplacementInfo | undefined>(undefined)
     const dropdownRef = React.useRef<HTMLDivElement>(null);
     const refs = {};
     const generateRef = (index) => {
@@ -76,7 +81,7 @@ export const Dropdown = ({
 
     React.useEffect(() => {
         const listIndexNode = refs[currentlyFocusedIndex];
-        if (dropdownRef.current && listIndexNode.current) {
+        if (dropdownRef?.current && listIndexNode?.current) {
             const actions = computeScrollIntoView(listIndexNode.current, {
                 boundary: dropdownRef.current,
                 block: "nearest",
@@ -87,12 +92,13 @@ export const Dropdown = ({
                 el.scrollLeft = left;
             });
         }
-    }, [currentlyFocusedIndex, ]);
+    }, [currentlyFocusedIndex]);
 
+    // Decide which item to highlight
     React.useEffect(() => {
         const item = options[currentlyFocusedIndex]
-        itemToHighlight(!isOpen ? undefined : item)
-    }, [currentlyFocusedIndex, options.map(o => o.value + o.from).join("|"), isOpen])
+        itemToHighlight(!isOpen ? undefined : hoveredItem || item)
+    }, [currentlyFocusedIndex, options.map(o => o.value + o.from).join("|"), isOpen, hoveredItem?.value])
 
     if (!isOpen) return null;
 
@@ -116,18 +122,25 @@ export const Dropdown = ({
                 <Menu>
                     {options.map((item, index) => (
                         <MenuItem
-                            active={currentlyFocusedIndex === index}
                             key={index}
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() => onItemSelectionChange(item)}
-                            text={
-                                <Item
+                            internalProps={{
+                                active: currentlyFocusedIndex === index,
+                                onMouseDown: (e) => e.preventDefault(),
+                                onClick: () => onItemSelectionChange(item),
+                                text: <Item
                                     ref={generateRef(index)}
                                     item={item}
                                     query={item.query}
-                                />
-                            }
-                        ></MenuItem>
+                                />,
+                                onMouseEnter: () => setHoveredItem(item),
+                                onMouseLeave: () => setHoveredItem(undefined),
+                                onMouseOver: () => {
+                                    if(item.value != hoveredItem?.value) {
+                                        setHoveredItem(item)
+                                    }
+                                }
+                            }}
+                        />
                     ))}
                 </Menu>
             )}
