@@ -4,7 +4,7 @@ import { FieldItem, IconButton, Spinner, Label } from "@gui-elements/index";
 import { Classes as BlueprintClassNames } from "@blueprintjs/core";
 
 //custom components
-import SingleLineCodeEditor from "../SingleLineCodeEditor";
+import SingleLineCodeEditor, {IRange} from "../SingleLineCodeEditor";
 import {Dropdown} from "./Dropdown";
 import { debounce } from "lodash";
 
@@ -114,6 +114,7 @@ const AutoSuggestion = ({
     const [, setErrorMarkers] = React.useState<CodeMirror.TextMarker[]>([]);
     const [validationResponse, setValidationResponse] = useState<IValidationResult | undefined>(undefined)
     const [suggestionResponse, setSuggestionResponse] = useState<IPartialAutoCompleteResult | undefined>(undefined)
+    // The element that should be used for replacement highlighting
     const [highlightedElement, setHighlightedElement] = useState<ISuggestionWithReplacementInfo | undefined>(undefined)
     const [
         editorInstance,
@@ -126,6 +127,7 @@ const AutoSuggestion = ({
         keyPressedFromEditor,
         setKeyPressedFromEditor,
     ] = React.useState<OVERWRITTEN_KEYS>();
+    const [selectedTextRanges, setSelectedTextRanges] = useState<IRange[]>([])
 
     const pathIsValid = validationResponse?.valid ?? true;
 
@@ -138,7 +140,7 @@ const AutoSuggestion = ({
     useEffect(() => {
         if (highlightedElement && editorInstance) {
             const { from, length } = highlightedElement;
-            if(length > 0) {
+            if(length > 0 && selectedTextRanges.length == 0) {
                 const to = from + length;
                 const marker = editorInstance.markText(
                     {line: 0, ch: from},
@@ -148,7 +150,7 @@ const AutoSuggestion = ({
                 return () => marker.clear()
             }
         }
-    }, [highlightedElement])
+    }, [highlightedElement, selectedTextRanges])
 
     //handle linting
     React.useEffect(() => {
@@ -376,8 +378,8 @@ const AutoSuggestion = ({
                         onCursorChange={handleCursorChange}
                         initialValue={value}
                         onFocusChange={handleInputFocus}
-                        handleSpecialKeysPress={handleInputEditorKeyPress}
-                    />
+                        onKeyDown={handleInputEditorKeyPress}
+                        onSelection={setSelectedTextRanges}/>
                     {!!value && (
                         <span className={BlueprintClassNames.INPUT_ACTION}>
                             <IconButton

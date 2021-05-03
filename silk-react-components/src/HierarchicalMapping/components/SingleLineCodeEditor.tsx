@@ -2,16 +2,42 @@ import React from "react";
 import { Controlled as ControlledEditor } from "react-codemirror2";
 import { Classes as BlueprintClassNames } from "@blueprintjs/core";
 import "codemirror/mode/sparql/sparql.js";
+import CodeMirror from "codemirror";
+
+interface IProps {
+  // Is called with the editor instance that allows access via the CodeMirror API
+  setEditorInstance: (editor: CodeMirror.Editor) => any
+  // Called whenever the editor content changes
+  onChange: (value: string) => any
+  // Called when the cursor position changes
+  onCursorChange: (pos: any, coords: any) => any
+  // The editor theme, e.g. "sparql"
+  mode?: string | null
+  // The initial value of the editor
+  initialValue: string
+  // Called when the focus status changes
+  onFocusChange: (focused: boolean) => any
+  // Called when the user presses a key
+  onKeyDown: (event: KeyboardEvent) => any
+  // Called when the user selects text
+  onSelection: (ranges: IRange[]) => any
+}
+
+export interface IRange {
+  from: number
+  to: number
+}
 
 const SingleLineCodeEditor = ({
-  setEditorInstance,
-  onChange,
-  onCursorChange,
-  mode = "sparql",
-  initialValue,
-  onFocusChange,
-  handleSpecialKeysPress,
-}) => {
+                                setEditorInstance,
+                                onChange,
+                                onCursorChange,
+                                mode = null,
+                                initialValue,
+                                onFocusChange,
+                                onKeyDown,
+                                onSelection,
+                              }: IProps) => {
   return (
     <div className={"ecc-input-editor " + BlueprintClassNames.INPUT}>
       <ControlledEditor
@@ -35,6 +61,13 @@ const SingleLineCodeEditor = ({
           lineNumbers: false,
           theme: "xq-light",
         }}
+        onSelection={(editor, data) => {
+          if(Array.isArray(data?.ranges)) {
+            onSelection(data.ranges
+                .map(r => ({from: r.from().ch, to: r.to().ch}))
+                .filter(r => r.from != r.to))
+          }
+        }}
         onCursor={(editor, data) => {
           onCursorChange(data, editor.cursorCoords(true, "div"));
         }}
@@ -42,7 +75,7 @@ const SingleLineCodeEditor = ({
           const trimmedValue = value.replace(/\n/g, "");
           onChange(trimmedValue);
         }}
-        onKeyDown={(_, event) => handleSpecialKeysPress(event)}
+        onKeyDown={(_, event) => onKeyDown(event)}
       />
     </div>
   );
