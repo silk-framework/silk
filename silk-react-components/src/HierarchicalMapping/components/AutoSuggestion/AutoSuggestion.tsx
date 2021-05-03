@@ -81,6 +81,8 @@ interface IProps {
     fetchSuggestions: (inputString: string, cursorPosition: number) => IPartialAutoCompleteResult | Promise<IPartialAutoCompleteResult | undefined>
     // Checks if the input is valid
     checkInput: (inputString: string) => IValidationResult | Promise<IValidationResult | undefined>
+    // Called with the input validation result
+    onInputChecked?: (validInput: boolean) => any
     // Text that should be shown if the input validation failed.
     validationErrorText: string
     // Text that should be shown when hovering over the clear icon
@@ -103,6 +105,7 @@ const AutoSuggestion = ({
                             clearIconText,
                             onFocusChange,
                             id,
+                            onInputChecked,
                         }: IProps) => {
     const [value, setValue] = React.useState(initialValue);
     const [cursorPosition, setCursorPosition] = React.useState(0);
@@ -176,6 +179,7 @@ const AutoSuggestion = ({
                 return []
             })
         }
+        onInputChecked && onInputChecked(!!validationResponse?.valid)
     }, [validationResponse?.valid, validationResponse?.parseError]);
 
     /** generate suggestions and also populate the replacement indexes dict */

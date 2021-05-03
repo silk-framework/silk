@@ -38,6 +38,7 @@ object XmlSourceTrait {
     final val TEXT = "#text"
     final val ALL_CHILDREN = "*"
     final val ALL_CHILDREN_RECURSIVE = "**"
+    final val BACKWARD_PATH = "\\.."
   }
   import SpecialXmlPaths._
   final val characteristics = DataSourceCharacteristics(
@@ -45,7 +46,7 @@ object XmlSourceTrait {
       multiHopPaths = true,
       propertyFilter = true,
       specialPaths = Seq(
-        SpecialPathInfo("\\..", Some("Navigate to parent element.")),
+        SpecialPathInfo(BACKWARD_PATH, Some("Navigate to parent element.")),
         SpecialPathInfo(ID, Some("A document-wide unique ID of the entity.")),
         SpecialPathInfo(TAG, Some("The element tag of the entity.")),
         SpecialPathInfo(TEXT, Some("The concatenated text inside an element.")),

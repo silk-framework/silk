@@ -3,7 +3,7 @@ import {Card, CardActions, CardContent, CardTitle, ScrollingHOC, Spinner,} from 
 import {AffirmativeButton, DismissiveButton, TextField,} from '@gui-elements/legacy-replacements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
-import store, {getSuggestion, pathValidation} from '../../../store';
+import store, {checkValuePathValidity, fetchSuggestions} from '../../../store';
 import {convertToUri} from '../../../utils/convertToUri';
 import ErrorView from '../../../components/ErrorView';
 import AutoComplete from '../../../components/AutoComplete';
@@ -13,10 +13,7 @@ import EventEmitter from '../../../utils/EventEmitter';
 import {wasTouched} from '../../../utils/wasTouched';
 import {newValueIsIRI} from '../../../utils/newValueIsIRI';
 import TargetCardinality from "../../../components/TargetCardinality";
-import AutoSuggestion, {
-    IPartialAutoCompleteResult,
-    IValidationResult
-} from '../../../components/AutoSuggestion/AutoSuggestion'
+import AutoSuggestion from '../../../components/AutoSuggestion/AutoSuggestion'
 
 const LANGUAGES_LIST = [
     'en', 'de', 'es', 'fr', 'bs', 'bg', 'ca', 'ce', 'zh', 'hr', 'cs', 'da', 'nl', 'eo', 'fi', 'ka', 'el', 'hu', 'ga', 'is', 'it',
@@ -245,35 +242,6 @@ export function ValueRuleForm(props: IProps) {
         return targetPropertyNotEmpty && languageTagSet;
     }
 
-    // Fetches (partial) auto-complete suggestions for the value path
-    const fetchSuggestions = (inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
-        return new Promise((resolve, reject) => {
-            if(!autoCompleteRuleId) {
-                resolve(undefined)
-            } else {
-                getSuggestion(autoCompleteRuleId, inputString, cursorPosition)
-                    .then((suggestions) => resolve(suggestions?.data))
-                    .catch((err) => reject(err))
-            }
-        })
-    }
-
-    // Checks if the value path syntax is valid
-    const checkValuePathValidity = (inputString): Promise<IValidationResult | undefined> => {
-        return new Promise((resolve, reject) => {
-            pathValidation(inputString)
-                .then((response) => {
-                    const payload = response?.data
-                    setValuePathValid(!!payload?.valid)
-                    resolve(payload)
-                })
-                .catch((err) => {
-                    setValuePathValid(false)
-                    reject(err)
-                })
-        })
-    }
-
     // template rendering
     const render = () => {
         if (loading) {
@@ -305,8 +273,9 @@ export function ValueRuleForm(props: IProps) {
                         'sourceProperty',
                         setSourceProperty
                     )}
-                    fetchSuggestions={fetchSuggestions}
+                    fetchSuggestions={(input, cursorPosition) => fetchSuggestions(autoCompleteRuleId, input, cursorPosition)}
                     checkInput={checkValuePathValidity}
+                    onInputChecked={setValuePathValid}
                     onFocusChange={setValuePathInputHasFocus}
                 />
             );

@@ -224,7 +224,8 @@ case class JsonSource(taskId: Identifier, input: JsValue, basePath: String, uriP
       propertyFilter = true,
       specialPaths = Seq(
         SpecialPathInfo(JsonSource.specialPaths.ID, Some("Hash value of the JSON node or value.")),
-        SpecialPathInfo(JsonSource.specialPaths.TEXT, Some("The string value of a node. This will turn a JSON object into it's string representation."))
+        SpecialPathInfo(JsonSource.specialPaths.TEXT, Some("The string value of a node. This will turn a JSON object into it's string representation.")),
+        SpecialPathInfo(JsonSource.specialPaths.BACKWARD_PATH, Some("Navigates back to parent object."))
       )
     )
   )
@@ -245,6 +246,7 @@ object JsonSource {
   object specialPaths {
     final val TEXT = "#text"
     final val ID = "#id"
+    final val BACKWARD_PATH = "\\.."
     final val all = Seq(ID, TEXT)
   }
 }
