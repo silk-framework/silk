@@ -18,6 +18,11 @@
         border-radius: 0.3rem;
         overflow-x:hidden;
         overflow-y: auto;
+
+        .#{$ns}-menu, .#{$eccgui}-overviewitem__item {
+            max-width: 24rem;
+            box-sizing: border-box;
+        }
     }
 }
 
