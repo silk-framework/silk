@@ -173,7 +173,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
         case OpFilter.Backward => truncatedOps.headOption.exists(op => op.isInstanceOf[BackwardOperator])
         case _ => true
       }
-      matchesPrefix && pathOpMatches && (!oneHopOnly || truncatedOps.size == 1)
+      matchesPrefix && pathOpMatches && (!oneHopOnly && truncatedOps.nonEmpty || truncatedOps.size == 1)
     } map { completion =>
       val path = UntypedPath.parse(completion.value)
       val truncatedOps = truncatePath(path, simpleSourcePath, forwardOnlySourcePath, isRdfInput)
