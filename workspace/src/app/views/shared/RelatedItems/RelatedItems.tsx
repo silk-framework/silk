@@ -93,7 +93,7 @@ export function RelatedItems(props: IProps) {
     };
 
     return (
-        <Card>
+        <Card data-test-id={"related-items-widget"}>
             <CardHeader>
                 <CardTitle>
                     <h2>

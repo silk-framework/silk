@@ -1,22 +1,23 @@
 import React, { useEffect, useState } from "react";
-
 import { useSelector } from "react-redux";
-import { AppToaster } from "../../../services/toaster";
-import { Intent } from "@gui-elements/blueprint/constants";
 import { useParams } from "react-router";
-import Metadata from "../../shared/Metadata";
-import { datasetSel } from "@ducks/dataset";
-
+import { useTranslation } from "react-i18next";
 import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@gui-elements/index";
+import { Intent } from "@gui-elements/blueprint/constants";
+import { commonSel } from "@ducks/common";
+import { requestTaskData } from "@ducks/shared/requests";
+import { datasetSel } from "@ducks/dataset";
+import { IProjectTask } from "@ducks/shared/typings";
+import { DATA_TYPES } from "../../../constants";
+import { AppToaster } from "../../../services/toaster";
 import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
 import { DataPreview } from "../../shared/DataPreview/DataPreview";
 import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
-import { useTranslation } from "react-i18next";
 import { Loading } from "../../shared/Loading/Loading";
-import { requestTaskData } from "@ducks/shared/requests";
-import { IProjectTask } from "@ducks/shared/typings";
 import { IframeWindow } from "../../shared/IframeWindow/IframeWindow";
-import { commonSel } from "@ducks/common";
+import { usePageHeader } from "../../shared/PageHeader/PageHeader";
+import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
+import Metadata from "../../shared/Metadata";
 
 // The dataset plugins that should show the data preview automatically without user interaction.
 const automaticallyPreviewedDatasets = ["json", "xml", "csv"];
@@ -66,11 +67,12 @@ export function Dataset() {
 
     const additionalContent = () => {
         if (pluginId === "eccencaDataPlatform") {
-            return dmBaseUrl && <IframeWindow />;
+            return dmBaseUrl && <IframeWindow iFrameName={"detail-page-iframe"} />;
         } else {
             return (
                 showPreview && (
                     <DataPreview
+                        id={"datasetPageDataPreview"}
                         title={t("pages.dataset.title", "Data preview")}
                         preview={{ project: projectId, dataset: taskId }}
                         autoLoad={showPreviewAutomatically}
@@ -80,8 +82,28 @@ export function Dataset() {
         }
     };
 
+    const { pageHeader, updateType, updateActionsMenu } = usePageHeader({
+        autogenerateBreadcrumbs: true,
+        autogeneratePageTitle: true,
+    });
+
+    useEffect(() => {
+        if (!!pluginId) {
+            updateType(DATA_TYPES.DATASET + "-" + pluginId);
+        } else {
+            updateType(DATA_TYPES.DATASET);
+        }
+    }, [pluginId]);
+
     return (
         <WorkspaceContent className="eccapp-di__dataset">
+            {pageHeader}
+            <ArtefactManagementOptions
+                projectId={projectId}
+                taskId={taskId}
+                itemType={DATA_TYPES.DATASET}
+                updateActionsMenu={updateActionsMenu}
+            />
             <WorkspaceMain>
                 <Section>
                     <Metadata />

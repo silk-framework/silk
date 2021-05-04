@@ -13,6 +13,7 @@ import { ItemDeleteModal } from "../modals/ItemDeleteModal";
 import { routerOp } from "@ducks/router";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { useTranslation } from "react-i18next";
+import CopyToModal from "../modals/CopyToModal/CopyToModal";
 
 export function SearchList() {
     const dispatch = useDispatch();
@@ -27,23 +28,40 @@ export function SearchList() {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<ISearchResultsServer | null>(null);
     const [showCloneModal, setShowCloneModal] = useState(false);
+    const [copyToModalOpen, setCopyToModalOpen] = useState<boolean>(false);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const [t] = useTranslation();
 
     const onDiscardModals = () => {
         setShowCloneModal(false);
         setDeleteModalOpen(false);
+        setCopyToModalOpen(false);
         setSelectedItem(null);
+    };
+
+    const fixItemIdSettings = (item) => {
+        // provide only projectId for projects
+        if (typeof item.projectId === "undefined") {
+            const correctedItem = { ...item, projectId: item.id };
+            delete correctedItem.id;
+            return correctedItem;
+        }
+        return item;
     };
 
     const onOpenDuplicateModal = (item) => {
         setShowCloneModal(true);
-        setSelectedItem(item);
+        setSelectedItem(fixItemIdSettings(item));
     };
 
     const onOpenDeleteModal = (item: ISearchResultsServer) => {
         setDeleteModalOpen(true);
-        setSelectedItem(item);
+        setSelectedItem(fixItemIdSettings(item));
+    };
+
+    const onOpenCopyToModal = (item: ISearchResultsServer) => {
+        setCopyToModalOpen(true);
+        setSelectedItem(fixItemIdSettings(item));
     };
 
     const handleCloneConfirmed = (newLabel, detailsPage) => {
@@ -89,7 +107,12 @@ export function SearchList() {
                 }
                 textCallout={<strong>{t("common.messages.createFirstItems", { items: itemTypeLabel() })}</strong>}
                 actionButtons={[
-                    <Button key={"create"} onClick={handleCreateArtefact} elevated>
+                    <Button
+                        data-test-id={"create-first-item-btn"}
+                        key={"create"}
+                        onClick={handleCreateArtefact}
+                        elevated
+                    >
                         {t("common.action.CreateSmth", { smth: itemTypeLabel() })}
                     </Button>,
                 ]}
@@ -101,13 +124,20 @@ export function SearchList() {
     return (
         <>
             <AppliedFacets />
-            <DataList isEmpty={isEmpty} isLoading={isLoading} hasSpacing emptyContainer={EmptyContainer}>
+            <DataList
+                data-test-id="search-result-list"
+                isEmpty={isEmpty}
+                isLoading={isLoading}
+                hasSpacing
+                emptyContainer={EmptyContainer}
+            >
                 {data.map((item) => (
                     <SearchItem
                         key={`${item.id}_${item.projectId}`}
                         item={item}
                         onOpenDeleteModal={() => onOpenDeleteModal(item)}
                         onOpenDuplicateModal={() => onOpenDuplicateModal(item)}
+                        onOpenCopyToModal={() => onOpenCopyToModal(item)}
                         searchValue={appliedFilters.textQuery}
                         parentProjectId={projectId}
                     />
@@ -125,6 +155,13 @@ export function SearchList() {
 
                     {deleteModalOpen && selectedItem && (
                         <ItemDeleteModal item={selectedItem} onClose={onDiscardModals} onConfirmed={handleDeleted} />
+                    )}
+                    {copyToModalOpen && (
+                        <CopyToModal
+                            item={selectedItem}
+                            onDiscard={onDiscardModals}
+                            onConfirmed={() => setCopyToModalOpen(false)}
+                        />
                     )}
                     {showCloneModal && selectedItem && (
                         <CloneModal

@@ -172,6 +172,7 @@ export function CreateArtefactModal() {
                 }
             }
         } finally {
+            setSearchValue("");
             setActionLoading(false);
         }
     };
@@ -289,6 +290,14 @@ export function CreateArtefactModal() {
                     ? t("CreateModal.createTitle", { type: selectedArtefactTitle })
                     : t("CreateModal.createTitleGeneric")
             }
+            headerOptions={
+                selectedArtefactTitle ? (
+                    <IconButton
+                        name="item-question"
+                        onClick={(e) => handleShowEnhancedDescription(e, selectedArtefactKey)}
+                    />
+                ) : null
+            }
             onClose={closeModal}
             isOpen={isOpen}
             actions={
@@ -311,7 +320,7 @@ export function CreateArtefactModal() {
                             </Button>,
                             <CardActionsAux key="aux">
                                 {!updateExistingTask && (
-                                    <Button key="back" onClick={handleBack}>
+                                    <Button data-test-id={"create-dialog-back-btn"} key="back" onClick={handleBack}>
                                         {t("common.words.back", "Back")}
                                     </Button>
                                 )}
@@ -329,7 +338,7 @@ export function CreateArtefactModal() {
                         >
                             {t("common.action.add")}
                         </Button>,
-                        <Button key="cancel" onClick={closeModal}>
+                        <Button data-test-id="create-dialog-cancel-btn" key="cancel" onClick={closeModal}>
                             {t("common.action.cancel")}
                         </Button>,
                     ]
@@ -349,7 +358,12 @@ export function CreateArtefactModal() {
                     <Notification
                         message={t("ProjectImportModal.restoreNotice", "Want to restore an existing project?")}
                         actions={[
-                            <Button key="importProject" onClick={switchToProjectImport} href="#import-project">
+                            <Button
+                                data-test-id="project-import-link"
+                                key="importProject"
+                                onClick={switchToProjectImport}
+                                href="#import-project"
+                            >
                                 {t("ProjectImportModal.restoreStarter", "Import project file")}
                             </Button>,
                         ]}
@@ -357,6 +371,27 @@ export function CreateArtefactModal() {
                 ))
             }
         >
+            {idEnhancedDescription === selectedArtefactKey && (
+                <SimpleDialog
+                    isOpen
+                    title={selectedArtefactTitle}
+                    actions={
+                        <Button
+                            text="Close"
+                            onClick={() => {
+                                setIdEnhancedDescription("");
+                            }}
+                        />
+                    }
+                    size="small"
+                >
+                    <HtmlContentBlock>
+                        <ReactMarkdown
+                            source={selectedArtefact?.markdownDocumentation ?? selectedArtefact?.description}
+                        />
+                    </HtmlContentBlock>
+                </SimpleDialog>
+            )}
             {
                 <>
                     {artefactForm ? (
@@ -377,7 +412,11 @@ export function CreateArtefactModal() {
                                     ) : artefactListWithProject.length === 0 ? (
                                         <Notification message={t("CreateModal.noMatch", "No match found.")} />
                                     ) : (
-                                        <OverviewItemList hasSpacing columns={2}>
+                                        <OverviewItemList
+                                            data-test-id="item-to-create-selection-list"
+                                            hasSpacing
+                                            columns={2}
+                                        >
                                             {artefactListWithProject.map((artefact) => (
                                                 <Card
                                                     isOnlyLayout
@@ -388,6 +427,7 @@ export function CreateArtefactModal() {
                                                 >
                                                     <OverviewItem
                                                         hasSpacing
+                                                        data-test-id={`artefact-plugin-${artefact.key}`}
                                                         onClick={() => handleArtefactSelect(artefact)}
                                                         onKeyDown={handleEnter}
                                                     >
@@ -417,7 +457,7 @@ export function CreateArtefactModal() {
                                                         </OverviewItemDescription>
                                                         <OverviewItemActions>
                                                             <IconButton
-                                                                name="item-info"
+                                                                name="item-question"
                                                                 onClick={(e) => {
                                                                     handleShowEnhancedDescription(e, artefact.key);
                                                                 }}
@@ -439,7 +479,12 @@ export function CreateArtefactModal() {
                                                             size="small"
                                                         >
                                                             <HtmlContentBlock>
-                                                                <ReactMarkdown source={artefact.description} />
+                                                                <ReactMarkdown
+                                                                    source={
+                                                                        artefact.markdownDocumentation ||
+                                                                        artefact.description
+                                                                    }
+                                                                />
                                                             </HtmlContentBlock>
                                                         </SimpleDialog>
                                                     )}
