@@ -28,13 +28,15 @@ case class CachedEntitySchemata(configuredSchema: EntitySchema,
   /**
     * Returns the cached paths. Depending on the provided context either the configured or the untyped
     * cached paths are returned.
-    * @param task       The transform task for which the paths are requested
-    * @param sourcePath The complete source path at which position the paths are requested, e.g. for auto-completion
+    *
+    * @param task                The transform task for which the paths are requested
+    * @param preferUntypedSchema If the untyped schema from the path cache should be returned if available and appropriate.
     * @return
     */
-  def fetchCachedPaths(task: ProjectTask[TransformSpec], sourcePath: List[PathOperator])
+  def fetchCachedPaths(task: ProjectTask[TransformSpec],
+                       preferUntypedSchema: Boolean)
                       (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
-    if(task.selection.typeUri.uri.nonEmpty && sourcePath.nonEmpty && isRdfInput(task) && untypedSchema.isDefined) {
+    if(task.selection.typeUri.uri.nonEmpty && preferUntypedSchema && untypedSchema.isDefined) {
       untypedSchema.get.typedPaths
     } else {
       configuredSchema.typedPaths

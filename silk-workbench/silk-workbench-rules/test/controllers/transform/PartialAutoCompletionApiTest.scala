@@ -17,16 +17,19 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
 
   private val rdfTransform = "17fef5a5-a920-4665-92f5-cc729900e8f1_TransformRDF"
   private val jsonTransform = "2a997fb4-1bc7-4344-882e-868193568e87_TransformJSON"
-  val allJsonPaths = Seq("department", "id", "name", "phoneNumbers", "department/id", "department/tags", "phoneNumbers/number",
+  private val allJsonPaths = Seq("department", "id", "name", "phoneNumbers", "department/id", "department/tags", "phoneNumbers/number",
     "phoneNumbers/type", "department/tags/evenMoreNested", "department/tags/tagId", "department/tags/evenMoreNested/value")
 
   private val jsonSpecialPaths = JsonSource.specialPaths.all
   private val jsonSpecialPathsFull = jsonSpecialPaths.map(p => s"/$p")
-  val jsonOps = Seq("/", "\\", "[")
+  private val jsonOps = Seq("/", "\\", "[")
 
-  val allRdfPaths = Seq("rdf:type", "<https://ns.eccenca.com/source/address>", "<https://ns.eccenca.com/source/age>", "<https://ns.eccenca.com/source/name>")
-  val allRdfPathsFull = allRdfPaths.map("/" + _)
-  val rdfOps: Seq[String] = jsonOps ++ Seq("[@lang ")
+  private val RDF_NS = "https://ns.eccenca.com/source"
+  private val allPersonRdfPaths = Seq("rdf:type", s"<$RDF_NS/address>", s"<$RDF_NS/age>", s"<$RDF_NS/name>")
+  private val allRdfPaths = Seq("rdf:type", "<https://ns.eccenca.com/source/address>", "<https://ns.eccenca.com/source/age>", "<https://ns.eccenca.com/source/city>", "<https://ns.eccenca.com/source/country>", "<https://ns.eccenca.com/source/name>", "\\rdf:type", "\\<https://ns.eccenca.com/source/address>")
+  private val allPersonRdfPathsFull = allPersonRdfPaths.map("/" + _)
+  private val allRdfPathsFull = allRdfPaths.map(p => if(p.startsWith("\\")) p else "/" + p)
+  private val rdfOps: Seq[String] = jsonOps ++ Seq("[@lang ")
 
   /**
     * Returns the path of the XML zip project that should be loaded before the test suite starts.
@@ -117,7 +120,8 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
   }
 
   it should "suggest all path operators for RDF sources" in {
-    rdfSuggestions("", 0) mustBe allRdfPaths ++ Seq("\\")
+    rdfSuggestions("", 0) mustBe allPersonRdfPaths ++ Seq("\\")
+    // For all longer paths suggest all properties
     rdfSuggestions("rdf:type/") mustBe allRdfPathsFull
     rdfSuggestions("rdf:type/<urn:test:test>/") mustBe allRdfPathsFull
     rdfSuggestions("rdf:type/<urn:test:test>\\") mustBe allRdfPathsFull
@@ -129,7 +133,7 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
 
   it should "not propose the exact same replacement if it is the only result" in {
     rdfSuggestions("rdf:type") mustBe rdfOps
-    rdfSuggestions("<https://ns.eccenca.com/source/address>") mustBe rdfOps
+    rdfSuggestions(s"<$RDF_NS/address>") mustBe rdfOps
     // The special paths actually match "value" in the comments, that's why they show up here and /value is still proposed
     jsonSuggestions("department/tags/evenMoreNested/value") mustBe Seq("/value", "/#id", "/#text") ++ jsonOps
     // here it's not the case and only the path ops show up
@@ -152,7 +156,7 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
   }
 
   it should "suggest the replacement of properties where the cursor is currently at" in {
-    val input = "<https://ns.eccenca.com/source/address>/rdf:type"
+    val input = s"<$RDF_NS/address>/rdf:type"
     val secondPathOp = "/rdf:type"
     val result = partialSourcePathAutoCompleteRequest(rdfTransform, inputText = input, cursorPosition = input.length)
     result.replacementResults must have size 2
