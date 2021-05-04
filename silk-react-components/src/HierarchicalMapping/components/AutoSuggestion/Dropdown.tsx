@@ -59,7 +59,7 @@ const RawItem = ({ item, query }, ref) => {
     return (
         <div ref={ref}>
             {(!!item.description && item.description.length > 50) ? (
-                <Tooltip content={item.description} usePortal={false}>
+                <Tooltip content={item.description}>
                     {rawitem}
                 </Tooltip>
             ) : (
