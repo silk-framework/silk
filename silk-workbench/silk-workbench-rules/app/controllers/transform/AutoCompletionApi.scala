@@ -44,7 +44,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
       val forwardOnlySourcePath = forwardOnlyPath(simpleSourcePath)
       val allPaths = pathsCacheCompletions(task, simpleSourcePath.nonEmpty && isRdfInput)
       // FIXME: No only generate relative "forward" paths, but also generate paths that would be accessible by following backward paths.
-      val relativeForwardPaths = relativePaths(simpleSourcePath, forwardOnlySourcePath, allPaths, isRdfInput)
+      val relativeForwardPaths = extractRelativePaths(simpleSourcePath, forwardOnlySourcePath, allPaths, isRdfInput)
       // Add known paths
       completions += relativeForwardPaths
       // Return filtered result
@@ -87,29 +87,43 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
           val simpleSubPath = simplePath(completeSubPath)
           val forwardOnlySubPath = forwardOnlyPath(simpleSubPath)
           val allPaths = pathsCacheCompletions(transformTask, simpleSubPath.nonEmpty && isRdfInput)
-          val relativeForwardPaths = relativePaths(simpleSubPath, forwardOnlySubPath, allPaths, isRdfInput, oneHopOnly = pathToReplace.insideFilter,
-              serializeFull = !pathToReplace.insideFilter && pathToReplace.from > 0)
-          val dataSourceSpecialPathCompletions = PartialSourcePathAutocompletionHelper.specialPathCompletions(dataSourceCharacteristicsOpt, pathToReplace)
+          val pathOpFilter = (autoCompletionRequest.isInBackwardOp, autoCompletionRequest.isInExplicitForwardOp) match {
+            case (true, false) => OpFilter.Backward
+            case (false, true) => OpFilter.Forward
+            case _ => OpFilter.None
+          }
+          val relativePaths = extractRelativePaths(simpleSubPath, forwardOnlySubPath, allPaths, isRdfInput, oneHopOnly = pathToReplace.insideFilter,
+              serializeFull = !pathToReplace.insideFilter && pathToReplace.from > 0, pathOpFilter = pathOpFilter
+            )
+          val dataSourceSpecialPathCompletions = PartialSourcePathAutocompletionHelper.specialPathCompletions(dataSourceCharacteristicsOpt, pathToReplace, pathOpFilter)
           // Add known paths
-          val completions: Completions = relativeForwardPaths ++ dataSourceSpecialPathCompletions
-          val from = pathToReplace.from
-          val length = pathToReplace.length
+          val completions: Completions = relativePaths ++ dataSourceSpecialPathCompletions
           // Return filtered result
           val filteredResults = PartialSourcePathAutocompletionHelper.filterResults(autoCompletionRequest, pathToReplace, completions)
-          val response = PartialSourcePathAutoCompletionResponse(
-            autoCompletionRequest.inputString,
-            autoCompletionRequest.cursorPosition,
-            replacementResults = Seq(
-              ReplacementResults(
-                ReplacementInterval(from, length),
-                pathToReplace.query.getOrElse(""),
-                filteredResults.toCompletionsBase.completions
-              )
-            ) ++ PartialSourcePathAutocompletionHelper.operatorCompletions(dataSourceCharacteristicsOpt, pathToReplace, autoCompletionRequest)
-          )
-          Ok(Json.toJson(response))
+          val operatorCompletions = PartialSourcePathAutocompletionHelper.operatorCompletions(dataSourceCharacteristicsOpt, pathToReplace, autoCompletionRequest)
+          partialAutoCompletionResult(autoCompletionRequest, pathToReplace, operatorCompletions, filteredResults)
         }
       }
+  }
+
+  private def partialAutoCompletionResult(autoCompletionRequest: PartialSourcePathAutoCompletionRequest,
+                                          pathToReplace: PathToReplace,
+                                          operatorCompletions: Option[ReplacementResults],
+                                          filteredResults: Completions): Result = {
+    val from = pathToReplace.from
+    val length = pathToReplace.length
+    val response = PartialSourcePathAutoCompletionResponse(
+      autoCompletionRequest.inputString,
+      autoCompletionRequest.cursorPosition,
+      replacementResults = Seq(
+        ReplacementResults(
+          ReplacementInterval(from, length),
+          pathToReplace.query.getOrElse(""),
+          filteredResults.toCompletionsBase.completions
+        )
+      ) ++ operatorCompletions
+    )
+    Ok(Json.toJson(response))
   }
 
   private def dataSourceCharacteristics(task: ProjectTask[TransformSpec])
@@ -140,20 +154,26 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
 
   /** Filter out paths that start with either the simple source or forward only source path, then
     * rewrite the auto-completion to a relative path from the full paths. */
-  private def relativePaths(simpleSourcePath: List[PathOperator],
-                            forwardOnlySourcePath: List[PathOperator],
-                            pathCacheCompletions: Completions,
-                            isRdfInput: Boolean,
-                            oneHopOnly: Boolean = false,
-                            serializeFull: Boolean = false)
-                           (implicit prefixes: Prefixes): Seq[Completion] = {
+  private def extractRelativePaths(simpleSourcePath: List[PathOperator],
+                                   forwardOnlySourcePath: List[PathOperator],
+                                   pathCacheCompletions: Completions,
+                                   isRdfInput: Boolean,
+                                   oneHopOnly: Boolean = false,
+                                   serializeFull: Boolean = false,
+                                   pathOpFilter: OpFilter.Value = OpFilter.None)
+                                  (implicit prefixes: Prefixes): Seq[Completion] = {
     pathCacheCompletions.values.filter { p =>
       val path = UntypedPath.parse(p.value)
       val matchesPrefix = isRdfInput || // FIXME: Currently there are no paths longer 1 in cache, that why return full path
         path.operators.startsWith(forwardOnlySourcePath) && path.operators.size > forwardOnlySourcePath.size ||
         path.operators.startsWith(simpleSourcePath) && path.operators.size > simpleSourcePath.size
       val truncatedOps = truncatePath(path, simpleSourcePath, forwardOnlySourcePath, isRdfInput)
-      matchesPrefix && (!oneHopOnly || truncatedOps.size == 1)
+      val pathOpMatches = pathOpFilter match {
+        case OpFilter.Forward => truncatedOps.headOption.exists(op => op.isInstanceOf[ForwardOperator])
+        case OpFilter.Backward => truncatedOps.headOption.exists(op => op.isInstanceOf[BackwardOperator])
+        case _ => true
+      }
+      matchesPrefix && pathOpMatches && (!oneHopOnly || truncatedOps.size == 1)
     } map { completion =>
       val path = UntypedPath.parse(completion.value)
       val truncatedOps = truncatePath(path, simpleSourcePath, forwardOnlySourcePath, isRdfInput)

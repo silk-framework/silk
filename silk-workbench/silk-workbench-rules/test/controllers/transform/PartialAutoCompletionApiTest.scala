@@ -21,14 +21,16 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     "phoneNumbers/type", "department/tags/evenMoreNested", "department/tags/tagId", "department/tags/evenMoreNested/value")
 
   private val jsonSpecialPaths = JsonSource.specialPaths.all
-  private val jsonSpecialPathsFull = jsonSpecialPaths.map(p => s"/$p")
+  private val jsonSpecialPathsFull = fullPaths(jsonSpecialPaths)
   private val jsonOps = Seq("/", "\\", "[")
 
   private val RDF_NS = "https://ns.eccenca.com/source"
   private val allPersonRdfPaths = Seq("rdf:type", s"<$RDF_NS/address>", s"<$RDF_NS/age>", s"<$RDF_NS/name>")
-  private val allRdfPaths = Seq("rdf:type", "<https://ns.eccenca.com/source/address>", "<https://ns.eccenca.com/source/age>", "<https://ns.eccenca.com/source/city>", "<https://ns.eccenca.com/source/country>", "<https://ns.eccenca.com/source/name>", "\\rdf:type", "\\<https://ns.eccenca.com/source/address>")
-  private val allPersonRdfPathsFull = allPersonRdfPaths.map("/" + _)
-  private val allRdfPathsFull = allRdfPaths.map(p => if(p.startsWith("\\")) p else "/" + p)
+  private val allForwardRdfPaths = Seq("rdf:type", "<https://ns.eccenca.com/source/address>", "<https://ns.eccenca.com/source/age>",
+    "<https://ns.eccenca.com/source/city>", "<https://ns.eccenca.com/source/country>", "<https://ns.eccenca.com/source/name>")
+  private val allBackwardRdfPaths = Seq("\\rdf:type", "\\<https://ns.eccenca.com/source/address>")
+  // Full serialization of paths
+  private def fullPaths(paths: Seq[String]) = paths.map(p => if(p.startsWith("\\")) p else "/" + p)
   private val rdfOps: Seq[String] = jsonOps ++ Seq("[@lang = 'en']")
 
   /**
@@ -75,6 +77,13 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
       val opsSegments = if(level2EndInput(cursorPosition - 1) != '/')  jsonOps else Seq.empty
       jsonSuggestions(level2EndInput, cursorPosition) mustBe Seq("/tagId") ++ jsonSpecialPathsFull.filter(_.contains("id")) ++ opsSegments
     }
+    jsonSuggestions("department/") mustBe fullPaths(
+      allJsonPaths.filter(p => p.startsWith("department/")).map(_.stripPrefix("department/")) ++
+        jsonSpecialPaths.filter(!_.startsWith("\\"))
+    )
+    jsonSuggestions("/") must not contain("\\..")
+    jsonSuggestions("/") must contain("#text")
+    jsonSuggestions("department\\") mustBe Seq("\\..")
   }
 
   it should "return a client error on invalid requests" in {
@@ -122,13 +131,14 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
   it should "suggest all path operators for RDF sources" in {
     rdfSuggestions("", 0) mustBe allPersonRdfPaths ++ Seq("\\")
     // For all longer paths suggest all properties
-    rdfSuggestions("rdf:type/") mustBe allRdfPathsFull
-    rdfSuggestions("rdf:type/<urn:test:test>/") mustBe allRdfPathsFull
-    rdfSuggestions("rdf:type/<urn:test:test>\\") mustBe allRdfPathsFull
+    rdfSuggestions("rdf:type/") mustBe fullPaths(allForwardRdfPaths)
+    rdfSuggestions("rdf:type/<urn:test:test>/") mustBe fullPaths(allForwardRdfPaths)
+    rdfSuggestions("rdf:type/<urn:test:test>\\") mustBe fullPaths(allBackwardRdfPaths)
   }
 
   it should "suggest URIs based on multi line queries for RDF sources" in {
-    rdfSuggestions("rdf:type/eccenca ad") mustBe allRdfPathsFull.filter(_.contains("address")) ++ rdfOps
+    rdfSuggestions("rdf:type/eccenca ad") mustBe fullPaths(allForwardRdfPaths).filter(_.contains("address")) ++ rdfOps
+    rdfSuggestions("rdf:type\\eccenca ad") mustBe fullPaths(allBackwardRdfPaths).filter(_.contains("address")) ++ rdfOps
   }
 
   it should "not propose the exact same replacement if it is the only result" in {
