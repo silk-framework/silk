@@ -58,7 +58,8 @@ object PartialSourcePathAutocompletionHelper {
 
   /** Returns completion results for data source specific "special" paths, e.g. "#idx" for CSV/Excel. */
   def specialPathCompletions(dataSourceCharacteristicsOpt: Option[DataSourceCharacteristics],
-                             pathToReplace: PathToReplace): Seq[Completion] = {
+                             pathToReplace: PathToReplace,
+                             pathOpFilter: OpFilter.Value): Seq[Completion] = {
     if(pathToReplace.insideQuotes) {
       Seq.empty
     } else {
@@ -69,7 +70,15 @@ object PartialSourcePathAutocompletionHelper {
 
         characteristics.supportedPathExpressions.specialPaths
           // No backward or filter paths allowed inside filters
-          .filter(p => !pathToReplace.insideFilter || !pathOps.drop(1).forall(disallowedOp => p.value.startsWith(disallowedOp)))
+          .filter { p =>
+            val validPathOp = pathOpFilter match {
+              case OpFilter.Backward => p.value.startsWith("\\")
+              case OpFilter.Forward => pathOps.forall(op => !p.value.startsWith(op))
+              case OpFilter.None => true
+            }
+            validPathOp && (
+              !pathToReplace.insideFilter || !pathOps.drop(1).forall(disallowedOp => p.value.startsWith(disallowedOp)))
+          }
           .map { p =>
             val pathSegment = if (pathToReplace.from > 0 && !pathToReplace.insideFilter && pathWithoutOperator(p.value)) {
               "/" + p.value
@@ -86,8 +95,8 @@ object PartialSourcePathAutocompletionHelper {
 
   /** Returns filter results based on text query and the number of results limit. */
   def filterResults(autoCompletionRequest: PartialSourcePathAutoCompletionRequest,
-                            pathToReplace: PathToReplace,
-                            completions: Completions): Completions = {
+                    pathToReplace: PathToReplace,
+                    completions: Completions): Completions = {
     val stringToBeReplaced = autoCompletionRequest.inputString.substring(pathToReplace.from, pathToReplace.from + pathToReplace.length)
     val filteredCompletions: Completions = pathToReplace.query match {
       case Some(query) =>
@@ -126,7 +135,8 @@ object PartialSourcePathAutocompletionHelper {
       val backwardOp = completion(supportedPathExpressions.backwardPaths && supportedPathExpressions.multiHopPaths && !pathToReplace.insideFilter,
         "\\", "Starts a backward path segment")
       val langFilterOp = completion(autoCompletionRequest.cursorPosition > 0 && supportedPathExpressions.languageFilter && !pathToReplace.insideFilter,
-        "[@lang ", "Starts a language filter expression")
+        "[@lang = 'en']", "Language filter expression to restrict language tagged literals. To filter out a" +
+          " specific language, use the '!=' (unequal) operator.")
       val propertyFilter = completion(autoCompletionRequest.cursorPosition > 0  && supportedPathExpressions.propertyFilter && !pathToReplace.insideFilter,
         "[", "Starts a property filter expression")
       val filterClose = completion(validEndOfFilter(pathToReplace, autoCompletionRequest, supportedPathExpressions),
@@ -324,4 +334,9 @@ object PartialSourcePathAutocompletionHelper {
   */
 case class PathToReplace(from: Int, length: Int, query: Option[String], insideFilter: Boolean = false, insideQuotes: Boolean = false, insideUri: Boolean = false) {
   def insideQuotesOrUri: Boolean = insideQuotes || insideUri
+}
+
+/** Filter by path operator type. */
+object OpFilter extends Enumeration {
+  val Forward, Backward, None = Value
 }

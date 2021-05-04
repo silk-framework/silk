@@ -247,6 +247,6 @@ object JsonSource {
     final val TEXT = "#text"
     final val ID = "#id"
     final val BACKWARD_PATH = "\\.."
-    final val all = Seq(ID, TEXT)
+    final val all = Seq(ID, TEXT, BACKWARD_PATH)
   }
 }

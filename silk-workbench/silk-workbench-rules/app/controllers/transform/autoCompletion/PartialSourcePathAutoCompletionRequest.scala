@@ -36,6 +36,16 @@ case class PartialSourcePathAutoCompletionRequest(inputString: String,
     inputString.substring(operatorIdx, indexOfOperatorEnd)
   }
 
+  // True if the cursor is placed inside a backward operator
+  def isInBackwardOp: Boolean = {
+    currentOperatorString.startsWith("\\")
+  }
+
+  // True if cursor is placed inside an explicit forward operator, i.e. the / is written out and not implicit.
+  def isInExplicitForwardOp: Boolean = {
+    currentOperatorString.startsWith("/")
+  }
+
   /** The string in the current operator up to the cursor. */
   def stringInOperatorToCursor: String = {
     inputString.substring(pathOperatorIdxBeforeCursor.getOrElse(0), cursorPosition)

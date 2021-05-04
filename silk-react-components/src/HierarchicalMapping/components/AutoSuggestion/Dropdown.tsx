@@ -10,6 +10,7 @@ import {
     OverflowText,
     Spinner,
     Spacing,
+    Tooltip,
 } from "@gui-elements/index";
 import {ISuggestionWithReplacementInfo} from "./AutoSuggestion";
 
@@ -30,30 +31,40 @@ interface IDropdownProps {
 }
 
 const RawItem = ({ item, query }, ref) => {
-    return (
-        <div ref={ref}>
-            <OverviewItem densityHigh={true}>
-                <OverviewItemDescription>
-                    <OverviewItemLine>
-                        <OverflowText ellipsis="reverse">
+    const rawitem = (
+        <OverviewItem densityHigh={true}>
+            <OverviewItemDescription>
+                <OverviewItemLine>
+                    <OverflowText ellipsis="reverse">
+                        <Highlighter
+                            label={item.value}
+                            searchValue={query}
+                        ></Highlighter>
+                    </OverflowText>
+                </OverviewItemLine>
+                {item.description ? (
+                    <OverviewItemLine small={true}>
+                        <OverflowText>
                             <Highlighter
-                                label={item.value}
+                                label={item.description}
                                 searchValue={query}
-                            ></Highlighter>
+                            />
                         </OverflowText>
                     </OverviewItemLine>
-                    {item.description ? (
-                        <OverviewItemLine small={true}>
-                            <OverflowText ellipsis="reverse">
-                                <Highlighter
-                                    label={item.description}
-                                    searchValue={query}
-                                />
-                            </OverflowText>
-                        </OverviewItemLine>
-                    ) : null}
-                </OverviewItemDescription>
-            </OverviewItem>
+                ) : null}
+            </OverviewItemDescription>
+        </OverviewItem>
+    );
+
+    return (
+        <div ref={ref}>
+            {(!!item.description && item.description.length > 50) ? (
+                <Tooltip content={item.description}>
+                    {rawitem}
+                </Tooltip>
+            ) : (
+                <>{rawitem}</>
+            )}
         </div>
     );
 };
@@ -122,6 +133,7 @@ export const Dropdown = ({
                 <Menu>
                     {options.map((item, index) => (
                         <MenuItem
+
                             key={index}
                             internalProps={{
                                 active: currentlyFocusedIndex === index,
