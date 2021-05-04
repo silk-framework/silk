@@ -420,12 +420,12 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
               for (attributeIndex <- 0 until reader.getAttributeCount) yield {
                 val attributePath = "@" + reader.getAttributeLocalName(attributeIndex) :: currentPath
                 addIfNotExists(paths, idx, attributePath)
-                collectValues(attributePath, reader.getAttributeValue(attributeIndex))
+                collectValues(attributePath.dropRight(basePathLength), reader.getAttributeValue(attributeIndex))
               }
             }
             val text = Try(reader.getElementText)
             text foreach { elemText =>
-              collectValues(currentPath, elemText)
+              collectValues(currentPath.dropRight(basePathLength), elemText)
             }
             readNext = false // Do not read next event, already placed on the next one
           case XMLStreamConstants.END_ELEMENT =>

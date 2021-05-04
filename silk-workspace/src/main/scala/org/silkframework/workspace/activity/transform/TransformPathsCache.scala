@@ -60,6 +60,9 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Cac
         currentEntityDesc.typeUri != context.value().configuredSchema.typeUri ||
         inputId != context.value().inputTaskId ||
         datasetParams != context.value().datasetParameters) {
+      val currentCachedValue = context.value()
+      // Set current cache value to empty
+      context.value() = currentCachedValue.copy(configuredSchema = currentEntityDesc.copy(typedPaths = IndexedSeq.empty), untypedSchema = None)
       // Retrieve the data sources
       val inputTaskId = inputId
       val paths = retrievePathsOfInput(inputTaskId, Some(transform.selection), transformTask, context)
