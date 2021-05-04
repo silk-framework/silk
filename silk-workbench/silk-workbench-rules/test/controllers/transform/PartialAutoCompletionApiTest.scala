@@ -29,7 +29,7 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
   private val allRdfPaths = Seq("rdf:type", "<https://ns.eccenca.com/source/address>", "<https://ns.eccenca.com/source/age>", "<https://ns.eccenca.com/source/city>", "<https://ns.eccenca.com/source/country>", "<https://ns.eccenca.com/source/name>", "\\rdf:type", "\\<https://ns.eccenca.com/source/address>")
   private val allPersonRdfPathsFull = allPersonRdfPaths.map("/" + _)
   private val allRdfPathsFull = allRdfPaths.map(p => if(p.startsWith("\\")) p else "/" + p)
-  private val rdfOps: Seq[String] = jsonOps ++ Seq("[@lang ")
+  private val rdfOps: Seq[String] = jsonOps ++ Seq("[@lang = 'en']")
 
   /**
     * Returns the path of the XML zip project that should be loaded before the test suite starts.

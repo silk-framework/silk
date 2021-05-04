@@ -126,7 +126,8 @@ object PartialSourcePathAutocompletionHelper {
       val backwardOp = completion(supportedPathExpressions.backwardPaths && supportedPathExpressions.multiHopPaths && !pathToReplace.insideFilter,
         "\\", "Starts a backward path segment")
       val langFilterOp = completion(autoCompletionRequest.cursorPosition > 0 && supportedPathExpressions.languageFilter && !pathToReplace.insideFilter,
-        "[@lang ", "Starts a language filter expression")
+        "[@lang = 'en']", "Language filter expression to restrict language tagged literals. To filter out a" +
+          " specific language, use the '!=' (unequal) operator.")
       val propertyFilter = completion(autoCompletionRequest.cursorPosition > 0  && supportedPathExpressions.propertyFilter && !pathToReplace.insideFilter,
         "[", "Starts a property filter expression")
       val filterClose = completion(validEndOfFilter(pathToReplace, autoCompletionRequest, supportedPathExpressions),
