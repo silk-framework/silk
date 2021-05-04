@@ -292,7 +292,8 @@ const AutoSuggestion = ({
 
     const handleInputEditorClear = () => {
         handleChange("");
-        editorInstance && editorInstance.focus();
+        setValue("")
+        editorInstance?.focus();
     };
 
     const handleInputFocus = (focusState: boolean) => {
