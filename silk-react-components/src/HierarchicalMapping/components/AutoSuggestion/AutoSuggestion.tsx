@@ -292,7 +292,8 @@ const AutoSuggestion = ({
 
     const handleInputEditorClear = () => {
         handleChange("");
-        editorInstance && editorInstance.focus();
+        setValue("")
+        editorInstance?.focus();
     };
 
     const handleInputFocus = (focusState: boolean) => {
@@ -390,7 +391,6 @@ const AutoSuggestion = ({
                                 data-test-id={"value-path-clear-btn"}
                                 name="operation-clear"
                                 text={clearIconText}
-                                tooltipProperties={{usePortal: false}}
                                 onClick={handleInputEditorClear}
                             />
                         </span>

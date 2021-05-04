@@ -10,50 +10,59 @@ import {
     OverflowText,
     Spinner,
     Spacing,
+    Tooltip,
 } from "@gui-elements/index";
-import {ISuggestionWithReplacementInfo} from "./AutoSuggestion";
+import { ISuggestionWithReplacementInfo } from "./AutoSuggestion";
 
 interface IDropdownProps {
     // The options of the drop down
-    options: Array<ISuggestionWithReplacementInfo>
+    options: Array<ISuggestionWithReplacementInfo>;
     // Called when an item has been selected from the drop down
-    onItemSelectionChange: (item: ISuggestionWithReplacementInfo) => any
+    onItemSelectionChange: (item: ISuggestionWithReplacementInfo) => any;
     // If the drop down is visible
-    isOpen: boolean
+    isOpen: boolean;
     // If the drop down should show a loading state
-    loading?: boolean
-    left?: number
+    loading?: boolean;
+    left?: number;
     // The item from the drop down that is active
-    currentlyFocusedIndex: number
+    currentlyFocusedIndex: number;
     // Callback indicating what item should currently being highlighted, i.e. is either active or is hovered over
-    itemToHighlight: (item: ISuggestionWithReplacementInfo | undefined) => any
+    itemToHighlight: (item: ISuggestionWithReplacementInfo | undefined) => any;
 }
 
-const RawItem = ({ item, query }, ref) => {
-    return (
-        <div ref={ref}>
-            <OverviewItem densityHigh={true}>
-                <OverviewItemDescription>
-                    <OverviewItemLine>
-                        <OverflowText ellipsis="reverse">
+const RawItem = ({ item }, ref) => {
+    const rawitem = (
+        <OverviewItem densityHigh={true}>
+            <OverviewItemDescription>
+                <OverviewItemLine>
+                    <OverflowText ellipsis="reverse">
+                        <Highlighter
+                            label={item.value}
+                            searchValue={item.query}
+                        ></Highlighter>
+                    </OverflowText>
+                </OverviewItemLine>
+                {item.description ? (
+                    <OverviewItemLine small={true}>
+                        <OverflowText>
                             <Highlighter
-                                label={item.value}
-                                searchValue={query}
-                            ></Highlighter>
+                                label={item.description}
+                                searchValue={item.query}
+                            />
                         </OverflowText>
                     </OverviewItemLine>
-                    {item.description ? (
-                        <OverviewItemLine small={true}>
-                            <OverflowText ellipsis="reverse">
-                                <Highlighter
-                                    label={item.description}
-                                    searchValue={query}
-                                />
-                            </OverflowText>
-                        </OverviewItemLine>
-                    ) : null}
-                </OverviewItemDescription>
-            </OverviewItem>
+                ) : null}
+            </OverviewItemDescription>
+        </OverviewItem>
+    );
+
+    return (
+        <div ref={ref}>
+            {!!item.description && item.description.length > 50 ? (
+                <Tooltip content={item.description}>{rawitem}</Tooltip>
+            ) : (
+                <>{rawitem}</>
+            )}
         </div>
     );
 };
@@ -61,15 +70,17 @@ const RawItem = ({ item, query }, ref) => {
 const Item = React.forwardRef(RawItem);
 
 export const Dropdown = ({
-                             isOpen,
-                             options,
-                             loading,
-                             onItemSelectionChange,
-                             left,
-                             currentlyFocusedIndex,
-                             itemToHighlight
-                         }: IDropdownProps) => {
-    const [hoveredItem, setHoveredItem] = React.useState<ISuggestionWithReplacementInfo | undefined>(undefined)
+    isOpen,
+    options,
+    loading,
+    onItemSelectionChange,
+    left,
+    currentlyFocusedIndex,
+    itemToHighlight,
+}: IDropdownProps) => {
+    const [hoveredItem, setHoveredItem] = React.useState<
+        ISuggestionWithReplacementInfo | undefined
+    >(undefined);
     const dropdownRef = React.useRef<HTMLDivElement>(null);
     const refs = {};
     const generateRef = (index) => {
@@ -96,11 +107,14 @@ export const Dropdown = ({
 
     // Decide which item to highlight
     React.useEffect(() => {
-        const item = options[currentlyFocusedIndex]
-        itemToHighlight(!isOpen ? undefined : hoveredItem || item)
-    }, [currentlyFocusedIndex, options.map(o => o.value + o.from).join("|"), isOpen, hoveredItem?.value])
-
-    if (!isOpen) return null;
+        const item = options[currentlyFocusedIndex];
+        itemToHighlight(!isOpen ? undefined : hoveredItem || item);
+    }, [
+        currentlyFocusedIndex,
+        options.map((o) => o.value + o.from).join("|"),
+        isOpen,
+        hoveredItem?.value,
+    ]);
 
     const Loader = (
         <OverviewItem hasSpacing>
@@ -110,7 +124,9 @@ export const Dropdown = ({
         </OverviewItem>
     );
 
-    return loading || options.length > 0 ? (
+    const loadingOrHasSuggestions = loading || options.length;
+    if (!loadingOrHasSuggestions || !isOpen) return null;
+    return (
         <div
             className="ecc-auto-suggestion-box__dropdown"
             style={{ left }}
@@ -127,25 +143,24 @@ export const Dropdown = ({
                                 active: currentlyFocusedIndex === index,
                                 onMouseDown: (e) => e.preventDefault(),
                                 onClick: () => onItemSelectionChange(item),
-                                text: <Item
-                                    ref={generateRef(index)}
-                                    item={item}
-                                    query={item.query}
-                                />,
+                                text: (
+                                    <Item
+                                        ref={generateRef(index)}
+                                        item={item}
+                                    />
+                                ),
                                 onMouseEnter: () => setHoveredItem(item),
                                 onMouseLeave: () => setHoveredItem(undefined),
                                 onMouseOver: () => {
-                                    if(item.value != hoveredItem?.value) {
-                                        setHoveredItem(item)
+                                    if (item.value != hoveredItem?.value) {
+                                        setHoveredItem(item);
                                     }
-                                }
+                                },
                             }}
                         />
                     ))}
                 </Menu>
             )}
         </div>
-    ) : (
-        <></>
     );
 };

@@ -13,11 +13,16 @@
         flex-flow: column wrap;
         margin-top: 0;
         max-width: 25rem;
-        max-height: 15rem;
+        max-height: 30rem;
         border: 1px solid $list-container-item-border-color;
         border-radius: 0.3rem;
         overflow-x:hidden;
         overflow-y: auto;
+
+        .#{$ns}-menu, .#{$eccgui}-overviewitem__item {
+            max-width: 24rem;
+            box-sizing: border-box;
+        }
     }
 }
 
