@@ -116,8 +116,6 @@ export const Dropdown = ({
         hoveredItem?.value,
     ]);
 
-    if (!isOpen) return null;
-
     const Loader = (
         <OverviewItem hasSpacing>
             <OverviewItemLine>Fetching suggestions</OverviewItemLine>
@@ -127,7 +125,7 @@ export const Dropdown = ({
     );
 
     const loadingOrHasSuggestions = loading || options.length;
-    if (!loadingOrHasSuggestions) return null;
+    if (!loadingOrHasSuggestions || !isOpen) return null;
     return (
         <div
             className="ecc-auto-suggestion-box__dropdown"
