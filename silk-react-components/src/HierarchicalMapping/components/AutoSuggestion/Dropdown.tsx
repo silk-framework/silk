@@ -14,7 +14,7 @@ import {
 } from "@gui-elements/index";
 import { ISuggestionWithReplacementInfo } from "./AutoSuggestion";
 
-interface IDropdownProps {
+export interface IDropdownProps {
     // The options of the drop down
     options: Array<ISuggestionWithReplacementInfo>;
     // Called when an item has been selected from the drop down
