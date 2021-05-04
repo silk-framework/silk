@@ -272,7 +272,7 @@ export class ObjectRuleForm extends Component<IProps, any> {
             const valuePath = modifiedValues.sourceProperty == null ? "" : typeof modifiedValues.sourceProperty === "string" ? modifiedValues.sourceProperty : modifiedValues.sourceProperty.value
             sourcePropertyInput = (
                 <AutoSuggestion
-                    id={"value-path-auto-suggestion"}
+                    id={"object-value-path-auto-suggestion"}
                     label="Value path"
                     initialValue={valuePath}
                     clearIconText={"Clear value path"}
