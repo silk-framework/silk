@@ -70,7 +70,7 @@ export interface IValidationResult {
     }
 }
 
-interface IProps {
+export interface IProps {
     // Optional label to be shown for the input (above)
     label: string
     // The value the component is initialized with, do not use this to control value changes.

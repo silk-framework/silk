@@ -4,7 +4,7 @@ import { Classes as BlueprintClassNames } from "@blueprintjs/core";
 import "codemirror/mode/sparql/sparql.js";
 import CodeMirror from "codemirror";
 
-interface IProps {
+export interface IEditorProps {
   // Is called with the editor instance that allows access via the CodeMirror API
   setEditorInstance: (editor: CodeMirror.Editor) => any
   // Called whenever the editor content changes
@@ -37,7 +37,7 @@ const SingleLineCodeEditor = ({
                                 onFocusChange,
                                 onKeyDown,
                                 onSelection,
-                              }: IProps) => {
+                              }: IEditorProps) => {
   return (
     <div className={"ecc-input-editor " + BlueprintClassNames.INPUT}>
       <ControlledEditor
