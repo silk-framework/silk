@@ -29,5 +29,7 @@ final class VariableDataset extends Dataset {
     */
   override def linkSink(implicit userContext: UserContext): LinkSink = error()
 
+  override def characteristics: DataSourceCharacteristics = DataSourceCharacteristics.attributesOnly
+
   private def error() = throw new RuntimeException("A Variable Dataset cannot be accessed! Only use it in workflows that replace all variable datasets before execution.")
 }

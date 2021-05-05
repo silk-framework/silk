@@ -3,7 +3,7 @@ package controllers.transform
 import controllers.transform.autoCompletion._
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.plugins.dataset.json.JsonSource
+import org.silkframework.plugins.dataset.json.JsonDataset
 import org.silkframework.rule.TransformSpec
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
@@ -20,7 +20,7 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
   private val allJsonPaths = Seq("department", "id", "name", "phoneNumbers", "department/id", "department/tags", "phoneNumbers/number",
     "phoneNumbers/type", "department/tags/evenMoreNested", "department/tags/tagId", "department/tags/evenMoreNested/value")
 
-  private val jsonSpecialPaths = JsonSource.specialPaths.all
+  private val jsonSpecialPaths = JsonDataset.specialPaths.all
   private val jsonSpecialPathsFull = fullPaths(jsonSpecialPaths)
   private val jsonOps = Seq("/", "\\", "[")
 

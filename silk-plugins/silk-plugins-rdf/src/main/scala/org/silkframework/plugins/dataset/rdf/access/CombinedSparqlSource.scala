@@ -59,6 +59,4 @@ case class CombinedSparqlSource(underlyingTask: Task[DatasetSpec[Dataset]], spar
 
   override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])
                             (implicit userContext: UserContext): IndexedSeq[TypedPath] = IndexedSeq.empty
-
-  override def characteristics: DataSourceCharacteristics = SparqlSource.characteristics
 }

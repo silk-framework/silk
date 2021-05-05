@@ -2,8 +2,9 @@ package controllers.transform.autoCompletion
 
 import controllers.transform.AutoCompletionApi.Categories
 import org.silkframework.config.Prefixes
-import org.silkframework.dataset.{DataSourceCharacteristics, SupportedPathExpressions}
-import org.silkframework.entity.paths.{DirectionalPathOperator, PartialParseError, PartialParseResult, PathOperator, PathParser, UntypedPath}
+import org.silkframework.dataset.DataSourceCharacteristics
+import org.silkframework.dataset.DataSourceCharacteristics.SupportedPathExpressions
+import org.silkframework.entity.paths.{PartialParseError, PartialParseResult, UntypedPath}
 import org.silkframework.util.{StringUtils, Uri}
 
 import scala.language.implicitConversions

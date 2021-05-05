@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.text
 
-import org.silkframework.dataset.{DataSource, Dataset, EntitySink, LinkSink}
+import org.silkframework.dataset.{DataSource, DataSourceCharacteristics, Dataset, EntitySink, LinkSink}
 import org.silkframework.entity.ValueType
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.plugins.dataset.charset.{CharsetAutocompletionProvider, CharsetUtils}
@@ -46,4 +46,6 @@ case class TextFileDataset(
     * Returns a entity sink for writing entities to the data set.
     */
   override def entitySink(implicit userContext: UserContext): EntitySink = new TextFileSink(this)
+
+  override def characteristics: DataSourceCharacteristics = DataSourceCharacteristics.attributesOnly
 }

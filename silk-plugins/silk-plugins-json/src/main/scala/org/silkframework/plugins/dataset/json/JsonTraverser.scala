@@ -120,9 +120,9 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
     path match {
       case ForwardOperator(prop) :: tail =>
         prop.uri match {
-          case JsonSource.specialPaths.ID =>
+          case JsonDataset.specialPaths.ID =>
             Seq(nodeId(value))
-          case JsonSource.specialPaths.TEXT =>
+          case JsonDataset.specialPaths.TEXT =>
             nodeToValue(value, generateUris)
           case _ =>
             children(prop).flatMap(child => child.evaluate(tail, generateUris))

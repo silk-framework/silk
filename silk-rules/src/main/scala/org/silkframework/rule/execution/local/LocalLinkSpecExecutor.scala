@@ -78,8 +78,6 @@ class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
       * @return
       */
     override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(table.task.id, DatasetSpec(EmptyDataset))   //FIXME CMEM-1352 replace with table.task???
-
-    override def characteristics: DataSourceCharacteristics = DataSourceCharacteristics()
   }
 
   private def updateSelection(linkSpec: LinkSpec, source: LocalEntities, target: LocalEntities): LinkSpec = {

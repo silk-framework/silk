@@ -129,7 +129,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
   private def dataSourceCharacteristics(task: ProjectTask[TransformSpec])
                                        (implicit userContext: UserContext): Option[DataSourceCharacteristics] = {
     task.project.taskOption[GenericDatasetSpec](task.selection.inputId)
-      .map(_.data.source.characteristics)
+      .map(_.data.characteristics)
   }
 
   private def validatePartialSourcePathAutoCompletionRequest(request: PartialSourcePathAutoCompletionRequest): Unit = {

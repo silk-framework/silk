@@ -191,8 +191,6 @@ case class RdfFileDataset(
     }
 
     private def sparqlSource = new SparqlSource(SparqlParams(graph = graphOpt), endpoint)
-
-    override def characteristics: DataSourceCharacteristics = SparqlSource.characteristics
   }
 
   override def tripleSink(implicit userContext: UserContext): TripleSink = new FormattedEntitySink(file, formatter)

@@ -18,6 +18,10 @@ trait Dataset extends AnyPlugin with DatasetAccess {
 
   /** Related links for this dataset. */
   def datasetLinks: Seq[TaskLink] = Seq.empty
+
+  /** Characteristics of the data source. */
+  def characteristics: DataSourceCharacteristics
+
 }
 
 trait DatasetPluginAutoConfigurable[T <: Dataset] {
@@ -28,6 +32,6 @@ trait DatasetPluginAutoConfigurable[T <: Dataset] {
 }
 
 /**
- * Creates new dataset olugin instances.
+ * Creates new dataset plugin instances.
  */
 object Dataset extends PluginFactory[Dataset]

@@ -51,6 +51,4 @@ class TextFileSource(ds: TextFileDataset) extends DataSource {
   }
 
   override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(ds.file.name), DatasetSpec(EmptyDataset))
-
-  override def characteristics: DataSourceCharacteristics = DataSourceCharacteristics()
 }

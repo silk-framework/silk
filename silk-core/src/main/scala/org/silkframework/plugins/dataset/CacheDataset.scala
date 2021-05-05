@@ -37,6 +37,8 @@ case class CacheDataset(dir: String) extends Dataset {
 
   override def linkSink(implicit userContext: UserContext) = ???
 
+  override def characteristics: DataSourceCharacteristics = DataSourceCharacteristics()
+
   object CacheSource extends DataSource {
     override def retrieve(entityDesc: EntitySchema, limit: Option[Int])
                          (implicit userContext: UserContext): EntityHolder = {
@@ -55,7 +57,5 @@ case class CacheDataset(dir: String) extends Dataset {
                               (implicit userContext: UserContext): IndexedSeq[TypedPath] = IndexedSeq.empty
 
     override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask("cache_source", DatasetSpec(CacheDataset.this))
-
-    override def characteristics: DataSourceCharacteristics = DataSourceCharacteristics()
   }
 }

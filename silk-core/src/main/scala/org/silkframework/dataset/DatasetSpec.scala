@@ -51,6 +51,8 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribut
     safeAccess(DatasetSpec.LinkSinkWrapper(plugin.linkSink, this), SafeModeSink)
   }
 
+  def characteristics: DataSourceCharacteristics = plugin.characteristics
+
   // True if access should be prevented regarding the dataset and safe-mode config
   private def preventAccessInSafeMode(implicit userContext: UserContext): Boolean = {
     ProductionConfig.inSafeMode && !plugin.isFileResourceBased && !userContext.executionContext.insideWorkflow
@@ -199,8 +201,6 @@ object DatasetSpec {
       * @return
       */
     override def underlyingTask: Task[DatasetSpec[Dataset]] = source.underlyingTask
-
-    override def characteristics: DataSourceCharacteristics = source.characteristics
   }
 
   case class EntitySinkWrapper(entitySink: EntitySink, datasetSpec: DatasetSpec[Dataset]) extends EntitySink {
