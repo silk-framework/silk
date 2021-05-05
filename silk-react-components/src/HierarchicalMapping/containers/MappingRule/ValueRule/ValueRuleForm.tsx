@@ -1,32 +1,19 @@
 import React, {useEffect, useState} from 'react';
-import {
-    Card,
-    CardTitle,
-    CardContent,
-    CardActions,
-    Spinner,
-    ScrollingHOC,
-    SelectBox,
-} from '@eccenca/gui-elements';
-import {
-    AffirmativeButton,
-    DismissiveButton,
-    TextField,
-} from '@gui-elements/legacy-replacements';
+import {Card, CardActions, CardContent, CardTitle, ScrollingHOC, Spinner,} from '@eccenca/gui-elements';
+import {AffirmativeButton, DismissiveButton, TextField,} from '@gui-elements/legacy-replacements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
-import store from '../../../store';
-import { convertToUri } from '../../../utils/convertToUri';
+import store, {checkValuePathValidity, fetchSuggestions} from '../../../store';
+import {convertToUri} from '../../../utils/convertToUri';
 import ErrorView from '../../../components/ErrorView';
 import AutoComplete from '../../../components/AutoComplete';
-import {
-    trimValue,
-} from '../../../utils/trimValue';
-import { MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES } from '../../../utils/constants';
+import {trimValue,} from '../../../utils/trimValue';
+import {MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MESSAGES} from '../../../utils/constants';
 import EventEmitter from '../../../utils/EventEmitter';
-import { wasTouched } from '../../../utils/wasTouched';
-import { newValueIsIRI } from '../../../utils/newValueIsIRI';
+import {wasTouched} from '../../../utils/wasTouched';
+import {newValueIsIRI} from '../../../utils/newValueIsIRI';
 import TargetCardinality from "../../../components/TargetCardinality";
+import AutoSuggestion from '../../../components/AutoSuggestion/AutoSuggestion'
 
 const LANGUAGES_LIST = [
     'en', 'de', 'es', 'fr', 'bs', 'bg', 'ca', 'ce', 'zh', 'hr', 'cs', 'da', 'nl', 'eo', 'fi', 'ka', 'el', 'hu', 'ga', 'is', 'it',
@@ -83,6 +70,12 @@ export function ValueRuleForm(props: IProps) {
     const [label, setLabel] = useState<string>("")
     const [comment, setComment] = useState<string>("")
     const [targetProperty, setTargetProperty] = useState<string>("")
+    const [valuePathValid, setValuePathValid] = useState<boolean>(false)
+    const [valuePathInputHasFocus, setValuePathInputHasFocus] = useState<boolean>(false)
+
+    const { id, parentId } = props;
+
+    const autoCompleteRuleId = id || parentId;
 
     const state = {
         loading,
@@ -251,10 +244,6 @@ export function ValueRuleForm(props: IProps) {
 
     // template rendering
     const render = () => {
-        const { id, parentId } = props;
-
-        const autoCompleteRuleId = id || parentId;
-
         if (loading) {
             return <Spinner />;
         }
@@ -273,20 +262,21 @@ export function ValueRuleForm(props: IProps) {
 
         if (type === MAPPING_RULE_TYPE_DIRECT) {
             sourcePropertyInput = (
-                <AutoComplete
-                    placeholder="Value path"
-                    className="ecc-silk-mapping__ruleseditor__sourcePath"
-                    entity="sourcePath"
-                    creatable
-                    value={sourceProperty}
-                    ruleId={autoCompleteRuleId}
+                <AutoSuggestion
+                    id={"value-path-auto-suggestion"}
+                    label="Value path"
+                    initialValue={typeof sourceProperty === "string" ? sourceProperty : sourceProperty.value}
+                    clearIconText={"Clear value path"}
+                    validationErrorText={"The entered value path is invalid."}
                     onChange={handleChangeSelectBox.bind(
                         null,
                         'sourceProperty',
                         setSourceProperty
                     )}
-                    resetQueryToValue={true}
-                    itemDisplayLabel={(item) => item.label ? `${item.label} <${item.value}>` : item.value}
+                    fetchSuggestions={(input, cursorPosition) => fetchSuggestions(autoCompleteRuleId, input, cursorPosition)}
+                    checkInput={checkValuePathValidity}
+                    onInputChecked={setValuePathValid}
+                    onFocusChange={setValuePathInputHasFocus}
                 />
             );
         } else if (type === MAPPING_RULE_TYPE_COMPLEX) {
@@ -299,7 +289,7 @@ export function ValueRuleForm(props: IProps) {
                 />
             );
         }
-        const exampleView = !_.isEmpty(sourceProperty) ? (
+        const exampleView = !_.isEmpty(sourceProperty) && valuePathValid && !valuePathInputHasFocus ? (
             <ExampleView
                 id={props.parentId || 'root'}
                 key={

@@ -1,0 +1,98 @@
+//@import "~@eccenca/gui-elements/src/configuration.default";
+
+.ecc-auto-suggestion-box {
+    position: relative;
+
+    &__dropdown {
+        transition: all 300ms;
+        background-color: $color-white;
+        position: absolute;
+        top: $eccgui-size-textfield-height-regular;
+        z-index:2;
+        display: flex;
+        flex-flow: column wrap;
+        margin-top: 0;
+        max-width: 25rem;
+        max-height: 30rem;
+        border: 1px solid $list-container-item-border-color;
+        border-radius: 0.3rem;
+        overflow-x:hidden;
+        overflow-y: auto;
+
+        .#{$ns}-menu, .#{$eccgui}-overviewitem__item {
+            max-width: 24rem;
+            box-sizing: border-box;
+        }
+    }
+}
+
+.ecc-input-editor {
+    position: relative;
+
+    .CodeMirror {
+        height: calc(#{$eccgui-size-textfield-height-regular} - 4px);
+        margin: 0;
+        padding: 0;
+        top: 2px;
+        overflow: hidden;
+    }
+
+    .CodeMirror-scroll {
+        margin: 0;
+        padding: 0;
+        overflow-y: hidden !important;
+        overflow-x: auto !important;
+    }
+
+    .CodeMirror-vscrollbar {
+        display: none !important;
+    }
+
+    .CodeMirror-sizer {
+        border: none;
+    }
+
+    .CodeMirror-lines {
+        padding: 0;
+        line-height: calc(#{$eccgui-size-textfield-height-regular} - 4px - 6px);
+    }
+
+    pre.CodeMirror-line {
+        font-family: $eccgui-font-family-monospace;
+        font-size: 0.9em;
+        padding: 3px 0;
+        height: calc(#{$eccgui-size-textfield-height-regular} - 4px - 6px);
+        box-sizing: content-box;
+    }
+
+    .CodeMirror-cursor {
+        border: none;
+        margin: 0;
+        width: 1px;
+        background-color: transparent;
+
+        &::after {
+            content: " ";
+            height: 1rem;
+            width: 1px;
+            overflow: hidden;
+            background-color: black;
+            position: absolute;
+            top: 50%;
+            right: 0;
+            margin-top: -0.5rem;
+        }
+    }
+}
+
+.ecc-text-highlighting {
+    display: inline-block;
+    background-color: $eccgui-color-warning-background;
+    color:$eccgui-color-warning-text;
+}
+
+.ecc-text-error-highlighting {
+    background-image:url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAADCAYAAAC09K7GAAAAAXNSR0IArs4c6QAAAAZiS0dEAP8A/wD/oL2nkwAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9sJDw4cOCW1/KIAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAAHElEQVQI12NggIL/DAz/GdA5/xkY/qPKMDAwAADLZwf5rvm+LQAAAABJRU5ErkJggg==");
+    background-position: left bottom;
+    background-repeat: repeat-x;
+}

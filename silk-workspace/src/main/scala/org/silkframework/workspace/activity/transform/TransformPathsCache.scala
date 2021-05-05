@@ -60,10 +60,13 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Cac
         currentEntityDesc.typeUri != context.value().configuredSchema.typeUri ||
         inputId != context.value().inputTaskId ||
         datasetParams != context.value().datasetParameters) {
+      val currentCachedValue = context.value()
+      // Set current cache value to empty
+      context.value() = currentCachedValue.copy(configuredSchema = currentEntityDesc.copy(typedPaths = IndexedSeq.empty), untypedSchema = None)
       // Retrieve the data sources
       val inputTaskId = inputId
       val paths = retrievePathsOfInput(inputTaskId, Some(transform.selection), transformTask, context)
-      val configuredEntitySchema = currentEntityDesc.copy(typedPaths = (currentEntityDesc.allPaths ++ paths).distinct)
+      val configuredEntitySchema = currentEntityDesc.copy(typedPaths = paths.distinct)
       // Retrieve untyped paths if input is an RDF data source and configured type is non empty
       val isRdfInput = transformTask.project.taskOption[DatasetSpec[Dataset]](inputTaskId).exists(_.plugin.isInstanceOf[RdfDataset])
       val unTypedEntitySchema = if (isRdfInput
@@ -72,7 +75,7 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Cac
           || context.value().untypedSchema.get.typedPaths.isEmpty)) {
         val selection = transform.selection.copy(typeUri = Uri(""))
         val unTypedPaths = retrievePathsOfInput(inputTaskId, Some(selection), transformTask, context)
-        Some(currentEntityDesc.copy(typeUri = Uri(""), typedPaths = (currentEntityDesc.allPaths ++ unTypedPaths).distinct))
+        Some(currentEntityDesc.copy(typeUri = Uri(""), typedPaths = unTypedPaths.distinct))
       } else {
         None
       }

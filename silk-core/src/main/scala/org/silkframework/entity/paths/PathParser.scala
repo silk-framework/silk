@@ -18,6 +18,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
+import scala.util.matching.Regex
 import scala.util.parsing.combinator.RegexParsers
 import scala.util.parsing.input.CharSequenceReader
 
@@ -30,12 +31,7 @@ private[entity] class PathParser(prefixes: Prefixes) extends RegexParsers {
     if(pathStr.isEmpty) {
       UntypedPath(Nil)
     } else {
-      // Complete path if a simplified syntax is used
-      val completePath = pathStr.head match {
-        case '?' => pathStr // Path includes a variable
-        case '/' | '\\' => "?a" + pathStr // Variable has been left out
-        case _ => "?a/" + pathStr // Variable and leading '/' have been left out
-      }
+      val completePath = normalized(pathStr)
       // Parse path
       parseAll(path, new CharSequenceReader(completePath)) match {
         case Success(parsedPath, _) => parsedPath
@@ -44,7 +40,68 @@ private[entity] class PathParser(prefixes: Prefixes) extends RegexParsers {
     }
   }
 
-  private def path = variable ~ rep(forwardOperator | backwardOperator | filterOperator) ^^ {
+  /**
+    * Returns the part of the path that could be parsed until a parse error and the error if one occurred.
+    * @param pathStr The input path string.
+    */
+  def parseUntilError(pathStr: String): PartialParseResult = {
+    if(pathStr.isEmpty) {
+      return PartialParseResult(UntypedPath(List.empty), None)
+    }
+    val completePath = normalized(pathStr)
+    // Added characters because of normalization. Need to be removed when reporting the actual error offset.
+    val addedOffset = completePath.length - pathStr.length
+    val inputSequence = new CharSequenceReader(completePath)
+    var partialPathOps: Vector[PathOperator] = Vector.empty
+    var partialParseError: Option[PartialParseError] = None
+    val variableResult = parse(variable, inputSequence) // Ignore variable
+    var parseOffset = variableResult.next.offset
+    def originalParseOffset = math.max(0, parseOffset - addedOffset)
+    while(partialParseError.isEmpty && parseOffset < completePath.length) {
+      try {
+        parse(ops, inputSequence.drop(parseOffset)) match {
+          case Success(pathOperator, next) => {
+            partialPathOps :+= pathOperator
+            parseOffset = next.offset
+          }
+          case error: NoSuccess =>
+            // Subtract 1 because next is positioned after the character that lead to the parse error.
+            val originalErrorOffset = math.max(error.next.offset - addedOffset - 1, 0)
+            partialParseError = Some(PartialParseError(
+              originalErrorOffset,
+              error.msg,
+              pathStr.substring(originalParseOffset, math.min(originalErrorOffset + 1, pathStr.length)), // + 1 since we want to have the character where it failed
+              originalParseOffset
+            ))
+        }
+      } catch {
+        case validationException: ValidationException =>
+          // Can happen e.g. when a qualified name used an invalid/unknown prefix name
+          partialParseError = Some(PartialParseError(
+            originalParseOffset,
+            validationException.getMessage,
+            "",
+            originalParseOffset
+          ))
+      }
+    }
+    PartialParseResult(UntypedPath(partialPathOps.toList), partialParseError)
+  }
+
+  // Normalizes the path syntax in case a simplified syntax has been used
+  private def normalized(pathStr: String): String = {
+    pathStr.headOption match {
+      case Some('?') => pathStr // Path includes a variable
+      case Some('/') | Some('\\') => "?a" + pathStr // Variable has been left out
+      case _ => "?a/" + pathStr // Variable and leading '/' have been left out
+    }
+  }
+
+  private def ops = forwardOperator | backwardOperator | filterOperator ^^ {
+    case operator => operator
+  }
+
+  private def path = variable ~ rep(ops) ^^ {
     case variable ~ operators => UntypedPath(operators)
   }
 
@@ -73,14 +130,36 @@ private[entity] class PathParser(prefixes: Prefixes) extends RegexParsers {
   }
 
   // An identifier that is either a URI enclosed in angle brackets (e.g., <URI>) or a plain identifier (e.g., name or prefix:name)
-  private def identifier = """<[^>]+>|[^\\/\[\]<>=!" ]+""".r
+  private def identifier: Regex = PathParser.Regexes.identifier
 
   // A language tag according to the Sparql spec
   private def languageTag = """[a-zA-Z]+('-'[a-zA-Z0-9]+)*""".r
 
   // A value that is either an identifier or a literal value enclosed in quotes (e.g., "literal").
-  private def value = identifier | "\"[^\"]+\"".r
+  private def value = identifier | "\"[^\"]*\"".r
 
   // A comparison operator
   private def compOperator = ">" | "<" | ">=" | "<=" | "=" | "!="
 }
+
+object PathParser {
+  object RegexParts {
+    val uriExpression = "<[^>]+>"
+    val plainIdentifier = """[^\\/\[\]<>=!" ]+"""
+  }
+  object Regexes {
+    import RegexParts._
+    val identifier: Regex = (s"$uriExpression|$plainIdentifier").r
+  }
+}
+
+/**
+  * A partial path parse result.
+  *
+  * @param partialPath The (valid) partial path that has been parsed until the parse error.
+  * @param error       An optional parse error when not all of the input string could be parsed.
+  */
+case class PartialParseResult(partialPath: UntypedPath, error: Option[PartialParseError])
+
+/** Offset and error message of the parse error. The offset defines the position before the character that lead to the parse error. */
+case class PartialParseError(offset: Int, message: String, inputLeadingToError: String, nextParseOffset: Int)

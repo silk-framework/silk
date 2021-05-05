@@ -25,6 +25,8 @@ case class MockDataset(@Param(label = "person name", value = "The full name of a
   override def linkSink(implicit userContext: UserContext): LinkSink = DummyLinkSink(writeLinkFn, clearFn)
 
   override def entitySink(implicit userContext: UserContext): EntitySink = DummyEntitySink(writeEntityFn, clearFn)
+
+  override def characteristics: DataSourceCharacteristics = DataSourceCharacteristics.attributesOnly
 }
 
 case class DummyDataSource(retrieveFn: (EntitySchema, Option[Int]) => Traversable[Entity],

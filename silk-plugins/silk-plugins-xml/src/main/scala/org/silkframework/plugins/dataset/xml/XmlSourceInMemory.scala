@@ -1,7 +1,6 @@
 package org.silkframework.plugins.dataset.xml
 
 import java.util.logging.{Level, Logger}
-
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._

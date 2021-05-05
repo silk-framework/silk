@@ -6,9 +6,9 @@ import org.silkframework.rule.vocab._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
-import org.silkframework.serialization.json.JsonSerializers.{GenericInfoJsonFormat, VocabularyCacheValueJsonFormat, VocabularyClassJsonFormat, VocabularyJsonFormat}
+import org.silkframework.serialization.json.JsonSerializers.{GenericInfoJsonFormat, VocabularyCacheValueJsonFormat, VocabularyJsonFormat}
 import org.silkframework.workspace.activity.transform.VocabularyCacheValue
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.Json
 
 import scala.reflect.ClassTag
 
@@ -59,4 +59,5 @@ case class SomeDatasetPlugin(param1: String, param2: Double) extends Dataset {
   override def source(implicit userContext: UserContext): DataSource = ???
   override def linkSink(implicit userContext: UserContext): LinkSink = ???
   override def entitySink(implicit userContext: UserContext): EntitySink = ???
+  override def characteristics: DataSourceCharacteristics = DataSourceCharacteristics.attributesOnly
 }

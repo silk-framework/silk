@@ -1,8 +1,8 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.dataset.DataSource
+import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.TypedPath
-import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.EmptyEntityTable
 import org.silkframework.runtime.activity.UserContext
@@ -29,5 +29,4 @@ trait XmlSourceTrait { this: DataSource =>
       retrieve(entitySchema).filter(entity => uriSet.contains(entity.uri.toString))
     }
   }
-
 }

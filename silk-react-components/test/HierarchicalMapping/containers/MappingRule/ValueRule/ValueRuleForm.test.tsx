@@ -27,7 +27,6 @@ const selectors = {
     CONFIRM_BUTTON: 'button.ecc-silk-mapping__ruleseditor__actionrow-save',
     CANCEL_BUTTON: 'button.ecc-silk-mapping__ruleseditor___actionrow-cancel',
 };
-
 const getWrapper = (arg = props) => withMount(<ValueRuleForm {...arg} />)
 
 jest.mock("../../../../../src/HierarchicalMapping/store", () => {

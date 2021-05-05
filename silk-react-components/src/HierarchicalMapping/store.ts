@@ -15,6 +15,8 @@ import {
 import EventEmitter from './utils/EventEmitter';
 import { isDebugMode } from './utils/isDebugMode';
 import React, {useState} from "react";
+import silkApi, {HttpResponsePromise} from '../api/silkRestApi'
+import {IPartialAutoCompleteResult, IValidationResult} from "./components/AutoSuggestion/AutoSuggestion";
 
 const silkStore = rxmq.channel('silk.api');
 export const errorChannel = rxmq.channel('errors');
@@ -701,6 +703,52 @@ export const prefixesAsync = () => {
         })
         .map(returned => returned.body);
 };
+
+
+const getSuggestion = (ruleId:string, inputString: string, cursorPosition:number): HttpResponsePromise => {
+    const { baseUrl, transformTask, project } = getDefinedApiDetails();
+    return silkApi.getSuggestionsForAutoCompletion(
+        baseUrl,
+        project,
+        transformTask,
+        ruleId,
+        inputString,
+        cursorPosition
+    );
+}
+
+// Fetches (partial) auto-complete suggestions for the value path
+export const fetchSuggestions = (ruleId: string | undefined, inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
+    return new Promise((resolve, reject) => {
+        if(!ruleId) {
+            resolve(undefined)
+        } else {
+            getSuggestion(ruleId, inputString, cursorPosition)
+                .then((suggestions) => resolve(suggestions?.data))
+                .catch((err) => reject(err))
+        }
+    })
+}
+
+const pathValidation = (inputString:string) => {
+    const {baseUrl, project} = getDefinedApiDetails()
+    return silkApi.validatePathExpression(baseUrl,project,inputString)
+}
+
+// Checks if the value path syntax is valid
+export const checkValuePathValidity = (inputString): Promise<IValidationResult | undefined> => {
+    return new Promise((resolve, reject) => {
+        pathValidation(inputString)
+            .then((response) => {
+                const payload = response?.data
+                resolve(payload)
+            })
+            .catch((err) => {
+                reject(err)
+            })
+    })
+}
+
 
 const exportFunctions = {
     getHierarchyAsync,

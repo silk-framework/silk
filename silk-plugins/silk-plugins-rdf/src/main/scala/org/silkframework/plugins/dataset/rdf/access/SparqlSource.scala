@@ -183,3 +183,4 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
     }
   }
 }
+

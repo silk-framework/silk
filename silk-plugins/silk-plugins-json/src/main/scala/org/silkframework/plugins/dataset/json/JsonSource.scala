@@ -229,5 +229,4 @@ object JsonSource {
       apply(Identifier.fromAllowed(file.name), JsArray(), basePath, uriPattern)
     }
   }
-
 }

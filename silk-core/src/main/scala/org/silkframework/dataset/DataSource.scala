@@ -108,7 +108,7 @@ trait DataSource {
   protected def genericEntityIRI(identifier: Identifier): String = DataSource.generateEntityUri(underlyingTask.id, identifier)
 }
 
-object DataSource{
+object DataSource {
 
   //the URN_NID prefix (see rfc 8141) for for generic dataset and entity naming
   val URN_NID_PREFIX: String = "urn:instance:"

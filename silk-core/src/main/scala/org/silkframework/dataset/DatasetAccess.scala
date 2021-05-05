@@ -13,7 +13,7 @@ trait DatasetAccess extends DatasetReadAccess with DatasetWriteAccess
 trait DatasetReadAccess {
 
   /**
-    * Returns a data source for reading entities from the data set.
+    * Creates a new data source for reading entities from the data set.
     */
   def source(implicit userContext: UserContext): DataSource
 
@@ -25,12 +25,12 @@ trait DatasetReadAccess {
 trait DatasetWriteAccess {
 
   /**
-    * Returns a link sink for writing entity links to the data set.
+    * Creates a new link sink for writing entity links to the data set.
     */
   def linkSink(implicit userContext: UserContext): LinkSink
 
   /**
-    * Returns a entity sink for writing entities to the data set.
+    * Creates a new entity sink for writing entities to the data set.
     */
   def entitySink(implicit userContext: UserContext): EntitySink
 

@@ -137,7 +137,7 @@ object SearchApiModel {
                                     task: ProjectTask[_ <: TaskSpec],
                                     matchTaskProperties: Boolean,
                                     matchProject: Boolean): Boolean = {
-      val taskLabel = task.taskLabel(Int.MaxValue)
+      val taskLabel = task.fullTaskLabel
       val description = task.metaData.description.getOrElse("")
       val searchInProperties = if(matchTaskProperties) task.data.properties(task.project.config.prefixes).map(p => p._2).mkString(" ") else ""
       val searchInProject = if(matchProject) label(task.project) else ""
@@ -417,7 +417,7 @@ object SearchApiModel {
   }
 
   private def label(task: ProjectTask[_ <: TaskSpec]): String = {
-    task.taskLabel(Int.MaxValue)
+    task.fullTaskLabel
   }
 
   private def label(projectOrTask: ProjectOrTask): String = {

@@ -1,5 +1,7 @@
 @import "~@eccenca/gui-elements/src/configuration.default";
 @import '@gui-elements/index';
+@import "components/AutoSuggestion/AutoSuggestion";
+
 .ecc-component-messagehandler {
     .ecc-temp__appmessages & {
         position: fixed;
@@ -19,7 +21,6 @@
 *:not([class*=#{$eccgui}]) {
     box-sizing: inherit;
 }
-
 
 .ecc-silk-mapping {
 
@@ -639,6 +640,7 @@ ul.ecc-hierarchical-mapping-error-list {
     flex-grow: 1;
     flex-shrink: 1;
     width: 50vw; // this is a spooky hack but it prevents that the layout explodes
+    overflow: auto;
 
     .ecc-silk-mapping__rulesviewer__infobox-sub {
         @include typo-caption();
@@ -687,6 +689,10 @@ ul.ecc-hierarchical-mapping-error-list {
 
     thead {
         border: 0;
+    }
+
+    .mdl-chip {
+        max-width: 30rem;
     }
 
     tbody {

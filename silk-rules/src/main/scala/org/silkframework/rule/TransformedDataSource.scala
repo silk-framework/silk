@@ -7,8 +7,8 @@ import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.failures.FailureClass
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
 import scala.util.{Failure, Success, Try}

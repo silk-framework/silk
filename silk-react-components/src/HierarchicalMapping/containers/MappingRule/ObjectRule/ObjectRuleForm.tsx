@@ -21,7 +21,7 @@ import {
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import { ParentElement } from '../../../components/ParentElement';
-import { createMappingAsync } from '../../../store';
+import {checkValuePathValidity, createMappingAsync, fetchSuggestions} from '../../../store';
 import { convertToUri } from '../../../utils/convertToUri';
 import ErrorView from '../../../components/ErrorView';
 import AutoComplete from '../../../components/AutoComplete';
@@ -35,6 +35,7 @@ import { wasTouched } from '../../../utils/wasTouched';
 import { newValueIsIRI } from '../../../utils/newValueIsIRI';
 import TargetCardinality from "../../../components/TargetCardinality";
 import MultiAutoComplete from "../../../components/MultiAutoComplete";
+import AutoSuggestion from "../../../components/AutoSuggestion/AutoSuggestion";
 
 interface IProps {
     id?: string
@@ -268,18 +269,19 @@ export class ObjectRuleForm extends Component<IProps, any> {
                     </RadioGroup>
                 </FieldItem>
             );
+            const valuePath = modifiedValues.sourceProperty == null ? "" : typeof modifiedValues.sourceProperty === "string" ? modifiedValues.sourceProperty : modifiedValues.sourceProperty.value
             sourcePropertyInput = (
-                <AutoComplete
-                    placeholder="Value path"
-                    className="ecc-silk-mapping__ruleseditor__sourcePath"
-                    entity="sourcePath"
-                    creatable
-                    value={modifiedValues.sourceProperty}
-                    ruleId={parentId}
-                    onChange={value => { this.handleChangeValue('sourceProperty', value); }}
-                    data-id="autocomplete_source_prop"
-                    resetQueryToValue={true}
-                    itemDisplayLabel={(item) => item.label ? `${item.label} <${item.value}>` : item.value}
+                <AutoSuggestion
+                    id={"object-value-path-auto-suggestion"}
+                    label="Value path"
+                    initialValue={valuePath}
+                    clearIconText={"Clear value path"}
+                    validationErrorText={"The entered value path is invalid."}
+                    onChange={value => {
+                        this.handleChangeValue('sourceProperty', value);
+                    }}
+                    fetchSuggestions={(input, cursorPosition) => fetchSuggestions(autoCompleteRuleId, input, cursorPosition)}
+                    checkInput={checkValuePathValidity}
                 />
             );
         }

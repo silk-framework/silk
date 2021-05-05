@@ -1,14 +1,13 @@
 package org.silkframework.execution.local
 
-import java.util.concurrent.ConcurrentHashMap
-import java.util.logging.{Level, Logger}
-
 import org.silkframework.dataset.Dataset
 import org.silkframework.execution.ExecutionType
 import org.silkframework.execution.local.LocalExecution.LocalInternalDataset
 import org.silkframework.plugins.dataset.{InternalDataset, InternalDatasetTrait}
 import org.silkframework.util.Identifier
 
+import java.util.concurrent.ConcurrentHashMap
+import java.util.logging.{Level, Logger}
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 

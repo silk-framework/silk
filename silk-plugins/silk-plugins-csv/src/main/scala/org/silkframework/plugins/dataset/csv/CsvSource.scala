@@ -146,7 +146,7 @@ class CsvSource(file: Resource,
         val property = path.operators.head.asInstanceOf[ForwardOperator].property.uri
         val propertyIndex = propertyList.indexOf(property.toString)
         if (propertyIndex == -1) {
-          if(property == "#idx") {
+          if(property == CsvSource.INDEX_PATH) {
             IDX_PATH_IDX
           } else {
             missingColumns :+= property
@@ -390,6 +390,10 @@ class CsvSource(file: Resource,
     * @return
     */
   override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(file.name), DatasetSpec(EmptyDataset))   //FIXME CMEM-1352 replace with actual task
+}
+
+object CsvSource {
+  final val INDEX_PATH = "#idx"
 }
 
 case class CsvAutoconfiguredParameters(detectedSeparator: String, codecName: String, linesToSkip: Option[Int])
