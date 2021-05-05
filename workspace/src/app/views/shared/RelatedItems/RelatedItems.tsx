@@ -61,7 +61,9 @@ export function RelatedItems(props: IProps) {
     const [t] = useTranslation();
 
     useEffect(() => {
-        getRelatedItemsData(projectId, taskId, textQuery);
+        if (projectId && taskId) {
+            getRelatedItemsData(projectId, taskId, textQuery);
+        }
     }, [projectId, taskId, textQuery, updated]);
 
     // Fetches and updates the related items of the project task
