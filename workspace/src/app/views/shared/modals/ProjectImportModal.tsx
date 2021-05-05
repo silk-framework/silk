@@ -310,7 +310,11 @@ export function ProjectImportModal({ close, back }: IProps) {
                     <Notification
                         warning={true}
                         actions={[
-                            <Button href={absoluteProjectPath(details.projectId)} target={"_empty"}>
+                            <Button
+                                key={"openExistingProjectKey"}
+                                href={absoluteProjectPath(details.projectId)}
+                                target={"_empty"}
+                            >
                                 {t("ProjectImportModal.openExistingProject", "Open existing project page")}
                             </Button>,
                         ]}

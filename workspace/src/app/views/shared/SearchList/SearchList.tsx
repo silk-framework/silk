@@ -33,10 +33,10 @@ export function SearchList() {
     const [t] = useTranslation();
 
     const onDiscardModals = () => {
+        setSelectedItem(null);
         setShowCloneModal(false);
         setDeleteModalOpen(false);
         setCopyToModalOpen(false);
-        setSelectedItem(null);
     };
 
     const fixItemIdSettings = (item) => {
