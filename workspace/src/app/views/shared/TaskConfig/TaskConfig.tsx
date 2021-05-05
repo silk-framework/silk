@@ -81,7 +81,7 @@ export function TaskConfig(props: IProps) {
         }
     };
     useEffect(() => {
-        if (!isOpen) {
+        if (!isOpen && taskId) {
             // Always update when the update modal was closed
             initPreviewData();
         }
