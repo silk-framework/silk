@@ -123,8 +123,20 @@ export function ProjectImportModal({ close, back }: IProps) {
                 setLoading(true);
                 await requestStartProjectImport(projectImportId, generateNewProjectId, overWriteExistingProject);
                 let status: Partial<IProjectExecutionStatus> = {};
+                const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+                let errorCounter = 0;
                 while (!status.importEnded) {
-                    status = (await requestProjectImportExecutionStatus(projectImportId)).data;
+                    try {
+                        status = (await requestProjectImportExecutionStatus(projectImportId)).data;
+                        errorCounter = 0;
+                    } catch (err) {
+                        if (errorCounter >= 3) {
+                            throw err;
+                        }
+                        // Retry until error persists for overall 15 seconds, exponential backoff
+                        await sleep(Math.pow(2, errorCounter) * 1000);
+                        errorCounter = errorCounter + 1;
+                    }
                 }
                 close();
                 dispatch(routerOp.goToPage(`projects/${status.projectId}`));
@@ -298,7 +310,11 @@ export function ProjectImportModal({ close, back }: IProps) {
                     <Notification
                         warning={true}
                         actions={[
-                            <Button href={absoluteProjectPath(details.projectId)} target={"_empty"}>
+                            <Button
+                                key={"openExistingProjectKey"}
+                                href={absoluteProjectPath(details.projectId)}
+                                target={"_empty"}
+                            >
                                 {t("ProjectImportModal.openExistingProject", "Open existing project page")}
                             </Button>,
                         ]}
