@@ -14,7 +14,7 @@ import scala.languageFeature.postfixOps
 abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
   implicit val userContext: UserContext = UserContext.Empty
-  def xmlSource(name: String, uriPattern: String): DataSource with XmlSourceTrait
+  def xmlSource(name: String, uriPattern: String, baseType: String = ""): DataSource with XmlSourceTrait
 
   behavior of "XML Dataset"
 
@@ -152,6 +152,20 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
   it should "retrieve typed paths" in {
     xmlSource("persons.xml", "").retrievePaths("Person").map(tp => tp.toUntypedPath.normalizedSerialization -> tp.valueType -> tp.isAttribute) shouldBe IndexedSeq(
+      "ID" -> ValueType.STRING -> false,
+      "Name" -> ValueType.STRING -> false,
+      "Events" -> ValueType.URI -> false,
+      "Events/@count" -> ValueType.STRING -> true,
+      "Events/Birth" -> ValueType.STRING -> false,
+      "Events/Death" -> ValueType.STRING -> false,
+      "Properties" -> ValueType.URI -> false,
+      "Properties/Property" -> ValueType.URI -> false,
+      "Properties/Property/Key" -> ValueType.STRING ->false,
+      "Properties/Property/Value" -> ValueType.STRING -> false,
+      "Properties/Property/Key" -> ValueType.URI -> false,
+      "Properties/Property/Key/@id" -> ValueType.STRING -> true
+    )
+    xmlSource("persons.xml", "", "Person").retrievePaths("").map(tp => tp.toUntypedPath.normalizedSerialization -> tp.valueType -> tp.isAttribute) shouldBe IndexedSeq(
       "ID" -> ValueType.STRING -> false,
       "Name" -> ValueType.STRING -> false,
       "Events" -> ValueType.URI -> false,

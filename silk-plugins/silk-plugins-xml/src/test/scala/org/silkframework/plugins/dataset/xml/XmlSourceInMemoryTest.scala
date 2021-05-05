@@ -5,9 +5,9 @@ import org.silkframework.runtime.resource.ClasspathResourceLoader
 
 class XmlSourceInMemoryTest extends XmlSourceTestBase {
 
-  override def xmlSource(name: String, uriPattern: String): DataSource with XmlSourceTrait = {
+  override def xmlSource(name: String, uriPattern: String, baseType: String = ""): DataSource with XmlSourceTrait = {
     val resources = ClasspathResourceLoader("org/silkframework/plugins/dataset/xml/")
-    val source = new XmlSourceInMemory(resources.get(name), "", uriPattern)
+    val source = new XmlSourceInMemory(resources.get(name), baseType, uriPattern)
     source
   }
 
