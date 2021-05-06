@@ -53,13 +53,13 @@ object EmptyDataset extends Dataset with Serializable {
     /**
      * Initialize the link sink
      */
-    override def init()(implicit userContext: UserContext): Unit = {}
+    override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = {}
 
     /**
      * Writes a new link to this writer.
      */
     override def writeLink(link: Link, predicateUri: String)
-                          (implicit userContext: UserContext): Unit = {}
+                          (implicit userContext: UserContext, prefixes: Prefixes): Unit = {}
 
     override def close()(implicit userContext: UserContext): Unit = {}
 

@@ -4,9 +4,8 @@ import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.SerializationUtils._
 import controllers.util.TextSearchUtils
-import javax.inject.Inject
 import org.silkframework.config.{PlainTask, Prefixes}
-import org.silkframework.dataset.DatasetSpec.{DataSourceWrapper, GenericDatasetSpec}
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
 import org.silkframework.entity.EntitySchema
@@ -24,6 +23,8 @@ import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc._
 
+import javax.inject.Inject
+
 class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTrait {
 
   private implicit val partialPath = Json.format[PathCoverage]
@@ -38,6 +39,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
 
   def getDatasetAutoConfigured(projectName: String, sourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val project: Project = WorkspaceFactory().workspace.project(projectName)
+    implicit val prefixes: Prefixes = project.config.prefixes
     val task = project.task[GenericDatasetSpec](sourceName)
     val datasetPlugin = task.data.plugin
     datasetPlugin match {
@@ -51,6 +53,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
 
   def putDataset(projectName: String, datasetName: String, autoConfigure: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
+    implicit val prefixes: Prefixes = project.config.prefixes
     implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
 
     try {
@@ -119,6 +122,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
   def table(project: String, task: String, maxEntities: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[GenericDatasetSpec](project, task, request.path)
     val source = context.task.data.source
+    implicit val prefixes: Prefixes = context.project.config.prefixes
 
     val firstTypes = source.retrieveTypes().head._1
     val paths = source.retrievePaths(firstTypes).toIndexedSeq
@@ -177,9 +181,11 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
                               datasetId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[MappingValueCoverageRequest] { mappingCoverageRequest =>
       val project = WorkspaceFactory().workspace.project(projectName)
+      implicit val prefixes: Prefixes = project.config.prefixes
       val datasetTask = project.task[GenericDatasetSpec](datasetId)
       val inputPaths = transformationInputPaths(project)
       val dataSourcePath = UntypedPath.parse(mappingCoverageRequest.dataSourcePath)
+
       DataSource.pluginSource(datasetTask) match {
         case vd: PathCoverageDataSource with ValueCoverageDataSource =>
           val matchingInputPaths = for (coveragePathInput <- inputPaths;

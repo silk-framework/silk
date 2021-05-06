@@ -1,5 +1,6 @@
 package org.silkframework.learning.active.poolgenerator
 
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.learning.active.UnlabeledLinkPool
@@ -12,6 +13,7 @@ trait LinkPoolGenerator {
   def generator(inputs: DPair[DataSource],
                 linkSpec: LinkSpec,
                 paths: Seq[DPair[TypedPath]],
-                randomSeed: Long): Activity[UnlabeledLinkPool]
+                randomSeed: Long)
+               (implicit prefixes: Prefixes): Activity[UnlabeledLinkPool]
 
 }

@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity
 
-import org.silkframework.config.TaskSpec
+import org.silkframework.config.{Prefixes, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.rule.DatasetSelection
@@ -17,7 +17,7 @@ trait PathsCacheTrait {
                            dataSelection: Option[DatasetSelection],
                            task: ProjectTask[_],
                            context: ActivityContext[CachedEntitySchemata])
-                          (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+                          (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
     task.project.anyTask(taskId).data match {
       case dataset: DatasetSpec[Dataset] =>
         context.status.update("Retrieving frequent paths", 0.0)

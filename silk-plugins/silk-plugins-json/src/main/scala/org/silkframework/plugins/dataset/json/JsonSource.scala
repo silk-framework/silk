@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.json
 
 import com.fasterxml.jackson.core.{JsonFactory, JsonToken}
-import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
@@ -32,7 +32,7 @@ case class JsonSource(taskId: Identifier, input: JsValue, basePath: String, uriP
   private val uriRegex = "\\{([^\\}]+)\\}".r
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
-                       (implicit userContext: UserContext): EntityHolder = {
+                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     logger.log(Level.FINE, "Retrieving data from JSON.")
     val jsonTraverser = JsonTraverser(underlyingTask.id, input)
     val selectedElements = jsonTraverser.select(basePathParts)
@@ -58,7 +58,7 @@ case class JsonSource(taskId: Identifier, input: JsValue, basePath: String, uriP
   private val basePathLength = basePathParts.length
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): EntityHolder = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     if(entities.isEmpty) {
       EmptyEntityTable(underlyingTask)
     } else {
@@ -74,7 +74,7 @@ case class JsonSource(taskId: Identifier, input: JsValue, basePath: String, uriP
    * Retrieves the most frequent paths in this source.
    */
   override def retrievePaths(typeUri: Uri, depth: Int = Int.MaxValue, limit: Option[Int] = None)
-                            (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
     retrieveJsonPaths(typeUri, depth, limit, leafPathsOnly = false, innerPathsOnly = false).drop(1).map { case (path, valueType) =>
       TypedPath(path, valueType, isAttribute = false)
     }
@@ -100,7 +100,7 @@ case class JsonSource(taskId: Identifier, input: JsValue, basePath: String, uriP
   }
 
   override def retrieveTypes(limit: Option[Int])
-                            (implicit userContext: UserContext): Traversable[(String, Double)] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
     retrieveJsonPaths("", Int.MaxValue, limit, leafPathsOnly = false, innerPathsOnly = true) map  (p => (p._1.normalizedSerialization, 1.0))
   }
 
@@ -131,7 +131,7 @@ case class JsonSource(taskId: Identifier, input: JsValue, basePath: String, uriP
   }
 
   override def peak(entitySchema: EntitySchema, limit: Int)
-                   (implicit userContext: UserContext): Traversable[Entity] = {
+                   (implicit userContext: UserContext, prefixes: Prefixes): Traversable[Entity] = {
     super.peak(entitySchema, limit)
   }
 

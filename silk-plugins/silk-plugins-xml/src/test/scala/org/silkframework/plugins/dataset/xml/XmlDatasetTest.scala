@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.config.Prefixes
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.runtime.activity.TestUserContextTrait
@@ -13,7 +14,10 @@ import java.time.Instant
 import scala.util.Try
 
 class XmlDatasetTest extends FlatSpec with MustMatchers with TestUserContextTrait {
+
   behavior of "XML dataset"
+
+  implicit private val prefixes: Prefixes = Prefixes.empty
 
   it should "only accept valid output templates" in {
     // Should not throw exception

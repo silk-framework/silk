@@ -1,14 +1,11 @@
 package controllers.linking
 
-import java.util.logging.{Level, Logger}
-
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils
-import javax.inject.Inject
 import org.silkframework.config.{MetaData, PlainTask, Prefixes}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.entity.{Entity, FullLink, Link, MinimalLink, Restriction}
+import org.silkframework.entity.{Entity, FullLink, MinimalLink, Restriction}
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.rule.evaluation.ReferenceLinks
@@ -26,6 +23,9 @@ import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, InjectedController}
+
+import java.util.logging.{Level, Logger}
+import javax.inject.Inject
 
 class LinkingTaskApi @Inject() () extends InjectedController {
 
@@ -273,6 +273,7 @@ class LinkingTaskApi @Inject() () extends InjectedController {
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val params = request.body.asFormUrlEncoded.get
+    implicit val prefixes: Prefixes = project.config.prefixes
 
     for(posOutputName <- params.get("positiveOutput")) {
       val posOutput = project.task[GenericDatasetSpec](posOutputName.head).data.linkSink
@@ -346,7 +347,8 @@ class LinkingTaskApi @Inject() () extends InjectedController {
     request.body match {
       case AnyContentAsXml(xmlRoot) =>
         try{
-          val (_, task) = projectAndTask(projectName, taskName)
+          val (project, task) = projectAndTask(projectName, taskName)
+          implicit val prefixes: Prefixes = project.config.prefixes
           implicit val (resourceManager, _) = createInMemoryResourceManagerForResources(xmlRoot, projectName, withProjectResources = true)
           val linkSource = createDataSource(xmlRoot, Some("sourceDataset"))
           val linkTarget = createDataSource(xmlRoot, Some("targetDataset"))
@@ -380,6 +382,8 @@ class LinkingTaskApi @Inject() () extends InjectedController {
     implicit val (project, task) = getProjectAndTask[LinkSpec](projectName, linkingTaskName)
     val sources = task.dataSources
     implicit val readContext: ReadContext = ReadContext(prefixes = project.config.prefixes, resources = project.resources)
+    implicit val prefixes: Prefixes = project.config.prefixes
+
     SerializationUtils.deserializeCompileTime[LinkageRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { linkageRule =>
       val updatedLinkSpec = task.data.copy(rule = linkageRule)
       val updatedTask = PlainTask(linkingTaskName, updatedLinkSpec, task.metaData)

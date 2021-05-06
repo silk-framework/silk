@@ -1,6 +1,7 @@
 package org.silkframework.rule
 
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.config.Prefixes
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.plugins.dataset.csv.CsvDataset
@@ -12,6 +13,7 @@ class TransformedDataSourceTest extends FlatSpec with MustMatchers {
   behavior of "Transformed Data Source"
 
   implicit val userContext: UserContext = UserContext.Empty
+  implicit val prefixes: Prefixes = Prefixes.empty
 
   val inMemoryResource: WritableResource = {
     val manager = InMemoryResourceManager()

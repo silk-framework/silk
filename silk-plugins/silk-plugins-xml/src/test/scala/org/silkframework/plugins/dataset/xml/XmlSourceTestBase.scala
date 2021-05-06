@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
@@ -13,7 +14,9 @@ import scala.languageFeature.postfixOps
 //noinspection ScalaStyle
 abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
-  implicit val userContext: UserContext = UserContext.Empty
+  implicit protected val userContext: UserContext = UserContext.Empty
+  implicit protected val prefixes: Prefixes = Prefixes.empty
+
   def xmlSource(name: String, uriPattern: String, baseType: String = ""): DataSource with XmlSourceTrait
 
   behavior of "XML Dataset"

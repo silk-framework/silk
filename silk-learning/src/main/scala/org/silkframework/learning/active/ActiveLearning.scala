@@ -16,13 +16,12 @@ package org.silkframework.learning.active
 
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.paths.{Path, TypedPath}
-import org.silkframework.learning.{LearningConfiguration, LearningException}
+import org.silkframework.entity.paths.TypedPath
 import org.silkframework.learning.active.linkselector.WeightedLinkageRule
-import org.silkframework.learning.active.poolgenerator.LinkSpecLinkPoolGenerator
 import org.silkframework.learning.cleaning.CleanPopulationTask
 import org.silkframework.learning.generation.{GeneratePopulation, LinkageRuleGenerator}
 import org.silkframework.learning.reproduction.{Randomize, Reproduction}
+import org.silkframework.learning.{LearningConfiguration, LearningException}
 import org.silkframework.rule.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
 import org.silkframework.rule.{LinkSpec, LinkageRule}
 import org.silkframework.runtime.activity.Status.Canceling
@@ -113,7 +112,7 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
                          datasets: DPair[DataSource],
                          context: ActivityContext[ActiveLearningState],
                          paths: DPair[IndexedSeq[TypedPath]])
-                        (implicit userContext: UserContext, random: Random): UnlabeledLinkPool = Timer("Generating Pool") {
+                        (implicit userContext: UserContext, prefixes: Prefixes, random: Random): UnlabeledLinkPool = Timer("Generating Pool") {
     var pool = context.value().pool
 
     //Build unlabeled pool

@@ -124,12 +124,12 @@ object DatasetSpec {
   case class DataSourceWrapper(source: DataSource, datasetSpec: DatasetSpec[Dataset]) extends DataSource {
 
     override def retrieveTypes(limit: Option[Int] = None)
-                              (implicit userContext: UserContext): Traversable[(String, Double)] = {
+                              (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
       source.retrieveTypes(limit)
     }
 
     override def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None)
-                              (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+                              (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
       source.retrievePaths(typeUri, depth, limit)
     }
 
@@ -141,7 +141,7 @@ object DatasetSpec {
       * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
       */
     override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                         (implicit userContext: UserContext): EntityHolder = {
+                         (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
       val adaptedSchema = adaptSchema(entitySchema)
       val entities = source.retrieve(adaptedSchema, limit)
       adaptUris(entities)
@@ -155,7 +155,7 @@ object DatasetSpec {
       * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
       */
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                              (implicit userContext: UserContext): EntityHolder = {
+                              (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
       if(entities.isEmpty) {
         GenericEntityTable(Seq.empty, entitySchema, underlyingTask)
       } else {
@@ -271,7 +271,7 @@ object DatasetSpec {
 
     private var isOpen = false
 
-    override def init()(implicit userContext: UserContext): Unit = {
+    override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
       if (isOpen) {
         linkSink.close()
         isOpen = false
@@ -284,7 +284,7 @@ object DatasetSpec {
       * Writes a new link to this writer.
       */
     override def writeLink(link: Link, predicateUri: String)
-                          (implicit userContext: UserContext): Unit = {
+                          (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
       //require(isOpen, "Output must be opened before writing statements to it")
 
       linkSink.writeLink(link, predicateUri)

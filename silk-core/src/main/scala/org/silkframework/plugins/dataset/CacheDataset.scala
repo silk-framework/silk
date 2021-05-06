@@ -16,7 +16,7 @@ package org.silkframework.plugins.dataset
 
 import java.io.File
 import org.silkframework.cache.FileEntityCache
-import org.silkframework.config.{PlainTask, RuntimeConfig, Task}
+import org.silkframework.config.{PlainTask, Prefixes, RuntimeConfig, Task}
 import org.silkframework.dataset.{DataSource, DataSourceCharacteristics, Dataset, DatasetSpec}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.TypedPath
@@ -41,20 +41,20 @@ case class CacheDataset(dir: String) extends Dataset {
 
   object CacheSource extends DataSource {
     override def retrieve(entityDesc: EntitySchema, limit: Option[Int])
-                         (implicit userContext: UserContext): EntityHolder = {
+                         (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
       val entityCache = new FileEntityCache(entityDesc, _ => Index.default, file, RuntimeConfig(reloadCache = false))
       val entities = entityCache.readAll
       GenericEntityTable(entities, entityDesc, underlyingTask)
     }
 
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                              (implicit userContext: UserContext): EntityHolder = EmptyEntityTable(underlyingTask)
+                              (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = EmptyEntityTable(underlyingTask)
 
     override def retrieveTypes(limit: Option[Int])
-                              (implicit userContext: UserContext): Traversable[(String, Double)] = Traversable.empty
+                              (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = Traversable.empty
 
     override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])
-                              (implicit userContext: UserContext): IndexedSeq[TypedPath] = IndexedSeq.empty
+                              (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = IndexedSeq.empty
 
     override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask("cache_source", DatasetSpec(CacheDataset.this))
   }

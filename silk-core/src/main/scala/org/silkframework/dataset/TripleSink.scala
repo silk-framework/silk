@@ -1,5 +1,6 @@
 package org.silkframework.dataset
 
+import org.silkframework.config.Prefixes
 import org.silkframework.entity.ValueType
 import org.silkframework.runtime.activity.UserContext
 
@@ -7,7 +8,7 @@ import org.silkframework.runtime.activity.UserContext
   * An experimental trait to extend sinks to be able to write triples.
   */
 trait TripleSink extends CloseableDataset {
-  def init()(implicit userContext: UserContext): Unit
+  def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit
   def writeTriple(subject: String, predicate: String, obj: String, valueType: ValueType)
                  (implicit userContext: UserContext): Unit
 }

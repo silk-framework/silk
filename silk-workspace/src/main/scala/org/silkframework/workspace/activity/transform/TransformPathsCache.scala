@@ -1,5 +1,6 @@
 package org.silkframework.workspace.activity.transform
 
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.dataset.{Dataset, DatasetSpec}
@@ -7,7 +8,7 @@ import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.resource.WritableResource
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.Uri
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.{CachedActivity, PathsCacheTrait}
 
@@ -45,6 +46,7 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Cac
   override def loadCache(context: ActivityContext[CachedEntitySchemata], fullReload: Boolean)
                         (implicit userContext: UserContext): Unit = {
     val transform = transformTask.data
+    implicit val prefixes: Prefixes = transformTask.project.config.prefixes
 
     if(datasetObserverFunctions.isEmpty) {
       setTransformSpecObserverFunction()

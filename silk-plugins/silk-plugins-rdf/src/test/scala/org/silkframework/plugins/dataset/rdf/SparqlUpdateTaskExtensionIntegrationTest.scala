@@ -1,15 +1,17 @@
 package org.silkframework.plugins.dataset.rdf
 
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow}
 
 /** Integration tests for the SPARQL Update operator improvements */
 class SparqlUpdateTaskExtensionIntegrationTest extends FlatSpec with MustMatchers with SingleProjectWorkspaceProviderTestTrait {
   behavior of "SPARQL Update Task extensions"
 
   override def workspaceProviderId: String = "inMemory"
+
+  implicit val prefixes: Prefixes = Prefixes.empty
 
   it should "not read from data source when defining a static SPARQL Update template" in {
     executeWorkflow("staticSparqlUpdateWorkflow")

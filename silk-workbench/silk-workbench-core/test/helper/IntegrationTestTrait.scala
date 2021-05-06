@@ -2,10 +2,9 @@ package helper
 
 import java.io._
 import java.net.URLDecoder
-
 import org.scalatest.TestSuite
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
-import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
 import org.silkframework.rule.{MappingRules, TransformSpec}
 import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
@@ -48,6 +47,8 @@ trait IntegrationTestTrait extends TaskApiClient
   val baseUrl = s"http://localhost:$port"
 
   override lazy val port: Int = 19000 + Random.nextInt(1000)
+
+  implicit val prefixes: Prefixes = Prefixes.empty
 
   def workspaceProject(projectId: String)
                       (implicit userContext: UserContext): Project = WorkspaceFactory().workspace.project(projectId)

@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.access
 
-import org.silkframework.config.Task
-import org.silkframework.dataset.{DataSource, DataSourceCharacteristics, Dataset, DatasetSpec}
+import org.silkframework.config.{Prefixes, Task}
+import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
@@ -22,7 +22,7 @@ case class CombinedSparqlSource(underlyingTask: Task[DatasetSpec[Dataset]], spar
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                       (implicit userContext: UserContext): EntityHolder = {
+                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     val allEntities =
       new Traversable[Entity] {
         override def foreach[U](f: Entity => U): Unit = {
@@ -43,7 +43,7 @@ case class CombinedSparqlSource(underlyingTask: Task[DatasetSpec[Dataset]], spar
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): EntityHolder = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     if(entities.isEmpty) {
       EmptyEntityTable(underlyingTask)
     } else {
@@ -55,8 +55,8 @@ case class CombinedSparqlSource(underlyingTask: Task[DatasetSpec[Dataset]], spar
   }
 
   override def retrieveTypes(limit: Option[Int])
-                            (implicit userContext: UserContext): Traversable[(String, Double)] = Traversable.empty
+                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = Traversable.empty
 
   override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])
-                            (implicit userContext: UserContext): IndexedSeq[TypedPath] = IndexedSeq.empty
+                            (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = IndexedSeq.empty
 }

@@ -15,7 +15,7 @@
 package org.silkframework.rule.execution
 
 import org.silkframework.cache.{EntityCache, FileEntityCache, MemoryEntityCache}
-import org.silkframework.config.Task
+import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.{DataSource, LinkSink}
 import org.silkframework.entity.{Entity, EntitySchema, Link}
 import org.silkframework.rule.execution.rdb.RDBEntityIndex
@@ -35,7 +35,8 @@ import scala.util.Try
 class GenerateLinks(task: Task[LinkSpec],
                     inputs: DPair[DataSource],
                     output: Option[LinkSink],
-                    runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig()) extends Activity[Linking] {
+                    runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig())
+                   (implicit prefixes: Prefixes) extends Activity[Linking] {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 

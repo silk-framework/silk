@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.linking
 
-import org.silkframework.config.DefaultConfig
+import org.silkframework.config.{DefaultConfig, Prefixes}
 import org.silkframework.dataset.{DataSource, DatasetSpec, SparqlRestrictionDataSource}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.Restriction.CustomOperator
@@ -124,6 +124,7 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
         ds.retrievePathsSparqlRestriction(sparqlRestriction, Some(maxLinks))
       case source: DataSource =>
         // Retrieve most frequent paths
+        implicit val prefixes: Prefixes = task.project.config.prefixes
         source.retrievePaths(datasetSelection.typeUri, 1, Some(maxLinks))
     }
   }

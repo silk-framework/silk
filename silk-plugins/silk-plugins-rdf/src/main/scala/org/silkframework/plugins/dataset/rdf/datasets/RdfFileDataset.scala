@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.rdf.datasets
 
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
-import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.dataset.rdf.{LinkFormatter, RdfDataset, SparqlParams}
@@ -118,14 +118,14 @@ case class RdfFileDataset(
     private var lastModificationTime: Option[(Long, Int)] = None
 
     override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
-                         (implicit userContext: UserContext): EntityHolder = {
+                         (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
       load()
       val retrievedEntities = EntityRetriever(endpoint).retrieve(entitySchema, entityRestriction, None)
       GenericEntityTable(retrievedEntities, entitySchema, underlyingTask)
     }
 
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                              (implicit userContext: UserContext): EntityHolder = {
+                              (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
       if (entities.isEmpty) {
         EmptyEntityTable(underlyingTask)
       } else {
@@ -135,13 +135,13 @@ case class RdfFileDataset(
     }
 
     override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])
-                              (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+                              (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
       load()
       sparqlSource.retrievePaths(typeUri, depth, limit)
     }
 
     override def retrieveTypes(limit: Option[Int])
-                              (implicit userContext: UserContext): Traversable[(String, Double)] = {
+                              (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
       load()
       sparqlSource.retrieveTypes(limit)
     }
