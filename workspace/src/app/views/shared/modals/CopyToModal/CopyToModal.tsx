@@ -17,7 +17,6 @@ import {
     OverviewItemDepiction,
     Link,
     Tooltip,
-    OverflowText,
 } from "@gui-elements/index";
 import { Loading } from "../../Loading/Loading";
 import { ICloneOptions } from "../CloneModal";
@@ -27,7 +26,6 @@ import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/reque
 import { requestCopyProject, requestCopyTask, requestSearchList } from "@ducks/workspace/requests";
 import { debounce } from "../../../../utils/debounce";
 import ItemDepiction from "../../ItemDepiction";
-import { CLASSPREFIX as eccgui } from "@gui-elements/src/configuration/constants";
 
 //custom styles
 require("./CopyToModal.scss");
