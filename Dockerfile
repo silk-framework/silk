@@ -30,7 +30,7 @@ RUN \
   mkdir -p /build/app \
   && tar -xvzf /build/silk-workbench/target/universal/silk-workbench*.tgz -C /build/app
 
-FROM openjdk:8u151-jre
+FROM openjdk:8-jre
 ENV \
   SILK_HOME="/opt/silk" \
   WORKDIR="/opt/silk/workspace" \
