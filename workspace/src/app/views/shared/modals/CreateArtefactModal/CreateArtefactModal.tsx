@@ -75,6 +75,13 @@ export function CreateArtefactModal() {
 
     const toBeAddedKey: string | undefined = toBeAdded?.key;
 
+    useEffect(() => {
+        if (!isOpen) {
+            // Reset modal when it was closed
+            resetModal(true);
+        }
+    }, [isOpen]);
+
     // Fetch Artefact list
     useEffect(() => {
         if (projectId && isOpen) {
@@ -191,6 +198,7 @@ export function CreateArtefactModal() {
     const resetModal = (closeModal?: boolean) => {
         setIsProjectImport(false);
         setToBeAdded(undefined);
+        form.reset();
         form.clearError();
         dispatch(commonOp.resetArtefactModal(closeModal));
     };
@@ -290,6 +298,14 @@ export function CreateArtefactModal() {
                     ? t("CreateModal.createTitle", { type: selectedArtefactTitle })
                     : t("CreateModal.createTitleGeneric")
             }
+            headerOptions={
+                selectedArtefactTitle ? (
+                    <IconButton
+                        name="item-question"
+                        onClick={(e) => handleShowEnhancedDescription(e, selectedArtefactKey)}
+                    />
+                ) : null
+            }
             onClose={closeModal}
             isOpen={isOpen}
             actions={
@@ -363,6 +379,27 @@ export function CreateArtefactModal() {
                 ))
             }
         >
+            {idEnhancedDescription === selectedArtefactKey && (
+                <SimpleDialog
+                    isOpen
+                    title={selectedArtefactTitle}
+                    actions={
+                        <Button
+                            text="Close"
+                            onClick={() => {
+                                setIdEnhancedDescription("");
+                            }}
+                        />
+                    }
+                    size="small"
+                >
+                    <HtmlContentBlock>
+                        <ReactMarkdown
+                            source={selectedArtefact?.markdownDocumentation ?? selectedArtefact?.description}
+                        />
+                    </HtmlContentBlock>
+                </SimpleDialog>
+            )}
             {
                 <>
                     {artefactForm ? (
@@ -428,7 +465,7 @@ export function CreateArtefactModal() {
                                                         </OverviewItemDescription>
                                                         <OverviewItemActions>
                                                             <IconButton
-                                                                name="item-info"
+                                                                name="item-question"
                                                                 onClick={(e) => {
                                                                     handleShowEnhancedDescription(e, artefact.key);
                                                                 }}
@@ -450,7 +487,12 @@ export function CreateArtefactModal() {
                                                             size="small"
                                                         >
                                                             <HtmlContentBlock>
-                                                                <ReactMarkdown source={artefact.description} />
+                                                                <ReactMarkdown
+                                                                    source={
+                                                                        artefact.markdownDocumentation ||
+                                                                        artefact.description
+                                                                    }
+                                                                />
                                                             </HtmlContentBlock>
                                                         </SimpleDialog>
                                                     )}

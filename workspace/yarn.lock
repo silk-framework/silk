@@ -3319,6 +3319,11 @@ carbon-components@^10.25.0:
     lodash.debounce "^4.0.8"
     warning "^3.0.0"
 
+carbon-icons@^7.0.7:
+  version "7.0.7"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/carbon-icons/-/carbon-icons-7.0.7.tgz#ebafe3e9fa25df973796a8eca06d8a7c501cc610"
+  integrity sha1-66/j6fol35c3lqjsoG2KfFAcxhA=
+
 case-sensitive-paths-webpack-plugin@2.3.0:
   version "2.3.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/case-sensitive-paths-webpack-plugin/-/case-sensitive-paths-webpack-plugin-2.3.0.tgz#23ac613cc9a856e4f88ff8bb73bbb5e989825cf7"
@@ -4682,17 +4687,6 @@ ecc-jsbn@~0.1.1:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
 
-ecc-queryutils@^3.8.1:
-  version "3.8.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/ecc-queryutils/-/ecc-queryutils-3.8.3.tgz#f1da0d7974e8841665675ef07ae7bcdafa9d9603"
-  integrity sha1-8doNeXTohBZlZ17weue82vqdlgM=
-  dependencies:
-    immutable "^3.7.4"
-    jsonld-lite "^0.4.9"
-    lodash "^4.15.0"
-    n3 "^0.11.2"
-    sparqljs "^2.2.3"
-
 editions@^2.2.0:
   version "2.3.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/editions/-/editions-2.3.1.tgz#3bc9962f1978e801312fbd0aebfed63b49bfe698"
@@ -4931,11 +4925,6 @@ es6-iterator@2.0.3, es6-iterator@~2.0.3:
     d "1"
     es5-ext "^0.10.35"
     es6-symbol "^3.1.1"
-
-es6-promise@^2.3.0:
-  version "2.3.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/es6-promise/-/es6-promise-2.3.0.tgz#96edb9f2fdb01995822b263dd8aadab6748181bc"
-  integrity sha1-lu258v2wGZWCKyY92KratnSBgbw=
 
 es6-symbol@^3.1.1, es6-symbol@~3.1.3:
   version "3.1.3"
@@ -6507,11 +6496,6 @@ immer@^7.0.3:
   resolved "https://artifactory.eccenca.com/api/npm/npm/immer/-/immer-7.0.14.tgz#3e605f8584b15a9520d2f2f3fda9441cc9170d25"
   integrity sha1-PmBfhYSxWpUg0vLz/alEHMkXDSU=
 
-immutable@^3.7.4:
-  version "3.8.2"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/immutable/-/immutable-3.8.2.tgz#c2439951455bb39913daf281376f1530e104adf3"
-  integrity sha1-wkOZUUVbs5kT2vKBN28VMOEErfM=
-
 import-cwd@^2.0.0:
   version "2.1.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/import-cwd/-/import-cwd-2.1.0.tgz#aa6cf36e722761285cb371ec6519f53e2435b0a9"
@@ -7772,13 +7756,6 @@ jsonify@~0.0.0:
   resolved "https://artifactory.eccenca.com/api/npm/npm/jsonify/-/jsonify-0.0.0.tgz#2c74b6ee41d93ca51b7b5aaee8f503631d252a73"
   integrity sha1-LHS27kHZPKUbe1qu6PUDYx0lKnM=
 
-jsonld-lite@^0.4.9:
-  version "0.4.9"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/jsonld-lite/-/jsonld-lite-0.4.9.tgz#93970c61f895d3160875a2aeba97fa5a685483d8"
-  integrity sha1-k5cMYfiV0xYIdaKuupf6WmhUg9g=
-  dependencies:
-    es6-promise "^2.3.0"
-
 jsprim@^1.2.2:
   version "1.4.1"
   resolved "https://artifactory.eccenca.com/api/npm/npm/jsprim/-/jsprim-1.4.1.tgz#313e66bc1e5cc06e438bc1b7499c2e5c56acb6a2"
@@ -8590,11 +8567,6 @@ mute-stream@0.0.8:
   version "0.0.8"
   resolved "https://artifactory.eccenca.com/api/npm/npm/mute-stream/-/mute-stream-0.0.8.tgz#1630c42b2251ff81e2a283de96a5497ea92e5e0d"
   integrity sha1-FjDEKyJR/4HiooPelqVJfqkuXg0=
-
-n3@^0.11.2:
-  version "0.11.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/n3/-/n3-0.11.3.tgz#8e587495240dd21408c2c3aae385ec1651a837f8"
-  integrity sha1-jlh0lSQN0hQIwsOq44XsFlGoN/g=
 
 namespace-emitter@^2.0.1:
   version "2.0.1"
@@ -11781,11 +11753,6 @@ source-map@^0.5.0, source-map@^0.5.6:
   version "0.5.7"
   resolved "https://artifactory.eccenca.com/api/npm/npm/source-map/-/source-map-0.5.7.tgz#8a039d2d1021d22d1ea14c80d8ea468ba2ef3fcc"
   integrity sha1-igOdLRAh0i0eoUyA2OpGi6LvP8w=
-
-sparqljs@^2.2.3:
-  version "2.2.3"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/sparqljs/-/sparqljs-2.2.3.tgz#6eb7f5f69b27b99d3b646e89271c048bd61d9293"
-  integrity sha1-brf19psnuZ07ZG6JJxwEi9YdkpM=
 
 spdx-correct@^3.0.0:
   version "3.1.0"
