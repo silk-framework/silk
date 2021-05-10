@@ -100,14 +100,15 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
   }
 
   private def selectOnObject(path: List[PathOperator]) = {
-    path.head match {
+    val values = path.head match {
       case ForwardOperator(prop) =>
-        children(prop).flatMap(value => value.select(path.tail))
+        children(prop)
       case BackwardOperator(_) =>
         parentOpt.toSeq.map(_.traverser)
       case _ =>
         Seq.empty
     }
+    values.flatMap(value => value.select(path.tail))
   }
 
   /**

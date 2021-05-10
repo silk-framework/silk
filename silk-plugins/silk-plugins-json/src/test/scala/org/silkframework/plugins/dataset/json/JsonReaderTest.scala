@@ -25,8 +25,6 @@ class JsonReaderTest extends FlatSpec with Matchers {
 
   private lazy val persons = exampleJson.select("persons" :: Nil)
 
-  private lazy val phoneNumbers = exampleJson.select("persons" :: "phoneNumbers" :: Nil)
-
   "On example.json, JsonReader" should "return 2 persons" in {
     persons.size should equal (2)
   }
@@ -44,7 +42,11 @@ class JsonReaderTest extends FlatSpec with Matchers {
   }
 
   it should "support backward paths" in {
+    val phoneNumbers = exampleJson.select("persons" :: "phoneNumbers" :: Nil)
     evaluate(phoneNumbers, "\\phoneNumbers/id") should equal (Seq("0", "0", "1"))
+
+    val phoneNumbers2 = exampleJson.select(UntypedPath.parse("/organizations\\organizations/persons/phoneNumbers").operators)
+    evaluate(phoneNumbers2, "\\phoneNumbers/id") should equal (Seq("0", "0", "1"))
   }
 
   it should "support keys with spaces" in {
