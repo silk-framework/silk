@@ -326,7 +326,12 @@ export function ProjectImportModal({ close, back }: IProps) {
                             )}
                         </p>
                         <Spacing />
-                        <Checkbox inline={true} checked={approveReplacement} onChange={handleApproveReplacement}>
+                        <Checkbox
+                            data-test-id={"replaceExistingProjectCheckBox"}
+                            inline={true}
+                            checked={approveReplacement}
+                            onChange={handleApproveReplacement}
+                        >
                             <strong>{t("ProjectImportModal.replaceImportBtn")}</strong>
                         </Checkbox>
                     </Notification>
