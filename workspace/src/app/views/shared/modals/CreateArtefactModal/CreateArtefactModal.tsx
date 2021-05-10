@@ -75,6 +75,13 @@ export function CreateArtefactModal() {
 
     const toBeAddedKey: string | undefined = toBeAdded?.key;
 
+    useEffect(() => {
+        if (!isOpen) {
+            // Reset modal when it was closed
+            resetModal(true);
+        }
+    }, [isOpen]);
+
     // Fetch Artefact list
     useEffect(() => {
         if (projectId && isOpen) {
@@ -191,6 +198,7 @@ export function CreateArtefactModal() {
     const resetModal = (closeModal?: boolean) => {
         setIsProjectImport(false);
         setToBeAdded(undefined);
+        form.reset();
         form.clearError();
         dispatch(commonOp.resetArtefactModal(closeModal));
     };
