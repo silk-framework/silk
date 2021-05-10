@@ -33,19 +33,47 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   protected def project = workflowTask.project
   protected def workflowNodes = currentWorkflow.nodes
 
-  protected def execute[TaskType <: TaskSpec](nodeId: Identifier,
+  /**
+    * Executes a workflow operator.
+    *
+    * @param operation The operation, e.g., "reading"
+    * @param nodeId The workflow node identifier
+    * @param task The task to be executed
+    * @param inputs Inputs
+    * @param output Output definition
+    * @param workflowRunContext
+    * @param prefixes
+    * @tparam TaskType
+    * @return
+    */
+  protected def execute[TaskType <: TaskSpec](operation: String,
+                                              nodeId: Identifier,
                                               task: Task[TaskType],
                                               inputs: Seq[ExecType#DataType],
                                               output: ExecutorOutput)
                                              (implicit workflowRunContext: WorkflowRunContext, prefixes: Prefixes): Option[ExecType#DataType] = {
     implicit val userContext: UserContext = workflowRunContext.userContext
     val taskContext = workflowRunContext.taskContext(nodeId, task.id)
+    updateProgress(operation, task)
     val result = ExecutorRegistry.execute(task, inputs, output, executionContext, taskContext)
     // Add a basic execution report if no report has been written by the executor itself
     if(!taskContext.value.isDefined) {
       taskContext.value() = SimpleExecutionReport(task, Seq.empty, Seq.empty)
     }
     result
+  }
+
+  /**
+    * Update the progress and write a log message.
+    *
+    * @param operation Operation, e.g., "reading"
+    * @param task task that is executed
+    * @param workflowRunContext Workflow Context
+    */
+  protected def updateProgress(operation: String, task: Task[_ >: TaskSpec])(implicit workflowRunContext: WorkflowRunContext): Unit = {
+    val taskLabel = task.taskLabel(maxLength = math.max(10, 40 - operation.length))
+    val progress = (workflowRunContext.alreadyExecuted.size.toDouble + 1) / (workflowNodes.size + 1)
+    workflowRunContext.activityContext.status.update(s"$operation $taskLabel", progress)
   }
 
   /** Return error if VariableDataset is used in output and input */
