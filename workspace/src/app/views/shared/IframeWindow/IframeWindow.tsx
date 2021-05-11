@@ -21,7 +21,7 @@ import { IItemLink } from "@ducks/shared/typings";
 import { requestItemLinks } from "@ducks/shared/requests";
 import { commonSel } from "@ducks/common";
 import Loading from "../Loading";
-import { SERVE_PATH } from "../../../constants/path";
+import { HOST, SERVE_PATH } from "../../../constants/path";
 import "./iframewindow.scss";
 
 const getBookmark = (locationHashPart: string) => {
@@ -69,6 +69,8 @@ export function IframeWindow({
     const location = useLocation();
     const [t] = useTranslation();
     const [isFetchingLinks, setIsFetchingLinks] = useState(true);
+    const iframeRef = React.useRef<HTMLIFrameElement>(null);
+    const [activePath, setActivePath] = React.useState<IItemLink | null>(null);
 
     // flag if the widget is shown as fullscreen modal
     const [displayFullscreen, setDisplayFullscreen] = useState(!!handlerRemoveModal || startFullscreen);
@@ -79,11 +81,17 @@ export function IframeWindow({
 
     // active link
     const [activeSource, setActiveSource] = useState<IItemLink | null>(startWithLink);
+
     // handler for link change
     const toggleIframeSource = (linkItem) => {
-        setActiveSource(linkItem);
-        if (!startWithLink) {
-            dispatch(history.push(calculateBookmarkLocation(location, itemLinks.indexOf(linkItem))));
+        //if path already set, reload iframe source
+        if (linkItem.path === activeSource.path) {
+            iframeRef.current.src = createIframeUrl(linkItem.path);
+        } else {
+            setActiveSource(linkItem);
+            if (!startWithLink) {
+                dispatch(history.push(calculateBookmarkLocation(location, itemLinks.indexOf(linkItem))));
+            }
         }
     };
 
@@ -94,6 +102,21 @@ export function IframeWindow({
 
     // list of aggregated links
     const [itemLinks, setItemLinks] = useState<IItemLink[]>([]);
+
+    React.useEffect(() => {
+        if (!iframeRef.current || !activeSource || !itemLinks.length) return;
+        const iframeLoadHandler = (event) => {
+            const regex = new RegExp(HOST + "|\\?.*", "gi");
+            const parsedCurrentIframePath = iframeRef.current.src.replace(regex, "");
+            const focusedIframeSource = itemLinks.find((link) => link.path === parsedCurrentIframePath);
+            setActivePath(focusedIframeSource);
+        };
+        iframeRef.current.addEventListener("load", iframeLoadHandler);
+        return () => {
+            iframeRef.current.removeEventListener("load", iframeLoadHandler);
+        };
+    }, [iframeRef, activeSource?.path, itemLinks?.length]);
+
     // update item links by rest api request
     const getItemLinks = async () => {
         setIsFetchingLinks(true);
@@ -134,7 +157,7 @@ export function IframeWindow({
         <Card isOnlyLayout={true} elevation={displayFullscreen ? 4 : 1}>
             <CardHeader>
                 <CardTitle>
-                    <h2>{!!title ? title : !!activeSource ? tLabel(activeSource.label) : ""}</h2>
+                    <h2>{!!title ? title : !!activeSource ? tLabel(activePath?.label ?? activeSource.label) : ""}</h2>
                 </CardTitle>
                 <CardOptions>
                     {itemLinks.length > 1 &&
@@ -145,7 +168,7 @@ export function IframeWindow({
                                     toggleIframeSource(itemLink);
                                 }}
                                 minimal={true}
-                                disabled={!!activeSource && activeSource.path === itemLink.path}
+                                disabled={activePath?.path === itemLink.path}
                             >
                                 {tLabel(itemLink.label)}
                             </Button>
@@ -164,8 +187,9 @@ export function IframeWindow({
             <CardContent style={{ padding: 0, position: "relative" }}>
                 {!!activeSource ? (
                     <iframe
+                        ref={iframeRef}
                         name={otherProps.iFrameName}
-                        src={createIframeUrl(activeSource.path)}
+                        src={createIframeUrl(activeSource?.path)}
                         title={tLabel(activeSource.label)}
                         style={{
                             position: "absolute",
