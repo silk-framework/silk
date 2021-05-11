@@ -4,7 +4,7 @@ import {
     OverflowText,
     Spacing,
     Toolbar,
-    ToolbarSection,
+    ToolbarSection, Tooltip,
 } from "@gui-elements/index";
 import { SourcePathInfoBox } from "./SourcePathInfoBox";
 
@@ -14,9 +14,13 @@ interface IProps {
 }
 
 export function SourceCellData({label, search}: IProps) {
+    let labelElem = <OverflowText ellipsis={"reverse"} inline={true}><Highlighter label={label} searchValue={search}/></OverflowText>
+    if(label.length > 20) {
+        labelElem = <Tooltip content={label}>{labelElem}</Tooltip>
+    }
     return <Toolbar noWrap={true}>
         <ToolbarSection canShrink={true}>
-            <OverflowText ellipsis={"reverse"} inline={true}><Highlighter label={label} searchValue={search}/></OverflowText>
+            {labelElem}
         </ToolbarSection>
         <ToolbarSection>
             <Spacing vertical={true} size="tiny" />
