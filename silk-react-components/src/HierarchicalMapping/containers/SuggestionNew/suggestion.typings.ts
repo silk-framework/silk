@@ -70,11 +70,15 @@ export interface IPlainObject {
     [key: string]: string | number
 }
 
+export type FilterVisibility = "always" | "sourceViewOnly" | "vocabularyViewOnly"
+
 export interface IColumnFilters {
     // the label for filter
     label: string;
     // the action name
     action: string;
+    // When a filter should be shown in the filter menu.
+    selectable: FilterVisibility
 }
 
 export interface ITableHeader {
