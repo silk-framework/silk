@@ -7,13 +7,15 @@ import {
     ToolbarSection, Tooltip,
 } from "@gui-elements/index";
 import { SourcePathInfoBox } from "./SourcePathInfoBox";
+import {SuggestionTypeValues} from "../../suggestion.typings";
 
 interface IProps {
     label: string;
     search?: string;
+    pathType?: SuggestionTypeValues
 }
 
-export function SourceCellData({label, search}: IProps) {
+export function SourceCellData({label, search, pathType}: IProps) {
     let labelElem = <OverflowText ellipsis={"reverse"} inline={true}><Highlighter label={label} searchValue={search}/></OverflowText>
     if(label.length > 20) {
         labelElem = <Tooltip content={label}>{labelElem}</Tooltip>
@@ -24,7 +26,7 @@ export function SourceCellData({label, search}: IProps) {
         </ToolbarSection>
         <ToolbarSection>
             <Spacing vertical={true} size="tiny" />
-            <SourcePathInfoBox source={label}/>
+            <SourcePathInfoBox source={label} pathType={pathType} />
         </ToolbarSection>
     </Toolbar>
 }

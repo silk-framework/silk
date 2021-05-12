@@ -144,25 +144,19 @@ silkStore
     });
 
 silkStore
-    .subject('transform.task.rule.valueSourcePaths')
+    .subject('transform.task.rule.valueSourcePathsInfo')
     .subscribe(({data, replySubject}) => {
         const {
             baseUrl,
             project,
             transformTask,
             ruleId,
-            unusedOnly = false,
-            usedOnly = false,
         } = data;
 
         superagent
             .get(
-                `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${ruleId}/valueSourcePaths`
+                `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${ruleId}/valueSourcePathsInfo`
             )
-            .query({
-                unusedOnly,
-                usedOnly,
-            })
             .accept('application/json')
             .observe()
             .multicast(replySubject)

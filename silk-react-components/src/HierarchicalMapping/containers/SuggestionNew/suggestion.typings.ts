@@ -63,6 +63,9 @@ export interface ITransformedSuggestion {
 
     /** If the uri/path is already mapped in the same transformation. */
     alreadyMapped?: boolean
+
+    /** The type of the suggested URI or source path. */
+    pathType?: SuggestionTypeValues
 }
 
 export interface IPlainObject {

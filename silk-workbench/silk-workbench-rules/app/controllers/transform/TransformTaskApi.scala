@@ -2,6 +2,7 @@ package controllers.transform
 
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.transform.TransformTaskApi._
+import controllers.transform.transformTask.ValueSourcePathInfo
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
 import org.silkframework.config.{MetaData, Prefixes, Task}
@@ -434,6 +435,7 @@ class TransformTaskApi @Inject() () extends InjectedController {
     getProjectAndTask[TransformSpec](projectName, taskName)
   }
 
+  /** Returns an array of string representations of the available source paths. */
   def valueSourcePaths(projectName: String,
                        taskName: String,
                        ruleId: String,
@@ -445,11 +447,37 @@ class TransformTaskApi @Inject() () extends InjectedController {
     }
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
+    Ok(Json.toJson(typedRuleValuePaths(task, ruleId, maxDepth, unusedOnly, usedOnly).map(_.serialize())))
+  }
 
+  /** Returns all available paths of max. depth for the specific transform rule. */
+  def valueSourcePathsFullInfo(projectId: String,
+                               transformTaskId: String,
+                               mappingRuleId: String,
+                               maxDepth: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
+    implicit val (project, task) = getProjectAndTask[TransformSpec](projectId, transformTaskId)
+    implicit val prefixes: Prefixes = project.config.prefixes
+    val typedPaths = typedRuleValuePaths(task, mappingRuleId, maxDepth)
+    val usedPaths = typedRuleValuePaths(task, mappingRuleId, maxDepth, usedOnly = true).toSet
+    val valuePathInfos = typedPaths map { tp =>
+      val pathType = if(tp.valueType.id == "UriValueType") "object" else "value"
+      ValueSourcePathInfo(tp.serialize(), pathType, alreadyMapped = usedPaths.contains(tp) )
+    }
+    Ok(Json.toJson(valuePathInfos))
+  }
+
+  private def typedRuleValuePaths(task: ProjectTask[TransformSpec],
+                                  ruleId: String,
+                                  maxDepth: Int,
+                                  unusedOnly: Boolean = false,
+                                  usedOnly: Boolean = false)
+                                 (implicit userContext: UserContext,
+                                  prefixes: Prefixes): IndexedSeq[TypedPath] = {
+    assert(!unusedOnly || !usedOnly, "Only one of the following parameters can be true, but both of them were true: unusedOnly, usedOnly")
     task.nestedRuleAndSourcePath(ruleId) match {
       case Some((_, sourcePath)) =>
         val matchingPaths = relativePathsFromPathsCache(maxDepth, sourcePath, task)
-        val filteredPaths = if(unusedOnly || usedOnly) {
+        if(unusedOnly || usedOnly) {
           val sourcePaths = usedSourcePaths(ruleId, maxDepth, task)
           val filterFn: UntypedPath => Boolean = if(unusedOnly) path => !sourcePaths.contains(path) else sourcePaths.contains
           matchingPaths filter { path =>
@@ -458,9 +486,8 @@ class TransformTaskApi @Inject() () extends InjectedController {
         } else {
           matchingPaths
         }
-        Ok(Json.toJson(filteredPaths.map(_.toUntypedPath.serialize())))
       case None =>
-        NotFound("No rule found with ID " + ruleId)
+        throw NotFoundException("No rule found with ID " + ruleId)
     }
   }
 

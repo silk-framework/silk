@@ -434,14 +434,12 @@ const fetchVocabularyMatchingResults = (data: ISuggestAsyncProps) => {
 }
 
 /** Fetches (unused) source value paths to prevent showing matches of already mapped source paths. */
-const fetchValueSourcePaths = (data: ISuggestAsyncProps, type: "all" | "unusedOnly" | "usedOnly") => {
-    const usedOnly = type === "usedOnly"
-    const unusedOnly = type === "unusedOnly"
+const fetchValueSourcePaths = (data: ISuggestAsyncProps) => {
     return silkStore
         .request({
-            // call the silk endpoint valueSourcePaths
-            topic: 'transform.task.rule.valueSourcePaths',
-            data: {unusedOnly, usedOnly, ...getApiDetails(), ...data},
+            // call the silk endpoint valueSourcePathsInfo
+            topic: 'transform.task.rule.valueSourcePathsInfo',
+            data: {...getApiDetails(), ...data},
         })
         .catch(err => {
             const errorBody = _.get(err, 'response.body');
@@ -472,8 +470,8 @@ export const getSuggestionsAsync = (data: ISuggestAsyncProps,
                                     executeVocabularyMatching: boolean = true) => {
     const vocabularyMatches = executeVocabularyMatching ? fetchVocabularyMatchingResults(data) : emptyMatchResult
     return Rx.Observable.forkJoin(
-        vocabularyMatches, fetchValueSourcePaths(data, "all"), fetchValueSourcePaths(data, "usedOnly"),
-        (vocabDatasetsResponse, allSourcePaths, usedSourcePaths) => {
+        vocabularyMatches, fetchValueSourcePaths(data),
+        (vocabDatasetsResponse, sourcePaths) => {
             const suggestions: ITransformedSuggestion[] = [];
             if (vocabDatasetsResponse.data) {
                 vocabDatasetsResponse.data.map(match => {
@@ -489,22 +487,24 @@ export const getSuggestionsAsync = (data: ISuggestAsyncProps,
             }
 
             if (data.matchFromDataset) {
-                const usedPathSet: Set<string> = new Set(usedSourcePaths.data)
-                allSourcePaths.data.forEach(sourcePath => {
-                    const isExists = suggestions.some(suggestion => suggestion.uri === sourcePath);
-                    const alreadyMapped = usedPathSet.has(sourcePath)
-                    if (!isExists) {
+                sourcePaths.data.forEach(sourcePath => {
+                    const existingSuggestion = suggestions.find(suggestion => suggestion.uri === sourcePath.path);
+                    if (!existingSuggestion) {
                         suggestions.push({
-                            uri: sourcePath,
+                            uri: sourcePath.path,
                             candidates: [],
-                            alreadyMapped
+                            alreadyMapped: sourcePath.alreadyMapped,
+                            pathType: sourcePath.pathType
                         });
+                    } else {
+                        existingSuggestion.pathType = sourcePath.pathType
+                        existingSuggestion.alreadyMapped = sourcePath.alreadyMapped
                     }
                 });
             }
             return {
                 suggestions,
-                warnings: _.filter([vocabDatasetsResponse.error, allSourcePaths.error, usedSourcePaths.error], e => !_.isUndefined(e)),
+                warnings: _.filter([vocabDatasetsResponse.error, sourcePaths.error], e => !_.isUndefined(e)),
             };
         }
     );
