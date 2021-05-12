@@ -70,7 +70,7 @@ export function InfoBoxOverlay({data}: IDataStack) {
                                         {item.value}
                                     </TableCell>
                                 </TableRow> :
-                                <></>
+                                null
                             )
                         }
                     </TableBody>

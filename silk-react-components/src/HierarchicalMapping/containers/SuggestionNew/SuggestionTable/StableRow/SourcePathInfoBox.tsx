@@ -38,7 +38,7 @@ export function SourcePathInfoBox({source}: IProps) {
                     <HtmlContentBlock>
                         <ul>
                             {Array.from(new Set(examples)).sort().slice(0, 9).map((item) => {
-                                    return <li>{item}</li>;
+                                    return <li key={item}>{item}</li>;
                                 })}
                         </ul>
                     </HtmlContentBlock>

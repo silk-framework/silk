@@ -17,6 +17,7 @@ import { isDebugMode } from './utils/isDebugMode';
 import React, {useState} from "react";
 import silkApi, {HttpResponsePromise} from '../api/silkRestApi'
 import {IPartialAutoCompleteResult, IValidationResult} from "./components/AutoSuggestion/AutoSuggestion";
+import {ITransformedSuggestion} from "./containers/SuggestionNew/suggestion.typings";
 
 const silkStore = rxmq.channel('silk.api');
 export const errorChannel = rxmq.channel('errors');
@@ -433,12 +434,14 @@ const fetchVocabularyMatchingResults = (data: ISuggestAsyncProps) => {
 }
 
 /** Fetches (unused) source value paths to prevent showing matches of already mapped source paths. */
-const fetchValueSourcePaths = (data: ISuggestAsyncProps) => {
+const fetchValueSourcePaths = (data: ISuggestAsyncProps, type: "all" | "unusedOnly" | "usedOnly") => {
+    const usedOnly = type === "usedOnly"
+    const unusedOnly = type === "unusedOnly"
     return silkStore
         .request({
             // call the silk endpoint valueSourcePaths
             topic: 'transform.task.rule.valueSourcePaths',
-            data: {unusedOnly: true, ...getApiDetails(), ...data},
+            data: {unusedOnly, usedOnly, ...getApiDetails(), ...data},
         })
         .catch(err => {
             const errorBody = _.get(err, 'response.body');
@@ -464,13 +467,14 @@ const emptyMatchResult = new Promise(resolve =>
     resolve({data: []})
 )
 
+/** Fetches all suggestions. */
 export const getSuggestionsAsync = (data: ISuggestAsyncProps,
                                     executeVocabularyMatching: boolean = true) => {
     const vocabularyMatches = executeVocabularyMatching ? fetchVocabularyMatchingResults(data) : emptyMatchResult
     return Rx.Observable.forkJoin(
-        vocabularyMatches, fetchValueSourcePaths(data),
-        (vocabDatasetsResponse, sourcePathsResponse) => {
-            const suggestions: any[] = [];
+        vocabularyMatches, fetchValueSourcePaths(data, "all"), fetchValueSourcePaths(data, "usedOnly"),
+        (vocabDatasetsResponse, allSourcePaths, usedSourcePaths) => {
+            const suggestions: ITransformedSuggestion[] = [];
             if (vocabDatasetsResponse.data) {
                 vocabDatasetsResponse.data.map(match => {
                     const {uri: sourceUri, description, label, candidates, graph} = match;
@@ -485,19 +489,22 @@ export const getSuggestionsAsync = (data: ISuggestAsyncProps,
             }
 
             if (data.matchFromDataset) {
-                sourcePathsResponse.data.forEach(sourcePath => {
+                const usedPathSet: Set<string> = new Set(usedSourcePaths.data)
+                allSourcePaths.data.forEach(sourcePath => {
                     const isExists = suggestions.some(suggestion => suggestion.uri === sourcePath);
+                    const alreadyMapped = usedPathSet.has(sourcePath)
                     if (!isExists) {
                         suggestions.push({
                             uri: sourcePath,
-                            candidates: []
+                            candidates: [],
+                            alreadyMapped
                         });
                     }
                 });
             }
             return {
                 suggestions,
-                warnings: _.filter([vocabDatasetsResponse.error, sourcePathsResponse.error], e => !_.isUndefined(e)),
+                warnings: _.filter([vocabDatasetsResponse.error, allSourcePaths.error, usedSourcePaths.error], e => !_.isUndefined(e)),
             };
         }
     );

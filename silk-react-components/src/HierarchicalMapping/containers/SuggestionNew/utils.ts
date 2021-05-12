@@ -46,6 +46,16 @@ export const filterRowsByColumnModifier = (filters: {[key: string]: string}, sel
                 break;
             }
 
+            case FILTER_ACTIONS.SHOW_USED_SOURCE_PATHS_ONLY:
+            case FILTER_ACTIONS.SHOW_UNUSED_SOURCE_PATHS_ONLY: {
+                const unusedOnly = filter === FILTER_ACTIONS.SHOW_UNUSED_SOURCE_PATHS_ONLY
+                filteredResults = filteredResults.filter(row => {
+                    return unusedOnly && !row.alreadyMapped ||
+                        !unusedOnly && row.alreadyMapped
+                })
+                break;
+            }
+
             default:
                 break;
         }

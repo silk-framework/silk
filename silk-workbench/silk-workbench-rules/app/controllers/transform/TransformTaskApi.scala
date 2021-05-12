@@ -7,7 +7,7 @@ import controllers.util.SerializationUtils._
 import org.silkframework.config.{MetaData, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
-import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity.paths.{PathOperator, TypedPath, UntypedPath}
 import org.silkframework.rule.TransformSpec.{TargetVocabularyListParameter, TargetVocabularyParameterType}
 import org.silkframework.rule._
 import org.silkframework.rule.execution.ExecuteTransform
@@ -438,33 +438,22 @@ class TransformTaskApi @Inject() () extends InjectedController {
                        taskName: String,
                        ruleId: String,
                        maxDepth: Int,
-                       unusedOnly: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
+                       unusedOnly: Boolean,
+                       usedOnly: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
+    if(unusedOnly && usedOnly) {
+      throw BadUserInputException("Only one of the following parameters can be true, but both of them were true: unusedOnly, usedOnly")
+    }
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
     task.nestedRuleAndSourcePath(ruleId) match {
       case Some((_, sourcePath)) =>
-        val pathCache = task.activity[TransformPathsCache]
-        pathCache.control.waitUntilFinished()
-        val isRdfInput = pathCache.value().isRdfInput(task)
-        val cachedPaths = pathCache.value().fetchCachedPaths(task, sourcePath.nonEmpty && isRdfInput)
-        val matchingPaths = cachedPaths filter { p =>
-          val pathSize = p.operators.size
-          isRdfInput ||
-              p.operators.startsWith(sourcePath) &&
-                  pathSize > sourcePath.size &&
-                  pathSize - sourcePath.size <= maxDepth
-        } map { p =>
-            if(isRdfInput) {
-              p
-            } else {
-              TypedPath.removePathPrefix(p, UntypedPath(sourcePath))
-            }
-        }
-        val filteredPaths = if(unusedOnly) {
-          val sourcePaths = task.data.valueSourcePaths(ruleId, maxDepth)
-          matchingPaths.filterNot { path =>
-            sourcePaths.contains(path.asUntypedPath)
+        val matchingPaths = relativePathsFromPathsCache(maxDepth, sourcePath, task)
+        val filteredPaths = if(unusedOnly || usedOnly) {
+          val sourcePaths = usedSourcePaths(ruleId, maxDepth, task)
+          val filterFn: UntypedPath => Boolean = if(unusedOnly) path => !sourcePaths.contains(path) else sourcePaths.contains
+          matchingPaths filter { path =>
+            filterFn(path.asUntypedPath)
           }
         } else {
           matchingPaths
@@ -473,6 +462,37 @@ class TransformTaskApi @Inject() () extends InjectedController {
       case None =>
         NotFound("No rule found with ID " + ruleId)
     }
+  }
+
+  // Get the relative paths matching the path prefix with the max. depth length from the transform path cache.
+  private def relativePathsFromPathsCache(maxDepth: Int,
+                                          pathPrefix: List[PathOperator],
+                                          task: ProjectTask[TransformSpec])
+                                         (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+    val pathCache = task.activity[TransformPathsCache]
+    pathCache.control.waitUntilFinished()
+    val isRdfInput = pathCache.value().isRdfInput(task)
+    val cachedPaths = pathCache.value().fetchCachedPaths(task, pathPrefix.nonEmpty && isRdfInput)
+    cachedPaths filter { p =>
+      val pathSize = p.operators.size
+      isRdfInput ||
+        p.operators.startsWith(pathPrefix) &&
+          pathSize > pathPrefix.size &&
+          pathSize - pathPrefix.size <= maxDepth
+    } map { p =>
+      if (isRdfInput) {
+        p
+      } else {
+        TypedPath.removePathPrefix(p, UntypedPath(pathPrefix))
+      }
+    }
+  }
+
+  /** The relative source path that are already used in the specified mapping rule. */
+  private def usedSourcePaths(ruleId: String, maxDepth: Int,
+                              task: ProjectTask[TransformSpec]): Set[UntypedPath] = {
+    task.data.valueSourcePaths(ruleId, maxDepth).toSet ++
+      task.data.objectSourcePaths(ruleId).toSet
   }
 }
 

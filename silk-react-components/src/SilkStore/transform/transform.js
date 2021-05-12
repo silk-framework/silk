@@ -152,6 +152,7 @@ silkStore
             transformTask,
             ruleId,
             unusedOnly = false,
+            usedOnly = false,
         } = data;
 
         superagent
@@ -160,6 +161,7 @@ silkStore
             )
             .query({
                 unusedOnly,
+                usedOnly,
             })
             .accept('application/json')
             .observe()

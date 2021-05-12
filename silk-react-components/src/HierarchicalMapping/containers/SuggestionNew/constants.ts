@@ -7,6 +7,8 @@ export const FILTER_ACTIONS = {
     SHOW_GENERATED: 'SHOW_GENERATED',
     SHOW_VALUE_MAPPINGS: 'SHOW_VALUE_MAPPINGS',
     SHOW_OBJECT_MAPPINGS: 'SHOW_OBJECT_MAPPINGS',
+    SHOW_UNUSED_SOURCE_PATHS_ONLY: 'SHOW_UNUSED_SOURCE_PATHS_ONLY',
+    SHOW_USED_SOURCE_PATHS_ONLY: 'SHOW_USED_SOURCE_PATHS_ONLY'
 };
 
 export const COLUMN_FILTERS: { [key: string]: IColumnFilters[] } = {
@@ -17,6 +19,16 @@ export const COLUMN_FILTERS: { [key: string]: IColumnFilters[] } = {
         label: 'Show only unselected items',
         action: FILTER_ACTIONS.SHOW_UNSELECTED
     }],
+    source: [
+        {
+            label: 'Show only non-mapped source paths',
+            action: FILTER_ACTIONS.SHOW_UNUSED_SOURCE_PATHS_ONLY
+        },
+        {
+            label: 'Show only already mapped source paths',
+            action: FILTER_ACTIONS.SHOW_USED_SOURCE_PATHS_ONLY
+        }
+    ],
     target: [{
         label: 'Show only matches',
         action: FILTER_ACTIONS.SHOW_MATCHES
