@@ -30,6 +30,15 @@ sealed trait Value {
     * Returns a new instance of this value with a given error attached.
     */
   def withError(ex: Throwable): Value
+
+  /**
+    * Formats the error into a multi-line string.
+    */
+  def formattedErrorMessage: Option[String] = {
+    for(ex <- error) yield {
+      Stream.iterate(ex)(_.getCause).takeWhile(_ != null).map(_.getMessage).mkString("\nCause: ")
+    }
+  }
 }
 
 /**

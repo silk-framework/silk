@@ -94,7 +94,7 @@
       <span class="input">
         Transform: @transform.transformer.pluginSpec.id (@transform.id)
         @values.map(v => <span class="transformed-value">{v}</span>)
-        @renderException(error)
+        @renderErrorOpt(value.formattedErrorMessage)
       </span>
       @if(children.nonEmpty) {
         <ul>
@@ -108,15 +108,15 @@
       <span class="input">
         Input: @input.path.serialize()(prefixes) (@input.id)
         @values.map(v => <span class="input-value">{v}</span>)
-        @renderException(error)
+        @renderErrorOpt(value.formattedErrorMessage)
       </span>
     </li>
   }
 }}
 
-@renderException(error: Option[Throwable]) = {
+@renderErrorOpt(error: Option[String]) = {
   @for(ex <- error) {
-    @renderError(ex.getMessage)
+    @renderError(ex)
   }
 }
 
@@ -125,6 +125,8 @@
     <img src="@Assets.at("img/exclamation.png")" style="cursor:help;" />
   </span>
   <div class="mdl-tooltip mdl-tooltip--large" for="error-@id">
-    @error
+    @for(line <- error.split("\n")) {
+      <p>@line</p>
+    }
   </div>
 }
