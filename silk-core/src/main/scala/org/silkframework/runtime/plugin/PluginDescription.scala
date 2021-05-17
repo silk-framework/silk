@@ -196,9 +196,14 @@ object PluginDescription {
 
     val transformExamples = TransformExampleValue.retrieve(pluginClass)
     if(transformExamples.nonEmpty) {
-      sb ++= "**Example Values**"
+      sb ++= "**Examples**"
       sb ++= "\n\n"
       for(example <- transformExamples) {
+        for(description <- example.description) {
+          sb ++= "**"
+          sb ++= description
+          sb ++= "**\n"
+        }
         sb ++= example.formatted
         sb ++= "\n\n"
       }
