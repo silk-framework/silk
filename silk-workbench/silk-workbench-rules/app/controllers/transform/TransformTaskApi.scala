@@ -2,7 +2,7 @@ package controllers.transform
 
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.transform.TransformTaskApi._
-import controllers.transform.transformTask.ValueSourcePathInfo
+import controllers.transform.transformTask.{ObjectValueSourcePathInfo, TransformUtils, ValueSourcePathInfo}
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
 import org.silkframework.config.{MetaData, Prefixes, Task}
@@ -25,8 +25,11 @@ import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc._
 
+import java.util
 import java.util.logging.{Level, Logger}
 import javax.inject.Inject
+import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
 class TransformTaskApi @Inject() () extends InjectedController {
 
@@ -450,18 +453,59 @@ class TransformTaskApi @Inject() () extends InjectedController {
     Ok(Json.toJson(typedRuleValuePaths(task, ruleId, maxDepth, unusedOnly, usedOnly).map(_.serialize())))
   }
 
-  /** Returns all available paths of max. depth for the specific transform rule. */
+  /** Returns all available paths of max. depth for the specific transform rule.
+    *
+    * @param maxDepth   Max depth/hops of the returned paths.
+    * @param objectInfo If additional information, e.g. stats, sub-paths, should be attached.
+    */
   def valueSourcePathsFullInfo(projectId: String,
                                transformTaskId: String,
                                mappingRuleId: String,
-                               maxDepth: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
-    implicit val (project, task) = getProjectAndTask[TransformSpec](projectId, transformTaskId)
+                               maxDepth: Int,
+                               objectInfo: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
+    implicit val (project, transformTask) = getProjectAndTask[TransformSpec](projectId, transformTaskId)
     implicit val prefixes: Prefixes = project.config.prefixes
-    val typedPaths = typedRuleValuePaths(task, mappingRuleId, maxDepth)
-    val usedPaths = typedRuleValuePaths(task, mappingRuleId, maxDepth, usedOnly = true).toSet
+    val dataSourceCharacteristicsOpt = TransformUtils.datasetCharacteristics(transformTask)
+    val typedPaths = typedRuleValuePaths(transformTask, mappingRuleId, maxDepth)
+    val usedPaths = typedRuleValuePaths(transformTask, mappingRuleId, maxDepth, usedOnly = true).toSet
+    val objectPathInfos: Map[UntypedPath, ObjectValueSourcePathInfo] = dataSourceCharacteristicsOpt match {
+      case Some(characteristics) if characteristics.supportedPathExpressions.multiHopPaths && objectInfo =>
+        val objectPaths = typedPaths.filter(_.valueType.id == "UriValueType").map(_.toUntypedPath).toSet
+        val isRdfInput = TransformUtils.isRdfInput(transformTask)
+        if(objectPaths.isEmpty) {
+          Map.empty
+        } else if (isRdfInput) {
+          // TODO: Fetch RDF infos
+          Map.empty
+        } else {
+          val maxObjectPathLength = objectPaths.map(_.operators.size).max
+          val additionalHopPath = if(maxDepth < Int.MaxValue || maxObjectPathLength == maxDepth) {
+            // Need to fetch paths with one more hop in order to calculate stats
+            typedRuleValuePaths(transformTask, mappingRuleId, maxDepth + 1)
+          } else {
+            typedPaths
+          }
+          val subPathMap = mutable.HashMap[UntypedPath, ArrayBuffer[TypedPath]]()
+          additionalHopPath filter { tp => tp.operators.size > 1 } foreach { tp =>
+            val parentPath = UntypedPath(tp.operators.dropRight(1))
+            if(objectPaths.contains(parentPath)) {
+              subPathMap.getOrElseUpdate(parentPath, new ArrayBuffer[TypedPath]()).append(tp)
+            }
+          }
+          def relativePathString(tp: TypedPath) = UntypedPath(tp.operators.takeRight(1)).serialize()
+          subPathMap.mapValues { typedPaths =>
+            val (objectPaths, dataPaths) = typedPaths.partition(_.valueType.id == "UriValueType")
+            ObjectValueSourcePathInfo(
+              dataTypeSubPaths = dataPaths.map(relativePathString),
+              objectSubPaths = objectPaths.map(relativePathString)
+            )
+          }.toMap
+        }
+      case _ => Map.empty
+    }
     val valuePathInfos = typedPaths map { tp =>
       val pathType = if(tp.valueType.id == "UriValueType") "object" else "value"
-      ValueSourcePathInfo(tp.serialize(), pathType, alreadyMapped = usedPaths.contains(tp) )
+      ValueSourcePathInfo(tp.serialize(), pathType, alreadyMapped = usedPaths.contains(tp), objectPathInfos.get(tp.toUntypedPath))
     }
     Ok(Json.toJson(valuePathInfos))
   }
@@ -498,7 +542,7 @@ class TransformTaskApi @Inject() () extends InjectedController {
                                          (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
     val pathCache = task.activity[TransformPathsCache]
     pathCache.control.waitUntilFinished()
-    val isRdfInput = pathCache.value().isRdfInput(task)
+    val isRdfInput = TransformUtils.isRdfInput(task)
     val cachedPaths = pathCache.value().fetchCachedPaths(task, pathPrefix.nonEmpty && isRdfInput)
     cachedPaths filter { p =>
       val pathSize = p.operators.size

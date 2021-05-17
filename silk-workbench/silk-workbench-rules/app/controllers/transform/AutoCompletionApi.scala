@@ -4,9 +4,8 @@ import controllers.core.util.ControllerUtilsTrait
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.transform.AutoCompletionApi.Categories
 import controllers.transform.autoCompletion._
+import controllers.transform.transformTask.TransformUtils
 import org.silkframework.config.Prefixes
-import org.silkframework.dataset.DataSourceCharacteristics
-import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.paths.{PathOperator, _}
 import org.silkframework.entity.{ValueType, ValueTypeAnnotation}
 import org.silkframework.rule.vocab.ObjectPropertyType
@@ -39,7 +38,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
     val task = project.task[TransformSpec](taskName)
     var completions = Completions()
     withRule(task, ruleName) { case (_, sourcePath) =>
-      val isRdfInput = task.activity[TransformPathsCache].value().isRdfInput(task)
+      val isRdfInput = TransformUtils.isRdfInput(task)
       val simpleSourcePath = simplePath(sourcePath)
       val forwardOnlySourcePath = forwardOnlyPath(simpleSourcePath)
       val allPaths = pathsCacheCompletions(task, simpleSourcePath.nonEmpty && isRdfInput)
@@ -78,9 +77,9 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
         validateAutoCompletionRequest(autoCompletionRequest)
         validatePartialSourcePathAutoCompletionRequest(autoCompletionRequest)
         withRule(transformTask, ruleId) { case (_, sourcePath) =>
-          val isRdfInput = transformTask.activity[TransformPathsCache].value().isRdfInput(transformTask)
+          val isRdfInput = TransformUtils.isRdfInput(transformTask)
           val pathToReplace = PartialSourcePathAutocompletionHelper.pathToReplace(autoCompletionRequest, isRdfInput)
-          val dataSourceCharacteristicsOpt = dataSourceCharacteristics(transformTask)
+          val dataSourceCharacteristicsOpt = TransformUtils.datasetCharacteristics(transformTask)
           // compute relative paths
           val pathBeforeReplacement = UntypedPath.partialParse(autoCompletionRequest.inputString.take(pathToReplace.from)).partialPath
           val completeSubPath = sourcePath ++ pathBeforeReplacement.operators
@@ -124,12 +123,6 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
       ) ++ operatorCompletions
     )
     Ok(Json.toJson(response))
-  }
-
-  private def dataSourceCharacteristics(task: ProjectTask[TransformSpec])
-                                       (implicit userContext: UserContext): Option[DataSourceCharacteristics] = {
-    task.project.taskOption[GenericDatasetSpec](task.selection.inputId)
-      .map(_.data.characteristics)
   }
 
   private def validatePartialSourcePathAutoCompletionRequest(request: PartialSourcePathAutoCompletionRequest): Unit = {

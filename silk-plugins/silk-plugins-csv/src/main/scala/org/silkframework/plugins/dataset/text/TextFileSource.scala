@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.text
 
 import org.silkframework.config.{PlainTask, Task}
-import org.silkframework.dataset.{DataSource, DataSourceCharacteristics, Dataset, DatasetSpec, EmptyDataset}
+import org.silkframework.dataset.{DataSource, DatasetCharacteristics, Dataset, DatasetSpec, EmptyDataset}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.execution.EntityHolder
