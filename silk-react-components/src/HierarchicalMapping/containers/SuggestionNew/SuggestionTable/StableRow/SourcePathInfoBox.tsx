@@ -7,10 +7,14 @@ import { InfoBoxOverlay } from "./InfoBoxOverlay";
 interface IProps {
     source?: string | ITargetWithSelected[];
     pathType?: SuggestionTypeValues
+    objectInfo?: {
+        dataTypeSubPaths: string[]
+        objectSubPaths: string[]
+    }
 }
 
 /** Shows additional information for a dataset source path, e.g. examples values. */
-export function SourcePathInfoBox({source, pathType}: IProps) {
+export function SourcePathInfoBox({source, pathType, objectInfo}: IProps) {
     const context = useContext(SuggestionListContext);
     const {exampleValues, portalContainer} = context;
 
@@ -41,13 +45,7 @@ export function SourcePathInfoBox({source, pathType}: IProps) {
         infoBoxProperties.push({
             key: "Example data",
             value: <code>
-                <HtmlContentBlock>
-                    <ul>
-                        {Array.from(new Set(examples)).sort().slice(0, 9).map((item) => {
-                            return <li key={item}>{item}</li>;
-                        })}
-                    </ul>
-                </HtmlContentBlock>
+                <InfoList items={Array.from(new Set(examples)).sort().slice(0, 9)} />
             </code>,
         })
     }
@@ -59,7 +57,35 @@ export function SourcePathInfoBox({source, pathType}: IProps) {
         })
     }
 
+    if(objectInfo) {
+        infoBoxProperties.push({
+            key: `Data type sub-paths (${objectInfo.dataTypeSubPaths.length})`,
+            value: <div>
+                <InfoList items={objectInfo.dataTypeSubPaths} />
+            </div>
+        })
+        infoBoxProperties.push({
+            key: `Object type sub-paths (${objectInfo.objectSubPaths.length})`,
+            value: <div>
+                <InfoList items={objectInfo.objectSubPaths} />
+            </div>
+        })
+    }
+
     return <InfoBoxOverlay
         data={infoBoxProperties}
     />;
+}
+
+interface InfoListProps {
+    items: string[]
+}
+const InfoList = ({items}: InfoListProps) => {
+    return <HtmlContentBlock>
+        <ul>
+            {items.map((item) => {
+                return <li key={item}>{item}</li>;
+            })}
+        </ul>
+    </HtmlContentBlock>
 }

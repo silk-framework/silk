@@ -157,7 +157,9 @@ silkStore
             .get(
                 `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${ruleId}/valueSourcePathsInfo`
             )
-            .accept('application/json')
+            .query({
+                objectInfo: true
+            }).accept('application/json')
             .observe()
             .multicast(replySubject)
             .connect();

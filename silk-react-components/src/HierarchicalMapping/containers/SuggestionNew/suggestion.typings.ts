@@ -66,6 +66,12 @@ export interface ITransformedSuggestion {
 
     /** The type of the suggested URI or source path. */
     pathType?: SuggestionTypeValues
+
+    /** Optional info if this is an 'object' type path. */
+    objectInfo?: {
+        dataTypeSubPaths: string[]
+        objectSubPaths: string[]
+    }
 }
 
 export interface IPlainObject {

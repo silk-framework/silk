@@ -494,7 +494,8 @@ export const getSuggestionsAsync = (data: ISuggestAsyncProps,
                             uri: sourcePath.path,
                             candidates: [],
                             alreadyMapped: sourcePath.alreadyMapped,
-                            pathType: sourcePath.pathType
+                            pathType: sourcePath.pathType,
+                            objectInfo: sourcePath.objectInfo
                         });
                     } else {
                         existingSuggestion.pathType = sourcePath.pathType
