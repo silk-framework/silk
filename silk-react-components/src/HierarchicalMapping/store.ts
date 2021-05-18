@@ -442,8 +442,14 @@ const fetchValueSourcePaths = (data: ISuggestAsyncProps) => {
             data: {...getApiDetails(), ...data},
         })
         .catch(err => {
-            const errorBody = _.get(err, 'response.body');
-            errorBody.code = err.status;
+            let errorBody = _.get(err, 'response.body');
+            if(errorBody) {
+                errorBody.code = err.status;
+            } else if(err.detail && !err.status) {
+                errorBody = {title: "Unable to load data", detail: err.detail, cause: null}
+            } else {
+                return Rx.Observable.return({});
+            }
             return Rx.Observable.return({error: errorBody});
         })
         .map(returned => {
@@ -486,7 +492,7 @@ export const getSuggestionsAsync = (data: ISuggestAsyncProps,
                 });
             }
 
-            if (data.matchFromDataset) {
+            if (data.matchFromDataset && sourcePaths.data) {
                 sourcePaths.data.forEach(sourcePath => {
                     const existingSuggestion = suggestions.find(suggestion => suggestion.uri === sourcePath.path);
                     if (!existingSuggestion) {
