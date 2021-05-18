@@ -74,6 +74,7 @@ export function SourcePathInfoBox({source, pathType, objectInfo}: IProps) {
 
     return <InfoBoxOverlay
         data={infoBoxProperties}
+        data-test-id={"source-path-infobox"}
     />;
 }
 
