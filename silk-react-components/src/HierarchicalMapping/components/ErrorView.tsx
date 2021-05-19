@@ -70,8 +70,12 @@ export function ErrorView({title, detail, cause, issues, isHTTPProblem, status, 
     let causesHtml: React.ReactElement | undefined = undefined
     let issuesHtml: React.ReactElement | undefined = undefined
 
-    if (errorExpanded && _.isArray(cause)) {
-        causesHtml = <ErrorCause errorCause={cause}/>;
+    if (errorExpanded && cause) {
+        if(_.isArray(cause)) {
+            causesHtml = <ErrorCause errorCause={cause}/>;
+        } else if(_.isObject(cause)) {
+            causesHtml = <ErrorCause errorCause={[cause]}/>
+        }
     }
 
     if (errorExpanded && _.isArray(issues)) {
