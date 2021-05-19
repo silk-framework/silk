@@ -47,17 +47,19 @@ interface IProps {
     isHTTPProblem?: boolean
     // The status code of the HTTP request if this is a HTTP error
     status?: number
+    // An title prefix
+    titlePrefix?: string
 }
 
 /** A component to show error with expandable details. */
-export function ErrorView({title, detail, cause, issues, isHTTPProblem}: IProps) {
+export function ErrorView({title, detail, cause, issues, isHTTPProblem, status, titlePrefix = ""}: IProps) {
     const [errorExpanded, setErrorExpanded] = useState<boolean>(false)
 
     const toggleExpansion = () => {
         setErrorExpanded(prev => !prev)
     }
 
-    let shownTitle = title
+    let shownTitle = titlePrefix + title
     if (isHTTPProblem && !status) {
         shownTitle = "There has been a connection problem."
     }
