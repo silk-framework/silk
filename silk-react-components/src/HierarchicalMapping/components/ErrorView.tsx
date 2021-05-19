@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 
 import { Error } from '@eccenca/gui-elements';
 import _ from 'lodash';
+import {Spacing} from "@gui-elements/index";
 
 export const ErrorCause = ({ errorCause }) => (
     <ul className="ecc-hierarchical-mapping-error-list">
@@ -40,9 +41,9 @@ interface IProps {
     // Error detail
     detail: string
     // it may contain a list for errors with title and detail itself
-    errorCause: any[]
+    errorCause?: any[]
     // it may contain a list for errors with title and detail itself, too
-    errorIssues: any[]
+    errorIssues?: any[]
     // True if the problem is a HTTP request related problem
     isHTTPProblem?: boolean
     // The status code of the HTTP request if this is a HTTP error
@@ -77,7 +78,7 @@ export function ErrorView({title, detail, errorCause, errorIssues, isHTTPProblem
     }
 
     const detailHtml = title !== detail ?
-        <p>{detail}</p>
+        <><Spacing size="small" /><p>{detail}</p></>
         : undefined
 
     return <Error

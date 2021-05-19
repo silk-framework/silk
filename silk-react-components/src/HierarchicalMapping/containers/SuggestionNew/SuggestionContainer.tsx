@@ -30,6 +30,7 @@ import silkApi from "../../../api/silkRestApi";
 import VocabularyMatchingDialog from "./VocabularyMatchingDialog";
 import {IInitFrontend, useInitFrontend} from "../../../api/silkRestApi.hooks";
 import {extractSearchWords, matchesAllWords} from "@gui-elements/src/components/Typography/Highlighter";
+import ErrorView from "../../components/ErrorView";
 
 interface ISuggestionListContext {
     // Can be deleted when popup issue gone
@@ -359,18 +360,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         return onlyMinorErrors ? {warning: true} : {danger: true}
     }
     const errorWidget = (!loading && !!error.length) && <>
-        <Notification {...errorLevel(error)}>
-            <ul>
-                {
-                    error.map(err => <>
-                        <li key={err.detail}>
-                            <h3>{err.title}</h3>
-                            <p>{err.detail}</p>
-                        </li>
-                    </>)
-                }
-            </ul>
-        </Notification>
+        {error.map(err => <ErrorView title={err.title} detail={err.detail}/>)}
         <Spacing size="small" />
     </>
 

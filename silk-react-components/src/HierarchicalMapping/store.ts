@@ -446,7 +446,7 @@ const fetchValueSourcePaths = (data: ISuggestAsyncProps) => {
             if(errorBody) {
                 errorBody.code = err.status;
             } else if(err.detail && !err.status) {
-                errorBody = {title: "Unable to load data", detail: err.detail, cause: null}
+                errorBody = {title: "There has been a connection problem.", detail: err.detail, cause: null}
             } else {
                 return Rx.Observable.return({});
             }
