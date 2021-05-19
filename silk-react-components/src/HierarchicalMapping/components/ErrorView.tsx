@@ -1,5 +1,4 @@
 import React, {useState} from 'react';
-import PropTypes from 'prop-types';
 
 import { Error } from '@eccenca/gui-elements';
 import _ from 'lodash';
@@ -15,7 +14,7 @@ export const ErrorCause = ({ errorCause }) => (
             }
 
             return (
-                <li>
+                <li key={title}>
                     <p>{title}</p>
                     <p>{detail}</p>
                     {renderedCause}
@@ -41,9 +40,9 @@ interface IProps {
     // Error detail
     detail: string
     // it may contain a list for errors with title and detail itself
-    errorCause?: any[]
+    cause?: any[]
     // it may contain a list for errors with title and detail itself, too
-    errorIssues?: any[]
+    issues?: any[]
     // True if the problem is a HTTP request related problem
     isHTTPProblem?: boolean
     // The status code of the HTTP request if this is a HTTP error
@@ -51,7 +50,7 @@ interface IProps {
 }
 
 /** A component to show error with expandable details. */
-export function ErrorView({title, detail, errorCause, errorIssues, isHTTPProblem}: IProps) {
+export function ErrorView({title, detail, cause, issues, isHTTPProblem}: IProps) {
     const [errorExpanded, setErrorExpanded] = useState<boolean>(false)
 
     const toggleExpansion = () => {
@@ -66,15 +65,15 @@ export function ErrorView({title, detail, errorCause, errorIssues, isHTTPProblem
         ? ''
         : 'mdl-alert--narrowed';
 
-    let causes: React.ReactElement | undefined = undefined
-    let issues: React.ReactElement | undefined = undefined
+    let causesHtml: React.ReactElement | undefined = undefined
+    let issuesHtml: React.ReactElement | undefined = undefined
 
-    if (errorExpanded && _.isArray(errorCause)) {
-        causes = <ErrorCause errorCause={errorCause}/>;
+    if (errorExpanded && _.isArray(cause)) {
+        causesHtml = <ErrorCause errorCause={cause}/>;
     }
 
-    if (errorExpanded && _.isArray(errorIssues)) {
-        issues = <ErrorIssue errorCause={errorIssues}/>;
+    if (errorExpanded && _.isArray(issues)) {
+        issuesHtml = <ErrorIssue errorCause={issues}/>;
     }
 
     const detailHtml = title !== detail ?
@@ -94,8 +93,8 @@ export function ErrorView({title, detail, errorCause, errorIssues, isHTTPProblem
     >
         <strong>{shownTitle}</strong>
         {detailHtml}
-        {causes}
-        {issues}
+        {causesHtml}
+        {issuesHtml}
     </Error>
 
 }
