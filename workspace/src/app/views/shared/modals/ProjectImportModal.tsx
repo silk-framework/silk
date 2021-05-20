@@ -170,7 +170,7 @@ export function ProjectImportModal({ close, back }: IProps) {
         let details = errorDetails(error);
         setUploadError(
             t("ProjectImportModal.responseUploadError", "File {{file}} could not be uploaded! {{details}}", {
-                file: <code>fileData.name</code>,
+                file: fileData.name,
                 details: details,
             })
         );

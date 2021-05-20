@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import PrefixesDialog from "./PrefixesDialog";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { IPrefixState } from "@ducks/workspace/typings";
+import { IPrefixDefinition } from "@ducks/workspace/typings";
 import Loading from "../../../shared/Loading";
 
 import {
@@ -27,7 +27,7 @@ export const ProjectNamespacePrefixManagementWidget = () => {
     const dispatch = useDispatch();
     const prefixList = useSelector(workspaceSel.prefixListSelector);
 
-    const [visiblePrefixes, setVisiblePrefixes] = useState<IPrefixState[]>([]);
+    const [visiblePrefixes, setVisiblePrefixes] = useState<IPrefixDefinition[]>([]);
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const configurationWidget = useSelector(workspaceSel.widgetsSelector).configuration;
 

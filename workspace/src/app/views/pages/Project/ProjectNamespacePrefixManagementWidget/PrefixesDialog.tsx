@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { IPrefixState } from "@ducks/workspace/typings";
+import { IPrefixDefinition } from "@ducks/workspace/typings";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { Button, SimpleDialog } from "@gui-elements/index";
 import PrefixRow from "./PrefixRow";
@@ -10,20 +10,20 @@ import DataList from "../../../shared/Datalist";
 import Loading from "../../../shared/Loading";
 import { useTranslation } from "react-i18next";
 
+/** Manages project prefix definitions. */
 const PrefixesDialog = ({ onCloseModal, isOpen }) => {
     const dispatch = useDispatch();
 
     const prefixList = useSelector(workspaceSel.prefixListSelector);
-    const newPrefix = useSelector(workspaceSel.newPrefixSelector);
     const configWidget = useSelector(workspaceSel.widgetsSelector).configuration;
     const { isLoading } = configWidget;
 
     const [isOpenRemove, setIsOpenRemove] = useState<boolean>(false);
-    const [selectedPrefix, setSelectedPrefix] = useState<IPrefixState>(null);
+    const [selectedPrefix, setSelectedPrefix] = useState<IPrefixDefinition>(null);
 
     const [t] = useTranslation();
 
-    const toggleRemoveDialog = (prefix?: IPrefixState) => {
+    const toggleRemoveDialog = (prefix?: IPrefixDefinition) => {
         if (!prefix || isOpenRemove) {
             setIsOpenRemove(false);
             setSelectedPrefix(null);
@@ -40,18 +40,9 @@ const PrefixesDialog = ({ onCloseModal, isOpen }) => {
         toggleRemoveDialog();
     };
 
-    const handleAddOrUpdatePrefix = (prefix: IPrefixState) => {
+    const handleAddOrUpdatePrefix = (prefix: IPrefixDefinition) => {
         const { prefixName, prefixUri } = prefix;
         dispatch(workspaceOp.fetchAddOrUpdatePrefixAsync(prefixName, prefixUri));
-    };
-
-    const handleUpdatePrefixFields = (field: string, value: string) => {
-        dispatch(
-            workspaceOp.updateNewPrefix({
-                field,
-                value,
-            })
-        );
     };
 
     return (
@@ -65,11 +56,7 @@ const PrefixesDialog = ({ onCloseModal, isOpen }) => {
                 <Loading description={t("widget.ConfigWidget.loadingPrefix", "Loading prefix configuration.")} />
             ) : (
                 <>
-                    <PrefixNew
-                        prefix={newPrefix}
-                        onChangePrefix={handleUpdatePrefixFields}
-                        onAdd={() => handleAddOrUpdatePrefix(newPrefix)}
-                    />
+                    <PrefixNew onAdd={(newPrefix: IPrefixDefinition) => handleAddOrUpdatePrefix(newPrefix)} />
                     <DataList isEmpty={!prefixList.length} isLoading={isLoading} hasSpacing hasDivider>
                         {prefixList.map((prefix, i) => (
                             <PrefixRow key={i} prefix={prefix} onRemove={() => toggleRemoveDialog(prefix)} />
