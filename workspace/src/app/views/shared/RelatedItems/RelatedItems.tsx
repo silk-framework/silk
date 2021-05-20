@@ -62,7 +62,7 @@ export function RelatedItems(props: IProps) {
     const [t] = useTranslation();
 
     useEffect(() => {
-        if (projectId && taskId) {
+        if (projectId && taskId && !isOpen) {
             getRelatedItemsData(projectId, taskId, textQuery);
         }
     }, [projectId, taskId, textQuery, updated, isOpen]);
