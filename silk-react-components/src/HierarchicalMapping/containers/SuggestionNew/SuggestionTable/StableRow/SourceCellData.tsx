@@ -22,7 +22,7 @@ interface IProps {
 export function SourceCellData({label, search, pathType, objectInfo}: IProps) {
     let labelElem = <OverflowText ellipsis={"reverse"} inline={true}><Highlighter label={label} searchValue={search}/></OverflowText>
     if(label.length > 20) {
-        labelElem = <Tooltip content={label}>{labelElem}</Tooltip>
+        labelElem = <Tooltip size="large" content={label}>{labelElem}</Tooltip>
     }
     return <Toolbar noWrap={true}>
         <ToolbarSection canShrink={true}>

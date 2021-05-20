@@ -39,7 +39,7 @@ const RawItem = ({ item }, ref) => {
                         <Highlighter
                             label={item.value}
                             searchValue={item.query}
-                        ></Highlighter>
+                        />
                     </OverflowText>
                 </OverviewItemLine>
                 {item.description ? (
