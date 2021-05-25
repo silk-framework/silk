@@ -195,7 +195,7 @@ export class ObjectRuleForm extends Component<IProps, any> {
 
         // FIXME: also check if data really has changed before allow saving
         const allowConfirm =
-            modifiedValues.type === MAPPING_RULE_TYPE_ROOT || !_.isEmpty(modifiedValues.targetProperty);
+            modifiedValues.type === MAPPING_RULE_TYPE_ROOT || !_.isEmpty(modifiedValues.targetProperty) || modifiedValues.sourceProperty && !_.isEmpty(modifiedValues.sourceProperty.trim());
         const errorMessage = saveObjectError && (
             <ErrorView {...saveObjectError} />
         );
