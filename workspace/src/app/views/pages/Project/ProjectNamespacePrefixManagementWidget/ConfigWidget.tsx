@@ -92,6 +92,7 @@ export const ProjectNamespacePrefixManagementWidget = () => {
                                 <OverviewItemActions>
                                     <IconButton
                                         onClick={handleOpen}
+                                        data-test-id={"open-project-prefix-mgmt-btn"}
                                         name="item-edit"
                                         text={t("widget.FileWidget.edit", "Edit prefix settings")}
                                     />

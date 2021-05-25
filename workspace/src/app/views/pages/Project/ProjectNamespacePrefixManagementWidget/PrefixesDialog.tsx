@@ -54,9 +54,14 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes }: IProps) => {
     return (
         <SimpleDialog
             title={t("widget.ConfigWidget.prefixTitle", "Manage Prefixes")}
+            data-test-id={"prefix-dialog"}
             isOpen={isOpen}
             onClose={onCloseModal}
-            actions={<Button onClick={() => onCloseModal()}>{t("common.action.close")}</Button>}
+            actions={
+                <Button data-test-id={"close-prefix-dialog-btn"} onClick={() => onCloseModal()}>
+                    {t("common.action.close")}
+                </Button>
+            }
         >
             {isLoading ? (
                 <Loading description={t("widget.ConfigWidget.loadingPrefix", "Loading prefix configuration.")} />
@@ -75,6 +80,7 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes }: IProps) => {
             )}
             <DeleteModal
                 isOpen={isOpenRemove}
+                data-test-id={"update-prefix-dialog"}
                 onDiscard={() => toggleRemoveDialog()}
                 onConfirm={handleConfirmRemove}
                 title={t("common.action.DeleteSmth", { smth: t("widget.ConfigWidget.prefix") })}

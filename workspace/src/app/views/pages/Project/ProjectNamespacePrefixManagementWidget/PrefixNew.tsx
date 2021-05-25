@@ -124,6 +124,7 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
                     </FieldItem>
                     <FieldItem key={"prefix-submit"}>
                         <Button
+                            data-test-id={isUpdatePrefix ? "update-prefix-definition-btn" : "add-prefix-definition-btn"}
                             onClick={() => (isUpdatePrefix ? setOverwriteDialogOpen(true) : onAdd(prefixDefinition))}
                             elevated
                             disabled={
@@ -138,9 +139,11 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
             <AlertDialog
                 warning
                 isOpen={overwriteDialogOpen}
+                data-test-id={"update-prefix-dialog"}
                 actions={[
                     <Button
                         key="overwrite"
+                        data-test-id={"prefix-update-dialog-submit-btn"}
                         onClick={() => {
                             setOverwriteDialogOpen(false);
                             onAdd(prefixDefinition);
