@@ -10,8 +10,14 @@ import DataList from "../../../shared/Datalist";
 import Loading from "../../../shared/Loading";
 import { useTranslation } from "react-i18next";
 
+interface IProps {
+    onCloseModal: () => any;
+    isOpen: boolean;
+    existingPrefixes: Set<string>;
+}
+
 /** Manages project prefix definitions. */
-const PrefixesDialog = ({ onCloseModal, isOpen }) => {
+const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes }: IProps) => {
     const dispatch = useDispatch();
 
     const prefixList = useSelector(workspaceSel.prefixListSelector);
@@ -56,7 +62,10 @@ const PrefixesDialog = ({ onCloseModal, isOpen }) => {
                 <Loading description={t("widget.ConfigWidget.loadingPrefix", "Loading prefix configuration.")} />
             ) : (
                 <>
-                    <PrefixNew onAdd={(newPrefix: IPrefixDefinition) => handleAddOrUpdatePrefix(newPrefix)} />
+                    <PrefixNew
+                        onAdd={(newPrefix: IPrefixDefinition) => handleAddOrUpdatePrefix(newPrefix)}
+                        existingPrefixes={existingPrefixes}
+                    />
                     <DataList isEmpty={!prefixList.length} isLoading={isLoading} hasSpacing hasDivider>
                         {prefixList.map((prefix, i) => (
                             <PrefixRow key={i} prefix={prefix} onRemove={() => toggleRemoveDialog(prefix)} />

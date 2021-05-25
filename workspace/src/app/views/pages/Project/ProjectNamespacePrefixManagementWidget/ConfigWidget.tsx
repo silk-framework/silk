@@ -98,7 +98,11 @@ export const ProjectNamespacePrefixManagementWidget = () => {
                                 </OverviewItemActions>
                             </OverviewItem>
                         </OverviewItemList>
-                        <PrefixesDialog isOpen={isOpen} onCloseModal={handleClose} />
+                        <PrefixesDialog
+                            isOpen={isOpen}
+                            onCloseModal={handleClose}
+                            existingPrefixes={new Set(prefixList.map((p) => p.prefixName))}
+                        />
                     </>
                 )}
             </CardContent>
