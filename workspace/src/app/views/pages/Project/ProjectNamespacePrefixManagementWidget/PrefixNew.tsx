@@ -73,7 +73,7 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
     let prefixValueErrorIcon: JSX.Element | undefined = undefined;
 
     if (!isValidPrefixName && prefixDefinition.prefixName) {
-        prefixNameErrorIcon = <Icon name={"state-danger"} tooltipText={t("PrefixDialog.prefixNameInvalid")} />;
+        prefixNameErrorIcon = <Icon name={"state-warning"} tooltipText={t("PrefixDialog.prefixNameInvalid")} />;
     }
     const highlightInvalidPrefixValue =
         (typeof isValidPrefixValue == "number" || !isValidPrefixValue) && prefixDefinition.prefixUri;
@@ -85,7 +85,7 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
                 char: prefixDefinition.prefixUri.substr(isValidPrefixValue, 1),
             });
         }
-        prefixValueErrorIcon = <Icon name={"state-danger"} tooltipText={tooltipText} />;
+        prefixValueErrorIcon = <Icon name={"state-warning"} tooltipText={tooltipText} />;
     }
 
     return (
@@ -104,7 +104,7 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
                             value={prefixDefinition.prefixName}
                             onChange={onPrefixNameChange}
                             leftIcon={prefixNameErrorIcon}
-                            hasStateDanger={!isValidPrefixName && prefixDefinition.prefixName}
+                            hasStateDanger={!isValidPrefixName && !!prefixDefinition.prefixName}
                         />
                     </FieldItem>
                     <FieldItem
@@ -113,13 +113,13 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
                             htmlFor: "prefix-uri",
                             text: "URI",
                         }}
-                        hasStateDanger={!isValidPrefixValue && prefixDefinition.prefixUri}
                     >
                         <TextField
                             id={"prefix-uri"}
                             value={prefixDefinition.prefixUri}
                             onChange={onPrefixUriChange}
                             leftIcon={prefixValueErrorIcon}
+                            hasStateDanger={!isValidPrefixValue && !!prefixDefinition.prefixUri}
                         />
                     </FieldItem>
                     <FieldItem key={"prefix-submit"}>
