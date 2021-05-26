@@ -33,7 +33,7 @@ class WorkbenchAccessMonitor {
 
   /** Fetch the most recently viewed items of a user.
     * Most recent item comes last, least recent comes first. */
-  def getAccessItems(implicit userContext: UserContext): Seq[WorkspaceItem] = {
+  def getAccessItems(implicit userContext: UserContext): Seq[WorkspaceItem] = synchronized {
     userAccessMap.get(userId).map(_.items()).getOrElse(Seq.empty)
   }
 
@@ -93,7 +93,7 @@ case class MostRecentlyOrderedList[T](capacity: Int) {
 
   /** Most recent item comes last, least recent comes first. */
   def items(): Seq[T] = synchronized {
-    linkedHashMap.values().asScala.toSeq
+    Seq() ++ linkedHashMap.values().asScala.toSeq
   }
 
   def size(): Int = synchronized {
