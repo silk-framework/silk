@@ -11,7 +11,7 @@ import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.resource.zip.ZipFileResourceLoader
 import org.silkframework.runtime.resource.{FileResource, ResourceLoader}
 import org.silkframework.runtime.serialization.ReadContext
-import org.silkframework.runtime.validation.{BadUserInputException, ConflictRequestException, NotFoundException}
+import org.silkframework.runtime.validation.{BadUserInputException, ConflictRequestException, NotFoundException, RequestException}
 import org.silkframework.util.DurationConverters._
 import org.silkframework.util.StreamUtils
 import org.silkframework.workspace.xml.XmlZipWithResourcesProjectMarshaling
@@ -154,15 +154,17 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
 
   private def extractProjectImportDetails(projectImport: ProjectImport): ProjectImportDetails = {
     try {
-      val configFile =  "config.xml"
+      val configFile = "config.xml"
       val zipFile = new ZipFile(projectImport.projectFileResource.file)
       var resourceLoader: ResourceLoader = new ZipFileResourceLoader(zipFile, "")
       if(!resourceLoader.list.contains(configFile)) {
-        if (resourceLoader.listChildren.nonEmpty) {
+        if (resourceLoader.listChildren.size == 1) {
           resourceLoader = resourceLoader.child(resourceLoader.listChildren.head)
           if(!resourceLoader.list.contains(configFile)) {
-            throw new NotFoundException("No project found in given zip file. Imported nothing.")
+            throw new NotFoundException("No project folder found in given zip file. Imported nothing.")
           }
+        } else if(resourceLoader.listChildren.size > 1) {
+          throw BadUserInputException("Invalid project export file or workspace export file with multiple projects.")
         } else {
           throw new NotFoundException("No project found in given zip file. Imported nothing.")
         }
@@ -173,31 +175,37 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
       if(prefixes.isEmpty) {
         throw new BadUserInputException("Invalid project XML format. config.xml does not contain Prefixes section.")
       }
-      val resourceUri = (xml \ "@resourceUri").text
-      val projectId = resourceUri.split("[/#:]").last
+      val projectId = (xml \ "@resourceUri").text.split("[/#:]").last
       val metaData = (xml \ "MetaData").headOption.map(MetaData.MetaDataXmlFormat.read).getOrElse(
         MetaData(projectId)
       )
       ProjectImportDetails(projectId, metaData.label, metaData.description, XmlZipWithResourcesProjectMarshaling.marshallerId,
         projectAlreadyExists = false, None)
     } catch {
+      case ex: RequestException =>
+        Try(projectImport.projectFileResource.delete())
+        ProjectImportApi.errorProjectImportDetails(ex.getMessage)
       case ex: Exception =>
-        ex.printStackTrace()
-        val projectImportError = try {
-          val lineIterator = Source.fromInputStream(projectImport.projectFileResource.inputStream).getLines()
-          if (lineIterator.hasNext && lineIterator.next().startsWith("@prefix")) {
-            // FIXME: Support RDF project import
-            ProjectImportApi.errorProjectImportDetails("RDF project import not supported!")
-          } else {
-            ProjectImportApi.errorProjectImportDetails("No valid project export file detected!")
-          }
-        } catch {
-          case NonFatal(_) =>
-            ProjectImportApi.errorProjectImportDetails("No valid project export file detected!")
-        }
-        Try(projectImport.projectFileResource.delete()) // Not valid, delete.
-        projectImportError
+        handleUnexpectedError(projectImport, ex)
     }
+  }
+
+  private def handleUnexpectedError(projectImport: ProjectImport, ex: Exception): ProjectImportDetails = {
+    ex.printStackTrace()
+    val projectImportError = try {
+      val lineIterator = Source.fromInputStream(projectImport.projectFileResource.inputStream).getLines()
+      if (lineIterator.hasNext && lineIterator.next().startsWith("@prefix")) {
+        // FIXME: Support RDF project import
+        ProjectImportApi.errorProjectImportDetails("RDF project import not supported!")
+      } else {
+        ProjectImportApi.errorProjectImportDetails("No valid project export file detected!")
+      }
+    } catch {
+      case NonFatal(_) =>
+        ProjectImportApi.errorProjectImportDetails("No valid project export file detected!")
+    }
+    Try(projectImport.projectFileResource.delete()) // Not valid, delete.
+    projectImportError
   }
 
   /** Removed a project import and it's temporary files. */
