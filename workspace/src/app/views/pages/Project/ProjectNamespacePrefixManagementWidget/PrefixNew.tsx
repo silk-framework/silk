@@ -75,8 +75,8 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
     if (!isValidPrefixName && prefixDefinition.prefixName) {
         prefixNameErrorIcon = <Icon name={"state-warning"} tooltipText={t("PrefixDialog.prefixNameInvalid")} />;
     }
-    const highlightInvalidPrefixValue =
-        (typeof isValidPrefixValue == "number" || !isValidPrefixValue) && prefixDefinition.prefixUri;
+    const highlightInvalidPrefixValue: boolean =
+        (typeof isValidPrefixValue == "number" || !isValidPrefixValue) && !!prefixDefinition.prefixUri;
     if (highlightInvalidPrefixValue) {
         let tooltipText = t("PrefixDialog.prefixUriInvalid");
         if (typeof isValidPrefixValue == "number" && isValidPrefixValue < prefixDefinition.prefixUri.length) {
@@ -119,7 +119,7 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
                             value={prefixDefinition.prefixUri}
                             onChange={onPrefixUriChange}
                             leftIcon={prefixValueErrorIcon}
-                            hasStateDanger={!isValidPrefixValue && !!prefixDefinition.prefixUri}
+                            hasStateDanger={highlightInvalidPrefixValue}
                         />
                     </FieldItem>
                     <FieldItem key={"prefix-submit"}>
