@@ -28,6 +28,7 @@ import { absolutePageUrl } from "@ducks/router/operations";
 import Tag from "@gui-elements/src/components/Tag/Tag";
 import { ItemDepiction } from "../ItemDepiction/ItemDepiction";
 import { createNewItemRendererFactory } from "@gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
+import { IRenderModifiers } from "@gui-elements/src/components/AutocompleteField/AutoCompleteField";
 
 /** Shows the recently viewed items a user has visited. Also allows to trigger a workspace search. */
 export function RecentlyViewedModal() {
@@ -103,11 +104,16 @@ export function RecentlyViewedModal() {
         return taskLabel ? `${taskLabel} (${projectLabel})` : projectLabel;
     };
     // The representation of an item as an option in the selection list
-    const itemOption = (item: IRecentlyViewedItem, query: string, active: boolean, handleSelectClick: () => any) => {
+    const itemOption = (
+        item: IRecentlyViewedItem,
+        query: string,
+        modifiers: IRenderModifiers,
+        handleSelectClick: () => any
+    ) => {
         const label = item.taskLabel || item.taskId || item.projectLabel || item.projectId;
         return (
             <OverviewItem
-                className={active ? `${eccguiprefix}-overviewitem__item--active` : ""}
+                className={modifiers.active ? `${eccguiprefix}-overviewitem__item--active` : ""}
                 key={item.projectId + item.taskId}
                 hasSpacing
                 onClick={handleSelectClick}
