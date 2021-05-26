@@ -130,10 +130,10 @@ export function ProjectImportModal({ close, back }: IProps) {
                         status = (await requestProjectImportExecutionStatus(projectImportId)).data;
                         errorCounter = 0;
                     } catch (err) {
-                        if (errorCounter >= 3) {
+                        if (errorCounter >= 6) {
                             throw err;
                         }
-                        // Retry until error persists for overall 15 seconds, exponential backoff
+                        // Retry until error persists for overall 120 seconds, exponential backoff
                         await sleep(Math.pow(2, errorCounter) * 1000);
                         errorCounter = errorCounter + 1;
                     }
