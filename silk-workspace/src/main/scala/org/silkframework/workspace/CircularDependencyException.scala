@@ -3,7 +3,7 @@ package org.silkframework.workspace
 import org.silkframework.runtime.validation.ValidationException
 
 /**
-  * Throw if a task is created/updated that would create a circular dependency.
+  * Thrown if a task is created/updated that would create a circular dependency.
   *
   * @param circularTaskChain The labels of the tasks in the circular chain.
   */

@@ -329,21 +329,25 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
 
   /**
     * Checks if task references to a new task would create a circular chain of dependencies.
+    * Returns silently if no issues have been found.
     *
-    * @param referencingTaskChain The chain of tasks that reference this task.
+    * @param id Identifier of the new task
+    * @param task Task itself whose references are to be checked
+    * @param metaData Task metadata
+    * @param referencedTaskChain The chain of referenced tasks. Map from the task identifiers to the task data and metadata.
     * @throws CircularDependencyException If a circular dependency has been found.
     */
-  def checkForRecursion(id: Identifier, task: TaskSpec, metaData: MetaData, referencingTaskChain: ListMap[Identifier, (TaskSpec, MetaData)] = ListMap.empty)
+  def checkForRecursion(id: Identifier, task: TaskSpec, metaData: MetaData, referencedTaskChain: ListMap[Identifier, (TaskSpec, MetaData)] = ListMap.empty)
                        (implicit userContext: UserContext): Unit = {
-    if(referencingTaskChain.contains(id)) {
-      val taskChain = referencingTaskChain.keys.toSeq :+ id
-      val taskLabels = taskChain.map(id => referencingTaskChain(id)._2.formattedLabel(id))
+    if(referencedTaskChain.contains(id)) {
+      val taskChain = referencedTaskChain.keys.toSeq :+ id
+      val taskLabels = taskChain.map(id => referencedTaskChain(id)._2.formattedLabel(id))
       throw CircularDependencyException(taskLabels)
     } else {
-      val updatedTaskChain = referencingTaskChain + (id -> (task, metaData))
+      val updatedTaskChain = referencedTaskChain + (id -> (task, metaData))
       for {
         refTaskId <- task.referencedTasks
-        (refTask, refMetaData) <- referencingTaskChain.get(refTaskId).orElse(anyTaskOption(refTaskId).map(t => (t.data, t.metaData)))
+        (refTask, refMetaData) <- updatedTaskChain.get(refTaskId).orElse(anyTaskOption(refTaskId).map(t => (t.data, t.metaData)))
       } {
         checkForRecursion(refTaskId, refTask, refMetaData, updatedTaskChain)
       }

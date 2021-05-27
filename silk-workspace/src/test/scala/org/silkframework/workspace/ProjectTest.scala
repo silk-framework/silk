@@ -4,12 +4,12 @@ import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.rule.{DatasetSelection, TransformSpec}
 import org.silkframework.runtime.activity.TestUserContextTrait
 
-class ProjectTaskTest extends FlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait {
+class ProjectTest extends FlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait {
 
-  behavior of "ProjectTask"
+  behavior of "Project"
 
-  it should "not allow circular dependencies" in {
-    val project = retrieveOrCreateProject("TestProject")
+  it should "not allow circular dependencies between tasks" in {
+    val project = retrieveOrCreateProject("CircularDependencyTest")
 
     // Three tasks that create a forbidden circular dependency
     val transform1 = TransformSpec(selection = DatasetSelection("transform2"))
@@ -33,6 +33,13 @@ class ProjectTaskTest extends FlatSpec with Matchers with TestWorkspaceProviderT
 
     val thrown4 = the[CircularDependencyException] thrownBy project.updateAnyTask("transform2", transform3)
     thrown4.circularTaskChain shouldBe Seq("transform2", "transform1", "transform2")
+  }
+
+  it should "not allow that a task references itself" in {
+    val project = retrieveOrCreateProject("SelfReferenceTest")
+    val transform1 = TransformSpec(selection = DatasetSelection("transform1"))
+    val thrown1 = the[CircularDependencyException] thrownBy project.addTask("transform1", transform1)
+    thrown1.circularTaskChain shouldBe Seq("transform1", "transform1")
   }
 
   override def workspaceProviderId: String = "inMemory"
