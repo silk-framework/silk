@@ -15,6 +15,7 @@ import {
     OverviewItemLine,
     Spacing,
     Tag,
+    Tooltip,
 } from "@gui-elements/index";
 import { routerOp } from "@ducks/router";
 import { useDispatch, useSelector } from "react-redux";
@@ -109,6 +110,14 @@ export default function SearchItem({
         downloadProject(item.id, type.id);
     };
 
+    const wrapTooltip = (wrap: boolean, childTooltip: string, child: JSX.Element): JSX.Element => {
+        if (wrap) {
+            return <Tooltip content={childTooltip}>{child}</Tooltip>;
+        } else {
+            return child;
+        }
+    };
+
     return (
         <Card isOnlyLayout>
             <OverviewItem hasSpacing onClick={onRowClick ? onRowClick : undefined}>
@@ -126,33 +135,37 @@ export default function SearchItem({
                             </ResourceLink>
                         </h4>
                     </OverviewItemLine>
-                    <OverviewItemLine small>
-                        <OverflowText>
-                            {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
-                                <>
-                                    <Tag>
-                                        <Highlighter
-                                            label={item.projectLabel ? item.projectLabel : item.projectId}
-                                            searchValue={searchValue}
-                                        />
-                                    </Tag>
-                                    <Spacing vertical size="tiny" />
-                                </>
-                            )}
-                            {
-                                <>
-                                    <Tag>
-                                        <Highlighter
-                                            label={item.pluginLabel ?? t("common.dataTypes.project")}
-                                            searchValue={searchValue}
-                                        />
-                                    </Tag>
-                                    <Spacing vertical size="tiny" />
-                                </>
-                            }
-                            {item.description && <Highlighter label={item.description} searchValue={searchValue} />}
-                        </OverflowText>
-                    </OverviewItemLine>
+                    {wrapTooltip(
+                        item.description && item.description.length > 80,
+                        item.description,
+                        <OverviewItemLine small>
+                            <OverflowText>
+                                {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
+                                    <>
+                                        <Tag>
+                                            <Highlighter
+                                                label={item.projectLabel ? item.projectLabel : item.projectId}
+                                                searchValue={searchValue}
+                                            />
+                                        </Tag>
+                                        <Spacing vertical size="tiny" />
+                                    </>
+                                )}
+                                {
+                                    <>
+                                        <Tag>
+                                            <Highlighter
+                                                label={item.pluginLabel ?? t("common.dataTypes.project")}
+                                                searchValue={searchValue}
+                                            />
+                                        </Tag>
+                                        <Spacing vertical size="tiny" />
+                                    </>
+                                }
+                                {item.description && <Highlighter label={item.description} searchValue={searchValue} />}
+                            </OverflowText>
+                        </OverviewItemLine>
+                    )}
                 </OverviewItemDescription>
                 <OverviewItemActions>
                     <IconButton
