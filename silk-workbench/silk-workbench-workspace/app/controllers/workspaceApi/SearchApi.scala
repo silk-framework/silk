@@ -54,10 +54,12 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
       } else {
         val itemType = if(taskOpt.isEmpty) ItemType.project else ItemType.itemType(taskOpt.get.data)
         val taskData = for (task <- taskOpt) yield {
+          val pd = PluginDescription(task)
           Seq(
             "taskId" -> JsString(task.id),
             "taskLabel" -> JsString(taskOpt.get.metaData.label),
-            PLUGIN_ID -> JsString(PluginDescription(task).id)
+            PLUGIN_ID -> JsString(pd.id),
+            PLUGIN_LABEL -> JsString(pd.label)
           )
         }
         Some(JsObject(Seq(
