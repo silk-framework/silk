@@ -10,6 +10,7 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     SimpleDialog,
+    Spacing,
 } from "@gui-elements/index";
 import { extractSearchWords } from "@gui-elements/src/components/Typography/Highlighter";
 import { CLASSPREFIX as eccguiprefix } from "@gui-elements/src/configuration/constants";
@@ -100,8 +101,9 @@ export function RecentlyViewedModal() {
     const itemLabel = (item: IRecentlyViewedItem) => {
         const projectLabel = item.projectLabel ? item.projectLabel : item.projectId;
         const taskLabel = item.taskLabel ? item.taskLabel : item.taskId;
-        return taskLabel ? `${taskLabel} (${projectLabel})` : projectLabel;
+        return taskLabel ? `${taskLabel} ${projectLabel} ${itemType(item)}` : projectLabel;
     };
+    const itemType = (item: IRecentlyViewedItem): string => item.pluginLabel ?? t("common.dataTypes.project");
     // The representation of an item as an option in the selection list
     const itemOption = (item: IRecentlyViewedItem, query: string, active: boolean, handleSelectClick: () => any) => {
         const label = item.taskLabel || item.taskId || item.projectLabel || item.projectId;
@@ -123,20 +125,24 @@ export function RecentlyViewedModal() {
                             </OverflowText>
                         </h4>
                     </OverviewItemLine>
-                    {item.taskId && (
-                        <OverviewItemLine small>
-                            <OverflowText>
-                                {item.taskId && (
+                    <OverviewItemLine small>
+                        <OverflowText>
+                            {item.taskId && (
+                                <>
                                     <Tag>
                                         <Highlighter
                                             label={item.projectLabel ? item.projectLabel : item.projectId}
                                             searchValue={query}
                                         />
                                     </Tag>
-                                )}
-                            </OverflowText>
-                        </OverviewItemLine>
-                    )}
+                                    <Spacing vertical size="tiny" />
+                                </>
+                            )}
+                            <Tag>
+                                <Highlighter label={itemType(item)} searchValue={query} />
+                            </Tag>
+                        </OverflowText>
+                    </OverviewItemLine>
                 </OverviewItemDescription>
             </OverviewItem>
         );

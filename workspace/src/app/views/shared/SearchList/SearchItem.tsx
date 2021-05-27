@@ -126,24 +126,33 @@ export default function SearchItem({
                             </ResourceLink>
                         </h4>
                     </OverviewItemLine>
-                    {(item.description || item.projectId) && (
-                        <OverviewItemLine small>
-                            <OverflowText>
-                                {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
+                    <OverviewItemLine small>
+                        <OverflowText>
+                            {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
+                                <>
                                     <Tag>
                                         <Highlighter
                                             label={item.projectLabel ? item.projectLabel : item.projectId}
                                             searchValue={searchValue}
                                         />
                                     </Tag>
-                                )}
-                                {item.description && !parentProjectId && item.type !== DATA_TYPES.PROJECT && (
-                                    <Spacing vertical size="small" />
-                                )}
-                                {item.description && <Highlighter label={item.description} searchValue={searchValue} />}
-                            </OverflowText>
-                        </OverviewItemLine>
-                    )}
+                                    <Spacing vertical size="tiny" />
+                                </>
+                            )}
+                            {
+                                <>
+                                    <Tag>
+                                        <Highlighter
+                                            label={item.pluginLabel ?? t("common.dataTypes.project")}
+                                            searchValue={searchValue}
+                                        />
+                                    </Tag>
+                                    <Spacing vertical size="tiny" />
+                                </>
+                            }
+                            {item.description && <Highlighter label={item.description} searchValue={searchValue} />}
+                        </OverflowText>
+                    </OverviewItemLine>
                 </OverviewItemDescription>
                 <OverviewItemActions>
                     <IconButton
