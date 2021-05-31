@@ -56,7 +56,7 @@ export function CreateNewFile(props: IProps) {
                 value={newFileName}
                 placeholder={""}
                 hasStateDanger={error}
-                hasStateSuccess={!error && newFileName}
+                hasStateSuccess={!error && !!newFileName}
             />
         </FieldItem>
     );
