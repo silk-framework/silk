@@ -9,6 +9,7 @@ import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, Pr
 import controllers.workspaceApi.project.ProjectLoadingErrors.ProjectTaskLoadingErrorResponse
 import controllers.workspaceApi.projectTask.{ItemCloneRequest, ItemCloneResponse}
 import controllers.workspaceApi.search.ItemType
+
 import javax.inject.Inject
 import org.silkframework.config.{MetaData, Prefixes}
 import org.silkframework.runtime.resource.ResourceManager
@@ -21,6 +22,7 @@ import org.silkframework.workspace.io.WorkspaceIO
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Accepting, Action, AnyContent, InjectedController}
 
+import java.net.URI
 import scala.util.Try
 
 /**
@@ -100,9 +102,13 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
   def addProjectPrefix(projectId: String, prefixName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     val project = getProject(projectId)
     validateJson[String] { prefixUri =>
-      val newPrefixes = Prefixes(project.config.prefixes.prefixMap ++ Map(prefixName -> prefixUri))
-      project.config = project.config.copy(prefixes = newPrefixes)
-      Ok(Json.toJson(newPrefixes.prefixMap))
+      if(Try(new URI(prefixUri)).map(_.isAbsolute).getOrElse(false)) {
+        val newPrefixes = Prefixes(project.config.prefixes.prefixMap ++ Map(prefixName -> prefixUri))
+        project.config = project.config.copy(prefixes = newPrefixes)
+        Ok(Json.toJson(newPrefixes.prefixMap))
+      } else {
+        throw BadUserInputException("Invalid URI prefix: " + prefixUri)
+      }
     }
   }
 
