@@ -112,7 +112,11 @@ export default function SearchItem({
 
     const wrapTooltip = (wrap: boolean, childTooltip: string, child: JSX.Element): JSX.Element => {
         if (wrap) {
-            return <Tooltip content={childTooltip}>{child}</Tooltip>;
+            return (
+                <Tooltip content={childTooltip} position="bottom-left">
+                    {child}
+                </Tooltip>
+            );
         } else {
             return child;
         }
@@ -135,37 +139,38 @@ export default function SearchItem({
                             </ResourceLink>
                         </h4>
                     </OverviewItemLine>
-                    {wrapTooltip(
-                        item.description && item.description.length > 80,
-                        item.description,
-                        <OverviewItemLine small>
-                            <OverflowText>
-                                {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
-                                    <>
-                                        <Tag>
-                                            <Highlighter
-                                                label={item.projectLabel ? item.projectLabel : item.projectId}
-                                                searchValue={searchValue}
-                                            />
-                                        </Tag>
-                                        <Spacing vertical size="tiny" />
-                                    </>
+                    <OverviewItemLine small>
+                        {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
+                            <>
+                                <Tag>
+                                    <Highlighter
+                                        label={item.projectLabel ? item.projectLabel : item.projectId}
+                                        searchValue={searchValue}
+                                    />
+                                </Tag>
+                                <Spacing vertical size="tiny" />
+                            </>
+                        )}
+                        {
+                            <>
+                                <Tag>
+                                    <Highlighter
+                                        label={item.pluginLabel ?? t("common.dataTypes.project")}
+                                        searchValue={searchValue}
+                                    />
+                                </Tag>
+                                <Spacing vertical size="tiny" />
+                            </>
+                        }
+                        <OverflowText passDown={true} inline={true}>
+                            {item.description &&
+                                wrapTooltip(
+                                    item.description.length > 80,
+                                    item.description,
+                                    <Highlighter label={item.description} searchValue={searchValue} />
                                 )}
-                                {
-                                    <>
-                                        <Tag>
-                                            <Highlighter
-                                                label={item.pluginLabel ?? t("common.dataTypes.project")}
-                                                searchValue={searchValue}
-                                            />
-                                        </Tag>
-                                        <Spacing vertical size="tiny" />
-                                    </>
-                                }
-                                {item.description && <Highlighter label={item.description} searchValue={searchValue} />}
-                            </OverflowText>
-                        </OverviewItemLine>
-                    )}
+                        </OverflowText>
+                    </OverviewItemLine>
                 </OverviewItemDescription>
                 <OverviewItemActions>
                     <IconButton
