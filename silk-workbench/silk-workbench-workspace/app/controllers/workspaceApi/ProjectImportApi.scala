@@ -191,7 +191,7 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
   }
 
   private def handleUnexpectedError(projectImport: ProjectImport, ex: Exception): ProjectImportDetails = {
-    ex.printStackTrace()
+    log.log(Level.INFO, s"Failed to import project $projectImport", ex)
     val projectImportError = try {
       val lineIterator = Source.fromInputStream(projectImport.projectFileResource.inputStream).getLines()
       if (lineIterator.hasNext && lineIterator.next().startsWith("@prefix")) {
