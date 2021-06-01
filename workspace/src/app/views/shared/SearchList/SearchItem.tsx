@@ -140,17 +140,6 @@ export default function SearchItem({
                         </h4>
                     </OverviewItemLine>
                     <OverviewItemLine small>
-                        {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
-                            <>
-                                <Tag>
-                                    <Highlighter
-                                        label={item.projectLabel ? item.projectLabel : item.projectId}
-                                        searchValue={searchValue}
-                                    />
-                                </Tag>
-                                <Spacing vertical size="tiny" />
-                            </>
-                        )}
                         {
                             <>
                                 <Tag>
@@ -162,6 +151,17 @@ export default function SearchItem({
                                 <Spacing vertical size="tiny" />
                             </>
                         }
+                        {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
+                            <>
+                                <Tag>
+                                    <Highlighter
+                                        label={item.projectLabel ? item.projectLabel : item.projectId}
+                                        searchValue={searchValue}
+                                    />
+                                </Tag>
+                                <Spacing vertical size="tiny" />
+                            </>
+                        )}
                         <OverflowText passDown={true} inline={true}>
                             {item.description &&
                                 wrapTooltip(
