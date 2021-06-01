@@ -91,7 +91,7 @@ export function ActionsMenu({ actionPrimary, actionsSecondary, actionsFullMenu }
                     );
                 })}
             {actionsFullMenu && actionsFullMenu.length > 0 && (
-                <ContextMenu>{renderMenuItems(actionsFullMenu)}</ContextMenu>
+                <ContextMenu data-test-id={"header-context-menu-btn"}>{renderMenuItems(actionsFullMenu)}</ContextMenu>
             )}
         </>
     );

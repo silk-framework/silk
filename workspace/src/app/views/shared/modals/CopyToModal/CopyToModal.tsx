@@ -184,6 +184,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
     const buttonDisabled = !newLabel || (info?.overwrittenTasks.length && !overWrittenAcknowledgement);
     return (
         <SimpleDialog
+            data-test-id={"copy-item-to-modal"}
             size="small"
             title={modalTitle}
             isOpen={true}
@@ -305,6 +306,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
             <Spacing size="large" />
             {info?.overwrittenTasks.length ? (
                 <Checkbox
+                    data-test-id={"overwrite-tasks-checkbox"}
                     checked={overWrittenAcknowledgement}
                     onChange={() => setOverWrittenAcknowledgement(!overWrittenAcknowledgement)}
                 >
