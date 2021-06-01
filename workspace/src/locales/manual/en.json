@@ -130,7 +130,11 @@
         }
     },
     "PrefixDialog": {
-        "deletePrefix": "Prefix '{{prefixName}}' will be deleted."
+        "deletePrefix": "Prefix '{{prefixName}}' will be deleted.",
+        "overwritePrefix": "Update existing prefix '{{prefixName}}'?",
+        "prefixNameInvalid": "The prefix name you have entered is invalid",
+        "prefixUriInvalid": "The entered URI prefix must be a valid URI / IRI.",
+        "prefixUriInvalidChar": "The entered URI prefix contains invalid characters. First invalid character at position {{idx}} is '{{char}}'."
     },
     "ProjectImportModal": {
         "importBtn": "Import project",

@@ -187,7 +187,10 @@ export default function SearchItem({
                             href={item.itemLinks[0].path}
                         />
                     )}
-                    <ContextMenu togglerText={t("common.action.moreOptions", "Show more options")}>
+                    <ContextMenu
+                        data-test-id={"search-item-context-menu"}
+                        togglerText={t("common.action.moreOptions", "Show more options")}
+                    >
                         {contextMenuItems.length ? (
                             <>
                                 {contextMenuItems}
