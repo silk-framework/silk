@@ -22,6 +22,7 @@ interface IProps {
 export function RelatedItems(props: IProps) {
     const _projectId = useSelector(commonSel.currentProjectIdSelector);
     const _taskId = useSelector(commonSel.currentTaskIdSelector);
+    const { isOpen } = useSelector(commonSel.artefactModalSelector);
 
     const projectId = props.projectId || _projectId;
     const taskId = props.taskId || _taskId;
@@ -61,10 +62,10 @@ export function RelatedItems(props: IProps) {
     const [t] = useTranslation();
 
     useEffect(() => {
-        if (projectId && taskId) {
+        if (projectId && taskId && !isOpen) {
             getRelatedItemsData(projectId, taskId, textQuery);
         }
-    }, [projectId, taskId, textQuery, updated]);
+    }, [projectId, taskId, textQuery, updated, isOpen]);
 
     // Fetches and updates the related items of the project task
     const getRelatedItemsData = async (projectId: string, taskId: string, textQuery: string) => {
