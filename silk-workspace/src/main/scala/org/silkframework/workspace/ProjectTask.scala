@@ -178,15 +178,16 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     * Finds all project tasks that reference this task.
     *
     * @param recursive Whether to return tasks that indirectly refer to this task.
+    * @param ignoreTasks Set of tasks to be ignored in the dependency search.
     */
-  override def findDependentTasks(recursive: Boolean)
+  override def findDependentTasks(recursive: Boolean, ignoreTasks: Set[Identifier] = Set.empty)
                                  (implicit userContext: UserContext): Set[Identifier] = {
     // Find all tasks that reference this task
-    val dependentTasks = project.allTasks.filter(_.data.referencedTasks.contains(id))
+    val dependentTasks = project.allTasks.filter(t => !ignoreTasks.contains(t.id) && t.data.referencedTasks.contains(id))
 
     var allDependentTaskIds = dependentTasks.map(_.id)
     if(recursive) {
-      allDependentTaskIds ++= dependentTasks.flatMap(_.findDependentTasks(true))
+      allDependentTaskIds ++= dependentTasks.flatMap(_.findDependentTasks(recursive = true, ignoreTasks + id))
     }
     allDependentTaskIds.distinct.toSet
   }

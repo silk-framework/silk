@@ -220,6 +220,9 @@ function initEditor(canvasId = 'droppable') {
     $(document).on('keyup', "input[type='text'].param_value", function() {
         modifyLinkSpec();
     });
+    $(document).on('keyup', "textarea.param_value", function() {
+        modifyLinkSpec();
+    });
 
     $('#undo').attr('disabled', true);
     $('#redo').attr('disabled', true);

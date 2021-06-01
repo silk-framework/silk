@@ -14,13 +14,10 @@
 
 package org.silkframework.workspace
 
-import java.util.logging.{Level, Logger}
-
 import org.silkframework.config._
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
-import org.silkframework.runtime.activity.HasValue
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.activity.{HasValue, UserContext}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.{NotFoundException, ValidationException}
@@ -28,6 +25,8 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.activity.{ProjectActivity, ProjectActivityFactory}
 
+import java.util.logging.{Level, Logger}
+import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
@@ -212,6 +211,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     if(allTasks.exists(_.id == name)) {
       throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
     }
+    checkForRecursion(name, taskData, metaData)
     module[T].add(name, taskData, metaData.asNewMetaData)
     provider.removeExternalTaskLoadingError(config.id, name)
   }
@@ -227,6 +227,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     if(allTasks.exists(_.id == name)) {
       throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
     }
+    checkForRecursion(name, taskData, metaData)
     modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
       case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData, metaData.asNewMetaData)
       case None => throw new NoSuchElementException(s"No module for task type ${taskData.getClass} has been registered. Registered task types: ${modules.map(_.taskType).mkString(";")}")
@@ -247,6 +248,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     module[T].taskOption(name) match {
       case Some(task) =>
         val mergedMetaData = mergeMetaData(task.metaData, metaData)
+        checkForRecursion(name, taskData, mergedMetaData)
         task.update(taskData, Some(mergedMetaData.asUpdatedMetaData))
       case None =>
         addTask[T](name, taskData, metaData.getOrElse(MetaData(MetaData.labelFromId(name))).asNewMetaData)
@@ -274,6 +276,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
         module.taskOption(name) match {
           case Some(task) =>
             val mergedMetaData = mergeMetaData(task.metaData, metaData)
+            checkForRecursion(name, taskData, mergedMetaData)
             task.asInstanceOf[ProjectTask[TaskSpec]].update(taskData, Some(mergedMetaData.asUpdatedMetaData))
           case None =>
             addAnyTask(name, taskData, metaData.getOrElse(MetaData.empty).asNewMetaData)
@@ -321,6 +324,33 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     // Find the module which holds the named task and remove it
     for(m <- modules.find(_.taskOption(taskName).isDefined)) {
       m.remove(taskName)
+    }
+  }
+
+  /**
+    * Checks if task references to a new task would create a circular chain of dependencies.
+    * Returns silently if no issues have been found.
+    *
+    * @param id Identifier of the new task
+    * @param task Task itself whose references are to be checked
+    * @param metaData Task metadata
+    * @param referencedTaskChain The chain of referenced tasks. Map from the task identifiers to the task data and metadata.
+    * @throws CircularDependencyException If a circular dependency has been found.
+    */
+  def checkForRecursion(id: Identifier, task: TaskSpec, metaData: MetaData, referencedTaskChain: ListMap[Identifier, (TaskSpec, MetaData)] = ListMap.empty)
+                       (implicit userContext: UserContext): Unit = {
+    if(referencedTaskChain.contains(id)) {
+      val taskChain = referencedTaskChain.keys.toSeq :+ id
+      val taskLabels = taskChain.map(id => referencedTaskChain(id)._2.formattedLabel(id))
+      throw CircularDependencyException(taskLabels)
+    } else {
+      val updatedTaskChain = referencedTaskChain + (id -> (task, metaData))
+      for {
+        refTaskId <- task.referencedTasks
+        (refTask, refMetaData) <- updatedTaskChain.get(refTaskId).orElse(anyTaskOption(refTaskId).map(t => (t.data, t.metaData)))
+      } {
+        checkForRecursion(refTaskId, refTask, refMetaData, updatedTaskChain)
+      }
     }
   }
 

@@ -2,7 +2,7 @@ package org.silkframework.runtime.plugin
 
 import org.silkframework.runtime.plugin.annotations.TransformExample
 
-case class TransformExampleValue(parameters: Map[String, String], input: Seq[Seq[String]], output: Seq[String], throwsException: String) {
+case class TransformExampleValue(description: Option[String], parameters: Map[String, String], input: Seq[Seq[String]], output: Seq[String], throwsException: String) {
 
   def formatted: String = {
     if(throwsException.trim != "") {
@@ -24,6 +24,7 @@ object TransformExampleValue {
     val transformExamples = transformer.getAnnotationsByType(classOf[TransformExample])
     for(example <- transformExamples) yield {
       TransformExampleValue(
+        description = Option(example.description()).filter(_.nonEmpty),
         parameters = retrieveParameters(example),
         input = retrieveInputs(example),
         output = example.output().toList,
