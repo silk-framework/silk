@@ -24,7 +24,6 @@ import { ErrorResponse, FetchError } from "services/fetch/responseInterceptor";
 import { useTranslation } from "react-i18next";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { requestCopyProject, requestCopyTask, requestSearchList } from "@ducks/workspace/requests";
-import { debounce } from "../../../../utils/debounce";
 import ItemDepiction from "../../ItemDepiction";
 
 //custom styles
@@ -60,7 +59,6 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
     const [loading, setLoading] = React.useState<boolean>(false);
     const [label, setLabel] = React.useState<string | null>(item.label);
     const [targetProject, setTargetProject] = React.useState();
-    const [results, setResults] = React.useState<any[]>([]);
     const [info, setInfo] = React.useState<CopyResponsePayload | undefined>();
     const [overWrittenAcknowledgement, setOverWrittenAcknowledgement] = React.useState(false);
 
@@ -70,20 +68,8 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
         copyingSetup();
     }, [item]);
 
-    //preload the project lists with default data
-    React.useEffect(() => {
-        (async () => {
-            const payload = {
-                limit: 10,
-                offset: 0,
-                itemType: "project",
-            };
-            setResults(removeFromList(await (await requestSearchList(payload)).results));
-        })();
-    }, [item, label]);
-
     /** remove the same project from possible project targets in the selection menu */
-    const removeFromList = (list: Array<any>) => {
+    const removeFromList = (list: Array<any>): Array<any> => {
         /** if task filter using project label */
         if (item.id && item.projectLabel) {
             return list.filter((l) => l.label !== item.projectLabel);
@@ -141,7 +127,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
         }
     };
 
-    const handleSearch = debounce(async (textQuery: string) => {
+    const handleSearch = async (textQuery: string) => {
         try {
             const payload = {
                 limit: 10,
@@ -149,11 +135,12 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                 itemType: "project",
                 textQuery,
             };
-            setResults(removeFromList(await (await requestSearchList(payload)).results));
+            const results = (await requestSearchList(payload)).results;
+            return removeFromList(results);
         } catch (err) {
             console.warn({ err });
         }
-    }, 500);
+    };
 
     /** this orders the tasks in the accordion by the default/typical order in the DI project space
      *  1.Project
@@ -212,10 +199,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                 }}
             >
                 <AutoCompleteField
-                    onSearch={(textQuery: string) => {
-                        handleSearch(textQuery);
-                        return results;
-                    }}
+                    onSearch={handleSearch}
                     onChange={async (value) => {
                         setTargetProject(value);
                         const { projectId, id } = item;
