@@ -10,7 +10,7 @@ module.exports = {
         common: {
             context: path.resolve(__dirname),
             entry: {
-                main: './src/index.jsx',
+                main: './src/index.tsx',
             },
             output: {
                 publicPath: '',

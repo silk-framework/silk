@@ -23,7 +23,7 @@ const appDirectory = fs.realpathSync(process.cwd());
 const resolveApp = (relativePath) => path.resolve(appDirectory, relativePath);
 
 module.exports = {
-    entry: resolveApp('src/index.jsx'),
+    entry: resolveApp('src/index.tsx'),
     // Stop compilation early in production
     bail: isEnvProduction,
     devtool: isEnvProduction ? "source-map" : isEnvDevelopment && "cheap-module-source-map",

@@ -13,6 +13,7 @@ import WorkflowReportManager from "./ExecutionReport/WorkflowReportManager";
 
 // eslint-disable-next-line
 import SilkStore from './SilkStore/silkStore';
+import {IWorkflowEditorProps, WorkflowEditor} from "./WorkflowEditor/WorkflowEditor";
 
 require('./style/style.scss');
 
@@ -52,6 +53,12 @@ window.silkReactComponents = {
             <WorkflowReportManager {...apiSettings} />,
             document.getElementById(containerId)
         );
+    },
+    workflowEditor: (containerId: string, apiSettings: IWorkflowEditorProps) => {
+        ReactDom.render(
+            <WorkflowEditor {...apiSettings} />,
+            document.getElementById(containerId)
+        )
     }
 };
 
