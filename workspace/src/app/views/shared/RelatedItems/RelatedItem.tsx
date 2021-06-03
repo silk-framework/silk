@@ -7,6 +7,7 @@ import {
     OverviewItemActions,
     OverviewItemDescription,
     OverviewItemLine,
+    //Spacing,
 } from "@gui-elements/index";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
 import Tag from "@gui-elements/src/components/Tag/Tag";
@@ -61,22 +62,37 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
         />
     ));
     return (
-        <OverviewItem key={relatedItem.id} densityHigh>
+        <OverviewItem key={relatedItem.id}>
             <OverviewItemDescription>
-                <OverviewItemLine>
-                    <span>
-                        <Tag>
-                            <Highlighter label={relatedItem.type} searchValue={textQuery} />
-                        </Tag>{" "}
-                        <ResourceLink
-                            url={!!relatedItem.itemLinks.length ? relatedItem.itemLinks[0].path : false}
-                            handlerResourcePageLoader={
-                                !!relatedItem.itemLinks.length ? (e) => goToDetailsPage(relatedItem, e) : false
-                            }
-                        >
-                            <Highlighter label={relatedItem.label} searchValue={textQuery} />
-                        </ResourceLink>
-                    </span>
+                <OverviewItemLine small>
+                    <ResourceLink
+                        url={!!relatedItem.itemLinks.length ? relatedItem.itemLinks[0].path : false}
+                        handlerResourcePageLoader={
+                            !!relatedItem.itemLinks.length ? (e) => goToDetailsPage(relatedItem, e) : false
+                        }
+                    >
+                        <Highlighter label={relatedItem.label} searchValue={textQuery} />
+                    </ResourceLink>
+                </OverviewItemLine>
+                <OverviewItemLine small>
+                    <Tag emphasis="strong" small>
+                        <Highlighter
+                            label={t("common.dataTypes." + relatedItem.type, relatedItem.type)}
+                            searchValue={textQuery}
+                        />
+                    </Tag>
+                    {/*relatedItem.pluginLabel &&
+                        (t("common.dataTypes." + relatedItem.type).slice(0, relatedItem.pluginLabel.length) !== relatedItem.pluginLabel) && (
+                        <>
+                            <Spacing vertical size="tiny" />
+                            <Tag emphasis="weak" small>
+                                <Highlighter
+                                    label={relatedItem.pluginLabel}
+                                    searchValue={textQuery}
+                                />
+                            </Tag>
+                        </>
+                    )*/}
                 </OverviewItemLine>
             </OverviewItemDescription>
             <OverviewItemActions>

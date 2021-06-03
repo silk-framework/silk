@@ -135,33 +135,12 @@ export default function SearchItem({
                                 url={!!item.itemLinks.length ? item.itemLinks[0].path : false}
                                 handlerResourcePageLoader={!!item.itemLinks.length ? goToDetailsPage : false}
                             >
-                                <Highlighter label={item.label || item.id} searchValue={searchValue} />
+                                <OverflowText>
+                                    <Highlighter label={item.label || item.id} searchValue={searchValue} />
+                                </OverflowText>
                             </ResourceLink>
                         </h4>
-                    </OverviewItemLine>
-                    <OverviewItemLine small>
-                        {
-                            <>
-                                <Tag>
-                                    <Highlighter
-                                        label={item.pluginLabel ?? t("common.dataTypes.project")}
-                                        searchValue={searchValue}
-                                    />
-                                </Tag>
-                                <Spacing vertical size="tiny" />
-                            </>
-                        }
-                        {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
-                            <>
-                                <Tag>
-                                    <Highlighter
-                                        label={item.projectLabel ? item.projectLabel : item.projectId}
-                                        searchValue={searchValue}
-                                    />
-                                </Tag>
-                                <Spacing vertical size="tiny" />
-                            </>
-                        )}
+                        <Spacing vertical size="small" />
                         <OverflowText passDown={true} inline={true}>
                             {item.description &&
                                 wrapTooltip(
@@ -170,6 +149,37 @@ export default function SearchItem({
                                     <Highlighter label={item.description} searchValue={searchValue} />
                                 )}
                         </OverflowText>
+                    </OverviewItemLine>
+                    <OverviewItemLine small>
+                        <Tag emphasis="strong">
+                            <Highlighter
+                                label={item.type ? t("common.dataTypes." + item.type, item.type) : t("common.dataTypes.project")}
+                                searchValue={searchValue}
+                            />
+                        </Tag>
+                        {item.pluginLabel &&
+                            (t("common.dataTypes." + item.type).slice(0, item.pluginLabel.length) !== item.pluginLabel) && (
+                            <>
+                                <Spacing vertical size="tiny" />
+                                <Tag emphasis="weak">
+                                    <Highlighter
+                                        label={item.pluginLabel}
+                                        searchValue={searchValue}
+                                    />
+                                </Tag>
+                            </>
+                        )}
+                        {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
+                            <>
+                                <Spacing vertical size="tiny" />
+                                <Tag emphasis="weaker">
+                                    <Highlighter
+                                        label={item.projectLabel ? item.projectLabel : item.projectId}
+                                        searchValue={searchValue}
+                                    />
+                                </Tag>
+                            </>
+                        )}
                     </OverviewItemLine>
                 </OverviewItemDescription>
                 <OverviewItemActions>
