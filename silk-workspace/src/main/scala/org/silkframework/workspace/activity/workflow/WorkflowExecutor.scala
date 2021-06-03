@@ -53,13 +53,9 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
                                               output: ExecutorOutput)
                                              (implicit workflowRunContext: WorkflowRunContext, prefixes: Prefixes): Option[ExecType#DataType] = {
     implicit val userContext: UserContext = workflowRunContext.userContext
-    val taskContext = workflowRunContext.taskContext(nodeId, task.id)
+    val taskContext = workflowRunContext.taskContext(nodeId, task)
     updateProgress(operation, task)
     val result = ExecutorRegistry.execute(task, inputs, output, executionContext, taskContext)
-    // Add a basic execution report if no report has been written by the executor itself
-    if(!taskContext.value.isDefined) {
-      taskContext.value() = SimpleExecutionReport(task, Seq.empty, Seq.empty)
-    }
     result
   }
 
@@ -191,16 +187,20 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
 
   /** Creates an activity context for a specific task that will be executed in the workflow.
     * Also wires the task execution report to the workflow execution report. */
-  def taskContext(nodeId: Identifier, taskId: Identifier): ActivityContext[ExecutionReport] = {
-    val projectAndTaskString = activityContext.status.projectAndTaskId.map(ids => ids.copy(ids.projectId, ids.taskId.map(_ + " -> " + taskId)))
-    val taskContext = new ActivityMonitor[ExecutionReport](taskId, Some(activityContext), projectAndTaskId = projectAndTaskString)
-    listenForTaskReports(nodeId, taskContext)
+  def taskContext(nodeId: Identifier, task: Task[_ <: TaskSpec]): ActivityContext[ExecutionReport] = {
+    val projectAndTaskString = activityContext.status.projectAndTaskId.map(ids => ids.copy(ids.projectId, ids.taskId.map(_ + " -> " + task.id)))
+    val taskContext = new ActivityMonitor[ExecutionReport](task.id, Some(activityContext), projectAndTaskId = projectAndTaskString)
+    listenForTaskReports(nodeId, task, taskContext)
     taskContext
   }
 
   // Creates a task report listener that will add that task report to the overall workflow report
   private def listenForTaskReports(nodeId: Identifier,
+                                   task: Task[_ <: TaskSpec],
                                    taskContext: ActivityMonitor[ExecutionReport]): Unit = {
+    // Add initial task report
+    activityContext.value() = activityContext.value().addReport(nodeId, SimpleExecutionReport(task, Seq.empty, Seq.empty))
+    // Listen for changes and update the task report for each change
     val listener = new TaskReportListener(reportListeners.size, nodeId)
     taskContext.value.subscribe(listener)
     reportListeners.append(listener)
@@ -211,7 +211,7 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
     */
   private class TaskReportListener(index: Int, nodeId: Identifier) extends (ExecutionReport => Unit) {
     def apply(report: ExecutionReport): Unit = activityContext.value.synchronized {
-      activityContext.value() = activityContext.value().withReport(index, nodeId, report)
+      activityContext.value() = activityContext.value().updateReport(index, nodeId, report)
     }
   }
 }
