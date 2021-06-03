@@ -107,13 +107,15 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
   private def executeWorkflowOperatorInput(input: WorkflowDependencyNode,
                                            output: ExecutorOutput)
-                                          (implicit workflowRunContext: WorkflowRunContext): Some[LocalEntities] = {
+                                          (implicit workflowRunContext: WorkflowRunContext): Option[LocalEntities] = {
     executeWorkflowNode(input, output) match {
       case e@Some(entityTable) =>
         e
-      case None =>
+      case None if output.requestedSchema.isDefined =>
         throw WorkflowException(s"In workflow ${workflowTask.id.toString} operator node ${input.nodeId} defined an input" +
             s" schema for input $input, but did not receive any result.")
+      case None =>
+        None
     }
   }
 
@@ -128,7 +130,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       val inputs = operatorNode.inputNodes
       val inputResults = executeWorkflowOperatorInputs(operatorNode, schemataOpt, inputs)
 
-      if (inputResults.exists(_.isEmpty)) {
+      if (executorOutput.requestedSchema.isDefined && inputResults.exists(_.isEmpty)) {
         throw WorkflowException("At least one input did not return a result for workflow node " + operatorNode.nodeId + "!")
       }
       val result = execute("Executing", operatorNode.nodeId, operatorTask, inputResults.flatten, executorOutput)
@@ -156,7 +158,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   private def executeWorkflowOperatorInputs(operatorNode: WorkflowDependencyNode,
                                             schemataOpt: Option[Seq[EntitySchema]],
                                             inputs: Seq[WorkflowDependencyNode])
-                                           (implicit workflowRunContext: WorkflowRunContext): Seq[Some[LocalEntities]] = {
+                                           (implicit workflowRunContext: WorkflowRunContext): Seq[Option[LocalEntities]] = {
     val operatorTask = task(operatorNode)
     schemataOpt match {
       case Some(schemata) =>
