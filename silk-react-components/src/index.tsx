@@ -17,7 +17,7 @@ import {IWorkflowEditorProps, WorkflowEditor} from "./WorkflowEditor/WorkflowEdi
 
 require('./style/style.scss');
 
-window.silkReactComponents = {
+window["silkReactComponents"] = {
     hierarchicalMapping: (containerId, apiSettings) => {
         ReactDom.render(
             <HierarchicalMappingComponent {...apiSettings} />,
