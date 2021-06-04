@@ -19,7 +19,7 @@ import scala.util.control.NonFatal
   */
 class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: WorkspaceProvider,
                                              private[workspace] val project: Project,
-                                             private[workspace] val validator: TaskValidator[TaskData]) {
+                                             private[workspace] val validator: TaskValidator[TaskData] = new DefaultTaskValidator[TaskData]) {
 
   private val logger = Logger.getLogger(classOf[Module[_]].getName)
 

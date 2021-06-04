@@ -12,7 +12,7 @@ import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.UnsupportedMediaTypeException
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
 import org.silkframework.workspace.WorkspaceFactory
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowTaskReport, WorkflowValidator}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowTaskReport}
 import play.api.libs.json.{JsArray, JsString, _}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, _}
 
@@ -45,7 +45,6 @@ class WorkflowApi @Inject() () extends InjectedController {
     val project = fetchProject(projectName)
     implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
     val workflow = XmlSerialization.fromXml[Task[Workflow]](request.body.asXml.get.head)
-    WorkflowValidator(project, workflow)
     project.updateTask[Workflow](taskName, workflow)
 
     Ok
