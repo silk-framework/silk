@@ -4,6 +4,7 @@ import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.exceptions.TaskValidationException
 import org.silkframework.workspace.{Project, TestWorkspaceProviderTestTrait}
 
 class WorkflowValidatorTest extends FlatSpec with Matchers with TestWorkspaceProviderTestTrait with TestUserContextTrait  {
@@ -17,9 +18,9 @@ class WorkflowValidatorTest extends FlatSpec with Matchers with TestWorkspacePro
     val workflow2 = createWorkflow("workflow2", nestedWorkflowIds = Seq("workflow1"))
     val workflow3 = createWorkflow("workflow3", nestedWorkflowIds = Seq("workflow2"))
 
-    noException should be thrownBy validatedAndUpdate(project, workflow1)
-    noException should be thrownBy validatedAndUpdate(project, workflow2)
-    an[WorkflowValidationException] should be thrownBy validatedAndUpdate(project, workflow3)
+    noException should be thrownBy update(project, workflow1)
+    noException should be thrownBy update(project, workflow2)
+    an[TaskValidationException] should be thrownBy update(project, workflow3)
   }
 
   it should "not allow creating nested workflows that are already referenced by existing workflows" in {
@@ -29,16 +30,15 @@ class WorkflowValidatorTest extends FlatSpec with Matchers with TestWorkspacePro
     val workflow2 = createWorkflow("workflow2", nestedWorkflowIds = Seq.empty)
     val workflow3 = createWorkflow("workflow3", nestedWorkflowIds = Seq("workflow2"))
 
-    noException should be thrownBy validatedAndUpdate(project, workflow1)
-    noException should be thrownBy validatedAndUpdate(project, workflow2)
-    noException should be thrownBy validatedAndUpdate(project, workflow3)
+    noException should be thrownBy update(project, workflow1)
+    noException should be thrownBy update(project, workflow2)
+    noException should be thrownBy update(project, workflow3)
 
     val workflow2Updated = createWorkflow("workflow2", nestedWorkflowIds = Seq("workflow1"))
-    an[WorkflowValidationException] should be thrownBy validatedAndUpdate(project, workflow2Updated)
+    an[TaskValidationException] should be thrownBy update(project, workflow2Updated)
   }
 
-  private def validatedAndUpdate(project: Project, workflow: Task[Workflow]): Unit = {
-    WorkflowValidator(project, workflow)
+  private def update(project: Project, workflow: Task[Workflow]): Unit = {
     project.updateTask(workflow.id, workflow.data)
   }
 

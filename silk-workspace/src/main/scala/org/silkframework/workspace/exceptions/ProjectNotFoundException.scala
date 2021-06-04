@@ -1,4 +1,4 @@
-package org.silkframework.workspace
+package org.silkframework.workspace.exceptions
 
 import org.silkframework.runtime.validation.NotFoundException
 
