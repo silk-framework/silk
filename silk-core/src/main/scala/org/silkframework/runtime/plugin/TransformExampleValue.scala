@@ -35,7 +35,7 @@ object TransformExampleValue {
 
   private def retrieveInputs(example: TransformExample): Seq[Seq[String]] = {
     val allValues = Seq(example.input1(), example.input2(), example.input3(), example.input4(), example.input5())
-    val definedValues = allValues.reverse.dropWhile(_.isEmpty).reverse
+    val definedValues = allValues.filter(_.toSeq != Seq("  __UNINITIALIZED__  "))
     definedValues.map(_.toSeq)
   }
 
