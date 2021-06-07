@@ -109,8 +109,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                            output: ExecutorOutput)
                                           (implicit workflowRunContext: WorkflowRunContext): Option[LocalEntities] = {
     executeWorkflowNode(input, output) match {
-      case e@Some(entityTable) =>
-        e
+      case Some(entityTable) =>
+        Some(entityTable)
       case None if output.requestedSchema.isDefined =>
         throw WorkflowExecutionException(s"In workflow ${workflowTask.id.toString} operator node ${input.nodeId} defined an input" +
             s" schema for input $input, but did not receive any result.")
