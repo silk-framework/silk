@@ -98,13 +98,14 @@ export function RecentlyViewedModal() {
             dispatch(routerOp.goToPage(itemLink.path));
         }
     };
-    // The string representation of a recently viewed item
-    const itemLabel = (item: IRecentlyViewedItem) => {
+    // The string representation of a recently viewed item that can be full text searched
+    const itemSearchableString = (item: IRecentlyViewedItem) => {
         const projectLabel = item.projectLabel ? item.projectLabel : item.projectId;
         const taskLabel = item.taskLabel ? item.taskLabel : item.taskId;
-        return taskLabel ? `${taskLabel} ${projectLabel} ${itemType(item)}` : projectLabel;
+        const label = taskLabel ? `${taskLabel} ${projectLabel} ${item.pluginLabel}` : projectLabel;
+        return `${label} ${itemType(item)}`;
     };
-    const itemType = (item: IRecentlyViewedItem): string => item.pluginLabel ?? t("common.dataTypes.project");
+    const itemType = (item: IRecentlyViewedItem): string => t("common.dataTypes." + item.itemType);
     // The representation of an item as an option in the selection list
     const itemOption = (
         item: IRecentlyViewedItem,
@@ -132,22 +133,28 @@ export function RecentlyViewedModal() {
                         </h4>
                     </OverviewItemLine>
                     <OverviewItemLine small>
-                        <OverflowText>
-                            {item.taskId && (
-                                <>
-                                    <Tag>
-                                        <Highlighter
-                                            label={item.projectLabel ? item.projectLabel : item.projectId}
-                                            searchValue={query}
-                                        />
-                                    </Tag>
-                                    <Spacing vertical size="tiny" />
-                                </>
-                            )}
-                            <Tag>
-                                <Highlighter label={itemType(item)} searchValue={query} />
-                            </Tag>
-                        </OverflowText>
+                        <Tag small>
+                            <Highlighter label={itemType(item)} searchValue={query} />
+                        </Tag>
+                        <Spacing vertical size="tiny" />
+                        {(item.itemType === "dataset" || item.itemType === "task") && (
+                            <>
+                                <Tag small>
+                                    <Highlighter label={item.pluginLabel} searchValue={query} />
+                                </Tag>
+                            </>
+                        )}
+                        {item.taskId && (
+                            <>
+                                <Tag emphasis={"weak"} small>
+                                    <Highlighter
+                                        label={item.projectLabel ? item.projectLabel : item.projectId}
+                                        searchValue={query}
+                                    />
+                                </Tag>
+                            </>
+                        )}
+                        {}
                     </OverviewItemLine>
                 </OverviewItemDescription>
             </OverviewItem>
@@ -157,7 +164,7 @@ export function RecentlyViewedModal() {
     const handleSearch = (textQuery: string) => {
         const searchWords = extractSearchWords(textQuery.toLowerCase());
         return recentItems.filter((item) => {
-            const label = itemLabel(item).toLowerCase();
+            const label = itemSearchableString(item).toLowerCase();
             return searchWords.every((word) => label.includes(word));
         });
     };

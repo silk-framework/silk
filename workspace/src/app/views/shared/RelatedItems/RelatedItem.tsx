@@ -76,7 +76,7 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
                     </ResourceLink>
                 </OverviewItemLine>
                 <OverviewItemLine small>
-                    <Tag emphasis="weak" small>
+                    <Tag small>
                         <Highlighter
                             label={t("common.dataTypes." + relatedItem.type, relatedItem.type)}
                             searchValue={textQuery}
@@ -85,7 +85,7 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
                     {(relatedItem.type === "Dataset" || relatedItem.type === "Task") && (
                         <>
                             <Spacing vertical size="tiny" />
-                            <Tag emphasis="weak" small>
+                            <Tag small>
                                 <Highlighter label={relatedItem.pluginLabel} searchValue={textQuery} />
                             </Tag>
                         </>
