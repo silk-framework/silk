@@ -151,21 +151,24 @@ export default function SearchItem({
                         </OverflowText>
                     </OverviewItemLine>
                     <OverviewItemLine small>
-                        <Tag emphasis="strong">
-                            <Highlighter
-                                label={item.type ? t("common.dataTypes." + item.type, item.type) : t("common.dataTypes.project")}
-                                searchValue={searchValue}
-                            />
-                        </Tag>
-                        {item.pluginLabel &&
-                            (t("common.dataTypes." + item.type).slice(0, item.pluginLabel.length) !== item.pluginLabel) && (
+                        {(item.type === "dataset" || item.type === "project") && (
                             <>
-                                <Spacing vertical size="tiny" />
                                 <Tag emphasis="weak">
                                     <Highlighter
-                                        label={item.pluginLabel}
+                                        label={t(
+                                            "widget.Filterbar.subsections.valueLabels.itemType." + item.type,
+                                            item.type[0].toUpperCase() + item.type.substr(1)
+                                        )}
                                         searchValue={searchValue}
                                     />
+                                </Tag>
+                                <Spacing vertical size="tiny" />
+                            </>
+                        )}
+                        {item.pluginLabel && (
+                            <>
+                                <Tag emphasis="weak">
+                                    <Highlighter label={item.pluginLabel} searchValue={searchValue} />
                                 </Tag>
                             </>
                         )}
