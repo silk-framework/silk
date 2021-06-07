@@ -83,6 +83,7 @@ export interface IRelatedItem {
     label: string;
     type: string;
     itemLinks: IItemLink[];
+    pluginLabel: string;
 }
 
 export interface IItemLink {

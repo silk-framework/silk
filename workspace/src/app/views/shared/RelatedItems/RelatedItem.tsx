@@ -7,6 +7,7 @@ import {
     OverviewItemActions,
     OverviewItemDescription,
     OverviewItemLine,
+    Spacing,
     //Spacing,
 } from "@gui-elements/index";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
@@ -75,24 +76,20 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
                     </ResourceLink>
                 </OverviewItemLine>
                 <OverviewItemLine small>
-                    <Tag emphasis="strong" small>
+                    <Tag emphasis="weak" small>
                         <Highlighter
                             label={t("common.dataTypes." + relatedItem.type, relatedItem.type)}
                             searchValue={textQuery}
                         />
                     </Tag>
-                    {/*relatedItem.pluginLabel &&
-                        (t("common.dataTypes." + relatedItem.type).slice(0, relatedItem.pluginLabel.length) !== relatedItem.pluginLabel) && (
+                    {(relatedItem.type === "Dataset" || relatedItem.type === "Task") && (
                         <>
                             <Spacing vertical size="tiny" />
                             <Tag emphasis="weak" small>
-                                <Highlighter
-                                    label={relatedItem.pluginLabel}
-                                    searchValue={textQuery}
-                                />
+                                <Highlighter label={relatedItem.pluginLabel} searchValue={textQuery} />
                             </Tag>
                         </>
-                    )*/}
+                    )}
                 </OverviewItemLine>
             </OverviewItemDescription>
             <OverviewItemActions>
