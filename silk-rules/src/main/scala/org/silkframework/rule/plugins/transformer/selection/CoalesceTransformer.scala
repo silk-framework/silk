@@ -1,7 +1,6 @@
 package org.silkframework.rule.plugins.transformer.selection
 
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.PluginCategories
 import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, TransformExamples}
 
 @TransformExamples(Array(
@@ -40,7 +39,7 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, T
 @Plugin(
   id = "coalesce",
   label = "Coalesce (first non-empty input)",
-  categories = Array("Selection", PluginCategories.recommended),
+  categories = Array("Selection"),
   description = "Forwards the first non-empty input, i.e. for which any value(s) exist. A single empty string is considered a value."
 )
 case class CoalesceTransformer() extends Transformer {
