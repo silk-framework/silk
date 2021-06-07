@@ -46,9 +46,9 @@ abstract class TransformerTest[T <: Transformer : ClassTag] extends PluginTest {
   }
 
   private class TransformTest(example: TransformExampleValue) {
-    val transformer: T = pluginDesc(example.parameters)(Prefixes.empty)
+    lazy val transformer: T = pluginDesc(example.parameters)(Prefixes.empty)
 
-    private val (generatedOutput, throwableOpt): (Seq[String], Option[Throwable]) =
+    private lazy val (generatedOutput, throwableOpt): (Seq[String], Option[Throwable]) =
       try {
         (transformer(example.input), None)
       } catch {

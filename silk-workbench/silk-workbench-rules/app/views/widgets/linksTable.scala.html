@@ -242,7 +242,7 @@
       <span class="input">
         Transform: @transform.transformer.pluginSpec.id (@transform.id)
         @values.map(v => <span class={divClassPrefix + "-value"}>{v}</span>)
-        @renderError(value.error)
+        @renderError(value.formattedErrorMessage)
       </span>
       <ul>
         @children.map(v => renderValue(v, divClassPrefix))
@@ -256,7 +256,7 @@
         @for(v <- values) {
           <span class="@(divClassPrefix)-value">@convertToLinkIfDetected(v)</span>
         }
-        @renderError(value.error)
+        @renderError(value.formattedErrorMessage)
       </span>
     </li>
   }
@@ -292,9 +292,9 @@
   case None => {}
 }}
 
-@renderError(error: Option[Throwable], id: String = UUID.randomUUID.toString) = {
+@renderError(error: Option[String], id: String = UUID.randomUUID.toString) = {
   @for(e <- error) {
-    <span id="error-@id" title="@e.getMessage">
+    <span id="error-@id" title="@error">
       <img src="@Assets.at("img/exclamation.png")" style="cursor: help;" />
     </span>
   }
