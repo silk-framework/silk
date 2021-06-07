@@ -1,0 +1,99 @@
+.workflow-editor_sidebar {
+    height: 100%;
+    background-color: #ffffff;
+    width: 250px;
+    padding: 10px;
+    .node {
+        height: 20px;
+        width: 150px;
+        border-radius: 5px;
+        padding: 5px;
+        background-color: #98ddca;
+        overflow: hidden;
+        cursor: move;
+        &:not(:last-child) {
+            margin-bottom: 10px;
+        }
+    }
+}
+
+.land-here {
+    height: 100%;
+    display: flex;
+    position: relative;
+
+    .reactflow-wrapper {
+        flex: 1;
+    }
+}
+
+/** custom nodes ***/
+.custom-node {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-flow: column nowrap;
+    border: 0.5px solid #000000;
+    width: 150px;
+    height: 80px;
+    background-color: #f7f3e9;
+    position: relative;
+
+    small {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 10px;
+        &:first-of-type {
+            left: 10px;
+        }
+        &:last-of-type {
+            right: 10px;
+        }
+    }
+    &__box {
+        cursor: pointer;
+        align-self: flex-start;
+        padding-left: 15px;
+        margin-top: 15px;
+    }
+
+    &.active {
+        border-color: #bf1363;
+    }
+
+    .label-box {
+        position: absolute;
+        top: -20px;
+    }
+
+    form {
+        width: auto;
+    }
+
+    input {
+        outline: none;
+        border: none;
+        width: auto;
+        background-color: transparent;
+    }
+}
+
+/***Tooltip ***/
+.flow__tooltip {
+    height: 100px;
+    width: 200px;
+    border-radius: 4px;
+    background-color: #393e46;
+    color: #ffffff;
+    position: absolute;
+    padding: 10px;
+    z-index: 1000;
+
+    button {
+        border: none;
+        cursor: pointer;
+        background-color: #fdfaf6;
+        border-radius: 5px;
+    }
+}
