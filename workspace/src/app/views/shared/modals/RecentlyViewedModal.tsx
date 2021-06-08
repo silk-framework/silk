@@ -142,6 +142,7 @@ export function RecentlyViewedModal() {
                                 <Tag small>
                                     <Highlighter label={item.pluginLabel} searchValue={query} />
                                 </Tag>
+                                <Spacing vertical size="tiny" />
                             </>
                         )}
                         {item.taskId && (
@@ -154,7 +155,6 @@ export function RecentlyViewedModal() {
                                 </Tag>
                             </>
                         )}
-                        {}
                     </OverviewItemLine>
                 </OverviewItemDescription>
             </OverviewItem>
