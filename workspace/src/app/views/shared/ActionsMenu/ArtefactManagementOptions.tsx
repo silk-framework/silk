@@ -4,7 +4,7 @@ import { useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
 import { routerOp } from "@ducks/router";
 import { IItemLink } from "@ducks/shared/typings";
-import { commonSel } from "@ducks/common";
+import { commonOp, commonSel } from "@ducks/common";
 import { requestItemLinks } from "@ducks/shared/requests";
 import { IExportTypes } from "@ducks/common/typings";
 import { downloadProject } from "../../../utils/downloadProject";
@@ -56,6 +56,9 @@ export function ArtefactManagementOptions({ projectId, taskId, itemType, updateA
         let afterPage = "";
         if (taskId) {
             afterPage = `projects/${projectId}`;
+        } else {
+            // Deleted project, workspace state may have changed
+            dispatch(commonOp.fetchCommonSettingsAsync());
         }
         dispatch(routerOp.goToPage(afterPage));
     };
