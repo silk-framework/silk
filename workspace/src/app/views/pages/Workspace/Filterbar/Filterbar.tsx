@@ -35,6 +35,7 @@ export function Filterbar() {
                     <ul>
                         <li key={"alltypes"}>
                             <RadioButton
+                                data-test-id={"item-type-radio-button-all"}
                                 checked={!appliedFilters[typeModifier.field]}
                                 label={t("common.messages.allTypes", "All types")}
                                 onChange={() => handleFilterSelect(typeModifier.field, "")}
@@ -44,6 +45,7 @@ export function Filterbar() {
                         {typeModifier.options.map((opt) => (
                             <li key={opt.id}>
                                 <RadioButton
+                                    data-test-id={"item-type-radio-button-" + opt.id}
                                     checked={appliedFilters[typeModifier.field] === opt.id}
                                     label={t(`widget.Filterbar.subsections.valueLabels.itemType.${opt.id}`, opt.label)}
                                     onChange={() => handleFilterSelect(typeModifier.field, opt.id)}
