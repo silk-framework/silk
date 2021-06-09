@@ -19,16 +19,18 @@ export class FetchResponse<T = any> {
 export class ErrorResponse {
     title: string;
     detail: string;
+    status?: number;
     cause?: ErrorResponse;
 
     asString(): string {
         return this.detail ? ` Details: ${this.detail}` : this.title;
     }
 
-    constructor(title: string, detail: string, cause: ErrorResponse = null) {
+    constructor(title: string, detail: string, status: number | undefined | null, cause: ErrorResponse = null) {
         this.title = title;
         this.detail = detail;
         this.cause = cause;
+        this.status = status;
     }
 }
 
@@ -102,10 +104,19 @@ export class HttpError extends FetchError {
 
         if (errorDetails.response?.data?.title && errorDetails.response.data.detail) {
             const errorReponse = errorDetails.response.data;
-            this.errorResponse = new ErrorResponse(errorReponse.title, errorReponse.detail, errorReponse.cause);
+            this.errorResponse = new ErrorResponse(
+                errorReponse.title,
+                errorReponse.detail,
+                errorDetails.response.status,
+                errorReponse.cause
+            );
         } else {
             // Got no JSON response, create error response object
-            this.errorResponse = new ErrorResponse(httpStatusToTitle(errorDetails.response.status), "");
+            this.errorResponse = new ErrorResponse(
+                httpStatusToTitle(errorDetails.response.status),
+                "",
+                errorDetails.response.status
+            );
         }
     }
 }
@@ -117,7 +128,11 @@ export class NetworkError extends FetchError {
         this.errorDetails = errorDetails;
         this.errorType = FetchError.NETWORK_ERROR;
 
-        this.errorResponse = new ErrorResponse("Network Error", `Please check your connection or contact support`);
+        this.errorResponse = new ErrorResponse(
+            "Network Error",
+            `Please check your connection or contact support`,
+            undefined
+        );
     }
 }
 

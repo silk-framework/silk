@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router";
 import { Intent } from "@gui-elements/blueprint/constants";
@@ -11,10 +11,12 @@ import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
 import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
+import NotFound from "../NotFound";
 
 export default function () {
     const error = useSelector(datasetSel.errorSelector);
     const { taskId, projectId } = useParams();
+    const [notFound, setNotFound] = useState(false);
 
     useEffect(() => {
         if (error?.detail) {
@@ -32,7 +34,9 @@ export default function () {
         autogeneratePageTitle: true,
     });
 
-    return (
+    return notFound ? (
+        <NotFound />
+    ) : (
         <WorkspaceContent className="eccapp-di__task">
             {pageHeader}
             <ArtefactManagementOptions
@@ -40,6 +44,7 @@ export default function () {
                 taskId={taskId}
                 itemType={DATA_TYPES.TASK}
                 updateActionsMenu={updateActionsMenu}
+                notFoundCallback={setNotFound}
             />
             <WorkspaceMain>
                 <Section>

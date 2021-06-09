@@ -315,8 +315,8 @@
         },
         "notFound": {
             "backLink": "Go to homepage",
-            "text": "If you think something went wrong then inform your administrator.",
-            "title": "Error 404: Content not found."
+            "text": "The page you requested does not exist.",
+            "title": "Page not found"
         },
         "project": {
             "content": "Contents",

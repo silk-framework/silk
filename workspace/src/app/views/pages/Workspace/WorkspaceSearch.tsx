@@ -21,7 +21,7 @@ import SearchBar from "../../shared/SearchBar";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import Filterbar from "./Filterbar";
 
-const Artefacts = () => {
+const WorkspaceSearch = () => {
     const dispatch = useDispatch();
     const [t] = useTranslation();
 
@@ -103,4 +103,4 @@ const Artefacts = () => {
     );
 };
 
-export default Artefacts;
+export default WorkspaceSearch;

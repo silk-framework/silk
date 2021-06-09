@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { useSelector } from "react-redux";
 import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@gui-elements/index";
@@ -12,10 +12,12 @@ import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
 import { IframeWindow } from "../../shared/IframeWindow/IframeWindow";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
+import NotFound from "../NotFound";
 
 export default function () {
     const error = useSelector(datasetSel.errorSelector);
     const { taskId, projectId } = useParams();
+    const [notFound, setNotFound] = useState(false);
 
     useEffect(() => {
         if (error?.detail) {
@@ -33,7 +35,9 @@ export default function () {
         autogeneratePageTitle: true,
     });
 
-    return (
+    return notFound ? (
+        <NotFound />
+    ) : (
         <WorkspaceContent className="eccapp-di__linking">
             {pageHeader}
             <ArtefactManagementOptions
@@ -41,6 +45,7 @@ export default function () {
                 taskId={taskId}
                 itemType={DATA_TYPES.LINKING}
                 updateActionsMenu={updateActionsMenu}
+                notFoundCallback={setNotFound}
             />
             <WorkspaceMain>
                 <Section>
