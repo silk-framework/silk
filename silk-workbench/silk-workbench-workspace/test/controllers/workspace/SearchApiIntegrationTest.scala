@@ -290,10 +290,10 @@ class SearchApiIntegrationTest extends FlatSpec
 
   it should "consider the dataset item type in the search" in {
     val results = facetedSearchRequest(
-      FacetedSearchRequest(textQuery = Some(s"csvA dataset"))
+      FacetedSearchRequest(textQuery = Some(s"xyz dataset"))
     )._1.results
     results must have size 1
-    (results.head \ ID).as[String] mustBe "csvA"
+    (results.head \ ID).as[String] mustBe "jsonXYZ"
   }
 
   private val testAutoCompletionProvider = TestAutoCompletionProvider()
