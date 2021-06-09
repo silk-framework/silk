@@ -143,7 +143,8 @@ object SearchApiModel {
       val description = task.metaData.description.getOrElse("")
       val searchInProperties = if(matchTaskProperties) task.data.properties(task.project.config.prefixes).map(p => p._2).mkString(" ") else ""
       val searchInProject = if(matchProject) label(task.project) else ""
-      matchesSearchTerm(lowerCaseSearchTerms, taskLabel, description, searchInProperties, searchInProject, pluginLabel)
+      val searchInItemType = if(task.data.isInstanceOf[DatasetSpec[_]]) "dataset" else ""
+      matchesSearchTerm(lowerCaseSearchTerms, taskLabel, description, searchInProperties, searchInProject, pluginLabel, searchInItemType)
     }
 
     /** Match search terms against project. */
