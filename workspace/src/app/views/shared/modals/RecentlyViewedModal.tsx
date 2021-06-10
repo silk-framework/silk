@@ -30,6 +30,7 @@ import Tag from "@gui-elements/src/components/Tag/Tag";
 import { ItemDepiction } from "../ItemDepiction/ItemDepiction";
 import { createNewItemRendererFactory } from "@gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
 import { IRenderModifiers } from "@gui-elements/src/components/AutocompleteField/AutoCompleteField";
+import { uppercaseFirstChar } from "../../../utils/transformers";
 
 /** Shows the recently viewed items a user has visited. Also allows to trigger a workspace search. */
 export function RecentlyViewedModal() {
@@ -105,7 +106,7 @@ export function RecentlyViewedModal() {
         const label = taskLabel ? `${taskLabel} ${projectLabel} ${item.pluginLabel}` : projectLabel;
         return `${label} ${itemType(item)}`;
     };
-    const itemType = (item: IRecentlyViewedItem): string => t("common.dataTypes." + item.itemType);
+    const itemType = (item: IRecentlyViewedItem): string => uppercaseFirstChar(t("common.dataTypes." + item.itemType));
     // The representation of an item as an option in the selection list
     const itemOption = (
         item: IRecentlyViewedItem,
