@@ -9,6 +9,8 @@ class ConfigValueTest extends FlatSpec with Matchers {
 
   it should "cache config values" in {
     System.setProperty("testConfigValue", "value1")
+    DefaultConfig.instance.refresh()
+
     TestConfigValue.loadCounter shouldBe 0
     TestConfigValue() shouldBe "value1"
     TestConfigValue.loadCounter shouldBe 1
