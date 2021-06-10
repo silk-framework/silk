@@ -16,7 +16,7 @@ class ConfigValueTest extends FlatSpec with Matchers {
     TestConfigValue.loadCounter shouldBe 1
   }
 
-  it should "reload config values if the config has been refreshed in the mean time" in {
+  it should "reload config values if the config has been refreshed in the meantime" in {
     System.setProperty("testConfigValue", "value2")
 
     // The cache still holds the previous value

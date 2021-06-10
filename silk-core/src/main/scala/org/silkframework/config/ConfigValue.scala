@@ -7,7 +7,7 @@ import java.time.Instant
 /**
   * Holds a configuration value.
   * The value is cached and can be retrieved efficiently.
-  * Reloads the value if the configuration has been refreshed in the mean time.
+  * Reloads the value if the configuration has been refreshed in the meantime.
   */
 abstract class ConfigValue[T]() {
 
