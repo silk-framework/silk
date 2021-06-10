@@ -5,6 +5,7 @@ import org.silkframework.config.Config._
 import org.silkframework.runtime.validation.ValidationException
 
 import java.io.File
+import java.time.Instant
 import java.util.logging.Logger
 import javax.inject.Named
 
@@ -17,6 +18,9 @@ trait Config {
 
   /** Refreshes the Config instance, e.g. load from changed config file or newly set property values. */
   def refresh(): Unit
+
+  /** Timestamp when the config has been loaded the last time. Updated on each refresh. */
+  def timestamp: Instant
 }
 
 object Config{
@@ -40,6 +44,8 @@ class DefaultConfig private() extends Config {
   private lazy val log = Logger.getLogger(this.getClass.getName)
 
   private var config = this.synchronized {init()}
+
+  private var currentTimestamp = Instant.now()
 
   /**
     * Will check and return if ELDS_HOME was defined either as environment variable or in the dataintegration config.
@@ -84,6 +90,7 @@ class DefaultConfig private() extends Config {
       if (playConfig2.exists()) {
         fullConfig = fullConfig.withFallback(ConfigFactory.parseFile(playConfig2))
       }
+      currentTimestamp = Instant.now()
       fullConfig.resolve()
     }
   }
@@ -92,6 +99,10 @@ class DefaultConfig private() extends Config {
     this.synchronized {
       config
     }
+  }
+
+  override def timestamp: Instant = synchronized {
+    currentTimestamp
   }
 
   /**
