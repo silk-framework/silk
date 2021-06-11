@@ -17,9 +17,10 @@ class PluginRegistryConfigTest extends FlatSpec with Matchers with ConfigTestTra
     */
   override def propertyMap: Map[String, Option[String]] = {
     Map(
+      "pluginRegistry.plugins.EnabledPlugin.enabled" -> Some("true"), // Should do nothing as "true" is the default
       "pluginRegistry.plugins.GeoLocationTypeDiscoverer.enabled" -> Some("false"),
       "pluginRegistry.plugins.script.enabled" -> Some("false"),
-      "plugin.blacklist" -> Some("legacyId1, legacyId2")
+      "plugin.blacklist" -> Some("legacyId1, legacyId2") // Legacy parameters should still be supported
     )
   }
 }
