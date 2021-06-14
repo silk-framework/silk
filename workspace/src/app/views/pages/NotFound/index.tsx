@@ -12,16 +12,15 @@ import {
 import { PUBLIC_URL, SERVE_PATH } from "../../../constants/path";
 import { useTranslation } from "react-i18next";
 
-export default function () {
+export default function NotFound() {
     const [t] = useTranslation();
 
     return (
-        <Grid>
+        <Grid data-test-id={"not-found-page"}>
             <GridRow fullHeight>
                 <div style={{ margin: "auto", maxWidth: "40rem" }}>
                     <GridColumn verticalAlign={"center"}>
                         <Notification
-                            danger
                             actions={
                                 <Button
                                     minimal
@@ -33,15 +32,8 @@ export default function () {
                             }
                         >
                             <HtmlContentBlock>
-                                <TitleMainsection>
-                                    {t("pages.notFound.title", "Error 404: Content not found.")}
-                                </TitleMainsection>
-                                <p>
-                                    {t(
-                                        "pages.notFound.text",
-                                        "If you think something went wrong then inform your administrator."
-                                    )}
-                                </p>
+                                <TitleMainsection>{t("pages.notFound.title", "Page not found.")}</TitleMainsection>
+                                <p>{t("pages.notFound.text", "The page you requested does not exist.")}</p>
                             </HtmlContentBlock>
                         </Notification>
                     </GridColumn>
