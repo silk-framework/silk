@@ -31,6 +31,7 @@ object SearchApiModel {
   final val PROJECT_ID = "projectId"
   final val PROJECT_LABEL = "projectLabel"
   final val PLUGIN_ID = "pluginId"
+  final val PLUGIN_LABEL = "pluginLabel"
   // type values
   final val PROJECT_TYPE = "project"
   /* JSON serialization */
@@ -137,11 +138,13 @@ object SearchApiModel {
                                     task: ProjectTask[_ <: TaskSpec],
                                     matchTaskProperties: Boolean,
                                     matchProject: Boolean): Boolean = {
+      val pluginLabel = PluginDescription(task).label
       val taskLabel = task.fullTaskLabel
       val description = task.metaData.description.getOrElse("")
       val searchInProperties = if(matchTaskProperties) task.data.properties(task.project.config.prefixes).map(p => p._2).mkString(" ") else ""
       val searchInProject = if(matchProject) label(task.project) else ""
-      matchesSearchTerm(lowerCaseSearchTerms, taskLabel, description, searchInProperties, searchInProject)
+      val searchInItemType = if(task.data.isInstanceOf[DatasetSpec[_]]) "dataset" else ""
+      matchesSearchTerm(lowerCaseSearchTerms, taskLabel, description, searchInProperties, searchInProject, pluginLabel, searchInItemType)
     }
 
     /** Match search terms against project. */
@@ -149,7 +152,7 @@ object SearchApiModel {
       val id = project.config.id
       val label = project.config.metaData.label
       val description = project.config.metaData.description.getOrElse("")
-      matchesSearchTerm(lowerCaseSearchTerms, id, label, description)
+      matchesSearchTerm(lowerCaseSearchTerms, id, label, description, "project")
     }
 
     protected def extractSearchTerms(term: String): Array[String] = {
@@ -396,6 +399,7 @@ object SearchApiModel {
 
     private def toJson(task: ProjectTask[_ <: TaskSpec],
                        typedTask: TypedTasks): JsObject = {
+      val pd = PluginDescription(task)
       JsObject(Seq(
         PROJECT_ID -> JsString(typedTask.project),
         PROJECT_LABEL -> JsString(typedTask.projectLabel),
@@ -403,7 +407,8 @@ object SearchApiModel {
         ID -> JsString(task.id),
         LABEL -> JsString(label(task)),
         DESCRIPTION -> JsString(""),
-        PLUGIN_ID -> JsString(PluginDescription(task).id)
+        PLUGIN_ID -> JsString(pd.id),
+        PLUGIN_LABEL -> JsString(pd.label)
       ) ++ task.metaData.description.map(d => DESCRIPTION -> JsString(d)))
     }
   }
