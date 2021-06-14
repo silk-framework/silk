@@ -53,3 +53,11 @@ export const existingTaskValuesToFlatParameters = (updateTask: any) => {
         return {};
     }
 };
+
+export const uppercaseFirstChar = (str: string) => {
+    if (!str || str.length === 0) {
+        return str;
+    } else {
+        return str.charAt(0).toUpperCase() + str.substring(1);
+    }
+};
