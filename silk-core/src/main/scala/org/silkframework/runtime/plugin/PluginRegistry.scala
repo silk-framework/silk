@@ -325,7 +325,7 @@ object PluginRegistry {
 
     private final val LEGACY_PLUGIN_BLACKLIST_CONFIG_PATH = "plugin.blacklist"
 
-    def pluginFolder: ConfigValue[Option[File]] = (config: TypesafeConfig) => {
+    val pluginFolder: ConfigValue[Option[File]] = (config: TypesafeConfig) => {
       if(config.hasPath(PLUGIN_FOLDER_CONFIG_PATH)) {
         Some(new File(config.getString(PLUGIN_FOLDER_CONFIG_PATH)))
       } else {
@@ -333,7 +333,7 @@ object PluginRegistry {
       }
     }
 
-    def blacklistedPlugins: ConfigValue[Set[Identifier]] = (config: TypesafeConfig) => {
+    val blacklistedPlugins: ConfigValue[Set[Identifier]] = (config: TypesafeConfig) => {
       var blacklist = Set[Identifier]()
 
       // Load blacklist from plugins config
