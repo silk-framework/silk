@@ -39,7 +39,7 @@ class ValueTypeTest extends FlatSpec with MustMatchers {
           }
         }
       }
-      it should "reject valid values" in {
+      it should "reject invalid values" in {
         for (value <- annotation.invalidValues()) {
           if(valueType.validate(value)) {
             fail(s"$valueType did not reject '$value' as an invalid value.")
