@@ -59,6 +59,10 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
       (persons atPath "Person" valuesAt "Properties/Property[Key = \"2\"]/Value") shouldBe Seq(Seq("V2"), Seq())
     }
 
+    it should s"support property filters on attributes ($fileName)" in {
+      (persons atPath "Person" valuesAt "Events[@count = \"2\"]/Birth") shouldBe Seq(Seq("May 1900"), Seq())
+    }
+
     it should s"allow wildcard * path elements ($fileName)" in {
       (persons atPath "Person" valuesAt "Events/*") shouldBe Seq(Seq("May 1900", "June 1990"), Seq())
     }

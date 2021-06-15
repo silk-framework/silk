@@ -292,12 +292,18 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
   private def evaluatePropertyFilter(op: PropertyFilter, buffer: ArrayBuffer[XmlTraverser]): Unit= {
     val nodeArray = node.child
     var idx = 0
-    while(idx < nodeArray.length) {
-      if(nodeArray(idx).label == op.property.uri && op.evaluate(nodeArray(idx).textExpression)) {
+    if(op.property.uri.startsWith("@")) {
+      node.attributes.get(op.property.uri.drop(1)) foreach { value =>
         buffer += this
-        return
       }
-      idx += 1
+    } else {
+      while(idx < nodeArray.length) {
+        if(nodeArray(idx).label == op.property.uri && op.evaluate(nodeArray(idx).textExpression)) {
+          buffer += this
+          return
+        }
+        idx += 1
+      }
     }
   }
 }
