@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.csv
 
-import org.silkframework.dataset.DataSourceCharacteristics
+import org.silkframework.dataset.DatasetCharacteristics
 import org.silkframework.plugins.dataset.charset.CharsetUtils
 
 import scala.io.Codec
@@ -54,5 +54,5 @@ trait CsvDatasetTrait {
   protected val csvSettings: CsvSettings = CsvSettings(separatorChar, arraySeparatorChar, quoteChar,
     maxCharsPerColumn = Some(maxCharsPerColumn), quoteEscapeChar = quoteEscapeChar, linesToSkip = linesToSkip, codec = codec)
 
-  def characteristics: DataSourceCharacteristics = DataSourceCharacteristics.attributesOnly
+  def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly
 }

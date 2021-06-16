@@ -1,17 +1,17 @@
 package org.silkframework.dataset
 
-import org.silkframework.dataset.DataSourceCharacteristics.SupportedPathExpressions
+import org.silkframework.dataset.DatasetCharacteristics.SupportedPathExpressions
 
 /** Characteristics of a data source.
   *
   * @param supportedPathExpressions The characteristics of the supported path expressions.
   */
-case class DataSourceCharacteristics(supportedPathExpressions: SupportedPathExpressions = SupportedPathExpressions())
+case class DatasetCharacteristics(supportedPathExpressions: SupportedPathExpressions = SupportedPathExpressions())
 
-object DataSourceCharacteristics {
+object DatasetCharacteristics {
 
   /** Sources that only support plain attributes (i.e., forward paths of length 1 without any filters) */
-  def attributesOnly: DataSourceCharacteristics = DataSourceCharacteristics()
+  def attributesOnly: DatasetCharacteristics = DatasetCharacteristics()
 
   /** The kind of path expressions supported by a data source.
     *

@@ -71,7 +71,7 @@ export default function STableRow({row, onRowSelect, selected, onModifyTarget}: 
         <TableCell>
             {
                 context.isFromDataset
-                    ? <SourceCellData label={uri} search={search}/>
+                    ? <SourceCellData label={uri} search={search} pathType={row.pathType} objectInfo={row.objectInfo} />
                     : <Toolbar noWrap={true}>
                         <ToolbarSection canShrink={true}>
                             <OverviewItem>

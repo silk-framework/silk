@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.access
 
 import org.silkframework.config.Task
-import org.silkframework.dataset.{DataSource, DataSourceCharacteristics, Dataset, DatasetSpec}
+import org.silkframework.dataset.{DataSource, DatasetCharacteristics, Dataset, DatasetSpec}
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder

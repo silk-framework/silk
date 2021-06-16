@@ -122,6 +122,7 @@ export default function STableHeader({
                             selectedFilter={appliedFilters.checkbox}
                             filters={COLUMN_FILTERS.checkbox}
                             onApplyFilter={(filter) => onApplyFilter('checkbox', filter)}
+                            fromDataset={context.isFromDataset}
                         />
                     </ToolbarSection>
                 </Toolbar>
@@ -159,6 +160,7 @@ export default function STableHeader({
                                             selectedFilter={appliedFilters[header.key]}
                                             filters={COLUMN_FILTERS[header.key]}
                                             onApplyFilter={(filter) => onApplyFilter(header.key, filter)}
+                                            fromDataset={context.isFromDataset}
                                         />
                                     }
                                 </ToolbarSection>

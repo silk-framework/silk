@@ -2,12 +2,13 @@ package controllers.transform
 
 import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.transform.TransformTaskApi._
+import controllers.transform.transformTask.{ObjectValueSourcePathInfo, TransformUtils, ValueSourcePathInfo}
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
 import org.silkframework.config.{MetaData, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
-import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity.paths.{PathOperator, TypedPath, UntypedPath}
 import org.silkframework.rule.TransformSpec.{TargetVocabularyListParameter, TargetVocabularyParameterType}
 import org.silkframework.rule._
 import org.silkframework.rule.execution.ExecuteTransform
@@ -24,8 +25,11 @@ import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc._
 
+import java.util
 import java.util.logging.{Level, Logger}
 import javax.inject.Inject
+import scala.collection.mutable
+import scala.collection.mutable.ArrayBuffer
 
 class TransformTaskApi @Inject() () extends InjectedController {
 
@@ -434,45 +438,132 @@ class TransformTaskApi @Inject() () extends InjectedController {
     getProjectAndTask[TransformSpec](projectName, taskName)
   }
 
+  /** Returns an array of string representations of the available source paths. */
   def valueSourcePaths(projectName: String,
                        taskName: String,
                        ruleId: String,
                        maxDepth: Int,
-                       unusedOnly: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
+                       unusedOnly: Boolean,
+                       usedOnly: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
+    if(unusedOnly && usedOnly) {
+      throw BadUserInputException("Only one of the following parameters can be true, but both of them were true: unusedOnly, usedOnly")
+    }
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
+    Ok(Json.toJson(typedRuleValuePaths(task, ruleId, maxDepth, unusedOnly, usedOnly).map(_.serialize())))
+  }
 
+  /** Returns all available paths of max. depth for the specific transform rule.
+    *
+    * @param maxDepth   Max depth/hops of the returned paths.
+    * @param objectInfo If additional information, e.g. stats, sub-paths, should be attached.
+    */
+  def valueSourcePathsFullInfo(projectId: String,
+                               transformTaskId: String,
+                               mappingRuleId: String,
+                               maxDepth: Int,
+                               objectInfo: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
+    implicit val (project, transformTask) = getProjectAndTask[TransformSpec](projectId, transformTaskId)
+    implicit val prefixes: Prefixes = project.config.prefixes
+    val dataSourceCharacteristicsOpt = TransformUtils.datasetCharacteristics(transformTask)
+    val typedPaths = typedRuleValuePaths(transformTask, mappingRuleId, maxDepth)
+    val usedPaths = typedRuleValuePaths(transformTask, mappingRuleId, maxDepth, usedOnly = true).toSet
+    val objectPathInfos: Map[UntypedPath, ObjectValueSourcePathInfo] = dataSourceCharacteristicsOpt match {
+      case Some(characteristics) if characteristics.supportedPathExpressions.multiHopPaths && objectInfo =>
+        val objectPaths = typedPaths.filter(_.valueType.id == "UriValueType").map(_.toUntypedPath).toSet
+        val isRdfInput = TransformUtils.isRdfInput(transformTask)
+        if(objectPaths.isEmpty) {
+          Map.empty
+        } else if (isRdfInput) {
+          // TODO: Fetch RDF infos
+          Map.empty
+        } else {
+          val maxObjectPathLength = objectPaths.map(_.operators.size).max
+          val additionalHopPath = if(maxDepth < Int.MaxValue || maxObjectPathLength == maxDepth) {
+            // Need to fetch paths with one more hop in order to calculate stats
+            typedRuleValuePaths(transformTask, mappingRuleId, maxDepth + 1)
+          } else {
+            typedPaths
+          }
+          val subPathMap = mutable.HashMap[UntypedPath, ArrayBuffer[TypedPath]]()
+          additionalHopPath filter { tp => tp.operators.size > 1 } foreach { tp =>
+            val parentPath = UntypedPath(tp.operators.dropRight(1))
+            if(objectPaths.contains(parentPath)) {
+              subPathMap.getOrElseUpdate(parentPath, new ArrayBuffer[TypedPath]()).append(tp)
+            }
+          }
+          def relativePathString(tp: TypedPath) = UntypedPath(tp.operators.takeRight(1)).serialize()
+          subPathMap.mapValues { typedPaths =>
+            val (objectPaths, dataPaths) = typedPaths.partition(_.valueType.id == "UriValueType")
+            ObjectValueSourcePathInfo(
+              dataTypeSubPaths = dataPaths.map(relativePathString),
+              objectSubPaths = objectPaths.map(relativePathString)
+            )
+          }.toMap
+        }
+      case _ => Map.empty
+    }
+    val valuePathInfos = typedPaths map { tp =>
+      val pathType = if(tp.valueType.id == "UriValueType") "object" else "value"
+      ValueSourcePathInfo(tp.serialize(), pathType, alreadyMapped = usedPaths.contains(tp), objectPathInfos.get(tp.toUntypedPath))
+    }
+    Ok(Json.toJson(valuePathInfos))
+  }
+
+  private def typedRuleValuePaths(task: ProjectTask[TransformSpec],
+                                  ruleId: String,
+                                  maxDepth: Int,
+                                  unusedOnly: Boolean = false,
+                                  usedOnly: Boolean = false)
+                                 (implicit userContext: UserContext,
+                                  prefixes: Prefixes): IndexedSeq[TypedPath] = {
+    assert(!unusedOnly || !usedOnly, "Only one of the following parameters can be true, but both of them were true: unusedOnly, usedOnly")
     task.nestedRuleAndSourcePath(ruleId) match {
       case Some((_, sourcePath)) =>
-        val pathCache = task.activity[TransformPathsCache]
-        pathCache.control.waitUntilFinished()
-        val isRdfInput = pathCache.value().isRdfInput(task)
-        val cachedPaths = pathCache.value().fetchCachedPaths(task, sourcePath.nonEmpty && isRdfInput)
-        val matchingPaths = cachedPaths filter { p =>
-          val pathSize = p.operators.size
-          isRdfInput ||
-              p.operators.startsWith(sourcePath) &&
-                  pathSize > sourcePath.size &&
-                  pathSize - sourcePath.size <= maxDepth
-        } map { p =>
-            if(isRdfInput) {
-              p
-            } else {
-              TypedPath.removePathPrefix(p, UntypedPath(sourcePath))
-            }
-        }
-        val filteredPaths = if(unusedOnly) {
-          val sourcePaths = task.data.valueSourcePaths(ruleId, maxDepth)
-          matchingPaths.filterNot { path =>
-            sourcePaths.contains(path.asUntypedPath)
+        val matchingPaths = relativePathsFromPathsCache(maxDepth, sourcePath, task)
+        if(unusedOnly || usedOnly) {
+          val sourcePaths = usedSourcePaths(ruleId, maxDepth, task)
+          val filterFn: UntypedPath => Boolean = if(unusedOnly) path => !sourcePaths.contains(path) else sourcePaths.contains
+          matchingPaths filter { path =>
+            filterFn(path.asUntypedPath)
           }
         } else {
           matchingPaths
         }
-        Ok(Json.toJson(filteredPaths.map(_.toUntypedPath.serialize())))
       case None =>
-        NotFound("No rule found with ID " + ruleId)
+        throw NotFoundException("No rule found with ID " + ruleId)
     }
+  }
+
+  // Get the relative paths matching the path prefix with the max. depth length from the transform path cache.
+  private def relativePathsFromPathsCache(maxDepth: Int,
+                                          pathPrefix: List[PathOperator],
+                                          task: ProjectTask[TransformSpec])
+                                         (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+    val pathCache = task.activity[TransformPathsCache]
+    pathCache.control.waitUntilFinished()
+    val isRdfInput = TransformUtils.isRdfInput(task)
+    val cachedPaths = pathCache.value().fetchCachedPaths(task, pathPrefix.nonEmpty && isRdfInput)
+    cachedPaths filter { p =>
+      val pathSize = p.operators.size
+      isRdfInput ||
+        p.operators.startsWith(pathPrefix) &&
+          pathSize > pathPrefix.size &&
+          pathSize - pathPrefix.size <= maxDepth
+    } map { p =>
+      if (isRdfInput) {
+        p
+      } else {
+        TypedPath.removePathPrefix(p, UntypedPath(pathPrefix))
+      }
+    }
+  }
+
+  /** The relative source path that are already used in the specified mapping rule. */
+  private def usedSourcePaths(ruleId: String, maxDepth: Int,
+                              task: ProjectTask[TransformSpec]): Set[UntypedPath] = {
+    task.data.valueSourcePaths(ruleId, maxDepth).toSet ++
+      task.data.objectSourcePaths(ruleId).toSet
   }
 }
 
