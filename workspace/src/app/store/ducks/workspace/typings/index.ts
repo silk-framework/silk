@@ -55,5 +55,6 @@ export interface IRecentlyViewedItem {
     taskId?: string;
     taskLabel?: string;
     pluginId?: string;
+    pluginLabel?: string;
     itemLinks: IItemLink[];
 }

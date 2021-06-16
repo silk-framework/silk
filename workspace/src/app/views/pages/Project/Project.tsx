@@ -30,6 +30,7 @@ import Filterbar from "../Workspace/Filterbar";
 import ConfigurationWidget from "./ProjectNamespacePrefixManagementWidget";
 import WarningWidget from "./WarningWidget";
 import FileWidget from "./FileWidget";
+import NotFound from "../NotFound";
 
 const Project = () => {
     const dispatch = useDispatch();
@@ -76,6 +77,8 @@ const Project = () => {
 
     return !projectId ? (
         <Loading posGlobal description={t("pages.project.loading", "Loading project data")} />
+    ) : error?.status === 404 ? (
+        <NotFound />
     ) : (
         <WorkspaceContent className="eccapp-di__project">
             {pageHeader}

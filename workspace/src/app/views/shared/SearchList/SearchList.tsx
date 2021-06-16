@@ -69,7 +69,11 @@ export function SearchList() {
         dispatch(routerOp.goToPage(detailsPage));
     };
 
-    const handleDeleted = () => {
+    const handleDeleted = (deletedProject: boolean) => {
+        if (deletedProject) {
+            // Deleted project, workspace state may have changed
+            dispatch(commonOp.fetchCommonSettingsAsync());
+        }
         dispatch(workspaceOp.fetchListAsync());
         onDiscardModals();
     };
@@ -94,32 +98,40 @@ export function SearchList() {
     };
 
     // Show the "create" action when no search query or facets applied
-    const EmptyContainer =
-        isEmpty && !appliedFilters.textQuery && !appliedFacets.length ? (
-            <EmptyList
-                depiction={<Icon name={"artefact-" + appliedFilters.itemType} large />}
-                textInfo={
-                    <p>
-                        {t("common.messages.noItems", {
-                            items: appliedFilters.itemType ? appliedFilters.itemType : "items",
-                        })}
-                    </p>
-                }
-                textCallout={<strong>{t("common.messages.createFirstItems", { items: itemTypeLabel() })}</strong>}
-                actionButtons={[
-                    <Button
-                        data-test-id={"create-first-item-btn"}
-                        key={"create"}
-                        onClick={handleCreateArtefact}
-                        elevated
-                    >
-                        {t("common.action.CreateSmth", { smth: itemTypeLabel() })}
-                    </Button>,
-                ]}
-            />
-        ) : (
-            <Notification>{t("common.messages.noItems", { items: "items" })}</Notification>
-        );
+    const emptyListWithoutFilters: boolean = isEmpty && !appliedFilters.textQuery && !appliedFacets.length;
+    const promptCreate = !!projectId || appliedFilters.itemType === "project" || !appliedFilters.itemType;
+
+    const EmptyContainer = emptyListWithoutFilters ? (
+        <EmptyList
+            depiction={<Icon name={"artefact-" + appliedFilters.itemType} large />}
+            textInfo={
+                <p>
+                    {t("common.messages.noItems", {
+                        items: appliedFilters.itemType ? appliedFilters.itemType : "items",
+                    })}
+                </p>
+            }
+            textCallout={
+                promptCreate && <strong>{t("common.messages.createFirstItems", { items: itemTypeLabel() })}</strong>
+            }
+            actionButtons={
+                promptCreate
+                    ? [
+                          <Button
+                              data-test-id={"create-first-item-btn"}
+                              key={"create"}
+                              onClick={handleCreateArtefact}
+                              elevated
+                          >
+                              {t("common.action.CreateSmth", { smth: itemTypeLabel() })}
+                          </Button>,
+                      ]
+                    : []
+            }
+        />
+    ) : (
+        <Notification>{t("common.messages.noItems", { items: "items" })}</Notification>
+    );
 
     return (
         <>
@@ -154,7 +166,11 @@ export function SearchList() {
                     />
 
                     {deleteModalOpen && selectedItem && (
-                        <ItemDeleteModal item={selectedItem} onClose={onDiscardModals} onConfirmed={handleDeleted} />
+                        <ItemDeleteModal
+                            item={selectedItem}
+                            onClose={onDiscardModals}
+                            onConfirmed={() => handleDeleted(!selectedItem.projectId)}
+                        />
                     )}
                     {copyToModalOpen && (
                         <CopyToModal
