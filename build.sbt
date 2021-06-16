@@ -1,4 +1,6 @@
+import sbt.Keys.libraryDependencies
 import sbt._
+
 import java.io._
 
 //////////////////////////////////////////////////////////////////////////////
@@ -348,10 +350,19 @@ lazy val workbenchWorkflow = (project in file("silk-workbench/silk-workbench-wor
     name := "Silk Workbench Workflow"
   )
 
+lazy val workbenchOpenApi = (project in file("silk-workbench/silk-workbench-openapi"))
+  .enablePlugins(PlayScala)
+  .settings(commonSettings: _*)
+  .settings(
+    name := "Silk Workbench OpenAPI",
+    libraryDependencies += "com.iheart" %% "play-swagger" % "0.10.5",
+    libraryDependencies += "org.webjars" % "swagger-ui" % "3.43.0"
+  )
+
 lazy val workbench = (project in file("silk-workbench"))
     .enablePlugins(PlayScala)
-    .dependsOn(workbenchWorkspace, workbenchRules, workbenchWorkflow, plugins)
-    .aggregate(workbenchWorkspace, workbenchRules, workbenchWorkflow, plugins)
+    .dependsOn(workbenchWorkspace, workbenchRules, workbenchWorkflow, workbenchOpenApi, plugins)
+    .aggregate(workbenchWorkspace, workbenchRules, workbenchWorkflow, workbenchOpenApi, plugins)
     .settings(commonSettings: _*)
     .settings(
       name := "Silk Workbench",
