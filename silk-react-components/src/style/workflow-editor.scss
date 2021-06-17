@@ -22,9 +22,12 @@
     display: flex;
     position: relative;
 
-    .reactflow-wrapper {
+    & > div {
         flex: 1;
     }
+    // .reactflow-wrapper {
+    //     flex: 1;
+    // }
 }
 
 /** custom nodes ***/
@@ -34,7 +37,7 @@
     align-items: center;
     flex-flow: column nowrap;
     border: 0.5px solid #000000;
-    width: 150px;
+    width: 100px;
     height: 80px;
     background-color: #f7f3e9;
     position: relative;

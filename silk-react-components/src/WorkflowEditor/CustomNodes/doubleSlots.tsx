@@ -7,6 +7,7 @@ import {
     Connection,
     Edge,
     useStoreState,
+    useStoreActions,
 } from "react-flow-renderer";
 import { ACTION_TYPES, FlowContext } from "../WorkflowEditor";
 
@@ -27,6 +28,10 @@ const onConnect = (params: Connection | Edge) => {
 const DoubleSlots: React.FC<NodeProps> = ({ data, id, selected }) => {
     const utility = React.useContext(FlowContext);
     const selectedElements = useStoreState((state) => state.selectedElements);
+    // const storeActions = useStoreActions((a) => {
+    //     console.log({ a });
+    //     return a.setMaxZoom;
+    // });
     const { invalid, label } = data;
     const [tempLabel, setTempLabel] = React.useState<string>(label);
     const [showLabel, setShowLabel] = React.useState<boolean>(true);
