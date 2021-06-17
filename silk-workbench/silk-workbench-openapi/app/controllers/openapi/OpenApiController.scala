@@ -10,7 +10,7 @@ class OpenApiController @Inject()(cc: ControllerComponents) extends AbstractCont
 
   private implicit val cl: ClassLoader = getClass.getClassLoader
 
-  private lazy val generator = SwaggerSpecGenerator(NamingStrategy.SnakeCase, swaggerV3 = true, domainNameSpaces = "models")
+  private lazy val generator = SwaggerSpecGenerator(NamingStrategy.SnakeCase, swaggerV3 = true, "controllers", "org.silkframework", "com.eccenca")
 
   private lazy val swagger = Action {
     generator.generate("doc.routes") match {

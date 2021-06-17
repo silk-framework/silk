@@ -1,6 +1,62 @@
 # Generic item search/retrieval, i.e. projects, tasks etc.
 GET           /searchConfig/types                                               controllers.workspaceApi.SearchApi.itemTypes(projectId: Option[String] ?= None)
+
+###
+#  summary: Search Tasks
+#  description: List all tasks that fulfill a set of filters.
+#               All JSON fields sent in the the request are optional.
+#               The request example reflects the default values that are chosen when a field is missing in the request.
+#  requestBody:
+#          required: true
+#          content:
+#            application/json:
+#              schema:
+#                $ref: '#/components/schemas/controllers.workspaceApi.search.SearchApiModel.SearchRequest'
+#  responses:
+#    200:
+#      description: success
+#      content:
+#        application/json:
+#          schema:
+#            example:
+#              [
+#                {
+#                  "id": "task identifier (unique inside the project)",
+#                  "project": "project this task belongs to (if any)",
+#                  "metadata": {
+#                    "label": "task label",
+#                    "description": "task description",
+#                    "modified": "2018-03-08T11:04:59.156Z"
+#                  },
+#                  "taskType": "task type, e.g., Dataset",
+#                  "data": {
+#                    # Task data that fully describes the task. Actual structure depends on the task type.
+#                  },
+#                  "properties": [
+#                    # A list of key-value pairs to be displayed to the user.
+#                    {
+#                      "key": "some key",
+#                      "value": "some value"
+#                    },
+#                    # ...
+#                  ],
+#                  "relations": {
+#                    "inputTasks": [], # Identifiers of all tasks from which this task is reading data.
+#                    "outputTasks": [], # Identifiers of all tasks to which this task is writing data.
+#                    "referencedTasks": [], # Identifiers of all tasks that are directly referenced by this task. Includes input and output tasks.
+#                    "dependentTasksDirect": [], # Identifiers of all tasks that directly reference this task.
+#                    "dependentTasksAll": [] # Identifiers of all tasks that directly or indirectly reference this task.
+#                  },
+#                  "schemata": {
+#                    # "input": ..., # The schemata of the input data of this task.
+#                    # "output": ... # The schemata of the output data of this task.
+#                  }
+#                },
+#                ...
+#              ]
+###
 POST          /searchTasks                                                      controllers.workspaceApi.SearchApi.search()
+
 POST          /searchItems                                                      controllers.workspaceApi.SearchApi.facetedSearch()
 POST          /pluginParameterAutoCompletion                                    controllers.workspaceApi.SearchApi.parameterAutoCompletion()
 GET           /recentlyViewedItems                                              controllers.workspaceApi.SearchApi.recentlyViewedItems()
