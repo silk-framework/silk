@@ -1,10 +1,10 @@
 package controllers.linking
 
 import java.util.logging.{Level, Logger}
-
-import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.core.{UserContextActions}
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils
+
 import javax.inject.Inject
 import org.silkframework.config.{MetaData, PlainTask, Prefixes}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
@@ -27,7 +27,7 @@ import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, InjectedController}
 
-class LinkingTaskApi @Inject() () extends InjectedController {
+class LinkingTaskApi @Inject() () extends InjectedController with UserContextActions {
 
   private val log = Logger.getLogger(getClass.getName)
 

@@ -1,7 +1,7 @@
 package controllers.projectApi
 
 import controllers.core.util.ControllerUtilsTrait
-import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.core.{UserContextActions}
 import controllers.util.TextSearchUtils
 import controllers.workspaceApi.IdentifierUtils
 import controllers.workspaceApi.projectTask.{ItemCloneRequest, ItemCloneResponse, RelatedItem, RelatedItems}
@@ -20,7 +20,7 @@ import scala.util.Try
 /**
   * API for project tasks.
   */
-class ProjectTaskApi @Inject()() extends InjectedController with ControllerUtilsTrait {
+class ProjectTaskApi @Inject()() extends InjectedController with UserContextActions with ControllerUtilsTrait {
   /** Fetch all related items (tasks) for a specific project task. */
   def relatedItems(projectId: String, taskId: String, textQuery: Option[String]): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = getProject(projectId)

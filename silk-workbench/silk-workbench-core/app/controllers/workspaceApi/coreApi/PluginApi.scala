@@ -1,33 +1,28 @@
 package controllers.workspaceApi.coreApi
 
 import config.WorkbenchLinks
-import controllers.core.RequestUserContextAction
-import controllers.util.{PluginUsageCollector, SerializationUtils, TextSearchUtils}
-
-import javax.inject.Inject
+import controllers.core.UserContextActions
+import controllers.util.{PluginUsageCollector, TextSearchUtils}
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
-import org.silkframework.rule.input.{Input, PathInput, TransformInput}
-import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
-import org.silkframework.rule.{LinkSpec, Operator, TransformRule, TransformSpec}
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.plugin.{PluginDescription, PluginList, PluginRegistry}
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.serialization.json.PluginSerializers.PluginListJsonFormat
-import org.silkframework.util.Identifier
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.workflow.Workflow
-import play.api.libs.json.{JsArray, JsObject, JsString, JsValue, Json}
+import play.api.libs.json._
 import play.api.mvc._
 
+import javax.inject.Inject
 import scala.collection.immutable.ListMap
 import scala.collection.mutable
 
 /**
   * Workspace task plugin related endpoints.
   */
-class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedController {
+class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedController with UserContextActions {
   /** All plugins that can be created in the workspace. */
   def taskPlugins(addMarkdownDocumentation: Boolean,
                   textQuery: Option[String],

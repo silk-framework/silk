@@ -1,12 +1,12 @@
 package controllers.workspace
 
 import java.util.logging.{LogRecord, Logger}
-
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Merge, Source}
-import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.core.UserContextActions
 import controllers.util.{AkkaUtils, SerializationUtils}
+
 import javax.inject.Inject
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.{Activity, UserContext, _}
@@ -22,7 +22,7 @@ import play.api.mvc._
 
 import scala.language.existentials
 
-class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) extends InjectedController {
+class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) extends InjectedController with UserContextActions {
 
   def globalWorkspaceActivities(): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
     Ok(JsonSerializer.globalWorkspaceActivities(WorkspaceFactory().workspace))
