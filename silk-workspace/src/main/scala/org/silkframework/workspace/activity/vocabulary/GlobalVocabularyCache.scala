@@ -26,8 +26,13 @@ case class GlobalVocabularyCacheFactory() extends GlobalWorkspaceActivityFactory
 case class GlobalVocabularyCache() extends Activity[VocabularyCacheValue] {
   private val cache: mutable.HashMap[String, Vocabulary] = new mutable.HashMap[String, Vocabulary]()
   private var vocabsToUpdate: Set[String] = Set.empty
+  @volatile
+  private var lastUpdated: Option[Long] = None
+  private def setLastUpdated(): Unit = {
+    lastUpdated = Some(System.currentTimeMillis())
+  }
 
-  override def initialValue: Option[VocabularyCacheValue] = Some(new VocabularyCacheValue(Seq.empty))
+  override def initialValue: Option[VocabularyCacheValue] = Some(new VocabularyCacheValue(Seq.empty, lastUpdated))
 
   override def run(context: ActivityContext[VocabularyCacheValue])(implicit userContext: UserContext): Unit = {
     val vocabManager = VocabularyManager()
@@ -38,13 +43,13 @@ case class GlobalVocabularyCache() extends Activity[VocabularyCacheValue] {
         installVocabulary(vocabManager, vocabURI)
         vocabsToUpdate -= vocabURI
       }
-      context.value.update(new VocabularyCacheValue(cache.values.toSeq))
+      context.value.update(new VocabularyCacheValue(cache.values.toSeq, lastUpdated))
       // Check if something has changed
       vocabsToUpdate ++= GlobalVocabularyCache.clearAndGetVocabularies
     }
     // Also update all vocabularies in case a former request has failed
     loadAllInstalledVocabularies(vocabManager)
-    context.value.update(new VocabularyCacheValue(cache.values.toSeq))
+    context.value.update(new VocabularyCacheValue(cache.values.toSeq, lastUpdated))
   }
 
   /* Loads all installed vocabularies and removes uninstalled ones.
@@ -61,6 +66,7 @@ case class GlobalVocabularyCache() extends Activity[VocabularyCacheValue] {
     for (vocabURi <- cache.keys) {
       if (!installedVocabularies.contains(vocabURi)) {
         cache.remove(vocabURi)
+        setLastUpdated()
       }
     }
   }
@@ -70,6 +76,7 @@ case class GlobalVocabularyCache() extends Activity[VocabularyCacheValue] {
                                (implicit userContext: UserContext): Unit = {
     vocabManager.get(vocabURI, None) foreach { vocabulary =>
       cache.put(vocabURI, vocabulary)
+      setLastUpdated()
     }
   }
 }

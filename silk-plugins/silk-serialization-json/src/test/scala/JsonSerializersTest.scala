@@ -48,7 +48,7 @@ class JsonSerializersTest  extends FlatSpec with Matchers {
         Seq(vocClass),
         Seq(VocabularyProperty(GenericInfo("http://property"), DatatypePropertyType, Some(vocClass), Some(vocClass)))
       )
-    ))
+    ), Some(System.currentTimeMillis()))
     val json = Json.parse(toJsonString(vocabularyCacheValue))
     (json \ VocabularyCacheValueJsonFormat.VOCABULARIES \ VocabularyJsonFormat.CLASSES \\ GenericInfoJsonFormat.LABEL).
         headOption.map(_.as[String]) shouldBe vocClass.info.label
