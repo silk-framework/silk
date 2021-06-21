@@ -17,4 +17,6 @@ class XmlSourceInMemoryTest extends XmlSourceTestBase {
     events.valuesAt("""\..[Name = "Max Doe"]/ID""") shouldBe Seq(Seq("1"))
     events.valuesAt("""\..[Name = "Max No"]/ID""") shouldBe Seq(Seq())
   }
+
+  override def isStreaming: Boolean = false
 }

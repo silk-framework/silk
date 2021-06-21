@@ -15,6 +15,8 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
   implicit val userContext: UserContext = UserContext.Empty
   def xmlSource(name: String, uriPattern: String, baseType: String = ""): DataSource with XmlSourceTrait
+  // Some operations are not supported in streaming mode
+  def isStreaming: Boolean
 
   behavior of "XML Dataset"
 
@@ -51,16 +53,43 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
       (persons atPath "Person" valuesAt "MissingTag") shouldBe Seq(Seq(), Seq())
     }
 
+    it should s"return no value for paths that include non-existing path segments ($fileName)" in {
+      (persons atPath "Person" valuesAt "NonExisting/Name") shouldBe Seq(Seq(), Seq())
+      (persons atPath "Person" valuesAt "NonExisting/Property/Key") shouldBe Seq(Seq(), Seq())
+      (persons atPath "Person/NonExisting/Events" valuesAt "Birth") shouldBe Seq()
+      (persons atPath "Person/NonExisting/Birth" valuesAt "#text") shouldBe Seq()
+    }
+
+    it should s"return no value for paths that have gaps in their paths ($fileName)" in {
+      (persons atPath "Person/Birth" valuesAt "#text") shouldBe Seq()
+      (persons atPath "Person" valuesAt "Birth") shouldBe Seq(Seq(), Seq())
+    }
+
     it should s"return no value if an attribute is missing ($fileName)" in {
       (persons atPath "Person" valuesAt "@MissingAttribute") shouldBe Seq(Seq(), Seq())
     }
 
     it should s"support property filters ($fileName)" in {
       (persons atPath "Person" valuesAt "Properties/Property[Key = \"2\"]/Value") shouldBe Seq(Seq("V2"), Seq())
+      (persons atPath "Person/Properties/Key[@id = \"id3\"]" valuesAt "#text") shouldBe Seq(Seq("2"))
+      if(!isStreaming) {
+        // FIXME: Filtering in object path only allowed on attribute values
+        (persons atPath "Person/Properties/Property[Key = \"2\"]" valuesAt "Value") shouldBe Seq(Seq("V2"))
+      }
     }
 
     it should s"support property filters on attributes ($fileName)" in {
       (persons atPath "Person" valuesAt "Events[@count = \"2\"]/Birth") shouldBe Seq(Seq("May 1900"), Seq())
+      (persons atPath "Person" valuesAt "Events[@count = \"3\"]/Birth") shouldBe Seq(Seq(), Seq())
+      if(!isStreaming) {
+        // FIXME: No backward paths supported in streaming mode
+        (persons atPath "Person/Properties" valuesAt "Property/Key[@id = \"id3\"]\\../Value") shouldBe Seq(Seq("V2"))
+        (persons atPath "Person/Properties" valuesAt "Property/Key[@id = \"id3\"]\\../Value") shouldBe Seq(Seq("V2"))
+      }
+      (persons atPath "Person/Properties" valuesAt "Property/Key[@id = \"id3\"]/#text") shouldBe Seq(Seq("2"))
+      (persons atPath "Person/Properties" valuesAt "Property/Key[@id = \"id3\"]/#text") shouldBe Seq(Seq("2"))
+      (persons atPath "Person/Events[@count = \"2\"]" valuesAt "Birth") shouldBe Seq(Seq("May 1900"))
+      (persons atPath "Person/Events[@count = \"3\"]" valuesAt "Birth") shouldBe Seq()
     }
 
     it should s"allow wildcard * path elements ($fileName)" in {
@@ -81,6 +110,8 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
     it should s"allow retrieving the text of a selected element ($fileName)" in {
       (persons atPath "Person/ID" valuesAt "#text") shouldBe Seq(Seq("1"), Seq("2"))
+      (persons atPath "Person" valuesAt "Properties/Property/#text") shouldBe Seq(Seq("1V1", "2V2", "V3"), Seq())
+      (persons atPath "Person" valuesAt "Properties/Property/Key/#text") shouldBe Seq(Seq("1", "2", ""), Seq())
     }
 
     it should s"generate correct URIs for non-leaf nodes when the URI pattern is empty ($fileName)" in {

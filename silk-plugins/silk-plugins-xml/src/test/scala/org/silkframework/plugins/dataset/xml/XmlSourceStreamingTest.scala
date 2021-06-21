@@ -39,4 +39,6 @@ class XmlSourceStreamingTest extends XmlSourceTestBase {
       "Property/Key/@id" -> "StringValueType"
     )
   }
+
+  override def isStreaming: Boolean = true
 }
