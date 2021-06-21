@@ -45,9 +45,6 @@ trait IntegrationTestTrait extends TaskApiClient
 
   lazy val baseUrl = s"http://localhost:$port"
 
-  // TODO The ServerProviderTestTrait no longer allows changing the port
-  // override lazy val port: Int = 19000 + Random.nextInt(1000)
-
   def workspaceProject(projectId: String)
                       (implicit userContext: UserContext): Project = WorkspaceFactory().workspace.project(projectId)
 
