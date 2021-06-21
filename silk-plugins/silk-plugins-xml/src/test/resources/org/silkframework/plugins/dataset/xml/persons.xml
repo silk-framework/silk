@@ -24,5 +24,6 @@
   <Person>
     <ID>2</ID>
     <Name>Max Noe</Name>
+    <OnlyInSecondPerson>only</OnlyInSecondPerson>
   </Person>
 </Persons>

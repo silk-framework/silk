@@ -40,6 +40,10 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
       (persons atPath "Person" valuesAt "Name") shouldBe Seq(Seq("Max Doe"), Seq("Max Noe"))
     }
 
+    it should s"find start element of paths where the path contains optional elements ($fileName)" in {
+      (persons atPath "Person/OnlyInSecondPerson" valuesAt "#text") shouldBe Seq(Seq("only"))
+    }
+
     it should s"extract values of indirect children ($fileName)" in {
       (persons atPath "Person" valuesAt "Events/Birth") shouldBe Seq(Seq("May 1900"), Seq())
       (persons atPath "Person" valuesAt "Events/Death") shouldBe Seq(Seq("June 1990"), Seq())
@@ -71,9 +75,8 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
     it should s"support property filters ($fileName)" in {
       (persons atPath "Person" valuesAt "Properties/Property[Key = \"2\"]/Value") shouldBe Seq(Seq("V2"), Seq())
-      (persons atPath "Person/Properties/Key[@id = \"id3\"]" valuesAt "#text") shouldBe Seq(Seq("2"))
       if(!isStreaming) {
-        // FIXME: Filtering in object path only allowed on attribute values
+        // FIXME: Filtering in object path in streaming mode not allowed on element values, only attributes.
         (persons atPath "Person/Properties/Property[Key = \"2\"]" valuesAt "Value") shouldBe Seq(Seq("V2"))
       }
     }
@@ -87,7 +90,8 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
         (persons atPath "Person/Properties" valuesAt "Property/Key[@id = \"id3\"]\\../Value") shouldBe Seq(Seq("V2"))
       }
       (persons atPath "Person/Properties" valuesAt "Property/Key[@id = \"id3\"]/#text") shouldBe Seq(Seq("2"))
-      (persons atPath "Person/Properties" valuesAt "Property/Key[@id = \"id3\"]/#text") shouldBe Seq(Seq("2"))
+      (persons atPath "Person/Properties" valuesAt "Property/Key[@id = \"NO_ID\"]/#text") shouldBe Seq(Seq())
+      (persons atPath "Person/Properties/Property/Key[@id = \"id3\"]" valuesAt "#text") shouldBe Seq(Seq("2"))
       (persons atPath "Person/Events[@count = \"2\"]" valuesAt "Birth") shouldBe Seq(Seq("May 1900"))
       (persons atPath "Person/Events[@count = \"3\"]" valuesAt "Birth") shouldBe Seq()
     }
@@ -137,7 +141,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
     it should s"list all paths of the root node ($fileName)" in {
       (persons atPath "").subPaths shouldBe
-        Seq("Person", "Person/ID", "Person/Name", "Person/Events", "Person/Events/@count", "Person/Events/Birth",
+        Seq("Person", "Person/ID", "Person/Name", "Person/OnlyInSecondPerson", "Person/Events", "Person/Events/@count", "Person/Events/Birth",
           "Person/Events/Death", "Person/Properties", "Person/Properties/Property", "Person/Properties/Property/Key",
           "Person/Properties/Property/Value", "Person/Properties/Property/Key", "Person/Properties/Property/Key/@id")
     }
@@ -149,24 +153,24 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
     it should s"list all paths of the root node of depth 2 ($fileName)" in {
       (persons atPath "").subPathsDepth(2) shouldBe
-        Seq("Person", "Person/ID", "Person/Name", "Person/Events", "Person/Properties")
+        Seq("Person", "Person/ID", "Person/Name", "Person/OnlyInSecondPerson", "Person/Events", "Person/Properties")
     }
 
     it should s"list all paths, given a base path ($fileName)" in {
       (persons atPath "Person").subPaths shouldBe
-        Seq("ID", "Name", "Events", "Events/@count", "Events/Birth", "Events/Death", "Properties",
+        Seq("ID", "Name", "OnlyInSecondPerson", "Events", "Events/@count", "Events/Birth", "Events/Death", "Properties",
           "Properties/Property", "Properties/Property/Key", "Properties/Property/Value", "Properties/Property/Key",
           "Properties/Property/Key/@id")
     }
 
     it should s"list all paths of depth 1, given a base path ($fileName)" in {
       (persons atPath "Person").subPathsDepth(1) shouldBe
-        Seq("ID", "Name", "Events", "Properties")
+        Seq("ID", "Name", "OnlyInSecondPerson", "Events", "Properties")
     }
 
     it should s"list all paths of depth 2, given a base path ($fileName)" in {
       (persons atPath "Person").subPathsDepth(2) shouldBe
-        Seq("ID", "Name", "Events", "Events/@count", "Events/Birth", "Events/Death", "Properties",
+        Seq("ID", "Name", "OnlyInSecondPerson", "Events", "Events/@count", "Events/Birth", "Events/Death", "Properties",
           "Properties/Property")
     }
 
@@ -189,6 +193,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     xmlSource("persons.xml", "").retrievePaths("Person").map(tp => tp.toUntypedPath.normalizedSerialization -> tp.valueType -> tp.isAttribute) shouldBe IndexedSeq(
       "ID" -> ValueType.STRING -> false,
       "Name" -> ValueType.STRING -> false,
+      "OnlyInSecondPerson" -> ValueType.STRING -> false,
       "Events" -> ValueType.URI -> false,
       "Events/@count" -> ValueType.STRING -> true,
       "Events/Birth" -> ValueType.STRING -> false,
@@ -203,6 +208,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     xmlSource("persons.xml", "", "Person").retrievePaths("").map(tp => tp.toUntypedPath.normalizedSerialization -> tp.valueType -> tp.isAttribute) shouldBe IndexedSeq(
       "ID" -> ValueType.STRING -> false,
       "Name" -> ValueType.STRING -> false,
+      "OnlyInSecondPerson" -> ValueType.STRING -> false,
       "Events" -> ValueType.URI -> false,
       "Events/@count" -> ValueType.STRING -> true,
       "Events/Birth" -> ValueType.STRING -> false,

@@ -294,7 +294,9 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
     var idx = 0
     if(op.property.uri.startsWith("@")) {
       node.attributes.get(op.property.uri.drop(1)) foreach { value =>
-        buffer += this
+        if(op.evaluate(s"""\"$value\"""")) {
+          buffer += this
+        }
       }
     } else {
       while(idx < nodeArray.length) {
