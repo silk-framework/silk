@@ -114,7 +114,6 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
     it should s"allow retrieving the text of a selected element ($fileName)" in {
       (persons atPath "Person/ID" valuesAt "#text") shouldBe Seq(Seq("1"), Seq("2"))
-      (persons atPath "Person" valuesAt "Properties/Property/#text") shouldBe Seq(Seq("1V1", "2V2", "V3"), Seq())
       (persons atPath "Person" valuesAt "Properties/Property/Key/#text") shouldBe Seq(Seq("1", "2", ""), Seq())
     }
 
@@ -222,6 +221,13 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     )
   }
 
+  it should "return the concatenated text for nested elements for the #text operator" in {
+    (XmlDoc("persons.xml") atPath "Person" valuesAt "Properties/Property/#text") shouldBe Seq(Seq(
+      "\n        1\n        V1\n      ",
+      "\n        2\n        V2\n      ",
+      "\n        \n        V3\n      "
+    ), Seq())
+  }
 
   /**
     * References an XML document from the test resources.

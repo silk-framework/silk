@@ -200,14 +200,17 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
       if(reader.isStartElement) {
         if(currentPathSegment().matches(reader)) {
           if(pathSegmentIdx == entityPathSegments.nrPathSegments - 1) {
+            // All path segments were matching, found element.
             return true
           } else {
+            // Last path segment was matching, check next one
             pathSegmentIdx += 1
             reader.next()
           }
         } else {
+          // Path element was not matching, check next sibling
           skipElement(reader)
-          // skipElement places the reader already on the next element
+          // skipElement already calls reader.next() at the end, so this is not needed here.
         }
       } else if(reader.isEndElement) {
         pathSegmentIdx -= 1
@@ -216,7 +219,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
         reader.next()
       }
     }
-
+    // Document end, no further entity can be found.
     false
   }
 
@@ -246,10 +249,17 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
       }
       arr
     }
+
     def pathSegment(idx: Int): PathSegment = {
       pathSegments(idx)
     }
 
+    /**
+      * A path segment groups a foward operator with its related property filters.
+      *
+      * @param forwardOp   An optional forward operator. This is only None for the root segment.
+      * @param pathFilters Path filters that are applied after the corresponding forward operator.
+      */
     case class PathSegment(forwardOp: Option[ForwardOperator], pathFilters: Seq[PropertyFilter] = Seq.empty) {
       def matches(reader: XMLStreamReader): Boolean = {
         assert(reader.isStartElement)
@@ -277,9 +287,17 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
   }
 
   private def checkObjectPath(path: UntypedPath): Unit = {
-    assert(path.operators.forall(op => op.isInstanceOf[ForwardOperator] ||
-      (op.isInstanceOf[PropertyFilter] && op.asInstanceOf[PropertyFilter].property.uri.startsWith("@"))),
-      "Only forward operators and property filters on attributes are supported.")
+    val validationRules = Seq[(String, Boolean)](
+      "Only forward operators and property filters on attributes are supported." ->
+        path.operators.forall(op => op.isInstanceOf[ForwardOperator] ||
+          (op.isInstanceOf[PropertyFilter] && op.asInstanceOf[PropertyFilter].property.uri.startsWith("@")))
+        ,
+        "No #text path allowed inside object path with streaming mode enabled." ->
+          path.operators.filter(_.isInstanceOf[PropertyFilter]).forall(_.asInstanceOf[PropertyFilter].property.uri != "#text")
+    )
+    for((assertErrorMessage, assertionValue) <- validationRules) {
+      assert(assertionValue, assertErrorMessage)
+    }
   }
 
   class PathNotExistsException(msg: String) extends Exception(msg: String)
