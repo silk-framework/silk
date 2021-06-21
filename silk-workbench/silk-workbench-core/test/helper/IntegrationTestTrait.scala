@@ -43,7 +43,7 @@ trait IntegrationTestTrait extends TaskApiClient
   final val CONTENT_TYPE: String = "content-type"
   final val ACCEPT: String = "accept"
 
-  val baseUrl = s"http://localhost:$port"
+  lazy val baseUrl = s"http://localhost:$port"
 
   // TODO The ServerProviderTestTrait no longer allows changing the port
   // override lazy val port: Int = 19000 + Random.nextInt(1000)

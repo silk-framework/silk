@@ -1,13 +1,9 @@
 package controllers.workspace
 
-import java.io._
-import java.util.logging.Logger
-import akka.stream.scaladsl.{Source, StreamConverters}
-import controllers.core.util.ControllerUtilsTrait
+import akka.stream.scaladsl.StreamConverters
 import controllers.core.UserContextActions
+import controllers.core.util.ControllerUtilsTrait
 import controllers.workspace.ProjectMarshalingApi._
-
-import javax.inject.Inject
 import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workspace.xml.XmlZipWithResourcesProjectMarshaling
@@ -15,6 +11,9 @@ import org.silkframework.workspace.{ProjectMarshallerRegistry, ProjectMarshallin
 import play.api.libs.json.JsArray
 import play.api.mvc._
 
+import java.io._
+import java.util.logging.Logger
+import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 class ProjectMarshalingApi @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
@@ -97,7 +96,6 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
         try {
           serializeFunc(outputStream)
         } finally {
-          // We need to make sure to close the output stream to stop the Enumerator
           outputStream.close()
         }
       })
