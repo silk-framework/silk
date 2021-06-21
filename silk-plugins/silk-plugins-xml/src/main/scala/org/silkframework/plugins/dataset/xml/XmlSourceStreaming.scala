@@ -473,10 +473,17 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     paths.put(Nil, 0)
     val idx = new AtomicInteger(1)
     var currentPath = List[String]()
-
     val inputStream = file.inputStream
     try {
       val reader: XMLStreamReader = initStreamReader(inputStream)
+      def collectAttributes(): Unit = {
+        for (attributeIndex <- 0 until reader.getAttributeCount) yield {
+          val attributePath = "@" + reader.getAttributeLocalName(attributeIndex) :: currentPath
+          addIfNotExists(paths, idx, attributePath)
+          collectValues(attributePath.dropRight(basePathLength), reader.getAttributeValue(attributeIndex))
+        }
+      }
+      if (basePathMatches(currentPath)) { collectAttributes() }
       var readNext = true
       var eventId = reader.getEventType
       while(reader.hasNext && paths.size < limit) {
@@ -492,11 +499,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
             currentPath ::= reader.getLocalName
             if (basePathMatches(currentPath)) {
               addIfNotExists(paths, idx, currentPath)
-              for (attributeIndex <- 0 until reader.getAttributeCount) yield {
-                val attributePath = "@" + reader.getAttributeLocalName(attributeIndex) :: currentPath
-                addIfNotExists(paths, idx, attributePath)
-                collectValues(attributePath.dropRight(basePathLength), reader.getAttributeValue(attributeIndex))
-              }
+              collectAttributes()
             }
             val text = Try(reader.getElementText)
             text foreach { elemText =>

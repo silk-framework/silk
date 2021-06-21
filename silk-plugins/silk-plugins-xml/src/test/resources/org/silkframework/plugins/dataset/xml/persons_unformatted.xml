@@ -1,4 +1,4 @@
-<Persons><Person><ID>1</ID><Name>Max Doe</Name><Events count="2"><Birth>May 1900</Birth>     <Death>June 1990</Death>
+<Persons rootAttribute="top"><Person><ID>1</ID><Name>Max Doe</Name><Events count="2"><Birth>May 1900</Birth>     <Death>June 1990</Death>
 
 </Events>
 

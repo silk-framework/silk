@@ -1,4 +1,4 @@
-<Persons>
+<Persons rootAttribute="top">
   <Person>
     <ID>1</ID>
     <Name>Max Doe</Name>

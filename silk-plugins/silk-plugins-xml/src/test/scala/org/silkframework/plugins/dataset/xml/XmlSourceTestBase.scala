@@ -29,6 +29,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
     it should s"read the root element, if the base path is empty. ($fileName)" in {
       (persons atPath "").uris shouldBe Seq("Persons")
+      persons atPath "" valuesAt "@rootAttribute" shouldBe Seq(Seq("top"))
     }
 
     it should s"read the direct children, if they are referenced by a direct path ($fileName)" in {
@@ -140,19 +141,19 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
     it should s"list all paths of the root node ($fileName)" in {
       (persons atPath "").subPaths shouldBe
-        Seq("Person", "Person/ID", "Person/Name", "Person/OnlyInSecondPerson", "Person/Events", "Person/Events/@count", "Person/Events/Birth",
+        Seq("@rootAttribute", "Person", "Person/ID", "Person/Name", "Person/OnlyInSecondPerson", "Person/Events", "Person/Events/@count", "Person/Events/Birth",
           "Person/Events/Death", "Person/Properties", "Person/Properties/Property", "Person/Properties/Property/Key",
           "Person/Properties/Property/Value", "Person/Properties/Property/Key", "Person/Properties/Property/Key/@id")
     }
 
     it should s"list all paths of the root node of depth 1 ($fileName)" in {
       (persons atPath "").subPathsDepth(1) shouldBe
-        Seq("Person")
+        Seq("@rootAttribute", "Person")
     }
 
     it should s"list all paths of the root node of depth 2 ($fileName)" in {
       (persons atPath "").subPathsDepth(2) shouldBe
-        Seq("Person", "Person/ID", "Person/Name", "Person/OnlyInSecondPerson", "Person/Events", "Person/Properties")
+        Seq("@rootAttribute", "Person", "Person/ID", "Person/Name", "Person/OnlyInSecondPerson", "Person/Events", "Person/Properties")
     }
 
     it should s"list all paths, given a base path ($fileName)" in {
