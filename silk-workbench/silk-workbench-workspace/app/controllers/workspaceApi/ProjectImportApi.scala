@@ -305,7 +305,7 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
       ),
       new ApiResponse(
         responseCode = "404",
-        description = "The execution has not been started, yet, or the project import ID is not known.."
+        description = "The execution has not been started, yet, or the project import ID is not known."
       )
     ))
   def projectImportExecutionStatus(@Parameter(
@@ -358,9 +358,59 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
   }
 
   /** Starts a project import based on the import ID. */
-  def startProjectImport(projectImportId: String,
+  @Operation(
+    summary = "Start project import",
+    description = "Starts a project import based on the import identifier.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "201",
+        description = "The project import has been executed. The status of the project import can be requested via the status endpoint.",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject("{ \"projectId\": \"1e813497-0c75-48cf-a857-2ddc3f94fe26_ConfigProject\", \"importStarted\": 1600950697304, \"importEnded\": 1600950697497, \"success\": false, \"failureMessage\": \"Exception during...\" }")))
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "The execution has not been started, yet, or the project import ID is not known."
+      ),
+      new ApiResponse(
+        responseCode = "409",
+        description = "Returned if a project with the same ID already exists and neither generateNewId nor overwriteExisting is enabled. Also returned if the uploaded temporary project file has been deleted because it reached its max age."
+      )
+    ))
+  def startProjectImport(@Parameter(
+                           name = "projectImportId",
+                           description = "The project import id.",
+                           required = true,
+                           in = ParameterIn.PATH,
+                           schema = new Schema(implementation = classOf[String])
+                         )
+                         projectImportId: String,
+                         @Parameter(
+                           name = "generateNewId",
+                           description = "When enabled this will always generate a new ID for this project based on the project label. This is one strategy if a project with the original ID already exists.",
+                           required = false,
+                           in = ParameterIn.QUERY,
+                           schema = new Schema(implementation = classOf[Boolean])
+                         )
                          generateNewId: Boolean,
+                         @Parameter(
+                           name = "overwriteExisting",
+                           description = "When enabled this will overwrite an existing project with the same ID. Enabling this option will NOT override the generateNewId option.",
+                           required = false,
+                           in = ParameterIn.QUERY,
+                           schema = new Schema(implementation = classOf[Boolean])
+                         )
                          overwriteExisting: Boolean,
+                         @Parameter(
+                           name = "newProjectId",
+                           description = "If provided, this will adopt the given id for the imported project. Cannot be set together with 'generateNewId'.",
+                           required = false,
+                           in = ParameterIn.QUERY,
+                           schema = new Schema(implementation = classOf[String])
+                         )
                          newProjectId: Option[String]): Action[AnyContent] = UserContextAction { implicit userContext =>
     withProjectImportQueue {
       _.get(projectImportId) match {

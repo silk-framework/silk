@@ -117,8 +117,7 @@ object ReportsApi {
     "project": "movies",
     "task": "simpleWorkflow",
     "time": "2020-11-26T14:22:13.462Z"
-  },
-  ...
+  }
 ]
 """
 
@@ -132,13 +131,13 @@ object ReportsApi {
     "cancelledAt": null,
     "cancelledBy": null,
     "finishStatus": {
-      ...
+      "final": "status"
     }
   },
   "value": {
     "summary": [],
     "task": {
-      ...
+      "some": "specification"
     },
     "warnings": [
       "Some tasks generated warnings."
@@ -148,13 +147,13 @@ object ReportsApi {
       "DBpedia": {
         "label": "DBpedia",
         "task": {
-          ...
+          "some": "specification"
         },
         "summary": [],
         "warnings": []
       },
       "transform": {
-        ...
+        "some": "specification"
       }
     }
   }
