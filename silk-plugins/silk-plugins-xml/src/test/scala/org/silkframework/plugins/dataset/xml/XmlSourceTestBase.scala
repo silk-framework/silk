@@ -222,6 +222,13 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     )
   }
 
+  it should "generate default URIs for attribute object paths" in {
+    val uris = (XmlDoc("persons.xml", "") atPath "Person/Events/@count").uris
+    uris should not be empty
+    uris.head should include ("count")
+    (XmlDoc("persons.xml") atPath "Person/Events/@count").uris shouldBe Seq("attr_count")
+  }
+
   it should "return the concatenated text for nested elements for the #text operator" in {
     (XmlDoc("persons.xml") atPath "Person" valuesAt "Properties/Property/#text") shouldBe Seq(Seq(
       "\n        1\n        V1\n      ",

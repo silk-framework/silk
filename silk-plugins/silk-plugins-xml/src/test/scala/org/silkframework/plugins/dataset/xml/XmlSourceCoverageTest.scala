@@ -23,7 +23,7 @@ class XmlSourceCoverageTest extends FlatSpec with MustMatchers {
     val result = source.pathCoverage(Seq(
       CoveragePathInput("Person/Properties/Property", Seq())
     ))
-    result.paths.size mustBe 13
+    result.paths.size mustBe 15
     result.paths.forall(!_.covered) mustBe true
   }
 
@@ -33,7 +33,7 @@ class XmlSourceCoverageTest extends FlatSpec with MustMatchers {
       CoveragePathInput("Person/Properties/Property", paths("Key")),
       CoveragePathInput("", paths("""Person[ID="1"]/Name""", "Person/Events/@count"))
     ))
-    result.paths.size mustBe 13
+    result.paths.size mustBe 15
     result.paths.count(_.covered) mustBe 4
     result.paths.count(_.fully) mustBe 3
   }
