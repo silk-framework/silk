@@ -18,6 +18,7 @@ export interface ISearchListRequest {
     sortOrder?: string;
     project?: string;
     facets?: IAppliedFacetState[];
+    textQuery?: string;
 }
 
 export interface ISearchListResponse {

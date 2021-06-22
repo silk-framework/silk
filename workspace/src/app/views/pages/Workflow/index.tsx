@@ -12,10 +12,11 @@ import { IframeWindow } from "../../shared/IframeWindow/IframeWindow";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
 import NotFound from "../NotFound";
+import { ProjectTaskParams } from "views/shared/typings";
 
 export default function () {
     const error = useSelector(datasetSel.errorSelector);
-    const { taskId, projectId } = useParams();
+    const { taskId, projectId } = useParams<ProjectTaskParams>();
     const [notFound, setNotFound] = useState(false);
 
     useEffect(() => {
