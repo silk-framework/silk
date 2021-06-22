@@ -1,8 +1,8 @@
 package controllers.workspace
 
-import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.StreamConverters
+import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.workspace.workspaceApi.TaskLinkInfo
 import controllers.workspace.workspaceRequests.{CopyTasksRequest, UpdateGlobalVocabularyRequest}
 import controllers.workspaceApi.coreApi.PluginApiCache
@@ -21,8 +21,6 @@ import org.silkframework.workspace.activity.ProjectExecutor
 import org.silkframework.workspace.activity.vocabulary.GlobalVocabularyCache
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
 import play.api.libs.Files
-import play.api.libs.iteratee.Enumerator
-import play.api.libs.iteratee.streams.IterateeStreams
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
 
@@ -30,11 +28,10 @@ import java.io.File
 import java.net.URL
 import java.util.logging.Logger
 import javax.inject.Inject
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.language.existentials
 import scala.util.Try
 
-class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor, pluginApiCache: PluginApiCache) extends InjectedController with ControllerUtilsTrait {
+class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor, pluginApiCache: PluginApiCache) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
@@ -177,10 +174,7 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor, pluginApiC
   def getResource(projectName: String, resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val resource = project.resources.get(resourceName, mustExist = true)
-    val enumerator = Enumerator.fromStream(resource.inputStream)
-    val source = Source.fromPublisher(IterateeStreams.enumeratorToPublisher(enumerator))
-
-    Ok.chunked(source).withHeaders("Content-Disposition" -> "attachment")
+    Ok.chunked(StreamConverters.fromInputStream(() => resource.inputStream)).withHeaders("Content-Disposition" -> "attachment")
   }
 
   def putResource(projectName: String, resourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request =>implicit userContext =>

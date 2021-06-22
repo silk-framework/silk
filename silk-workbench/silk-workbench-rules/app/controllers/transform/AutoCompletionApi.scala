@@ -1,7 +1,7 @@
 package controllers.transform
 
 import controllers.core.util.ControllerUtilsTrait
-import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.core.{UserContextActions}
 import controllers.transform.AutoCompletionApi.Categories
 import controllers.transform.autoCompletion._
 import controllers.transform.transformTask.TransformUtils
@@ -26,7 +26,7 @@ import scala.language.implicitConversions
 /**
   * Generates auto completions for mapping paths and types.
   */
-class AutoCompletionApi @Inject() () extends InjectedController with ControllerUtilsTrait {
+class AutoCompletionApi @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
   val log: Logger = Logger.getLogger(this.getClass.getName)
 
   /**

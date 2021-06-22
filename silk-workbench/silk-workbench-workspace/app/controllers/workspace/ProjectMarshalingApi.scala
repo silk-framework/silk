@@ -1,25 +1,22 @@
 package controllers.workspace
 
-import java.io._
-import java.util.logging.Logger
-
-import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.StreamConverters
+import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.workspace.ProjectMarshalingApi._
-import javax.inject.Inject
 import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workspace.xml.XmlZipWithResourcesProjectMarshaling
 import org.silkframework.workspace.{ProjectMarshallerRegistry, ProjectMarshallingTrait, WorkspaceFactory}
-import play.api.libs.iteratee.Enumerator
-import play.api.libs.iteratee.streams.IterateeStreams
 import play.api.libs.json.JsArray
 import play.api.mvc._
 
+import java.io._
+import java.util.logging.Logger
+import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
-class ProjectMarshalingApi @Inject() () extends InjectedController with ControllerUtilsTrait {
+class ProjectMarshalingApi @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
@@ -51,13 +48,11 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with Controll
 
   def exportProjectViaPlugin(projectName: String, marshallerPluginId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     withMarshaller(marshallerPluginId) { marshaller =>
-      val enumerator = enumerateOutputStream { outputStream =>
+      val source = createSource { outputStream =>
         WorkspaceFactory().workspace.exportProject(projectName, outputStream, marshaller)
       }
-
       val fileName = projectName + marshaller.suffix.map("." + _).getOrElse("")
-
-      Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(enumerator))).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
+      Ok.chunked(source).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
     }
   }
 
@@ -74,14 +69,12 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with Controll
 
   def exportWorkspaceViaPlugin(marshallerPluginId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     withMarshaller(marshallerPluginId) { marshaller =>
-      val enumerator = enumerateOutputStream { outputStream =>
+      val source = createSource { outputStream =>
         val workspace = WorkspaceFactory().workspace
         marshaller.marshalWorkspace(outputStream, workspace.projects, workspace.repository)
       }
-
       val fileName = "workspace" + marshaller.suffix.map("." + _).getOrElse("")
-
-      Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(enumerator))).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
+      Ok.chunked(source).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
     }
   }
 
@@ -94,22 +87,21 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with Controll
     }
   }
 
-  private def enumerateOutputStream(serializeFunc: java.io.OutputStream => Unit): Enumerator[Array[Byte]] = {
-    val outputStream = new PipedOutputStream
-    val pipedInputStream = new PipedInputStream(outputStream)
+  private def createSource(serializeFunc: java.io.OutputStream => Unit) = {
+    StreamConverters.fromInputStream(() => {
+      val outputStream = new PipedOutputStream
+      val pipedInputStream = new PipedInputStream(outputStream)
 
-    exportExecutionContext.execute(new Runnable {
-      override def run(): Unit = {
+      exportExecutionContext.execute(() => {
         try {
           serializeFunc(outputStream)
         } finally {
-          // We need to make sure to close the output stream to stop the Enumerator
           outputStream.close()
         }
-      }
-    })
+      })
 
-    Enumerator.fromStream(pipedInputStream)(exportExecutionContext)
+      pipedInputStream
+    })
   }
 
   def bodyAsFile(implicit request: Request[AnyContent]): File = {

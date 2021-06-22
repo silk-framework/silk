@@ -1,6 +1,6 @@
 package controllers.transform
 
-import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.core.UserContextActions
 import controllers.transform.TransformTaskApi._
 import controllers.transform.transformTask.{ObjectValueSourcePathInfo, TransformUtils, ValueSourcePathInfo}
 import controllers.util.ProjectUtils._
@@ -25,13 +25,12 @@ import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc._
 
-import java.util
 import java.util.logging.{Level, Logger}
 import javax.inject.Inject
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
-class TransformTaskApi @Inject() () extends InjectedController {
+class TransformTaskApi @Inject() () extends InjectedController with UserContextActions {
 
   private val log = Logger.getLogger(getClass.getName)
 

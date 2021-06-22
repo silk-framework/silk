@@ -1,8 +1,9 @@
 package controllers.transform
 
-import controllers.core.RequestUserContextAction
+import controllers.core.{UserContextActions}
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
+
 import javax.inject.Inject
 import org.silkframework.config.{PlainTask, Prefixes, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.{DataSourceWrapper, GenericDatasetSpec}
@@ -26,7 +27,7 @@ import scala.util.control.NonFatal
 import PeakTransformApi._
 import org.silkframework.entity.paths.{Path, TypedPath}
 
-class PeakTransformApi @Inject() () extends InjectedController {
+class PeakTransformApi @Inject() () extends InjectedController with UserContextActions {
 
   implicit private val peakStatusWrites: Writes[PeakStatus] = Json.writes[PeakStatus]
   implicit private val peakResultWrites: Writes[PeakResult] = Json.writes[PeakResult]

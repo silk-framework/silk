@@ -1,7 +1,7 @@
 package controllers.workspace
 
 import controllers.core.util.ControllerUtilsTrait
-import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.core.{UserContextActions}
 import controllers.util.SerializationUtils
 import controllers.workspace.workspaceRequests.CopyTasksRequest
 import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
@@ -26,7 +26,7 @@ import scala.concurrent.ExecutionContext
 import scala.util.Try
 import scala.util.control.NonFatal
 
-class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with ControllerUtilsTrait {
+class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   implicit private lazy val executionContext: ExecutionContext = controllerComponents.executionContext
   private val log: Logger = Logger.getLogger(this.getClass.getCanonicalName)
