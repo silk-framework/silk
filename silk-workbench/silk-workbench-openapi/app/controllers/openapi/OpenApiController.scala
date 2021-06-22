@@ -9,7 +9,7 @@ class OpenApiController @Inject()(cc: ControllerComponents,
                                   swaggerPlugin: SwaggerPlugin) extends AbstractController(cc) {
 
   def apiSpec: Action[AnyContent] = {
-    new io.aurora.utils.play.swagger.controllers.SwaggerController(cc, swaggerPlugin).getResourcesAsYaml
+    new io.aurora.utils.play.swagger.controllers.SwaggerController(cc, swaggerPlugin).getResourcesAsJson
   }
 
   def ui: Action[AnyContent] = Action { implicit request =>

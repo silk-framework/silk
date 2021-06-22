@@ -1,7 +1,8 @@
 package controllers.core
 
 import controllers.util.SerializationUtils
-import io.swagger.v3.oas.annotations.media.{Content, ExampleObject}
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
@@ -10,7 +11,7 @@ import play.api.mvc._
 
 import javax.inject.Inject
 
-@Tag(name = "Plugin API")
+@Tag(name = "Plugins")
 class PluginApi @Inject() () extends InjectedController {
 
   @Operation(
@@ -25,7 +26,13 @@ class PluginApi @Inject() () extends InjectedController {
         ))
       )
     ))
-  def plugins(@Parameter(description = "If true, MarkDown documentation will be added for plugins if available.")
+  def plugins(@Parameter(
+                name = "addMarkdownDocumentation",
+                description = "Add markdown documentation to the result.",
+                required = false,
+                in = ParameterIn.QUERY,
+                schema = new Schema(implementation = classOf[Boolean], example = "false")
+              )
               addMarkdownDocumentation: Boolean): Action[AnyContent] = Action { implicit request => {
     val pluginTypes = Seq(
       "org.silkframework.workspace.WorkspaceProvider",
@@ -51,7 +58,22 @@ class PluginApi @Inject() () extends InjectedController {
         ))
       )
     ))
-  def pluginsForTypes(pluginType: String, addMarkdownDocumentation: Boolean): Action[AnyContent] = Action { implicit request => {
+  def pluginsForTypes(@Parameter(
+                        name = "pluginType",
+                        description = "Full class name of the plugin.",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String], example = "org.silkframework.dataset.Dataset")
+                      )
+                      pluginType: String,
+                      @Parameter(
+                        name = "addMarkdownDocumentation",
+                        description = "Add markdown documentation to the result.",
+                        required = false,
+                        in = ParameterIn.QUERY,
+                        schema = new Schema(implementation = classOf[Boolean], example = "false")
+                      )
+                      addMarkdownDocumentation: Boolean): Action[AnyContent] = Action { implicit request => {
     val pluginTypes = pluginType.split("\\s*,\\s*")
     serialize(addMarkdownDocumentation, pluginTypes)
   }}

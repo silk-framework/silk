@@ -25,7 +25,7 @@ import javax.inject.Inject
 /**
   * API to search for tasks in the workspace.
   */
-@Tag(name = "Search API")
+@Tag(name = "Search")
 class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
