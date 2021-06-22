@@ -302,7 +302,8 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
     name := "Silk Workbench Core",
     // Play filters (CORS filter etc.)
     libraryDependencies += filters,
-    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % "test"
+    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % "test",
+    libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.1.9"
   )
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
@@ -333,14 +334,22 @@ lazy val workbenchWorkflow = (project in file("silk-workbench/silk-workbench-wor
     name := "Silk Workbench Workflow"
   )
 
+lazy val workbenchOpenApi = (project in file("silk-workbench/silk-workbench-openapi"))
+  .enablePlugins(PlayScala)
+  .settings(commonSettings: _*)
+  .settings(
+    name := "Silk Workbench OpenAPI",
+    libraryDependencies += "io.kinoplan" % "swagger-play_2.12" % "0.0.3",
+    libraryDependencies += "org.webjars" % "swagger-ui" % "3.50.0"
+  )
+
 lazy val workbench = (project in file("silk-workbench"))
     .enablePlugins(PlayScala)
-    .dependsOn(workbenchWorkspace, workbenchRules, workbenchWorkflow, plugins)
-    .aggregate(workbenchWorkspace, workbenchRules, workbenchWorkflow, plugins)
+    .dependsOn(workbenchWorkspace, workbenchRules, workbenchWorkflow, workbenchOpenApi, plugins)
+    .aggregate(workbenchWorkspace, workbenchRules, workbenchWorkflow, workbenchOpenApi, plugins)
     .settings(commonSettings: _*)
     .settings(
       name := "Silk Workbench",
-      // War Packaging
       libraryDependencies += guice,
       // Linux Packaging, Uncomment to generate Debian packages that register the Workbench as an Upstart service
       // packageArchetype.java_server

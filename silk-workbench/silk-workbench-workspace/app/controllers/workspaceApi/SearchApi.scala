@@ -4,11 +4,16 @@ import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.workspaceApi.search.SearchApiModel._
 import controllers.workspaceApi.search.{ItemType, ParameterAutoCompletionRequest}
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import io.swagger.v3.oas.annotations.media.{Content, Schema}
+import io.swagger.v3.oas.annotations.parameters.RequestBody
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.silkframework.config.TaskSpec
 import org.silkframework.dataset.Dataset
 import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin._
+import org.silkframework.runtime.plugin.{AutoCompletionResult, ParameterAutoCompletion, PluginDescription, PluginObjectParameter, PluginRegistry}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import play.api.libs.json._
@@ -20,12 +25,28 @@ import javax.inject.Inject
 /**
   * API to search for tasks in the workspace.
   */
+@Tag(name = "Search API")
 class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
   implicit val autoCompletionResultJsonFormat: Format[AutoCompletionResult] = Json.format[AutoCompletionResult]
 
   /** Search tasks by text search query. */
+  @Operation(
+    summary = "Search Tasks",
+    description = "List all tasks that fulfill a set of filters. All JSON fields sent in the the request are optional. The request example reflects the default values that are chosen when a field is missing in the request.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Search result",
+        content = Array(new Content(
+          mediaType = "application/json"
+        )
+      )
+    )
+  ))
+  @RequestBody(description = "Search request", required = true,
+    content = Array(new Content(mediaType = "application/json", schema = new Schema(implementation = classOf[SearchRequest]))))
   def search(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[SearchRequest] { searchRequest =>
       Ok(searchRequest())
@@ -33,6 +54,33 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
   }
 
   /** Faceted search API for the workspace search */
+  @Operation(
+    summary = "Artifact search",
+    description = "Allows to search over all DataIntegration artifacts with text search and filter facets.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Search result",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(implementation = classOf[FacetedSearchResult]))
+        )
+      )
+    )
+  )
+  @RequestBody(
+    description =
+                """If the optional project parameter is defined, only artifacts from that project are fetched.
+                If the 'itemType' parameter is defined, then only artifacts of this type are fetched.
+                Valid values are: Project, Dataset, Transformation, Linking, Workflow, Task.
+                The 'textQuery' parameter is a conjunctive multi word query. The single words can be scattered over
+                different artifact properties, e.g. one in label and one in description.
+                The 'offset' and 'limit' parameters allow for paging through the result list.
+                The limit will default to 10 if it is not provided. It can be disabled by setting it to '0', which will return all results.
+                The optional sort parameter allows for sorting the result list by a specific artifact property, e.g. label, creation date, update date.
+                The 'facets' parameter defines what facets are set to which values. The 'keyword' facet allows multiple values to be set.
+                """,
+    content = Array(new Content(mediaType = "application/json", schema = new Schema(implementation = classOf[FacetedSearchRequest]))))
   def facetedSearch(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[FacetedSearchRequest] { facetedSearchRequest =>
       Ok(facetedSearchRequest())
@@ -79,6 +127,32 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
   }
 
   /** Auto-completion service for plugin parameters. */
+  @Operation(
+    summary = "Plugin parameter auto-completion",
+    description = "Auto-completion endpoint for plugin parameter values.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "The response contains the result list of matching auto-completion results. The 'label' property is optional and may not be defined, even for parameters that are supposed to have labels. In this case the 'value' should be taken as label.",
+        content = Array(new Content(
+          mediaType = "application/json"
+        )
+        )
+      )
+    ))
+  @RequestBody(
+    description =
+      """The 'pluginId' and 'parameterId' reference the parameter of a plugin, they values can be read e.g. from the /plugins endpoint.
+        The 'projectId' provides the project context for parameters that hold values that are project specific, e.g. task references.
+        The 'dependsOnParameterValues' parameter contains all the values of other parameters this auto-completion depends on. E.g. if a
+        plugin has a parameter 'project' and 'projectTask', the 'projectTask' parameter may depend on 'project',
+        because only when the project is known then the auto-completion of project tasks can be peformed. The list
+        of parameters are returned in the plugin parameter description.
+        The 'textQuery' parameter is a conjunctive multi word query matching against the possible results.
+        The 'offset' and 'limit' parameters allow for paging through the result list.
+        """,
+    required = true,
+    content = Array(new Content(mediaType = "application/json", schema = new Schema(implementation = classOf[ParameterAutoCompletionRequest]))))
   def parameterAutoCompletion(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[ParameterAutoCompletionRequest] { request =>
       PluginRegistry.pluginDescriptionsById(
@@ -138,7 +212,19 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
   }
 
   /** Get all item types */
-  def itemTypes(projectId: Option[String]): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Item type",
+    description = "The item types that a user can restrict the search to. The selected type will also influence the available facets.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        content = Array(new Content(
+          mediaType = "application/json"
+        ))
+      )
+    ))
+  def itemTypes(@Parameter(description = "Optional parameter that fetches the types for a specific project. This will only display types that contain at least one item.")
+                projectId: Option[String]): Action[AnyContent] = UserContextAction { implicit userContext =>
     val returnItemTypes = projectId match {
       case Some(_) =>
         ItemType.ordered.filterNot(_ == ItemType.project)

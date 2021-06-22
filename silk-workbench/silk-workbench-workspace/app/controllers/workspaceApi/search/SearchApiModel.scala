@@ -1,7 +1,7 @@
 package controllers.workspaceApi.search
 
 import controllers.util.TextSearchUtils
-import controllers.workspaceApi.search.SearchApiModel.label
+import io.swagger.v3.oas.annotations.Parameter
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
@@ -214,7 +214,8 @@ object SearchApiModel {
                         tasks: Seq[ProjectTask[_ <: TaskSpec]])
 
   /** A search request that supports types and facets. */
-  case class FacetedSearchRequest(project: Option[String] = None,
+  case class FacetedSearchRequest(@Parameter(description = "Restrict search to a specific project.")
+                                  project: Option[String] = None,
                                   itemType: Option[ItemType] = None,
                                   textQuery: Option[String] = None,
                                   offset: Option[Int] = None,
