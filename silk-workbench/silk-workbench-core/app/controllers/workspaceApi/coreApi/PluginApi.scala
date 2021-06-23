@@ -224,8 +224,7 @@ object PluginApi {
     "title" : "CSV",
     "categories" : [ "file" ],
     "description" : "Read from or write to an CSV file."
-  },
-  ...
+  }
 }
 """
 
@@ -321,8 +320,7 @@ object PluginApi {
         "autoCompleteValueWithLabels" : true,
         "autoCompletionDependsOnParameters" : [ ]
       }
-    },
-    ... SNIP ...
+    }
   },
   "required" : [ "selection" ]
 }

@@ -1,9 +1,15 @@
 package controllers.workspace
 
+import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.core.{UserContextActions}
 import controllers.util.SerializationUtils
-import controllers.workspace.workspaceRequests.CopyTasksRequest
+import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse}
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.parameters.RequestBody
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.ResourceBasedDataset
@@ -26,12 +32,54 @@ import scala.concurrent.ExecutionContext
 import scala.util.Try
 import scala.util.control.NonFatal
 
+@Tag(name = "Project Tasks")
 class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   implicit private lazy val executionContext: ExecutionContext = controllerComponents.executionContext
   private val log: Logger = Logger.getLogger(this.getClass.getCanonicalName)
 
-  def postTask(projectName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Add task",
+    description = " Adds a new task to the project. If the 'id' parameter is omitted in the request, an ID will be generated from the label – which is then required.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "201",
+        description = "The added task.",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject(TaskApi.taskExampleJson))
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "400",
+        description = "If the provided task specification is invalid."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      ),
+      new ApiResponse(
+        responseCode = "409",
+        description = "If a task with the given identifier already exists."
+      )
+    ))
+  @RequestBody(
+    description = "The task description",
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        examples = Array(new ExampleObject(TaskApi.taskExampleJson))
+      ))
+  )
+  def postTask(@Parameter(
+                 name = "project",
+                 description = "The project identifier",
+                 required = true,
+                 in = ParameterIn.PATH,
+                 schema = new Schema(implementation = classOf[String])
+               )
+               projectName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
     SerializationUtils.deserializeCompileTime[Task[TaskSpec]]() { task =>
@@ -42,7 +90,52 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     }
   }
 
-  def putTask(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Add or update task",
+    description = "Adds or updates a task.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "The added or updated task.",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject(TaskApi.taskExampleJson))
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "400",
+        description = "If the provided task specification is invalid."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      )
+    ))
+  @RequestBody(
+    description = "The task description",
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        examples = Array(new ExampleObject(TaskApi.taskExampleJson))
+      ))
+  )
+  def putTask(@Parameter(
+                name = "project",
+                description = "The project identifier",
+                required = true,
+                in = ParameterIn.PATH,
+                schema = new Schema(implementation = classOf[String])
+              )
+              projectName: String,
+              @Parameter(
+                name = "task",
+                description = "The task identifier",
+                required = true,
+                in = ParameterIn.PATH,
+                schema = new Schema(implementation = classOf[String])
+              )
+              taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     implicit val readContext = ReadContext(project.resources, project.config.prefixes)
     SerializationUtils.deserializeCompileTime[Task[TaskSpec]]() { task =>
@@ -54,7 +147,51 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     }
   }
 
-  def patchTask(projectName: String, taskName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Update task",
+    description = "Updates selected properties of a task. Only the sent JSON paths will be updated, i.e., the provided JSON is deep merged into the existing task JSON.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "The updated task.",
+        content = Array(new Content(
+          mediaType = "application/json"
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "400",
+        description = "If the provided task specification is invalid."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project or task does not exist."
+      )
+    ))
+  @RequestBody(
+    description = "The task description",
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        examples = Array(new ExampleObject("{ \"metadata\": { \"description\": \"task description\" } }"))
+      ))
+  )
+  def patchTask(@Parameter(
+                  name = "project",
+                  description = "The project identifier",
+                  required = true,
+                  in = ParameterIn.PATH,
+                  schema = new Schema(implementation = classOf[String])
+                )
+                projectName: String,
+                @Parameter(
+                  name = "task",
+                  description = "The task identifier",
+                  required = true,
+                  in = ParameterIn.PATH,
+                  schema = new Schema(implementation = classOf[String])
+                )
+                taskName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     // Load current task
     val project = WorkspaceFactory().workspace.project(projectName)
     val currentTask = project.anyTask(taskName)
@@ -75,7 +212,48 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     Ok
   }
 
-  def getTask(projectName: String, taskName: String, withLabels: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Retrieve task",
+    description = "Retrieves a task from a project.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "The task.",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject(TaskApi.taskExampleJson))
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project or task does not exist."
+      )
+    )
+  )
+  def getTask(@Parameter(
+                name = "project",
+                description = "The project identifier",
+                required = true,
+                in = ParameterIn.PATH,
+                schema = new Schema(implementation = classOf[String])
+              )
+              projectName: String,
+              @Parameter(
+                name = "task",
+                description = "The task identifier",
+                required = true,
+                in = ParameterIn.PATH,
+                schema = new Schema(implementation = classOf[String])
+              )
+              taskName: String,
+              @Parameter(
+                name = "withLabels",
+                description = "If true, all parameter values will be reified in a new object that has an optional label property. A label is added for all auto-completable parameters that have the 'autoCompleteValueWithLabels' property set to true. This guarantees that a user always sees the label of such values. For object type parameters that have set the 'visibleInDialog' flag set to true, this reification is done on all levels. For object type parameters that should not be shown in UI dialogs this is still done for the first level of the task itself, but not deeper. These values should never be set or updated by a normal UI dialog anyway and should be ignored by a task dialog.",
+                required = false,
+                in = ParameterIn.QUERY,
+                schema = new Schema(implementation = classOf[Boolean])
+              )
+              withLabels: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
 
@@ -164,14 +342,80 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     }
   }
 
-  def deleteTask(projectName: String, taskName: String, removeDependentTasks: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Remove task",
+    description = "Removes a task from a project.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the task has been deleted or there is no task with that identifier."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      )
+    )
+  )
+  def deleteTask(@Parameter(
+                  name = "project",
+                  description = "The project identifier",
+                  required = true,
+                  in = ParameterIn.PATH,
+                  schema = new Schema(implementation = classOf[String])
+                )
+                projectName: String,
+                @Parameter(
+                  name = "task",
+                  description = "The task identifier",
+                  required = true,
+                  in = ParameterIn.PATH,
+                  schema = new Schema(implementation = classOf[String])
+                )
+                taskName: String,
+                @Parameter(
+                  name = "removeDependentTasks",
+                  description = "If true, all tasks that directly or indirectly reference this task are removed as well.",
+                  required = true,
+                  in = ParameterIn.QUERY,
+                  schema = new Schema(implementation = classOf[Boolean])
+                )
+                removeDependentTasks: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     project.removeAnyTask(taskName, removeDependentTasks)
 
     Ok
   }
 
-  def putTaskMetadata(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Update task metadata",
+    description = "Updates task metadata that includes user metadata, such as the task label as well as technical metadata, such as the referenced tasks.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the task has been deleted or there is no task with that identifier."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project or task does not exist."
+      )
+    )
+  )
+  def putTaskMetadata(@Parameter(
+                        name = "project",
+                        description = "The project identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      projectName: String,
+                      @Parameter(
+                        name = "task",
+                        description = "The task identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
     implicit val readContext: ReadContext = ReadContext()
@@ -182,7 +426,42 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     }
   }
 
-  def getTaskMetadata(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Update task metadata",
+    description = "Updates task metadata that includes user metadata, such as the task label as well as technical metadata, such as the referenced tasks.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the task has been deleted or there is no task with that identifier.",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(TaskApi.taskMetadataExampleJson))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project or task does not exist."
+      )
+    )
+  )
+  def getTaskMetadata(@Parameter(
+                        name = "project",
+                        description = "The project identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      projectName: String,
+                      @Parameter(
+                        name = "task",
+                        description = "The task identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
     val metaDataJson = taskMetaDataJson(task)
@@ -208,7 +487,44 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     mergedJson
   }
 
-  def cloneTask(projectName: String, oldTask: String, newTask: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Clone Task",
+    description = "Clones a task.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the has been cloned."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project or task does not exist."
+      )
+    )
+  )
+  def cloneTask(@Parameter(
+                  name = "project",
+                  description = "The project identifier",
+                  required = true,
+                  in = ParameterIn.PATH,
+                  schema = new Schema(implementation = classOf[String])
+                )
+                projectName: String,
+                @Parameter(
+                  name = "task",
+                  description = "The identifier of the task to be cloned",
+                  required = true,
+                  in = ParameterIn.PATH,
+                  schema = new Schema(implementation = classOf[String])
+                )
+                oldTask: String,
+                @Parameter(
+                  name = "newTask",
+                  description = "The new task identifier",
+                  required = true,
+                  in = ParameterIn.QUERY,
+                  schema = new Schema(implementation = classOf[String])
+                )
+                newTask: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val fromTask = project.anyTask(oldTask)
     // Clone task spec, since task specs may contain state, e.g. RDF file dataset
@@ -219,6 +535,37 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     Ok
   }
 
+  @Operation(
+    summary = "Copy Task to Another Project",
+    description = "Copies a task to another project. All tasks that the copied task references (directly or indirectly) are copied as well. Referenced resources are copied only if the target project uses a different resource path than the source project. Using the dryRun attribute, a copy operation can be simulated, i.e., the response listing the tasks to be copied and overwritten can be checked first.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the has been copied.",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            schema = new Schema(implementation = classOf[CopyTasksResponse]),
+            examples = Array(new ExampleObject(TaskApi.copyTaskResponseJsonExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project or task does not exist."
+      )
+    )
+  )
+  @RequestBody(
+    description = "The copy task request.",
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[CopyTasksRequest]),
+        examples = Array(new ExampleObject(TaskApi.copyTaskRequestJsonExample))
+      ))
+  )
   def copyTask(projectName: String,
                taskName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[CopyTasksRequest] { copyRequest =>
@@ -259,4 +606,99 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     }
   }
 
+}
+
+object TaskApi {
+
+  private final val taskExampleJson =
+"""
+{
+  "id": "myTransform",
+  "metadata": {
+    "label": "task label",
+    "description": "task description"
+  },
+  "data": {
+    "taskType": "Transform",
+    "selection": {
+      "inputId": "DBpedia",
+      "typeUri": "http://dbpedia.org/ontology/Film",
+      "restriction": ""
+    },
+    "outputs": [],
+    "targetVocabularies": []
+  }
+}
+"""
+
+  private final val taskMetadataExampleJson =
+"""
+{
+  "label": "Task Label",
+  "description": "Task Description",
+  "modified": "2018-05-24T14:45:42.637Z",
+  "project": "MyProject",
+  "id": "MyTask",
+  "taskType": "Dataset"
+  "schemata": {
+    "input": [{
+      "paths": [
+        "<http://xmlns.com/foaf/0.1/name>",
+        "<http://dbpedia.org/ontology/releaseDate>"
+      ]
+    }],
+    "output": {
+      "paths": [
+        "targetUri",
+        "confidence"
+      ]
+    }
+  },
+  "relations": {
+    "inputTasks": [],
+    "outputTasks": [],
+    "referencedTasks": ["DBpedia", "linkedmdb"],
+    "dependentTasksDirect": ["workflow"],
+    "dependentTasksAll": ["workflow"]
+  }
+}
+"""
+
+  private final val copyTaskRequestJsonExample =
+"""
+{
+  "targetProject": "targetProjectId",
+  "dryRun": true,
+  "overwriteTasks": true
+}
+"""
+
+  private final val copyTaskResponseJsonExample =
+"""
+{
+  "copiedTasks": [
+    {
+      "taskType": "Dataset",
+      "id": "linkedmdb",
+      "label": "linkedmdb",
+      "originalTaskLink": "/workbench/projects/json/dataset/linkedmdb"
+    },
+    {
+      "taskType": "Linking",
+      "id": "movies",
+      "label": "movies",
+      "originalTaskLink": "/workbench/projects/json/linking/movies"
+    }
+  ],
+  "overwrittenTasks": [
+    {
+      "taskType": "Dataset",
+      "id": "DBpedia",
+      "label": "DBpedia",
+      "originalTaskLink": "/workbench/projects/json/dataset/DBpedia",
+      "overwrittenTaskLink": "/workbench/projects/movies/dataset/DBpedia"
+    }
+  ]
+}
+"""
 }

@@ -4,8 +4,9 @@ import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.workspaceApi.search.SearchApiModel._
 import controllers.workspaceApi.search.{ItemType, ParameterAutoCompletionRequest}
+import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import io.swagger.v3.oas.annotations.media.{Content, Schema}
+import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -88,6 +89,19 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
   }
 
   /** Recently viewed items of user. */
+  @Operation(
+    summary = "Recently viewed items",
+    description = "Fetch a list of the (max. 50) most recently accessed items, e.g. visited details pages or updated projects or tasks. The list is ordered by recency of the access, more recent coming first.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "List of recently viewed items with:\n  - Project ID and label, optional task ID and label (when the item is a task)\n   - Item type, e.g. 'project', 'transform' etc.\n  - The plugin ID for tasks\n  - Item links of the returned item, e.g. details page etc.",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject(SearchApi.recentlyViewedItemsExample))
+        ))
+      )
+    ))
   def recentlyViewedItems(): Action[AnyContent] = UserContextAction { implicit userContext =>
     val w = workspace
     val accessedItems = accessMonitor.getAccessItems.reverse
@@ -136,8 +150,7 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
         description = "The response contains the result list of matching auto-completion results. The 'label' property is optional and may not be defined, even for parameters that are supposed to have labels. In this case the 'value' should be taken as label.",
         content = Array(new Content(
           mediaType = "application/json"
-        )
-        )
+        ))
       )
     ))
   @RequestBody(
@@ -219,11 +232,18 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
       new ApiResponse(
         responseCode = "200",
         content = Array(new Content(
-          mediaType = "application/json"
+          mediaType = "application/json",
+          examples = Array(new ExampleObject("{ \"label\": \"Type\", \"values\": [{\"id\": \"project\", \"label\": \"Project\"}, {\"id\": \"dataset\", \"label\": \"Dataset\"}, {\"id\": \"transformation\", \"label\": \"Transformation\"}, {\"id\": \"linking\", \"label\": \"Linking\"}, {\"id\": \"workflow\", \"label\": \"Workflow\"}, {\"id\": \"task\", \"label\": \"Task\"}]}"))
         ))
       )
     ))
-  def itemTypes(@Parameter(description = "Optional parameter that fetches the types for a specific project. This will only display types that contain at least one item.")
+  def itemTypes(@Parameter(
+                  name = "projectId",
+                  description = "Optional parameter that fetches the types for a specific project. This will only display types that contain at least one item.",
+                  required = false,
+                  in = ParameterIn.QUERY,
+                  schema = new Schema(implementation = classOf[String])
+                )
                 projectId: Option[String]): Action[AnyContent] = UserContextAction { implicit userContext =>
     val returnItemTypes = projectId match {
       case Some(_) =>
@@ -245,6 +265,41 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
         "label" -> JsString(itemType.label)
       ))
   }
+}
+
+object SearchApi {
+
+  private final val recentlyViewedItemsExample =
+"""
+[
+    {
+        "itemLinks": [
+            {
+                "label": "Task details page",
+                "path": "/workbench/projects/multiInputRestProject/task/parseJSON"
+            }
+        ],
+        "itemType": "task",
+        "pluginId": "JsonParserOperator",
+        "pluginLabel": "Parse JSON",
+        "projectId": "multiInputRestProject",
+        "projectLabel": "Multiple Inputs REST project",
+        "taskId": "parseJSON",
+        "taskLabel": "This will be updated"
+    },
+    {
+        "itemLinks": [
+            {
+                "label": "Project details page",
+                "path": "/workbench/projects/multiInputRestProject"
+            }
+        ],
+        "itemType": "project",
+        "projectId": "multiInputRestProject",
+        "projectLabel": "Multiple Inputs REST project"
+    }
+]
+"""
 }
 
 

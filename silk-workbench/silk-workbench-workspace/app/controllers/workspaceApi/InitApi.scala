@@ -2,8 +2,12 @@ package controllers.workspaceApi
 
 import java.util.logging.Logger
 import com.typesafe.config.ConfigValueType
-import controllers.core.{UserContextActions}
+import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.{Content, ExampleObject}
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
 
 import javax.inject.Inject
 import org.silkframework.config.DefaultConfig
@@ -15,6 +19,7 @@ import scala.collection.JavaConverters._
 /**
   * API endpoints for initialization of the frontend application.
   */
+@Tag(name = "Initialization")
 case class InitApi @Inject()() extends InjectedController with UserContextActions with ControllerUtilsTrait {
   private val dmConfigKey = "eccencaDataManager.baseUrl"
   private val dmLinksKey = "eccencaDataManager.moduleLinks"
@@ -34,6 +39,20 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
     }
   }
 
+  @Operation(
+    summary = "Init frontend",
+    description = "Returns information that is necessary for the frontend initialization or otherwise needed from the beginning on.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "The `emptyWorkspace` parameter signals if the workspace is empty or contains at least one project. The `initialLangauge` parameter returns the initial language (either 'de' or 'en') that has been extracted from the Accept-language HTTP header send by the browser. The `maxFileUploadSize` specifies the max. file size in bytes. The `dmBaseUrl` is optional and returns the base URL, if configured in the DI config via parameter eccencaDataManager.baseUrl. The `dmModuleLinks` are only available if the DM base URL is defined. These are configured links to DM modules.",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(InitApi.initFrontendExample)))
+        )
+      )
+    ))
   def init(): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val emptyWorkspace = workspace.projects.isEmpty
     val resultJson = Json.obj(
@@ -108,4 +127,34 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
   object DmLink {
     implicit val dmLinkFormat: Format[DmLink] = Json.format[DmLink]
   }
+}
+
+object InitApi {
+
+  private final val initFrontendExample =
+"""
+{
+  "emptyWorkspace":true,
+  "initialLanguage":"en",
+  "dmBaseUrl": "http://docker.local",
+  "maxFileUploadSize": 1000000000,
+  "dmModuleLinks": [
+          {
+              "defaultLabel": "Exploration",
+              "icon": "application-explore",
+              "path": "explore"
+          },
+          {
+              "defaultLabel": "Vocabulary Management",
+              "icon": "application-vocabularies",
+              "path": "vocab"
+          },
+          {
+              "defaultLabel": "Queries",
+              "icon": "application-queries",
+              "path": "query"
+          }
+      ]
+}
+"""
 }

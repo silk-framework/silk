@@ -1,8 +1,13 @@
 package controllers.workspaceApi
 
-import controllers.core.{UserContextActions}
+import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.workspaceApi.validation.{SourcePathValidationRequest, SourcePathValidationResponse}
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.parameters.RequestBody
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.runtime.activity.UserContext
@@ -12,9 +17,34 @@ import play.api.mvc.{Action, InjectedController}
 import javax.inject.Inject
 
 /** API to validate different aspects of workspace artifacts. */
+@Tag(name = "Validation")
 class ValidationApi @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
   /** Validates the syntax of a Silk source path expression and returns parse error details.
     * Also validate prefix names that they have a valid prefix. */
+  @Operation(
+    summary = "Source path validation",
+    description = "Returns status information of a set of task activities. By default all task activities are returned.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            schema = new Schema(implementation = classOf[SourcePathValidationResponse]),
+            examples = Array(new ExampleObject("{ \"valid\": false, \"parseError\": { \"offset\": 13, \"message\": \"[ expected but w found\", \"inputLeadingToError\": \" \" } }")))
+        )
+      )
+    ))
+  @RequestBody(
+    description = "Request to validate the path syntax of the path string from the `pathExpression` parameter.",
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[SourcePathValidationRequest]),
+        examples = Array(new ExampleObject("{ \"pathExpression\": \"/invalid/path with spaces at the wrong place\" }"))
+      )
+    )
+  )
   def validateSourcePath(projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext: UserContext =>
     implicit val prefixes: Prefixes = getProject(projectId).config.prefixes
     validateJson[SourcePathValidationRequest] { request =>
