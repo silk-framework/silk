@@ -57,17 +57,22 @@ case class GlobalVocabularyCache() extends Activity[VocabularyCacheValue] {
    */
   private def loadAllInstalledVocabularies(vocabManager: VocabularyManager)
                                           (implicit userContext: UserContext): Unit = {
-    val installedVocabularies = vocabManager.retrieveGlobalVocabularies().toSet
-    // Install all vocabularies that are not loaded in the cache, yet
-    for (vocabURI <- installedVocabularies if !cache.contains(vocabURI) && !cancelled) {
-      installVocabulary(vocabManager, vocabURI)
-    }
-    // Remove uninstalled vocabs
-    for (vocabURi <- cache.keys) {
-      if (!installedVocabularies.contains(vocabURi)) {
-        cache.remove(vocabURi)
-        setLastUpdated()
-      }
+    vocabManager.retrieveGlobalVocabularies() match {
+      case Some(vocabs) =>
+        val installedVocabularies = vocabs.toSet
+        // Install all vocabularies that are not loaded in the cache, yet
+        for (vocabURI <- installedVocabularies if !cache.contains(vocabURI) && !cancelled) {
+          installVocabulary(vocabManager, vocabURI)
+        }
+        // Remove uninstalled vocabs
+        for (vocabURi <- cache.keys) {
+          if (!installedVocabularies.contains(vocabURi)) {
+            cache.remove(vocabURi)
+            setLastUpdated()
+          }
+        }
+      case None =>
+        // Not possible to load or remove global vocabularies without this information
     }
   }
 

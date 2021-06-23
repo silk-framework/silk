@@ -34,7 +34,8 @@ case class GlobalVocabularySynonymCache() extends Activity[GlobalVocabularySynon
   @volatile
   private var lastRun: Option[Long] = None
 
-  private val cfg = DefaultConfig.instance()
+  @volatile
+  private var disabledMessageLogged = false
 
   private val synonymMap: mutable.HashMap[String, ArrayBuffer[String]] = mutable.HashMap()
 
@@ -48,7 +49,7 @@ case class GlobalVocabularySynonymCache() extends Activity[GlobalVocabularySynon
 
   override def run(context: ActivityContext[GlobalVocabularySynonymCacheValue])
                   (implicit userContext: UserContext): Unit = {
-    if(!cfg.getBoolean(GlobalVocabularySynonymCache.CONFIG_KEY_ENABLED)) {
+    if(synonymCacheDisabled) {
       logDisabledMessage()
       return
     }
@@ -83,11 +84,16 @@ case class GlobalVocabularySynonymCache() extends Activity[GlobalVocabularySynon
     context.value.update(new GlobalVocabularySynonymCacheValue(immutableValue()))
   }
 
+  private def synonymCacheDisabled: Boolean = {
+    val cfg = DefaultConfig.instance()
+    !cfg.hasPath(GlobalVocabularySynonymCache.CONFIG_KEY_ENABLED) || !cfg.getBoolean(GlobalVocabularySynonymCache.CONFIG_KEY_ENABLED)
+  }
+
   private def logDisabledMessage(): Unit = {
-    if (lastRun.isEmpty) {
+    if (!disabledMessageLogged) {
       log.info(s"Mapping suggestion via vocabulary synonyms is disabled, skipping synonym extraction in global vocabulary cache. Parameter: ${GlobalVocabularySynonymCache.CONFIG_KEY_ENABLED}")
     }
-    lastRun = Some(System.currentTimeMillis())
+    disabledMessageLogged = true
   }
 
   private def immutableValue(): Map[String, Seq[String]] = synonymMap.toMap map { case (key, values) => (key, values.toArray.toSeq)}

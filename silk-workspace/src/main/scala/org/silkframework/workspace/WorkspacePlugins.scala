@@ -46,7 +46,6 @@ class WorkspacePlugins extends PluginModule {
     classOf[ExecuteTransformFactory] ::
     classOf[TransformPathsCacheFactory] ::
     classOf[VocabularyCacheFactory] ::
-    classOf[GlobalVocabularySynonymCacheFactory] ::
     Nil
 
   def linkingActivities: List[Class[_]] =
@@ -81,5 +80,6 @@ class WorkspacePlugins extends PluginModule {
 
   def autoCompletionProviderPlugins: List[Class[_]] = classOf[DatasetTypeAutoCompletionProvider] :: Nil
 
-  def workspaceActivityPlugins: List[Class[_]] = classOf[GlobalVocabularyCacheFactory] :: Nil
+  def workspaceActivityPlugins: List[Class[_]] = classOf[GlobalVocabularyCacheFactory] ::
+    classOf[GlobalVocabularySynonymCacheFactory] :: Nil
 }
