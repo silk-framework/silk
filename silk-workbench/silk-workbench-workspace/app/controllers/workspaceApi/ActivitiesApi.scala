@@ -23,8 +23,8 @@ class ActivitiesApi @Inject() () extends InjectedController with UserContextActi
 
   /** List status of all task activities. */
   @Operation(
-    summary = "Source path validation",
-    description = "Validates the syntax of a Silk source path expression and returns parse error details if the path is invalid. Also validate prefix names that they have a valid prefix.",
+    summary = "Task activities status",
+    description = "Returns status information of a set of task activities. By default all task activities are returned.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
