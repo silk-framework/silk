@@ -1,12 +1,13 @@
 package org.silkframework.config
 
-import com.typesafe.config.{ConfigFactory, Config => TypesafeConfig}
+import com.typesafe.config.{ConfigException, ConfigFactory, Config => TypesafeConfig}
 import org.silkframework.config.Config._
 import org.silkframework.runtime.validation.ValidationException
 
 import java.io.File
 import java.util.logging.Logger
 import javax.inject.Named
+import scala.language.implicitConversions
 
 /**
   * Holds the configuration properties
@@ -94,6 +95,10 @@ class DefaultConfig private() extends Config {
     }
   }
 
+  def extendedTypesafeConfig(): ExtendedTypesafeConfig = {
+    ExtendedTypesafeConfig(apply())
+  }
+
   /**
     * Loads the config for a particular class.
     */
@@ -115,6 +120,53 @@ class DefaultConfig private() extends Config {
       config = init()
     }
   }
+}
+
+case class ExtendedTypesafeConfig(typesafeConfig: TypesafeConfig) {
+  /** Fetches the typed value of the given key, or returns the fallback value if it does not exist. This still throws an
+    * exception if the config value is not of the correct type.
+    *
+    * @param key           The config key.
+    * @param expectedType  The label of the expected type.
+    * @param fallbackValue The fallback value if no config value exists.
+    * @param valueFetcher  The function that is called when the value exists.
+    */
+  private def getTypedValueOrElse[T](key: String, expectedType: String, fallbackValue: T, valueFetcher: String => T): T = {
+    if (typesafeConfig.hasPath(key)) {
+      try {
+        valueFetcher(key)
+      } catch {
+        case _: ConfigException.WrongType =>
+          throw new RuntimeException(s"Config parameter '$key' could not be read, because it's value does not seem to be of type $expectedType." +
+            s"Actual type: ${typesafeConfig.getAnyRef(key).getClass.getSimpleName}")
+      }
+    } else {
+      fallbackValue
+    }
+  }
+
+
+  /** Fetch the Boolean value of the given key, or the fallback value if it does not exist. This still throws an
+    * exception if the config value is not a boolean. */
+  def getBooleanOrElse(key: String, fallbackValue: Boolean): Boolean = {
+    getTypedValueOrElse(key, "Boolean", fallbackValue, (key: String) => typesafeConfig.getBoolean(key))
+  }
+
+  /** Fetch the Int value of the given key, or the fallback value if it does not exist. This still throws an
+    * exception if the config value is not an int. */
+  def getIntOrElse(key: String, fallbackValue: Int): Int = {
+    getTypedValueOrElse(key, "Integer", fallbackValue, (key: String) => typesafeConfig.getInt(key))
+  }
+
+  /** Fetch the Long value of the given key, or the fallback value if it does not exist. This still throws an
+    * exception if the config value is not an Long. */
+  def getLongOrElse(key: String, fallbackValue: Long): Long = {
+    getTypedValueOrElse(key, "Long", fallbackValue, (key: String) => typesafeConfig.getLong(key))
+  }
+}
+
+object ExtendedTypesafeConfig {
+  implicit def extendedToTypesafeConfig(extendedTypesafeConfig: ExtendedTypesafeConfig): TypesafeConfig = extendedTypesafeConfig.typesafeConfig
 }
 
 object DefaultConfig {
