@@ -28,7 +28,7 @@ sealed abstract class ParameterType[T: ClassTag] {
   /**
     * User-readable description of this type to be displayed.
     */
-  def description: String = ""
+  def description: String = name
 
   /**
     * The underlying type.

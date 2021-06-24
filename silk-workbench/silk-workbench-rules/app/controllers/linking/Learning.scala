@@ -1,7 +1,7 @@
 package controllers.linking
 
 import akka.stream.Materializer
-import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.core.{UserContextActions}
 import models.learning.{PathValue, PathValues}
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking._
@@ -25,7 +25,7 @@ import play.api.mvc.{Action, AnyContent, InjectedController}
 import java.util.logging.Logger
 import javax.inject.Inject
 
-class Learning @Inject() (implicit mat: Materializer) extends InjectedController {
+class Learning @Inject() (implicit mat: Materializer) extends InjectedController with UserContextActions {
 
   private val log = Logger.getLogger(getClass.getName)
 

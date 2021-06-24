@@ -1263,8 +1263,8 @@ object JsonSerializers {
     override def write(value: Vocabulary)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         GENERIC_INFO -> GenericInfoJsonFormat.write(value.info),
-        CLASSES -> value.classes.map(VocabularyClassJsonFormat.write),
-        PROPERTIES -> value.properties.map(VocabularyPropertyJsonFormat.write)
+        CLASSES -> value.classes.map(VocabularyClassJsonFormat.write).toSeq,
+        PROPERTIES -> value.properties.map(VocabularyPropertyJsonFormat.write).toSeq
       )
     }
   }

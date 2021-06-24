@@ -2,7 +2,7 @@ package controllers.workspaceApi
 
 import config.WorkbenchConfig
 import controllers.core.util.ControllerUtilsTrait
-import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.core.{UserContextActions}
 import controllers.workspace.ProjectMarshalingApi
 import controllers.workspaceApi.ProjectImportApi.{ProjectImport, ProjectImportDetails, ProjectImportExecution}
 import org.silkframework.config.{DefaultConfig, MetaData}
@@ -35,7 +35,7 @@ import scala.xml.{XML => ScalaXML}
 /**
   * API for advanced project import.
   */
-class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedController with ControllerUtilsTrait {
+class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedController with UserContextActions with ControllerUtilsTrait {
   private final val PROJECT_FILE_MAX_AGE_KEY = "workspace.projectImport.tempFileMaxAge"
   private final val DEFAULT_PROJECT_FILE_MAX_AGE = Duration(1, TimeUnit.HOURS)
 

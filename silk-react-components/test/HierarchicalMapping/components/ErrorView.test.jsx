@@ -1,10 +1,11 @@
 import React from "react";
-import { shallow } from 'enzyme';
+import {mount, shallow} from 'enzyme';
 import {
     ErrorCause,
     ErrorIssue,
     ErrorView
 } from '../../../src/HierarchicalMapping/components/ErrorView';
+import {clickElement, logPageHtml, logWrapperHtml} from "../utils/TestHelpers";
 
 const props = {
     title: 'text',
@@ -14,7 +15,7 @@ const props = {
 };
 
 
-const getWrapper = (renderer = shallow, args = props) => renderer(
+const getWrapper = (renderer = mount, args = props) => renderer(
     <ErrorView {...args} />
 );
 
@@ -22,28 +23,28 @@ const getWrapper = (renderer = shallow, args = props) => renderer(
 describe("ErrorView Component", () => {
     describe("on component mounted, ",() => {
         it("should render ErrorCause component, when `errorExpanded` and `props.cause` presented", () => {
-            const wrapper = getWrapper(shallow, {
+            const wrapper = getWrapper(mount, {
+                title: 'error title',
+                detail: 'Error detail',
                 cause: [{
                     title: '1',
                     detail: '1'
                 }]
             });
-            wrapper.setState({
-                errorExpanded: true
-            });
+            expect(wrapper.find(ErrorCause)).toHaveLength(0);
+            clickElement(wrapper, "button")
             expect(wrapper.find(ErrorCause)).toHaveLength(1);
         });
     
         it("should render ErrorIssue component, when `errorExpanded` and `props.issues` presented", () => {
-            const wrapper = getWrapper(shallow, {
+            const wrapper = getWrapper(mount, {
                 issues: [{
                     title: '1',
                     detail: '1'
                 }]
             });
-            wrapper.setState({
-                errorExpanded: true
-            });
+            expect(wrapper.find(ErrorIssue)).toHaveLength(0);
+            clickElement(wrapper, "button")
             expect(wrapper.find(ErrorIssue)).toHaveLength(1);
         });
         

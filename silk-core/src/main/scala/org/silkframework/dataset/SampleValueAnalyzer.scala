@@ -63,7 +63,7 @@ trait HierarchicalSampleValueAnalyzerExtractionSource extends SchemaExtractionSo
   this: DataSource =>
 
   /**
-    * Collects all paths from the JSON.
+    * Collects all paths from the hierarchical data source.
     *
     * @param limit         The number of paths after which no more paths should be collected.
     * @param collectValues A function to collect values of a path.

@@ -1,8 +1,8 @@
 package controllers.projectApi
 
 import config.WorkbenchConfig
+import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.workspace.JsonSerializer
 import controllers.workspaceApi.IdentifierUtils
 import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, ProjectCreationData}
@@ -28,7 +28,7 @@ import scala.util.Try
 /**
   * REST API for project artifacts.
   */
-class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends InjectedController with ControllerUtilsTrait {
+class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
   private val MARKDOWN_MIME = "text/markdown"
   private val AcceptsMarkdown = Accepting(MARKDOWN_MIME)
 

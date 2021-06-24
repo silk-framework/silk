@@ -13,27 +13,34 @@ interface IProps extends TestableComponent {
 
     // selected filter name
     selectedFilter: string;
+
+    // True if the suggestion is in from-dataset view, else it is in from-vocabulary view
+    fromDataset: boolean
 }
 
 
-export default function ColumnFilter({ filters, onApplyFilter, selectedFilter, ...restProps }: IProps) {
+export default function ColumnFilter({ filters, onApplyFilter, selectedFilter, fromDataset, ...restProps }: IProps) {
     const context = useContext(SuggestionListContext);
 
     const handleApplyFilter = (filter: string) => {
         onApplyFilter(filter);
     }
-    return <ContextMenu
+    const selectableFilters = filters.filter(f => f.selectable === "always" ||
+        f.selectable === "sourceViewOnly" && fromDataset ||
+        f.selectable === "vocabularyViewOnly" && !fromDataset)
+    return selectableFilters.length > 0 ? <ContextMenu
         portalContainer={context.portalContainer}
         togglerElement={selectedFilter ? "operation-filteredit" : "operation-filter"}
         {...restProps}
     >
         {
-            filters.map(filter => <MenuItem
-                key={filter.action}
-                text={filter.label}
-                onClick={() => handleApplyFilter(filter.action)}
-                active={selectedFilter === filter.action}/>
-            )
+                selectableFilters.map(filter => <MenuItem
+                    key={filter.action}
+                    text={filter.label}
+                    onClick={() => handleApplyFilter(filter.action)}
+                    active={selectedFilter === filter.action}/>
+                )
         }
     </ContextMenu>
+        : null
 }

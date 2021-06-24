@@ -1,11 +1,13 @@
 package org.silkframework.config
 
+import com.typesafe.config.{ConfigFactory, Config => TypesafeConfig}
+import org.silkframework.config.Config._
+import org.silkframework.runtime.validation.ValidationException
+
 import java.io.File
+import java.time.Instant
 import java.util.logging.Logger
 import javax.inject.Named
-import Config._
-
-import com.typesafe.config.{ConfigFactory, Config => TypesafeConfig}
 
 /**
   * Holds the configuration properties
@@ -16,6 +18,9 @@ trait Config {
 
   /** Refreshes the Config instance, e.g. load from changed config file or newly set property values. */
   def refresh(): Unit
+
+  /** Timestamp when the config has been loaded the last time. Updated on each refresh. */
+  def timestamp: Instant
 }
 
 object Config{
@@ -39,6 +44,8 @@ class DefaultConfig private() extends Config {
   private lazy val log = Logger.getLogger(this.getClass.getName)
 
   private var config = this.synchronized {init()}
+
+  private var currentTimestamp = Instant.now()
 
   /**
     * Will check and return if ELDS_HOME was defined either as environment variable or in the dataintegration config.
@@ -83,6 +90,7 @@ class DefaultConfig private() extends Config {
       if (playConfig2.exists()) {
         fullConfig = fullConfig.withFallback(ConfigFactory.parseFile(playConfig2))
       }
+      currentTimestamp = Instant.now()
       fullConfig.resolve()
     }
   }
@@ -93,11 +101,23 @@ class DefaultConfig private() extends Config {
     }
   }
 
+  override def timestamp: Instant = synchronized {
+    currentTimestamp
+  }
+
   /**
     * Loads the config for a particular class.
     */
-  def forClass(clazz: Class[_]): TypesafeConfig = {
-    apply().getConfig(clazz.getName)
+  def forClass(clazz: Class[_], mustExist: Boolean = true): TypesafeConfig = {
+    val config = apply()
+    val className = clazz.getName
+    if(config.hasPath(className)) {
+      config.getConfig(className)
+    } else if(!mustExist) {
+      ConfigFactory.empty()
+    } else {
+      throw new ValidationException(s"Required configuration not found at $className.")
+    }
   }
 
   /** Refreshes the Config instance, e.g. load from changed config file or newly set property values. */

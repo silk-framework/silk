@@ -4,23 +4,33 @@ import {
     OverflowText,
     Spacing,
     Toolbar,
-    ToolbarSection,
+    ToolbarSection, Tooltip,
 } from "@gui-elements/index";
 import { SourcePathInfoBox } from "./SourcePathInfoBox";
+import {SuggestionTypeValues} from "../../suggestion.typings";
 
 interface IProps {
     label: string;
     search?: string;
+    pathType?: SuggestionTypeValues
+    objectInfo?: {
+        dataTypeSubPaths: string[]
+        objectSubPaths: string[]
+    }
 }
 
-export function SourceCellData({label, search}: IProps) {
+export function SourceCellData({label, search, pathType, objectInfo}: IProps) {
+    let labelElem = <OverflowText ellipsis={"reverse"} inline={true}><Highlighter label={label} searchValue={search}/></OverflowText>
+    if(label.length > 20) {
+        labelElem = <Tooltip size="large" content={label}>{labelElem}</Tooltip>
+    }
     return <Toolbar noWrap={true}>
         <ToolbarSection canShrink={true}>
-            <OverflowText ellipsis={"reverse"} inline={true}><Highlighter label={label} searchValue={search}/></OverflowText>
+            {labelElem}
         </ToolbarSection>
         <ToolbarSection>
             <Spacing vertical={true} size="tiny" />
-            <SourcePathInfoBox source={label}/>
+            <SourcePathInfoBox source={label} pathType={pathType} objectInfo={objectInfo} />
         </ToolbarSection>
     </Toolbar>
 }

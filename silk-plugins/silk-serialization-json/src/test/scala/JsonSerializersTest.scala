@@ -59,5 +59,5 @@ case class SomeDatasetPlugin(param1: String, param2: Double) extends Dataset {
   override def source(implicit userContext: UserContext): DataSource = ???
   override def linkSink(implicit userContext: UserContext): LinkSink = ???
   override def entitySink(implicit userContext: UserContext): EntitySink = ???
-  override def characteristics: DataSourceCharacteristics = DataSourceCharacteristics.attributesOnly
+  override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly
 }

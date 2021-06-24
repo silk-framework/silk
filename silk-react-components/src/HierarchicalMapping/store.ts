@@ -17,6 +17,7 @@ import { isDebugMode } from './utils/isDebugMode';
 import React, {useState} from "react";
 import silkApi, {HttpResponsePromise} from '../api/silkRestApi'
 import {IPartialAutoCompleteResult, IValidationResult} from "./components/AutoSuggestion/AutoSuggestion";
+import {ITransformedSuggestion} from "./containers/SuggestionNew/suggestion.typings";
 
 const silkStore = rxmq.channel('silk.api');
 export const errorChannel = rxmq.channel('errors');
@@ -436,13 +437,19 @@ const fetchVocabularyMatchingResults = (data: ISuggestAsyncProps) => {
 const fetchValueSourcePaths = (data: ISuggestAsyncProps) => {
     return silkStore
         .request({
-            // call the silk endpoint valueSourcePaths
-            topic: 'transform.task.rule.valueSourcePaths',
-            data: {unusedOnly: true, ...getApiDetails(), ...data},
+            // call the silk endpoint valueSourcePathsInfo
+            topic: 'transform.task.rule.valueSourcePathsInfo',
+            data: {...getApiDetails(), ...data},
         })
         .catch(err => {
-            const errorBody = _.get(err, 'response.body');
-            errorBody.code = err.status;
+            let errorBody = _.get(err, 'response.body');
+            if(errorBody) {
+                errorBody.code = err.status;
+            } else if(err.detail && !err.status) {
+                errorBody = {title: "There has been a connection problem.", detail: err.detail, cause: null}
+            } else {
+                return Rx.Observable.return({});
+            }
             return Rx.Observable.return({error: errorBody});
         })
         .map(returned => {
@@ -464,13 +471,14 @@ const emptyMatchResult = new Promise(resolve =>
     resolve({data: []})
 )
 
+/** Fetches all suggestions. */
 export const getSuggestionsAsync = (data: ISuggestAsyncProps,
                                     executeVocabularyMatching: boolean = true) => {
     const vocabularyMatches = executeVocabularyMatching ? fetchVocabularyMatchingResults(data) : emptyMatchResult
     return Rx.Observable.forkJoin(
         vocabularyMatches, fetchValueSourcePaths(data),
-        (vocabDatasetsResponse, sourcePathsResponse) => {
-            const suggestions: any[] = [];
+        (vocabDatasetsResponse, sourcePaths) => {
+            const suggestions: ITransformedSuggestion[] = [];
             if (vocabDatasetsResponse.data) {
                 vocabDatasetsResponse.data.map(match => {
                     const {uri: sourceUri, description, label, candidates, graph} = match;
@@ -484,20 +492,26 @@ export const getSuggestionsAsync = (data: ISuggestAsyncProps,
                 });
             }
 
-            if (data.matchFromDataset) {
-                sourcePathsResponse.data.forEach(sourcePath => {
-                    const isExists = suggestions.some(suggestion => suggestion.uri === sourcePath);
-                    if (!isExists) {
+            if (data.matchFromDataset && sourcePaths.data) {
+                sourcePaths.data.forEach(sourcePath => {
+                    const existingSuggestion = suggestions.find(suggestion => suggestion.uri === sourcePath.path);
+                    if (!existingSuggestion) {
                         suggestions.push({
-                            uri: sourcePath,
-                            candidates: []
+                            uri: sourcePath.path,
+                            candidates: [],
+                            alreadyMapped: sourcePath.alreadyMapped,
+                            pathType: sourcePath.pathType,
+                            objectInfo: sourcePath.objectInfo
                         });
+                    } else {
+                        existingSuggestion.pathType = sourcePath.pathType
+                        existingSuggestion.alreadyMapped = sourcePath.alreadyMapped
                     }
                 });
             }
             return {
                 suggestions,
-                warnings: _.filter([vocabDatasetsResponse.error, sourcePathsResponse.error], e => !_.isUndefined(e)),
+                warnings: _.filter([vocabDatasetsResponse.error, sourcePaths.error], e => !_.isUndefined(e)),
             };
         }
     );

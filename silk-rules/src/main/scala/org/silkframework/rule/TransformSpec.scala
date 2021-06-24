@@ -235,6 +235,19 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
     }
   }
 
+  /** The list of object mapping rule source paths for the specified rule, i.e. the relative source paths
+    * from direct child object mapping rules. */
+  def objectSourcePaths(ruleName: Identifier): Seq[UntypedPath] = {
+    nestedRuleAndSourcePath(ruleName) match {
+      case Some((rule, _)) =>
+        rule.children
+          .filter (_.isInstanceOf[ObjectMapping])
+          .map (_.asInstanceOf[ObjectMapping].sourcePath).distinct
+      case None =>
+        throw new RuntimeException("No rule with name " + ruleName + " exists!")
+    }
+  }
+
   private def valueSourcePathsRecursive(rule: Operator,
                                         basePath: List[PathOperator],
                                         maxPathDepth: Int): Seq[UntypedPath] = {

@@ -1,6 +1,6 @@
 package controllers.workflow
 
-import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.core.{UserContextActions}
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils
 import org.silkframework.config.Task
@@ -18,7 +18,7 @@ import play.api.mvc.{Action, AnyContent, AnyContentAsXml, _}
 
 import javax.inject.Inject
 
-class WorkflowApi @Inject() () extends InjectedController {
+class WorkflowApi @Inject() () extends InjectedController with UserContextActions {
 
   def getWorkflows(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = fetchProject(projectName)
