@@ -133,17 +133,23 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       if (executorOutput.requestedSchema.isDefined && inputResults.exists(_.isEmpty)) {
         throw WorkflowExecutionException("At least one input did not return a result for workflow node " + operatorNode.nodeId + "!")
       }
-      val result = execute("Executing", operatorNode.nodeId, operatorTask, inputResults.flatten, executorOutput)
-      // Throw exception if result was promised, but not returned
-      if (operatorTask.data.outputSchemaOpt.isDefined && result.isEmpty) {
-        throw WorkflowExecutionException(s"In workflow ${workflowTask.id.toString} operator node ${operatorNode.nodeId} defined an output " +
-            s"schema, but did not return any result!")
-      }
-      log.info("Finished execution of " + operator.nodeId)
-      workflowRunContext.alreadyExecuted.add(operatorNode.workflowNode)
-      writeErrorOutput(operatorNode, result)
+      // Check if this is a nested workflow that has been executed already.
+      val isExecutedWorkflow = operatorTask.data.isInstanceOf[Workflow] && workflowRunContext.alreadyExecuted.contains(operatorNode.workflowNode)
 
-      result
+      if(!isExecutedWorkflow) {
+        val result = execute("Executing", operatorNode.nodeId, operatorTask, inputResults.flatten, executorOutput)
+        // Throw exception if result was promised, but not returned
+        if (operatorTask.data.outputSchemaOpt.isDefined && result.isEmpty) {
+          throw WorkflowExecutionException(s"In workflow ${workflowTask.id.toString} operator node ${operatorNode.nodeId} defined an output " +
+            s"schema, but did not return any result!")
+        }
+        log.info("Finished execution of " + operator.nodeId)
+        workflowRunContext.alreadyExecuted.add(operatorNode.workflowNode)
+        writeErrorOutput(operatorNode, result)
+        result
+      } else {
+        None
+      }
     } catch {
       case ex: WorkflowExecutionException =>
         throw ex
