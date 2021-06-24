@@ -39,4 +39,12 @@ class XmlSourceStreamingTest extends XmlSourceTestBase {
       "Property/Key/@id" -> "StringValueType"
     )
   }
+
+  it should "not allow the #text forward path in object paths" in {
+    intercept[AssertionError] {
+      XmlDoc("persons.xml") atPath "Person[#text = \"test\"]" valuesAt "Name"
+    }
+  }
+
+  override def isStreaming: Boolean = true
 }
