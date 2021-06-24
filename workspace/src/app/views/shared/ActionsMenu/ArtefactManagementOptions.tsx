@@ -4,7 +4,7 @@ import { useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
 import { routerOp } from "@ducks/router";
 import { IItemLink } from "@ducks/shared/typings";
-import { commonSel } from "@ducks/common";
+import { commonOp, commonSel } from "@ducks/common";
 import { requestItemLinks } from "@ducks/shared/requests";
 import { IExportTypes } from "@ducks/common/typings";
 import { downloadProject } from "../../../utils/downloadProject";
@@ -15,7 +15,22 @@ import { IframeWindow } from "../IframeWindow/IframeWindow";
 import { ActionsMenu, TActionsMenuItem, IActionsMenuProps } from "./ActionsMenu";
 import CopyToModal from "../modals/CopyToModal/CopyToModal";
 
-export function ArtefactManagementOptions({ projectId, taskId, itemType, updateActionsMenu }: any) {
+interface IProps {
+    projectId: string;
+    taskId?: string;
+    itemType: string;
+    updateActionsMenu: (actionMenu: JSX.Element) => any;
+    // Called with true when the item links endpoint returns a 404
+    notFoundCallback?: (boolean) => any;
+}
+
+export function ArtefactManagementOptions({
+    projectId,
+    taskId,
+    itemType,
+    updateActionsMenu,
+    notFoundCallback = () => {},
+}: IProps) {
     const dispatch = useDispatch();
     const location = useLocation<any>();
     const [t] = useTranslation();
@@ -48,7 +63,12 @@ export function ArtefactManagementOptions({ projectId, taskId, itemType, updateA
             // remove current page link
             const result = data.filter((item) => item.path !== location.pathname);
             setItemLinks(result);
-        } catch (e) {}
+            notFoundCallback(false);
+        } catch (e) {
+            if (e?.httpStatus === 404) {
+                notFoundCallback(true);
+            }
+        }
     };
 
     const handleDeleteConfirm = () => {
@@ -56,6 +76,9 @@ export function ArtefactManagementOptions({ projectId, taskId, itemType, updateA
         let afterPage = "";
         if (taskId) {
             afterPage = `projects/${projectId}`;
+        } else {
+            // Deleted project, workspace state may have changed
+            dispatch(commonOp.fetchCommonSettingsAsync());
         }
         dispatch(routerOp.goToPage(afterPage));
     };

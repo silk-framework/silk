@@ -15,6 +15,7 @@ import {
     OverviewItemLine,
     Spacing,
     Tag,
+    Tooltip,
 } from "@gui-elements/index";
 import { routerOp } from "@ducks/router";
 import { useDispatch, useSelector } from "react-redux";
@@ -109,6 +110,18 @@ export default function SearchItem({
         downloadProject(item.id, type.id);
     };
 
+    const wrapTooltip = (wrap: boolean, childTooltip: string, child: JSX.Element): JSX.Element => {
+        if (wrap) {
+            return (
+                <Tooltip content={childTooltip} position="bottom-left">
+                    {child}
+                </Tooltip>
+            );
+        } else {
+            return child;
+        }
+    };
+
     return (
         <Card isOnlyLayout>
             <OverviewItem hasSpacing onClick={onRowClick ? onRowClick : undefined}>
@@ -122,28 +135,55 @@ export default function SearchItem({
                                 url={!!item.itemLinks.length ? item.itemLinks[0].path : false}
                                 handlerResourcePageLoader={!!item.itemLinks.length ? goToDetailsPage : false}
                             >
-                                <Highlighter label={item.label || item.id} searchValue={searchValue} />
+                                <OverflowText>
+                                    <Highlighter label={item.label || item.id} searchValue={searchValue} />
+                                </OverflowText>
                             </ResourceLink>
                         </h4>
+                        <Spacing vertical size="small" />
+                        <OverflowText passDown={true} inline={true}>
+                            {item.description &&
+                                wrapTooltip(
+                                    item.description.length > 80,
+                                    item.description,
+                                    <Highlighter label={item.description} searchValue={searchValue} />
+                                )}
+                        </OverflowText>
                     </OverviewItemLine>
-                    {(item.description || item.projectId) && (
-                        <OverviewItemLine small>
-                            <OverflowText>
-                                {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
-                                    <Tag>
-                                        <Highlighter
-                                            label={item.projectLabel ? item.projectLabel : item.projectId}
-                                            searchValue={searchValue}
-                                        />
-                                    </Tag>
-                                )}
-                                {item.description && !parentProjectId && item.type !== DATA_TYPES.PROJECT && (
-                                    <Spacing vertical size="small" />
-                                )}
-                                {item.description && <Highlighter label={item.description} searchValue={searchValue} />}
-                            </OverflowText>
-                        </OverviewItemLine>
-                    )}
+                    <OverviewItemLine small>
+                        {(item.type === "dataset" || item.type === "project") && (
+                            <>
+                                <Tag small>
+                                    <Highlighter
+                                        label={t(
+                                            "widget.Filterbar.subsections.valueLabels.itemType." + item.type,
+                                            item.type[0].toUpperCase() + item.type.substr(1)
+                                        )}
+                                        searchValue={searchValue}
+                                    />
+                                </Tag>
+                                <Spacing vertical size="tiny" />
+                            </>
+                        )}
+                        {item.pluginLabel && (
+                            <>
+                                <Tag small>
+                                    <Highlighter label={item.pluginLabel} searchValue={searchValue} />
+                                </Tag>
+                            </>
+                        )}
+                        {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
+                            <>
+                                <Spacing vertical size="tiny" />
+                                <Tag emphasis="weak" small>
+                                    <Highlighter
+                                        label={item.projectLabel ? item.projectLabel : item.projectId}
+                                        searchValue={searchValue}
+                                    />
+                                </Tag>
+                            </>
+                        )}
+                    </OverviewItemLine>
                 </OverviewItemDescription>
                 <OverviewItemActions>
                     <IconButton

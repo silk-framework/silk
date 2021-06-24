@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { AppToaster } from "../../../services/toaster";
 import { Intent } from "@gui-elements/blueprint/constants";
-import Artefacts from "./Artefacts";
+import WorkspaceSearch from "./WorkspaceSearch";
 import { routerSel } from "@ducks/router";
 import { Grid, GridColumn, GridRow } from "@gui-elements/index";
 import { EmptyWorkspace } from "./EmptyWorkspace/EmptyWorkspace";
@@ -47,7 +47,7 @@ export function Workspace() {
     }, [qs]);
 
     return !isEmptyWorkspace ? (
-        <Artefacts />
+        <WorkspaceSearch />
     ) : (
         <Grid>
             <GridRow fullHeight>
