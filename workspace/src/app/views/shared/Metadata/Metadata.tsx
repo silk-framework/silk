@@ -150,7 +150,8 @@ export function Metadata(props: IProps) {
                     setUpdateRequestError(
                         new ErrorResponse(
                             t("Metadata.updateFailed", "Updating meta data has failed"),
-                            ex.errorResponse.detail
+                            ex.errorResponse.detail,
+                            ex.httpStatus
                         )
                     );
                 } else {

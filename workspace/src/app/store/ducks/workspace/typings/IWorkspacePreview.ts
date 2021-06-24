@@ -35,6 +35,11 @@ export interface ISearchResultsServer {
      * Contains plugin name
      */
     pluginId?: string;
+
+    /**
+     * The label of the plugin.
+     */
+    pluginLabel?: string;
 }
 
 export interface IPreviewState {

@@ -10,6 +10,7 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     SimpleDialog,
+    Spacing,
 } from "@gui-elements/index";
 import { extractSearchWords } from "@gui-elements/src/components/Typography/Highlighter";
 import { CLASSPREFIX as eccguiprefix } from "@gui-elements/src/configuration/constants";
@@ -28,6 +29,8 @@ import { absolutePageUrl } from "@ducks/router/operations";
 import Tag from "@gui-elements/src/components/Tag/Tag";
 import { ItemDepiction } from "../ItemDepiction/ItemDepiction";
 import { createNewItemRendererFactory } from "@gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
+import { IRenderModifiers } from "@gui-elements/src/components/AutocompleteField/AutoCompleteField";
+import { uppercaseFirstChar } from "../../../utils/transformers";
 
 /** Shows the recently viewed items a user has visited. Also allows to trigger a workspace search. */
 export function RecentlyViewedModal() {
@@ -96,18 +99,25 @@ export function RecentlyViewedModal() {
             dispatch(routerOp.goToPage(itemLink.path));
         }
     };
-    // The string representation of a recently viewed item
-    const itemLabel = (item: IRecentlyViewedItem) => {
+    // The string representation of a recently viewed item that can be full text searched
+    const itemSearchableString = (item: IRecentlyViewedItem) => {
         const projectLabel = item.projectLabel ? item.projectLabel : item.projectId;
         const taskLabel = item.taskLabel ? item.taskLabel : item.taskId;
-        return taskLabel ? `${taskLabel} (${projectLabel})` : projectLabel;
+        const label = taskLabel ? `${taskLabel} ${projectLabel} ${item.pluginLabel}` : projectLabel;
+        return `${label} ${itemType(item)}`;
     };
+    const itemType = (item: IRecentlyViewedItem): string => uppercaseFirstChar(t("common.dataTypes." + item.itemType));
     // The representation of an item as an option in the selection list
-    const itemOption = (item: IRecentlyViewedItem, query: string, active: boolean, handleSelectClick: () => any) => {
+    const itemOption = (
+        item: IRecentlyViewedItem,
+        query: string,
+        modifiers: IRenderModifiers,
+        handleSelectClick: () => any
+    ) => {
         const label = item.taskLabel || item.taskId || item.projectLabel || item.projectId;
         return (
             <OverviewItem
-                className={active ? `${eccguiprefix}-overviewitem__item--active` : ""}
+                className={modifiers.active ? `${eccguiprefix}-overviewitem__item--active` : ""}
                 key={item.projectId + item.taskId}
                 hasSpacing
                 onClick={handleSelectClick}
@@ -123,20 +133,30 @@ export function RecentlyViewedModal() {
                             </OverflowText>
                         </h4>
                     </OverviewItemLine>
-                    {item.taskId && (
-                        <OverviewItemLine small>
-                            <OverflowText>
-                                {item.taskId && (
-                                    <Tag>
-                                        <Highlighter
-                                            label={item.projectLabel ? item.projectLabel : item.projectId}
-                                            searchValue={query}
-                                        />
-                                    </Tag>
-                                )}
-                            </OverflowText>
-                        </OverviewItemLine>
-                    )}
+                    <OverviewItemLine small>
+                        <Tag small>
+                            <Highlighter label={itemType(item)} searchValue={query} />
+                        </Tag>
+                        <Spacing vertical size="tiny" />
+                        {(item.itemType === "dataset" || item.itemType === "task") && (
+                            <>
+                                <Tag small>
+                                    <Highlighter label={item.pluginLabel} searchValue={query} />
+                                </Tag>
+                                <Spacing vertical size="tiny" />
+                            </>
+                        )}
+                        {item.taskId && (
+                            <>
+                                <Tag emphasis={"weak"} small>
+                                    <Highlighter
+                                        label={item.projectLabel ? item.projectLabel : item.projectId}
+                                        searchValue={query}
+                                    />
+                                </Tag>
+                            </>
+                        )}
+                    </OverviewItemLine>
                 </OverviewItemDescription>
             </OverviewItem>
         );
@@ -145,7 +165,7 @@ export function RecentlyViewedModal() {
     const handleSearch = (textQuery: string) => {
         const searchWords = extractSearchWords(textQuery.toLowerCase());
         return recentItems.filter((item) => {
-            const label = itemLabel(item).toLowerCase();
+            const label = itemSearchableString(item).toLowerCase();
             return searchWords.every((word) => label.includes(word));
         });
     };
