@@ -2,4 +2,4 @@ GET   /result/:projectId/:workflowId       controllers.workflowApi.ApiWorkflowAp
 POST  /result/:projectId/:workflowId       controllers.workflowApi.ApiWorkflowApi.variableWorkflowResult(projectId: String, workflowId: String)
 GET   /info                                controllers.workflowApi.ApiWorkflowApi.workflowInfoList()
 GET   /info/:projectId/:workflowId         controllers.workflowApi.ApiWorkflowApi.workflowInfo(projectId: String, workflowId: String)
-GET   /config/:projectId/:workflowId/ports controllers.workflowApi.ApiWorkflowApi.workflowInfo()
+GET   /config/:projectId/:workflowId/ports controllers.workflowApi.ApiWorkflowApi.workflowInfo(projectId: String, workflowId: String)
