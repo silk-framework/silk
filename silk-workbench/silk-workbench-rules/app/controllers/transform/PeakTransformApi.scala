@@ -1,15 +1,22 @@
 package controllers.transform
 
-import controllers.core.{UserContextActions}
+import controllers.core.UserContextActions
+import controllers.transform.PeakTransformApi._
+import controllers.transform.doc.PeakApiDoc
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
-
-import javax.inject.Inject
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.parameters.RequestBody
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{PlainTask, Prefixes, TaskSpec}
-import org.silkframework.dataset.DatasetSpec.{DataSourceWrapper, GenericDatasetSpec}
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpointEntityTable}
 import org.silkframework.entity._
+import org.silkframework.entity.paths.Path
 import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlSelectExecutor
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.rule.TransformSpec.RuleSchemata
@@ -22,46 +29,153 @@ import org.silkframework.workspace.{Project, ProjectTask}
 import play.api.libs.json.{Json, Writes}
 import play.api.mvc._
 
+import javax.inject.Inject
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.NonFatal
-import PeakTransformApi._
-import org.silkframework.entity.paths.{Path, TypedPath}
 
+@Tag(name = "Transform")
 class PeakTransformApi @Inject() () extends InjectedController with UserContextActions {
 
   implicit private val peakStatusWrites: Writes[PeakStatus] = Json.writes[PeakStatus]
   implicit private val peakResultWrites: Writes[PeakResult] = Json.writes[PeakResult]
   implicit private val peakResultsWrites: Writes[PeakResults] = Json.writes[PeakResults]
-  // Max number of exceptions before aborting the mapping preview call
-  final val MAX_TRANSFORMATION_PREVIEW_EXCEPTIONS: Int = 50
-  // The number of transformation preview results that should be returned by the REST API
-  final val TRANSFORMATION_PREVIEW_LIMIT: Int = 3
-  // Maximum number of empty transformation results to skip during the mapping preview calculation
-  final val MAX_TRANSFORMATION_PREVIEW_SKIP_EMPTY_RESULTS: Int = 500
-  // Max number of entities to examine for the mapping preview
-  final val MAX_TRY_ENTITIES_DEFAULT: Int = MAX_TRANSFORMATION_PREVIEW_EXCEPTIONS + TRANSFORMATION_PREVIEW_LIMIT + MAX_TRANSFORMATION_PREVIEW_SKIP_EMPTY_RESULTS
-  final val NOT_SUPPORTED_STATUS_MSG = "not supported"
 
   /**
     * Get sample source and transformed values for a named rule.
     */
-  def peak(projectName: String,
-           taskName: String,
-           ruleName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    val (project, task) = projectAndTask(projectName, taskName)
-    val transformSpec = task.data
-    val ruleSchemata = transformSpec.oneRuleEntitySchemaById(ruleName).get
-    val inputTaskId = transformSpec.selection.inputId
+  @Operation(
+    summary = "Mapping Rule Transformation Examples",
+    description = "Get transformation examples for the selected transformation rule. The input task of the transformation task has to be a Dataset task. Also the Dataset task must support this feature.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = PeakApiDoc.peakResultDoc,
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(PeakApiDoc.peakExample))
+          )
+        )
+      )
+  ))
+  def peak( @Parameter(
+              name = "project",
+              description = "The project identifier",
+              required = true,
+              in = ParameterIn.PATH,
+              schema = new Schema(implementation = classOf[String])
+            )
+            projectName: String,
+            @Parameter(
+              name = "task",
+              description = "The task identifier",
+              required = true,
+              in = ParameterIn.PATH,
+              schema = new Schema(implementation = classOf[String])
+            )
+            taskName: String,
+            @Parameter(
+              name = "rule",
+              description = "The rule identifier",
+              required = true,
+              in = ParameterIn.PATH,
+              schema = new Schema(implementation = classOf[String])
+            )
+            ruleName: String,
+            @Parameter(
+              name = "limit",
+              description = "The maximum number of transformed example entities.",
+              required = false,
+              in = ParameterIn.QUERY,
+              schema = new Schema(implementation = classOf[Int], defaultValue = TRANSFORMATION_PREVIEW_LIMIT_STR)
+            )
+            limit: Int = TRANSFORMATION_PREVIEW_LIMIT,
+            @Parameter(
+              name = "maxTryEntities",
+              description = "The maximum number of example entities to try to transform before giving up.",
+              required = false,
+              in = ParameterIn.QUERY,
+              schema = new Schema(implementation = classOf[Int], defaultValue = MAX_TRY_ENTITIES_DEFAULT_STR)
+            )
+            maxTryEntities: Int = MAX_TRY_ENTITIES_DEFAULT): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+      val (project, task) = projectAndTask(projectName, taskName)
+      val transformSpec = task.data
+      val ruleSchemata = transformSpec.oneRuleEntitySchemaById(ruleName).get
+      val inputTaskId = transformSpec.selection.inputId
 
-    peakRule(project, inputTaskId, ruleSchemata)
+      peakRule(project, inputTaskId, ruleSchemata, limit, maxTryEntities)
   }
 
   /**
     * Get sample source and transformed values for a provided rule definition.
     */
-  def peakChildRule(projectName: String,
+  @Operation(
+    summary = "Mapping Rule from Request Transformation Examples",
+    description = "Get transformation examples for the transformation rule that is attached in the body of this request. The input task of the transformation task has to be a Dataset task. Also the Dataset task must support this feature.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = PeakApiDoc.peakResultDoc,
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(PeakApiDoc.peakExample))
+          )
+        )
+      )
+  ))
+  @RequestBody(
+    description = "The rule to be used for retrieving example values.",
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json"
+      ),
+      new Content(
+        mediaType = "application/xml"
+      )
+    )
+  )
+  def peakChildRule(@Parameter(
+                      name = "project",
+                      description = "The project identifier",
+                      required = true,
+                      in = ParameterIn.PATH,
+                      schema = new Schema(implementation = classOf[String])
+                    )
+                    projectName: String,
+                    @Parameter(
+                      name = "task",
+                      description = "The task identifier",
+                      required = true,
+                      in = ParameterIn.PATH,
+                      schema = new Schema(implementation = classOf[String])
+                    )
                     taskName: String,
-                    ruleName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                    @Parameter(
+                      name = "rule",
+                      description = "The rule identifier",
+                      required = true,
+                      in = ParameterIn.PATH,
+                      schema = new Schema(implementation = classOf[String])
+                    )
+                    ruleName: String,
+                    @Parameter(
+                      name = "limit",
+                      description = "The maximum number of transformed example entities.",
+                      required = false,
+                      in = ParameterIn.QUERY,
+                      schema = new Schema(implementation = classOf[Int], defaultValue = TRANSFORMATION_PREVIEW_LIMIT_STR)
+                    )
+                    limit: Int = TRANSFORMATION_PREVIEW_LIMIT,
+                    @Parameter(
+                      name = "maxTryEntities",
+                      description = "The maximum number of example entities to try to transform before giving up.",
+                      required = false,
+                      in = ParameterIn.QUERY,
+                      schema = new Schema(implementation = classOf[Int], defaultValue = MAX_TRY_ENTITIES_DEFAULT_STR)
+                    )
+                    maxTryEntities: Int = MAX_TRY_ENTITIES_DEFAULT): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val (project, task) = projectAndTask(projectName, taskName)
     val transformSpec = task.data
     val parentRule = transformSpec.oneRuleEntitySchemaById(ruleName).get
@@ -71,15 +185,12 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     deserializeCompileTime[TransformRule]() { rule =>
       val updatedParentRule = parentRule.transformRule.withChildren(Seq(rule)).asInstanceOf[TransformRule]
       val ruleSchemata = RuleSchemata.create(updatedParentRule, transformSpec.selection, parentRule.inputSchema.subPath).copy(transformRule = rule)
-      peakRule(project, inputTaskId, ruleSchemata)
+      peakRule(project, inputTaskId, ruleSchemata, limit, maxTryEntities)
     }
   }
 
-  private def peakRule(project: Project, inputTaskId: Identifier, ruleSchemata: RuleSchemata)
-                      (implicit request: Request[AnyContent],
-                       userContext: UserContext): Result = {
-    val limit = request.getQueryString("limit").map(_.toInt).getOrElse(TRANSFORMATION_PREVIEW_LIMIT)
-    val maxTryEntities = request.getQueryString("maxTryEntities").map(_.toInt).getOrElse(MAX_TRY_ENTITIES_DEFAULT)
+  private def peakRule(project: Project, inputTaskId: Identifier, ruleSchemata: RuleSchemata, limit: Int, maxTryEntities: Int)
+                      (implicit userContext: UserContext): Result = {
     implicit val prefixes: Prefixes = project.config.prefixes
 
     project.anyTask(inputTaskId).data match {
@@ -107,7 +218,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
           " is not a Dataset. Currently mapping preview is only supported for dataset inputs."))))
       case t: TaskSpec =>
         Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task $inputTaskId of type ${t.getClass.getSimpleName} " +
-            s"is not supported. Currently only dataset and transform tasks support producing example values."))))
+          s"is not supported. Currently only dataset and transform tasks support producing example values."))))
     }
   }
 
@@ -122,7 +233,7 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
     val sparqlDataset = sparqlSelectTask.optionalInputDataset.sparqlEnabledDataset
     if (sparqlDataset.toString == "") {
       Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, s"Input task $inputTaskId of type ${sparqlSelectTask.pluginSpec.label} " +
-          s"has no input dataset configured. Please configure the 'Optional SPARQL dataset' parameter."))))
+        s"has no input dataset configured. Please configure the 'Optional SPARQL dataset' parameter."))))
     } else {
       val datasetTask = project.task[GenericDatasetSpec](sparqlDataset)
       datasetTask.data.plugin match {
@@ -137,8 +248,8 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
           } catch {
             case pe: PeakException =>
               Ok(Json.toJson(PeakResults(None, None, PeakStatus(NOT_SUPPORTED_STATUS_MSG, "Input task " + inputTaskId.toString +
-                  " of type " + sparqlSelectTask.pluginSpec.label +
-                  " raised following issue:" + pe.msg))))
+                " of type " + sparqlSelectTask.pluginSpec.label +
+                " raised following issue:" + pe.msg))))
           }
         case _ =>
           throw new ValidationException(s"Configured dataset $sparqlDataset for task $inputTaskId offers no SPARQL endpoint!")
@@ -182,6 +293,19 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
 
 object PeakTransformApi {
 
+  // Max number of exceptions before aborting the mapping preview call
+  final val MAX_TRANSFORMATION_PREVIEW_EXCEPTIONS: Int = 50
+  // The number of transformation preview results that should be returned by the REST API
+  final val TRANSFORMATION_PREVIEW_LIMIT: Int = 3
+  final val TRANSFORMATION_PREVIEW_LIMIT_STR = "3"
+  // Maximum number of empty transformation results to skip during the mapping preview calculation
+  final val MAX_TRANSFORMATION_PREVIEW_SKIP_EMPTY_RESULTS: Int = 500
+  // Max number of entities to examine for the mapping preview
+  final val MAX_TRY_ENTITIES_DEFAULT: Int = MAX_TRANSFORMATION_PREVIEW_EXCEPTIONS + TRANSFORMATION_PREVIEW_LIMIT + MAX_TRANSFORMATION_PREVIEW_SKIP_EMPTY_RESULTS
+  final val MAX_TRY_ENTITIES_DEFAULT_STR = "553"
+
+  final val NOT_SUPPORTED_STATUS_MSG = "not supported"
+
   /**
     *
     * @param rule            The transformation rule to execute on the example entities.
@@ -218,18 +342,6 @@ object PeakTransformApi {
       }
     }
     (tryCounter, errorCounter, errorMessage, resultBuffer)
-  }
-
-  private def serializePath(path: TypedPath)
-                           (implicit prefixes: Prefixes): Seq[String] = {
-    path.operators.map { op =>
-      op.serialize
-    }
-  }
-
-  private def projectAndTask(projectName: String, taskName: String)
-                            (implicit userContext: UserContext): (Project, ProjectTask[TransformSpec]) = {
-    getProjectAndTask[TransformSpec](projectName, taskName)
   }
 
 }

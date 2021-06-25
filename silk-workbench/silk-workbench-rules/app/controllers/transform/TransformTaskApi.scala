@@ -2,9 +2,15 @@ package controllers.transform
 
 import controllers.core.UserContextActions
 import controllers.transform.TransformTaskApi._
+import controllers.transform.doc.TransformTaskApiDoc
 import controllers.transform.transformTask.{ObjectValueSourcePathInfo, TransformUtils, ValueSourcePathInfo}
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.silkframework.config.{MetaData, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
@@ -30,18 +36,79 @@ import javax.inject.Inject
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
+@Tag(name = "Transform")
 class TransformTaskApi @Inject() () extends InjectedController with UserContextActions {
 
   private val log = Logger.getLogger(getClass.getName)
 
-  def getTransformTask(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Retrieve Transform Task",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        content = Array(
+          new Content(
+            mediaType = "application/json"
+          ),
+          new Content(
+            mediaType = "application/xml"
+        ))
+    ))
+  )
+  def getTransformTask(@Parameter(
+                         name = "project",
+                         description = "The project identifier",
+                         required = true,
+                         in = ParameterIn.PATH,
+                         schema = new Schema(implementation = classOf[String])
+                       )
+                       projectName: String,
+                       @Parameter(
+                         name = "task",
+                         description = "The task identifier",
+                         required = true,
+                         in = ParameterIn.PATH,
+                         schema = new Schema(implementation = classOf[String])
+                       )
+                       taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
     serializeCompileTime[TransformTask](task, Some(project))
   }
 
-  def putTransformTask(projectName: String, taskName: String, createOnly: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Update or create a transform task",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200"
+      )
+    )
+  )
+  def putTransformTask(@Parameter(
+                        name = "project",
+                        description = "The project identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      projectName: String,
+                      @Parameter(
+                        name = "task",
+                        description = "The task identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      taskName: String,
+                      @Parameter(
+                        name = "createOnly",
+                        description = "Always create new transform",
+                        required = false,
+                        in = ParameterIn.QUERY,
+                        schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+                      )
+                      createOnly: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = getProject(projectName)
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val readContext: ReadContext = ReadContext()
@@ -80,13 +147,61 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     }
   }
 
-  def deleteTransformTask(projectName: String, taskName: String, removeDependentTasks: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Delete a transform task",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200"
+      )
+    )
+  )
+  def deleteTransformTask(@Parameter(
+                            name = "project",
+                            description = "The project identifier",
+                            required = true,
+                            in = ParameterIn.PATH,
+                            schema = new Schema(implementation = classOf[String])
+                          )
+                          projectName: String,
+                          @Parameter(
+                            name = "task",
+                            description = "The task identifier",
+                            required = true,
+                            in = ParameterIn.PATH,
+                            schema = new Schema(implementation = classOf[String])
+                          )
+                          taskName: String,
+                          @Parameter(
+                            name = "removeDependentTasks",
+                            description = "If true, transform and linking tasks that directly reference this task are removed as well.",
+                            required = true,
+                            in = ParameterIn.QUERY,
+                            schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+                          )
+                          removeDependentTasks: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = getProject(projectName)
     project.removeAnyTask(taskName, removeDependentTasks)
 
     Ok
   }
 
+  @Operation(
+    summary = "Retrieve All Mapping Rules",
+    description = "Get all mapping rules of the transformation task. If no accept header is defined, XML is returned.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(TransformTaskApiDoc.transformRulesJsonExample))
+          ),
+          new Content(
+            mediaType = "application/xml",
+            examples = Array(new ExampleObject(TransformTaskApiDoc.transformRulesXmlExample))
+          ))
+      ))
+  )
   def getRules(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
