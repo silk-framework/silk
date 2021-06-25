@@ -5,7 +5,9 @@ import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.ProjectUtils.getProjectAndTask
 import controllers.workflowApi.variableWorkflow.VariableWorkflowRequestUtils
-import controllers.workflowApi.workflow.WorkflowInfo
+import controllers.workflowApi.workflow.{WorkflowInfo, WorkflowNodePortConfig, WorkflowNodesPortConfig}
+import controllers.workspaceApi.search.ItemType
+import org.silkframework.config.CustomTask
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.http.HttpEntity
@@ -54,8 +56,35 @@ class ApiWorkflowApi @Inject()() extends InjectedController with ControllerUtils
   }
 
   /** Get information about how the workflow can be executed via API. */
-  def workflowInfo(projectId: String, workflowId: String): Action[AnyContent] = RequestUserContextAction { request =>implicit userContext =>
+  def workflowInfo(projectId: String, workflowId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val (project, workflow) = projectAndTask[Workflow](projectId, workflowId)
     Ok(Json.toJson(WorkflowInfo.fromWorkflow(workflow, project)))
+  }
+
+  /** Returns a list of potential tasks that can be used in the workflow with their port configuration.
+    *
+    **/
+  def workflowNodesConfig(projectId: String, workflowId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val (project, _) = projectAndTask[Workflow](projectId, workflowId)
+    val customTaskPortConfigs: Seq[(String, WorkflowNodePortConfig)] = for(customTask <- project.tasks[CustomTask]) yield {
+      val taskId = customTask.id.toString
+      val portConfig: WorkflowNodePortConfig = customTask.data.inputSchemataOpt match {
+        case Some(inputSchema) => WorkflowNodePortConfig(inputSchema.size)
+        case None => WorkflowNodePortConfig(1, None)
+      }
+      (taskId, portConfig)
+    }
+    val workflowNodesPortConfig = WorkflowNodesPortConfig(
+      byItemType = Map(
+        ItemType.dataset -> WorkflowNodePortConfig(1, None),
+        ItemType.workflow -> WorkflowNodePortConfig(1, None),
+        ItemType.linking -> WorkflowNodePortConfig(2),
+        ItemType.transform -> WorkflowNodePortConfig(1, None)
+      ),
+      byTaskId = customTaskPortConfigs.toMap,
+      // FIXME CMEM-3457: Add workflow node specific port config and use this in the UI
+      byNodeId = Map.empty
+    )
+    Ok(Json.toJson(workflowNodesPortConfig))
   }
 }
