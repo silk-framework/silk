@@ -17,12 +17,11 @@ case class WorkflowNodesPortConfig(byItemType: Map[ItemType, WorkflowNodePortCon
 case class WorkflowNodePortConfig(minPorts: Int,
                                   maxPorts: Option[Int])
 
-object WorkflowNodesPortConfig {
-  implicit val workflowNodesPortConfigFormat: Format[WorkflowNodesPortConfig] = Json.format[WorkflowNodesPortConfig]
+object WorkflowNodePortConfig {
+  def apply(ports: Int): WorkflowNodePortConfig = WorkflowNodePortConfig(ports, Some(ports))
 }
 
-object WorkflowNodePortConfig {
+object WorkflowNodesPortConfig {
   implicit val workflowNodePortConfigFormat: Format[WorkflowNodePortConfig] = Json.format[WorkflowNodePortConfig]
-
-  def apply(ports: Int): WorkflowNodePortConfig = WorkflowNodePortConfig(ports, Some(ports))
+  implicit val workflowNodesPortConfigFormat: Format[WorkflowNodesPortConfig] = Json.format[WorkflowNodesPortConfig]
 }
