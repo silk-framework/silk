@@ -76,10 +76,10 @@ class ApiWorkflowApi @Inject()() extends InjectedController with ControllerUtils
     }
     val workflowNodesPortConfig = WorkflowNodesPortConfig(
       byItemType = Map(
-        ItemType.dataset -> WorkflowNodePortConfig(1, None),
-        ItemType.workflow -> WorkflowNodePortConfig(1, None),
-        ItemType.linking -> WorkflowNodePortConfig(2),
-        ItemType.transform -> WorkflowNodePortConfig(1, None)
+        ItemType.dataset.id -> WorkflowNodePortConfig(1, None),
+        ItemType.workflow.id -> WorkflowNodePortConfig(1, None),
+        ItemType.linking.id -> WorkflowNodePortConfig(2),
+        ItemType.transform.id -> WorkflowNodePortConfig(1, None)
       ),
       byTaskId = customTaskPortConfigs.toMap,
       // FIXME CMEM-3457: Add workflow node specific port config and use this in the UI
