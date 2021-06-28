@@ -191,7 +191,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
   /**
     * A workflow does not have any inputs.
     */
-  override def inputSchemataOpt: Option[Seq[EntitySchema]] = Some(Seq())
+  override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
 
   /**
     * The schema of the output data.
