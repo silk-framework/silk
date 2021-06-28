@@ -3,6 +3,7 @@ package controllers.projectApi
 import config.WorkbenchConfig
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
+import controllers.projectApi.doc.ProjectApiDoc
 import controllers.workspace.JsonSerializer
 import controllers.workspaceApi.IdentifierUtils
 import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, ProjectCreationData}
@@ -51,7 +52,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
           new Header(
             name = "Location",
             description = "The URI of the new project",
-            schema = new Schema(implementation = classOf[String])
+            schema = new Schema(implementation = classOf[String], example = "/api/workspace/projects/projectx42")
           ))
       )
     ))
@@ -348,11 +349,11 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
         content = Array(
           new Content(
             mediaType = "application/json",
-            examples = Array(new ExampleObject(ProjectApi.taskLoadingErrorReportJsonExample))
+            examples = Array(new ExampleObject(ProjectApiDoc.taskLoadingErrorReportJsonExample))
           ),
           new Content(
             mediaType = "text/markdown",
-            examples = Array(new ExampleObject(ProjectApi.taskLoadingErrorReportMarkdownExample))
+            examples = Array(new ExampleObject(ProjectApiDoc.taskLoadingErrorReportMarkdownExample))
           )
         )
       ),
@@ -408,11 +409,11 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
         content = Array(
           new Content(
             mediaType = "application/json",
-            examples = Array(new ExampleObject(ProjectApi.taskLoadingErrorReportJsonExample))
+            examples = Array(new ExampleObject(ProjectApiDoc.taskLoadingErrorReportJsonExample))
           ),
           new Content(
             mediaType = "text/markdown",
-            examples = Array(new ExampleObject(ProjectApi.taskLoadingErrorReportMarkdownExample))
+            examples = Array(new ExampleObject(ProjectApiDoc.taskLoadingErrorReportMarkdownExample))
           )
         )
       ),
@@ -449,39 +450,3 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
   }
 }
 
-object ProjectApi {
-
-  private final val taskLoadingErrorReportJsonExample =
-"""
-[
-  {
-    "taskId": "transformsourcex",
-    "errorSummary": "Loading failed: Transform source X",
-    "taskLabel": "Transform source X",
-    "taskDescription": "Transforms source X to ...",
-    "errorMessage": "Loading of task 'Transform source X' failed because input 'some_missing_input' could not be found.",
-    "stacktrace": "... <SUPER_LONG_JVM_STACKTRACE> ..."
-  }
-]
-"""
-
-  private final val taskLoadingErrorReportMarkdownExample =
-"""
-# Project task loading error report
-
-In project 'cmem' 2 tasks could not be loaded.
-
-## Task 1: Transform source X
-
-* Task ID: transformsourcex
-* Error summary: Loading failed: Transform source X,
-* Task label: Transform source X
-* Task description: Transforms source X to ...
-* Error message: Loading of task 'Transform source X' failed because input 'some_missing_input' could not be found.
-* Stacktrace:
-```
-  SUPER LONG JVM STACKTRACE
- ```
-"""
-
-}

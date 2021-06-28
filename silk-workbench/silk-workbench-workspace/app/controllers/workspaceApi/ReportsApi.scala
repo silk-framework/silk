@@ -1,5 +1,6 @@
 package controllers.workspaceApi
 
+import controllers.workspaceApi.doc.ReportsApiDoc
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
@@ -27,7 +28,7 @@ class ReportsApi @Inject() () extends InjectedController {
         responseCode = "200",
         content = Array(new Content(
           mediaType = "application/json",
-          examples = Array(new ExampleObject(ReportsApi.reportListExample))
+          examples = Array(new ExampleObject(ReportsApiDoc.reportListExample))
         ))
       )
     ))
@@ -67,7 +68,7 @@ class ReportsApi @Inject() () extends InjectedController {
         responseCode = "200",
         content = Array(new Content(
           mediaType = "application/json",
-          examples = Array(new ExampleObject(ReportsApi.reportExample))
+          examples = Array(new ExampleObject(ReportsApiDoc.reportExample))
         ))
       )
     ))
@@ -101,62 +102,4 @@ class ReportsApi @Inject() () extends InjectedController {
     Ok(jsonFormat.write(report))
   }
 
-}
-
-object ReportsApi {
-
-  private final val reportListExample =
-"""
-[
-  {
-    "project": "movies",
-    "task": "simpleWorkflow",
-    "time": "2020-11-26T14:20:29.511Z"
-  },
-  {
-    "project": "movies",
-    "task": "simpleWorkflow",
-    "time": "2020-11-26T14:22:13.462Z"
-  }
-]
-"""
-
-  private final val reportExample =
-"""
-{
-  "metaData": {
-    "startedByUser": null,
-    "startedAt": "2020-11-26T14:20:28.502Z",
-    "finishedAt": "2020-11-26T14:20:29.510Z",
-    "cancelledAt": null,
-    "cancelledBy": null,
-    "finishStatus": {
-      "final": "status"
-    }
-  },
-  "value": {
-    "summary": [],
-    "task": {
-      "some": "specification"
-    },
-    "warnings": [
-      "Some tasks generated warnings."
-    ],
-    "label": "direct Workflow",
-    "taskReports": {
-      "DBpedia": {
-        "label": "DBpedia",
-        "task": {
-          "some": "specification"
-        },
-        "summary": [],
-        "warnings": []
-      },
-      "transform": {
-        "some": "specification"
-      }
-    }
-  }
-}
-"""
 }
