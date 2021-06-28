@@ -4,6 +4,7 @@ import java.util.logging.Logger
 import com.typesafe.config.ConfigValueType
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
+import controllers.workspaceApi.doc.InitApiDoc
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -49,7 +50,7 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
         content = Array(
           new Content(
             mediaType = "application/json",
-            examples = Array(new ExampleObject(InitApi.initFrontendExample)))
+            examples = Array(new ExampleObject(InitApiDoc.initFrontendExample)))
         )
       )
     ))
@@ -129,32 +130,4 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
   }
 }
 
-object InitApi {
 
-  private final val initFrontendExample =
-"""
-{
-  "emptyWorkspace":true,
-  "initialLanguage":"en",
-  "dmBaseUrl": "http://docker.local",
-  "maxFileUploadSize": 1000000000,
-  "dmModuleLinks": [
-          {
-              "defaultLabel": "Exploration",
-              "icon": "application-explore",
-              "path": "explore"
-          },
-          {
-              "defaultLabel": "Vocabulary Management",
-              "icon": "application-vocabularies",
-              "path": "vocab"
-          },
-          {
-              "defaultLabel": "Queries",
-              "icon": "application-queries",
-              "path": "query"
-          }
-      ]
-}
-"""
-}

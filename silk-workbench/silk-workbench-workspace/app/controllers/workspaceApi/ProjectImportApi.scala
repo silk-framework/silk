@@ -8,6 +8,7 @@ import controllers.workspaceApi.ProjectImportApi.{ProjectImport, ProjectImportDe
 import io.swagger.v3.oas.annotations.enums.{ParameterIn, ParameterStyle}
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.silkframework.config.{DefaultConfig, MetaData}
@@ -130,6 +131,19 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
         ))
       )
     ))
+  @RequestBody(
+    content = Array(
+      new Content(
+        mediaType = "multipart/form-data",
+      ),
+      new Content(
+        mediaType = "application/octet-stream"
+      ),
+      new Content(
+        mediaType = "text/plain"
+      )
+    )
+  )
   def uploadProjectArchiveFile(): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val inputFile = api.bodyAsFile
     removeOldTempFiles()

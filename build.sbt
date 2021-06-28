@@ -194,7 +194,8 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Serialization JSON",
-    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.8.1"
+    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.8.1",
+    libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.1.9"
   )
 
 lazy val persistentCaching = (project in file("silk-plugins/silk-persistent-caching"))
@@ -302,8 +303,7 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
     name := "Silk Workbench Core",
     // Play filters (CORS filter etc.)
     libraryDependencies += filters,
-    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % "test",
-    libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.1.9"
+    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % "test"
   )
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))

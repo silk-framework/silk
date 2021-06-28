@@ -1,7 +1,7 @@
 package controllers.workspaceApi.search
 
 import controllers.util.TextSearchUtils
-import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.media.Schema
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
@@ -198,6 +198,7 @@ object SearchApiModel {
   lazy implicit val sortablePropertyWrites: Writes[SortableProperty] = Json.writes[SortableProperty]
 
   /** The result of a faceted search. */
+  @Schema(description = "The result list as well as the list of potential facets for the currently selected task type.")
   case class FacetedSearchResult(total: Int,
                                  results: Seq[JsObject],
                                  sortByProperties: Seq[SortableProperty],
@@ -214,14 +215,56 @@ object SearchApiModel {
                         tasks: Seq[ProjectTask[_ <: TaskSpec]])
 
   /** A search request that supports types and facets. */
-  case class FacetedSearchRequest(@Parameter(description = "Restrict search to a specific project.")
+  case class FacetedSearchRequest(@Schema(
+                                    description = "If defined, only artifacts from that project are fetched.",
+                                    required = false,
+                                    nullable = true
+                                  )
                                   project: Option[String] = None,
+                                  @Schema(
+                                    description = "If defined, only artifacts of this type are fetched.",
+                                    required = false,
+                                    nullable = true,
+                                    implementation = classOf[String], // The ItemType JSON reader expects a single string instead of the whole object
+                                    allowableValues = Array("project", "dataset", "transform", "linking", "workflow", "task")
+                                  )
                                   itemType: Option[ItemType] = None,
+                                  @Schema(
+                                    description = "Conjunctive multi word query. The single words can be scattered over different artifact properties, e.g. one in label and one in description.",
+                                    required = false,
+                                    nullable = true
+                                  )
                                   textQuery: Option[String] = None,
+                                  @Schema(
+                                    description = "Search result offset to allow for paging.",
+                                    required = false,
+                                    nullable = true
+                                  )
                                   offset: Option[Int] = None,
+                                  @Schema(
+                                    description = "Search result limit to allow for paging. Can be disabled by setting it to '0', which will return all results.",
+                                    required = false,
+                                    nullable = true,
+                                    defaultValue = "10"
+                                  )
                                   limit: Option[Int] = None,
+                                  @Schema(
+                                    description = "Optional sort parameter allows for sorting the result list by a specific artifact property, e.g. label, creation date, update date.",
+                                    required = false,
+                                    nullable = true
+                                  )
                                   sortBy: Option[SortBy.Value] = None,
+                                  @Schema(
+                                    description = "If defined, only artifacts from that project are fetched.",
+                                    required = false,
+                                    nullable = true
+                                  )
                                   sortOrder: Option[SortOrder.Value] = None,
+                                  @Schema(
+                                    description = "Defines what facets are set to which values. The 'keyword' facet allows multiple values to be set..",
+                                    required = false,
+                                    nullable = true
+                                  )
                                   facets: Option[Seq[FacetSetting]] = None) extends SearchRequestTrait {
     /** The offset used for paging. */
     def workingOffset: Int =  offset.getOrElse(FacetedSearchRequest.DEFAULT_OFFSET)
@@ -456,8 +499,20 @@ object SearchApiModel {
   }
 
   /** A simple text based search request. The text query has to match as a whole. */
-  case class SearchRequest(project: Option[String],
+  case class SearchRequest(@Schema(
+                             description = "Restrict search to a specific project.",
+                             nullable = true,
+                             required = false)
+                           project: Option[String],
+                           @Schema(
+                             description = "Only return tasks that match a search term. Currently, the search covers the ID, the label, the description and the task properties.",
+                             nullable = true,
+                             required = false)
                            searchTerm: Option[String],
+                           @Schema(
+                             description = "The format options specify which parts are to be included in the response.",
+                             nullable = true,
+                             required = false)
                            formatOptions: Option[TaskFormatOptions]) extends SearchRequestTrait {
 
     // JSON format to serialize tasks according to the options

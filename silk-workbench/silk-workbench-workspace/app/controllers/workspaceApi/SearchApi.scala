@@ -2,6 +2,7 @@ package controllers.workspaceApi
 
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
+import controllers.workspace.doc.SearchApiDoc
 import controllers.workspaceApi.search.SearchApiModel._
 import controllers.workspaceApi.search.{ItemType, ParameterAutoCompletionRequest}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
@@ -41,13 +42,21 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
         responseCode = "200",
         description = "Search result",
         content = Array(new Content(
-          mediaType = "application/json"
+          mediaType = "application/json",
+          examples = Array(new ExampleObject(SearchApiDoc.searchTasksResponseExample))
         )
       )
     )
   ))
-  @RequestBody(description = "Search request", required = true,
-    content = Array(new Content(mediaType = "application/json", schema = new Schema(implementation = classOf[SearchRequest]))))
+  @RequestBody(
+    description = "Search request",
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[SearchRequest], example = SearchApiDoc.searchTasksRequestExample)
+    ))
+  )
   def search(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[SearchRequest] { searchRequest =>
       Ok(searchRequest())
@@ -64,24 +73,18 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
         description = "Search result",
         content = Array(new Content(
           mediaType = "application/json",
-          schema = new Schema(implementation = classOf[FacetedSearchResult]))
-        )
+          schema = new Schema(implementation = classOf[FacetedSearchResult]),
+          examples = Array(new ExampleObject(SearchApiDoc.artifactSearchResponseExample))
+        ))
       )
     )
   )
   @RequestBody(
-    description =
-                """If the optional project parameter is defined, only artifacts from that project are fetched.
-                If the 'itemType' parameter is defined, then only artifacts of this type are fetched.
-                Valid values are: Project, Dataset, Transformation, Linking, Workflow, Task.
-                The 'textQuery' parameter is a conjunctive multi word query. The single words can be scattered over
-                different artifact properties, e.g. one in label and one in description.
-                The 'offset' and 'limit' parameters allow for paging through the result list.
-                The limit will default to 10 if it is not provided. It can be disabled by setting it to '0', which will return all results.
-                The optional sort parameter allows for sorting the result list by a specific artifact property, e.g. label, creation date, update date.
-                The 'facets' parameter defines what facets are set to which values. The 'keyword' facet allows multiple values to be set.
-                """,
-    content = Array(new Content(mediaType = "application/json", schema = new Schema(implementation = classOf[FacetedSearchRequest]))))
+    content = Array(new Content(
+      mediaType = "application/json",
+      schema = new Schema(implementation = classOf[FacetedSearchRequest]),
+      examples = Array(new ExampleObject(SearchApiDoc.artifactSearchRequestExample))
+  )))
   def facetedSearch(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[FacetedSearchRequest] { facetedSearchRequest =>
       Ok(facetedSearchRequest())
@@ -98,7 +101,7 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
         description = "List of recently viewed items with:\n  - Project ID and label, optional task ID and label (when the item is a task)\n   - Item type, e.g. 'project', 'transform' etc.\n  - The plugin ID for tasks\n  - Item links of the returned item, e.g. details page etc.",
         content = Array(new Content(
           mediaType = "application/json",
-          examples = Array(new ExampleObject(SearchApi.recentlyViewedItemsExample))
+          examples = Array(new ExampleObject(SearchApiDoc.recentlyViewedItemsExample))
         ))
       )
     ))
@@ -149,8 +152,12 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
         responseCode = "200",
         description = "The response contains the result list of matching auto-completion results. The 'label' property is optional and may not be defined, even for parameters that are supposed to have labels. In this case the 'value' should be taken as label.",
         content = Array(new Content(
-          mediaType = "application/json"
+          mediaType = "application/json",
+          examples = Array(new ExampleObject(SearchApiDoc.parameterAutoCompletionResponseExample))
         ))
+      ),
+      new ApiResponse(
+        responseCode = "404"
       )
     ))
   @RequestBody(
@@ -165,7 +172,13 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
         The 'offset' and 'limit' parameters allow for paging through the result list.
         """,
     required = true,
-    content = Array(new Content(mediaType = "application/json", schema = new Schema(implementation = classOf[ParameterAutoCompletionRequest]))))
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[ParameterAutoCompletionRequest]),
+        examples = Array(new ExampleObject(SearchApiDoc.parameterAutoCompletionRequestExample))
+    ))
+  )
   def parameterAutoCompletion(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[ParameterAutoCompletionRequest] { request =>
       PluginRegistry.pluginDescriptionsById(
@@ -233,7 +246,7 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
         responseCode = "200",
         content = Array(new Content(
           mediaType = "application/json",
-          examples = Array(new ExampleObject("{ \"label\": \"Type\", \"values\": [{\"id\": \"project\", \"label\": \"Project\"}, {\"id\": \"dataset\", \"label\": \"Dataset\"}, {\"id\": \"transformation\", \"label\": \"Transformation\"}, {\"id\": \"linking\", \"label\": \"Linking\"}, {\"id\": \"workflow\", \"label\": \"Workflow\"}, {\"id\": \"task\", \"label\": \"Task\"}]}"))
+          examples = Array(new ExampleObject(SearchApiDoc.itemTypesExample))
         ))
       )
     ))
@@ -265,41 +278,6 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
         "label" -> JsString(itemType.label)
       ))
   }
-}
-
-object SearchApi {
-
-  private final val recentlyViewedItemsExample =
-"""
-[
-    {
-        "itemLinks": [
-            {
-                "label": "Task details page",
-                "path": "/workbench/projects/multiInputRestProject/task/parseJSON"
-            }
-        ],
-        "itemType": "task",
-        "pluginId": "JsonParserOperator",
-        "pluginLabel": "Parse JSON",
-        "projectId": "multiInputRestProject",
-        "projectLabel": "Multiple Inputs REST project",
-        "taskId": "parseJSON",
-        "taskLabel": "This will be updated"
-    },
-    {
-        "itemLinks": [
-            {
-                "label": "Project details page",
-                "path": "/workbench/projects/multiInputRestProject"
-            }
-        ],
-        "itemType": "project",
-        "projectId": "multiInputRestProject",
-        "projectLabel": "Multiple Inputs REST project"
-    }
-]
-"""
 }
 
 

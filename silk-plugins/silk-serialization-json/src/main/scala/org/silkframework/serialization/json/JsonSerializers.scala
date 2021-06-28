@@ -1,5 +1,6 @@
 package org.silkframework.serialization.json
 
+import io.swagger.v3.oas.annotations.media.Schema
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec, DatasetTask}
@@ -1075,6 +1076,7 @@ object JsonSerializers {
       * Serializes a value.
       */
     override def write(task:  Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      // If any of the defaults is changed, the annotations on TaskFormatOptions need to be updated
       var json = Json.obj(ID -> JsString(task.id.toString))
 
       for(project <- writeContext.projectId) {
@@ -1160,10 +1162,35 @@ object JsonSerializers {
     * @param includeRelations Include relations to other tasks.
     * @param includeSchemata Include the input and output schemata of the task.
     */
-  case class TaskFormatOptions(includeMetaData: Option[Boolean] = None,
+  case class TaskFormatOptions(@Schema(
+                                 description = "Include the task meta data.",
+                                 defaultValue = "true",
+                                 required = false,
+                               )
+                               includeMetaData: Option[Boolean] = None,
+                               @Schema(
+                                 description = "Include the task data.",
+                                 defaultValue = "true",
+                                 required = false,
+                               )
                                includeTaskData: Option[Boolean] = None,
+                               @Schema(
+                                 description = "Retrieves a list of properties as key-value pairs to be displayed to the user.",
+                                 defaultValue = "false",
+                                 required = false,
+                               )
                                includeTaskProperties: Option[Boolean] = None,
+                               @Schema(
+                                 description = "Include relations to other tasks.",
+                                 defaultValue = "false",
+                                 required = false,
+                               )
                                includeRelations: Option[Boolean] = None,
+                               @Schema(
+                                 description = "Include the input and output schemata of the task.",
+                                 defaultValue = "false",
+                                 required = false,
+                               )
                                includeSchemata: Option[Boolean] = None)
 
   /**
