@@ -1,10 +1,7 @@
 package controllers.transform
 
-import controllers.core.{RequestUserContextAction, UserContextAction}
 import org.silkframework.config.Prefixes
-
 import controllers.core.{UserContextActions}
-
 import javax.inject.Inject
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.{EvaluateTransform => EvaluateTransformTask}
