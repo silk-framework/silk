@@ -14,7 +14,7 @@
 
 package org.silkframework.workspace
 
-import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
+import org.silkframework.config.{MetaData, PlainTask, Prefixes, Task, TaskSpec}
 import org.silkframework.runtime.activity.{HasValue, Status, UserContext, ValueHolder}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
@@ -119,6 +119,8 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     */
   def update(newData: TaskType, newMetaData: Option[MetaData] = None)
             (implicit userContext: UserContext): Unit = synchronized {
+    // Validate
+    module.validator.validate(project, PlainTask(id, newData, newMetaData.getOrElse(metaData)))
     // Update data
     dataValueHolder.update(newData)
     for(md <- newMetaData) {
@@ -178,15 +180,16 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     * Finds all project tasks that reference this task.
     *
     * @param recursive Whether to return tasks that indirectly refer to this task.
+    * @param ignoreTasks Set of tasks to be ignored in the dependency search.
     */
-  override def findDependentTasks(recursive: Boolean)
+  override def findDependentTasks(recursive: Boolean, ignoreTasks: Set[Identifier] = Set.empty)
                                  (implicit userContext: UserContext): Set[Identifier] = {
     // Find all tasks that reference this task
-    val dependentTasks = project.allTasks.filter(_.data.referencedTasks.contains(id))
+    val dependentTasks = project.allTasks.filter(t => !ignoreTasks.contains(t.id) && t.data.referencedTasks.contains(id))
 
     var allDependentTaskIds = dependentTasks.map(_.id)
     if(recursive) {
-      allDependentTaskIds ++= dependentTasks.flatMap(_.findDependentTasks(true))
+      allDependentTaskIds ++= dependentTasks.flatMap(_.findDependentTasks(recursive = true, ignoreTasks + id))
     }
     allDependentTaskIds.distinct.toSet
   }

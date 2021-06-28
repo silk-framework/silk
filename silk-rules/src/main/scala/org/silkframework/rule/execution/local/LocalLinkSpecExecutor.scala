@@ -3,6 +3,7 @@ package org.silkframework.rule.execution.local
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, EmptyDataset}
 import org.silkframework.entity.EntitySchema
+import org.silkframework.dataset.{DataSource, DatasetCharacteristics, Dataset, DatasetSpec, EmptyDataset}
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.execution.local._
 import org.silkframework.execution.{EntityHolder, ExecutionReport, Executor, ExecutorOutput}

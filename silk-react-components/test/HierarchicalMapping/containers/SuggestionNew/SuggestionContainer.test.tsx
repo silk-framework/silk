@@ -1,5 +1,5 @@
-import {mount, ReactWrapper, render} from 'enzyme';
 import React from 'react';
+import {mount, ReactWrapper} from 'enzyme';
 import SuggestionContainer from '../../../../src/HierarchicalMapping/containers/SuggestionNew/SuggestionContainer';
 import {waitFor} from "@testing-library/react";
 import {
@@ -30,7 +30,7 @@ const generateCandidates = (candidateTemplates: ICandidateTemplate[],
     return candidateTemplates.map(candidate => {
         const { prefix, nrCandidates } = candidate
         return {
-            source: matchFromDataset ? prefixToSourcePath(prefix) : prefixToTargetProperty(prefix, 1),
+            uri: matchFromDataset ? prefixToSourcePath(prefix) : prefixToTargetProperty(prefix, 1),
             candidates: rangeArray(matchFromDataset ? nrCandidates : 1).map(nr => ({
                 uri: matchFromDataset ? prefixToTargetProperty(prefix, nr) : prefixToSourcePath(prefix),
                 label: matchFromDataset ? prefixToTargetLabel(prefix, nr) : undefined,
@@ -70,7 +70,7 @@ const mockPrefixes = {
 
 const props = {
     ruleId: 'root',
-    targetClassUris: '',
+    targetClassUris: [],
     onAskDiscardChanges: jest.fn(),
     onClose: jest.fn(),
     selectedVocabs: [],

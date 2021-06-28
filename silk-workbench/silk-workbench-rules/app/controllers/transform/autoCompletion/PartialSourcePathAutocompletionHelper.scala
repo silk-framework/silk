@@ -2,8 +2,8 @@ package controllers.transform.autoCompletion
 
 import controllers.transform.AutoCompletionApi.Categories
 import org.silkframework.config.Prefixes
-import org.silkframework.dataset.DataSourceCharacteristics
-import org.silkframework.dataset.DataSourceCharacteristics.SupportedPathExpressions
+import org.silkframework.dataset.DatasetCharacteristics
+import org.silkframework.dataset.DatasetCharacteristics.SupportedPathExpressions
 import org.silkframework.entity.paths.{PartialParseError, PartialParseResult, UntypedPath}
 import org.silkframework.util.{StringUtils, Uri}
 
@@ -58,7 +58,7 @@ object PartialSourcePathAutocompletionHelper {
   }
 
   /** Returns completion results for data source specific "special" paths, e.g. "#idx" for CSV/Excel. */
-  def specialPathCompletions(dataSourceCharacteristicsOpt: Option[DataSourceCharacteristics],
+  def specialPathCompletions(dataSourceCharacteristicsOpt: Option[DatasetCharacteristics],
                              pathToReplace: PathToReplace,
                              pathOpFilter: OpFilter.Value): Seq[Completion] = {
     if(pathToReplace.insideQuotes) {
@@ -122,7 +122,7 @@ object PartialSourcePathAutocompletionHelper {
   private implicit def createCompletion(completions: Seq[Completion]): Completions = Completions(completions)
 
   /** Returns completions for path operators. */
-  def operatorCompletions(dataSourceCharacteristicsOpt: Option[DataSourceCharacteristics],
+  def operatorCompletions(dataSourceCharacteristicsOpt: Option[DatasetCharacteristics],
                           pathToReplace: PathToReplace,
                           autoCompletionRequest: PartialSourcePathAutoCompletionRequest): Option[ReplacementResults] = {
     def completion(predicate: Boolean, value: String, description: String): Option[CompletionBase] = {
@@ -130,7 +130,7 @@ object PartialSourcePathAutocompletionHelper {
     }
     // Propose operators
     if (!pathToReplace.insideQuotesOrUri && !autoCompletionRequest.charBeforeCursor.contains('/') && !autoCompletionRequest.charBeforeCursor.contains('\\')) {
-      val supportedPathExpressions = dataSourceCharacteristicsOpt.getOrElse(DataSourceCharacteristics()).supportedPathExpressions
+      val supportedPathExpressions = dataSourceCharacteristicsOpt.getOrElse(DatasetCharacteristics()).supportedPathExpressions
       val forwardOp = completion(autoCompletionRequest.cursorPosition > 0 && supportedPathExpressions.multiHopPaths && !pathToReplace.insideFilter,
         "/", "Starts a forward path segment")
       val backwardOp = completion(supportedPathExpressions.backwardPaths && supportedPathExpressions.multiHopPaths && !pathToReplace.insideFilter,

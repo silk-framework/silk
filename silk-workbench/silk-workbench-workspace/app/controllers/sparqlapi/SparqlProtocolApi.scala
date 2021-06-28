@@ -1,7 +1,8 @@
 package controllers.sparqlapi
 
-import controllers.core.RequestUserContextAction
+import controllers.core.{UserContextActions}
 import controllers.sparqlapi.SparqlProtocolApi._
+
 import javax.inject.Inject
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.rdf.RdfDataset
@@ -24,7 +25,7 @@ import scala.xml.Node
   * to every [[RdfDataset]] is available without pushing triples to an active triple store.
   * FIXME CONSTRUCT and DESCRIBE queries are currently not supported, but should be easy to implement
   */
-class SparqlProtocolApi @Inject() () extends InjectedController {
+class SparqlProtocolApi @Inject() () extends InjectedController with UserContextActions {
 
   private def getWriteContext[Ser](context: Context[GenericDatasetSpec]): WriteContext[Ser] = WriteContext[Ser](
     None,

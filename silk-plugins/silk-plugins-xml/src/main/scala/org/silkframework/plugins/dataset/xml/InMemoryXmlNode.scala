@@ -1,5 +1,7 @@
 package org.silkframework.plugins.dataset.xml
 
+import org.silkframework.util.Identifier
+
 import scala.xml._
 import java.lang.StringBuilder
 
@@ -86,6 +88,20 @@ case class InMemoryXmlText(value: String) extends InMemoryXmlNode {
   override def appendText(sb: StringBuilder): Unit = sb.append(value)
 
   override def label: String = "#PCDATA"
+}
+
+/** XML attribute node. */
+case class InMemoryXmlAttribute(attributeName: String, value: String) extends InMemoryXmlNode {
+  override def appendText(sb: StringBuilder): Unit = sb.append(value)
+
+  override def label: String = {
+    val nodeLabel = Identifier.fromAllowed(attributeName.replace("@", "attr_"))
+    if(!nodeLabel.startsWith("attr_")) {
+      s"attr_$nodeLabel"
+    } else {
+      nodeLabel
+    }
+  }
 }
 
 object InMemoryXmlNode {

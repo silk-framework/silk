@@ -1,7 +1,7 @@
 package controllers.transform
 
 import controllers.core.util.ControllerUtilsTrait
-import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.core.{UserContextActions}
 import controllers.util.SerializationUtils._
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.vocab.{VocabularyClass, VocabularyProperty}
@@ -21,7 +21,7 @@ import javax.inject.Inject
 /**
   * Provides access to the target vocabulary.
   */
-class TargetVocabularyApi  @Inject() () extends InjectedController with ControllerUtilsTrait {
+class TargetVocabularyApi  @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   /** Returns meta data for a vocabulary class */
   def getTypeInfo(projectName: String, transformTaskName: String, typeUri: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>

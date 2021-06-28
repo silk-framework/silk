@@ -1,7 +1,7 @@
 package controllers.workspace
 
 import controllers.core.{AutoCompletableTestPlugin, TestAutoCompletionProvider}
-import controllers.workspaceApi.search.SearchApiModel.{DESCRIPTION, FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult, Facets, ID, KeywordFacetSetting, LABEL, PLUGIN_ID, PROJECT_ID, PROJECT_LABEL, SortBy, SortOrder, SortableProperty}
+import controllers.workspaceApi.search.SearchApiModel.{DESCRIPTION, FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult, Facets, ID, KeywordFacetSetting, LABEL, PLUGIN_ID, PLUGIN_LABEL, PROJECT_ID, PROJECT_LABEL, SortBy, SortOrder, SortableProperty}
 import controllers.workspaceApi.search._
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
@@ -97,6 +97,7 @@ class SearchApiIntegrationTest extends FlatSpec
       PROJECT_LABEL -> projectLabel,
       LABEL -> "csv A",
       PLUGIN_ID -> "csv",
+      PLUGIN_LABEL -> "CSV",
       PROJECT_ID -> "singleProject",
       ID -> "csvA",
       "type" -> "dataset"
@@ -110,7 +111,7 @@ class SearchApiIntegrationTest extends FlatSpec
 
   it should "only return task results for project restricted searches with text query" in {
     val (response, _) = facetedSearchRequest(FacetedSearchRequest(project = Some(projectId), textQuery = Some("o    s")))
-    resultItemIds(response) mustBe Seq("jsonXYZ", "transformA")
+    resultItemIds(response) mustBe Seq("jsonXYZ", "output", "transformA")
   }
 
   it should "page through the results correctly" in {
@@ -277,6 +278,22 @@ class SearchApiIntegrationTest extends FlatSpec
     )._1.results
     results must have size 1
     (results.head \ ID).as[String] mustBe projectId
+  }
+
+  it should "consider the plugin label in the search" in {
+    val results = facetedSearchRequest(
+      FacetedSearchRequest(textQuery = Some(s"output in-memory"))
+    )._1.results
+    results must have size 1
+    (results.head \ ID).as[String] mustBe "output"
+  }
+
+  it should "consider the dataset item type in the search" in {
+    val results = facetedSearchRequest(
+      FacetedSearchRequest(textQuery = Some(s"xyz dataset"))
+    )._1.results
+    results must have size 1
+    (results.head \ ID).as[String] mustBe "jsonXYZ"
   }
 
   private val testAutoCompletionProvider = TestAutoCompletionProvider()

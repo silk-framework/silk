@@ -17,7 +17,7 @@ package org.silkframework.plugins.dataset
 import java.io.File
 import org.silkframework.cache.FileEntityCache
 import org.silkframework.config.{PlainTask, Prefixes, RuntimeConfig, Task}
-import org.silkframework.dataset.{DataSource, DataSourceCharacteristics, Dataset, DatasetSpec}
+import org.silkframework.dataset.{DataSource, DatasetCharacteristics, Dataset, DatasetSpec}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.execution.EntityHolder
@@ -37,7 +37,7 @@ case class CacheDataset(dir: String) extends Dataset {
 
   override def linkSink(implicit userContext: UserContext) = ???
 
-  override def characteristics: DataSourceCharacteristics = DataSourceCharacteristics()
+  override def characteristics: DatasetCharacteristics = DatasetCharacteristics()
 
   object CacheSource extends DataSource {
     override def retrieve(entityDesc: EntitySchema, limit: Option[Int])

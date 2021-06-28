@@ -1,10 +1,10 @@
 package controllers.workspaceApi
 
 import java.util.logging.Logger
-
 import com.typesafe.config.ConfigValueType
-import controllers.core.RequestUserContextAction
+import controllers.core.{UserContextActions}
 import controllers.core.util.ControllerUtilsTrait
+
 import javax.inject.Inject
 import org.silkframework.config.DefaultConfig
 import play.api.libs.json.{Format, JsArray, JsString, Json}
@@ -15,7 +15,7 @@ import scala.collection.JavaConverters._
 /**
   * API endpoints for initialization of the frontend application.
   */
-case class InitApi @Inject()() extends InjectedController with ControllerUtilsTrait {
+case class InitApi @Inject()() extends InjectedController with UserContextActions with ControllerUtilsTrait {
   private val dmConfigKey = "eccencaDataManager.baseUrl"
   private val dmLinksKey = "eccencaDataManager.moduleLinks"
   private val hotkeyConfigPath = "frontend.hotkeys"

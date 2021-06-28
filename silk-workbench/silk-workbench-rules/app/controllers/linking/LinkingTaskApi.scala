@@ -1,8 +1,10 @@
 package controllers.linking
 
-import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.core.{UserContextActions}
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils
+
+import javax.inject.Inject
 import org.silkframework.config.{MetaData, PlainTask, Prefixes}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.{Entity, FullLink, MinimalLink, Restriction}
@@ -27,7 +29,7 @@ import play.api.mvc.{Action, AnyContent, AnyContentAsXml, InjectedController}
 import java.util.logging.{Level, Logger}
 import javax.inject.Inject
 
-class LinkingTaskApi @Inject() () extends InjectedController {
+class LinkingTaskApi @Inject() () extends InjectedController with UserContextActions {
 
   private val log = Logger.getLogger(getClass.getName)
 

@@ -2,7 +2,7 @@ package controllers.linking
 
 import akka.actor.ActorSystem
 import akka.stream.Materializer
- import controllers.core.RequestUserContextAction
+import controllers.core.{UserContextActions}
 import controllers.util.AkkaUtils
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking.{EvalLink, LinkResolver, LinkSorter}
@@ -18,7 +18,7 @@ import play.api.mvc.{Action, AnyContent, InjectedController, WebSocket}
 
 import javax.inject.Inject
 
-class EvaluateLinkingController @Inject() (implicit system: ActorSystem, mat: Materializer, accessMonitor: WorkbenchAccessMonitor) extends InjectedController {
+class EvaluateLinkingController @Inject() (implicit system: ActorSystem, mat: Materializer, accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions {
 
   def generateLinks(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)

@@ -50,7 +50,7 @@ lazy val commonSettings = Seq(
     }
   },
   // Building
-  scalaVersion := "2.12.10",
+  scalaVersion := "2.12.13",
   publishTo := {
     val artifactory = "https://artifactory.eccenca.com/"
     // Assumes that version strings for releases, e.g. v3.0.0 or v3.0.0-rc3, do not have a postfix of length 5 or longer.
@@ -73,16 +73,6 @@ lazy val commonSettings = Seq(
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
-  dependencyOverrides ++= Seq(
-    "com.google.guava" % "guava" % "18.0",
-    "com.google.inject" % "guice" % "4.0",
-    "org.apache.thrift" % "libthrift" % "0.9.3",
-    "io.netty" % "netty" % "3.10.5.Final",
-    "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.5",
-    "com.google.code.findbugs" % "jsr305" % "3.0.0",
-    "javax.servlet" % "javax.servlet-api" % "3.1.0" // FIXME: Needs to be re-evaluated when changing the Fuseki version (currently 3.7.0), comes from jetty-servlets 9.4.7.v20170914
-  ),
-
   // The assembly plugin cannot resolve multiple dependencies to commons logging
   assemblyMergeStrategy in assembly := {
     case PathList("org", "apache", "commons", "logging",  xs @ _*) => MergeStrategy.first
@@ -93,8 +83,6 @@ lazy val commonSettings = Seq(
       val oldStrategy = (assemblyMergeStrategy in assembly).value
       oldStrategy(other)
   }
-  // Use dependency injected routes in Play modules
-  //routesGenerator := InjectedRoutesGenerator
 )
 
 //////////////////////////////////////////////////////////////////////////////
@@ -105,7 +93,7 @@ lazy val core = (project in file("silk-core"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Core",
-    libraryDependencies += "com.typesafe" % "config" % "1.3.1", // Should always use the same version as the Play Framework dependency
+    libraryDependencies += "com.typesafe" % "config" % "1.4.1", // Should always use the same version as the Play Framework dependency
     libraryDependencies += "com.github.halfmatthalfcat" %% "stringmetric-core" % "0.28.0",
     // Additional scala standard libraries
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.1.0",
@@ -138,7 +126,7 @@ lazy val workspace = (project in file("silk-workspace"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workspace",
-    libraryDependencies += "com.typesafe.play" %% "play-ws" % "2.6.23"
+    libraryDependencies += "com.typesafe.play" %% "play-ws" % "2.8.8"
   )
 
 /////////////////////////////////////////////// ///////////////////////////////
@@ -176,7 +164,7 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   .settings(
     name := "Silk Plugins JSON",
     libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.12.1",
-    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.12"
+    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.8.1"
   )
 
 // pluginsSpatialTemporal has been removed as it uses dependencies from external unreliable repositories
@@ -206,7 +194,7 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Serialization JSON",
-    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.12"
+    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.8.1"
   )
 
 lazy val persistentCaching = (project in file("silk-plugins/silk-persistent-caching"))
@@ -314,10 +302,7 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
     name := "Silk Workbench Core",
     // Play filters (CORS filter etc.)
     libraryDependencies += filters,
-    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % "test",
-    // We are still using Play iteratees, in the future we should migrate to Akka Streams and remove this dependency
-    libraryDependencies += "com.typesafe.play" %% "play-iteratees" % "2.6.1",
-    libraryDependencies += "com.typesafe.play" %% "play-iteratees-reactive-streams" % "2.6.1"
+    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % "test"
   )
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))

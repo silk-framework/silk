@@ -1,22 +1,23 @@
 package controllers.workflowApi
 
 import akka.util.ByteString
-import controllers.core.RequestUserContextAction
+import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.util.ProjectUtils.{getProject, getProjectAndTask}
+import controllers.util.ProjectUtils.getProjectAndTask
 import controllers.workflowApi.variableWorkflow.VariableWorkflowRequestUtils
 import controllers.workflowApi.workflow.WorkflowInfo
-import javax.inject.Inject
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.http.HttpEntity
 import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, InjectedController, ResponseHeader, Result}
+import play.api.mvc._
+
+import javax.inject.Inject
 
 /**
   * Workflow API.
   */
-class ApiWorkflowApi @Inject()() extends InjectedController with ControllerUtilsTrait {
+class ApiWorkflowApi @Inject()() extends InjectedController with ControllerUtilsTrait with UserContextActions {
   /**
     * Run a variable workflow, where some of the tasks are configured at request time and dataset payload may be
     * delivered inside the request.

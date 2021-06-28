@@ -1,13 +1,15 @@
 package controllers.projectApi
 
 import controllers.core.util.ControllerUtilsTrait
-import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.core.{UserContextActions}
 import controllers.util.TextSearchUtils
 import controllers.workspaceApi.IdentifierUtils
 import controllers.workspaceApi.projectTask.{ItemCloneRequest, ItemCloneResponse, RelatedItem, RelatedItems}
 import controllers.workspaceApi.search.ItemType
+
 import javax.inject.Inject
 import org.silkframework.config.Prefixes
+import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
 import play.api.libs.json.{JsValue, Json}
@@ -18,7 +20,7 @@ import scala.util.Try
 /**
   * API for project tasks.
   */
-class ProjectTaskApi @Inject()() extends InjectedController with ControllerUtilsTrait {
+class ProjectTaskApi @Inject()() extends InjectedController with UserContextActions with ControllerUtilsTrait {
   /** Fetch all related items (tasks) for a specific project task. */
   def relatedItems(projectId: String, taskId: String, textQuery: Option[String]): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = getProject(projectId)
@@ -26,9 +28,10 @@ class ProjectTaskApi @Inject()() extends InjectedController with ControllerUtils
     val relatedTasks = (task.data.referencedTasks.toSeq ++ task.findDependentTasks(recursive = false).toSeq ++ task.findRelatedTasksInsideWorkflows.toSeq).distinct.
         flatMap(id => project.anyTaskOption(id))
     val relatedItems = relatedTasks map { task =>
+      val pd = PluginDescription(task)
       val itemType = ItemType.itemType(task)
       val itemLinks = ItemType.itemTypeLinks(itemType, projectId, task.id, Some(task.data))
-      RelatedItem(task.id, task.fullTaskLabel, task.metaData.description, itemType.label, itemLinks)
+      RelatedItem(task.id, task.fullTaskLabel, task.metaData.description, itemType.label, itemLinks, pd.label)
     }
     val filteredItems = filterRelatedItems(relatedItems, textQuery)
     val total = relatedItems.size
@@ -82,7 +85,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with ControllerUtils
       relatedItems
     } else {
       relatedItems.filter(relatedItem => // Description is not displayed, so don't search in description.
-        TextSearchUtils.matchesSearchTerm(searchWords, s"${relatedItem.label} ${relatedItem.`type`}".toLowerCase))
+        TextSearchUtils.matchesSearchTerm(searchWords, s"${relatedItem.label} ${relatedItem.`type`} ${relatedItem.pluginLabel}".toLowerCase))
     }
   }
 }

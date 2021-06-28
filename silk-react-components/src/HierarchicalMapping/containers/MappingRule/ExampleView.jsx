@@ -42,7 +42,7 @@ export class ExampleView extends React.Component {
     // template rendering
     render() {
         if (this.state.error) {
-            return <ErrorView {...this.state.error} />;
+            return <ErrorView {...this.state.error} titlePrefix={"There has been an error loading the examples: "} />;
         }
 
         if (_.isUndefined(this.state.example)) {

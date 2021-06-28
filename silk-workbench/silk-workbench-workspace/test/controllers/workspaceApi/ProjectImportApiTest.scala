@@ -28,6 +28,8 @@ class ProjectImportApiTest extends FlatSpec with SingleProjectWorkspaceProviderT
 
   val expectedProjectId = "configProject"
 
+  val workspaceExportZip = "controllers/workspace/workspace.zip"
+
   it should "import a project from a XML file with multi step import API" in {
     val expectedProjectLabel = "Config Project"
     val expectedProjectDescription = "Config project description"
@@ -38,10 +40,7 @@ class ProjectImportApiTest extends FlatSpec with SingleProjectWorkspaceProviderT
     val projectImportId = uploadProjectFile()
 
     // Fetch project import details
-    val detailUrl = controllers.workspaceApi.routes.ProjectImportApi.projectImportDetails(projectImportId)
-    val detailResponse = Json.fromJson[ProjectImportDetails](checkResponseExactStatusCode(createRequest(detailUrl).get()).json)
-    detailResponse.asOpt mustBe defined
-    detailResponse.get mustBe ProjectImportDetails("configProject", expectedProjectLabel, Some(expectedProjectDescription),
+    requestProjectImportDetails(projectImportId) mustBe ProjectImportDetails("configProject", expectedProjectLabel, Some(expectedProjectDescription),
       XmlZipWithResourcesProjectMarshaling.marshallerId, projectAlreadyExists = true, None)
 
     // Start project import without conflict resolve strategy -> 409
@@ -73,10 +72,18 @@ class ProjectImportApiTest extends FlatSpec with SingleProjectWorkspaceProviderT
     newProjectMetaData.description mustBe Some(expectedProjectDescription)
   }
 
+  private def requestProjectImportDetails(projectImportId: String): ProjectImportDetails = {
+    val detailUrl = controllers.workspaceApi.routes.ProjectImportApi.projectImportDetails(projectImportId)
+    val responseJson = checkResponseExactStatusCode(createRequest(detailUrl).get()).json
+    val detailResponse = Json.fromJson[ProjectImportDetails](responseJson).asOpt
+    detailResponse mustBe defined
+    detailResponse.get
+  }
+
   /** Uploads the project archive to the project import endpoint. Return project import ID. */
-  private def uploadProjectFile(): String = {
+  private def uploadProjectFile(projectResourceZip: String = projectPathInClasspath): String = {
     val uploadUrl = controllers.workspaceApi.routes.ProjectImportApi.uploadProjectArchiveFile()
-    val projectResource = ClasspathResource(projectPathInClasspath)
+    val projectResource = ClasspathResource(projectResourceZip)
     val responseJson = TestFileUtils.withTempFile { tempFile =>
       StreamUtils.fastStreamCopy(projectResource.inputStream, new FileOutputStream(tempFile), close = true)
       // Upload project file
@@ -120,5 +127,12 @@ class ProjectImportApiTest extends FlatSpec with SingleProjectWorkspaceProviderT
     val responseJson = checkResponseExactStatusCode(createRequest(importProjectStatusUrl).get()).json
     (responseJson \ "success").as[Boolean] mustBe true
     workspaceProject(customProjectId).allTasks must not be empty
+  }
+
+  it should "return error when a workspace export with more than a single project is uploaded" in {
+    val projectImportId = uploadProjectFile(workspaceExportZip)
+    val projectImportDetails = requestProjectImportDetails(projectImportId)
+    projectImportDetails.errorMessage mustBe defined
+    projectImportDetails.errorMessage.get must include ("multiple projects")
   }
 }

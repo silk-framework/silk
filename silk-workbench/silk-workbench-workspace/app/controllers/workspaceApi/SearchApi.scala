@@ -1,12 +1,9 @@
 package controllers.workspaceApi
 
-import java.util.logging.Logger
-
+import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.workspaceApi.search.SearchApiModel._
-import controllers.workspaceApi.search.{ItemLink, ItemType, ParameterAutoCompletionRequest}
-import javax.inject.Inject
+import controllers.workspaceApi.search.{ItemType, ParameterAutoCompletionRequest}
 import org.silkframework.config.TaskSpec
 import org.silkframework.dataset.Dataset
 import org.silkframework.rule.input.Transformer
@@ -17,10 +14,13 @@ import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, InjectedController, Result}
 
+import java.util.logging.Logger
+import javax.inject.Inject
+
 /**
   * API to search for tasks in the workspace.
   */
-class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) extends InjectedController with ControllerUtilsTrait {
+class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
   implicit val autoCompletionResultJsonFormat: Format[AutoCompletionResult] = Json.format[AutoCompletionResult]
@@ -54,10 +54,12 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
       } else {
         val itemType = if(taskOpt.isEmpty) ItemType.project else ItemType.itemType(taskOpt.get.data)
         val taskData = for (task <- taskOpt) yield {
+          val pd = PluginDescription(task)
           Seq(
             "taskId" -> JsString(task.id),
             "taskLabel" -> JsString(taskOpt.get.metaData.label),
-            PLUGIN_ID -> JsString(PluginDescription(task).id)
+            PLUGIN_ID -> JsString(pd.id),
+            PLUGIN_LABEL -> JsString(pd.label)
           )
         }
         Some(JsObject(Seq(
@@ -122,7 +124,7 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
         val result = autoCompletion.autoCompletionProvider.autoComplete(request.textQuery.getOrElse(""),
           request.projectId, request.dependsOnParameterValues.getOrElse(Seq.empty),
           limit = request.workingLimit, offset = request.workingOffset, workspace = workspace)
-        Ok(Json.toJson(result.map(_.withNonEmptyLabels)))
+        Ok(Json.toJson(result.map(_.withNonEmptyLabels).toSeq))
       } catch {
         case ex: IllegalArgumentException =>
           throw BadUserInputException(ex)

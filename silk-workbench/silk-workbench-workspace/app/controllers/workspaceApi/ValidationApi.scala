@@ -1,6 +1,6 @@
 package controllers.workspaceApi
 
-import controllers.core.RequestUserContextAction
+import controllers.core.{UserContextActions}
 import controllers.core.util.ControllerUtilsTrait
 import controllers.workspaceApi.validation.{SourcePathValidationRequest, SourcePathValidationResponse}
 import org.silkframework.config.Prefixes
@@ -12,7 +12,7 @@ import play.api.mvc.{Action, InjectedController}
 import javax.inject.Inject
 
 /** API to validate different aspects of workspace artifacts. */
-class ValidationApi @Inject() () extends InjectedController with ControllerUtilsTrait {
+class ValidationApi @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
   /** Validates the syntax of a Silk source path expression and returns parse error details.
     * Also validate prefix names that they have a valid prefix. */
   def validateSourcePath(projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext: UserContext =>

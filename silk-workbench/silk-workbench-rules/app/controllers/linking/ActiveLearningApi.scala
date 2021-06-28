@@ -1,7 +1,8 @@
 package controllers.linking
 
 import akka.stream.Materializer
-import controllers.core.RequestUserContextAction
+import controllers.core.{UserContextActions}
+
 import javax.inject.Inject
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.rule.LinkSpec
@@ -12,7 +13,7 @@ import org.silkframework.workbench.Context
 import play.api.libs.json.JsValue
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
-class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedController {
+class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedController with UserContextActions {
 
   def iterate(project: String, task: String, decision: String,
               linkSource: String, linkTarget: String, synchronous: Boolean = false): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>

@@ -81,6 +81,8 @@ class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatcher
     val responseJsonPut = checkResponse(client.url(s"$baseUrl${projectPrefixUrl(prefixProjectId, prefixName)}").put(Json.toJson(newPrefixUri))).json
     (responseJsonPut \\ prefixName).headOption.map(_.as[String]) mustBe Some(newPrefixUri)
     retrieveOrCreateProject(prefixProjectId).config.prefixes.get(prefixName) mustBe Some(newPrefixUri)
+    // Invalid prefix value should 400
+    checkResponseExactStatusCode(client.url(s"$baseUrl${projectPrefixUrl(prefixProjectId, "prefixName")}").put(Json.toJson("urn:with space")), BAD_REQUEST)
   }
 
   private def fetchPrefixes: JsResult[Map[String, String]] = {

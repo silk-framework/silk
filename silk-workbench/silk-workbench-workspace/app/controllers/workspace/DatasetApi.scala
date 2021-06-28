@@ -1,7 +1,7 @@
 package controllers.workspace
 
+import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.SerializationUtils._
 import controllers.util.TextSearchUtils
 import org.silkframework.config.{PlainTask, Prefixes}
@@ -25,7 +25,7 @@ import play.api.mvc._
 
 import javax.inject.Inject
 
-class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTrait {
+class DatasetApi @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   private implicit val partialPath = Json.format[PathCoverage]
   private implicit val valueCoverageMissFormat = Json.format[ValueCoverageMiss]

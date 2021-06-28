@@ -2,7 +2,7 @@ package org.silkframework.runtime.plugin
 
 import org.silkframework.runtime.plugin.annotations.TransformExample
 
-case class TransformExampleValue(parameters: Map[String, String], input: Seq[Seq[String]], output: Seq[String], throwsException: String) {
+case class TransformExampleValue(description: Option[String], parameters: Map[String, String], input: Seq[Seq[String]], output: Seq[String], throwsException: String) {
 
   def formatted: String = {
     if(throwsException.trim != "") {
@@ -24,6 +24,7 @@ object TransformExampleValue {
     val transformExamples = transformer.getAnnotationsByType(classOf[TransformExample])
     for(example <- transformExamples) yield {
       TransformExampleValue(
+        description = Option(example.description()).filter(_.nonEmpty),
         parameters = retrieveParameters(example),
         input = retrieveInputs(example),
         output = example.output().toList,
@@ -34,7 +35,7 @@ object TransformExampleValue {
 
   private def retrieveInputs(example: TransformExample): Seq[Seq[String]] = {
     val allValues = Seq(example.input1(), example.input2(), example.input3(), example.input4(), example.input5())
-    val definedValues = allValues.reverse.dropWhile(_.isEmpty).reverse
+    val definedValues = allValues.filter(_.toSeq != Seq("  __UNINITIALIZED__  "))
     definedValues.map(_.toSeq)
   }
 

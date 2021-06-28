@@ -1,7 +1,8 @@
 package controllers.workspaceApi
 
-import controllers.core.RequestUserContextAction
+import controllers.core.{UserContextActions}
 import controllers.core.util.ControllerUtilsTrait
+
 import javax.inject.Inject
 import org.silkframework.runtime.activity.{Status => ActivityStatus}
 import org.silkframework.runtime.serialization.WriteContext
@@ -12,7 +13,7 @@ import play.api.mvc.{Action, AnyContent, InjectedController}
 /**
   * Activities API.
   */
-class ActivitiesApi @Inject() () extends InjectedController with ControllerUtilsTrait {
+class ActivitiesApi @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   /** List status of all task activities. */
   def taskActivitiesStatus(projectId: Option[String],
@@ -40,7 +41,7 @@ class ActivitiesApi @Inject() () extends InjectedController with ControllerUtils
         statusFilter.isEmpty || statusFilter.contains(status.name) || statusFilter.contains(status.concreteStatus)
       }
     }
-    Ok(Json.toJson(activityStatusTraversable))
+    Ok(Json.toJson(activityStatusTraversable.toSeq))
   }
 }
 

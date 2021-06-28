@@ -51,7 +51,7 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribut
     safeAccess(DatasetSpec.LinkSinkWrapper(plugin.linkSink, this), SafeModeSink)
   }
 
-  def characteristics: DataSourceCharacteristics = plugin.characteristics
+  def characteristics: DatasetCharacteristics = plugin.characteristics
 
   // True if access should be prevented regarding the dataset and safe-mode config
   private def preventAccessInSafeMode(implicit userContext: UserContext): Boolean = {

@@ -26,6 +26,15 @@
         @toolboxOperator(taskActions)
       }
   </div>
+  <div id="datasetToolbox">
+    <div id="datasetToolboxHeader">
+      Workflows
+    </div>
+    @for(task <- project.allTasks;
+         taskActions = WorkbenchPlugins.forTask(task) if taskActions.taskType.typeName == "Workflow" && task.id != workflow.id) {
+      @toolboxOperator(taskActions)
+    }
+  </div>
 </div>
 
 @**

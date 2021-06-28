@@ -20,11 +20,12 @@ import play.api.libs.ws.{WSRequest, WSResponse}
 import play.api.mvc.Call
 import play.api.routing.Router
 
+import java.io._
+import java.net.URLDecoder
 import scala.collection.immutable.SortedMap
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.io.Source
-import scala.util.Random
 import scala.xml.{Elem, XML}
 
 /**
@@ -44,9 +45,7 @@ trait IntegrationTestTrait extends TaskApiClient
   final val CONTENT_TYPE: String = "content-type"
   final val ACCEPT: String = "accept"
 
-  val baseUrl = s"http://localhost:$port"
-
-  override lazy val port: Int = 19000 + Random.nextInt(1000)
+  lazy val baseUrl = s"http://localhost:$port"
 
   implicit val prefixes: Prefixes = Prefixes.empty
 
