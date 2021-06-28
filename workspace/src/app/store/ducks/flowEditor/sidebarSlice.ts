@@ -7,7 +7,7 @@ export const sidebarSlice = createSlice({
     initialState: initialSidebarState(),
     reducers: {},
     extraReducers: {
-        [requestSearchTask.pending.toString()]: (state, action) => {
+        [requestSearchTask.pending.toString()]: (state) => {
             state.loading = true;
         },
         [requestSearchTask.fulfilled.toString()]: (state, action) => {
