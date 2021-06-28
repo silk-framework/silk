@@ -82,7 +82,6 @@ describe("Header", () => {
 
         clickElement(wrapper, byTestId("header-remove-button"));
         clickElement(wrapper, byTestId("remove-item-button"));
-        logRequests();
         mockAxios.mockResponseFor(
             {
                 url: hostPath + "/workspace/projects/SomeProjectId/tasks/SomeTaskId",

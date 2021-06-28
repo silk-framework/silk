@@ -1,4 +1,4 @@
-export interface IPrefixState {
+export interface IPrefixDefinition {
     /**
      * Name of prefix
      */
@@ -13,11 +13,11 @@ export interface IWorkspaceConfigurationWidget {
     /**
      * Array of prefixes List
      */
-    prefixes: IPrefixState[];
+    prefixes: IPrefixDefinition[];
     /**
      * Plain object  for new prefix
      */
-    newPrefix: IPrefixState;
+    newPrefix: IPrefixDefinition;
 
     isLoading: boolean;
 

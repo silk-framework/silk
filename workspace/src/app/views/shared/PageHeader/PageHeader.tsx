@@ -16,7 +16,6 @@ import {
 import { IBreadcrumbItemProps } from "@gui-elements/src/components/Breadcrumb/BreadcrumbItem";
 import { routerOp } from "@ducks/router";
 import { APPLICATION_CORPORATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
-import { ActionsMenu } from "../ActionsMenu/ActionsMenu";
 import { fetchBreadcrumbs } from "./breadcrumbsHelper";
 
 interface IPageHeaderContentBasicProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -26,7 +25,7 @@ interface IPageHeaderContentBasicProps extends React.HTMLAttributes<HTMLDivEleme
     autogenerateBreadcrumbs?: boolean;
     pageTitle?: string;
     autogeneratePageTitle?: boolean;
-    actionsMenu?: typeof ActionsMenu;
+    actionsMenu?: JSX.Element;
 }
 
 interface IPageHeaderContentAutogenerateBreadcrumbsProps extends IPageHeaderContentBasicProps {
@@ -173,7 +172,7 @@ export function usePageHeader({ ...propsHeader }: IPageHeaderContentBasicProps) 
         updateBreadcrumbs: (update) => {
             updatePageHeader({ breadcrumbs: update, autogenerateBreadcrumbs: false });
         },
-        updateActionsMenu: (update) => {
+        updateActionsMenu: (update: JSX.Element) => {
             updatePageHeader({ actionsMenu: update });
         },
         updatePageHeader,
