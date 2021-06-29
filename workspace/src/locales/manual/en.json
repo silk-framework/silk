@@ -190,6 +190,7 @@
             "replace": "Replace",
             "resetSelection": "Reset selection",
             "retry": "Retry",
+            "save": "Save",
             "showDetails": "Show details",
             "submit": "Submit",
             "update": "Update"
@@ -416,6 +417,11 @@
         "WarningWidget": {
             "loading": "Loading log messages.",
             "title": "Error log"
+        }
+    },
+    "WorkflowEditor": {
+        "header": {
+            "saveBtnTooltip": "Save the current state of the workflow"
         }
     }
 }
