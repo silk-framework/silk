@@ -1,7 +1,7 @@
 package controllers.transform
 
 import controllers.core.UserContextActions
-import controllers.transform.PeakTransformApi._
+import controllers.transform.PeakTransformApi.{_}
 import controllers.transform.doc.PeakApiDoc
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
@@ -343,5 +343,12 @@ object PeakTransformApi {
     }
     (tryCounter, errorCounter, errorMessage, resultBuffer)
   }
+
+  // Peak API
+  case class PeakResults(sourcePaths: Option[Seq[Seq[String]]], results: Option[Seq[PeakResult]], status: PeakStatus)
+
+  case class PeakStatus(id: String, msg: String)
+
+  case class PeakResult(sourceValues: Seq[Seq[String]], transformedValues: Seq[String])
 
 }
