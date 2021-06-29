@@ -88,12 +88,12 @@ POST          /projects/:project/clone                                          
 POST          /projects/:project/copy                                           controllers.workspace.WorkspaceApi.copyProject(project: String)
 
 # Resources
-GET           /projects/:project/resources                                      controllers.workspace.WorkspaceApi.getResources(project: String, searchText: Option[String] ?= None, limit: Option[Int] ?= None, offset: Option[Int] ?= None)
-GET           /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.getResource(project: String, name: String)
-PUT           /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.putResource(project: String, name: String)
-DELETE        /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.deleteResource(project: String, name: String)
-GET           /projects/:project/resources/:name/usage                          controllers.workspace.WorkspaceApi.resourceUsage(project: String, name: String)
-GET           /projects/:project/resources/:name/metadata                       controllers.workspace.WorkspaceApi.getResourceMetadata(project: String, name: String)
+GET           /projects/:project/resources                                      controllers.workspace.ResourceApi.getResources(project: String, searchText: Option[String] ?= None, limit: Option[Int] ?= None, offset: Option[Int] ?= None)
+GET           /projects/:project/resources/:name                                controllers.workspace.ResourceApi.getResource(project: String, name: String)
+PUT           /projects/:project/resources/:name                                controllers.workspace.ResourceApi.putResource(project: String, name: String)
+DELETE        /projects/:project/resources/:name                                controllers.workspace.ResourceApi.deleteResource(project: String, name: String)
+GET           /projects/:project/resources/:name/usage                          controllers.workspace.ResourceApi.resourceUsage(project: String, name: String)
+GET           /projects/:project/resources/:name/metadata                       controllers.workspace.ResourceApi.getResourceMetadata(project: String, name: String)
 
 # Tasks
 POST          /projects/:project/tasks                                          controllers.workspace.TaskApi.postTask(project: String)

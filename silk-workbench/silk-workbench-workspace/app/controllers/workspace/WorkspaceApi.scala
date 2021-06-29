@@ -1,17 +1,14 @@
 package controllers.workspace
 
-import akka.stream.scaladsl.StreamConverters
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.workspace.workspaceApi.TaskLinkInfo
 import controllers.workspace.workspaceRequests.{CopyTasksRequest, UpdateGlobalVocabularyRequest}
-import controllers.workspaceApi.coreApi.PluginApiCache
-import controllers.workspaceApi.search.ResourceSearchRequest
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.silkframework.config._
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.resource.{ResourceManager, UrlResource, WritableResource}
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
@@ -20,20 +17,15 @@ import org.silkframework.workspace._
 import org.silkframework.workspace.activity.ProjectExecutor
 import org.silkframework.workspace.activity.vocabulary.GlobalVocabularyCache
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
-import play.api.libs.Files
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
 
-import java.io.File
-import java.net.URL
-import java.util.logging.Logger
 import javax.inject.Inject
 import scala.language.existentials
 import scala.util.Try
 
-class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor, pluginApiCache: PluginApiCache) extends InjectedController with UserContextActions with ControllerUtilsTrait {
-
-  private val log: Logger = Logger.getLogger(this.getClass.getName)
+@Tag(name = "Workspace")
+class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   def reload: Action[AnyContent] = UserContextAction { implicit userContext =>
     WorkspaceFactory().workspace.reload()
@@ -148,107 +140,6 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor, pluginApiC
     projectObj.config = projectObj.config.copy(prefixes = Prefixes(prefixMap))
 
     Ok
-  }
-
-  def getResources(projectName: String,
-                   searchText: Option[String],
-                   limit: Option[Int],
-                   offset: Option[Int]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    val resourceRequest = ResourceSearchRequest(searchText, limit, offset)
-    val project = WorkspaceFactory().workspace.project(projectName)
-    Ok(resourceRequest(project))
-  }
-
-  def getResourceMetadata(projectName: String, resourcePath: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val resource = project.resources.getInPath(resourcePath, File.separatorChar, mustExist = true)
-
-    val pathPrefix = resourcePath.lastIndexOf(File.separatorChar) match {
-      case -1 => ""
-      case index => resourcePath.substring(0, index + 1)
-    }
-
-    Ok(JsonSerializer.resourceProperties(resource, pathPrefix))
-  }
-
-  def getResource(projectName: String, resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val resource = project.resources.get(resourceName, mustExist = true)
-    Ok.chunked(StreamConverters.fromInputStream(() => resource.inputStream)).withHeaders("Content-Disposition" -> "attachment")
-  }
-
-  def putResource(projectName: String, resourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request =>implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val resource = project.resources.get(resourceName)
-
-    val response = request.body match {
-      case AnyContentAsMultipartFormData(formData) if formData.files.nonEmpty =>
-        putResourceFromMultipartFormData(resource, formData)
-      case AnyContentAsMultipartFormData(formData) if formData.dataParts.contains("resource-url") =>
-        putResourceFromResourceUrl(resource, formData)
-      case AnyContentAsMultipartFormData(formData) if formData.files.isEmpty =>
-        // Put empty resource
-        resource.writeBytes(Array[Byte]())
-        NoContent
-      case AnyContentAsRaw(buffer) =>
-        resource.writeFile(buffer.asFile)
-        NoContent
-      case AnyContentAsText(txt) =>
-        resource.writeString(txt)
-        NoContent
-      case AnyContentAsEmpty =>
-        // Put empty resource
-        resource.writeBytes(Array[Byte]())
-        NoContent
-      case _ =>
-        ErrorResult(UnsupportedMediaTypeException.supportedFormats("multipart/form-data", "application/octet-stream", "text/plain"))
-    }
-    if(response == NoContent) { // Successfully updated
-      log.info(s"Created/updated resource '$resourceName' in project '$projectName'. " + userContext.logInfo)
-    }
-    response
-  }
-
-  private def putResourceFromMultipartFormData(resource: WritableResource, formData: MultipartFormData[Files.TemporaryFile]) = {
-    try {
-      val file = formData.files.head.ref.path.toFile
-      resource.writeFile(file)
-      NoContent
-    } catch {
-      case ex: Exception =>
-        ErrorResult(BadUserInputException(ex))
-    }
-  }
-
-  private def putResourceFromResourceUrl(resource: WritableResource, formData: MultipartFormData[Files.TemporaryFile]): Result = {
-    try {
-      val dataParts = formData.dataParts("resource-url")
-      val url = dataParts.head
-      val urlResource = UrlResource(new URL(url))
-      resource.writeResource(urlResource)
-      NoContent
-    } catch {
-      case ex: Exception =>
-        ErrorResult(BadUserInputException(ex))
-    }
-  }
-
-  /** The list of tasks that use this resource. */
-  def resourceUsage(projectId: String, resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = super[ControllerUtilsTrait].getProject(projectId)
-    val dependentTasks: Seq[TaskLinkInfo] = project.allTasks
-        .filter(_.referencedResources.map(_.name).contains(resourceName))
-        .map { task =>
-          TaskLinkInfo(task.id, task.fullTaskLabel, pluginApiCache.taskTypeByClass(task.taskType))
-        }
-    Ok(Json.toJson(dependentTasks))
-  }
-
-  def deleteResource(projectName: String, resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    project.resources.delete(resourceName)
-    log.info(s"Deleted resource '$resourceName' in project '$projectName'. " + userContext.logInfo)
-    NoContent
   }
 
   /** Updates the global vocabulary cache for a specific vocabulary */
