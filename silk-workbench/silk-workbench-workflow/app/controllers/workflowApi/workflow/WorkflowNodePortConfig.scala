@@ -13,8 +13,8 @@ case class WorkflowNodesPortConfig(byItemType: Map[String, WorkflowNodePortConfi
                                    byNodeId: Map[String, WorkflowNodePortConfig])
 
 /** Node configuration for a single workflow node. */
-case class WorkflowNodePortConfig(minPorts: Int,
-                                  maxPorts: Option[Int])
+case class WorkflowNodePortConfig(minInputPorts: Int,
+                                  maxInputPorts: Option[Int])
 
 object WorkflowNodePortConfig {
   def apply(ports: Int): WorkflowNodePortConfig = WorkflowNodePortConfig(ports, Some(ports))
