@@ -1,5 +1,14 @@
 import { requestSearchList } from "@ducks/workspace/requests";
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { TASK_SEARCH_IDS } from "./typings";
+import { requestConfigPorts } from "./requests";
+import { EDITOR_ASYNC_TYPES } from "./typings";
 
-export const requestSearchTask = createAsyncThunk(TASK_SEARCH_IDS.searchList, requestSearchList);
+/************* SideBar *************/
+
+// get all task for sidebar
+export const requestSearchTask = createAsyncThunk(EDITOR_ASYNC_TYPES.searchList, requestSearchList);
+
+/************* Editor *************/
+
+//get port configuration
+export const getConfigPorts = createAsyncThunk(EDITOR_ASYNC_TYPES.portConfiguration, requestConfigPorts);

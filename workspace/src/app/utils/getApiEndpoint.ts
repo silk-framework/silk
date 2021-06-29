@@ -20,6 +20,10 @@ export const workspaceApi = (path: string) => {
     return apiPath("/workspace") + prependSlash(path);
 };
 
+export const workflowApi = (path: string) => {
+    return apiPath("/workflow") + prependSlash(path);
+};
+
 export const projectApi = (relativePath: string) => {
     return apiPath("/workspace/projects") + prependSlash(relativePath);
 };
