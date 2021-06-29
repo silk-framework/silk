@@ -1,18 +1,14 @@
-import { ISideBarState } from "./IEditorSidebar";
 import { FlowEditorState } from "./IMainEditor";
 
-export * from "./IEditorSidebar";
 export * from "./IMainEditor";
 
 /**** thunk types ****/
 export enum EDITOR_ASYNC_TYPES {
-    searchList = "searchItems/label",
     portConfiguration = "get/portsConfig",
 }
 
 /*** complete state for the editor ***/
 export interface IEditorState {
-    sidebar: ISideBarState;
     mainEditor: FlowEditorState;
 }
 
