@@ -3,6 +3,7 @@ package controllers.workspace
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.SerializationUtils
+import controllers.workspace.doc.TaskApiDoc
 import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
@@ -40,14 +41,14 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
 
   @Operation(
     summary = "Add task",
-    description = " Adds a new task to the project. If the 'id' parameter is omitted in the request, an ID will be generated from the label – which is then required.",
+    description = " Add a new task to the project. If the 'id' parameter is omitted in the request, an ID will be generated from the label – which is then required.",
     responses = Array(
       new ApiResponse(
         responseCode = "201",
         description = "The added task.",
         content = Array(new Content(
           mediaType = "application/json",
-          examples = Array(new ExampleObject(TaskApi.taskExampleJson))
+          examples = Array(new ExampleObject(TaskApiDoc.taskExampleJson))
         ))
       ),
       new ApiResponse(
@@ -69,7 +70,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     content = Array(
       new Content(
         mediaType = "application/json",
-        examples = Array(new ExampleObject(TaskApi.taskExampleJson))
+        examples = Array(new ExampleObject(TaskApiDoc.taskExampleJson))
       ))
   )
   def postTask(@Parameter(
@@ -92,15 +93,11 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
 
   @Operation(
     summary = "Add or update task",
-    description = "Adds or updates a task.",
+    description = "Add or update a task.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
-        description = "The added or updated task.",
-        content = Array(new Content(
-          mediaType = "application/json",
-          examples = Array(new ExampleObject(TaskApi.taskExampleJson))
-        ))
+        description = "If the task has been added or updated successfully."
       ),
       new ApiResponse(
         responseCode = "400",
@@ -117,7 +114,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     content = Array(
       new Content(
         mediaType = "application/json",
-        examples = Array(new ExampleObject(TaskApi.taskExampleJson))
+        examples = Array(new ExampleObject(TaskApiDoc.taskExampleJson))
       ))
   )
   def putTask(@Parameter(
@@ -149,14 +146,11 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
 
   @Operation(
     summary = "Update task",
-    description = "Updates selected properties of a task. Only the sent JSON paths will be updated, i.e., the provided JSON is deep merged into the existing task JSON.",
+    description = "Update selected properties of a task. Only the sent JSON paths will be updated, i.e., the provided JSON is deep merged into the existing task JSON.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
-        description = "The updated task.",
-        content = Array(new Content(
-          mediaType = "application/json"
-        ))
+        description = "If the task has been updated successfully."
       ),
       new ApiResponse(
         responseCode = "400",
@@ -214,14 +208,17 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
 
   @Operation(
     summary = "Retrieve task",
-    description = "Retrieves a task from a project.",
+    description = "Retrieve a task from a project.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
         description = "The task.",
         content = Array(new Content(
           mediaType = "application/json",
-          examples = Array(new ExampleObject(TaskApi.taskExampleJson))
+          examples = Array(
+            new ExampleObject(name = "Without labels", value = TaskApiDoc.taskExampleWithoutLabelsJson),
+            new ExampleObject(name = "With labels", value = TaskApiDoc.taskMetadataExampleWithLabelsJson)
+          )
         ))
       ),
       new ApiResponse(
@@ -343,8 +340,8 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
   }
 
   @Operation(
-    summary = "Remove task",
-    description = "Removes a task from a project.",
+    summary = "Delete task",
+    description = "Remove a task from a project.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -392,7 +389,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     responses = Array(
       new ApiResponse(
         responseCode = "200",
-        description = "If the task has been deleted or there is no task with that identifier."
+        description = "If the task metadata has been updated successfully."
       ),
       new ApiResponse(
         responseCode = "404",
@@ -427,16 +424,16 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
   }
 
   @Operation(
-    summary = "Update task metadata",
-    description = "Updates task metadata that includes user metadata, such as the task label as well as technical metadata, such as the referenced tasks.",
+    summary = "Retrieve task metadata",
+    description = "Retrieve task metadata that includes user metadata, such as the task label as well as technical metadata, such as the referenced tasks.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
-        description = "If the task has been deleted or there is no task with that identifier.",
+        description = "The task metadata",
         content = Array(
           new Content(
             mediaType = "application/json",
-            examples = Array(new ExampleObject(TaskApi.taskMetadataExampleJson))
+            examples = Array(new ExampleObject(TaskApiDoc.taskMetadataExampleJson))
           )
         )
       ),
@@ -489,7 +486,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
 
   @Operation(
     summary = "Clone Task",
-    description = "Clones a task.",
+    description = "Clone a task.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
@@ -546,7 +543,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
           new Content(
             mediaType = "application/json",
             schema = new Schema(implementation = classOf[CopyTasksResponse]),
-            examples = Array(new ExampleObject(TaskApi.copyTaskResponseJsonExample))
+            examples = Array(new ExampleObject(TaskApiDoc.copyTaskResponseJsonExample))
           )
         )
       ),
@@ -563,7 +560,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
       new Content(
         mediaType = "application/json",
         schema = new Schema(implementation = classOf[CopyTasksRequest]),
-        examples = Array(new ExampleObject(TaskApi.copyTaskRequestJsonExample))
+        examples = Array(new ExampleObject(TaskApiDoc.copyTaskRequestJsonExample))
       ))
   )
   def copyTask(projectName: String,
@@ -608,97 +605,4 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
 
 }
 
-object TaskApi {
 
-  private final val taskExampleJson =
-"""
-{
-  "id": "myTransform",
-  "metadata": {
-    "label": "task label",
-    "description": "task description"
-  },
-  "data": {
-    "taskType": "Transform",
-    "selection": {
-      "inputId": "DBpedia",
-      "typeUri": "http://dbpedia.org/ontology/Film",
-      "restriction": ""
-    },
-    "outputs": [],
-    "targetVocabularies": []
-  }
-}
-"""
-
-  private final val taskMetadataExampleJson =
-"""
-{
-  "label": "Task Label",
-  "description": "Task Description",
-  "modified": "2018-05-24T14:45:42.637Z",
-  "project": "MyProject",
-  "id": "MyTask",
-  "taskType": "Dataset"
-  "schemata": {
-    "input": [{
-      "paths": [
-        "<http://xmlns.com/foaf/0.1/name>",
-        "<http://dbpedia.org/ontology/releaseDate>"
-      ]
-    }],
-    "output": {
-      "paths": [
-        "targetUri",
-        "confidence"
-      ]
-    }
-  },
-  "relations": {
-    "inputTasks": [],
-    "outputTasks": [],
-    "referencedTasks": ["DBpedia", "linkedmdb"],
-    "dependentTasksDirect": ["workflow"],
-    "dependentTasksAll": ["workflow"]
-  }
-}
-"""
-
-  private final val copyTaskRequestJsonExample =
-"""
-{
-  "targetProject": "targetProjectId",
-  "dryRun": true,
-  "overwriteTasks": true
-}
-"""
-
-  private final val copyTaskResponseJsonExample =
-"""
-{
-  "copiedTasks": [
-    {
-      "taskType": "Dataset",
-      "id": "linkedmdb",
-      "label": "linkedmdb",
-      "originalTaskLink": "/workbench/projects/json/dataset/linkedmdb"
-    },
-    {
-      "taskType": "Linking",
-      "id": "movies",
-      "label": "movies",
-      "originalTaskLink": "/workbench/projects/json/linking/movies"
-    }
-  ],
-  "overwrittenTasks": [
-    {
-      "taskType": "Dataset",
-      "id": "DBpedia",
-      "label": "DBpedia",
-      "originalTaskLink": "/workbench/projects/json/dataset/DBpedia",
-      "overwrittenTaskLink": "/workbench/projects/movies/dataset/DBpedia"
-    }
-  ]
-}
-"""
-}
