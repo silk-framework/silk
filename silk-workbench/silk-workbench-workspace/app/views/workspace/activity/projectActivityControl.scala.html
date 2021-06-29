@@ -3,7 +3,7 @@
 @import org.silkframework.runtime.activity.HasValue
 @import scala.language.existentials
 
-@(activity: ProjectActivity[_ <: HasValue], showButtons: Boolean = false)(implicit request: RequestHeader)
+@(activity: ProjectActivity[_ <: HasValue], showButtons: Boolean = false, insideIFrame: Boolean = false)(implicit request: RequestHeader)
 
 @activityControl(
   project = activity.project.name,
@@ -12,5 +12,6 @@
   showProgressBar = true,
   showStartButton = showButtons,
   showRestartButton = showButtons && classOf[CachedActivity[_]].isAssignableFrom(activity.control.underlying.getClass),
-  showConfigButton = showButtons && activity.defaultConfig.nonEmpty
+  showConfigButton = showButtons && activity.defaultConfig.nonEmpty,
+  insideIFrame = insideIFrame
 )

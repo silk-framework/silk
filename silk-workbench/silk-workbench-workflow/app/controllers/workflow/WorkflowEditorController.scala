@@ -23,7 +23,7 @@ class WorkflowEditorController @Inject() (accessMonitor: WorkbenchAccessMonitor)
     val project = WorkspaceFactory().workspace.project(projectId)
     val task = project.anyTask(taskId)
     val activity = task.activity(WorkflowConfig.executorName)
-    Ok(views.html.workflow.workflowControl(activity, showButtons = true))
+    Ok(views.html.workflow.workflowControl(activity, showButtons = true, insideIFrame = true))
   }
 
   def reports(project: String, task: String): Action[AnyContent] = reportImpl(project, task, None)
