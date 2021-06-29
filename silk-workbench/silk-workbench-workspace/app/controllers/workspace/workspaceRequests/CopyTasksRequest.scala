@@ -1,5 +1,6 @@
 package controllers.workspace.workspaceRequests
 
+import io.swagger.v3.oas.annotations.media.Schema
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.BadUserInputException
@@ -10,7 +11,22 @@ import play.api.libs.json.{Json, OFormat}
 /**
   * Request to copy a project or a task to another project.
   */
-case class CopyTasksRequest(dryRun: Option[Boolean], overwriteTasks: Option[Boolean], targetProject: String) {
+case class CopyTasksRequest(@Schema(
+                              description = "If true, the copy operation will be simulated, i.e., the response listing the tasks to be copied and overwritten can be checked first.",
+                              required = false,
+                              nullable = true
+                            )
+                            dryRun: Option[Boolean],
+                            @Schema(
+                              description = "If true, tasks in the target project will be overwritten.",
+                              required = false,
+                              nullable = true
+                            )
+                            overwriteTasks: Option[Boolean],
+                            @Schema(
+                              description = "The identifier of the target project."
+                            )
+                            targetProject: String) {
 
   private def isDryRun: Boolean = dryRun.contains(true)
   private def overwriteConfirmed: Boolean = overwriteTasks.contains(true)

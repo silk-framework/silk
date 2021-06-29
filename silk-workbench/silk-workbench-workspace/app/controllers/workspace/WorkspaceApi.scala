@@ -2,8 +2,15 @@ package controllers.workspace
 
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.workspace.workspaceRequests.{CopyTasksRequest, UpdateGlobalVocabularyRequest}
+import controllers.workspace.doc.WorkspaceApiDoc
+import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse, UpdateGlobalVocabularyRequest}
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.parameters.RequestBody
+import io.swagger.v3.oas.annotations.enums.ParameterIn
 import org.silkframework.config._
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
 import org.silkframework.runtime.activity.Activity
@@ -24,7 +31,7 @@ import javax.inject.Inject
 import scala.language.existentials
 import scala.util.Try
 
-@Tag(name = "Workspace")
+@Tag(name = "Projects")
 class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   def reload: Action[AnyContent] = UserContextAction { implicit userContext =>
@@ -37,17 +44,78 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     Ok
   }
 
+  @Operation(
+    summary = "List projects",
+    description = "Get a list with all projects.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject(WorkspaceApiDoc.projectListExample))
+        ))
+      )
+    )
+  )
   def projects: Action[AnyContent] = UserContextAction { implicit userContext =>
     Ok(JsonSerializer.projectsJson)
   }
 
-  def getProject(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Get project contents",
+    description = "List the contents of a single project.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject(WorkspaceApiDoc.projectExample))
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project has not been found."
+      )
+    )
+  )
+  def getProject(@Parameter(
+                   name = "project",
+                   description = "The project identifier",
+                   required = true,
+                   in = ParameterIn.PATH,
+                   schema = new Schema(implementation = classOf[String])
+                 )
+                 projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     accessMonitor.saveProjectAccess(project.config.id)
     Ok(JsonSerializer.projectJson(project))
   }
 
-  def newProject(project: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Create project",
+    description = "Create a new empty project.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "201",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject("{\"name\": \"project name\"}"))
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "409",
+        description = "If a project with the specified identifier already exists."
+      )
+    )
+  )
+  def newProject(@Parameter(
+                   name = "project",
+                   description = "The project identifier",
+                   required = true,
+                   in = ParameterIn.PATH,
+                   schema = new Schema(implementation = classOf[String])
+                 )
+                 project: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     if (WorkspaceFactory().workspace.projects.exists(_.name.toString == project)) {
       ErrorResult(CONFLICT, "Conflict", s"Project with name '$project' already exists. Creation failed.")
     } else {
@@ -58,12 +126,62 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     }
   }
 
-  def deleteProject(project: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Delete project",
+    description = "Delete a project.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the project has been deleted successfully."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project has not been found."
+      )
+    )
+  )
+  def deleteProject(@Parameter(
+                      name = "project",
+                      description = "The project identifier",
+                      required = true,
+                      in = ParameterIn.PATH,
+                      schema = new Schema(implementation = classOf[String])
+                    )
+                    project: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     WorkspaceFactory().workspace.removeProject(project)
     Ok
   }
 
-  def cloneProject(oldProject: String, newProject: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Clone project",
+    description = "Clone a project.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the project has been cloned successfully."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the source project has not been found."
+      )
+    )
+  )
+  def cloneProject(@Parameter(
+                     name = "project",
+                     description = "The identifier of the source project, which is to be cloned.",
+                     required = true,
+                     in = ParameterIn.PATH,
+                     schema = new Schema(implementation = classOf[String])
+                   )
+                   oldProject: String,
+                   @Parameter(
+                     name = "newProject",
+                     description = "The identifier of the cloned project.",
+                     required = true,
+                     in = ParameterIn.QUERY,
+                     schema = new Schema(implementation = classOf[String])
+                   )
+                   newProject: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val workspace = WorkspaceFactory().workspace
     val project = workspace.project(oldProject)
 
@@ -82,7 +200,43 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     Ok
   }
 
-  def copyProject(projectName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>implicit userContext =>
+  @Operation(
+    summary = "Copy project tasks",
+    description = "Copies all tasks in a project to another project. Referenced resources are copied only if the target project uses a different resource path than the source project.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Lists all copied tasks.",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            schema = new Schema(implementation = classOf[CopyTasksResponse]),
+            examples = Array(new ExampleObject(WorkspaceApiDoc.copyProjectResponse))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project has not been found."
+      )
+    )
+  )
+  @RequestBody(
+    content = Array(
+      new Content(
+        schema = new Schema(implementation = classOf[CopyTasksRequest]),
+        examples = Array(new ExampleObject(WorkspaceApiDoc.copyProjectRequest))
+      )
+    )
+  )
+  def copyProject(@Parameter(
+                    name = "project",
+                    description = "The project identifier.",
+                    required = true,
+                    in = ParameterIn.PATH,
+                    schema = new Schema(implementation = classOf[String])
+                  )
+                  projectName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>implicit userContext =>
     validateJson[CopyTasksRequest] { copyRequest =>
       val result = copyRequest.copyProject(projectName)
       Ok(Json.toJson(result))
@@ -142,7 +296,24 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     Ok
   }
 
-  /** Updates the global vocabulary cache for a specific vocabulary */
+  @Operation(
+    summary = "Update global vocabulary cache",
+    description = "Update a specific vocabulary of the global vocabulary cache. This request is non-blocking. It can take a while for the cache to be up to date.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "204",
+        description = "The update of the vocabulary cache has been scheduled."
+      )
+    )
+  )
+  @RequestBody(
+    content = Array(
+      new Content(
+        schema = new Schema(implementation = classOf[UpdateGlobalVocabularyRequest]),
+        examples = Array(new ExampleObject("""{ "iri": "http://xmlns.com/foaf/0.1/" }"""))
+      )
+    )
+  )
   def updateGlobalVocabularyCache(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>
     implicit userContext =>
       validateJson[UpdateGlobalVocabularyRequest] { updateRequest =>
