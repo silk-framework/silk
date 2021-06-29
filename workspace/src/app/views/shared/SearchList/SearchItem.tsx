@@ -29,6 +29,7 @@ import { downloadProject } from "../../../utils/downloadProject";
 import { useTranslation } from "react-i18next";
 import ItemDepiction from "../../shared/ItemDepiction";
 import { useIFrameWindowLinks } from "../IframeWindow/iframewindowHooks";
+import { wrapTooltip } from "../../../utils/uiUtils";
 
 interface IProps {
     item: ISearchResultsServer;
@@ -108,18 +109,6 @@ export default function SearchItem({
 
     const handleExport = async (type: IExportTypes) => {
         downloadProject(item.id, type.id);
-    };
-
-    const wrapTooltip = (wrap: boolean, childTooltip: string, child: JSX.Element): JSX.Element => {
-        if (wrap) {
-            return (
-                <Tooltip content={childTooltip} position="bottom-left">
-                    {child}
-                </Tooltip>
-            );
-        } else {
-            return child;
-        }
     };
 
     return (
