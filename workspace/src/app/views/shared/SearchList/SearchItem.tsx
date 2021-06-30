@@ -15,7 +15,6 @@ import {
     OverviewItemLine,
     Spacing,
     Tag,
-    Tooltip,
 } from "@gui-elements/index";
 import { routerOp } from "@ducks/router";
 import { useDispatch, useSelector } from "react-redux";
@@ -46,6 +45,8 @@ interface IProps {
 
     parentProjectId?: string;
 }
+
+export const searchItemLabel = (item: ISearchResultsServer) => item.label || item.id;
 
 export default function SearchItem({
     item,
@@ -125,7 +126,7 @@ export default function SearchItem({
                                 handlerResourcePageLoader={!!item.itemLinks.length ? goToDetailsPage : false}
                             >
                                 <OverflowText>
-                                    <Highlighter label={item.label || item.id} searchValue={searchValue} />
+                                    <Highlighter label={searchItemLabel(item)} searchValue={searchValue} />
                                 </OverflowText>
                             </ResourceLink>
                         </h4>
