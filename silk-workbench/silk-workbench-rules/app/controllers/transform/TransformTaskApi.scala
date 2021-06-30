@@ -33,7 +33,10 @@ import play.api.mvc._
 import java.util.logging.{Level, Logger}
 import javax.inject.Inject
 
-@Tag(name = "Transform")
+@Tag(
+  name = "Transform",
+  description = "The Transform API provides endpoints related to transformation tasks and mapping rules."
+)
 class TransformTaskApi @Inject() () extends InjectedController with UserContextActions {
 
   private val log = Logger.getLogger(getClass.getName)
