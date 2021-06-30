@@ -40,8 +40,8 @@ POST          /tasks/:project/:task/peak/:rule/childRule                        
 
 GET           /tasks/:project/:task/rule/:rule/completions/sourcePaths             controllers.transform.AutoCompletionApi.sourcePaths(project: String, task: String, rule: String, term ?= "", maxResults: Int ?= 30)
 GET           /tasks/:project/:task/rule/:rule/completions/targetTypes             controllers.transform.AutoCompletionApi.targetTypes(project: String, task: String, rule: String, term ?= "", maxResults: Int  ?= 30)
-GET           /tasks/:project/:task/rule/:rule/completions/targetProperties        controllers.transform.AutoCompletionApi.targetProperties(project: String, task: String, rule: String, term ?= "", maxResults: Int  ?= 30, fullUris: Boolean ?= false)
-POST          /tasks/:project/:task/rule/:rule/completions/targetProperties        controllers.transform.AutoCompletionApi.targetProperties(project: String, task: String, rule: String, term ?= "", maxResults: Int  ?= 30, fullUris: Boolean ?= false)
+GET           /tasks/:project/:task/rule/:rule/completions/targetProperties        controllers.transform.AutoCompletionApi.targetPropertiesGet(project: String, task: String, rule: String, term ?= "", maxResults: Int  ?= 30, fullUris: Boolean ?= false)
+POST          /tasks/:project/:task/rule/:rule/completions/targetProperties        controllers.transform.AutoCompletionApi.targetPropertiesPost(project: String, task: String, rule: String, term ?= "", maxResults: Int  ?= 30, fullUris: Boolean ?= false)
 GET           /tasks/:project/:task/rule/:rule/completions/valueTypes              controllers.transform.AutoCompletionApi.valueTypes(project: String, task: String, rule: String, term ?= "", maxResults: Int  ?= 30)
 POST          /tasks/:project/:task/rule/:rule/completions/partialSourcePaths      controllers.transform.AutoCompletionApi.partialSourcePath(project: String, task: String, rule: String)
 

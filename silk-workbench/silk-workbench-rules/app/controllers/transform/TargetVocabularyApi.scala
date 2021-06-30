@@ -1,8 +1,9 @@
 package controllers.transform
 
 import controllers.core.util.ControllerUtilsTrait
-import controllers.core.{UserContextActions}
+import controllers.core.UserContextActions
 import controllers.util.SerializationUtils._
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.vocab.{VocabularyClass, VocabularyProperty}
 import org.silkframework.runtime.activity.UserContext
@@ -21,6 +22,7 @@ import javax.inject.Inject
 /**
   * Provides access to the target vocabulary.
   */
+@Tag(name = "Transform Target Vocabulary")
 class TargetVocabularyApi  @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   /** Returns meta data for a vocabulary class */
