@@ -563,7 +563,21 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
         examples = Array(new ExampleObject(TaskApiDoc.copyTaskRequestJsonExample))
       ))
   )
-  def copyTask(projectName: String,
+  def copyTask(@Parameter(
+                 name = "project",
+                 description = "The project identifier",
+                 required = true,
+                 in = ParameterIn.PATH,
+                 schema = new Schema(implementation = classOf[String])
+               )
+               projectName: String,
+               @Parameter(
+                 name = "task",
+                 description = "The task identifier",
+                 required = true,
+                 in = ParameterIn.PATH,
+                 schema = new Schema(implementation = classOf[String])
+               )
                taskName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[CopyTasksRequest] { copyRequest =>
       val result = copyRequest.copyTask(projectName, taskName)
@@ -579,7 +593,40 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     Ok(JsBoolean(cachesLoaded))
   }
 
-  def downloadOutput(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Task output",
+    description = "Downloads the contents of the first output dataset of the specified task. Note that this does not execute the task, but assumes that it has been executed already. The output dataset must be file based.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "The task output.",
+      ),
+      new ApiResponse(
+        responseCode = "400",
+        description = "If the output could not be downloaded. The reason is stated in the response body."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project or task does not exist."
+      )
+    )
+  )
+  def downloadOutput(@Parameter(
+                       name = "project",
+                       description = "The project identifier",
+                       required = true,
+                       in = ParameterIn.PATH,
+                       schema = new Schema(implementation = classOf[String])
+                     )
+                     projectName: String,
+                     @Parameter(
+                       name = "task",
+                       description = "The task identifier",
+                       required = true,
+                       in = ParameterIn.PATH,
+                       schema = new Schema(implementation = classOf[String])
+                     )
+                     taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
 
