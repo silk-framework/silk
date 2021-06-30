@@ -1,0 +1,267 @@
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useHistory, useLocation } from "react-router";
+import { useTranslation } from "react-i18next";
+import locationParser from "query-string";
+import {
+    Button,
+    Card,
+    CardContent,
+    CardHeader,
+    CardOptions,
+    CardTitle,
+    Divider,
+    Grid,
+    GridRow,
+    IconButton,
+    Modal,
+    Spacing,
+} from "@gui-elements/index";
+import { IItemLink } from "@ducks/shared/typings";
+import { requestItemLinks } from "@ducks/shared/requests";
+import { commonSel } from "@ducks/common";
+import Loading from "../Loading";
+import { HOST, SERVE_PATH } from "../../../constants/path";
+import "./projectTaskTabView.scss";
+import { IProjectTaskView, viewRegistry } from "../../registry/ViewRegistry";
+
+const getBookmark = (locationHashPart: string) => {
+    const hashParsed = locationParser.parse(locationHashPart, { parseNumbers: true });
+    return !!hashParsed.iframewindow && hashParsed.iframewindow > -1 ? hashParsed.iframewindow.toString() : false;
+};
+
+const calculateBookmarkLocation = (currentLocation, indexBookmark) => {
+    const hashParsed = locationParser.parse(currentLocation.hash, { parseNumbers: true });
+    hashParsed["iframewindow"] = indexBookmark;
+    const updatedHash = locationParser.stringify(hashParsed);
+    return `${currentLocation.pathname}${currentLocation.search}#${updatedHash}`;
+};
+
+interface IProjectTaskTabView {
+    // The title of the widget
+    title?: string;
+    // array of URLs, each one will be extended by parameter inlineView=true
+    srcLinks?: IItemLink[];
+    // URL that should initially be used when loaded, must be part of srcLinks or a view ID from the task views
+    startWithLink?: IItemLink | string | null;
+    // show initially as fullscreen
+    startFullscreen?: boolean;
+    // integrate only as modal that can be closed by this handler
+    handlerRemoveModal?: () => void;
+    // name attribute value of the i-frame
+    iFrameName?: string;
+    // When defined, the registered task views will be shown
+    taskViewConfig?: {
+        // The plugin ID of the project task
+        pluginId: string;
+        // If the views are not shown on the task details page, this must be set
+        projectId?: string;
+        // If the views are not shown on the task details page, this must be set
+        taskId?: string;
+    };
+}
+
+/**
+ * Displays views of a specific project task. Item links are displayed in an i-frame whereas component views are directly
+ * rendered.
+ */
+export function ProjectTaskTabView({
+    title,
+    srcLinks,
+    startWithLink = null,
+    startFullscreen = false,
+    handlerRemoveModal,
+    taskViewConfig,
+    ...otherProps
+}: IProjectTaskTabView) {
+    const projectId = taskViewConfig?.projectId ?? useSelector(commonSel.currentProjectIdSelector);
+    const taskId = taskViewConfig?.taskId ?? useSelector(commonSel.currentTaskIdSelector);
+    const dispatch = useDispatch();
+    const history = useHistory();
+    const location = useLocation();
+    const [t] = useTranslation();
+    const [isFetchingLinks, setIsFetchingLinks] = useState(true);
+    const iframeRef = React.useRef<HTMLIFrameElement>(null);
+    // Keeps track of the loaded path of the i-frame. Only the case when selected tab is an item link.
+    const [activeIframePath, setActiveIframePath] = React.useState<IItemLink | null>(null);
+    // active link. Either an item link or a view ID
+    const [selectedTab, setSelectedTab] = useState<IItemLink | string | null>(startWithLink);
+    // list of aggregated links
+    const [itemLinks, setItemLinks] = useState<IItemLink[]>([]);
+    const [taskViews, setTaskViews] = React.useState<IProjectTaskView[]>([]);
+
+    const viewsAndItemLink: Partial<IProjectTaskView & IItemLink>[] = [...taskViews, ...itemLinks];
+
+    const itemLinkActive = selectedTab != null && typeof selectedTab !== "string";
+    // Either the path value of an IItemLink or the view ID or undefined
+    const activeLabel: string | undefined =
+        activeIframePath?.label ?? itemLinkActive
+            ? (selectedTab as IItemLink).label
+            : taskViews.find((v) => v.id === selectedTab)?.label;
+
+    React.useEffect(() => {
+        if (projectId && taskId && taskViewConfig?.pluginId) {
+            setTaskViews(viewRegistry.projectTaskViews(taskViewConfig.pluginId));
+        }
+    }, [projectId, taskId, taskViewConfig?.pluginId]);
+
+    // flag if the widget is shown as fullscreen modal
+    const [displayFullscreen, setDisplayFullscreen] = useState(!!handlerRemoveModal || startFullscreen);
+    // handler for toggling fullscreen mode
+    const toggleFullscreen = () => {
+        setDisplayFullscreen(!displayFullscreen);
+    };
+
+    // handler for link change
+    const changeTab = (tabItem: IItemLink | string) => {
+        if (typeof tabItem === "string") {
+            setSelectedTab(tabItem);
+            setActiveIframePath(null);
+        } else {
+            //if path already set, reload iframe source
+            if (typeof selectedTab !== "string" && tabItem.path === selectedTab.path) {
+                iframeRef.current.src = createIframeUrl(tabItem.path);
+            } else {
+                setSelectedTab(tabItem);
+                if (!startWithLink) {
+                    // TODO: Change calculation to use task views too
+                    dispatch(history.push(calculateBookmarkLocation(location, itemLinks.indexOf(tabItem))));
+                }
+            }
+        }
+    };
+
+    const getInitialActiveLink = (itemLinks) => {
+        const locationHashBookmark = getBookmark(location.hash);
+        return locationHashBookmark ? itemLinks[locationHashBookmark] : itemLinks[0];
+    };
+
+    React.useEffect(() => {
+        if (!iframeRef.current || !selectedTab || !itemLinks.length) return;
+        const iframeLoadHandler = () => {
+            const regex = new RegExp(HOST + "|\\?.*", "gi");
+            const parsedCurrentIframePath = iframeRef.current.src.replace(regex, "");
+            const focusedIframeSource = itemLinks.find((link) => link.path === parsedCurrentIframePath);
+            setActiveIframePath(focusedIframeSource);
+        };
+        iframeRef.current.addEventListener("load", iframeLoadHandler);
+        return () => {
+            if (iframeRef.current) {
+                iframeRef.current.removeEventListener("load", iframeLoadHandler);
+            }
+        };
+    }, [iframeRef, selectedTab, itemLinks?.length]);
+
+    // update item links by rest api request
+    const getItemLinks = async () => {
+        setIsFetchingLinks(true);
+        try {
+            const { data } = await requestItemLinks(projectId, taskId);
+            // remove current page link
+            const srcLinks = data.filter((item) => !item.path.startsWith(SERVE_PATH));
+            setItemLinks(srcLinks);
+            setSelectedTab(getInitialActiveLink(srcLinks));
+        } catch (e) {
+        } finally {
+            setIsFetchingLinks(false);
+        }
+    };
+    useEffect(() => {
+        if (!!srcLinks && srcLinks.length > 0) {
+            setItemLinks(srcLinks);
+            setSelectedTab(startWithLink || srcLinks[0]);
+        } else if (projectId && taskId) {
+            getItemLinks();
+        } else {
+            setItemLinks([]);
+        }
+        setIsFetchingLinks(false);
+    }, [projectId, taskId]);
+
+    const tLabel = (label: string) => {
+        return t("common.iframeWindow." + label, label);
+    };
+
+    const createIframeUrl = (url: string) => {
+        const iframeUrl = locationParser.parseUrl(url, { parseFragmentIdentifier: true });
+        iframeUrl.query.inlineView = "true";
+        return locationParser.stringifyUrl(iframeUrl);
+    };
+
+    const iframeWidget = () => {
+        return (
+            <Card isOnlyLayout={true} elevation={displayFullscreen ? 4 : 1}>
+                <CardHeader>
+                    <CardTitle>
+                        <h2>{!!title ? title : !!selectedTab ? tLabel(activeLabel) : ""}</h2>
+                    </CardTitle>
+                    <CardOptions>
+                        {viewsAndItemLink.length > 1 &&
+                            viewsAndItemLink.map((tabItem) => (
+                                <Button
+                                    key={tabItem.id ?? tabItem.path}
+                                    onClick={() => {
+                                        changeTab(tabItem.id ?? (tabItem as IItemLink));
+                                    }}
+                                    minimal={true}
+                                    disabled={activeIframePath?.path === tabItem.path || tabItem.id === selectedTab}
+                                >
+                                    {tLabel(tabItem.label)}
+                                </Button>
+                            ))}
+                        {!!handlerRemoveModal ? (
+                            <IconButton name="navigation-close" onClick={handlerRemoveModal} />
+                        ) : (
+                            <IconButton
+                                name={displayFullscreen ? "toggler-minimize" : "toggler-maximize"}
+                                onClick={toggleFullscreen}
+                            />
+                        )}
+                    </CardOptions>
+                </CardHeader>
+                <Divider />
+                <CardContent style={{ padding: 0, position: "relative" }}>
+                    {!!selectedTab ? (
+                        itemLinkActive ? (
+                            <iframe
+                                ref={iframeRef}
+                                name={otherProps.iFrameName}
+                                src={createIframeUrl((selectedTab as IItemLink)?.path)}
+                                title={tLabel((selectedTab as IItemLink)?.label)}
+                                style={{
+                                    position: "absolute",
+                                    width: "100%",
+                                    height: "100%",
+                                }}
+                            />
+                        ) : (
+                            taskViews.find((v) => v.id === selectedTab)?.render(projectId, taskId)
+                        )
+                    ) : isFetchingLinks ? (
+                        <Loading />
+                    ) : (
+                        <>
+                            <Spacing />
+                            <div style={{ textAlign: "center" }}>No tab available/selected.</div>
+                        </>
+                    )}
+                </CardContent>
+            </Card>
+        );
+    };
+
+    return !!handlerRemoveModal ? (
+        <Modal size="fullscreen" isOpen={true} canEscapeKeyClose={true} onClose={handlerRemoveModal}>
+            {iframeWidget()}
+        </Modal>
+    ) : (
+        <section className={"diapp-iframewindow"} {...otherProps}>
+            <div className="diapp-iframewindow__placeholder">
+                <Grid fullWidth={true}>
+                    <GridRow fullHeight={true} />
+                </Grid>
+            </div>
+            <div className={displayFullscreen ? "diapp-iframewindow--fullscreen" : ""}>{iframeWidget()}</div>
+        </section>
+    );
+}

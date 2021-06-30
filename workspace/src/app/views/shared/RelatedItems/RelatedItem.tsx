@@ -18,7 +18,7 @@ import { IRelatedItem } from "@ducks/shared/typings";
 import { useTranslation } from "react-i18next";
 import { routerOp } from "@ducks/router";
 import { useDispatch } from "react-redux";
-import { useIFrameWindowLinks } from "../IframeWindow/iframewindowHooks";
+import { useProjectTabsView } from "../projectTaskTabView/projectTabsViewHooks";
 
 interface IProps {
     // The related item to be shown
@@ -30,7 +30,7 @@ interface IProps {
 export function RelatedItem({ relatedItem, textQuery }: IProps) {
     const [t] = useTranslation();
     const dispatch = useDispatch();
-    const { iframeWindow, toggleIFrameLink } = useIFrameWindowLinks(relatedItem.itemLinks.slice(1));
+    const { iframeWindow, toggleIFrameLink } = useProjectTabsView(relatedItem.itemLinks.slice(1));
 
     // Go to details page of related item
     const goToDetailsPage = (relatedItem, event) => {

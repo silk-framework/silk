@@ -27,7 +27,7 @@ import { IExportTypes } from "@ducks/common/typings";
 import { downloadProject } from "../../../utils/downloadProject";
 import { useTranslation } from "react-i18next";
 import ItemDepiction from "../../shared/ItemDepiction";
-import { useIFrameWindowLinks } from "../IframeWindow/iframewindowHooks";
+import { useProjectTabsView } from "../projectTaskTabView/projectTabsViewHooks";
 import { wrapTooltip } from "../../../utils/uiUtils";
 
 interface IProps {
@@ -62,7 +62,7 @@ export default function SearchItem({
     const [t] = useTranslation();
     // Remove detailsPath
     const itemLinks = item.itemLinks.slice(1);
-    const { iframeWindow, toggleIFrameLink } = useIFrameWindowLinks(itemLinks);
+    const { iframeWindow, toggleIFrameLink } = useProjectTabsView(itemLinks);
     const contextMenuItems = itemLinks.map((link) => (
         <MenuItem
             key={link.path}

@@ -8,7 +8,7 @@ import { AppToaster } from "../../../services/toaster";
 import { DATA_TYPES } from "../../../constants";
 import Metadata from "../../shared/Metadata";
 import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
-import { IframeWindow } from "../../shared/IframeWindow/IframeWindow";
+import { ProjectTaskTabView } from "../../shared/projectTaskTabView/ProjectTaskTabView";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
 import NotFound from "../NotFound";
@@ -51,7 +51,10 @@ export default function () {
                 <Section>
                     <Metadata />
                     <Spacing />
-                    <IframeWindow iFrameName={"detail-page-iframe"} />
+                    <ProjectTaskTabView
+                        iFrameName={"detail-page-iframe"}
+                        taskViewConfig={{ pluginId: "workflow", projectId, taskId }}
+                    />
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>

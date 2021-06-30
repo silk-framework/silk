@@ -11,7 +11,7 @@ import { downloadProject } from "../../../utils/downloadProject";
 import { DATA_TYPES } from "../../../constants";
 import { ItemDeleteModal } from "../modals/ItemDeleteModal";
 import CloneModal from "../modals/CloneModal";
-import { IframeWindow } from "../IframeWindow/IframeWindow";
+import { ProjectTaskTabView } from "../projectTaskTabView/ProjectTaskTabView";
 import { ActionsMenu, TActionsMenuItem, IActionsMenuProps } from "./ActionsMenu";
 import CopyToModal from "../modals/CopyToModal/CopyToModal";
 
@@ -194,7 +194,7 @@ export function ArtefactManagementOptions({
                 <CopyToModal item={itemData} onDiscard={toggleCopyToModal} onConfirmed={handleCopyConfirmed} />
             )}
             {displayItemLink && (
-                <IframeWindow
+                <ProjectTaskTabView
                     srcLinks={itemLinks}
                     startWithLink={displayItemLink}
                     startFullscreen={true}
