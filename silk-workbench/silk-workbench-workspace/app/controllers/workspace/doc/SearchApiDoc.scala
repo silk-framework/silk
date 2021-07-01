@@ -78,22 +78,25 @@ object SearchApiDoc {
       {
         "total": 110,
         "results": [
-          { "type": "Project",
+          {
+            "type": "Project",
             "id": "cmem",
             "label": "CMEM",
             "description": "CMEM project",
             "itemLinks": []
           },
-          { "type": "Dataset",
+          {
+            "type": "Dataset",
             "project": "cmem",
             "projectLabel": "CMEM the project",
             "pluginId": "csv",
-            "pluginLabel": "CSV"
+            "pluginLabel": "CSV",
             "id": "customers",
             "label": "Customers",
             "description": "Customers dataset"
           },
-          { "type": "Task",
+          {
+            "type": "Task",
             "pluginId": "script",
             "pluginLabel": "Script",
             "projectLabel": "CMEM the project",
@@ -109,18 +112,18 @@ object SearchApiDoc {
             "pluginId": "transform",
             "pluginLabel": "Tramsformation",
             "itemLinks": [
-                {
-                    "label": "Mapping editor",
-                    "path": "/transform/pmd/transform_a_to_b/editor"
-                },
-                {
-                    "label": "Transform evaluation",
-                    "path": "/transform/pmd/transform_a_to_b/evaluate"
-                },
-                {
-                    "label": "Transform execution",
-                    "path": "/transform/pmd/transform_a_to_b/execute"
-                }
+              {
+                "label": "Mapping editor",
+                "path": "/transform/pmd/transform_a_to_b/editor"
+              },
+              {
+                "label": "Transform evaluation",
+                "path": "/transform/pmd/transform_a_to_b/evaluate"
+              },
+              {
+                "label": "Transform execution",
+                "path": "/transform/pmd/transform_a_to_b/execute"
+              }
             ],
             "label": "Transform A to B",
             "projectId": "cmem",
@@ -128,10 +131,10 @@ object SearchApiDoc {
           }
         ],
         "sortByProperties": [
-            {
-                "id": "label",
-                "label": "Label"
-            }
+          {
+            "id": "label",
+            "label": "Label"
+          }
         ],
         "facets": [
           {
@@ -139,24 +142,42 @@ object SearchApiDoc {
             "label": "Tag",
             "description": "A user supplied tag for custom categorization.",
             "type": "keyword",
-            "values": [{"id": "test", "label": "Test", "count": 2}, {"id": "public", "label": "Public", "count": 3}, {"id": "private", "label": "Private", "count": 4}]
+            "values": [
+              {
+                "id": "test",
+                "label": "Test",
+                "count": 2
+              },
+              {
+                "id": "public",
+                "label": "Public",
+                "count": 3
+              },
+              {
+                "id": "private",
+                "label": "Private",
+                "count": 4
+              }
+            ]
           },
           {
             "id": "datasetType",
             "label": "Dataset type",
-            "description": "The concrete type of a dataset, which comprises its format and other characteristics."
+            "description": "The concrete type of a dataset, which comprises its format and other characteristics.",
             "type": "keyword",
             "values": [
               {
-                  "count": 43,
-                  "id": "eccencaDataPlatform",
-                  "label": "Knowledge Graph"
+                "count": 43,
+                "id": "eccencaDataPlatform",
+                "label": "Knowledge Graph"
               },
               {
-                  "count": 17,
-                  "id": "csv",
-                  "label": "CSV"
+                "count": 17,
+                "id": "csv",
+                "label": "CSV"
               }
+            ]
+          }
         ]
       }
     """
