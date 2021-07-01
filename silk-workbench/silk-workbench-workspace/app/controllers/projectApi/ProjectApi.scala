@@ -35,7 +35,7 @@ import scala.util.Try
 /**
   * REST API for project artifacts.
   */
-@Tag(name = "Projects")
+@Tag(name = "Projects", description = "Access to all projects in the workspace.")
 class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
   private val MARKDOWN_MIME = "text/markdown"
   private val AcceptsMarkdown = Accepting(MARKDOWN_MIME)

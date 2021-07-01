@@ -20,7 +20,7 @@ import scala.collection.JavaConverters._
 /**
   * API endpoints for initialization of the frontend application.
   */
-@Tag(name = "Initialization")
+@Tag(name = "Initialization", description = "Initialization.")
 case class InitApi @Inject()() extends InjectedController with UserContextActions with ControllerUtilsTrait {
   private val dmConfigKey = "eccencaDataManager.baseUrl"
   private val dmLinksKey = "eccencaDataManager.moduleLinks"

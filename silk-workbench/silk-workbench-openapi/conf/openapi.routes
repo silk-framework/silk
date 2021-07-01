@@ -2,4 +2,4 @@
 
 GET   /apiSpec                     controllers.openapi.OpenApiController.apiSpec
 GET   /api                         controllers.openapi.OpenApiController.ui
-GET   /api/*file                   controllers.openapi.Assets.at(path:String="/public/lib/swagger-ui", file:String)
+GET   /swagger-ui/*file            controllers.openapi.Assets.at(path:String="/public/lib/swagger-ui", file:String)

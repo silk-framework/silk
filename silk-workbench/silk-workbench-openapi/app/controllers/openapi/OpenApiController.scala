@@ -26,7 +26,7 @@ class OpenApiController @Inject()(cc: ControllerComponents,
   }
 
   def ui: Action[AnyContent] = Action { implicit request =>
-    Redirect("api/index.html?url=" + routes.OpenApiController.apiSpec.absoluteURL())
+    Ok(views.html.openapi.swaggerUi(routes.OpenApiController.apiSpec.absoluteURL()))
   }
 }
 

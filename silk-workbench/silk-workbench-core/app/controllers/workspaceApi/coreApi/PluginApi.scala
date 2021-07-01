@@ -28,7 +28,7 @@ import scala.collection.mutable
 /**
   * Workspace task plugin related endpoints.
   */
-@Tag(name = "Plugins")
+@Tag(name = "Plugins", description = "Provides information about all installed plugins.")
 class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedController with UserContextActions {
 
   /** All plugins that can be created in the workspace. */

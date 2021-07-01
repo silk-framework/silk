@@ -34,7 +34,7 @@ import scala.language.implicitConversions
 /**
   * Generates auto completions for mapping paths and types.
   */
-@Tag(name = "Transform Autocompletion")
+@Tag(name = "Transform autocompletion")
 class AutoCompletionApi @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   val log: Logger = Logger.getLogger(this.getClass.getName)

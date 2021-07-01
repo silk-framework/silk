@@ -25,7 +25,7 @@ import scala.util.Try
 /**
   * API for project tasks.
   */
-@Tag(name = "Project Tasks")
+@Tag(name = "Project tasks", description = "Access to all tasks in a project.")
 class ProjectTaskApi @Inject()() extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   /** Fetch all related items (tasks) for a specific project task. */

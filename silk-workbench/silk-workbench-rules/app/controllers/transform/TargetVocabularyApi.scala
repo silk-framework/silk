@@ -24,7 +24,7 @@ import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import javax.inject.Inject
 
-@Tag(name = "Transform Target Vocabulary", description = "Provides access to the target vocabulary.")
+@Tag(name = "Transform target vocabulary", description = "Provides access to the target vocabulary.")
 class TargetVocabularyApi  @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   @Operation(
