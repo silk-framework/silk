@@ -1,11 +1,11 @@
 /**** Config types ****/
-export type ports = {
-    minPorts: number;
-    maxPorts?: number;
-};
+export interface IPorts {
+    minInputPorts: number;
+    maxInputPorts?: number;
+}
 
 type PortObjectType = {
-    [key: string]: ports;
+    [key: string]: IPorts;
 };
 
 export interface PortConfigResponse {
