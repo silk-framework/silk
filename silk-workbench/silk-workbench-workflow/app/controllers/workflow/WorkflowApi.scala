@@ -1,10 +1,16 @@
 package controllers.workflow
 
-import controllers.core.{UserContextActions}
+import controllers.core.UserContextActions
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils
-
-import javax.inject.Inject
+import controllers.workflow.doc.WorkflowApiDoc
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.headers.Header
+import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.parameters.RequestBody
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.silkframework.config.Task
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.RuleResult
@@ -18,8 +24,12 @@ import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGener
 import play.api.libs.json.{JsArray, JsString, _}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, _}
 
+import javax.inject.Inject
+
+@Tag(name = "Workflows")
 class WorkflowApi @Inject() () extends InjectedController with UserContextActions {
 
+  @deprecated
   def getWorkflows(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = fetchProject(projectName)
     val workflowTasks = project.tasks[Workflow]
@@ -32,6 +42,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
   private def fetchProject(projectName: String)
                           (implicit userContext: UserContext) = WorkspaceFactory().workspace.project(projectName)
 
+  @deprecated
   def postWorkflow(projectName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = fetchProject(projectName)
     implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
@@ -41,6 +52,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
     Ok
   }
 
+  @deprecated
   def putWorkflow(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = fetchProject(projectName)
     implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
@@ -50,12 +62,14 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
     Ok
   }
 
+  @deprecated
   def getWorkflow(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
     Ok(XmlSerialization.toXml[Task[Workflow]](workflow))
   }
 
+  @deprecated
   def deleteWorkflow(project: String, task: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     WorkspaceFactory().workspace.project(project).removeTask[Workflow](task)
     Ok
@@ -73,6 +87,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
     }
   }
 
+  @deprecated
   def status(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = fetchProject(projectName)
     val workflow = project.task[Workflow](taskName)
@@ -95,7 +110,57 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
     * Run a variable workflow, where some of the tasks are configured at request time and dataset payload may be
     * delivered inside the request.
     */
-  def postVariableWorkflowInput(projectName: String,
+  @Operation(
+    summary = "Execute workflow with request payload",
+    description = WorkflowApiDoc.executeOnPayloadDescription,
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(WorkflowApiDoc.executeOnPayloadJsonResponseExample))
+          ),
+          new Content(
+            mediaType = "application/xml",
+            examples = Array(new ExampleObject(WorkflowApiDoc.executeOnPayloadXmlResponseExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or workflow has not been found."
+      )
+  ))
+  @RequestBody(
+    description = WorkflowApiDoc.executeOnPayloadBodyDescription,
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        examples = Array(new ExampleObject(WorkflowApiDoc.executeOnPayloadJsonRequestExample))
+      ),
+      new Content(
+        mediaType = "application/xml",
+        examples = Array(new ExampleObject(WorkflowApiDoc.executeOnPayloadXmlRequestExample))
+      )
+    )
+  )
+  def postVariableWorkflowInput(@Parameter(
+                                  name = "project",
+                                  description = "The project identifier",
+                                  required = true,
+                                  in = ParameterIn.PATH,
+                                  schema = new Schema(implementation = classOf[String])
+                                )
+                                projectName: String,
+                                @Parameter(
+                                  name = "task",
+                                  description = "The workflow identifier",
+                                  required = true,
+                                  in = ParameterIn.PATH,
+                                  schema = new Schema(implementation = classOf[String])
+                                )
                                 workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
 
@@ -109,8 +174,64 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
     * Run a variable workflow in background, where some of the tasks are configured at request time and dataset payload may be
     * delivered inside the request.
     */
-  def postVariableWorkflowInputAsynchronous(projectName: String,
-                                workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Execute workflow with request payload asynchronously",
+    description = WorkflowApiDoc.executeOnPayloadAsynchronousDescription,
+    responses = Array(
+      new ApiResponse(
+        responseCode = "201",
+        headers = Array(
+          new Header(
+            name = "Location",
+            schema =
+              new Schema(
+                implementation = classOf[String],
+                example = "/workflow/workflows/projectName/workflowName/execution/ExecuteWorkflowWithPayload14"
+              )
+          )
+        ),
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject("{ \"activityId\": \"BackgroundActivityID\" }"))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or workflow has not been found."
+      )
+    ))
+  @RequestBody(
+    description = WorkflowApiDoc.executeOnPayloadBodyDescription,
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        examples = Array(new ExampleObject(WorkflowApiDoc.executeOnPayloadJsonRequestExample))
+      ),
+      new Content(
+        mediaType = "application/xml",
+        examples = Array(new ExampleObject(WorkflowApiDoc.executeOnPayloadXmlRequestExample))
+      )
+    )
+  )
+  def postVariableWorkflowInputAsynchronous(@Parameter(
+                                              name = "project",
+                                              description = "The project identifier",
+                                              required = true,
+                                              in = ParameterIn.PATH,
+                                              schema = new Schema(implementation = classOf[String])
+                                            )
+                                            projectName: String,
+                                            @Parameter(
+                                              name = "task",
+                                              description = "The workflow identifier",
+                                              required = true,
+                                              in = ParameterIn.PATH,
+                                              schema = new Schema(implementation = classOf[String])
+                                            )
+                                            workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
 
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
@@ -120,8 +241,42 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
         .withHeaders(LOCATION -> controllers.workflow.routes.WorkflowApi.removeVariableWorkflowExecution(projectName, workflowTaskName, id).url)
   }
 
-  def removeVariableWorkflowExecution(projectName: String,
+  @Operation(
+    summary = "Remove a workflow execution instance",
+    description = WorkflowApiDoc.removeVariableWorkflowExecutionDescription,
+      responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the execution instance has been removed."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, workflow or execution instance has not been found."
+      )
+    ))
+  def removeVariableWorkflowExecution(@Parameter(
+                                        name = "project",
+                                        description = "The project identifier",
+                                        required = true,
+                                        in = ParameterIn.PATH,
+                                        schema = new Schema(implementation = classOf[String])
+                                      )
+                                      projectName: String,
+                                      @Parameter(
+                                        name = "task",
+                                        description = "The workflow identifier",
+                                        required = true,
+                                        in = ParameterIn.PATH,
+                                        schema = new Schema(implementation = classOf[String])
+                                      )
                                       workflowTaskName: String,
+                                      @Parameter(
+                                        name = "executionId",
+                                        description = "The execution identifier",
+                                        required = true,
+                                        in = ParameterIn.PATH,
+                                        schema = new Schema(implementation = classOf[String])
+                                      )
                                       workflowExecutionId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContest =>
     implicit val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
 

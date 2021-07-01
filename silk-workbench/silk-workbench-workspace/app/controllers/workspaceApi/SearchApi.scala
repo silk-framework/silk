@@ -24,10 +24,7 @@ import play.api.mvc.{Action, AnyContent, InjectedController, Result}
 import java.util.logging.Logger
 import javax.inject.Inject
 
-/**
-  * API to search for tasks in the workspace.
-  */
-@Tag(name = "Search")
+@Tag(name = "Search", description = "API to search for tasks in the workspace")
 class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
