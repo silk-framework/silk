@@ -26,14 +26,14 @@ POST          /:project/importExample                                           
 ############################################################################################################################################
 
 # Dialogs
-GET           /dialogs/newDataset/:project                                      controllers.workspace.DatasetApi.datasetDialog(project: String, task = "", title = "Create Dataset", createDialog: Boolean = true)
-GET           /dialogs/editDataset/:project/:task                               controllers.workspace.DatasetApi.datasetDialog(project: String, task: String, title = "Edit Dataset", createDialog: Boolean = false)
-GET           /dialogs/editDatasetAutoConfigured/:project/:task/:pluginId       controllers.workspace.DatasetApi.datasetDialogAutoConfigured(project, task, pluginId)
+GET           /dialogs/newDataset/:project                                      controllers.workspace.DatasetController.datasetDialog(project: String, task = "", title = "Create Dataset", createDialog: Boolean = true)
+GET           /dialogs/editDataset/:project/:task                               controllers.workspace.DatasetController.datasetDialog(project: String, task: String, title = "Edit Dataset", createDialog: Boolean = false)
+GET           /dialogs/editDatasetAutoConfigured/:project/:task/:pluginId       controllers.workspace.DatasetController.datasetDialogAutoConfigured(project, task, pluginId)
 
 # Tabs
-GET           /datasets/:project/:task/dataset                                  controllers.workspace.DatasetApi.dataset(project, task)
-GET           /datasets/:project/:task/table                                    controllers.workspace.DatasetApi.table(project, task, maxEntities: Int ?= 20)
-GET           /datasets/:project/:task/sparql                                   controllers.workspace.DatasetApi.sparql(project, task, query ?= "")
+GET           /datasets/:project/:task/dataset                                  controllers.workspace.DatasetController.dataset(project, task)
+GET           /datasets/:project/:task/table                                    controllers.workspace.DatasetController.table(project, task, maxEntities: Int ?= 20)
+GET           /datasets/:project/:task/sparql                                   controllers.workspace.DatasetController.sparql(project, task, query ?= "")
 GET           /datasets/:project/:task/types                                    controllers.workspace.DatasetApi.types(project, task, search, limit: Option[Int] ?= None)
 
 # API

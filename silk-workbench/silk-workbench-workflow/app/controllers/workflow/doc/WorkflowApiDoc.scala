@@ -120,10 +120,9 @@ if the project resource with the value given for the file parameter exists, this
     """
 
   final val removeVariableWorkflowExecutionDescription  =
-    """
-       Remove the workflow execution instance, which was started via the /executeOnPayloadAsynchronous endpoint.
-       Since only a limited number of executions are kept at every moment,
-       a well behaving client should remove the execution if the client has consumed the result.",
+    """Remove the workflow execution instance, which was started via the /executeOnPayloadAsynchronous endpoint.
+Since only a limited number of executions are kept at every moment,
+a well behaving client should remove the execution if the client has consumed the result.",
     """
 
 }

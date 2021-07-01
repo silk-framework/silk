@@ -4,15 +4,19 @@ import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.SerializationUtils._
 import controllers.util.TextSearchUtils
+import controllers.workspace.doc.DatasetApiDoc
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.parameters.RequestBody
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
-import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
-import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Uri
@@ -25,19 +29,100 @@ import play.api.mvc._
 
 import javax.inject.Inject
 
+@Tag(name = "Datasets", description = "Management of datasets.")
 class DatasetApi @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   private implicit val partialPath = Json.format[PathCoverage]
   private implicit val valueCoverageMissFormat = Json.format[ValueCoverageMiss]
   private implicit val valueCoverageResultFormat = Json.format[ValueCoverageResult]
 
-  def getDataset(projectName: String, sourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Retrieve dataset",
+    description = "Retrieve the specification of a dataset.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(DatasetApiDoc.datasetExampleJson))
+          ),
+          new Content(
+            mediaType = "application/xml",
+            examples = Array(new ExampleObject(DatasetApiDoc.datasetExampleXml))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or dataset has not been found."
+      )
+    )
+  )
+  def getDataset(@Parameter(
+                  name = "project",
+                  description = "The project identifier",
+                  required = true,
+                  in = ParameterIn.PATH,
+                  schema = new Schema(implementation = classOf[String])
+                )
+                projectName: String,
+                @Parameter(
+                  name = "name",
+                  description = "The dataset identifier",
+                  required = true,
+                  in = ParameterIn.PATH,
+                  schema = new Schema(implementation = classOf[String])
+                )
+                sourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[GenericDatasetSpec](sourceName)
     serializeCompileTime[DatasetTask](task, Some(project))
   }
 
-  def getDatasetAutoConfigured(projectName: String, sourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Auto-configure dataset",
+    description = "Retrieve an auto-configured version of the dataset.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(DatasetApiDoc.datasetExampleJson))
+          ),
+          new Content(
+            mediaType = "application/xml",
+            examples = Array(new ExampleObject(DatasetApiDoc.datasetExampleXml))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "400",
+        description = "If the dataset type does not support auto-configuration."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or dataset has not been found."
+      )
+    )
+  )
+  def getDatasetAutoConfigured(@Parameter(
+                                 name = "project",
+                                 description = "The project identifier",
+                                 required = true,
+                                 in = ParameterIn.PATH,
+                                 schema = new Schema(implementation = classOf[String])
+                               )
+                               projectName: String,
+                               @Parameter(
+                                 name = "name",
+                                 description = "The dataset identifier",
+                                 required = true,
+                                 in = ParameterIn.PATH,
+                                 schema = new Schema(implementation = classOf[String])
+                               )
+                               sourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val project: Project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[GenericDatasetSpec](sourceName)
     val datasetPlugin = task.data.plugin
@@ -50,7 +135,62 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
     }
   }
 
-  def putDataset(projectName: String, datasetName: String, autoConfigure: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Create or update dataset",
+    description = "Create or update a dataset.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "204",
+        description = "If the dataset has been created or updated."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the provided dataset specification is invalid."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project has not been found."
+      )
+    )
+  )
+  @RequestBody(
+    description = "The dataset specification",
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        examples = Array(new ExampleObject(DatasetApiDoc.datasetExampleJson))
+      ),
+      new Content(
+        mediaType = "application/xml",
+        examples = Array(new ExampleObject(DatasetApiDoc.datasetExampleXml))
+      )
+    )
+  )
+  def putDataset(@Parameter(
+                   name = "project",
+                   description = "The project identifier",
+                   required = true,
+                   in = ParameterIn.PATH,
+                   schema = new Schema(implementation = classOf[String])
+                 )
+                 projectName: String,
+                 @Parameter(
+                   name = "name",
+                   description = "The dataset identifier",
+                   required = true,
+                   in = ParameterIn.PATH,
+                   schema = new Schema(implementation = classOf[String])
+                 )
+                 datasetName: String,
+                 @Parameter(
+                   name = "autoConfigure",
+                   description = "If true, the dataset parameters will be auto configured. Only works with dataset plugins that support auto configuration, e.g., CSV.",
+                   required = false,
+                   in = ParameterIn.QUERY,
+                   schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+                 )
+                 autoConfigure: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
 
@@ -75,74 +215,38 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
     }
   }
 
-  def deleteDataset(project: String, source: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Delete dataset",
+    description = "Remove a dataset from a project.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "204",
+        description = "If the dataset has been deleted or there is no dataset with that identifier."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project has not been found."
+      )
+    )
+  )
+  def deleteDataset(@Parameter(
+                      name = "project",
+                      description = "The project identifier",
+                      required = true,
+                      in = ParameterIn.PATH,
+                      schema = new Schema(implementation = classOf[String])
+                    )
+                    project: String,
+                    @Parameter(
+                      name = "name",
+                      description = "The dataset identifier",
+                      required = true,
+                      in = ParameterIn.PATH,
+                      schema = new Schema(implementation = classOf[String])
+                    )
+                    source: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     WorkspaceFactory().workspace.project(project).removeTask[GenericDatasetSpec](source)
     NoContent
-  }
-
-  def datasetDialog(projectName: String,
-                    datasetName: String,
-                    title: String = "Edit Dataset",
-                    createDialog: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val datasetPlugin = if (datasetName.isEmpty) None else project.taskOption[GenericDatasetSpec](datasetName).map(_.data)
-    Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, datasetPlugin, title, createDialog))
-  }
-
-  def datasetDialogAutoConfigured(projectName: String, datasetName: String, pluginId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val createDialog = project.taskOption[DatasetSpec[Dataset]](datasetName).isEmpty
-    val dialogTitle = if(createDialog) "Create Dataset" else "Edit Dataset"
-    implicit val prefixes: Prefixes = project.config.prefixes
-    implicit val resources: ResourceManager = project.resources
-    val datasetParams = request.queryString.mapValues(_.head)
-    val datasetPlugin = Dataset.apply(pluginId, datasetParams)
-    datasetPlugin match {
-      case ds: DatasetPluginAutoConfigurable[_] =>
-        Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, Some(DatasetSpec(ds.autoConfigured)), title = dialogTitle, createDialog = createDialog))
-      case _ =>
-        ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
-    }
-  }
-
-  def dataset(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    val context = Context.get[GenericDatasetSpec](project, task, request.path)
-    context.task.data match {
-      case dataset: GenericDatasetSpec =>
-        if (dataset.plugin.isInstanceOf[RdfDataset]) {
-          Redirect(routes.DatasetApi.sparql(project, task))
-        } else {
-          Redirect(routes.DatasetApi.table(project, task))
-        }
-    }
-  }
-
-  def table(project: String, task: String, maxEntities: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    val context = Context.get[GenericDatasetSpec](project, task, request.path)
-    val source = context.task.data.source
-
-    val firstTypes = source.retrieveTypes().head._1
-    val paths = source.retrievePaths(firstTypes).toIndexedSeq
-    val entityDesc = EntitySchema(firstTypes, paths)
-    val entities = source.retrieve(entityDesc).entities.take(maxEntities).toList
-
-    Ok(views.html.workspace.dataset.table(context, paths.map(_.toUntypedPath), entities))
-  }
-
-  def sparql(project: String, task: String, query: String = ""): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    val context = Context.get[GenericDatasetSpec](project, task, request.path)
-
-    context.task.data.plugin match {
-      case rdf: RdfDataset =>
-        val sparqlEndpoint = rdf.sparqlEndpoint
-        var queryResults: Option[SparqlResults] = None
-        if (!query.isEmpty) {
-          queryResults = Some(sparqlEndpoint.select(query))
-        }
-        Ok(views.html.workspace.dataset.sparql(context, sparqlEndpoint, query, queryResults))
-      case _ =>
-        ErrorResult(BadUserInputException("This is not an RDF-Dataset."))
-    }
   }
 
   /** Get types of a dataset including the search string */

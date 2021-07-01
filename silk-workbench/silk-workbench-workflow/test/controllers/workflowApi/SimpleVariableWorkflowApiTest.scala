@@ -206,12 +206,12 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
   }
 
   private def workflowList(): Seq[WorkflowInfo] = {
-    val workflowInfoListRequest = request(controllers.workflowApi.routes.ApiWorkflowApi.workflowInfoList())
+    val workflowInfoListRequest = request(controllers.workflowApi.routes.WorkflowApi.workflowInfoList())
     JsonHelpers.fromJsonValidated[Seq[WorkflowInfo]](checkResponse(workflowInfoListRequest.get()).json)
   }
 
   private def workflowInfo(workflowId: String): WorkflowInfo = {
-    val workflowInfoRequest = request(controllers.workflowApi.routes.ApiWorkflowApi.workflowInfo(projectId, workflowId))
+    val workflowInfoRequest = request(controllers.workflowApi.routes.WorkflowApi.workflowInfo(projectId, workflowId))
     JsonHelpers.fromJsonValidated[WorkflowInfo](checkResponse(workflowInfoRequest.get()).json)
   }
 
@@ -221,7 +221,13 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
                                       usePost: Boolean = false,
                                       acceptMimeType: String = "application/xml",
                                       contentOpt: Option[(String, String)] = None): Future[WSResponse] = {
-    val path = controllers.workflowApi.routes.ApiWorkflowApi.variableWorkflowResult(projectId, workflowId).url
+    val path = {
+      if(usePost) {
+        controllers.workflowApi.routes.WorkflowApi.variableWorkflowResultPost(projectId, workflowId).url
+      } else {
+        controllers.workflowApi.routes.WorkflowApi.variableWorkflowResultGet(projectId, workflowId).url
+      }
+    }
     var request = client.url(s"$baseUrl$path")
         .withHttpHeaders(ACCEPT -> acceptMimeType)
     if(usePost || contentOpt.isDefined) {
