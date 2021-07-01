@@ -144,7 +144,7 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
         description = "If the dataset has been created or updated."
       ),
       new ApiResponse(
-        responseCode = "404",
+        responseCode = "400",
         description = "If the provided dataset specification is invalid."
       ),
       new ApiResponse(
@@ -250,6 +250,7 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
   }
 
   /** Get types of a dataset including the search string */
+  @deprecated(message = "getDatasetTypes should be used instead.")
   def types(project: String, task: String, search: String = "", limit: Option[Int] = None): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[GenericDatasetSpec](project, task, request.path)
     implicit val prefixes: Prefixes = context.project.config.prefixes
@@ -263,9 +264,56 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
   }
 
   /** Get all types of the dataset */
-  def getDatasetTypes(project: String,
+  @Operation(
+    summary = "Dataset types",
+    description = "Get a list of entity types of this dataset. Types of a dataset can be classes of an ontology or in the case of a CSV file, a single type.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject("['<http://example.com/Person>', '<http://example.com/Cat>']"))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project has not been found."
+      )
+    )
+  )
+  def getDatasetTypes(@Parameter(
+                        name = "project",
+                        description = "The project identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      project: String,
+                      @Parameter(
+                        name = "name",
+                        description = "The dataset identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
                       task: String,
+                      @Parameter(
+                        name = "textQuery",
+                        description = "An optional multi-word text query to filter the types by.",
+                        required = false,
+                        in = ParameterIn.QUERY,
+                        schema = new Schema(implementation = classOf[String], defaultValue = "")
+                      )
                       textQuery: String,
+                      @Parameter(
+                        name = "limit",
+                        description = "Returns max. that many types in the result. If not specified all types are returned.",
+                        required = false,
+                        in = ParameterIn.QUERY,
+                        schema = new Schema(implementation = classOf[Int])
+                      )
                       limit: Option[Int]): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[GenericDatasetSpec](project, task, request.path)
     implicit val prefixes: Prefixes = context.project.config.prefixes
@@ -278,7 +326,54 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
     Ok(JsArray(limitedTypes.map(JsString)))
   }
 
-  def getMappingValueCoverage(projectName: String,
+  @Operation(
+    summary = "Dataset source path mapping coverage",
+    description = DatasetApiDoc.mappingValueCoverageDescription,
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(DatasetApiDoc.mappingValueCoverageExampleResponse))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or dataset has not been found."
+      ),
+      new ApiResponse(
+        responseCode = "500",
+        description = "If the dataset type does not support mapping coverage."
+      )
+    )
+  )
+  @RequestBody(
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[MappingValueCoverageRequest]),
+        examples = Array(new ExampleObject("{\"dataSourcePath\": \"/Person/Properties/Property/Value\"}"))
+      )
+    )
+  )
+  def getMappingValueCoverage(@Parameter(
+                                name = "project",
+                                description = "The project identifier",
+                                required = true,
+                                in = ParameterIn.PATH,
+                                schema = new Schema(implementation = classOf[String])
+                              )
+                              projectName: String,
+                              @Parameter(
+                                name = "name",
+                                description = "The dataset identifier",
+                                required = true,
+                                in = ParameterIn.PATH,
+                                schema = new Schema(implementation = classOf[String])
+                              )
                               datasetId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[MappingValueCoverageRequest] { mappingCoverageRequest =>
       val project = WorkspaceFactory().workspace.project(projectName)
@@ -310,7 +405,52 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
 
   private val coverageTypeValues = Seq(FULLY_MAPPED, PARTIALLY_MAPPED, UNMAPPED)
 
-  def getMappingCoverage(projectName: String, datasetId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+  @Operation(
+    summary = "Dataset mapping coverage",
+    description = DatasetApiDoc.mappingCoverageDescription,
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(DatasetApiDoc.mappingCoverageExampleResponse))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or dataset has not been found."
+      ),
+      new ApiResponse(
+        responseCode = "500",
+        description = "If the dataset type does not support mapping coverage."
+      )
+    )
+  )
+  @Parameter(
+    name = "type",
+    description = "This optional parameter specifies which coverage types should be returned. This is a comma-separated String. Allowed values are 'fullyMapped', 'partiallyMapped' and 'unmapped'. Default is all types.",
+    required = false,
+    in = ParameterIn.QUERY,
+    schema = new Schema(implementation = classOf[String], example = "partiallyMapped,unmapped")
+  )
+  def getMappingCoverage(@Parameter(
+                           name = "project",
+                           description = "The project identifier",
+                           required = true,
+                           in = ParameterIn.PATH,
+                           schema = new Schema(implementation = classOf[String])
+                         )
+                         projectName: String,
+                         @Parameter(
+                           name = "name",
+                           description = "The dataset identifier",
+                           required = true,
+                           in = ParameterIn.PATH,
+                           schema = new Schema(implementation = classOf[String])
+                         )
+                         datasetId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val filterPaths = coveragePathFilterFn(request)
 
     try {
