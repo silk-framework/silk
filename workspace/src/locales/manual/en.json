@@ -427,7 +427,7 @@
             "menu": {
                 "delete": {
                     "label": "Remove edge",
-                    "tooltip": "Removes the edge. Alternatively you can delete (multiple) selected workflow elements by pressing the <DEL> key on the keyboard."
+                    "tooltip": "Removes the edge. Alternatively you can delete (multiple) selected workflow elements by pressing the [←] (backspace) key on the keyboard."
                 }
             }
         }
