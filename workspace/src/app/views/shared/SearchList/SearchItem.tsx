@@ -112,6 +112,8 @@ export default function SearchItem({
         downloadProject(item.id, type.id);
     };
 
+    const projectOrDataset = item.type === "dataset" || item.type === "project";
+
     return (
         <Card isOnlyLayout>
             <OverviewItem hasSpacing onClick={onRowClick ? onRowClick : undefined}>
@@ -141,7 +143,15 @@ export default function SearchItem({
                         </OverflowText>
                     </OverviewItemLine>
                     <OverviewItemLine small>
-                        {(item.type === "dataset" || item.type === "project") && (
+                        {item.pluginLabel && (
+                            <>
+                                <Tag small>
+                                    <Highlighter label={item.pluginLabel} searchValue={searchValue} />
+                                </Tag>
+                                {projectOrDataset && <Spacing vertical size="tiny" />}
+                            </>
+                        )}
+                        {projectOrDataset && (
                             <>
                                 <Tag small>
                                     <Highlighter
@@ -151,14 +161,6 @@ export default function SearchItem({
                                         )}
                                         searchValue={searchValue}
                                     />
-                                </Tag>
-                                <Spacing vertical size="tiny" />
-                            </>
-                        )}
-                        {item.pluginLabel && (
-                            <>
-                                <Tag small>
-                                    <Highlighter label={item.pluginLabel} searchValue={searchValue} />
                                 </Tag>
                             </>
                         )}
