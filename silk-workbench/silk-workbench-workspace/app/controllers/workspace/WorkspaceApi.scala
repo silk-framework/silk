@@ -34,11 +34,31 @@ import scala.util.Try
 @Tag(name = "Projects")
 class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
+  @Operation(
+    summary = "Reload",
+    description = "Reloads the workspace from the backend. The request blocks until the reload finished.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the reload succeeded."
+      )
+    )
+  )
   def reload: Action[AnyContent] = UserContextAction { implicit userContext =>
     WorkspaceFactory().workspace.reload()
     Ok
   }
 
+  @Operation(
+    summary = "Reload workspace prefixes",
+    description = "Reloads the workspace prefixes from registered or all vocabularies from the backend. The request blocks until the reload finished.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the reload succeeded."
+      )
+    )
+  )
   def reloadPrefixes: Action[AnyContent] = UserContextAction { implicit userContext =>
     WorkspaceFactory().workspace.reloadPrefixes()
     Ok

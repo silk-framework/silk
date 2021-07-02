@@ -3,6 +3,7 @@ package controllers.workspaceApi
 import config.WorkbenchConfig
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
+import controllers.util.FileMultiPartRequest
 import controllers.workspace.ProjectMarshalingApi
 import controllers.workspaceApi.ProjectImportApi.{ProjectImport, ProjectImportDetails, ProjectImportExecution}
 import io.swagger.v3.oas.annotations.enums.{ParameterIn, ParameterStyle}
@@ -41,7 +42,7 @@ import scala.xml.{XML => ScalaXML}
 /**
   * API for advanced project import.
   */
-@Tag(name = "Project import")
+@Tag(name = "Project import/export")
 class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedController with UserContextActions with ControllerUtilsTrait {
   private final val PROJECT_FILE_MAX_AGE_KEY = "workspace.projectImport.tempFileMaxAge"
   private final val DEFAULT_PROJECT_FILE_MAX_AGE = Duration(1, TimeUnit.HOURS)
@@ -135,6 +136,7 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
     content = Array(
       new Content(
         mediaType = "multipart/form-data",
+        schema = new Schema(implementation = classOf[FileMultiPartRequest])
       ),
       new Content(
         mediaType = "application/octet-stream"

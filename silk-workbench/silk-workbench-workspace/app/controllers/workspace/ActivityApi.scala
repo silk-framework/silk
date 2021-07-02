@@ -171,6 +171,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     Ok(JsArray(statuses))
   }
 
+  @deprecated
   def activityLog(): Action[AnyContent] = Action {
     Ok(JsonSerializer.logRecords(ActivityLog.records))
   }
