@@ -190,7 +190,7 @@ export function ProjectTaskTabView({
 
     const iframeWidget = () => {
         return (
-            <Card isOnlyLayout={true} elevation={displayFullscreen ? 4 : 1}>
+            <Card className="diapp-iframewindow__content" isOnlyLayout={true} elevation={displayFullscreen ? 4 : 1}>
                 <CardHeader>
                     <CardTitle>
                         <h2>{!!title ? title : !!selectedTab ? tLabel(activeLabel) : ""}</h2>
@@ -220,7 +220,13 @@ export function ProjectTaskTabView({
                     </CardOptions>
                 </CardHeader>
                 <Divider />
-                <CardContent style={{ padding: 0, position: "relative" }}>
+                <CardContent
+                    className={
+                        !!selectedTab && itemLinkActive
+                            ? "diapp-iframewindow--iframecontent"
+                            : "diapp-iframewindow--jscontent"
+                    }
+                >
                     {!!selectedTab ? (
                         itemLinkActive ? (
                             <iframe
@@ -261,7 +267,9 @@ export function ProjectTaskTabView({
                     <GridRow fullHeight={true} />
                 </Grid>
             </div>
-            <div className={displayFullscreen ? "diapp-iframewindow--fullscreen" : ""}>{iframeWidget()}</div>
+            <div className={displayFullscreen ? "diapp-iframewindow--fullscreen" : "diapp-iframewindow--inside"}>
+                {iframeWidget()}
+            </div>
         </section>
     );
 }
