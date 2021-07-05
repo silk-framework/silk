@@ -145,7 +145,7 @@
   function startActivity() {
     $.ajax({
       type: 'POST',
-      url: '@Html(ActivityApi.startActivity(project, task.getOrElse(""), activity.name, blocking = false).url)',
+      url: '@Html(ActivityApi.startActivity(project, task.getOrElse(""), activity.name).url)',
       success: function(response) {
       },
       error: function(request) {
