@@ -86,6 +86,7 @@ export function Dataset() {
     const { pageHeader, updateType, updateActionsMenu } = usePageHeader({
         autogenerateBreadcrumbs: true,
         autogeneratePageTitle: true,
+        alternateDepiction: "artefact-dataset",
     });
 
     useEffect(() => {
