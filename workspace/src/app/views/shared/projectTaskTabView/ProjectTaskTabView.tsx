@@ -94,10 +94,11 @@ export function ProjectTaskTabView({
     // list of aggregated links
     const [itemLinks, setItemLinks] = useState<IItemLink[]>([]);
     const [taskViews, setTaskViews] = React.useState<IProjectTaskView[]>([]);
-    // Tracks if the tab has been changed by the user
-    const [tabChanged, setTabChanged] = React.useState<boolean>(false);
+    // Stores request to change the tab. The requests is represented by the tab idx.
+    const [tabIdxChangeRequest, setTabIdxChangeRequest] = React.useState<number | undefined>(undefined);
 
     const viewsAndItemLink: Partial<IProjectTaskView & IItemLink>[] = [...taskViews, ...itemLinks];
+    const isTaskView = (viewOrItemLink: Partial<IProjectTaskView & IItemLink>) => !!viewOrItemLink.id;
 
     const itemLinkActive = selectedTab != null && typeof selectedTab !== "string";
     // Either the path value of an IItemLink or the view ID or undefined
@@ -112,6 +113,27 @@ export function ProjectTaskTabView({
         }
     }, [projectId, taskId, taskViewConfig?.pluginId]);
 
+    React.useEffect(() => {
+        if (
+            tabIdxChangeRequest != null &&
+            getBookmark(location.hash, viewsAndItemLink.length - 1) === tabIdxChangeRequest
+        ) {
+            const tabItem = viewsAndItemLink[tabIdxChangeRequest];
+            if (isTaskView(tabItem)) {
+                setSelectedTab(tabItem.id);
+                setActiveIframePath(null);
+            } else {
+                //if path already set, reload iframe source
+                if (typeof selectedTab !== "string" && tabItem.path === selectedTab.path) {
+                    iframeRef.current.src = createIframeUrl(tabItem.path);
+                } else {
+                    setSelectedTab(tabItem as IItemLink);
+                }
+            }
+            setTabIdxChangeRequest(undefined);
+        }
+    }, [tabIdxChangeRequest, location.hash]);
+
     // flag if the widget is shown as fullscreen modal
     const [displayFullscreen, setDisplayFullscreen] = useState(!!handlerRemoveModal || startFullscreen);
     // handler for toggling fullscreen mode
@@ -119,26 +141,14 @@ export function ProjectTaskTabView({
         setDisplayFullscreen(!displayFullscreen);
     };
 
-    // handler for link change
+    // handler for link change. Triggers a tab change request. Actual change is done in useEffect.
     const changeTab = (tabItem: IItemLink | string) => {
-        setTabChanged(true);
-        if (typeof tabItem === "string") {
-            setSelectedTab(tabItem);
-            setActiveIframePath(null);
-        } else {
-            //if path already set, reload iframe source
-            if (typeof selectedTab !== "string" && tabItem.path === selectedTab.path) {
-                iframeRef.current.src = createIframeUrl(tabItem.path);
-            } else {
-                setSelectedTab(tabItem);
-            }
-        }
         if (!startWithLink) {
             const tabIdx =
                 typeof tabItem === "string"
                     ? viewsAndItemLink.findIndex((elem) => elem.id === tabItem)
                     : viewsAndItemLink.indexOf(tabItem);
-            // TODO: Change calculation to use task views too
+            setTabIdxChangeRequest(tabIdx);
             dispatch(history.push(calculateBookmarkLocation(location, tabIdx)));
         }
     };
