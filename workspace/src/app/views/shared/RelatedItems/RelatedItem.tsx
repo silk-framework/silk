@@ -30,7 +30,7 @@ interface IProps {
 export function RelatedItem({ relatedItem, textQuery }: IProps) {
     const [t] = useTranslation();
     const dispatch = useDispatch();
-    const { iframeWindow, toggleIFrameLink } = useProjectTabsView(relatedItem.itemLinks.slice(1));
+    const { projectTabView, toggleIFrameLink } = useProjectTabsView(relatedItem.itemLinks.slice(1));
 
     // Go to details page of related item
     const goToDetailsPage = (relatedItem, event) => {
@@ -107,7 +107,7 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
                     </ContextMenu>
                 )}
             </OverviewItemActions>
-            {iframeWindow}
+            {projectTabView}
         </OverviewItem>
     );
 }

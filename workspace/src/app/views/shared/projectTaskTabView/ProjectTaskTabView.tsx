@@ -24,15 +24,20 @@ import Loading from "../Loading";
 import { HOST, SERVE_PATH } from "../../../constants/path";
 import "./projectTaskTabView.scss";
 import { IProjectTaskView, viewRegistry } from "../../registry/ViewRegistry";
+import * as H from "history";
 
-const getBookmark = (locationHashPart: string) => {
+// Get the bookmark value
+const getBookmark = (locationHashPart: string, maxIdx: number): number | undefined => {
     const hashParsed = locationParser.parse(locationHashPart, { parseNumbers: true });
-    return !!hashParsed.iframewindow && hashParsed.iframewindow > -1 ? hashParsed.iframewindow.toString() : false;
+    return typeof hashParsed.viewIdx === "number" && hashParsed.viewIdx > -1 && hashParsed.viewIdx <= maxIdx
+        ? hashParsed.viewIdx
+        : undefined;
 };
 
-const calculateBookmarkLocation = (currentLocation, indexBookmark) => {
+// Returns the bookmark location for the currently selected tab
+const calculateBookmarkLocation = (currentLocation: H.Location, indexBookmark: number) => {
     const hashParsed = locationParser.parse(currentLocation.hash, { parseNumbers: true });
-    hashParsed["iframewindow"] = indexBookmark;
+    hashParsed["viewIdx"] = indexBookmark;
     const updatedHash = locationParser.stringify(hashParsed);
     return `${currentLocation.pathname}${currentLocation.search}#${updatedHash}`;
 };
@@ -89,6 +94,8 @@ export function ProjectTaskTabView({
     // list of aggregated links
     const [itemLinks, setItemLinks] = useState<IItemLink[]>([]);
     const [taskViews, setTaskViews] = React.useState<IProjectTaskView[]>([]);
+    // Tracks if the tab has been changed by the user
+    const [tabChanged, setTabChanged] = React.useState<boolean>(false);
 
     const viewsAndItemLink: Partial<IProjectTaskView & IItemLink>[] = [...taskViews, ...itemLinks];
 
@@ -114,6 +121,7 @@ export function ProjectTaskTabView({
 
     // handler for link change
     const changeTab = (tabItem: IItemLink | string) => {
+        setTabChanged(true);
         if (typeof tabItem === "string") {
             setSelectedTab(tabItem);
             setActiveIframePath(null);
@@ -123,21 +131,27 @@ export function ProjectTaskTabView({
                 iframeRef.current.src = createIframeUrl(tabItem.path);
             } else {
                 setSelectedTab(tabItem);
-                if (!startWithLink) {
-                    // TODO: Change calculation to use task views too
-                    dispatch(history.push(calculateBookmarkLocation(location, itemLinks.indexOf(tabItem))));
-                }
             }
+        }
+        if (!startWithLink) {
+            const tabIdx =
+                typeof tabItem === "string"
+                    ? viewsAndItemLink.findIndex((elem) => elem.id === tabItem)
+                    : viewsAndItemLink.indexOf(tabItem);
+            // TODO: Change calculation to use task views too
+            dispatch(history.push(calculateBookmarkLocation(location, tabIdx)));
         }
     };
 
     const getInitialActiveLink = (itemLinks) => {
-        const locationHashBookmark = getBookmark(location.hash);
-        return locationHashBookmark ? itemLinks[locationHashBookmark] : itemLinks[0];
+        const locationHashBookmark = getBookmark(location.hash, itemLinks.length + taskViews.length - 1) ?? 0;
+        return locationHashBookmark < taskViews.length
+            ? taskViews[locationHashBookmark].id
+            : itemLinks[locationHashBookmark - taskViews.length];
     };
 
     React.useEffect(() => {
-        if (!iframeRef.current || !selectedTab || !itemLinks.length) return;
+        if (!iframeRef.current || !selectedTab || !itemLinks.length || !taskViews) return;
         const iframeLoadHandler = () => {
             const regex = new RegExp(HOST + "|\\?.*", "gi");
             const parsedCurrentIframePath = iframeRef.current.src.replace(regex, "");
@@ -150,7 +164,7 @@ export function ProjectTaskTabView({
                 iframeRef.current.removeEventListener("load", iframeLoadHandler);
             }
         };
-    }, [iframeRef, selectedTab, itemLinks?.length]);
+    }, [iframeRef, selectedTab, itemLinks?.length, taskViews]);
 
     // update item links by rest api request
     const getItemLinks = async () => {
@@ -166,17 +180,20 @@ export function ProjectTaskTabView({
             setIsFetchingLinks(false);
         }
     };
+
     useEffect(() => {
-        if (!!srcLinks && srcLinks.length > 0) {
-            setItemLinks(srcLinks);
-            setSelectedTab(startWithLink || srcLinks[0]);
-        } else if (projectId && taskId) {
-            getItemLinks();
-        } else {
-            setItemLinks([]);
+        if (taskViews) {
+            if (!!srcLinks && srcLinks.length > 0) {
+                setItemLinks(srcLinks);
+                setSelectedTab(startWithLink || srcLinks[0]);
+            } else if (projectId && taskId) {
+                getItemLinks();
+            } else {
+                setItemLinks([]);
+            }
+            setIsFetchingLinks(false);
         }
-        setIsFetchingLinks(false);
-    }, [projectId, taskId]);
+    }, [projectId, taskId, taskViews]);
 
     const tLabel = (label: string) => {
         return t("common.iframeWindow." + label, label);
