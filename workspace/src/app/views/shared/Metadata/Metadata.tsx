@@ -38,6 +38,7 @@ import { firstNonEmptyLine } from "../ContentBlobToggler";
 interface IProps {
     projectId?: string;
     taskId?: string;
+    readOnly?: boolean;
 }
 
 export function Metadata(props: IProps) {
@@ -169,7 +170,7 @@ export function Metadata(props: IProps) {
                 <CardTitle>
                     <h2>{t("common.words.summary", "Summary")}</h2>
                 </CardTitle>
-                {!loading && !isEditing && (
+                {!loading && !isEditing && !props.readOnly && (
                     <CardOptions>
                         <IconButton
                             data-test-id="meta-data-edit-btn"
