@@ -5,11 +5,12 @@ import akka.stream.Materializer
 import akka.stream.scaladsl.{Merge, Source}
 import controllers.core.UserContextActions
 import controllers.util.{AkkaUtils, SerializationUtils}
-import controllers.workspace.activityApi.{ActivityUtils, StartActivityResponse}
+import controllers.workspace.activityApi.ActivityListResponse.ActivityListEntry
+import controllers.workspace.activityApi.{ActivityFacade, StartActivityResponse}
 import controllers.workspace.doc.ActivityApiDoc
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -32,21 +33,6 @@ import scala.language.existentials
 @Tag(name = "Activities")
 class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) extends InjectedController with UserContextActions {
 
-  def globalWorkspaceActivities(): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    Ok(JsonSerializer.globalWorkspaceActivities(WorkspaceFactory().workspace))
-  }
-
-  def getProjectActivities(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    Ok(JsonSerializer.projectActivities(project))
-  }
-
-  def getTaskActivities(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val task = project.anyTask(taskName)
-    Ok(JsonSerializer.taskActivities(task))
-  }
-
   @Operation(
     summary = "List activities",
     description = "Lists either global, project or task activities.",
@@ -55,6 +41,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
         responseCode = "200",
         content = Array(new Content(
           mediaType = "application/json",
+          array = new ArraySchema(schema = new Schema(implementation = classOf[ActivityListEntry])),
           examples = Array(new ExampleObject(ActivityApiDoc.activityListExample))
         ))
       )
@@ -75,17 +62,23 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                        schema = new Schema(implementation = classOf[String])
                      )
                      taskName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    if(projectName.nonEmpty) {
-      val project = WorkspaceFactory().workspace.project(projectName)
-      if(taskName.nonEmpty) {
-        val task = project.anyTask(taskName)
-        Ok(JsonSerializer.taskActivities(task))
-      } else {
-        Ok(JsonSerializer.projectActivities(project))
-      }
-    } else {
-      Ok(JsonSerializer.globalWorkspaceActivities(WorkspaceFactory().workspace))
-    }
+    val response = ActivityFacade.listActivities(projectName, taskName)
+    Ok(Json.toJson(response))
+  }
+
+  def globalWorkspaceActivities(): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
+    val response = ActivityFacade.listActivities("", "")
+    Ok(Json.toJson(response))
+  }
+
+  def getProjectActivities(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
+    val response = ActivityFacade.listActivities(projectName, "")
+    Ok(Json.toJson(response))
+  }
+
+  def getTaskActivities(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
+    val response = ActivityFacade.listActivities(projectName, taskName)
+    Ok(Json.toJson(response))
   }
 
   @Operation(
@@ -134,7 +127,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                       schema = new Schema(implementation = classOf[String])
                     )
                     activityName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext: UserContext =>
-    val response = ActivityUtils.start(projectName, taskName, activityName, blocking = false, activityConfig(request))
+    val response = ActivityFacade.start(projectName, taskName, activityName, blocking = false, activityConfig(request))
     Ok(Json.toJson(response))
   }
 
@@ -184,7 +177,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                               schema = new Schema(implementation = classOf[String])
                             )
                             activityName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext: UserContext =>
-    val response = ActivityUtils.start(projectName, taskName, activityName, blocking = true, activityConfig(request))
+    val response = ActivityFacade.start(projectName, taskName, activityName, blocking = true, activityConfig(request))
     Ok(Json.toJson(response))
   }
 

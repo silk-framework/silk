@@ -1,10 +1,37 @@
 package controllers.workspace.activityApi
 
+import controllers.workspace.activityApi.ActivityListResponse.{ActivityInstance, ActivityListEntry}
 import org.silkframework.runtime.activity.{HasValue, UserContext}
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.WorkspaceActivity
 
-object ActivityUtils {
+/**
+  * Provides a simple API for accessing and controlling activities.
+  */
+object ActivityFacade {
+
+  def listActivities(projectName: String,
+                     taskName: String)
+                    (implicit user: UserContext): Seq[ActivityListEntry] = {
+    val activities =
+      if(projectName.nonEmpty) {
+        val project = WorkspaceFactory().workspace.project(projectName)
+        if(taskName.nonEmpty) {
+          project.anyTask(taskName).activities
+        } else {
+          project.activities
+        }
+      } else {
+        WorkspaceFactory().workspace.activities
+      }
+
+    for(activity <- activities) yield {
+      ActivityListEntry(
+        name = activity.name.toString,
+        instances = activity.allInstances.keys.toSeq.map(id => ActivityInstance(id.toString))
+      )
+    }
+  }
 
   def start(projectName: String,
             taskName: String,
