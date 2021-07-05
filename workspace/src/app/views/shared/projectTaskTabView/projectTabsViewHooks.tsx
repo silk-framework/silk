@@ -6,7 +6,7 @@ import React, { useState } from "react";
 export const useProjectTabsView = (srcLinks: IItemLink[], startLink?: IItemLink) => {
     // active legacy link
     const [displayLegacyLink, setDisplayLegacyLink] = useState<IItemLink | undefined>(startLink);
-    // handler for link change
+    // handler for link change TODO: Add custom views
     const toggleIFrameLink = (linkItem?: IItemLink) => {
         setDisplayLegacyLink(linkItem);
     };
@@ -24,5 +24,5 @@ export const useProjectTabsView = (srcLinks: IItemLink[], startLink?: IItemLink)
             handlerRemoveModal={() => toggleIFrameLink(undefined)}
         />
     );
-    return { iframeWindow: returnElement, toggleIFrameLink };
+    return { projectTabView: returnElement, toggleIFrameLink };
 };

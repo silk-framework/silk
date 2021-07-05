@@ -430,6 +430,9 @@
                     "tooltip": "Removes the edge. Alternatively you can delete (multiple) selected workflow elements by pressing the [←] (backspace) key on the keyboard."
                 }
             }
+        },
+        "warnings": {
+            "unsavedChanges": "There are unsaved changes. Do you still want to close the workflow editor?"
         }
     }
 }
