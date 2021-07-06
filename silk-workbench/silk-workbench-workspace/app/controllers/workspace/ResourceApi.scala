@@ -27,7 +27,7 @@ import java.net.URL
 import java.util.logging.Logger
 import javax.inject.Inject
 
-@Tag(name = "Resources")
+@Tag(name = "Project resources", description = "Manage file resources in a project.")
 class ResourceApi  @Inject() (pluginApiCache: PluginApiCache) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)

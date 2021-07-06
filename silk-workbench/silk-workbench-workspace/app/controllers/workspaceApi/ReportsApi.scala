@@ -17,7 +17,7 @@ import play.api.mvc.{Action, AnyContent, InjectedController}
 import java.time.Instant
 import javax.inject.Inject
 
-@Tag(name = "Execution reports")
+@Tag(name = "Execution reports", description = "List and retrieve workflow execution reports.")
 class ReportsApi @Inject() () extends InjectedController {
 
   @Operation(

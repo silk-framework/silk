@@ -34,7 +34,7 @@ import play.api.mvc.{Action, AnyContent, AnyContentAsXml, InjectedController}
 import java.util.logging.{Level, Logger}
 import javax.inject.Inject
 
-@Tag(name = "Linking")
+@Tag(name = "Linking", description = "Linking specific operations, such as evaluating rules and managing reference links.")
 class LinkingTaskApi @Inject() () extends InjectedController with UserContextActions {
 
   private val log = Logger.getLogger(getClass.getName)

@@ -35,7 +35,7 @@ import javax.inject.Inject
 
 @Tag(
   name = "Transform",
-  description = "The Transform API provides endpoints related to transformation tasks and mapping rules."
+  description = "Endpoints related to transformation tasks and mapping rules."
 )
 class TransformTaskApi @Inject() () extends InjectedController with UserContextActions {
 

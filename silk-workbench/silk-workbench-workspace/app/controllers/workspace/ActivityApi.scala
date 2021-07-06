@@ -30,7 +30,7 @@ import java.util.logging.{LogRecord, Logger}
 import javax.inject.Inject
 import scala.language.existentials
 
-@Tag(name = "Activities")
+@Tag(name = "Activities", description = ActivityApiDoc.activityDoc)
 class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) extends InjectedController with UserContextActions {
 
   @Operation(

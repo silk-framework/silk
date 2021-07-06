@@ -21,7 +21,7 @@ import play.api.mvc._
 
 import javax.inject.Inject
 
-@Tag(name = "Workflows")
+@Tag(name = "Workflows", description = "Workflow specific operations, such as execution of workflows with payloads.")
 class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTrait with UserContextActions {
 
   @Operation(

@@ -17,7 +17,7 @@ import play.api.mvc.{Action, InjectedController}
 import javax.inject.Inject
 
 /** API to validate different aspects of workspace artifacts. */
-@Tag(name = "Validation")
+@Tag(name = "Validation", description = "Validate paths.")
 class ValidationApi @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
   /** Validates the syntax of a Silk source path expression and returns parse error details.
     * Also validate prefix names that they have a valid prefix. */

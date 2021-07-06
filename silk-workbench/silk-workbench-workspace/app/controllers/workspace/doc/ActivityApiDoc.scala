@@ -2,6 +2,9 @@ package controllers.workspace.doc
 
 object ActivityApiDoc {
 
+  final val activityDoc =
+    """Manage activities. An activity is a unit of work that can be executed in the background. The are global activities as well as activities that belong to a task or project."""
+
   final val activityListExample =
     """
       [

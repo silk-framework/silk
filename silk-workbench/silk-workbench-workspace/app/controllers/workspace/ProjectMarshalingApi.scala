@@ -24,7 +24,7 @@ import java.util.logging.Logger
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
-@Tag(name = "Project import/export")
+@Tag(name = "Project import/export", description = "Import and export projects.")
 class ProjectMarshalingApi @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)

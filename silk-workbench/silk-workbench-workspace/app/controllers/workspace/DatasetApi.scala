@@ -29,7 +29,7 @@ import play.api.mvc._
 
 import javax.inject.Inject
 
-@Tag(name = "Datasets", description = "Management of datasets.")
+@Tag(name = "Datasets", description = "Manage datasets.")
 class DatasetApi @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   private implicit val partialPath = Json.format[PathCoverage]
