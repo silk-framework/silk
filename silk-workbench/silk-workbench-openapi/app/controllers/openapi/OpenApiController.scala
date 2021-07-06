@@ -3,18 +3,19 @@ package controllers.openapi
 import akka.util.ByteString
 import io.aurora.utils.play.swagger.SwaggerPlugin
 import org.silkframework.openapi.OpenApiGenerator
-import play.api.http.ContentTypes
+import play.api.http.{ContentTypes, HttpConfiguration}
 import play.api.mvc._
 
 import javax.inject.Inject
 
 class OpenApiController @Inject()(cc: ControllerComponents,
+                                  httpConfig: HttpConfiguration,
                                   swaggerPlugin: SwaggerPlugin) extends AbstractController(cc) {
 
   private val AccessControlAllowOrigin: (String, String) = ("Access-Control-Allow-Origin", "*")
 
   def openApiJson: Action[AnyContent] = Action { request =>
-    val response = OpenApiGenerator.generateJson(swaggerPlugin, request.host)
+    val response = OpenApiGenerator.generateJson(swaggerPlugin, request.host, httpConfig.context)
     Results
       .Ok(ByteString(response))
       .as(ContentTypes.JSON)
@@ -22,7 +23,7 @@ class OpenApiController @Inject()(cc: ControllerComponents,
   }
 
   def openApiYaml: Action[AnyContent] = Action { request =>
-    val response = OpenApiGenerator.generateYaml(swaggerPlugin, request.host)
+    val response = OpenApiGenerator.generateYaml(swaggerPlugin, request.host, httpConfig.context)
     Results
       .Ok(ByteString(response))
       .as("text/vnd.yaml")

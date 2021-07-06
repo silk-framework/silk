@@ -6,7 +6,8 @@ import io.swagger.v3.core.util.{Json, Yaml}
 import io.swagger.v3.oas.models.{OpenAPI, PathItem, Paths}
 
 import java.util.logging.{Level, Logger}
-import scala.jdk.CollectionConverters.mapAsScalaMapConverter
+import scala.io.Source
+import scala.jdk.CollectionConverters.{collectionAsScalaIterableConverter, mapAsScalaMapConverter}
 import scala.util.control.NonFatal
 
 /**
@@ -14,21 +15,46 @@ import scala.util.control.NonFatal
   */
 object OpenApiGenerator {
 
+  private val descriptionFile = "description.md"
+
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
-  def generateJson(swaggerPlugin: SwaggerPlugin, host: String): String = {
-    serializeJson(generate(swaggerPlugin, host))
+  def generateJson(swaggerPlugin: SwaggerPlugin, host: String, basePath: String): String = {
+    serializeJson(generate(swaggerPlugin, host, basePath))
   }
 
-  def generateYaml(swaggerPlugin: SwaggerPlugin, host: String): String = {
-    serializeYaml(generate(swaggerPlugin, host))
+  def generateYaml(swaggerPlugin: SwaggerPlugin, host: String, basePath: String): String = {
+    serializeYaml(generate(swaggerPlugin, host, basePath))
   }
 
-  def generate(swaggerPlugin: SwaggerPlugin, host: String): OpenAPI = {
+  def generate(swaggerPlugin: SwaggerPlugin, host: String, basePath: String): OpenAPI = {
     val openApi = swaggerPlugin.apiListingCache.listing(host)
-    openApi.getInfo.setVersion(WorkbenchConfig.version)
+    updateMetadata(openApi, basePath)
+    updateDescription(openApi)
     sortPaths(openApi)
     openApi
+  }
+
+  /**
+    * Updates metadata, such as the version and the server base path.
+    */
+  private def updateMetadata(openApi: OpenAPI, basePath: String): Unit = {
+    openApi.getInfo.setVersion(WorkbenchConfig.version)
+    for(server <- openApi.getServers.asScala) {
+      server.setUrl(server.getUrl + basePath)
+    }
+  }
+
+  /**
+    * Loads the markdown documentation into the description.
+    */
+  private def updateDescription(openApi: OpenAPI): Unit = {
+    val source = Source.fromResource(descriptionFile)
+    try {
+      openApi.getInfo.setDescription(source.mkString)
+    } finally {
+      source.close()
+    }
   }
 
   /**
