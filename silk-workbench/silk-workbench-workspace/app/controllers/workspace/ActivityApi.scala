@@ -48,16 +48,16 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     ))
   def listActivities(@Parameter(
                        name = "project",
-                       description = "Optional project identifier. Leave empty to list global activities.",
-                       required = true,
+                       description = "Optional project identifier. If not provided or empty, global activities will be listed.",
+                       required = false,
                        in = ParameterIn.QUERY,
                        schema = new Schema(implementation = classOf[String])
                      )
                      projectName: String,
                      @Parameter(
                        name = "task",
-                       description = "Optional task identifier. Leave empty to list project activities.",
-                       required = true,
+                       description = "Optional task identifier. If not provided or empty, project activities will be listed.",
+                       required = false,
                        in = ParameterIn.QUERY,
                        schema = new Schema(implementation = classOf[String])
                      )
@@ -604,12 +604,15 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     }
   }
 
-  private def activityConfig(request: Request[AnyContent]): Map[String, String] = {
+  private def activityConfig(request: Request[AnyContent], includeQueryParameters: Boolean = true): Map[String, String] = {
     request.body match {
       case AnyContentAsFormUrlEncoded(values) =>
         values.mapValues(_.head)
+      case _ if includeQueryParameters =>
+        val ignoredQueryParameters = Set("project", "task", "activity")
+        request.queryString.filterKeys(!ignoredQueryParameters.contains(_)).mapValues(_.head)
       case _ =>
-        request.queryString.mapValues(_.head)
+        Map.empty
     }
   }
 }

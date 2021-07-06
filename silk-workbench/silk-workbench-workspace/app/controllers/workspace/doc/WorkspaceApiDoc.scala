@@ -54,19 +54,21 @@ object WorkspaceApiDoc {
   final val projectExample =
     """
       {
-        "name": "projectID",
+        "name": "movies",
+        "metaData": {
+          "label": "movies"
+        },
         "tasks": {
           "dataset": [
-            "dataset1",
-            "dataset2",
+            "DBpedia",
+            "linkedmdb"
           ],
-          "transform": [
-            "transform1",
-            "transform2"
+          "transform": [],
+          "linking": [
+            "movies"
           ],
-          "linking": [ ],
-          "workflow": [ ],
-          "custom": [ ]
+          "workflow": [],
+          "custom": []
         }
       }
     """
