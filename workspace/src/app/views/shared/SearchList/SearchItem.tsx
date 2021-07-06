@@ -62,7 +62,7 @@ export default function SearchItem({
     const [t] = useTranslation();
     // Remove detailsPath
     const itemLinks = item.itemLinks.slice(1);
-    const { iframeWindow, toggleIFrameLink } = useProjectTabsView(itemLinks);
+    const { projectTabView, toggleIFrameLink } = useProjectTabsView(itemLinks);
     const contextMenuItems = itemLinks.map((link) => (
         <MenuItem
             key={link.path}
@@ -232,7 +232,7 @@ export default function SearchItem({
                     </ContextMenu>
                 </OverviewItemActions>
             </OverviewItem>
-            {iframeWindow}
+            {projectTabView}
         </Card>
     );
 }
