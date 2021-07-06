@@ -1,5 +1,6 @@
 package org.silkframework.openapi
 
+import config.WorkbenchConfig
 import io.aurora.utils.play.swagger.SwaggerPlugin
 import io.swagger.v3.core.util.{Json, Yaml}
 import io.swagger.v3.oas.models.{OpenAPI, PathItem, Paths}
@@ -15,18 +16,18 @@ object OpenApiGenerator {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
-  def generateJson(swaggerPlugin: SwaggerPlugin): String = {
-    serializeJson(generate(swaggerPlugin))
+  def generateJson(swaggerPlugin: SwaggerPlugin, host: String): String = {
+    serializeJson(generate(swaggerPlugin, host))
   }
 
-  def generateYaml(swaggerPlugin: SwaggerPlugin): String = {
-    serializeYaml(generate(swaggerPlugin))
+  def generateYaml(swaggerPlugin: SwaggerPlugin, host: String): String = {
+    serializeYaml(generate(swaggerPlugin, host))
   }
 
-  def generate(swaggerPlugin: SwaggerPlugin): OpenAPI = {
-    val host: String = swaggerPlugin.config.host
+  def generate(swaggerPlugin: SwaggerPlugin, host: String): OpenAPI = {
     val openApi = swaggerPlugin.apiListingCache.listing(host)
-    sort(openApi)
+    openApi.getInfo.setVersion(WorkbenchConfig.version)
+    sortPaths(openApi)
     openApi
   }
 
@@ -34,7 +35,7 @@ object OpenApiGenerator {
     * At the moment, the sorting of the paths returned by the SwaggerPlugin is too random.
     * Thus, we use our own sorting.
     */
-  private def sort(openApi: OpenAPI): Unit = {
+  private def sortPaths(openApi: OpenAPI): Unit = {
     val sortedPaths = new Paths()
     for((key, value) <- openApi.getPaths.asScala.toSeq.sortWith(comparePaths)) {
       sortedPaths.addPathItem(key, value)

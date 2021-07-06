@@ -336,6 +336,7 @@ lazy val workbenchWorkflow = (project in file("silk-workbench/silk-workbench-wor
 
 lazy val workbenchOpenApi = (project in file("silk-workbench/silk-workbench-openapi"))
   .enablePlugins(PlayScala)
+  .dependsOn(workbenchCore)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workbench OpenAPI",

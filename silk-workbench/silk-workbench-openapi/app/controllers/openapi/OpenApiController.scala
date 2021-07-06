@@ -13,16 +13,16 @@ class OpenApiController @Inject()(cc: ControllerComponents,
 
   private val AccessControlAllowOrigin: (String, String) = ("Access-Control-Allow-Origin", "*")
 
-  def openApiJson: Action[AnyContent] = Action {
-    val response = OpenApiGenerator.generateJson(swaggerPlugin)
+  def openApiJson: Action[AnyContent] = Action { request =>
+    val response = OpenApiGenerator.generateJson(swaggerPlugin, request.host)
     Results
       .Ok(ByteString(response))
       .as(ContentTypes.JSON)
       .withHeaders(AccessControlAllowOrigin)
   }
 
-  def openApiYaml: Action[AnyContent] = Action {
-    val response = OpenApiGenerator.generateYaml(swaggerPlugin)
+  def openApiYaml: Action[AnyContent] = Action { request =>
+    val response = OpenApiGenerator.generateYaml(swaggerPlugin, request.host)
     Results
       .Ok(ByteString(response))
       .as("text/vnd.yaml")
