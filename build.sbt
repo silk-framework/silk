@@ -341,7 +341,7 @@ lazy val workbenchOpenApi = (project in file("silk-workbench/silk-workbench-open
   .settings(
     name := "Silk Workbench OpenAPI",
     libraryDependencies += "io.kinoplan" % "swagger-play_2.12" % "0.0.3",
-    libraryDependencies += "org.webjars" % "swagger-ui" % "3.50.0"
+    libraryDependencies += "org.webjars" % "swagger-ui" % "3.51.0"
   )
 
 lazy val workbench = (project in file("silk-workbench"))

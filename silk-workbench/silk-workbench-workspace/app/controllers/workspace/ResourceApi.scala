@@ -284,7 +284,22 @@ class ResourceApi  @Inject() (pluginApiCache: PluginApiCache) extends InjectedCo
       )
     )
   )
-  def resourceUsage(projectId: String, resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  def resourceUsage(@Parameter(
+                      name = "project",
+                      description = "The project identifier",
+                      required = true,
+                      in = ParameterIn.PATH,
+                      schema = new Schema(implementation = classOf[String])
+                    )
+                    projectId: String,
+                    @Parameter(
+                      name = "name",
+                      description = "The resource",
+                      required = true,
+                      in = ParameterIn.PATH,
+                      schema = new Schema(implementation = classOf[String])
+                    )
+                    resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = super[ControllerUtilsTrait].getProject(projectId)
     val dependentTasks: Seq[TaskLinkInfo] = project.allTasks
       .filter(_.referencedResources.map(_.name).contains(resourceName))
