@@ -1,4 +1,4 @@
-export function getItemLinkIcons(label: string) {
+export function getItemLinkIcons(label: string): string | undefined {
     switch (label) {
         case "Mapping editor":
             return "application-mapping";
@@ -7,6 +7,5 @@ export function getItemLinkIcons(label: string) {
         case "Transform execution":
             return "item-execution";
         default:
-            return null;
     }
 }

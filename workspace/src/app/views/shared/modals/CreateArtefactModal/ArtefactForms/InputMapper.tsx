@@ -71,6 +71,7 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
                 intent: Intent.DANGER,
                 timeout: 0,
             });
+            return [];
         }
     };
 
@@ -96,16 +97,17 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
             return (
                 <FileSelectionMenu
                     projectId={projectId}
-                    advanced={true}
+                    advanced={{
+                        autocomplete: {
+                            onSearch: handleFileSearch,
+                            itemRenderer: resourceNameFn,
+                            itemValueRenderer: resourceNameFn,
+                            itemValueSelector: resourceNameFn,
+                            noResultText: t("common.messages.noResults", "No results."),
+                        },
+                    }}
                     allowMultiple={false}
                     maxFileUploadSizeBytes={maxFileUploadSize}
-                    autocomplete={{
-                        onSearch: handleFileSearch,
-                        itemRenderer: resourceNameFn,
-                        itemValueRenderer: resourceNameFn,
-                        itemValueSelector: resourceNameFn,
-                        noResultText: t("common.messages.noResults", "No results."),
-                    }}
                     onUploadSuccess={(file) => {
                         // FIXME: the onChange function is not called on upload success, so this is a workaround
                         if (file) {

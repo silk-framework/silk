@@ -94,7 +94,7 @@ export function ProjectImportModal({ close, back }: IProps) {
 
     const goBack = async () => {
         await cleanUp();
-        back();
+        back?.();
     };
 
     // Deletes the uploaded file in the backend
@@ -371,8 +371,9 @@ export function ProjectImportModal({ close, back }: IProps) {
     const dialogItem = loading ? (
         <Loading />
     ) : projectDetailsError !== null ? (
-        errorRetryElement("Failed to retrieve project import details. " + projectDetailsError, () =>
-            loadProjectImportDetails(projectImportId)
+        errorRetryElement(
+            "Failed to retrieve project import details. " + projectDetailsError,
+            () => projectImportId && loadProjectImportDetails(projectImportId)
         )
     ) : startProjectImportExecutionError ? (
         errorRetryElement(

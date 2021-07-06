@@ -98,7 +98,7 @@ export function Metadata(props: IProps) {
         setIsEditing(!isEditing);
     };
 
-    const getTaskMetadata = async (taskId: string, projectId: string) => {
+    const getTaskMetadata = async (taskId?: string, projectId?: string) => {
         setGetRequestError(null);
         try {
             const result = await letLoading(() => {
@@ -138,7 +138,7 @@ export function Metadata(props: IProps) {
             const result = await letLoading(async () => {
                 const path = location.pathname;
                 const metadata = await sharedOp.updateTaskMetadataAsync(inputs, taskId, projectId);
-                dispatch(routerOp.updateLocationState(path, projectId, metadata));
+                dispatch(routerOp.updateLocationState(path, projectId as string, metadata));
                 return metadata;
             });
 

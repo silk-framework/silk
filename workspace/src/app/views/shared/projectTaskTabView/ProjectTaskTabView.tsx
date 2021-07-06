@@ -23,7 +23,7 @@ import { commonSel } from "@ducks/common";
 import Loading from "../Loading";
 import { HOST, SERVE_PATH } from "../../../constants/path";
 import "./projectTaskTabView.scss";
-import { IProjectTaskView, viewRegistry } from "../../registry/ViewRegistry";
+import { IProjectTaskView, IViewActions, viewRegistry } from "../../registry/ViewRegistry";
 import * as H from "history";
 
 // Get the bookmark value
@@ -48,7 +48,7 @@ interface IProjectTaskTabView {
     // array of URLs, each one will be extended by parameter inlineView=true
     srcLinks?: IItemLink[];
     // URL that should initially be used when loaded, must be part of srcLinks or a view ID from the task views
-    startWithLink?: IItemLink | string | null;
+    startWithLink?: IItemLink | string;
     // show initially as fullscreen
     startFullscreen?: boolean;
     // integrate only as modal that can be closed by this handler
@@ -64,6 +64,7 @@ interface IProjectTaskTabView {
         // If the views are not shown on the task details page, this must be set
         taskId?: string;
     };
+    viewActions?: IViewActions;
 }
 
 /**
@@ -73,10 +74,11 @@ interface IProjectTaskTabView {
 export function ProjectTaskTabView({
     title,
     srcLinks,
-    startWithLink = null,
+    startWithLink,
     startFullscreen = false,
     handlerRemoveModal,
     taskViewConfig,
+    viewActions,
     ...otherProps
 }: IProjectTaskTabView) {
     const projectId = taskViewConfig?.projectId ?? useSelector(commonSel.currentProjectIdSelector);
@@ -88,9 +90,9 @@ export function ProjectTaskTabView({
     const [isFetchingLinks, setIsFetchingLinks] = useState(true);
     const iframeRef = React.useRef<HTMLIFrameElement>(null);
     // Keeps track of the loaded path of the i-frame. Only the case when selected tab is an item link.
-    const [activeIframePath, setActiveIframePath] = React.useState<IItemLink | null>(null);
+    const [activeIframePath, setActiveIframePath] = React.useState<IItemLink | undefined>(undefined);
     // active link. Either an item link or a view ID
-    const [selectedTab, setSelectedTab] = useState<IItemLink | string | null>(startWithLink);
+    const [selectedTab, setSelectedTab] = useState<IItemLink | string | undefined>(startWithLink);
     // list of aggregated links
     const [itemLinks, setItemLinks] = useState<IItemLink[]>([]);
     const [taskViews, setTaskViews] = React.useState<IProjectTaskView[]>([]);
@@ -121,11 +123,13 @@ export function ProjectTaskTabView({
             const tabItem = viewsAndItemLink[tabIdxChangeRequest];
             if (isTaskView(tabItem)) {
                 setSelectedTab(tabItem.id);
-                setActiveIframePath(null);
+                setActiveIframePath(undefined);
             } else {
                 //if path already set, reload iframe source
-                if (typeof selectedTab !== "string" && tabItem.path === selectedTab.path) {
-                    iframeRef.current.src = createIframeUrl(tabItem.path);
+                if (typeof selectedTab !== "string") {
+                    if (tabItem.path && tabItem.path === selectedTab?.path && iframeRef.current) {
+                        iframeRef.current.src = createIframeUrl(tabItem.path);
+                    }
                 } else {
                     setSelectedTab(tabItem as IItemLink);
                 }
@@ -161,23 +165,26 @@ export function ProjectTaskTabView({
     };
 
     React.useEffect(() => {
-        if (!iframeRef.current || !selectedTab || !itemLinks.length || !taskViews) return;
-        const iframeLoadHandler = () => {
-            const regex = new RegExp(HOST + "|\\?.*", "gi");
-            const parsedCurrentIframePath = iframeRef.current.src.replace(regex, "");
-            const focusedIframeSource = itemLinks.find((link) => link.path === parsedCurrentIframePath);
-            setActiveIframePath(focusedIframeSource);
-        };
-        iframeRef.current.addEventListener("load", iframeLoadHandler);
-        return () => {
-            if (iframeRef.current) {
-                iframeRef.current.removeEventListener("load", iframeLoadHandler);
-            }
-        };
+        if (iframeRef.current && selectedTab && itemLinks.length && taskViews) {
+            const iframeLoadHandler = () => {
+                if (iframeRef.current) {
+                    const regex = new RegExp(HOST + "|\\?.*", "gi");
+                    const parsedCurrentIframePath = iframeRef.current.src.replace(regex, "");
+                    const focusedIframeSource = itemLinks.find((link) => link.path === parsedCurrentIframePath);
+                    setActiveIframePath(focusedIframeSource);
+                }
+            };
+            iframeRef.current.addEventListener("load", iframeLoadHandler);
+            return () => {
+                if (iframeRef.current) {
+                    iframeRef.current.removeEventListener("load", iframeLoadHandler);
+                }
+            };
+        }
     }, [iframeRef, selectedTab, itemLinks?.length, taskViews]);
 
     // update item links by rest api request
-    const getItemLinks = async () => {
+    const getItemLinks = async (projectId: string, taskId: string) => {
         setIsFetchingLinks(true);
         try {
             const { data } = await requestItemLinks(projectId, taskId);
@@ -197,7 +204,7 @@ export function ProjectTaskTabView({
                 setItemLinks(srcLinks);
                 setSelectedTab(startWithLink || srcLinks[0]);
             } else if (projectId && taskId) {
-                getItemLinks();
+                getItemLinks(projectId, taskId);
             } else {
                 setItemLinks([]);
             }
@@ -220,7 +227,7 @@ export function ProjectTaskTabView({
             <Card className="diapp-iframewindow__content" isOnlyLayout={true} elevation={displayFullscreen ? 4 : 1}>
                 <CardHeader>
                     <CardTitle>
-                        <h2>{!!title ? title : !!selectedTab ? tLabel(activeLabel) : ""}</h2>
+                        <h2>{!!title ? title : !!selectedTab && activeLabel ? tLabel(activeLabel) : ""}</h2>
                     </CardTitle>
                     <CardOptions>
                         {viewsAndItemLink.length > 1 &&
@@ -233,7 +240,7 @@ export function ProjectTaskTabView({
                                     minimal={true}
                                     disabled={activeIframePath?.path === tabItem.path || tabItem.id === selectedTab}
                                 >
-                                    {tLabel(tabItem.label)}
+                                    {tLabel(tabItem.label as string)}
                                 </Button>
                             ))}
                         {!!handlerRemoveModal ? (
@@ -268,7 +275,9 @@ export function ProjectTaskTabView({
                                 }}
                             />
                         ) : (
-                            taskViews.find((v) => v.id === selectedTab)?.render(projectId, taskId)
+                            projectId &&
+                            taskId &&
+                            taskViews.find((v) => v.id === selectedTab)?.render(projectId, taskId, viewActions)
                         )
                     ) : isFetchingLinks ? (
                         <Loading />

@@ -36,14 +36,6 @@ export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFi
         onDiscard();
     };
 
-    /**
-     * @override uploader change function and handle it
-     */
-    const overriddenUploaderOptions = {
-        ...uploaderOptions,
-        projectId,
-    };
-
     return (
         <>
             <SimpleDialog
@@ -60,9 +52,12 @@ export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFi
                 }
             >
                 <FileUploader
-                    getInstance={getUploaderInstance}
                     projectId={projectId}
-                    {...overriddenUploaderOptions}
+                    getInstance={getUploaderInstance}
+                    {...uploaderOptions}
+                    onChange={() => {
+                        /** We are not interested on file changes, only upload. */
+                    }}
                     maxFileUploadSizeBytes={maxFileUploadSize}
                 />
             </SimpleDialog>

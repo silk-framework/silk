@@ -174,7 +174,12 @@ const createArtefactAsync = (formData, taskType: TaskType | "Project") => {
                 await dispatch(fetchCreateProjectAsync(formData));
                 break;
             default:
-                await dispatch(fetchCreateTaskAsync(formData, selectedArtefact.key, taskType as TaskType));
+                if (selectedArtefact) {
+                    selectedArtefact &&
+                        (await dispatch(fetchCreateTaskAsync(formData, selectedArtefact.key, taskType as TaskType)));
+                } else {
+                    console.error("selectedArtefact not set! Cannot create item.");
+                }
                 break;
         }
     };
@@ -266,7 +271,7 @@ const fetchCreateProjectAsync = (formData: { label: string; description?: string
 };
 
 const resetArtefactModal = (shouldClose: boolean = false) => (dispatch) => {
-    dispatch(selectArtefact(null));
+    dispatch(selectArtefact(undefined));
     dispatch(setModalError({}));
     if (shouldClose) {
         dispatch(closeArtefactModal());

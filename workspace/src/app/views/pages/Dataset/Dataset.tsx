@@ -57,8 +57,8 @@ export function Dataset() {
 
     const pluginId = taskData?.data?.type;
 
-    const showPreviewAutomatically = automaticallyPreviewedDatasets.includes(taskData?.data?.type);
-    const showPreview = !noDataPreviewDatasets.includes(taskData?.data?.type);
+    const showPreviewAutomatically = automaticallyPreviewedDatasets.includes(taskData?.data?.type ?? "");
+    const showPreview = !noDataPreviewDatasets.includes(taskData?.data?.type ?? "");
 
     useEffect(() => {
         if (taskId && projectId) {

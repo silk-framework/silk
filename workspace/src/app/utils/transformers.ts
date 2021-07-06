@@ -15,8 +15,8 @@ export const stringValueAsJs = (valueType: string, value: string | null): any =>
     }
 
     if (valueType === INPUT_TYPES.INTEGER) {
-        if (v !== "") {
-            v = +value;
+        if (v !== "" && value) {
+            v = parseInt(value);
         } else {
             v = null;
         }

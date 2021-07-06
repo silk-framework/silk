@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { IArtefactItemProperty, IDetailedArtefactItem } from "@ducks/common/typings";
+import { IArtefactItemProperty, IDetailedArtefactItem, IPropertyAutocomplete } from "@ducks/common/typings";
 import { Intent } from "@gui-elements/blueprint/constants";
 import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
 import { FieldItem, Spacing, TextArea, TextField } from "@gui-elements/index";
@@ -79,9 +79,10 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
             requiredParameters: string[]
         ) => {
             // Construct array of parameter keys that other parameters depend on
-            const autoCompletionParams = params.filter(([key, propertyDetails]) => !!propertyDetails.autoCompletion);
+            const autoCompletionParams = params.filter(([key, propertyDetails]) => propertyDetails.autoCompletion);
             const dependsOnParameters = autoCompletionParams.flatMap(
-                ([key, propertyDetails]) => propertyDetails.autoCompletion.autoCompletionDependsOnParameters
+                ([key, propertyDetails]) =>
+                    (propertyDetails.autoCompletion as IPropertyAutocomplete).autoCompletionDependsOnParameters
             );
             params.forEach(([paramId, param]) => {
                 const key = prefix + paramId;

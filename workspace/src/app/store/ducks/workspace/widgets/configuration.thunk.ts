@@ -1,6 +1,5 @@
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { batch } from "react-redux";
-import { commonSel } from "@ducks/common";
 import { requestChangePrefixes, requestProjectPrefixes, requestRemoveProjectPrefix } from "@ducks/workspace/requests";
 
 const { setPrefixes, resetNewPrefix, toggleWidgetLoading, setWidgetError } = widgetsSlice.actions;
@@ -32,9 +31,8 @@ const setError = (e) => (dispatch) => {
     );
 };
 
-export const fetchProjectPrefixesAsync = () => {
-    return async (dispatch, getState) => {
-        const projectId = commonSel.currentProjectIdSelector(getState());
+export const fetchProjectPrefixesAsync = (projectId: string) => {
+    return async (dispatch) => {
         try {
             dispatch(toggleLoading());
             const data = await requestProjectPrefixes(projectId);
@@ -47,9 +45,8 @@ export const fetchProjectPrefixesAsync = () => {
     };
 };
 
-export const fetchAddOrUpdatePrefixAsync = (prefixName: string, prefixUri: string) => {
-    return async (dispatch, getState) => {
-        const projectId = commonSel.currentProjectIdSelector(getState());
+export const fetchAddOrUpdatePrefixAsync = (prefixName: string, prefixUri: string, projectId: string) => {
+    return async (dispatch) => {
         try {
             dispatch(toggleLoading());
 
@@ -67,9 +64,8 @@ export const fetchAddOrUpdatePrefixAsync = (prefixName: string, prefixUri: strin
     };
 };
 
-export const fetchRemoveProjectPrefixAsync = (prefixName: string) => {
-    return async (dispatch, getState) => {
-        const projectId = commonSel.currentProjectIdSelector(getState());
+export const fetchRemoveProjectPrefixAsync = (prefixName: string, projectId: string) => {
+    return async (dispatch) => {
         try {
             dispatch(toggleLoading());
 

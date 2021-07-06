@@ -13,10 +13,10 @@ interface IProps {
 }
 
 /** Creates possible icon names ordered by priority. This can be used directly with the Icon component. */
-export const createIconNameStack = (itemType: string, pluginId: string): string[] => {
-    const generatedIconNames = []
-        .concat([(itemType ? itemType + "-" : "") + pluginId])
-        .concat(itemType ? [itemType] : []);
+export const createIconNameStack = (itemType?: string, pluginId?: string): string[] => {
+    const generatedIconNames: string[] = [];
+    pluginId && generatedIconNames.push((itemType ? itemType + "-" : "") + pluginId);
+    itemType && generatedIconNames.push(itemType);
     const prefixedGeneratedIconNames = generatedIconNames.map((type) => {
         return "artefact-" + type.toLowerCase();
     });

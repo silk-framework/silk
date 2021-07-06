@@ -35,6 +35,17 @@ export default function () {
         autogeneratePageTitle: true,
     });
 
+    // View action that should be triggered when a workflow is saved
+    const onSave = () => {
+        window.top.postMessage(
+            JSON.stringify({
+                id: "workflowSaved",
+                message: "Workflow updated",
+            }),
+            "*"
+        );
+    };
+
     return notFound ? (
         <NotFound />
     ) : (
@@ -54,6 +65,9 @@ export default function () {
                     <ProjectTaskTabView
                         iFrameName={"detail-page-iframe"}
                         taskViewConfig={{ pluginId: "workflow", projectId, taskId }}
+                        viewActions={{
+                            onSave,
+                        }}
                     />
                 </Section>
             </WorkspaceMain>

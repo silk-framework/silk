@@ -27,7 +27,7 @@ export const validatePrefixName = (prefixName: string): boolean => prefixNameReg
 export const validatePrefixValue = (prefixValue: string): boolean | number => {
     try {
         const invalidCharMatches = prefixValue.match(invalidUriChars);
-        if (invalidCharMatches) {
+        if (invalidCharMatches && invalidCharMatches.index != null) {
             return invalidCharMatches.index;
         } else {
             const uri = new URL(prefixValue);

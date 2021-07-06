@@ -16,7 +16,7 @@ export const useProjectTabsView = (srcLinks: IItemLink[], startLink?: IItemLink)
                 return {
                     path: link.path,
                     label: link.label,
-                    itemType: null,
+                    itemType: undefined,
                 };
             })}
             startWithLink={displayLegacyLink}

@@ -170,7 +170,7 @@ export function RecentlyViewedModal() {
         });
     };
     // Warning when an error has occurred
-    const errorView = () => {
+    const errorView = (error: ErrorResponse) => {
         return (
             <Notification danger>
                 <span>
@@ -224,7 +224,7 @@ export function RecentlyViewedModal() {
             title={t("RecentlyViewedModal.title")}
             actions={<Button onClick={close}>{t("common.action.close")}</Button>}
         >
-            {loading ? <Loading /> : error ? errorView() : recentlyViewedAutoCompletion()}
+            {loading ? <Loading /> : error ? errorView(error) : recentlyViewedAutoCompletion()}
         </SimpleDialog>
     );
 }

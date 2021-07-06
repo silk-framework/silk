@@ -33,10 +33,11 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
     const { projectTabView, toggleIFrameLink } = useProjectTabsView(relatedItem.itemLinks.slice(1));
 
     // Go to details page of related item
-    const goToDetailsPage = (relatedItem, event) => {
+    const goToDetailsPage = (relatedItem: IRelatedItem, event) => {
         if (!event?.ctrlKey) {
             event.preventDefault();
             dispatch(
+                // An item always has a details page link
                 routerOp.goToPage(relatedItem.itemLinks[0].path, {
                     taskLabel: relatedItem.label,
                     itemType: relatedItem.type.toLowerCase(),

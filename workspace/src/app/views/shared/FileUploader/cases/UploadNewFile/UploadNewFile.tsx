@@ -66,7 +66,7 @@ export function UploadNewFile(props: IProps) {
     const [error, setError] = useState(null);
 
     // contains file for delete dialog
-    const [showDeleteDialog, setShowDeleteDialog] = useState<UppyFile>(null);
+    const [showDeleteDialog, setShowDeleteDialog] = useState<UppyFile | null>(null);
 
     // there we put the file ids with progress statuses
     const [progresses, setProgresses] = useState({});
@@ -165,7 +165,7 @@ export function UploadNewFile(props: IProps) {
     const uploadAsNewFile = async (file: UppyFile) => {
         await validateBeforeUploadAsync(file);
 
-        const notCompletedUploads = uppy.getFiles().filter((f) => !f.progress.uploadComplete);
+        const notCompletedUploads = uppy.getFiles().filter((f) => !f.progress?.uploadComplete);
 
         try {
             if (onAdded) {
@@ -214,7 +214,7 @@ export function UploadNewFile(props: IProps) {
 
         removeFromUppyQueue(file.id);
 
-        onUploadSuccess(file, response);
+        onUploadSuccess?.(file, response);
     };
 
     const handleUploadError = (fileData: UppyFile, error: any) => {
@@ -327,7 +327,7 @@ export function UploadNewFile(props: IProps) {
 
     return (
         <>
-            {projectId && (
+            {projectId && showDeleteDialog && (
                 <FileRemoveModal projectId={projectId} onConfirm={handleConfirmDelete} file={showDeleteDialog} />
             )}
             <DragDrop
