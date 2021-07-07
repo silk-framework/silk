@@ -23,6 +23,11 @@ const useErrorHandler = (groupId: ERROR_HANDLED_SECTIONS): ErrorHandlerDict => {
             timestamp: Date.now(),
             cause,
         };
+
+        /*********
+         * @Todo this though must be unique must be consistent
+         *  wrt to caller, so that error overwrite can happen and hence preventing over bloated/stale error state
+         **********/
         const errorId: string = shortId.generate();
         //push error to state
         dispatch(registerNewError({ groupId, errorId, error }));
