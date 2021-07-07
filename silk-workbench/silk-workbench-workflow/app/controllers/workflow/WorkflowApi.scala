@@ -3,8 +3,6 @@ package controllers.workflow
 import controllers.core.{UserContextActions}
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils
-
-import javax.inject.Inject
 import org.silkframework.config.Task
 import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.RuleResult
@@ -17,6 +15,8 @@ import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowTaskReport}
 import play.api.libs.json.{JsArray, JsString, _}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, _}
+
+import javax.inject.Inject
 
 class WorkflowApi @Inject() () extends InjectedController with UserContextActions {
 

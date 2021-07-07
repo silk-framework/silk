@@ -1,8 +1,8 @@
-package org.silkframework.workspace
-
-import java.net.HttpURLConnection
+package org.silkframework.workspace.exceptions
 
 import org.silkframework.runtime.validation.RequestException
+
+import java.net.HttpURLConnection
 
 /**
   * Thrown if the user tries to add a project/task with the same identifier as an already existing project/task.

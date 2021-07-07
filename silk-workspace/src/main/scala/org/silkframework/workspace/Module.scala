@@ -1,10 +1,10 @@
 package org.silkframework.workspace
 
 import java.util.logging.{Level, Logger}
-
 import org.silkframework.config.{MetaData, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.exceptions.TaskNotFoundException
 
 import scala.collection.immutable.TreeMap
 import scala.reflect.ClassTag
@@ -18,7 +18,8 @@ import scala.util.control.NonFatal
   * @tparam TaskData The task type held by this module
   */
 class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: WorkspaceProvider,
-                                             private[workspace] val project: Project) {
+                                             private[workspace] val project: Project,
+                                             private[workspace] val validator: TaskValidator[TaskData] = new DefaultTaskValidator[TaskData]) {
 
   private val logger = Logger.getLogger(classOf[Module[_]].getName)
 
@@ -75,6 +76,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
   def add(name: Identifier, taskData: TaskData, metaData: MetaData)
          (implicit userContext: UserContext): Unit = {
     val task = new ProjectTask(name, taskData, metaData, this)
+    validator.validate(project, task)
     provider.putTask(project.name, task)
     task.startActivities()
     cachedTasks += ((name, task))
