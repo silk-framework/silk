@@ -31,7 +31,6 @@ const useErrorHandler = (): ErrorHandlerDict => {
     const getAllErrors = () => {
         return error.errors;
     };
-
     return {
         register,
         getAllErrors,
