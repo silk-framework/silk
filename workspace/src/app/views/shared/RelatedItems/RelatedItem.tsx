@@ -77,13 +77,13 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
                     </ResourceLink>
                 </OverviewItemLine>
                 <OverviewItemLine small>
-                    <Tag small>
+                    <Tag>
                         <Highlighter label={relatedItem.pluginLabel} searchValue={textQuery} />
                     </Tag>
                     {relatedItem.type === "Dataset" && (
                         <>
                             <Spacing vertical size="tiny" />
-                            <Tag small>
+                            <Tag>
                                 <Highlighter label={relatedItem.type} searchValue={textQuery} />
                             </Tag>
                         </>
