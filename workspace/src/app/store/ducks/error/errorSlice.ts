@@ -1,11 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { initialErrorState } from "./initialState";
-import { DIErrorFormat, ERROR_HANDLED_SECTIONS } from "./typings";
+import { DIErrorFormat } from "./typings";
 
 type RegisterErrorAction = {
     payload: {
-        errorId: string;
-        groupId: ERROR_HANDLED_SECTIONS;
         error: DIErrorFormat;
     };
 };
@@ -15,9 +13,15 @@ const errorSlice = createSlice({
     initialState: initialErrorState(),
     reducers: {
         registerNewError(state, action: RegisterErrorAction) {
-            /** payload should contain groupId and error*/
-            const { groupId, errorId } = action.payload;
-            state[groupId][errorId] = action.payload.error;
+            const { error } = action.payload;
+            const newErrors = [...state.errors];
+            newErrors.map((err) => {
+                if (err.id === error.id) {
+                    return error;
+                }
+                return err;
+            });
+            state.errors = newErrors;
         },
     },
 });
