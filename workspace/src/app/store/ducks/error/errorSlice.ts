@@ -14,13 +14,8 @@ const errorSlice = createSlice({
     reducers: {
         registerNewError(state, action: RegisterErrorAction) {
             const { error } = action.payload;
-            const newErrors = [...state.errors];
-            newErrors.map((err) => {
-                if (err.id === error.id) {
-                    return error;
-                }
-                return err;
-            });
+            const stateErrorCopy = [...state.errors];
+            const newErrors = stateErrorCopy.map((err) => (err.id === error.id ? error : err));
             state.errors = newErrors;
         },
     },

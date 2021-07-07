@@ -1,5 +1,4 @@
 import React from "react";
-import shortId from "shortid";
 import { DIErrorFormat } from "@ducks/error/typings";
 import { Notification } from "@gui-elements/index";
 import { useDispatch, useSelector } from "react-redux";
