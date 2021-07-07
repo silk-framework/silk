@@ -125,13 +125,9 @@ export function ProjectTaskTabView({
                 setSelectedTab(tabItem.id);
                 setActiveIframePath(undefined);
             } else {
-                //if path already set, reload iframe source
-                if (typeof selectedTab !== "string") {
-                    if (tabItem.path && tabItem.path === selectedTab?.path && iframeRef.current) {
-                        iframeRef.current.src = createIframeUrl(tabItem.path);
-                    }
-                } else {
-                    setSelectedTab(tabItem as IItemLink);
+                setSelectedTab(tabItem as IItemLink);
+                if (iframeRef.current) {
+                    iframeRef.current.src = createIframeUrl((tabItem as IItemLink).path);
                 }
             }
             setTabIdxChangeRequest(undefined);
