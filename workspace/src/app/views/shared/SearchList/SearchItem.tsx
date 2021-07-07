@@ -146,7 +146,7 @@ export default function SearchItem({
                     <OverviewItemLine small>
                         {item.pluginLabel && (
                             <>
-                                <Tag small>
+                                <Tag small={true}>
                                     <Highlighter label={item.pluginLabel} searchValue={searchValue} />
                                 </Tag>
                                 {projectOrDataset && <Spacing vertical size="tiny" />}
@@ -154,7 +154,7 @@ export default function SearchItem({
                         )}
                         {projectOrDataset && (
                             <>
-                                <Tag small>
+                                <Tag small={true}>
                                     <Highlighter
                                         label={t(
                                             "widget.Filterbar.subsections.valueLabels.itemType." + item.type,
