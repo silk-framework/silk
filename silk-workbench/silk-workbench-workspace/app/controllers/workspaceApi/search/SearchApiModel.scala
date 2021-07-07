@@ -238,14 +238,16 @@ object SearchApiModel {
                                   @Schema(
                                     description = "Search result offset to allow for paging.",
                                     required = false,
-                                    nullable = true
+                                    nullable = true,
+                                    implementation = classOf[Int]
                                   )
                                   offset: Option[Int] = None,
                                   @Schema(
                                     description = "Search result limit to allow for paging. Can be disabled by setting it to '0', which will return all results.",
                                     required = false,
                                     nullable = true,
-                                    defaultValue = "10"
+                                    defaultValue = "10",
+                                    implementation = classOf[Int]
                                   )
                                   limit: Option[Int] = None,
                                   @Schema(

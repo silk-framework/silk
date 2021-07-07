@@ -1166,30 +1166,35 @@ object JsonSerializers {
                                  description = "Include the task meta data.",
                                  defaultValue = "true",
                                  required = false,
+                                 implementation = classOf[Boolean]
                                )
                                includeMetaData: Option[Boolean] = None,
                                @Schema(
                                  description = "Include the task data.",
                                  defaultValue = "true",
                                  required = false,
+                                 implementation = classOf[Boolean]
                                )
                                includeTaskData: Option[Boolean] = None,
                                @Schema(
                                  description = "Retrieves a list of properties as key-value pairs to be displayed to the user.",
                                  defaultValue = "false",
                                  required = false,
+                                 implementation = classOf[Boolean]
                                )
                                includeTaskProperties: Option[Boolean] = None,
                                @Schema(
                                  description = "Include relations to other tasks.",
                                  defaultValue = "false",
                                  required = false,
+                                 implementation = classOf[Boolean]
                                )
                                includeRelations: Option[Boolean] = None,
                                @Schema(
                                  description = "Include the input and output schemata of the task.",
                                  defaultValue = "false",
                                  required = false,
+                                 implementation = classOf[Boolean]
                                )
                                includeSchemata: Option[Boolean] = None)
 
