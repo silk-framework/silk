@@ -3,11 +3,13 @@ package org.silkframework.openapi
 import config.WorkbenchConfig
 import io.aurora.utils.play.swagger.SwaggerPlugin
 import io.swagger.v3.core.util.{Json, Yaml}
+import io.swagger.v3.oas.models.servers.Server
 import io.swagger.v3.oas.models.{OpenAPI, PathItem, Paths}
 
+import java.util
 import java.util.logging.{Level, Logger}
 import scala.io.Source
-import scala.jdk.CollectionConverters.{collectionAsScalaIterableConverter, mapAsScalaMapConverter}
+import scala.jdk.CollectionConverters.mapAsScalaMapConverter
 import scala.util.control.NonFatal
 
 /**
@@ -19,30 +21,32 @@ object OpenApiGenerator {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
-  def generateJson(swaggerPlugin: SwaggerPlugin, host: String, basePath: String): String = {
-    serializeJson(generate(swaggerPlugin, host, basePath))
+  def generateJson(swaggerPlugin: SwaggerPlugin): String = {
+    serializeJson(generate(swaggerPlugin))
   }
 
-  def generateYaml(swaggerPlugin: SwaggerPlugin, host: String, basePath: String): String = {
-    serializeYaml(generate(swaggerPlugin, host, basePath))
+  def generateYaml(swaggerPlugin: SwaggerPlugin): String = {
+    serializeYaml(generate(swaggerPlugin))
   }
 
-  def generate(swaggerPlugin: SwaggerPlugin, host: String, basePath: String): OpenAPI = {
-    val openApi = swaggerPlugin.apiListingCache.listing(host)
-    updateMetadata(openApi, basePath)
+  def generate(swaggerPlugin: SwaggerPlugin): OpenAPI = {
+    val openApi = swaggerPlugin.apiListingCache.listing(WorkbenchConfig.publicHost)
+    updateMetadata(openApi)
     updateDescription(openApi)
     sortPaths(openApi)
     openApi
   }
 
   /**
-    * Updates metadata, such as the version and the server base path.
+    * Overwrites metadata, such as the version and the server path.
     */
-  private def updateMetadata(openApi: OpenAPI, basePath: String): Unit = {
+  private def updateMetadata(openApi: OpenAPI): Unit = {
     openApi.getInfo.setVersion(WorkbenchConfig.version)
-    for(server <- openApi.getServers.asScala) {
-      server.setUrl(server.getUrl + basePath)
-    }
+    val servers = new util.ArrayList[Server]()
+    val server = new Server()
+    server.setUrl(WorkbenchConfig.publicBaseUrl + WorkbenchConfig.applicationContext + "/")
+    servers.add(server)
+    openApi.setServers(servers)
   }
 
   /**
