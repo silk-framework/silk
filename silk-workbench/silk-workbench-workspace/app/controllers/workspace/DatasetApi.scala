@@ -42,6 +42,7 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json",
@@ -86,6 +87,7 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json",
@@ -270,6 +272,7 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json",
@@ -332,6 +335,7 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json",
@@ -411,6 +415,7 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json",

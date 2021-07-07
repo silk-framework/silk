@@ -241,6 +241,7 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
           examples = Array(new ExampleObject(SearchApiDoc.itemTypesExample))

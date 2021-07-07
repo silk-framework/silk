@@ -46,6 +46,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json"
@@ -191,6 +192,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json",
@@ -291,6 +293,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json",
@@ -345,6 +348,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json",
@@ -415,6 +419,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json"

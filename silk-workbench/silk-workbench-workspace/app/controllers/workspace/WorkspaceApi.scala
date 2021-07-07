@@ -70,6 +70,7 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
           examples = Array(new ExampleObject(WorkspaceApiDoc.projectListExample))
@@ -87,6 +88,7 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
           examples = Array(new ExampleObject(WorkspaceApiDoc.projectExample))
@@ -117,6 +119,7 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     responses = Array(
       new ApiResponse(
         responseCode = "201",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
           examples = Array(new ExampleObject("{\"name\": \"project name\"}"))

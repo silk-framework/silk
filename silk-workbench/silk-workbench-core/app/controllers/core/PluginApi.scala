@@ -20,6 +20,7 @@ class PluginApi @Inject() () extends InjectedController {
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
           examples = Array(new ExampleObject(PluginApi.example))
@@ -52,6 +53,7 @@ class PluginApi @Inject() () extends InjectedController {
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
           examples = Array(new ExampleObject(PluginApi.example))

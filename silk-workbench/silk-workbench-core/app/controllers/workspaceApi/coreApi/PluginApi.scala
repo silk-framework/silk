@@ -38,6 +38,7 @@ class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedControlle
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
           examples = Array(new ExampleObject(PluginApiDoc.taskPluginsExampleJson))
@@ -136,6 +137,7 @@ class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedControlle
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
           examples = Array(new ExampleObject(PluginApiDoc.pluginUsagesExample))

@@ -116,6 +116,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json",
@@ -180,6 +181,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
     responses = Array(
       new ApiResponse(
         responseCode = "201",
+        description = "Workflow started.",
         headers = Array(
           new Header(
             name = "Location",

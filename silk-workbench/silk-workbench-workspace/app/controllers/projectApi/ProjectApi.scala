@@ -109,7 +109,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
       ))
   )
   def cloneProject(@Parameter(
-                     name = "fromProjectId",
+                     name = "projectId",
                      description = "The identifier of the project that is to be cloned",
                      required = true,
                      in = ParameterIn.PATH,
@@ -149,6 +149,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
           examples = Array(new ExampleObject("{ \"label\": \"New label\", \"description\": \"New description\", \"modified\":\"2020-04-29T13:51:00.349Z\" }"))
@@ -193,6 +194,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
           examples = Array(new ExampleObject("{ \"label\": \"New label\", \"description\": \"New description\", \"modified\":\"2020-04-29T13:51:00.349Z\" }"))
@@ -221,6 +223,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
           examples = Array(new ExampleObject("{ \"rdf\": \"http://www.w3.org/1999/02/22-rdf-syntax-ns#\", \"foaf\": \"http://xmlns.com/foaf/0.1/\", \"customPrefix\": \"http://customPrefix.cc/\" }"))
@@ -251,6 +254,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
           examples = Array(new ExampleObject("{ \"rdf\": \"http://www.w3.org/1999/02/22-rdf-syntax-ns#\", \"foaf\": \"http://xmlns.com/foaf/0.1/\", \"customPrefix\": \"http://customPrefix.cc/\" }"))
@@ -346,6 +350,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json",
@@ -406,6 +411,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json",

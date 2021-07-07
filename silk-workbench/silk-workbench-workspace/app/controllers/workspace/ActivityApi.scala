@@ -39,6 +39,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
           array = new ArraySchema(schema = new Schema(implementation = classOf[ActivityListEntry])),
@@ -87,6 +88,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
           schema = new Schema(implementation = classOf[StartActivityResponse])
@@ -137,6 +139,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
           schema = new Schema(implementation = classOf[StartActivityResponse])
@@ -283,6 +286,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
           examples = Array(new ExampleObject(ActivityApiDoc.activityStatusExample))
@@ -397,6 +401,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json"
         ))
@@ -457,6 +462,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json"
         ))

@@ -202,6 +202,7 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with UserCont
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json",
@@ -304,6 +305,7 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with UserCont
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json",
@@ -356,6 +358,7 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with UserCont
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json",
@@ -368,7 +371,22 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with UserCont
         description = "If the specified project or task has not been found."
       )
     ))
-  def vocabularyInfos(projectId: String, transformTaskId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  def vocabularyInfos(@Parameter(
+                        name = "project",
+                        description = "The project identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      projectId: String,
+                      @Parameter(
+                        name = "task",
+                        description = "The task identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      transformTaskId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     implicit val (project, transformTask) = projectAndTask[TransformSpec](projectId, transformTaskId)
     transformTask.activity[VocabularyCache].control.waitUntilFinished()
     val vocabularies = VocabularyCacheValue.targetVocabularies(transformTask)

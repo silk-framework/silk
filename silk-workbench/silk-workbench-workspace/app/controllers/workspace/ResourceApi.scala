@@ -38,6 +38,7 @@ class ResourceApi  @Inject() (pluginApiCache: PluginApiCache) extends InjectedCo
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
           examples = Array(new ExampleObject(ResourceApiDoc.resourceListExample))
@@ -92,6 +93,7 @@ class ResourceApi  @Inject() (pluginApiCache: PluginApiCache) extends InjectedCo
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
           examples = Array(new ExampleObject(ResourceApiDoc.resourceMetadataExample))
@@ -271,6 +273,7 @@ class ResourceApi  @Inject() (pluginApiCache: PluginApiCache) extends InjectedCo
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json",

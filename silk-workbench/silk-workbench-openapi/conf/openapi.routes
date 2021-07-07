@@ -1,6 +1,3 @@
-
-
-GET   /openapi.json                controllers.openapi.OpenApiController.openApiJson
-GET   /openapi.yml                 controllers.openapi.OpenApiController.openApiYaml
-GET   /api                         controllers.openapi.OpenApiController.ui
-GET   /swagger-ui/*file            controllers.openapi.Assets.at(path:String="/public/lib/swagger-ui", file:String)
+GET   /openapi.json                controllers.openapi.OpenApi.openApiJson
+GET   /openapi.yml                 controllers.openapi.OpenApi.openApiYaml
+GET   /validate                    controllers.openapi.OpenApi.validate(url: Option[String])

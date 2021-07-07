@@ -77,7 +77,21 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
         description = "The workflow execution has failed."
       )
   ))
-  def variableWorkflowResultGet(projectName: String,
+  def variableWorkflowResultGet(@Parameter(
+                                  name = "projectId",
+                                  description = "The project identifier",
+                                  required = true,
+                                  in = ParameterIn.PATH,
+                                  schema = new Schema(implementation = classOf[String])
+                                )
+                                projectName: String,
+                                @Parameter(
+                                  name = "workflowId",
+                                  description = "The workflow identifier",
+                                  required = true,
+                                  in = ParameterIn.PATH,
+                                  schema = new Schema(implementation = classOf[String])
+                                )
                                 workflowTaskName: String): Action[AnyContent] = {
     variableWorkflowResult(projectName, workflowTaskName)
   }
@@ -226,6 +240,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json",
@@ -262,6 +277,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json",

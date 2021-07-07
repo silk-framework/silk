@@ -3,7 +3,8 @@ package controllers.workspaceApi
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.workspaceApi.validation.{SourcePathValidationRequest, SourcePathValidationResponse}
-import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -27,6 +28,7 @@ class ValidationApi @Inject() () extends InjectedController with UserContextActi
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json",
@@ -45,7 +47,14 @@ class ValidationApi @Inject() () extends InjectedController with UserContextActi
       )
     )
   )
-  def validateSourcePath(projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext: UserContext =>
+  def validateSourcePath(@Parameter(
+                           name = "projectId",
+                           description = "The project identifier",
+                           required = true,
+                           in = ParameterIn.PATH,
+                           schema = new Schema(implementation = classOf[String])
+                         )
+                         projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext: UserContext =>
     implicit val prefixes: Prefixes = getProject(projectId).config.prefixes
     validateJson[SourcePathValidationRequest] { request =>
       val parseError = UntypedPath.partialParse(request.pathExpression).error

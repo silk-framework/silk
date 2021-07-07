@@ -1,19 +1,18 @@
-@import controllers.openapi.routes.Assets
-@import controllers.openapi.routes.OpenApiController
+@import controllers.swaggerUi.routes.SwaggerUiAssets
 
 @**
 * Swagger UI view based on the index.html shipped with the Swagger UI webjar.
 **@
-@(url: String)
+@(url: String, validatorUrl: String)
 
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8">
     <title>Swagger UI</title>
-    <link rel="stylesheet" type="text/css" href="@Assets.at("swagger-ui.css")" />
-    <link rel="icon" type="image/png" href="@Assets.at("favicon-32x32.png")" sizes="32x32" />
-    <link rel="icon" type="image/png" href="@Assets.at("favicon-16x16.png")" sizes="16x16" />
+    <link rel="stylesheet" type="text/css" href="@SwaggerUiAssets.at("swagger-ui.css")" />
+    <link rel="icon" type="image/png" href="@SwaggerUiAssets.at("favicon-32x32.png")" sizes="32x32" />
+    <link rel="icon" type="image/png" href="@SwaggerUiAssets.at("favicon-16x16.png")" sizes="16x16" />
     <style>
       html
       {
@@ -40,8 +39,8 @@
   <body>
     <div id="swagger-ui"></div>
 
-    <script src="@Assets.at("swagger-ui-bundle.js")" charset="UTF-8"> </script>
-    <script src="@Assets.at("swagger-ui-standalone-preset.js")" charset="UTF-8"> </script>
+    <script src="@SwaggerUiAssets.at("swagger-ui-bundle.js")" charset="UTF-8"> </script>
+    <script src="@SwaggerUiAssets.at("swagger-ui-standalone-preset.js")" charset="UTF-8"> </script>
     <script>
       function compareTags(t1, t2) {
         const normalized1 = t1.replace(/s$/, '');
@@ -62,6 +61,7 @@
           deepLinking: true,
           tagsSorter: compareTags,
           docExpansion: 'none',
+          validatorUrl: '@validatorUrl',
           presets: [
             SwaggerUIBundle.presets.apis,
             SwaggerUIStandalonePreset

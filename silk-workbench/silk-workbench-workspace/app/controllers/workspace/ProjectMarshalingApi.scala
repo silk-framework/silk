@@ -37,6 +37,7 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with UserCont
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json",

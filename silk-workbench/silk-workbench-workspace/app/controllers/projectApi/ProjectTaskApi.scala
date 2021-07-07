@@ -35,6 +35,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
           examples = Array(new ExampleObject(ProjectTaskApi.relatedItemsExampleJson))
@@ -88,6 +89,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
           examples = Array(new ExampleObject(ProjectTaskApi.itemLinksJsonExample))
@@ -123,6 +125,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
           examples = Array(new ExampleObject("{ \"itemType\": { \"id\": \"linking\", \"label\": \"Linking\" } }"))
@@ -184,7 +187,22 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
         examples = Array(new ExampleObject("{ \"metaData\": { \"label\": \"New task\", \"description\": \"Optional description\" } }"))
       ))
   )
-  def cloneTask(projectId: String, taskId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>implicit userContext =>
+  def cloneTask(@Parameter(
+                  name = "projectId",
+                  description = "The project identifier",
+                  required = true,
+                  in = ParameterIn.PATH,
+                  schema = new Schema(implementation = classOf[String])
+                )
+                projectId: String,
+                @Parameter(
+                  name = "taskId",
+                  description = "The task identifier",
+                  required = true,
+                  in = ParameterIn.PATH,
+                  schema = new Schema(implementation = classOf[String])
+                )
+                taskId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>implicit userContext =>
     validateJson[ItemCloneRequest] { request =>
       val label = request.metaData.label.trim
       if(label == "") {

@@ -26,6 +26,7 @@ class ReportsApi @Inject() () extends InjectedController {
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
           examples = Array(new ExampleObject(ReportsApiDoc.reportListExample))
@@ -66,6 +67,7 @@ class ReportsApi @Inject() () extends InjectedController {
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
           examples = Array(new ExampleObject(ReportsApiDoc.reportExample))

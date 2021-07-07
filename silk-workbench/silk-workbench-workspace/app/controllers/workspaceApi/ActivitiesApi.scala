@@ -29,6 +29,7 @@ class ActivitiesApi @Inject() () extends InjectedController with UserContextActi
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json",

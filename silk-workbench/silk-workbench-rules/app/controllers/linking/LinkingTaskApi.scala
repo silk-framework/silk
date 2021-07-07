@@ -173,6 +173,7 @@ class LinkingTaskApi @Inject() () extends InjectedController with UserContextAct
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/xml",
@@ -523,6 +524,7 @@ class LinkingTaskApi @Inject() () extends InjectedController with UserContextAct
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json",
@@ -589,6 +591,7 @@ class LinkingTaskApi @Inject() () extends InjectedController with UserContextAct
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/n-triples",
@@ -654,6 +657,7 @@ class LinkingTaskApi @Inject() () extends InjectedController with UserContextAct
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "Success",
         content = Array(
           new Content(
             mediaType = "application/json",
