@@ -15,7 +15,9 @@ const errorSlice = createSlice({
         registerNewError(state, action: RegisterErrorAction) {
             const { error } = action.payload;
             const stateErrorCopy = [...state.errors];
-            const newErrors = stateErrorCopy.map((err) => (err.id === error.id ? error : err));
+            const newErrors = stateErrorCopy.length
+                ? stateErrorCopy.map((err) => (err.id === error.id ? error : err))
+                : [error];
             state.errors = newErrors;
         },
     },
