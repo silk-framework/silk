@@ -120,8 +120,9 @@ object WorkflowSerializers {
         TASK -> op.task.toString,
         INPUTS -> JsArray(op.inputs.map(JsString)),
         OUTPUTS -> JsArray(op.outputs.map(JsString)),
-        ID -> op.nodeId.toString,
-        OUTPUT_PRIORITY -> op.outputPriority
+        ID -> op.nodeId,
+        OUTPUT_PRIORITY -> op.outputPriority,
+        CONFIG_INPUTS -> JsArray(op.configInputs.map(JsString))
       )
     }
   }
