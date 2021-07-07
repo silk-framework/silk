@@ -108,6 +108,13 @@
 
     // Update values
     tooltip.text(status.message);
+    if (@{insideIFrame}) {
+      // Send a message event that the workflow has been saved
+      window.top.postMessage(JSON.stringify({
+        id: "workflowStatusUpdateMessage",
+        message: status.message
+      }), '*');
+    };
     if(status.failed) {
       progressbar.progressbar("option", {value: 100});
       progressbarValue.addClass('status_red');
