@@ -26,6 +26,7 @@ import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { routerOp } from "@ducks/router";
 import CreateButton from "../../shared/buttons/CreateButton";
 import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
+import { NotificationsMenu } from "../../shared/ApplicationNotifications/NotificationsMenu";
 import { triggerHotkeyHandler } from "../../shared/HotKeyHandler/HotKeyHandler";
 import { APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { CONTEXT_PATH } from "../../../constants/path";
@@ -126,6 +127,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                 <ApplicationToolbarSection>
                     <CreateButton onClick={handleCreateDialog} />
                 </ApplicationToolbarSection>
+                <NotificationsMenu />
                 {displayUserMenu ? (
                     <>
                         <ApplicationToolbarAction
