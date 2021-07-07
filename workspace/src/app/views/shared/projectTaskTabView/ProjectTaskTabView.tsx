@@ -78,6 +78,7 @@ export function ProjectTaskTabView({
     startFullscreen = false,
     handlerRemoveModal,
     taskViewConfig,
+    iFrameName,
     viewActions,
     ...otherProps
 }: IProjectTaskTabView) {
@@ -261,7 +262,7 @@ export function ProjectTaskTabView({
                         itemLinkActive ? (
                             <iframe
                                 ref={iframeRef}
-                                name={otherProps.iFrameName}
+                                name={iFrameName}
                                 src={createIframeUrl((selectedTab as IItemLink)?.path)}
                                 title={tLabel((selectedTab as IItemLink)?.label)}
                                 style={{
