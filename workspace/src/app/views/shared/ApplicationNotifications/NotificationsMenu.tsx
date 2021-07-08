@@ -9,42 +9,18 @@ import {
     Button,
     ContextOverlay,
 } from "@gui-elements/index";
-
-interface DummyNotification {
-    origin: string;
-    groupID: string;
-    message: string;
-    cause: any;
-    timestamp: number;
-}
+import { DIErrorFormat } from "@ducks/error/typings";
+import useErrorHandler from "../../../hooks/useErrorHandler";
+import { useSelector } from "react-redux";
+import errorSelector from "@ducks/error/selectors";
 
 export function NotificationsMenu() {
     // condition: first message in array is handled as latest message, otherwise reverse it first
-
+    const { clearErrors } = useErrorHandler();
     const [startTime, updateStartTime] = useState<number>(Date.now());
     const [displayNotifications, setDisplayNotifications] = useState<boolean>(false);
     const [displayLastNotification, setDisplayLastNotification] = useState<boolean>(false);
-    const [messages, setMessages] = useState<DummyNotification[]>([]);
-
-    useEffect(() => {
-        // add dummy data lazy
-        setTimeout(setMessages, 5000, [
-            {
-                origin: "WorkflowEditor",
-                groupID: "test1",
-                message: "Something went wrong",
-                cause: "???",
-                timestamp: startTime + 1000,
-            },
-            {
-                origin: "WorkflowEditor",
-                groupID: "test1",
-                message: "Something other went wrong, too",
-                cause: "???",
-                timestamp: startTime + 2000,
-            },
-        ]);
-    }, []);
+    const { errors: messages } = useSelector(errorSelector);
 
     useEffect(() => {
         if (messages.length > 0 && startTime <= messages[0].timestamp) {
@@ -54,22 +30,27 @@ export function NotificationsMenu() {
         }
     }, [messages]);
 
-    const removeMessage = (item) => {
-        const id = messages.indexOf(item);
-        if (id !== -1) {
-            messages.splice(id, 1);
-        }
-        if (messages.length < 1) {
-            setDisplayNotifications(false);
-        }
-        setMessages(messages);
-    };
-
-    const removeAllMessages = () => {
-        messages.splice(0);
-        setMessages(messages);
+    const removeMessages = (errorId?: string) => {
+        errorId ? clearErrors([errorId]) : clearErrors();
         setDisplayNotifications(false);
     };
+
+    // const removeMessage = (item) => {
+    //     const id = messages.indexOf(item);
+    //     if (id !== -1) {
+    //         messages.splice(id, 1);
+    //     }
+    //     if (messages.length < 1) {
+    //         setDisplayNotifications(false);
+    //     }
+    //     setMessages(messages);
+    // };
+
+    // const removeAllMessages = () => {
+    //     messages.splice(0);
+    //     setMessages(messages);
+    //     setDisplayNotifications(false);
+    // };
 
     const toggleNotifications = () => {
         setDisplayLastNotification(false);
@@ -123,11 +104,11 @@ export function NotificationsMenu() {
             )}
             {displayNotifications && (
                 <ApplicationToolbarPanel aria-label="Notification menu" expanded={true} style={{ width: "40rem" }}>
-                    <Button text="Clear all messages" onClick={removeAllMessages} />
+                    <Button text="Clear all messages" onClick={() => removeMessages()} />
                     <Divider addSpacing="medium" />
                     {messages.map((item, id) => (
                         <div key={"message" + id}>
-                            <Notification danger fullWidth onDismiss={() => removeMessage(item)}>
+                            <Notification danger fullWidth onDismiss={() => removeMessages(item.id)}>
                                 {item.message}
                             </Notification>
                             <Spacing size="small" />
