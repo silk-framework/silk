@@ -42,24 +42,11 @@
     <script src="@SwaggerUiAssets.at("swagger-ui-bundle.js")" charset="UTF-8"> </script>
     <script src="@SwaggerUiAssets.at("swagger-ui-standalone-preset.js")" charset="UTF-8"> </script>
     <script>
-      function compareTags(t1, t2) {
-        const normalized1 = t1.replace(/s$/, '');
-        const normalized2 = t2.replace(/s$/, '');
-        if (normalized1 > normalized2) {
-          return 1;
-        }
-        if (normalized1 < normalized2) {
-          return -1;
-        }
-        return 0;
-      }
-
       window.onload = function() {
-        const ui = SwaggerUIBundle({
+        window.ui = SwaggerUIBundle({
           url: "@url",
           dom_id: '#swagger-ui',
           deepLinking: true,
-          tagsSorter: compareTags,
           docExpansion: 'none',
           validatorUrl: '@validatorUrl',
           presets: [
@@ -71,8 +58,6 @@
           ],
           layout: "StandaloneLayout"
         });
-
-        window.ui = ui;
       };
     </script>
   </body>

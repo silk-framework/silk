@@ -4,6 +4,7 @@ import config.WorkbenchConfig
 import io.aurora.utils.play.swagger.SwaggerPlugin
 import io.swagger.v3.core.util.{Json, Yaml}
 import io.swagger.v3.oas.models.servers.Server
+import io.swagger.v3.oas.models.tags.Tag
 import io.swagger.v3.oas.models.{OpenAPI, PathItem, Paths}
 
 import java.util
@@ -33,6 +34,7 @@ object OpenApiGenerator {
     val openApi = swaggerPlugin.apiListingCache.listing(WorkbenchConfig.publicHost)
     updateMetadata(openApi)
     updateDescription(openApi)
+    sortTags(openApi)
     sortPaths(openApi)
     openApi
   }
@@ -59,6 +61,17 @@ object OpenApiGenerator {
     } finally {
       source.close()
     }
+  }
+
+  /**
+    * Sorts tags alphabetically (ignores trailing 's').
+    */
+  private def sortTags(openApi: OpenAPI): Unit = {
+    openApi.getTags.sort((t1: Tag, t2: Tag) => {
+      val name1 = t1.getName.stripSuffix("s")
+      val name2 = t2.getName.stripSuffix("s")
+      name1.compareTo(name2)
+    })
   }
 
   /**
