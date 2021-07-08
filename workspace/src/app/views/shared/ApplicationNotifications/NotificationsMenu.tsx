@@ -16,15 +16,15 @@ import errorSelector from "@ducks/error/selectors";
 export function NotificationsMenu() {
     // condition: first message in array is handled as latest message, otherwise reverse it first
     const { clearErrors } = useErrorHandler();
-    const [startTime, updateStartTime] = useState<number>(Date.now());
+    // const [startTime, updateStartTime] = useState<number>(Date.now());
     const [displayNotifications, setDisplayNotifications] = useState<boolean>(false);
     const [displayLastNotification, setDisplayLastNotification] = useState<boolean>(false);
     const { errors } = useSelector(errorSelector);
-    //first message is the latest entry
-    const messages = errors.reverse();
+    //first message is the latest entry based on the timestamp
+    const messages = errors.sort((a, b) => b.timestamp - a.timestamp);
 
     useEffect(() => {
-        if (messages.length > 0 && startTime <= messages[0].timestamp) {
+        if (messages.length) {
             setDisplayLastNotification(true);
         } else {
             setDisplayLastNotification(false);
