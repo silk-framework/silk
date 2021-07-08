@@ -9,7 +9,6 @@ import {
     Button,
     ContextOverlay,
 } from "@gui-elements/index";
-import { DIErrorFormat } from "@ducks/error/typings";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { useSelector } from "react-redux";
 import errorSelector from "@ducks/error/selectors";
@@ -20,7 +19,9 @@ export function NotificationsMenu() {
     const [startTime, updateStartTime] = useState<number>(Date.now());
     const [displayNotifications, setDisplayNotifications] = useState<boolean>(false);
     const [displayLastNotification, setDisplayLastNotification] = useState<boolean>(false);
-    const { errors: messages } = useSelector(errorSelector);
+    const { errors } = useSelector(errorSelector);
+    //first message is the latest entry
+    const messages = errors.reverse();
 
     useEffect(() => {
         if (messages.length > 0 && startTime <= messages[0].timestamp) {
@@ -30,27 +31,11 @@ export function NotificationsMenu() {
         }
     }, [messages]);
 
+    /***** remove all messages *****/
     const removeMessages = (errorId?: string) => {
         errorId ? clearErrors([errorId]) : clearErrors();
         setDisplayNotifications(false);
     };
-
-    // const removeMessage = (item) => {
-    //     const id = messages.indexOf(item);
-    //     if (id !== -1) {
-    //         messages.splice(id, 1);
-    //     }
-    //     if (messages.length < 1) {
-    //         setDisplayNotifications(false);
-    //     }
-    //     setMessages(messages);
-    // };
-
-    // const removeAllMessages = () => {
-    //     messages.splice(0);
-    //     setMessages(messages);
-    //     setDisplayNotifications(false);
-    // };
 
     const toggleNotifications = () => {
         setDisplayLastNotification(false);
