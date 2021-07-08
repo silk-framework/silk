@@ -12,10 +12,12 @@ import {
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { useSelector } from "react-redux";
 import errorSelector from "@ducks/error/selectors";
+import { DIErrorFormat } from "@ducks/error/typings";
 
 export function NotificationsMenu() {
     // condition: first message in array is handled as latest message, otherwise reverse it first
     const { clearErrors } = useErrorHandler();
+    const [startTime, updateStartTime] = React.useState<number>(Date.now());
     const [displayNotifications, setDisplayNotifications] = useState<boolean>(false);
     const [displayLastNotification, setDisplayLastNotification] = useState<boolean>(false);
     const { errors } = useSelector(errorSelector);
@@ -23,7 +25,7 @@ export function NotificationsMenu() {
     const messages = errors.slice().sort((a, b) => b.timestamp - a.timestamp); //https://stackoverflow.com/questions/53420055/
 
     useEffect(() => {
-        if (messages.length) {
+        if (messages.length && startTime <= messages[0].timestamp) {
             setDisplayLastNotification(true);
         } else {
             setDisplayLastNotification(false);
@@ -31,10 +33,10 @@ export function NotificationsMenu() {
     }, [messages.map((e) => e.timestamp).join("|")]);
 
     /***** remove all messages *****/
-    const removeMessages = (errorId?: string) => {
-        errorId ? clearErrors([errorId]) : clearErrors();
+    const removeMessages = (error?: DIErrorFormat) => {
+        error ? clearErrors([error.id]) : clearErrors();
         setDisplayNotifications(false);
-        setDisplayLastNotification(false);
+        updateStartTime(Date.now());
     };
 
     const toggleNotifications = () => {
@@ -93,7 +95,7 @@ export function NotificationsMenu() {
                     <Divider addSpacing="medium" />
                     {messages.map((item, id) => (
                         <div key={"message" + id}>
-                            <Notification danger fullWidth onDismiss={() => removeMessages(item.id)}>
+                            <Notification danger fullWidth onDismiss={() => removeMessages(item)}>
                                 {item.message}
                             </Notification>
                             <Spacing size="small" />
