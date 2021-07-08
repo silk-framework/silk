@@ -107,16 +107,16 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
   )
   def startActivity(@Parameter(
                       name = "project",
-                      description = "Optional project identifier. Leave empty to address a global activity.",
-                      required = true,
+                      description = "Optional project identifier. If not provided or empty, global activities will be addressed.",
+                      required = false,
                       in = ParameterIn.QUERY,
                       schema = new Schema(implementation = classOf[String])
                     )
                     projectName: String,
                     @Parameter(
                       name = "task",
-                      description = "Optional task identifier. Leave empty to address a project activity.",
-                      required = true,
+                      description = "Optional task identifier. If not provided or empty, project activities will be addressed.",
+                      required = false,
                       in = ParameterIn.QUERY,
                       schema = new Schema(implementation = classOf[String])
                     )
@@ -158,16 +158,16 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
   )
   def startActivityBlocking(@Parameter(
                               name = "project",
-                              description = "Optional project identifier. Leave empty to address a global activity.",
-                              required = true,
+                              description = "Optional project identifier. If not provided or empty, global activities will be addressed.",
+                              required = false,
                               in = ParameterIn.QUERY,
                               schema = new Schema(implementation = classOf[String])
                             )
                             projectName: String,
                             @Parameter(
                               name = "task",
-                              description = "Optional task identifier. Leave empty to address a project activity.",
-                              required = true,
+                              description = "Optional task identifier. If not provided or empty, project activities will be addressed.",
+                              required = false,
                               in = ParameterIn.QUERY,
                               schema = new Schema(implementation = classOf[String])
                             )
@@ -195,16 +195,16 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
   ))
   def cancelActivity(@Parameter(
                        name = "project",
-                       description = "Optional project identifier. Leave empty to address a global activity.",
-                       required = true,
+                       description = "Optional project identifier. If not provided or empty, global activities will be addressed.",
+                       required = false,
                        in = ParameterIn.QUERY,
                        schema = new Schema(implementation = classOf[String])
                      )
                      projectName: String,
                      @Parameter(
                        name = "task",
-                       description = "Optional task identifier. Leave empty to address a project activity.",
-                       required = true,
+                       description = "Optional task identifier. If not provided or empty, project activities will be addressed.",
+                       required = false,
                        in = ParameterIn.QUERY,
                        schema = new Schema(implementation = classOf[String])
                      )
@@ -295,16 +295,16 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
   ))
   def getActivityStatus(@Parameter(
                           name = "project",
-                          description = "Optional project identifier. Leave empty to address a global activity.",
-                          required = true,
+                          description = "Optional project identifier. If not provided or empty, global activities will be addressed.",
+                          required = false,
                           in = ParameterIn.QUERY,
                           schema = new Schema(implementation = classOf[String])
                         )
                         projectName: String,
                         @Parameter(
                           name = "task",
-                          description = "Optional task identifier. Leave empty to address a project activity.",
-                          required = true,
+                          description = "Optional task identifier. If not provided or empty, project activities will be addressed.",
+                          required = false,
                           in = ParameterIn.QUERY,
                           schema = new Schema(implementation = classOf[String])
                         )
@@ -338,16 +338,16 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     ))
   def getActivityValue(@Parameter(
                          name = "project",
-                         description = "Optional project identifier. Leave empty to address a global activity.",
-                         required = true,
+                         description = "Optional project identifier. If not provided or empty, global activities will be addressed.",
+                         required = false,
                          in = ParameterIn.QUERY,
                          schema = new Schema(implementation = classOf[String])
                        )
                        projectName: String,
                        @Parameter(
                          name = "task",
-                         description = "Optional task identifier. Leave empty to address a project activity.",
-                         required = true,
+                         description = "Optional task identifier. If not provided or empty, project activities will be addressed.",
+                         required = false,
                          in = ParameterIn.QUERY,
                          schema = new Schema(implementation = classOf[String])
                        )

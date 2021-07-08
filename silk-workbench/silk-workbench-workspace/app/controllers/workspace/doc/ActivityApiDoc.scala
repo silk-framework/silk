@@ -20,7 +20,9 @@ object ActivityApiDoc {
     """
 
   final val activityStatusDescription =
-    """An activity may have the following status names:
+    """Retrieves the status of a single activity.
+
+An activity may have the following status names:
 
 * *Idle* if the activity has not been started yet.
 * *Waiting* if the activity has been started and is waiting to be executed.
