@@ -18,13 +18,13 @@ import java.io._
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantLock
 import java.util.logging.{Level, Logger}
-
 import org.silkframework.config.{DefaultConfig, MetaData, Prefixes}
 import org.silkframework.runtime.activity.{HasValue, UserContext}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.validation.{NotFoundException, ServiceUnavailableException}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.{GlobalWorkspaceActivity, GlobalWorkspaceActivityFactory}
+import org.silkframework.workspace.exceptions.{IdentifierAlreadyExistsException, ProjectNotFoundException}
 import org.silkframework.workspace.resources.ResourceRepository
 
 import scala.reflect.ClassTag

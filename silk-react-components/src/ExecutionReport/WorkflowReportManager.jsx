@@ -1,10 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Card, CardContent, CardTitle, Icon} from '@eccenca/gui-elements';
 import silkStore from "../api/silkStore";
-import ExecutionReport from "./ExecutionReport";
 import WorkflowExecutionReport from "./WorkflowExecutionReport";
-import _ from "lodash";
 import {URI} from "ecc-utils";
 
 /**
@@ -17,7 +14,16 @@ export default class WorkflowReportManager extends React.Component {
         this.displayName = 'WorkflowReportManager';
         this.state = {
             availableReports: [],
-            selectedReport: ""
+            selectedReport: "", // Id of the current report
+            executionMetaData: null, //Meta data of the current report
+            executionReport: {
+                summary: [],
+                warnings: [],
+                task: {
+                    id: "workflow"
+                },
+                taskReports: []
+            },
         };
     }
 
@@ -42,8 +48,9 @@ export default class WorkflowReportManager extends React.Component {
                 // Set initial state
                 this.setState({
                     availableReports: reports,
-                    selectedReport: selectedReport
                 });
+                // Load initial report
+                this.updateSelectedReport(selectedReport)
             })
             .catch((error) => {
                 console.log("Loading execution reports failed! " + error);
@@ -90,13 +97,27 @@ export default class WorkflowReportManager extends React.Component {
     renderSelectedReport() {
         return <WorkflowExecutionReport baseUrl={this.props.baseUrl}
                                         project={this.props.project}
-                                        task={this.props.task}
-                                        time={this.state.selectedReport} />
+                                        executionMetaData={this.state.executionMetaData}
+                                        executionReport={this.state.executionReport} />
     }
 
     updateSelectedReport(newReport) {
-        this.setState({selectedReport: newReport});
-        this.updateUrl();
+        this.props.diStore.retrieveExecutionReport(
+            this.props.baseUrl,
+            this.props.project,
+            this.props.task,
+            newReport)
+            .then((report) => {
+                this.setState({
+                    selectedReport: newReport,
+                    executionReport: report.value,
+                    executionMetaData: report.metaData
+                });
+                this.updateUrl();
+            })
+            .catch((error) => {
+                console.log("Loading execution report failed! " + error); // FIXME: Handle error and give user feedback. Currently this is done via the activity status widget
+            });
     }
 
     // Updates the window URL based on the selected report

@@ -12,11 +12,23 @@ import org.silkframework.util.Identifier
   */
 case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq[WorkflowTaskReport] = IndexedSeq.empty) extends ExecutionReport {
 
-  def withReport(index: Int, nodeId: Identifier, report: ExecutionReport): WorkflowExecutionReport = {
+  /**
+    * Adds a new task report.
+    *
+    * @return The updated workflow report
+    */
+  def addReport(nodeId: Identifier, report: ExecutionReport): WorkflowExecutionReport = {
+    copy(taskReports = taskReports :+ WorkflowTaskReport(nodeId, report))
+  }
+
+  /**
+    * Updates an existing task report.
+    *
+    * @return The updated workflow report
+    */
+  def updateReport(index: Int, nodeId: Identifier, report: ExecutionReport): WorkflowExecutionReport = {
     if(index < taskReports.size) {
       copy(taskReports = taskReports.updated(index, WorkflowTaskReport(nodeId, report)))
-    } else if(index == taskReports.size) {
-      copy(taskReports = taskReports :+ WorkflowTaskReport(nodeId, report))
     } else {
       throw new IndexOutOfBoundsException(s"Invalid task report index: $index")
     }

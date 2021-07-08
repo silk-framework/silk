@@ -15,6 +15,8 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
   implicit val userContext: UserContext = UserContext.Empty
   def xmlSource(name: String, uriPattern: String, baseType: String = ""): DataSource with XmlSourceTrait
+  // Some operations are not supported in streaming mode
+  def isStreaming: Boolean
 
   behavior of "XML Dataset"
 
@@ -27,6 +29,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
     it should s"read the root element, if the base path is empty. ($fileName)" in {
       (persons atPath "").uris shouldBe Seq("Persons")
+      persons atPath "" valuesAt "@rootAttribute" shouldBe Seq(Seq("top"))
     }
 
     it should s"read the direct children, if they are referenced by a direct path ($fileName)" in {
@@ -36,6 +39,10 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
     it should s"extract values of direct children ($fileName)" in {
       (persons atPath "Person" valuesAt "Name") shouldBe Seq(Seq("Max Doe"), Seq("Max Noe"))
+    }
+
+    it should s"find start element of paths where the path contains optional elements ($fileName)" in {
+      (persons atPath "Person/OnlyInSecondPerson" valuesAt "#text") shouldBe Seq(Seq("only"))
     }
 
     it should s"extract values of indirect children ($fileName)" in {
@@ -51,12 +58,43 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
       (persons atPath "Person" valuesAt "MissingTag") shouldBe Seq(Seq(), Seq())
     }
 
+    it should s"return no value for paths that include non-existing path segments ($fileName)" in {
+      (persons atPath "Person" valuesAt "NonExisting/Name") shouldBe Seq(Seq(), Seq())
+      (persons atPath "Person" valuesAt "NonExisting/Property/Key") shouldBe Seq(Seq(), Seq())
+      (persons atPath "Person/NonExisting/Events" valuesAt "Birth") shouldBe Seq()
+      (persons atPath "Person/NonExisting/Birth" valuesAt "#text") shouldBe Seq()
+    }
+
+    it should s"return no value for paths that have gaps in their paths ($fileName)" in {
+      (persons atPath "Person/Birth" valuesAt "#text") shouldBe Seq()
+      (persons atPath "Person" valuesAt "Birth") shouldBe Seq(Seq(), Seq())
+    }
+
     it should s"return no value if an attribute is missing ($fileName)" in {
       (persons atPath "Person" valuesAt "@MissingAttribute") shouldBe Seq(Seq(), Seq())
     }
 
     it should s"support property filters ($fileName)" in {
       (persons atPath "Person" valuesAt "Properties/Property[Key = \"2\"]/Value") shouldBe Seq(Seq("V2"), Seq())
+      if(!isStreaming) {
+        // FIXME: Filtering in object path in streaming mode not allowed on element values, only attributes.
+        (persons atPath "Person/Properties/Property[Key = \"2\"]" valuesAt "Value") shouldBe Seq(Seq("V2"))
+      }
+    }
+
+    it should s"support property filters on attributes ($fileName)" in {
+      (persons atPath "Person" valuesAt "Events[@count = \"2\"]/Birth") shouldBe Seq(Seq("May 1900"), Seq())
+      (persons atPath "Person" valuesAt "Events[@count = \"3\"]/Birth") shouldBe Seq(Seq(), Seq())
+      if(!isStreaming) {
+        // FIXME: No backward paths supported in streaming mode
+        (persons atPath "Person/Properties" valuesAt "Property/Key[@id = \"id3\"]\\../Value") shouldBe Seq(Seq("V2"))
+        (persons atPath "Person/Properties" valuesAt "Property/Key[@id = \"id3\"]\\../Value") shouldBe Seq(Seq("V2"))
+      }
+      (persons atPath "Person/Properties" valuesAt "Property/Key[@id = \"id3\"]/#text") shouldBe Seq(Seq("2"))
+      (persons atPath "Person/Properties" valuesAt "Property/Key[@id = \"NO_ID\"]/#text") shouldBe Seq(Seq())
+      (persons atPath "Person/Properties/Property/Key[@id = \"id3\"]" valuesAt "#text") shouldBe Seq(Seq("2"))
+      (persons atPath "Person/Events[@count = \"2\"]" valuesAt "Birth") shouldBe Seq(Seq("May 1900"))
+      (persons atPath "Person/Events[@count = \"3\"]" valuesAt "Birth") shouldBe Seq()
     }
 
     it should s"allow wildcard * path elements ($fileName)" in {
@@ -77,6 +115,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
     it should s"allow retrieving the text of a selected element ($fileName)" in {
       (persons atPath "Person/ID" valuesAt "#text") shouldBe Seq(Seq("1"), Seq("2"))
+      (persons atPath "Person" valuesAt "Properties/Property/Key/#text") shouldBe Seq(Seq("1", "2", ""), Seq())
     }
 
     it should s"generate correct URIs for non-leaf nodes when the URI pattern is empty ($fileName)" in {
@@ -102,36 +141,36 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
 
     it should s"list all paths of the root node ($fileName)" in {
       (persons atPath "").subPaths shouldBe
-        Seq("Person", "Person/ID", "Person/Name", "Person/Events", "Person/Events/@count", "Person/Events/Birth",
+        Seq("@rootAttribute", "Person", "Person/ID", "Person/Name", "Person/OnlyInSecondPerson", "Person/Events", "Person/Events/@count", "Person/Events/Birth",
           "Person/Events/Death", "Person/Properties", "Person/Properties/Property", "Person/Properties/Property/Key",
           "Person/Properties/Property/Value", "Person/Properties/Property/Key", "Person/Properties/Property/Key/@id")
     }
 
     it should s"list all paths of the root node of depth 1 ($fileName)" in {
       (persons atPath "").subPathsDepth(1) shouldBe
-        Seq("Person")
+        Seq("@rootAttribute", "Person")
     }
 
     it should s"list all paths of the root node of depth 2 ($fileName)" in {
       (persons atPath "").subPathsDepth(2) shouldBe
-        Seq("Person", "Person/ID", "Person/Name", "Person/Events", "Person/Properties")
+        Seq("@rootAttribute", "Person", "Person/ID", "Person/Name", "Person/OnlyInSecondPerson", "Person/Events", "Person/Properties")
     }
 
     it should s"list all paths, given a base path ($fileName)" in {
       (persons atPath "Person").subPaths shouldBe
-        Seq("ID", "Name", "Events", "Events/@count", "Events/Birth", "Events/Death", "Properties",
+        Seq("ID", "Name", "OnlyInSecondPerson", "Events", "Events/@count", "Events/Birth", "Events/Death", "Properties",
           "Properties/Property", "Properties/Property/Key", "Properties/Property/Value", "Properties/Property/Key",
           "Properties/Property/Key/@id")
     }
 
     it should s"list all paths of depth 1, given a base path ($fileName)" in {
       (persons atPath "Person").subPathsDepth(1) shouldBe
-        Seq("ID", "Name", "Events", "Properties")
+        Seq("ID", "Name", "OnlyInSecondPerson", "Events", "Properties")
     }
 
     it should s"list all paths of depth 2, given a base path ($fileName)" in {
       (persons atPath "Person").subPathsDepth(2) shouldBe
-        Seq("ID", "Name", "Events", "Events/@count", "Events/Birth", "Events/Death", "Properties",
+        Seq("ID", "Name", "OnlyInSecondPerson", "Events", "Events/@count", "Events/Birth", "Events/Death", "Properties",
           "Properties/Property")
     }
 
@@ -154,6 +193,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     xmlSource("persons.xml", "").retrievePaths("Person").map(tp => tp.toUntypedPath.normalizedSerialization -> tp.valueType -> tp.isAttribute) shouldBe IndexedSeq(
       "ID" -> ValueType.STRING -> false,
       "Name" -> ValueType.STRING -> false,
+      "OnlyInSecondPerson" -> ValueType.STRING -> false,
       "Events" -> ValueType.URI -> false,
       "Events/@count" -> ValueType.STRING -> true,
       "Events/Birth" -> ValueType.STRING -> false,
@@ -168,6 +208,7 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     xmlSource("persons.xml", "", "Person").retrievePaths("").map(tp => tp.toUntypedPath.normalizedSerialization -> tp.valueType -> tp.isAttribute) shouldBe IndexedSeq(
       "ID" -> ValueType.STRING -> false,
       "Name" -> ValueType.STRING -> false,
+      "OnlyInSecondPerson" -> ValueType.STRING -> false,
       "Events" -> ValueType.URI -> false,
       "Events/@count" -> ValueType.STRING -> true,
       "Events/Birth" -> ValueType.STRING -> false,
@@ -181,6 +222,20 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     )
   }
 
+  it should "generate default URIs for attribute object paths" in {
+    val uris = (XmlDoc("persons.xml", "") atPath "Person/Events/@count").uris
+    uris should not be empty
+    uris.head should include ("count")
+    (XmlDoc("persons.xml") atPath "Person/Events/@count").uris shouldBe Seq("attr_count")
+  }
+
+  it should "return the concatenated text for nested elements for the #text operator" in {
+    (XmlDoc("persons.xml") atPath "Person" valuesAt "Properties/Property/#text") shouldBe Seq(Seq(
+      "\n        1\n        V1\n      ",
+      "\n        2\n        V2\n      ",
+      "\n        \n        V3\n      "
+    ), Seq())
+  }
 
   /**
     * References an XML document from the test resources.

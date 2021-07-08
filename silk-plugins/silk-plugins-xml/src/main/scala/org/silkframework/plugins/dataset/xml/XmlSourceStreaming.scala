@@ -1,13 +1,9 @@
 package org.silkframework.plugins.dataset.xml
 
-import java.io.InputStream
-import java.util.concurrent.atomic.AtomicInteger
-
-import javax.xml.stream.{XMLInputFactory, XMLStreamConstants, XMLStreamReader}
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
-import org.silkframework.entity.paths.{BackwardOperator, ForwardOperator, TypedPath, UntypedPath}
+import org.silkframework.entity.paths._
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
@@ -15,10 +11,12 @@ import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
 
+import java.io.InputStream
+import java.util.concurrent.atomic.AtomicInteger
+import javax.xml.stream.{XMLInputFactory, XMLStreamConstants, XMLStreamReader}
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
-import scala.xml._
 
 /**
   * XML streaming source.
@@ -107,7 +105,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     val inputStream = file.inputStream
     try {
       val reader: XMLStreamReader = initStreamReader(inputStream)
-      goToPath(reader, UntypedPath.parse(typeUri.uri))
+      goToFirstEntity(reader, UntypedPath.parse(typeUri.uri))
       val paths = collectPaths(reader, UntypedPath.empty, onlyLeafNodes = onlyLeafNodes, onlyInnerNodes = onlyInnerNodes, depth).toIndexedSeq
       limit match {
         case Some(value) => paths.take(value)
@@ -140,10 +138,16 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
           val inputStream = file.inputStream
           try {
             val reader: XMLStreamReader = initStreamReader(inputStream)
-            goToPath(reader, UntypedPath.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath)
+            val entityPath = UntypedPath.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath
+            val entityPathSegments = PathSegments(entityPath)
+            var hasNext = goToFirstEntity(reader, entityPath)
             var count = 0
-            do {
-              val node = buildNode(reader)
+            while(hasNext && limit.forall(count < _)) {
+              val node = if(entityPathSegments.endsWithAttribute) {
+                buildAttributeNode(reader, entityPathSegments.pathSegment(entityPathSegments.nrPathSegments - 1).forwardOp.get.property.uri)
+              } else {
+                buildNode(reader)
+              }
               val traverser = XmlTraverser(node)
 
               val uri = traverser.generateUri(uriPattern)
@@ -151,14 +155,14 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
 
               f(Entity(uri, values, entitySchema))
 
-              goToNextEntity(reader, node.label)
+              hasNext = goToNextEntity(reader, entityPathSegments, entityPathSegments.nrPathSegments - 1)
               count += 1
 
-            } while (reader.isStartElement && limit.forall(count < _))
+            }
           } catch {
             case _: PathNotExistsException =>
               // do nothing, no entity will be output
-          }finally {
+          } finally {
             inputStream.close()
           }
         }
@@ -168,56 +172,154 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
   }
 
   /**
-    * Moves the parser to a given path.
-    * On return, the parser will be positioned on the first start element with the given path.
+    * Moves the parser to the first match of the given path.
+    * When returning true, the parser will be positioned on the first start element with the given path.
+    * When returning false, no entity with that path has been found.
     * If the path is empty, the base path will be used.
+    *
     */
-  private def goToPath(reader: XMLStreamReader, rootPath: UntypedPath): Unit = {
+  private def goToFirstEntity(reader: XMLStreamReader, rootPath: UntypedPath): Boolean = {
     val path = if(rootPath.isEmpty) UntypedPath.parse(basePath) else rootPath
-    assert(path.operators.forall(_.isInstanceOf[ForwardOperator]), "Only forward operators are supported.")
+    checkObjectPath(path)
 
-    var remainingOperators = path.operators
-    while(reader.hasNext && remainingOperators.nonEmpty) {
-      reader.next()
-      val tagName = remainingOperators.head.asInstanceOf[ForwardOperator].property.uri
-      if(reader.isStartElement && reader.getLocalName == tagName) {
-        remainingOperators = remainingOperators.drop(1)
-      }
-    }
-
-    if(remainingOperators.nonEmpty) {
-      throw new PathNotExistsException(s"No elements at path $path.")
-    }
+    val pathSegments = PathSegments(path)
+    goToNextEntity(reader, pathSegments, initialPathSegmentIdx = 0)
   }
-
-  class PathNotExistsException(msg: String) extends Exception(msg: String)
 
   /**
     * Moves the parser to the next element with the provided name on the same hierarchy level.
+    *
+    * @param entityPathSegments    The entity path leading to the entity.
+    * @param initialPathSegmentIdx The path segment the XML stream reader is currently positioned at.
     * @return True, if another element was found. The parser will be positioned on the start element.
     *         False, if the end of the file has been reached.
     */
-  private def goToNextEntity(reader: XMLStreamReader, name: String): Boolean = {
-    var backwardPath = Seq[String]()
-
+  private def goToNextEntity(reader: XMLStreamReader,
+                             entityPathSegments: PathSegments,
+                             initialPathSegmentIdx: Int): Boolean = {
+    var pathSegmentIdx = initialPathSegmentIdx
+    def currentPathSegment(): entityPathSegments.PathSegment = entityPathSegments.pathSegment(pathSegmentIdx)
     while(reader.hasNext) {
-      if(reader.isStartElement && backwardPath.isEmpty && reader.getLocalName == name) {
-        return true
-      } else if(reader.isStartElement && backwardPath.nonEmpty && backwardPath.head == reader.getLocalName) {
-        backwardPath = backwardPath.drop(1)
-        reader.next()
-      } else if(reader.isStartElement) {
-        skipElement(reader)
+      if(reader.isStartElement) {
+        if(currentPathSegment().matches(reader)) {
+          if(pathSegmentIdx == entityPathSegments.nrPathSegments - 1) {
+            // All path segments were matching, found element.
+            return true
+          } else {
+            if(pathSegmentIdx != entityPathSegments.nrPathSegments - 2 || !entityPathSegments.pathSegment(entityPathSegments.nrPathSegments - 1).isAttribute) {
+              // If the next path segment is the last and an attribute, do not forward the reader.
+              reader.next()
+            }
+            // Last path segment was matching, check next one
+            pathSegmentIdx += 1
+          }
+        } else {
+          // Path element was not matching, check next sibling
+          skipElement(reader)
+          // skipElement already calls reader.next() at the end, so this is not needed here.
+        }
       } else if(reader.isEndElement) {
-        backwardPath = reader.getLocalName +: backwardPath
+        pathSegmentIdx -= 1
         reader.next()
       } else {
         reader.next()
       }
     }
-
+    // Document end, no further entity can be found.
     false
   }
+
+  /** Representation of a path that groups together forward op with related property filters. */
+  case class PathSegments(entityPath: UntypedPath) {
+    checkObjectPath(entityPath)
+
+    /** The number of path segments. */
+    // The root element counts a +1.
+    val nrPathSegments: Int = entityPath.operators.count(_.isInstanceOf[ForwardOperator]) + 1
+
+    /** Each path segment consists of a forward path followed by arbitrarily many property filters,
+      * except for the first (root) segment, which can only have property filters. */
+    private val pathSegments: Array[PathSegment] = {
+      val arr = new Array[PathSegment](nrPathSegments)
+      var counter = 0
+      // Init root segment
+      arr(0) = PathSegment(None)
+      for(op <- entityPath.operators) {
+        op match {
+          case fp: ForwardOperator =>
+            counter += 1
+            arr(counter) = PathSegment(Some(fp))
+          case pf: PropertyFilter =>
+            arr(counter) = arr(counter).copy(pathFilters = arr(counter).pathFilters :+ pf)
+        }
+      }
+      arr
+    }
+
+    def pathSegment(idx: Int): PathSegment = {
+      pathSegments(idx)
+    }
+
+    def endsWithAttribute: Boolean = pathSegments.last.isAttribute
+
+    /**
+      * A path segment groups a forward operator with its related property filters.
+      *
+      * @param forwardOp   An optional forward operator. This is only None for the root segment.
+      * @param pathFilters Path filters that are applied after the corresponding forward operator.
+      */
+    case class PathSegment(forwardOp: Option[ForwardOperator], pathFilters: Seq[PropertyFilter] = Seq.empty) {
+      /** Checks if the path segment matches the current element of the XML reader. */
+      def matches(reader: XMLStreamReader): Boolean = {
+        assert(reader.isStartElement)
+        val opMatch = forwardOp map { op =>
+          if(isAttribute) {
+            attributeValue(reader, op.property.uri.stripPrefix("@")).isDefined
+          } else {
+            op.property.uri == reader.getLocalName
+          }
+        }
+        val filterMatch = pathFilters.forall(pf => propertyFilterApplies(reader, pf))
+        opMatch.getOrElse(true) && filterMatch
+      }
+
+      /** Returns true if the forward operator contains an attribute property. */
+      def isAttribute: Boolean = {
+        forwardOp.exists(_.property.uri.startsWith("@"))
+      }
+    }
+  }
+
+  /** Returns the attribute value from the current element of the stream reader. It assumes that it's placed on a start element. */
+  private def attributeValue(reader: XMLStreamReader, attributeName: String): Option[String] = {
+    val attributeValues = for(i <- 0 until reader.getAttributeCount if reader.getAttributeName(i).getLocalPart == attributeName) yield {
+      reader.getAttributeValue(i)
+    }
+    attributeValues.headOption
+  }
+
+  // Evaluate property filter on the current element
+  private def propertyFilterApplies(reader: XMLStreamReader, propertyFilter: PropertyFilter): Boolean = {
+    val filterAttributeName = propertyFilter.property.uri.stripPrefix("@")
+    reader.isStartElement &&
+      attributeValue(reader, filterAttributeName).exists(value => propertyFilter.evaluate(s""""$value""""))
+  }
+
+  private def checkObjectPath(path: UntypedPath): Unit = {
+    val validationRules = Seq[(String, Boolean)](
+      "Only forward operators and property filters on attributes are supported." ->
+        path.operators.forall(op => op.isInstanceOf[ForwardOperator] ||
+          (op.isInstanceOf[PropertyFilter] && op.asInstanceOf[PropertyFilter].property.uri.startsWith("@")))
+        ,
+        "No #text path allowed inside object path with streaming mode enabled." ->
+          path.operators.filter(_.isInstanceOf[PropertyFilter]).forall(_.asInstanceOf[PropertyFilter].property.uri != "#text")
+    )
+    for((assertErrorMessage, assertionValue) <- validationRules) {
+      assert(assertionValue, assertErrorMessage)
+    }
+  }
+
+  class PathNotExistsException(msg: String) extends Exception(msg: String)
 
   /**
     * Collects all paths inside the current element.
@@ -297,10 +399,17 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     }
   }
 
-  private def fetchAttributePaths(reader: XMLStreamReader, path: UntypedPath) = {
+  private def fetchAttributePaths(reader: XMLStreamReader, path: UntypedPath): IndexedSeq[TypedPath] = {
     for (attributeIndex <- 0 until reader.getAttributeCount) yield {
       TypedPath(path ++ UntypedPath("@" + reader.getAttributeLocalName(attributeIndex)), ValueType.STRING, isAttribute = true)
     }
+  }
+
+  private def buildAttributeNode(reader: XMLStreamReader, attributeName: String): InMemoryXmlNode = {
+    val value = attributeValue(reader, attributeName.stripPrefix("@"))
+    assert(value.isDefined, s"Cannot build attribute node for missing attribute '$attributeName'.")
+    reader.next()
+    InMemoryXmlAttribute(attributeName, value.get)
   }
 
   /**
@@ -351,24 +460,16 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
 
     // Move to first child element
     reader.next()
-
-    // If this is an empty tag, we return immediately
-    if(reader.isEndElement) {
-      reader.next()
-      return
-    }
-
-    // Skip contents
-    do {
+    // Counts the number of elements started
+    var elementStartedCount = 1
+    while(elementStartedCount > 0) {
       if(reader.isStartElement) {
-        skipElement(reader)
-      } else {
-        reader.next()
+        elementStartedCount += 1
+      } else if(reader.isEndElement) {
+        elementStartedCount -= 1
       }
-    } while(!reader.isEndElement)
-
-    // Move to element that follows the skipped element
-    reader.next()
+      reader.next()
+    }
   }
 
   /**
@@ -398,10 +499,17 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     paths.put(Nil, 0)
     val idx = new AtomicInteger(1)
     var currentPath = List[String]()
-
     val inputStream = file.inputStream
     try {
       val reader: XMLStreamReader = initStreamReader(inputStream)
+      def collectAttributes(): Unit = {
+        for (attributeIndex <- 0 until reader.getAttributeCount) yield {
+          val attributePath = "@" + reader.getAttributeLocalName(attributeIndex) :: currentPath
+          addIfNotExists(paths, idx, attributePath)
+          collectValues(attributePath.dropRight(basePathLength), reader.getAttributeValue(attributeIndex))
+        }
+      }
+      if (basePathMatches(currentPath)) { collectAttributes() }
       var readNext = true
       var eventId = reader.getEventType
       while(reader.hasNext && paths.size < limit) {
@@ -417,11 +525,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
             currentPath ::= reader.getLocalName
             if (basePathMatches(currentPath)) {
               addIfNotExists(paths, idx, currentPath)
-              for (attributeIndex <- 0 until reader.getAttributeCount) yield {
-                val attributePath = "@" + reader.getAttributeLocalName(attributeIndex) :: currentPath
-                addIfNotExists(paths, idx, attributePath)
-                collectValues(attributePath.dropRight(basePathLength), reader.getAttributeValue(attributeIndex))
-              }
+              collectAttributes()
             }
             val text = Try(reader.getElementText)
             text foreach { elemText =>
