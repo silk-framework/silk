@@ -1,7 +1,7 @@
 package controllers.workspaceApi.search
 
 import controllers.util.TextSearchUtils
-import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
@@ -200,8 +200,11 @@ object SearchApiModel {
   /** The result of a faceted search. */
   @Schema(description = "The result list as well as the list of potential facets for the currently selected task type.")
   case class FacetedSearchResult(total: Int,
+                                 @ArraySchema(schema = new Schema(implementation = classOf[Object]))
                                  results: Seq[JsObject],
+                                 @ArraySchema(schema = new Schema(implementation = classOf[SortableProperty]))
                                  sortByProperties: Seq[SortableProperty],
+                                 @ArraySchema(schema = new Schema(implementation = classOf[FacetResult]))
                                  facets: Seq[FacetResult])
 
   lazy implicit val facetedSearchResult: Writes[FacetedSearchResult] = Json.writes[FacetedSearchResult]
@@ -263,7 +266,7 @@ object SearchApiModel {
                                   )
                                   sortOrder: Option[SortOrder.Value] = None,
                                   @Schema(
-                                    description = "Defines what facets are set to which values. The 'keyword' facet allows multiple values to be set..",
+                                    description = "Defines what facets are set to which values. The 'keyword' facet allows multiple values to be set.",
                                     required = false,
                                     nullable = true
                                   )

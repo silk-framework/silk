@@ -8,7 +8,8 @@ import java.net.URLDecoder
 import scala.util.Try
 
 /** The base properties of an auto-completion result. */
-case class CompletionsBase(completions: Seq[CompletionBase])
+case class CompletionsBase(@ArraySchema(schema = new Schema(implementation = classOf[CompletionBase]))
+                           completions: Seq[CompletionBase])
 
 object CompletionsBase {
   implicit val completionsBaseFormat: Format[CompletionsBase] = Json.format[CompletionsBase]

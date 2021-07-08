@@ -1,6 +1,7 @@
 package controllers.workspaceApi.search
 
 import controllers.workspaceApi.search.SearchApiModel.{Facet, FacetSetting, KeywordFacetSetting}
+import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.{LinkSpec, TransformSpec}
@@ -212,6 +213,7 @@ case class FacetResult(id: String,
                        label: String,
                        description: String,
                        `type`: String,
+                       @ArraySchema(schema = new Schema(implementation = classOf[FacetValue]))
                        values: Seq[FacetValue])
 
 /** Single Value of a specific facet. */
