@@ -133,7 +133,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
   }
 
   @Operation(
-    summary = "Mapping rule target types",
+    summary = "Mapping rule partial source paths",
     description = "Returns auto-completion suggestions based on a complex path expression (including backward paths and filters) and the cursor position. The results may only replace a part of the original input string.",
     responses = Array(
       new ApiResponse(
@@ -558,7 +558,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
   }
 
   @Operation(
-    summary = "Mapping rule target types",
+    summary = "Mapping rule value types",
     description = "Given a search term, returns possible completions for value types.",
     responses = Array(
       new ApiResponse(
