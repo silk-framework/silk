@@ -16,12 +16,11 @@ import errorSelector from "@ducks/error/selectors";
 export function NotificationsMenu() {
     // condition: first message in array is handled as latest message, otherwise reverse it first
     const { clearErrors } = useErrorHandler();
-    // const [startTime, updateStartTime] = useState<number>(Date.now());
     const [displayNotifications, setDisplayNotifications] = useState<boolean>(false);
     const [displayLastNotification, setDisplayLastNotification] = useState<boolean>(false);
     const { errors } = useSelector(errorSelector);
     //first message is the latest entry based on the timestamp
-    const messages = errors.sort((a, b) => b.timestamp - a.timestamp);
+    const messages = errors.slice().sort((a, b) => b.timestamp - a.timestamp); //https://stackoverflow.com/questions/53420055/
 
     useEffect(() => {
         if (messages.length) {
@@ -29,12 +28,13 @@ export function NotificationsMenu() {
         } else {
             setDisplayLastNotification(false);
         }
-    }, [messages]);
+    }, [messages.map((e) => e.timestamp).join("|")]);
 
     /***** remove all messages *****/
     const removeMessages = (errorId?: string) => {
         errorId ? clearErrors([errorId]) : clearErrors();
         setDisplayNotifications(false);
+        setDisplayLastNotification(false);
     };
 
     const toggleNotifications = () => {
