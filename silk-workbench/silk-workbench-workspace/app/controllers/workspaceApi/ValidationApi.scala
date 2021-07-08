@@ -24,7 +24,7 @@ class ValidationApi @Inject() () extends InjectedController with UserContextActi
     * Also validate prefix names that they have a valid prefix. */
   @Operation(
     summary = "Source path validation",
-    description = "Returns status information of a set of task activities. By default all task activities are returned.",
+    description = "Validates the syntax of a provided path string.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
