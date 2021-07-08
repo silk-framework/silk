@@ -4,6 +4,7 @@ import controllers.openapi.routes.OpenApi
 import controllers.swaggerUi.routes.SwaggerUi
 import org.silkframework.openapi.OpenApiValidator
 import org.silkframework.runtime.validation.BadUserInputException
+import play.api.libs.json.Json
 import play.api.mvc.{Action, _}
 
 import javax.inject.Inject
@@ -33,6 +34,11 @@ class SwaggerUi @Inject()(cc: ControllerComponents)(implicit executionContext: E
   }
 
   def validatorDebug(url: Option[String]): Action[AnyContent] = Action { implicit request =>
-    Redirect(OpenApi.validate(url).absoluteURL())
+    url match {
+      case Some(u) =>
+        Redirect(OpenApi.validate(u).absoluteURL())
+      case None =>
+        throw new BadUserInputException("Parameter 'url' is missing.")
+    }
   }
 }

@@ -2,24 +2,23 @@ package controllers.openapi
 
 import akka.util.ByteString
 import io.aurora.utils.play.swagger.SwaggerPlugin
-import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.openapi.{OpenApiGenerator, OpenApiValidator, ValidationResult}
-import org.silkframework.runtime.validation.BadUserInputException
 import play.api.http.ContentTypes
 import play.api.libs.json.Json
-import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents, Results}
+import play.api.mvc._
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 @Tag(name = "OpenAPI", description = "Retrieve this OpenAPI specification.")
 class OpenApi @Inject()(cc: ControllerComponents,
-                        swaggerPlugin: SwaggerPlugin,
-                                 )(implicit executionContext: ExecutionContext) extends AbstractController(cc) {
+                        swaggerPlugin: SwaggerPlugin)
+                       (implicit executionContext: ExecutionContext) extends AbstractController(cc) {
 
   private val AccessControlAllowOrigin: (String, String) = ("Access-Control-Allow-Origin", "*")
 
@@ -78,21 +77,15 @@ class OpenApi @Inject()(cc: ControllerComponents,
       ))
   )
   def validate(@Parameter(
-    name = "url",
-    description = "The URL of the OpenAPI specification",
-    required = true,
-    in = ParameterIn.QUERY,
-    schema = new Schema(implementation = classOf[String])
-  )
-               url: Option[String]): Action[AnyContent] = Action { implicit request =>
-    url match {
-      case Some(url) =>
-        val result = OpenApiValidator.validate(url)
-        Ok(Json.toJson(result))
-      case None =>
-        throw new BadUserInputException("Parameter 'url' is missing.")
-    }
-
+                 name = "url",
+                 description = "The URL of the OpenAPI specification",
+                 required = true,
+                 in = ParameterIn.QUERY,
+                 schema = new Schema(implementation = classOf[String])
+               )
+               url: String): Action[AnyContent] = Action { implicit request =>
+    val result = OpenApiValidator.validate(url)
+    Ok(Json.toJson(result))
   }
 
 }
