@@ -3,7 +3,7 @@ import {
     AutoCompleteField,
     IAutoCompleteFieldProps,
 } from "../../../../src/libs/gui-elements/src/components/AutocompleteField/AutoCompleteField";
-import { addDocumentCreateRangeMethod, changeValue, findSingleElement, testWrapper, withMount } from "../../TestHelper";
+import { addDocumentCreateRangeMethod, findSingleElement, testWrapper, withMount } from "../../TestHelper";
 import { waitFor } from "@testing-library/react";
 
 describe("AutoComplete", () => {

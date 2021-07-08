@@ -82,7 +82,6 @@ describe("Related items", () => {
         expect(shownRelatedItems).toHaveLength(DEFAULT_PAGE_SIZE);
         shownRelatedItems.forEach((elem, idx) => {
             expect(findSingleElement(elem, ".eccgui-link").text()).toBe(`${ITEM_PREFIX + idx} label`);
-            logWrapperHtml(wrapper);
             expect(findAll(elem, ".eccgui-tag__item").map((tag) => tag.text())).toStrictEqual([
                 "testPlugin",
                 "Dataset",
