@@ -37,10 +37,14 @@ export function NotificationsMenu() {
         }
     }, [messages.length > 0 ? messages[0] : undefined]);
 
-    /***** remove all messages *****/
+    /***** remove one or all messages *****/
     const removeMessages = (error?: DIErrorFormat) => {
-        error ? clearErrors([error.id]) : clearErrors();
-        setDisplayNotifications(false);
+        if (error) {
+            clearErrors([error.id]);
+        } else {
+            clearErrors();
+            setDisplayNotifications(false);
+        }
     };
 
     const toggleNotifications = () => {
