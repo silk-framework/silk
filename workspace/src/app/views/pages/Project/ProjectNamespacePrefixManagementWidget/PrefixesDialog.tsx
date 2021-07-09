@@ -11,13 +11,14 @@ import Loading from "../../../shared/Loading";
 import { useTranslation } from "react-i18next";
 
 interface IProps {
+    projectId: string;
     onCloseModal: () => any;
     isOpen: boolean;
     existingPrefixes: Set<string>;
 }
 
 /** Manages project prefix definitions. */
-const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes }: IProps) => {
+const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: IProps) => {
     const dispatch = useDispatch();
 
     const prefixList = useSelector(workspaceSel.prefixListSelector);
@@ -25,14 +26,14 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes }: IProps) => {
     const { isLoading } = configWidget;
 
     const [isOpenRemove, setIsOpenRemove] = useState<boolean>(false);
-    const [selectedPrefix, setSelectedPrefix] = useState<IPrefixDefinition>(null);
+    const [selectedPrefix, setSelectedPrefix] = useState<IPrefixDefinition | undefined>(undefined);
 
     const [t] = useTranslation();
 
     const toggleRemoveDialog = (prefix?: IPrefixDefinition) => {
         if (!prefix || isOpenRemove) {
             setIsOpenRemove(false);
-            setSelectedPrefix(null);
+            setSelectedPrefix(undefined);
         } else {
             setIsOpenRemove(true);
             setSelectedPrefix(prefix);
@@ -41,14 +42,14 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes }: IProps) => {
 
     const handleConfirmRemove = () => {
         if (selectedPrefix) {
-            dispatch(workspaceOp.fetchRemoveProjectPrefixAsync(selectedPrefix.prefixName));
+            dispatch(workspaceOp.fetchRemoveProjectPrefixAsync(selectedPrefix.prefixName, projectId));
         }
         toggleRemoveDialog();
     };
 
     const handleAddOrUpdatePrefix = (prefix: IPrefixDefinition) => {
         const { prefixName, prefixUri } = prefix;
-        dispatch(workspaceOp.fetchAddOrUpdatePrefixAsync(prefixName, prefixUri));
+        dispatch(workspaceOp.fetchAddOrUpdatePrefixAsync(prefixName, prefixUri, projectId));
     };
 
     return (

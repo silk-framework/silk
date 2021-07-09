@@ -15,7 +15,6 @@ import {
     OverviewItemLine,
     Spacing,
     Tag,
-    Tooltip,
 } from "@gui-elements/index";
 import { routerOp } from "@ducks/router";
 import { useDispatch, useSelector } from "react-redux";
@@ -28,7 +27,8 @@ import { IExportTypes } from "@ducks/common/typings";
 import { downloadProject } from "../../../utils/downloadProject";
 import { useTranslation } from "react-i18next";
 import ItemDepiction from "../../shared/ItemDepiction";
-import { useIFrameWindowLinks } from "../IframeWindow/iframewindowHooks";
+import { useProjectTabsView } from "../projectTaskTabView/projectTabsViewHooks";
+import { wrapTooltip } from "../../../utils/uiUtils";
 
 interface IProps {
     item: ISearchResultsServer;
@@ -46,6 +46,8 @@ interface IProps {
     parentProjectId?: string;
 }
 
+export const searchItemLabel = (item: ISearchResultsServer) => item.label || item.id;
+
 export default function SearchItem({
     item,
     searchValue,
@@ -58,10 +60,11 @@ export default function SearchItem({
     const dispatch = useDispatch();
     const exportTypes = useSelector(commonSel.exportTypesSelector);
     const [t] = useTranslation();
+    const itemLinks = item.itemLinks ?? [];
     // Remove detailsPath
-    const itemLinks = item.itemLinks.slice(1);
-    const { iframeWindow, toggleIFrameLink } = useIFrameWindowLinks(itemLinks);
-    const contextMenuItems = itemLinks.map((link) => (
+    const menuItemLinks = itemLinks.slice(1);
+    const { projectTabView, toggleIFrameLink } = useProjectTabsView(menuItemLinks);
+    const contextMenuItems = menuItemLinks.map((link) => (
         <MenuItem
             key={link.path}
             text={t("common.legacyGui." + link.label, link.label)}
@@ -70,7 +73,7 @@ export default function SearchItem({
                 toggleIFrameLink({
                     path: link.path,
                     label: link.label,
-                    itemType: null,
+                    itemType: undefined,
                 })
             }
         />
@@ -92,9 +95,9 @@ export default function SearchItem({
 
     const goToDetailsPage = (e) => {
         // Only open page in same tab if user did not try to open in new tab
-        if (!e?.ctrlKey) {
+        if (!e?.ctrlKey && itemLinks.length > 0) {
             e.preventDefault();
-            const detailsPath = item.itemLinks[0].path;
+            const detailsPath = itemLinks[0].path;
             const labels: IPageLabels = {};
             if (item.type === DATA_TYPES.PROJECT) {
                 labels.projectLabel = item.label;
@@ -110,17 +113,7 @@ export default function SearchItem({
         downloadProject(item.id, type.id);
     };
 
-    const wrapTooltip = (wrap: boolean, childTooltip: string, child: JSX.Element): JSX.Element => {
-        if (wrap) {
-            return (
-                <Tooltip content={childTooltip} position="bottom-left">
-                    {child}
-                </Tooltip>
-            );
-        } else {
-            return child;
-        }
-    };
+    const projectOrDataset = item.type === "dataset" || item.type === "project";
 
     return (
         <Card isOnlyLayout>
@@ -132,11 +125,11 @@ export default function SearchItem({
                     <OverviewItemLine>
                         <h4>
                             <ResourceLink
-                                url={!!item.itemLinks.length ? item.itemLinks[0].path : false}
-                                handlerResourcePageLoader={!!item.itemLinks.length ? goToDetailsPage : false}
+                                url={!!itemLinks.length ? itemLinks[0].path : false}
+                                handlerResourcePageLoader={!!itemLinks.length ? goToDetailsPage : false}
                             >
                                 <OverflowText>
-                                    <Highlighter label={item.label || item.id} searchValue={searchValue} />
+                                    <Highlighter label={searchItemLabel(item)} searchValue={searchValue} />
                                 </OverflowText>
                             </ResourceLink>
                         </h4>
@@ -151,9 +144,17 @@ export default function SearchItem({
                         </OverflowText>
                     </OverviewItemLine>
                     <OverviewItemLine small>
-                        {(item.type === "dataset" || item.type === "project") && (
+                        {item.pluginLabel && (
                             <>
-                                <Tag small>
+                                <Tag>
+                                    <Highlighter label={item.pluginLabel} searchValue={searchValue} />
+                                </Tag>
+                                {projectOrDataset && <Spacing vertical size="tiny" />}
+                            </>
+                        )}
+                        {projectOrDataset && (
+                            <>
+                                <Tag>
                                     <Highlighter
                                         label={t(
                                             "widget.Filterbar.subsections.valueLabels.itemType." + item.type,
@@ -162,20 +163,12 @@ export default function SearchItem({
                                         searchValue={searchValue}
                                     />
                                 </Tag>
-                                <Spacing vertical size="tiny" />
-                            </>
-                        )}
-                        {item.pluginLabel && (
-                            <>
-                                <Tag small>
-                                    <Highlighter label={item.pluginLabel} searchValue={searchValue} />
-                                </Tag>
                             </>
                         )}
                         {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
                             <>
                                 <Spacing vertical size="tiny" />
-                                <Tag emphasis="weak" small>
+                                <Tag emphasis="weak">
                                     <Highlighter
                                         label={item.projectLabel ? item.projectLabel : item.projectId}
                                         searchValue={searchValue}
@@ -192,12 +185,12 @@ export default function SearchItem({
                         text={t("common.action.clone", "Clone")}
                         onClick={onOpenDuplicateModal}
                     />
-                    {!!item.itemLinks.length && (
+                    {!!itemLinks.length && (
                         <IconButton
                             name="item-viewdetails"
                             text={t("common.action.showDetails", "Show details")}
                             onClick={goToDetailsPage}
-                            href={item.itemLinks[0].path}
+                            href={itemLinks[0].path}
                         />
                     )}
                     <ContextMenu
@@ -229,7 +222,7 @@ export default function SearchItem({
                             text={t("common.action.showDetails", "Show details")}
                             key="view"
                             onClick={goToDetailsPage}
-                            href={item.itemLinks[0].path}
+                            href={itemLinks[0].path}
                         />
                         <MenuItem
                             data-test-id={"open-duplicate-modal"}
@@ -240,7 +233,7 @@ export default function SearchItem({
                     </ContextMenu>
                 </OverviewItemActions>
             </OverviewItem>
-            {iframeWindow}
+            {projectTabView}
         </Card>
     );
 }

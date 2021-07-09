@@ -8,14 +8,15 @@ import { AppToaster } from "../../../services/toaster";
 import { DATA_TYPES } from "../../../constants";
 import Metadata from "../../shared/Metadata";
 import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
-import { IframeWindow } from "../../shared/IframeWindow/IframeWindow";
+import { ProjectTaskTabView } from "../../shared/projectTaskTabView/ProjectTaskTabView";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
 import NotFound from "../NotFound";
+import { ProjectTaskParams } from "views/shared/typings";
 
 export default function () {
     const error = useSelector(datasetSel.errorSelector);
-    const { taskId, projectId } = useParams();
+    const { taskId, projectId } = useParams<ProjectTaskParams>();
     const [notFound, setNotFound] = useState(false);
 
     useEffect(() => {
@@ -34,6 +35,17 @@ export default function () {
         autogeneratePageTitle: true,
     });
 
+    // View action that should be triggered when a workflow is saved
+    const onSave = () => {
+        window.top.postMessage(
+            JSON.stringify({
+                id: "workflowSaved",
+                message: "Workflow updated",
+            }),
+            "*"
+        );
+    };
+
     return notFound ? (
         <NotFound />
     ) : (
@@ -50,7 +62,13 @@ export default function () {
                 <Section>
                     <Metadata />
                     <Spacing />
-                    <IframeWindow iFrameName={"detail-page-iframe"} />
+                    <ProjectTaskTabView
+                        iFrameName={"detail-page-iframe"}
+                        taskViewConfig={{ pluginId: "workflow", projectId, taskId }}
+                        viewActions={{
+                            onSave,
+                        }}
+                    />
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>

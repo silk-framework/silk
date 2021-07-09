@@ -190,6 +190,7 @@
             "replace": "Replace",
             "resetSelection": "Reset selection",
             "retry": "Retry",
+            "save": "Save",
             "showDetails": "Show details",
             "submit": "Submit",
             "update": "Update",
@@ -417,6 +418,29 @@
         "WarningWidget": {
             "loading": "Loading log messages.",
             "title": "Error log"
+        }
+    },
+    "WorkflowEditor": {
+        "header": {
+            "saveBtnTooltip": "Save the current state of the workflow"
+        },
+        "edge": {
+            "menu": {
+                "delete": {
+                    "label": "Remove edge",
+                    "tooltip": "Removes the edge. Alternatively you can delete (multiple) selected workflow elements by pressing the [←] (backspace) key on the keyboard."
+                }
+            }
+        },
+        "node": {
+            "menu": {
+                "remove": {
+                    "label": "Remove node"
+                }
+            }
+        },
+        "warnings": {
+            "unsavedChanges": "There are unsaved changes. Do you still want to close the workflow editor?"
         }
     }
 }

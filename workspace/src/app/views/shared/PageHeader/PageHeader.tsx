@@ -66,7 +66,7 @@ function PageHeaderPortal({ children }: any) {
         }
     });
 
-    return portalEnabled ? ReactDOM.createPortal(<>{children}</>, portalTarget) : <></>;
+    return portalEnabled && portalTarget ? ReactDOM.createPortal(<>{children}</>, portalTarget) : <></>;
 }
 
 function PageHeaderContent({
@@ -88,7 +88,7 @@ function PageHeaderContent({
 
     const generatedPageTitle =
         autogeneratePageTitle && breadcrumbs && breadcrumbs.length > 0
-            ? breadcrumbs[breadcrumbs.length - 1].text.toString()
+            ? (breadcrumbs[breadcrumbs.length - 1].text ?? "").toString()
             : "";
 
     const renderWindowTitle = () => {
@@ -107,7 +107,7 @@ function PageHeaderContent({
     };
 
     const getDepictionIcons = () => {
-        const iconNames = [];
+        const iconNames: string[] = [];
         if (!!type) {
             iconNames.push("artefact-" + type.toLowerCase());
         }

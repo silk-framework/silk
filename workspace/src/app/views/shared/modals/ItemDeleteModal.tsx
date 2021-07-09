@@ -4,13 +4,12 @@ import { Loading } from "../Loading/Loading";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 import { requestRemoveProject, requestRemoveTask } from "@ducks/workspace/requests";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
-import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { useTranslation } from "react-i18next";
-import { ITaskMetadataResponse } from "@ducks/shared/typings";
+import { IModalItem, ITaskMetadataResponse } from "@ducks/shared/typings";
 import { Spacing } from "@gui-elements/index";
 
 interface IProps {
-    item: Partial<ISearchResultsServer>;
+    item: IModalItem;
 
     onClose: () => void;
 
@@ -20,7 +19,7 @@ interface IProps {
 /** Modal for task deletion. */
 export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<ErrorResponse | null>(null);
+    const [error, setError] = useState<ErrorResponse | undefined>(undefined);
 
     const [deleteModalOptions, setDeleteModalOptions] = useState<
         (Partial<IDeleteModalOptions> & { onConfirm(): void }) | undefined
@@ -33,13 +32,13 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
 
     const handleConfirmRemove = (withDependentTaskDeletion: boolean) => async () => {
         const { id, projectId } = item;
-        setError(null);
+        setError(undefined);
         try {
             setLoading(true);
             if (id) {
                 await requestRemoveTask(id, projectId, withDependentTaskDeletion);
             } else {
-                await requestRemoveProject(projectId);
+                await requestRemoveProject(projectId as string);
             }
             onConfirmed && onConfirmed();
         } catch (e) {
@@ -71,7 +70,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
             const data =
                 item.projectId && item.id
                     ? (await requestTaskMetadata(item.id, item.projectId)).data
-                    : (await requestProjectMetadata(item.projectId)).data;
+                    : (await requestProjectMetadata(item.projectId as string)).data;
 
             // Skip check the relations for projects
             if (
@@ -128,7 +127,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
         }
     };
 
-    return (
+    return deleteModalOptions ? (
         <DeleteModal
             data-test-id={"deleteItemModal"}
             isOpen={true}
@@ -137,5 +136,5 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
             removeLoading={loading}
             errorMessage={error && `Deletion failed: ${error.asString()}`}
         />
-    );
+    ) : null;
 }

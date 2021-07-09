@@ -134,21 +134,21 @@ export function RecentlyViewedModal() {
                         </h4>
                     </OverviewItemLine>
                     <OverviewItemLine small>
-                        <Tag small>
-                            <Highlighter label={itemType(item)} searchValue={query} />
-                        </Tag>
-                        <Spacing vertical size="tiny" />
                         {(item.itemType === "dataset" || item.itemType === "task") && (
                             <>
-                                <Tag small>
+                                <Tag>
                                     <Highlighter label={item.pluginLabel} searchValue={query} />
                                 </Tag>
                                 <Spacing vertical size="tiny" />
                             </>
                         )}
+                        <Tag>
+                            <Highlighter label={itemType(item)} searchValue={query} />
+                        </Tag>
+                        <Spacing vertical size="tiny" />
                         {item.taskId && (
                             <>
-                                <Tag emphasis={"weak"} small>
+                                <Tag emphasis={"weak"}>
                                     <Highlighter
                                         label={item.projectLabel ? item.projectLabel : item.projectId}
                                         searchValue={query}
@@ -170,7 +170,7 @@ export function RecentlyViewedModal() {
         });
     };
     // Warning when an error has occurred
-    const errorView = () => {
+    const errorView = (error: ErrorResponse) => {
         return (
             <Notification danger>
                 <span>
@@ -224,7 +224,7 @@ export function RecentlyViewedModal() {
             title={t("RecentlyViewedModal.title")}
             actions={<Button onClick={close}>{t("common.action.close")}</Button>}
         >
-            {loading ? <Loading /> : error ? errorView() : recentlyViewedAutoCompletion()}
+            {loading ? <Loading /> : error ? errorView(error) : recentlyViewedAutoCompletion()}
         </SimpleDialog>
     );
 }

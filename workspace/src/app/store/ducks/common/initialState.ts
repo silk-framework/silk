@@ -17,8 +17,8 @@ export function initialArtefactModalState(): IArtefactModal {
 export function initialCommonState(): ICommonState {
     return {
         locale: Store.get("locale"),
-        currentProjectId: null,
-        currentTaskId: null,
+        currentProjectId: undefined,
+        currentTaskId: undefined,
         authenticated: true,
         searchQuery: "",
         error: {},

@@ -73,12 +73,10 @@ export interface IUploaderOptions {
      * if advanced is true, then show file uploader with multiple options
      * this option used in FileWidget for Task creation
      */
-    advanced?: boolean;
-
-    /**
-     * autocomplete option useful when advanced is true
-     */
-    autocomplete?: IAutoCompleteFieldProps<any, any>;
+    advanced?: {
+        // auto-completion of existing files
+        autocomplete: IAutoCompleteFieldProps<any, any>;
+    };
 
     /**
      * Called when:
@@ -86,7 +84,7 @@ export interface IUploaderOptions {
      * - Select resource from autocomplete
      * - Write new file name
      */
-    onChange?(value: File | string);
+    onChange(value: File | string);
 
     /** The max. file upload size in bytes. */
     maxFileUploadSizeBytes?: number;
@@ -240,7 +238,7 @@ export class FileSelectionMenu extends React.Component<IUploaderOptions, IState>
 
     render() {
         const { selectedFileMenu, showActionsMenu, inputFilename } = this.state;
-        const { allowMultiple, advanced, autocomplete, defaultValue, onProgress, projectId } = this.props;
+        const { allowMultiple, advanced, defaultValue, onProgress, projectId, onChange } = this.props;
 
         return (
             <div id={this.state.id}>
@@ -284,9 +282,9 @@ export class FileSelectionMenu extends React.Component<IUploaderOptions, IState>
                         )}
 
                         <div>
-                            {selectedFileMenu === "SELECT" && (
+                            {advanced && selectedFileMenu === "SELECT" && (
                                 <SelectFileFromExisting
-                                    autocomplete={autocomplete}
+                                    autocomplete={advanced.autocomplete}
                                     onChange={this.handleFileNameChange}
                                 />
                             )}
@@ -304,8 +302,8 @@ export class FileSelectionMenu extends React.Component<IUploaderOptions, IState>
                                     />
                                 </>
                             )}
-                            {selectedFileMenu === "EMPTY" && (
-                                <CreateNewFile onChange={this.props.onChange} confirmationButton={!!defaultValue} />
+                            {advanced && selectedFileMenu === "EMPTY" && (
+                                <CreateNewFile onChange={onChange} confirmationButton={!!defaultValue} />
                             )}
                         </div>
                     </>

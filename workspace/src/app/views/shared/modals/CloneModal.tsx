@@ -2,13 +2,13 @@ import React, { useEffect, useState } from "react";
 import { Button, FieldItem, Notification, SimpleDialog, Spacing, TextField } from "@gui-elements/index";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 import { requestCloneProject, requestCloneTask } from "@ducks/workspace/requests";
-import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { Loading } from "../Loading/Loading";
 import { useTranslation } from "react-i18next";
+import { IModalItem } from "@ducks/shared/typings";
 
 export interface ICloneOptions {
-    item: Partial<ISearchResultsServer>;
+    item: IModalItem;
 
     onDiscard(): void;
 
@@ -17,11 +17,11 @@ export interface ICloneOptions {
 
 export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptions) {
     // Value of the new label for the cloned project or task
-    const [newLabel, setNewLabel] = useState(item.label || item.id);
+    const [newLabel, setNewLabel] = useState(item.label || item.id || item.projectLabel || item.projectId);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<ErrorResponse | null>(null);
     // Label of the project or task that should be cloned
-    const [label, setLabel] = useState<string | null>(item.label);
+    const [label, setLabel] = useState<string | undefined>(item.label);
     const [t] = useTranslation();
 
     useEffect(() => {

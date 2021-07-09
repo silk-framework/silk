@@ -174,7 +174,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                             if (e) {
                                                 e.preventDefault();
                                             }
-                                            triggerHotkeyHandler(hotKeys.quickSearch);
+                                            triggerHotkeyHandler(hotKeys.quickSearch as string);
                                         }}
                                         icon={"operation-search"}
                                     />

@@ -1,22 +1,22 @@
 import { IItemLink } from "@ducks/shared/typings";
-import { IframeWindow } from "./IframeWindow";
+import { ProjectTaskTabView } from "./ProjectTaskTabView";
 import React, { useState } from "react";
 
 /** An I-frame supported version for item links. */
-export const useIFrameWindowLinks = (srcLinks: IItemLink[], startLink?: IItemLink) => {
+export const useProjectTabsView = (srcLinks: IItemLink[], startLink?: IItemLink) => {
     // active legacy link
     const [displayLegacyLink, setDisplayLegacyLink] = useState<IItemLink | undefined>(startLink);
-    // handler for link change
+    // handler for link change TODO: Add custom views
     const toggleIFrameLink = (linkItem?: IItemLink) => {
         setDisplayLegacyLink(linkItem);
     };
     const returnElement: JSX.Element | undefined = displayLegacyLink && (
-        <IframeWindow
+        <ProjectTaskTabView
             srcLinks={srcLinks.map((link) => {
                 return {
                     path: link.path,
                     label: link.label,
-                    itemType: null,
+                    itemType: undefined,
                 };
             })}
             startWithLink={displayLegacyLink}
@@ -24,5 +24,5 @@ export const useIFrameWindowLinks = (srcLinks: IItemLink[], startLink?: IItemLin
             handlerRemoveModal={() => toggleIFrameLink(undefined)}
         />
     );
-    return { iframeWindow: returnElement, toggleIFrameLink };
+    return { projectTabView: returnElement, toggleIFrameLink };
 };

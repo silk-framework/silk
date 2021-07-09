@@ -77,7 +77,7 @@ const setupFiltersFromQs = (queryString: string) => {
             });
 
             // The batch of functions that should dispatched
-            const batchQueue = [];
+            const batchQueue: { payload: any; type: string }[] = [];
 
             // setup filters
             const filters: any = {};
