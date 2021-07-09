@@ -8,11 +8,15 @@ import {
     Divider,
     Button,
     ContextOverlay,
+    TitleSubsection,
+    Accordion,
+    AccordionItem,
 } from "@gui-elements/index";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { useSelector } from "react-redux";
 import errorSelector from "@ducks/error/selectors";
-import { DIErrorFormat } from "@ducks/error/typings";
+import { DIErrorFormat, DIErrorTypes } from "@ducks/error/typings";
+import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 
 export function NotificationsMenu() {
     // condition: first message in array is handled as latest message, otherwise reverse it first
@@ -51,6 +55,13 @@ export function NotificationsMenu() {
     const toggleNotifications = () => {
         setDisplayLastNotification(false);
         setDisplayNotifications(!displayNotifications);
+    };
+
+    const parseErrorCauseMsg = (cause?: DIErrorTypes | null): string | undefined => {
+        //show cause if network error only
+        return cause && cause instanceof FetchError && (cause.isNetworkError || cause.isHttpError)
+            ? cause.message
+            : undefined;
     };
 
     const notificationIndicatorButton = (
@@ -116,14 +127,31 @@ export function NotificationsMenu() {
                 <ApplicationToolbarPanel aria-label="Notification menu" expanded={true} style={{ width: "40rem" }}>
                     <Button text="Clear all messages" onClick={() => removeMessages()} />
                     <Divider addSpacing="medium" />
-                    {messages.map((item, id) => (
-                        <div key={"message" + id}>
-                            <Notification danger fullWidth onDismiss={() => removeMessages(item)}>
-                                {`${item.message} (${formatDuration(now.getTime() - item.timestamp)} ago)`}
-                            </Notification>
-                            <Spacing size="small" />
-                        </div>
-                    ))}
+                    {messages.map((item, id) => {
+                        const errorDetails = parseErrorCauseMsg(item.cause);
+                        return (
+                            <div key={"message" + id}>
+                                <Notification danger fullWidth onDismiss={() => removeMessages(item)}>
+                                    {`${item.message} (${formatDuration(now.getTime() - item.timestamp)} ago)`}
+                                    <Spacing size="small" />
+                                    {errorDetails ? (
+                                        <Accordion>
+                                            <AccordionItem
+                                                title={<TitleSubsection>More details</TitleSubsection>}
+                                                elevated
+                                                condensed
+                                                open={false}
+                                            >
+                                                {errorDetails}
+                                            </AccordionItem>
+                                        </Accordion>
+                                    ) : null}
+                                </Notification>
+
+                                <Spacing size="small" />
+                            </div>
+                        );
+                    })}
                 </ApplicationToolbarPanel>
             )}
         </>
