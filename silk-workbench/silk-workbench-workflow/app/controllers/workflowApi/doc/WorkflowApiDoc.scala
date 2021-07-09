@@ -107,4 +107,59 @@ val 1,val 2"""
       }
     """
 
+  final val portsResponseDescription =
+    """A workflow node port config can be configured on three different levels.
+The most specific one is the config by node ID, i.e. of a specific node in the workflow graph.
+The next level is the task level and contains the port config for a concrete project task that does not have
+a port config that is determined by its item type.
+The most general level is the item type level, where the item type itself defines the port config.
+For a specific node in a workflow the most specific matching level should be taken, e.g. if a node has
+a port config by node ID this should be used.
+Each port config specifies the min. number of ports and an optional max. number of ports.
+If the max. number is missing, this basically means that an arbitrary number of inputs/ports are allowed.
+    """
+
+  final val portsResponseExample =
+    """
+      {
+        "byItemType": {
+          "dataset": {
+            "minInputPorts": 1
+          },
+          "linking": {
+            "maxInputPorts": 2,
+            "minInputPorts": 2
+          },
+          "transform": {
+            "minInputPorts": 1
+          },
+          "workflow": {
+            "minInputPorts": 1
+          }
+        },
+        "byNodeId": {
+          "node1": {
+            "minInputPorts": 1,
+            "maxInputPorts": 2
+          }
+        },
+        "byTaskId": {
+          "23586f0a-037d-4acd-91ad-669afe05a074_JSONparser": {
+            "minInputPorts": 1
+          },
+          "fourPort": {
+            "maxInputPorts": 4,
+            "minInputPorts": 4
+          },
+          "noSchema": {
+            "minInputPorts": 1
+          },
+          "onePort": {
+            "maxInputPorts": 1,
+            "minInputPorts": 1
+          }
+        }
+      }
+    """
+
 }

@@ -12,7 +12,7 @@ import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 import play.api.routing.Router
 import org.silkframework.runtime.plugin._
 
-class ApiWorkflowApiTest extends FlatSpec with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait with MustMatchers {
+class WorkflowApiTest extends FlatSpec with SingleProjectWorkspaceProviderTestTrait with IntegrationTestTrait with MustMatchers {
   behavior of "Workflow API"
 
   override def projectPathInClasspath: String = "2dc191ef-d583-4eb8-a8ed-f2a3fb94bd8f_WorkflowAPItestproject.zip"
@@ -30,7 +30,7 @@ class ApiWorkflowApiTest extends FlatSpec with SingleProjectWorkspaceProviderTes
     project.addTask("noSchema", TestCustomTask(None))
     project.addTask("onePort", TestCustomTask(Some(1)))
     project.addTask("fourPort", TestCustomTask(Some(4)))
-    val responseJson = checkResponse(createRequest(controllers.workflowApi.routes.ApiWorkflowApi.workflowNodesConfig(projectId, workflowId)).get()).json
+    val responseJson = checkResponse(createRequest(controllers.workflowApi.routes.WorkflowApi.workflowNodesConfig(projectId, workflowId)).get()).json
     val portConfig = JsonHelpers.fromJsonValidated[WorkflowNodesPortConfig](responseJson)
     val noSchemaConfig = Some(WorkflowNodePortConfig(1, None))
     portConfig.byTaskId.get(customTaskWithoutSchemaFromInitialProject) mustBe noSchemaConfig
