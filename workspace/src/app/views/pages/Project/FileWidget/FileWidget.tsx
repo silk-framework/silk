@@ -43,7 +43,7 @@ export const FileWidget = () => {
     const [isOpenDialog, setIsOpenDialog] = useState<boolean>(false);
 
     // contains file item
-    const [fileDeleteDialog, setFileDeleteDialog] = useState(null);
+    const [fileDeleteDialog, setFileDeleteDialog] = useState<any>(null);
 
     const { isLoading } = fileWidget;
     const [pagination, paginationElement, onTotalChange] = usePagination({
@@ -69,16 +69,16 @@ export const FileWidget = () => {
 
     useEffect(() => {
         // Only trigger if file upload dialog is closed, since a file may have been uploaded.
-        if (!isOpenDialog && !fileDeleteDialog) {
+        if (!isOpenDialog && !fileDeleteDialog && projectId) {
             const filter: any = {
                 limit: 1000,
             };
             if (textQuery) {
                 filter.searchText = textQuery;
             }
-            dispatch(workspaceOp.fetchResourcesListAsync(filter));
+            dispatch(workspaceOp.fetchResourcesListAsync(filter, projectId));
         }
-    }, [textQuery, isOpenDialog, fileDeleteDialog]);
+    }, [textQuery, isOpenDialog, fileDeleteDialog, projectId]);
 
     const toggleFileUploader = () => {
         setIsOpenDialog(!isOpenDialog);
@@ -193,11 +193,13 @@ export const FileWidget = () => {
                 onDiscard={toggleFileUploader}
                 uploaderOptions={{ allowMultiple: true }}
             />
-            <FileRemoveModal
-                projectId={projectId}
-                onConfirm={() => setFileDeleteDialog(null)}
-                file={fileDeleteDialog}
-            />
+            {projectId && (
+                <FileRemoveModal
+                    projectId={projectId}
+                    onConfirm={() => setFileDeleteDialog(null)}
+                    file={fileDeleteDialog}
+                />
+            )}
         </>
     );
 };

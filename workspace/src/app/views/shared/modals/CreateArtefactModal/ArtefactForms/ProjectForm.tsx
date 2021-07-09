@@ -6,7 +6,6 @@ import { useTranslation } from "react-i18next";
 
 interface IProps {
     form: any;
-    projectId: string;
 }
 
 const LABEL = "label";

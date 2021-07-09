@@ -16,6 +16,7 @@ export const createPrefixNameRegex = (): RegExp => {
     return new RegExp(`^${charsBase}(?:(?:${chars}|\\.)*${chars})?$`);
 };
 
+// eslint-disable-next-line no-control-regex
 const invalidUriChars = new RegExp('[\\u0000-\\u0020<>"{}|^`\\\\]');
 
 export const prefixNameRegex = createPrefixNameRegex();
@@ -26,7 +27,7 @@ export const validatePrefixName = (prefixName: string): boolean => prefixNameReg
 export const validatePrefixValue = (prefixValue: string): boolean | number => {
     try {
         const invalidCharMatches = prefixValue.match(invalidUriChars);
-        if (invalidCharMatches) {
+        if (invalidCharMatches && invalidCharMatches.index != null) {
             return invalidCharMatches.index;
         } else {
             const uri = new URL(prefixValue);

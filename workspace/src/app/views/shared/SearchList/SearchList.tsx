@@ -14,6 +14,7 @@ import { routerOp } from "@ducks/router";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { useTranslation } from "react-i18next";
 import CopyToModal from "../modals/CopyToModal/CopyToModal";
+import { IModalItem } from "@ducks/shared/typings";
 
 export function SearchList() {
     const dispatch = useDispatch();
@@ -26,7 +27,7 @@ export function SearchList() {
     const isLoading = useSelector(workspaceSel.isLoadingSelector);
     const appliedFacets = useSelector(workspaceSel.appliedFacetsSelector);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-    const [selectedItem, setSelectedItem] = useState<ISearchResultsServer | null>(null);
+    const [selectedItem, setSelectedItem] = useState<IModalItem | null>(null);
     const [showCloneModal, setShowCloneModal] = useState(false);
     const [copyToModalOpen, setCopyToModalOpen] = useState<boolean>(false);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
@@ -172,7 +173,7 @@ export function SearchList() {
                             onConfirmed={() => handleDeleted(!selectedItem.projectId)}
                         />
                     )}
-                    {copyToModalOpen && (
+                    {copyToModalOpen && selectedItem && (
                         <CopyToModal
                             item={selectedItem}
                             onDiscard={onDiscardModals}

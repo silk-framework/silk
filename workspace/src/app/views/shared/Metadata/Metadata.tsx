@@ -38,6 +38,7 @@ import { firstNonEmptyLine } from "../ContentBlobToggler";
 interface IProps {
     projectId?: string;
     taskId?: string;
+    readOnly?: boolean;
 }
 
 export function Metadata(props: IProps) {
@@ -97,7 +98,7 @@ export function Metadata(props: IProps) {
         setIsEditing(!isEditing);
     };
 
-    const getTaskMetadata = async (taskId: string, projectId: string) => {
+    const getTaskMetadata = async (taskId?: string, projectId?: string) => {
         setGetRequestError(null);
         try {
             const result = await letLoading(() => {
@@ -137,7 +138,7 @@ export function Metadata(props: IProps) {
             const result = await letLoading(async () => {
                 const path = location.pathname;
                 const metadata = await sharedOp.updateTaskMetadataAsync(inputs, taskId, projectId);
-                dispatch(routerOp.updateLocationState(path, projectId, metadata));
+                dispatch(routerOp.updateLocationState(path, projectId as string, metadata));
                 return metadata;
             });
 
@@ -169,7 +170,7 @@ export function Metadata(props: IProps) {
                 <CardTitle>
                     <h2>{t("common.words.summary", "Summary")}</h2>
                 </CardTitle>
-                {!loading && !isEditing && (
+                {!loading && !isEditing && !props.readOnly && (
                     <CardOptions>
                         <IconButton
                             data-test-id="meta-data-edit-btn"

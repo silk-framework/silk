@@ -99,13 +99,13 @@ export const commonSlice = createSlice({
         closeArtefactModal: (state) => {
             state.artefactModal.isOpen = false;
             state.artefactModal.selectedArtefact = undefined;
-            state.artefactModal.updateExistingTask = null;
+            state.artefactModal.updateExistingTask = undefined;
         },
 
-        selectArtefact: (state, action: PayloadAction<IArtefactItem>) => {
+        selectArtefact: (state, action: PayloadAction<IArtefactItem | undefined>) => {
             state.artefactModal.isOpen = true;
             state.artefactModal.selectedArtefact = action.payload || ({} as IArtefactItem);
-            state.artefactModal.updateExistingTask = null;
+            state.artefactModal.updateExistingTask = undefined;
         },
 
         fetchArtefactsList: (state) => {
@@ -118,7 +118,7 @@ export const commonSlice = createSlice({
             const categories: Record<string, number> = {};
             categories["All"] = action.payload.length;
             action.payload.forEach((itemDescription) => {
-                itemDescription.categories.forEach((category) => {
+                (itemDescription.categories ?? []).forEach((category) => {
                     categories[category] = (categories[category] ? categories[category] : 0) + 1;
                 });
             });
@@ -129,7 +129,7 @@ export const commonSlice = createSlice({
             state.artefactModal.categories = sortedCategoryCounts;
         },
 
-        setSelectedArtefactDType: (state, action: PayloadAction<string>) => {
+        setSelectedArtefactDType: (state, action: PayloadAction<string | undefined>) => {
             state.artefactModal.selectedDType = action.payload || "all";
             state.artefactModal.isOpen = true;
         },

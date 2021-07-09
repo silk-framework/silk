@@ -22,8 +22,10 @@ export const WarningWidget = () => {
     const [t] = useTranslation();
 
     useEffect(() => {
-        dispatch(workspaceOp.fetchWarningListAsync());
-    }, [workspaceOp]);
+        if (projectId) {
+            dispatch(workspaceOp.fetchWarningListAsync(projectId));
+        }
+    }, [workspaceOp, projectId]);
 
     const handleOpen = () => setIsOpen(true);
     const handleClose = () => {
@@ -31,7 +33,7 @@ export const WarningWidget = () => {
         setIsOpen(false);
     };
 
-    const handleOpenMarkDown = async (taskId) => {
+    const handleOpenMarkDown = async (taskId, projectId) => {
         try {
             const markdown: string = await workspaceOp.fetchWarningMarkdownAsync(taskId, projectId);
             handleOpen();
@@ -68,7 +70,7 @@ export const WarningWidget = () => {
                                     <Button
                                         minimal
                                         text={t("common.action.ShowSmth", { smth: "report" })}
-                                        onClick={() => handleOpenMarkDown(warn.taskId)}
+                                        onClick={() => projectId && handleOpenMarkDown(warn.taskId, projectId)}
                                     />
                                 }
                             >

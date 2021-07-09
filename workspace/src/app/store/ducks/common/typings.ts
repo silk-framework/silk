@@ -139,8 +139,8 @@ export interface ICommonState {
      * Used in Project details page only and store the current selected project id
      * Received from router
      */
-    currentProjectId: string;
-    currentTaskId: string;
+    currentProjectId: string | undefined;
+    currentTaskId: string | undefined;
     locale: string;
     initialSettings: IInitFrontend;
     authenticated: boolean;

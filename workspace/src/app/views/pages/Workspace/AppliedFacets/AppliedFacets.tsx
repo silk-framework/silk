@@ -14,14 +14,13 @@ export function AppliedFacets() {
         dispatch(workspaceOp.toggleFacetOp(facet, keywordId));
     };
 
-    const facetsList = [];
+    const facetsList: IFacetState[] = [];
     appliedFacets.forEach((appliedFacet) => {
         const facet = facets.find((o) => o.id === appliedFacet.facetId);
         if (facet) {
             facetsList.push({
-                label: facet.label,
-                id: facet.id,
-                keywords: facet.values.filter((key) => appliedFacet.keywordIds.includes(key.id)),
+                ...facet,
+                values: facet.values.filter((key) => appliedFacet.keywordIds.includes(key.id)),
             });
         }
     });
@@ -30,7 +29,7 @@ export function AppliedFacets() {
         <>
             {facetsList.map((facet) => (
                 <TagList key={facet.id} label={facet.label}>
-                    {facet.keywords.map((keyword) => (
+                    {facet.values.map((keyword) => (
                         <Tag key={keyword.id} onRemove={() => handleFacetRemove(facet, keyword.id)}>
                             {keyword.label}
                         </Tag>

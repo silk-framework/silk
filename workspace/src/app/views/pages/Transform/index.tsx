@@ -9,7 +9,7 @@ import { AppToaster } from "../../../services/toaster";
 import Metadata from "../../shared/Metadata";
 import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
 import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
-import { IframeWindow } from "../../shared/IframeWindow/IframeWindow";
+import { ProjectTaskTabView } from "../../shared/projectTaskTabView/ProjectTaskTabView";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
 import NotFound from "../NotFound";
@@ -51,7 +51,7 @@ export default function () {
                 <Section>
                     <Metadata />
                     <Spacing />
-                    <IframeWindow iFrameName={"detail-page-iframe"} />
+                    <ProjectTaskTabView iFrameName={"detail-page-iframe"} />
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>
