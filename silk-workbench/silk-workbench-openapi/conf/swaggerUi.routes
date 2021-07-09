@@ -1,0 +1,5 @@
+GET   /                            controllers.swaggerUi.SwaggerUi.ui
+GET   /validator                   controllers.swaggerUi.SwaggerUi.validator(url: Option[String])
+GET   /validator/debug             controllers.swaggerUi.SwaggerUi.validatorDebug(url: Option[String])
+
+GET   /assets/*file                controllers.swaggerUi.SwaggerUiAssets.at(path = "/public/lib/swagger-ui", file)

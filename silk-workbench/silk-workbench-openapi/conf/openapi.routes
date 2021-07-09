@@ -1,0 +1,3 @@
+GET   /openapi.json                controllers.openapi.OpenApi.openApiJson
+GET   /openapi.yml                 controllers.openapi.OpenApi.openApiYaml
+GET   /validate                    controllers.openapi.OpenApi.validate(url)
