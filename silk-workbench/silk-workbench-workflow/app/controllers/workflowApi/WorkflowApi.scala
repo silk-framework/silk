@@ -6,13 +6,15 @@ import controllers.core.util.ControllerUtilsTrait
 import controllers.util.ProjectUtils.getProjectAndTask
 import controllers.workflowApi.doc.WorkflowApiDoc
 import controllers.workflowApi.variableWorkflow.VariableWorkflowRequestUtils
-import controllers.workflowApi.workflow.WorkflowInfo
+import controllers.workflowApi.workflow.{WorkflowInfo, WorkflowNodePortConfig, WorkflowNodesPortConfig}
+import controllers.workspaceApi.search.ItemType
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import org.silkframework.config.CustomTask
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.http.HttpEntity
@@ -307,5 +309,65 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
                    workflowId: String): Action[AnyContent] = RequestUserContextAction { request =>implicit userContext =>
     val (project, workflow) = projectAndTask[Workflow](projectId, workflowId)
     Ok(Json.toJson(WorkflowInfo.fromWorkflow(workflow, project)))
+  }
+
+  /** Returns a list of potential tasks that can be used in the workflow with their port configuration.
+    *
+    **/
+  @Operation(
+    summary = "Workflow nodes port config",
+    description = "Returns information about what port configuration nodes in a workflow can have.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = WorkflowApiDoc.portsResponseDescription,
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(WorkflowApiDoc.portsResponseExample))
+          ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or workflow has not been found."
+      )
+    ))
+  def workflowNodesConfig(@Parameter(
+                            name = "projectId",
+                            description = "The project identifier",
+                            required = true,
+                            in = ParameterIn.PATH,
+                            schema = new Schema(implementation = classOf[String])
+                          )
+                          projectId: String,
+                          @Parameter(
+                            name = "workflowId",
+                            description = "The workflow identifier",
+                            required = true,
+                            in = ParameterIn.PATH,
+                            schema = new Schema(implementation = classOf[String])
+                          )
+                          workflowId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val (project, _) = projectAndTask[Workflow](projectId, workflowId)
+    val customTaskPortConfigs: Seq[(String, WorkflowNodePortConfig)] = for(customTask <- project.tasks[CustomTask]) yield {
+      val taskId = customTask.id.toString
+      val portConfig: WorkflowNodePortConfig = customTask.data.inputSchemataOpt match {
+        case Some(inputSchema) => WorkflowNodePortConfig(inputSchema.size)
+        case None => WorkflowNodePortConfig(1, None)
+      }
+      (taskId, portConfig)
+    }
+    val workflowNodesPortConfig = WorkflowNodesPortConfig(
+      byItemType = Map(
+        ItemType.dataset.id -> WorkflowNodePortConfig(1, None),
+        ItemType.workflow.id -> WorkflowNodePortConfig(1, None),
+        ItemType.linking.id -> WorkflowNodePortConfig(2),
+        ItemType.transform.id -> WorkflowNodePortConfig(1, None)
+      ),
+      byTaskId = customTaskPortConfigs.toMap,
+      // FIXME CMEM-3457: Add workflow node specific port config and use this in the UI
+      byNodeId = Map.empty
+    )
+    Ok(Json.toJson(workflowNodesPortConfig))
   }
 }
