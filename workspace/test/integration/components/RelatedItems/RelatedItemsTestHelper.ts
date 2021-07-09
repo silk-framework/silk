@@ -25,7 +25,8 @@ export class RelatedItemsTestHelper {
                         },
                     ],
                     label: `${itemId} label`,
-                    type: "Item",
+                    type: "Dataset",
+                    pluginLabel: "testPlugin",
                 };
             }),
             total: nrItems,
