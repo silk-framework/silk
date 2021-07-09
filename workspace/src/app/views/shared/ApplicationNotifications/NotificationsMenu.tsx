@@ -32,10 +32,14 @@ export function NotificationsMenu() {
         }
     }, [messages.map((e) => e.timestamp).join("|")]);
 
-    /***** remove all messages *****/
+    /***** remove one or all messages *****/
     const removeMessages = (error?: DIErrorFormat) => {
-        error ? clearErrors([error.id]) : clearErrors();
-        setDisplayNotifications(false);
+        if (error) {
+            clearErrors([error.id]);
+        } else {
+            clearErrors();
+            setDisplayNotifications(false);
+        }
         updateStartTime(Date.now());
     };
 
