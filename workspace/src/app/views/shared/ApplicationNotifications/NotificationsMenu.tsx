@@ -17,26 +17,30 @@ import { DIErrorFormat } from "@ducks/error/typings";
 export function NotificationsMenu() {
     // condition: first message in array is handled as latest message, otherwise reverse it first
     const { clearErrors } = useErrorHandler();
-    const [startTime, updateStartTime] = React.useState<number>(Date.now());
     const [displayNotifications, setDisplayNotifications] = useState<boolean>(false);
     const [displayLastNotification, setDisplayLastNotification] = useState<boolean>(false);
     const { errors } = useSelector(errorSelector);
     //first message is the latest entry based on the timestamp
-    const messages = errors.slice().sort((a, b) => b.timestamp - a.timestamp); //https://stackoverflow.com/questions/53420055/
+    const messages = [...errors].sort((a, b) => b.timestamp - a.timestamp); //https://stackoverflow.com/questions/53420055/
 
     useEffect(() => {
-        if (messages.length && startTime <= messages[0].timestamp) {
+        if (messages.length) {
             setDisplayLastNotification(true);
+            const timeout: number = window.setTimeout(async () => {
+                setDisplayLastNotification(false);
+            }, 6000);
+            return () => {
+                clearTimeout(timeout);
+            };
         } else {
             setDisplayLastNotification(false);
         }
-    }, [messages.map((e) => e.timestamp).join("|")]);
+    }, [messages.length > 0 ? messages[0] : undefined]);
 
     /***** remove all messages *****/
     const removeMessages = (error?: DIErrorFormat) => {
         error ? clearErrors([error.id]) : clearErrors();
         setDisplayNotifications(false);
-        updateStartTime(Date.now());
     };
 
     const toggleNotifications = () => {
@@ -65,7 +69,7 @@ export function NotificationsMenu() {
             enforceFocus={false}
             openOnTargetFocus={false}
             content={
-                <Notification danger timeout={6000} onDismiss={() => setDisplayLastNotification(false)}>
+                <Notification danger onDismiss={() => setDisplayLastNotification(false)}>
                     {messages[0].message}
                 </Notification>
             }
