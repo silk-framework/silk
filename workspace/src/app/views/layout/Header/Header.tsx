@@ -154,16 +154,6 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                     </Button>
                                 </div>
                                 <MenuDivider />
-                                <MenuItem
-                                    text={t("common.action.backOld", "Back to old workspace")}
-                                    href={CONTEXT_PATH + "/workspace"}
-                                    icon={"application-legacygui"}
-                                />
-                                <MenuItem
-                                    text={t("common.action.activity", "Activity overview")}
-                                    href={CONTEXT_PATH + "/workspace/allActivities"}
-                                    icon={"application-activities"}
-                                />
                                 {hotKeys.quickSearch && (
                                     <MenuItem
                                         text={
@@ -189,6 +179,21 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                         icon={"operation-search"}
                                     />
                                 )}
+                                <MenuItem
+                                    text={t("common.action.activity", "Activity overview")}
+                                    href={CONTEXT_PATH + "/workspace/allActivities"}
+                                    icon={"application-activities"}
+                                />
+                                <MenuItem
+                                    text={t("common.action.showApiDoc", "API")}
+                                    href={CONTEXT_PATH + "/doc/api"}
+                                    icon={"application-homepage"}
+                                />
+                                <MenuItem
+                                    text={t("common.action.backOld", "Back to old workspace")}
+                                    href={CONTEXT_PATH + "/workspace"}
+                                    icon={"application-legacygui"}
+                                />
                                 {!!dmBaseUrl && (
                                     <>
                                         <MenuDivider />

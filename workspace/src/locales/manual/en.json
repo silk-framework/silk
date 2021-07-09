@@ -193,7 +193,8 @@
             "save": "Save",
             "showDetails": "Show details",
             "submit": "Submit",
-            "update": "Update"
+            "update": "Update",
+            "showApiDoc": "API"
         },
         "app": {
             "build": "Data integration",
