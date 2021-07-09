@@ -111,8 +111,12 @@ export function ProjectTaskTabView({
             : (taskViews ?? []).find((v) => v.id === selectedTab)?.label;
 
     React.useEffect(() => {
-        if (projectId && taskId && taskViewConfig?.pluginId) {
-            setTaskViews(viewRegistry.projectTaskViews(taskViewConfig.pluginId));
+        if (projectId && taskId) {
+            if (taskViewConfig?.pluginId) {
+                setTaskViews(viewRegistry.projectTaskViews(taskViewConfig.pluginId));
+            } else {
+                setTaskViews([]);
+            }
         }
     }, [projectId, taskId, taskViewConfig?.pluginId]);
 
