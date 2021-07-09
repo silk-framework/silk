@@ -153,7 +153,7 @@ object WorkflowSerializers {
     }
 
     protected def configInputs(value: JsValue): Seq[String] = {
-      optionalValue(value, CONFIG_INPUTS).map(js => mustBeJsArray(js)(_.value.map(_.as[JsString].value))).getOrElse(Seq.empty)
+      optionalValue(value, CONFIG_INPUTS).map(js => mustBeJsArray(js)(_.value.map(_.as[JsString].value)).toList).getOrElse(Seq.empty)
     }
   }
 }
