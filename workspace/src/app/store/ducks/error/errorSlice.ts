@@ -4,7 +4,7 @@ import { DIErrorFormat } from "./typings";
 
 type RegisterErrorActionType = {
     payload: {
-        error: DIErrorFormat;
+        newError: Pick<DIErrorFormat, "id" | "message" | "cause">;
     };
 };
 
@@ -19,11 +19,12 @@ const errorSlice = createSlice({
     initialState: initialErrorState(),
     reducers: {
         registerNewError(state, action: RegisterErrorActionType) {
-            const { error } = action.payload;
-            const newErrorsCopy = [...state.errors];
-            const similarErrorIndex = newErrorsCopy.findIndex((err) => err.id === error.id);
-            similarErrorIndex > -1 ? (newErrorsCopy[similarErrorIndex] = error) : newErrorsCopy.push(error);
-            state.errors = newErrorsCopy;
+            const { newError } = action.payload;
+            // Remove old error from the same component action
+            const newErrors = state.errors.filter((err) => err.id !== newError.id);
+            // Always add new error to the end with current timestamp
+            newErrors.push({ ...newError, timestamp: Date.now() });
+            state.errors = newErrors;
         },
         clearOneOrMoreErrors(state, action: ClearErrorsActionType) {
             const { errorIds } = action.payload;
