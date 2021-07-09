@@ -85,6 +85,19 @@ export function NotificationsMenu() {
             notificationIndicatorButton
         );
 
+    const now = new Date();
+
+    // Formats the duration since the error happened. Currently only goes up to minutes, since we don't expect users to keep errors that long.
+    const formatDuration = (durationInMs: number): string => {
+        if (durationInMs < 1000) {
+            return "1s";
+        } else if (durationInMs < 60 * 1000) {
+            return Math.round(durationInMs / 1000) + "s";
+        } else {
+            return Math.round(durationInMs / (60 * 1000)) + " minute" + (durationInMs >= 120 * 1000 ? "s" : "");
+        }
+    };
+
     return messages.length > 0 ? (
         <>
             {!displayNotifications && notificationIndicator}
@@ -106,7 +119,7 @@ export function NotificationsMenu() {
                     {messages.map((item, id) => (
                         <div key={"message" + id}>
                             <Notification danger fullWidth onDismiss={() => removeMessages(item)}>
-                                {item.message}
+                                {`${item.message} (${formatDuration(now.getTime() - item.timestamp)} ago)`}
                             </Notification>
                             <Spacing size="small" />
                         </div>
