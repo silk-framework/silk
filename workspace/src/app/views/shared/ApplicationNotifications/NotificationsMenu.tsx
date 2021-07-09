@@ -58,10 +58,9 @@ export function NotificationsMenu() {
     };
 
     const parseErrorCauseMsg = (cause?: DIErrorTypes | null): string | undefined => {
-        //show cause if network error only
-        return cause && cause instanceof FetchError && (cause.isNetworkError || cause.isHttpError)
-            ? cause.message
-            : undefined;
+        return cause && (cause instanceof FetchError || cause instanceof ErrorResponse)
+            ? cause.asString()
+            : cause?.message;
     };
 
     const notificationIndicatorButton = (
