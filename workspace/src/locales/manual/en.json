@@ -431,6 +431,13 @@
                 }
             }
         },
+        "node": {
+            "menu": {
+                "remove": {
+                    "label": "Remove node"
+                }
+            }
+        },
         "warnings": {
             "unsavedChanges": "There are unsaved changes. Do you still want to close the workflow editor?"
         }

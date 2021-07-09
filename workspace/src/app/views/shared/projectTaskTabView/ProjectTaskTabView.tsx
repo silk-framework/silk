@@ -78,6 +78,7 @@ export function ProjectTaskTabView({
     startFullscreen = false,
     handlerRemoveModal,
     taskViewConfig,
+    iFrameName,
     viewActions,
     ...otherProps
 }: IProjectTaskTabView) {
@@ -95,11 +96,11 @@ export function ProjectTaskTabView({
     const [selectedTab, setSelectedTab] = useState<IItemLink | string | undefined>(startWithLink);
     // list of aggregated links
     const [itemLinks, setItemLinks] = useState<IItemLink[]>([]);
-    const [taskViews, setTaskViews] = React.useState<IProjectTaskView[]>([]);
+    const [taskViews, setTaskViews] = React.useState<IProjectTaskView[] | undefined>(undefined);
     // Stores request to change the tab. The requests is represented by the tab idx.
     const [tabIdxChangeRequest, setTabIdxChangeRequest] = React.useState<number | undefined>(undefined);
 
-    const viewsAndItemLink: Partial<IProjectTaskView & IItemLink>[] = [...taskViews, ...itemLinks];
+    const viewsAndItemLink: Partial<IProjectTaskView & IItemLink>[] = [...(taskViews ?? []), ...itemLinks];
     const isTaskView = (viewOrItemLink: Partial<IProjectTaskView & IItemLink>) => !!viewOrItemLink.id;
 
     const itemLinkActive = selectedTab != null && typeof selectedTab !== "string";
@@ -107,7 +108,7 @@ export function ProjectTaskTabView({
     const activeLabel: string | undefined =
         activeIframePath?.label ?? itemLinkActive
             ? (selectedTab as IItemLink).label
-            : taskViews.find((v) => v.id === selectedTab)?.label;
+            : (taskViews ?? []).find((v) => v.id === selectedTab)?.label;
 
     React.useEffect(() => {
         if (projectId && taskId && taskViewConfig?.pluginId) {
@@ -153,7 +154,7 @@ export function ProjectTaskTabView({
         }
     };
 
-    const getInitialActiveLink = (itemLinks) => {
+    const getInitialActiveLink = (itemLinks, taskViews) => {
         const locationHashBookmark = getBookmark(location.hash, itemLinks.length + taskViews.length - 1) ?? 0;
         return locationHashBookmark < taskViews.length
             ? taskViews[locationHashBookmark].id
@@ -180,14 +181,14 @@ export function ProjectTaskTabView({
     }, [iframeRef, selectedTab, itemLinks?.length, taskViews]);
 
     // update item links by rest api request
-    const getItemLinks = async (projectId: string, taskId: string) => {
+    const getItemLinksAndSelectTab = async (projectId: string, taskId: string, taskViews: IProjectTaskView[]) => {
         setIsFetchingLinks(true);
         try {
             const { data } = await requestItemLinks(projectId, taskId);
             // remove current page link
             const srcLinks = data.filter((item) => !item.path.startsWith(SERVE_PATH));
             setItemLinks(srcLinks);
-            setSelectedTab(getInitialActiveLink(srcLinks));
+            setSelectedTab(getInitialActiveLink(srcLinks, taskViews));
         } catch (e) {
         } finally {
             setIsFetchingLinks(false);
@@ -200,7 +201,7 @@ export function ProjectTaskTabView({
                 setItemLinks(srcLinks);
                 setSelectedTab(startWithLink || srcLinks[0]);
             } else if (projectId && taskId) {
-                getItemLinks(projectId, taskId);
+                getItemLinksAndSelectTab(projectId, taskId, taskViews);
             } else {
                 setItemLinks([]);
             }
@@ -261,7 +262,7 @@ export function ProjectTaskTabView({
                         itemLinkActive ? (
                             <iframe
                                 ref={iframeRef}
-                                name={otherProps.iFrameName}
+                                name={iFrameName}
                                 src={createIframeUrl((selectedTab as IItemLink)?.path)}
                                 title={tLabel((selectedTab as IItemLink)?.label)}
                                 style={{
@@ -273,7 +274,7 @@ export function ProjectTaskTabView({
                         ) : (
                             projectId &&
                             taskId &&
-                            taskViews.find((v) => v.id === selectedTab)?.render(projectId, taskId, viewActions)
+                            (taskViews ?? []).find((v) => v.id === selectedTab)?.render(projectId, taskId, viewActions)
                         )
                     ) : isFetchingLinks ? (
                         <Loading />

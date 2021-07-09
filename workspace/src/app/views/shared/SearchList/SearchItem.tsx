@@ -146,7 +146,7 @@ export default function SearchItem({
                     <OverviewItemLine small>
                         {item.pluginLabel && (
                             <>
-                                <Tag small>
+                                <Tag>
                                     <Highlighter label={item.pluginLabel} searchValue={searchValue} />
                                 </Tag>
                                 {projectOrDataset && <Spacing vertical size="tiny" />}
@@ -154,7 +154,7 @@ export default function SearchItem({
                         )}
                         {projectOrDataset && (
                             <>
-                                <Tag small>
+                                <Tag>
                                     <Highlighter
                                         label={t(
                                             "widget.Filterbar.subsections.valueLabels.itemType." + item.type,
@@ -168,7 +168,7 @@ export default function SearchItem({
                         {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
                             <>
                                 <Spacing vertical size="tiny" />
-                                <Tag emphasis="weak" small>
+                                <Tag emphasis="weak">
                                     <Highlighter
                                         label={item.projectLabel ? item.projectLabel : item.projectId}
                                         searchValue={searchValue}
