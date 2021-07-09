@@ -431,6 +431,12 @@
                 }
             }
         },
+        "errors": {
+            "WorkflowEditor_fetchPortsConfigs": "Could not load task configurations.",
+            "WorkflowEditor_fetchTaskList": "Could not fetch available workflow datasets and operators.",
+            "WorkflowEditor_saveWorkflow": "Failed to save the workflow.",
+            "WorkflowEditor_fetchWorkflow": "Failed to load the workflow."
+        },
         "node": {
             "menu": {
                 "remove": {
