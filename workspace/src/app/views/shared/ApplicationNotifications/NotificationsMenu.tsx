@@ -34,6 +34,7 @@ export function NotificationsMenu() {
             };
         } else {
             setDisplayLastNotification(false);
+            setDisplayNotifications(false);
         }
     }, [messages.length > 0 ? messages[0] : undefined]);
 
@@ -64,24 +65,25 @@ export function NotificationsMenu() {
         </ApplicationToolbarAction>
     );
 
-    const notificationIndicator = displayLastNotification ? (
-        <ContextOverlay
-            isOpen={true}
-            minimal={true}
-            position="bottom-right"
-            autoFocus={false}
-            enforceFocus={false}
-            openOnTargetFocus={false}
-            content={
-                <Notification danger onDismiss={() => setDisplayLastNotification(false)}>
-                    {messages[0].message}
-                </Notification>
-            }
-            target={notificationIndicatorButton}
-        />
-    ) : (
-        notificationIndicatorButton
-    );
+    const notificationIndicator =
+        displayLastNotification && messages.length > 0 ? (
+            <ContextOverlay
+                isOpen={true}
+                minimal={true}
+                position="bottom-right"
+                autoFocus={false}
+                enforceFocus={false}
+                openOnTargetFocus={false}
+                content={
+                    <Notification danger onDismiss={() => setDisplayLastNotification(false)}>
+                        {messages[0].message}
+                    </Notification>
+                }
+                target={notificationIndicatorButton}
+            />
+        ) : (
+            notificationIndicatorButton
+        );
 
     return messages.length > 0 ? (
         <>
