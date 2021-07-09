@@ -1,4 +1,4 @@
-GET   /result/:projectId/:workflowId     controllers.workflowApi.ApiWorkflowApi.variableWorkflowResult(projectId: String, workflowId: String)
-POST  /result/:projectId/:workflowId     controllers.workflowApi.ApiWorkflowApi.variableWorkflowResult(projectId: String, workflowId: String)
-GET   /info                              controllers.workflowApi.ApiWorkflowApi.workflowInfoList()
-GET   /info/:projectId/:workflowId       controllers.workflowApi.ApiWorkflowApi.workflowInfo(projectId: String, workflowId: String)
+GET   /result/:projectId/:workflowId     controllers.workflowApi.WorkflowApi.variableWorkflowResultGet(projectId: String, workflowId: String)
+POST  /result/:projectId/:workflowId     controllers.workflowApi.WorkflowApi.variableWorkflowResultPost(projectId: String, workflowId: String)
+GET   /info                              controllers.workflowApi.WorkflowApi.workflowInfoList()
+GET   /info/:projectId/:workflowId       controllers.workflowApi.WorkflowApi.workflowInfo(projectId: String, workflowId: String)

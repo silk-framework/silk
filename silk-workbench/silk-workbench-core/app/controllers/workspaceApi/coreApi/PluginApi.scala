@@ -3,6 +3,12 @@ package controllers.workspaceApi.coreApi
 import config.WorkbenchLinks
 import controllers.core.UserContextActions
 import controllers.util.{PluginUsageCollector, TextSearchUtils}
+import controllers.workspaceApi.coreApi.doc.PluginApiDoc
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
@@ -22,10 +28,46 @@ import scala.collection.mutable
 /**
   * Workspace task plugin related endpoints.
   */
+@Tag(name = "Plugins", description = "Provides information about all installed plugins.")
 class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedController with UserContextActions {
+
   /** All plugins that can be created in the workspace. */
-  def taskPlugins(addMarkdownDocumentation: Boolean,
+  @Operation(
+    summary = "Task plugins",
+    description = "A list of plugins that can be created as workspace tasks, e.g. datasets, transform tasks etc. The result of this endpoint only contains meta data of the plugin, i.e. title, description and categories. To fetch the schema details of a specific plugin use the /plugin endpoint.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject(PluginApiDoc.taskPluginsExampleJson))
+        ))
+      )
+    ))
+  def taskPlugins(@Parameter(
+                    name = "addMarkdownDocumentation",
+                    description = "Add markdown documentation to the result.",
+                    required = false,
+                    in = ParameterIn.QUERY,
+                    schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+                  )
+                  addMarkdownDocumentation: Boolean,
+                  @Parameter(
+                    name = "textQuery",
+                    description = "An optional (multi word) text query to filter the list of plugins.",
+                    required = false,
+                    in = ParameterIn.QUERY,
+                    schema = new Schema(implementation = classOf[String], example = "csv")
+                  )
                   textQuery: Option[String],
+                  @Parameter(
+                    name = "category",
+                    description = "An optional category. This will only return plugins from the same category.",
+                    required = false,
+                    in = ParameterIn.QUERY,
+                    schema = new Schema(implementation = classOf[String], example = "file")
+                  )
                   category: Option[String]): Action[AnyContent] = Action { implicit request =>
     val pluginTypes = Seq(
       "org.silkframework.dataset.Dataset",
@@ -41,8 +83,42 @@ class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedControlle
   }
 
   /** Return plugin description of a single plugin. */
-  def plugin(pluginId: String,
+  @Operation(
+    summary = "Plugin description",
+    description = "The plugin description of a specific plugin, including meta data and JSON schema.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = PluginApiDoc.pluginJsonDescription,
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject(PluginApiDoc.pluginDescriptionExampleJson))
+        ))
+      )
+    ))
+  def plugin(@Parameter(
+               name = "pluginId",
+               description = "The plugin identifier.",
+               required = true,
+               in = ParameterIn.PATH,
+               schema = new Schema(implementation = classOf[String], example = "csv")
+             )
+             pluginId: String,
+             @Parameter(
+               name = "addMarkdownDocumentation",
+               description = "Add markdown documentation to the result.",
+               required = false,
+               in = ParameterIn.QUERY,
+               schema = new Schema(implementation = classOf[Boolean], example = "false")
+             )
              addMarkdownDocumentation: Boolean,
+             @Parameter(
+               name = "pretty",
+               description = "If true, JSON output will be pretty printed.",
+               required = false,
+               in = ParameterIn.QUERY,
+               schema = new Schema(implementation = classOf[Boolean], example = "true")
+             )
              pretty: Boolean): Action[AnyContent] = Action { implicit request =>
     PluginRegistry.pluginDescriptionsById(pluginId, Some(Seq(classOf[TaskSpec], classOf[Dataset]))).headOption match {
       case Some(pluginDesc) =>
@@ -55,7 +131,27 @@ class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedControlle
     }
   }
 
-  def pluginUsages(pluginId: String): Action[AnyContent] = RequestUserContextAction { request =>implicit userContext =>
+  @Operation(
+    summary = "Plugin usages",
+    description = "Returns a list of all usages of a given plugin. Currently lists usages in projects as tasks and as within linking and transform rules.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject(PluginApiDoc.pluginUsagesExample))
+        ))
+      )
+    ))
+  def pluginUsages(@Parameter(
+                     name = "pluginId",
+                     description = "The plugin identifier.",
+                     required = true,
+                     in = ParameterIn.PATH,
+                     schema = new Schema(implementation = classOf[String], example = "csv")
+                   )
+                   pluginId: String): Action[AnyContent] = RequestUserContextAction { request =>implicit userContext =>
     val usages = mutable.Buffer[JsObject]()
 
     for(project <- WorkspaceFactory().workspace.projects) {
@@ -115,6 +211,8 @@ class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedControlle
     Ok(JsObject(pluginJsonWithTaskType))
   }
 }
+
+
 
 @javax.inject.Singleton
 class PluginApiCache @Inject()() {

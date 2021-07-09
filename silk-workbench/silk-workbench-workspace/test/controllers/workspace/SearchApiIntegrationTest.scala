@@ -325,7 +325,7 @@ class SearchApiIntegrationTest extends FlatSpec
     defaultResults.flatMap(_.get(ResourceSearchRequest.NAME_PARAM)).map(_.as[String])
   }
 
-  private lazy val resourceSearchUrl = controllers.workspace.routes.WorkspaceApi.getResources(projectId)
+  private lazy val resourceSearchUrl = controllers.workspace.routes.ResourceApi.getResources(projectId)
 
   private lazy val pluginParameterAutoCompleteUrl = s"$baseUrl/api/workspace/pluginParameterAutoCompletion"
 
