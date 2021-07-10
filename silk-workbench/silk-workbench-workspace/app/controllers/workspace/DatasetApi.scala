@@ -14,9 +14,12 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
+import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
+import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Uri
@@ -283,9 +286,9 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
     context.task.data match {
       case dataset: GenericDatasetSpec =>
         if (dataset.plugin.isInstanceOf[RdfDataset]) {
-          Redirect(routes.DatasetApi.sparql(project, task))
+          Redirect(routes.DatasetController.sparql(project, task))
         } else {
-          Redirect(routes.DatasetApi.table(project, task))
+          Redirect(routes.DatasetController.table(project, task))
         }
     }
   }
