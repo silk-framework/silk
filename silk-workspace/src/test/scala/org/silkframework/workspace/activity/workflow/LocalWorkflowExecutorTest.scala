@@ -20,12 +20,13 @@ class LocalWorkflowExecutorTest extends FlatSpec with Matchers with SingleProjec
   behavior of "LocalWorkflowExecutor"
 
   it should "generate a workflow execution report and write errors to the error output." in {
+    val executionMgr = ExecutionReportManager()
+
     // Execute workflow
     val workflow = project.task[Workflow]("workflow")
     workflow.activity[LocalWorkflowExecutorGeneratingProvenance].startBlocking()
 
     // Test if a report has been written
-    val executionMgr = ExecutionReportManager()
     val availableReports = executionMgr.listReports(projectId = Some(projectId))
     availableReports should have size 1
 

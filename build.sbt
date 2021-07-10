@@ -194,7 +194,8 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Serialization JSON",
-    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.8.1"
+    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.8.1",
+    libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.1.9"
   )
 
 lazy val persistentCaching = (project in file("silk-plugins/silk-persistent-caching"))
@@ -333,14 +334,24 @@ lazy val workbenchWorkflow = (project in file("silk-workbench/silk-workbench-wor
     name := "Silk Workbench Workflow"
   )
 
+lazy val workbenchOpenApi = (project in file("silk-workbench/silk-workbench-openapi"))
+  .enablePlugins(PlayScala)
+  .dependsOn(workbenchCore)
+  .settings(commonSettings: _*)
+  .settings(
+    name := "Silk Workbench OpenAPI",
+    libraryDependencies += "io.kinoplan" % "swagger-play_2.12" % "0.0.3",
+    libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.0.27",
+    libraryDependencies += "org.webjars" % "swagger-ui" % "3.51.0"
+  )
+
 lazy val workbench = (project in file("silk-workbench"))
     .enablePlugins(PlayScala)
-    .dependsOn(workbenchWorkspace, workbenchRules, workbenchWorkflow, plugins)
-    .aggregate(workbenchWorkspace, workbenchRules, workbenchWorkflow, plugins)
+    .dependsOn(workbenchWorkspace, workbenchRules, workbenchWorkflow, workbenchOpenApi, plugins)
+    .aggregate(workbenchWorkspace, workbenchRules, workbenchWorkflow, workbenchOpenApi, plugins)
     .settings(commonSettings: _*)
     .settings(
       name := "Silk Workbench",
-      // War Packaging
       libraryDependencies += guice,
       // Linux Packaging, Uncomment to generate Debian packages that register the Workbench as an Upstart service
       // packageArchetype.java_server

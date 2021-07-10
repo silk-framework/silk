@@ -1,13 +1,19 @@
 package controllers.workspace
 
-import java.util.logging.{LogRecord, Logger}
 import akka.actor.ActorSystem
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Merge, Source}
 import controllers.core.UserContextActions
 import controllers.util.{AkkaUtils, SerializationUtils}
-
-import javax.inject.Inject
+import controllers.workspace.activityApi.ActivityListResponse.ActivityListEntry
+import controllers.workspace.activityApi.{ActivityFacade, StartActivityResponse}
+import controllers.workspace.doc.ActivityApiDoc
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.parameters.RequestBody
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.{Activity, UserContext, _}
 import org.silkframework.runtime.serialization.WriteContext
@@ -20,57 +26,197 @@ import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc._
 
+import java.util.logging.{LogRecord, Logger}
+import javax.inject.Inject
 import scala.language.existentials
 
+@Tag(name = "Activities", description = ActivityApiDoc.activityDoc)
 class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) extends InjectedController with UserContextActions {
 
+  @Operation(
+    summary = "List activities",
+    description = "Lists either global, project or task activities.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          array = new ArraySchema(schema = new Schema(implementation = classOf[ActivityListEntry])),
+          examples = Array(new ExampleObject(ActivityApiDoc.activityListExample))
+        ))
+      )
+    ))
+  def listActivities(@Parameter(
+                       name = "project",
+                       description = "Optional project identifier. If not provided or empty, global activities will be listed.",
+                       required = false,
+                       in = ParameterIn.QUERY,
+                       schema = new Schema(implementation = classOf[String])
+                     )
+                     projectName: String,
+                     @Parameter(
+                       name = "task",
+                       description = "Optional task identifier. If not provided or empty, project activities will be listed.",
+                       required = false,
+                       in = ParameterIn.QUERY,
+                       schema = new Schema(implementation = classOf[String])
+                     )
+                     taskName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
+    val response = ActivityFacade.listActivities(projectName, taskName)
+    Ok(Json.toJson(response))
+  }
+
   def globalWorkspaceActivities(): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    Ok(JsonSerializer.globalWorkspaceActivities(WorkspaceFactory().workspace))
+    val response = ActivityFacade.listActivities("", "")
+    Ok(Json.toJson(response))
   }
 
   def getProjectActivities(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    Ok(JsonSerializer.projectActivities(project))
+    val response = ActivityFacade.listActivities(projectName, "")
+    Ok(Json.toJson(response))
   }
 
   def getTaskActivities(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val task = project.anyTask(taskName)
-    Ok(JsonSerializer.taskActivities(task))
+    val response = ActivityFacade.listActivities(projectName, taskName)
+    Ok(Json.toJson(response))
   }
 
-  def startActivity(projectName: String,
+  @Operation(
+    summary = "Start activity (non-blocking)",
+    description = "Starts an activity. The call returns immediately without waiting for the activity to complete.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(implementation = classOf[StartActivityResponse])
+        ))
+      )
+  ))
+  @RequestBody(
+    description = "Optionally updates configuration parameters, before starting the activity.",
+    required = false,
+    content = Array(
+      new Content(
+        mediaType = "application/x-www-form-urlencoded",
+        examples = Array(new ExampleObject("param1=value1&param2=value2"))
+      )
+    )
+  )
+  def startActivity(@Parameter(
+                      name = "project",
+                      description = "Optional project identifier. If not provided or empty, global activities will be addressed.",
+                      required = false,
+                      in = ParameterIn.QUERY,
+                      schema = new Schema(implementation = classOf[String])
+                    )
+                    projectName: String,
+                    @Parameter(
+                      name = "task",
+                      description = "Optional task identifier. If not provided or empty, project activities will be addressed.",
+                      required = false,
+                      in = ParameterIn.QUERY,
+                      schema = new Schema(implementation = classOf[String])
+                    )
                     taskName: String,
-                    activityName: String,
-                    blocking: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext: UserContext =>
-    val w = WorkspaceFactory.factory.workspace
-    val config = activityConfig(request)
-    val activity: WorkspaceActivity[_ <: HasValue] =
-      if(projectName.trim.isEmpty) {
-        w.activity(activityName)
-      } else {
-        val project = w.project(projectName)
-        if (taskName.nonEmpty) {
-          project.anyTask(taskName).activity(activityName)
-        } else {
-          project.activity(activityName)
-        }
-      }
-
-    if (activity.isSingleton && activity.status().isRunning) {
-      ErrorResult(BAD_REQUEST, title = "Cannot start activity", detail = s"Cannot start activity '$activityName'. Already running.")
-    } else {
-      if (blocking) {
-        activity.startBlocking(config)
-        NoContent
-      } else {
-        val id = activity.start(config)
-        Ok(Json.obj(("activityId", id.toString)))
-      }
-    }
+                    @Parameter(
+                      name = "activity",
+                      description = "Activity name.",
+                      required = true,
+                      in = ParameterIn.QUERY,
+                      schema = new Schema(implementation = classOf[String])
+                    )
+                    activityName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext: UserContext =>
+    val response = ActivityFacade.start(projectName, taskName, activityName, blocking = false, activityConfig(request))
+    Ok(Json.toJson(response))
   }
 
-  def cancelActivity(projectName: String, taskName: String, activityName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
+  @Operation(
+    summary = "Start activity (blocking)",
+    description = "Starts the activity and returns after it has completed.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(implementation = classOf[StartActivityResponse])
+        ))
+      )
+    ))
+  @RequestBody(
+    description = "Optionally updates configuration parameters, before starting the activity.",
+    required = false,
+    content = Array(
+      new Content(
+        mediaType = "application/x-www-form-urlencoded",
+        examples = Array(new ExampleObject("param1=value1&param2=value2"))
+      )
+    )
+  )
+  def startActivityBlocking(@Parameter(
+                              name = "project",
+                              description = "Optional project identifier. If not provided or empty, global activities will be addressed.",
+                              required = false,
+                              in = ParameterIn.QUERY,
+                              schema = new Schema(implementation = classOf[String])
+                            )
+                            projectName: String,
+                            @Parameter(
+                              name = "task",
+                              description = "Optional task identifier. If not provided or empty, project activities will be addressed.",
+                              required = false,
+                              in = ParameterIn.QUERY,
+                              schema = new Schema(implementation = classOf[String])
+                            )
+                            taskName: String,
+                            @Parameter(
+                              name = "activity",
+                              description = "Activity name.",
+                              required = true,
+                              in = ParameterIn.QUERY,
+                              schema = new Schema(implementation = classOf[String])
+                            )
+                            activityName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext: UserContext =>
+    val response = ActivityFacade.start(projectName, taskName, activityName, blocking = true, activityConfig(request))
+    Ok(Json.toJson(response))
+  }
+
+  @Operation(
+    summary = "Cancel activity",
+    description = "Requests cancellation of an activity. The call returns immediately and does not wait until the activity has been cancelled.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the cancellation has been requested successfully."
+     )
+  ))
+  def cancelActivity(@Parameter(
+                       name = "project",
+                       description = "Optional project identifier. If not provided or empty, global activities will be addressed.",
+                       required = false,
+                       in = ParameterIn.QUERY,
+                       schema = new Schema(implementation = classOf[String])
+                     )
+                     projectName: String,
+                     @Parameter(
+                       name = "task",
+                       description = "Optional task identifier. If not provided or empty, project activities will be addressed.",
+                       required = false,
+                       in = ParameterIn.QUERY,
+                       schema = new Schema(implementation = classOf[String])
+                     )
+                     taskName: String,
+                     @Parameter(
+                       name = "activity",
+                       description = "Activity name.",
+                       required = true,
+                       in = ParameterIn.QUERY,
+                       schema = new Schema(implementation = classOf[String])
+                     )
+                     activityName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
     val activity = activityControl(projectName, taskName, activityName)
     activity.cancel()
     Ok
@@ -90,6 +236,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     Ok
   }
 
+  @deprecated(message = "This endpoint does not return the actual config parameters of a given activity instance, but just the default values.")
   def getActivityConfig(projectName: String, taskName: String, activityName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
     val workspace = WorkspaceFactory().workspace
     val activityConfig = {
@@ -109,6 +256,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     Ok(JsonSerializer.activityConfig(activityConfig))
   }
 
+  @deprecated(message = "Configuration should be attached to a start(blocking) request.")
   def postActivityConfig(projectName: String,
                          taskName: String,
                          activityName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext: UserContext =>
@@ -132,15 +280,85 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     }
   }
 
-  def getActivityStatus(projectName: String, taskName: String, activityName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
+  @Operation(
+    summary = "Get activity status",
+    description = ActivityApiDoc.activityStatusDescription,
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject(ActivityApiDoc.activityStatusExample))
+        ))
+      )
+  ))
+  def getActivityStatus(@Parameter(
+                          name = "project",
+                          description = "Optional project identifier. If not provided or empty, global activities will be addressed.",
+                          required = false,
+                          in = ParameterIn.QUERY,
+                          schema = new Schema(implementation = classOf[String])
+                        )
+                        projectName: String,
+                        @Parameter(
+                          name = "task",
+                          description = "Optional task identifier. If not provided or empty, project activities will be addressed.",
+                          required = false,
+                          in = ParameterIn.QUERY,
+                          schema = new Schema(implementation = classOf[String])
+                        )
+                        taskName: String,
+                        @Parameter(
+                          name = "activity",
+                          description = "Activity name.",
+                          required = true,
+                          in = ParameterIn.QUERY,
+                          schema = new Schema(implementation = classOf[String])
+                        )
+                        activityName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
     val activity = activityControl(projectName, taskName, activityName)
     implicit val writeContext = WriteContext[JsValue]()
 
     Ok(new ExtendedStatusJsonFormat(projectName, taskName, activityName, activity.startTime).write(activity.status()))
   }
 
-  def getActivityValue(projectName: String,
+  @Operation(
+    summary = "Get activity value",
+    description = "Retrieves the current value of this activity, if any.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "The activity value. The ACCEPT header controls the serialization format (typically JSON or XML)."
+      ),
+      new ApiResponse(
+        responseCode = "406",
+        description = "No serializer is registered for the requested format."
+      )
+    ))
+  def getActivityValue(@Parameter(
+                         name = "project",
+                         description = "Optional project identifier. If not provided or empty, global activities will be addressed.",
+                         required = false,
+                         in = ParameterIn.QUERY,
+                         schema = new Schema(implementation = classOf[String])
+                       )
+                       projectName: String,
+                       @Parameter(
+                         name = "task",
+                         description = "Optional task identifier. If not provided or empty, project activities will be addressed.",
+                         required = false,
+                         in = ParameterIn.QUERY,
+                         schema = new Schema(implementation = classOf[String])
+                       )
                        taskName: String,
+                       @Parameter(
+                         name = "activity",
+                         description = "Activity name.",
+                         required = true,
+                         in = ParameterIn.QUERY,
+                         schema = new Schema(implementation = classOf[String])
+                       )
                        activityName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext: UserContext =>
     implicit val project: Option[Project] = if(projectName.trim.isEmpty) {
       None
@@ -152,6 +370,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     SerializationUtils.serializeRuntime(value)
   }
 
+  @deprecated
   def recentActivities(maxCount: Int): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
     // Get all projects and tasks
     val projects = WorkspaceFactory().workspace.projects
@@ -171,13 +390,54 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     Ok(JsArray(statuses))
   }
 
+  @deprecated
   def activityLog(): Action[AnyContent] = Action {
     Ok(JsonSerializer.logRecords(ActivityLog.records))
   }
 
-  def getActivityStatusUpdates(projectName: String,
+  @Operation(
+    summary = "Get activity status updates",
+    description = "Request updates on the status of one or many activities.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json"
+        ))
+      )
+    ))
+  def getActivityStatusUpdates(@Parameter(
+                                 name = "project",
+                                 description = "Optional project identifier. If empty or not provided, activities from all projects are considered.",
+                                 required = false,
+                                 in = ParameterIn.QUERY,
+                                 schema = new Schema(implementation = classOf[String])
+                               )
+                               projectName: String,
+                               @Parameter(
+                                 name = "task",
+                                 description = "Optional task identifier. If empty or not provided, activities from all tasks are considered.",
+                                 required = false,
+                                 in = ParameterIn.QUERY,
+                                 schema = new Schema(implementation = classOf[String])
+                               )
                                taskName: String,
+                               @Parameter(
+                                 name = "activity",
+                                 description = "Optional activity identifier. If empty or not provided, updates from all activities that match the task and project are returned.",
+                                 required = false,
+                                 in = ParameterIn.QUERY,
+                                 schema = new Schema(implementation = classOf[String])
+                               )
                                activityName: String,
+                               @Parameter(
+                                 name = "timestamp",
+                                 description = "Only return status updates that happened after this timestamp. Provided in milliseconds since midnight, January 1, 1970 UTC. If not provided or 0, the stati of all matching activities are returned.",
+                                 required = false,
+                                 in = ParameterIn.QUERY,
+                                 schema = new Schema(implementation = classOf[String])
+                               )
                                timestamp: Long): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
     implicit val writeContext = WriteContext[JsValue]()
     val activities = allActivities(projectName, taskName, activityName)
@@ -196,8 +456,41 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     )
   }
 
-  def activityStatusUpdatesWebSocket(projectName: String,
+  @Operation(
+    summary = "Get activity status updates (websocket)",
+    description = "Request updates on the status of one or many activities.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json"
+        ))
+      )
+    ))
+  def activityStatusUpdatesWebSocket(@Parameter(
+                                      name = "project",
+                                      description = "Optional project identifier. If empty or not provided, activities from all projects are considered.",
+                                      required = false,
+                                      in = ParameterIn.QUERY,
+                                      schema = new Schema(implementation = classOf[String])
+                                    )
+                                     projectName: String,
+                                     @Parameter(
+                                       name = "task",
+                                       description = "Optional task identifier. If empty or not provided, activities from all tasks are considered.",
+                                       required = false,
+                                       in = ParameterIn.QUERY,
+                                       schema = new Schema(implementation = classOf[String])
+                                     )
                                      taskName: String,
+                                     @Parameter(
+                                       name = "activity",
+                                       description = "Optional activity identifier. If empty or not provided, updates from all activities that match the task and project are returned.",
+                                       required = false,
+                                       in = ParameterIn.QUERY,
+                                       schema = new Schema(implementation = classOf[String])
+                                     )
                                      activityName: String): WebSocket = {
 
     implicit val userContext = UserContext.Empty
@@ -317,12 +610,15 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     }
   }
 
-  private def activityConfig(request: Request[AnyContent]): Map[String, String] = {
+  private def activityConfig(request: Request[AnyContent], includeQueryParameters: Boolean = true): Map[String, String] = {
     request.body match {
       case AnyContentAsFormUrlEncoded(values) =>
         values.mapValues(_.head)
+      case _ if includeQueryParameters =>
+        val ignoredQueryParameters = Set("project", "task", "activity")
+        request.queryString.filterKeys(!ignoredQueryParameters.contains(_)).mapValues(_.head)
       case _ =>
-        request.queryString.mapValues(_.head)
+        Map.empty
     }
   }
 }
