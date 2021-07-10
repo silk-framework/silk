@@ -14,7 +14,7 @@ export default function FacetsList() {
     const appliedFacets = useSelector(workspaceSel.appliedFacetsSelector);
 
     const [visibleFacetsKeywords, setVisibleFacetsKeywords] = useState({});
-    const [toggledFacets, setToggledFacets] = useState([]);
+    const [toggledFacets, setToggledFacets] = useState<string[]>([]);
 
     const FACETS_PREVIEW_LIMIT = 5;
 

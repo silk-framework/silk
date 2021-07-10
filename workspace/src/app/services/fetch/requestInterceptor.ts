@@ -9,7 +9,7 @@ export const requestInterceptor = (config: AxiosRequestConfig) => {
     if (config.headers["Content-Type"] === "application/x-www-form-urlencoded" && is(Object, config.data)) {
         const { data } = config;
 
-        const serializedData = [];
+        const serializedData: string[] = [];
         for (const key in data) {
             serializedData.push(key + "=" + encodeURIComponent(data[key]));
         }

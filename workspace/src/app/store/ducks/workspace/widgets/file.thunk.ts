@@ -1,5 +1,4 @@
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
-import { commonSel } from "@ducks/common";
 import { requestResourcesList } from "@ducks/shared/requests";
 
 const { setFiles, setWidgetError, toggleWidgetLoading } = widgetsSlice.actions;
@@ -22,9 +21,8 @@ interface IResourceListAsyncProps {
     offset?: number;
 }
 
-export const fetchResourcesListAsync = (filters: IResourceListAsyncProps = {}) => {
-    return async (dispatch, getState) => {
-        const projectId = commonSel.currentProjectIdSelector(getState());
+export const fetchResourcesListAsync = (filters: IResourceListAsyncProps = {}, projectId: string) => {
+    return async (dispatch) => {
         try {
             dispatch(toggleLoading());
             const response = await requestResourcesList(projectId, filters);

@@ -12,12 +12,13 @@ import { legacyApiEndpoint, workspaceApi } from "../../../utils/getApiEndpoint";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 
 export interface ISearchListRequest {
-    limit: number;
-    offset: number;
+    limit?: number;
+    offset?: number;
     sortBy?: string;
     sortOrder?: string;
     project?: string;
     facets?: IAppliedFacetState[];
+    textQuery?: string;
 }
 
 export interface ISearchListResponse {

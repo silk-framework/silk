@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 
 interface IProps {
     sortersList: ISorterListItemState[];
-    activeSort?: IAppliedSorterState;
+    activeSort: IAppliedSorterState;
 
     onSort(id: string): void;
 }
@@ -27,7 +27,7 @@ export default function SortButton({ sortersList, activeSort, onSort }: IProps) 
                                 ? activeSort.sortOrder === "ASC"
                                     ? "list-sortasc"
                                     : "list-sortdesc"
-                                : null
+                                : undefined
                         }
                         onClick={() => onSort(item.id)}
                     />

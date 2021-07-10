@@ -54,11 +54,11 @@ interface CopyResponsePayload {
 }
 
 const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed }) => {
-    const [newLabel, setNewLabel] = React.useState<string>(item.label || item.id);
+    const [newLabel, setNewLabel] = React.useState<string>(item.label || item.id || "");
     const [error, setError] = React.useState<ErrorResponse | null>(null);
     const [loading, setLoading] = React.useState<boolean>(false);
-    const [label, setLabel] = React.useState<string | null>(item.label);
-    const [targetProject, setTargetProject] = React.useState();
+    const [label, setLabel] = React.useState<string | undefined>(item.label);
+    const [targetProject, setTargetProject] = React.useState<string | undefined>(undefined);
     const [info, setInfo] = React.useState<CopyResponsePayload | undefined>();
     const [overWrittenAcknowledgement, setOverWrittenAcknowledgement] = React.useState(false);
 
@@ -85,10 +85,10 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
             const response =
                 item.projectId && item.id
                     ? await requestTaskMetadata(item.id, item.projectId)
-                    : await requestProjectMetadata(item.projectId);
+                    : await requestProjectMetadata(item.projectId as string);
 
-            const currentLabel = !!response.data.label ? response.data.label : !!item.id ? item.id : item.projectId;
-            setLabel(currentLabel);
+            const currentLabel = !!response.data.label ? response.data.label : item.id ? item.id : item.projectId;
+            setLabel(currentLabel as string);
             setNewLabel(t("common.messages.cloneOf", { item: currentLabel }));
         } catch (ex) {
             // swallow exception, fallback to ID
@@ -97,7 +97,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
         }
     };
 
-    const copyTaskOrProject = async (id: string, projectId: string, payload: CopyPayloadProps) => {
+    const copyTaskOrProject = async (projectId: string, payload: CopyPayloadProps, id?: string) => {
         const response = id
             ? await requestCopyTask(projectId, id, payload)
             : await requestCopyProject(projectId, payload);
@@ -109,12 +109,12 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
         setError(null);
         try {
             setLoading(true);
-            const payload = {
-                targetProject,
+            const payload: CopyPayloadProps = {
+                targetProject: targetProject || "TODO",
                 dryRun: false,
                 overwriteTasks: overWrittenAcknowledgement,
             };
-            await copyTaskOrProject(id, projectId, payload);
+            await copyTaskOrProject(projectId, payload, id);
             onConfirmed();
         } catch (e) {
             if (e.isFetchError) {
@@ -127,7 +127,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
         }
     };
 
-    const handleSearch = async (textQuery: string) => {
+    const handleSearch: (value: string) => Promise<any[]> = async (textQuery: string) => {
         try {
             const payload = {
                 limit: 10,
@@ -139,6 +139,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
             return removeFromList(results);
         } catch (err) {
             console.warn({ err });
+            return [];
         }
     };
 
@@ -207,7 +208,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             targetProject: value,
                             dryRun: true,
                         };
-                        const response = await copyTaskOrProject(id, projectId, payload);
+                        const response = await copyTaskOrProject(projectId, payload, id);
                         setInfo((prevInfo) => ({ ...prevInfo, ...response?.data }));
                     }}
                     itemValueRenderer={(item) => item.label}

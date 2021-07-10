@@ -26,9 +26,7 @@ interface IProps {
  * The widget for "select from existing" option
  * @constructor
  */
-export function SelectFileFromExisting(props: IProps) {
-    const { autocomplete, onChange, defaultValue } = props;
-
+export function SelectFileFromExisting({ autocomplete, onChange, defaultValue }: IProps) {
     const selectedValueState = useState(defaultValue);
     const setSelectedValue = selectedValueState[1];
     const [error, setError] = useState(false);

@@ -2,7 +2,7 @@ import { useEffect } from "react";
 
 interface IProps {
     // The hotkey to support, e.g. "ctrl+e"
-    hotkey: string;
+    hotkey?: string;
     // The event handler for the hot key combination. Return false if the event should not bubble up.
     handler: () => void;
 }

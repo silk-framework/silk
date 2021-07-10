@@ -27,7 +27,7 @@ export interface ITaskSchemaAndData {
 export function TaskConfig(props: IProps) {
     const dispatch = useDispatch();
     const [loading, setLoading] = useState(false);
-    const [labelledTaskData, setLabelledTaskData] = useState<ITaskSchemaAndData>(null);
+    const [labelledTaskData, setLabelledTaskData] = useState<ITaskSchemaAndData | undefined>(undefined);
     const { isOpen } = useSelector(commonSel.artefactModalSelector);
     const taskId = useSelector(commonSel.currentTaskIdSelector);
     const { cachedArtefactProperties } = useSelector(commonSel.artefactModalSelector);
@@ -112,7 +112,7 @@ export function TaskConfig(props: IProps) {
             </CardHeader>
             <Divider />
             <CardContent>
-                {loading ? (
+                {loading || !labelledTaskData ? (
                     <Loading description={t("widget.TaskConfigWidget.loading", "Loading update dialog...")} />
                 ) : (
                     <TaskConfigPreview {...labelledTaskData} />

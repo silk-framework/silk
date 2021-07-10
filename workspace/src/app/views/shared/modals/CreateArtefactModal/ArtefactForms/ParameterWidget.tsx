@@ -1,7 +1,7 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import { sharedOp } from "@ducks/shared";
-import { ITaskParameter } from "@ducks/common/typings";
+import { IArtefactItemProperty, IPropertyAutocomplete, ITaskParameter } from "@ducks/common/typings";
 import {
     AutoCompleteField,
     WhiteSpaceContainer,
@@ -99,7 +99,7 @@ export const ParameterWidget = (props: IProps) => {
     const { title, description, autoCompletion } = propertyDetails;
     const [t] = useTranslation();
 
-    const selectDependentValues = (): string[] => {
+    const selectDependentValues = (autoCompletion: IPropertyAutocomplete): string[] => {
         return autoCompletion.autoCompletionDependsOnParameters.flatMap((paramId) => {
             const prefixedParamId =
                 formParamId.substring(0, formParamId.length - taskParameter.paramId.length) + paramId;
@@ -111,13 +111,13 @@ export const ParameterWidget = (props: IProps) => {
         });
     };
 
-    const handleAutoCompleteInput = async (input: string) => {
+    const handleAutoCompleteInput = async (input: string, autoCompletion: IPropertyAutocomplete) => {
         try {
             const autoCompleteResponse = await sharedOp.getAutocompleteResultsAsync({
                 pluginId: pluginId,
                 parameterId: taskParameter.paramId,
                 projectId,
-                dependsOnParameterValues: selectDependentValues(),
+                dependsOnParameterValues: selectDependentValues(autoCompletion),
                 textQuery: input,
                 limit: 100, // The auto-completion is only showing the first n values TODO: Make auto-completion list scrollable?
             });
@@ -137,7 +137,7 @@ export const ParameterWidget = (props: IProps) => {
         }
     };
 
-    let propertyHelperText = null;
+    let propertyHelperText: JSX.Element | null = null;
     if (description && description.length > MAXLENGTH_TOOLTIP) {
         propertyHelperText = (
             <ContentBlobToggler
@@ -177,23 +177,25 @@ export const ParameterWidget = (props: IProps) => {
                 }
                 helperText={propertyHelperText}
             >
-                {Object.entries(propertyDetails.properties).map(([nestedParamId, nestedParam]) => {
-                    const nestedFormParamId = `${formParamId}.${nestedParamId}`;
-                    return (
-                        <ParameterWidget
-                            key={nestedFormParamId}
-                            projectId={projectId}
-                            pluginId={propertyDetails.pluginId}
-                            formParamId={nestedFormParamId}
-                            required={requiredNestedParams.includes(nestedParamId)}
-                            taskParameter={{ paramId: nestedParamId, param: nestedParam }}
-                            formHooks={{ errors: errors ? errors : {} }}
-                            changeHandlers={changeHandlers}
-                            initialValues={initialValues}
-                            dependentValues={dependentValues}
-                        />
-                    );
-                })}
+                {Object.entries(propertyDetails.properties as Record<string, IArtefactItemProperty>).map(
+                    ([nestedParamId, nestedParam]) => {
+                        const nestedFormParamId = `${formParamId}.${nestedParamId}`;
+                        return (
+                            <ParameterWidget
+                                key={nestedFormParamId}
+                                projectId={projectId}
+                                pluginId={propertyDetails.pluginId as string}
+                                formParamId={nestedFormParamId}
+                                required={requiredNestedParams.includes(nestedParamId)}
+                                taskParameter={{ paramId: nestedParamId, param: nestedParam }}
+                                formHooks={{ errors: errors ? errors : {} }}
+                                changeHandlers={changeHandlers}
+                                initialValues={initialValues}
+                                dependentValues={dependentValues}
+                            />
+                        );
+                    }
+                )}
             </FieldSet>
         );
     } else if (propertyDetails.parameterType === INPUT_TYPES.RESOURCE) {
@@ -234,9 +236,9 @@ export const ParameterWidget = (props: IProps) => {
                 hasStateDanger={errorMessage(title, errors) ? true : false}
                 messageText={errorMessage(title, errors)}
             >
-                {!!autoCompletion ? (
+                {autoCompletion ? (
                     <AutoCompleteField<IAutocompleteDefaultResponse, string>
-                        onSearch={handleAutoCompleteInput}
+                        onSearch={(input: string) => handleAutoCompleteInput(input, autoCompletion)}
                         onChange={changeHandlers[formParamId]}
                         initialValue={
                             initialValues[formParamId]
@@ -244,7 +246,8 @@ export const ParameterWidget = (props: IProps) => {
                                 : { value: defaultValueAsJs(propertyDetails) }
                         }
                         disabled={
-                            selectDependentValues().length < autoCompletion.autoCompletionDependsOnParameters.length
+                            selectDependentValues(autoCompletion).length <
+                            autoCompletion.autoCompletionDependsOnParameters.length
                         }
                         inputProps={{
                             name: formParamId,
@@ -263,17 +266,17 @@ export const ParameterWidget = (props: IProps) => {
                         itemRenderer={displayAutoCompleteLabel}
                         itemValueRenderer={autoCompleteLabel}
                         itemValueSelector={(item) => item.value}
-                        createNewItem={{
-                            itemFromQuery: autoCompletion.allowOnlyAutoCompletedValues
+                        createNewItem={
+                            autoCompletion.allowOnlyAutoCompletedValues
                                 ? undefined
-                                : (query) => ({ value: query }),
-                            itemRenderer: autoCompletion.allowOnlyAutoCompletedValues
-                                ? undefined
-                                : createNewItemRendererFactory(
-                                      (query) => t("ParameterWidget.AutoComplete.createNewItem", { query }),
-                                      "item-add-artefact"
-                                  ),
-                        }}
+                                : {
+                                      itemFromQuery: (query) => ({ value: query }),
+                                      itemRenderer: createNewItemRendererFactory(
+                                          (query) => t("ParameterWidget.AutoComplete.createNewItem", { query }),
+                                          "item-add-artefact"
+                                      ),
+                                  }
+                        }
                         noResultText={t("common.messages.noResults")}
                     />
                 ) : (

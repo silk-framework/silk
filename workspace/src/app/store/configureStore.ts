@@ -15,7 +15,7 @@ export const getStore = () => store;
 export const getHistory = () => history;
 
 export default function (options: any = {}) {
-    const enhancers = [];
+    const enhancers: any[] = [];
     const middleware = [
         ...getDefaultMiddleware({
             serializableCheck: false,

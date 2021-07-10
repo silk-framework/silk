@@ -26,6 +26,7 @@ import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { routerOp } from "@ducks/router";
 import CreateButton from "../../shared/buttons/CreateButton";
 import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
+import { NotificationsMenu } from "../../shared/ApplicationNotifications/NotificationsMenu";
 import { triggerHotkeyHandler } from "../../shared/HotKeyHandler/HotKeyHandler";
 import { APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { CONTEXT_PATH } from "../../../constants/path";
@@ -126,6 +127,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                 <ApplicationToolbarSection>
                     <CreateButton onClick={handleCreateDialog} />
                 </ApplicationToolbarSection>
+                <NotificationsMenu />
                 {displayUserMenu ? (
                     <>
                         <ApplicationToolbarAction
@@ -154,16 +156,6 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                     </Button>
                                 </div>
                                 <MenuDivider />
-                                <MenuItem
-                                    text={t("common.action.backOld", "Back to old workspace")}
-                                    href={CONTEXT_PATH + "/workspace"}
-                                    icon={"application-legacygui"}
-                                />
-                                <MenuItem
-                                    text={t("common.action.activity", "Activity overview")}
-                                    href={CONTEXT_PATH + "/workspace/allActivities"}
-                                    icon={"application-activities"}
-                                />
                                 {hotKeys.quickSearch && (
                                     <MenuItem
                                         text={
@@ -184,11 +176,26 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                             if (e) {
                                                 e.preventDefault();
                                             }
-                                            triggerHotkeyHandler(hotKeys.quickSearch);
+                                            triggerHotkeyHandler(hotKeys.quickSearch as string);
                                         }}
                                         icon={"operation-search"}
                                     />
                                 )}
+                                <MenuItem
+                                    text={t("common.action.activity", "Activity overview")}
+                                    href={CONTEXT_PATH + "/workspace/allActivities"}
+                                    icon={"application-activities"}
+                                />
+                                <MenuItem
+                                    text={t("common.action.showApiDoc", "API")}
+                                    href={CONTEXT_PATH + "/doc/api"}
+                                    icon={"application-homepage"}
+                                />
+                                <MenuItem
+                                    text={t("common.action.backOld", "Back to old workspace")}
+                                    href={CONTEXT_PATH + "/workspace"}
+                                    icon={"application-legacygui"}
+                                />
                                 {!!dmBaseUrl && (
                                     <>
                                         <MenuDivider />

@@ -19,6 +19,7 @@ import {
     OverviewItemList,
 } from "@gui-elements/index";
 import { useTranslation } from "react-i18next";
+import { commonSel } from "@ducks/common";
 
 const VISIBLE_COUNT = 5;
 
@@ -30,12 +31,15 @@ export const ProjectNamespacePrefixManagementWidget = () => {
     const [visiblePrefixes, setVisiblePrefixes] = useState<IPrefixDefinition[]>([]);
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const configurationWidget = useSelector(workspaceSel.widgetsSelector).configuration;
+    const projectId = useSelector(commonSel.currentProjectIdSelector);
 
     const { isLoading } = configurationWidget;
 
     useEffect(() => {
-        dispatch(workspaceOp.fetchProjectPrefixesAsync());
-    }, [workspaceOp]);
+        if (projectId) {
+            dispatch(workspaceOp.fetchProjectPrefixesAsync(projectId));
+        }
+    }, [workspaceOp, projectId]);
 
     useEffect(() => {
         const visibleItems = prefixList.slice(0, VISIBLE_COUNT);
@@ -99,11 +103,14 @@ export const ProjectNamespacePrefixManagementWidget = () => {
                                 </OverviewItemActions>
                             </OverviewItem>
                         </OverviewItemList>
-                        <PrefixesDialog
-                            isOpen={isOpen}
-                            onCloseModal={handleClose}
-                            existingPrefixes={new Set(prefixList.map((p) => p.prefixName))}
-                        />
+                        {projectId && (
+                            <PrefixesDialog
+                                projectId={projectId}
+                                isOpen={isOpen}
+                                onCloseModal={handleClose}
+                                existingPrefixes={new Set(prefixList.map((p) => p.prefixName))}
+                            />
+                        )}
                     </>
                 )}
             </CardContent>

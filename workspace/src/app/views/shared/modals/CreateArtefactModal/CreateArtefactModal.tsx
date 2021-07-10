@@ -64,7 +64,7 @@ export function CreateArtefactModal() {
     }: IArtefactModal = modalStore;
 
     // The artefact that is selected from the artefact selection list. This can be pre-selected via the Redux state.
-    // A successive 'Add' action will open die creation dialog for this artefact.
+    // A successive 'Add' action will open the creation dialog for this artefact.
     const [toBeAdded, setToBeAdded] = useState<IArtefactItem | undefined>(selectedArtefact);
     const [lastSelectedClick, setLastSelectedClick] = useState<number>(0);
     const [isProjectImport, setIsProjectImport] = useState<boolean>(false);
@@ -98,8 +98,11 @@ export function CreateArtefactModal() {
     const handleAdd = () => {
         if (toBeAddedKey === DATA_TYPES.PROJECT) {
             return dispatch(commonOp.selectArtefact(toBeAdded));
+        } else if (toBeAdded) {
+            dispatch(commonOp.getArtefactPropertiesAsync(toBeAdded));
+        } else {
+            console.error("No item plugin selected, cannot add new item!");
         }
-        dispatch(commonOp.getArtefactPropertiesAsync(toBeAdded));
     };
 
     const handleSearch = (textQuery: string) => {
@@ -209,7 +212,7 @@ export function CreateArtefactModal() {
 
     const projectArtefactSelected = selectedArtefactKey === DATA_TYPES.PROJECT;
 
-    let artefactForm = null;
+    let artefactForm: JSX.Element | null = null;
     if (updateExistingTask) {
         // Task update
         artefactForm = (
@@ -224,7 +227,7 @@ export function CreateArtefactModal() {
         // Project / task creation
         if (selectedArtefactKey) {
             if (projectArtefactSelected) {
-                artefactForm = <ProjectForm form={form} projectId={projectId} />;
+                artefactForm = <ProjectForm form={form} />;
             } else {
                 const detailedArtefact = cachedArtefactProperties[selectedArtefactKey];
                 if (detailedArtefact && projectId) {
@@ -242,7 +245,9 @@ export function CreateArtefactModal() {
 
     // Filter artefact list and add project item
     let artefactListWithProject = artefactsList.filter(
-        (artefact) => selectedDType === "all" || routerOp.itemTypeToPath(artefact.taskType) === selectedDType
+        (artefact) =>
+            selectedDType === "all" ||
+            (artefact.taskType && routerOp.itemTypeToPath(artefact.taskType) === selectedDType)
     );
     if (showProjectItem && (selectedDType === "all" || selectedDType === "project")) {
         artefactListWithProject = [
@@ -262,10 +267,10 @@ export function CreateArtefactModal() {
     // Rank title matches higher
     if (searchValue.trim() !== "") {
         const regex = createMultiWordRegex(extractSearchWords(searchValue));
-        const titleMatches = [];
-        const nonTitleMatches = [];
+        const titleMatches: IArtefactItem[] = [];
+        const nonTitleMatches: IArtefactItem[] = [];
         artefactListWithProject.forEach((artefactItem) => {
-            if (regex.test(artefactItem.title)) {
+            if (artefactItem.title && regex.test(artefactItem.title)) {
                 titleMatches.push(artefactItem);
             } else {
                 nonTitleMatches.push(artefactItem);
