@@ -21,7 +21,7 @@ import { IItemLink } from "@ducks/shared/typings";
 import { requestItemLinks } from "@ducks/shared/requests";
 import { commonSel } from "@ducks/common";
 import Loading from "../Loading";
-import { HOST, SERVE_PATH } from "../../../constants/path";
+import { HOST, PUBLIC_URL, SERVE_PATH } from "../../../constants/path";
 import "./projectTaskTabView.scss";
 import { IProjectTaskView, IViewActions, viewRegistry } from "../../registry/ViewRegistry";
 import * as H from "history";
@@ -169,7 +169,7 @@ export function ProjectTaskTabView({
         if (iframeRef.current && selectedTab && itemLinks.length && taskViews) {
             const iframeLoadHandler = () => {
                 if (iframeRef.current) {
-                    const regex = new RegExp(HOST + "|\\?.*", "gi");
+                    const regex = new RegExp(PUBLIC_URL + "|\\?.*", "gi");
                     const parsedCurrentIframePath = iframeRef.current.src.replace(regex, "");
                     const focusedIframeSource = itemLinks.find((link) => link.path === parsedCurrentIframePath);
                     setActiveIframePath(focusedIframeSource);
