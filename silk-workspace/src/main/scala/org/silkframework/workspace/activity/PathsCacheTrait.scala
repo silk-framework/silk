@@ -1,28 +1,33 @@
 package org.silkframework.workspace.activity
 
 import org.silkframework.config.TaskSpec
-import org.silkframework.dataset.{Dataset, DatasetSpec}
+import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, SparqlRestrictionDataSource}
+import org.silkframework.entity.Restriction.CustomOperator
 import org.silkframework.entity.paths.TypedPath
+import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
 import org.silkframework.rule.DatasetSelection
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.ProjectTask
-import org.silkframework.workspace.activity.transform.CachedEntitySchemata
+import org.silkframework.workspace.Project
 
 /**
   * Defines methods useful to all paths caches.
   */
 trait PathsCacheTrait {
-  def retrievePathsOfInput(taskId: Identifier,
-                           dataSelection: Option[DatasetSelection],
-                           task: ProjectTask[_],
-                           context: ActivityContext[CachedEntitySchemata])
-                          (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
-    task.project.anyTask(taskId).data match {
+
+  protected def maxLinks: Int = Int.MaxValue
+
+  protected def retrievePathsOfInput(inputTaskId: Identifier,
+                                     dataSelection: Option[DatasetSelection],
+                                     project: Project,
+                                     context: ActivityContext[_])
+                                    (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+    project.anyTask(inputTaskId).data match {
       case dataset: DatasetSpec[Dataset] =>
         context.status.update("Retrieving frequent paths", 0.0)
         dataSelection match {
-          case Some(selection) => dataset.source.retrievePaths(selection.typeUri, Int.MaxValue)
+          case Some(selection) =>
+            retrievePaths(dataset.source, selection)
           case None => IndexedSeq()
         }
       case task: TaskSpec =>
@@ -33,6 +38,23 @@ trait PathsCacheTrait {
             IndexedSeq()
         }
     }
+  }
 
+  private def retrievePaths(dataSource: DataSource, datasetSelection: DatasetSelection)
+                           (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+    dataSource match {
+      case DatasetSpec.DataSourceWrapper(ds: SparqlRestrictionDataSource, _) =>
+        val typeRestriction = SparqlRestriction.forType(datasetSelection.typeUri)
+        val sparqlRestriction = datasetSelection.restriction.operator match {
+          case Some(CustomOperator(sparqlExpression)) =>
+            SparqlRestriction.fromSparql(SparqlEntitySchema.variable, sparqlExpression).merge(typeRestriction)
+          case _ =>
+            typeRestriction
+        }
+        ds.retrievePathsSparqlRestriction(sparqlRestriction, Some(maxLinks))
+      case source: DataSource =>
+        // Retrieve most frequent paths
+        source.retrievePaths(datasetSelection.typeUri, 1, Some(maxLinks))
+    }
   }
 }
