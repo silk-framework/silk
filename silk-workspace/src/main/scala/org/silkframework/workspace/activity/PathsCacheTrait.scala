@@ -15,7 +15,9 @@ import org.silkframework.workspace.Project
   */
 trait PathsCacheTrait {
 
-  protected def maxLinks: Int = Int.MaxValue
+  protected def maxDepth: Int = 1
+
+  protected def maxPaths: Option[Int] = None
 
   protected def retrievePathsOfInput(inputTaskId: Identifier,
                                      dataSelection: Option[DatasetSelection],
@@ -51,10 +53,10 @@ trait PathsCacheTrait {
           case _ =>
             typeRestriction
         }
-        ds.retrievePathsSparqlRestriction(sparqlRestriction, Some(maxLinks))
+        ds.retrievePathsSparqlRestriction(sparqlRestriction, maxPaths)
       case source: DataSource =>
         // Retrieve most frequent paths
-        source.retrievePaths(datasetSelection.typeUri, 1, Some(maxLinks))
+        source.retrievePaths(datasetSelection.typeUri, maxDepth, maxPaths)
     }
   }
 }

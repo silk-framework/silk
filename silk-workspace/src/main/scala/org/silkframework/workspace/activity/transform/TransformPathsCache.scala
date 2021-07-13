@@ -20,6 +20,8 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Cac
 
   override def initialValue: Option[CachedEntitySchemata] = Some(CachedEntitySchemata(EntitySchema.empty, None, inputId, None))
 
+  protected override def maxDepth: Int = Int.MaxValue
+
   private def inputId = transformTask.data.selection.inputId
 
   /** The purpose of this value is to store the change notify callback function
