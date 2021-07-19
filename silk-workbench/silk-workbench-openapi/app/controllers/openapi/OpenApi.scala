@@ -78,13 +78,13 @@ class OpenApi @Inject()(cc: ControllerComponents,
   )
   def validate(@Parameter(
                  name = "url",
-                 description = "The URL of the OpenAPI specification",
-                 required = true,
+                 description = "The URL of the OpenAPI specification. Leave empty for validating the current OpenAPI spec.",
+                 required = false,
                  in = ParameterIn.QUERY,
                  schema = new Schema(implementation = classOf[String])
                )
-               url: String): Action[AnyContent] = Action { implicit request =>
-    val result = OpenApiValidator.validate(url)
+               url: Option[String]): Action[AnyContent] = Action { implicit request =>
+    val result = OpenApiValidator.validate(swaggerPlugin, url)
     Ok(Json.toJson(result))
   }
 
