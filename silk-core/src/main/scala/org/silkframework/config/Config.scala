@@ -4,8 +4,6 @@ import com.typesafe.config.{ConfigFactory, Config => TypesafeConfig}
 import org.silkframework.config.Config._
 import org.silkframework.runtime.validation.ValidationException
 
-import scala.collection.JavaConverters._
-import java.lang.management.ManagementFactory
 import java.io.File
 import java.time.Instant
 import java.util.logging.Logger
@@ -44,12 +42,6 @@ class DefaultConfig private() extends Config {
   }
 
   private lazy val log = Logger.getLogger(this.getClass.getName)
-
-  // TODO just for testing on Bamboo, to be removed
-  println("Garbage collectors in use:")
-  for (gcMxBean <- ManagementFactory.getGarbageCollectorMXBeans.asScala) {
-    println(gcMxBean.getName + ": " + gcMxBean.getObjectName)
-  }
 
   private var config = this.synchronized {init()}
 
