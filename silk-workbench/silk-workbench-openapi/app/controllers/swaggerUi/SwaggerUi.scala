@@ -1,5 +1,6 @@
 package controllers.swaggerUi
 
+import config.WorkbenchConfig
 import controllers.openapi.routes.OpenApi
 import controllers.swaggerUi.routes.SwaggerUi
 import org.silkframework.openapi.OpenApiValidator
@@ -14,8 +15,8 @@ class SwaggerUi @Inject()(cc: ControllerComponents)(implicit executionContext: E
 
   def ui: Action[AnyContent] = Action { implicit request =>
     Ok(views.html.openapi.swaggerUi(
-      url = OpenApi.openApiJson.absoluteURL(),
-      validatorUrl = SwaggerUi.validator(None).absoluteURL()
+      url = OpenApi.openApiJson.absoluteURL(WorkbenchConfig().useHttps),
+      validatorUrl = SwaggerUi.validator(None).absoluteURL(WorkbenchConfig().useHttps)
     ))
   }
 
@@ -36,7 +37,7 @@ class SwaggerUi @Inject()(cc: ControllerComponents)(implicit executionContext: E
   def validatorDebug(url: Option[String]): Action[AnyContent] = Action { implicit request =>
     url match {
       case Some(u) =>
-        Redirect(OpenApi.validate(u).absoluteURL())
+        Redirect(OpenApi.validate(u).absoluteURL(WorkbenchConfig().useHttps))
       case None =>
         throw new BadUserInputException("Parameter 'url' is missing.")
     }
