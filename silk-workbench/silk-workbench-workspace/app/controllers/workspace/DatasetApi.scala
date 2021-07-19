@@ -4,6 +4,7 @@ import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.SerializationUtils._
 import controllers.util.TextSearchUtils
+import controllers.workspace.DatasetApi.TypeCacheFailedException
 import controllers.workspace.doc.DatasetApiDoc
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
@@ -18,7 +19,7 @@ import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.ReadContext
-import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.runtime.validation.{BadUserInputException, RequestException}
 import org.silkframework.util.Uri
 import org.silkframework.workbench.Context
 import org.silkframework.workbench.utils.ErrorResult
@@ -27,6 +28,7 @@ import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc._
 
+import java.net.HttpURLConnection
 import javax.inject.Inject
 
 @Tag(name = "Datasets", description = "Manage datasets.")
@@ -283,6 +285,10 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
       new ApiResponse(
         responseCode = "404",
         description = "If the specified project has not been found."
+      ),
+      new ApiResponse(
+        responseCode = "500",
+        description = "If loading types from the dataset failed."
       )
     )
   )
@@ -320,12 +326,18 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
                       limit: Option[Int]): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[GenericDatasetSpec](project, task, request.path)
     implicit val prefixes: Prefixes = context.project.config.prefixes
+    val typeCache = context.task.activity[TypesCache]
 
-    val types = context.task.activity[TypesCache].value().types
+    // Forward any type cache exception
+    for(ex <- typeCache.status().exception) {
+      throw TypeCacheFailedException(ex)
+    }
+
+    // Load and filter types
+    val types = typeCache.value().types
     val multiWordQuery = TextSearchUtils.extractSearchTerms(textQuery)
     val filteredTypes = types.filter(typ => TextSearchUtils.matchesSearchTerm(multiWordQuery, typ))
     val limitedTypes = limit.map(l => filteredTypes.take(l)).getOrElse(filteredTypes)
-
     Ok(JsArray(limitedTypes.map(JsString)))
   }
 
@@ -529,6 +541,21 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
         (true, true, true)
     }
   }
+}
+
+object DatasetApi {
+
+  /**
+    * Thrown if the type cache failed.
+    */
+  case class TypeCacheFailedException(cause: Throwable) extends RequestException(cause.getMessage, Option(cause)) {
+
+    def errorTitle: String = "Loading types failed"
+
+    def httpErrorCode: Option[Int] = Some(HttpURLConnection.HTTP_INTERNAL_ERROR)
+
+  }
+
 }
 
 case class MappingValueCoverageRequest(dataSourcePath: String)
