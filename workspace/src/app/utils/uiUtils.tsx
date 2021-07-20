@@ -5,7 +5,7 @@ import React from "react";
 export const wrapTooltip = (wrapPredicate: boolean, childTooltip: string, child: JSX.Element): JSX.Element => {
     if (wrapPredicate) {
         return (
-            <Tooltip content={childTooltip} position="bottom-left">
+            <Tooltip content={childTooltip} position="bottom-right">
                 {child}
             </Tooltip>
         );
