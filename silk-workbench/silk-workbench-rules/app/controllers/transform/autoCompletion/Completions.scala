@@ -1,5 +1,6 @@
 package controllers.transform.autoCompletion
 
+import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.util.StringUtils
 import play.api.libs.json._
 
@@ -7,7 +8,8 @@ import java.net.URLDecoder
 import scala.util.Try
 
 /** The base properties of an auto-completion result. */
-case class CompletionsBase(completions: Seq[CompletionBase])
+case class CompletionsBase(@ArraySchema(schema = new Schema(implementation = classOf[CompletionBase]))
+                           completions: Seq[CompletionBase])
 
 object CompletionsBase {
   implicit val completionsBaseFormat: Format[CompletionsBase] = Json.format[CompletionsBase]
@@ -16,7 +18,9 @@ object CompletionsBase {
 /**
   * A list of auto completions.
   */
-case class Completions(values: Seq[Completion] = Seq.empty) {
+@Schema(description = "List of auto completions")
+case class Completions(@ArraySchema(schema = new Schema(implementation = classOf[Completion]))
+                       values: Seq[Completion] = Seq.empty) {
 
   def toCompletionsBase: CompletionsBase = CompletionsBase(values.map(_.toCompletionBase))
 
@@ -85,17 +89,29 @@ object CompletionBase {
   * @param isCompletion True, if this is a valid completion. False, if this is a (error) message.
   * @param extra        Some extra values depending on the category
   */
-case class Completion(value: String,
+case class Completion(@Schema(description = "The value to be filled if the user selects this completion.", required = true)
+                      value: String,
+                      @Schema(description = "The confidence of this completion.", required = true)
                       confidence: Double = Double.MinValue,
+                      @Schema(description = "A user readable label if available.", required = false)
                       label: Option[String],
+                      @Schema(description = "A user readable description if available.", required = false)
                       description: Option[String],
+                      @Schema(description = "The category to be shown in the autocompletion.", required = true)
                       category: String,
+                      @Schema(description = "True, if this is a valid completion. False, if this is a (error) message.", required = true)
                       isCompletion: Boolean,
+                      @Schema(
+                        description = "Some extra values depending on the category (arbitrary JSON)",
+                        required = false,
+                        implementation = classOf[Object], // Dummy type, because JsValue is not recognized as JSON by Swagger
+                      )
                       extra: Option[JsValue] = None) {
 
   /**
     * Returns the label if present or generates a label from the value if no label is set.
     */
+  @Schema(hidden = true)
   lazy val labelOrGenerated: String = label match {
     case Some(existingLabel) =>
       existingLabel

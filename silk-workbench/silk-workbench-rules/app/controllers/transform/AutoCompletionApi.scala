@@ -1,12 +1,19 @@
 package controllers.transform
 
+import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.transform.AutoCompletionApi.Categories
 import controllers.transform.autoCompletion._
+import controllers.transform.doc.AutoCompletionApiDoc
+import controllers.transform.transformTask.TransformUtils
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.parameters.RequestBody
 import org.silkframework.config.Prefixes
-import org.silkframework.dataset.DataSourceCharacteristics
-import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.paths.{PathOperator, _}
 import org.silkframework.entity.{ValueType, ValueTypeAnnotation}
 import org.silkframework.rule.vocab.ObjectPropertyType
@@ -27,19 +34,77 @@ import scala.language.implicitConversions
 /**
   * Generates auto completions for mapping paths and types.
   */
-class AutoCompletionApi @Inject() () extends InjectedController with ControllerUtilsTrait {
+@Tag(name = "Transform autocompletion", description = "Autocomplete types and paths in transformations.")
+class AutoCompletionApi @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
+
   val log: Logger = Logger.getLogger(this.getClass.getName)
 
-  /**
-    * Given a search term, returns all possible completions for source property paths.
-    */
-  def sourcePaths(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Mapping rule source paths",
+    description = "Given a search term, returns all possible completions for source property paths.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Source paths that match the given term",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            schema = new Schema(implementation = classOf[Completions]),
+            examples = Array(new ExampleObject(AutoCompletionApiDoc.pathCompletionExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, task or rule has not been found."
+      )
+  ))
+  def sourcePaths(@Parameter(
+                    name = "project",
+                    description = "The project identifier",
+                    required = true,
+                    in = ParameterIn.PATH,
+                    schema = new Schema(implementation = classOf[String])
+                  )
+                  projectName: String,
+                  @Parameter(
+                    name = "task",
+                    description = "The task identifier",
+                    required = true,
+                    in = ParameterIn.PATH,
+                    schema = new Schema(implementation = classOf[String])
+                  )
+                  taskName: String,
+                  @Parameter(
+                    name = "rule",
+                    description = "The rule identifier",
+                    required = true,
+                    in = ParameterIn.PATH,
+                    schema = new Schema(implementation = classOf[String])
+                  )
+                  ruleName: String,
+                  @Parameter(
+                    name = "term",
+                    description = "The search term. Will also return non-exact matches (e.g., naMe == name) and matches from labels.",
+                    required = false,
+                    in = ParameterIn.QUERY,
+                    schema = new Schema(implementation = classOf[String], defaultValue = "")
+                  )
+                  term: String,
+                  @Parameter(
+                    name = "maxResults",
+                    description = "The maximum number of results.",
+                    required = false,
+                    in = ParameterIn.QUERY,
+                    schema = new Schema(implementation = classOf[Int], defaultValue = "30")
+                  )
+                  maxResults: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     implicit val prefixes: Prefixes = project.config.prefixes
     val task = project.task[TransformSpec](taskName)
     var completions = Completions()
     withRule(task, ruleName) { case (_, sourcePath) =>
-      val isRdfInput = task.activity[TransformPathsCache].value().isRdfInput(task)
+      val isRdfInput = TransformUtils.isRdfInput(task)
       val simpleSourcePath = simplePath(sourcePath)
       val forwardOnlySourcePath = forwardOnlyPath(simpleSourcePath)
       val allPaths = pathsCacheCompletions(task, simpleSourcePath.nonEmpty && isRdfInput)
@@ -67,9 +132,58 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
     }
   }
 
-  /** A more fine-grained auto-completion of a source path that suggests auto-completion in parts of a path. */
-  def partialSourcePath(projectId: String,
+  @Operation(
+    summary = "Mapping rule partial source paths",
+    description = "Returns auto-completion suggestions based on a complex path expression (including backward paths and filters) and the cursor position. The results may only replace a part of the original input string.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = AutoCompletionApiDoc.partialSourcePathsResponseDescription,
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            schema = new Schema(implementation = classOf[PartialSourcePathAutoCompletionResponse]),
+            examples = Array(new ExampleObject(AutoCompletionApiDoc.partialSourcePathsResponseExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, task or rule has not been found."
+      )
+  ))
+  @RequestBody(
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[PartialSourcePathAutoCompletionRequest]),
+        examples = Array(new ExampleObject(AutoCompletionApiDoc.partialSourcePathsRequestExample))
+      )
+    )
+  )
+  def partialSourcePath(@Parameter(
+                          name = "project",
+                          description = "The project identifier",
+                          required = true,
+                          in = ParameterIn.PATH,
+                          schema = new Schema(implementation = classOf[String])
+                        )
+                        projectId: String,
+                        @Parameter(
+                          name = "task",
+                          description = "The task identifier",
+                          required = true,
+                          in = ParameterIn.PATH,
+                          schema = new Schema(implementation = classOf[String])
+                        )
                         transformTaskId: String,
+                        @Parameter(
+                          name = "rule",
+                          description = "The rule identifier",
+                          required = true,
+                          in = ParameterIn.PATH,
+                          schema = new Schema(implementation = classOf[String])
+                        )
                         ruleId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>
     implicit userContext =>
       val (project, transformTask) = projectAndTask[TransformSpec](projectId, transformTaskId)
@@ -78,9 +192,9 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
         validateAutoCompletionRequest(autoCompletionRequest)
         validatePartialSourcePathAutoCompletionRequest(autoCompletionRequest)
         withRule(transformTask, ruleId) { case (_, sourcePath) =>
-          val isRdfInput = transformTask.activity[TransformPathsCache].value().isRdfInput(transformTask)
+          val isRdfInput = TransformUtils.isRdfInput(transformTask)
           val pathToReplace = PartialSourcePathAutocompletionHelper.pathToReplace(autoCompletionRequest, isRdfInput)
-          val dataSourceCharacteristicsOpt = dataSourceCharacteristics(transformTask)
+          val dataSourceCharacteristicsOpt = TransformUtils.datasetCharacteristics(transformTask)
           // compute relative paths
           val pathBeforeReplacement = UntypedPath.partialParse(autoCompletionRequest.inputString.take(pathToReplace.from)).partialPath
           val completeSubPath = sourcePath ++ pathBeforeReplacement.operators
@@ -124,12 +238,6 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
       ) ++ operatorCompletions
     )
     Ok(Json.toJson(response))
-  }
-
-  private def dataSourceCharacteristics(task: ProjectTask[TransformSpec])
-                                       (implicit userContext: UserContext): Option[DataSourceCharacteristics] = {
-    task.project.taskOption[GenericDatasetSpec](task.selection.inputId)
-      .map(_.data.characteristics)
   }
 
   private def validatePartialSourcePathAutoCompletionRequest(request: PartialSourcePathAutoCompletionRequest): Unit = {
@@ -216,26 +324,163 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
 
   }
 
-  /**
-    * Given a search term, returns possible completions for target paths.
-    *
-    * @param projectName The name of the project
-    * @param taskName    The name of the transformation
-    * @param term        The search term
-    * @return
-    */
-  def targetProperties(projectName: String,
-                       taskName: String,
-                       ruleName: String,
-                       term: String,
-                       maxResults: Int,
-                       fullUris: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Mapping rule target properties",
+    description = "Given a search term, returns possible completions for target properties.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "All properties from the target vocabulary that match the given term.",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            schema = new Schema(implementation = classOf[Completions]),
+            examples = Array(new ExampleObject(AutoCompletionApiDoc.pathCompletionExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, task or rule has not been found."
+      )
+    ))
+  def targetPropertiesGet( @Parameter(
+                             name = "project",
+                             description = "The project identifier",
+                             required = true,
+                             in = ParameterIn.PATH,
+                             schema = new Schema(implementation = classOf[String])
+                           )
+                           projectName: String,
+                           @Parameter(
+                             name = "task",
+                             description = "The task identifier",
+                             required = true,
+                             in = ParameterIn.PATH,
+                             schema = new Schema(implementation = classOf[String])
+                           )
+                           taskName: String,
+                           @Parameter(
+                             name = "rule",
+                             description = "The rule identifier",
+                             required = true,
+                             in = ParameterIn.PATH,
+                             schema = new Schema(implementation = classOf[String])
+                           )
+                           ruleName: String,
+                           @Parameter(
+                             name = "term",
+                             description = "The search term. Will also return non-exact matches (e.g., naMe == name) and matches from labels.",
+                             required = false,
+                             in = ParameterIn.QUERY,
+                             schema = new Schema(implementation = classOf[String], defaultValue = "")
+                           )
+                           term: String,
+                           @Parameter(
+                             name = "maxResults",
+                             description = "The maximum number of results.",
+                             required = false,
+                             in = ParameterIn.QUERY,
+                             schema = new Schema(implementation = classOf[Int], defaultValue = "30")
+                           )
+                           maxResults: Int,
+                           @Parameter(
+                             name = "fullUris",
+                             description = "Return full URIs instead of prefixed ones.",
+                             required = false,
+                             in = ParameterIn.QUERY,
+                             schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+                           )
+                           fullUris: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     var vocabularyFilter: Option[Seq[String]] = None
-    if(request.hasBody) {
-      request.body.asJson.foreach { json =>
-        val request = JsonHelpers.fromJsonValidated[TargetPropertyAutoCompleteRequest](json)
-        vocabularyFilter = request.vocabularies
-      }
+    val project = WorkspaceFactory().workspace.project(projectName)
+    val task = project.task[TransformSpec](taskName)
+    val completions = vocabularyPropertyCompletions(task, fullUris, vocabularyFilter)
+    // Removed as they currently cannot be edited in the UI: completions += prefixCompletions(project.config.prefixes)
+
+    Ok(completions.filterAndSort(term, maxResults, multiWordFilter = true).toJson)
+  }
+
+  @Operation(
+    summary = "Mapping rule target properties",
+    description = "Given a search term, returns possible completions for target properties. In addition it allows to specify the vocabularies that should be used for auto-completion with the optional `vocabularies` parameter in the JSON body.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "All properties from the target vocabulary that match the given term.",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            schema = new Schema(implementation = classOf[Completions]),
+            examples = Array(new ExampleObject(AutoCompletionApiDoc.pathCompletionExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, task or rule has not been found."
+      )
+  ))
+  @RequestBody(
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        examples = Array(new ExampleObject("""{ "vocabularies": ["http://schema.org/", "http://xmlns.com/foaf/0.1/"] }""")),
+        schema = new Schema(implementation = classOf[TargetPropertyAutoCompleteRequest])
+    ))
+  )
+  def targetPropertiesPost( @Parameter(
+                               name = "project",
+                               description = "The project identifier",
+                               required = true,
+                               in = ParameterIn.PATH,
+                               schema = new Schema(implementation = classOf[String])
+                             )
+                             projectName: String,
+                             @Parameter(
+                               name = "task",
+                               description = "The task identifier",
+                               required = true,
+                               in = ParameterIn.PATH,
+                               schema = new Schema(implementation = classOf[String])
+                             )
+                             taskName: String,
+                             @Parameter(
+                               name = "rule",
+                               description = "The rule identifier",
+                               required = true,
+                               in = ParameterIn.PATH,
+                               schema = new Schema(implementation = classOf[String])
+                             )
+                             ruleName: String,
+                             @Parameter(
+                               name = "term",
+                               description = "The search term. Will also return non-exact matches (e.g., naMe == name) and matches from labels.",
+                               required = false,
+                               in = ParameterIn.QUERY,
+                               schema = new Schema(implementation = classOf[String], defaultValue = "")
+                             )
+                             term: String,
+                             @Parameter(
+                               name = "maxResults",
+                               description = "The maximum number of results.",
+                               required = false,
+                               in = ParameterIn.QUERY,
+                               schema = new Schema(implementation = classOf[Int], defaultValue = "30")
+                             )
+                             maxResults: Int,
+                             @Parameter(
+                               name = "fullUris",
+                               description = "Return full URIs instead of prefixed ones.",
+                               required = false,
+                               in = ParameterIn.QUERY,
+                               schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+                             )
+                             fullUris: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    var vocabularyFilter: Option[Seq[String]] = None
+    request.body.asJson.foreach { json =>
+      val request = JsonHelpers.fromJsonValidated[TargetPropertyAutoCompleteRequest](json)
+      vocabularyFilter = request.vocabularies
     }
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
@@ -245,15 +490,65 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
     Ok(completions.filterAndSort(term, maxResults, multiWordFilter = true).toJson)
   }
 
-  /**
-    * Given a search term, returns possible completions for target types.
-    *
-    * @param projectName The name of the project
-    * @param taskName    The name of the transformation
-    * @param term        The search term
-    * @return
-    */
-  def targetTypes(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Mapping rule target types",
+    description = "Given a search term, returns possible completions for target types.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "All types from the target vocabulary that match the given term.",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            schema = new Schema(implementation = classOf[Completions])
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, task or rule has not been found."
+      )
+  ))
+  def targetTypes(@Parameter(
+                    name = "project",
+                    description = "The project identifier",
+                    required = true,
+                    in = ParameterIn.PATH,
+                    schema = new Schema(implementation = classOf[String])
+                  )
+                  projectName: String,
+                  @Parameter(
+                    name = "task",
+                    description = "The task identifier",
+                    required = true,
+                    in = ParameterIn.PATH,
+                    schema = new Schema(implementation = classOf[String])
+                  )
+                  taskName: String,
+                  @Parameter(
+                    name = "rule",
+                    description = "The rule identifier",
+                    required = true,
+                    in = ParameterIn.PATH,
+                    schema = new Schema(implementation = classOf[String])
+                  )
+                  ruleName: String,
+                  @Parameter(
+                    name = "term",
+                    description = "The search term. Will also return non-exact matches (e.g., naMe == name) and matches from labels.",
+                    required = false,
+                    in = ParameterIn.QUERY,
+                    schema = new Schema(implementation = classOf[String], defaultValue = "")
+                  )
+                  term: String,
+                  @Parameter(
+                    name = "maxResults",
+                    description = "The maximum number of results.",
+                    required = false,
+                    in = ParameterIn.QUERY,
+                    schema = new Schema(implementation = classOf[Int], defaultValue = "30")
+                  )
+                  maxResults: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[TransformSpec](taskName)
     val completions = vocabularyTypeCompletions(task)
@@ -262,15 +557,66 @@ class AutoCompletionApi @Inject() () extends InjectedController with ControllerU
     Ok(completions.filterAndSort(term, maxResults).toJson)
   }
 
-  /**
-    * Given a search term, returns possible completions for value types.
-    *
-    * @param projectName The name of the project
-    * @param taskName    The name of the transformation
-    * @param term        The search term
-    * @return
-    */
-  def valueTypes(projectName: String, taskName: String, ruleName: String, term: String, maxResults: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Mapping rule value types",
+    description = "Given a search term, returns possible completions for value types.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "All values types that match the given term.",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            schema = new Schema(implementation = classOf[Completions]),
+            examples = Array(new ExampleObject(AutoCompletionApiDoc.valueTypesExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, task or rule has not been found."
+      )
+  ))
+  def valueTypes(@Parameter(
+                   name = "project",
+                   description = "The project identifier",
+                   required = true,
+                   in = ParameterIn.PATH,
+                   schema = new Schema(implementation = classOf[String])
+                 )
+                 projectName: String,
+                 @Parameter(
+                   name = "task",
+                   description = "The task identifier",
+                   required = true,
+                   in = ParameterIn.PATH,
+                   schema = new Schema(implementation = classOf[String])
+                 )
+                 taskName: String,
+                 @Parameter(
+                   name = "rule",
+                   description = "The rule identifier",
+                   required = true,
+                   in = ParameterIn.PATH,
+                   schema = new Schema(implementation = classOf[String])
+                 )
+                 ruleName: String,
+                 @Parameter(
+                   name = "term",
+                   description = "The search term. Will also return non-exact matches (e.g., naMe == name) and matches from labels.",
+                   required = false,
+                   in = ParameterIn.QUERY,
+                   schema = new Schema(implementation = classOf[String], defaultValue = "")
+                 )
+                 term: String,
+                 @Parameter(
+                   name = "maxResults",
+                   description = "The maximum number of results.",
+                   required = false,
+                   in = ParameterIn.QUERY,
+                   schema = new Schema(implementation = classOf[Int], defaultValue = "30")
+                 )
+                 maxResults: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
     val valueTypeBlacklist = Set(ValueType.CUSTOM_VALUE_TYPE_ID)
     val valueTypes = PluginRegistry.availablePlugins[ValueType].sortBy(_.label)
     val filteredValueTypes = valueTypes.filterNot(v => valueTypeBlacklist.contains(v.id))

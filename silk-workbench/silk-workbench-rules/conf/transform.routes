@@ -35,13 +35,13 @@ POST          /tasks/:project/:task/rule/:rule/rules/reorder                    
 POST          /tasks/:project/:task/reloadCache                                    controllers.transform.TransformTaskApi.reloadTransformCache(project: String, task: String)
 PUT           /tasks/:project/:task/executeTransform                               controllers.transform.TransformTaskApi.executeTransformTask(project: String, task: String)
 
-POST          /tasks/:project/:task/peak/:rule                                     controllers.transform.PeakTransformApi.peak(project: String, task: String, rule: String)
-POST          /tasks/:project/:task/peak/:rule/childRule                           controllers.transform.PeakTransformApi.peakChildRule(project: String, task: String, rule: String)
+POST          /tasks/:project/:task/peak/:rule                                     controllers.transform.PeakTransformApi.peak(project: String, task: String, rule: String, limit: Int ?= controllers.transform.PeakTransformApi.TRANSFORMATION_PREVIEW_LIMIT, maxTryEntities: Int ?= controllers.transform.PeakTransformApi.MAX_TRY_ENTITIES_DEFAULT)
+POST          /tasks/:project/:task/peak/:rule/childRule                           controllers.transform.PeakTransformApi.peakChildRule(project: String, task: String, rule: String, limit: Int ?= controllers.transform.PeakTransformApi.TRANSFORMATION_PREVIEW_LIMIT, maxTryEntities: Int  ?= controllers.transform.PeakTransformApi.MAX_TRY_ENTITIES_DEFAULT)
 
 GET           /tasks/:project/:task/rule/:rule/completions/sourcePaths             controllers.transform.AutoCompletionApi.sourcePaths(project: String, task: String, rule: String, term ?= "", maxResults: Int ?= 30)
 GET           /tasks/:project/:task/rule/:rule/completions/targetTypes             controllers.transform.AutoCompletionApi.targetTypes(project: String, task: String, rule: String, term ?= "", maxResults: Int  ?= 30)
-GET           /tasks/:project/:task/rule/:rule/completions/targetProperties        controllers.transform.AutoCompletionApi.targetProperties(project: String, task: String, rule: String, term ?= "", maxResults: Int  ?= 30, fullUris: Boolean ?= false)
-POST          /tasks/:project/:task/rule/:rule/completions/targetProperties        controllers.transform.AutoCompletionApi.targetProperties(project: String, task: String, rule: String, term ?= "", maxResults: Int  ?= 30, fullUris: Boolean ?= false)
+GET           /tasks/:project/:task/rule/:rule/completions/targetProperties        controllers.transform.AutoCompletionApi.targetPropertiesGet(project: String, task: String, rule: String, term ?= "", maxResults: Int  ?= 30, fullUris: Boolean ?= false)
+POST          /tasks/:project/:task/rule/:rule/completions/targetProperties        controllers.transform.AutoCompletionApi.targetPropertiesPost(project: String, task: String, rule: String, term ?= "", maxResults: Int  ?= 30, fullUris: Boolean ?= false)
 GET           /tasks/:project/:task/rule/:rule/completions/valueTypes              controllers.transform.AutoCompletionApi.valueTypes(project: String, task: String, rule: String, term ?= "", maxResults: Int  ?= 30)
 POST          /tasks/:project/:task/rule/:rule/completions/partialSourcePaths      controllers.transform.AutoCompletionApi.partialSourcePath(project: String, task: String, rule: String)
 
@@ -53,4 +53,5 @@ GET           /tasks/:project/:task/targetVocabulary/propertiesByClass          
 GET           /tasks/:project/:task/targetVocabulary/relationsOfClass              controllers.transform.TargetVocabularyApi.relationsOfType(project: String, task: String, classUri: String)
 
 POST          /tasks/:project/:task/transformInput                                 controllers.transform.TransformTaskApi.postTransformInput(project: String, task: String)
-GET           /tasks/:project/:task/rule/:rule/valueSourcePaths                    controllers.transform.TransformTaskApi.valueSourcePaths(project: String, task: String, rule: String, maxDepth: Int ?= Int.MaxValue, unusedOnly: Boolean ?= false)
+GET           /tasks/:project/:task/rule/:rule/valueSourcePaths                    controllers.transform.SourcePathsApi.valueSourcePaths(project: String, task: String, rule: String, maxDepth: Int ?= Int.MaxValue, unusedOnly: Boolean ?= false, usedOnly: Boolean ?= false)
+GET           /tasks/:project/:task/rule/:rule/valueSourcePathsInfo                controllers.transform.SourcePathsApi.valueSourcePathsFullInfo(project: String, task: String, rule: String, maxDepth: Int ?= Int.MaxValue, objectInfo: Boolean ?= false)

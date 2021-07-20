@@ -42,9 +42,6 @@ case class CachedEntitySchemata(configuredSchema: EntitySchema,
       configuredSchema.typedPaths
     }
   }
-
-  def isRdfInput(task: ProjectTask[TransformSpec])
-                (implicit userContext: UserContext): Boolean = task.project.taskOption[GenericDatasetSpec](task.selection.inputId).exists(_.data.plugin.isInstanceOf[RdfDataset])
 }
 
 object CachedEntitySchemata {

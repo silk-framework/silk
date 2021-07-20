@@ -41,6 +41,7 @@ abstract class ExecutionReportManagerTest extends FlatSpec with Matchers {
     val retentionTimeInMillis = 500
     withReportManager(Duration.ofMillis(retentionTimeInMillis)) { reportManager =>
       reportManager.addReport(ReportIdentifier.create(projectId, taskId), testReportResult)
+      Thread.sleep(1)
       reportManager.addReport(ReportIdentifier.create(projectId, taskId), testReportResult)
       reportManager.listReports(Some(projectId), Some(taskId)) should have size 2
 

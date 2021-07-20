@@ -1,6 +1,6 @@
 package controllers.workspace
 
-import controllers.workspace.routes.WorkspaceApi
+import controllers.workspace.routes.ResourceApi
 import controllers.workspace.workspaceApi.TaskLinkInfo
 import controllers.workspace.workspaceRequests.CopyTasksResponse
 import helper.IntegrationTestTrait
@@ -133,7 +133,7 @@ class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with MustMatch
       project.addAnyTask(datasetUsingResource, new DatasetSpec(CsvDataset(resource)))
       project.addAnyTask(taskUsingResource, XSLTOperator(resource))
       project.addAnyTask(otherTask, SparqlUpdateCustomTask(""))
-      val responseJson = checkResponse(createRequest(WorkspaceApi.resourceUsage(project.name, resourceName)).get()).json
+      val responseJson = checkResponse(createRequest(ResourceApi.resourceUsage(project.name, resourceName)).get()).json
       val tasks = Json.fromJson[Seq[TaskLinkInfo]](responseJson).get
       tasks must contain theSameElementsAs Seq(
         TaskLinkInfo(datasetUsingResource, datasetUsingResource, Some(TASK_TYPE_DATASET)),

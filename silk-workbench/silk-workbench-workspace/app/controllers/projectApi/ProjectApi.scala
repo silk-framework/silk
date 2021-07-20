@@ -1,16 +1,22 @@
 package controllers.projectApi
 
 import config.WorkbenchConfig
+import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.projectApi.doc.ProjectApiDoc
 import controllers.workspace.JsonSerializer
 import controllers.workspaceApi.IdentifierUtils
 import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, ProjectCreationData}
 import controllers.workspaceApi.project.ProjectLoadingErrors.ProjectTaskLoadingErrorResponse
 import controllers.workspaceApi.projectTask.{ItemCloneRequest, ItemCloneResponse}
 import controllers.workspaceApi.search.ItemType
-
-import javax.inject.Inject
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.headers.Header
+import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.parameters.RequestBody
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.silkframework.config.{MetaData, Prefixes}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
@@ -23,16 +29,43 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Accepting, Action, AnyContent, InjectedController}
 
 import java.net.URI
+import javax.inject.Inject
 import scala.util.Try
 
 /**
   * REST API for project artifacts.
   */
-class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends InjectedController with ControllerUtilsTrait {
+@Tag(name = "Projects", description = "Access to all projects in the workspace.")
+class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
   private val MARKDOWN_MIME = "text/markdown"
   private val AcceptsMarkdown = Accepting(MARKDOWN_MIME)
 
   /** Create a project given the meta data. Automatically generates an ID. */
+  @Operation(
+    summary = "Create project",
+    description = "Create a new project by specifying a label and an optional description.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "201",
+        description = "The project has been added. The URI of the new project is returned, which includes the automatically generated project ID.",
+        headers = Array(
+          new Header(
+            name = "Location",
+            description = "The URI of the new project",
+            schema = new Schema(implementation = classOf[String], example = "/api/workspace/projects/projectx42")
+          ))
+      )
+    ))
+  @RequestBody(
+    description = "Project metadata",
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[ProjectCreationData]),
+        examples = Array(new ExampleObject("{ \"metaData\": { \"label\": \"Project label\", \"description\": \"Project description\" } }"))
+      ))
+  )
   def createNewProject(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
       validateJson[ProjectCreationData] { projectCreationData =>
         val metaData = projectCreationData.metaData.asMetaData
@@ -48,7 +81,41 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
   }
 
   /** Clone a project (resources and tasks) based on new meta data. */
-  def cloneProject(fromProjectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Clone project",
+    description = "Clones an existing project.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "201",
+        description = "The body contains the meta data of the to be created project. The label is required and must not be empty. The description is optional.",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(implementation = classOf[ItemCloneResponse])
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      )
+    ))
+  @RequestBody(
+    description = "The generated ID and the link to the project details page.",
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[ItemCloneRequest]),
+        examples = Array(new ExampleObject("{ \"metaData\": { \"label\": \"New project\", \"description\": \"Optional description\" } }"))
+      ))
+  )
+  def cloneProject(@Parameter(
+                     name = "projectId",
+                     description = "The identifier of the project that is to be cloned",
+                     required = true,
+                     in = ParameterIn.PATH,
+                     schema = new Schema(implementation = classOf[String])
+                   )
+                   fromProjectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[ItemCloneRequest] { request =>
       val label = request.metaData.label.trim
       if(label == "") {
@@ -76,7 +143,41 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
   }
 
   /** Update the project meta data. */
-  def updateProjectMetaData(projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Update project metadata",
+    description = "Update the meta data of the project, i.e. the label and description.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject("{ \"label\": \"New label\", \"description\": \"New description\", \"modified\":\"2020-04-29T13:51:00.349Z\" }"))
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      )
+    ))
+  @RequestBody(
+    description = "Updated meta data of the project, i.e. the label and description.",
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[ItemMetaData]),
+        examples = Array(new ExampleObject("{ \"label\": \"New label\", \"description\": \"New description\" }"))
+      ))
+  )
+  def updateProjectMetaData(@Parameter(
+                               name = "projectId",
+                               description = "The project identifier",
+                               required = true,
+                               in = ParameterIn.PATH,
+                               schema = new Schema(implementation = classOf[String])
+                             )
+                             projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[ItemMetaData] { newMetaData =>
       val cleanedNewMetaData = newMetaData
       val oldProjectMetaData = workspace.project(projectId).config.metaData
@@ -87,19 +188,109 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
   }
 
   /** Fetches the meta data of a project. */
-  def getProjectMetaData(projectId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Retrieve project metadata",
+    description = "Metadata of the project, such as the label and description.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject("{ \"label\": \"New label\", \"description\": \"New description\", \"modified\":\"2020-04-29T13:51:00.349Z\" }"))
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      )
+    ))
+  def getProjectMetaData(@Parameter(
+                            name = "projectId",
+                            description = "The project identifier",
+                            required = true,
+                            in = ParameterIn.PATH,
+                            schema = new Schema(implementation = classOf[String])
+                          )
+                          projectId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     Ok(JsonSerializers.toJson(getProject(projectId).config.metaData))
   }
 
   /** Returns all project prefixes */
-  def fetchProjectPrefixes(projectId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Project prefixes",
+    description = "Project namespace prefix definitions that map from a prefix name to a URI prefix.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject("{ \"rdf\": \"http://www.w3.org/1999/02/22-rdf-syntax-ns#\", \"foaf\": \"http://xmlns.com/foaf/0.1/\", \"customPrefix\": \"http://customPrefix.cc/\" }"))
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      )
+    ))
+  def fetchProjectPrefixes(@Parameter(
+                             name = "projectId",
+                             description = "The project identifier",
+                             required = true,
+                             in = ParameterIn.PATH,
+                             schema = new Schema(implementation = classOf[String])
+                           )
+                           projectId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = getProject(projectId)
     accessMonitor.saveProjectAccess(project.config.id) // Only accessed on the project details page
     Ok(Json.toJson(project.config.prefixes.prefixMap))
   }
 
   /** Add or update project prefix. */
-  def addProjectPrefix(projectId: String, prefixName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Add project prefix",
+    description = "Create or update the prefix URI for a specific prefix name.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject("{ \"rdf\": \"http://www.w3.org/1999/02/22-rdf-syntax-ns#\", \"foaf\": \"http://xmlns.com/foaf/0.1/\", \"customPrefix\": \"http://customPrefix.cc/\" }"))
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      )
+    ))
+  @RequestBody(
+    description = "The prefix URI.",
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[String]),
+        examples = Array(new ExampleObject("\"http://custom.prefix/\""))
+      ))
+  )
+  def addProjectPrefix(@Parameter(
+                         name = "projectId",
+                         description = "The project identifier",
+                         required = true,
+                         in = ParameterIn.PATH,
+                         schema = new Schema(implementation = classOf[String])
+                       )
+                       projectId: String,
+                       @Parameter(
+                         name = "prefixName",
+                         description = "The prefix name",
+                         required = true,
+                         in = ParameterIn.PATH,
+                         schema = new Schema(implementation = classOf[String])
+                       )
+                       prefixName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     val project = getProject(projectId)
     validateJson[String] { prefixUri =>
       if(Try(new URI(prefixUri)).map(_.isAbsolute).getOrElse(false)) {
@@ -113,7 +304,39 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
   }
 
   /** Delete a project prefix */
-  def deleteProjectPrefix(projectId: String, prefixName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Remove project prefix",
+    description = "Deletes a prefix definition.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "The prefix has been removed.",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject("{ \"rdf\": \"http://www.w3.org/1999/02/22-rdf-syntax-ns#\", \"foaf\": \"http://xmlns.com/foaf/0.1/\" }"))
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      )
+    ))
+  def deleteProjectPrefix(@Parameter(
+                            name = "projectId",
+                            description = "The project identifier",
+                            required = true,
+                            in = ParameterIn.PATH,
+                            schema = new Schema(implementation = classOf[String])
+                          )
+                          projectId: String,
+                          @Parameter(
+                            name = "prefixName",
+                            description = "The prefix name",
+                            required = true,
+                            in = ParameterIn.PATH,
+                            schema = new Schema(implementation = classOf[String])
+                          )
+                          prefixName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = getProject(projectId)
     val newPrefixes = Prefixes(project.config.prefixes.prefixMap - prefixName)
     project.config = project.config.copy(prefixes = newPrefixes)
@@ -121,7 +344,45 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
   }
 
   /** Get an error report for tasks that failed loading. */
-  def projectTaskLoadingErrorReport(projectId: String, taskId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Project task loading error report",
+    description = "Get a detailed loading error report for a specific project task that could not be loaded in the project.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(ProjectApiDoc.taskLoadingErrorReportJsonExample))
+          ),
+          new Content(
+            mediaType = "text/markdown",
+            examples = Array(new ExampleObject(ProjectApiDoc.taskLoadingErrorReportMarkdownExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      )
+    ))
+  def projectTaskLoadingErrorReport(@Parameter(
+                                      name = "projectId",
+                                      description = "The project identifier",
+                                      required = true,
+                                      in = ParameterIn.PATH,
+                                      schema = new Schema(implementation = classOf[String])
+                                    )
+                                    projectId: String,
+                                    @Parameter(
+                                      name = "taskId",
+                                      description = "The task identifier",
+                                      required = true,
+                                      in = ParameterIn.PATH,
+                                      schema = new Schema(implementation = classOf[String])
+                                    )
+                                    taskId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = getProject(projectId)
     project.loadingErrors.find(_.id == taskId) match {
       case Some(loadingError) =>
@@ -144,7 +405,37 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
   }
 
   /** Get an error report for tasks that failed loading. */
-  def projectTasksLoadingErrorReport(projectId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Project tasks loading error report",
+    description = "Get a detailed loading error report for all tasks that could not be loaded in a project.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(ProjectApiDoc.taskLoadingErrorReportJsonExample))
+          ),
+          new Content(
+            mediaType = "text/markdown",
+            examples = Array(new ExampleObject(ProjectApiDoc.taskLoadingErrorReportMarkdownExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      )
+    ))
+  def projectTasksLoadingErrorReport(@Parameter(
+                                      name = "projectId",
+                                      description = "The project identifier",
+                                      required = true,
+                                      in = ParameterIn.PATH,
+                                      schema = new Schema(implementation = classOf[String])
+                                    )
+                                    projectId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = getProject(projectId)
     val failedTasks = project.loadingErrors.map(ProjectTaskLoadingErrorResponse.fromTaskLoadingError)
     render {
@@ -164,3 +455,4 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
     }
   }
 }
+

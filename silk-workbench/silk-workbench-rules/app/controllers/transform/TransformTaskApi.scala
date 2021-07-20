@@ -1,13 +1,19 @@
 package controllers.transform
 
-import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.core.UserContextActions
 import controllers.transform.TransformTaskApi._
+import controllers.transform.doc.TransformTaskApiDoc
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.parameters.RequestBody
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{MetaData, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
-import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.rule.TransformSpec.{TargetVocabularyListParameter, TargetVocabularyParameterType}
 import org.silkframework.rule._
 import org.silkframework.rule.execution.ExecuteTransform
@@ -27,18 +33,83 @@ import play.api.mvc._
 import java.util.logging.{Level, Logger}
 import javax.inject.Inject
 
-class TransformTaskApi @Inject() () extends InjectedController {
+@Tag(
+  name = "Transform",
+  description = "Endpoints related to transformation tasks and mapping rules."
+)
+class TransformTaskApi @Inject() () extends InjectedController with UserContextActions {
 
   private val log = Logger.getLogger(getClass.getName)
 
-  def getTransformTask(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Retrieve Transform Task",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json"
+          ),
+          new Content(
+            mediaType = "application/xml"
+        ))
+    ))
+  )
+  def getTransformTask(@Parameter(
+                         name = "project",
+                         description = "The project identifier",
+                         required = true,
+                         in = ParameterIn.PATH,
+                         schema = new Schema(implementation = classOf[String])
+                       )
+                       projectName: String,
+                       @Parameter(
+                         name = "task",
+                         description = "The task identifier",
+                         required = true,
+                         in = ParameterIn.PATH,
+                         schema = new Schema(implementation = classOf[String])
+                       )
+                       taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
     serializeCompileTime[TransformTask](task, Some(project))
   }
 
-  def putTransformTask(projectName: String, taskName: String, createOnly: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Update or create a transform task",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200"
+      )
+    )
+  )
+  def putTransformTask(@Parameter(
+                        name = "project",
+                        description = "The project identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      projectName: String,
+                      @Parameter(
+                        name = "task",
+                        description = "The task identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      taskName: String,
+                      @Parameter(
+                        name = "createOnly",
+                        description = "Always create new transform",
+                        required = false,
+                        in = ParameterIn.QUERY,
+                        schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+                      )
+                      createOnly: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = getProject(projectName)
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val readContext: ReadContext = ReadContext()
@@ -77,21 +148,128 @@ class TransformTaskApi @Inject() () extends InjectedController {
     }
   }
 
-  def deleteTransformTask(projectName: String, taskName: String, removeDependentTasks: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Delete a transform task",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200"
+      )
+    )
+  )
+  def deleteTransformTask(@Parameter(
+                            name = "project",
+                            description = "The project identifier",
+                            required = true,
+                            in = ParameterIn.PATH,
+                            schema = new Schema(implementation = classOf[String])
+                          )
+                          projectName: String,
+                          @Parameter(
+                            name = "task",
+                            description = "The task identifier",
+                            required = true,
+                            in = ParameterIn.PATH,
+                            schema = new Schema(implementation = classOf[String])
+                          )
+                          taskName: String,
+                          @Parameter(
+                            name = "removeDependentTasks",
+                            description = "If true, transform and linking tasks that directly reference this task are removed as well.",
+                            required = true,
+                            in = ParameterIn.QUERY,
+                            schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+                          )
+                          removeDependentTasks: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = getProject(projectName)
     project.removeAnyTask(taskName, removeDependentTasks)
 
     Ok
   }
 
-  def getRules(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Retrieve all mapping rules",
+    description = "Get all mapping rules of the transformation task. If no accept header is defined, XML is returned.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(TransformTaskApiDoc.transformRulesJsonExample))
+          ),
+          new Content(
+            mediaType = "application/xml",
+            examples = Array(new ExampleObject(TransformTaskApiDoc.transformRulesXmlExample))
+          ))
+      ))
+  )
+  def getRules(@Parameter(
+                 name = "project",
+                 description = "The project identifier",
+                 required = true,
+                 in = ParameterIn.PATH,
+                 schema = new Schema(implementation = classOf[String])
+               )
+               projectName: String,
+               @Parameter(
+                 name = "task",
+                 description = "The task identifier",
+                 required = true,
+                 in = ParameterIn.PATH,
+                 schema = new Schema(implementation = classOf[String])
+               )
+               taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
     serializeCompileTime(task.data.mappingRule, Some(project))
   }
 
-  def putRules(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Update all mapping rules",
+    description = "Update all rules of a transform specification. As for GET XML and JSON are supported. The format for PUT is exactly the same as the result that is returned by a GET request.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "The rules were successfully updated. There is no response body."
+      ),
+      new ApiResponse(
+        responseCode = "400",
+        description = "If the provided rule serialization is invalid."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If no rule with the given identifier could be found."
+      )
+    )
+  )
+  @RequestBody(
+    content = Array(
+      new Content(
+        mediaType = "application/json"
+      ),
+      new Content(
+        mediaType = "application/xml"
+      )
+    )
+  )
+  def putRules(@Parameter(
+                 name = "project",
+                 description = "The project identifier",
+                 required = true,
+                 in = ParameterIn.PATH,
+                 schema = new Schema(implementation = classOf[String])
+               )
+               projectName: String,
+               @Parameter(
+                 name = "task",
+                 description = "The task identifier",
+                 required = true,
+                 in = ParameterIn.PATH,
+                 schema = new Schema(implementation = classOf[String])
+               )
+               taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val resources: ResourceManager = project.resources
@@ -109,7 +287,53 @@ class TransformTaskApi @Inject() () extends InjectedController {
     }
   }
 
-  def getRule(projectName: String, taskName: String, ruleId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Retrieve mapping rule",
+    description = "Retrieve a single mapping rule from a transform task.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(TransformTaskApiDoc.transformRuleJsonExample))
+          ),
+          new Content(
+            mediaType = "application/xml",
+            examples = Array(new ExampleObject(TransformTaskApiDoc.transformRuleXmlExample))
+          ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, task or rule has not been found."
+      )
+    )
+  )
+  def getRule(@Parameter(
+                name = "project",
+                description = "The project identifier",
+                required = true,
+                in = ParameterIn.PATH,
+                schema = new Schema(implementation = classOf[String])
+              )
+              projectName: String,
+              @Parameter(
+                name = "task",
+                description = "The task identifier",
+                required = true,
+                in = ParameterIn.PATH,
+                schema = new Schema(implementation = classOf[String])
+              )
+              taskName: String,
+              @Parameter(
+                name = "rule",
+                description = "The rule identifier",
+                required = true,
+                in = ParameterIn.PATH,
+                schema = new Schema(implementation = classOf[String])
+              )
+              ruleId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
@@ -118,7 +342,61 @@ class TransformTaskApi @Inject() () extends InjectedController {
     }
   }
 
-  def putRule(projectName: String, taskName: String, ruleId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+  @Operation(
+    summary = "Update mapping rule",
+    description = "Updates a rule or parts of a rule. The XML and JSON format is the same as returned by the corresponding GET endpoint. For json payloads, the caller may send a fragment that only specifies the parts of the rule that should be updated. The parts that are not sent in the request will remain unchanged.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(TransformTaskApiDoc.updateRuleResponseExample))
+          ))
+      ),
+      new ApiResponse(
+        responseCode = "400",
+        description = "If the provided rule serialization is invalid."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, task or rule has not been found."
+      )
+    )
+  )
+  @RequestBody(
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        examples = Array(new ExampleObject(TransformTaskApiDoc.updateRuleRequestExample))
+      )
+    )
+  )
+  def putRule(@Parameter(
+                name = "project",
+                description = "The project identifier",
+                required = true,
+                in = ParameterIn.PATH,
+                schema = new Schema(implementation = classOf[String])
+              )
+              projectName: String,
+              @Parameter(
+                name = "task",
+                description = "The task identifier",
+                required = true,
+                in = ParameterIn.PATH,
+                schema = new Schema(implementation = classOf[String])
+              )
+              taskName: String,
+              @Parameter(
+                name = "rule",
+                description = "The rule identifier",
+                required = true,
+                in = ParameterIn.PATH,
+                schema = new Schema(implementation = classOf[String])
+              )
+              ruleId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val resources: ResourceManager = project.resources
@@ -135,7 +413,48 @@ class TransformTaskApi @Inject() () extends InjectedController {
     }
   }
 
-  def deleteRule(projectName: String, taskName: String, rule: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Delete mapping rule",
+    description = "Delete the rule that is identified by the given id.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json"
+          ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, task or rule has not been found."
+      )
+    )
+  )
+  def deleteRule(@Parameter(
+                   name = "project",
+                   description = "The project identifier",
+                   required = true,
+                   in = ParameterIn.PATH,
+                   schema = new Schema(implementation = classOf[String])
+                 )
+                 projectName: String,
+                 @Parameter(
+                   name = "task",
+                   description = "The task identifier",
+                   required = true,
+                   in = ParameterIn.PATH,
+                   schema = new Schema(implementation = classOf[String])
+                 )
+                 taskName: String,
+                 @Parameter(
+                   name = "rule",
+                   description = "The rule identifier",
+                   required = true,
+                   in = ParameterIn.PATH,
+                   schema = new Schema(implementation = classOf[String])
+                 )
+                 rule: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
@@ -151,18 +470,68 @@ class TransformTaskApi @Inject() () extends InjectedController {
     }
   }
 
-  /**
-    * Adds the rule provided in the request to the children of the specified transform task mapping rule.
-    *
-    * @param taskName    Transform task where the mapping rule should be added.
-    * @param ruleName    The parent rule ID that the new rule should be added to as a child.
-    * @param afterRuleId If specified then the new rule is added right after this rule. If not specified the new rule
-    *                    is appended to the end of the list.
-    * @return The newly created rule.
-    */
-  def appendRule(projectName: String,
+  @Operation(
+    summary = "Append mapping rule",
+    description = "Appends a new child rule to an object mapping rule.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "The rule has been updated successfully. The appended rule is returned. In case the caller did not specify an identifier for the appended rule, the result will contain the generated identifier.",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(TransformTaskApiDoc.appendRuleResponseExample))
+          ))
+      ),
+      new ApiResponse(
+        responseCode = "400",
+        description = "If the provided rule serialization is invalid."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, task or rule has not been found."
+      )
+    )
+  )
+  @RequestBody(
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        examples = Array(new ExampleObject(TransformTaskApiDoc.appendRuleRequestExample))
+      )
+    )
+  )
+  def appendRule(@Parameter(
+                   name = "project",
+                   description = "The project identifier",
+                   required = true,
+                   in = ParameterIn.PATH,
+                   schema = new Schema(implementation = classOf[String])
+                 )
+                 projectName: String,
+                 @Parameter(
+                   name = "task",
+                   description = "The task identifier",
+                   required = true,
+                   in = ParameterIn.PATH,
+                   schema = new Schema(implementation = classOf[String])
+                 )
                  taskName: String,
+                 @Parameter(
+                   name = "rule",
+                   description = "The rule identifier",
+                   required = true,
+                   in = ParameterIn.PATH,
+                   schema = new Schema(implementation = classOf[String])
+                 )
                  ruleName: String,
+                 @Parameter(
+                   name = "afterRuleId",
+                   description = "Optional parameter that specified after which existing rule the new rule should be inserted.",
+                   required = false,
+                   in = ParameterIn.QUERY,
+                   schema = new Schema(implementation = classOf[String])
+                 )
                  afterRuleId: Option[String] = None): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
@@ -263,25 +632,74 @@ class TransformTaskApi @Inject() () extends InjectedController {
     }
   }
 
-  /**
-    * Copies a mapping rule from a source transform task to a target transform task.
-    *
-    * @param projectName   The target project where the rule is copied to.
-    * @param taskName      The target transform task the rule is copied to.
-    * @param ruleName      The target rule where the copied rule should be added as child.
-    * @param sourceProject The project the source rule is copied from.
-    * @param sourceTask    The source task the source rule is copied from.
-    * @param sourceRule    The ID of the source rule that should be copied.
-    * @param afterRuleId   An optional rule ID of one of the children of the parent rule after which the new rule should be
-    *                      added.
-    * @return The newly added rule.
-    */
-  def copyRule(projectName: String,
+  @Operation(
+    summary = "Copy mapping rule",
+    description = "Copy a rule from the source transformation task specified by the query parameters and inserts it into the given target transform task specified by the path parameters.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200"
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, task or rule has not been found."
+      )
+    )
+  )
+  def copyRule(@Parameter(
+                 name = "project",
+                 description = "The project identifier",
+                 required = true,
+                 in = ParameterIn.PATH,
+                 schema = new Schema(implementation = classOf[String])
+               )
+               projectName: String,
+               @Parameter(
+                 name = "task",
+                 description = "The task identifier",
+                 required = true,
+                 in = ParameterIn.PATH,
+                 schema = new Schema(implementation = classOf[String])
+               )
                taskName: String,
+               @Parameter(
+                 name = "rule",
+                 description = "The rule identifier",
+                 required = true,
+                 in = ParameterIn.PATH,
+                 schema = new Schema(implementation = classOf[String])
+               )
                ruleName: String,
+               @Parameter(
+                 name = "sourceProject",
+                 description = "The identifier of the source project from the workspace that contains the source transform task from which a rule should be copied from.",
+                 required = true,
+                 in = ParameterIn.QUERY,
+                 schema = new Schema(implementation = classOf[String])
+               )
                sourceProject: String,
+               @Parameter(
+                 name = "sourceTask",
+                 description = "The identifier of the source task the rule should be copied from.",
+                 required = true,
+                 in = ParameterIn.QUERY,
+                 schema = new Schema(implementation = classOf[String])
+               )
                sourceTask: String,
+               @Parameter(
+                 name = "sourceRule",
+                 description = "The identifier of the source rule that should be copied to the target transform task.",
+                 required = true,
+                 in = ParameterIn.QUERY,
+                 schema = new Schema(implementation = classOf[String])
+               )
                sourceRule: String,
+               @Parameter(
+                 name = "afterRuleId",
+                 description = "Optional parameter that specified after which existing rule the new rule should be inserted.",
+                 required = false,
+                 in = ParameterIn.QUERY,
+                 schema = new Schema(implementation = classOf[String])
+               )
                afterRuleId: Option[String] = None): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     val (_, fromTask) = getProjectAndTask[TransformSpec](sourceProject, sourceTask)
@@ -297,7 +715,56 @@ class TransformTaskApi @Inject() () extends InjectedController {
     }
   }
 
-  def reorderRules(projectName: String, taskName: String, ruleName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+  @Operation(
+    summary = "Reorder mapping rules",
+    description = "Reorder all child rules of an object mapping.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "The rules have been successfully reordered. The new ordered list of rules is returned.",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject("[ \"objectRule\", \"directRule\" ]"))
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, task or rule has not been found."
+      )
+    )
+  )
+  @RequestBody(
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        examples = Array(new ExampleObject("[ \"objectRule\", \"directRule\" ]"))
+      )
+    )
+  )
+  def reorderRules(@Parameter(
+                     name = "project",
+                     description = "The project identifier",
+                     required = true,
+                     in = ParameterIn.PATH,
+                     schema = new Schema(implementation = classOf[String])
+                   )
+                   projectName: String,
+                   @Parameter(
+                     name = "task",
+                     description = "The task identifier",
+                     required = true,
+                     in = ParameterIn.PATH,
+                     schema = new Schema(implementation = classOf[String])
+                   )
+                   taskName: String,
+                   @Parameter(
+                     name = "rule",
+                     description = "The rule identifier",
+                     required = true,
+                     in = ParameterIn.PATH,
+                     schema = new Schema(implementation = classOf[String])
+                   )
+                   ruleName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
 
@@ -398,13 +865,48 @@ class TransformTaskApi @Inject() () extends InjectedController {
     Ok
   }
 
-  /**
-    * Transform entities bundled with the request according to the transformation task.
-    *
-    * @return If no sink is specified in the request then return results in N-Triples format with the response,
-    *         else write triples to defined data sink.
-    */
-  def postTransformInput(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+  @Operation(
+    summary = "Execute transform with payload",
+    description = "Execute a specific transformation task against input data from the POST body.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If no sink is specified in the request then return results in N-Triples format with the response, else write triples to defined data sink.",
+        content = Array(new Content(
+          mediaType = "application/n-triples",
+          examples = Array(new ExampleObject("<http://uri1> <http://xmlns.com/foaf/0.1/name> \"John Doe\"@en ."))
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or task has not been found."
+      )
+    )
+  )
+  @RequestBody(
+    content = Array(
+      new Content(
+        mediaType = "application/xml",
+        examples = Array(new ExampleObject(TransformTaskApiDoc.transformInputExample))
+      ),
+    )
+  )
+  def postTransformInput(@Parameter(
+                           name = "project",
+                           description = "The project identifier",
+                           required = true,
+                           in = ParameterIn.PATH,
+                           schema = new Schema(implementation = classOf[String])
+                         )
+                         projectName: String,
+                         @Parameter(
+                           name = "task",
+                           description = "The task identifier",
+                           required = true,
+                           in = ParameterIn.PATH,
+                           schema = new Schema(implementation = classOf[String])
+                         )
+                         taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val (_, task) = projectAndTask(projectName, taskName)
     request.body match {
       case AnyContentAsXml(xmlRoot) =>
@@ -434,46 +936,7 @@ class TransformTaskApi @Inject() () extends InjectedController {
     getProjectAndTask[TransformSpec](projectName, taskName)
   }
 
-  def valueSourcePaths(projectName: String,
-                       taskName: String,
-                       ruleId: String,
-                       maxDepth: Int,
-                       unusedOnly: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
-    implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
-    implicit val prefixes: Prefixes = project.config.prefixes
 
-    task.nestedRuleAndSourcePath(ruleId) match {
-      case Some((_, sourcePath)) =>
-        val pathCache = task.activity[TransformPathsCache]
-        pathCache.control.waitUntilFinished()
-        val isRdfInput = pathCache.value().isRdfInput(task)
-        val cachedPaths = pathCache.value().fetchCachedPaths(task, sourcePath.nonEmpty && isRdfInput)
-        val matchingPaths = cachedPaths filter { p =>
-          val pathSize = p.operators.size
-          isRdfInput ||
-              p.operators.startsWith(sourcePath) &&
-                  pathSize > sourcePath.size &&
-                  pathSize - sourcePath.size <= maxDepth
-        } map { p =>
-            if(isRdfInput) {
-              p
-            } else {
-              TypedPath.removePathPrefix(p, UntypedPath(sourcePath))
-            }
-        }
-        val filteredPaths = if(unusedOnly) {
-          val sourcePaths = task.data.valueSourcePaths(ruleId, maxDepth)
-          matchingPaths.filterNot { path =>
-            sourcePaths.contains(path.asUntypedPath)
-          }
-        } else {
-          matchingPaths
-        }
-        Ok(Json.toJson(filteredPaths.map(_.toUntypedPath.serialize())))
-      case None =>
-        NotFound("No rule found with ID " + ruleId)
-    }
-  }
 }
 
 object TransformTaskApi {
@@ -482,9 +945,3 @@ object TransformTaskApi {
   final val ROOT_COPY_TARGET_PROPERTY = "urn:temp:child"
 }
 
-// Peak API
-case class PeakResults(sourcePaths: Option[Seq[Seq[String]]], results: Option[Seq[PeakResult]], status: PeakStatus)
-
-case class PeakStatus(id: String, msg: String)
-
-case class PeakResult(sourceValues: Seq[Seq[String]], transformedValues: Seq[String])

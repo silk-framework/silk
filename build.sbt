@@ -30,7 +30,7 @@ val buildReactExternally = {
   result
 }
 
-concurrentRestrictions in Global += Tags.limit(Tags.Test, 1)
+(Global / concurrentRestrictions) += Tags.limit(Tags.Test, 1)
 
 val scalaTestOptions = {
   if(sys.env.getOrElse("BUILD_ENV", "develop").toLowerCase == "production") {
@@ -50,7 +50,7 @@ lazy val commonSettings = Seq(
     }
   },
   // Building
-  scalaVersion := "2.12.13",
+  scalaVersion := "2.12.14",
   publishTo := {
     val artifactory = "https://artifactory.eccenca.com/"
     // Assumes that version strings for releases, e.g. v3.0.0 or v3.0.0-rc3, do not have a postfix of length 5 or longer.
@@ -62,8 +62,8 @@ lazy val commonSettings = Seq(
     }
   },
   // If SBT_PUBLISH_TESTS_JARS ENV variable is set to "true" then tests jar files will be published that can be used e.g. in testing plugins
-  publishArtifact in (Test, packageBin) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
-  publishArtifact in (Test, packageSrc) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
+  (Test / packageBin / publishArtifact) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
+  (Test / packageSrc / publishArtifact) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.9" % "test",
   libraryDependencies += "net.codingwell" %% "scala-guice" % "4.2.11" % "test",
@@ -71,30 +71,18 @@ lazy val commonSettings = Seq(
   libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % "test",
   libraryDependencies += "com.google.inject" % "guice" % "4.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
-  testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
-
-  dependencyOverrides ++= Seq(
-    "com.google.guava" % "guava" % "18.0",
-    "com.google.inject" % "guice" % "4.0",
-    "org.apache.thrift" % "libthrift" % "0.9.3",
-    "io.netty" % "netty" % "3.10.5.Final",
-    "com.fasterxml.jackson.core" % "jackson-databind" % "2.6.5",
-    "com.google.code.findbugs" % "jsr305" % "3.0.0",
-    "javax.servlet" % "javax.servlet-api" % "3.1.0" // FIXME: Needs to be re-evaluated when changing the Fuseki version (currently 3.7.0), comes from jetty-servlets 9.4.7.v20170914
-  ),
+  (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
   // The assembly plugin cannot resolve multiple dependencies to commons logging
-  assemblyMergeStrategy in assembly := {
+  (assembly / assemblyMergeStrategy) := {
     case PathList("org", "apache", "commons", "logging",  xs @ _*) => MergeStrategy.first
     case PathList(xs @ _*) if xs.last endsWith ".class" => MergeStrategy.first
     case PathList(xs @ _*) if xs.last endsWith ".xsd" => MergeStrategy.first
     case PathList(xs @ _*) if xs.last endsWith ".dtd" => MergeStrategy.first
     case other =>
-      val oldStrategy = (assemblyMergeStrategy in assembly).value
+      val oldStrategy = (assembly / assemblyMergeStrategy).value
       oldStrategy(other)
   }
-  // Use dependency injected routes in Play modules
-  //routesGenerator := InjectedRoutesGenerator
 )
 
 //////////////////////////////////////////////////////////////////////////////
@@ -105,7 +93,7 @@ lazy val core = (project in file("silk-core"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Core",
-    libraryDependencies += "com.typesafe" % "config" % "1.3.1", // Should always use the same version as the Play Framework dependency
+    libraryDependencies += "com.typesafe" % "config" % "1.4.1", // Should always use the same version as the Play Framework dependency
     libraryDependencies += "com.github.halfmatthalfcat" %% "stringmetric-core" % "0.28.0",
     // Additional scala standard libraries
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.1.0",
@@ -138,7 +126,7 @@ lazy val workspace = (project in file("silk-workspace"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workspace",
-    libraryDependencies += "com.typesafe.play" %% "play-ws" % "2.6.23"
+    libraryDependencies += "com.typesafe.play" %% "play-ws" % "2.8.8"
   )
 
 /////////////////////////////////////////////// ///////////////////////////////
@@ -176,7 +164,7 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   .settings(
     name := "Silk Plugins JSON",
     libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.12.1",
-    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.12"
+    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.8.1"
   )
 
 // pluginsSpatialTemporal has been removed as it uses dependencies from external unreliable repositories
@@ -206,7 +194,8 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Serialization JSON",
-    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.6.12"
+    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.8.1",
+    libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.1.9"
   )
 
 lazy val persistentCaching = (project in file("silk-plugins/silk-persistent-caching"))
@@ -282,7 +271,7 @@ lazy val reactComponents = (project in file("silk-react-components"))
         }
       }
     },
-    (compile in Compile) := ((compile in Compile) dependsOn buildSilkReact).value,
+    (Compile / compile) := ((Compile / compile) dependsOn buildSilkReact).value,
     watchSources ++= { // Watch all files under the silk-react-components/src directory for changes
       if(buildReactExternally) {
         Seq.empty
@@ -314,10 +303,7 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
     name := "Silk Workbench Core",
     // Play filters (CORS filter etc.)
     libraryDependencies += filters,
-    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % "test",
-    // We are still using Play iteratees, in the future we should migrate to Akka Streams and remove this dependency
-    libraryDependencies += "com.typesafe.play" %% "play-iteratees" % "2.6.1",
-    libraryDependencies += "com.typesafe.play" %% "play-iteratees-reactive-streams" % "2.6.1"
+    libraryDependencies += "org.scalatestplus.play" %% "scalatestplus-play" % "5.0.0" % "test"
   )
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
@@ -348,18 +334,28 @@ lazy val workbenchWorkflow = (project in file("silk-workbench/silk-workbench-wor
     name := "Silk Workbench Workflow"
   )
 
+lazy val workbenchOpenApi = (project in file("silk-workbench/silk-workbench-openapi"))
+  .enablePlugins(PlayScala)
+  .dependsOn(workbenchCore)
+  .settings(commonSettings: _*)
+  .settings(
+    name := "Silk Workbench OpenAPI",
+    libraryDependencies += "io.kinoplan" % "swagger-play_2.12" % "0.0.3",
+    libraryDependencies += "io.swagger.parser.v3" % "swagger-parser-v3" % "2.0.27",
+    libraryDependencies += "org.webjars" % "swagger-ui" % "3.51.0"
+  )
+
 lazy val workbench = (project in file("silk-workbench"))
     .enablePlugins(PlayScala)
-    .dependsOn(workbenchWorkspace, workbenchRules, workbenchWorkflow, plugins)
-    .aggregate(workbenchWorkspace, workbenchRules, workbenchWorkflow, plugins)
+    .dependsOn(workbenchWorkspace, workbenchRules, workbenchWorkflow, workbenchOpenApi, plugins)
+    .aggregate(workbenchWorkspace, workbenchRules, workbenchWorkflow, workbenchOpenApi, plugins)
     .settings(commonSettings: _*)
     .settings(
       name := "Silk Workbench",
-      // War Packaging
       libraryDependencies += guice,
       // Linux Packaging, Uncomment to generate Debian packages that register the Workbench as an Upstart service
       // packageArchetype.java_server
-      version in Debian := "2.7.2",
+      (Debian / version) := "2.7.2",
       maintainer := "Robert Isele <silk-discussion@googlegroups.com>",
       packageSummary := "The Silk framework is a tool for discovering relationships between data items within different Linked Data sources.",
       packageDescription := "The Silk framework is a tool for discovering relationships between data items within different Linked Data sources."
@@ -377,10 +373,10 @@ lazy val singlemachine = (project in file("silk-tools/silk-singlemachine"))
     name := "Silk SingleMachine",
     libraryDependencies += "org.slf4j" % "slf4j-jdk14" % "1.7.13",
     // The assembly plugin cannot resolve multiple dependencies to commons logging
-    assemblyMergeStrategy in assembly := {
+    (assembly / assemblyMergeStrategy) := {
       case PathList("org", "apache", "commons", "logging",  xs @ _*) => MergeStrategy.first
       case other =>
-        val oldStrategy = (assemblyMergeStrategy in assembly).value
+        val oldStrategy = (assembly / assemblyMergeStrategy).value
         oldStrategy(other)
     }
   )

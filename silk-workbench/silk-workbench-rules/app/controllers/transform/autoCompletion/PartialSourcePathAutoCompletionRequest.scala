@@ -1,5 +1,6 @@
 package controllers.transform.autoCompletion
 
+import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import play.api.libs.json.{Format, Json}
 
 /**
@@ -132,6 +133,7 @@ object PartialSourcePathAutoCompletionRequest {
   */
 case class PartialSourcePathAutoCompletionResponse(inputString: String,
                                                    cursorPosition: Int,
+                                                   @ArraySchema(schema = new Schema(implementation = classOf[ReplacementResults]))
                                                    replacementResults: Seq[ReplacementResults])
 
 /**
@@ -143,6 +145,7 @@ case class PartialSourcePathAutoCompletionResponse(inputString: String,
   */
 case class ReplacementResults(replacementInterval: ReplacementInterval,
                               extractedQuery: String,
+                              @ArraySchema(schema = new Schema(implementation = classOf[CompletionBase]))
                               replacements: Seq[CompletionBase])
 
 /** The part of a string to replace.

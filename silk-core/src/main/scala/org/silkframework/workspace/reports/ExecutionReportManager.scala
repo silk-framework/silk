@@ -1,14 +1,14 @@
 package org.silkframework.workspace.reports
 
-import java.time.{Duration, Instant}
-import java.util.logging.{Level, Logger}
-
-import org.silkframework.config.DefaultConfig
+import com.typesafe.config.Config
+import org.silkframework.config.ConfigValue
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.runtime.activity.ActivityExecutionResult
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginRegistry}
 import org.silkframework.util.Identifier
 
+import java.time.{Duration, Instant}
+import java.util.logging.{Level, Logger}
 import scala.util.control.NonFatal
 
 trait ExecutionReportManager extends AnyPlugin {
@@ -64,8 +64,7 @@ object ExecutionReportManager {
 
   val DEFAULT_RETENTION_TIME: Duration = Duration.ofDays(30)
 
-  private lazy val instance: ExecutionReportManager = {
-    val config = DefaultConfig.instance()
+  private val instance: ConfigValue[ExecutionReportManager] = (config: Config) => {
     if (config.hasPath("workspace.reportManager")) {
       val repository = PluginRegistry.createFromConfig[ExecutionReportManager]("workspace.reportManager")
       log.info("Using configured report manager " + config.getString("workspace.reportManager.plugin"))
@@ -79,6 +78,6 @@ object ExecutionReportManager {
   /**
     * Retrieves the configured execution report manager.
     */
-  def apply(): ExecutionReportManager = instance
+  def apply(): ExecutionReportManager = instance()
 
 }

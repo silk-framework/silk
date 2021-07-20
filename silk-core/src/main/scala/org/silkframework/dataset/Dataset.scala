@@ -20,7 +20,7 @@ trait Dataset extends AnyPlugin with DatasetAccess {
   def datasetLinks: Seq[TaskLink] = Seq.empty
 
   /** Characteristics of the data source. */
-  def characteristics: DataSourceCharacteristics
+  def characteristics: DatasetCharacteristics
 
 }
 

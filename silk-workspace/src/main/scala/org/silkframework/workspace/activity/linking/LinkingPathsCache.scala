@@ -1,17 +1,12 @@
 package org.silkframework.workspace.activity.linking
 
 import org.silkframework.config.DefaultConfig
-import org.silkframework.dataset.{DataSource, DatasetSpec, SparqlRestrictionDataSource}
 import org.silkframework.entity.EntitySchema
-import org.silkframework.entity.Restriction.CustomOperator
-import org.silkframework.entity.paths.TypedPath
-import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.util.DPair
 import org.silkframework.workspace.ProjectTask
-import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 import org.silkframework.workspace.activity.{CachedActivity, PathsCacheTrait}
 
 /**
@@ -21,7 +16,7 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
 
   final val MAX_PATHS_DEFAULT = 50
 
-  private val maxLinks = {
+  override protected val maxPaths: Option[Int] = Some{
     val cfg = DefaultConfig.instance()
     val key = "caches.linkingPathCache.maxLinks"
     if(cfg.hasPath(key)) {
@@ -73,12 +68,12 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
           if(fullReload && !(emptyPaths || typeChanged)) {
             // Only transformation sources changed
             if(task.project.taskOption[TransformSpec](dataSelection.inputId).isDefined) {
-              updateSchema(dataSelection, entitySchema)
+              updateSchema(dataSelection, entitySchema, context)
             } else {
               entitySchema // Do not update other source schemata automatically
             }
           } else {
-            updateSchema(dataSelection, entitySchema)
+            updateSchema(dataSelection, entitySchema, context)
           }
         }
       context.value.update(updatedSchemata)
@@ -103,29 +98,11 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
   }
 
   private def updateSchema(datasetSelection: DatasetSelection,
-                           entitySchema: EntitySchema)
+                           entitySchema: EntitySchema,
+                           context: ActivityContext[DPair[EntitySchema]])
                           (implicit userContext: UserContext): EntitySchema = {
-    val paths = retrievePaths(datasetSelection)
+    val paths = retrievePathsOfInput(datasetSelection.inputId, Some(datasetSelection), task.project, context)
     entitySchema.copy(typedPaths = (entitySchema.typedPaths ++ paths).distinct)
-  }
-
-  private def retrievePaths(datasetSelection: DatasetSelection)
-                           (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
-    // Retrieve the data source
-    task.dataSource(datasetSelection) match {
-      case DatasetSpec.DataSourceWrapper(ds: SparqlRestrictionDataSource, _) =>
-        val typeRestriction = SparqlRestriction.forType(datasetSelection.typeUri)
-        val sparqlRestriction = datasetSelection.restriction.operator match {
-          case Some(CustomOperator(sparqlExpression)) =>
-            SparqlRestriction.fromSparql(SparqlEntitySchema.variable, sparqlExpression).merge(typeRestriction)
-          case _ =>
-            typeRestriction
-        }
-        ds.retrievePathsSparqlRestriction(sparqlRestriction, Some(maxLinks))
-      case source: DataSource =>
-        // Retrieve most frequent paths
-        source.retrievePaths(datasetSelection.typeUri, 1, Some(maxLinks))
-    }
   }
 
   override def resource: WritableResource = task.project.cacheResources.child("linking").child(task.id).get(s"pathsCache.xml")

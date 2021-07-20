@@ -1,10 +1,9 @@
 package controllers.linking
 
-import controllers.core.{RequestUserContextAction, UserContextAction}
-import javax.inject.Inject
+import controllers.core.UserContextActions
 import models.linking.EvalLink._
 import models.linking.{EvalLink, LinkResolver, LinkSorter}
-import org.silkframework.entity.{Entity, Link, MinimalLink}
+import org.silkframework.entity.{Entity, MinimalLink}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.DetailedEvaluator
 import org.silkframework.util.DPair
@@ -13,7 +12,9 @@ import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
-class ReferenceLinksManager @Inject() () extends InjectedController {
+import javax.inject.Inject
+
+class ReferenceLinksManager @Inject() () extends InjectedController with UserContextActions {
 
   def referenceLinksView(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)

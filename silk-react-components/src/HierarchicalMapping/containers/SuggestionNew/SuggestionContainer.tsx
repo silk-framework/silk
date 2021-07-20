@@ -14,7 +14,7 @@ import {
 import SuggestionList from "./SuggestionList";
 import SuggestionHeader from "./SuggestionHeader";
 import {
-    generateRuleAsync, getApiDetails,
+    generateRuleAsync,
     getSuggestionsAsync,
     prefixesAsync,
     schemaExampleValuesAsync, useApiDetails,
@@ -30,6 +30,8 @@ import silkApi from "../../../api/silkRestApi";
 import VocabularyMatchingDialog from "./VocabularyMatchingDialog";
 import {IInitFrontend, useInitFrontend} from "../../../api/silkRestApi.hooks";
 import {extractSearchWords, matchesAllWords} from "@gui-elements/src/components/Typography/Highlighter";
+import ErrorView from "../../components/ErrorView";
+import _ from "lodash";
 
 interface ISuggestionListContext {
     // Can be deleted when popup issue gone
@@ -101,15 +103,17 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
     // Updates the current error array depending on the type of the added error object
     const setErrorSafe = (newErrors: any | any[], keepOldErrors: boolean = true) => {
+        // Convert different error formats
+        const convertError = (err: any) => err?.error ?? err
         if(Array.isArray(newErrors)) {
             setError((oldErrors) => [
-                ...(keepOldErrors ? oldErrors : []),
-                ...newErrors
+                ...(keepOldErrors && oldErrors ? oldErrors : []),
+                ...newErrors.map(err => convertError(err))
             ])
         } else if(typeof newErrors === "object") {
             setError((oldErrors) => [
                 ...(keepOldErrors ? oldErrors : []),
-                newErrors
+                convertError(newErrors)
             ])
         }
     }
@@ -303,10 +307,13 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
             err => {
                 // If we have a list of failedRules, we want to show them, otherwise something
                 // else failed
-                const error = err.failedRules
+                const errorBody = _.get(err, 'response.body');
+                const error: any[] = err.failedRules
                     ? err.failedRules
-                    : [{error: err}];
+                    : [{error: {...errorBody, ...err}}];
+                error.filter(err => err?.error).forEach(err => err.error.titlePrefix = 'There has been a problem generating the mapping rules: ')
                 setErrorSafe(error);
+                setLoading(false)
             },
             () => setLoading(false)
         );
@@ -354,23 +361,10 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         </CardOptions>
 
     // Error widget that displays errors that have occurred
-    const errorLevel = (errors: any[]): object => {
-        const onlyMinorErrors = errors.every((error) => error.title === "Not Found")
-        return onlyMinorErrors ? {warning: true} : {danger: true}
-    }
     const errorWidget = (!loading && !!error.length) && <>
-        <Notification {...errorLevel(error)}>
-            <ul>
-                {
-                    error.map(err => <>
-                        <li key={err.detail}>
-                            <h3>{err.title}</h3>
-                            <p>{err.detail}</p>
-                        </li>
-                    </>)
-                }
-            </ul>
-        </Notification>
+        {error.map(err => <ErrorView
+            {...err}
+        />)}
         <Spacing size="small" />
     </>
 

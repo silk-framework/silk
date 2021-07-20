@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.json
 
-import org.silkframework.dataset.DataSourceCharacteristics.{SpecialPathInfo, SupportedPathExpressions}
+import org.silkframework.dataset.DatasetCharacteristics.{SpecialPathInfo, SupportedPathExpressions}
 import org.silkframework.dataset._
 import org.silkframework.plugins.dataset.hierarchical.HierarchicalSink.DEFAULT_MAX_SIZE
 import org.silkframework.runtime.activity.UserContext
@@ -39,7 +39,7 @@ case class JsonDataset(
 
   override def entitySink(implicit userContext: UserContext): EntitySink = new JsonSink(file, jsonTemplate, maxDepth)
 
-  override def characteristics: DataSourceCharacteristics = DataSourceCharacteristics(
+  override def characteristics: DatasetCharacteristics = DatasetCharacteristics(
     SupportedPathExpressions(
       multiHopPaths = true,
       backwardPaths = true,

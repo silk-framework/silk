@@ -12,23 +12,25 @@ import {
     WhiteSpaceContainer,
 } from "@gui-elements/index";
 import { SuggestionListContext } from "../../SuggestionContainer";
+import {TestableComponent} from "@gui-elements/src/components/interfaces";
 
 interface IDataStackItem {
     key: string;
     value: React.ReactNode;
 }
 
-interface IDataStack {
+interface IDataStack extends TestableComponent {
     data: IDataStackItem[];
 }
 
-export function InfoBoxOverlay({data}: IDataStack) {
+export function InfoBoxOverlay({data, ...otherProps}: IDataStack) {
     const {portalContainer} =useContext(SuggestionListContext);
+    const dataTestId = (suffix: string) => otherProps["data-test-id"] ? otherProps["data-test-id"] + suffix : undefined
 
     return <ContextOverlay
         portalContainer={portalContainer}
     >
-        <IconButton name="item-info" text="Show more info" />
+        <IconButton name="item-info" text="Show more info" data-test-id={dataTestId("-btn")} />
         <WhiteSpaceContainer
             style={{
                 width: "36rem",
@@ -40,6 +42,7 @@ export function InfoBoxOverlay({data}: IDataStack) {
             paddingRight="small"
             paddingBottom="small"
             paddingLeft="small"
+            data-test-id={dataTestId("-overlay")}
         >
             <TableContainer>
                 <Table size="compact">
@@ -70,7 +73,7 @@ export function InfoBoxOverlay({data}: IDataStack) {
                                         {item.value}
                                     </TableCell>
                                 </TableRow> :
-                                <></>
+                                null
                             )
                         }
                     </TableBody>

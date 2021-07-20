@@ -1,10 +1,17 @@
 package controllers.workspaceApi
 
 import config.WorkbenchConfig
+import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.util.FileMultiPartRequest
 import controllers.workspace.ProjectMarshalingApi
 import controllers.workspaceApi.ProjectImportApi.{ProjectImport, ProjectImportDetails, ProjectImportExecution}
+import io.swagger.v3.oas.annotations.enums.{ParameterIn, ParameterStyle}
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.parameters.RequestBody
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.silkframework.config.{DefaultConfig, MetaData}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.execution.Execution
@@ -35,7 +42,8 @@ import scala.xml.{XML => ScalaXML}
 /**
   * API for advanced project import.
   */
-class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedController with ControllerUtilsTrait {
+@Tag(name = "Project import/export")
+class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedController with UserContextActions with ControllerUtilsTrait {
   private final val PROJECT_FILE_MAX_AGE_KEY = "workspace.projectImport.tempFileMaxAge"
   private final val DEFAULT_PROJECT_FILE_MAX_AGE = Duration(1, TimeUnit.HOURS)
 
@@ -103,6 +111,41 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
   }
 
   /** Uploads a project archive and returns the resource URL under which the project import is further handled. */
+  @Operation(
+    summary = "Project import resources",
+    description = "Project import resources are used for a multi step project import procedure that is comprised of multiple steps: 1. the project file upload, 2. the validation of the uploaded file, 3. the asynchronous execution of the project import and 4. the status of the running project import execution.",
+    parameters = Array(
+      new Parameter(
+        name = "file",
+        description = "The file to be uploaded",
+        style = ParameterStyle.FORM,
+        content = Array(new Content(mediaType = "multipart/form-data"), new Content(mediaType = "application/octet-stream"), new Content(mediaType = "text/plain"))
+      )
+    ),
+    responses = Array(
+      new ApiResponse(
+        responseCode = "201",
+        description = "A project import resource with the returned ID has been created.",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject("{ \"projectImportId\": \"di-projectImport5196140007678722748\" }"))
+        ))
+      )
+    ))
+  @RequestBody(
+    content = Array(
+      new Content(
+        mediaType = "multipart/form-data",
+        schema = new Schema(implementation = classOf[FileMultiPartRequest])
+      ),
+      new Content(
+        mediaType = "application/octet-stream"
+      ),
+      new Content(
+        mediaType = "text/plain"
+      )
+    )
+  )
   def uploadProjectArchiveFile(): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val inputFile = api.bodyAsFile
     removeOldTempFiles()
@@ -127,7 +170,31 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
   }
 
   /** Returns the project import details. */
-  def projectImportDetails(projectImportId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Project import details",
+    description = "The project import resource that was created by uploading a project file.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Details for the uploaded project file. The label, description and projectId properties were extracted from the uploaded file. The projectAlreadyExists property states that there already exists a project with the exact same ID. In that case special flags can be set for the subsequent request that starts the project import execution. The marshallerId is the detected project file format, in the example it is a project XML ZIP archive.",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject("{ \"description\": \"Config project description\", \"label\": \"Config Project\", \"marshallerId\": \"xmlZip\", \"projectAlreadyExists\": true, \"projectId\": \"configProject\" }"))
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the provided import identifier does not exist."
+      )
+    ))
+  def projectImportDetails(@Parameter(
+                             name = "projectImportId",
+                             description = "The project import id.",
+                             required = true,
+                             in = ParameterIn.PATH,
+                             schema = new Schema(implementation = classOf[String])
+                           )
+                           projectImportId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val details = fetchProjectImportDetails(projectImportId)
     val projectExists = if(details.projectId != "") {
       workspace.findProject(details.projectId).isDefined
@@ -209,7 +276,26 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
   }
 
   /** Removed a project import and it's temporary files. */
-  def removeProjectImport(projectImportId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Remove project import resource",
+    description = "Deletes the project import resource and the uploaded files. The delete request is idempotent.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "201"
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the provided import identifier does not exist."
+      )
+    ))
+  def removeProjectImport(@Parameter(
+                            name = "projectImportId",
+                            description = "The project import id.",
+                            required = true,
+                            in = ParameterIn.PATH,
+                            schema = new Schema(implementation = classOf[String])
+                          )
+                          projectImportId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     withProjectImportQueue { queue =>
       queue.get(projectImportId) foreach { pi =>
         pi.projectFileResource.delete()
@@ -220,7 +306,40 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
   }
 
   /** Returns the status of a running project import. The requests will return after a specified timeout. */
-  def projectImportExecutionStatus(projectImportId: String, timeout: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Project import execution status",
+    description = "When the project import execution has been started, this will return the status of the project execution.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "The status of the project execution. There are 3 types of responses: 1. The execution is still in progress, i.e. no 'success' property is defined. 2. The 'success' property is defined and set to true, which means that the import has been successful. 3. The 'success' property is defined and set to false, which means that the import has failed. The 'failureMessage' property gives the reason for the failure.",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject("{ \"projectId\": \"1e813497-0c75-48cf-a857-2ddc3f94fe26_ConfigProject\", \"importStarted\": 1600950697304, \"importEnded\": 1600950697497, \"success\": false, \"failureMessage\": \"Exception during...\" }")))
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "The execution has not been started, yet, or the project import ID is not known."
+      )
+    ))
+  def projectImportExecutionStatus(@Parameter(
+                                     name = "projectImportId",
+                                     description = "The project import id.",
+                                     required = true,
+                                     in = ParameterIn.PATH,
+                                     schema = new Schema(implementation = classOf[String])
+                                   )
+                                   projectImportId: String,
+                                   @Parameter(
+                                     name = "timeout",
+                                     description = "The timeout in milliseconds when this call should return if the execution is not finished, yet. This allow for long-polling the result.",
+                                     required = false,
+                                     in = ParameterIn.QUERY,
+                                     schema = new Schema(implementation = classOf[Int])
+                                   )
+                                   timeout: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
     val importExecution = withProjectImportQueue(_.get(projectImportId) match {
       case Some(projectImport) if projectImport.importExecution.isDefined =>
         projectImport.importExecution.get
@@ -255,9 +374,59 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
   }
 
   /** Starts a project import based on the import ID. */
-  def startProjectImport(projectImportId: String,
+  @Operation(
+    summary = "Start project import",
+    description = "Starts a project import based on the import identifier.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "201",
+        description = "The project import has been executed. The status of the project import can be requested via the status endpoint.",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject("{ \"projectId\": \"1e813497-0c75-48cf-a857-2ddc3f94fe26_ConfigProject\", \"importStarted\": 1600950697304, \"importEnded\": 1600950697497, \"success\": false, \"failureMessage\": \"Exception during...\" }")))
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "The execution has not been started, yet, or the project import ID is not known."
+      ),
+      new ApiResponse(
+        responseCode = "409",
+        description = "Returned if a project with the same ID already exists and neither generateNewId nor overwriteExisting is enabled. Also returned if the uploaded temporary project file has been deleted because it reached its max age."
+      )
+    ))
+  def startProjectImport(@Parameter(
+                           name = "projectImportId",
+                           description = "The project import id.",
+                           required = true,
+                           in = ParameterIn.PATH,
+                           schema = new Schema(implementation = classOf[String])
+                         )
+                         projectImportId: String,
+                         @Parameter(
+                           name = "generateNewId",
+                           description = "When enabled this will always generate a new ID for this project based on the project label. This is one strategy if a project with the original ID already exists.",
+                           required = false,
+                           in = ParameterIn.QUERY,
+                           schema = new Schema(implementation = classOf[Boolean])
+                         )
                          generateNewId: Boolean,
+                         @Parameter(
+                           name = "overwriteExisting",
+                           description = "When enabled this will overwrite an existing project with the same ID. Enabling this option will NOT override the generateNewId option.",
+                           required = false,
+                           in = ParameterIn.QUERY,
+                           schema = new Schema(implementation = classOf[Boolean])
+                         )
                          overwriteExisting: Boolean,
+                         @Parameter(
+                           name = "newProjectId",
+                           description = "If provided, this will adopt the given id for the imported project. Cannot be set together with 'generateNewId'.",
+                           required = false,
+                           in = ParameterIn.QUERY,
+                           schema = new Schema(implementation = classOf[String])
+                         )
                          newProjectId: Option[String]): Action[AnyContent] = UserContextAction { implicit userContext =>
     withProjectImportQueue {
       _.get(projectImportId) match {

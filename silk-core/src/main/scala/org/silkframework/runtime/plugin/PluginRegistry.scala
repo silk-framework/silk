@@ -1,6 +1,7 @@
 package org.silkframework.runtime.plugin
 
-import org.silkframework.config.{Config, DefaultConfig, Prefixes}
+import com.typesafe.config.{Config => TypesafeConfig}
+import org.silkframework.config.{Config, ConfigValue, DefaultConfig, Prefixes}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.util.Identifier
 
@@ -21,19 +22,6 @@ object PluginRegistry {
   private var configMgr: Config = DefaultConfig.instance
 
   private val log = Logger.getLogger(getClass.getName)
-
-  final val PLUGIN_BLACKLIST_CONFIG_PATH = "plugin.blacklist"
-
-  private def blacklistedPlugins: Set[Identifier] = {
-    if(configMgr().hasPath(PLUGIN_BLACKLIST_CONFIG_PATH)) {
-      configMgr().getString(PLUGIN_BLACKLIST_CONFIG_PATH)
-          .split("\\s*,\\s*")
-          .map(id => Identifier(id.trim))
-          .toSet
-    } else {
-      Set.empty
-    }
-  }
   
   /** Map from plugin base types to an instance holding all plugins of that type.  */
   private var pluginTypes = Map[String, PluginType]()
@@ -45,10 +33,11 @@ object PluginRegistry {
   private var pluginsById = Map[String, Seq[PluginDescription[_]]]()
 
   // Register all plugins at instantiation of this singleton object.
-  if(configMgr().hasPath("pluginRegistry.pluginFolder")) {
-    registerJars(new File(configMgr().getString("pluginRegistry.pluginFolder")))
-  } else {
-    registerFromClasspath()
+  Config.pluginFolder() match {
+    case Some(folder) =>
+      registerJars(folder)
+    case None =>
+      registerFromClasspath()
   }
 
   def allPlugins: Traversable[PluginDescription[_]] = {
@@ -139,7 +128,7 @@ object PluginRegistry {
    * Returns a list of all available plugins of a specific type.
    */
   def availablePlugins[T: ClassTag]: Seq[PluginDescription[T]] = {
-    val blackList = blacklistedPlugins
+    val blackList = Config.blacklistedPlugins()
     pluginType[T]
         .availablePlugins.asInstanceOf[Seq[PluginDescription[T]]]
         .filterNot(p => blackList.contains(p.id))
@@ -254,7 +243,7 @@ object PluginRegistry {
     */
   def registerPlugin(pluginDesc: PluginDescription[_]): Unit = {
     checkPluginDescription(pluginDesc)
-    if(!blacklistedPlugins.contains(pluginDesc.id)) {
+    if(!Config.blacklistedPlugins().contains(pluginDesc.id)) {
       for (superType <- getSuperTypes(pluginDesc.pluginClass)) {
         val pluginType = pluginTypes.getOrElse(superType.getName, new PluginType)
         pluginTypes += ((superType.getName, pluginType))
@@ -326,6 +315,50 @@ object PluginRegistry {
       // Build a map from each category to all corresponding plugins
       categoriesAndPlugins.groupBy(_._1).mapValues(_.map(_._2))
     }
+  }
+
+  object Config {
+
+    private final val PLUGIN_FOLDER_CONFIG_PATH = "pluginRegistry.pluginFolder"
+
+    private final val PLUGINS_CONFIG_PATH = "pluginRegistry.plugins"
+
+    private final val LEGACY_PLUGIN_BLACKLIST_CONFIG_PATH = "plugin.blacklist"
+
+    val pluginFolder: ConfigValue[Option[File]] = (config: TypesafeConfig) => {
+      if(config.hasPath(PLUGIN_FOLDER_CONFIG_PATH)) {
+        Some(new File(config.getString(PLUGIN_FOLDER_CONFIG_PATH)))
+      } else {
+        None
+      }
+    }
+
+    val blacklistedPlugins: ConfigValue[Set[Identifier]] = (config: TypesafeConfig) => {
+      var blacklist = Set[Identifier]()
+
+      // Load blacklist from plugins config
+      if(config.hasPath(PLUGINS_CONFIG_PATH)) {
+        val allPluginsConf = config.getObject(PLUGINS_CONFIG_PATH)
+        for(pluginId <- allPluginsConf.keySet().asScala) yield {
+          val pluginConf = allPluginsConf.toConfig.getConfig(pluginId)
+          if(pluginConf.hasPath("enabled") && !pluginConf.getBoolean("enabled")) {
+            blacklist += pluginId
+          }
+        }
+      }
+
+      // Load legacy blacklist
+      if(config.hasPath(LEGACY_PLUGIN_BLACKLIST_CONFIG_PATH)) {
+        log.warning(s"Parameter '$LEGACY_PLUGIN_BLACKLIST_CONFIG_PATH' is deprecated. Please use $PLUGINS_CONFIG_PATH instead.")
+        blacklist ++=
+          config.getString(LEGACY_PLUGIN_BLACKLIST_CONFIG_PATH)
+            .split("\\s*,\\s*")
+            .map(id => Identifier(id.trim))
+      }
+
+      blacklist
+    }
+
   }
 }
 

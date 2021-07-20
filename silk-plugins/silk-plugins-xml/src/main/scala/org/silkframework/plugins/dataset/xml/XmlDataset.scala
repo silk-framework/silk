@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.xml
 
-import org.silkframework.dataset.DataSourceCharacteristics.{SpecialPathInfo, SupportedPathExpressions}
+import org.silkframework.dataset.DatasetCharacteristics.{SpecialPathInfo, SupportedPathExpressions}
 import org.silkframework.dataset._
 import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.runtime.activity.UserContext
@@ -51,7 +51,7 @@ case class XmlDataset( @Param("The XML file. This may also be a zip archive of m
 
   override def entitySink(implicit userContext: UserContext): EntitySink = new XmlSink(file, outputTemplate.str)
 
-  override def characteristics: DataSourceCharacteristics = XmlDataset.characteristics
+  override def characteristics: DatasetCharacteristics = XmlDataset.characteristics
 
   /**
     * Validates the output template parameter
@@ -98,7 +98,7 @@ object XmlDataset {
     final val BACKWARD_PATH = "\\.."
   }
   import SpecialXmlPaths._
-  final val characteristics = DataSourceCharacteristics(
+  final val characteristics = DatasetCharacteristics(
     SupportedPathExpressions(
       multiHopPaths = true,
       propertyFilter = true,

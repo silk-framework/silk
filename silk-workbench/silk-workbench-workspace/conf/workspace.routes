@@ -26,14 +26,14 @@ POST          /:project/importExample                                           
 ############################################################################################################################################
 
 # Dialogs
-GET           /dialogs/newDataset/:project                                      controllers.workspace.DatasetApi.datasetDialog(project: String, task = "", title = "Create Dataset", createDialog: Boolean = true)
-GET           /dialogs/editDataset/:project/:task                               controllers.workspace.DatasetApi.datasetDialog(project: String, task: String, title = "Edit Dataset", createDialog: Boolean = false)
-GET           /dialogs/editDatasetAutoConfigured/:project/:task/:pluginId       controllers.workspace.DatasetApi.datasetDialogAutoConfigured(project, task, pluginId)
+GET           /dialogs/newDataset/:project                                      controllers.workspace.DatasetController.datasetDialog(project: String, task = "", title = "Create Dataset", createDialog: Boolean = true)
+GET           /dialogs/editDataset/:project/:task                               controllers.workspace.DatasetController.datasetDialog(project: String, task: String, title = "Edit Dataset", createDialog: Boolean = false)
+GET           /dialogs/editDatasetAutoConfigured/:project/:task/:pluginId       controllers.workspace.DatasetController.datasetDialogAutoConfigured(project, task, pluginId)
 
 # Tabs
-GET           /datasets/:project/:task/dataset                                  controllers.workspace.DatasetApi.dataset(project, task)
-GET           /datasets/:project/:task/table                                    controllers.workspace.DatasetApi.table(project, task, maxEntities: Int ?= 20)
-GET           /datasets/:project/:task/sparql                                   controllers.workspace.DatasetApi.sparql(project, task, query ?= "")
+GET           /datasets/:project/:task/dataset                                  controllers.workspace.DatasetController.dataset(project, task)
+GET           /datasets/:project/:task/table                                    controllers.workspace.DatasetController.table(project, task, maxEntities: Int ?= 20)
+GET           /datasets/:project/:task/sparql                                   controllers.workspace.DatasetController.sparql(project, task, query ?= "")
 GET           /datasets/:project/:task/types                                    controllers.workspace.DatasetApi.types(project, task, search, limit: Option[Int] ?= None)
 
 # API
@@ -88,12 +88,12 @@ POST          /projects/:project/clone                                          
 POST          /projects/:project/copy                                           controllers.workspace.WorkspaceApi.copyProject(project: String)
 
 # Resources
-GET           /projects/:project/resources                                      controllers.workspace.WorkspaceApi.getResources(project: String, searchText: Option[String] ?= None, limit: Option[Int] ?= None, offset: Option[Int] ?= None)
-GET           /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.getResource(project: String, name: String)
-PUT           /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.putResource(project: String, name: String)
-DELETE        /projects/:project/resources/:name                                controllers.workspace.WorkspaceApi.deleteResource(project: String, name: String)
-GET           /projects/:project/resources/:name/usage                          controllers.workspace.WorkspaceApi.resourceUsage(project: String, name: String)
-GET           /projects/:project/resources/:name/metadata                       controllers.workspace.WorkspaceApi.getResourceMetadata(project: String, name: String)
+GET           /projects/:project/resources                                      controllers.workspace.ResourceApi.getResources(project: String, searchText: Option[String] ?= None, limit: Option[Int] ?= None, offset: Option[Int] ?= None)
+GET           /projects/:project/resources/:name                                controllers.workspace.ResourceApi.getResource(project: String, name: String)
+PUT           /projects/:project/resources/:name                                controllers.workspace.ResourceApi.putResource(project: String, name: String)
+DELETE        /projects/:project/resources/:name                                controllers.workspace.ResourceApi.deleteResource(project: String, name: String)
+GET           /projects/:project/resources/:name/usage                          controllers.workspace.ResourceApi.resourceUsage(project: String, name: String)
+GET           /projects/:project/resources/:name/metadata                       controllers.workspace.ResourceApi.getResourceMetadata(project: String, name: String)
 
 # Tasks
 POST          /projects/:project/tasks                                          controllers.workspace.TaskApi.postTask(project: String)
@@ -110,8 +110,8 @@ GET           /projects/:project/tasks/:task/downloadOutput                     
 
 # Global workspace activities
 GET           /globalWorkspaceActivities                                        controllers.workspace.ActivityApi.globalWorkspaceActivities()
-POST          /globalWorkspaceActivities/:activity/start                        controllers.workspace.ActivityApi.startActivity(project = "", task = "", activity: String, blocking: Boolean = false)
-POST          /globalWorkspaceActivities/:activity/startBlocking                controllers.workspace.ActivityApi.startActivity(project = "", task = "", activity: String, blocking: Boolean = true)
+POST          /globalWorkspaceActivities/:activity/start                        controllers.workspace.ActivityApi.startActivity(project = "", task = "", activity: String)
+POST          /globalWorkspaceActivities/:activity/startBlocking                controllers.workspace.ActivityApi.startActivityBlocking(project = "", task = "", activity: String)
 POST          /globalWorkspaceActivities/:activity/cancel                       controllers.workspace.ActivityApi.cancelActivity(project = "", task = "", activity: String)
 POST          /globalWorkspaceActivities/:activity/restart                      controllers.workspace.ActivityApi.restartActivity(project = "", task= "", activity: String, blocking: Boolean ?= false)
 GET           /globalWorkspaceActivities/:activity/config                       controllers.workspace.ActivityApi.getActivityConfig(project = "", task = "", activity: String)
@@ -122,8 +122,8 @@ GET           /globalWorkspaceActivities/:activity/value                        
 
 # Project Activities
 GET           /projects/:project/activities                                     controllers.workspace.ActivityApi.getProjectActivities(project: String)
-POST          /projects/:project/activities/:activity/start                     controllers.workspace.ActivityApi.startActivity(project: String, task = "", activity: String, blocking: Boolean = false)
-POST          /projects/:project/activities/:activity/startBlocking             controllers.workspace.ActivityApi.startActivity(project: String, task = "", activity: String, blocking: Boolean = true)
+POST          /projects/:project/activities/:activity/start                     controllers.workspace.ActivityApi.startActivity(project: String, task = "", activity: String)
+POST          /projects/:project/activities/:activity/startBlocking             controllers.workspace.ActivityApi.startActivityBlocking(project: String, task = "", activity: String)
 POST          /projects/:project/activities/:activity/cancel                    controllers.workspace.ActivityApi.cancelActivity(project: String, task = "", activity: String)
 POST          /projects/:project/activities/:activity/restart                   controllers.workspace.ActivityApi.restartActivity(project: String, task= "", activity: String, blocking: Boolean ?= false)
 GET           /projects/:project/activities/:activity/config                    controllers.workspace.ActivityApi.getActivityConfig(project: String, task = "", activity: String)
@@ -133,8 +133,8 @@ GET           /projects/:project/activities/:activity/value                     
 
 # Task Activities
 GET           /projects/:project/tasks/:task/activities                         controllers.workspace.ActivityApi.getTaskActivities(project: String, task: String)
-POST          /projects/:project/tasks/:task/activities/:activity/start         controllers.workspace.ActivityApi.startActivity(project: String, task: String, activity: String, blocking: Boolean = false)
-POST          /projects/:project/tasks/:task/activities/:activity/startBlocking controllers.workspace.ActivityApi.startActivity(project: String, task: String, activity: String, blocking: Boolean = true)
+POST          /projects/:project/tasks/:task/activities/:activity/start         controllers.workspace.ActivityApi.startActivity(project: String, task: String, activity: String)
+POST          /projects/:project/tasks/:task/activities/:activity/startBlocking controllers.workspace.ActivityApi.startActivityBlocking(project: String, task: String, activity: String)
 POST          /projects/:project/tasks/:task/activities/:activity/cancel        controllers.workspace.ActivityApi.cancelActivity(project: String, task: String, activity: String)
 POST          /projects/:project/tasks/:task/activities/:activity/restart       controllers.workspace.ActivityApi.restartActivity(project: String, task: String, activity: String, blocking: Boolean ?= false)
 GET           /projects/:project/tasks/:task/activities/:activity/config        controllers.workspace.ActivityApi.getActivityConfig(project: String, task: String, activity: String)
@@ -143,13 +143,15 @@ GET           /projects/:project/tasks/:task/activities/:activity/status        
 GET           /projects/:project/tasks/:task/activities/:activity/value         controllers.workspace.ActivityApi.getActivityValue(project: String, task: String, activity: String)
 
 # General Activities API
-POST          /activities/start                                                 controllers.workspace.ActivityApi.startActivity(project: String, task: String, activity: String, blocking: Boolean = false)
-POST          /activities/startBlocking                                         controllers.workspace.ActivityApi.startActivity(project: String, task: String, activity: String, blocking: Boolean = true)
-POST          /activities/cancel                                                controllers.workspace.ActivityApi.cancelActivity(project: String, task: String, activity: String)
-POST          /activities/restart                                               controllers.workspace.ActivityApi.restartActivity(project: String, task: String, activity: String, blocking: Boolean ?= false)
+GET           /activities/list                                                  controllers.workspace.ActivityApi.listActivities(project ?= "", task ?= "")
+POST          /activities/start                                                 controllers.workspace.ActivityApi.startActivity(project ?= "", task ?= "", activity)
+POST          /activities/startBlocking                                         controllers.workspace.ActivityApi.startActivityBlocking(project ?= "", task ?= "", activity)
+POST          /activities/cancel                                                controllers.workspace.ActivityApi.cancelActivity(project ?= "", task ?= "", activity)
+POST          /activities/restart                                               controllers.workspace.ActivityApi.restartActivity(project ?= "", task ?= "", activity, blocking: Boolean ?= false)
 GET           /activities/config                                                controllers.workspace.ActivityApi.getActivityConfig(project: String, task: String, activity: String)
 POST          /activities/config                                                controllers.workspace.ActivityApi.postActivityConfig(project: String, task: String, activity: String)
-GET           /activities/status                                                controllers.workspace.ActivityApi.getActivityStatus(project: String, task: String, activity: String)
+GET           /activities/status                                                controllers.workspace.ActivityApi.getActivityStatus(project ?= "", task ?= "", activity: String)
+GET           /activities/value                                                 controllers.workspace.ActivityApi.getActivityValue(project ?= "", task ?= "", activity: String)
 GET           /activities/recent                                                controllers.workspace.ActivityApi.recentActivities(maxCount: Int ?= 10)
 GET           /activities/log                                                   controllers.workspace.ActivityApi.activityLog()
 GET           /activities/updates                                               controllers.workspace.ActivityApi.getActivityStatusUpdates(project: String ?= "", task: String ?= "", activity: String ?= "", timestamp: Long ?= 0L)

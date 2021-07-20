@@ -20,20 +20,22 @@ class WorkspacePlugins extends PluginModule {
 
   override def pluginClasses: Seq[Class[_]] =
     workspaceProviders :::
-        datasetActivities :::
-        transformActivities :::
-        linkingActivities :::
-        workflowActivities :::
-        projectMarshaller :::
-        provenancePlugins :::
-        rulePlugins :::
-        workspaceTaskPlugins :::
-        autoCompletionProviderPlugins :::
-        workspaceActivityPlugins :::
-        formats
+    datasetActivities :::
+    transformActivities :::
+    linkingActivities :::
+    workflowActivities :::
+    projectMarshaller :::
+    provenancePlugins :::
+    rulePlugins :::
+    workspaceTaskPlugins :::
+    autoCompletionProviderPlugins :::
+    workspaceActivityPlugins :::
+    formats
 
   def workspaceTaskPlugins: List[Class[_]] =
-    classOf[Workflow] :: Nil
+    classOf[Workflow] ::
+    classOf[LocalWorkflowAsTaskExecutor] ::
+    Nil
 
   def workspaceProviders: List[Class[_]] =
     classOf[FileWorkspaceProvider] ::

@@ -84,7 +84,7 @@ class SilkErrorHandler (env: Environment,
     * @param message A message.
     */
   override protected def onNotFound(request: RequestHeader, message: String): Future[Result] = {
-    Future.successful(NotFound(views.html.defaultpages.devNotFound(request.method, request.uri, Some(router.get))))
+    Future.successful(NotFound(views.html.defaultpages.devNotFound(request.method, request.uri, Some(router.get))(request)))
   }
 
   /**

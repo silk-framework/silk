@@ -1,14 +1,18 @@
 package controllers.linking
 
-import java.util.logging.{Level, Logger}
-
-import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.core.UserContextActions
+import controllers.linking.doc.LinkingTaskApiDoc
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils
-import javax.inject.Inject
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.parameters.RequestBody
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.silkframework.config.{MetaData, PlainTask, Prefixes}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.entity.{Entity, FullLink, Link, MinimalLink, Restriction}
+import org.silkframework.entity.{Entity, FullLink, MinimalLink, Restriction}
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.rule.evaluation.ReferenceLinks
@@ -27,7 +31,11 @@ import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, InjectedController}
 
-class LinkingTaskApi @Inject() () extends InjectedController {
+import java.util.logging.{Level, Logger}
+import javax.inject.Inject
+
+@Tag(name = "Linking", description = "Linking specific operations, such as evaluating rules and managing reference links.")
+class LinkingTaskApi @Inject() () extends InjectedController with UserContextActions {
 
   private val log = Logger.getLogger(getClass.getName)
 
@@ -159,7 +167,42 @@ class LinkingTaskApi @Inject() () extends InjectedController {
     }
   }
 
-  def getReferenceLinks(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Retrieve reference links",
+    description = "Retrieve all reference links of a specified linking task.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/xml",
+            examples = Array(new ExampleObject(LinkingTaskApiDoc.referenceLinksExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or task has not been found."
+      )
+    )
+  )
+  def getReferenceLinks(@Parameter(
+                          name = "project",
+                          description = "The project identifier",
+                          required = true,
+                          in = ParameterIn.PATH,
+                          schema = new Schema(implementation = classOf[String])
+                        )
+                        projectName: String,
+                        @Parameter(
+                          name = "task",
+                          description = "The task identifier",
+                          required = true,
+                          in = ParameterIn.PATH,
+                          schema = new Schema(implementation = classOf[String])
+                        )
+                        taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val referenceLinksXml = task.data.referenceLinks.toXML
@@ -167,7 +210,53 @@ class LinkingTaskApi @Inject() () extends InjectedController {
     Ok(referenceLinksXml).withHeaders("Content-Disposition" -> s"attachment; filename=referenceLinks.xml")
   }
 
-  def putReferenceLinks(projectName: String, taskName: String, generateNegative: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+  @Operation(
+    summary = "Update reference links",
+    description = "Update all reference links of a specified linking task.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the reference links have been updated successfully"
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or task has not been found."
+      )
+    )
+  )
+  @RequestBody(
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/xml",
+        examples = Array(new ExampleObject(LinkingTaskApiDoc.referenceLinksExample))
+      )
+    )
+  )
+  def putReferenceLinks(@Parameter(
+                          name = "project",
+                          description = "The project identifier",
+                          required = true,
+                          in = ParameterIn.PATH,
+                          schema = new Schema(implementation = classOf[String])
+                        )
+                        projectName: String,
+                        @Parameter(
+                          name = "task",
+                          description = "The task identifier",
+                          required = true,
+                          in = ParameterIn.PATH,
+                          schema = new Schema(implementation = classOf[String])
+                        )
+                        taskName: String,
+                        @Parameter(
+                          name = "generateNegative",
+                          description = "If true, negative reference links will be generated by interchanging the source and targets of the provided positive links. This will only produce correct results if the provided positive reference links are complete and model 1:1 relations.",
+                          required = true,
+                          in = ParameterIn.QUERY,
+                          schema = new Schema(implementation = classOf[Boolean])
+                        )
+                        generateNegative: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
 
@@ -182,18 +271,60 @@ class LinkingTaskApi @Inject() () extends InjectedController {
     Ok
   }
 
-  /**
-   * Delete all reference links of specific types.
- *
-   * @param projectName
-   * @param taskName
-   * @param positive if true
-   * @param negative
-   * @param unlabeled
-   * @return
-   */
-  def deleteReferenceLinks(projectName: String, taskName: String,
-                           positive: Boolean, negative: Boolean, unlabeled: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Delete reference links",
+    description = "Removes reference links from a specified linking task.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the reference links have been deleted successfully"
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or task has not been found."
+      )
+    )
+  )
+  def deleteReferenceLinks(@Parameter(
+                             name = "project",
+                             description = "The project identifier",
+                             required = true,
+                             in = ParameterIn.PATH,
+                             schema = new Schema(implementation = classOf[String])
+                           )
+                           projectName: String,
+                           @Parameter(
+                             name = "task",
+                             description = "The task identifier",
+                             required = true,
+                             in = ParameterIn.PATH,
+                             schema = new Schema(implementation = classOf[String])
+                           )
+                           taskName: String,
+                           @Parameter(
+                             name = "positive",
+                             description = "If true, positive reference links will be deleted.",
+                             required = true,
+                             in = ParameterIn.QUERY,
+                             schema = new Schema(implementation = classOf[Boolean])
+                           )
+                           positive: Boolean,
+                           @Parameter(
+                             name = "negative",
+                             description = "If true, negative reference links will be deleted.",
+                             required = true,
+                             in = ParameterIn.QUERY,
+                             schema = new Schema(implementation = classOf[Boolean])
+                           )
+                           negative: Boolean,
+                           @Parameter(
+                             name = "unlabeled",
+                             description = "If true, unlabeled reference links will be deleted.",
+                             required = true,
+                             in = ParameterIn.QUERY,
+                             schema = new Schema(implementation = classOf[Boolean])
+                           )
+                           unlabeled: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val referenceLinks = task.data.referenceLinks
@@ -209,18 +340,60 @@ class LinkingTaskApi @Inject() () extends InjectedController {
     Ok
   }
 
-
-  /**
-   * Add a reference link to a specific linking task.
- *
-   * @param projectName
-   * @param taskName
-   * @param linkType E.g. "negative" or "positive"
-   * @param source the source entity URI
-   * @param target the target entity URI
-   * @return
-   */
-  def putReferenceLink(projectName: String, taskName: String, linkType: String, source: String, target: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Add reference link",
+    description = "Add a reference link to a specific linking task.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the reference link has been added successfully"
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or task has not been found."
+      )
+    )
+  )
+  def putReferenceLink(@Parameter(
+                         name = "project",
+                         description = "The project identifier",
+                         required = true,
+                         in = ParameterIn.PATH,
+                         schema = new Schema(implementation = classOf[String])
+                       )
+                       projectName: String,
+                       @Parameter(
+                         name = "task",
+                         description = "The task identifier",
+                         required = true,
+                         in = ParameterIn.PATH,
+                         schema = new Schema(implementation = classOf[String])
+                       )
+                       taskName: String,
+                       @Parameter(
+                         name = "linkType",
+                         description = "The link type, either \"negative\" or \"positive\".",
+                         required = true,
+                         in = ParameterIn.QUERY,
+                         schema = new Schema(implementation = classOf[String], allowableValues = Array("positive", "negative"))
+                       )
+                       linkType: String,
+                       @Parameter(
+                         name = "source",
+                         description = "The source entity URI.",
+                         required = true,
+                         in = ParameterIn.QUERY,
+                         schema = new Schema(implementation = classOf[String])
+                       )
+                       source: String,
+                       @Parameter(
+                         name = "target",
+                         description = "The target entity URI.",
+                         required = true,
+                         in = ParameterIn.QUERY,
+                         schema = new Schema(implementation = classOf[String])
+                       )
+                       target: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     log.info(s"Adding $linkType reference link: $source - $target")
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
@@ -240,16 +413,52 @@ class LinkingTaskApi @Inject() () extends InjectedController {
     Ok
   }
 
-  /**
-   * Delete a reference link
- *
-   * @param projectName
-   * @param taskName
-   * @param source source URI
-   * @param target target URI
-   * @return
-   */
-  def deleteReferenceLink(projectName: String, taskName: String, source: String, target: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Remove reference link",
+    description = "Remove a reference link from specific linking task.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the reference link has been removed successfully"
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or task has not been found."
+      )
+    )
+  )
+  def deleteReferenceLink(@Parameter(
+                            name = "project",
+                            description = "The project identifier",
+                            required = true,
+                            in = ParameterIn.PATH,
+                            schema = new Schema(implementation = classOf[String])
+                          )
+                          projectName: String,
+                          @Parameter(
+                            name = "task",
+                            description = "The task identifier",
+                            required = true,
+                            in = ParameterIn.PATH,
+                            schema = new Schema(implementation = classOf[String])
+                          )
+                          taskName: String,
+                          @Parameter(
+                            name = "source",
+                            description = "The source entity URI.",
+                            required = true,
+                            in = ParameterIn.QUERY,
+                            schema = new Schema(implementation = classOf[String])
+                          )
+                          source: String,
+                          @Parameter(
+                            name = "target",
+                            description = "The target entity URI.",
+                            required = true,
+                            in = ParameterIn.QUERY,
+                            schema = new Schema(implementation = classOf[String])
+                          )
+                          target: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val link = new MinimalLink(source, target)
@@ -309,7 +518,42 @@ class LinkingTaskApi @Inject() () extends InjectedController {
     getProjectAndTask[LinkSpec](projectName, taskName)
   }
 
-  def referenceLinksEvaluated(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+  @Operation(
+    summary = "Evaluate on reference links",
+    description = "Evaluates the current linking rule on all reference links.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(LinkingTaskApiDoc.referenceLinksEvaluatedExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or task has not been found."
+      )
+    )
+  )
+  def referenceLinksEvaluated(@Parameter(
+                                name = "project",
+                                description = "The project identifier",
+                                required = true,
+                                in = ParameterIn.PATH,
+                                schema = new Schema(implementation = classOf[String])
+                              )
+                              projectName: String,
+                              @Parameter(
+                                name = "task",
+                                description = "The task identifier",
+                                required = true,
+                                in = ParameterIn.PATH,
+                                schema = new Schema(implementation = classOf[String])
+                              )
+                              taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val rule = task.data.rule
@@ -341,8 +585,51 @@ class LinkingTaskApi @Inject() () extends InjectedController {
     Ok(result)
   }
 
-  /** Executes a linking task on the data sources given in the request. */
-  def postLinkDatasource(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+  @Operation(
+    summary = "Linking task execution with payload",
+    description = "Execute a specific linking rule against input data from the POST body.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/n-triples",
+            examples = Array(new ExampleObject(LinkingTaskApiDoc.postLinkDatasourceResponseExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or task has not been found."
+      )
+    )
+  )
+  @RequestBody(
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/xml",
+        examples = Array(new ExampleObject(LinkingTaskApiDoc.postLinkDatasourceRequestExample))
+      )
+    )
+  )
+  def postLinkDatasource(@Parameter(
+                           name = "project",
+                           description = "The project identifier",
+                           required = true,
+                           in = ParameterIn.PATH,
+                           schema = new Schema(implementation = classOf[String])
+                         )
+                         projectName: String,
+                         @Parameter(
+                           name = "task",
+                           description = "The task identifier",
+                           required = true,
+                           in = ParameterIn.PATH,
+                           schema = new Schema(implementation = classOf[String])
+                         )
+                         taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     request.body match {
       case AnyContentAsXml(xmlRoot) =>
         try{
@@ -364,18 +651,78 @@ class LinkingTaskApi @Inject() () extends InjectedController {
     }
   }
 
-  /**
-    * Evaluates a linkage rule specified in the request on the linking task.
-    * This endpoint can be used to test temporary, alternative linkage rules without having to persist them first.
-    *
-    * @param linkLimit   Max. number of links that should be returned.
-    * @param timeoutInMs Max. runtime in milliseconds the matching task should run
-    * @return
-    */
-  def evaluateLinkageRule(projectName: String,
+  @Operation(
+    summary = "Evaluate provided linking rule",
+    description = "Evaluate a linking task based on a linkage rule that is provided with the request. This endpoint can be used to test temporary, alternative linkage rules without having to persist them first.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(LinkingTaskApiDoc.evaluateLinkageRuleResponseExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or task has not been found."
+      )
+    )
+  )
+  @RequestBody(
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        examples = Array(new ExampleObject(LinkingTaskApiDoc.evaluateLinkageRuleRequestJsonExample))
+      ),
+      new Content(
+        mediaType = "application/xml",
+        examples = Array(new ExampleObject(LinkingTaskApiDoc.evaluateLinkageRuleRequestXmlExample))
+      )
+    )
+  )
+  def evaluateLinkageRule(@Parameter(
+                            name = "project",
+                            description = "The project identifier",
+                            required = true,
+                            in = ParameterIn.PATH,
+                            schema = new Schema(implementation = classOf[String])
+                          )
+                          projectName: String,
+                          @Parameter(
+                            name = "linkingTaskName",
+                            description = "The task identifier",
+                            required = true,
+                            in = ParameterIn.PATH,
+                            schema = new Schema(implementation = classOf[String])
+                          )
                           linkingTaskName: String,
+                          @Parameter(
+                            name = "linkLimit",
+                            description = "The max. number of unique links that should be returned from the evaluation.",
+                            required = false,
+                            in = ParameterIn.QUERY,
+                            schema = new Schema(implementation = classOf[Int], defaultValue = "1000")
+                          )
                           linkLimit: Int,
+                          @Parameter(
+                            name = "timeoutInMs",
+                            description = "The max. time in milliseconds the matching stage of the linking execution is allowed to run. This timeout does not affect the loading stage.",
+                            required = false,
+                            in = ParameterIn.QUERY,
+                            schema = new Schema(implementation = classOf[Int], defaultValue = "30000")
+                          )
                           timeoutInMs: Int,
+                          @Parameter(
+                            name = "includeReferenceLinks",
+                            description = "When true, this will return an evaluation of the reference links in addition to freshly matched links.",
+                            required = false,
+                            in = ParameterIn.QUERY,
+                            schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+                          )
                           includeReferenceLinks: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[LinkSpec](projectName, linkingTaskName)
     val sources = task.dataSources

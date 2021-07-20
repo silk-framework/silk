@@ -66,11 +66,11 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
         executeWorkflowNode(endNode, ExecutorOutput.empty)
       }
       if (workflowRunContext.alreadyExecuted.size != workflow.nodes.size) {
-        throw WorkflowException("Not all workflow nodes were executed! Executed " +
+        throw WorkflowExecutionException("Not all workflow nodes were executed! Executed " +
             workflowRunContext.alreadyExecuted.size + " of " + workflow.nodes.size + " nodes.")
       }
     } catch {
-      case e: WorkflowException =>
+      case e: WorkflowExecutionException =>
         if(!cancelled) {
           throw e // Only rethrow exception if the activity was not cancelled, else the error could be due to the cancellation.
         }
@@ -107,13 +107,15 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
 
   private def executeWorkflowOperatorInput(input: WorkflowDependencyNode,
                                            output: ExecutorOutput)
-                                          (implicit workflowRunContext: WorkflowRunContext): Some[LocalEntities] = {
+                                          (implicit workflowRunContext: WorkflowRunContext): Option[LocalEntities] = {
     executeWorkflowNode(input, output) match {
-      case e@Some(entityTable) =>
-        e
-      case None =>
-        throw WorkflowException(s"In workflow ${workflowTask.id.toString} operator node ${input.nodeId} defined an input" +
+      case Some(entityTable) =>
+        Some(entityTable)
+      case None if output.requestedSchema.isDefined =>
+        throw WorkflowExecutionException(s"In workflow ${workflowTask.id.toString} operator node ${input.nodeId} defined an input" +
             s" schema for input $input, but did not receive any result.")
+      case None =>
+        None
     }
   }
 
@@ -128,26 +130,32 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       val inputs = operatorNode.inputNodes
       val inputResults = executeWorkflowOperatorInputs(operatorNode, schemataOpt, inputs)
 
-      if (inputResults.exists(_.isEmpty)) {
-        throw WorkflowException("At least one input did not return a result for workflow node " + operatorNode.nodeId + "!")
+      if (executorOutput.requestedSchema.isDefined && inputResults.exists(_.isEmpty)) {
+        throw WorkflowExecutionException("At least one input did not return a result for workflow node " + operatorNode.nodeId + "!")
       }
-      val result = execute("Executing", operatorNode.nodeId, operatorTask, inputResults.flatten, executorOutput)
-      // Throw exception if result was promised, but not returned
-      if (operatorTask.data.outputSchemaOpt.isDefined && result.isEmpty) {
-        throw WorkflowException(s"In workflow ${workflowTask.id.toString} operator node ${operatorNode.nodeId} defined an output " +
-            s"schema, but did not return any result!")
-      }
-      log.info("Finished execution of " + operator.nodeId)
-      workflowRunContext.alreadyExecuted.add(operatorNode.workflowNode)
-      writeErrorOutput(operatorNode, result)
+      // Check if this is a nested workflow that has been executed already.
+      val isExecutedWorkflow = operatorTask.data.isInstanceOf[Workflow] && workflowRunContext.alreadyExecuted.contains(operatorNode.workflowNode)
 
-      result
+      if(!isExecutedWorkflow) {
+        val result = execute("Executing", operatorNode.nodeId, operatorTask, inputResults.flatten, executorOutput)
+        // Throw exception if result was promised, but not returned
+        if (operatorTask.data.outputSchemaOpt.isDefined && result.isEmpty) {
+          throw WorkflowExecutionException(s"In workflow ${workflowTask.id.toString} operator node ${operatorNode.nodeId} defined an output " +
+            s"schema, but did not return any result!")
+        }
+        log.info("Finished execution of " + operator.nodeId)
+        workflowRunContext.alreadyExecuted.add(operatorNode.workflowNode)
+        writeErrorOutput(operatorNode, result)
+        result
+      } else {
+        None
+      }
     } catch {
-      case ex: WorkflowException =>
+      case ex: WorkflowExecutionException =>
         throw ex
       case NonFatal(ex) =>
         log.log(Level.WARNING, "Exception during execution of workflow operator " + operatorNode.workflowNode.nodeId, ex)
-        throw WorkflowException("Exception during execution of workflow operator " + operatorNode.workflowNode.nodeId +
+        throw WorkflowExecutionException("Exception during execution of workflow operator " + operatorNode.workflowNode.nodeId +
           ". Cause: " + ex.getMessage, Some(ex))
     }
   }
@@ -156,7 +164,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   private def executeWorkflowOperatorInputs(operatorNode: WorkflowDependencyNode,
                                             schemataOpt: Option[Seq[EntitySchema]],
                                             inputs: Seq[WorkflowDependencyNode])
-                                           (implicit workflowRunContext: WorkflowRunContext): Seq[Some[LocalEntities]] = {
+                                           (implicit workflowRunContext: WorkflowRunContext): Seq[Option[LocalEntities]] = {
     val operatorTask = task(operatorNode)
     schemataOpt match {
       case Some(schemata) =>
@@ -177,7 +185,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                        inputs: Seq[WorkflowDependencyNode],
                                        schemata: Seq[EntitySchema]): Seq[WorkflowDependencyNode] = {
     if (schemata.size < inputs.size) {
-      throw WorkflowException("Number of inputs is larger than the number of input schemata for workflow node "
+      throw WorkflowExecutionException("Number of inputs is larger than the number of input schemata for workflow node "
           + operatorNode.nodeId + ". This cannot be handled!")
     } else if (schemata.nonEmpty && inputs.size < schemata.size && inputs.nonEmpty) {
       // TODO: Temporary hack: Duplicate last input if more schemata are defined. Remove as soon as explicit task ports are implemented.
@@ -233,7 +241,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       execute("Writing", workflowDataset.nodeId, resolvedDataset, Seq(entityTable), ExecutorOutput.empty)
     } catch {
       case NonFatal(ex) =>
-        throw WorkflowException("Exception occurred while writing to workflow dataset operator " + workflowDataset.nodeId +
+        throw WorkflowExecutionException("Exception occurred while writing to workflow dataset operator " + workflowDataset.nodeId +
             ". Cause: " + ex.getMessage, Some(ex))
     }
   }
@@ -264,7 +272,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       case Some(entityTable) =>
         entityTable
       case None =>
-        throw WorkflowException(s"In workflow ${workflowTask.id.toString} the Dataset node ${workflowDataset.nodeId} did " +
+        throw WorkflowExecutionException(s"In workflow ${workflowTask.id.toString} the Dataset node ${workflowDataset.nodeId} did " +
             s"not return any result!")
     }
   }

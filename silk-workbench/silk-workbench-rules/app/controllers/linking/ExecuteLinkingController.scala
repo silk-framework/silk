@@ -1,12 +1,13 @@
 package controllers.linking
 
-import controllers.core.RequestUserContextAction
-import javax.inject.Inject
+import controllers.core.UserContextActions
 import org.silkframework.rule.LinkSpec
 import org.silkframework.workbench.Context
-import play.api.mvc.{InjectedController, Action, AnyContent, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, InjectedController}
 
-class ExecuteLinkingController @Inject() () extends InjectedController {
+import javax.inject.Inject
+
+class ExecuteLinkingController @Inject() () extends InjectedController with UserContextActions {
 
   def execute(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)

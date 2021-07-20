@@ -1,0 +1,65 @@
+@import controllers.swaggerUi.routes.SwaggerUiAssets
+
+@**
+* Swagger UI view based on the index.html shipped with the Swagger UI webjar.
+**@
+@(url: String, validatorUrl: String, config: String)
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Swagger UI</title>
+    <link rel="stylesheet" type="text/css" href="@SwaggerUiAssets.at("swagger-ui.css")" />
+    <link rel="icon" type="image/png" href="@SwaggerUiAssets.at("favicon-32x32.png")" sizes="32x32" />
+    <link rel="icon" type="image/png" href="@SwaggerUiAssets.at("favicon-16x16.png")" sizes="16x16" />
+    <style>
+      html
+      {
+        box-sizing: border-box;
+        overflow: -moz-scrollbars-vertical;
+        overflow-y: scroll;
+      }
+
+      *,
+      *:before,
+      *:after
+      {
+        box-sizing: inherit;
+      }
+
+      body
+      {
+        margin:0;
+        background: #fafafa;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="swagger-ui"></div>
+
+    <script src="@SwaggerUiAssets.at("swagger-ui-bundle.js")" charset="UTF-8"> </script>
+    <script src="@SwaggerUiAssets.at("swagger-ui-standalone-preset.js")" charset="UTF-8"> </script>
+    <script>
+      const config = @Html(config);
+
+      window.onload = function() {
+        window.ui = SwaggerUIBundle({
+          url: "@url",
+          dom_id: '#swagger-ui',
+          validatorUrl: '@validatorUrl',
+          presets: [
+            SwaggerUIBundle.presets.apis,
+            SwaggerUIStandalonePreset
+          ],
+          plugins: [
+            SwaggerUIBundle.plugins.DownloadUrl
+          ],
+          layout: "StandaloneLayout",
+          ...config
+        });
+      };
+    </script>
+  </body>
+</html>

@@ -394,16 +394,18 @@ case class DoubleValueType() extends ValueType with Serializable {
 @Plugin(
   id = "DecimalValueType",
   label = "Decimal",
-  description = "Arbitrary-precision numeric values which can have a fractional value. If the precision should be restricted to 32bit or 64bit, use the Float or Double types."
+  description = "Arbitrary-precision numeric values which can have a fractional value. Corresponds to the XML Schema decimal type. If the precision should be restricted to 32bit or 64bit, use the Float or Double types."
 )
 @ValueTypeAnnotation(
   validValues = Array("+1234.456", "1234567890123456789012345678901234567890.1234567890"),
-  invalidValues = Array("1,9", "1.7.2017")
+  invalidValues = Array("1,9", "1.7.2017", "1.0E+2")
 )
 case class DecimalValueType() extends ValueType with Serializable {
 
+  private val regex = "^(\\+|-)?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)$".r
+
   override def validate(lexicalString: String): Boolean = {
-    Try(BigDecimal(lexicalString)).isSuccess
+    regex.findFirstMatchIn(lexicalString).isDefined
   }
 
   /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */

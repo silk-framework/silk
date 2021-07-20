@@ -1,8 +1,5 @@
 package controllers.workspace
 
-import java.io.File
-import java.util.logging.LogRecord
-
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.{LinkSpec, TransformSpec}
@@ -12,12 +9,14 @@ import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.ActivitySerializers.ExtendedStatusJsonFormat
 import org.silkframework.serialization.json.JsonSerializers
+import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.activity.workflow.Workflow
-import org.silkframework.workspace.{Project, ProjectMarshallingTrait, ProjectTask, Workspace, WorkspaceFactory}
+import org.silkframework.workspace.{Project, ProjectMarshallingTrait, WorkspaceFactory}
 import play.api.libs.json._
-import JsonSerializers._
 
+import java.io.File
+import java.util.logging.LogRecord
 import scala.reflect.ClassTag
 
 /**
@@ -88,44 +87,6 @@ object JsonSerializer {
       "absolutePath" -> resource.path,
       "size" -> sizeValue,
       "modified" -> modificationValue
-    )
-  }
-
-  def globalWorkspaceActivities(workspace: Workspace): JsValue = {
-    JsArray(
-      for(activity <- workspace.activities) yield {
-        workspaceActivity(activity)
-      }
-    )
-  }
-
-  def projectActivities(project: Project): JsValue = {
-    JsArray(
-      for (activity <- project.activities) yield {
-        workspaceActivity(activity)
-      }
-    )
-  }
-
-  def taskActivities(task: ProjectTask[_ <: TaskSpec]): JsValue = {
-    JsArray(
-      for (activity <- task.activities) yield {
-        workspaceActivity(activity)
-      }
-    )
-  }
-
-  def workspaceActivity(activity: WorkspaceActivity[_]): JsValue = {
-    Json.obj(
-      "name" -> activity.name.toString,
-      "instances" ->
-        JsArray(
-          for (control <- activity.allInstances.keys.toSeq) yield {
-            Json.obj(
-              "id" -> control.toString
-            )
-          }
-        )
     )
   }
 

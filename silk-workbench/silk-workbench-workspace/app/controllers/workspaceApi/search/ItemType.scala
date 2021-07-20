@@ -7,7 +7,7 @@ import org.silkframework.dataset.DatasetSpec
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workspace.activity.workflow.Workflow
-import play.api.libs.json.{Format, JsResult, JsString, JsSuccess, JsValue, Json, Writes}
+import play.api.libs.json._
 
 /** The item types the search can be restricted to. */
 sealed abstract class ItemType(val id: String, val label: String)
