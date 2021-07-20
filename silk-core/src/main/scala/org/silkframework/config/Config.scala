@@ -5,7 +5,7 @@ import org.silkframework.config.Config._
 import org.silkframework.runtime.validation.ValidationException
 
 import java.io.File
-import java.time.Instant
+import java.time.{Duration, Instant}
 import java.util.logging.Logger
 import javax.inject.Named
 import scala.language.implicitConversions
@@ -167,6 +167,12 @@ case class ExtendedTypesafeConfig(typesafeConfig: TypesafeConfig) {
     * exception if the config value is not an int. */
   def getIntOrElse(key: String, fallbackValue: Int): Int = {
     getTypedValueOrElse(key, "Integer", fallbackValue, (key: String) => typesafeConfig.getInt(key))
+  }
+
+  /** Fetch the Int value of the given key, or the fallback value if it does not exist. This still throws an
+    * exception if the config value is not a duration. */
+  def getDurationOrElse(key: String, fallbackValue: Duration): Duration = {
+    getTypedValueOrElse(key, "Duration", fallbackValue, (key: String) => typesafeConfig.getDuration(key))
   }
 
   /** Fetch the Long value of the given key, or the fallback value if it does not exist. This still throws an

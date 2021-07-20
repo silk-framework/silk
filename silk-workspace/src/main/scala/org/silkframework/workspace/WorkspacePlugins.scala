@@ -11,7 +11,7 @@ import org.silkframework.workspace.activity.transform.CachedEntitySchemata.Cache
 import org.silkframework.workspace.activity.transform._
 import org.silkframework.workspace.activity.vocabulary.GlobalVocabularyCacheFactory
 import org.silkframework.workspace.activity.workflow.Workflow.WorkflowXmlFormat
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorFactory, NopPersistWorkflowProvenance, Workflow}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowAsTaskExecutor, LocalWorkflowExecutorFactory, NopPersistWorkflowProvenance, Workflow}
 import org.silkframework.workspace.xml.{FileWorkspaceProvider, XmlZipWithResourcesProjectMarshaling, XmlZipWithoutResourcesProjectMarshaling}
 
 import scala.language.existentials
