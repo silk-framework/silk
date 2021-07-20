@@ -11,12 +11,13 @@ import { downloadProject } from "../../../utils/downloadProject";
 import { DATA_TYPES } from "../../../constants";
 import { ItemDeleteModal } from "../modals/ItemDeleteModal";
 import CloneModal from "../modals/CloneModal";
-import { IframeWindow } from "../IframeWindow/IframeWindow";
+import { ProjectTaskTabView } from "../projectTaskTabView/ProjectTaskTabView";
 import { ActionsMenu, TActionsMenuItem, IActionsMenuProps } from "./ActionsMenu";
 import CopyToModal from "../modals/CopyToModal/CopyToModal";
 
 interface IProps {
     projectId: string;
+    // If the task ID is set then this is a task else a project
     taskId?: string;
     itemType: string;
     updateActionsMenu: (actionMenu: JSX.Element) => any;
@@ -43,21 +44,21 @@ export function ArtefactManagementOptions({
     const exportTypes = useSelector(commonSel.exportTypesSelector);
 
     const itemData = {
-        id: taskId ? taskId : undefined,
-        projectId: projectId ? projectId : undefined,
-        type: itemType ? itemType : undefined,
+        id: taskId,
+        projectId: projectId,
+        type: itemType,
     };
 
     // Update item links for more menu
     useEffect(() => {
         if (projectId && taskId) {
-            getItemLinks();
+            getItemLinks(taskId);
         } else {
             setItemLinks([]);
         }
     }, [projectId, taskId]);
 
-    const getItemLinks = async () => {
+    const getItemLinks = async (taskId: string) => {
         try {
             const { data } = await requestItemLinks(projectId, taskId);
             // remove current page link
@@ -128,7 +129,7 @@ export function ArtefactManagementOptions({
         ];
 
         if (itemType === DATA_TYPES.PROJECT && !!exportTypes.length) {
-            const subitems = [];
+            const subitems: { text: string; actionHandler: () => any }[] = [];
             exportTypes.forEach((type) => {
                 subitems.push({
                     text: type.label,
@@ -194,7 +195,7 @@ export function ArtefactManagementOptions({
                 <CopyToModal item={itemData} onDiscard={toggleCopyToModal} onConfirmed={handleCopyConfirmed} />
             )}
             {displayItemLink && (
-                <IframeWindow
+                <ProjectTaskTabView
                     srcLinks={itemLinks}
                     startWithLink={displayItemLink}
                     startFullscreen={true}

@@ -40,7 +40,7 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                 paramDescriptions: Record<string, IArtefactItemProperty>
             ) => {
                 Object.entries(obj)
-                    .filter(([key, v]) => {
+                    .filter(([key]) => {
                         const pd = paramDescriptions[key];
                         const passwordParameter = pd.parameterType === INPUT_TYPES.PASSWORD;
                         return pd && pd.visibleInDialog && !pd.advanced && !passwordParameter;
@@ -51,7 +51,7 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                             taskValuesRec(
                                 value,
                                 paramDescriptions[paramName].title + ": ",
-                                paramDescriptions[paramName].properties
+                                paramDescriptions[paramName].properties as Record<string, IArtefactItemProperty>
                             );
                         } else {
                             result[labelPrefix + paramDescriptions[paramName].title] = value;

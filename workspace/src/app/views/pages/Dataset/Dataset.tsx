@@ -14,7 +14,7 @@ import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
 import { DataPreview } from "../../shared/DataPreview/DataPreview";
 import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
 import { Loading } from "../../shared/Loading/Loading";
-import { IframeWindow } from "../../shared/IframeWindow/IframeWindow";
+import { ProjectTaskTabView } from "../../shared/projectTaskTabView/ProjectTaskTabView";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
 import Metadata from "../../shared/Metadata";
@@ -57,8 +57,8 @@ export function Dataset() {
 
     const pluginId = taskData?.data?.type;
 
-    const showPreviewAutomatically = automaticallyPreviewedDatasets.includes(taskData?.data?.type);
-    const showPreview = !noDataPreviewDatasets.includes(taskData?.data?.type);
+    const showPreviewAutomatically = automaticallyPreviewedDatasets.includes(taskData?.data?.type ?? "");
+    const showPreview = !noDataPreviewDatasets.includes(taskData?.data?.type ?? "");
 
     useEffect(() => {
         if (taskId && projectId) {
@@ -68,7 +68,7 @@ export function Dataset() {
 
     const additionalContent = () => {
         if (pluginId === "eccencaDataPlatform") {
-            return dmBaseUrl && <IframeWindow iFrameName={"detail-page-iframe"} />;
+            return dmBaseUrl && <ProjectTaskTabView iFrameName={"detail-page-iframe"} />;
         } else {
             return (
                 showPreview && (
@@ -86,6 +86,7 @@ export function Dataset() {
     const { pageHeader, updateType, updateActionsMenu } = usePageHeader({
         autogenerateBreadcrumbs: true,
         autogeneratePageTitle: true,
+        alternateDepiction: "artefact-dataset",
     });
 
     useEffect(() => {

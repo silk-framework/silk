@@ -22,7 +22,8 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "preserve",
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "strictNullChecks": true
   },
   "include": [
     "./src"

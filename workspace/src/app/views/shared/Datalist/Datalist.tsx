@@ -3,14 +3,23 @@ import { Loading } from "../Loading/Loading";
 import { OverviewItemList, Notification } from "@gui-elements/index";
 import { useTranslation } from "react-i18next";
 
+interface IProps {
+    children: JSX.Element | JSX.Element[];
+    isLoading: boolean;
+    isEmpty: boolean;
+    emptyContainer?: JSX.Element;
+    emptyListMessage?: string;
+    [key: string]: any;
+}
+
 export function Datalist({
     children,
     isLoading = false,
     isEmpty = false,
-    emptyContainer = null,
     emptyListMessage = "",
+    emptyContainer,
     ...otherProps
-}) {
+}: IProps) {
     const [t] = useTranslation();
     if (!emptyListMessage) {
         emptyListMessage = t("common.messages.noItems", { items: "Resource" });

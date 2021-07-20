@@ -12,18 +12,18 @@ interface IProps {
     };
 }
 
+/** Creates possible icon names ordered by priority. This can be used directly with the Icon component. */
+export const createIconNameStack = (itemType?: string, pluginId?: string): string[] => {
+    const generatedIconNames: string[] = [];
+    pluginId && generatedIconNames.push((itemType ? itemType + "-" : "") + pluginId);
+    itemType && generatedIconNames.push(itemType);
+    const prefixedGeneratedIconNames = generatedIconNames.map((type) => {
+        return "artefact-" + type.toLowerCase();
+    });
+    return prefixedGeneratedIconNames.filter((x, i, a) => a.indexOf(x) === i);
+};
+
 /** Item icon derived from the item type and optionally the plugin ID. */
 export const ItemDepiction = ({ itemType, pluginId, size = { large: true } }: IProps) => {
-    const iconNameStack = [].concat([(itemType ? itemType + "-" : "") + pluginId]).concat(itemType ? [itemType] : []);
-
-    return (
-        <Icon
-            name={iconNameStack
-                .map((type) => {
-                    return "artefact-" + type.toLowerCase();
-                })
-                .filter((x, i, a) => a.indexOf(x) === i)}
-            {...size}
-        />
-    );
+    return <Icon name={createIconNameStack(itemType, pluginId)} {...size} />;
 };

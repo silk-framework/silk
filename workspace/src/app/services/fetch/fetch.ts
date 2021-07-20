@@ -1,7 +1,6 @@
 import axios, { AxiosRequestConfig, Method } from "axios";
 import { requestInterceptor } from "./requestInterceptor";
 import { FetchResponse, responseInterceptorOnError, responseInterceptorOnSuccess } from "./responseInterceptor";
-import i18n from "../../../language";
 import { isTestEnv } from "../../constants/path";
 
 interface IFetchOptions {
@@ -10,12 +9,6 @@ interface IFetchOptions {
     body?: any;
     headers?: any;
 }
-
-/**
- * @private
- * Contain all pending requests Promises
- */
-const _pendingRequests = [];
 
 // Add a request interceptor
 axios.interceptors.request.use(requestInterceptor);
@@ -69,22 +62,5 @@ export const fetch = async <T = any>({
             return responseInterceptorOnError(e);
         }
         throw e;
-    } finally {
-        // Remove request
-        const index = _pendingRequests.findIndex((item) => item.token === cToken);
-        if (index > -1) {
-            _pendingRequests.splice(index, 1);
-        }
     }
-};
-
-/**
- * Abort pending all requests
- */
-export const abortPendingRequest = (): boolean => {
-    if (_pendingRequests.length) {
-        _pendingRequests.map((req) => req.cancel(i18n.t("http.error.aborted", "Request Aborted")));
-        return true;
-    }
-    return false;
 };

@@ -18,7 +18,7 @@ import { IRelatedItem } from "@ducks/shared/typings";
 import { useTranslation } from "react-i18next";
 import { routerOp } from "@ducks/router";
 import { useDispatch } from "react-redux";
-import { useIFrameWindowLinks } from "../IframeWindow/iframewindowHooks";
+import { useProjectTabsView } from "../projectTaskTabView/projectTabsViewHooks";
 
 interface IProps {
     // The related item to be shown
@@ -30,13 +30,14 @@ interface IProps {
 export function RelatedItem({ relatedItem, textQuery }: IProps) {
     const [t] = useTranslation();
     const dispatch = useDispatch();
-    const { iframeWindow, toggleIFrameLink } = useIFrameWindowLinks(relatedItem.itemLinks.slice(1));
+    const { projectTabView, toggleIFrameLink } = useProjectTabsView(relatedItem.itemLinks.slice(1));
 
     // Go to details page of related item
-    const goToDetailsPage = (relatedItem, event) => {
+    const goToDetailsPage = (relatedItem: IRelatedItem, event) => {
         if (!event?.ctrlKey) {
             event.preventDefault();
             dispatch(
+                // An item always has a details page link
                 routerOp.goToPage(relatedItem.itemLinks[0].path, {
                     taskLabel: relatedItem.label,
                     itemType: relatedItem.type.toLowerCase(),
@@ -76,17 +77,14 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
                     </ResourceLink>
                 </OverviewItemLine>
                 <OverviewItemLine small>
-                    <Tag small>
-                        <Highlighter
-                            label={t("common.dataTypes." + relatedItem.type, relatedItem.type)}
-                            searchValue={textQuery}
-                        />
+                    <Tag>
+                        <Highlighter label={relatedItem.pluginLabel} searchValue={textQuery} />
                     </Tag>
-                    {(relatedItem.type === "Dataset" || relatedItem.type === "Task") && (
+                    {relatedItem.type === "Dataset" && (
                         <>
                             <Spacing vertical size="tiny" />
-                            <Tag small>
-                                <Highlighter label={relatedItem.pluginLabel} searchValue={textQuery} />
+                            <Tag>
+                                <Highlighter label={relatedItem.type} searchValue={textQuery} />
                             </Tag>
                         </>
                     )}
@@ -110,7 +108,7 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
                     </ContextMenu>
                 )}
             </OverviewItemActions>
-            {iframeWindow}
+            {projectTabView}
         </OverviewItem>
     );
 }

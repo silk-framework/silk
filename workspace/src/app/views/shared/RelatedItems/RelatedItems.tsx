@@ -44,7 +44,7 @@ export function RelatedItems(props: IProps) {
                 try {
                     const data = JSON.parse(event.data);
                     if (typeof data?.id === "string") {
-                        if (props.messageEventReloadTrigger(data.id, data.message)) {
+                        if (props.messageEventReloadTrigger?.(data.id, data.message)) {
                             updateSwitchValue = 1 - updateSwitchValue;
                             setUpdated(updateSwitchValue);
                         }

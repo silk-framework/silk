@@ -49,7 +49,10 @@ checkBrowsers(paths.appPath, isInteractive)
     .then(() => {
         // Remove all content but keep the directory so that
         // if you're in it, you don't end up in Trash
-        fs.emptyDirSync(diBuildPath);
+        // Do not remove content in watch mode to not overwrite other web assets
+        if (!isWatch) {
+            fs.emptyDirSync(diBuildPath);
+        }
         // Merge with the public folder
         copyPublicFolder();
         // Start the webpack build
