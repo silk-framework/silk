@@ -32,7 +32,10 @@ Large datasets should be loaded into an external RDF store and retrieved using t
 case class RdfFileDataset(
   @Param("The RDF file. This may also be a zip archive of multiple RDF files.")
   file: WritableResource,
-  @Param("""RDF format. Can be left empty, in which case it will be auto-detetected based on the file extension. Supported input formats are: "RDF/XML", "N-Triples", "N-Quads", "Turtle". Supported output formats are: "N-Triples".""")
+  @Param(
+    value = """Optional RDF format. If left empty, it will be auto-detected based on the file extension. N-Triples is the only format that can be written, while other formats can only be read.""",
+    autoCompletionProvider = classOf[RdfLangAutocompletionProvider]
+  )
   format: String = "",
   @Param("The graph name to be read. If not provided, the default graph will be used. Must be provided if the format is N-Quads.")
   graph: String = "",
