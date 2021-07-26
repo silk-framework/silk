@@ -7,10 +7,10 @@ import javax.inject.Inject
 import play.api.mvc.{Action, AnyContent, InjectedController}
 import play.twirl.api.Html
 
-class Workbench @Inject() (assets: Assets, workspaceReact: WorkspaceReact) extends InjectedController {
+class Workbench @Inject() (assets: Assets, workspaceReact: WorkspaceReact) extends InjectedController with UserContextActions {
 
 
-  def index: Action[AnyContent] = UserContextActions.RequestUserContextAction { implicit request =>implicit userContext =>
+  def index: Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val welcome = Html(WorkbenchConfig.get.welcome.loadAsString)
     Ok(views.html.start(welcome))
   }
