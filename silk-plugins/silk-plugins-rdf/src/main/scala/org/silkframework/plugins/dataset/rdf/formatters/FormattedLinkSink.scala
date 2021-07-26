@@ -1,8 +1,9 @@
 package org.silkframework.plugins.dataset.rdf.formatters
 
+import org.silkframework.config.Prefixes
+
 import java.io._
 import java.util.logging.Logger
-
 import org.silkframework.dataset.LinkSink
 import org.silkframework.dataset.rdf.LinkFormatter
 import org.silkframework.entity.Link
@@ -33,7 +34,7 @@ class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) e
     }
   }
 
-  override def init()(implicit userContext: UserContext): Unit = {
+  override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     // If we got a java file, we write directly to it, otherwise we write to a temporary string
     formattedLinkWriter = javaFile match {
       case Some(file) =>
@@ -47,7 +48,7 @@ class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) e
   }
 
   override def writeLink(link: Link, predicateUri: String)
-                        (implicit userContext: UserContext): Unit = {
+                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     write(formatter.formatLink(link, predicateUri))
   }
 

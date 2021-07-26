@@ -58,13 +58,13 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
   }
 
   override def writeLink(link: Link, predicateUri: String)
-                        (implicit userContext: UserContext): Unit = {
+                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     val (newStatements, _) = formatLink(link, predicateUri)
     writeStatementString(newStatements)
     entityCount += 1
   }
 
-  override def init()(implicit userContext: UserContext): Unit = {
+  override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     internalInit()
     entityCount = 0
     overallStmtCount = 0L

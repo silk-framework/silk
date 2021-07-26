@@ -31,10 +31,10 @@ class SparqlSink(params: SparqlParams,
     this.properties = properties
   }
 
-  override def init()(implicit userContext: UserContext): Unit = {}
+  override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = {}
 
   override def writeLink(link: Link, predicateUri: String)
-                        (implicit userContext: UserContext): Unit = {
+                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     val (newStatements, statementCount) = formatLink(link, predicateUri)
     if(body.isEmpty) {
       beginSparul()

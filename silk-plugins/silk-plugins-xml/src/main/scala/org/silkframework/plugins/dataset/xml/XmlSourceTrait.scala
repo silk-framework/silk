@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.xml
 
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.TypedPath
@@ -21,7 +22,8 @@ trait XmlSourceTrait { this: DataSource =>
     * @param entities     The URIs of the entities to be retrieved.
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
-  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])(implicit userContext: UserContext): EntityHolder = {
+  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
+                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     if(entities.isEmpty) {
       EmptyEntityTable(underlyingTask)
     } else {

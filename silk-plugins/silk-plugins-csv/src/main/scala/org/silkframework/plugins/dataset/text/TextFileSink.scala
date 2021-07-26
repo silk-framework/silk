@@ -13,7 +13,7 @@ class TextFileSink(ds: TextFileDataset) extends EntitySink with LinkSink {
 
   private var writer: Option[Writer] = None
 
-  override def init()(implicit userContext: UserContext): Unit = {
+  override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     if(writer.isEmpty) {
       writer = Some(new OutputStreamWriter(ds.file.createOutputStream(), ds.charset))
     }
@@ -35,7 +35,8 @@ class TextFileSink(ds: TextFileDataset) extends EntitySink with LinkSink {
 
   }
 
-  override def writeLink(link: Link, predicateUri: String)(implicit userContext: UserContext): Unit = {
+  override def writeLink(link: Link, predicateUri: String)
+                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     writeEntity("", Seq(Seq(link.source), Seq(link.target)))
   }
 

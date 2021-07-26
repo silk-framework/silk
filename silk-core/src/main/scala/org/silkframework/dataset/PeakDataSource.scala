@@ -2,8 +2,7 @@ package org.silkframework.dataset
 
 import java.text.NumberFormat
 import java.util.Locale
-
-import org.silkframework.config.DefaultConfig
+import org.silkframework.config.{DefaultConfig, Prefixes}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
@@ -21,7 +20,7 @@ trait PeakDataSource {
   /** Default peak implementation that should work with all sources that offer fast "random access".
     * It filters entities that have no input value for any input path. */
   def peak(entitySchema: EntitySchema, limit: Int)
-          (implicit userContext: UserContext): Traversable[Entity] = {
+          (implicit userContext: UserContext, prefixes: Prefixes): Traversable[Entity] = {
     try {
       retrieve(entitySchema, Some(limit)).entities
     } catch {
@@ -33,7 +32,7 @@ trait PeakDataSource {
   protected def peakWithMaximumFileSize(inputResource: Resource,
                                         entitySchema: EntitySchema,
                                         limit: Int)
-                                       (implicit userContext: UserContext): Traversable[Entity] = {
+                                       (implicit userContext: UserContext, prefixes: Prefixes): Traversable[Entity] = {
     inputResource.size match {
       case Some(size) =>
         if (size < maxFileSizeForPeak * 1000) {

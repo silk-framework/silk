@@ -1,12 +1,17 @@
 package org.silkframework.workspace.activity.linking
 
 import org.silkframework.config.DefaultConfig
+import org.silkframework.dataset.{DataSource, DatasetSpec, SparqlRestrictionDataSource}
 import org.silkframework.entity.EntitySchema
+import org.silkframework.entity.Restriction.CustomOperator
+import org.silkframework.entity.paths.TypedPath
+import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.util.DPair
 import org.silkframework.workspace.ProjectTask
+import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 import org.silkframework.workspace.activity.{CachedActivity, PathsCacheTrait}
 
 /**

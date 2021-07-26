@@ -14,6 +14,7 @@
 
 package org.silkframework.rule.execution
 
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.LinkSink
 import org.silkframework.entity.Link
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
@@ -22,7 +23,8 @@ import org.silkframework.util.Uri
 /**
  * Writes the links to the output.
  */
-class OutputWriter(links: Seq[Link], linkType: Uri, output: Option[LinkSink]) extends Activity[Unit] {
+class OutputWriter(links: Seq[Link], linkType: Uri, output: Option[LinkSink])
+                  (implicit prefixes: Prefixes) extends Activity[Unit] {
 
   override def name = "Writing output"
 

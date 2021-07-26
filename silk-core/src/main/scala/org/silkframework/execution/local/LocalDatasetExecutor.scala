@@ -63,7 +63,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def handleMultiEntitySchema(dataset: Task[DatasetSpec[Dataset]], source: DataSource, schema: EntitySchema, multi: MultiEntitySchema)
-                                     (implicit userContext: UserContext, context: ActivityContext[ExecutionReport])= {
+                                     (implicit userContext: UserContext, prefixes: Prefixes, context: ActivityContext[ExecutionReport])= {
     implicit val executionReport: ExecutionReportUpdater = ReadEntitiesReportUpdater(dataset, context)
     val table = source.retrieve(entitySchema = schema)
     MultiEntityTable(
@@ -326,7 +326,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def writeLinks(sink: LinkSink, links: Seq[Link], linkType: Uri)
-                        (implicit userContext: UserContext): Unit = {
+                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     val startTime = System.currentTimeMillis()
     sink.init()
     for (link <- links) sink.writeLink(link, linkType.uri)
@@ -335,7 +335,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def writeTriples(sink: EntitySink, entities: Traversable[Entity])
-                          (implicit userContext: UserContext): Unit = {
+                          (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     sink match {
       case tripleSink: TripleSink =>
         writeTriples(entities, tripleSink)
@@ -347,7 +347,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   }
 
   private def writeTriples(entities: Traversable[Entity], sink: TripleSink)
-                          (implicit userContext: UserContext): Unit = {
+                          (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     sink.init()
     for (entity <- entities) {
       if (entity.values.size < 4 || entity.values.size > 5) {

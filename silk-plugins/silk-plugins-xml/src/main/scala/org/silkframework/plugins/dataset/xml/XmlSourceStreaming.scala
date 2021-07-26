@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.xml
 
-import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.entity.paths._
@@ -34,7 +34,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     * @param limit Restricts the number of types to be retrieved. If not given, all found types are returned.
     */
   override def retrieveTypes(limit: Option[Int])
-                            (implicit userContext: UserContext): Traversable[(String, Double)] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
     if(file.nonEmpty) {
       val schema = extractSchema(PathCategorizerValueAnalyzerFactory(), pathLimit = schemaElementLimit, sampleLimit = Some(1))
       for(schemaClass <- schema.classes) yield {
@@ -78,7 +78,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     * @param limit Restricts the number of paths to be retrieved. If not given, all found paths are returned.
     */
   override def retrievePaths(typeUri: Uri, depth: Int = Int.MaxValue, limit: Option[Int] = None)
-                            (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
     val schema = extractSchema(PathCategorizerValueAnalyzerFactory(), pathLimit = schemaElementLimit, sampleLimit = Some(1))
     val pathBuffer = mutable.ArrayBuffer[TypedPath]()
     val normalizedTypeUri = typeUri.toString.dropWhile(_ == '/')
@@ -127,7 +127,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     * @return A Traversable over the entities. The evaluation of the Traversable is non-strict.
     */
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                       (implicit userContext: UserContext): EntityHolder = {
+                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     if(entitySchema.typedPaths.exists(_.operators.exists(_.isInstanceOf[BackwardOperator]))) {
       throw new ValidationException("Backward paths are not supported when streaming XML. Disable streaming to use backward paths.")
     }

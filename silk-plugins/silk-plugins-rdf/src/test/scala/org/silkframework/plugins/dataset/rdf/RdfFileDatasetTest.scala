@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.rdf
 
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.config.Prefixes
 import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceTooLargeException, WritableResource}
@@ -14,6 +15,7 @@ class RdfFileDatasetTest extends FlatSpec with MustMatchers {
   val resourceManager = InMemoryResourceManager()
 
   implicit val userContext: UserContext = UserContext.Empty
+  implicit val prefixes: Prefixes = Prefixes.empty
 
   it should "not load files larger than 'max. read size'" in {
     val largeResource = new WritableResource {

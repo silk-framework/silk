@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.csv
 
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset._
 import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.plugins.dataset.charset.CharsetAutocompletionProvider
@@ -72,7 +73,7 @@ case class CsvDataset (
   /**
     * returns an auto-configured version of this plugin
     */
-  override def autoConfigured(implicit userContext: UserContext): CsvDataset = {
+  override def autoConfigured(implicit userContext: UserContext, prefixes: Prefixes): CsvDataset = {
     val source = csvSource(firstResource, ignoreMalformed = true)
     val autoConfig = source.autoConfigure()
     this.copy(

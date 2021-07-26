@@ -1,14 +1,13 @@
 package org.silkframework.workspace.activity
 
 import org.silkframework.config.TaskSpec
-import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, SparqlRestrictionDataSource}
-import org.silkframework.entity.Restriction.CustomOperator
+import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.entity.paths.TypedPath
-import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
 import org.silkframework.rule.DatasetSelection
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.Project
+import org.silkframework.workspace.ProjectTask
+import org.silkframework.workspace.activity.transform.CachedEntitySchemata
 
 /**
   * Defines methods useful to all paths caches.

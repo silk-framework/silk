@@ -1,13 +1,13 @@
 package org.silkframework.workspace.activity.linking
 
 import java.util
-
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.{Entity, EntitySchema, Link}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.util.{DPair, Uri}
 import org.silkframework.workspace.ProjectTask
 import LinkingTaskUtils._
+import org.silkframework.config.Prefixes
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.ReferenceEntities
 import org.silkframework.runtime.resource.WritableResource
@@ -134,6 +134,7 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends CachedActivity
       if(entityUris.isEmpty) {
         Map.empty
       } else {
+        implicit val prefixes: Prefixes = task.project.config.prefixes
         val entities = source.retrieveByUri(
           entitySchema = entityDesc,
           entities = entityUris map Uri.apply
