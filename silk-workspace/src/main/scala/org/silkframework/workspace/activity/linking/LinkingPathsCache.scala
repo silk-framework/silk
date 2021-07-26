@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.linking
 
-import org.silkframework.config.DefaultConfig
+import org.silkframework.config.{DefaultConfig, Prefixes}
 import org.silkframework.dataset.{DataSource, DatasetSpec, SparqlRestrictionDataSource}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.Restriction.CustomOperator
@@ -106,8 +106,28 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
                            entitySchema: EntitySchema,
                            context: ActivityContext[DPair[EntitySchema]])
                           (implicit userContext: UserContext): EntitySchema = {
-    val paths = retrievePathsOfInput(datasetSelection.inputId, Some(datasetSelection), task.project, context)
+    val paths = retrievePaths(datasetSelection)
     entitySchema.copy(typedPaths = (entitySchema.typedPaths ++ paths).distinct)
+  }
+
+  private def retrievePaths(datasetSelection: DatasetSelection)
+                           (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+    // Retrieve the data source
+    task.dataSource(datasetSelection) match {
+      case DatasetSpec.DataSourceWrapper(ds: SparqlRestrictionDataSource, _) =>
+        val typeRestriction = SparqlRestriction.forType(datasetSelection.typeUri)
+        val sparqlRestriction = datasetSelection.restriction.operator match {
+          case Some(CustomOperator(sparqlExpression)) =>
+            SparqlRestriction.fromSparql(SparqlEntitySchema.variable, sparqlExpression).merge(typeRestriction)
+          case _ =>
+            typeRestriction
+        }
+        ds.retrievePathsSparqlRestriction(sparqlRestriction, maxPaths)
+      case source: DataSource =>
+        // Retrieve most frequent paths
+        implicit val prefixes: Prefixes = task.project.config.prefixes
+        source.retrievePaths(datasetSelection.typeUri, 1, maxPaths)
+    }
   }
 
   override def resource: WritableResource = task.project.cacheResources.child("linking").child(task.id).get(s"pathsCache.xml")
