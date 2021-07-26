@@ -47,7 +47,8 @@ class WorkspacePlugins extends PluginModule {
   def transformActivities: List[Class[_]] =
     classOf[ExecuteTransformFactory] ::
     classOf[TransformPathsCacheFactory] ::
-    classOf[VocabularyCacheFactory] :: Nil
+    classOf[VocabularyCacheFactory] ::
+    Nil
 
   def linkingActivities: List[Class[_]] =
     classOf[EvaluateLinkingFactory] ::

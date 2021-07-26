@@ -55,8 +55,8 @@ case class RdfFilesVocabularyManager() extends VocabularyManager {
     }
   }
 
-  override def retrieveGlobalVocabularies()(implicit userContext: UserContext): Iterable[String] = {
+  override def retrieveGlobalVocabularies()(implicit userContext: UserContext): Option[Iterable[String]] = {
     // FIXME: Not clear how to automatically decide which RDF files are global vocabularies without registering them.
-    Seq.empty
+    None
   }
 }

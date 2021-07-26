@@ -14,8 +14,7 @@
 
 package org.silkframework.util
 
-import java.net.URI
-
+import java.net.{URI, URLDecoder}
 import org.silkframework.config.Prefixes
 
 import scala.language.implicitConversions
@@ -136,5 +135,21 @@ object Uri {
     } else {
       fromQualifiedName(trimmed, prefixes)
     }
+  }
+
+  /** Extracts a label from the URI. */
+  def urlDecodedLocalNameOfURI(uri: Uri): String = {
+    urlDecodedLocalNameOfURI(uri.uri)
+  }
+
+  /** Extracts a label from the URI. */
+  def urlDecodedLocalNameOfURI(uri: String): String = {
+    val slashIndex = uri.lastIndexOf('/')
+    val hashIndex = uri.lastIndexOf('#')
+    val colonIndex = uri.lastIndexOf(':')
+    var cutIndex = if (hashIndex > slashIndex) hashIndex else slashIndex
+    cutIndex = if(colonIndex > cutIndex) colonIndex else cutIndex
+    val localName = uri.substring(cutIndex + 1, uri.length)
+    URLDecoder.decode(localName, "UTF-8")
   }
 }
