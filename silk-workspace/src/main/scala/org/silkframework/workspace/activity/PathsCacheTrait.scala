@@ -1,8 +1,10 @@
 package org.silkframework.workspace.activity
 
 import org.silkframework.config.{Prefixes, TaskSpec}
-import org.silkframework.dataset.{Dataset, DatasetSpec}
+import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, SparqlRestrictionDataSource}
+import org.silkframework.entity.Restriction.CustomOperator
 import org.silkframework.entity.paths.TypedPath
+import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlRestriction}
 import org.silkframework.rule.DatasetSelection
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.util.Identifier
@@ -27,7 +29,7 @@ trait PathsCacheTrait {
         context.status.update("Retrieving frequent paths", 0.0)
         dataSelection match {
           case Some(selection) =>
-            dataset.source.retrievePaths(selection.typeUri, Int.MaxValue)
+            retrievePaths(dataset.source, selection)
           case None => IndexedSeq()
         }
       case task: TaskSpec =>
@@ -38,6 +40,23 @@ trait PathsCacheTrait {
             IndexedSeq()
         }
     }
+  }
 
+  private def retrievePaths(dataSource: DataSource, datasetSelection: DatasetSelection)
+                           (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
+    dataSource match {
+      case DatasetSpec.DataSourceWrapper(ds: SparqlRestrictionDataSource, _) =>
+        val typeRestriction = SparqlRestriction.forType(datasetSelection.typeUri)
+        val sparqlRestriction = datasetSelection.restriction.operator match {
+          case Some(CustomOperator(sparqlExpression)) =>
+            SparqlRestriction.fromSparql(SparqlEntitySchema.variable, sparqlExpression).merge(typeRestriction)
+          case _ =>
+            typeRestriction
+        }
+        ds.retrievePathsSparqlRestriction(sparqlRestriction, maxPaths)
+      case source: DataSource =>
+        // Retrieve most frequent paths
+        source.retrievePaths(datasetSelection.typeUri, maxDepth, maxPaths)
+    }
   }
 }
