@@ -2,8 +2,9 @@ import React, { ReactElement, useState } from "react";
 import { AlertDialog, Button, Checkbox, FieldItem, HtmlContentBlock, Notification, Spacing } from "@gui-elements/index";
 import { Loading } from "../Loading/Loading";
 import { useTranslation } from "react-i18next";
+import { TestableComponent } from "@gui-elements/src/components/interfaces";
 
-export interface IDeleteModalOptions {
+export interface IDeleteModalOptions extends TestableComponent {
     isOpen: boolean;
     confirmationRequired?: boolean;
 
@@ -28,6 +29,7 @@ export default function DeleteModal({
     title = "Delete",
     removeLoading = false,
     errorMessage,
+    ...otherProps
 }: IDeleteModalOptions) {
     const [isConfirmed, setIsConfirmed] = useState(false);
 
@@ -45,6 +47,7 @@ export default function DeleteModal({
             title={title}
             isOpen={isOpen}
             onClose={onDiscard}
+            data-test-id={otherProps["data-test-id"]}
             actions={
                 removeLoading ? (
                     <Loading />

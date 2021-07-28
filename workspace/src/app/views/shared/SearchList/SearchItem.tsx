@@ -27,7 +27,8 @@ import { IExportTypes } from "@ducks/common/typings";
 import { downloadProject } from "../../../utils/downloadProject";
 import { useTranslation } from "react-i18next";
 import ItemDepiction from "../../shared/ItemDepiction";
-import { useIFrameWindowLinks } from "../IframeWindow/iframewindowHooks";
+import { useProjectTabsView } from "../projectTaskTabView/projectTabsViewHooks";
+import { wrapTooltip } from "../../../utils/uiUtils";
 
 interface IProps {
     item: ISearchResultsServer;
@@ -45,6 +46,8 @@ interface IProps {
     parentProjectId?: string;
 }
 
+export const searchItemLabel = (item: ISearchResultsServer) => item.label || item.id;
+
 export default function SearchItem({
     item,
     searchValue,
@@ -57,10 +60,11 @@ export default function SearchItem({
     const dispatch = useDispatch();
     const exportTypes = useSelector(commonSel.exportTypesSelector);
     const [t] = useTranslation();
+    const itemLinks = item.itemLinks ?? [];
     // Remove detailsPath
-    const itemLinks = item.itemLinks.slice(1);
-    const { iframeWindow, toggleIFrameLink } = useIFrameWindowLinks(itemLinks);
-    const contextMenuItems = itemLinks.map((link) => (
+    const menuItemLinks = itemLinks.slice(1);
+    const { projectTabView, toggleIFrameLink } = useProjectTabsView(menuItemLinks);
+    const contextMenuItems = menuItemLinks.map((link) => (
         <MenuItem
             key={link.path}
             text={t("common.legacyGui." + link.label, link.label)}
@@ -69,7 +73,7 @@ export default function SearchItem({
                 toggleIFrameLink({
                     path: link.path,
                     label: link.label,
-                    itemType: null,
+                    itemType: undefined,
                 })
             }
         />
@@ -91,9 +95,9 @@ export default function SearchItem({
 
     const goToDetailsPage = (e) => {
         // Only open page in same tab if user did not try to open in new tab
-        if (!e?.ctrlKey) {
+        if (!e?.ctrlKey && itemLinks.length > 0) {
             e.preventDefault();
-            const detailsPath = item.itemLinks[0].path;
+            const detailsPath = itemLinks[0].path;
             const labels: IPageLabels = {};
             if (item.type === DATA_TYPES.PROJECT) {
                 labels.projectLabel = item.label;
@@ -109,6 +113,8 @@ export default function SearchItem({
         downloadProject(item.id, type.id);
     };
 
+    const projectOrDataset = item.type === "dataset" || item.type === "project";
+
     return (
         <Card isOnlyLayout>
             <OverviewItem hasSpacing onClick={onRowClick ? onRowClick : undefined}>
@@ -119,31 +125,58 @@ export default function SearchItem({
                     <OverviewItemLine>
                         <h4>
                             <ResourceLink
-                                url={!!item.itemLinks.length ? item.itemLinks[0].path : false}
-                                handlerResourcePageLoader={!!item.itemLinks.length ? goToDetailsPage : false}
+                                url={!!itemLinks.length ? itemLinks[0].path : false}
+                                handlerResourcePageLoader={!!itemLinks.length ? goToDetailsPage : false}
                             >
-                                <Highlighter label={item.label || item.id} searchValue={searchValue} />
+                                <OverflowText>
+                                    <Highlighter label={searchItemLabel(item)} searchValue={searchValue} />
+                                </OverflowText>
                             </ResourceLink>
                         </h4>
+                        <Spacing vertical size="small" />
+                        <OverflowText passDown={true} inline={true}>
+                            {item.description &&
+                                wrapTooltip(
+                                    item.description.length > 80,
+                                    item.description,
+                                    <Highlighter label={item.description} searchValue={searchValue} />
+                                )}
+                        </OverflowText>
                     </OverviewItemLine>
-                    {(item.description || item.projectId) && (
-                        <OverviewItemLine small>
-                            <OverflowText>
-                                {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
-                                    <Tag>
-                                        <Highlighter
-                                            label={item.projectLabel ? item.projectLabel : item.projectId}
-                                            searchValue={searchValue}
-                                        />
-                                    </Tag>
-                                )}
-                                {item.description && !parentProjectId && item.type !== DATA_TYPES.PROJECT && (
-                                    <Spacing vertical size="small" />
-                                )}
-                                {item.description && <Highlighter label={item.description} searchValue={searchValue} />}
-                            </OverflowText>
-                        </OverviewItemLine>
-                    )}
+                    <OverviewItemLine small>
+                        {item.pluginLabel && (
+                            <>
+                                <Tag>
+                                    <Highlighter label={item.pluginLabel} searchValue={searchValue} />
+                                </Tag>
+                                {projectOrDataset && <Spacing vertical size="tiny" />}
+                            </>
+                        )}
+                        {projectOrDataset && (
+                            <>
+                                <Tag>
+                                    <Highlighter
+                                        label={t(
+                                            "widget.Filterbar.subsections.valueLabels.itemType." + item.type,
+                                            item.type[0].toUpperCase() + item.type.substr(1)
+                                        )}
+                                        searchValue={searchValue}
+                                    />
+                                </Tag>
+                            </>
+                        )}
+                        {!parentProjectId && item.type !== DATA_TYPES.PROJECT && (
+                            <>
+                                <Spacing vertical size="tiny" />
+                                <Tag emphasis="weak">
+                                    <Highlighter
+                                        label={item.projectLabel ? item.projectLabel : item.projectId}
+                                        searchValue={searchValue}
+                                    />
+                                </Tag>
+                            </>
+                        )}
+                    </OverviewItemLine>
                 </OverviewItemDescription>
                 <OverviewItemActions>
                     <IconButton
@@ -152,15 +185,18 @@ export default function SearchItem({
                         text={t("common.action.clone", "Clone")}
                         onClick={onOpenDuplicateModal}
                     />
-                    {!!item.itemLinks.length && (
+                    {!!itemLinks.length && (
                         <IconButton
                             name="item-viewdetails"
                             text={t("common.action.showDetails", "Show details")}
                             onClick={goToDetailsPage}
-                            href={item.itemLinks[0].path}
+                            href={itemLinks[0].path}
                         />
                     )}
-                    <ContextMenu togglerText={t("common.action.moreOptions", "Show more options")}>
+                    <ContextMenu
+                        data-test-id={"search-item-context-menu"}
+                        togglerText={t("common.action.moreOptions", "Show more options")}
+                    >
                         {contextMenuItems.length ? (
                             <>
                                 {contextMenuItems}
@@ -186,7 +222,7 @@ export default function SearchItem({
                             text={t("common.action.showDetails", "Show details")}
                             key="view"
                             onClick={goToDetailsPage}
-                            href={item.itemLinks[0].path}
+                            href={itemLinks[0].path}
                         />
                         <MenuItem
                             data-test-id={"open-duplicate-modal"}
@@ -197,7 +233,7 @@ export default function SearchItem({
                     </ContextMenu>
                 </OverviewItemActions>
             </OverviewItem>
-            {iframeWindow}
+            {projectTabView}
         </Card>
     );
 }

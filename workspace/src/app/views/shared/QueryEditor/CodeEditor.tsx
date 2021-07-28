@@ -10,10 +10,10 @@ interface IProps {
 }
 
 export function CodeEditor({ onChange, name, mode = "sparql", defaultValue }: IProps) {
-    const ref = useRef();
+    const ref = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
-        if (onChange !== undefined) {
+        if (onChange !== undefined && ref.current) {
             const editorInstance = CodeMirror.fromTextArea(ref.current, {
                 mode: mode,
                 lineWrapping: true,

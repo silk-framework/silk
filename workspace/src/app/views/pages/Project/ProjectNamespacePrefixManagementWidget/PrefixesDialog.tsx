@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { IPrefixState } from "@ducks/workspace/typings";
+import { IPrefixDefinition } from "@ducks/workspace/typings";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { Button, SimpleDialog } from "@gui-elements/index";
 import PrefixRow from "./PrefixRow";
@@ -10,23 +10,30 @@ import DataList from "../../../shared/Datalist";
 import Loading from "../../../shared/Loading";
 import { useTranslation } from "react-i18next";
 
-const PrefixesDialog = ({ onCloseModal, isOpen }) => {
+interface IProps {
+    projectId: string;
+    onCloseModal: () => any;
+    isOpen: boolean;
+    existingPrefixes: Set<string>;
+}
+
+/** Manages project prefix definitions. */
+const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: IProps) => {
     const dispatch = useDispatch();
 
     const prefixList = useSelector(workspaceSel.prefixListSelector);
-    const newPrefix = useSelector(workspaceSel.newPrefixSelector);
     const configWidget = useSelector(workspaceSel.widgetsSelector).configuration;
     const { isLoading } = configWidget;
 
     const [isOpenRemove, setIsOpenRemove] = useState<boolean>(false);
-    const [selectedPrefix, setSelectedPrefix] = useState<IPrefixState>(null);
+    const [selectedPrefix, setSelectedPrefix] = useState<IPrefixDefinition | undefined>(undefined);
 
     const [t] = useTranslation();
 
-    const toggleRemoveDialog = (prefix?: IPrefixState) => {
+    const toggleRemoveDialog = (prefix?: IPrefixDefinition) => {
         if (!prefix || isOpenRemove) {
             setIsOpenRemove(false);
-            setSelectedPrefix(null);
+            setSelectedPrefix(undefined);
         } else {
             setIsOpenRemove(true);
             setSelectedPrefix(prefix);
@@ -35,40 +42,35 @@ const PrefixesDialog = ({ onCloseModal, isOpen }) => {
 
     const handleConfirmRemove = () => {
         if (selectedPrefix) {
-            dispatch(workspaceOp.fetchRemoveProjectPrefixAsync(selectedPrefix.prefixName));
+            dispatch(workspaceOp.fetchRemoveProjectPrefixAsync(selectedPrefix.prefixName, projectId));
         }
         toggleRemoveDialog();
     };
 
-    const handleAddOrUpdatePrefix = (prefix: IPrefixState) => {
+    const handleAddOrUpdatePrefix = (prefix: IPrefixDefinition) => {
         const { prefixName, prefixUri } = prefix;
-        dispatch(workspaceOp.fetchAddOrUpdatePrefixAsync(prefixName, prefixUri));
-    };
-
-    const handleUpdatePrefixFields = (field: string, value: string) => {
-        dispatch(
-            workspaceOp.updateNewPrefix({
-                field,
-                value,
-            })
-        );
+        dispatch(workspaceOp.fetchAddOrUpdatePrefixAsync(prefixName, prefixUri, projectId));
     };
 
     return (
         <SimpleDialog
             title={t("widget.ConfigWidget.prefixTitle", "Manage Prefixes")}
+            data-test-id={"prefix-dialog"}
             isOpen={isOpen}
             onClose={onCloseModal}
-            actions={<Button onClick={() => onCloseModal()}>{t("common.action.close")}</Button>}
+            actions={
+                <Button data-test-id={"close-prefix-dialog-btn"} onClick={() => onCloseModal()}>
+                    {t("common.action.close")}
+                </Button>
+            }
         >
             {isLoading ? (
                 <Loading description={t("widget.ConfigWidget.loadingPrefix", "Loading prefix configuration.")} />
             ) : (
                 <>
                     <PrefixNew
-                        prefix={newPrefix}
-                        onChangePrefix={handleUpdatePrefixFields}
-                        onAdd={() => handleAddOrUpdatePrefix(newPrefix)}
+                        onAdd={(newPrefix: IPrefixDefinition) => handleAddOrUpdatePrefix(newPrefix)}
+                        existingPrefixes={existingPrefixes}
                     />
                     <DataList isEmpty={!prefixList.length} isLoading={isLoading} hasSpacing hasDivider>
                         {prefixList.map((prefix, i) => (
@@ -79,6 +81,7 @@ const PrefixesDialog = ({ onCloseModal, isOpen }) => {
             )}
             <DeleteModal
                 isOpen={isOpenRemove}
+                data-test-id={"update-prefix-dialog"}
                 onDiscard={() => toggleRemoveDialog()}
                 onConfirm={handleConfirmRemove}
                 title={t("common.action.DeleteSmth", { smth: t("widget.ConfigWidget.prefix") })}

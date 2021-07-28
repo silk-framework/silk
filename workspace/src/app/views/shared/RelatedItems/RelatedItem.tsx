@@ -7,6 +7,8 @@ import {
     OverviewItemActions,
     OverviewItemDescription,
     OverviewItemLine,
+    Spacing,
+    //Spacing,
 } from "@gui-elements/index";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
 import Tag from "@gui-elements/src/components/Tag/Tag";
@@ -16,7 +18,7 @@ import { IRelatedItem } from "@ducks/shared/typings";
 import { useTranslation } from "react-i18next";
 import { routerOp } from "@ducks/router";
 import { useDispatch } from "react-redux";
-import { useIFrameWindowLinks } from "../IframeWindow/iframewindowHooks";
+import { useProjectTabsView } from "../projectTaskTabView/projectTabsViewHooks";
 
 interface IProps {
     // The related item to be shown
@@ -28,13 +30,14 @@ interface IProps {
 export function RelatedItem({ relatedItem, textQuery }: IProps) {
     const [t] = useTranslation();
     const dispatch = useDispatch();
-    const { iframeWindow, toggleIFrameLink } = useIFrameWindowLinks(relatedItem.itemLinks.slice(1));
+    const { projectTabView, toggleIFrameLink } = useProjectTabsView(relatedItem.itemLinks.slice(1));
 
     // Go to details page of related item
-    const goToDetailsPage = (relatedItem, event) => {
+    const goToDetailsPage = (relatedItem: IRelatedItem, event) => {
         if (!event?.ctrlKey) {
             event.preventDefault();
             dispatch(
+                // An item always has a details page link
                 routerOp.goToPage(relatedItem.itemLinks[0].path, {
                     taskLabel: relatedItem.label,
                     itemType: relatedItem.type.toLowerCase(),
@@ -61,22 +64,30 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
         />
     ));
     return (
-        <OverviewItem key={relatedItem.id} densityHigh>
+        <OverviewItem key={relatedItem.id}>
             <OverviewItemDescription>
-                <OverviewItemLine>
-                    <span>
-                        <Tag>
-                            <Highlighter label={relatedItem.type} searchValue={textQuery} />
-                        </Tag>{" "}
-                        <ResourceLink
-                            url={!!relatedItem.itemLinks.length ? relatedItem.itemLinks[0].path : false}
-                            handlerResourcePageLoader={
-                                !!relatedItem.itemLinks.length ? (e) => goToDetailsPage(relatedItem, e) : false
-                            }
-                        >
-                            <Highlighter label={relatedItem.label} searchValue={textQuery} />
-                        </ResourceLink>
-                    </span>
+                <OverviewItemLine small>
+                    <ResourceLink
+                        url={!!relatedItem.itemLinks.length ? relatedItem.itemLinks[0].path : false}
+                        handlerResourcePageLoader={
+                            !!relatedItem.itemLinks.length ? (e) => goToDetailsPage(relatedItem, e) : false
+                        }
+                    >
+                        <Highlighter label={relatedItem.label} searchValue={textQuery} />
+                    </ResourceLink>
+                </OverviewItemLine>
+                <OverviewItemLine small>
+                    <Tag>
+                        <Highlighter label={relatedItem.pluginLabel} searchValue={textQuery} />
+                    </Tag>
+                    {relatedItem.type === "Dataset" && (
+                        <>
+                            <Spacing vertical size="tiny" />
+                            <Tag>
+                                <Highlighter label={relatedItem.type} searchValue={textQuery} />
+                            </Tag>
+                        </>
+                    )}
                 </OverviewItemLine>
             </OverviewItemDescription>
             <OverviewItemActions>
@@ -97,7 +108,7 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
                     </ContextMenu>
                 )}
             </OverviewItemActions>
-            {iframeWindow}
+            {projectTabView}
         </OverviewItem>
     );
 }

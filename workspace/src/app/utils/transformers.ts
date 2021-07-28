@@ -15,8 +15,8 @@ export const stringValueAsJs = (valueType: string, value: string | null): any =>
     }
 
     if (valueType === INPUT_TYPES.INTEGER) {
-        if (v !== "") {
-            v = +value;
+        if (v !== "" && value) {
+            v = parseInt(value);
         } else {
             v = null;
         }
@@ -51,5 +51,13 @@ export const existingTaskValuesToFlatParameters = (updateTask: any) => {
         return result;
     } else {
         return {};
+    }
+};
+
+export const uppercaseFirstChar = (str: string) => {
+    if (!str || str.length === 0) {
+        return str;
+    } else {
+        return str.charAt(0).toUpperCase() + str.substring(1);
     }
 };

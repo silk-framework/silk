@@ -25,7 +25,7 @@ export interface ISearchResultsServer {
     /**
      * Showing project id if it's presented
      */
-    projectId: string;
+    projectId?: string;
     projectLabel?: string;
     /**
      * Contains of useful links for items
@@ -35,6 +35,11 @@ export interface ISearchResultsServer {
      * Contains plugin name
      */
     pluginId?: string;
+
+    /**
+     * The label of the plugin.
+     */
+    pluginLabel?: string;
 }
 
 export interface IPreviewState {

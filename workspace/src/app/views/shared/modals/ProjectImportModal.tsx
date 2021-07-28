@@ -94,7 +94,7 @@ export function ProjectImportModal({ close, back }: IProps) {
 
     const goBack = async () => {
         await cleanUp();
-        back();
+        back?.();
     };
 
     // Deletes the uploaded file in the backend
@@ -130,10 +130,10 @@ export function ProjectImportModal({ close, back }: IProps) {
                         status = (await requestProjectImportExecutionStatus(projectImportId)).data;
                         errorCounter = 0;
                     } catch (err) {
-                        if (errorCounter >= 3) {
+                        if (errorCounter >= 6) {
                             throw err;
                         }
-                        // Retry until error persists for overall 15 seconds, exponential backoff
+                        // Retry until error persists for overall 120 seconds, exponential backoff
                         await sleep(Math.pow(2, errorCounter) * 1000);
                         errorCounter = errorCounter + 1;
                     }
@@ -170,7 +170,7 @@ export function ProjectImportModal({ close, back }: IProps) {
         let details = errorDetails(error);
         setUploadError(
             t("ProjectImportModal.responseUploadError", "File {{file}} could not be uploaded! {{details}}", {
-                file: <code>fileData.name</code>,
+                file: fileData.name,
                 details: details,
             })
         );
@@ -326,7 +326,12 @@ export function ProjectImportModal({ close, back }: IProps) {
                             )}
                         </p>
                         <Spacing />
-                        <Checkbox inline={true} checked={approveReplacement} onChange={handleApproveReplacement}>
+                        <Checkbox
+                            data-test-id={"replaceExistingProjectCheckBox"}
+                            inline={true}
+                            checked={approveReplacement}
+                            onChange={handleApproveReplacement}
+                        >
                             <strong>{t("ProjectImportModal.replaceImportBtn")}</strong>
                         </Checkbox>
                     </Notification>
@@ -366,8 +371,9 @@ export function ProjectImportModal({ close, back }: IProps) {
     const dialogItem = loading ? (
         <Loading />
     ) : projectDetailsError !== null ? (
-        errorRetryElement("Failed to retrieve project import details. " + projectDetailsError, () =>
-            loadProjectImportDetails(projectImportId)
+        errorRetryElement(
+            "Failed to retrieve project import details. " + projectDetailsError,
+            () => projectImportId && loadProjectImportDetails(projectImportId)
         )
     ) : startProjectImportExecutionError ? (
         errorRetryElement(

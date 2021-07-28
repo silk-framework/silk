@@ -1,5 +1,5 @@
 import React from "react";
-import { IPrefixState } from "@ducks/workspace/typings";
+import { IPrefixDefinition } from "@ducks/workspace/typings";
 import {
     IconButton,
     OverviewItem,
@@ -10,7 +10,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 interface IProps {
-    prefix: IPrefixState;
+    prefix: IPrefixDefinition;
 
     onRemove();
 }

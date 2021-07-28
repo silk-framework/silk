@@ -1,5 +1,4 @@
 import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
-import { commonSel } from "@ducks/common";
 import { requestWarningList, requestWarningMarkdown } from "@ducks/workspace/requests";
 
 const { setWarnings, setWidgetError, toggleWidgetLoading } = widgetsSlice.actions;
@@ -18,9 +17,8 @@ const setError = (e) => (dispatch) =>
         })
     );
 
-export const fetchWarningListAsync = () => {
-    return async (dispatch, getState) => {
-        const projectId = commonSel.currentProjectIdSelector(getState());
+export const fetchWarningListAsync = (projectId: string) => {
+    return async (dispatch) => {
         dispatch(toggleLoading());
         try {
             const data = await requestWarningList(projectId);

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import { useSelector } from "react-redux";
 import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@gui-elements/index";
@@ -9,13 +9,15 @@ import { AppToaster } from "../../../services/toaster";
 import Metadata from "../../shared/Metadata";
 import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
 import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
-import { IframeWindow } from "../../shared/IframeWindow/IframeWindow";
+import { ProjectTaskTabView } from "../../shared/projectTaskTabView/ProjectTaskTabView";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
+import NotFound from "../NotFound";
 
 export default function () {
     const error = useSelector(datasetSel.errorSelector);
     const { taskId, projectId } = useParams();
+    const [notFound, setNotFound] = useState(false);
 
     useEffect(() => {
         if (error?.detail) {
@@ -33,7 +35,9 @@ export default function () {
         autogeneratePageTitle: true,
     });
 
-    return (
+    return notFound ? (
+        <NotFound />
+    ) : (
         <WorkspaceContent className="eccapp-di__linking">
             {pageHeader}
             <ArtefactManagementOptions
@@ -41,12 +45,13 @@ export default function () {
                 taskId={taskId}
                 itemType={DATA_TYPES.LINKING}
                 updateActionsMenu={updateActionsMenu}
+                notFoundCallback={setNotFound}
             />
             <WorkspaceMain>
                 <Section>
                     <Metadata />
                     <Spacing />
-                    <IframeWindow iFrameName={"detail-page-iframe"} />
+                    <ProjectTaskTabView iFrameName={"detail-page-iframe"} />
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>

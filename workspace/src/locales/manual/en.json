@@ -130,7 +130,11 @@
         }
     },
     "PrefixDialog": {
-        "deletePrefix": "Prefix '{{prefixName}}' will be deleted."
+        "deletePrefix": "Prefix '{{prefixName}}' will be deleted.",
+        "overwritePrefix": "Update existing prefix '{{prefixName}}'?",
+        "prefixNameInvalid": "The prefix name you have entered is invalid",
+        "prefixUriInvalid": "The entered URI prefix must be a valid URI / IRI.",
+        "prefixUriInvalidChar": "The entered URI prefix contains invalid characters. First invalid character at position {{idx}} is '{{char}}'."
     },
     "ProjectImportModal": {
         "importBtn": "Import project",
@@ -186,9 +190,11 @@
             "replace": "Replace",
             "resetSelection": "Reset selection",
             "retry": "Retry",
-            "showDetails": "Show details",
+            "save": "Save",
+            "showDetails": "Open details",
             "submit": "Submit",
-            "update": "Update"
+            "update": "Update",
+            "showApiDoc": "API"
         },
         "app": {
             "build": "Data integration",
@@ -311,8 +317,8 @@
         },
         "notFound": {
             "backLink": "Go to homepage",
-            "text": "If you think something went wrong then inform your administrator.",
-            "title": "Error 404: Content not found."
+            "text": "The page you requested does not exist.",
+            "title": "Page not found"
         },
         "project": {
             "content": "Contents",
@@ -412,6 +418,35 @@
         "WarningWidget": {
             "loading": "Loading log messages.",
             "title": "Error log"
+        }
+    },
+    "WorkflowEditor": {
+        "header": {
+            "saveBtnTooltip": "Save the current state of the workflow"
+        },
+        "edge": {
+            "menu": {
+                "delete": {
+                    "label": "Remove edge",
+                    "tooltip": "Removes the edge. Alternatively you can delete (multiple) selected workflow elements by pressing the [←] (backspace) key on the keyboard."
+                }
+            }
+        },
+        "errors": {
+            "WorkflowEditor_fetchPortsConfigs": "Could not load task configurations.",
+            "WorkflowEditor_fetchTaskList": "Could not fetch available workflow datasets and operators.",
+            "WorkflowEditor_saveWorkflow": "Failed to save the workflow.",
+            "WorkflowEditor_fetchWorkflow": "Failed to load the workflow."
+        },
+        "node": {
+            "menu": {
+                "remove": {
+                    "label": "Remove node"
+                }
+            }
+        },
+        "warnings": {
+            "unsavedChanges": "There are unsaved changes. Do you still want to close the workflow editor?"
         }
     }
 }

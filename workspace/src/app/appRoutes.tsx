@@ -1,6 +1,5 @@
-import React, { lazy } from "react";
-import { Redirect, RouteProps } from "react-router";
-import { getFullRoutePath } from "./utils/routerUtils";
+import { RouteProps } from "react-router";
+import { lazy } from "react";
 
 const DashboardPage = lazy(() => import("./views/pages/Workspace"));
 const ProjectPage = lazy(() => import("./views/pages/Project"));
@@ -10,6 +9,7 @@ const TransformPage = lazy(() => import("./views/pages/Transform"));
 const LinkingPage = lazy(() => import("./views/pages/Linking"));
 const TaskPage = lazy(() => import("./views/pages/Task"));
 const NotFoundPage = lazy(() => import("./views/pages/NotFound"));
+const FlowEditor = lazy(() => import("./views/pages/FlowEditor"));
 
 interface IRouteProps extends RouteProps {
     path: string;
@@ -52,13 +52,13 @@ const appRoutes: IRouteProps[] = [
         exact: true,
     },
     {
-        path: "/not-found",
-        component: NotFoundPage,
+        path: "/projects/:projectId/flowEditor/:taskId",
+        component: FlowEditor,
         exact: true,
     },
     {
         path: "*",
-        component: () => <Redirect to={getFullRoutePath("/not-found")} />,
+        component: NotFoundPage,
         exact: false,
     },
 ];

@@ -16,7 +16,6 @@ import {
 import { IBreadcrumbItemProps } from "@gui-elements/src/components/Breadcrumb/BreadcrumbItem";
 import { routerOp } from "@ducks/router";
 import { APPLICATION_CORPORATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
-import { ActionsMenu } from "../ActionsMenu/ActionsMenu";
 import { fetchBreadcrumbs } from "./breadcrumbsHelper";
 
 interface IPageHeaderContentBasicProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -26,7 +25,7 @@ interface IPageHeaderContentBasicProps extends React.HTMLAttributes<HTMLDivEleme
     autogenerateBreadcrumbs?: boolean;
     pageTitle?: string;
     autogeneratePageTitle?: boolean;
-    actionsMenu?: typeof ActionsMenu;
+    actionsMenu?: JSX.Element;
 }
 
 interface IPageHeaderContentAutogenerateBreadcrumbsProps extends IPageHeaderContentBasicProps {
@@ -67,7 +66,7 @@ function PageHeaderPortal({ children }: any) {
         }
     });
 
-    return portalEnabled ? ReactDOM.createPortal(<>{children}</>, portalTarget) : <></>;
+    return portalEnabled && portalTarget ? ReactDOM.createPortal(<>{children}</>, portalTarget) : <></>;
 }
 
 function PageHeaderContent({
@@ -89,7 +88,7 @@ function PageHeaderContent({
 
     const generatedPageTitle =
         autogeneratePageTitle && breadcrumbs && breadcrumbs.length > 0
-            ? breadcrumbs[breadcrumbs.length - 1].text.toString()
+            ? (breadcrumbs[breadcrumbs.length - 1].text ?? "").toString()
             : "";
 
     const renderWindowTitle = () => {
@@ -108,7 +107,7 @@ function PageHeaderContent({
     };
 
     const getDepictionIcons = () => {
-        const iconNames = [];
+        const iconNames: string[] = [];
         if (!!type) {
             iconNames.push("artefact-" + type.toLowerCase());
         }
@@ -173,7 +172,7 @@ export function usePageHeader({ ...propsHeader }: IPageHeaderContentBasicProps) 
         updateBreadcrumbs: (update) => {
             updatePageHeader({ breadcrumbs: update, autogenerateBreadcrumbs: false });
         },
-        updateActionsMenu: (update) => {
+        updateActionsMenu: (update: JSX.Element) => {
             updatePageHeader({ actionsMenu: update });
         },
         updatePageHeader,

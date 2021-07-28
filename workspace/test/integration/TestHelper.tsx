@@ -358,13 +358,6 @@ export const mockAxiosResponse = (
     }
 };
 
-// Returns an array with values 0 ... (nrItems - 1)
-export const rangeArray = (nrItems: number): number[] => {
-    const indexes = Array(nrItems).keys();
-    // @ts-ignore
-    return [...indexes];
-};
-
 /** Jest does not allow to set the window.location. In order to test changes on that object, we need to mock it.
  * This function mocks the window.location object and restores it afterwards. */
 export const withWindowLocation = async (block: () => void, location: any = {}) => {

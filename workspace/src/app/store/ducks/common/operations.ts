@@ -10,7 +10,7 @@ import {
     requestSearchConfig,
 } from "@ducks/common/requests";
 import { IArtefactItem } from "@ducks/common/typings";
-import { commonSel } from "@ducks/common/index";
+import { commonOp, commonSel } from "@ducks/common/index";
 import { requestCreateProject, requestCreateTask, requestUpdateProjectTask } from "@ducks/workspace/requests";
 import { routerOp } from "@ducks/router";
 import { TaskType } from "@ducks/shared/typings";
@@ -174,7 +174,12 @@ const createArtefactAsync = (formData, taskType: TaskType | "Project") => {
                 await dispatch(fetchCreateProjectAsync(formData));
                 break;
             default:
-                await dispatch(fetchCreateTaskAsync(formData, selectedArtefact.key, taskType as TaskType));
+                if (selectedArtefact) {
+                    selectedArtefact &&
+                        (await dispatch(fetchCreateTaskAsync(formData, selectedArtefact.key, taskType as TaskType)));
+                } else {
+                    console.error("selectedArtefact not set! Cannot create item.");
+                }
                 break;
         }
     };
@@ -255,6 +260,8 @@ const fetchCreateProjectAsync = (formData: { label: string; description?: string
                     description,
                 },
             });
+            // Added project, workspace state may have changed
+            dispatch(commonOp.fetchCommonSettingsAsync());
             dispatch(closeArtefactModal());
             dispatch(routerOp.goToPage(`projects/${data.name}`, { projectLabel: label, itemType: "project" }));
         } catch (e) {
@@ -264,7 +271,7 @@ const fetchCreateProjectAsync = (formData: { label: string; description?: string
 };
 
 const resetArtefactModal = (shouldClose: boolean = false) => (dispatch) => {
-    dispatch(selectArtefact(null));
+    dispatch(selectArtefact(undefined));
     dispatch(setModalError({}));
     if (shouldClose) {
         dispatch(closeArtefactModal());

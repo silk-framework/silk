@@ -52,11 +52,11 @@ export function CreateNewFile(props: IProps) {
                 id="fileInput"
                 name="fileInput"
                 onChange={handleNewFileNameChange}
-                onBlur={() => onBlur(newFileName)}
+                onBlur={() => onBlur?.(newFileName)}
                 value={newFileName}
                 placeholder={""}
                 hasStateDanger={error}
-                hasStateSuccess={!error && newFileName}
+                hasStateSuccess={!error && !!newFileName}
             />
         </FieldItem>
     );

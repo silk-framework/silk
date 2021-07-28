@@ -1,6 +1,6 @@
-import { IPrefixState, IWidgetsState } from "@ducks/workspace/typings";
+import { IPrefixDefinition, IWidgetsState } from "@ducks/workspace/typings";
 
-export function initialNewPrefixState(): IPrefixState {
+export function initialNewPrefixState(): IPrefixDefinition {
     return {
         prefixName: "",
         prefixUri: "",

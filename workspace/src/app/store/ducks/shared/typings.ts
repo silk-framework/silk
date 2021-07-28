@@ -73,6 +73,17 @@ export interface ITaskMetadataResponse {
     relations: IRelations;
 }
 
+/** A project or task item used in various modals. */
+export interface IModalItem {
+    projectId: string;
+    projectLabel?: string;
+    // If the id is set the item is a task, else a project.
+    id?: string;
+    type: string;
+    label?: string;
+    description?: string;
+}
+
 export interface IMetadataUpdatePayload {
     label: string;
     description?: string;
@@ -83,6 +94,7 @@ export interface IRelatedItem {
     label: string;
     type: string;
     itemLinks: IItemLink[];
+    pluginLabel: string;
 }
 
 export interface IItemLink {

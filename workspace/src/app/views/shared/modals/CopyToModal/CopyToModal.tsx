@@ -24,7 +24,6 @@ import { ErrorResponse, FetchError } from "services/fetch/responseInterceptor";
 import { useTranslation } from "react-i18next";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { requestCopyProject, requestCopyTask, requestSearchList } from "@ducks/workspace/requests";
-import { debounce } from "../../../../utils/debounce";
 import ItemDepiction from "../../ItemDepiction";
 
 //custom styles
@@ -55,12 +54,11 @@ interface CopyResponsePayload {
 }
 
 const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed }) => {
-    const [newLabel, setNewLabel] = React.useState<string>(item.label || item.id);
+    const [newLabel, setNewLabel] = React.useState<string>(item.label || item.id || "");
     const [error, setError] = React.useState<ErrorResponse | null>(null);
     const [loading, setLoading] = React.useState<boolean>(false);
-    const [label, setLabel] = React.useState<string | null>(item.label);
-    const [targetProject, setTargetProject] = React.useState();
-    const [results, setResults] = React.useState<any[]>([]);
+    const [label, setLabel] = React.useState<string | undefined>(item.label);
+    const [targetProject, setTargetProject] = React.useState<string | undefined>(undefined);
     const [info, setInfo] = React.useState<CopyResponsePayload | undefined>();
     const [overWrittenAcknowledgement, setOverWrittenAcknowledgement] = React.useState(false);
 
@@ -70,20 +68,8 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
         copyingSetup();
     }, [item]);
 
-    //preload the project lists with default data
-    React.useEffect(() => {
-        (async () => {
-            const payload = {
-                limit: 10,
-                offset: 0,
-                itemType: "project",
-            };
-            setResults(removeFromList(await (await requestSearchList(payload)).results));
-        })();
-    }, [item, label]);
-
     /** remove the same project from possible project targets in the selection menu */
-    const removeFromList = (list: Array<any>) => {
+    const removeFromList = (list: Array<any>): Array<any> => {
         /** if task filter using project label */
         if (item.id && item.projectLabel) {
             return list.filter((l) => l.label !== item.projectLabel);
@@ -99,10 +85,10 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
             const response =
                 item.projectId && item.id
                     ? await requestTaskMetadata(item.id, item.projectId)
-                    : await requestProjectMetadata(item.projectId);
+                    : await requestProjectMetadata(item.projectId as string);
 
-            const currentLabel = !!response.data.label ? response.data.label : !!item.id ? item.id : item.projectId;
-            setLabel(currentLabel);
+            const currentLabel = !!response.data.label ? response.data.label : item.id ? item.id : item.projectId;
+            setLabel(currentLabel as string);
             setNewLabel(t("common.messages.cloneOf", { item: currentLabel }));
         } catch (ex) {
             // swallow exception, fallback to ID
@@ -111,7 +97,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
         }
     };
 
-    const copyTaskOrProject = async (id: string, projectId: string, payload: CopyPayloadProps) => {
+    const copyTaskOrProject = async (projectId: string, payload: CopyPayloadProps, id?: string) => {
         const response = id
             ? await requestCopyTask(projectId, id, payload)
             : await requestCopyProject(projectId, payload);
@@ -123,12 +109,12 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
         setError(null);
         try {
             setLoading(true);
-            const payload = {
-                targetProject,
+            const payload: CopyPayloadProps = {
+                targetProject: targetProject || "TODO",
                 dryRun: false,
                 overwriteTasks: overWrittenAcknowledgement,
             };
-            await copyTaskOrProject(id, projectId, payload);
+            await copyTaskOrProject(projectId, payload, id);
             onConfirmed();
         } catch (e) {
             if (e.isFetchError) {
@@ -141,7 +127,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
         }
     };
 
-    const handleSearch = debounce(async (textQuery: string) => {
+    const handleSearch: (value: string) => Promise<any[]> = async (textQuery: string) => {
         try {
             const payload = {
                 limit: 10,
@@ -149,11 +135,13 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                 itemType: "project",
                 textQuery,
             };
-            setResults(removeFromList(await (await requestSearchList(payload)).results));
+            const results = (await requestSearchList(payload)).results;
+            return removeFromList(results);
         } catch (err) {
             console.warn({ err });
+            return [];
         }
-    }, 500);
+    };
 
     /** this orders the tasks in the accordion by the default/typical order in the DI project space
      *  1.Project
@@ -184,6 +172,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
     const buttonDisabled = !newLabel || (info?.overwrittenTasks.length && !overWrittenAcknowledgement);
     return (
         <SimpleDialog
+            data-test-id={"copy-item-to-modal"}
             size="small"
             title={modalTitle}
             isOpen={true}
@@ -211,10 +200,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                 }}
             >
                 <AutoCompleteField
-                    onSearch={(textQuery: string) => {
-                        handleSearch(textQuery);
-                        return results;
-                    }}
+                    onSearch={handleSearch}
                     onChange={async (value) => {
                         setTargetProject(value);
                         const { projectId, id } = item;
@@ -222,7 +208,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             targetProject: value,
                             dryRun: true,
                         };
-                        const response = await copyTaskOrProject(id, projectId, payload);
+                        const response = await copyTaskOrProject(projectId, payload, id);
                         setInfo((prevInfo) => ({ ...prevInfo, ...response?.data }));
                     }}
                     itemValueRenderer={(item) => item.label}
@@ -305,6 +291,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
             <Spacing size="large" />
             {info?.overwrittenTasks.length ? (
                 <Checkbox
+                    data-test-id={"overwrite-tasks-checkbox"}
                     checked={overWrittenAcknowledgement}
                     onChange={() => setOverWrittenAcknowledgement(!overWrittenAcknowledgement)}
                 >

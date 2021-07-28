@@ -4,18 +4,34 @@ import { useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
 import { routerOp } from "@ducks/router";
 import { IItemLink } from "@ducks/shared/typings";
-import { commonSel } from "@ducks/common";
+import { commonOp, commonSel } from "@ducks/common";
 import { requestItemLinks } from "@ducks/shared/requests";
 import { IExportTypes } from "@ducks/common/typings";
 import { downloadProject } from "../../../utils/downloadProject";
 import { DATA_TYPES } from "../../../constants";
 import { ItemDeleteModal } from "../modals/ItemDeleteModal";
 import CloneModal from "../modals/CloneModal";
-import { IframeWindow } from "../IframeWindow/IframeWindow";
+import { ProjectTaskTabView } from "../projectTaskTabView/ProjectTaskTabView";
 import { ActionsMenu, TActionsMenuItem, IActionsMenuProps } from "./ActionsMenu";
 import CopyToModal from "../modals/CopyToModal/CopyToModal";
 
-export function ArtefactManagementOptions({ projectId, taskId, itemType, updateActionsMenu }: any) {
+interface IProps {
+    projectId: string;
+    // If the task ID is set then this is a task else a project
+    taskId?: string;
+    itemType: string;
+    updateActionsMenu: (actionMenu: JSX.Element) => any;
+    // Called with true when the item links endpoint returns a 404
+    notFoundCallback?: (boolean) => any;
+}
+
+export function ArtefactManagementOptions({
+    projectId,
+    taskId,
+    itemType,
+    updateActionsMenu,
+    notFoundCallback = () => {},
+}: IProps) {
     const dispatch = useDispatch();
     const location = useLocation<any>();
     const [t] = useTranslation();
@@ -28,27 +44,32 @@ export function ArtefactManagementOptions({ projectId, taskId, itemType, updateA
     const exportTypes = useSelector(commonSel.exportTypesSelector);
 
     const itemData = {
-        id: taskId ? taskId : undefined,
-        projectId: projectId ? projectId : undefined,
-        type: itemType ? itemType : undefined,
+        id: taskId,
+        projectId: projectId,
+        type: itemType,
     };
 
     // Update item links for more menu
     useEffect(() => {
         if (projectId && taskId) {
-            getItemLinks();
+            getItemLinks(taskId);
         } else {
             setItemLinks([]);
         }
     }, [projectId, taskId]);
 
-    const getItemLinks = async () => {
+    const getItemLinks = async (taskId: string) => {
         try {
             const { data } = await requestItemLinks(projectId, taskId);
             // remove current page link
             const result = data.filter((item) => item.path !== location.pathname);
             setItemLinks(result);
-        } catch (e) {}
+            notFoundCallback(false);
+        } catch (e) {
+            if (e?.httpStatus === 404) {
+                notFoundCallback(true);
+            }
+        }
     };
 
     const handleDeleteConfirm = () => {
@@ -56,6 +77,9 @@ export function ArtefactManagementOptions({ projectId, taskId, itemType, updateA
         let afterPage = "";
         if (taskId) {
             afterPage = `projects/${projectId}`;
+        } else {
+            // Deleted project, workspace state may have changed
+            dispatch(commonOp.fetchCommonSettingsAsync());
         }
         dispatch(routerOp.goToPage(afterPage));
     };
@@ -105,7 +129,7 @@ export function ArtefactManagementOptions({ projectId, taskId, itemType, updateA
         ];
 
         if (itemType === DATA_TYPES.PROJECT && !!exportTypes.length) {
-            const subitems = [];
+            const subitems: { text: string; actionHandler: () => any }[] = [];
             exportTypes.forEach((type) => {
                 subitems.push({
                     text: type.label,
@@ -171,7 +195,7 @@ export function ArtefactManagementOptions({ projectId, taskId, itemType, updateA
                 <CopyToModal item={itemData} onDiscard={toggleCopyToModal} onConfirmed={handleCopyConfirmed} />
             )}
             {displayItemLink && (
-                <IframeWindow
+                <ProjectTaskTabView
                     srcLinks={itemLinks}
                     startWithLink={displayItemLink}
                     startFullscreen={true}

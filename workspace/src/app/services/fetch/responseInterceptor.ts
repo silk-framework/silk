@@ -19,16 +19,18 @@ export class FetchResponse<T = any> {
 export class ErrorResponse {
     title: string;
     detail: string;
+    status?: number | null;
     cause?: ErrorResponse;
 
     asString(): string {
         return this.detail ? ` Details: ${this.detail}` : this.title;
     }
 
-    constructor(title: string, detail: string, cause: ErrorResponse = null) {
+    constructor(title: string, detail: string, status: number | undefined | null, cause?: ErrorResponse) {
         this.title = title;
         this.detail = detail;
         this.cause = cause;
+        this.status = status;
     }
 }
 
@@ -57,8 +59,8 @@ export class FetchError {
         return this.errorType === FetchError.NETWORK_ERROR;
     }
 
-    get httpStatus(): number {
-        return this.errorDetails.response?.status ? this.errorDetails.response.status : null;
+    get httpStatus(): number | undefined {
+        return this.errorDetails.response?.status ? this.errorDetails.response.status : undefined;
     }
 
     asString(): string {
@@ -66,7 +68,7 @@ export class FetchError {
     }
 }
 
-const httpStatusToTitle = (status: number) => {
+const httpStatusToTitle = (status?: number) => {
     switch (status) {
         case 401:
             return i18n.t("http.error.not.authenticated", "Not authenticated");
@@ -82,6 +84,8 @@ const httpStatusToTitle = (status: number) => {
             return i18n.t("http.error.not.available", "Temporarily unavailable");
         case 504:
             return i18n.t("http.error.timeout", "Timeout");
+        case undefined:
+            return "Unknown HTTP error"; // This shouldn't happen, but we still need to handle it
         default:
             break;
     }
@@ -89,6 +93,8 @@ const httpStatusToTitle = (status: number) => {
         return i18n.t("http.error.server", "Server error");
     } else if (Math.floor(status / 100) === 4) {
         return i18n.t("http.error.not.valid", "Invalid request");
+    } else {
+        return `HTTP error ${status}`;
     }
 };
 
@@ -102,10 +108,19 @@ export class HttpError extends FetchError {
 
         if (errorDetails.response?.data?.title && errorDetails.response.data.detail) {
             const errorReponse = errorDetails.response.data;
-            this.errorResponse = new ErrorResponse(errorReponse.title, errorReponse.detail, errorReponse.cause);
+            this.errorResponse = new ErrorResponse(
+                errorReponse.title,
+                errorReponse.detail,
+                errorDetails.response.status,
+                errorReponse.cause
+            );
         } else {
             // Got no JSON response, create error response object
-            this.errorResponse = new ErrorResponse(httpStatusToTitle(errorDetails.response.status), "");
+            this.errorResponse = new ErrorResponse(
+                httpStatusToTitle(errorDetails.response?.status),
+                "",
+                errorDetails.response?.status
+            );
         }
     }
 }
@@ -117,7 +132,11 @@ export class NetworkError extends FetchError {
         this.errorDetails = errorDetails;
         this.errorType = FetchError.NETWORK_ERROR;
 
-        this.errorResponse = new ErrorResponse("Network Error", `Please check your connection or contact support`);
+        this.errorResponse = new ErrorResponse(
+            "Network Error",
+            `Please check your connection or contact support`,
+            undefined
+        );
     }
 }
 
