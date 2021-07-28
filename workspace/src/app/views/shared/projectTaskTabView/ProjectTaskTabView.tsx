@@ -169,9 +169,11 @@ export function ProjectTaskTabView({
         if (iframeRef.current && selectedTab && itemLinks.length && taskViews) {
             const iframeLoadHandler = () => {
                 if (iframeRef.current) {
-                    const regex = new RegExp(PUBLIC_URL + "|\\?.*", "gi");
+                    const regex = new RegExp("\\?.*", "gi");
                     const parsedCurrentIframePath = iframeRef.current.src.replace(regex, "");
-                    const focusedIframeSource = itemLinks.find((link) => link.path === parsedCurrentIframePath);
+                    const focusedIframeSource = itemLinks.find((link) =>
+                        parsedCurrentIframePath.endsWith(link.path.replace(regex, ""))
+                    );
                     setActiveIframePath(focusedIframeSource);
                 }
             };

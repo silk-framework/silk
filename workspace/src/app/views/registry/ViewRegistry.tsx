@@ -43,7 +43,7 @@ class ViewRegistry {
         // Add default views
         this.registerView("workflow", {
             id: "editor",
-            label: "Workflow editor v2",
+            label: "Workflow editor",
             render: (projectId, taskId, viewActions) => (
                 <FlowEditor projectId={projectId} workflowId={taskId} viewActions={viewActions} />
             ),
