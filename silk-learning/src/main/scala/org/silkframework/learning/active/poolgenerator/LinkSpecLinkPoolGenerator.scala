@@ -1,6 +1,6 @@
 package org.silkframework.learning.active.poolgenerator
 
-import org.silkframework.config.PlainTask
+import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.learning.active.UnlabeledLinkPool
@@ -16,13 +16,15 @@ import org.silkframework.util.DPair
 class LinkSpecLinkPoolGenerator(maxLinks: Int = LinkSpecLinkPoolGenerator.defaultMaxLinks,
                                 timeout: Int = LinkSpecLinkPoolGenerator.defaultTimeout) extends LinkPoolGenerator {
 
-  override def generator(inputs: DPair[DataSource], linkSpec: LinkSpec, paths: Seq[DPair[TypedPath]], randomSeed: Long): Activity[UnlabeledLinkPool] = {
+  override def generator(inputs: DPair[DataSource], linkSpec: LinkSpec, paths: Seq[DPair[TypedPath]], randomSeed: Long)
+                        (implicit prefixes: Prefixes): Activity[UnlabeledLinkPool] = {
     new LinkPoolGeneratorActivity(inputs, linkSpec, paths)
   }
 
   private class LinkPoolGeneratorActivity(inputs: DPair[DataSource],
                                           linkSpec: LinkSpec,
-                                          paths: Seq[DPair[TypedPath]]) extends Activity[UnlabeledLinkPool] {
+                                          paths: Seq[DPair[TypedPath]])
+                                         (implicit prefixes: Prefixes) extends Activity[UnlabeledLinkPool] {
 
     private val runtimeConfig = RuntimeLinkingConfig(generateLinksWithEntities = true, linkLimit = Some(maxLinks), executionTimeout = Some(timeout))
 

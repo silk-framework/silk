@@ -15,9 +15,12 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
+import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
+import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.{BadUserInputException, RequestException}
 import org.silkframework.util.Uri
@@ -128,6 +131,7 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
                                )
                                sourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val project: Project = WorkspaceFactory().workspace.project(projectName)
+    implicit val prefixes: Prefixes = project.config.prefixes
     val task = project.task[GenericDatasetSpec](sourceName)
     val datasetPlugin = task.data.plugin
     datasetPlugin match {
@@ -196,6 +200,7 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
                  )
                  autoConfigure: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
+    implicit val prefixes: Prefixes = project.config.prefixes
     implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
 
     try {
@@ -251,6 +256,72 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
                     source: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     WorkspaceFactory().workspace.project(project).removeTask[GenericDatasetSpec](source)
     NoContent
+  }
+
+  def datasetDialog(projectName: String,
+                    datasetName: String,
+                    title: String = "Edit Dataset",
+                    createDialog: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
+    val datasetPlugin = if (datasetName.isEmpty) None else project.taskOption[GenericDatasetSpec](datasetName).map(_.data)
+    Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, datasetPlugin, title, createDialog))
+  }
+
+  def datasetDialogAutoConfigured(projectName: String, datasetName: String, pluginId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectName)
+    val createDialog = project.taskOption[DatasetSpec[Dataset]](datasetName).isEmpty
+    val dialogTitle = if(createDialog) "Create Dataset" else "Edit Dataset"
+    implicit val prefixes: Prefixes = project.config.prefixes
+    implicit val resources: ResourceManager = project.resources
+    val datasetParams = request.queryString.mapValues(_.head)
+    val datasetPlugin = Dataset.apply(pluginId, datasetParams)
+    datasetPlugin match {
+      case ds: DatasetPluginAutoConfigurable[_] =>
+        Ok(views.html.workspace.dataset.datasetDialog(project, datasetName, Some(DatasetSpec(ds.autoConfigured)), title = dialogTitle, createDialog = createDialog))
+      case _ =>
+        ErrorResult(BadUserInputException("This dataset type does not support auto-configuration."))
+    }
+  }
+
+  def dataset(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val context = Context.get[GenericDatasetSpec](project, task, request.path)
+    context.task.data match {
+      case dataset: GenericDatasetSpec =>
+        if (dataset.plugin.isInstanceOf[RdfDataset]) {
+          Redirect(routes.DatasetController.sparql(project, task))
+        } else {
+          Redirect(routes.DatasetController.table(project, task))
+        }
+    }
+  }
+
+  def table(project: String, task: String, maxEntities: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val context = Context.get[GenericDatasetSpec](project, task, request.path)
+    val source = context.task.data.source
+    implicit val prefixes: Prefixes = context.project.config.prefixes
+
+    val firstTypes = source.retrieveTypes().head._1
+    val paths = source.retrievePaths(firstTypes).toIndexedSeq
+    val entityDesc = EntitySchema(firstTypes, paths)
+    val entities = source.retrieve(entityDesc).entities.take(maxEntities).toList
+
+    Ok(views.html.workspace.dataset.table(context, paths.map(_.toUntypedPath), entities))
+  }
+
+  def sparql(project: String, task: String, query: String = ""): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val context = Context.get[GenericDatasetSpec](project, task, request.path)
+
+    context.task.data.plugin match {
+      case rdf: RdfDataset =>
+        val sparqlEndpoint = rdf.sparqlEndpoint
+        var queryResults: Option[SparqlResults] = None
+        if (!query.isEmpty) {
+          queryResults = Some(sparqlEndpoint.select(query))
+        }
+        Ok(views.html.workspace.dataset.sparql(context, sparqlEndpoint, query, queryResults))
+      case _ =>
+        ErrorResult(BadUserInputException("This is not an RDF-Dataset."))
+    }
   }
 
   /** Get types of a dataset including the search string */
@@ -393,9 +464,11 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
                               datasetId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[MappingValueCoverageRequest] { mappingCoverageRequest =>
       val project = WorkspaceFactory().workspace.project(projectName)
+      implicit val prefixes: Prefixes = project.config.prefixes
       val datasetTask = project.task[GenericDatasetSpec](datasetId)
       val inputPaths = transformationInputPaths(project)
       val dataSourcePath = UntypedPath.parse(mappingCoverageRequest.dataSourcePath)
+
       DataSource.pluginSource(datasetTask) match {
         case vd: PathCoverageDataSource with ValueCoverageDataSource =>
           val matchingInputPaths = for (coveragePathInput <- inputPaths;

@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity.linking
 
-import org.silkframework.config.DefaultConfig
+import org.silkframework.config.{DefaultConfig, Prefixes}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
@@ -101,6 +101,7 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
                            entitySchema: EntitySchema,
                            context: ActivityContext[DPair[EntitySchema]])
                           (implicit userContext: UserContext): EntitySchema = {
+    implicit val prefixes: Prefixes = task.project.config.prefixes
     val paths = retrievePathsOfInput(datasetSelection.inputId, Some(datasetSelection), task.project, context)
     entitySchema.copy(typedPaths = (entitySchema.typedPaths ++ paths).distinct)
   }

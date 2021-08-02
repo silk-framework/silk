@@ -1,7 +1,7 @@
 package controllers.transform
 
+import org.silkframework.config.Prefixes
 import controllers.core.{UserContextActions}
-
 import javax.inject.Inject
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.{EvaluateTransform => EvaluateTransformTask}
@@ -23,6 +23,7 @@ class EvaluateTransform @Inject() (accessMonitor: WorkbenchAccessMonitor) extend
 
   def generatedEntities(projectName: String, taskName: String, ruleName: Option[String], offset: Int, limit: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
+    implicit val prefixes: Prefixes = project.config.prefixes
     val task = project.task[TransformSpec](taskName)
     val ruleSchema = ruleName match {
       case Some(name) =>

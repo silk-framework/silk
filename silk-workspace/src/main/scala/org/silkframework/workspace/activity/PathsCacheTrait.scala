@@ -1,6 +1,6 @@
 package org.silkframework.workspace.activity
 
-import org.silkframework.config.TaskSpec
+import org.silkframework.config.{Prefixes, TaskSpec}
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, SparqlRestrictionDataSource}
 import org.silkframework.entity.Restriction.CustomOperator
 import org.silkframework.entity.paths.TypedPath
@@ -23,7 +23,7 @@ trait PathsCacheTrait {
                                      dataSelection: Option[DatasetSelection],
                                      project: Project,
                                      context: ActivityContext[_])
-                                    (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+                                    (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
     project.anyTask(inputTaskId).data match {
       case dataset: DatasetSpec[Dataset] =>
         context.status.update("Retrieving frequent paths", 0.0)
@@ -43,7 +43,7 @@ trait PathsCacheTrait {
   }
 
   private def retrievePaths(dataSource: DataSource, datasetSelection: DatasetSelection)
-                           (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+                           (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
     dataSource match {
       case DatasetSpec.DataSourceWrapper(ds: SparqlRestrictionDataSource, _) =>
         val typeRestriction = SparqlRestriction.forType(datasetSelection.typeUri)

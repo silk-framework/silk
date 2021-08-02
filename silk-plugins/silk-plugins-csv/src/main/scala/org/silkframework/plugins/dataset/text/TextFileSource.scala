@@ -1,9 +1,12 @@
 package org.silkframework.plugins.dataset.text
 
+import org.silkframework.config.{PlainTask, Prefixes, Task}
+import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, EmptyDataset}
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset.{DataSource, DatasetCharacteristics, Dataset, DatasetSpec, EmptyDataset}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.entity.paths.TypedPath
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
@@ -12,19 +15,23 @@ import org.silkframework.util.{Identifier, Uri}
 
 class TextFileSource(ds: TextFileDataset) extends DataSource {
 
-  override def retrieveTypes(limit: Option[Int])(implicit userContext: UserContext): Traversable[(String, Double)] = {
+  override def retrieveTypes(limit: Option[Int])
+                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
     Seq((ds.typeName, 1.0))
   }
 
-  override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])(implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+  override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])
+                            (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
     IndexedSeq(ds.path)
   }
 
-  override def retrieve(entitySchema: EntitySchema, limit: Option[Int])(implicit userContext: UserContext): EntityHolder = {
+  override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
+                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     retrieveEntity(entitySchema)
   }
 
-  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])(implicit userContext: UserContext): EntityHolder = {
+  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
+                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     if(entities.contains(ds.uri)) {
       retrieveEntity(entitySchema)
     } else {

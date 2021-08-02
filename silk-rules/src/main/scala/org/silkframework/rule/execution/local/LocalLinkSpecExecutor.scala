@@ -1,13 +1,14 @@
 package org.silkframework.rule.execution.local
 
 import org.silkframework.config.{PlainTask, Prefixes, Task}
+import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, EmptyDataset}
+import org.silkframework.entity.EntitySchema
 import org.silkframework.dataset.{DataSource, DatasetCharacteristics, Dataset, DatasetSpec, EmptyDataset}
 import org.silkframework.entity.paths.TypedPath
-import org.silkframework.entity.{Entity, EntitySchema}
-import org.silkframework.execution.local.{EmptyEntityTable, LinksTable, LocalEntities, LocalExecution, MultiEntityTable}
+import org.silkframework.execution.local._
 import org.silkframework.execution.{EntityHolder, ExecutionReport, Executor, ExecutorOutput}
-import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.rule.execution._
+import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{DPair, Uri}
@@ -57,20 +58,20 @@ class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
   private class EntitySource(table: LocalEntities) extends DataSource {
 
     override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
-                         (implicit userContext: UserContext): EntityHolder = {
+                         (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
       table
     }
 
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                              (implicit userContext: UserContext): EntityHolder = {
+                              (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
       EmptyEntityTable(underlyingTask)
     }
 
     override def retrieveTypes(limit: Option[Int])
-                              (implicit userContext: UserContext): Traversable[(String, Double)] = Traversable.empty
+                              (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = Traversable.empty
 
     override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])
-                              (implicit userContext: UserContext): IndexedSeq[TypedPath] = IndexedSeq.empty
+                              (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = IndexedSeq.empty
 
     /**
       * The dataset task underlying the Datset this source belongs to
