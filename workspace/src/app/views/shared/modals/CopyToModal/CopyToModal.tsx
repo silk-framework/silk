@@ -225,7 +225,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                     <Spacing />
                     <Accordion>
                         <AccordionItem
-                            title={
+                            label={
                                 <TitleSubsection>
                                     {t("common.messages.copyModalOverwrittenTasks", {
                                         tasks: overwrittenTasks,
@@ -258,7 +258,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             ))}
                         </AccordionItem>
                         <AccordionItem
-                            title={
+                            label={
                                 <TitleSubsection>
                                     {t("common.messages.copyModalCopiedTasks", {
                                         tasks: copiedTasks,
