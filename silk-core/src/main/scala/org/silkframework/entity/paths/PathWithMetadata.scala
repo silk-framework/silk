@@ -93,6 +93,16 @@ object PathWithMetadata{
     apply(UntypedPath.saveApply(path)(prefixes).operators, valueType, m ++ oldM)
   }
 
+  def apply(path: TypedPath, metadata: Map[String, Any]): PathWithMetadata = {
+    val m = Map(
+      META_FIELD_IS_ATTRIBUTE -> metadata.getOrElse(META_FIELD_IS_ATTRIBUTE, false),
+      META_FIELD_ORIGIN_NAME -> metadata.getOrElse(META_FIELD_ORIGIN_NAME, path.normalizedSerialization),
+      META_FIELD_VALUE_TYPE -> metadata.getOrElse(META_FIELD_VALUE_TYPE, PlainValueTypeSerialization.write(path.valueType)(vtwc))
+    )
+    val oldM = metadata.filterKeys(k => ! requiredMetadataKeys.contains(k))
+    apply(path.operators, path.valueType, m ++ oldM)
+  }
+
   /**
     * determines whether or not the given PathWithMetadata is an attribute, based on the provided metadata.
     * @param path - the PathWithMetadata
