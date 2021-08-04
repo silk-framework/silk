@@ -25,7 +25,7 @@ import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.IdentifierOptionParameter
+import org.silkframework.runtime.plugin.{IdentifierOptionParameter, StringOptionParameter}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
@@ -35,7 +35,7 @@ import org.silkframework.util._
 import org.silkframework.workspace.project.task.DatasetTaskReferenceAutoCompletionProvider
 
 import scala.collection.mutable
-import scala.xml.Node
+import scala.xml.{Node, NodeSeq}
 
 /**
  * Represents a Silk Link Specification.
@@ -63,7 +63,10 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
                     linkLimit: Int = LinkSpec.DEFAULT_LINK_LIMIT,
                     @Param(label = "Matching timeout", value = "The timeout for the matching phase. If the matching takes longer the execution will be stopped.",
                       advanced = true)
-                    matchingExecutionTimeout: Int = LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS) extends TaskSpec {
+                    matchingExecutionTimeout: Int = LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS,
+                    @Param(value = "Additional data that is set by the application managing the linking task.",
+                      visibleInDialog = false)
+                    applicationData: StringOptionParameter = None) extends TaskSpec {
 
   assert(linkLimit >= 0, "The link limit must be greater equal 0!")
   assert(matchingExecutionTimeout >= 0, "The matching execution timeout must be greater equal 0!")
@@ -238,7 +241,8 @@ object LinkSpec {
             Identifier(id)
           },
         linkLimit = (node \ "@linkLimit").headOption.map(_.text.toInt).getOrElse(LinkSpec.DEFAULT_LINK_LIMIT),
-        matchingExecutionTimeout = (node \ "@matchingExecutionTimeout").headOption.map(_.text.toInt).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS)
+        matchingExecutionTimeout = (node \ "@matchingExecutionTimeout").headOption.map(_.text.toInt).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS),
+        applicationData = (node \ "ApplicationData").headOption.map(_.text)
       )
     }
 
@@ -253,6 +257,7 @@ object LinkSpec {
         <Outputs>
           {spec.output.value.toSeq.map(o => <Output id={o}></Output>)}
         </Outputs>
+        { spec.applicationData.map(data => <ApplicationData>{data}</ApplicationData>).getOrElse(NodeSeq.Empty) }
       </Interlink>
   }
 }

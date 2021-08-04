@@ -80,6 +80,10 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
       description = Some("Updated Task Description")
     )
 
+  val applicationData = "Some Data"
+
+  val applicationDataUpdated = "Updated Data"
+
   val dataset = PlainTask(DATASET_ID, DatasetSpec(MockDataset("default")), metaData = MetaData(DATASET_ID, Some(DATASET_ID + " description")))
 
   val datasetUpdated = PlainTask(DATASET_ID, DatasetSpec(MockDataset("updated"), uriAttribute = Some("uri")), metaData = MetaData(DATASET_ID))
@@ -88,11 +92,11 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   private val dummyRestriction = Restriction.custom("  ?a <urn:test:prop1> 1 .\n\n  ?a <urn:test:prop2> true .\n")(Prefixes.default)
 
   val linkSpec = LinkSpec(rule = rule, source = DatasetSelection(DUMMY_DATASET, dummyType, dummyRestriction), target = DatasetSelection(DUMMY_DATASET, dummyType, dummyRestriction),
-    linkLimit = LinkSpec.DEFAULT_LINK_LIMIT + 1, matchingExecutionTimeout = LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS + 1)
+    linkLimit = LinkSpec.DEFAULT_LINK_LIMIT + 1, matchingExecutionTimeout = LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS + 1, applicationData = Some(applicationData))
 
   val linkTask = PlainTask(LINKING_TASK_ID, linkSpec, metaData)
 
-  val linkTaskUpdated = PlainTask(LINKING_TASK_ID, LinkSpec(rule = rule.copy(operator = None)), metaDataUpdated)
+  val linkTaskUpdated = PlainTask(LINKING_TASK_ID, LinkSpec(rule = rule.copy(operator = None), applicationData = Some(applicationDataUpdated)), metaDataUpdated)
 
   val transformTask =
     PlainTask(

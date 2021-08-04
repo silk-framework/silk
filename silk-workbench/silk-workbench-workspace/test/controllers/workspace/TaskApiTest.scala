@@ -260,6 +260,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
     (response.json \ DATA \ PARAMETERS \ "source" \ "typeUri").get mustBe JsString("<http://dbpedia.org/ontology/Film>")
     (response.json \ DATA \ PARAMETERS \ "target" \ "typeUri").get mustBe JsString("<http://data.linkedmdb.org/resource/movie/film>")
     (response.json \ DATA \ PARAMETERS \ "rule" \ "linkType").get mustBe JsString("owl:sameAs")
+    (response.json \ DATA \ PARAMETERS \ "applicationData").isEmpty mustBe true
   }
 
   "patch linking task" in {
@@ -278,7 +279,8 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
          |        "inputId": "$datasetId",
          |        "typeUri": "<urn:schema:targetType>",
          |        "restriction": ""
-         |      }
+         |      },
+         |      "applicationData": "Some Data"
          |    }
          |  }
          | }
@@ -297,6 +299,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
     (response.json \ DATA \ PARAMETERS \ "source" \ "typeUri").get mustBe JsString("owl:Class")
     (response.json \ DATA \ PARAMETERS \ "target" \ "typeUri").get mustBe JsString("<urn:schema:targetType>")
     (response.json \ DATA \ PARAMETERS \ "rule" \ "linkType").get mustBe JsString("owl:sameAs")
+    (response.json \ DATA \ PARAMETERS \ "applicationData").get mustBe JsString("Some Data")
   }
 
   "post workflow task" in {

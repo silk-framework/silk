@@ -931,6 +931,7 @@ object JsonSerializers {
     final val REFERENCE_LINKS = "referenceLinks"
     final val LINK_LIMIT = "linkLimit"
     final val MATCHING_EXECUTION_TIMEOUT = "matchingExecutionTimeout"
+    final val APPLICATION_DATA = "applicationData"
 
     /** Deprecated properties */
     final val DEPRECATED_OUTPUTS = "outputs"
@@ -952,7 +953,8 @@ object JsonSerializers {
             output = stringValueOption(parametersObj, OUTPUT).filter(_.trim.nonEmpty).map(o => Identifier(o.trim)),
             referenceLinks = optionalValue(parametersObj, REFERENCE_LINKS).map(fromJson[ReferenceLinks]).getOrElse(ReferenceLinks.empty),
             linkLimit = numberValueOption(parametersObj, LINK_LIMIT).map(_.intValue).getOrElse(LinkSpec.DEFAULT_LINK_LIMIT),
-            matchingExecutionTimeout = numberValueOption(parametersObj, MATCHING_EXECUTION_TIMEOUT).map(_.intValue).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS)
+            matchingExecutionTimeout = numberValueOption(parametersObj, MATCHING_EXECUTION_TIMEOUT).map(_.intValue).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS),
+            applicationData = stringValueOption(parametersObj, APPLICATION_DATA)
           )
       }
     }
@@ -967,23 +969,30 @@ object JsonSerializers {
         output = mustBeJsArray(mustBeDefined(value, DEPRECATED_OUTPUTS))(_.value.map(v => Identifier(v.as[JsString].value))).headOption,
         referenceLinks = optionalValue(value, REFERENCE_LINKS).map(fromJson[ReferenceLinks]).getOrElse(ReferenceLinks.empty),
         linkLimit = numberValueOption(value, LINK_LIMIT).map(_.intValue()).getOrElse(LinkSpec.DEFAULT_LINK_LIMIT),
-        matchingExecutionTimeout = numberValueOption(value, MATCHING_EXECUTION_TIMEOUT).map(_.intValue()).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS)
+        matchingExecutionTimeout = numberValueOption(value, MATCHING_EXECUTION_TIMEOUT).map(_.intValue()).getOrElse(LinkSpec.DEFAULT_EXECUTION_TIMEOUT_SECONDS),
+        applicationData = stringValueOption(value, APPLICATION_DATA)
       )
     }
 
     override def write(value: LinkSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      var parameters = Json.obj(
+        SOURCE -> toJson(value.dataSelections.source),
+        TARGET -> toJson(value.dataSelections.target),
+        RULE -> toJson(value.rule),
+        OUTPUT -> JsString(value.output.map(_.toString).getOrElse("")),
+        REFERENCE_LINKS -> toJson(value.referenceLinks),
+        LINK_LIMIT -> JsString(value.linkLimit.toString),
+        MATCHING_EXECUTION_TIMEOUT -> JsString(value.matchingExecutionTimeout.toString)
+      )
+
+      for(data <- value.applicationData) {
+        parameters += (APPLICATION_DATA -> JsString(data))
+      }
+
       Json.obj(
         TASKTYPE -> TASK_TYPE_LINKING,
         TYPE -> "linking",
-        PARAMETERS -> Json.obj(
-          SOURCE -> toJson(value.dataSelections.source),
-          TARGET -> toJson(value.dataSelections.target),
-          RULE -> toJson(value.rule),
-          OUTPUT -> JsString(value.output.map(_.toString).getOrElse("")),
-          REFERENCE_LINKS -> toJson(value.referenceLinks),
-          LINK_LIMIT -> JsString(value.linkLimit.toString),
-          MATCHING_EXECUTION_TIMEOUT -> JsString(value.matchingExecutionTimeout.toString)
-        )
+        PARAMETERS -> parameters
       )
     }
   }
