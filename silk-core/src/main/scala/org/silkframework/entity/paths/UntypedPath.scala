@@ -46,12 +46,12 @@ class UntypedPath private[entity](val operators: List[PathOperator]) extends Pat
   override def hashCode: Int = normalizedSerialization.hashCode
 
   /** Returns a [[paths.TypedPath]] from this path with string type values. */
-  def asStringTypedPath: TypedPath = TypedPath(this.operators, ValueType.STRING, xmlAttribute = false)
+  def asStringTypedPath: TypedPath = TypedPath(this.operators, ValueType.STRING, isAttribute = false)
 
-  def asUriTypedPath: TypedPath = TypedPath(this.operators, ValueType.URI, xmlAttribute = false)
+  def asUriTypedPath: TypedPath = TypedPath(this.operators, ValueType.URI, isAttribute = false)
 
   /** Returns an untyped ([[org.silkframework.entity.UntypedValueType]]) [[TypedPath]].  */
-  def asUntypedValueType: TypedPath = TypedPath(this.operators, ValueType.UNTYPED, xmlAttribute = false)
+  def asUntypedValueType: TypedPath = TypedPath(this.operators, ValueType.UNTYPED, isAttribute = false)
 }
 
 object UntypedPath {
@@ -118,5 +118,9 @@ object UntypedPath {
     } else {
       path
     }
+  }
+
+  def partialParse(pathStr: String)(implicit prefixes: Prefixes = Prefixes.empty): PartialParseResult = {
+    new PathParser(prefixes).parseUntilError(pathStr)
   }
 }

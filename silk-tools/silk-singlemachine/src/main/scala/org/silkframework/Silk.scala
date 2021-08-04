@@ -14,11 +14,6 @@
 
 package org.silkframework
 
-import java.io.File
-import java.util.logging.{Level, Logger}
-
-import javax.inject.Inject
-import org.silkframework
 import org.silkframework.config._
 import org.silkframework.dataset.CombinedEntitySink
 import org.silkframework.rule.execution.{ExecuteTransform, GenerateLinks}
@@ -32,6 +27,9 @@ import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutor, Wor
 import org.silkframework.workspace.resources.SharedFileRepository
 import org.silkframework.workspace.{InMemoryWorkspaceProvider, Project, ProjectMarshallerRegistry, Workspace}
 
+import java.io.File
+import java.util.logging.{Level, Logger}
+import javax.inject.Inject
 import scala.math.max
 import scala.xml.XML
 
@@ -165,12 +163,11 @@ object Silk {
    */
   private def executeLinkSpec(config: LinkingConfig, linkSpec: Task[LinkSpec], numThreads: Int = DefaultThreads, reload: Boolean = true)
                              (implicit userContext: UserContext): Unit = {
+    implicit val prefixes: Prefixes = config.prefixes
     val generateLinks =
       new GenerateLinks(
-        id = linkSpec.id,
-        label = linkSpec.id,
+        linkSpec,
         inputs = linkSpec.findSources(config.sources),
-        linkSpec = linkSpec,
         output = config.output.map(_.linkSink),
         runtimeConfig = config.runtime.copy(numThreads = numThreads, reloadCache = reload)
       )
@@ -186,7 +183,7 @@ object Silk {
   private def executeTransform(config: LinkingConfig, transform: Task[TransformSpec]): Unit = {
     val input = config.source(transform.selection.inputId).source
     implicit val prefixes: Prefixes = config.prefixes
-    Activity(new ExecuteTransform(transform.taskLabel(), (_) => input, transform.data, (_) =>
+    Activity(new ExecuteTransform(transform, (_) => input, (_) =>
       new CombinedEntitySink(config.output.map(_.entitySink).toSeq))).startBlocking() // TODO: Allow to set error output
   }
 

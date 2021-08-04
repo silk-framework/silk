@@ -2,6 +2,8 @@
 @import org.silkframework.workbench.WorkbenchPlugin.TaskActions
 @import org.silkframework.workspace.ProjectTask
 @import org.silkframework.workspace.activity.workflow.Workflow
+@import models.workflow.WorkflowConfig
+@import config.WorkbenchLinks
 
 @(taskActions: TaskActions, workflow: ProjectTask[Workflow], pos: Option[(Int, Int)] = None)
 
@@ -11,8 +13,8 @@
   <div class="dataset-contents">
     <div class="dataset-buttons">
       <img src="@Assets.at("img/delete.png")" style="float:right" onclick="editor.removeElement($(this).parent().parent().parent().attr('id'))"/>
-      @for(path <- taskActions.openPath(Some(workflow.id), None)) {
-        <img align="right" src="@Assets.at("img/wrench-screwdriver.png")" style="float:right" onclick="window.open('@config.baseUrl/@path', '_blank')" />
+      @for(link <- WorkbenchLinks.editorLink(taskActions, workflow.id)) {
+        <img align="right" src="@Assets.at("img/wrench-screwdriver.png")" style="cursor:pointer;" onclick="window.open('@link', '_blank')" />
       }
     </div>
     <div class="dataset-name">@taskActions.task.taskLabel(maxLength = 24)</div>

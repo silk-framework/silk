@@ -12,11 +12,39 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
 
   def retrieveVocabulary(uri: String)(implicit userContext: UserContext): Option[Vocabulary] = {
     val classes = retrieveClasses(uri)
+    val vocabGenericInfo = retrieveGenericVocabularyInfo(uri)
     Some(Vocabulary(
-      info = GenericInfo(uri, None, None, Seq.empty),
+      info = vocabGenericInfo,
       classes = classes,
       properties = retrieveProperties(uri, classes)
     ))
+  }
+
+  def retrieveGenericVocabularyInfo(vocabularyGraphUri: String)
+                                   (implicit userContext: UserContext): GenericInfo = {
+    val vocabQuery =
+      s"""
+         | $prefixes
+         |
+         | SELECT * WHERE {
+         |   GRAPH <$vocabularyGraphUri> {
+         |     { ?v a owl:Ontology }
+         |     ${genericInfoPropertiesPattern("v")}
+         |   }
+         | }
+         | ORDER BY ?v
+      """.stripMargin
+    val bindings = endpoint.select(vocabQuery).bindings
+    val vocabUri = collectObjectNodes("v", bindings).headOption
+    val label = rankValues(labelVars.flatMap(collectObjectNodes(_, bindings))).headOption
+    val description = rankValues(commentVars.flatMap(collectObjectNodes(_, bindings))).headOption
+    val altLabels = rankValues(altLabelVars.flatMap(collectObjectNodes(_, bindings)))
+    GenericInfo(
+      vocabularyGraphUri, // FIXME: At the moment we expect the graph to be the same as the vocab URI
+      label = label,
+      description = description,
+      altLabels = altLabels
+    )
   }
 
   def genericInfoPropertiesPattern(varName: String): String =
@@ -31,6 +59,7 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
       |     # alternative labels
       |     OPTIONAL { ?$varName skos:altLabel ?skosAltLabel }
       |     OPTIONAL { ?$varName dct:title ?dctTitle }
+      |     OPTIONAL { ?$varName dc:title ?dcTitle }
       |     OPTIONAL { ?$varName skos:prefLabel ?skosPrefLabel }
       |     OPTIONAL { ?$varName dc:identifier ?dcIdentifier }
       |     OPTIONAL { ?$varName dct:identifier ?dctIdentifier }
@@ -40,7 +69,7 @@ class VocabularyLoader(endpoint: SparqlEndpoint) {
 
   val commentVars: Seq[String] = Seq("rdfsComment", "skosDefinition", "dctDescription", "scopeNote")
   val labelVars: Seq[String] = Seq("label", "skosPrefLabel")
-  val altLabelVars: Seq[String] = Seq("skosAltLabel", "dctTitle", "skosPrefLabel", "dcIdentifier", "dctIdentifier", "foafName", "skosNotation")
+  val altLabelVars: Seq[String] = Seq("skosAltLabel", "dctTitle", "dcTitle", "skosPrefLabel", "dcIdentifier", "dctIdentifier", "foafName", "skosNotation")
 
   val prefixes: String =
     """PREFIX owl: <http://www.w3.org/2002/07/owl#>

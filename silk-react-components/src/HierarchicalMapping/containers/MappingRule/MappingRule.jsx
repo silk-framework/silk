@@ -247,6 +247,7 @@ export class MappingRule extends React.Component {
                         this.props.provided.draggableStyle,
                         this.props.snapshot.isDragging
                     )}
+                    {...this.props.provided.draggableProps}
                     {...this.props.provided.dragHandleProps}
                 >
                     {this.state.loading ? <Spinner/> : false}

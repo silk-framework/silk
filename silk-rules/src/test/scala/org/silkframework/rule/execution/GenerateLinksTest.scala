@@ -16,8 +16,7 @@ package org.silkframework.rule.execution
 
 import java.util.Locale
 import java.util.logging.{Level, Logger}
-
-import org.silkframework.config.Task
+import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.entity.Link
 import org.silkframework.entity.paths.UntypedPath
@@ -49,7 +48,9 @@ object GenerateLinksTest {
 
   private val sourceKey = UntypedPath.parse("?a/<label>")
   private val targetKey = UntypedPath.parse("?b/<label>")
+
   private implicit val userContext: UserContext = UserContext.Empty
+  private implicit val prefixes: Prefixes = Prefixes.empty
 
   private val tests =
     Test("Full", Full()) ::
@@ -158,7 +159,7 @@ object GenerateLinksTest {
                             runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig()): GenerateLinks = {
       val sourcePair = linkSpec.findSources(datasets)
       val outputs = linkSpec.output.flatMap(o => datasets.find(_.id == o)).map(_.linkSink)
-      new GenerateLinks(id, id, sourcePair, linkSpec, outputs, runtimeConfig)
+      new GenerateLinks(PlainTask(id, linkSpec), sourcePair, outputs, runtimeConfig)
     }
 
     private def run(runtimeConfig: RuntimeLinkingConfig): Set[Link] = {

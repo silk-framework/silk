@@ -1,30 +1,52 @@
 package controllers.workspace
 
-import java.io._
-import java.util.logging.Logger
-
-import akka.stream.scaladsl.Source
+import akka.stream.scaladsl.StreamConverters
+import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.util.FileMultiPartRequest
 import controllers.workspace.ProjectMarshalingApi._
-import javax.inject.Inject
+import controllers.workspace.doc.ProjectMarshalingApiDoc
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.parameters.RequestBody
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workspace.xml.XmlZipWithResourcesProjectMarshaling
 import org.silkframework.workspace.{ProjectMarshallerRegistry, ProjectMarshallingTrait, WorkspaceFactory}
-import play.api.libs.iteratee.Enumerator
-import play.api.libs.iteratee.streams.IterateeStreams
 import play.api.libs.json.JsArray
 import play.api.mvc._
 
+import java.io._
+import java.util.logging.Logger
+import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
-class ProjectMarshalingApi @Inject() () extends InjectedController with ControllerUtilsTrait {
+@Tag(name = "Project import/export", description = "Import and export projects.")
+class ProjectMarshalingApi @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
   import ProjectMarshallerRegistry._
 
+  @Operation(
+    summary = "Marshalling plugins",
+    description = "Returns a list of supported workspace/project import/export plugins, e.g. RDF, XML.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(ProjectMarshalingApiDoc.marshallingPluginsExample))
+          )
+        )
+      )
+    )
+  )
   def availableMarshallingPlugins(): Action[AnyContent] = Action {
     val marshaller = marshallingPlugins
     Ok(JsArray(marshaller.map(JsonSerializer.marshaller)))
@@ -32,14 +54,45 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with Controll
 
   def importProject(project: String): Action[AnyContent] = importProjectViaPlugin(project, XmlZipWithResourcesProjectMarshaling.marshallerId)
 
-  /**
-    * importProject variant with explicit marshaller parameter
-    *
-    * @param project
-    * @param marshallerId This should be one of the ids returned by the availableProjectMarshallingPlugins method.
-    * @return
-    */
-  def importProjectViaPlugin(project: String, marshallerId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Import project",
+    description = "Import a project from the file send with the request.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the import succeeded"
+      )
+    )
+  )
+  @RequestBody(
+    description = "The project file to be imported.",
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "multipart/form-data",
+        schema = new Schema(implementation = classOf[FileMultiPartRequest])
+      ),
+      new Content(
+        mediaType = "application/octet-stream"
+      ),
+    )
+  )
+  def importProjectViaPlugin(@Parameter(
+                               name = "project",
+                               description = "The project identifier",
+                               required = true,
+                               in = ParameterIn.PATH,
+                               schema = new Schema(implementation = classOf[String])
+                             )
+                             project: String,
+                             @Parameter(
+                               name = "importPlugin",
+                               description = "The marshalling format. One of the ids returned from the `marshallingPlugins` endpoint.",
+                               required = true,
+                               in = ParameterIn.PATH,
+                               schema = new Schema(implementation = classOf[String])
+                             )
+                             marshallerId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     withMarshaller(marshallerId) { marshaller =>
       val workspace = WorkspaceFactory().workspace
       workspace.importProject(project, bodyAsFile, marshaller)
@@ -49,19 +102,72 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with Controll
 
   def exportProject(projectName: String): Action[AnyContent] = exportProjectViaPlugin(projectName, XmlZipWithResourcesProjectMarshaling.marshallerId)
 
-  def exportProjectViaPlugin(projectName: String, marshallerPluginId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Export project",
+    description = "Export a project with the specified marshalling plugin.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "The response contains the exported project."
+      )
+    )
+  )
+  def exportProjectViaPlugin(@Parameter(
+                               name = "project",
+                               description = "The project identifier",
+                               required = true,
+                               in = ParameterIn.PATH,
+                               schema = new Schema(implementation = classOf[String])
+                             )
+                             projectName: String,
+                             @Parameter(
+                               name = "exportPlugin",
+                               description = "The marshalling format. One of the ids returned from the `marshallingPlugins` endpoint.",
+                               required = true,
+                               in = ParameterIn.PATH,
+                               schema = new Schema(implementation = classOf[String])
+                             )
+                             marshallerPluginId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     withMarshaller(marshallerPluginId) { marshaller =>
-      val enumerator = enumerateOutputStream { outputStream =>
+      val source = createSource { outputStream =>
         WorkspaceFactory().workspace.exportProject(projectName, outputStream, marshaller)
       }
-
       val fileName = projectName + marshaller.suffix.map("." + _).getOrElse("")
-
-      Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(enumerator))).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
+      Ok.chunked(source).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
     }
   }
 
-  def importWorkspaceViaPlugin(marshallerId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Import workspace",
+    description = "Imports the entire workspace from the file send with the request. Before importing all existing projects will be removed from the workspace.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the import succeeded"
+      )
+    )
+  )
+  @RequestBody(
+    description = "The workspace file to be imported.",
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "multipart/form-data",
+        schema = new Schema(implementation = classOf[FileMultiPartRequest])
+      ),
+      new Content(
+        mediaType = "application/octet-stream"
+      ),
+    )
+  )
+  def importWorkspaceViaPlugin(@Parameter(
+                                 name = "importPlugin",
+                                 description = "The marshalling format. One of the ids returned from the `marshallingPlugins` endpoint.",
+                                 required = true,
+                                 in = ParameterIn.PATH,
+                                 schema = new Schema(implementation = classOf[String])
+                               )
+                               marshallerId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     WorkspaceFactory().workspace.clear()
     withMarshaller(marshallerId) { marshaller =>
       val workspace = WorkspaceFactory().workspace
@@ -72,16 +178,31 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with Controll
     }
   }
 
-  def exportWorkspaceViaPlugin(marshallerPluginId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Export workspace",
+    description = "Exports the entire workspace with the specified marshalling plugin.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "The response contains the exported workspace."
+      )
+    )
+  )
+  def exportWorkspaceViaPlugin(@Parameter(
+                                 name = "exportPlugin",
+                                 description = "The marshalling format. One of the ids returned from the `marshallingPlugins` endpoint.",
+                                 required = true,
+                                 in = ParameterIn.PATH,
+                                 schema = new Schema(implementation = classOf[String])
+                               )
+                               marshallerPluginId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     withMarshaller(marshallerPluginId) { marshaller =>
-      val enumerator = enumerateOutputStream { outputStream =>
+      val source = createSource { outputStream =>
         val workspace = WorkspaceFactory().workspace
         marshaller.marshalWorkspace(outputStream, workspace.projects, workspace.repository)
       }
-
       val fileName = "workspace" + marshaller.suffix.map("." + _).getOrElse("")
-
-      Ok.chunked(Source.fromPublisher(IterateeStreams.enumeratorToPublisher(enumerator))).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
+      Ok.chunked(source).withHeaders("Content-Disposition" -> s"attachment; filename=$fileName")
     }
   }
 
@@ -94,22 +215,21 @@ class ProjectMarshalingApi @Inject() () extends InjectedController with Controll
     }
   }
 
-  private def enumerateOutputStream(serializeFunc: java.io.OutputStream => Unit): Enumerator[Array[Byte]] = {
-    val outputStream = new PipedOutputStream
-    val pipedInputStream = new PipedInputStream(outputStream)
+  private def createSource(serializeFunc: java.io.OutputStream => Unit) = {
+    StreamConverters.fromInputStream(() => {
+      val outputStream = new PipedOutputStream
+      val pipedInputStream = new PipedInputStream(outputStream)
 
-    exportExecutionContext.execute(new Runnable {
-      override def run(): Unit = {
+      exportExecutionContext.execute(() => {
         try {
           serializeFunc(outputStream)
         } finally {
-          // We need to make sure to close the output stream to stop the Enumerator
           outputStream.close()
         }
-      }
-    })
+      })
 
-    Enumerator.fromStream(pipedInputStream)(exportExecutionContext)
+      pipedInputStream
+    })
   }
 
   def bodyAsFile(implicit request: Request[AnyContent]): File = {

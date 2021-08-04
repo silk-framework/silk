@@ -1,10 +1,10 @@
 package org.silkframework.plugins.dataset.xml
 
 import java.net.URLEncoder
-
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.entity.paths._
+import org.silkframework.util.Identifier
 
 import scala.collection.mutable.ArrayBuffer
 import scala.xml.Node
@@ -112,10 +112,10 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
     val childPaths = if(depth == 0) Seq() else children.flatMap(_.collectPathsRecursive(onlyLeafNodes, onlyInnerNodes, path, depth - 1))
     // Generate paths for all attributes
     val attributes = if(depth == 0) Seq() else node.attributes.keys.toSeq
-    val attributesPaths = attributes.map(attribute => TypedPath((path :+ ForwardOperator("@" + attribute)).toList, ValueType.STRING, xmlAttribute = true))
+    val attributesPaths = attributes.map(attribute => TypedPath((path :+ ForwardOperator("@" + attribute)).toList, ValueType.STRING, isAttribute = true))
     // Paths to inner nodes become object paths (URI), else value paths (string)
     val pathValueType: ValueType = if(children.nonEmpty || node.attributes.nonEmpty) ValueType.URI else ValueType.STRING
-    val typedPath = TypedPath(path.toList, pathValueType, xmlAttribute = false)
+    val typedPath = TypedPath(path.toList, pathValueType, isAttribute = false)
 
     if(onlyInnerNodes && children.isEmpty && node.attributes.isEmpty) {
       Seq() // An inner node has at least an attribute or child elements
@@ -159,7 +159,8 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
     */
   private def formatNode(uriPattern: String, fetchEntityUri: Boolean): Option[String] = {
     // Check if this is a leaf node
-    if(!fetchEntityUri && (node.isInstanceOf[InMemoryXmlText] || (node.child.length >= 1 && node.child.forall(_.isInstanceOf[InMemoryXmlText])))) {
+    if(!fetchEntityUri &&
+      (node.isInstanceOf[InMemoryXmlText] || node.isInstanceOf[InMemoryXmlAttribute] || (node.child.length >= 1 && node.child.forall(_.isInstanceOf[InMemoryXmlText])))) {
       Some(node.text)
     } else if(uriPattern.nonEmpty || fetchEntityUri) {
       Some(generateUri(uriPattern))
@@ -205,7 +206,7 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
       case "#tag" =>
         buffer += XmlTraverser(InMemoryXmlText(node.label), Some(this))
       case "#text" =>
-        buffer.+=(this)
+        buffer += XmlTraverser(InMemoryXmlText(node.text), Some(this))
       case "*" =>
         buffer ++= children
       case "**" =>
@@ -213,7 +214,10 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
       case uri: String if uri.startsWith("@") =>
         node.attributes.get(uri.tail) match {
           case Some(attrValue) =>
-            buffer += XmlTraverser(InMemoryXmlText(attrValue), Some(this))
+            buffer += XmlTraverser(InMemoryXmlAttribute(
+              attributeName = uri,
+              value = attrValue
+            ), Some(this))
           case None =>
             // Nothing to add
         }
@@ -247,7 +251,10 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
       case _ if selector(0) == '@' => node match {
         case elem: InMemoryXmlElem =>
           for(attributeValue <- elem.attributes.get(selector.substring(1))) {
-            buffer += XmlTraverser(InMemoryXmlText(attributeValue), Some(this))
+            buffer += XmlTraverser(InMemoryXmlAttribute(
+              attributeName = selector,
+              value = attributeValue
+            ), Some(this))
           }
         case _ =>
           // Nothing to add
@@ -292,12 +299,20 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
   private def evaluatePropertyFilter(op: PropertyFilter, buffer: ArrayBuffer[XmlTraverser]): Unit= {
     val nodeArray = node.child
     var idx = 0
-    while(idx < nodeArray.length) {
-      if(nodeArray(idx).label == op.property.uri && op.evaluate(nodeArray(idx).textExpression)) {
-        buffer += this
-        return
+    if(op.property.uri.startsWith("@")) {
+      node.attributes.get(op.property.uri.drop(1)) foreach { value =>
+        if(op.evaluate(s"""\"$value\"""")) {
+          buffer += this
+        }
       }
-      idx += 1
+    } else {
+      while(idx < nodeArray.length) {
+        if(nodeArray(idx).label == op.property.uri && op.evaluate(nodeArray(idx).textExpression)) {
+          buffer += this
+          return
+        }
+        idx += 1
+      }
     }
   }
 }

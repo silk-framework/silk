@@ -8,10 +8,10 @@ import org.silkframework.util.Uri
   */
 class CombinedEntitySink(sinks: Seq[EntitySink]) extends EntitySink {
 
-  override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
                         (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     for(sink <- sinks) {
-      sink.openTable(typeUri, properties)
+      sink.openTable(typeUri, properties, singleEntity)
     }
   }
 

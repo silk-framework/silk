@@ -1,12 +1,19 @@
 package controllers.workspace
 
+import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.core.{RequestUserContextAction, UserContextAction}
 import controllers.util.SerializationUtils._
 import controllers.util.TextSearchUtils
-import javax.inject.Inject
+import controllers.workspace.DatasetApi.TypeCacheFailedException
+import controllers.workspace.doc.DatasetApiDoc
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.parameters.RequestBody
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{PlainTask, Prefixes}
-import org.silkframework.dataset.DatasetSpec.{DataSourceWrapper, GenericDatasetSpec}
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
 import org.silkframework.entity.EntitySchema
@@ -15,7 +22,7 @@ import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.ReadContext
-import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.runtime.validation.{BadUserInputException, RequestException}
 import org.silkframework.util.Uri
 import org.silkframework.workbench.Context
 import org.silkframework.workbench.utils.ErrorResult
@@ -24,20 +31,107 @@ import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.mvc._
 
-class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTrait {
+import java.net.HttpURLConnection
+import javax.inject.Inject
+
+@Tag(name = "Datasets", description = "Manage datasets.")
+class DatasetApi @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   private implicit val partialPath = Json.format[PathCoverage]
   private implicit val valueCoverageMissFormat = Json.format[ValueCoverageMiss]
   private implicit val valueCoverageResultFormat = Json.format[ValueCoverageResult]
 
-  def getDataset(projectName: String, sourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Retrieve dataset",
+    description = "Retrieve the specification of a dataset.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(DatasetApiDoc.datasetExampleJson))
+          ),
+          new Content(
+            mediaType = "application/xml",
+            examples = Array(new ExampleObject(DatasetApiDoc.datasetExampleXml))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or dataset has not been found."
+      )
+    )
+  )
+  def getDataset(@Parameter(
+                  name = "project",
+                  description = "The project identifier",
+                  required = true,
+                  in = ParameterIn.PATH,
+                  schema = new Schema(implementation = classOf[String])
+                )
+                projectName: String,
+                @Parameter(
+                  name = "name",
+                  description = "The dataset identifier",
+                  required = true,
+                  in = ParameterIn.PATH,
+                  schema = new Schema(implementation = classOf[String])
+                )
+                sourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[GenericDatasetSpec](sourceName)
     serializeCompileTime[DatasetTask](task, Some(project))
   }
 
-  def getDatasetAutoConfigured(projectName: String, sourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Auto-configure dataset",
+    description = "Retrieve an auto-configured version of the dataset.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(DatasetApiDoc.datasetExampleJson))
+          ),
+          new Content(
+            mediaType = "application/xml",
+            examples = Array(new ExampleObject(DatasetApiDoc.datasetExampleXml))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "400",
+        description = "If the dataset type does not support auto-configuration."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or dataset has not been found."
+      )
+    )
+  )
+  def getDatasetAutoConfigured(@Parameter(
+                                 name = "project",
+                                 description = "The project identifier",
+                                 required = true,
+                                 in = ParameterIn.PATH,
+                                 schema = new Schema(implementation = classOf[String])
+                               )
+                               projectName: String,
+                               @Parameter(
+                                 name = "name",
+                                 description = "The dataset identifier",
+                                 required = true,
+                                 in = ParameterIn.PATH,
+                                 schema = new Schema(implementation = classOf[String])
+                               )
+                               sourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val project: Project = WorkspaceFactory().workspace.project(projectName)
+    implicit val prefixes: Prefixes = project.config.prefixes
     val task = project.task[GenericDatasetSpec](sourceName)
     val datasetPlugin = task.data.plugin
     datasetPlugin match {
@@ -49,8 +143,64 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
     }
   }
 
-  def putDataset(projectName: String, datasetName: String, autoConfigure: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Create or update dataset",
+    description = "Create or update a dataset.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "204",
+        description = "If the dataset has been created or updated."
+      ),
+      new ApiResponse(
+        responseCode = "400",
+        description = "If the provided dataset specification is invalid."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project has not been found."
+      )
+    )
+  )
+  @RequestBody(
+    description = "The dataset specification",
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        examples = Array(new ExampleObject(DatasetApiDoc.datasetExampleJson))
+      ),
+      new Content(
+        mediaType = "application/xml",
+        examples = Array(new ExampleObject(DatasetApiDoc.datasetExampleXml))
+      )
+    )
+  )
+  def putDataset(@Parameter(
+                   name = "project",
+                   description = "The project identifier",
+                   required = true,
+                   in = ParameterIn.PATH,
+                   schema = new Schema(implementation = classOf[String])
+                 )
+                 projectName: String,
+                 @Parameter(
+                   name = "name",
+                   description = "The dataset identifier",
+                   required = true,
+                   in = ParameterIn.PATH,
+                   schema = new Schema(implementation = classOf[String])
+                 )
+                 datasetName: String,
+                 @Parameter(
+                   name = "autoConfigure",
+                   description = "If true, the dataset parameters will be auto configured. Only works with dataset plugins that support auto configuration, e.g., CSV.",
+                   required = false,
+                   in = ParameterIn.QUERY,
+                   schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+                 )
+                 autoConfigure: Boolean): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
+    implicit val prefixes: Prefixes = project.config.prefixes
     implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
 
     try {
@@ -74,7 +224,36 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
     }
   }
 
-  def deleteDataset(project: String, source: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Delete dataset",
+    description = "Remove a dataset from a project.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "204",
+        description = "If the dataset has been deleted or there is no dataset with that identifier."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project has not been found."
+      )
+    )
+  )
+  def deleteDataset(@Parameter(
+                      name = "project",
+                      description = "The project identifier",
+                      required = true,
+                      in = ParameterIn.PATH,
+                      schema = new Schema(implementation = classOf[String])
+                    )
+                    project: String,
+                    @Parameter(
+                      name = "name",
+                      description = "The dataset identifier",
+                      required = true,
+                      in = ParameterIn.PATH,
+                      schema = new Schema(implementation = classOf[String])
+                    )
+                    source: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     WorkspaceFactory().workspace.project(project).removeTask[GenericDatasetSpec](source)
     NoContent
   }
@@ -109,9 +288,9 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
     context.task.data match {
       case dataset: GenericDatasetSpec =>
         if (dataset.plugin.isInstanceOf[RdfDataset]) {
-          Redirect(routes.DatasetApi.sparql(project, task))
+          Redirect(routes.DatasetController.sparql(project, task))
         } else {
-          Redirect(routes.DatasetApi.table(project, task))
+          Redirect(routes.DatasetController.table(project, task))
         }
     }
   }
@@ -119,6 +298,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
   def table(project: String, task: String, maxEntities: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[GenericDatasetSpec](project, task, request.path)
     val source = context.task.data.source
+    implicit val prefixes: Prefixes = context.project.config.prefixes
 
     val firstTypes = source.retrieveTypes().head._1
     val paths = source.retrievePaths(firstTypes).toIndexedSeq
@@ -145,6 +325,7 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
   }
 
   /** Get types of a dataset including the search string */
+  @deprecated(message = "getDatasetTypes should be used instead.")
   def types(project: String, task: String, search: String = "", limit: Option[Int] = None): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[GenericDatasetSpec](project, task, request.path)
     implicit val prefixes: Prefixes = context.project.config.prefixes
@@ -158,28 +339,136 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
   }
 
   /** Get all types of the dataset */
-  def getDatasetTypes(project: String,
+  @Operation(
+    summary = "Dataset types",
+    description = "Get a list of entity types of this dataset. Types of a dataset can be classes of an ontology or in the case of a CSV file, a single type.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject("['<http://example.com/Person>', '<http://example.com/Cat>']"))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project has not been found."
+      ),
+      new ApiResponse(
+        responseCode = "500",
+        description = "If loading types from the dataset failed."
+      )
+    )
+  )
+  def getDatasetTypes(@Parameter(
+                        name = "project",
+                        description = "The project identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      project: String,
+                      @Parameter(
+                        name = "name",
+                        description = "The dataset identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
                       task: String,
+                      @Parameter(
+                        name = "textQuery",
+                        description = "An optional multi-word text query to filter the types by.",
+                        required = false,
+                        in = ParameterIn.QUERY,
+                        schema = new Schema(implementation = classOf[String], defaultValue = "")
+                      )
                       textQuery: String,
+                      @Parameter(
+                        name = "limit",
+                        description = "Returns max. that many types in the result. If not specified all types are returned.",
+                        required = false,
+                        in = ParameterIn.QUERY,
+                        schema = new Schema(implementation = classOf[Int])
+                      )
                       limit: Option[Int]): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[GenericDatasetSpec](project, task, request.path)
     implicit val prefixes: Prefixes = context.project.config.prefixes
+    val typeCache = context.task.activity[TypesCache]
 
-    val types = context.task.activity[TypesCache].value().types
+    // Forward any type cache exception
+    for(ex <- typeCache.status().exception) {
+      throw TypeCacheFailedException(ex)
+    }
+
+    // Load and filter types
+    val types = typeCache.value().types
     val multiWordQuery = TextSearchUtils.extractSearchTerms(textQuery)
     val filteredTypes = types.filter(typ => TextSearchUtils.matchesSearchTerm(multiWordQuery, typ))
     val limitedTypes = limit.map(l => filteredTypes.take(l)).getOrElse(filteredTypes)
-
     Ok(JsArray(limitedTypes.map(JsString)))
   }
 
-  def getMappingValueCoverage(projectName: String,
+  @Operation(
+    summary = "Dataset source path mapping coverage",
+    description = DatasetApiDoc.mappingValueCoverageDescription,
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(DatasetApiDoc.mappingValueCoverageExampleResponse))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or dataset has not been found."
+      ),
+      new ApiResponse(
+        responseCode = "500",
+        description = "If the dataset type does not support mapping coverage."
+      )
+    )
+  )
+  @RequestBody(
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[MappingValueCoverageRequest]),
+        examples = Array(new ExampleObject("{\"dataSourcePath\": \"/Person/Properties/Property/Value\"}"))
+      )
+    )
+  )
+  def getMappingValueCoverage(@Parameter(
+                                name = "project",
+                                description = "The project identifier",
+                                required = true,
+                                in = ParameterIn.PATH,
+                                schema = new Schema(implementation = classOf[String])
+                              )
+                              projectName: String,
+                              @Parameter(
+                                name = "name",
+                                description = "The dataset identifier",
+                                required = true,
+                                in = ParameterIn.PATH,
+                                schema = new Schema(implementation = classOf[String])
+                              )
                               datasetId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[MappingValueCoverageRequest] { mappingCoverageRequest =>
       val project = WorkspaceFactory().workspace.project(projectName)
+      implicit val prefixes: Prefixes = project.config.prefixes
       val datasetTask = project.task[GenericDatasetSpec](datasetId)
       val inputPaths = transformationInputPaths(project)
       val dataSourcePath = UntypedPath.parse(mappingCoverageRequest.dataSourcePath)
+
       DataSource.pluginSource(datasetTask) match {
         case vd: PathCoverageDataSource with ValueCoverageDataSource =>
           val matchingInputPaths = for (coveragePathInput <- inputPaths;
@@ -205,7 +494,53 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
 
   private val coverageTypeValues = Seq(FULLY_MAPPED, PARTIALLY_MAPPED, UNMAPPED)
 
-  def getMappingCoverage(projectName: String, datasetId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+  @Operation(
+    summary = "Dataset mapping coverage",
+    description = DatasetApiDoc.mappingCoverageDescription,
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(DatasetApiDoc.mappingCoverageExampleResponse))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or dataset has not been found."
+      ),
+      new ApiResponse(
+        responseCode = "500",
+        description = "If the dataset type does not support mapping coverage."
+      )
+    )
+  )
+  @Parameter(
+    name = "type",
+    description = "This optional parameter specifies which coverage types should be returned. This is a comma-separated String. Allowed values are 'fullyMapped', 'partiallyMapped' and 'unmapped'. Default is all types.",
+    required = false,
+    in = ParameterIn.QUERY,
+    schema = new Schema(implementation = classOf[String], example = "partiallyMapped,unmapped")
+  )
+  def getMappingCoverage(@Parameter(
+                           name = "project",
+                           description = "The project identifier",
+                           required = true,
+                           in = ParameterIn.PATH,
+                           schema = new Schema(implementation = classOf[String])
+                         )
+                         projectName: String,
+                         @Parameter(
+                           name = "name",
+                           description = "The dataset identifier",
+                           required = true,
+                           in = ParameterIn.PATH,
+                           schema = new Schema(implementation = classOf[String])
+                         )
+                         datasetId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val filterPaths = coveragePathFilterFn(request)
 
     try {
@@ -279,6 +614,21 @@ class DatasetApi @Inject() () extends InjectedController with ControllerUtilsTra
         (true, true, true)
     }
   }
+}
+
+object DatasetApi {
+
+  /**
+    * Thrown if the type cache failed.
+    */
+  case class TypeCacheFailedException(cause: Throwable) extends RequestException(cause.getMessage, Option(cause)) {
+
+    def errorTitle: String = "Loading types failed"
+
+    def httpErrorCode: Option[Int] = Some(HttpURLConnection.HTTP_INTERNAL_ERROR)
+
+  }
+
 }
 
 case class MappingValueCoverageRequest(dataSourcePath: String)

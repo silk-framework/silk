@@ -9,11 +9,12 @@ import { childExampleAsync, ruleExampleAsync } from '../../store';
 import { InfoBox } from '../../components/InfoBox';
 import { isDebugMode } from '../../utils/isDebugMode';
 
+/** Shows example input and output values for a mapping rule. */
 export class ExampleView extends React.Component {
     static propTypes = {
         id: PropTypes.string,
         rawRule: PropTypes.object,
-        ruleType: PropTypes.object,
+        ruleType: PropTypes.string,
     };
 
     state = {
@@ -41,7 +42,7 @@ export class ExampleView extends React.Component {
     // template rendering
     render() {
         if (this.state.error) {
-            return <ErrorView {...this.state.error} />;
+            return <ErrorView {...this.state.error} titlePrefix={"There has been an error loading the examples: "} />;
         }
 
         if (_.isUndefined(this.state.example)) {

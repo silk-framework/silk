@@ -21,13 +21,13 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFo
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{DPair, Identifier}
 
-import scala.xml.Node
+import scala.util.Try
+import scala.xml.{Node, Text}
 
 /**
  * A comparison computes the similarity of two inputs.
  */
 case class Comparison(id: Identifier = Operator.generateId,
-                      required: Boolean = false,
                       weight: Int = 1,
                       threshold: Double = 0.0,
                       indexing: Boolean = true,
@@ -45,22 +45,20 @@ case class Comparison(id: Identifier = Operator.generateId,
    * @return The confidence as a value between -1.0 and 1.0.
    */
   override def apply(entities: DPair[Entity], limit: Double): Option[Double] = {
-    val values1 = inputs.source(entities.source)
-    val values2 = inputs.target(entities.target)
+    val values1 = Try(inputs.source(entities.source)).getOrElse(Seq.empty)
+    val values2 = Try(inputs.target(entities.target)).getOrElse(Seq.empty)
 
-    if (values1.isEmpty || values2.isEmpty)
+    if (values1.isEmpty || values2.isEmpty) {
       None
-    else {
+    } else {
       val distance = metric(values1, values2, threshold * (1.0 - limit))
 
       if (distance == 0.0 && threshold == 0.0)
         Some(1.0)
       else if (distance <= 2.0 * threshold)
         Some(1.0 - distance / threshold)
-      else if (!required)
-        Some(-1.0)
       else
-        None
+        Some(-1.0)
     }
   }
 
@@ -73,7 +71,7 @@ case class Comparison(id: Identifier = Operator.generateId,
     * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
     */
   override def index(entity: Entity, sourceOrTarget: Boolean, limit: Double): Index = {
-    val values = if(sourceOrTarget) inputs.source(entity) else inputs.target(entity)
+    val values = Try(inputs.select(sourceOrTarget)(entity)).getOrElse(Seq.empty)
 
     val distanceLimit = threshold * (1.0 - limit)
 
@@ -104,7 +102,6 @@ object Comparison {
       implicit val resourceManager = readContext.resources
 
       try {
-        val requiredStr = (node \ "@required").text
         val threshold = (node \ "@threshold").headOption.map(_.text.toDouble).getOrElse(0.0)
         val weightStr = (node \ "@weight").text
         val indexingStr = (node \ "@indexing").text
@@ -112,7 +109,6 @@ object Comparison {
 
         Comparison(
           id = id,
-          required = if (requiredStr.isEmpty) false else requiredStr.toBoolean,
           threshold = threshold,
           weight = if (weightStr.isEmpty) 1 else weightStr.toInt,
           indexing = if (indexingStr.isEmpty) true else indexingStr.toBoolean,
@@ -127,7 +123,7 @@ object Comparison {
     def write(value: Comparison)(implicit writeContext: WriteContext[Node]): Node = {
       value.metric match {
         case DistanceMeasure(plugin, params) =>
-          <Compare id={value.id} required={value.required.toString} weight={value.weight.toString} metric={plugin.id} threshold={value.threshold.toString} indexing={value.indexing.toString}>
+          <Compare id={value.id} weight={value.weight.toString} metric={plugin.id} threshold={value.threshold.toString} indexing={value.indexing.toString}>
             {toXml(value.inputs.source)}{toXml(value.inputs.target)}{XmlSerialization.serializeParameter(params)}
           </Compare>
       }

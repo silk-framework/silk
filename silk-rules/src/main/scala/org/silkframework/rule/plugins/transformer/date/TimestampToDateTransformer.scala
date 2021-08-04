@@ -18,9 +18,10 @@ package org.silkframework.rule.plugins.transformer.date
 
 import java.text.SimpleDateFormat
 import java.util.Date
-
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, TransformExamples}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin, TransformExample, TransformExamples}
+
+import java.time.Instant
 
 /**
  * Convert Unix timestamp to xsd:date.
@@ -31,19 +32,46 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, T
   id = "timeToDate",
   categories = Array("Date"),
   label = "Timestamp to date",
-  description = "Convert Unix timestamp to xsd:date."
+  description = "Convert a timestamp to xsd:date format. Expects an integer that denotes the passed time since the Unix Epoch (1970-01-01)"
 )
 @TransformExamples(Array(
   new TransformExample(
+    parameters = Array(),
+    input1 = Array("1499117572000"),
+    output = Array("2017-07-03T21:32:52Z")
+  ),
+  new TransformExample(
+    parameters = Array("format", "yyyy-MM-dd"),
+    input1 = Array("1499040000000"),
+    output = Array("2017-07-03")
+  ),
+  new TransformExample(
+    parameters = Array("format", "yyyy-MM-dd", "unit", "seconds"),
     input1 = Array("1499040000"),
     output = Array("2017-07-03")
   )
 ))
-case class TimestampToDateTransformer(format: String = "yyyy-MM-dd") extends SimpleTransformer {
-  val sdf = new SimpleDateFormat(format)
+case class TimestampToDateTransformer(
+  @Param("Custom output format (e.g., 'yyyy-MM-dd'). If left empty, a full xsd:dateTime (UTC) is returned.")
+  format: String = "",
+  unit: DateUnit = DateUnit.milliseconds
+) extends SimpleTransformer {
 
-  override def evaluate(value: String) = {
-    val date = new Date((BigDecimal(value) * 1000).longValue())
-    sdf.format(date)
+  private val dateFormat = {
+    if(format.trim.isEmpty) {
+      None
+    } else {
+      Some(new SimpleDateFormat(format))
+    }
+  }
+
+  override def evaluate(value: String): String = {
+    val instant = Instant.EPOCH.plus(value.toLong, unit.toChronoUnit)
+    dateFormat match {
+      case Some(df) =>
+        df.format(new Date(instant.toEpochMilli))
+      case None =>
+        instant.toString
+    }
   }
 }

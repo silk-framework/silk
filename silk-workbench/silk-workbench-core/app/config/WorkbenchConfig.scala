@@ -7,6 +7,7 @@ import config.WorkbenchConfig.Tabs
 import javax.inject.Inject
 import org.silkframework.config.DefaultConfig
 import org.silkframework.runtime.resource._
+import play.api.mvc.RequestHeader
 import play.api.{Configuration, Environment, Mode}
 import play.twirl.api.Html
 
@@ -17,14 +18,12 @@ import scala.util.{Failure, Success, Try}
  * Workbench configuration.
  *
  * @param title The application title.
- * @param showHeader Whether the header is shown
  * @param logo The application logo. Must point to a file in the conf directory.
  * @param welcome Welcome message. Must point to a file in the conf directory.
  * @param tabs The shown tabs.
  */
 case class WorkbenchConfig(title: String = "Silk Workbench",
                            version: String,
-                           showHeader: Boolean,
                            logo: Resource,
                            welcome: Resource,
                            about: Resource,
@@ -34,6 +33,11 @@ case class WorkbenchConfig(title: String = "Silk Workbench",
                            loggedOut: Resource) {
   var showLogoutButton: Boolean = false
   val useHttps: Boolean = protocol == "https"
+
+  def showHeader(request: RequestHeader): Boolean = {
+    !request.queryString.get("inlineView").exists(_.exists(_.toLowerCase == "true"))
+  }
+
 }
 
 object WorkbenchConfig {
@@ -143,7 +147,6 @@ object WorkbenchConfig {
     WorkbenchConfig(
       title = config.getOptional[String]("workbench.title").getOrElse("Silk Workbench"),
       version = version,
-      showHeader = config.getOptional[Boolean]("workbench.showHeader").getOrElse(true),
       logo = resourceLoader.get(config.getOptional[String]("workbench.logo").getOrElse("logo.png")),
       welcome = resourceLoader.get(config.getOptional[String]("workbench.welcome").getOrElse("welcome.html")),
       about = resourceLoader.get(config.getOptional[String]("workbench.about").getOrElse("about.html")),
@@ -153,7 +156,8 @@ object WorkbenchConfig {
                config.getOptional[Boolean]("workbench.tabs.generateLinks").getOrElse(true),
                config.getOptional[Boolean]("workbench.tabs.learn").getOrElse(true),
                config.getOptional[Boolean]("workbench.tabs.referenceLinks").getOrElse(true),
-               config.getOptional[Boolean]("workbench.tabs.status").getOrElse(true)
+               config.getOptional[Boolean]("workbench.tabs.status").getOrElse(true),
+               config.getOptional[Boolean]("workbench.tabs.legacyWorkflowEditor").getOrElse(true)
              ),
       protocol = config.getOptional[String]("workbench.protocol").getOrElse("http"),
       loggedOut = resourceLoader.get("loggedOut.html")
@@ -184,5 +188,6 @@ object WorkbenchConfig {
                   generateLinks: Boolean = true,
                   learn: Boolean = true,
                   referenceLinks:Boolean = true,
-                  status: Boolean = true)
+                  status: Boolean = true,
+                  legacyWorkflowEditor: Boolean = true)
 }

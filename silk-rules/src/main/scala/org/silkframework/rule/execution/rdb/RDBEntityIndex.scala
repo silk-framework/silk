@@ -2,8 +2,7 @@ package org.silkframework.rule.execution.rdb
 
 import java.sql._
 import java.util.logging.Logger
-
-import org.silkframework.config.DefaultConfig
+import org.silkframework.config.{DefaultConfig, Prefixes}
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
@@ -19,7 +18,7 @@ import scala.util.Random
   */
 class RDBEntityIndex(linkSpec: LinkSpec,
                      dataSources: DPair[DataSource],
-                     runtimeLinkingConfig: RuntimeLinkingConfig) extends Activity[Unit] {
+                     runtimeLinkingConfig: RuntimeLinkingConfig)(implicit prefixes: Prefixes) extends Activity[Unit] {
   private val cfg = DefaultConfig.instance()
 
   override def run(context: ActivityContext[Unit])
@@ -65,7 +64,7 @@ class RDBEntityIndexLoader(linkSpec: LinkSpec,
                            dataSource: DataSource,
                            sourceOrTarget: Boolean,
                            runtimeLinkingConfig: RuntimeLinkingConfig,
-                           uniquePrefix: String) extends Activity[EntityTables] {
+                           uniquePrefix: String)(implicit prefixes: Prefixes) extends Activity[EntityTables] {
   final val BULK_UPDATE_SIZE = 100
   private val tablePrefix = uniquePrefix + (if(sourceOrTarget) "source_" else "target_")
   private val mainIndexTableName = tablePrefix + "mainIndexTable"

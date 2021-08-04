@@ -1,25 +1,21 @@
 package controllers.workspace
 
-import java.io.File
-import java.net.URL
-import java.util.logging.Logger
-
-import akka.stream.scaladsl.Source
-import akka.util.ByteString
+import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.core.{RequestUserContextAction, UserContextAction}
-import controllers.workspace.workspaceRequests.UpdateGlobalVocabularyRequest
-import controllers.workspace.workspaceApi.TaskLinkInfo
-import controllers.workspaceApi.coreApi.PluginApiCache
-import controllers.workspaceApi.search.ResourceSearchRequest
-import javax.inject.Inject
+import controllers.workspace.doc.WorkspaceApiDoc
+import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse, UpdateGlobalVocabularyRequest}
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.parameters.RequestBody
+import io.swagger.v3.oas.annotations.enums.ParameterIn
 import org.silkframework.config._
-import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.ResourceBasedDataset
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
 import org.silkframework.runtime.activity.Activity
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.resource.{ResourceManager, ResourceNotFoundException, UrlResource, WritableResource}
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
@@ -28,42 +24,121 @@ import org.silkframework.workspace._
 import org.silkframework.workspace.activity.ProjectExecutor
 import org.silkframework.workspace.activity.vocabulary.GlobalVocabularyCache
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
-import play.api.libs.Files
-import play.api.libs.iteratee.Enumerator
-import play.api.libs.iteratee.streams.IterateeStreams
-import play.api.libs.json.{JsArray, JsString, Json}
-import play.api.libs.json.{JsArray, JsString, JsValue}
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import javax.inject.Inject
 import scala.language.existentials
 import scala.util.Try
 
-class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor, pluginApiCache: PluginApiCache) extends InjectedController with ControllerUtilsTrait {
+@Tag(name = "Projects")
+class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
-  private val log: Logger = Logger.getLogger(this.getClass.getName)
-
+  @Operation(
+    summary = "Reload",
+    description = "Reloads the workspace from the backend. The request blocks until the reload finished.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the reload succeeded."
+      )
+    )
+  )
   def reload: Action[AnyContent] = UserContextAction { implicit userContext =>
     WorkspaceFactory().workspace.reload()
     Ok
   }
 
+  @Operation(
+    summary = "Reload workspace prefixes",
+    description = "Reloads the workspace prefixes from registered or all vocabularies from the backend. The request blocks until the reload finished.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the reload succeeded."
+      )
+    )
+  )
   def reloadPrefixes: Action[AnyContent] = UserContextAction { implicit userContext =>
     WorkspaceFactory().workspace.reloadPrefixes()
     Ok
   }
 
+  @Operation(
+    summary = "List projects",
+    description = "Get a list with all projects.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject(WorkspaceApiDoc.projectListExample))
+        ))
+      )
+    )
+  )
   def projects: Action[AnyContent] = UserContextAction { implicit userContext =>
     Ok(JsonSerializer.projectsJson)
   }
 
-  def getProject(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Get project contents",
+    description = "List the contents of a single project.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject(WorkspaceApiDoc.projectExample))
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project has not been found."
+      )
+    )
+  )
+  def getProject(@Parameter(
+                   name = "project",
+                   description = "The project identifier",
+                   required = true,
+                   in = ParameterIn.PATH,
+                   schema = new Schema(implementation = classOf[String])
+                 )
+                 projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     accessMonitor.saveProjectAccess(project.config.id)
     Ok(JsonSerializer.projectJson(project))
   }
 
-  def newProject(project: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Create project",
+    description = "Create a new empty project.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "201",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject("{\"name\": \"project name\"}"))
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "409",
+        description = "If a project with the specified identifier already exists."
+      )
+    )
+  )
+  def newProject(@Parameter(
+                   name = "project",
+                   description = "The project identifier",
+                   required = true,
+                   in = ParameterIn.PATH,
+                   schema = new Schema(implementation = classOf[String])
+                 )
+                 project: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     if (WorkspaceFactory().workspace.projects.exists(_.name.toString == project)) {
       ErrorResult(CONFLICT, "Conflict", s"Project with name '$project' already exists. Creation failed.")
     } else {
@@ -74,12 +149,62 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor, pluginApiC
     }
   }
 
-  def deleteProject(project: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Delete project",
+    description = "Delete a project.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the project has been deleted successfully."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project has not been found."
+      )
+    )
+  )
+  def deleteProject(@Parameter(
+                      name = "project",
+                      description = "The project identifier",
+                      required = true,
+                      in = ParameterIn.PATH,
+                      schema = new Schema(implementation = classOf[String])
+                    )
+                    project: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     WorkspaceFactory().workspace.removeProject(project)
     Ok
   }
 
-  def cloneProject(oldProject: String, newProject: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Clone project",
+    description = "Clone a project.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "If the project has been cloned successfully."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the source project has not been found."
+      )
+    )
+  )
+  def cloneProject(@Parameter(
+                     name = "project",
+                     description = "The identifier of the source project, which is to be cloned.",
+                     required = true,
+                     in = ParameterIn.PATH,
+                     schema = new Schema(implementation = classOf[String])
+                   )
+                   oldProject: String,
+                   @Parameter(
+                     name = "newProject",
+                     description = "The identifier of the cloned project.",
+                     required = true,
+                     in = ParameterIn.QUERY,
+                     schema = new Schema(implementation = classOf[String])
+                   )
+                   newProject: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val workspace = WorkspaceFactory().workspace
     val project = workspace.project(oldProject)
 
@@ -96,6 +221,49 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor, pluginApiC
     }
 
     Ok
+  }
+
+  @Operation(
+    summary = "Copy project tasks",
+    description = "Copies all tasks in a project to another project. Referenced resources are copied only if the target project uses a different resource path than the source project.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Lists all copied tasks.",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            schema = new Schema(implementation = classOf[CopyTasksResponse]),
+            examples = Array(new ExampleObject(WorkspaceApiDoc.copyProjectResponse))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project has not been found."
+      )
+    )
+  )
+  @RequestBody(
+    content = Array(
+      new Content(
+        schema = new Schema(implementation = classOf[CopyTasksRequest]),
+        examples = Array(new ExampleObject(WorkspaceApiDoc.copyProjectRequest))
+      )
+    )
+  )
+  def copyProject(@Parameter(
+                    name = "project",
+                    description = "The project identifier.",
+                    required = true,
+                    in = ParameterIn.PATH,
+                    schema = new Schema(implementation = classOf[String])
+                  )
+                  projectName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>implicit userContext =>
+    validateJson[CopyTasksRequest] { copyRequest =>
+      val result = copyRequest.copyProject(projectName)
+      Ok(Json.toJson(result))
+    }
   }
 
   def executeProject(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
@@ -151,111 +319,24 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor, pluginApiC
     Ok
   }
 
-  def getResources(projectName: String,
-                   searchText: Option[String],
-                   limit: Option[Int],
-                   offset: Option[Int]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    val resourceRequest = ResourceSearchRequest(searchText, limit, offset)
-    val project = WorkspaceFactory().workspace.project(projectName)
-    Ok(resourceRequest(project))
-  }
-
-  def getResourceMetadata(projectName: String, resourcePath: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val resource = project.resources.getInPath(resourcePath, File.separatorChar, mustExist = true)
-
-    val pathPrefix = resourcePath.lastIndexOf(File.separatorChar) match {
-      case -1 => ""
-      case index => resourcePath.substring(0, index + 1)
-    }
-
-    Ok(JsonSerializer.resourceProperties(resource, pathPrefix))
-  }
-
-  def getResource(projectName: String, resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val resource = project.resources.get(resourceName, mustExist = true)
-    val enumerator = Enumerator.fromStream(resource.inputStream)
-    val source = Source.fromPublisher(IterateeStreams.enumeratorToPublisher(enumerator))
-
-    Ok.chunked(source).withHeaders("Content-Disposition" -> "attachment")
-  }
-
-  def putResource(projectName: String, resourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request =>implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val resource = project.resources.get(resourceName)
-
-    val response = request.body match {
-      case AnyContentAsMultipartFormData(formData) if formData.files.nonEmpty =>
-        putResourceFromMultipartFormData(resource, formData)
-      case AnyContentAsMultipartFormData(formData) if formData.dataParts.contains("resource-url") =>
-        putResourceFromResourceUrl(resource, formData)
-      case AnyContentAsMultipartFormData(formData) if formData.files.isEmpty =>
-        // Put empty resource
-        resource.writeBytes(Array[Byte]())
-        NoContent
-      case AnyContentAsRaw(buffer) =>
-        resource.writeFile(buffer.asFile)
-        NoContent
-      case AnyContentAsText(txt) =>
-        resource.writeString(txt)
-        NoContent
-      case AnyContentAsEmpty =>
-        // Put empty resource
-        resource.writeBytes(Array[Byte]())
-        NoContent
-      case _ =>
-        ErrorResult(UnsupportedMediaTypeException.supportedFormats("multipart/form-data", "application/octet-stream", "text/plain"))
-    }
-    if(response == NoContent) { // Successfully updated
-      log.info(s"Created/updated resource '$resourceName' in project '$projectName'. " + userContext.logInfo)
-    }
-    response
-  }
-
-  private def putResourceFromMultipartFormData(resource: WritableResource, formData: MultipartFormData[Files.TemporaryFile]) = {
-    try {
-      val file = formData.files.head.ref.path.toFile
-      resource.writeFile(file)
-      NoContent
-    } catch {
-      case ex: Exception =>
-        ErrorResult(BadUserInputException(ex))
-    }
-  }
-
-  private def putResourceFromResourceUrl(resource: WritableResource, formData: MultipartFormData[Files.TemporaryFile]): Result = {
-    try {
-      val dataParts = formData.dataParts("resource-url")
-      val url = dataParts.head
-      val urlResource = UrlResource(new URL(url))
-      resource.writeResource(urlResource)
-      NoContent
-    } catch {
-      case ex: Exception =>
-        ErrorResult(BadUserInputException(ex))
-    }
-  }
-
-  /** The list of tasks that use this resource. */
-  def resourceUsage(projectId: String, resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = super[ControllerUtilsTrait].getProject(projectId)
-    val dependentTasks: Seq[TaskLinkInfo] = project.allTasks
-        .filter(_.referencedResources.map(_.name).contains(resourceName))
-        .map { task =>
-          TaskLinkInfo(task.id, task.taskLabel(Int.MaxValue), pluginApiCache.taskTypeByClass(task.taskType))
-        }
-    Ok(Json.toJson(dependentTasks))
-  }
-
-  def deleteResource(projectName: String, resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    project.resources.delete(resourceName)
-    log.info(s"Deleted resource '$resourceName' in project '$projectName'. " + userContext.logInfo)
-    NoContent
-  }
-
-  /** Updates the global vocabulary cache for a specific vocabulary */
+  @Operation(
+    summary = "Update global vocabulary cache",
+    description = "Update a specific vocabulary of the global vocabulary cache. This request is non-blocking. It can take a while for the cache to be up to date.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "204",
+        description = "The update of the vocabulary cache has been scheduled."
+      )
+    )
+  )
+  @RequestBody(
+    content = Array(
+      new Content(
+        schema = new Schema(implementation = classOf[UpdateGlobalVocabularyRequest]),
+        examples = Array(new ExampleObject("""{ "iri": "http://xmlns.com/foaf/0.1/" }"""))
+      )
+    )
+  )
   def updateGlobalVocabularyCache(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>
     implicit userContext =>
       validateJson[UpdateGlobalVocabularyRequest] { updateRequest =>

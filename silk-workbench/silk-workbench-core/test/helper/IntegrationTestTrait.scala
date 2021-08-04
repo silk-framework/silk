@@ -2,15 +2,14 @@ package helper
 
 import java.io._
 import java.net.URLDecoder
-
 import org.scalatest.TestSuite
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
-import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, RdfNode}
 import org.silkframework.rule.{MappingRules, TransformSpec}
 import org.silkframework.runtime.activity.{TestUserContextTrait, UserContext}
 import org.silkframework.runtime.serialization.XmlSerialization
-import org.silkframework.util.StreamUtils
+import org.silkframework.util.{StatusCodeTestTrait, StreamUtils}
 import org.silkframework.workspace._
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache}
 import org.silkframework.workspace.activity.workflow.Workflow
@@ -21,17 +20,23 @@ import play.api.libs.ws.{WSRequest, WSResponse}
 import play.api.mvc.Call
 import play.api.routing.Router
 
+import java.io._
+import java.net.URLDecoder
 import scala.collection.immutable.SortedMap
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.io.Source
-import scala.util.Random
 import scala.xml.{Elem, XML}
 
 /**
   * Basis for integration tests.
   */
-trait IntegrationTestTrait extends TaskApiClient with ActivityApiClient with GuiceOneServerPerSuite with TestWorkspaceProviderTestTrait with TestUserContextTrait {
+trait IntegrationTestTrait extends TaskApiClient
+    with ActivityApiClient
+    with GuiceOneServerPerSuite
+    with TestWorkspaceProviderTestTrait
+    with TestUserContextTrait
+    with StatusCodeTestTrait {
   this: TestSuite =>
 
   final val APPLICATION_JSON: String = "application/json"
@@ -39,14 +44,10 @@ trait IntegrationTestTrait extends TaskApiClient with ActivityApiClient with Gui
   final val APPLICATION_XML: String = "application/xml"
   final val CONTENT_TYPE: String = "content-type"
   final val ACCEPT: String = "accept"
-  final val CREATED: Int = 201
-  final val NOT_FOUND: Int = 404
-  final val BAD_REQUEST: Int = 400
-  final val CONFLICT: Int = 409
 
-  val baseUrl = s"http://localhost:$port"
+  lazy val baseUrl = s"http://localhost:$port"
 
-  override lazy val port: Int = 19000 + Random.nextInt(1000)
+  implicit val prefixes: Prefixes = Prefixes.empty
 
   def workspaceProject(projectId: String)
                       (implicit userContext: UserContext): Project = WorkspaceFactory().workspace.project(projectId)

@@ -48,7 +48,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     val pureOutputNodes = outputs.toSet -- inputs
     var done = pureOutputNodes
     var sortedOperators = Vector.empty[(WorkflowNode, Int)]
-    val (start, rest) = nodes.partition(node => pureOutputNodes.contains(node.nodeId))
+    val (start, rest) = nodes.toList.partition(node => pureOutputNodes.contains(node.nodeId))
     var layer = 1
     sortedOperators ++= start.map((_, layer))
     var operatorsToSort = rest
@@ -148,7 +148,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     if (bothInAndOut.nonEmpty) {
       throw new scala.Exception("Cannot use variable dataset as input AND output! Affected datasets: " + bothInAndOut.mkString(", "))
     }
-    AllVariableDatasets(variableDatasetsUsedInInput, variableDatasetsUsedInOutput)
+    AllVariableDatasets(variableDatasetsUsedInInput.distinct, variableDatasetsUsedInOutput.distinct)
   }
 
   /** Returns all Dataset tasks that are used as input in the workflow */
@@ -191,7 +191,7 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
   /**
     * A workflow does not have any inputs.
     */
-  override def inputSchemataOpt: Option[Seq[EntitySchema]] = Some(Seq())
+  override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
 
   /**
     * The schema of the output data.

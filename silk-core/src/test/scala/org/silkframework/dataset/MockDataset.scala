@@ -25,38 +25,40 @@ case class MockDataset(@Param(label = "person name", value = "The full name of a
   override def linkSink(implicit userContext: UserContext): LinkSink = DummyLinkSink(writeLinkFn, clearFn)
 
   override def entitySink(implicit userContext: UserContext): EntitySink = DummyEntitySink(writeEntityFn, clearFn)
+
+  override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly
 }
 
 case class DummyDataSource(retrieveFn: (EntitySchema, Option[Int]) => Traversable[Entity],
                            retrieveByUriFn: (EntitySchema, Seq[Uri]) => Seq[Entity],
                            retrievePathsFn: (Uri, Int, Option[Int]) => IndexedSeq[TypedPath]) extends DataSource {
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                       (implicit userContext: UserContext): EntityHolder = {
+                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     GenericEntityTable(retrieveFn(entitySchema, limit), entitySchema, underlyingTask)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): EntityHolder = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     GenericEntityTable(retrieveByUriFn(entitySchema, entities), entitySchema, underlyingTask)
   }
 
   override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])
-                            (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
     retrievePathsFn(typeUri, depth, limit)
   }
 
   override def retrieveTypes(limit: Option[Int])
-                            (implicit userContext: UserContext): Traversable[(String, Double)] = Traversable.empty
+                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = Traversable.empty
 
   override def underlyingTask: Task[DatasetSpec[Dataset]] = EmptySource.underlyingTask
 }
 
 case class DummyLinkSink(writeLinkFn: (Link, String) => Unit,
                          clearFn: () => Unit) extends LinkSink {
-  override def init()(implicit userContext: UserContext): Unit = {}
+  override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = {}
 
   override def writeLink(link: Link, predicateUri: String)
-                        (implicit userContext: UserContext): Unit = {
+                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     writeLinkFn(link, predicateUri)
   }
 
@@ -67,7 +69,7 @@ case class DummyLinkSink(writeLinkFn: (Link, String) => Unit,
 
 case class DummyEntitySink(writeEntityFn: (String, Seq[Seq[String]]) => Unit,
                            clearFn: () => Unit) extends EntitySink {
-  override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
                         (implicit userContext: UserContext, prefixes: Prefixes): Unit = {}
 
   override def writeEntity(subject: String, values: Seq[Seq[String]])

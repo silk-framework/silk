@@ -60,6 +60,10 @@ trait ControllerUtilsTrait {
     workspace.findProject(projectId).isDefined
   }
 
+  def allProjects(implicit userContext: UserContext): Seq[Project] = {
+    workspace.projects
+  }
+
   def task[T <: TaskSpec : ClassTag](projectName: String, taskName: String)
                                     (implicit userContext: UserContext): ProjectTask[T] = {
     val project = getProject(projectName)

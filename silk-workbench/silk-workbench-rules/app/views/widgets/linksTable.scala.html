@@ -9,6 +9,8 @@
 @import org.silkframework.runtime.activity.UserContext
 @import org.silkframework.util.DPair
 @import org.silkframework.workspace.{Project, ProjectTask}
+@import java.util.UUID
+@import org.silkframework.workbench.Context
 
 @(project: Project,
   task: ProjectTask[LinkSpec],
@@ -20,17 +22,17 @@
   page: Int,
   showStatus: Boolean, showDetails: Boolean, showEntities: Boolean, rateButtons: Boolean)(implicit userContext: UserContext)
 
+@render(getPageLinks())
+@for(statistics <- linkingStatistics) {
+  @linkingReport(statistics, links.size)
+}
+
 @getPageLinks() = @{
   val pageSize = 100
   val filteredLinks = LinkFilter(links, filter.stripPrefix("filter:"))
   val sortedLinks = sorting(filteredLinks)
   val pageLinks = sortedLinks.view(page * pageSize, (page + 1) * pageSize)
   pageLinks
-}
-
-@render(getPageLinks())
-@for(statistics <- linkingStatistics) {
-  @linkingReport(statistics, links.size)
 }
 
 @render(pageLinks: Seq[EvalLink]) = {
@@ -73,14 +75,14 @@
 
         @if(showStatus) {
           <div class="link-status">
-            <span>Status</span>
+            @sortableHeader(CorrectnessSorterAscending, CorrectnessSorterDescending) {
+              <span>Status</span>
+            }
           </div>
         }
 
         <div class="link-buttons">
-          @sortableHeader(CorrectnessSorterAscending, CorrectnessSorterDescending) {
           <span>Correct</span>
-          }
         </div>
 
       </div>
@@ -240,6 +242,7 @@
       <span class="input">
         Transform: @transform.transformer.pluginSpec.id (@transform.id)
         @values.map(v => <span class={divClassPrefix + "-value"}>{v}</span>)
+        @renderError(value.formattedErrorMessage)
       </span>
       <ul>
         @children.map(v => renderValue(v, divClassPrefix))
@@ -253,6 +256,7 @@
         @for(v <- values) {
           <span class="@(divClassPrefix)-value">@convertToLinkIfDetected(v)</span>
         }
+        @renderError(value.formattedErrorMessage)
       </span>
     </li>
   }
@@ -287,6 +291,14 @@
   }
   case None => {}
 }}
+
+@renderError(error: Option[String], id: String = UUID.randomUUID.toString) = {
+  @for(e <- error) {
+    <span id="error-@id" title="@error">
+      <img src="@Assets.at("img/exclamation.png")" style="cursor: help;" />
+    </span>
+  }
+}
 
 @id(link: EvalLink, prefix: String = "") = @{
   prefix + link.hashCode

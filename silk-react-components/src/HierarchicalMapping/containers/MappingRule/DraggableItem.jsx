@@ -19,19 +19,19 @@ const isExpanded = (id) => {
 };
 
 class DraggableItem extends React.Component {
-    
+
     state = {
         isPasted: isPasted(this.props.id),
         expanded: isExpanded(this.props.id) || isPasted(this.props.id)
     };
-    
+
     componentDidMount() {
         if (this.state.isPasted) {
             !sessionStorage.removeItem('pastedId');
             this.props.scrollIntoView();
         }
     }
-    
+
     handleExpand = (expanded = !this.state.expanded, id = true) => {
         // only trigger state / render change if necessary
         if (
@@ -44,7 +44,7 @@ class DraggableItem extends React.Component {
             });
         }
     };
-    
+
     render() {
         return (
             <Draggable
@@ -52,6 +52,7 @@ class DraggableItem extends React.Component {
                 style={{ width: '15' }}
                 key={this.props.id}
                 draggableId={this.props.id}
+                index={this.props.pos}
             >
                 {
                     (provided, snapshot) => <MappingRule

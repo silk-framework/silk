@@ -1,14 +1,14 @@
 package org.silkframework.rule
 
-import org.silkframework.config.Task
+import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
 import org.silkframework.entity.metadata.GenericExecutionFailure
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.failures.FailureClass
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
 import scala.util.{Failure, Success, Try}
@@ -26,7 +26,7 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @param limit Restricts the number of types to be retrieved. No effect on this data source.
     */
   override def retrieveTypes(limit: Option[Int] = None)
-                            (implicit userContext: UserContext): Traversable[(String, Double)] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
     for(TypeMapping(_, typeUri, _) <- transformRule.rules.typeRules) yield {
       (typeUri.toString, 1.0)
     }
@@ -40,7 +40,7 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @param limit Restricts the number of paths to be retrieved. No effect on this data source.
     */
   override def retrievePaths(t: Uri, depth: Int = 1, limit: Option[Int] = None)
-                            (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
     transformRule.rules.allRules.flatMap(_.target).map(_.asTypedPath()).distinct.toIndexedSeq
   }
 
@@ -52,7 +52,7 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                       (implicit userContext: UserContext): EntityHolder = {
+                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     GenericEntityTable(retrieveEntities(entitySchema, None, limit), entitySchema, underlyingTask)
   }
 
@@ -64,7 +64,7 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
     */
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): EntityHolder = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     if(entities.isEmpty) {
       EmptyEntityTable(underlyingTask)
     } else {
@@ -73,7 +73,7 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
   }
 
   private def retrieveEntities(entitySchema: EntitySchema, entities: Option[Seq[Uri]], limit: Option[Int])
-                              (implicit userContext: UserContext): Traversable[Entity] = {
+                              (implicit userContext: UserContext, prefixes: Prefixes): Traversable[Entity] = {
     val subjectRule = transformRule.rules.allRules.find(_.target.isEmpty)
     val pathRules =
       for (typedPath <- entitySchema.typedPaths) yield {

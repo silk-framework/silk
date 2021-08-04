@@ -25,10 +25,20 @@ case class FileResource(file: File)
 
   def size: Option[Long] = Some(file.length)
 
-  def modificationTime = Some(Instant.ofEpochMilli(file.lastModified()))
+  def modificationTime: Option[Instant] = Some(Instant.ofEpochMilli(file.lastModified()))
 
   override def inputStream: BufferedInputStream = {
     new BufferedInputStream(new FileInputStream(file))
+  }
+
+  /**
+    * Creates an output stream for writing to this resource.
+    * The caller is responsible for closing the stream after writing.
+    * Using [[write()]] is preferred as it takes care of closing the output stream.
+    */
+  override def createOutputStream(append: Boolean): OutputStream = {
+    createDirectory()
+    new BufferedOutputStream(new FileOutputStream(file, append))
   }
 
   override def deleteOnGC: Boolean = _deleteOnGC
@@ -41,21 +51,6 @@ case class FileResource(file: File)
   def createEmpty(): Unit ={
     createDirectory()
     file.createNewFile()
-  }
-
-  /**
-   * Lets the caller write into an [[OutputStream]] via the write function of the resource and closes it
-   * after it returns.
-   * @param write A function that accepts an output stream and writes to it.
-   */
-  override def write(append: Boolean = false)(write: OutputStream => Unit): Unit = {
-    createDirectory()
-    val outputStream = new BufferedOutputStream(new FileOutputStream(file, append))
-    try {
-      write(outputStream)
-    } finally {
-      outputStream.close()
-    }
   }
 
   /**
@@ -72,6 +67,6 @@ case class FileResource(file: File)
   override def delete(): Unit = file.delete()
 
   private def createDirectory(): Unit = {
-    file.getParentFile.safeMkdirs()
+    Option(file.getParentFile).foreach(_.safeMkdirs())
   }
 }

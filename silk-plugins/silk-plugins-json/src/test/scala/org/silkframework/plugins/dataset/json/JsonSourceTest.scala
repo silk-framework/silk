@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.json
 
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
@@ -15,6 +16,7 @@ class JsonSourceTest extends FlatSpec with MustMatchers {
   behavior of "Json Source"
 
   implicit val userContext: UserContext = UserContext.Empty
+  implicit val prefixes: Prefixes = Prefixes.empty
 
   private val resources = ClasspathResourceLoader("org/silkframework/plugins/dataset/json/")
 

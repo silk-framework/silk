@@ -1,7 +1,7 @@
 package controllers.workspace
 
 import controllers.core.{AutoCompletableTestPlugin, TestAutoCompletionProvider}
-import controllers.workspaceApi.search.SearchApiModel.{FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult, Facets, KeywordFacetSetting, SortBy, SortOrder, SortableProperty}
+import controllers.workspaceApi.search.SearchApiModel.{DESCRIPTION, FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult, Facets, ID, KeywordFacetSetting, LABEL, PLUGIN_ID, PLUGIN_LABEL, PROJECT_ID, PROJECT_LABEL, SortBy, SortOrder, SortableProperty}
 import controllers.workspaceApi.search._
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
@@ -58,6 +58,11 @@ class SearchApiIntegrationTest extends FlatSpec
     }
   }
 
+  private val projectLabel = "Facet Search Workspace Project Label"
+  private val projectDescription = "Facet Search Workspace Project Description"
+  private val allDatasets = Seq("csvA", "csvB", "csvC", "jsonXYZ", "output", "xmlA1", "xmlA2")
+  private val allResults = Seq("singleProject", "csvA", "csvB", "csvC", "jsonXYZ", "output", "xmlA1", "xmlA2", "transformA")
+
   it should "return item types" in {
     val response = client.url(s"$baseUrl/api/workspace/searchConfig/types").get()
     val json = checkResponse(response).json
@@ -72,13 +77,31 @@ class SearchApiIntegrationTest extends FlatSpec
     val typeIds = (json \ "values").as[JsArray].value.map(v => (v \ "id").as[String])
     typeIds mustBe Seq("workflow", "dataset", "transform", "linking", "task")
   }
-
-  private val allDatasets = Seq("csvA", "csvB", "csvC", "jsonXYZ", "output", "xmlA1", "xmlA2")
-  private val allResults = Seq("singleProject", "csvA", "csvB", "csvC", "jsonXYZ", "output", "xmlA1", "xmlA2", "transformA")
+  private def resultAsMap(searchResultObject: JsObject): Map[String, String] = searchResultObject.value
+      .filter(_._1 != "itemLinks") // Filter out item links, since they are no string
+      .mapValues(_.as[String]).toMap
 
   it should "return all tasks (pages) for a unrestricted search" in {
     val (response, _) = facetedSearchRequest(FacetedSearchRequest())
     resultItemIds(response) mustBe allResults
+    // Check project response
+    resultAsMap(response.results.head) mustBe Map(
+      DESCRIPTION -> projectDescription,
+      LABEL -> projectLabel,
+      ID -> projectId,
+      "type" -> "project"
+    )
+    val csvDatasetProperties = resultAsMap(response.results(1))
+    csvDatasetProperties mustBe Map(
+      DESCRIPTION -> "",
+      PROJECT_LABEL -> projectLabel,
+      LABEL -> "csv A",
+      PLUGIN_ID -> "csv",
+      PLUGIN_LABEL -> "CSV",
+      PROJECT_ID -> "singleProject",
+      ID -> "csvA",
+      "type" -> "dataset"
+    )
   }
 
   it should "only return task results for project restricted searches" in {
@@ -88,7 +111,7 @@ class SearchApiIntegrationTest extends FlatSpec
 
   it should "only return task results for project restricted searches with text query" in {
     val (response, _) = facetedSearchRequest(FacetedSearchRequest(project = Some(projectId), textQuery = Some("o    s")))
-    resultItemIds(response) mustBe Seq("jsonXYZ", "transformA")
+    resultItemIds(response) mustBe Seq("jsonXYZ", "output", "transformA")
   }
 
   it should "page through the results correctly" in {
@@ -115,6 +138,7 @@ class SearchApiIntegrationTest extends FlatSpec
   }
 
   private val CSV = "csv"
+  private val csvATask = "csvA"
 
   it should "return the right facet counts and result for a dataset type restricted search" in {
     val (facetedSearchResult, json) = facetedSearchRequest(FacetedSearchRequest(itemType = Some(ItemType.dataset)))
@@ -166,7 +190,7 @@ class SearchApiIntegrationTest extends FlatSpec
   it should "sort the results by label/ID" in {
     resultItemIds(facetedSearchRequest(
       FacetedSearchRequest(itemType = Some(ItemType.dataset), sortBy = Some(SortBy.label), sortOrder = Some(SortOrder.DESC))
-    )._1) mustBe Seq("xmlA2", "xmlA1", "output", "jsonXYZ", "csvC", "csvB", "csvA")
+    )._1) mustBe Seq("xmlA2", "xmlA1", "output", "jsonXYZ", "csvC", "csvB", csvATask)
     resultItemIds(facetedSearchRequest(
       FacetedSearchRequest(itemType = Some(ItemType.dataset), sortBy = Some(SortBy.label), sortOrder = Some(SortOrder.ASC))
     )._1) mustBe Seq("csvA", "csvB", "csvC", "jsonXYZ", "output", "xmlA1", "xmlA2")
@@ -229,6 +253,49 @@ class SearchApiIntegrationTest extends FlatSpec
     }
   }
 
+  it should "consider both project and task label in the search" in {
+    val newProject = "newProject2"
+    val project = retrieveOrCreateProject(newProject)
+    try {
+      val workflow = Workflow(Seq.empty, Seq.empty)
+      project.addAnyTask(csvATask, workflow)
+      val result = facetedSearchRequest(
+        FacetedSearchRequest(itemType = Some(ItemType.workflow), textQuery = Some(s"$csvATask $newProject"))
+      )._1
+      result.results must have size 1
+      resultAsMap(result.results.head).filter{ case (key, _) => Set(PROJECT_LABEL, LABEL).contains(key)} mustBe Map(
+        PROJECT_LABEL -> newProject,
+        LABEL -> "csvA"
+      )
+    } finally {
+      WorkspaceFactory().workspace.removeProject(newProject)
+    }
+  }
+
+  it should "consider project label and description as a whole" in {
+    val results = facetedSearchRequest(
+      FacetedSearchRequest(textQuery = Some(s"facet search project label description"))
+    )._1.results
+    results must have size 1
+    (results.head \ ID).as[String] mustBe projectId
+  }
+
+  it should "consider the plugin label in the search" in {
+    val results = facetedSearchRequest(
+      FacetedSearchRequest(textQuery = Some(s"output in-memory"))
+    )._1.results
+    results must have size 1
+    (results.head \ ID).as[String] mustBe "output"
+  }
+
+  it should "consider the dataset item type in the search" in {
+    val results = facetedSearchRequest(
+      FacetedSearchRequest(textQuery = Some(s"xyz dataset"))
+    )._1.results
+    results must have size 1
+    (results.head \ ID).as[String] mustBe "jsonXYZ"
+  }
+
   private val testAutoCompletionProvider = TestAutoCompletionProvider()
   implicit private val autoCompleteResultReads: Writes[AutoCompletionResult] = Json.writes[AutoCompletionResult]
 
@@ -258,7 +325,7 @@ class SearchApiIntegrationTest extends FlatSpec
     defaultResults.flatMap(_.get(ResourceSearchRequest.NAME_PARAM)).map(_.as[String])
   }
 
-  private lazy val resourceSearchUrl = controllers.workspace.routes.WorkspaceApi.getResources(projectId)
+  private lazy val resourceSearchUrl = controllers.workspace.routes.ResourceApi.getResources(projectId)
 
   private lazy val pluginParameterAutoCompleteUrl = s"$baseUrl/api/workspace/pluginParameterAutoCompletion"
 

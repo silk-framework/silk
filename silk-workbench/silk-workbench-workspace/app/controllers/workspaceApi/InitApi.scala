@@ -1,9 +1,15 @@
 package controllers.workspaceApi
 
 import java.util.logging.Logger
-
-import controllers.core.RequestUserContextAction
+import com.typesafe.config.ConfigValueType
+import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
+import controllers.workspaceApi.doc.InitApiDoc
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.{Content, ExampleObject}
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
+
 import javax.inject.Inject
 import org.silkframework.config.DefaultConfig
 import play.api.libs.json.{Format, JsArray, JsString, Json}
@@ -14,20 +20,47 @@ import scala.collection.JavaConverters._
 /**
   * API endpoints for initialization of the frontend application.
   */
-case class InitApi @Inject()() extends InjectedController with ControllerUtilsTrait {
+@Tag(name = "Workbench")
+case class InitApi @Inject()() extends InjectedController with UserContextActions with ControllerUtilsTrait {
   private val dmConfigKey = "eccencaDataManager.baseUrl"
   private val dmLinksKey = "eccencaDataManager.moduleLinks"
+  private val hotkeyConfigPath = "frontend.hotkeys"
   private val dmLinkPath = "path"
   private val dmLinkIcon = "icon"
   private val dmLinkDefaultLabel = "defaultLabel"
+  private val playMaxFileUploadSizeKey = "play.http.parser.maxDiskBuffer"
   private lazy val cfg = DefaultConfig.instance()
   private val log: Logger = Logger.getLogger(getClass.getName)
 
+  lazy val dmBaseUrl: Option[JsString] = {
+    if(cfg.hasPath(dmConfigKey)) {
+      Some(JsString(cfg.getString(dmConfigKey)))
+    } else {
+      None
+    }
+  }
+
+  @Operation(
+    summary = "Init frontend",
+    description = "Returns information that is necessary for the frontend initialization or otherwise needed from the beginning on.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "The `emptyWorkspace` parameter signals if the workspace is empty or contains at least one project. The `initialLangauge` parameter returns the initial language (either 'de' or 'en') that has been extracted from the Accept-language HTTP header send by the browser. The `maxFileUploadSize` specifies the max. file size in bytes. The `dmBaseUrl` is optional and returns the base URL, if configured in the DI config via parameter eccencaDataManager.baseUrl. The `dmModuleLinks` are only available if the DM base URL is defined. These are configured links to DM modules.",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(InitApiDoc.initFrontendExample)))
+        )
+      )
+    ))
   def init(): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val emptyWorkspace = workspace.projects.isEmpty
     val resultJson = Json.obj(
       "emptyWorkspace" -> emptyWorkspace,
-      "initialLanguage" -> initialLanguage(request)
+      "initialLanguage" -> initialLanguage(request),
+      "hotKeys" -> Json.toJson(hotkeys()),
+      "maxFileUploadSize" -> maxUploadSize
     )
     val withDmUrl = dmBaseUrl.map { url =>
       resultJson + ("dmBaseUrl" -> url) + ("dmModuleLinks" -> JsArray(dmLinks.map(Json.toJson(_))))
@@ -46,6 +79,25 @@ case class InitApi @Inject()() extends InjectedController with ControllerUtilsTr
       }
     })
     "en" // default
+  }
+
+  private def maxUploadSize = {
+    if (cfg.hasPath(playMaxFileUploadSizeKey)) {
+      Some(cfg.getMemorySize(playMaxFileUploadSizeKey).toBytes)
+    } else {
+      None
+    }
+  }
+
+  private def hotkeys(): Map[String, String] = {
+    if(cfg.hasPath(hotkeyConfigPath)) {
+      val hotkeyConfig = cfg.getConfig(hotkeyConfigPath)
+      (for(entry <- hotkeyConfig.entrySet().asScala if entry.getValue.valueType() == ConfigValueType.STRING) yield {
+        (entry.getKey, entry.getValue.unwrapped().toString)
+      }).toMap
+    } else {
+      Map.empty
+    }
   }
 
   /** Manually configured links into DM modules. */
@@ -71,17 +123,11 @@ case class InitApi @Inject()() extends InjectedController with ControllerUtilsTr
     }
   }
 
-  private def dmBaseUrl: Option[JsString] = {
-    if(cfg.hasPath(dmConfigKey)) {
-      Some(JsString(cfg.getString(dmConfigKey)))
-    } else {
-      None
-    }
-  }
-
   case class DmLink(path: String, defaultLabel: String, icon: Option[String])
 
   object DmLink {
     implicit val dmLinkFormat: Format[DmLink] = Json.format[DmLink]
   }
 }
+
+

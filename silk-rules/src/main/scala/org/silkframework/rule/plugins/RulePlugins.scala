@@ -34,7 +34,7 @@ import org.silkframework.rule.plugins.transformer.linguistic._
 import org.silkframework.rule.plugins.transformer.normalize._
 import org.silkframework.rule.plugins.transformer.numeric._
 import org.silkframework.rule.plugins.transformer.replace.{MapTransformer, MapTransformerWithDefaultInput, RegexReplaceTransformer, ReplaceTransformer}
-import org.silkframework.rule.plugins.transformer.selection.RegexSelectTransformer
+import org.silkframework.rule.plugins.transformer.selection.{CoalesceTransformer, RegexSelectTransformer}
 import org.silkframework.rule.plugins.transformer.sequence.{GetValueByIndexTransformer, ValuesToIndexesTransformer}
 import org.silkframework.rule.plugins.transformer.substring._
 import org.silkframework.rule.plugins.transformer.tokenization.{CamelCaseTokenizer, Tokenizer}
@@ -97,6 +97,7 @@ class RulePlugins extends PluginModule {
         classOf[RandomNumberTransformer] ::
         classOf[EmptyValueTransformer] ::
         classOf[GenerateUUID] ::
+        classOf[DefaultValueTransformer] ::
         // Conditional
         classOf[IfContains] ::
         classOf[IfExists] ::
@@ -135,6 +136,7 @@ class RulePlugins extends PluginModule {
         classOf[ValuesToIndexesTransformer] ::
         // Selection
         classOf[RegexSelectTransformer] ::
+        classOf[CoalesceTransformer] ::
         Nil
 
   private def measures: List[Class[_]] =
@@ -172,7 +174,8 @@ class RulePlugins extends PluginModule {
     classOf[QuadraticMeanAggregator] ::
     classOf[GeometricMeanAggregator] ::
     classOf[NegationAggregator] ::
-    classOf[ScalingAggregator] :: Nil
+    classOf[ScalingAggregator] ::
+    classOf[HandleMissingValuesAggregator] :: Nil
 
   private def serializers: List[Class[_]] =
     TransformSpecFormat.getClass ::

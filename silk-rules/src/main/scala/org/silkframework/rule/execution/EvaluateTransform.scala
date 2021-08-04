@@ -1,13 +1,13 @@
 package org.silkframework.rule.execution
 
-import java.util.logging.Logger
-
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.paths.TypedPath
-import org.silkframework.entity.{EntitySchema, StringValueType, ValueType}
-import org.silkframework.rule.{DatasetSelection, TransformRule}
+import org.silkframework.entity.EntitySchema
+import org.silkframework.rule.TransformRule
 import org.silkframework.rule.evaluation.{DetailedEntity, DetailedEvaluator}
 import org.silkframework.runtime.activity.UserContext
+
+import java.util.logging.Logger
 
 /**
  * Evaluates a transformation rule.
@@ -24,7 +24,7 @@ class EvaluateTransform(source: DataSource,
   @volatile
   private var cachedValues = Seq[DetailedEntity]()
 
-  def execute()(implicit userContext: UserContext): Seq[DetailedEntity] = {
+  def execute()(implicit userContext: UserContext, prefixes: Prefixes): Seq[DetailedEntity] = {
     // Retrieve entities
     val entities = source.retrieve(entitySchema, Some(maxEntities)).entities
 

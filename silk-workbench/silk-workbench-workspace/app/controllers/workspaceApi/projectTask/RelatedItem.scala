@@ -10,7 +10,8 @@ case class RelatedItem(id: String,
                        label: String,
                        description: Option[String],
                        `type`: String,
-                       itemLinks: Seq[ItemLink])
+                       itemLinks: Seq[ItemLink],
+                       pluginLabel: String)
 
 object RelatedItem {
   implicit val relatedItemFormat: Format[RelatedItem] = Json.format[RelatedItem]

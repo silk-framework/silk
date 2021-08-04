@@ -1,21 +1,22 @@
 package org.silkframework.plugins.dataset.rdf.access
 
-import java.io.{BufferedOutputStream, File, FileOutputStream, OutputStream}
-import java.nio.file.Files
-import java.util.logging.Logger
-
 import org.silkframework.config.Prefixes
-import org.silkframework.dataset.rdf.{GraphStoreFileUploadTrait, GraphStoreTrait, Quad}
 import org.silkframework.dataset._
+import org.silkframework.dataset.rdf.{GraphStoreFileUploadTrait, GraphStoreTrait}
 import org.silkframework.entity.{Link, ValueType}
 import org.silkframework.plugins.dataset.rdf.formatters.RdfFormatter
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
+import java.io.{BufferedOutputStream, File, FileOutputStream, OutputStream}
+import java.nio.file.Files
+import java.util.logging.Logger
 import scala.util.Try
 
 /**
   * An RDF sink based on the graph store protocol.
+  *
+  * @param graphTypeUri If defined, an extra statement "<graphURI> rdf:type <writeGraphType>" will be written.
   *
   * @see https://www.w3.org/TR/sparql11-http-rdf-update/
   */
@@ -23,7 +24,8 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
                           graphUri: String,
                           formatterOpt: Option[RdfFormatter],
                           comment: Option[String],
-                          dropGraphOnClear: Boolean) extends EntitySink with LinkSink with TripleSink with RdfSink {
+                          dropGraphOnClear: Boolean,
+                          graphTypeUri: Option[String] = None) extends EntitySink with LinkSink with TripleSink with RdfSink {
 
   private var properties = Seq[TypedProperty]()
   private var output: Option[OutputStream] = None
@@ -38,7 +40,7 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
   private var tempFile: Option[File] = None
   private val maxBytesPerRequest = graphStore.defaultTimeouts.maxRequestSize // in bytes
 
-  override def openTable(typeUri: Uri, properties: Seq[TypedProperty])(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     internalInit()
     this.properties = properties
   }
@@ -56,13 +58,13 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
   }
 
   override def writeLink(link: Link, predicateUri: String)
-                        (implicit userContext: UserContext): Unit = {
+                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     val (newStatements, _) = formatLink(link, predicateUri)
     writeStatementString(newStatements)
     entityCount += 1
   }
 
-  override def init()(implicit userContext: UserContext): Unit = {
+  override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     internalInit()
     entityCount = 0
     overallStmtCount = 0L
@@ -74,6 +76,10 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
     if(output.isEmpty) {
       output = initOutputStream
       log.fine("Initialized graph store sink.")
+    }
+    for(typeUri <- graphTypeUri) {
+      writeTriple(this.graphUri, "http://www.w3.org/1999/02/22-rdf-syntax-ns#type", typeUri, ValueType.URI)
+      log.fine("Type to indicate that the dataset was written by Dataintegration was set.")
     }
   }
 

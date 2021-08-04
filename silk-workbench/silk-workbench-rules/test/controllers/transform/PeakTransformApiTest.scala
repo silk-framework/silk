@@ -1,5 +1,6 @@
 package controllers.transform
 
+import controllers.transform.PeakTransformApi.PeakResult
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
@@ -75,7 +76,7 @@ class PeakTransformApiTest extends FlatSpec with MustMatchers {
     val (tries, errors, errorMsg, peakResult) =  PeakTransformApi.collectTransformationExamples(rule, entities, limit = 3)
     tries mustBe 2
     errors mustBe 2
-    errorMsg mustBe "IllegalArgumentException: no date"
+    errorMsg must include ("Invalid date format")
     peakResult mustBe Seq()
   }
 

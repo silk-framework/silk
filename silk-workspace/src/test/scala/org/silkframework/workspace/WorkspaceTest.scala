@@ -1,29 +1,26 @@
 package org.silkframework.workspace
 
-import java.util.concurrent.atomic.AtomicBoolean
-
+import org.mockito.Mockito._
+import org.scalatest.Matchers.convertToAnyShouldWrapper
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.scalatestplus.mockito.MockitoSugar
-import org.mockito.Mockito._
-import org.silkframework.config.{CustomTask, MetaData, PlainTask, Task, TaskSpec}
-import org.silkframework.dataset.rdf.SparqlEndpoint
+import org.silkframework.config._
 import org.silkframework.entity.EntitySchema
-import org.silkframework.runtime.activity.Status.Idle
 import org.silkframework.runtime.activity.{Activity, ActivityContext, TestUserContextTrait, UserContext}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.ServiceUnavailableException
 import org.silkframework.util.{ConfigTestTrait, Identifier}
-import org.silkframework.workspace.WorkspaceTest.{TestActivity, TestActivityFactory, TestTask, TestWorkspaceProvider}
+import org.silkframework.workspace.WorkspaceTest.{SleepActivity, SleepActivityFactory, TestActivity, TestActivityFactory, TestTask, TestWorkspaceProvider}
 import org.silkframework.workspace.activity.TaskActivityFactory
 import org.silkframework.workspace.resources.InMemoryResourceRepository
 
+import java.time.Instant
+import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.immutable.ListMap
-import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.reflect.ClassTag
-import scala.util.Try
 
 class WorkspaceTest extends FlatSpec with MustMatchers with ConfigTestTrait with MockitoSugar with TestUserContextTrait {
   behavior of "Workspace"
@@ -91,6 +88,29 @@ class WorkspaceTest extends FlatSpec with MustMatchers with ConfigTestTrait with
     projectLoadTimes.max must be < activityStartTimes.min
   }
 
+  it should "stop all activities if the workspace is reloaded" in {
+    val workspaceProvider = new TestWorkspaceProvider(loadTimePause = 0)
+    PluginRegistry.registerPlugin(classOf[SleepActivityFactory])
+
+    val project = Identifier("project")
+    val task = Identifier("task")
+    workspaceProvider.putProject(ProjectConfig(project, metaData = MetaData(project)))
+    workspaceProvider.putTask(project, PlainTask(task,  TestTask()))
+
+    val workspace = new Workspace(workspaceProvider, InMemoryResourceRepository())
+
+    // Activity should have been started automatically
+    val sleepActivity = workspace.project(project).anyTask(task).activity[SleepActivity]
+    sleepActivity.status() shouldBe 'isRunning
+
+    workspace.reload()
+
+    // After reload the current activity should have been cancelled and a new one started.
+    sleepActivity.status() should not be 'isRunning
+    val newSleepActivity = workspace.project(project).anyTask(task).activity[SleepActivity]
+    newSleepActivity.status() shouldBe 'isRunning
+  }
+
   override def propertyMap: Map[String, Option[String]] = Map(
     "workspace.timeouts.waitForWorkspaceInitialization" -> Some("1")
   )
@@ -106,13 +126,13 @@ object WorkspaceTest {
   class TestWorkspaceProvider(loadTimePause: Int) extends InMemoryWorkspaceProvider {
 
     // The timestamp when projects have been loaded the last time
-    var projectTime: Long = 0
+    var projectTime: Instant = Instant.EPOCH
 
     // The timestamps when the tasks for each project have been loaded
-    var taskReadTimes: ListMap[String, Long] = ListMap.empty
+    var taskReadTimes: ListMap[String, Instant] = ListMap.empty
 
     override def readProjects()(implicit user: UserContext): Seq[ProjectConfig] = {
-      projectTime = System.currentTimeMillis()
+      projectTime = Instant.now
       super.readProjects()
     }
 
@@ -120,14 +140,14 @@ object WorkspaceTest {
                                                     (implicit user: UserContext): Seq[Task[T]] = {
       val tasks = super.readTasks(project, projectResources)
       Thread.sleep(loadTimePause)
-      taskReadTimes += ((project, System.currentTimeMillis()))
+      taskReadTimes += ((project, Instant.now))
       tasks
     }
     override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
                                                         (implicit user: UserContext): Seq[Either[Task[T], TaskLoadingError]] = {
       val tasks = super.readTasksSafe(project, projectResources)
       Thread.sleep(loadTimePause)
-      taskReadTimes += ((project, System.currentTimeMillis()))
+      taskReadTimes += ((project, Instant.now))
       tasks
     }
   }
@@ -150,6 +170,23 @@ object WorkspaceTest {
     override def run(context: ActivityContext[Unit])
                     (implicit userContext: UserContext): Unit = {
       // Does nothing
+    }
+  }
+
+  case class SleepActivityFactory() extends TaskActivityFactory[TestTask, SleepActivity] {
+
+    override def autoRun: Boolean = true
+
+    def apply(task: ProjectTask[TestTask]): Activity[Unit] = {
+      new SleepActivity
+    }
+  }
+
+  // Activity that sleeps for a couple of seconds
+  class SleepActivity extends Activity[Unit] {
+    override def run(context: ActivityContext[Unit])
+                    (implicit userContext: UserContext): Unit = {
+      Thread.sleep(10000)
     }
   }
 

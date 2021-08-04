@@ -168,7 +168,7 @@ function initEditor(canvasId = 'droppable') {
             const idPrefix = clone.find('.handler label').text();
 
             const boxId = generateNewElementId(idPrefix);
-
+            generateNewElementLabel(clone);
             generateNewIdsForTooltips(clone);
 
             clone.attr('id', boxId);
@@ -220,29 +220,21 @@ function initEditor(canvasId = 'droppable') {
     $(document).on('keyup', "input[type='text'].param_value", function() {
         modifyLinkSpec();
     });
+    $(document).on('keyup', "textarea.param_value", function() {
+        modifyLinkSpec();
+    });
 
     $('#undo').attr('disabled', true);
     $('#redo').attr('disabled', true);
 
-    $(document).on('click', '.label', function() {
+    $(document).on('click', 'label.edit_label', function() {
         var current_label = $(this).html();
-        var input = `<input class="label-change" type="text" value="${current_label}" />`;
-        $(this)
-            .html(input)
-            .addClass('label-active')
-            .removeClass('label');
-        $(this)
-            .children()
-            .focus();
+        $(this).next().val(current_label);
     });
 
-    $(document).on('blur', '.label-change', function() {
+    $(document).on('blur', 'input.edit_label', function() {
         var new_label = $(this).val();
-        $(this)
-            .parent()
-            .html(new_label)
-            .addClass('label')
-            .removeClass('label-active');
+        $(this).prev().html(new_label);
     });
 
     $(document).on(
@@ -353,6 +345,24 @@ function generateNewElementId(currentId) {
         }
     } while (nameExists);
     return currentId + counter;
+}
+
+function generateNewElementLabel(element) {
+    const allLabels = $canvas.find('label.edit_label').map(function(){
+        return $(this).text();
+    }).get();
+    const allLabelsSet = new Set(allLabels);
+    const curLabel = element.find('label.edit_label').text();
+
+    for (let i = 1; i < 1000; i++) {
+        const newLabel = curLabel + i;
+        if(!allLabelsSet.has(newLabel)) {
+            element.find('label.edit_label').text(newLabel);
+            return;
+        }
+    }
+
+    console.log("Failed setting a unique label for " + element);
 }
 
 function getCurrentElementName(elId) {
@@ -566,12 +576,15 @@ var lastWindowStatus = null;
 
 // FIXME: Remove this and do it solely with css?
 function updateWindowSize(forceResize = false) {
-    var header_height;
+    var header_height = 0;
     if($('header').length > 0) {
-      header_height = $('header').height() + $('#toolbar').height() + $('#tab-bar').height();
-    } else {
-      // Header is hidden
-      header_height = $('#toolbar').height() + $('#tab-bar').height();
+        header_height += $('header').height();
+    }
+    if($('#toolbar').length > 0) {
+        header_height += $('#toolbar').height();
+    }
+    if($('#tab-bar').length > 0) {
+        header_height += $('#tab-bar').height();
     }
 
     var window_width = $(window).width();

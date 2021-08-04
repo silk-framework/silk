@@ -3,7 +3,13 @@ language: scala
 jdk:
   - openjdk8
 scala:
-  - 2.11.12
+  - 2.12.10
+
+before_install:
+  - nvm install 12.16.1
+
+install:
+  - npm install
 
 notifications:
   email:
@@ -23,7 +29,7 @@ before_cache:
   - find $HOME/.sbt        -name "*.lock"               -print -delete
 
 before_deploy:
-  - GIT_DESCRIBE=$TRAVIS_TAG sbt ++$TRAVIS_SCALA_VERSION "project workbench" universal:package-zip-tarball
+  - GIT_DESCRIBE=$TRAVIS_TAG sbt ++$TRAVIS_SCALA_VERSION "project workbench" universal:packageZipTarball
 
 deploy:
   provider: releases

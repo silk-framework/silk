@@ -24,7 +24,7 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
 
   private var writer: Writer = _
 
-  override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
                         (implicit userContext: UserContext, prefixes: Prefixes){
     this.properties = properties
     if(writer == null) {
@@ -71,7 +71,7 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
     }
   }
 
-  override def init()(implicit userContext: UserContext): Unit = {
+  override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     implicit val prefixes: Prefixes = Prefixes.empty
     openTable(typeUri = "", properties = Seq())
   }

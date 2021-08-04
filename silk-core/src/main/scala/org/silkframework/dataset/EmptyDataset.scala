@@ -1,7 +1,7 @@
 package org.silkframework.dataset
 
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.{Entity, EntitySchema, Link}
+import org.silkframework.entity.Link
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
@@ -32,7 +32,7 @@ object EmptyDataset extends Dataset with Serializable {
      *
      * @param properties The list of properties of the entities to be written.
      */
-    override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
+    override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
                           (implicit userContext: UserContext, prefixes: Prefixes): Unit = {}
 
     override def closeTable()(implicit userContext: UserContext): Unit = {}
@@ -53,13 +53,13 @@ object EmptyDataset extends Dataset with Serializable {
     /**
      * Initialize the link sink
      */
-    override def init()(implicit userContext: UserContext): Unit = {}
+    override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = {}
 
     /**
      * Writes a new link to this writer.
      */
     override def writeLink(link: Link, predicateUri: String)
-                          (implicit userContext: UserContext): Unit = {}
+                          (implicit userContext: UserContext, prefixes: Prefixes): Unit = {}
 
     override def close()(implicit userContext: UserContext): Unit = {}
 
@@ -69,4 +69,6 @@ object EmptyDataset extends Dataset with Serializable {
       */
     override def clear()(implicit userContext: UserContext): Unit = {}
   }
+
+  override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly
 }

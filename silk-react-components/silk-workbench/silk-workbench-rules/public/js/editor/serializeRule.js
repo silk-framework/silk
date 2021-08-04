@@ -147,13 +147,7 @@ function parseOperator(xmlDoc, elementId, connections) {
     var xml_param;
 
     for (var l = 0; l < params.length; l++) {
-        if ($(params[l]).attr('name') === 'required') {
-            if ($(params[l]).is(':checked')) {
-                xml.setAttribute('required', 'true');
-            } else {
-                xml.setAttribute('required', 'false');
-            }
-        } else if ($(params[l]).attr('name') === 'threshold') {
+        if ($(params[l]).attr('name') === 'threshold') {
             xml.setAttribute('threshold', $(params[l]).val());
         } else if ($(params[l]).attr('name') === 'weight') {
             xml.setAttribute('weight', $(params[l]).val());

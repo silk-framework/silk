@@ -1,15 +1,16 @@
 package org.silkframework.dataset.bulk
 
-import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.local.GenericEntityTable
-import org.silkframework.execution.{EntityHolder, ExecutionException, MappedTraversable}
+import org.silkframework.execution.{EntityHolder, ExecutionException}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.{Identifier, Uri}
 
 import scala.collection.mutable
+import scala.util.control.Breaks.{break, breakable}
 import scala.util.control.NonFatal
 
 /**
@@ -24,7 +25,8 @@ class BulkDataSource(bulkContainerName: String,
                      sources: Traversable[DataSourceWithName],
                      mergeSchemata: Boolean) extends DataSource with PeakDataSource {
 
-  override def retrieveTypes(limit: Option[Int])(implicit userContext: UserContext): Traversable[(String, Double)] = {
+  override def retrieveTypes(limit: Option[Int])
+                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
     if(mergeSchemata) {
       mergePaths[(String, Double), String](
         _.retrieveTypes(limit),
@@ -35,7 +37,8 @@ class BulkDataSource(bulkContainerName: String,
     }
   }
 
-  override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])(implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+  override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])
+                            (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
     if(mergeSchemata) {
       mergePaths[TypedPath, TypedPath](
         _.retrievePaths(typeUri, depth, limit),
@@ -80,13 +83,24 @@ class BulkDataSource(bulkContainerName: String,
     }
   }
 
-  override def retrieve(entitySchema: EntitySchema, limit: Option[Int])(implicit userContext: UserContext): EntityHolder = {
+  override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
+                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     val entities =
       new Traversable[Entity] {
         override def foreach[U](emitEntity: Entity => U): Unit = {
-          sources foreach { dataSource =>
-            handleSourceError(dataSource) { source =>
-              source.retrieve(entitySchema, limit).entities foreach emitEntity
+          var count = 0
+          breakable {
+            for (dataSource <- sources) {
+              handleSourceError(dataSource) { source =>
+                for (entity <- source.retrieve(entitySchema, limit.map(_ - count)).entities) {
+                  emitEntity(entity)
+                  count += 1
+                }
+                // break if limit has been reached
+                for (l <- limit if count >= l) {
+                  break
+                }
+              }
             }
           }
         }
@@ -95,7 +109,8 @@ class BulkDataSource(bulkContainerName: String,
     GenericEntityTable(entities, entitySchema, underlyingTask)
   }
 
-  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])(implicit userContext: UserContext): EntityHolder = {
+  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
+                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     val retrievedEntities =
       new Traversable[Entity] {
         override def foreach[U](f: Entity => U): Unit = {

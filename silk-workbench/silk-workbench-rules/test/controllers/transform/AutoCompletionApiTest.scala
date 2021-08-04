@@ -21,7 +21,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
 
     response.checkCompletionValues(
       category = Categories.sourcePaths,
-      expectedValues = Seq("rdf:type", "source:address", "source:address/source:city", "source:address/source:country", "source:age", "source:name")
+      expectedValues = Seq("rdf:type", "source:address", "source:age", "source:name")
     )
   }
 

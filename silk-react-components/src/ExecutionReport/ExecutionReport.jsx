@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Card, CardContent, CardTitle, Table, TableBody, TableCell, TableHead, TableRow } from '@eccenca/gui-elements';
 import MappingsTree from '../HierarchicalMapping/containers/MappingsTree';
-import { setApiDetails } from "../HierarchicalMapping/store";
 
 /**
  * Displays a task execution report.
@@ -14,13 +13,6 @@ export default class ExecutionReport extends React.Component {
         this.state = {
             currentRuleId: null,
         };
-        
-        const {baseUrl, project, task} = this.props;
-        setApiDetails({
-            baseUrl,
-            project,
-            transformTask: task,
-        });
         this.onRuleNavigation = this.onRuleNavigation.bind(this);
     }
     
@@ -29,41 +21,97 @@ export default class ExecutionReport extends React.Component {
     }
     
     renderSummary() {
+        let executionMetaData = [];
+        if(this.props.executionMetaData != null) {
+            executionMetaData = executionMetaData.concat([
+                <tr key="startedAt">
+                    <td className="silk-report-table-bold">Started at</td>
+                    <td>{this.props.executionMetaData.startedAt}</td>
+                </tr>,
+                <tr key="startedByUser">
+                    <td className="silk-report-table-bold">Started by</td>
+                    <td>{(this.props.executionMetaData.startedByUser == null) ? "Unknown" : this.props.executionMetaData.startedByUser}</td>
+                </tr>,
+                <tr key="finishedAt">
+                    <td className="silk-report-table-bold">Finished at</td>
+                    <td>{this.props.executionMetaData.finishedAt}</td>
+                </tr>,
+                <tr key="finishStatus">
+                    <td className="silk-report-table-bold">Finish status</td>
+                    <td>{this.props.executionMetaData.finishStatus.message}</td>
+                </tr>
+            ]);
+            if(this.props.executionMetaData.cancelledAt != null) {
+                executionMetaData.push(
+                    <tr key="cancelledAt">
+                        <td className="silk-report-table-bold">Cancelled at</td>
+                        <td>{this.props.executionMetaData.cancelledAt}</td>
+                    </tr>
+                )
+            }
+            if(this.props.executionMetaData.cancelledBy != null) {
+                executionMetaData.push(
+                    <tr key="cancelledBy">
+                        <td className="silk-report-table-bold">Cancelled by</td>
+                        <td>{this.props.executionMetaData.cancelledBy}</td>
+                    </tr>
+                )
+            }
+        }
+
         const summaryRows = this.props.executionReport.summary.map(v =>
             <tr key={v.key}>
                 <td className="silk-report-table-bold">{v.key}</td>
                 <td>{v.value}</td>
             </tr>
         );
+
         return <Card className="silk-report-card">
             <CardTitle>
                 Execution Report
             </CardTitle>
             <CardContent>
+                {this.renderWarning()}
                 <div>
                     <table className="silk-report-table">
                         <thead>
                         </thead>
                         <tbody>
+                        {executionMetaData}
                         {summaryRows}
                         </tbody>
                     </table>
                 </div>
-                {this.renderWarning()}
             </CardContent>
         </Card>
     }
 
     renderWarning() {
-        const warnings = this.props.executionReport.warnings.map(warning =>
-            <div className="mdl-alert mdl-alert--info mdl-alert--border mdl-alert--spacing">
-                <div className="mdl-alert__content">
-                    <p>{warning}</p>
-                </div>
-            </div>
-        );
+        let messages = [];
+        let alertClass = "mdl-alert--info"
+        if(this.props.executionMetaData != null && this.props.executionMetaData.finishStatus.cancelled) {
+            messages = [ `Task '${this.props.executionReport.label}' has been cancelled.` ];
+            alertClass = "mdl-alert--warning";
+        } else if(this.props.executionMetaData != null && this.props.executionMetaData.finishStatus.failed) {
+            messages = [ `Task '${this.props.executionReport.label}' failed to execute.` ]
+            alertClass = "mdl-alert--danger"
+        } else if(this.props.executionReport.warnings.length > 0) {
+            messages = this.props.executionReport.warnings;
+            alertClass = "mdl-alert--info"
+        } else {
+            messages = [ `Task '${this.props.executionReport.label}' has been executed without any issues.` ];
+            alertClass = "mdl-alert--success";
+        }
 
-        return <div className="silk-report-warning">{warnings}</div>
+        return <div className="silk-report-warning">{
+            messages.map(warning =>
+                <div className={alertClass + " mdl-alert mdl-alert--border mdl-alert--spacing"}>
+                    <div className="mdl-alert__content">
+                        <p>{warning}</p>
+                    </div>
+                </div>
+            )
+        }</div>
     }
     
     renderTransformReport() {
@@ -71,6 +119,7 @@ export default class ExecutionReport extends React.Component {
             <div className="mdl-cell mdl-cell--3-col">
                 <MappingsTree
                     currentRuleId="root"
+                    ruleTree={this.props.executionReport.task.data.parameters.mappingRule}
                     showValueMappings={true}
                     handleRuleNavigation={this.onRuleNavigation}
                     ruleValidation={this.generateIcons()}
@@ -131,9 +180,9 @@ export default class ExecutionReport extends React.Component {
     
     renderRuleError(ruleError) {
         return <TableRow key={ruleError.entity}>
-            <TableCell>{ruleError.entity}</TableCell>
-            <TableCell>{ruleError.values.flat().join(', ')}</TableCell>
-            <TableCell>{ruleError.error}</TableCell>
+            <TableCell><div className="silk-report-errors-value">{ruleError.entity}</div></TableCell>
+            <TableCell><div className="silk-report-errors-value">{ruleError.values.flat().join(', ')}</div></TableCell>
+            <TableCell><div className="silk-report-errors-value">{ruleError.error}</div></TableCell>
         </TableRow>
     }
     
@@ -148,6 +197,7 @@ export default class ExecutionReport extends React.Component {
 ExecutionReport.propTypes = {
     baseUrl: PropTypes.string.isRequired, // Base URL of the DI service
     project: PropTypes.string.isRequired, // project ID
-    task: PropTypes.string.isRequired, // task ID
-    executionReport: PropTypes.object // The transform execution report to render
+    nodeId: PropTypes.string.isRequired, // workflow node ID
+    executionReport: PropTypes.object, // The execution report to render
+    executionMetaData: PropTypes.object // Optional execution meta data that includes start time, user, etc.
 };

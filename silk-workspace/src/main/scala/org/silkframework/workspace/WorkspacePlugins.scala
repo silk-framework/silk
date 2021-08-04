@@ -11,8 +11,8 @@ import org.silkframework.workspace.activity.transform.CachedEntitySchemata.Cache
 import org.silkframework.workspace.activity.transform._
 import org.silkframework.workspace.activity.vocabulary.GlobalVocabularyCacheFactory
 import org.silkframework.workspace.activity.workflow.Workflow.WorkflowXmlFormat
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorFactory, NopPersistWorkflowProvenance, Workflow}
-import org.silkframework.workspace.xml.{FileWorkspaceProvider, XmlZipProjectMarshaling, XmlZipWithResourcesProjectMarshaling, XmlZipWithoutResourcesProjectMarshaling}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowAsTaskExecutor, LocalWorkflowExecutorFactory, NopPersistWorkflowProvenance, Workflow}
+import org.silkframework.workspace.xml.{FileWorkspaceProvider, XmlZipWithResourcesProjectMarshaling, XmlZipWithoutResourcesProjectMarshaling}
 
 import scala.language.existentials
 
@@ -20,20 +20,22 @@ class WorkspacePlugins extends PluginModule {
 
   override def pluginClasses: Seq[Class[_]] =
     workspaceProviders :::
-        datasetActivities :::
-        transformActivities :::
-        linkingActivities :::
-        workflowActivities :::
-        projectMarshaller :::
-        provenancePlugins :::
-        rulePlugins :::
-        workspaceTaskPlugins :::
-        autoCompletionProviderPlugins :::
-        workspaceActivityPlugins :::
-        formats
+    datasetActivities :::
+    transformActivities :::
+    linkingActivities :::
+    workflowActivities :::
+    projectMarshaller :::
+    provenancePlugins :::
+    rulePlugins :::
+    workspaceTaskPlugins :::
+    autoCompletionProviderPlugins :::
+    workspaceActivityPlugins :::
+    formats
 
   def workspaceTaskPlugins: List[Class[_]] =
-    classOf[Workflow] :: Nil
+    classOf[Workflow] ::
+    classOf[LocalWorkflowAsTaskExecutor] ::
+    Nil
 
   def workspaceProviders: List[Class[_]] =
     classOf[FileWorkspaceProvider] ::
@@ -45,7 +47,8 @@ class WorkspacePlugins extends PluginModule {
   def transformActivities: List[Class[_]] =
     classOf[ExecuteTransformFactory] ::
     classOf[TransformPathsCacheFactory] ::
-    classOf[VocabularyCacheFactory] :: Nil
+    classOf[VocabularyCacheFactory] ::
+    Nil
 
   def linkingActivities: List[Class[_]] =
     classOf[EvaluateLinkingFactory] ::

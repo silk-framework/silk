@@ -1,8 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.access
 
 import java.util.logging.{Level, Logger}
-
-import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{Resource, SparqlEndpoint, SparqlParams}
 import org.silkframework.entity._
@@ -31,14 +30,14 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
   private val entityUris: Seq[String] = params.entityRestriction
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
-                       (implicit userContext: UserContext): EntityHolder = {
+                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     val entityRetriever = EntityRetriever(sparqlEndpoint, params.strategy, params.pageSize, params.graph, params.useOrderBy)
     val entities = entityRetriever.retrieve(entitySchema, entityUris.map(Uri(_)), limit)
     GenericEntityTable(entities, entitySchema, underlyingTask)
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): EntityHolder = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     if(entities.isEmpty) {
       EmptyEntityTable(underlyingTask)
     } else {
@@ -49,7 +48,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
   }
 
   override def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None)
-                            (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
     val restrictions = if(typeUri.isEmpty) {
       SparqlRestriction.empty
     } else {
@@ -59,7 +58,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
   }
 
   override def retrieveTypes(limit: Option[Int])
-                            (implicit userContext: UserContext): Traversable[(String, Double)] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
     SparqlTypesCollector(sparqlEndpoint, params.graph, limit)
   }
 
@@ -100,7 +99,8 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
         useDistinct = false,
         graphUri = params.graph,
         useOrderBy = false,
-        varPrefix = "v"
+        varPrefix = "v",
+        useOptional = false
       )
       val results = sparqlEndpoint.select(pathQuery, limit = limit.getOrElse(Int.MaxValue))
       for(result <- results.bindings;
@@ -182,3 +182,4 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
     }
   }
 }
+

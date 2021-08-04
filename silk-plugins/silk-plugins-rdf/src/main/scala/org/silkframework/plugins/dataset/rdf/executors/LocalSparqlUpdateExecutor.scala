@@ -22,7 +22,7 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
                       (implicit userContext: UserContext, prefixes: Prefixes): Option[LocalEntities] = {
     val updateTask = task.data
     val expectedSchema = updateTask.expectedInputSchema
-    val reportUpdater = SparqlUpdateExecutionReportUpdater(task.taskLabel(), context)
+    val reportUpdater = SparqlUpdateExecutionReportUpdater(task, context)
 
     // Generate SPARQL Update queries for input entities
     def executeOnInput[U](batchEmitter: BatchSparqlUpdateEmitter[U], expectedProperties: IndexedSeq[String], input: LocalEntities): Unit = {
@@ -96,8 +96,11 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
   }
 }
 
-case class SparqlUpdateExecutionReportUpdater(taskLabel: String,
+case class SparqlUpdateExecutionReportUpdater(task: Task[TaskSpec],
                                               context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+
+  override def operationLabel: Option[String] = Some("generate queries")
+
   override def entityLabelSingle: String = "Query"
 
   override def entityLabelPlural: String = "Queries"

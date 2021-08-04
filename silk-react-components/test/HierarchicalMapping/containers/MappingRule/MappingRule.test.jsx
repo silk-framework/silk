@@ -56,7 +56,8 @@ const props = {
     scrollIntoView: jest.fn(),
     snapshot: {isDragging: false},
     sourcePaths: ["birthdate"],
-    type: "complex"
+    type: "complex",
+    onOrderRules: jest.fn()
 };
 
 const selectors = {
@@ -76,14 +77,14 @@ describe("MappingRule Component", () => {
                 loading: false
             })
         });
-        
+
         it('should loading appear when data not loaded', () => {
             wrapper.setState({
                 loading: true
             });
             expect(wrapper.find(Spinner)).toHaveLength(1)
         });
-        
+
         it('should rendered NavigateButton, when type is object', () => {
             const wrapper = getWrapper(shallow, {
                 ...props,
@@ -91,11 +92,11 @@ describe("MappingRule Component", () => {
             });
             expect(wrapper.find(NavigateButton)).toHaveLength(1)
         });
-    
+
         it('should rendered ExpandButton, when type is NOT object', () => {
             expect(wrapper.find(ExpandButton)).toHaveLength(1)
         });
-        
+
         it('should render ObjectMappingRule component, when rule is expanded and rule is object', () => {
             const wrapper = getWrapper(shallow, {
                 ...props,
@@ -104,7 +105,7 @@ describe("MappingRule Component", () => {
             });
             expect(wrapper.find(ObjectRule)).toHaveLength(1);
         });
-        
+
         it('should render ValueMappingRule component, when rule is expanded and rule is NOT object', () => {
             const wrapper = getWrapper(shallow, {
                 ...props,
@@ -112,16 +113,16 @@ describe("MappingRule Component", () => {
             });
             expect(wrapper.find(ValueMappingRule)).toHaveLength(1);
         });
-        
+
         it('should render reorder context menu, when rule is not expanded', () => {
             expect(wrapper.find(ContextMenu)).toHaveLength(1);
         });
-        
+
         afterEach(() => {
             wrapper.unmount();
         });
     });
-    
+
     describe("on user interaction, ", () => {
         let wrapper;
         beforeEach(() => {
@@ -130,7 +131,7 @@ describe("MappingRule Component", () => {
                 loading: false
             })
         });
-        
+
         it('should on row click navigate to the rule page, when rule type is object', () => {
             const wrapper = getWrapper(shallow, {
                 ...props,
@@ -144,17 +145,17 @@ describe("MappingRule Component", () => {
                 parentId: props.parentId
             });
         });
-    
+
         it('should on row click expand the rule, when rule type is NOT object', () => {
             wrapper.find(selectors.ROW_CLICK).simulate('click', {
                 stopPropagation: jest.fn()
             });
             expect(onExpandFn).toBeCalled();
         });
-        
+
         afterEach(() => {
             wrapper.unmount();
         })
-        
+
     });
 });

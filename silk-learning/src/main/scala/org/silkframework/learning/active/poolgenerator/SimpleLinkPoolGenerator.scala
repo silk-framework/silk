@@ -14,10 +14,12 @@
 
 package org.silkframework.learning.active.poolgenerator
 
+import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.learning.active.UnlabeledLinkPool
+import org.silkframework.learning.active.poolgenerator.LinkPoolGeneratorUtils._
 import org.silkframework.rule.execution.{GenerateLinks, Linking}
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric
@@ -27,7 +29,7 @@ import org.silkframework.rule.{LinkSpec, LinkageRule, Operator, RuntimeLinkingCo
 import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityControl, UserContext}
 import org.silkframework.util.{DPair, Identifier}
-import LinkPoolGeneratorUtils._
+
 import scala.util.Random
 
 case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
@@ -35,15 +37,17 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
   override def generator(inputs: DPair[DataSource],
                          linkSpec: LinkSpec,
                          paths: Seq[DPair[TypedPath]],
-                         randomSeed: Long): Activity[UnlabeledLinkPool] = {
+                         randomSeed: Long)
+                        (implicit prefixes: Prefixes): Activity[UnlabeledLinkPool] = {
     new LinkPoolGenerator(inputs, linkSpec, paths)
   }
 
   def runtimeConfig = RuntimeLinkingConfig(partitionSize = 100, useFileCache = false, generateLinksWithEntities = true)
 
   private class LinkPoolGenerator(inputs: DPair[DataSource],
-                          linkSpec: LinkSpec,
-                          paths: Seq[DPair[TypedPath]]) extends Activity[UnlabeledLinkPool] {
+                                  linkSpec: LinkSpec,
+                                  paths: Seq[DPair[TypedPath]])
+                                 (implicit prefixes: Prefixes) extends Activity[UnlabeledLinkPool] {
 
     override val initialValue = Some(UnlabeledLinkPool.empty)
 
@@ -57,7 +61,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
       val op = new SampleOperator()
       val linkSpec2 = linkSpec.copy(rule = LinkageRule(op))
 
-      val generateLinks = new GenerateLinks("PoolGenerator", "Pool Generator", inputs, linkSpec2, None, runtimeConfig) {
+      val generateLinks = new GenerateLinks(PlainTask("PoolGenerator", linkSpec2), inputs, None, runtimeConfig) {
          override def entityDescs = entitySchemata
       }
 
@@ -121,8 +125,6 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
       }
 
       val id = Identifier.random
-
-      val required = false
 
       val weight = 1
 

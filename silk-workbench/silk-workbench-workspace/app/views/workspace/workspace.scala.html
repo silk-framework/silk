@@ -1,7 +1,7 @@
-@()(implicit session: play.api.mvc.Session)
-
 @import controllers.core.routes.{Assets => CoreAssets}
 @import controllers.workspace.routes.Assets
+
+@()(implicit request: RequestHeader)
 
 @header = {
   <link rel="stylesheet" href="@CoreAssets.at("libs/jstree/dist/themes/default/style.css")" type="text/css" />

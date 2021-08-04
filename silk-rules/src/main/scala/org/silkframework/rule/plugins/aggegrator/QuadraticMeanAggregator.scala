@@ -15,8 +15,8 @@
 package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.Aggregator
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.rule.similarity.{Aggregator, SimilarityScore, WeightedSimilarityScore}
+import org.silkframework.runtime.plugin.annotations.{AggregatorExample, AggregatorExamples, Plugin}
 
 /**
  * Computes the weighted quadratic mean.
@@ -27,16 +27,64 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   label = "Euclidian distance",
   description = "Calculates the Euclidian distance."
 )
+@AggregatorExamples(Array(
+  new AggregatorExample(
+    inputs = Array(1.0, 1.0, 1.0),
+    weights = Array(1, 1, 1),
+    output = 1.0
+  ),
+  new AggregatorExample(
+    inputs = Array(1.0, 0.0),
+    weights = Array(1, 1),
+    output = 0.707107
+  ),
+  new AggregatorExample(
+    inputs = Array(0.4, 0.5, 0.6),
+    weights = Array(1, 1, 1),
+    output = 0.506623
+  ),
+  new AggregatorExample(
+    inputs = Array(0.0, 0.0),
+    weights = Array(1, 1),
+    output = 0.0
+  ),
+  new AggregatorExample(
+    inputs = Array(1.0, 0.0, 0.0),
+    weights = Array(2, 1, 1),
+    output = 0.707107
+  ),
+  new AggregatorExample(
+    inputs = Array(0.4, 0.5, 0.6),
+    weights = Array(1, 2, 3),
+    output = 0.538516
+  ),
+  new AggregatorExample(
+    description = "Missing scores always lead to an output of none.",
+    inputs = Array(-1.0, Double.NaN, 1.0),
+    output = Double.NaN
+  )
+))
 case class QuadraticMeanAggregator() extends Aggregator {
-  override def evaluate(values: Traversable[(Int, Double)]) = {
-    if (!values.isEmpty) {
-      val sqDistance = values.map { case (weight, value) => weight * value * value }.reduceLeft(_ + _)
-      val totalWeights = values.map { case (weight, value) => weight }.sum
 
-      Some(math.sqrt(sqDistance / totalWeights))
+  override def evaluate(values: Seq[WeightedSimilarityScore]): SimilarityScore = {
+    if (values.nonEmpty) {
+      var sumWeights = 0
+      var squaredSum = 0.0
+
+      for (WeightedSimilarityScore(score, weight) <- values) {
+        score match {
+          case Some(score) =>
+            sumWeights += weight
+            squaredSum += score * score * weight
+          case None =>
+            return SimilarityScore.none
+        }
+      }
+
+      SimilarityScore(math.sqrt(squaredSum / sumWeights))
     }
     else {
-      None
+      SimilarityScore.none
     }
   }
 

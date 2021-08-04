@@ -1,15 +1,15 @@
 package org.silkframework.learning.active.poolgenerator
 
 import org.silkframework.cache.{EntityCache, MemoryEntityCache}
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity._
+import org.silkframework.entity.paths.TypedPath
 import org.silkframework.learning.active.UnlabeledLinkPool
+import org.silkframework.learning.active.poolgenerator.LinkPoolGeneratorUtils._
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.util.DPair
-import LinkPoolGeneratorUtils._
-import org.silkframework.learning.LearningException
 
 import scala.collection.mutable
 import scala.util.Random
@@ -26,14 +26,16 @@ class IndexLinkPoolGenerator extends LinkPoolGenerator {
   // For each pair of paths, generate at most that many links that have matching values for the given paths.
   private val maxLinksPerPathPair = 1000
 
-  override def generator(inputs: DPair[DataSource], linkSpec: LinkSpec, paths: Seq[DPair[TypedPath]], randomSeed: Long): Activity[UnlabeledLinkPool] = {
+  override def generator(inputs: DPair[DataSource], linkSpec: LinkSpec, paths: Seq[DPair[TypedPath]], randomSeed: Long)
+                        (implicit prefixes: Prefixes): Activity[UnlabeledLinkPool] = {
     new LinkPoolGeneratorActivity(inputs, linkSpec, paths, randomSeed)
   }
 
   private class LinkPoolGeneratorActivity(inputs: DPair[DataSource],
                                           linkSpec: LinkSpec,
                                           paths: Seq[DPair[TypedPath]],
-                                          randomSeed: Long) extends Activity[UnlabeledLinkPool] {
+                                          randomSeed: Long)
+                                         (implicit prefixes: Prefixes) extends Activity[UnlabeledLinkPool] {
 
     private val runtimeConfig = RuntimeLinkingConfig(partitionSize = 100, useFileCache = false, generateLinksWithEntities = true)
 

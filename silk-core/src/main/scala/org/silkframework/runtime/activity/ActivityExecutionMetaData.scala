@@ -1,5 +1,7 @@
 package org.silkframework.runtime.activity
 
+import java.time.Instant
+
 import org.silkframework.runtime.users.User
 
 /**
@@ -11,8 +13,8 @@ import org.silkframework.runtime.users.User
   * @param cancelledBy
   */
 case class ActivityExecutionMetaData(startedByUser: Option[User] = None,
-                                     startedAt: Option[Long] = None,
-                                     finishedAt: Option[Long] = None,
-                                     cancelledAt: Option[Long] = None,
+                                     startedAt: Option[Instant] = None,
+                                     finishedAt: Option[Instant] = None,
+                                     cancelledAt: Option[Instant] = None,
                                      cancelledBy: Option[User] = None,
                                      finishStatus: Option[Status] = None)

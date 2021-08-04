@@ -1,5 +1,7 @@
 package org.silkframework.rule.execution.methods
 
+import java.util.UUID
+
 import org.mockito.Mockito._
 import org.mockito.Matchers._
 import org.scalatest.mock.MockitoSugar
@@ -30,11 +32,11 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
     val outputMock = mock[EntitySink]
     val entities = Seq(entity(IndexedSeq("valid", "valid"), IndexedSeq(prop, prop2)), entity(IndexedSeq("invalid", "valid"), IndexedSeq(prop, prop2)))
     val dataSourceMock = mock[DataSource]
-    when(dataSourceMock.retrieve(any(), any())(any())).thenReturn(GenericEntityTable(entities, entities.head.schema, null))
+    when(dataSourceMock.retrieve(any(), any())(any(), any())).thenReturn(GenericEntityTable(entities, entities.head.schema, null))
+    val transform = TransformSpec(datasetSelection(), RootMappingRule(rules = MappingRules(mapping("propTransform", prop), mapping("prop2Transform", prop2))))
     val execute = new ExecuteTransform(
-      taskLabel = "transform task",
+      PlainTask("transformTask", transform),
       input = _ => dataSourceMock,
-      transform = TransformSpec(datasetSelection(), RootMappingRule(rules = MappingRules(mapping("propTransform", prop), mapping("prop2Transform", prop2)))),
       output = _ => outputMock
     )
     val contextMock = mock[ActivityContext[TransformReport]]
@@ -43,7 +45,7 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
     when(contextMock.status).thenReturn(mock[StatusHolder])
     implicit val userContext: UserContext = UserContext.Empty
     execute.run(contextMock)
-    verify(outputMock).writeEntity("", IndexedSeq(Seq("valid"), Seq("valid")))
+    verify(outputMock).writeEntity("uri", IndexedSeq(Seq("valid"), Seq("valid")))
     // This functionality has been removed in the LocalExecutor and needs to be reimplemented: verify(errorOutputMock).writeEntity("", IndexedSeq(Seq("invalid"), Seq("valid")))
     val resultStats = executeTransformResultHolder()
     resultStats.entityCounter shouldBe 2
@@ -80,7 +82,7 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
   }
 
   private def entity(values: IndexedSeq[String], properties: IndexedSeq[String]): Entity = {
-    Entity("", values map (v => Seq(v)), EntitySchema(Uri("entity"), typedPaths = properties.map(UntypedPath.saveApply).map(_.asStringTypedPath)))
+    Entity("uri", values map (v => Seq(v)), EntitySchema(Uri("entity"), typedPaths = properties.map(UntypedPath.saveApply).map(_.asStringTypedPath)))
   }
 
   private def entity(value: String, propertyUri: String): Entity = {

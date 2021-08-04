@@ -1,17 +1,23 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.config.Prefixes
 import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.runtime.activity.TestUserContextTrait
 import org.silkframework.runtime.plugin.MultilineStringParameter
-import org.silkframework.runtime.resource.{ClasspathResource, InMemoryResourceManager, ReadOnlyResource}
+import org.silkframework.runtime.resource._
 import org.silkframework.runtime.validation.ValidationException
 
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream, OutputStream}
+import java.time.Instant
 import scala.util.Try
 
 class XmlDatasetTest extends FlatSpec with MustMatchers with TestUserContextTrait {
+
   behavior of "XML dataset"
+
+  implicit private val prefixes: Prefixes = Prefixes.empty
 
   it should "only accept valid output templates" in {
     // Should not throw exception
@@ -53,6 +59,26 @@ class XmlDatasetTest extends FlatSpec with MustMatchers with TestUserContextTrai
     val errorMessage = failedExecution.failed.get.getMessage
     errorMessage must include ("brokenXml.broken")
     errorMessage must include ("persons.zip")
+  }
+
+  it should "not load large files into memory" in {
+    val resource = new WritableResource {
+      override def name: String = "largeResource"
+      override def path: String = "path"
+      override def size: Option[Long] = Some(1000000000L)
+
+      override def createOutputStream(append: Boolean): OutputStream = new ByteArrayOutputStream()
+      override def delete(): Unit = {}
+      override def exists: Boolean = true
+      override def modificationTime: Option[Instant] = None
+      override def inputStream: InputStream = new ByteArrayInputStream(Array.emptyByteArray)
+    }
+
+    val streamingDataset = XmlDataset(resource, streaming = true)
+    noException should be thrownBy streamingDataset.source
+
+    val nonStreamingDataset = XmlDataset(resource, streaming = false)
+    an[ResourceTooLargeException] should be thrownBy nonStreamingDataset.source
   }
 
   private def retrieveIDs(dataset: XmlDataset) = {

@@ -38,8 +38,9 @@ trait Task[+TaskType <: TaskSpec] {
     * Finds all tasks that reference this task.
     *
     * @param recursive Whether to return tasks that indirectly refer to this task.
+    * @param ignoreTasks Set of tasks to be ignored in the dependency search.
     */
-  def findDependentTasks(recursive: Boolean)
+  def findDependentTasks(recursive: Boolean, ignoreTasks: Set[Identifier] = Set.empty)
                         (implicit userContext: UserContext): Set[Identifier] = Set.empty
 
   /** Find tasks that are either input or output to this task. */
@@ -52,6 +53,8 @@ trait Task[+TaskType <: TaskSpec] {
   def taskLabel(maxLength: Int = MetaData.DEFAULT_LABEL_MAX_LENGTH): String = {
     metaData.formattedLabel(id, maxLength)
   }
+
+  def fullTaskLabel: String = taskLabel(Int.MaxValue)
 
   override def equals(obj: scala.Any): Boolean = obj match {
     case task: Task[_] =>

@@ -18,7 +18,8 @@ import org.silkframework.entity.Index
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
 
 trait Aggregator extends AnyPlugin {
-  def evaluate(weightedValues: Traversable[(Int, Double)]): Option[Double]
+
+  def evaluate(values: Seq[WeightedSimilarityScore]): SimilarityScore
 
   /**
     * Aggregates or manipulates the child indexes. The default implementation leaves the indexes as they are.

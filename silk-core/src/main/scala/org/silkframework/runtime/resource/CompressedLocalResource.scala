@@ -1,10 +1,8 @@
 package org.silkframework.runtime.resource
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File, FileInputStream, FileOutputStream, InputStream, OutputStream}
+import net.jpountz.lz4.{LZ4BlockInputStream, LZ4BlockOutputStream, LZ4FrameInputStream, LZ4FrameOutputStream}
+
+import java.io._
 import java.time.Instant
-
-import net.jpountz.lz4.{LZ4BlockInputStream, LZ4BlockOutputStream, LZ4Factory, LZ4FrameInputStream, LZ4FrameOutputStream}
-
-import scala.util.Try
 
 /**
   * A resource that's held in-memory and is being compressed.
@@ -14,17 +12,13 @@ case class CompressedInMemoryResource(name: String, path: String, knownTypes: In
   @volatile
   private var byteArrays: Vector[Array[Byte]] = Vector.empty
 
-  override def write(append: Boolean)(write: OutputStream => Unit): Unit = {
-    val byteArrayOS = new ByteArrayOutputStream()
-    val compressedOS = new LZ4BlockOutputStream(byteArrayOS)
-    write(compressedOS)
-    compressedOS.flush()
-    compressedOS.close()
-    if(append) {
-      byteArrays :+= byteArrayOS.toByteArray
-    } else {
-      byteArrays = Vector(byteArrayOS.toByteArray)
-    }
+  /**
+    * Creates an output stream for writing to this resource.
+    * The caller is responsible for closing the stream after writing.
+    * Using [[write()]] is preferred as it takes care of closing the output stream.
+    */
+  override def createOutputStream(append: Boolean): OutputStream = {
+    new CompressedOutputStream(append)
   }
 
   override def delete(): Unit = {
@@ -39,6 +33,25 @@ case class CompressedInMemoryResource(name: String, path: String, knownTypes: In
 
   override def inputStream: InputStream = {
     CompressedMultiByteArraysInputStream(byteArrays)
+  }
+
+  private class CompressedOutputStream(append: Boolean) extends OutputStream {
+    private val byteArrayOS = new ByteArrayOutputStream()
+    private val compressedOS = new LZ4BlockOutputStream(byteArrayOS)
+
+    override def write(b: Int): Unit = compressedOS.write(b)
+    override def write(b: Array[Byte]): Unit = compressedOS.write(b)
+    override def write(b: Array[Byte], off: Int, len: Int): Unit = compressedOS.write(b, off, len)
+    override def flush(): Unit = compressedOS.flush()
+    override def close(): Unit = {
+      compressedOS.flush()
+      compressedOS.close()
+      if(append) {
+        byteArrays :+= byteArrayOS.toByteArray
+      } else {
+        byteArrays = Vector(byteArrayOS.toByteArray)
+      }
+    }
   }
 }
 
@@ -82,11 +95,14 @@ case class CompressedFileResource(file: File, name: String, path: String, knownT
     extends WritableResource
     with ResourceWithKnownTypes
     with DeleteUnderlyingResourceOnGC {
-  override def write(append: Boolean)(write: OutputStream => Unit): Unit = {
-    val os = outputStream(append)
-    write(os)
-    os.flush()
-    os.close()
+
+  /**
+    * Creates an output stream for writing to this resource.
+    * The caller is responsible for closing the stream after writing.
+    * Using [[write()]] is preferred as it takes care of closing the output stream.
+    */
+  def createOutputStream(append: Boolean = false): OutputStream = {
+    new LZ4FrameOutputStream(new FileOutputStream(file, append))
   }
 
   override def delete(): Unit = {
@@ -101,10 +117,6 @@ case class CompressedFileResource(file: File, name: String, path: String, knownT
     } else {
       new ByteArrayInputStream(Array.empty[Byte])
     }
-  }
-
-  private def outputStream(append: Boolean): OutputStream = {
-    new LZ4FrameOutputStream(new FileOutputStream(file, append))
   }
 
   override def exists: Boolean = file.exists()

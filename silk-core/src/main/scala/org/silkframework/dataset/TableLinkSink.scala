@@ -1,8 +1,8 @@
 package org.silkframework.dataset
-import org.silkframework.entity.{Link, StringValueType, ValueType}
-import org.silkframework.runtime.activity.UserContext
-import TableLinkSink._
 import org.silkframework.config.Prefixes
+import org.silkframework.dataset.TableLinkSink._
+import org.silkframework.entity.{Link, ValueType}
+import org.silkframework.runtime.activity.UserContext
 
 /**
   * Generic link sink that write links to a table with two columns.
@@ -11,15 +11,14 @@ import org.silkframework.config.Prefixes
   */
 class TableLinkSink(entitySink: EntitySink) extends LinkSink {
 
-  override def init()(implicit userContext: UserContext): Unit = {
-    implicit val prefixes = Prefixes.empty
+  override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     entitySink.openTable(LINKS_TYPE, Seq(
-      TypedProperty(SOURCE_COLUMN, ValueType.STRING, isBackwardProperty = false),
-      TypedProperty(TARGET_COLUMN, ValueType.STRING, isBackwardProperty = false)))
+      TypedProperty(SOURCE_COLUMN, ValueType.STRING, isBackwardProperty = false, isAttribute = true),
+      TypedProperty(TARGET_COLUMN, ValueType.STRING, isBackwardProperty = false, isAttribute = true)), singleEntity = false)
   }
 
   override def writeLink(link: Link, predicateUri: String)
-                        (implicit userContext: UserContext){
+                        (implicit userContext: UserContext, prefixes: Prefixes){
     entitySink.writeEntity(link.source, Seq(Seq(link.source), Seq(link.target)))
   }
 

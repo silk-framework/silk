@@ -1,0 +1,6 @@
+package org.silkframework.rule.plugins.aggregator
+
+import org.silkframework.rule.plugins.aggegrator.HandleMissingValuesAggregator
+import org.silkframework.rule.test.AggregatorTest
+
+class HandleMissingValuesAggregatorTest extends AggregatorTest[HandleMissingValuesAggregator]

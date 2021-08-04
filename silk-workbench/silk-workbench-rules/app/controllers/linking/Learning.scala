@@ -1,15 +1,12 @@
 package controllers.linking
 
-import java.util.logging.Logger
-
 import akka.stream.Materializer
-import controllers.core.{RequestUserContextAction, UserContextAction}
-import javax.inject.Inject
+import controllers.core.{UserContextActions}
 import models.learning.{PathValue, PathValues}
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking._
+import org.silkframework.entity.Link
 import org.silkframework.entity.paths.{Path, TypedPath}
-import org.silkframework.entity.{Link, MinimalLink}
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.learning.individual.Population
@@ -17,7 +14,6 @@ import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.rule.{LinkSpec, LinkageRule, RuleTraverser}
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Identifier._
 import org.silkframework.workbench.Context
@@ -26,9 +22,10 @@ import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
-import scala.util.Random
+import java.util.logging.Logger
+import javax.inject.Inject
 
-class Learning @Inject() (implicit mat: Materializer) extends InjectedController {
+class Learning @Inject() (implicit mat: Materializer) extends InjectedController with UserContextActions {
 
   private val log = Logger.getLogger(getClass.getName)
 
@@ -73,9 +70,9 @@ class Learning @Inject() (implicit mat: Materializer) extends InjectedController
       */
     def sortedPaths(sourceOrTarget: Boolean): Seq[TypedPath] = {
       val rules = activeLearn.value().population.individuals.map(_.node.build)
-      val allSourcePaths = rules.map(rule => collectPaths(rule, sourceOrTarget))
+      val allSourcePaths = rules.flatMap(rule => collectPaths(rule, sourceOrTarget))
       val schemaPaths = activeLearn.value().pool.entityDescs.select(sourceOrTarget).typedPaths
-      val sortedSchemaPaths = schemaPaths.sortBy(p => allSourcePaths.count(_ == p))
+      val sortedSchemaPaths = schemaPaths.sortBy(p => allSourcePaths.count(_.normalizedSerialization == p.normalizedSerialization))
       sortedSchemaPaths
     }
 

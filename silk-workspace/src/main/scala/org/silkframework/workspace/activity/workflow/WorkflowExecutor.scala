@@ -33,12 +33,43 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   protected def project = workflowTask.project
   protected def workflowNodes = currentWorkflow.nodes
 
-  protected def execute[TaskType <: TaskSpec](task: Task[TaskType],
+  /**
+    * Executes a workflow operator.
+    *
+    * @param operation The operation, e.g., "reading"
+    * @param nodeId The workflow node identifier
+    * @param task The task to be executed
+    * @param inputs Inputs
+    * @param output Output definition
+    * @param workflowRunContext
+    * @param prefixes
+    * @tparam TaskType
+    * @return
+    */
+  protected def execute[TaskType <: TaskSpec](operation: String,
+                                              nodeId: Identifier,
+                                              task: Task[TaskType],
                                               inputs: Seq[ExecType#DataType],
                                               output: ExecutorOutput)
                                              (implicit workflowRunContext: WorkflowRunContext, prefixes: Prefixes): Option[ExecType#DataType] = {
     implicit val userContext: UserContext = workflowRunContext.userContext
-    ExecutorRegistry.execute(task, inputs, output, executionContext, workflowRunContext.taskContext(task.id))
+    val taskContext = workflowRunContext.taskContext(nodeId, task)
+    updateProgress(operation, task)
+    val result = ExecutorRegistry.execute(task, inputs, output, executionContext, taskContext)
+    result
+  }
+
+  /**
+    * Update the progress and write a log message.
+    *
+    * @param operation Operation, e.g., "reading"
+    * @param task task that is executed
+    * @param workflowRunContext Workflow Context
+    */
+  protected def updateProgress(operation: String, task: Task[_ >: TaskSpec])(implicit workflowRunContext: WorkflowRunContext): Unit = {
+    val taskLabel = task.taskLabel(maxLength = math.max(10, 40 - operation.length))
+    val progress = (workflowRunContext.alreadyExecuted.size.toDouble + 1) / (workflowNodes.size + 1)
+    workflowRunContext.activityContext.status.update(s"$operation $taskLabel", progress)
   }
 
   /** Return error if VariableDataset is used in output and input */
@@ -67,7 +98,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
       case Some(datasetTask) =>
         reconfigureTask(workflowDataset, datasetTask)
       case None =>
-        throw WorkflowException(s"No dataset task found in project ${project.name} with id " + datasetTaskId)
+        throw WorkflowExecutionException(s"No dataset task found in project ${project.name} with id " + datasetTaskId)
     }
   }
 
@@ -131,7 +162,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
       case Some(task) =>
         reconfigureTask(workflowDependencyNode, task)
       case None =>
-        throw WorkflowException(s"No task found in project ${project.name} with id " + taskId)
+        throw WorkflowExecutionException(s"No task found in project ${project.name} with id " + taskId)
     }
   }
 
@@ -152,32 +183,35 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
     * Listeners for updates to task reports.
     * We need to hold them to prevent their garbage collection.
     */
-  @volatile
-  private var reportListeners: List[TaskReportListener] = List.empty
+  private val reportListeners: mutable.Buffer[TaskReportListener] = mutable.Buffer.empty
 
   /** Creates an activity context for a specific task that will be executed in the workflow.
     * Also wires the task execution report to the workflow execution report. */
-  def taskContext(taskId: Identifier): ActivityContext[ExecutionReport] = {
-    val projectAndTaskString = activityContext.status.projectAndTaskId.map(ids => ids.copy(ids.projectId, ids.taskId.map(_ + " -> " + taskId)))
-    val taskContext = new ActivityMonitor[ExecutionReport](taskId, Some(activityContext), projectAndTaskId = projectAndTaskString)
-    listenForTaskReports(taskId, taskContext)
+  def taskContext(nodeId: Identifier, task: Task[_ <: TaskSpec]): ActivityContext[ExecutionReport] = {
+    val projectAndTaskString = activityContext.status.projectAndTaskId.map(ids => ids.copy(ids.projectId, ids.taskId.map(_ + " -> " + task.id)))
+    val taskContext = new ActivityMonitor[ExecutionReport](task.id, Some(activityContext), projectAndTaskId = projectAndTaskString)
+    listenForTaskReports(nodeId, task, taskContext)
     taskContext
   }
 
   // Creates a task report listener that will add that task report to the overall workflow report
-  private def listenForTaskReports(taskId: Identifier,
+  private def listenForTaskReports(nodeId: Identifier,
+                                   task: Task[_ <: TaskSpec],
                                    taskContext: ActivityMonitor[ExecutionReport]): Unit = {
-    val listener = new TaskReportListener(taskId)
+    // Add initial task report
+    activityContext.value() = activityContext.value().addReport(nodeId, SimpleExecutionReport(task, Seq.empty, Seq.empty))
+    // Listen for changes and update the task report for each change
+    val listener = new TaskReportListener(reportListeners.size, nodeId)
     taskContext.value.subscribe(listener)
-    reportListeners ::= listener
+    reportListeners.append(listener)
   }
 
   /**
     * Updates the workflow execution report on each update of a task report.
     */
-  private class TaskReportListener(task: Identifier) extends (ExecutionReport => Unit) {
+  private class TaskReportListener(index: Int, nodeId: Identifier) extends (ExecutionReport => Unit) {
     def apply(report: ExecutionReport): Unit = activityContext.value.synchronized {
-      activityContext.value() = activityContext.value().withReport(task, report)
+      activityContext.value() = activityContext.value().updateReport(index, nodeId, report)
     }
   }
 }

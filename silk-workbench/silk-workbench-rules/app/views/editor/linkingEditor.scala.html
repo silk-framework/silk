@@ -8,7 +8,7 @@
 @import org.silkframework.workbench.Context
 @import org.silkframework.runtime.activity.UserContext
 
-@(context: Context[LinkSpec])(implicit session: play.api.mvc.Session, userContext: UserContext)
+@(context: Context[LinkSpec])(implicit request: RequestHeader, userContext: UserContext)
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/editor/editor-reset.css")" rel="stylesheet" />

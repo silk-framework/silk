@@ -1,7 +1,6 @@
 package controllers.linking
 
-import controllers.core.{RequestUserContextAction, UserContextAction}
-import javax.inject.Inject
+import controllers.core.UserContextActions
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.LinkageRuleEvaluator
@@ -10,11 +9,12 @@ import org.silkframework.workbench.Context
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
-import play.api.mvc.{Action, AnyContent, ControllerComponents, InjectedController}
+import play.api.mvc.{Action, AnyContent, InjectedController}
 
+import javax.inject.Inject
 import scala.util.control.NonFatal
 
-class LinkingEditor @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController {
+class LinkingEditor @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions {
 
   def editor(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)
@@ -27,7 +27,7 @@ class LinkingEditor @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     val task = project.task[LinkSpec](taskName)
     val pathsCache = task.activity[LinkingPathsCache].control
     val prefixes = project.config.prefixes
-    val sourceNames = task.data.dataSelections.map(_.inputId.toString)
+    val sourceNames = task.data.dataSelections.map(s => project.anyTask(s.inputId.toString).taskLabel())
 
     if(pathsCache.status().isRunning) {
       val loadingMsg = f"Cache loading (${pathsCache.status().progress.getOrElse(0.0) * 100}%.1f%%)"

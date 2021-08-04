@@ -1,13 +1,13 @@
 package org.silkframework.plugins.dataset.csv
 
-import java.io._
-
 import com.univocity.parsers.csv.{CsvWriterSettings, CsvWriter => UniCsvWritter}
 import org.silkframework.dataset.TypedProperty
-import org.silkframework.runtime.resource.{FileResource, WritableResource}
+import org.silkframework.runtime.resource.WritableResource
+
+import java.io._
 
 /**
-  * Encapsulates the CSV writting.
+  * Encapsulates the CSV writing.
   *
   * @param resource The resource to be written to
   * @param properties The properties that build the columns
@@ -16,14 +16,7 @@ import org.silkframework.runtime.resource.{FileResource, WritableResource}
 class CsvWriter(resource: WritableResource, properties: Seq[TypedProperty], settings: CsvSettings) {
 
   // The underlying Java IO Writer
-  private val writer: Writer = resource match {
-    case f: FileResource =>
-      // Use a buffered writer that directly writes to the file
-      f.file.getParentFile.mkdirs()
-      new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f.file), settings.codec.charSet))
-    case _ =>
-      new StringWriter()
-  }
+  private val writer: Writer = new OutputStreamWriter(resource.createOutputStream())
 
   // The Univocity CSV Writer
   private val csvWriter = createCsvWriter()
@@ -44,12 +37,6 @@ class CsvWriter(resource: WritableResource, properties: Seq[TypedProperty], sett
       csvWriter.close()
     } finally {
       writer.close()
-    }
-    // If we are using a string writer, we still need to write the data to the resource
-    writer match {
-      case stringWriter: StringWriter =>
-        resource.writeString(stringWriter.toString)(settings.codec.charSet)
-      case _ =>
     }
   }
 

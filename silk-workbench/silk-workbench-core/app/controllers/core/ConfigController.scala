@@ -1,25 +1,28 @@
 package controllers.core
 
-import javax.inject.Inject
 import org.silkframework.config.{DefaultConfig, ProductionConfig}
+import play.api.Environment
 import play.api.libs.json.{JsBoolean, JsObject}
 import play.api.mvc.{Action, AnyContent, InjectedController}
-import play.api.{Environment, Mode}
+
+import javax.inject.Inject
 
 class ConfigController @Inject()(env: Environment) extends InjectedController {
 
   private val ignoredPaths = Set("awt", "file", "jline", "line", "path", "promise", "sbt", "play.http.secret.key",
     "plugin.parameters.password.crypt.key", "oauth.clientSecret", "workbench.superuser", "play.server.https.keyStore.password")
 
+  private val CONFIG_VIEW_ENABLED = "workbench.configView.enabled"
+
   def index: Action[AnyContent] = Action { implicit request =>
     var config = DefaultConfig.instance()
     for (path <- ignoredPaths) {
       config = config.withoutPath(path)
     }
-    if (env.mode == Mode.Prod) {
-      NotFound("Config endpoint is not available in production mode.")
-    } else {
+    if (config.hasPath(CONFIG_VIEW_ENABLED) && config.getBoolean(CONFIG_VIEW_ENABLED)) {
       Ok(views.html.configView(config))
+    } else {
+      NotFound(s"Config view is disabled. It can be enabled by setting '$CONFIG_VIEW_ENABLED'.")
     }
   }
 

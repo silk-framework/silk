@@ -83,6 +83,32 @@ object StringUtils {
     }
   }
 
+  /** Match search terms against string. Returns only true if all search terms match. */
+  def matchesSearchTerm(lowerCaseSearchTerms: Seq[String],
+                        searchIn: String,
+                        convertTextToLowercase: Boolean = true): Boolean = {
+    if(lowerCaseSearchTerms.isEmpty) {
+      true
+    } else {
+      val lowerCaseText = if(convertTextToLowercase) searchIn.toLowerCase else searchIn
+      lowerCaseSearchTerms forall lowerCaseText.contains
+    }
+  }
+
+  /** Counts how many search words match the text. Search text is expected to be in lower case. */
+  def matchCount(lowerCaseSearchTerms: Seq[String],
+                 searchIn: String): Int = {
+    if(lowerCaseSearchTerms.isEmpty) {
+      0
+    } else {
+      lowerCaseSearchTerms.map(term => if(searchIn.contains(term)) 1 else 0).sum
+    }
+  }
+
+  /** Split text query into multi lower case term search */
+  def extractSearchTerms(term: String): Array[String] = {
+    term.toLowerCase.split("\\s+").filter(_.nonEmpty)
+  }
 }
 
 class StringUtils(str: String) {

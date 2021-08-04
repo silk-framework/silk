@@ -1,0 +1,315 @@
+{
+  "summary": [],
+  "task": {
+    "metadata": {
+      "created": "2020-11-23T15:25:53.751Z",
+      "modified": "2020-11-23T15:26:12.932Z",
+      "label": ""
+    },
+    "taskType": "Workflow",
+    "data": {
+      "taskType": "Workflow",
+      "type": "workflow",
+      "parameters": {
+        "operators": [
+          {
+            "posX": 322,
+            "posY": 136,
+            "task": "transform",
+            "inputs": [
+              "DBpedia"
+            ],
+            "outputs": [
+              "output"
+            ],
+            "errorOutputs": [],
+            "id": "transform",
+            "outputPriority": null,
+            "configInputs": []
+          }
+        ],
+        "datasets": [
+          {
+            "posX": 70,
+            "posY": 101,
+            "task": "DBpedia",
+            "inputs": [],
+            "outputs": [
+              "transform"
+            ],
+            "id": "DBpedia",
+            "outputPriority": null
+          },
+          {
+            "posX": 631,
+            "posY": 114,
+            "task": "output",
+            "inputs": [
+              "transform"
+            ],
+            "outputs": [],
+            "id": "output",
+            "outputPriority": null
+          }
+        ]
+      }
+    },
+    "project": "movies",
+    "id": "simpleWorkflow"
+  },
+  "warnings": [
+    "Some tasks generated warnings."
+  ],
+  "label": "simpleWorkflow",
+  "taskReports": {
+    "DBpedia": {
+      "label": "DBpedia",
+      "task": {
+        "metadata": {
+          "modified": "2020-11-23T15:53:12.685Z",
+          "label": ""
+        },
+        "taskType": "Dataset",
+        "data": {
+          "taskType": "Dataset",
+          "type": "file",
+          "parameters": {
+            "zipFileRegex": ".*",
+            "format": "N-TRIPLE",
+            "maxReadSize": "10",
+            "file": "source.nt",
+            "graph": "",
+            "entityList": ""
+          }
+        },
+        "project": "movies",
+        "id": "DBpedia"
+      },
+      "summary": [],
+      "warnings": []
+    },
+    "transform": {
+      "summary": [
+        {
+          "key": "number of entities",
+          "value": "199"
+        },
+        {
+          "key": "number of errors",
+          "value": "192"
+        }
+      ],
+      "globalErrors": [],
+      "task": {
+        "metadata": {
+          "created": "2020-11-23T14:00:15.539Z",
+          "modified": "2020-11-23T15:52:56.513Z",
+          "label": "transform"
+        },
+        "taskType": "Transform",
+        "data": {
+          "taskType": "Transform",
+          "type": "transform",
+          "parameters": {
+            "selection": {
+              "inputId": "DBpedia",
+              "typeUri": "<http://dbpedia.org/ontology/Work/Film>",
+              "restriction": ""
+            },
+            "mappingRule": {
+              "type": "root",
+              "id": "root",
+              "rules": {
+                "uriRule": null,
+                "typeRules": [],
+                "propertyRules": [
+                  {
+                    "type": "direct",
+                    "id": "runtime",
+                    "sourcePath": "<http://dbpedia.org/ontology/Work/runtime>",
+                    "mappingTarget": {
+                      "uri": "runtime",
+                      "valueType": {
+                        "nodeType": "DoubleValueType"
+                      },
+                      "isBackwardProperty": false,
+                      "isAttribute": false
+                    },
+                    "metadata": {
+                      "label": "runtime"
+                    }
+                  },
+                  {
+                    "type": "direct",
+                    "id": "runtimeInteger",
+                    "sourcePath": "<http://dbpedia.org/ontology/Work/runtime>",
+                    "mappingTarget": {
+                      "uri": "runtimeInteger",
+                      "valueType": {
+                        "nodeType": "IntValueType"
+                      },
+                      "isBackwardProperty": false,
+                      "isAttribute": false
+                    },
+                    "metadata": {
+                      "label": "runtime Integer"
+                    }
+                  }
+                ]
+              },
+              "metadata": {
+                "label": "Root Mapping"
+              }
+            },
+            "output": "",
+            "errorOutput": "",
+            "targetVocabularies": ""
+          }
+        },
+        "project": "movies",
+        "id": "transform"
+      },
+      "warnings": [
+        "Validation issues occurred on 192 entities."
+      ],
+      "entityErrorCounter": 192,
+      "label": "transform",
+      "ruleResults": {
+        "runtime": {
+          "errorCount": 0,
+          "sampleErrors": []
+        },
+        "runtimeInteger": {
+          "errorCount": 192,
+          "sampleErrors": [
+            {
+              "entity": "http://dbpedia.org/resource/Alice_%281990_film%29",
+              "values": [
+                [
+                  "102.0"
+                ]
+              ],
+              "error": "Value '102.0' is not a valid Int"
+            },
+            {
+              "entity": "http://dbpedia.org/resource/All_Things_Fair",
+              "values": [
+                [
+                  "130.0"
+                ]
+              ],
+              "error": "Value '130.0' is not a valid Int"
+            },
+            {
+              "entity": "http://dbpedia.org/resource/Almost_an_Angel",
+              "values": [
+                [
+                  "95.0"
+                ]
+              ],
+              "error": "Value '95.0' is not a valid Int"
+            },
+            {
+              "entity": "http://dbpedia.org/resource/Altars_of_Desire",
+              "values": [
+                [
+                  "70.0"
+                ]
+              ],
+              "error": "Value '70.0' is not a valid Int"
+            },
+            {
+              "entity": "http://dbpedia.org/resource/Anna_Karenina_%281935_film%29",
+              "values": [
+                [
+                  "95.0"
+                ]
+              ],
+              "error": "Value '95.0' is not a valid Int"
+            },
+            {
+              "entity": "http://dbpedia.org/resource/Au_Hasard_Balthazar",
+              "values": [
+                [
+                  "95.0"
+                ]
+              ],
+              "error": "Value '95.0' is not a valid Int"
+            },
+            {
+              "entity": "http://dbpedia.org/resource/Baadal_%281985_film%29",
+              "values": [
+                [
+                  "130.0"
+                ]
+              ],
+              "error": "Value '130.0' is not a valid Int"
+            },
+            {
+              "entity": "http://dbpedia.org/resource/Ballistic:_Ecks_vs._Sever",
+              "values": [
+                [
+                  "91.0"
+                ]
+              ],
+              "error": "Value '91.0' is not a valid Int"
+            },
+            {
+              "entity": "http://dbpedia.org/resource/Berlin:_Symphony_of_a_Metropolis",
+              "values": [
+                [
+                  "65.0"
+                ]
+              ],
+              "error": "Value '65.0' is not a valid Int"
+            },
+            {
+              "entity": "http://dbpedia.org/resource/Big_Business_%281988_film%29",
+              "values": [
+                [
+                  "97.0"
+                ]
+              ],
+              "error": "Value '97.0' is not a valid Int"
+            }
+          ]
+        }
+      },
+      "entityCounter": 199
+    },
+    "output": {
+      "label": "output",
+      "task": {
+        "metadata": {
+          "created": "2020-11-23T14:00:43.886Z",
+          "modified": "2020-11-23T14:00:43.886Z",
+          "label": "output"
+        },
+        "taskType": "Dataset",
+        "data": {
+          "taskType": "Dataset",
+          "type": "csv",
+          "parameters": {
+            "zipFileRegex": ".*\\.csv$",
+            "arraySeparator": "",
+            "quoteEscapeCharacter": "\"",
+            "separator": ",",
+            "uri": "",
+            "ignoreBadLines": "false",
+            "quote": "\"",
+            "properties": "",
+            "regexFilter": "",
+            "charset": "UTF-8",
+            "file": "output.csv",
+            "linesToSkip": "0",
+            "maxCharsPerColumn": "128000"
+          }
+        },
+        "project": "movies",
+        "id": "output"
+      },
+      "summary": [],
+      "warnings": []
+    }
+  }
+}

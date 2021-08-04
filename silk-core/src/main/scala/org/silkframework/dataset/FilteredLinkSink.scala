@@ -1,5 +1,6 @@
 package org.silkframework.dataset
 
+import org.silkframework.config.Prefixes
 import org.silkframework.entity.Link
 import org.silkframework.runtime.activity.UserContext
 
@@ -12,13 +13,13 @@ case class FilteredLinkSink(linkSink: LinkSink, filterFn: Link => Boolean) exten
   /**
    * Initialize the link sink
    */
-  override def init()(implicit userContext: UserContext): Unit = linkSink.init()
+  override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = linkSink.init()
 
   /**
    * Filter the link before writing it to the underlying link sink.
    */
   override def writeLink(link: Link, predicateUri: String)
-                        (implicit userContext: UserContext): Unit = {
+                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     if(filterFn(link)) {
       linkSink.writeLink(link, predicateUri)
     }

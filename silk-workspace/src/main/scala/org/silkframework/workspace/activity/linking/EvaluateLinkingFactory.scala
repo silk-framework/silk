@@ -1,5 +1,6 @@
 package org.silkframework.workspace.activity.linking
 
+import org.silkframework.config.Prefixes
 import org.silkframework.rule.execution.{GenerateLinks, Linking}
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
@@ -42,18 +43,21 @@ case class EvaluateLinkingFactory(
         executionTimeout = Some(timeout).filter(_ > 0L).map(_ * 1000L)
 //        executionBackend = LinkingExecutionBackend.nativeExecution // FIXME: CMEM-1408
       )
-    new EvaluateLinkingActivity(task, runtimeConfig, writeOutputs)
+    new EvaluateLinkingActivity(task, runtimeConfig, writeOutputs)(task.project.config.prefixes)
   }
 }
 
-class EvaluateLinkingActivity(task: ProjectTask[LinkSpec], runtimeConfig: RuntimeLinkingConfig, writeOutputs: Boolean) extends Activity[Linking] {
+class EvaluateLinkingActivity(task: ProjectTask[LinkSpec],
+                              runtimeConfig: RuntimeLinkingConfig,
+                              writeOutputs: Boolean)
+                             (implicit val prefixes: Prefixes) extends Activity[Linking] {
 
   @volatile
   private var generateLinks: Option[GenerateLinks] = None
 
   override def name: String = "EvaluateLinking"
 
-  override def initialValue: Option[Linking] = Some(Linking(task.taskLabel(), task.data.rule))
+  override def initialValue: Option[Linking] = Some(Linking(task))
 
   /**
     * Executes this activity.
@@ -74,10 +78,8 @@ class EvaluateLinkingActivity(task: ProjectTask[LinkSpec], runtimeConfig: Runtim
     val output = task.linkSink.filter(_ => writeOutputs)
 
     new GenerateLinks(
-      task.id,
-      task.taskLabel(),
+      task,
       inputs = inputs,
-      linkSpec = linkSpec,
       output = output,
       runtimeConfig = runtimeConfig
     )

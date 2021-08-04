@@ -1,11 +1,12 @@
 package controllers.transform
 
-import controllers.core.UserContextAction
+import controllers.core.UserContextActions
+import play.api.mvc.{Action, AnyContent, InjectedController}
+
 import javax.inject.Inject
-import play.api.mvc.{InjectedController, Action, AnyContent, ControllerComponents}
 
 /** UI dialogs for the transform task */
-class TransformDialogs @Inject() () extends InjectedController {
+class TransformDialogs @Inject() () extends InjectedController with UserContextActions {
 
   def transformationTaskDialog(projectName: String, taskName: String, createDialog: Boolean = false): Action[AnyContent] = UserContextAction { implicit userContext =>
     Ok(views.html.dialogs.transformationTaskDialog(projectName, taskName, createDialog))

@@ -4,14 +4,17 @@ import _ from 'lodash';
 
 import {
     Button,
-    Card,
-    CardTitle,
-    CardMenu,
     ContextMenu,
     MenuItem,
     BreadcrumbList,
     BreadcrumbItem,
 } from '@eccenca/gui-elements';
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardOptions,
+} from '@gui-elements';
 
 import { ParentStructure } from '../components/ParentStructure';
 import RuleTitle from '../elements/RuleTitle';
@@ -25,14 +28,14 @@ class MappingHeader extends React.Component {
         onToggleTreeNav: PropTypes.func,
         onToggleDetails: PropTypes.func,
     };
-    
+
     static defaultProps = {
         showNavigation: false,
         onRuleIdChange: () => {},
         onToggleTreeNav: () => {},
         onToggleDetails: () => {},
     };
-    
+
     // jumps to selected rule as new center of view
     handleNavigate = (id, parent, event) => {
         this.props.onRuleIdChange({ newRuleId: id, parentId: parent });
@@ -88,45 +91,47 @@ class MappingHeader extends React.Component {
         return (
             <header className="ecc-silk-mapping__navheader">
                 <Card shadow={2}>
-                    <CardTitle className="ecc-silk-mapping__navheader-row">
-                        {navBack}
-                        {navBreadcrumbs}
-                    </CardTitle>
-                    <CardMenu>
-                        <ContextMenu
-                            className="ecc-silk-mapping__ruleslistmenu"
-                            iconName="tune"
-                        >
-                            <MenuItem
-                                className="ecc-silk-mapping__ruleslistmenu__item-toggletree"
-                                onClick={() => this.props.onToggleTreeNav()}
+                    <CardHeader>
+                        <CardTitle className="ecc-silk-mapping__navheader-row" narrowed={true}>
+                            {navBack}
+                            {navBreadcrumbs}
+                        </CardTitle>
+                        <CardOptions>
+                            <ContextMenu
+                                className="ecc-silk-mapping__ruleslistmenu"
+                                iconName="tune"
                             >
-                                {this.props.showNavigation
-                                    ? 'Hide tree navigation'
-                                    : 'Show tree navigation'}
-                            </MenuItem>
-                            <MenuItem
-                                className="ecc-silk-mapping__ruleslistmenu__item-expand"
-                                onClick={() => {
-                                    this.props.onToggleDetails({
-                                        expanded: true,
-                                    });
-                                }}
-                            >
-                                Expand all
-                            </MenuItem>
-                            <MenuItem
-                                className="ecc-silk-mapping__ruleslistmenu__item-reduce"
-                                onClick={() => {
-                                    this.props.onToggleDetails({
-                                        expanded: false,
-                                    });
-                                }}
-                            >
-                                Reduce all
-                            </MenuItem>
-                        </ContextMenu>
-                    </CardMenu>
+                                <MenuItem
+                                    className="ecc-silk-mapping__ruleslistmenu__item-toggletree"
+                                    onClick={() => this.props.onToggleTreeNav()}
+                                >
+                                    {this.props.showNavigation
+                                        ? 'Hide tree navigation'
+                                        : 'Show tree navigation'}
+                                </MenuItem>
+                                <MenuItem
+                                    className="ecc-silk-mapping__ruleslistmenu__item-expand"
+                                    onClick={() => {
+                                        this.props.onToggleDetails({
+                                            expanded: true,
+                                        });
+                                    }}
+                                >
+                                    Expand all
+                                </MenuItem>
+                                <MenuItem
+                                    className="ecc-silk-mapping__ruleslistmenu__item-reduce"
+                                    onClick={() => {
+                                        this.props.onToggleDetails({
+                                            expanded: false,
+                                        });
+                                    }}
+                                >
+                                    Reduce all
+                                </MenuItem>
+                            </ContextMenu>
+                        </CardOptions>
+                    </CardHeader>
                 </Card>
             </header>
         );

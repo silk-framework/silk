@@ -1,9 +1,13 @@
 package org.silkframework.plugins.dataset.rdf
 
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.config.Prefixes
 import org.silkframework.plugins.dataset.rdf.datasets.RdfFileDataset
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.InMemoryResourceManager
+import org.silkframework.runtime.resource.{InMemoryResourceManager, ResourceTooLargeException, WritableResource}
+
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream, OutputStream}
+import java.time.Instant
 
 class RdfFileDatasetTest extends FlatSpec with MustMatchers {
   behavior of "RDF file dataset"
@@ -11,24 +15,24 @@ class RdfFileDatasetTest extends FlatSpec with MustMatchers {
   val resourceManager = InMemoryResourceManager()
 
   implicit val userContext: UserContext = UserContext.Empty
+  implicit val prefixes: Prefixes = Prefixes.empty
 
   it should "not load files larger than 'max. read size'" in {
-    val largeResource = resourceManager.get("largeResource")
-    largeResource.writeString(getString(1000 * 1000 -1))
-    val rdfDataset = RdfFileDataset(largeResource, "Turtle", maxReadSize = 1)
-    rdfDataset.source.retrieveTypes()
-    largeResource.writeString(getString(1000 * 1000 + 1))
-    val rdfDataset2 = RdfFileDataset(largeResource, "Turtle", maxReadSize = 1)
-    intercept[RuntimeException] {
-      rdfDataset2.source.retrieveTypes()
-    }
-  }
+    val largeResource = new WritableResource {
+      override def name: String = "largeResource"
+      override def path: String = "path"
+      override def size: Option[Long] = Some(1000000000L)
 
-  private def getString(size: Int) = {
-    val sb = new StringBuilder()
-    for (_ <- 1 to size) {
-      sb.append("#")
+      override def createOutputStream(append: Boolean): OutputStream = new ByteArrayOutputStream()
+      override def delete(): Unit = {}
+      override def exists: Boolean = true
+      override def modificationTime: Option[Instant] = None
+      override def inputStream: InputStream = new ByteArrayInputStream(Array.emptyByteArray)
     }
-    sb.toString()
+
+    val rdfDataset = RdfFileDataset(largeResource, "Turtle")
+    intercept[ResourceTooLargeException] {
+      rdfDataset.source.retrieveTypes()
+    }
   }
 }

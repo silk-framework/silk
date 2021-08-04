@@ -26,15 +26,15 @@ class SparqlSink(params: SparqlParams,
 
   override def sparqlEndpoint: SparqlEndpoint = endpoint
 
-  override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
                         (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     this.properties = properties
   }
 
-  override def init()(implicit userContext: UserContext): Unit = {}
+  override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = {}
 
   override def writeLink(link: Link, predicateUri: String)
-                        (implicit userContext: UserContext): Unit = {
+                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     val (newStatements, statementCount) = formatLink(link, predicateUri)
     if(body.isEmpty) {
       beginSparul()

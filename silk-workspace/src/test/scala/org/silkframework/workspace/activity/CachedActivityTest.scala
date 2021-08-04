@@ -1,14 +1,13 @@
 package org.silkframework.workspace.activity
 
-import java.io.{InputStream, OutputStream}
-import java.time.Instant
-
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.MetaData
 import org.silkframework.runtime.activity.{Activity, ActivityContext, TestUserContextTrait, UserContext}
 import org.silkframework.runtime.resource.{InMemoryResourceManager, WritableResource}
 import org.silkframework.runtime.serialization.ReadContext
 
+import java.io.{InputStream, OutputStream}
+import java.time.Instant
 import scala.xml.XML
 
 class CachedActivityTest extends FlatSpec with MustMatchers with TestUserContextTrait {
@@ -136,9 +135,8 @@ class CachedActivityTest extends FlatSpec with MustMatchers with TestUserContext
       resource.inputStream
     }
 
-    override def write(append: Boolean)(write: OutputStream => Unit): Unit = {
-      resource.write(append)(write)
-      writeCount += 1
+    override def createOutputStream(append: Boolean): OutputStream = {
+      new CacheOutputStream(resource.createOutputStream(append))
     }
 
     override def delete(): Unit = resource.delete()
@@ -147,6 +145,18 @@ class CachedActivityTest extends FlatSpec with MustMatchers with TestUserContext
     override def exists: Boolean = resource.exists
     override def size: Option[Long] = resource.size
     override def modificationTime: Option[Instant] = resource.modificationTime
+
+    private class CacheOutputStream(os: OutputStream) extends OutputStream {
+      override def write(b: Int): Unit = os.write(b)
+      override def write(b: Array[Byte]): Unit = os.write(b)
+      override def write(b: Array[Byte], off: Int, len: Int): Unit = os.write(b, off, len)
+      override def flush(): Unit = os.flush()
+      override def close(): Unit = {
+        writeCount += 1
+        os.close()
+      }
+    }
+
   }
 
 }

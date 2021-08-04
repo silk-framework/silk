@@ -63,15 +63,24 @@
     case TaskReferenceType =>
       val taskNames = project.allTasks.map(_.id.toString)
       enumParameter(param, taskNames, taskNames, value)
-//    case MultilineStringParameterType =>
-//      multilineParameter(param, value)
+    case MultilineStringParameterType =>
+      multilineParameter(param, value)
     case _ =>
       stringParameter(param, value)
   }
 }
 
 @multilineParameter(param: Parameter, value: String) = {
-  @widgets.multilineParameter(GenerateId(id, display), value, label = param.label, tooltip = param.description, additionalInputElementsClass = "param_value")
+@* broken: widgets.multilineParameter(GenerateId(id, display), value, label = param.label, tooltip = param.description, additionalInputElementsClass = "param_value") *@
+  <div class="mdl-textfield mdl-textfield--floating-label mdl-defer" data-mdl-defer="js-textfield">
+    <textarea class="mdl-textfield__input param_value" type="text" id="@{GenerateId(id, display)}_param_input_@{param.name}" name="@{param.name}">@value</textarea>
+    <label class="mdl-textfield__label" for="@{GenerateId(id, display)}_param_input_@{param.name}">@param.label</label>
+    <div class="mdl-defer mdl-tooltip--right" for="@{GenerateId(id, display)}_param_input_@{param.name}" data-mdl-defer="tooltip">
+      @param.description
+      <br/>
+      Expected type: @param.parameterType.description
+    </div>
+  </div>
 }
 
 @stringParameter(param: Parameter, value: String) = {

@@ -54,6 +54,7 @@ abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers with B
   private val city = s"${pn}city"
   private val country = s"${pn}country"
   private val name = s"${pn}name"
+  private val age = s"${pn}age"
 
   // Instances
   private val person1 = s"${pn}Person1"
@@ -125,20 +126,25 @@ abstract class EntityRetrieverBaseTest extends FlatSpec with MustMatchers with B
   }
 
   it should "fetch a specific root entity" in {
-    val entitySchema = schema(Person, Seq(path(name)))
+    val entitySchema = schema(Person, Seq(path(name), path(age)))
     val entities = retriever.retrieve(entitySchema, entities = Seq(person1), limit = None).toArray.toSeq
     entities.map(_.uri.toString) mustBe Seq(person1)
-    entities.head.values mustBe IndexedSeq(Seq("John Doe"))
+    entities.head.values mustBe IndexedSeq(Seq("John Doe"), Seq("23"))
   }
 
   it should "fetch a specific root entity with restrictions" in {
-    for((personURI, expectedResult) <- Seq(person1, person2).zip(Seq(Seq("John Doe"), Seq()))) {
-      val entitySchema = schema(Person, Seq(path(name)), filter = Restriction.custom(s"?a <${pn}age> 23"))
+    for ((personURI, expectedResult) <- Seq(
+      person1,
+      person2) zip (Seq(
+      Seq(IndexedSeq(Seq("John Doe"), Seq("23"))),
+      Seq())
+    )) {
+      val entitySchema = schema(Person, Seq(path(name), path(age)), filter = Restriction.custom(s"?a <${pn}age> 23"))
       val entities = retriever.retrieve(entitySchema, entities = Seq(personURI), limit = None).toArray.toSeq
       entities.size mustBe expectedResult.size
       if(entities.nonEmpty) {
         entities.head.uri.toString mustBe personURI
-        entities.head.values mustBe IndexedSeq(expectedResult)
+        entities.head.values mustBe expectedResult.head
       }
     }
   }

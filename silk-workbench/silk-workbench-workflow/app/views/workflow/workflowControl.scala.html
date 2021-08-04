@@ -1,0 +1,8 @@
+@import org.silkframework.workspace.activity.TaskActivity
+@import views.html.workspace.activity.taskActivityControl
+
+@(activity: TaskActivity[_, _], showButtons: Boolean = false, insideIFrame: Boolean = false)(implicit request: RequestHeader)
+
+@frame { } {
+  @taskActivityControl(activity, showButtons, insideIFrame)
+}

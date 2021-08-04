@@ -1,16 +1,17 @@
 package controllers.workflow
 
-import java.util.NoSuchElementException
-
-import controllers.core.RequestUserContextAction
-import javax.inject.Inject
+import controllers.core.UserContextActions
+import models.workflow.WorkflowConfig
 import org.silkframework.workbench.Context
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow}
+import org.silkframework.workspace.WorkspaceFactory
+import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
+import javax.inject.Inject
+
 /** View endpoints for the workflow editor */
-class WorkflowEditorController @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController {
+class WorkflowEditorController @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions {
 
   def editor(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[Workflow](project, task, request.path)
@@ -18,14 +19,19 @@ class WorkflowEditorController @Inject() (accessMonitor: WorkbenchAccessMonitor)
     Ok(views.html.workflow.editor.editor(context))
   }
 
-  def report(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  def activityControl(projectId: String, taskId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectId)
+    val task = project.anyTask(taskId)
+    val activity = task.activity(WorkflowConfig.executorName)
+    Ok(views.html.workflow.workflowControl(activity, showButtons = true, insideIFrame = true))
+  }
+
+  def reports(project: String, task: String): Action[AnyContent] = reportImpl(project, task, None)
+
+  def report(project: String, task: String, report: String): Action[AnyContent] = reportImpl(project, task, Some(report))
+
+  private def reportImpl(project: String, task: String, report: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[Workflow](project, task, request.path)
-    try {
-      val report = context.task.activity[LocalWorkflowExecutorGeneratingProvenance].value()
-      Ok(views.html.workflow.executionReport(report.report, context.project.config.prefixes, context))
-    } catch {
-      case _: NoSuchElementException =>
-        Ok(views.html.clientError("No workflow execution report available. The workflow has probably not been executed, yet."))
-    }
+    Ok(views.html.workflow.executionReport(context, report))
   }
 }

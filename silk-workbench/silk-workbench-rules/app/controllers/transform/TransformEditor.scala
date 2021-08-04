@@ -1,8 +1,7 @@
 package controllers.transform
 
+import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.core.{RequestUserContextAction, UserContextAction}
-import javax.inject.Inject
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.validation.NotFoundException
@@ -10,10 +9,12 @@ import org.silkframework.util.{DPair, Uri}
 import org.silkframework.workbench.Context
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.WorkspaceFactory
-import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCache, VocabularyCacheValue}
+import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCacheValue}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
-class TransformEditor @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with ControllerUtilsTrait {
+import javax.inject.Inject
+
+class TransformEditor @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   def start(project: String, task: String, rule: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[TransformSpec](project, task, request.path)
@@ -46,7 +47,7 @@ class TransformEditor @Inject() (accessMonitor: WorkbenchAccessMonitor) extends 
   /** Fetch relative source paths for a specific rule and render widget. */
   def rulePaths(projectName: String, taskName: String, ruleName: String, groupPaths: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
     val (project, transformTask) = projectAndTask[TransformSpec](projectName, taskName)
-    val sourceName = transformTask.data.selection.inputId.toString
+    val sourceName = project.anyTask(transformTask.data.selection.inputId).taskLabel()
     val prefixes = project.config.prefixes
     transformTask.data.nestedRuleAndSourcePath(ruleName) match {
       case Some((_, sourcePath)) =>

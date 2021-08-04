@@ -1,8 +1,6 @@
 package org.silkframework.serialization.json
 
-import java.time.Instant
-import java.util.UUID
-
+import io.swagger.v3.oas.annotations.media.Schema
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec, DatasetTask}
@@ -19,12 +17,15 @@ import org.silkframework.runtime.validation.{BadUserInputException, ValidationEx
 import org.silkframework.serialization.json.EntitySerializers.EntitySchemaJsonFormat
 import org.silkframework.serialization.json.InputJsonSerializer._
 import org.silkframework.serialization.json.JsonHelpers._
+import org.silkframework.serialization.json.JsonSerializers.ObjectMappingJsonFormat.MAPPING_TARGET
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.LinkingSerializers._
 import org.silkframework.util.{DPair, Identifier, Uri}
 import org.silkframework.workspace.activity.transform.{CachedEntitySchemata, VocabularyCacheValue}
 import play.api.libs.json._
 
+import java.time.Instant
+import java.util.UUID
 import scala.reflect.ClassTag
 
 /**
@@ -387,7 +388,8 @@ object JsonSerializers {
       val mappingRules = fromJson[MappingRules](mustBeDefined(value, RULES_PROPERTY))
       val typeName = mappingRules.typeRules.flatMap(_.typeUri.localName).headOption
       val id = identifier(value, RootMappingRule.defaultId)
-      RootMappingRule(id = id, rules = mappingRules, metaData = metaData(value, typeName.getOrElse("RootMapping")))
+      val mappingTarget = optionalValue(value, MAPPING_TARGET).map(fromJson[MappingTarget]).getOrElse(RootMappingRule.defaultMappingTarget)
+      RootMappingRule(id = id, rules = mappingRules, mappingTarget = mappingTarget, metaData = metaData(value, typeName.getOrElse("RootMapping")))
     }
 
     /**
@@ -399,6 +401,7 @@ object JsonSerializers {
           TYPE -> JsString("root"),
           ID -> JsString(value.id),
           RULES_PROPERTY -> toJson(value.rules),
+          MAPPING_TARGET -> toJson(value.mappingTarget),
           METADATA -> toJson(value.metaData)
         )
       )
@@ -672,13 +675,46 @@ object JsonSerializers {
   }
 
   /**
+    * Dataset selection.
+    */
+  implicit object DatasetSelectionJsonFormat extends JsonFormat[DatasetSelection] {
+    final val INPUT_ID: String = "inputId"
+    final val TYPE_URI: String = "typeUri"
+    final val RESTRICTION: String = "restriction"
+
+    /**
+      * Deserializes a value.
+      */
+    override def read(value: JsValue)(implicit readContext: ReadContext): DatasetSelection = {
+      DatasetSelection(
+        inputId = stringValue(value, INPUT_ID),
+        typeUri = Uri.parse(stringValue(value, TYPE_URI), readContext.prefixes),
+        restriction = Restriction.parse(stringValue(value, RESTRICTION))(readContext.prefixes)
+      )
+    }
+
+    /**
+      * Serializes a value.
+      */
+    override def write(value: DatasetSelection)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        INPUT_ID -> value.inputId.toString,
+        TYPE_URI -> value.typeUri.serialize(writeContext.prefixes),
+        RESTRICTION -> value.restriction.serialize
+      )
+    }
+  }
+
+  /**
     * Transform Specification
     */
   implicit object TransformSpecJsonFormat extends JsonFormat[TransformSpec] {
     final val SELECTION = "selection"
     final val RULES_PROPERTY: String = "mappingRule"
     final val OUTPUT: String = "output"
+    final val ERROR_OUTPUT: String = "errorOutput"
     final val TARGET_VOCABULARIES: String = "targetVocabularies"
+    final val ABORT_IF_ERRORS_OCCUR: String = "abortIfErrorsOccur"
 
     /** Deprecated property names */
     final val DEPRECATED_RULES_PROPERTY: String = "root"
@@ -700,12 +736,14 @@ object JsonSerializers {
             selection = fromJson[DatasetSelection](mustBeDefined(parametersObj, SELECTION)),
             mappingRule = optionalValue(parametersObj, RULES_PROPERTY).map(fromJson[RootMappingRule]).getOrElse(RootMappingRule.empty),
             output = stringValueOption(parametersObj, OUTPUT).filter(_.trim.nonEmpty).map(v => Identifier(v.trim)),
+            errorOutput = stringValueOption(parametersObj, ERROR_OUTPUT).filter(_.trim.nonEmpty).map(v => Identifier(v.trim)),
             targetVocabularies = {
               val vocabs = stringValueOption(parametersObj, TARGET_VOCABULARIES).
                   map(TargetVocabularyParameterType.fromString).
                   getOrElse(TargetVocabularyListParameter(Seq.empty))
               vocabs
-            }
+            },
+            abortIfErrorsOccur = stringValueOption(parametersObj, ABORT_IF_ERRORS_OCCUR).map(_.toBoolean).getOrElse(false)
           )
       }
     }
@@ -732,14 +770,15 @@ object JsonSerializers {
           SELECTION -> toJson(value.selection),
           RULES_PROPERTY -> toJson(value.mappingRule),
           OUTPUT -> JsString(value.output.map(_.toString).getOrElse("")),
-          TARGET_VOCABULARIES -> JsString(TargetVocabularyParameterType.toString(value.targetVocabularies))
+          ERROR_OUTPUT -> JsString(value.errorOutput.map(_.toString).getOrElse("")),
+          TARGET_VOCABULARIES -> JsString(TargetVocabularyParameterType.toString(value.targetVocabularies)),
+          ABORT_IF_ERRORS_OCCUR -> JsString(value.abortIfErrorsOccur.toString)
         ))
       )
     }
   }
 
   implicit object ComparisonJsonFormat extends JsonFormat[Comparison] {
-    final val REQUIRED = "required"
     final val WEIGHT = "weight"
     final val THRESHOLD = "threshold"
     final val INDEXING = "indexing"
@@ -757,7 +796,6 @@ object JsonSerializers {
 
       Comparison(
         id = identifier(value, "comparison"),
-        required = booleanValue(value, REQUIRED),
         weight = numberValue(value, WEIGHT).intValue,
         threshold = numberValue(value, THRESHOLD).doubleValue,
         indexing = booleanValue(value, INDEXING),
@@ -774,7 +812,6 @@ object JsonSerializers {
       Json.obj(
         ID -> value.id.toString,
         TYPE -> COMPARISON_TYPE,
-        REQUIRED -> value.required,
         WEIGHT -> value.weight,
         THRESHOLD -> value.threshold,
         INDEXING -> value.indexing,
@@ -805,7 +842,6 @@ object JsonSerializers {
 
       Aggregation(
         id = identifier(value, "aggregation"),
-        required = booleanValue(value, REQUIRED),
         weight = numberValue(value, WEIGHT).intValue,
         aggregator = aggregator,
         operators = inputs
@@ -816,7 +852,6 @@ object JsonSerializers {
       Json.obj(
         ID -> value.id.toString,
         TYPE -> AGGREGATION_TYPE,
-        REQUIRED -> value.required,
         WEIGHT -> value.weight,
         AGGREGATOR -> value.aggregator.pluginSpec.id.toString,
         PARAMETERS -> Json.toJson(value.aggregator.parameters),
@@ -973,6 +1008,15 @@ object JsonSerializers {
         .map(_.asInstanceOf[JsonFormat[TaskSpec]])
     }
 
+    /**
+      * Retrieves the task format for a given task spec.
+      *
+      * @return The task format, if available. None, otherwise.
+      */
+    def taskSpecFormat(value: TaskSpec): Option[JsonFormat[TaskSpec]] = {
+      taskSpecFormats.find(_.valueType.isAssignableFrom(value.getClass))
+    }
+
     override def read(value: JsValue)(implicit readContext: ReadContext): TaskSpec = {
       val taskType = stringValue(value, TASKTYPE)
       taskSpecFormats.find(_.typeNames.contains(taskType)) match {
@@ -984,7 +1028,7 @@ object JsonSerializers {
     }
 
     override def write(value: TaskSpec)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      taskSpecFormats.find(_.valueType.isAssignableFrom(value.getClass)) match {
+      taskSpecFormat(value) match {
         case Some(format) =>
           format.write(value)
         case None =>
@@ -1041,6 +1085,7 @@ object JsonSerializers {
       * Serializes a value.
       */
     override def write(task:  Task[T])(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      // If any of the defaults is changed, the annotations on TaskFormatOptions need to be updated
       var json = Json.obj(ID -> JsString(task.id.toString))
 
       for(project <- writeContext.projectId) {
@@ -1126,10 +1171,40 @@ object JsonSerializers {
     * @param includeRelations Include relations to other tasks.
     * @param includeSchemata Include the input and output schemata of the task.
     */
-  case class TaskFormatOptions(includeMetaData: Option[Boolean] = None,
+  case class TaskFormatOptions(@Schema(
+                                 description = "Include the task meta data.",
+                                 defaultValue = "true",
+                                 required = false,
+                                 implementation = classOf[Boolean]
+                               )
+                               includeMetaData: Option[Boolean] = None,
+                               @Schema(
+                                 description = "Include the task data.",
+                                 defaultValue = "true",
+                                 required = false,
+                                 implementation = classOf[Boolean]
+                               )
                                includeTaskData: Option[Boolean] = None,
+                               @Schema(
+                                 description = "Retrieves a list of properties as key-value pairs to be displayed to the user.",
+                                 defaultValue = "false",
+                                 required = false,
+                                 implementation = classOf[Boolean]
+                               )
                                includeTaskProperties: Option[Boolean] = None,
+                               @Schema(
+                                 description = "Include relations to other tasks.",
+                                 defaultValue = "false",
+                                 required = false,
+                                 implementation = classOf[Boolean]
+                               )
                                includeRelations: Option[Boolean] = None,
+                               @Schema(
+                                 description = "Include the input and output schemata of the task.",
+                                 defaultValue = "false",
+                                 required = false,
+                                 implementation = classOf[Boolean]
+                               )
                                includeSchemata: Option[Boolean] = None)
 
   /**
@@ -1229,8 +1304,8 @@ object JsonSerializers {
     override def write(value: Vocabulary)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       Json.obj(
         GENERIC_INFO -> GenericInfoJsonFormat.write(value.info),
-        CLASSES -> value.classes.map(VocabularyClassJsonFormat.write),
-        PROPERTIES -> value.properties.map(VocabularyPropertyJsonFormat.write)
+        CLASSES -> value.classes.map(VocabularyClassJsonFormat.write).toSeq,
+        PROPERTIES -> value.properties.map(VocabularyPropertyJsonFormat.write).toSeq
       )
     }
   }
@@ -1335,37 +1410,6 @@ object InputJsonSerializer {
       Json.obj(
         "configured" -> EntitySchemaJsonFormat.write(value.configuredSchema),
         "untyped" -> value.untypedSchema.map(EntitySchemaJsonFormat.write)
-      )
-    }
-  }
-
-  /**
-    * Dataset selection.
-    */
-  implicit object DatasetSelectionJsonFormat extends JsonFormat[DatasetSelection] {
-    final val INPUT_ID: String = "inputId"
-    final val TYPE_URI: String = "typeUri"
-    final val RESTRICTION: String = "restriction"
-
-    /**
-      * Deserializes a value.
-      */
-    override def read(value: JsValue)(implicit readContext: ReadContext): DatasetSelection = {
-      DatasetSelection(
-        inputId = stringValue(value, INPUT_ID),
-        typeUri = Uri.parse(stringValue(value, TYPE_URI), readContext.prefixes),
-        restriction = Restriction.parse(stringValue(value, RESTRICTION))(readContext.prefixes)
-      )
-    }
-
-    /**
-      * Serializes a value.
-      */
-    override def write(value: DatasetSelection)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      Json.obj(
-        INPUT_ID -> value.inputId.toString,
-        TYPE_URI -> value.typeUri.serialize(writeContext.prefixes),
-        RESTRICTION -> value.restriction.serialize
       )
     }
   }

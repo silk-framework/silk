@@ -2,13 +2,13 @@ package org.silkframework.plugins.dataset.rdf.datasets
 
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
-import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.dataset.rdf.{LinkFormatter, RdfDataset, SparqlParams}
+import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.rdf.SparqlRestriction
-import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.plugins.dataset.rdf.access.SparqlSource
@@ -16,8 +16,8 @@ import org.silkframework.plugins.dataset.rdf.endpoint.{JenaEndpoint, JenaModelEn
 import org.silkframework.plugins.dataset.rdf.formatters._
 import org.silkframework.plugins.dataset.rdf.sparql.EntityRetriever
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin.MultilineStringParameter
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.{Resource, WritableResource}
 import org.silkframework.util.{Identifier, Uri}
 
@@ -32,14 +32,13 @@ Large datasets should be loaded into an external RDF store and retrieved using t
 case class RdfFileDataset(
   @Param("The RDF file. This may also be a zip archive of multiple RDF files.")
   file: WritableResource,
-  @Param("""RDF format. Can be left empty, in which case it will be auto-detetected based on the file extension. Supported input formats are: "RDF/XML", "N-Triples", "N-Quads", "Turtle". Supported output formats are: "N-Triples".""")
+  @Param(
+    value = """Optional RDF format. If left empty, it will be auto-detected based on the file extension. N-Triples is the only format that can be written, while other formats can only be read.""",
+    autoCompletionProvider = classOf[RdfLangAutocompletionProvider]
+  )
   format: String = "",
   @Param("The graph name to be read. If not provided, the default graph will be used. Must be provided if the format is N-Quads.")
   graph: String = "",
-  @Param(label = "Max. read size (MB)",
-    value = "The maximum size of the RDF file resource for read operations. Since the whole dataset will be kept in-memory, this value should be kept low to guarantee stability.",
-    advanced = true)
-  maxReadSize: Long = 10,
   @Param(value = "A list of entities to be retrieved. If not given, all entities will be retrieved. Multiple entities are separated by whitespace.", advanced = true)
   entityList: MultilineStringParameter = MultilineStringParameter(""),
   @Param(label = "ZIP file regex", value = "If the input resource is a ZIP file, files inside the file are filtered via this regex.", advanced = true)
@@ -113,6 +112,7 @@ case class RdfFileDataset(
   // restrict the fetched entities to following URIs
   private def entityRestriction: Seq[Uri] = SparqlParams.splitEntityList(entityList.str).map(Uri(_))
 
+  /** RDF file data source. */
   class FileSource(resource: Resource) extends DataSource with PeakDataSource with Serializable with SamplingDataSource
     with SchemaExtractionSource with SparqlRestrictionDataSource {
 
@@ -121,14 +121,14 @@ case class RdfFileDataset(
     private var lastModificationTime: Option[(Long, Int)] = None
 
     override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
-                         (implicit userContext: UserContext): EntityHolder = {
+                         (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
       load()
       val retrievedEntities = EntityRetriever(endpoint).retrieve(entitySchema, entityRestriction, None)
       GenericEntityTable(retrievedEntities, entitySchema, underlyingTask)
     }
 
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                              (implicit userContext: UserContext): EntityHolder = {
+                              (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
       if (entities.isEmpty) {
         EmptyEntityTable(underlyingTask)
       } else {
@@ -138,13 +138,13 @@ case class RdfFileDataset(
     }
 
     override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])
-                              (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+                              (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
       load()
       sparqlSource.retrievePaths(typeUri, depth, limit)
     }
 
     override def retrieveTypes(limit: Option[Int])
-                              (implicit userContext: UserContext): Traversable[(String, Double)] = {
+                              (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
       load()
       sparqlSource.retrieveTypes(limit)
     }
@@ -156,14 +156,9 @@ case class RdfFileDataset(
     private def load(): Unit = synchronized {
       val modificationTime = file.modificationTime.map(mt => (mt.getEpochSecond, mt.getNano))
       if (endpoint == null || modificationTime != lastModificationTime) {
-        if (file.size.isEmpty) {
-          throw new RuntimeException("File size could not be determined, ")
-        } else if (file.size.get > maxReadSize * 1000 * 1000) {
-          throw new RuntimeException(s"File size (${file.size.get / 1000000.0} MB) is larger than configured max. read size ($maxReadSize MB).")
-        } else {
-          endpoint = createSparqlEndpoint(Seq(resource))
-          lastModificationTime = modificationTime
-        }
+        file.checkSizeForInMemory()
+        endpoint = createSparqlEndpoint(Seq(resource))
+        lastModificationTime = modificationTime
       }
     }
 

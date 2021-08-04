@@ -1,9 +1,14 @@
 package controllers.transform
 
-import controllers.core.{RequestUserContextAction, UserContextAction}
+import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
+import controllers.transform.doc.TargetVocabularyApiDoc
 import controllers.util.SerializationUtils._
-import javax.inject.Inject
+import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.vocab.{VocabularyClass, VocabularyProperty}
 import org.silkframework.runtime.activity.UserContext
@@ -14,16 +19,57 @@ import org.silkframework.util.Uri
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.transform.{VocabularyCache, VocabularyCacheValue}
 import org.silkframework.workspace.{Project, WorkspaceFactory}
-import play.api.libs.json.{JsValue, Json, Writes}
+import play.api.libs.json.{Format, JsValue, Json, Writes}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
-/**
-  * Provides access to the target vocabulary.
-  */
-class TargetVocabularyApi  @Inject() () extends InjectedController with ControllerUtilsTrait {
+import javax.inject.Inject
 
-  /** Returns meta data for a vocabulary class */
-  def getTypeInfo(projectName: String, transformTaskName: String, typeUri: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+@Tag(name = "Transform target vocabulary", description = "Provides access to the target vocabulary.")
+class TargetVocabularyApi  @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
+
+  @Operation(
+    summary = "Target vocabulary type",
+    description = "Retrieves information about a type from the target vocabularies.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Target vocabulary type",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(TargetVocabularyApiDoc.typeInfoExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, task or type has not been found."
+      )
+  ))
+  def getTypeInfo(@Parameter(
+                    name = "project",
+                    description = "The project identifier",
+                    required = true,
+                    in = ParameterIn.PATH,
+                    schema = new Schema(implementation = classOf[String])
+                  )
+                  projectName: String,
+                  @Parameter(
+                    name = "task",
+                    description = "The task identifier",
+                    required = true,
+                    in = ParameterIn.PATH,
+                    schema = new Schema(implementation = classOf[String])
+                  )
+                  transformTaskName: String,
+                  @Parameter(
+                    name = "uri",
+                    description = "The URI of the type. May be a prefixed name.",
+                    required = true,
+                    in = ParameterIn.QUERY,
+                    schema = new Schema(implementation = classOf[String])
+                  )
+                  typeUri: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = projectAndTask[TransformSpec](projectName, transformTaskName)
     val vocabularies = VocabularyCacheValue.targetVocabularies(task)
     val fullTypeUri = Uri.parse(typeUri, project.config.prefixes)
@@ -36,9 +82,48 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with Controll
     }
   }
 
-  /** Returns meta data for a vocabulary property */
-  def getPropertyInfo(projectName: String,
+  @Operation(
+    summary = "Target vocabulary property",
+    description = "Retrieves information about a property from the target vocabularies.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Target vocabulary property",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(TargetVocabularyApiDoc.propertyInfoExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, task or property has not been found."
+      )
+  ))
+  def getPropertyInfo(@Parameter(
+                        name = "project",
+                        description = "The project identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      projectName: String,
+                      @Parameter(
+                        name = "task",
+                        description = "The task identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
                       transformTaskName: String,
+                      @Parameter(
+                        name = "uri",
+                        description = "The URI of the property. May be a prefixed name.",
+                        required = true,
+                        in = ParameterIn.QUERY,
+                        schema = new Schema(implementation = classOf[String])
+                      )
                       propertyUri: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = projectAndTask[TransformSpec](projectName, transformTaskName)
     val vocabularies = VocabularyCacheValue.targetVocabularies(task)
@@ -52,11 +137,48 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with Controll
     }
   }
 
-  /**
-    * Returns metadata for a vocabulary class or property.
-    */
-  def getTypeOrPropertyInfo(projectName: String,
+  @Operation(
+    summary = "Target vocabulary type or property",
+    description = "Retrieves information about a type or a property from the target vocabularies. This endpoint can be used if it is not known whether the given URI represents a type or a property. Otherwise, the /type and /property endpoints should be prefered.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Target vocabulary type or property",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(TargetVocabularyApiDoc.propertyInfoExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, task has not been found or there is no type or property with the specified URI."
+      )
+  ))
+  def getTypeOrPropertyInfo(@Parameter(
+                              name = "project",
+                              description = "The project identifier",
+                              required = true,
+                              in = ParameterIn.PATH,
+                              schema = new Schema(implementation = classOf[String])
+                            )
+                            projectName: String,
+                            @Parameter(
+                              name = "task",
+                              description = "The task identifier",
+                              required = true,
+                              in = ParameterIn.PATH,
+                              schema = new Schema(implementation = classOf[String])
+                            )
                             transformTaskName: String,
+                            @Parameter(
+                              name = "uri",
+                              description = "The URI of the type or property. May be a prefixed name.",
+                              required = true,
+                              in = ParameterIn.QUERY,
+                              schema = new Schema(implementation = classOf[String])
+                            )
                             uri: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = projectAndTask[TransformSpec](projectName, transformTaskName)
     val vocabularies = VocabularyCacheValue.targetVocabularies(task)
@@ -74,13 +196,49 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with Controll
     }
   }
 
-  /**
-    * Returns all properties that are in the domain of the given class or one of its super classes.
-    * @param projectName Name of project
-    * @param taskName    Name of task
-    * @param classUri    Class URI
-    */
-  def propertiesByType(projectName: String, taskName: String, classUri: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+  @Operation(
+    summary = "Target vocabulary properties by class",
+    description = "Get all properties that the given class or any of its parent classes is the domain of in the corresponding target vocabulary.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(TargetVocabularyApiDoc.propertiesByClassExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, task or class has not been found."
+      )
+  ))
+  def propertiesByType(@Parameter(
+                         name = "project",
+                         description = "The project identifier",
+                         required = true,
+                         in = ParameterIn.PATH,
+                         schema = new Schema(implementation = classOf[String])
+                       )
+                       projectName: String,
+                       @Parameter(
+                         name = "task",
+                         description = "The task identifier",
+                         required = true,
+                         in = ParameterIn.PATH,
+                         schema = new Schema(implementation = classOf[String])
+                       )
+                       taskName: String,
+                       @Parameter(
+                         name = "uri",
+                         description = "The URI of the class.",
+                         required = true,
+                         in = ParameterIn.QUERY,
+                         schema = new Schema(implementation = classOf[String])
+                       )
+                       classUri: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val project: Project = WorkspaceFactory().workspace.project(projectName)
     val (vocabularyProps, _) = vocabularyPropertiesByType(taskName, project, classUri, addBackwardRelations = false)
     serializeIterableCompileTime(vocabularyProps, containerName = Some("Properties"))
@@ -141,7 +299,49 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with Controll
     Relation(vocabularyProperty, targetClass.get)
   }
 
-  def relationsOfType(projectName: String, taskName: String, classUri: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+  @Operation(
+    summary = "Target vocabulary object properties by class",
+    description = "Get all direct relations of a class or one of its parent classes to other classes from the vocabulary.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(TargetVocabularyApiDoc.relationsOfClassExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, task or class has not been found."
+      )
+  ))
+  def relationsOfType(@Parameter(
+                        name = "project",
+                        description = "The project identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      projectName: String,
+                      @Parameter(
+                        name = "task",
+                        description = "The task identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      taskName: String,
+                      @Parameter(
+                        name = "uri",
+                        description = "The URI of the class.",
+                        required = true,
+                        in = ParameterIn.QUERY,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      classUri: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     implicit val project: Project = getProject(projectName)
     // Filter only object properties
     val (forwardProperties, backwardProperties) = vocabularyPropertiesByType(taskName, project, classUri, addBackwardRelations = true)
@@ -152,4 +352,65 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with Controll
     Ok(Json.toJson(classRelations))
   }
 
+  @Operation(
+    summary = "Target vocabulary information",
+    description = "Returns high-level information, e.g. label, class/property statistics, about the accessible vocabularies for that transform task.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(TargetVocabularyApiDoc.targetVocabularyExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or task has not been found."
+      )
+    ))
+  def vocabularyInfos(@Parameter(
+                        name = "project",
+                        description = "The project identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      projectId: String,
+                      @Parameter(
+                        name = "task",
+                        description = "The task identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      transformTaskId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    implicit val (project, transformTask) = projectAndTask[TransformSpec](projectId, transformTaskId)
+    transformTask.activity[VocabularyCache].control.waitUntilFinished()
+    val vocabularies = VocabularyCacheValue.targetVocabularies(transformTask)
+    val vocabInfoSeq = vocabularies map { vocab =>
+      val label = vocab.info.label.orElse(vocab.info.altLabels.headOption)
+      VocabularyInfo(vocab.info.uri, label, nrClasses = vocab.classes.size, nrProperties = vocab.properties.size)
+    }
+    Ok(Json.toJson(VocabularyInfos(vocabInfoSeq)))
+  }
+}
+
+/** Vocabulary information.
+  *
+  * @param uri          URI of the vocabulary (graph).
+  * @param label        Preferred label of the vocabulary.
+  * @param nrClasses    Number of classes in the vocabulary.
+  * @param nrProperties Number of properties in the vocabulary.
+  */
+case class VocabularyInfo(uri: String, label: Option[String], nrClasses: Int, nrProperties: Int)
+
+object VocabularyInfo {
+  implicit val vocabularyInfoJsonFormat: Format[VocabularyInfo] = Json.format[VocabularyInfo]
+}
+case class VocabularyInfos(vocabularies: Seq[VocabularyInfo])
+object VocabularyInfos {
+  implicit val vocabularyInfosJsonFormat: Format[VocabularyInfos] = Json.format[VocabularyInfos]
 }

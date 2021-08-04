@@ -14,7 +14,7 @@ class VocabularyCache(task: ProjectTask[TransformSpec]) extends CachedActivity[V
 
   override def name: String = s"Vocabulary cache ${task.id}"
 
-  override def initialValue: Option[VocabularyCacheValue] = Some(new VocabularyCacheValue(Seq.empty))
+  override def initialValue: Option[VocabularyCacheValue] = Some(new VocabularyCacheValue(Seq.empty, None))
 
   override protected val persistent = false
 
@@ -24,7 +24,7 @@ class VocabularyCache(task: ProjectTask[TransformSpec]) extends CachedActivity[V
     if(transform.targetVocabularies.explicitVocabularies.nonEmpty) {
       val vocabManager = VocabularyManager()
       val vocabularies = for (vocab <- transform.targetVocabularies.explicitVocabularies.distinct) yield vocabManager.get(vocab, Some(task.project.name))
-      context.value() = new VocabularyCacheValue(vocabularies.flatten.sortBy(_.info.uri))
+      context.value() = new VocabularyCacheValue(vocabularies.flatten.sortBy(_.info.uri), Some(System.currentTimeMillis()))
     }
   }
 

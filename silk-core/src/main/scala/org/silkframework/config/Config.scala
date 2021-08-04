@@ -1,11 +1,14 @@
 package org.silkframework.config
 
+import com.typesafe.config.{ConfigException, ConfigFactory, Config => TypesafeConfig}
+import org.silkframework.config.Config._
+import org.silkframework.runtime.validation.ValidationException
+
 import java.io.File
+import java.time.{Duration, Instant}
 import java.util.logging.Logger
 import javax.inject.Named
-import Config._
-
-import com.typesafe.config.{ConfigFactory, Config => TypesafeConfig}
+import scala.language.implicitConversions
 
 /**
   * Holds the configuration properties
@@ -16,6 +19,9 @@ trait Config {
 
   /** Refreshes the Config instance, e.g. load from changed config file or newly set property values. */
   def refresh(): Unit
+
+  /** Timestamp when the config has been loaded the last time. Updated on each refresh. */
+  def timestamp: Instant
 }
 
 object Config{
@@ -39,6 +45,8 @@ class DefaultConfig private() extends Config {
   private lazy val log = Logger.getLogger(this.getClass.getName)
 
   private var config = this.synchronized {init()}
+
+  private var currentTimestamp = Instant.now()
 
   /**
     * Will check and return if ELDS_HOME was defined either as environment variable or in the dataintegration config.
@@ -83,6 +91,7 @@ class DefaultConfig private() extends Config {
       if (playConfig2.exists()) {
         fullConfig = fullConfig.withFallback(ConfigFactory.parseFile(playConfig2))
       }
+      currentTimestamp = Instant.now()
       fullConfig.resolve()
     }
   }
@@ -93,11 +102,27 @@ class DefaultConfig private() extends Config {
     }
   }
 
+  def extendedTypesafeConfig(): ExtendedTypesafeConfig = {
+    ExtendedTypesafeConfig(apply())
+  }
+
+  override def timestamp: Instant = synchronized {
+    currentTimestamp
+  }
+
   /**
     * Loads the config for a particular class.
     */
-  def forClass(clazz: Class[_]): TypesafeConfig = {
-    apply().getConfig(clazz.getName)
+  def forClass(clazz: Class[_], mustExist: Boolean = true): TypesafeConfig = {
+    val config = apply()
+    val className = clazz.getName
+    if(config.hasPath(className)) {
+      config.getConfig(className)
+    } else if(!mustExist) {
+      ConfigFactory.empty()
+    } else {
+      throw new ValidationException(s"Required configuration not found at $className.")
+    }
   }
 
   /** Refreshes the Config instance, e.g. load from changed config file or newly set property values. */
@@ -106,6 +131,59 @@ class DefaultConfig private() extends Config {
       config = init()
     }
   }
+}
+
+case class ExtendedTypesafeConfig(typesafeConfig: TypesafeConfig) {
+  /** Fetches the typed value of the given key, or returns the fallback value if it does not exist. This still throws an
+    * exception if the config value is not of the correct type.
+    *
+    * @param key           The config key.
+    * @param expectedType  The label of the expected type.
+    * @param fallbackValue The fallback value if no config value exists.
+    * @param valueFetcher  The function that is called when the value exists.
+    */
+  private def getTypedValueOrElse[T](key: String, expectedType: String, fallbackValue: T, valueFetcher: String => T): T = {
+    if (typesafeConfig.hasPath(key)) {
+      try {
+        valueFetcher(key)
+      } catch {
+        case _: ConfigException.WrongType =>
+          throw new RuntimeException(s"Config parameter '$key' could not be read, because it's value does not seem to be of type $expectedType." +
+            s"Actual type: ${typesafeConfig.getAnyRef(key).getClass.getSimpleName}")
+      }
+    } else {
+      fallbackValue
+    }
+  }
+
+
+  /** Fetch the Boolean value of the given key, or the fallback value if it does not exist. This still throws an
+    * exception if the config value is not a boolean. */
+  def getBooleanOrElse(key: String, fallbackValue: Boolean): Boolean = {
+    getTypedValueOrElse(key, "Boolean", fallbackValue, (key: String) => typesafeConfig.getBoolean(key))
+  }
+
+  /** Fetch the Int value of the given key, or the fallback value if it does not exist. This still throws an
+    * exception if the config value is not an int. */
+  def getIntOrElse(key: String, fallbackValue: Int): Int = {
+    getTypedValueOrElse(key, "Integer", fallbackValue, (key: String) => typesafeConfig.getInt(key))
+  }
+
+  /** Fetch the Int value of the given key, or the fallback value if it does not exist. This still throws an
+    * exception if the config value is not a duration. */
+  def getDurationOrElse(key: String, fallbackValue: Duration): Duration = {
+    getTypedValueOrElse(key, "Duration", fallbackValue, (key: String) => typesafeConfig.getDuration(key))
+  }
+
+  /** Fetch the Long value of the given key, or the fallback value if it does not exist. This still throws an
+    * exception if the config value is not an Long. */
+  def getLongOrElse(key: String, fallbackValue: Long): Long = {
+    getTypedValueOrElse(key, "Long", fallbackValue, (key: String) => typesafeConfig.getLong(key))
+  }
+}
+
+object ExtendedTypesafeConfig {
+  implicit def extendedToTypesafeConfig(extendedTypesafeConfig: ExtendedTypesafeConfig): TypesafeConfig = extendedTypesafeConfig.typesafeConfig
 }
 
 object DefaultConfig {

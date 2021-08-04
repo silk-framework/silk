@@ -11,31 +11,61 @@ import org.silkframework.util.Uri
   * be performed.
   */
 object SafeModeDataSource extends DataSource {
+
   override def underlyingTask: Task[DatasetSpec[Dataset]] = SafeModeException.throwSafeModeException()
 
-  override def retrieveTypes(limit: Option[Int])(implicit userContext: UserContext): Traversable[(String, Double)] = SafeModeException.throwSafeModeException()
+  override def retrieveTypes(limit: Option[Int])
+                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
+    SafeModeException.throwSafeModeException()
+  }
 
-  override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])(implicit userContext: UserContext): IndexedSeq[TypedPath] = SafeModeException.throwSafeModeException()
+  override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])
+                            (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
+    SafeModeException.throwSafeModeException()
+  }
 
-  override def retrieve(entitySchema: EntitySchema, limit: Option[Int])(implicit userContext: UserContext): EntityHolder = SafeModeException.throwSafeModeException()
+  override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
+                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+    SafeModeException.throwSafeModeException()
+  }
 
-  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])(implicit userContext: UserContext): EntityHolder = SafeModeException.throwSafeModeException()
+  override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
+                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+    SafeModeException.throwSafeModeException()
+  }
 }
 
 object SafeModeSink extends DataSink with LinkSink with EntitySink {
-  override def clear()(implicit userContext: UserContext): Unit = SafeModeException.throwSafeModeException()
 
-  override def init()(implicit userContext: UserContext): Unit = SafeModeException.throwSafeModeException()
+  override def clear()(implicit userContext: UserContext): Unit = {
+    SafeModeException.throwSafeModeException()
+  }
 
-  override def writeLink(link: Link, predicateUri: String)(implicit userContext: UserContext): Unit = SafeModeException.throwSafeModeException()
+  override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+    SafeModeException.throwSafeModeException()
+  }
 
-  override def openTable(typeUri: Uri, properties: Seq[TypedProperty])(implicit userContext: UserContext, prefixes: Prefixes): Unit = SafeModeException.throwSafeModeException()
+  override def writeLink(link: Link, predicateUri: String)
+                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+    SafeModeException.throwSafeModeException()
+  }
 
-  override def closeTable()(implicit userContext: UserContext): Unit = SafeModeException.throwSafeModeException()
+  override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
+                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+    SafeModeException.throwSafeModeException()
+  }
 
-  override def writeEntity(subject: String, values: Seq[Seq[String]])(implicit userContext: UserContext): Unit = SafeModeException.throwSafeModeException()
+  override def closeTable()(implicit userContext: UserContext): Unit = {
+    SafeModeException.throwSafeModeException()
+  }
 
-  override def close()(implicit userContext: UserContext): Unit = SafeModeException.throwSafeModeException()
+  override def writeEntity(subject: String, values: Seq[Seq[String]])(implicit userContext: UserContext): Unit = {
+    SafeModeException.throwSafeModeException()
+  }
+
+  override def close()(implicit userContext: UserContext): Unit = {
+    SafeModeException.throwSafeModeException()
+  }
 }
 
 case class SafeModeException(msg: String) extends RuntimeException(msg)

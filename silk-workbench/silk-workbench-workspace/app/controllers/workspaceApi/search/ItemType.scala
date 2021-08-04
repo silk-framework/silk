@@ -7,7 +7,7 @@ import org.silkframework.dataset.DatasetSpec
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workspace.activity.workflow.Workflow
-import play.api.libs.json.{Format, JsResult, JsString, JsSuccess, JsValue, Json, Writes}
+import play.api.libs.json._
 
 /** The item types the search can be restricted to. */
 sealed abstract class ItemType(val id: String, val label: String)
@@ -48,7 +48,7 @@ object ItemType {
   }
 
   /** All links for a specific item type */
-  def itemTypeLinks(itemType: ItemType, projectId: String, itemId: String): Seq[ItemLink] = {
+  def itemTypeLinks(itemType: ItemType, projectId: String, itemId: String, taskSpec: Option[TaskSpec]): Seq[ItemLink] = {
     val itemTypeSpecificLinks = itemType match {
       case ItemType.transform => Seq(
         ItemLink("Mapping editor", s"$context/transform/$projectId/$itemId/editor"),
@@ -58,11 +58,19 @@ object ItemType {
       case ItemType.linking => Seq(
         ItemLink("Linking editor", s"$context/linking/$projectId/$itemId/editor"),
         ItemLink("Linking evaluation", s"$context/linking/$projectId/$itemId/evaluate"),
-        ItemLink("Linking execution", s"$context/linking/$projectId/$itemId/execute")
+        ItemLink("Linking execution", s"$context/linking/$projectId/$itemId/execute"),
+        ItemLink("Reference links", s"$context/linking/$projectId/$itemId/referenceLinks"),
+        ItemLink("Learning", s"$context/linking/$projectId/$itemId/learnStart")
+      )
+      case ItemType.workflow if !WorkbenchConfig().tabs.legacyWorkflowEditor => Seq(
+        ItemLink("Workflow report", s"$context/workflow/report/$projectId/$itemId")
       )
       case ItemType.workflow => Seq(
-        ItemLink("Workflow editor", s"$context/workflow/editor/$projectId/$itemId")
+        ItemLink("Workflow editor (legacy)", s"$context/workflow/editor/$projectId/$itemId"),
+        ItemLink("Workflow report", s"$context/workflow/report/$projectId/$itemId")
       )
+      case _: ItemType if taskSpec.isDefined =>
+        taskSpec.get.taskLinks.map(taskLink => ItemLink(taskLink.id, taskLink.url))
       case _ => Seq()
     }
     Seq(itemDetailsPage(itemType, projectId, itemId)) ++ itemTypeSpecificLinks
@@ -70,7 +78,7 @@ object ItemType {
 
   // Convenience method for the above version
   def itemTypeLinks(projectId: String, task: Task[_ <: TaskSpec]): Seq[ItemLink] = {
-    itemTypeLinks(itemType(task.data), projectId, task.id)
+    itemTypeLinks(itemType(task.data), projectId, task.id, Some(task.data))
   }
 
   /** Returns the item type of a specific task. Throws exception if the task is not assigned to any item type.*/

@@ -3,6 +3,7 @@ package org.silkframework.runtime.plugin
 import java.lang.reflect.{ParameterizedType, Type}
 import java.net.{URLDecoder, URLEncoder}
 import java.security.spec.InvalidKeySpecException
+import java.time.Duration
 import java.util.logging.{Level, Logger}
 
 import javax.crypto.SecretKey
@@ -27,7 +28,7 @@ sealed abstract class ParameterType[T: ClassTag] {
   /**
     * User-readable description of this type to be displayed.
     */
-  def description: String = ""
+  def description: String = name
 
   /**
     * The underlying type.
@@ -181,7 +182,7 @@ object StringParameterType {
     */
   private val allStaticTypes: Seq[StringParameterType[_]] = {
     Seq(StringType, CharType, IntType, DoubleType, BooleanType, IntOptionType, StringMapType, UriType, ResourceType,
-      WritableResourceType, ResourceOptionType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType, SparqlEndpointDatasetParameterType, LongType,
+      WritableResourceType, ResourceOptionType, DurationType, ProjectReferenceType, TaskReferenceType, MultilineStringParameterType, SparqlEndpointDatasetParameterType, LongType,
       PasswordParameterType, IdentifierType, IdentifierOptionType, StringTraversableParameterType, RestrictionType, StringOptionType)
   }
 
@@ -448,6 +449,22 @@ object StringParameterType {
 
     override def toString(value: ResourceOption)(implicit prefixes: Prefixes): String = {
       value.resource.map(_.name).getOrElse("")
+    }
+
+  }
+
+  object DurationType extends StringParameterType[Duration] {
+
+    override def name: String = "duration"
+
+    override def description: String = " An amount of time in ISO-8601 duration format PnDTnHnMn.nS"
+
+    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Duration = {
+      Duration.parse(str)
+    }
+
+    override def toString(value: Duration)(implicit prefixes: Prefixes): String = {
+      value.toString
     }
 
   }

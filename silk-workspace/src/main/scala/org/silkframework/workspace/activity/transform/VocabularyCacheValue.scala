@@ -14,8 +14,11 @@ import scala.xml.Node
 /**
   * The value of the vocabulary cache.
   * Holds the target vocabularies of the transformation and suggests types and properties from it.
+  *
+  * @param lastUpdated The timestamp when the cache value has changed the last time.
   */
-class VocabularyCacheValue(vocabularies: Seq[Vocabulary]) extends Vocabularies(vocabularies) with MappingCandidates {
+class VocabularyCacheValue(vocabularies: Seq[Vocabulary],
+                           lastUpdated: Option[Long]) extends Vocabularies(vocabularies) with MappingCandidates {
   /**
     * Suggests mapping types.
     */
@@ -41,7 +44,7 @@ object VocabularyCacheValue {
   implicit object ValueFormat extends XmlFormat[VocabularyCacheValue] {
 
     def read(node: Node)(implicit readContext: ReadContext): VocabularyCacheValue = {
-      new VocabularyCacheValue(Vocabularies.VocabulariesFormat.read(node).vocabularies)
+      new VocabularyCacheValue(Vocabularies.VocabulariesFormat.read(node).vocabularies, None)
     }
 
     def write(desc: VocabularyCacheValue)(implicit writeContext: WriteContext[Node]): Node = {
@@ -49,10 +52,15 @@ object VocabularyCacheValue {
     }
   }
 
-  /** Returns the target vocabularies of a transform task. */
-  def targetVocabularies(transformTask: ProjectTask[TransformSpec])
+  /** Returns the target vocabularies of a transform task.
+    *
+    * @param transformTask The transform task the target vocabularies should be fetched for.
+    * @param targetVocabularySelection An optional selection of the requested target vocabularies (by URI/ID).
+    */
+  def targetVocabularies(transformTask: ProjectTask[TransformSpec],
+                         targetVocabularySelection: Option[Seq[String]] = None)
                         (implicit userContext: UserContext): VocabularyCacheValue = {
-    transformTask.targetVocabularies match {
+    val vocabularies = transformTask.targetVocabularies match {
       case TargetVocabularyCategory(category) =>
         val vocabularies: Seq[Vocabulary] = category match {
           case TargetVocabularyParameterEnum.`allInstalled` =>
@@ -61,9 +69,15 @@ object VocabularyCacheValue {
                 getOrElse(Seq.empty)
           case TargetVocabularyParameterEnum.`noVocabularies` => Seq.empty
         }
-        new VocabularyCacheValue(vocabularies)
+        new VocabularyCacheValue(vocabularies, None)
       case TargetVocabularyListParameter(_) =>
         transformTask.activity[VocabularyCache].value()
+    }
+    targetVocabularySelection match {
+      case Some(selection) =>
+        new VocabularyCacheValue(vocabularies.filter(v => selection.contains(v.info.uri)), None)
+      case None =>
+        vocabularies
     }
   }
 

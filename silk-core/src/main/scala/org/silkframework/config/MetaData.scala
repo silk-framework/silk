@@ -26,16 +26,16 @@ case class MetaData(label: String,
     */
   def formattedLabel(defaultLabel: String, maxLength: Int = MetaData.DEFAULT_LABEL_MAX_LENGTH): String = {
     assert(maxLength > 5, "maxLength for task label must be at least 5 chars long")
-    val trimedLabel = if(label.trim != "") {
+    val trimmedLabel = if(label.trim != "") {
       label.trim
     } else {
       defaultLabel
     }
-    if(trimedLabel.length > maxLength) {
+    if(trimmedLabel.length > maxLength) {
       val sideLength = (maxLength - 2) / 2
-      trimedLabel.take(sideLength) + s" ... " + trimedLabel.takeRight(sideLength)
+      trimmedLabel.take(sideLength) + s" ... " + trimmedLabel.takeRight(sideLength)
     } else {
-      trimedLabel
+      trimmedLabel
     }
   }
 

@@ -202,6 +202,12 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
  |            }
  |        ]
  |    },
+ |    "mappingTarget": {
+ |        "uri":"",
+ |        "valueType":{"nodeType":"UriValueType"},
+ |        "isBackwardProperty":false,
+ |        "isAttribute":false
+ |    },
  |    "metadata": {
  |        "label": "Root Mapping"
  |    }

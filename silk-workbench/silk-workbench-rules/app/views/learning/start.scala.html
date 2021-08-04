@@ -1,7 +1,8 @@
 @import org.silkframework.rule.LinkSpec
 @import org.silkframework.workbench.Context
+@import config.WorkbenchConfig
 
-@(context: Context[LinkSpec])(implicit session: play.api.mvc.Session)
+@(context: Context[LinkSpec])(implicit request: RequestHeader)
 
 @header = {
   <script type="text/javascript">
@@ -22,7 +23,7 @@
     }
     
     function startActiveLearning() {
-      window.location = "activeLearn"
+      window.location = "activeLearn?inlineView=@{!WorkbenchConfig.get.showHeader(request)}"
     }
   </script>
 }

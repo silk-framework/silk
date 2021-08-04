@@ -1,13 +1,13 @@
 package org.silkframework.execution.local
 
-import java.util.concurrent.ConcurrentHashMap
-import java.util.logging.{Level, Logger}
-
 import org.silkframework.dataset.Dataset
 import org.silkframework.execution.ExecutionType
+import org.silkframework.execution.local.LocalExecution.LocalInternalDataset
 import org.silkframework.plugins.dataset.{InternalDataset, InternalDatasetTrait}
 import org.silkframework.util.Identifier
 
+import java.util.concurrent.ConcurrentHashMap
+import java.util.logging.{Level, Logger}
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
@@ -30,9 +30,7 @@ case class LocalExecution(useLocalInternalDatasets: Boolean) extends ExecutionTy
       internalDatasets.synchronized {
         internalDatasets.getOrElseUpdate(
           internalDatasetId,
-          new InternalDatasetTrait {
-            override protected def internalDatasetPluginImpl: Dataset = InternalDataset.createInternalDataset()
-          }
+          new LocalInternalDataset
         )
       }
     } else {
@@ -76,6 +74,10 @@ object LocalExecution {
 
   def apply(): LocalExecution = {
     instance
+  }
+
+  class LocalInternalDataset extends InternalDatasetTrait {
+    override protected def internalDatasetPluginImpl: Dataset = InternalDataset.createInternalDataset()
   }
 
 }

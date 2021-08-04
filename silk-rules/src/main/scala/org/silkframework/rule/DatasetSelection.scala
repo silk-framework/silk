@@ -55,14 +55,14 @@ case class DatasetSelection(@Param(label = "Dataset", value = "The dataset to se
   def toXML(asSource: Boolean): Elem = {
     if (asSource) {
       <SourceDataset dataSource={inputId} var="a" typeUri={typeUri.uri}>
-        <RestrictTo>
+        <RestrictTo xml:space="preserve">
           {restriction.serialize}
         </RestrictTo>
       </SourceDataset>
     }
     else {
       <TargetDataset dataSource={inputId} var="b" typeUri={typeUri.uri}>
-        <RestrictTo>
+        <RestrictTo xml:space="preserve">
           {restriction.serialize}
         </RestrictTo>
       </TargetDataset>

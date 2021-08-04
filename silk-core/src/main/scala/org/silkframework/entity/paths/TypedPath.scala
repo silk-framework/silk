@@ -13,18 +13,14 @@ import scala.xml.Node
   *
   * @param operators the path operators
   * @param valueType the type that has to be considered during processing.
+  * @param isAttribute If true, a single value is expected and supporting datasets will not use arrays etc.
+  *                    In XML, attributes will be used instead of nested elements.
   */
 case class TypedPath(
   operators: List[PathOperator],
   valueType: ValueType,
-  xmlAttribute: Boolean
+  isAttribute: Boolean
 ) extends Path {
-
-  /**
-    * checks metadata for an positive entry for the IS_ATTRIBUTE_KEY key
-    * earmarks XML attributes
-    */
-  def isAttribute: Boolean = xmlAttribute
 
   lazy val toUntypedPath: UntypedPath = UntypedPath(operators)
 

@@ -14,8 +14,6 @@
 
 package org.silkframework.dataset
 
-import java.util.logging.Logger
-
 import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config._
 import org.silkframework.dataset.DatasetSpec.UriAttributeNotUniqueException
@@ -24,13 +22,12 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginObjectParameter
 import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{Identifier, Uri}
 
+import java.util.logging.Logger
 import scala.language.implicitConversions
-import scala.reflect.ClassTag
 import scala.xml.Node
 
 /**
@@ -53,6 +50,8 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribut
   def linkSink(implicit userContext: UserContext): LinkSink = {
     safeAccess(DatasetSpec.LinkSinkWrapper(plugin.linkSink, this), SafeModeSink)
   }
+
+  def characteristics: DatasetCharacteristics = plugin.characteristics
 
   // True if access should be prevented regarding the dataset and safe-mode config
   private def preventAccessInSafeMode(implicit userContext: UserContext): Boolean = {
@@ -91,6 +90,8 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribut
     properties
   }
 
+  override def taskLinks: Seq[TaskLink] = plugin.datasetLinks
+
   override def withProperties(updatedProperties: Map[String, String])(implicit prefixes: Prefixes, resourceManager: ResourceManager): DatasetSpec[DatasetType] = {
     copy(plugin = plugin.withParameters(updatedProperties))
   }
@@ -123,12 +124,12 @@ object DatasetSpec {
   case class DataSourceWrapper(source: DataSource, datasetSpec: DatasetSpec[Dataset]) extends DataSource {
 
     override def retrieveTypes(limit: Option[Int] = None)
-                              (implicit userContext: UserContext): Traversable[(String, Double)] = {
+                              (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
       source.retrieveTypes(limit)
     }
 
     override def retrievePaths(typeUri: Uri, depth: Int = 1, limit: Option[Int] = None)
-                              (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+                              (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
       source.retrievePaths(typeUri, depth, limit)
     }
 
@@ -140,7 +141,7 @@ object DatasetSpec {
       * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
       */
     override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-                         (implicit userContext: UserContext): EntityHolder = {
+                         (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
       val adaptedSchema = adaptSchema(entitySchema)
       val entities = source.retrieve(adaptedSchema, limit)
       adaptUris(entities)
@@ -154,7 +155,7 @@ object DatasetSpec {
       * @return A Traversable over the entities. The evaluation of the Traversable may be non-strict.
       */
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                              (implicit userContext: UserContext): EntityHolder = {
+                              (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
       if(entities.isEmpty) {
         GenericEntityTable(Seq.empty, entitySchema, underlyingTask)
       } else {
@@ -211,7 +212,7 @@ object DatasetSpec {
     /**
       * Initializes this writer.
       */
-    override def openTable(typeUri: Uri, properties: Seq[TypedProperty])
+    override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
                           (implicit userContext: UserContext, prefixes: Prefixes){
       if (isOpen) {
         entitySink.close()
@@ -225,7 +226,7 @@ object DatasetSpec {
           TypedProperty(property.uri, ValueType.URI, isBackwardProperty = false)
         }
 
-      entitySink.openTable(typeUri, uriTypedProperty ++ properties)
+      entitySink.openTable(typeUri, uriTypedProperty ++ properties, singleEntity)
       isOpen = true
     }
 
@@ -270,7 +271,7 @@ object DatasetSpec {
 
     private var isOpen = false
 
-    override def init()(implicit userContext: UserContext): Unit = {
+    override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
       if (isOpen) {
         linkSink.close()
         isOpen = false
@@ -283,7 +284,7 @@ object DatasetSpec {
       * Writes a new link to this writer.
       */
     override def writeLink(link: Link, predicateUri: String)
-                          (implicit userContext: UserContext): Unit = {
+                          (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
       //require(isOpen, "Output must be opened before writing statements to it")
 
       linkSink.writeLink(link, predicateUri)

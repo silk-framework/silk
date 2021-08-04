@@ -12,6 +12,8 @@
 
 : a owl:Ontology ;
   rdfs:label "Test Ontology"@en ;
+  rdfs:comment "Test Ontology description"@en ;
+  foaf:name "Alternative test ontology label" ;
 .
 
 :Movie

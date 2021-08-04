@@ -14,20 +14,19 @@
 
 package org.silkframework.workspace
 
-import java.util.logging.{Level, Logger}
-
 import org.silkframework.config._
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
-import org.silkframework.runtime.activity.HasValue
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.activity.{HasValue, UserContext}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.{NotFoundException, ValidationException}
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.activity.workflow.Workflow
+import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowValidator}
 import org.silkframework.workspace.activity.{ProjectActivity, ProjectActivityFactory}
+import org.silkframework.workspace.exceptions.{IdentifierAlreadyExistsException, TaskNotFoundException}
 
+import java.util.logging.{Level, Logger}
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
@@ -50,7 +49,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   registerModule[DatasetSpec[Dataset]]()
   registerModule[TransformSpec]()
   registerModule[LinkSpec]()
-  registerModule[Workflow]()
+  registerModule[Workflow](WorkflowValidator)
   registerModule[CustomTask]()
 
   /** Can be called optionally to trigger early loading of tasks. */
@@ -61,6 +60,16 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   /** This must be executed once when the project was loaded into the workspace */
   def startActivities()(implicit userContext: UserContext) {
     allTasks.foreach(_.startActivities())
+  }
+
+  /**
+    * Cancels all activities in this project.
+    */
+  def cancelActivities()(implicit userContext: UserContext): Unit = {
+    // Project activities
+    activities.foreach(_.control.cancel())
+    // Task activities
+    allTasks.foreach(_.cancelActivities())
   }
 
   /**
@@ -332,7 +341,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   /**
    * Registers a new module from a module provider.
    */
-  def registerModule[T <: TaskSpec : ClassTag](): Unit = synchronized {
-    modules = modules :+ new Module[T](provider, this)
+  def registerModule[T <: TaskSpec : ClassTag](validator: TaskValidator[T] = new DefaultTaskValidator[T]): Unit = synchronized {
+    modules = modules :+ new Module[T](provider, this, validator)
   }
 }

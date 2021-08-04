@@ -383,7 +383,7 @@ body{
   word-break:break-all;
 }
 
-input.param_value {
+input.param_value, select.param_value {
   width: 119px;
   border-width: 1px;
   border-style: solid;

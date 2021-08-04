@@ -9,11 +9,25 @@ import scala.io.Codec
 trait WritableResource extends Resource {
 
   /**
+    * Creates an output stream for writing to this resource.
+    * The caller is responsible for closing the stream after writing.
+    * Using [[write()]] is preferred as it takes care of closing the output stream.
+    */
+  def createOutputStream(append: Boolean = false): OutputStream
+
+  /**
     * Preferred method for writing to a resource.
     *
     * @param write A function that accepts an output stream and writes to it.
     */
-  def write(append: Boolean = false)(write: OutputStream => Unit)
+  def write(append: Boolean = false)(write: OutputStream => Unit): Unit = {
+    val outputStream = createOutputStream(append)
+    try {
+      write(outputStream)
+    } finally {
+      outputStream.close()
+    }
+  }
 
   /**
     * Writes the contents of a provided input stream.

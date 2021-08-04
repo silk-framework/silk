@@ -5,10 +5,9 @@ import java.net.URLEncoder
 import java.nio.charset.MalformedInputException
 import java.util.logging.{Level, Logger}
 import java.util.regex.Pattern
-
-import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
-import org.silkframework.entity.paths.UntypedPath.{IDX_PATH_MISSING, IDX_PATH_IDX}
+import org.silkframework.entity.paths.UntypedPath.{IDX_PATH_IDX, IDX_PATH_MISSING}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{ForwardOperator, TypedPath, UntypedPath}
 import org.silkframework.execution.EntityHolder
@@ -98,7 +97,7 @@ class CsvSource(file: Resource,
   override def toString: String = file.toString
 
   override def retrievePaths(t: Uri, depth: Int, limit: Option[Int])
-                            (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
     if(t.toString.nonEmpty && t != typeUri)
       return IndexedSeq.empty
 
@@ -113,7 +112,7 @@ class CsvSource(file: Resource,
   }
 
   override def retrieve(entitySchema: EntitySchema, limitOpt: Option[Int] = None)
-                       (implicit userContext: UserContext): EntityHolder = {
+                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     if (entitySchema.filter.operator.isDefined) {
       throw new NotImplementedError("Filter restrictions are not supported on CSV datasets!") // TODO: Implement Restriction handling!
     }
@@ -121,7 +120,7 @@ class CsvSource(file: Resource,
   }
 
   override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                            (implicit userContext: UserContext): EntityHolder = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     if(entities.isEmpty) {
       GenericEntityTable(Seq.empty, entitySchema, underlyingTask)
     } else {
@@ -146,7 +145,7 @@ class CsvSource(file: Resource,
         val property = path.operators.head.asInstanceOf[ForwardOperator].property.uri
         val propertyIndex = propertyList.indexOf(property.toString)
         if (propertyIndex == -1) {
-          if(property == "#idx") {
+          if(property == CsvSource.INDEX_PATH) {
             IDX_PATH_IDX
           } else {
             missingColumns :+= property
@@ -353,7 +352,7 @@ class CsvSource(file: Resource,
   }
 
   override def retrieveTypes(limit: Option[Int] = None)
-                            (implicit userContext: UserContext): Traversable[(String, Double)] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
     Seq((typeUri, 1.0))
   }
 
@@ -390,6 +389,10 @@ class CsvSource(file: Resource,
     * @return
     */
   override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(file.name), DatasetSpec(EmptyDataset))   //FIXME CMEM-1352 replace with actual task
+}
+
+object CsvSource {
+  final val INDEX_PATH = "#idx"
 }
 
 case class CsvAutoconfiguredParameters(detectedSeparator: String, codecName: String, linesToSkip: Option[Int])

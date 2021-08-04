@@ -1,16 +1,16 @@
 package controllers.workspace
 
-import java.nio.file.{Files, StandardCopyOption}
-
 import config.WorkbenchConfig
-import controllers.core.{RequestUserContextAction, UserContextAction}
-import javax.inject.Inject
+import controllers.core.UserContextActions
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.xml.XmlZipProjectMarshaling
 import org.silkframework.workspace.{PrefixRegistry, WorkspaceFactory}
-import play.api.mvc.{InjectedController, Action, AnyContent, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, InjectedController}
 
-class WorkspaceController @Inject() () extends InjectedController{
+import java.nio.file.{Files, StandardCopyOption}
+import javax.inject.Inject
+
+class WorkspaceController @Inject() () extends InjectedController with UserContextActions {
 
   def index: Action[AnyContent] = Action { implicit request =>
     Ok(views.html.workspace.workspace())

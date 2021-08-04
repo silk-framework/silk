@@ -1,8 +1,7 @@
 package org.silkframework.plugins.dataset.xml
 
 import java.util.logging.{Level, Logger}
-
-import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{ForwardOperator, TypedPath, UntypedPath}
@@ -21,12 +20,12 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
   private val logger = Logger.getLogger(getClass.getName)
 
   override def retrieveTypes(limit: Option[Int])
-                            (implicit userContext: UserContext): Traversable[(String, Double)] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
     new XmlSourceStreaming(file, basePath, uriPattern).retrieveTypes(limit)
   }
 
   override def retrievePaths(typeUri: Uri, depth: Int = Int.MaxValue, limit: Option[Int] = None)
-                            (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+                            (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
     new XmlSourceStreaming(file, basePath, uriPattern).retrievePaths(typeUri, depth, limit)
   }
 
@@ -41,7 +40,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
   }
 
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
-                       (implicit userContext: UserContext): EntityHolder = {
+                       (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     logger.log(Level.FINE, "Retrieving data from XML.")
 
     val nodes = loadXmlNodes(entitySchema.typeUri.uri)
@@ -95,7 +94,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
   }
 
   override def peak(entitySchema: EntitySchema, limit: Int)
-                   (implicit userContext: UserContext): Traversable[Entity] = {
+                   (implicit userContext: UserContext, prefixes: Prefixes): Traversable[Entity] = {
     peakWithMaximumFileSize(file, entitySchema, limit)
   }
 

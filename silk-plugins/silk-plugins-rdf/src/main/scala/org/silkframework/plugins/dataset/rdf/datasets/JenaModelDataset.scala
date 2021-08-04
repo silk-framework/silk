@@ -1,18 +1,19 @@
 package org.silkframework.plugins.dataset.rdf.datasets
 
-import org.apache.jena.rdf.model.Model
+import org.apache.jena.rdf.model.{Model, ModelFactory}
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint, SparqlParams}
 import org.silkframework.dataset.{DataSource, EntitySink, LinkSink}
 import org.silkframework.plugins.dataset.rdf.endpoint.JenaModelEndpoint
 import org.silkframework.plugins.dataset.rdf.access.{SparqlSink, SparqlSource}
 import org.silkframework.runtime.activity.UserContext
 
-case class JenaModelDataset(model: Model) extends RdfDataset {
+case class JenaModelDataset() extends RdfDataset {
 
   private val sparqlParams = SparqlParams()
 
-  override val sparqlEndpoint: SparqlEndpoint = {
-    new JenaModelEndpoint(model)
+  @volatile
+  var sparqlEndpoint: SparqlEndpoint = {
+    new JenaModelEndpoint(ModelFactory.createDefaultModel())
   }
 
   /**
@@ -36,3 +37,14 @@ case class JenaModelDataset(model: Model) extends RdfDataset {
     new SparqlSink(sparqlParams, sparqlEndpoint, dropGraphOnClear = true)
   }
 }
+
+object JenaModelDataset {
+
+  def apply(model: Model): JenaModelDataset = {
+    val ds = JenaModelDataset()
+    ds.sparqlEndpoint = new JenaModelEndpoint(model)
+    ds
+  }
+
+}
+

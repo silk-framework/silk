@@ -29,8 +29,8 @@ case class RdfVocabularyManager() extends VocabularyManager {
     }
   }
 
-  override def retrieveGlobalVocabularies()(implicit userContext: UserContext): Iterable[String] = {
+  override def retrieveGlobalVocabularies()(implicit userContext: UserContext): Option[Iterable[String]] = {
     // FIXME: No standard way of retrieving globally configured vocabularies.
-    Seq.empty
+    None
   }
 }

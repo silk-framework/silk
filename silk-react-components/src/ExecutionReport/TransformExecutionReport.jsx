@@ -14,6 +14,9 @@ export default class TransformExecutionReport extends React.Component {
     this.displayName = 'TransformExecutionReport';
     this.state = {
       executionReport: {
+        task: {
+          id: props.task
+        },
         summary: [],
         warnings: []
       }
@@ -38,7 +41,7 @@ export default class TransformExecutionReport extends React.Component {
   render() {
     return <ExecutionReport baseUrl={this.props.baseUrl}
                             project={this.props.project}
-                            task={this.props.task}
+                            nodeId={this.props.task}
                             executionReport={this.state.executionReport} />
   }
 }

@@ -39,16 +39,20 @@ silkStore
             baseUrl,
             project,
             transformTask,
+            uriPrefix
         } = data;
-
+        const send = {
+            correspondences
+        };
+        if (uriPrefix) {
+            send.uriPrefix = uriPrefix;
+        }
         superagent
             .post(
                 `${baseUrl}/ontologyMatching/rulesGenerator/${project}/${transformTask}/rule/${parentId}`
             )
             .accept('application/json')
-            .send({
-                correspondences,
-            })
+            .send(send)
             .observe()
             .multicast(replySubject)
             .connect();
@@ -57,17 +61,19 @@ silkStore
 silkStore
     .subject('transform.task.rule.suggestions')
     .subscribe(({data, replySubject}) => {
-        const {ruleId, targetClassUris, baseUrl, project, transformTask, matchFromDataset } = data;
+        const {ruleId, targetClassUris, baseUrl, project, transformTask, matchFromDataset, nrCandidates, targetVocabularies } = data;
 
         const json = {
             projectName: project,
             transformTaskName: transformTask,
             datasetUriPrefix: '',
             targetClassUris,
-            nrCandidates: 1,
+            nrCandidates: nrCandidates || 1,
+            addMetaData: true,
             dataTypePropertiesOnly: false,
             ruleId,
-            matchFromDataset
+            matchFromDataset,
+            targetVocabularies,
         };
 
         superagent
@@ -138,24 +144,22 @@ silkStore
     });
 
 silkStore
-    .subject('transform.task.rule.valueSourcePaths')
+    .subject('transform.task.rule.valueSourcePathsInfo')
     .subscribe(({data, replySubject}) => {
         const {
             baseUrl,
             project,
             transformTask,
             ruleId,
-            unusedOnly = false,
         } = data;
 
         superagent
             .get(
-                `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${ruleId}/valueSourcePaths`
+                `${baseUrl}/transform/tasks/${project}/${transformTask}/rule/${ruleId}/valueSourcePathsInfo`
             )
             .query({
-                unusedOnly,
-            })
-            .accept('application/json')
+                objectInfo: true
+            }).accept('application/json')
             .observe()
             .multicast(replySubject)
             .connect();
@@ -381,6 +385,36 @@ silkStore
             .send(queryParameters)
             .query(queryParameters)
             .type('application/json')
+            .observe()
+            .multicast(replySubject)
+            .connect();
+    });
+
+silkStore
+    .subject('transform.task.rule.example')
+    .subscribe(({data, replySubject}) => {
+        const {baseUrl, project, transformTask, ruleId} = data;
+        const ruleIdQuery = ruleId ? `?ruleId=${encodeURIComponent(ruleId)}` : ""
+        superagent
+            .get(
+                `${baseUrl}/profiling/schemaClass/${project}/${transformTask}/ruleExampleValues${ruleIdQuery}`
+            )
+            .accept('application/json')
+            .observe()
+            .multicast(replySubject)
+            .connect();
+    });
+
+silkStore
+    .subject('transform.task.prefixes')
+    .subscribe(({data, replySubject}) => {
+        const {baseUrl, project} = data;
+        
+        superagent
+            .get(
+                `${baseUrl}/api/workspace/projects/${project}/prefixes`
+            )
+            .accept('application/json')
             .observe()
             .multicast(replySubject)
             .connect();
