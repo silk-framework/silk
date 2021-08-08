@@ -424,8 +424,10 @@
         "sidebar": {
             "searchInput": "Find datasets and workflow operators",
             "searchTooltip": "Search for datasets and workflow operators both in the nodes used in the canvas and new tasks in the sidebar",
-            "addNewTasks": "Add new tasks ({{count}})",
-            "usedTasks": "Used tasks ({{count}})",
+            "addNewTasks": "Add new task ({{count}})",
+            "addNewTasks_plural": "Add new tasks ({{count}})",
+            "usedTasks": "Used task ({{count}})",
+            "usedTasks_plural": "Used tasks ({{count}})",
             "cycleNext": "next match",
             "cyclePrevious": "previous match",
             "cycleTooltip": "cycle through {{totalMatches}} currently used instances of this task"
