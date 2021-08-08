@@ -433,6 +433,12 @@
         "header": {
             "saveBtnTooltip": "Save the current state of the workflow"
         },
+        "handle": {
+            "configuration": {
+                "label": "Configuration input",
+                "tooltip": "Values passed here will be used to reconfigure the operator parameters. The attribute names must match the name of the parameters to be reconfigured. It's possible to configure a subset of all available parameters."
+            }
+        },
         "edge": {
             "menu": {
                 "delete": {
