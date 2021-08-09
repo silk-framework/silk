@@ -4,6 +4,7 @@ import {
     IProjectExecutionStatus,
     IProjectImportDetails,
     IRecentlyViewedItem,
+    ISearchResultsServer,
     ISorterListItemState,
     ITaskLink,
 } from "@ducks/workspace/typings";
@@ -24,7 +25,7 @@ export interface ISearchListRequest {
 export interface ISearchListResponse {
     total: number;
     facets: IFacetState[];
-    results: any[];
+    results: ISearchResultsServer[];
     sortByProperties: ISorterListItemState[];
 }
 
