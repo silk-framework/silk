@@ -17,7 +17,7 @@ package org.silkframework.rule.execution
 import org.silkframework.cache.{EntityCache, FileEntityCache, MemoryEntityCache}
 import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.{DataSource, LinkSink}
-import org.silkframework.entity.{Entity, EntitySchema, Link}
+import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.rule.execution.rdb.RDBEntityIndex
 import org.silkframework.rule.{LinkSpec, LinkingExecutionBackend, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity._
@@ -94,7 +94,7 @@ class GenerateLinks(task: Task[LinkSpec],
     // Execute matching
     val sourceEqualsTarget = false // FIXME: CMEM-1975: Fix heuristic for this particular matching optimization
     val matcher = context.child(new Matcher(loaders, linkSpec.rule, caches, runtimeConfig, sourceEqualsTarget), 0.95)
-    val updateLinks = (links: Seq[Link]) => context.value.update(Linking(task, links, LinkingStatistics(entityCount = caches.map(_.size))))
+    val updateLinks = (result: MatcherResult) => context.value.update(Linking(task, result.links, LinkingStatistics(entityCount = caches.map(_.size)), result.warnings))
     matcher.value.subscribe(updateLinks)
     children ::= matcher
     matcher.startBlocking()
@@ -106,7 +106,7 @@ class GenerateLinks(task: Task[LinkSpec],
     if(context.status.isCanceling) return
 
     // Filter links
-    val filterTask = new Filter(matcher.value(), linkSpec.rule.filter)
+    val filterTask = new Filter(matcher.value().links, linkSpec.rule.filter)
     var filteredLinks = context.child(filterTask, 0.03).startBlockingAndGetValue()
     if(context.status.isCanceling) return
 
@@ -122,7 +122,7 @@ class GenerateLinks(task: Task[LinkSpec],
       }
       filteredLinks = filteredLinks.take(linkLimit)
     }
-    context.value.update(Linking(task, filteredLinks, context.value().statistics))
+    context.value.update(Linking(task, filteredLinks, context.value().statistics, context.value().matcherWarnings))
 
     //Output links
     // TODO dont commit links to context if the task is not configured to hold links

@@ -1,6 +1,6 @@
 package org.silkframework.rule.execution
 
-import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.config.Task
 import org.silkframework.entity.Link
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.rule.{LinkSpec, LinkageRule}
@@ -11,7 +11,10 @@ import scala.collection.mutable
 /**
   * Set of links.
   */
-case class Linking(task: Task[LinkSpec], links : Seq[Link] = Seq.empty, statistics: LinkingStatistics = LinkingStatistics()) extends ExecutionReport {
+case class Linking(task: Task[LinkSpec],
+                   links : Seq[Link] = Seq.empty,
+                   statistics: LinkingStatistics = LinkingStatistics(),
+                   matcherWarnings: Seq[String] = Seq.empty) extends ExecutionReport {
 
   def rule: LinkageRule = task.data.rule
 
@@ -24,7 +27,7 @@ case class Linking(task: Task[LinkSpec], links : Seq[Link] = Seq.empty, statisti
   }
 
   def warnings: Seq[String] = {
-    var warnings = mutable.Buffer[String]()
+    val warnings = mutable.Buffer[String]()
     if(statistics.entityCount.source == 0) {
       warnings += "No source entities have been loaded."
     }
@@ -34,6 +37,7 @@ case class Linking(task: Task[LinkSpec], links : Seq[Link] = Seq.empty, statisti
     if(links.isEmpty) {
       warnings += "No links have been generated."
     }
+    warnings ++= matcherWarnings
     warnings
   }
 
