@@ -465,8 +465,8 @@ object TransformRule {
     case ComplexMapping(id, PathInput(_, path), Some(target), metaData) =>
       DirectMapping(id, path.asUntypedPath, target, metaData)
     // Pattern URI Mapping
-    case ComplexMapping(id, TransformInput(_, ConcatTransformer("", false), inputs), None, metaData) if UriPattern.isPattern(inputs) =>
-      PatternUriMapping(id, UriPattern.build(inputs), metaData, prefixes = prefixes)
+    case ComplexMapping(id, UriPattern(pattern), None, metaData) =>
+      PatternUriMapping(id, pattern, metaData, prefixes = prefixes)
     // Complex URI mapping
     case ComplexMapping(id, operator, None, metaData) =>
       ComplexUriMapping(id, operator, metaData)
@@ -491,6 +491,9 @@ object TransformRule {
   */
 private object UriPattern {
 
+  /**
+    * Parses a URI pattern into an input operator tree.
+    */
   def parse(pattern: String)(implicit prefixes: Prefixes): Input = {
     // FIXME we should write a real parser for this
     val inputs = {
@@ -519,9 +522,22 @@ private object UriPattern {
     TransformInput(id = "buildUri",transformer = ConcatTransformer(), inputs = inputs)
   }
 
+  /**
+    * Reconstructs a URI pattern from an input operator tree, if possible.
+    */
+  def unapply(input: Input): Option[String] = {
+    input match {
+      case TransformInput(_, ConcatTransformer("", false), inputs) if isPattern(inputs) =>
+        Some(build(inputs))
+      case _ =>
+        None
+    }
+  }
+
   def isPattern(inputs: Seq[Input]): Boolean = {
     inputs.forall {
       case PathInput(id, path) => true
+      case TransformInput(id, UriFixTransformer(_), Seq(PathInput(_, path))) => true
       case TransformInput(id, UrlEncodeTransformer(_), Seq(PathInput(_, path))) => true
       case TransformInput(id, ConstantTransformer(constant), Nil) => true
       case _ => false
@@ -531,6 +547,7 @@ private object UriPattern {
   def build(inputs: Seq[Input]): String = {
     inputs.map {
       case PathInput(id, path) => "{" + path.serialize() + "}"
+      case TransformInput(id, UriFixTransformer(_), Seq(PathInput(_, path))) => "{" + path.serialize() + "}"
       case TransformInput(id, UrlEncodeTransformer(_), Seq(PathInput(_, path))) => "{" + path.serialize() + "}"
       case TransformInput(id, ConstantTransformer(constant), Nil) => constant
     }.mkString("")
