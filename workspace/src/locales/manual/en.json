@@ -430,7 +430,7 @@
             "usedTasks_plural": "Used tasks ({{count}})",
             "cycleNext": "next match",
             "cyclePrevious": "previous match",
-            "cycleTooltip": "cycle through {{totalMatches}} currently used instances of this task"
+            "cycleTooltip": "Cycle through {{totalMatches}} currently used instances of this task"
         },
         "header": {
             "saveBtnTooltip": "Save the current state of the workflow"
