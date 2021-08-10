@@ -424,8 +424,10 @@
         "sidebar": {
             "searchInput": "Find datasets and workflow operators",
             "searchTooltip": "Search for datasets and workflow operators both in the nodes used in the canvas and new tasks in the sidebar. Pressing the <Enter> key refreshes the list from the server.",
-            "availableTasks": "Available tasks ({{count}})",
-            "usedTasks": "Matching workflow nodes ({{count}})",
+            "availableTasks": "Available task",
+            "availableTasks_plural": "Available tasks ({{count}})",
+            "usedTasks": "Matching node",
+            "usedTasks_plural": "Matching nodes ({{count}})",
             "cycleNext": "Next match",
             "cyclePrevious": "Previous match",
             "cycleTooltip": "Cycle through {{totalMatches}} currently used instances of this task"
