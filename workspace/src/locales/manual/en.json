@@ -421,9 +421,6 @@
         }
     },
     "WorkflowEditor": {
-        "header": {
-            "saveBtnTooltip": "Save the current state of the workflow"
-        },
         "edge": {
             "menu": {
                 "delete": {
@@ -438,10 +435,26 @@
             "WorkflowEditor_saveWorkflow": "Failed to save the workflow.",
             "WorkflowEditor_fetchWorkflow": "Failed to load the workflow."
         },
+        "handle": {
+            "configuration": {
+                "label": "Configuration input",
+                "tooltip": "Values passed here will be used to reconfigure the operator parameters. The attribute names must match the name of the parameters to be reconfigured. It's possible to configure a subset of all available parameters."
+            }
+        },
+        "header": {
+            "saveBtnTooltip": "Save the current state of the workflow"
+        },
         "node": {
             "menu": {
                 "remove": {
                     "label": "Remove node"
+                },
+                "showSummary": {
+                    "label": "Show summary"
+                },
+                "toggleConfigPort": {
+                    "label": "Toggle config port",
+                    "description": "Show or hide config port that allows to re-configure parameters of this workflow node by inputting a single flat entity/row with properties matching the parameter IDs. Parameter IDs are listed in the documentation of the corresponding DataIntegration plugin."
                 }
             }
         },
