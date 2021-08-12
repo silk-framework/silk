@@ -1,156 +1,79 @@
 package org.silkframework.plugins.dataset.json
 
-import com.fasterxml.jackson.core.{JsonFactory, JsonParser, JsonToken}
+import com.fasterxml.jackson.core.{JsonFactoryBuilder, JsonParser, JsonToken, StreamReadFeature}
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.paths.{BackwardOperator, ForwardOperator, PropertyFilter, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.execution.EntityHolder
+import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
-import org.silkframework.util.Identifier
-import play.api.libs.json._
+import org.silkframework.util.{Identifier, Uri}
 
 import java.net.URLEncoder
-import scala.collection.mutable.ArrayBuffer
 
-class JsonReader(resource: Resource) {
 
-  private val reader = initStreamReader()
+class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: String, uriPattern: String) extends JsonSource(taskId, basePath, uriPattern) {
 
-  private var name = reader.currentName()
-
-  def nextToken(): JsonToken = {
-    val token = reader.nextToken()
-    if(token == JsonToken.FIELD_NAME) {
-      name = reader.getCurrentName
-    }
-    token
+  protected def createParser(): JsonParser = {
+    val factory = new JsonFactoryBuilder().configure(StreamReadFeature.AUTO_CLOSE_SOURCE, true).build()
+    factory.createParser(resource.inputStream)
   }
 
-  def currentToken: JsonToken = {
-    reader.currentToken()
+  override def retrieve(entitySchema: EntitySchema, limit: Option[Int])(implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+    val entities = new Entities(entitySchema, limit = limit)
+    GenericEntityTable(entities, entitySchema, underlyingTask)
   }
 
-  def currentName: String = {
-    name
+  override def retrieveByUri(entitySchema: EntitySchema, allowedUris: Seq[Uri])
+                            (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
+    val entities = new Entities(entitySchema, allowedUris = allowedUris.toSet)
+    GenericEntityTable(entities, entitySchema, underlyingTask)
   }
 
-  def hasCurrentToken: Boolean = {
-    reader.hasCurrentToken
-  }
-
-  private def initStreamReader(): JsonParser = {
-    val factory = new JsonFactory()
-    val parser = factory.createParser(resource.inputStream)
-    parser.nextToken()
-    parser
-    // TODO close reader
-  }
-
-  /**
-    * Builds a JSON node for a given start element that includes all its children.
-    * The parser must be positioned on the start element when calling this method.
-    * On return, the parser will be positioned on the element that directly follows the element.
-    */
-  def buildNode(): JsValue = {
-    assert(reader.currentToken == JsonToken.START_OBJECT)
-    // Remember label
-    var currentLabel: String = null
-    // Collect child nodes
-    val children = new ArrayBuffer[(String, JsValue)]()
-    reader.nextToken()
-    while(reader.currentToken != JsonToken.END_OBJECT) {
-      reader.currentToken match {
-        case JsonToken.FIELD_NAME =>
-          currentLabel = reader.currentName
-          reader.nextToken()
-        case JsonToken.START_OBJECT =>
-          children.append(currentLabel -> buildNode())
-        case JsonToken.VALUE_STRING =>
-          children.append(currentLabel -> JsString(reader.getText))
-          reader.nextToken()
-        case JsonToken.VALUE_NUMBER_INT |
-             JsonToken.VALUE_NUMBER_FLOAT =>
-          children.append(currentLabel -> JsNumber(reader.getDecimalValue))
-          reader.nextToken()
-        case JsonToken.VALUE_TRUE |
-             JsonToken.VALUE_FALSE =>
-          children.append(currentLabel -> JsBoolean(reader.getBooleanValue))
-          reader.nextToken()
-        case JsonToken.VALUE_NULL =>
-          children.append(currentLabel -> JsNull)
-          reader.nextToken()
-        case _ =>
-          reader.nextToken()
-      }
-    }
-
-    // Move to the element after the end element.
-    reader.nextToken()
-
-    JsObject(children.groupBy(_._1).mapValues(nodes => if(nodes.length == 1) nodes(0)._2 else new JsArray(nodes.map(_._2).toIndexedSeq) ))
-  }
-
-}
-
-class JsonStreamReader(taskId: Identifier, resource: Resource, basePath: String, uriPattern: String) {
-
-  private val uriRegex = "\\{([^\\}]+)\\}".r
-
-  private val reader = new JsonReader(resource: Resource)
-
-
-  /**
-    * Retrieves entities from this source which satisfy a specific entity schema.
-    *
-    * @param entitySchema The entity schema
-    * @param limit        Limits the maximum number of retrieved entities
-    * @return A Traversable over the entities. The evaluation of the Traversable is non-strict.
-    */
-  def retrieve(entitySchema: EntitySchema, limit: Option[Int])
-              (implicit userContext: UserContext, prefixes: Prefixes): Traversable[Entity] = {
+  private class Entities(entitySchema: EntitySchema, limit: Option[Int] = None, allowedUris: Set[Uri] = Set.empty) extends Traversable[Entity] {
     if(entitySchema.typedPaths.exists(_.operators.exists(_.isInstanceOf[BackwardOperator]))) {
       throw new ValidationException("Backward paths are not supported when streaming JSON. Disable streaming to use backward paths.")
     }
 
-    new Traversable[Entity] {
-      override def foreach[U](f: Entity => U): Unit = {
-        try {
-          val entityPath = UntypedPath.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath
-          val entityPathSegments = PathSegments(entityPath)
-          var hasNext = goToFirstEntity(reader, entityPath)
-          var count = 0
-          while(hasNext && limit.forall(count < _)) {
-            val node = JsonTraverser(taskId, reader.buildNode())
+    override def foreach[U](f: Entity => U): Unit = {
+      try {
+        val reader = new JsonReader(resource: Resource)
+        val entityPath = UntypedPath.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath
+        val entityPathSegments = PathSegments(entityPath)
+        var hasNext = goToFirstEntity(reader, entityPath)
+        var count = 0
+        while(hasNext && limit.forall(count < _)) {
+          val node = JsonTraverser(taskId, reader.buildNode())
 
-            // Generate URI
-            val uri =
-              if (uriPattern.isEmpty) {
-                DataSource.generateEntityUri(taskId, node.nodeId(node.value))
+          // Generate URI
+          val uri =
+            if (uriPattern.isEmpty) {
+              DataSource.generateEntityUri(taskId, node.nodeId(node.value))
 
-              } else {
-                uriRegex.replaceAllIn(uriPattern, m => {
-                  val path = UntypedPath.parse(m.group(1)).asStringTypedPath
-                  val string = node.evaluate(path).mkString
-                  URLEncoder.encode(string, "UTF8")
-                })
-              }
+            } else {
+              uriRegex.replaceAllIn(uriPattern, m => {
+                val path = UntypedPath.parse(m.group(1)).asStringTypedPath
+                val string = node.evaluate(path).mkString
+                URLEncoder.encode(string, "UTF8")
+              })
+            }
 
-            // Check if this URI should be extracted
-            //if (allowedUris.isEmpty || allowedUris.contains(uri)) {
-              // Extract values
-              val values = for (path <- entitySchema.typedPaths) yield node.evaluate(path)
-              f(Entity(uri, values, entitySchema))
-            //}
-
-            hasNext = goToNextEntity(reader, entityPathSegments, entityPathSegments.nrPathSegments - 1)
-            count += 1
-
+          // Check if this URI should be extracted
+          if (allowedUris.isEmpty || allowedUris.contains(uri)) {
+            // Extract values
+            val values = for (path <- entitySchema.typedPaths) yield node.evaluate(path)
+            f(Entity(uri, values, entitySchema))
           }
-        } finally {
-          // TODO close input stream AND json parser
+
+          hasNext = goToNextEntity(reader, entityPathSegments, entityPathSegments.nrPathSegments - 1)
+          count += 1
+
         }
+      } finally {
+        // TODO close input stream AND json parser
       }
     }
   }
@@ -184,7 +107,12 @@ class JsonStreamReader(taskId: Identifier, resource: Resource, basePath: String,
     def currentPathSegment(): entityPathSegments.PathSegment = entityPathSegments.pathSegment(pathSegmentIdx)
     while(reader.hasCurrentToken) {
       reader.currentToken match {
-        case JsonToken.START_OBJECT =>
+        case JsonToken.START_OBJECT |
+             JsonToken.VALUE_STRING |
+             JsonToken.VALUE_NUMBER_INT |
+             JsonToken.VALUE_FALSE |
+             JsonToken.VALUE_TRUE |
+             JsonToken.VALUE_NULL =>
           if(currentPathSegment().matches(reader)) {
             if(pathSegmentIdx == entityPathSegments.nrPathSegments - 1) {
               // All path segments were matching, found element.
@@ -216,18 +144,21 @@ class JsonStreamReader(taskId: Identifier, resource: Resource, basePath: String,
     * On return, the parser will be positioned on the element that directly follows the element.
     */
   private def skipElement(reader: JsonReader): Unit = {
-    assert(reader.currentToken == JsonToken.START_OBJECT)
-
-    // Move to first child element
-    reader.nextToken()
-    // Counts the number of elements started
-    var elementStartedCount = 1
-    while(elementStartedCount > 0) {
-      if(reader.currentToken == JsonToken.START_OBJECT) {
-        elementStartedCount += 1
-      } else if(reader.currentToken == JsonToken.END_OBJECT) {
-        elementStartedCount -= 1
+    assert(reader.currentToken != JsonToken.START_ARRAY)
+    if(reader.currentToken == JsonToken.START_OBJECT) {
+      // Move to first element
+      reader.nextToken()
+      // Counts the number of elements started
+      var elementStartedCount = 1
+      while (elementStartedCount > 0) {
+        if (reader.currentToken == JsonToken.START_OBJECT) {
+          elementStartedCount += 1
+        } else if (reader.currentToken == JsonToken.END_OBJECT) {
+          elementStartedCount -= 1
+        }
+        reader.nextToken()
       }
+    } else {
       reader.nextToken()
     }
   }
@@ -288,12 +219,10 @@ class JsonStreamReader(taskId: Identifier, resource: Resource, basePath: String,
     case class PathSegment(forwardOp: Option[ForwardOperator], pathFilters: Seq[PropertyFilter] = Seq.empty) {
       /** Checks if the path segment matches the current element of the JSON reader. */
       def matches(reader: JsonReader): Boolean = {
-        assert(reader.currentToken == JsonToken.START_OBJECT)
         forwardOp forall { op =>
-          op.property.uri == reader.currentName
+          op.property.uri == reader.currentNameEncoded
         }
       }
     }
   }
-
 }
