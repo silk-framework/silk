@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.{JsonFactory, JsonToken}
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
-import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
 import org.silkframework.runtime.activity.UserContext
@@ -13,6 +13,7 @@ import org.silkframework.util.{Identifier, Uri}
 import play.api.libs.json.{JsArray, JsValue, Json}
 
 import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.util.logging.{Level, Logger}
 import scala.collection.mutable
 
@@ -70,16 +71,7 @@ case class JsonSource(taskId: Identifier, input: JsValue, basePath: String, uriP
     }
   }
 
-  /**
-   * Retrieves the most frequent paths in this source.
-   */
-  override def retrievePaths(typeUri: Uri, depth: Int = Int.MaxValue, limit: Option[Int] = None)
-                            (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
-    retrieveJsonPaths(typeUri, depth, limit, leafPathsOnly = false, innerPathsOnly = false).drop(1).map { case (path, valueType) =>
-      TypedPath(path, valueType, isAttribute = false)
-    }
-  }
-
+  // TODO remove as this method is only used in tests
   def retrieveJsonPaths(typePath: Uri,
                         depth: Int,
                         limit: Option[Int],
@@ -97,11 +89,6 @@ case class JsonSource(taskId: Identifier, input: JsValue, basePath: String, uriP
     val selectedElements = json.select(basePathParts)
     val subSelectedElements = selectedElements.flatMap(_.select(UntypedPath.parse(typePath.uri).operators))
     subSelectedElements
-  }
-
-  override def retrieveTypes(limit: Option[Int])
-                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
-    retrieveJsonPaths("", Int.MaxValue, limit, leafPathsOnly = false, innerPathsOnly = true) map  (p => (p._1.normalizedSerialization, 1.0))
   }
 
   private class Entities(elements: Seq[JsonTraverser], entityDesc: EntitySchema, allowedUris: Set[String]) extends Traversable[Entity] {
@@ -161,7 +148,7 @@ case class JsonSource(taskId: Identifier, input: JsValue, basePath: String, uriP
         case JsonToken.END_ARRAY =>
           stepBack()
         case JsonToken.FIELD_NAME =>
-          currentPath ::= jParser.getCurrentName
+          currentPath ::= URLEncoder.encode(jParser.getCurrentName, StandardCharsets.UTF_8.name)
           if (basePathMatches(currentPath) && !paths.contains(currentPath.dropRight(basePathLength))) {
             paths.put(if(basePathLength == 0) currentPath else currentPath.dropRight(basePathLength), idx)
             idx += 1
@@ -195,19 +182,6 @@ case class JsonSource(taskId: Identifier, input: JsValue, basePath: String, uriP
 
   private def basePathMatches(currentPath: List[String]) = {
     basePathLength == 0 || basePathPartsReversed == currentPath.takeRight(basePathLength)
-  }
-
-  /** Stops analyzing when the sample limit is reached */
-  private def analyzeValuePath[T](traversers: Seq[JsonTraverser],
-                                  path: UntypedPath,
-                                  analyzer: ValueAnalyzer[T],
-                                  sampleLimit: Option[Int]): Unit = {
-    var analyzedValues = 0
-    for(traverser <- traversers if sampleLimit.isEmpty || analyzedValues < sampleLimit.get) {
-      val values = traverser.evaluate(path.asStringTypedPath)
-      analyzer.update(values)
-      analyzedValues += values.size
-    }
   }
 
   /**
