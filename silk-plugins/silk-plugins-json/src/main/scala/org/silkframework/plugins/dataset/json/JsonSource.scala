@@ -3,6 +3,7 @@ package org.silkframework.plugins.dataset.json
 import com.fasterxml.jackson.core.{JsonParser, JsonToken}
 import org.silkframework.config.{PlainTask, Task}
 import org.silkframework.dataset._
+import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.Identifier
 
 import java.net.URLEncoder
@@ -105,5 +106,13 @@ abstract class JsonSource(taskId: Identifier, protected val basePath: String, pr
     * @return
     */
   override lazy val underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(taskId, DatasetSpec(EmptyDataset))     //FIXME CMEM 1352 replace with actual task
+}
+
+object JsonSource {
+
+  def apply(file: Resource, basePath: String, uriPattern: String): JsonSource = {
+    new JsonSourceStreaming(Identifier.fromAllowed(file.name), file, basePath, uriPattern)
+  }
+
 }
 
