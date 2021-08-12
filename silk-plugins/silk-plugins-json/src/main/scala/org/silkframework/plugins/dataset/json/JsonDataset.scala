@@ -7,6 +7,8 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.MultilineStringParameter
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.WritableResource
+import org.silkframework.util.Identifier
+import play.api.libs.json.{JsArray, Json}
 
 @Plugin(
   id = "json",
@@ -32,7 +34,15 @@ case class JsonDataset(
 
   override def source(implicit userContext: UserContext): DataSource = {
     file.checkSizeForInMemory()
-    JsonSource(file, basePath, uriPattern)
+
+    val json =
+      if(file.nonEmpty) {
+        file.read(Json.parse)
+      } else {
+        JsArray()
+      }
+
+    new JsonStreamSource(Identifier.fromAllowed(file.name), file, json, basePath, uriPattern)
   }
 
   override def linkSink(implicit userContext: UserContext): LinkSink = new TableLinkSink(new JsonSink(file, maxDepth = maxDepth))
