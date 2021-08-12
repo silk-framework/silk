@@ -1,7 +1,10 @@
 package org.silkframework.dataset
 
-import org.silkframework.entity.paths.{ForwardOperator, UntypedPath}
+import org.silkframework.config.Prefixes
+import org.silkframework.entity.ValueType
+import org.silkframework.entity.paths.{ForwardOperator, TypedPath, UntypedPath}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.util.Uri
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -62,6 +65,8 @@ case class SampleValueAnalyzer[T](sampleLimit: Int,
 trait HierarchicalSampleValueAnalyzerExtractionSource extends SchemaExtractionSource {
   this: DataSource =>
 
+  protected val schemaElementLimit: Int = 100 * 1000
+
   /**
     * Collects all paths from the hierarchical data source.
     *
@@ -105,4 +110,51 @@ trait HierarchicalSampleValueAnalyzerExtractionSource extends SchemaExtractionSo
     progress(1.0)
     ExtractedSchema(schemaClasses)
   }
+
+  /**
+    * Retrieves known types in this source.
+    * Each path from the root corresponds to one type.
+    *
+    * @param limit Restricts the number of types to be retrieved. If not given, all found types are returned.
+    */
+  override def retrieveTypes(limit: Option[Int])
+                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
+    val schema = extractSchema(PathCategorizerValueAnalyzerFactory(), pathLimit = schemaElementLimit, sampleLimit = Some(1))
+    for(schemaClass <- schema.classes) yield {
+      val operators = UntypedPath.parse(schemaClass.sourceType)
+      (schemaClass.sourceType, pathRank(operators.size))
+    }
+  }
+
+  /**
+    * Retrieves the most frequent paths in this source.
+    *
+    * @param typeUri The entity type, which provides the base path from which paths shall be collected.
+    * @param depth Only retrieve paths up to a certain length.
+    * @param limit Restricts the number of paths to be retrieved. If not given, all found paths are returned.
+    */
+  override def retrievePaths(typeUri: Uri, depth: Int = Int.MaxValue, limit: Option[Int] = None)
+                            (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
+    val schema = extractSchema(PathCategorizerValueAnalyzerFactory(), pathLimit = schemaElementLimit, sampleLimit = Some(1))
+    val pathBuffer = mutable.ArrayBuffer[TypedPath]()
+    val normalizedTypeUri = typeUri.toString.dropWhile(_ == '/')
+    for(schemaClass <- schema.classes if schemaClass.sourceType.startsWith(normalizedTypeUri)) {
+      val relativeClass = schemaClass.sourceType.drop(normalizedTypeUri.length).dropWhile(_ == '/')
+      val classPath = UntypedPath.parse(relativeClass)
+      if(classPath.size > 0 && classPath.size <= depth) {
+        pathBuffer.append(TypedPath(classPath, ValueType.URI, isAttribute = false))
+      }
+      for(schemaPath <- schemaClass.properties) {
+        val typedPath = TypedPath(UntypedPath.parse(relativeClass + "/" + schemaPath.path.normalizedSerialization), ValueType.STRING,
+          isAttribute = schemaPath.path.normalizedSerialization.startsWith("@"))
+        if(typedPath.size <= depth) {
+          pathBuffer.append(typedPath)
+        }
+      }
+    }
+    pathBuffer.toIndexedSeq
+  }
+
+  private def pathRank(pathLength: Int): Double = 1.0 / (pathLength + 1)
+
 }
