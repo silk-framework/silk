@@ -95,6 +95,11 @@ class JsonSourceInMemory(taskId: Identifier, input: JsValue, basePath: String, u
     }
   }
 
+  private def basePathMatches(currentPath: List[String]) = {
+    basePathLength == 0 || basePathPartsReversed == currentPath.takeRight(basePathLength)
+  }
+
+
 }
 
 object JsonSourceInMemory {

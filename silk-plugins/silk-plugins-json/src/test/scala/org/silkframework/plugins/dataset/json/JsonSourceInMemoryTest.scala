@@ -21,18 +21,4 @@ class JsonSourceInMemoryTest extends JsonSourceTest {
     result.head.values mustBe IndexedSeq(Seq("123", "456", "789"))
   }
 
-  it should "list all leaf paths of the root" in {
-    val paths = jsonExampleSource.asInstanceOf[JsonSourceInMemory].retrieveJsonPaths(Uri(""), depth = Int.MaxValue, limit = None, leafPathsOnly = true, innerPathsOnly = false)
-    paths.map(_._1.normalizedSerialization) mustBe Seq("persons/id", "persons/name", "persons/phoneNumbers/type", "persons/phoneNumbers/number", "organizations/name")
-  }
-
-  it should "list all leaf paths of a sub path" in {
-    val paths = jsonExampleSource.asInstanceOf[JsonSourceInMemory].retrieveJsonPaths(Uri("persons"), depth = Int.MaxValue, limit = None, leafPathsOnly = true, innerPathsOnly = false)
-    paths.map(_._1.normalizedSerialization) mustBe Seq("id", "name", "phoneNumbers/type", "phoneNumbers/number")
-  }
-
-  it should "list all leaf paths of depth 1 of a sub path" in {
-    val paths = jsonExampleSource.asInstanceOf[JsonSourceInMemory].retrieveJsonPaths(Uri("persons"), depth = 1, limit = None, leafPathsOnly = true, innerPathsOnly = false)
-    paths.map(_._1.normalizedSerialization) mustBe Seq("id", "name")
-  }
 }

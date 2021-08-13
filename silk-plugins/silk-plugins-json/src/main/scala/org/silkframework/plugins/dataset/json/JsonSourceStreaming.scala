@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.json
 import com.fasterxml.jackson.core.{JsonFactoryBuilder, JsonParser, JsonToken, StreamReadFeature}
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.paths.{BackwardOperator, ForwardOperator, PropertyFilter, UntypedPath}
+import org.silkframework.entity.paths._
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
@@ -34,16 +34,20 @@ class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: Stri
   }
 
   private class Entities(entitySchema: EntitySchema, limit: Option[Int] = None, allowedUris: Set[Uri] = Set.empty) extends Traversable[Entity] {
-    if(entitySchema.typedPaths.exists(_.operators.exists(_.isInstanceOf[BackwardOperator]))) {
-      throw new ValidationException("Backward paths are not supported when streaming JSON. Disable streaming to use backward paths.")
-    }
+
+    private val entityPath = UntypedPath.parse(entitySchema.typeUri.uri) ++ UntypedPath.parse(basePath) ++ entitySchema.subPath
+
+    // Validate paths
+    checkPaths(entitySchema.typedPaths, isEntitySelectionPath = false)
+    checkPaths(Seq(entityPath), isEntitySelectionPath = true)
+
+    // checkPaths only allows forward operators
+    private val entityPathSegments = entityPath.operators.collect{ case op: ForwardOperator => op }.toIndexedSeq
 
     override def foreach[U](f: Entity => U): Unit = {
+      val reader = new JsonReader(createParser())
       try {
-        val reader = new JsonReader(resource: Resource)
-        val entityPath = UntypedPath.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath
-        val entityPathSegments = PathSegments(entityPath)
-        var hasNext = goToFirstEntity(reader, entityPath)
+        var hasNext = goToFirstEntity(reader, entityPathSegments)
         var count = 0
         while(hasNext && limit.forall(count < _)) {
           val node = JsonTraverser(taskId, reader.buildNode())
@@ -68,12 +72,12 @@ class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: Stri
             f(Entity(uri, values, entitySchema))
           }
 
-          hasNext = goToNextEntity(reader, entityPathSegments, entityPathSegments.nrPathSegments - 1)
+          hasNext = goToNextEntity(reader, entityPathSegments, entityPathSegments.size - 1)
           count += 1
 
         }
       } finally {
-        // TODO close input stream AND json parser
+        reader.close()
       }
     }
   }
@@ -85,35 +89,34 @@ class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: Stri
     * If the path is empty, the base path will be used.
     *
     */
-  private def goToFirstEntity(reader: JsonReader, rootPath: UntypedPath): Boolean = {
-    val path = if(rootPath.isEmpty) UntypedPath.parse(basePath) else rootPath
-    checkObjectPath(path)
-    val pathSegments = PathSegments(path)
-    goToNextEntity(reader, pathSegments, initialPathSegmentIdx = 0)
+  private def goToFirstEntity(reader: JsonReader, entityPathSegments: IndexedSeq[ForwardOperator]): Boolean = {
+    reader.nextToken()
+    goToNextEntity(reader, entityPathSegments, initialPathSegmentIdx = -1)
   }
 
   /**
     * Moves the parser to the next element with the provided name on the same hierarchy level.
     *
     * @param entityPathSegments    The entity path leading to the entity.
-    * @param initialPathSegmentIdx The path segment the XML stream reader is currently positioned at.
+    * @param initialPathSegmentIdx The path segment the JSON stream reader is currently positioned at.
     * @return True, if another element was found. The parser will be positioned on the start element.
     *         False, if the end of the file has been reached.
     */
   private def goToNextEntity(reader: JsonReader,
-                             entityPathSegments: PathSegments,
+                             entityPathSegments: IndexedSeq[ForwardOperator],
                              initialPathSegmentIdx: Int): Boolean = {
     var pathSegmentIdx = initialPathSegmentIdx
-    def currentPathSegment(): entityPathSegments.PathSegment = entityPathSegments.pathSegment(pathSegmentIdx)
+    def currentPathSegment(): Option[ForwardOperator] = if(pathSegmentIdx >= 0) Some(entityPathSegments(pathSegmentIdx)) else None
     while(reader.hasCurrentToken) {
       reader.currentToken match {
         case JsonToken.START_OBJECT |
              JsonToken.VALUE_STRING |
              JsonToken.VALUE_NUMBER_INT |
+             JsonToken.VALUE_NUMBER_FLOAT |
              JsonToken.VALUE_FALSE |
              JsonToken.VALUE_TRUE =>
-          if(currentPathSegment().matches(reader)) {
-            if(pathSegmentIdx == entityPathSegments.nrPathSegments - 1) {
+          if(currentPathSegment().forall(_.property.uri == reader.currentNameEncoded)) {
+            if(pathSegmentIdx == entityPathSegments.size - 1) {
               // All path segments were matching, found element.
               return true
             } else {
@@ -162,65 +165,16 @@ class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: Stri
     }
   }
 
-  // TODO can be abstracted
-  private def checkObjectPath(path: UntypedPath): Unit = {
-    val validationRules = Seq[(String, Boolean)](
-      "Only forward operators and property filters on attributes are supported." ->
-        path.operators.forall(op => op.isInstanceOf[ForwardOperator] ||
-          (op.isInstanceOf[PropertyFilter] && op.asInstanceOf[PropertyFilter].property.uri.startsWith("@")))
-      ,
-      "No #text path allowed inside object path with streaming mode enabled." ->
-        path.operators.filter(_.isInstanceOf[PropertyFilter]).forall(_.asInstanceOf[PropertyFilter].property.uri != "#text")
-    )
-    for((assertErrorMessage, assertionValue) <- validationRules) {
-      assert(assertionValue, assertErrorMessage)
-    }
-  }
-
-  // TODO can be abstracted
-  /** Representation of a path that groups together forward op with related property filters. */
-  case class PathSegments(entityPath: UntypedPath) {
-    checkObjectPath(entityPath)
-
-    /** The number of path segments. */
-    // The root element counts a +1.
-    val nrPathSegments: Int = entityPath.operators.count(_.isInstanceOf[ForwardOperator]) + 1
-
-    /** Each path segment consists of a forward path followed by arbitrarily many property filters,
-      * except for the first (root) segment, which can only have property filters. */
-    private val pathSegments: Array[PathSegment] = {
-      val arr = new Array[PathSegment](nrPathSegments)
-      var counter = 0
-      // Init root segment
-      arr(0) = PathSegment(None)
-      for(op <- entityPath.operators) {
-        op match {
-          case fp: ForwardOperator =>
-            counter += 1
-            arr(counter) = PathSegment(Some(fp))
-          case pf: PropertyFilter =>
-            arr(counter) = arr(counter).copy(pathFilters = arr(counter).pathFilters :+ pf)
-        }
-      }
-      arr
-    }
-
-    def pathSegment(idx: Int): PathSegment = {
-      pathSegments(idx)
-    }
-
-    /**
-      * A path segment groups a forward operator with its related property filters.
-      *
-      * @param forwardOp   An optional forward operator. This is only None for the root segment.
-      * @param pathFilters Path filters that are applied after the corresponding forward operator.
-      */
-    case class PathSegment(forwardOp: Option[ForwardOperator], pathFilters: Seq[PropertyFilter] = Seq.empty) {
-      /** Checks if the path segment matches the current element of the JSON reader. */
-      def matches(reader: JsonReader): Boolean = {
-        forwardOp forall { op =>
-          op.property.uri == reader.currentNameEncoded
-        }
+  private def checkPaths(paths: Traversable[Path], isEntitySelectionPath: Boolean): Unit = {
+    for(path <- paths; op <- path.operators) {
+      op match {
+        case _: BackwardOperator =>
+          throw new ValidationException("Backward paths are not supported when streaming JSON. Disable streaming to use backward paths.")
+        case _: LanguageFilter =>
+          throw new ValidationException("Language filters are not supported for JSON.")
+        case _: PropertyFilter if isEntitySelectionPath =>
+          throw new ValidationException("Property filters are not supported for selecting JSON entities.")
+        case _ =>
       }
     }
   }

@@ -1,7 +1,6 @@
 package org.silkframework.plugins.dataset.json
 
-import com.fasterxml.jackson.core.{JsonFactory, JsonParser, JsonToken}
-import org.silkframework.runtime.resource.Resource
+import com.fasterxml.jackson.core.{JsonParser, JsonToken}
 import org.silkframework.runtime.validation.ValidationException
 import play.api.libs.json._
 
@@ -9,21 +8,20 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import scala.collection.mutable.ArrayBuffer
 
-class JsonReader(resource: Resource) {
-
-  private val reader = initStreamReader()
+/**
+  * JSON reader that keeps track of the current JSON object key and allows to build in-memory nodes.
+  */
+class JsonReader(parser: JsonParser) extends AutoCloseable {
 
   private var names: List[String] = List[String]()
 
-  nextToken()
-
   def nextToken(): JsonToken = {
-    val prevToken = reader.currentToken()
-    val token = reader.nextToken()
+    val prevToken = parser.currentToken()
+    val token = parser.nextToken()
     token match {
       case JsonToken.START_OBJECT |
            JsonToken.START_ARRAY if prevToken == JsonToken.FIELD_NAME =>
-        names ::= reader.getCurrentName
+        names ::= parser.getCurrentName
       case JsonToken.START_OBJECT |
            JsonToken.START_ARRAY if names.nonEmpty =>
         names ::= names.head
@@ -36,7 +34,7 @@ class JsonReader(resource: Resource) {
   }
 
   def currentToken: JsonToken = {
-    reader.currentToken()
+    parser.currentToken()
   }
 
   def currentName: String = {
@@ -48,14 +46,7 @@ class JsonReader(resource: Resource) {
   }
 
   def hasCurrentToken: Boolean = {
-    reader.hasCurrentToken
-  }
-
-  private def initStreamReader(): JsonParser = {
-    val factory = new JsonFactory()
-    val parser = factory.createParser(resource.inputStream)
-    parser
-    // TODO close reader
+    parser.hasCurrentToken
   }
 
   /**
@@ -64,19 +55,19 @@ class JsonReader(resource: Resource) {
     * On return, the parser will be positioned on the element that directly follows the element.
     */
   def buildNode(): JsValue = {
-    val value = reader.currentToken match {
+    val value = parser.currentToken match {
       case JsonToken.START_ARRAY =>
         buildArrayNode()
       case JsonToken.START_OBJECT =>
         buildObjectNode()
       case JsonToken.VALUE_STRING =>
-        JsString(reader.getText)
+        JsString(parser.getText)
       case JsonToken.VALUE_NUMBER_INT |
            JsonToken.VALUE_NUMBER_FLOAT =>
-        JsNumber(reader.getDecimalValue)
+        JsNumber(parser.getDecimalValue)
       case JsonToken.VALUE_TRUE |
            JsonToken.VALUE_FALSE =>
-        JsBoolean(reader.getBooleanValue)
+        JsBoolean(parser.getBooleanValue)
       case JsonToken.VALUE_NULL =>
         JsNull
       case token: JsonToken =>
@@ -106,11 +97,14 @@ class JsonReader(resource: Resource) {
     while(currentToken != JsonToken.END_OBJECT) {
       assert(currentToken == JsonToken.FIELD_NAME)
       nextToken()
-      val key = reader.getCurrentName
+      val key = parser.getCurrentName
       val value = buildNode()
       children += (key -> value)
     }
     JsObject(children.toMap)
   }
 
+  override def close(): Unit = {
+    parser.close()
+  }
 }

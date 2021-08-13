@@ -25,6 +25,13 @@ abstract class JsonSourceTest extends FlatSpec with MustMatchers {
     source
   }
 
+  it should "collect all paths" in {
+    val paths = jsonExampleSource.collectPaths(Int.MaxValue)
+    paths.map(_.mkString("/")) mustBe
+      Seq("", "persons", "persons/id", "persons/name", "persons/phoneNumbers", "persons/phoneNumbers/type",
+        "persons/phoneNumbers/number", "organizations", "organizations/name")
+  }
+
   it should "return all inner node types" in {
     val types = jsonExampleSource.retrieveTypes().map(_._1).toSet
     types mustBe Set(
