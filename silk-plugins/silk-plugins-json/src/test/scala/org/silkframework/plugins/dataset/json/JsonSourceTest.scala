@@ -199,6 +199,12 @@ abstract class JsonSourceTest extends FlatSpec with MustMatchers {
     entities.map(_.values) mustBe Seq(Seq(Seq("nested")))
   }
 
+  it should "handle nested arrays" in {
+    val source: DataSource = createSource(resources.get("example3.json"), "", "#id")
+    val entities = source.retrieve(EntitySchema("person", typedPaths = IndexedSeq(UntypedPath.parse("name").asStringTypedPath))).entities
+    entities.map(_.values) mustBe Seq(Seq(Seq("Peter")), Seq(Seq("John")))
+  }
+
   class TestAnalyzer extends ValueAnalyzer[String] {
     private var maxString: Option[String] = None
 
