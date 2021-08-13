@@ -278,7 +278,6 @@ abstract class JsonSourceTest extends FlatSpec with MustMatchers {
   private def jsonSource(json: String): JsonSource = {
     val jsonResource = InMemoryResourceManager().get("temp.json")
     jsonResource.writeString(json)
-    val source = JsonDataset(jsonResource).source
-    source.asInstanceOf[JsonSource]
+    createSource(jsonResource, "", "")
   }
 }

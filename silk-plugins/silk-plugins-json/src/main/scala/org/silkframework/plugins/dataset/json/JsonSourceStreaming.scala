@@ -111,8 +111,7 @@ class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: Stri
              JsonToken.VALUE_STRING |
              JsonToken.VALUE_NUMBER_INT |
              JsonToken.VALUE_FALSE |
-             JsonToken.VALUE_TRUE |
-             JsonToken.VALUE_NULL =>
+             JsonToken.VALUE_TRUE =>
           if(currentPathSegment().matches(reader)) {
             if(pathSegmentIdx == entityPathSegments.nrPathSegments - 1) {
               // All path segments were matching, found element.
