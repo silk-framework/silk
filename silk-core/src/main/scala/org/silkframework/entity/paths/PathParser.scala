@@ -153,6 +153,66 @@ object PathParser {
   }
 }
 
+/** Maintains the position status inside a path expression. */
+case class PathPositionStatus(initialInsideDoubleQuotes: Boolean = false,
+                              initialInsideSingleQuotes: Boolean = false,
+                              initialInsideUri: Boolean = false,
+                              initialInsideFilter: Boolean = false) {
+  private var _insideDoubleQuotes = initialInsideDoubleQuotes
+  private var _insideSingleQuotes = initialInsideSingleQuotes
+  private var _insideUri = initialInsideUri
+  private var _insideFilter = initialInsideFilter
+
+  /** Update position status with the next character of a path expression. */
+  def update(char: Char): Unit = {
+    if (!insideUri) {
+      updateQuotesStatus(char)
+    }
+    if (!insideQuotes) {
+      updateUriStatus(char)
+    }
+    if (!insideQuotes && !insideUri) {
+      updateFilterStatus(char)
+    }
+    (insideQuotes, insideUri)
+  }
+
+  /** Update position status with a (sub-)string of a path expression. */
+  def update(str: String): Unit = {
+    str.foreach(update)
+  }
+
+  private def updateFilterStatus(char: Char): Unit = {
+    if (char == '[') {
+      _insideFilter = true
+    } else if (char == ']') {
+      _insideFilter = false
+    }
+  }
+
+  private def updateUriStatus(char: Char): Unit = {
+    if (char == '<') {
+      _insideUri = true
+    } else if (char == '>') {
+      _insideUri = false
+    }
+  }
+
+  private def updateQuotesStatus(char: Char): Unit = {
+    if (char == '"' && !_insideSingleQuotes) {
+      _insideDoubleQuotes = !_insideDoubleQuotes
+    }
+    if (char == '\'' && !_insideDoubleQuotes) {
+      _insideSingleQuotes = !_insideSingleQuotes
+    }
+  }
+
+  def insideQuotes: Boolean = _insideDoubleQuotes || _insideSingleQuotes
+  def insideUri: Boolean = _insideUri
+  def insideFilter: Boolean = _insideFilter
+  def insideQuotesOrUri: Boolean = insideQuotes || insideUri
+}
+
 /**
   * A partial path parse result.
   *

@@ -1,6 +1,7 @@
 package controllers.transform.autoCompletion
 
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
+import org.silkframework.entity.paths.PathPositionStatus
 import play.api.libs.json.{Format, Json}
 
 /**
@@ -65,53 +66,9 @@ case class PartialSourcePathAutoCompletionRequest(inputString: String,
     Some(cursorPosition - strBackToOperator.length - 1).filter(_ >= 0)
   }
 
-  class PositionStatus(initialInsideDoubleQuotes: Boolean,
-                       initialInsideSingleQuotes: Boolean,
-                       initialInsideUri: Boolean,
-                       initialInsideFilter: Boolean) {
-    private var _insideDoubleQuotes = initialInsideDoubleQuotes
-    private var _insideSingleQuotes = initialInsideSingleQuotes
-    private var _insideUri = initialInsideUri
-    private var _insideFilter = initialInsideFilter
-
-    def update(char: Char): Unit = {
-      // Track quotes status
-      if (!insideUri) {
-        if (char == '"' && !_insideSingleQuotes) {
-          _insideDoubleQuotes = !_insideDoubleQuotes
-        }
-        if(char == '\'' && !_insideDoubleQuotes) {
-          _insideSingleQuotes = !_insideSingleQuotes
-        }
-      }
-      // Track URI status
-      if (!insideQuotes) {
-        if (char == '<') {
-          _insideUri = true
-        } else if (char == '>') {
-          _insideUri = false
-        }
-      }
-      // Track filter status
-      if (!insideQuotes && !insideUri) {
-        if (char == '[') {
-          _insideFilter = true
-        } else if (char == ']') {
-          _insideFilter = false
-        }
-      }
-      (insideQuotes, insideUri)
-    }
-
-    def insideQuotes: Boolean = _insideDoubleQuotes || _insideSingleQuotes
-    def insideUri: Boolean = _insideUri
-    def insideFilter: Boolean = _insideFilter
-    def insideQuotesOrUri: Boolean = insideQuotes || insideUri
-  }
-
   // Checks if the cursor position is inside quotes or URI
-  def cursorPositionStatus: PositionStatus = {
-    val positionStatus = new PositionStatus(false, false, false, false)
+  def cursorPositionStatus: PathPositionStatus = {
+    val positionStatus = PathPositionStatus()
     inputString.take(cursorPosition).foreach(positionStatus.update)
     positionStatus
   }
