@@ -35,10 +35,10 @@ case class JsonDataset(
 
   override def source(implicit userContext: UserContext): DataSource = {
     if(streaming) {
+      new JsonSourceStreaming(Identifier.fromAllowed(file.name), file, basePath, uriPattern)
+    } else {
       file.checkSizeForInMemory()
       JsonSourceInMemory(file, basePath, uriPattern)
-    } else {
-      new JsonSourceStreaming(Identifier.fromAllowed(file.name), file, basePath, uriPattern)
     }
   }
 
