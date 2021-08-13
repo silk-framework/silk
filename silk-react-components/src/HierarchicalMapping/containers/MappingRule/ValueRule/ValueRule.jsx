@@ -137,7 +137,7 @@ class ValueRule extends React.Component {
                         {
                             this.props.type !== MAPPING_RULE_TYPE_DIRECT && sourcePaths
                                 ? <ValueSourcePaths
-                                    paths={sourcePath || []}
+                                    paths={sourcePaths}
                                     operator={operator}
                                 >
                                     <ComplexEditButton
