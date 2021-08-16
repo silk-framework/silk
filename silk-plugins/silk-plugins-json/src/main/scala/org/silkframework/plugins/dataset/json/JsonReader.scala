@@ -50,8 +50,7 @@ class JsonReader(parser: JsonParser) extends AutoCloseable {
   }
 
   /**
-    * Builds a JSON node for a given start element that includes all its children.
-    * The parser must be positioned on the start element when calling this method.
+    * Builds a JSON node for a given element that includes all its children.
     * On return, the parser will be positioned on the element that directly follows the element.
     */
   def buildNode(): JsValue = {
