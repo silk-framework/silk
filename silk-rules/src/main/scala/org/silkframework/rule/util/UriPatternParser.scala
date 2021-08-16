@@ -2,6 +2,7 @@ package org.silkframework.rule.util
 
 import org.silkframework.entity.paths.{PathPositionStatus, UntypedPath}
 import org.silkframework.rule.util.UriPatternParser.{ConstantPart, PathPart, UriPatternSegment}
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
 import java.net.{URI, URISyntaxException}
@@ -93,25 +94,33 @@ case class UriPatternSegments(segments: IndexedSeq[UriPatternSegment]) {
     val pathValue = "pathValue"
     val entityURI = "htp://t.e.s.t.test/entity/%20"
   }
+
+  /** Throws an validation exception if a validation error has been found. */
+  def validateAndThrow(): Unit = {
+    val result = validationResult()
+    result.validationError.foreach { error =>
+      throw new ValidationException(s"Invalid URI template found at position (${error.errorRange._1}, ${error.errorRange._2}). Details: " + error.msg)
+    }
+  }
   /** Validates if the URI pattern will result in a valid URI and if the path expressions can be parsed. */
-  def validate(): UriPatternValidationResult = {
+  def validationResult(): UriPatternValidationResult = {
     // 1. Find out if a part of the URI pattern is invalid
     segments.zipWithIndex.foreach{
       case (ConstantPart(constant, position), 0) =>
         // First constant does not only need to be a valid URI part, but must define the scheme
         if(Try(new URI(constant + "schemeSpecificPart")).isFailure) {
-          return UriPatternValidationResult(Some(UriPatternValidationError("Absolute URI does not start with a scheme, e.g. 'urn:'.", (position.originalStartIndex, position.originalEndIndex))))
+          return UriPatternValidationResult(Some(UriPatternValidationError(s"Start of URI pattern '$constant' does not start like a valid absolute URI, e.g. contains illegal characters or does not start with a scheme etc.", (position.originalStartIndex, position.originalEndIndex))))
         }
       case (ConstantPart(constant, position), _) =>
         // Later constants must be valid URI substrings
         if(Try(new URI("http://" + constant)).isFailure) {
-          return UriPatternValidationResult(Some(UriPatternValidationError("Constant part is not valid ", (position.originalStartIndex, position.originalEndIndex))))
+          return UriPatternValidationResult(Some(UriPatternValidationError(s"Constant part '$constant' of URI template is not valid in a URI.", (position.originalStartIndex, position.originalEndIndex))))
         }
       case (PathPart(serializedPath, position), _) =>
         // For paths we only need to check valid path syntax, since a path value is always converted to a valid part of the URI
         UntypedPath.partialParse(serializedPath).error.foreach { error =>
           val globalOffset = position.originalStartIndex + error.offset
-          return UriPatternValidationResult(Some(UriPatternValidationError(s"Invalid path expression inside URI template (at character $globalOffset).", (globalOffset, globalOffset + 1))))
+          return UriPatternValidationResult(Some(UriPatternValidationError(s"Invalid path expression '$serializedPath' inside URI template (at character $globalOffset). Details: ${error.message}", (globalOffset, globalOffset + 1))))
         }
     }
     // 2. Check if a valid URI is generated with test values

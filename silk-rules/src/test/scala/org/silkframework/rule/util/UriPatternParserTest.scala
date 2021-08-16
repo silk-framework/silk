@@ -47,7 +47,7 @@ class UriPatternParserTest extends FlatSpec with MustMatchers {
 
   def validate(pattern: String): UriPatternValidationResult = {
     val segments = UriPatternParser.parseIntoSegments(pattern)
-    segments.validate()
+    segments.validationResult()
   }
   def validateSuccessful(pattern: String): Unit = {
     val result = validate(pattern)

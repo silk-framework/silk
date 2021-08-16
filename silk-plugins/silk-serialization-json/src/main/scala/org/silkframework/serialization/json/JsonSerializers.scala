@@ -9,6 +9,7 @@ import org.silkframework.rule.TransformSpec.{TargetVocabularyListParameter, Targ
 import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
 import org.silkframework.rule.similarity._
+import org.silkframework.rule.util.UriPatternParser
 import org.silkframework.rule.vocab.{GenericInfo, Vocabulary, VocabularyClass, VocabularyProperty}
 import org.silkframework.rule.{MappingTarget, TransformRule, _}
 import org.silkframework.runtime.activity.UserContext
@@ -450,7 +451,10 @@ object JsonSerializers {
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): PatternUriMapping = {
       val name = identifier(value, "uri")
-      val pattern = stringValue(value, PATTERN_PROPERTY)
+      val pattern = stringValue(value, PATTERN_PROPERTY).trim()
+      if(readContext.validationEnabled) {
+        UriPatternParser.parseIntoSegments(pattern).validateAndThrow()
+      }
       PatternUriMapping(name, pattern.trim(), metaData(value, "uri"), readContext.prefixes)
     }
 
