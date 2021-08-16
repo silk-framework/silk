@@ -21,7 +21,7 @@ import {
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import { ParentElement } from '../../../components/ParentElement';
-import {checkValuePathValidity, createMappingAsync, fetchSuggestions} from '../../../store';
+import {checkUriTemplateValidity, checkValuePathValidity, createMappingAsync, fetchSuggestions} from '../../../store';
 import { convertToUri } from '../../../utils/convertToUri';
 import ErrorView from '../../../components/ErrorView';
 import AutoComplete from '../../../components/AutoComplete';
@@ -309,8 +309,8 @@ export class ObjectRuleForm extends Component<IProps, any> {
                         onChange={value => {
                             this.handleChangeValue('pattern', value);
                         }}
-                        fetchSuggestions={(input, cursorPosition) => fetchSuggestions(autoCompleteRuleId, input, cursorPosition)}
-                        checkInput={checkValuePathValidity}
+                        // fetchSuggestions={(input, cursorPosition) => fetchSuggestions(autoCompleteRuleId, input, cursorPosition)}
+                        checkInput={checkUriTemplateValidity}
                     />
                 );
             } else {

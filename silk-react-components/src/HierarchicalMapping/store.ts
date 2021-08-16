@@ -749,10 +749,29 @@ const pathValidation = (inputString:string) => {
     return silkApi.validatePathExpression(baseUrl,project,inputString)
 }
 
+const uriPatternValidation = (inputString:string) => {
+    const {baseUrl, project} = getDefinedApiDetails()
+    return silkApi.validateUriPattern(baseUrl,project,inputString)
+}
+
 // Checks if the value path syntax is valid
 export const checkValuePathValidity = (inputString): Promise<IValidationResult | undefined> => {
     return new Promise((resolve, reject) => {
         pathValidation(inputString)
+            .then((response) => {
+                const payload = response?.data
+                resolve(payload)
+            })
+            .catch((err) => {
+                reject(err)
+            })
+    })
+}
+
+// Checks if the value path syntax is valid
+export const checkUriTemplateValidity = (uriPattern: string): Promise<IValidationResult | undefined> => {
+    return new Promise((resolve, reject) => {
+        uriPatternValidation(uriPattern)
             .then((response) => {
                 const payload = response?.data
                 resolve(payload)

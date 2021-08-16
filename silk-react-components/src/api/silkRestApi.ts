@@ -252,6 +252,15 @@ const silkApi = {
             .set("Content-Type", CONTENT_TYPE_JSON)
             .send({ pathExpression });
         return this.handleErrorCode(promise);
+    },
+
+    validateUriPattern: function(baseUrl:string, projectId:string, uriPattern: string) {
+        const requestUrl = `${baseUrl}/api/workspace/validation/uriPattern/${projectId}`;
+        const promise = superagent
+            .post(requestUrl)
+            .set("Content-Type", CONTENT_TYPE_JSON)
+            .send({ uriPattern });
+        return this.handleErrorCode(promise);
     }
 
 };
