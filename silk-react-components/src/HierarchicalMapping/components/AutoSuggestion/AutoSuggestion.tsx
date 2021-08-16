@@ -61,12 +61,12 @@ export interface IValidationResult {
     // If the input value is valid or not
     valid: boolean,
     parseError?: {
-        // Where the error is located
-        offset: number
         // Detail error message
         message: string
-        // The input before the cursor that is considered invalid
-        inputLeadingToError: string
+        // Start of the parse error in the input string
+        start: number
+        // End of the parse error in the input string
+        end: number
     }
 }
 
@@ -159,9 +159,8 @@ const AutoSuggestion = ({
     React.useEffect(() => {
         const parseError = validationResponse?.parseError;
         if (parseError && editorInstance) {
-            const { offset, inputLeadingToError, message } = parseError;
-            const start = inputLeadingToError.length > 1 ? offset - inputLeadingToError.length + 1 : offset
-            const end = offset + 2;
+            const { message, start, end } = parseError;
+            // TODO: Display error message
             editorInstance.getDoc().getEditor()
             const marker = editorInstance.markText(
                 { line: 0, ch: start },

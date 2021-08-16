@@ -1,5 +1,6 @@
 package org.silkframework.rule.util
 
+import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.{PathPositionStatus, UntypedPath}
 import org.silkframework.rule.util.UriPatternParser.{ConstantPart, PathPart, UriPatternSegment}
 import org.silkframework.runtime.validation.ValidationException
@@ -96,14 +97,16 @@ case class UriPatternSegments(segments: IndexedSeq[UriPatternSegment]) {
   }
 
   /** Throws an validation exception if a validation error has been found. */
-  def validateAndThrow(): Unit = {
+  def validateAndThrow()
+                      (implicit prefixes: Prefixes): Unit = {
     val result = validationResult()
     result.validationError.foreach { error =>
       throw new ValidationException(s"Invalid URI template found at position (${error.errorRange._1}, ${error.errorRange._2}). Details: " + error.msg)
     }
   }
   /** Validates if the URI pattern will result in a valid URI and if the path expressions can be parsed. */
-  def validationResult(): UriPatternValidationResult = {
+  def validationResult()
+                      (implicit prefixes: Prefixes): UriPatternValidationResult = {
     // 1. Find out if a part of the URI pattern is invalid
     segments.zipWithIndex.foreach{
       case (ConstantPart(constant, position), 0) =>

@@ -450,6 +450,7 @@ object JsonSerializers {
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): PatternUriMapping = {
+      implicit val prefixes: Prefixes = readContext.prefixes
       val name = identifier(value, "uri")
       val pattern = stringValue(value, PATTERN_PROPERTY).trim()
       if(readContext.validationEnabled) {

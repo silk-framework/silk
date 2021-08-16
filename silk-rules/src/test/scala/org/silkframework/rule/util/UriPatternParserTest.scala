@@ -1,6 +1,7 @@
 package org.silkframework.rule.util
 
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.config.Prefixes
 import org.silkframework.rule.util.UriPatternParser.UriPatternParserException
 
 import scala.util.{Failure, Success, Try}
@@ -46,6 +47,7 @@ class UriPatternParserTest extends FlatSpec with MustMatchers {
   }
 
   def validate(pattern: String): UriPatternValidationResult = {
+    implicit val prefixes: Prefixes = Prefixes.default
     val segments = UriPatternParser.parseIntoSegments(pattern)
     segments.validationResult()
   }
@@ -69,6 +71,7 @@ class UriPatternParserTest extends FlatSpec with MustMatchers {
     validateSuccessful("""http://{<http://test.test/path?query=value>/ABC[path = "match this"]}""")
     validateSuccessful("{}{somepath}")
     validateSuccessful("ftp://{}")
+    validateSuccessful("urn:{rdf:label}")
     validateSuccessful("""http://{<http://test.test/path?query=value>/ABC[path = "{}"]}""")
     validateSuccessful("{}path/{pathA}/pathB/{pathC}")
   }
@@ -81,5 +84,6 @@ class UriPatternParserTest extends FlatSpec with MustMatchers {
     validateAsIncorrect("urn:{not valid}")
     validateAsIncorrect("""urn:{path[not valid = ""]}""")
     validateAsIncorrect("{}not<valid{path}")
+    validateAsIncorrect("urn:{unknown:path}")
   }
 }
