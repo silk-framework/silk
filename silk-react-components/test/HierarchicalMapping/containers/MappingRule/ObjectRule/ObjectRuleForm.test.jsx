@@ -29,7 +29,7 @@ const selectors = {
     TARGET_PROP_AUTOCOMPLETE: '[data-id="autocomplete_target_prop"]',
     ENTITY_CON_RADIO: '[data-id="entity_radio_group"]',
     OBJECT_VALUE_PATH: '#object-value-path-auto-suggestion',
-    URI_INPUT: '.ecc-silk-mapping__ruleseditor__pattern',
+    URI_INPUT: '#uri-pattern-auto-suggestion',
     RULE_LABEL_INPUT: '.ecc-silk-mapping__ruleseditor__label',
     RULE_DESC_INPUT: '.ecc-silk-mapping__ruleseditor__comment',
     CONFIRM_BUTTON: 'button.ecc-silk-mapping__ruleseditor__actionrow-save',

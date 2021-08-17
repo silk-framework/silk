@@ -33,6 +33,9 @@ class ValidationApiTest extends FlatSpec with IntegrationTestTrait with MustMatc
     val startOfInvalidPart = "http://example.com/{silkPath}".length
     invalidUriPattern("""http://example.com/{silkPath}/invalid path""") mustBe AutoSuggestValidationError("", startOfInvalidPart, startOfInvalidPart + "/invalid path".length)
     invalidUriPattern("urn:{invalid path}") mustBe AutoSuggestValidationError("", "urn:{invalid".length, "urn:{invalid ".length)
+    invalidUriPattern("invalid") mustBe AutoSuggestValidationError("", 0, "invalid".length)
+    invalidUriPattern("urn:{") mustBe AutoSuggestValidationError("", "urn:".length, "urn:{".length)
+    invalidUriPattern("urn:{{") mustBe AutoSuggestValidationError("", "urn:{".length, "urn:{{".length)
   }
 
   private def invalidUriPattern(uriPattern: String): AutoSuggestValidationError = {

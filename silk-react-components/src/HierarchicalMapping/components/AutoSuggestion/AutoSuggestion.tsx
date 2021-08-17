@@ -165,7 +165,7 @@ const AutoSuggestion = ({
             const marker = editorInstance.markText(
                 { line: 0, ch: start },
                 { line: 0, ch: end },
-                { className: "ecc-text-error-highlighting" }
+                { className: "ecc-text-error-highlighting", title: message }
             );
             setErrorMarkers((previousMarkers) => {
                 previousMarkers.forEach(marker => marker.clear())

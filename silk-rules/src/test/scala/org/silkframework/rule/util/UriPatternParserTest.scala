@@ -85,5 +85,6 @@ class UriPatternParserTest extends FlatSpec with MustMatchers {
     validateAsIncorrect("""urn:{path[not valid = ""]}""")
     validateAsIncorrect("{}not<valid{path}")
     validateAsIncorrect("urn:{unknown:path}")
+    validate("invalid").validationError.map(_.errorRange) mustBe Some((0, "invalid".length))
   }
 }

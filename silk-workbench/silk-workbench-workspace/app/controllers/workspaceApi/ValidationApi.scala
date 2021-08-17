@@ -115,16 +115,21 @@ class ValidationApi @Inject() () extends InjectedController with UserContextActi
         val response: AutoSuggestValidationResponse = try {
           val validationResult = UriPatternParser.parseIntoSegments(request.uriPattern).validationResult()
           validationResult.validationError match {
-            case Some(UriPatternValidationError(msg, (from, to))) =>
-              AutoSuggestValidationResponse(valid = false, Some(AutoSuggestValidationError(msg, from, to)))
+            case Some(UriPatternValidationError(msg, (start, end))) =>
+              AutoSuggestValidationResponse(valid = false, Some(AutoSuggestValidationError(msg, start, fixEnd(start, end))))
             case None =>
               AutoSuggestValidationResponse(valid = true, None)
           }
         } catch {
           case UriPatternParserException(msg, (start, end), _, _) =>
-            AutoSuggestValidationResponse(valid = false, parseError = Some(AutoSuggestValidationError(msg, start, end)))
+            AutoSuggestValidationResponse(valid = false, parseError = Some(AutoSuggestValidationError(msg, start, fixEnd(start, end))))
         }
         Ok(Json.toJson(response))
       }
+  }
+
+  // In order to see any error highlighting, increase to if it is the same as from
+  private def fixEnd(from: Int, to: Int): Int = {
+    if(from == to) to + 1 else to
   }
 }

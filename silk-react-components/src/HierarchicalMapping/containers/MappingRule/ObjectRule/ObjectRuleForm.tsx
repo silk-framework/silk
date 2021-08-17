@@ -291,25 +291,16 @@ export class ObjectRuleForm extends Component<IProps, any> {
         if (id) {
             if (modifiedValues.uriRuleType === 'uri') {
                 patternInput = (
-                    // <TextField
-                    //     label="URI pattern"
-                    //     className="ecc-silk-mapping__ruleseditor__pattern"
-                    //     value={modifiedValues.pattern}
-                    //     onChange={({ value }) => {
-                    //         this.handleChangeValue('pattern', value);
-                    //     }}
-                    // />
                     <AutoSuggestion
                         id={"uri-pattern-auto-suggestion"}
                         label="URI pattern"
                         initialValue={modifiedValues.pattern}
                         clearIconText={"Clear URI template"}
-                        // TODO
-                        validationErrorText={"The entered value path is invalid."}
+                        validationErrorText={"The entered URI pattern is invalid."}
                         onChange={value => {
                             this.handleChangeValue('pattern', value);
                         }}
-                        // fetchSuggestions={(input, cursorPosition) => fetchSuggestions(autoCompleteRuleId, input, cursorPosition)}
+                        fetchSuggestions={(input, cursorPosition) => undefined}
                         checkInput={checkUriTemplateValidity}
                     />
                 );

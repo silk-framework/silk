@@ -83,7 +83,7 @@ object UriPatternParser {
       index += 1
     }
     if(insidePathExpression) {
-      throw UriPatternParserException("URI template ends unexpectedly inside a path expression.", (index, index), insidePathExpression, currentValue.toString)
+      throw UriPatternParserException("URI template ends unexpectedly inside a path expression.", (index-1, index), insidePathExpression, currentValue.toString)
     }
     addConstantPart()
     UriPatternSegments(pathSegments.toArray.toIndexedSeq)
@@ -111,7 +111,7 @@ case class UriPatternSegments(segments: IndexedSeq[UriPatternSegment]) {
     segments.zipWithIndex.foreach{
       case (ConstantPart(constant, position), 0) =>
         // First constant does not only need to be a valid URI part, but must define the scheme
-        if(Try(new URI(constant + "schemeSpecificPart")).isFailure) {
+        if(Try(new URI(constant + "schemeSpecificPart")).isFailure || new URI(constant + "schemeSpecificPart").getScheme == null) {
           return UriPatternValidationResult(Some(UriPatternValidationError(s"Start of URI pattern '$constant' does not start like a valid absolute URI, e.g. contains illegal characters or does not start with a scheme etc.", (position.originalStartIndex, position.originalEndIndex))))
         }
       case (ConstantPart(constant, position), _) =>
