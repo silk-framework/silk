@@ -35,7 +35,7 @@ import { wasTouched } from '../../../utils/wasTouched';
 import { newValueIsIRI } from '../../../utils/newValueIsIRI';
 import TargetCardinality from "../../../components/TargetCardinality";
 import MultiAutoComplete from "../../../components/MultiAutoComplete";
-import AutoSuggestion from "../../../components/AutoSuggestion/AutoSuggestion";
+import AutoSuggestion, {IReplacementResult} from "../../../components/AutoSuggestion/AutoSuggestion";
 
 interface IProps {
     id?: string
@@ -300,7 +300,12 @@ export class ObjectRuleForm extends Component<IProps, any> {
                         onChange={value => {
                             this.handleChangeValue('pattern', value);
                         }}
-                        fetchSuggestions={(input, cursorPosition) => undefined}
+                        fetchSuggestions={(input, cursorPosition) => ({
+                            inputString: input,
+                            // Repeats the cursor position from the corresponding request
+                            cursorPosition,
+                            replacementResults: []
+                        })}
                         checkInput={checkUriTemplateValidity}
                     />
                 );
