@@ -558,7 +558,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
       block
     } catch {
       case ex: UriPatternParserException =>
-        throw BadUserInputException("Invalid URI template pattern found. Details: " + ex.getMessage, None)
+        throw BadUserInputException("Invalid URI pattern found. Details: " + ex.getMessage, None)
     }
   }
 

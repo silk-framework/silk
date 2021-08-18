@@ -5,7 +5,7 @@ import play.api.libs.json.{Format, Json}
 /**
   * Request to validate a URI pattern, e.g. used in transform or linking tasks.
   *
-  * @param uriPattern The string representation of the URI template.
+  * @param uriPattern The string representation of the URI pattern.
   */
 case class UriPatternValidationRequest(uriPattern: String)
 

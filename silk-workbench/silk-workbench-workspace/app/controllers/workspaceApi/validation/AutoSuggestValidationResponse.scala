@@ -3,9 +3,9 @@ package controllers.workspaceApi.validation
 import play.api.libs.json.{Format, Json}
 
 /**
-  * Response for a URI template validation request.
+  * Response for a validation request that can be understood by the auto-suggest UI component.
  *
-  * @param valid      If the URI template is valid or not.
+  * @param valid      If the input string is valid or not.
   * @param parseError If not valid, this contains the parse error details.
   */
 case class AutoSuggestValidationResponse(valid: Boolean, parseError: Option[AutoSuggestValidationError])

@@ -555,8 +555,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     response.status mustBe 404
   }
 
-  "Return 400 if trying to store an invalid URI template pattern rule" in {
-    for((invalidPattern, errorMustInclude) <- Seq(("urn:{{", "illegal character"), ("http://example.org/not valid", "invalid uri template found"))) {
+  "Return 400 if trying to store an invalid URI pattern rule" in {
+    for((invalidPattern, errorMustInclude) <- Seq(("urn:{{", "illegal character"), ("http://example.org/not valid", "invalid uri pattern found"))) {
       val postResponse = client.url(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules").post(Json.parse(
         s"""
         {

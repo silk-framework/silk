@@ -10,7 +10,7 @@ import java.net.{URI, URISyntaxException}
 import scala.collection.mutable.ArrayBuffer
 import scala.util.{Failure, Success, Try}
 
-/** Functions to parser URI patterns, i.e. URI templates. */
+/** Functions to parse URI patterns. */
 object UriPatternParser {
   // The position of a segment in the original URI pattern string. For path parts this is the range of the actual path expression without the curly braces.
   case class SegmentPosition(originalStartIndex: Int, originalEndIndex: Int)
@@ -20,7 +20,7 @@ object UriPatternParser {
   case class PathPart(serializedPath: String, segmentPosition: SegmentPosition) extends UriPatternSegment
   case class ConstantPart(value: String, segmentPosition: SegmentPosition) extends UriPatternSegment
 
-  /** Exception that is thrown when the URI template pattern could not be parsed.
+  /** Exception that is thrown when the URI pattern could not be parsed.
     *
     * @param msg                    Human-readable error message.
     * @param errorRange             The position (range) where the error happened.
@@ -73,13 +73,13 @@ object UriPatternParser {
     uriPattern foreach { char =>
       char match {
         case '{' if insidePathExpression && !pathPositionStatus.get.insideQuotes =>
-          throw UriPatternParserException("Illegal character '{' found inside of path expression of URI template.", indexRange, insidePathExpression, currentValue.toString)
+          throw UriPatternParserException("Illegal character '{' found inside of path expression of URI pattern.", indexRange, insidePathExpression, currentValue.toString)
         case '}' if insidePathExpression && !pathPositionStatus.get.insideQuotes =>
           handleEndPathExpression()
         case '{' if !insidePathExpression =>
           handleStartPathExpression()
         case '}' if !insidePathExpression =>
-          throw UriPatternParserException("Illegal character '}' found inside of constant part of URI template.", indexRange, insidePathExpression, currentValue.toString)
+          throw UriPatternParserException("Illegal character '}' found inside of constant part of URI pattern.", indexRange, insidePathExpression, currentValue.toString)
         case char: Char if insidePathExpression =>
           currentValue.append(char)
           pathPositionStatus.get.update(char)
@@ -93,7 +93,7 @@ object UriPatternParser {
         // add incomplete path expression
         handleEndPathExpression()
       } else {
-        throw UriPatternParserException("URI template ends unexpectedly inside a path expression.", (index-1, index), insidePathExpression, currentValue.toString)
+        throw UriPatternParserException("URI pattern ends unexpectedly inside a path expression.", (index-1, index), insidePathExpression, currentValue.toString)
       }
     }
     addConstantPart()
@@ -112,7 +112,7 @@ case class UriPatternSegments(segments: IndexedSeq[UriPatternSegment]) {
                       (implicit prefixes: Prefixes): Unit = {
     val result = validationResult()
     result.validationError.foreach { error =>
-      throw new ValidationException(s"Invalid URI template found at position (${error.errorRange._1}, ${error.errorRange._2}). Details: " + error.msg)
+      throw new ValidationException(s"Invalid URI pattern found at position (${error.errorRange._1}, ${error.errorRange._2}). Details: " + error.msg)
     }
   }
   /** Validates if the URI pattern will result in a valid URI and if the path expressions can be parsed. */
@@ -128,13 +128,13 @@ case class UriPatternSegments(segments: IndexedSeq[UriPatternSegment]) {
       case (ConstantPart(constant, position), _) =>
         // Later constants must be valid URI substrings
         if(Try(new URI("http://" + constant)).isFailure) {
-          return UriPatternValidationResult(Some(UriPatternValidationError(s"Constant part '$constant' of URI template is not valid in a URI.", (position.originalStartIndex, position.originalEndIndex))))
+          return UriPatternValidationResult(Some(UriPatternValidationError(s"Constant part '$constant' of URI pattern is not valid in a URI.", (position.originalStartIndex, position.originalEndIndex))))
         }
       case (PathPart(serializedPath, position), _) =>
         // For paths we only need to check valid path syntax, since a path value is always converted to a valid part of the URI
         UntypedPath.partialParse(serializedPath).error.foreach { error =>
           val globalOffset = position.originalStartIndex + error.offset
-          return UriPatternValidationResult(Some(UriPatternValidationError(s"Invalid path expression '$serializedPath' inside URI template (at character $globalOffset). Details: ${error.message}", (globalOffset, globalOffset + 1))))
+          return UriPatternValidationResult(Some(UriPatternValidationError(s"Invalid path expression '$serializedPath' inside URI pattern (at character $globalOffset). Details: ${error.message}", (globalOffset, globalOffset + 1))))
         }
     }
     // 2. Check if a valid URI is generated with test values
@@ -144,9 +144,9 @@ case class UriPatternSegments(segments: IndexedSeq[UriPatternSegment]) {
     } else {
       Try(new URI(uri)) match {
         case Success(_) =>
-          UriPatternValidationResult(Some(UriPatternValidationError("URI template does not generate an absolute URI.", (0, 0))))
+          UriPatternValidationResult(Some(UriPatternValidationError("URI pattern does not generate an absolute URI.", (0, 0))))
         case Failure(_: URISyntaxException) =>
-          UriPatternValidationResult(Some(UriPatternValidationError("URI template does not generate a valid, absolute URI.", (0, 0))))
+          UriPatternValidationResult(Some(UriPatternValidationError("URI pattern does not generate a valid, absolute URI.", (0, 0))))
         case Failure(ex) =>
           throw ex
       }

@@ -176,7 +176,7 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     resultFirstProp.replacementResults.head.replacementInterval mustBe ReplacementInterval(0, input.length - secondPathOp.length)
   }
 
-  it should "suggest replacements for path expression in URI templates" in {
+  it should "suggest replacements for path expression in URI pattern" in {
     val inputText = "urn:{department}"
     for(cursorPosition <- Seq(inputText.length - 1, inputText.length - 2)) {
       val uriPatternAutoCompletions = uriPatternAutoCompleteRequest(jsonTransform, inputText = "urn:{department}", cursorPosition = cursorPosition)

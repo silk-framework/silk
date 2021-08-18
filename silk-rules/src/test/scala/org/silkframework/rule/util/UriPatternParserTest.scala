@@ -54,14 +54,14 @@ class UriPatternParserTest extends FlatSpec with MustMatchers {
   def validateSuccessful(pattern: String): Unit = {
     val result = validate(pattern)
     if(!result.success) {
-      throw new AssertionError(s"URI template '$pattern' should have been validated as correct, but was not. Cause: ${result.validationError.get.msg}")
+      throw new AssertionError(s"URI pattern '$pattern' should have been validated as correct, but was not. Cause: ${result.validationError.get.msg}")
     }
   }
 
   def validateAsIncorrect(pattern: String): Unit = {
     val result = validate(pattern)
     if(result.success) {
-      throw new AssertionError(s"URI template '$pattern' should have been validated as incorrect, but it was correct.")
+      throw new AssertionError(s"URI pattern '$pattern' should have been validated as incorrect, but it was correct.")
     }
   }
 
