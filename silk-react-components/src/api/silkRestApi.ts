@@ -245,6 +245,15 @@ const silkApi = {
         return this.handleErrorCode(promise)
     },
 
+    getUriTemplateSuggestionsForAutoCompletion: function(baseUrl: string, projectId:string, transformTaskId:string, ruleId:string, inputString:string, cursorPosition: number): HttpResponsePromise {
+        const requestUrl = `${baseUrl}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/uriPattern`;
+        const promise = superagent
+            .post(requestUrl)
+            .set("Content-Type", CONTENT_TYPE_JSON)
+            .send({ inputString, cursorPosition, maxSuggestions: 50 });
+        return this.handleErrorCode(promise)
+    },
+
     validatePathExpression: function(baseUrl:string, projectId:string, pathExpression: string) {
         const requestUrl = `${baseUrl}/api/workspace/validation/sourcePath/${projectId}`;
         const promise = superagent

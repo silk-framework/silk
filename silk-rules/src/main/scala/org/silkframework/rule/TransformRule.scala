@@ -497,7 +497,7 @@ private object UriPattern {
     * Parses a URI pattern into an input operator tree.
     */
   def parse(pattern: String)(implicit prefixes: Prefixes): Input = {
-    val segments = UriPatternParser.parseIntoSegments(pattern).segments
+    val segments = UriPatternParser.parseIntoSegments(pattern, allowIncompletePattern = false).segments
     val inputs = {
       if(segments == IndexedSeq(PathPart("", _))) {
         Seq(TransformInput("uri", UriFixTransformer(), Seq(PathInput("path", UntypedPath.empty))))

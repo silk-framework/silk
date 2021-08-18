@@ -19,7 +19,7 @@ class UriPatternParserTest extends FlatSpec with MustMatchers {
       "constant{path{"
     )
     for(failPattern <- failPatterns) {
-      Try(UriPatternParser.parseIntoSegments(failPattern)) match {
+      Try(UriPatternParser.parseIntoSegments(failPattern, allowIncompletePattern = false)) match {
         case Success(_) =>
           throw new AssertionError(s"URI Pattern '$failPattern' should have failed, but did not.")
         case Failure(_: UriPatternParserException) =>
@@ -38,7 +38,7 @@ class UriPatternParserTest extends FlatSpec with MustMatchers {
       """urn:prop:{path[pathB = "Here these are valid: {{}"]}"""
     )
     for(validPattern <- validPatterns) {
-      Try(UriPatternParser.parseIntoSegments(validPattern)) match {
+      Try(UriPatternParser.parseIntoSegments(validPattern, allowIncompletePattern = false)) match {
         case Success(_) =>
         case Failure(ex: UriPatternParserException) =>
           throw new AssertionError(s"Valid URI pattern '$validPattern' was not segmented successfully. Error details: $ex.")
@@ -48,7 +48,7 @@ class UriPatternParserTest extends FlatSpec with MustMatchers {
 
   def validate(pattern: String): UriPatternValidationResult = {
     implicit val prefixes: Prefixes = Prefixes.default
-    val segments = UriPatternParser.parseIntoSegments(pattern)
+    val segments = UriPatternParser.parseIntoSegments(pattern, allowIncompletePattern = false)
     segments.validationResult()
   }
   def validateSuccessful(pattern: String): Unit = {

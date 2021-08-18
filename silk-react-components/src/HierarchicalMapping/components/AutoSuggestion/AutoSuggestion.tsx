@@ -365,7 +365,8 @@ const AutoSuggestion = ({
                 text: (
                     <>
                         {label}
-                        {pathValidationPending && (
+                        &nbsp;
+                        {(pathValidationPending || suggestionsPending) && (
                             <Spinner size="tiny" position="inline" description="Validating value path" />
                         )}
                     </>)
@@ -399,7 +400,7 @@ const AutoSuggestion = ({
                     left={coords.left}
                     loading={suggestionsPending}
                     options={suggestions}
-                    isOpen={shouldShowDropdown}
+                    isOpen={!suggestionsPending && shouldShowDropdown}
                     onItemSelectionChange={handleDropdownChange}
                     currentlyFocusedIndex={currentIndex}
                     itemToHighlight={handleItemHighlighting}

@@ -719,7 +719,7 @@ export const prefixesAsync = () => {
 };
 
 
-const getSuggestion = (ruleId:string, inputString: string, cursorPosition:number): HttpResponsePromise => {
+const getValuePathSuggestion = (ruleId:string, inputString: string, cursorPosition:number): HttpResponsePromise => {
     const { baseUrl, transformTask, project } = getDefinedApiDetails();
     return silkApi.getSuggestionsForAutoCompletion(
         baseUrl,
@@ -732,14 +732,34 @@ const getSuggestion = (ruleId:string, inputString: string, cursorPosition:number
 }
 
 // Fetches (partial) auto-complete suggestions for the value path
-export const fetchSuggestions = (ruleId: string | undefined, inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
+export const fetchValuePathSuggestions = (ruleId: string | undefined, inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
     return new Promise((resolve, reject) => {
         if(!ruleId) {
             resolve(undefined)
         } else {
-            getSuggestion(ruleId, inputString, cursorPosition)
+            getValuePathSuggestion(ruleId, inputString, cursorPosition)
                 .then((suggestions) => resolve(suggestions?.data))
                 .catch((err) => reject(err))
+        }
+    })
+}
+
+// Fetches (partial) auto-complete suggestions for a path expression inside a URI template
+export const fetchUriPatternAutoCompletions = (ruleId: string | undefined, inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
+    return new Promise((resolve, reject) => {
+        if(!ruleId) {
+            resolve(undefined)
+        } else {
+            const {baseUrl, transformTask, project} = getDefinedApiDetails();
+            silkApi.getUriTemplateSuggestionsForAutoCompletion(
+                baseUrl,
+                project,
+                transformTask,
+                ruleId,
+                inputString,
+                cursorPosition
+            ).then((suggestions) => resolve(suggestions?.data))
+                .catch((err) => reject(err));
         }
     })
 }

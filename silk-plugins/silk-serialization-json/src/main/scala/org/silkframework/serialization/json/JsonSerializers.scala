@@ -454,7 +454,7 @@ object JsonSerializers {
       val name = identifier(value, "uri")
       val pattern = stringValue(value, PATTERN_PROPERTY).trim()
       if(readContext.validationEnabled) {
-        UriPatternParser.parseIntoSegments(pattern).validateAndThrow()
+        UriPatternParser.parseIntoSegments(pattern, allowIncompletePattern = false).validateAndThrow()
       }
       PatternUriMapping(name, pattern.trim(), metaData(value, "uri"), readContext.prefixes)
     }
@@ -1170,21 +1170,18 @@ object JsonSerializers {
   case class TaskFormatOptions(@Schema(
                                  description = "Include the task meta data.",
                                  defaultValue = "true",
-                                 required = false,
                                  implementation = classOf[Boolean]
                                )
                                includeMetaData: Option[Boolean] = None,
                                @Schema(
                                  description = "Include the task data.",
                                  defaultValue = "true",
-                                 required = false,
                                  implementation = classOf[Boolean]
                                )
                                includeTaskData: Option[Boolean] = None,
                                @Schema(
                                  description = "Retrieves a list of properties as key-value pairs to be displayed to the user.",
                                  defaultValue = "false",
-                                 required = false,
                                  implementation = classOf[Boolean]
                                )
                                includeTaskProperties: Option[Boolean] = None,
@@ -1198,7 +1195,6 @@ object JsonSerializers {
                                @Schema(
                                  description = "Include the input and output schemata of the task.",
                                  defaultValue = "false",
-                                 required = false,
                                  implementation = classOf[Boolean]
                                )
                                includeSchemata: Option[Boolean] = None)

@@ -32,9 +32,15 @@ object UriPatternParser {
                                        insidePathExpression: Boolean,
                                        parsedStringUntilError: String) extends RuntimeException(msg)
 
-  /** Segments an URI pattern into constant and path parts. Does not validate the path expressions. */
+  /** Returns the segments of an URI pattern, i.e. its constant and path parts.
+    * It does not validate the path expressions.
+    *
+    * @param uriPattern The URI pattern to be parsed into path- and constant-segments.
+    * @param allowIncompletePattern If true, then an open path expression at the end, will not lead to an exception.
+    */
   //noinspection ScalaStyle
-  def parseIntoSegments(uriPattern: String): UriPatternSegments = {
+  def parseIntoSegments(uriPattern: String,
+                        allowIncompletePattern: Boolean): UriPatternSegments = {
     // The position status of the currently parsed path expression
     var pathPositionStatus: Option[PathPositionStatus] = None
     // Are we inside a curly brackets, i.e. in a path expression
@@ -83,7 +89,12 @@ object UriPatternParser {
       index += 1
     }
     if(insidePathExpression) {
-      throw UriPatternParserException("URI template ends unexpectedly inside a path expression.", (index-1, index), insidePathExpression, currentValue.toString)
+      if(allowIncompletePattern) {
+        // add incomplete path expression
+        handleEndPathExpression()
+      } else {
+        throw UriPatternParserException("URI template ends unexpectedly inside a path expression.", (index-1, index), insidePathExpression, currentValue.toString)
+      }
     }
     addConstantPart()
     UriPatternSegments(pathSegments.toArray.toIndexedSeq)

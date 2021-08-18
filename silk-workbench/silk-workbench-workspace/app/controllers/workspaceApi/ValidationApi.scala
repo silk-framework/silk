@@ -113,7 +113,7 @@ class ValidationApi @Inject() () extends InjectedController with UserContextActi
       implicit val prefixes: Prefixes = getProject(projectId).config.prefixes
       validateJson[UriPatternValidationRequest] { request =>
         val response: AutoSuggestValidationResponse = try {
-          val validationResult = UriPatternParser.parseIntoSegments(request.uriPattern).validationResult()
+          val validationResult = UriPatternParser.parseIntoSegments(request.uriPattern, allowIncompletePattern = false).validationResult()
           validationResult.validationError match {
             case Some(UriPatternValidationError(msg, (start, end))) =>
               AutoSuggestValidationResponse(valid = false, Some(AutoSuggestValidationError(msg, start, fixEnd(start, end))))

@@ -21,7 +21,13 @@ import {
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import { ParentElement } from '../../../components/ParentElement';
-import {checkUriTemplateValidity, checkValuePathValidity, createMappingAsync, fetchSuggestions} from '../../../store';
+import {
+    checkUriTemplateValidity,
+    checkValuePathValidity,
+    createMappingAsync,
+    fetchUriPatternAutoCompletions,
+    fetchValuePathSuggestions
+} from '../../../store';
 import { convertToUri } from '../../../utils/convertToUri';
 import ErrorView from '../../../components/ErrorView';
 import AutoComplete from '../../../components/AutoComplete';
@@ -280,7 +286,7 @@ export class ObjectRuleForm extends Component<IProps, any> {
                     onChange={value => {
                         this.handleChangeValue('sourceProperty', value);
                     }}
-                    fetchSuggestions={(input, cursorPosition) => fetchSuggestions(autoCompleteRuleId, input, cursorPosition)}
+                    fetchSuggestions={(input, cursorPosition) => fetchValuePathSuggestions(autoCompleteRuleId, input, cursorPosition)}
                     checkInput={checkValuePathValidity}
                 />
             );
@@ -300,12 +306,7 @@ export class ObjectRuleForm extends Component<IProps, any> {
                         onChange={value => {
                             this.handleChangeValue('pattern', value);
                         }}
-                        fetchSuggestions={(input, cursorPosition) => ({
-                            inputString: input,
-                            // Repeats the cursor position from the corresponding request
-                            cursorPosition,
-                            replacementResults: []
-                        })}
+                        fetchSuggestions={(input, cursorPosition) => fetchUriPatternAutoCompletions(autoCompleteRuleId, input, cursorPosition)}
                         checkInput={checkUriTemplateValidity}
                     />
                 );
