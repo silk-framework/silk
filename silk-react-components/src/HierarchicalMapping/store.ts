@@ -744,7 +744,7 @@ export const fetchValuePathSuggestions = (ruleId: string | undefined, inputStrin
     })
 }
 
-// Fetches (partial) auto-complete suggestions for a path expression inside a URI template
+// Fetches (partial) auto-complete suggestions for a path expression inside a URI pattern
 export const fetchUriPatternAutoCompletions = (ruleId: string | undefined, inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
     return new Promise((resolve, reject) => {
         if(!ruleId) {
@@ -789,7 +789,7 @@ export const checkValuePathValidity = (inputString): Promise<IValidationResult |
 }
 
 // Checks if the value path syntax is valid
-export const checkUriTemplateValidity = (uriPattern: string): Promise<IValidationResult | undefined> => {
+export const checkUriPatternValidity = (uriPattern: string): Promise<IValidationResult | undefined> => {
     return new Promise((resolve, reject) => {
         uriPatternValidation(uriPattern)
             .then((response) => {

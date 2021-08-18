@@ -22,7 +22,7 @@ import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import { ParentElement } from '../../../components/ParentElement';
 import {
-    checkUriTemplateValidity,
+    checkUriPatternValidity,
     checkValuePathValidity,
     createMappingAsync,
     fetchUriPatternAutoCompletions,
@@ -301,13 +301,13 @@ export class ObjectRuleForm extends Component<IProps, any> {
                         id={"uri-pattern-auto-suggestion"}
                         label="URI pattern"
                         initialValue={modifiedValues.pattern}
-                        clearIconText={"Clear URI template"}
+                        clearIconText={"Clear URI pattern"}
                         validationErrorText={"The entered URI pattern is invalid."}
                         onChange={value => {
                             this.handleChangeValue('pattern', value);
                         }}
                         fetchSuggestions={(input, cursorPosition) => fetchUriPatternAutoCompletions(autoCompleteRuleId, input, cursorPosition)}
-                        checkInput={checkUriTemplateValidity}
+                        checkInput={checkUriPatternValidity}
                     />
                 );
             } else {
