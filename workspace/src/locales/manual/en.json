@@ -430,7 +430,8 @@
             "usedTasks_plural": "Matching nodes ({{count}})",
             "cycleNext": "Next match",
             "cyclePrevious": "Previous match",
-            "cycleTooltip": "Cycle through {{totalMatches}} currently used instances of this task"
+            "cycleTooltip": "Cycle through {{totalMatches}} currently used instances of this task",
+            "cancelCycling": "Cancel cycling"
         },
         "header": {
             "saveBtnTooltip": "Save the current state of the workflow"
