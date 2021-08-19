@@ -255,7 +255,7 @@ case class PatternUriMapping(id: Identifier = "uri",
                              metaData: MetaData = MetaData.empty,
                              prefixes: Prefixes = Prefixes.empty) extends UriMapping {
 
-  override val operator: Input = UriPattern.parse(pattern.trim())(prefixes)
+  override lazy val operator: Input = UriPattern.parse(pattern.trim())(prefixes)
 
   override val target: Option[MappingTarget] = None
 
@@ -358,7 +358,7 @@ case class ObjectMapping(id: Identifier = "mapping",
     }
   }
 
-  override val operator: Input = {
+  override lazy val operator: Input = {
     uriRule(sourcePath) match {
       case Some(rule) =>
         rule.operator
