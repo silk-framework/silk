@@ -10,6 +10,7 @@ import { MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_
 
 const RuleTypes = ({ rule, ...otherProps }) => {
     switch (rule.type) {
+    case MAPPING_RULE_TYPE_ROOT:
     case MAPPING_RULE_TYPE_OBJECT:
         let types = _.get(rule, 'rules.typeRules', []);
         types = _.isEmpty(types)
@@ -31,8 +32,6 @@ const RuleTypes = ({ rule, ...otherProps }) => {
                 {_.get(rule, 'mappingTarget.valueType.nodeType', <NotAvailable />) + appendText}
             </span>
         );
-    case MAPPING_RULE_TYPE_ROOT:
-        return <span />;
     }
 };
 

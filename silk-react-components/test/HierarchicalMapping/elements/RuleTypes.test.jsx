@@ -1,5 +1,5 @@
 import React from "react";
-import { mount, shallow } from 'enzyme';
+import { mount, shallow, render } from 'enzyme';
 import { NotAvailable } from '@eccenca/gui-elements';
 import { ThingName } from '../../../src/HierarchicalMapping/components/ThingName';
 import RuleTypes from '../../../src/HierarchicalMapping/elements/RuleTypes';
@@ -84,13 +84,25 @@ describe("RuleTypes Component", () => {
             });
         });
     
-        it('should return empty span when `rule.type` equal to `root`', () => {
-            const wrapper = getWrapper(shallow, {
+        it('should return proper types for root mapping', () => {
+            const wrapperNoType = getWrapper(mount, {
                 rule: {
                     type: 'root',
                 }
             });
-            expect(wrapper.find('span').text()).toEqual('');
+            expect(wrapperNoType.find('span').contains(<NotAvailable />)).toBeTruthy()
+            expect(wrapperNoType.html()).toContain("not available")
+            const wrapperWithType = getWrapper(mount, {
+                rule: {
+                    type: 'root',
+                    rules: {
+                        typeRules: [{
+                            "typeUri" : "<https://domain.com/expectedType>"
+                        }]
+                    }
+                }
+            });
+            expect(wrapperWithType.html()).toContain(">expectedType<")
         });
     });
 });
