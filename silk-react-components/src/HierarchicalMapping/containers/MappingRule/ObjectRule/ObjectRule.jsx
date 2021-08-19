@@ -74,6 +74,21 @@ class ObjectRule extends React.Component {
         EventEmitter.off(MESSAGES.RULE_VIEW.CLOSE, this.handleCloseEdit);
     }
 
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (_.has(this.props, 'ruleData.rules.uriRule.id')) {
+            const newUrl = getEditorHref(this.props.ruleData.rules.uriRule.id)
+            if(this.state.href !== newUrl) {
+                this.setState({
+                    href: newUrl
+                });
+            }
+        } else if(this.state.href !== "") {
+            this.setState({
+                href: ""
+            });
+        }
+    }
+
     componentWillReceiveProps(nextProps) {
         if (_.has(nextProps, 'ruleData.rules.uriRule.id')) {
             this.setState({
