@@ -14,10 +14,14 @@
 
 package org.silkframework.plugins.dataset.rdf.sparql
 
-import org.silkframework.dataset.rdf.{EntityRetrieverStrategy, SparqlEndpoint}
+import org.silkframework.dataset.rdf.{DataTypeLiteral, EntityRetrieverStrategy, LanguageLiteral, PlainLiteral, RdfNode, Resource, SparqlEndpoint}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
+
+import java.net.URLEncoder
+import java.nio.charset.Charset
+import java.util.UUID
 
 /**
  * Retrieves entities from a SPARQL endpoint.
@@ -56,6 +60,28 @@ object EntityRetriever {
         new SimpleEntityRetriever(endpoint, pageSize, graphUri, useOrderBy, useSubSelect = true)
       case EntityRetrieverStrategy.parallel =>
         new ParallelEntityRetriever(endpoint, pageSize, graphUri, useOrderBy)
+    }
+  }
+
+  private val charset: Charset = Charset.forName("UTF8")
+  private def uniquePath(value: String): String = {
+    if(value.size < 200) {
+      URLEncoder.encode(value, "UTF-8")
+    } else {
+      UUID.nameUUIDFromBytes(value.getBytes(charset)).toString
+    }
+  }
+
+  /** Extracts the subject URI from the SPARQL result. */
+  def extractSubject(result: Map[String, RdfNode],
+                     subjectVar: String): Option[String] = {
+    result.get(subjectVar) match {
+      case Some(Resource(value)) => Some(value)
+      // Allow literals as subjects
+      case Some(PlainLiteral(value)) => Some("urn:plainLiteral:" + uniquePath(value))
+      case Some(LanguageLiteral(value, tag)) => Some(s"urn:languageLiteral:${uniquePath(tag)}_${uniquePath(value)}")
+      case Some(DataTypeLiteral(value, dt)) => Some(s"urn:dataTypeLiteral:${uniquePath(dt)}_${uniquePath(value)}")
+      case _ => None
     }
   }
 }

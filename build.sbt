@@ -82,7 +82,8 @@ lazy val commonSettings = Seq(
     case other =>
       val oldStrategy = (assembly / assemblyMergeStrategy).value
       oldStrategy(other)
-  }
+  },
+  javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 )
 
 //////////////////////////////////////////////////////////////////////////////
@@ -100,7 +101,8 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1",
     libraryDependencies += "commons-io" % "commons-io" % "2.4",
-    libraryDependencies += "org.lz4" % "lz4-java" % "1.4.0"
+    libraryDependencies += "org.lz4" % "lz4-java" % "1.4.0",
+    libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1"
   )
 
 lazy val rules = (project in file("silk-rules"))

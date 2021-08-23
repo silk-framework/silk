@@ -15,12 +15,13 @@
 package org.silkframework.plugins.dataset.rdf.sparql
 
 import java.util.logging.Logger
-
-import org.silkframework.dataset.rdf.{RdfNode, Resource, SparqlEndpoint}
+import org.silkframework.dataset.rdf.{LanguageLiteral, RdfNode, Resource, SparqlEndpoint}
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
+
+import scala.collection.SortedMap
 
 /**
  * EntityRetriever which executes a single SPARQL query to retrieve the entities.
@@ -58,7 +59,7 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
 
     val sparqlResults = endpoint.select(sparqlQuery, limit.getOrElse(Int.MaxValue))
 
-    new EntityTraversable(sparqlResults.bindings, entitySchema, None, limit, sparqlEntitySchema)
+    new EntityTraversable(sparqlResults.bindings, entitySchema, limit, sparqlEntitySchema)
   }
 
   def buildSparqlQuery(sparqlEntitySchema: SparqlEntitySchema, useDistinct: Boolean): String = {
@@ -120,12 +121,64 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
    */
   private class EntityTraversable(sparqlResults: Traversable[Map[String, RdfNode]],
                                   entitySchema: EntitySchema,
-                                  subject: Option[Uri],
                                   limit: Option[Int],
                                   sparqlEntitySchema: SparqlEntitySchema) extends Traversable[Entity] {
+    // If path with a specific index is a language tag special path, also validates the special paths usage
+    private val specialPathMap: Map[Int, (Boolean, Boolean)] = {
+      entitySchema.typedPaths.zipWithIndex.map { case (typedPath, idx) =>
+        val isLangSpecialPath = SparqlEntitySchema.specialPaths.isLangSpecialPath(typedPath)
+        val isTextSpecialPath = SparqlEntitySchema.specialPaths.isTextSpecialPath(typedPath)
+        (idx, (isLangSpecialPath, isTextSpecialPath))
+      }.toMap
+    }
+
+    private def isLangSpecialPath(pathIdx: Int): Boolean = {
+      specialPathMap.get(pathIdx).exists(_._1)
+    }
+
+    private def isTextSpecialPath(pathIdx: Int): Boolean = {
+      specialPathMap.get(pathIdx).exists(_._2)
+    }
+
+    private val specialPathOnlyMap: Map[Int, Boolean] = {
+      entitySchema.typedPaths.zipWithIndex.map { case (typedPath, idx) =>
+        val isSpecialPathOnly = typedPath.size == 1 && (isTextSpecialPath(idx) || isLangSpecialPath(idx))
+        (idx, isSpecialPathOnly)
+      }.toMap
+    }
+
+    private def isSpecialPathOnly(pathIdx: Int): Boolean = {
+      specialPathOnlyMap.getOrElse(pathIdx, false)
+    }
+
+    private def extractSpecialPathValue(pathIdx: Int, subject: RdfNode): String = {
+      subject match {
+        case LanguageLiteral(_, lang) if isLangSpecialPath(pathIdx) =>
+          lang
+        case rdfNode: RdfNode =>
+          rdfNode.value
+      }
+    }
+
+    private def variableValue(pathIdx: Int,
+                              valueNode: RdfNode): Option[String] = {
+      if (isLangSpecialPath(pathIdx)) {
+        // Handle #lang special path
+        valueNode match {
+          case LanguageLiteral(_, lang) =>
+            Some(lang)
+          case _ =>
+            None
+        }
+      } else {
+        Some(valueNode.value)
+      }
+    }
+
     override def foreach[U](f: Entity => U): Unit = {
       //Remember current subject
-      var curSubject: Option[String] = subject.map(_.uri)
+      var curSubject: Option[String] = None
+      var curSubjectNode: Option[RdfNode] = None
 
       //Collect values of the current subject
       var values = Array.fill(entitySchema.typedPaths.size)(Seq[String]())
@@ -136,32 +189,32 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
 
       for (result <- sparqlResults) {
         //If the subject is unknown, find binding for subject variable
-        if (subject.isEmpty) {
-          //Check if we are still reading values for the current subject
-          val resultSubject = result.get(sparqlEntitySchema.variable) match {
-            case Some(Resource(value)) => Some(value)
-            case _ => None
-          }
+        //Check if we are still reading values for the current subject
+        val resultSubject = EntityRetriever.extractSubject(result, sparqlEntitySchema.variable)
 
-          if (resultSubject != curSubject) {
-            for (curSubjectUri <- curSubject) {
-              f(Entity(curSubjectUri, values.map(_.distinct).toIndexedSeq, entitySchema))
-              counter += 1
-              if(limit.exists(counter >= _))
-                return
+        if (resultSubject != curSubject) {
+          for (curSubjectUri <- curSubject) {
+            f(Entity(curSubjectUri, values.map(_.distinct).toIndexedSeq, entitySchema))
+            counter += 1
+            if(limit.exists(counter >= _)) {
+              return
             }
-
-            curSubject = resultSubject
-            values = Array.fill(entitySchema.typedPaths.size)(Seq[String]())
           }
+          curSubject = resultSubject
+          curSubjectNode = result.get(sparqlEntitySchema.variable)
+          values = Array.fill(entitySchema.typedPaths.size)(Seq[String]())
         }
-
         //Find results for values for the current subject
         if (curSubject.isDefined) {
           for ((variable, node) <- result if variable.startsWith(varPrefix)) {
             val id = variable.substring(varPrefix.length).toInt
-
-            values(id) = values(id) :+ node.value
+            variableValue(id, node) foreach { value =>
+              values(id) = values(id) :+ value
+            }
+          }
+          // Special-path-only handling
+          for(idx <- sparqlEntitySchema.paths.indices if isSpecialPathOnly(idx)) {
+            values(idx) = values(idx) :+ extractSpecialPathValue(idx, curSubjectNode.get)
           }
         }
       }
@@ -175,7 +228,6 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
           s"${graphUri.map(g => s" from graph '$g'").getOrElse("")} in ${System.currentTimeMillis() - startTime}ms.")
     }
   }
-
 }
 
 object SimpleEntityRetriever {

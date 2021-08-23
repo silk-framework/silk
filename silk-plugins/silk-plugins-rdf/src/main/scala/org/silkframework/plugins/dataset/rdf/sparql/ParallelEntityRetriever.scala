@@ -14,16 +14,17 @@
 
 package org.silkframework.plugins.dataset.rdf.sparql
 
-import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
-import java.util.logging.{Level, Logger}
-
-import org.silkframework.dataset.rdf.{RdfNode, Resource, SparqlEndpoint, SparqlResults}
+import org.silkframework.dataset.rdf._
 import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.rdf.SparqlEntitySchema.specialPaths
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder, SparqlRestriction}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.plugins.dataset.rdf.sparql.ParallelEntityRetriever.{ExceptionPathValues, ExistingPathValues, PathValues, QueueEndMarker}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
+
+import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
+import java.util.logging.{Level, Logger}
 
 /**
  * EntityRetriever which executes multiple SPARQL queries (one for each property path) in parallel and merges the results into single entities.
@@ -173,10 +174,15 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
 
     private val QUEUE_OFFER_TIMEOUT = 3600 // 1 hour, just a high number
     private def queueElement(pathValues: PathValues): Boolean = queue.offer(pathValues, QUEUE_OFFER_TIMEOUT, TimeUnit.SECONDS)
+    private val isSpecialLangPath = specialPaths.isLangSpecialPath(path)
+    private val isSpecialTextPath = specialPaths.isTextSpecialPath(path)
 
     private def parseResults(sparqlResults: Traversable[Map[String, RdfNode]]): Unit = {
       var currentSubject: Option[String] = None
       var currentValues: Seq[String] = Seq.empty
+      def addCurrentValue(value: String): Unit = {
+        currentValues = currentValues :+ value
+      }
 
       for (result <- sparqlResults) {
         if (canceled) {
@@ -184,10 +190,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
         }
 
         //Check if we are still reading values for the current subject
-        val subject = result.get(entityDesc.variable) match {
-          case Some(Resource(value)) => Some(value)
-          case _ => None
-        }
+        val subject = EntityRetriever.extractSubject(result, entityDesc.variable)
 
         if (currentSubject.isEmpty) {
           currentSubject = subject
@@ -199,9 +202,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
         }
 
         if (currentSubject.isDefined) {
-          for (node <- result.get(varPrefix + "0")) {
-            currentValues = currentValues :+ node.value
-          }
+          addValues(addCurrentValue, result)
         }
       }
 
@@ -209,6 +210,40 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
         queueElement(ExistingPathValues(s, currentValues))
       }
       queueElement(QueueEndMarker)
+    }
+
+    // Adds the requested values via the given add function.
+    private def addValues(addCurrentValue: String => Unit,
+                          result: Map[String, RdfNode]): Unit = {
+      if(path.size == 1 && (isSpecialTextPath || isSpecialLangPath)) {
+        // If the path is only a special path itself it must be evaluated against the subject
+        result.get(entityDesc.variable) match {
+          case Some(LanguageLiteral(_, lang)) if isSpecialLangPath =>
+            addCurrentValue(lang)
+          case Some(rdfNode) =>
+            addCurrentValue(rdfNode.value)
+          case _ =>
+        }
+      } else {
+        // Else the value variable contains the value
+        for (node <- result.get(varPrefix + "0")) {
+          if (isSpecialLangPath) {
+            addLangTagValue(addCurrentValue, node)
+          } else {
+            addCurrentValue(node.value)
+          }
+        }
+      }
+    }
+
+    private def addLangTagValue(addCurrentValue: String => Unit,
+                                node: RdfNode): Unit = {
+      node match {
+        case LanguageLiteral(_, langTag) =>
+          addCurrentValue(langTag)
+        case _ =>
+        // node has no lang tag, do not append anything
+      }
     }
   }
 }
