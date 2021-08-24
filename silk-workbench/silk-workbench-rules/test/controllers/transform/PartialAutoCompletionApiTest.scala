@@ -3,6 +3,7 @@ package controllers.transform
 import controllers.transform.autoCompletion._
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.entity.rdf.SparqlEntitySchema.specialPaths
 import org.silkframework.plugins.dataset.json.JsonDataset
 import org.silkframework.rule.TransformSpec
 import org.silkframework.serialization.json.JsonHelpers
@@ -25,9 +26,9 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
   private val jsonOps = Seq("/", "\\", "[")
 
   private val RDF_NS = "https://ns.eccenca.com/source"
-  private val allPersonRdfPaths = Seq("rdf:type", s"<$RDF_NS/address>", s"<$RDF_NS/age>", s"<$RDF_NS/name>")
+  private val allPersonRdfPaths = Seq("rdf:type", s"<$RDF_NS/address>", s"<$RDF_NS/age>", s"<$RDF_NS/name>", specialPaths.LANG, specialPaths.TEXT)
   private val allForwardRdfPaths = Seq("rdf:type", "<https://ns.eccenca.com/source/address>", "<https://ns.eccenca.com/source/age>",
-    "<https://ns.eccenca.com/source/city>", "<https://ns.eccenca.com/source/country>", "<https://ns.eccenca.com/source/name>")
+    "<https://ns.eccenca.com/source/city>", "<https://ns.eccenca.com/source/country>", "<https://ns.eccenca.com/source/name>", specialPaths.LANG, specialPaths.TEXT)
   private val allBackwardRdfPaths = Seq("\\rdf:type", "\\<https://ns.eccenca.com/source/address>")
   // Full serialization of paths
   private def fullPaths(paths: Seq[String]) = paths.map(p => if(p.startsWith("\\")) p else "/" + p)
