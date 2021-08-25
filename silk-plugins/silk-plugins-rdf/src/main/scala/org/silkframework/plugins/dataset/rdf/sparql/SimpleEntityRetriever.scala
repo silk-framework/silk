@@ -17,7 +17,7 @@ package org.silkframework.plugins.dataset.rdf.sparql
 import java.util.logging.Logger
 import org.silkframework.dataset.rdf.{LanguageLiteral, RdfNode, Resource, SparqlEndpoint}
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder}
-import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
@@ -124,20 +124,25 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
                                   limit: Option[Int],
                                   sparqlEntitySchema: SparqlEntitySchema) extends Traversable[Entity] {
     // If path with a specific index is a language tag special path, also validates the special paths usage
-    private val specialPathMap: Map[Int, (Boolean, Boolean)] = {
+    private val pathCharacteristicsMap: Map[Int, (Boolean, Boolean, Boolean)] = {
       entitySchema.typedPaths.zipWithIndex.map { case (typedPath, idx) =>
         val isLangSpecialPath = SparqlEntitySchema.specialPaths.isLangSpecialPath(typedPath)
         val isTextSpecialPath = SparqlEntitySchema.specialPaths.isTextSpecialPath(typedPath)
-        (idx, (isLangSpecialPath, isTextSpecialPath))
+        val uriRequested = typedPath.valueType == ValueType.URI
+        (idx, (isLangSpecialPath, isTextSpecialPath, uriRequested))
       }.toMap
     }
 
     private def isLangSpecialPath(pathIdx: Int): Boolean = {
-      specialPathMap.get(pathIdx).exists(_._1)
+      pathCharacteristicsMap.get(pathIdx).exists(_._1)
     }
 
     private def isTextSpecialPath(pathIdx: Int): Boolean = {
-      specialPathMap.get(pathIdx).exists(_._2)
+      pathCharacteristicsMap.get(pathIdx).exists(_._2)
+    }
+
+    private def uriRequestedForPath(pathIdx: Int): Boolean = {
+      pathCharacteristicsMap.get(pathIdx).exists(_._3)
     }
 
     private val specialPathOnlyMap: Map[Int, Boolean] = {
@@ -157,21 +162,6 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
           lang
         case rdfNode: RdfNode =>
           rdfNode.value
-      }
-    }
-
-    private def variableValue(pathIdx: Int,
-                              valueNode: RdfNode): Option[String] = {
-      if (isLangSpecialPath(pathIdx)) {
-        // Handle #lang special path
-        valueNode match {
-          case LanguageLiteral(_, lang) =>
-            Some(lang)
-          case _ =>
-            None
-        }
-      } else {
-        Some(valueNode.value)
       }
     }
 
@@ -206,15 +196,16 @@ class SimpleEntityRetriever(endpoint: SparqlEndpoint,
         }
         //Find results for values for the current subject
         if (curSubject.isDefined) {
-          for ((variable, node) <- result if variable.startsWith(varPrefix)) {
-            val id = variable.substring(varPrefix.length).toInt
-            variableValue(id, node) foreach { value =>
-              values(id) = values(id) :+ value
+          for(idx <- sparqlEntitySchema.paths.indices) {
+            EntityRetriever.extractPathValue(
+              curSubjectNode,
+              result.get(varPrefix + idx),
+              uriRequested = uriRequestedForPath(idx),
+              isLangSpecialPath = isLangSpecialPath(idx),
+              isSpecialPathOnly = isSpecialPathOnly(idx)
+            ) foreach { value =>
+              values(idx) = values(idx) :+ value
             }
-          }
-          // Special-path-only handling
-          for(idx <- sparqlEntitySchema.paths.indices if isSpecialPathOnly(idx)) {
-            values(idx) = values(idx) :+ extractSpecialPathValue(idx, curSubjectNode.get)
           }
         }
       }
