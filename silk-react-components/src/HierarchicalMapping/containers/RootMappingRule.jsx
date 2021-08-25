@@ -17,6 +17,7 @@ import ObjectRule from './MappingRule/ObjectRule/ObjectRule';
 import { MAPPING_RULE_TYPE_COMPLEX_URI, MESSAGES, MAPPING_RULE_TYPE_URI, MAPPING_RULE_TYPE_ROOT } from '../utils/constants';
 import EventEmitter from '../utils/EventEmitter';
 import ExpandButton from '../elements/buttons/ExpandButton';
+import ObjectTypeRules from "../components/ObjectMapping/ObjectTypeRules";
 
 class RootMappingRule extends React.Component {
     state = {
