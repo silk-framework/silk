@@ -124,8 +124,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                       executorOutput: ExecutorOutput,
                                       operator: WorkflowOperator)
                                      (implicit workflowRunContext: WorkflowRunContext): Option[LocalEntities] = {
+    val operatorTask = task(operatorNode)
     try {
-      val operatorTask = task(operatorNode)
       val schemataOpt = operatorTask.data.inputSchemataOpt
       val inputs = operatorNode.inputNodes
       val inputResults = executeWorkflowOperatorInputs(operatorNode, schemataOpt, inputs)
@@ -154,9 +154,9 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
       case ex: WorkflowExecutionException =>
         throw ex
       case NonFatal(ex) =>
+        val msg = s"Exception during execution of workflow operator '${operatorTask.taskLabel()}' (${operatorNode.workflowNode.nodeId})."
         log.log(Level.WARNING, "Exception during execution of workflow operator " + operatorNode.workflowNode.nodeId, ex)
-        throw WorkflowExecutionException("Exception during execution of workflow operator " + operatorNode.workflowNode.nodeId +
-          ". Cause: " + ex.getMessage, Some(ex))
+        throw WorkflowExecutionException(msg + " Cause: " + ex.getMessage, Some(ex))
     }
   }
 
