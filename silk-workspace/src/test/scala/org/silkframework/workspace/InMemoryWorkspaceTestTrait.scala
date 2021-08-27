@@ -29,6 +29,7 @@ trait InMemoryWorkspaceTestTrait extends ConfigTestTrait {
       case npe: NullPointerException =>
         throw new RuntimeException(s"Project file '$projectPathInClasspath' does not exist!", npe)
     }
+    workspace.removeProject(projectId)
     workspace.importProject(projectId, projectFile, XmlZipProjectMarshaling())
     workspace.project(projectId)
   }
