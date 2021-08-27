@@ -17,6 +17,7 @@ import org.silkframework.entity._
 import org.silkframework.rule.TransformSpec.{TargetVocabularyListParameter, TargetVocabularyParameterType}
 import org.silkframework.rule._
 import org.silkframework.rule.execution.ExecuteTransform
+import org.silkframework.rule.util.UriPatternParser.UriPatternParserException
 import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.ReadContext
@@ -273,15 +274,17 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val resources: ResourceManager = project.resources
-    implicit val readContext: ReadContext = ReadContext(resources, prefixes)
+    implicit val readContext: ReadContext = ReadContext(resources, prefixes, validationEnabled = true)
 
     catchExceptions {
       task.synchronized {
-        deserializeCompileTime[RootMappingRule]() { updatedRules =>
-          //Update transformation task
-          val updatedTask = task.data.copy(mappingRule = updatedRules)
-          project.updateTask(taskName, updatedTask)
-          Ok
+        handleValidationExceptions {
+          deserializeCompileTime[RootMappingRule]() { updatedRules =>
+            //Update transformation task
+            val updatedTask = task.data.copy(mappingRule = updatedRules)
+            project.updateTask(taskName, updatedTask)
+            Ok
+          }
         }
       }
     }
@@ -400,14 +403,16 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val resources: ResourceManager = project.resources
-    implicit val readContext: ReadContext = ReadContext(resources, prefixes, identifierGenerator(task))
+    implicit val readContext: ReadContext = ReadContext(resources, prefixes, identifierGenerator(task), validationEnabled = true)
 
     task.synchronized {
       processRule(task, ruleId) { currentRule =>
-        implicit val updatedRequest: Request[AnyContent] = updateJsonRequest(request, currentRule)
-        deserializeCompileTime[TransformRule]() { updatedRule =>
-          updateRule(currentRule.update(updatedRule))
-          serializeCompileTime[TransformRule](updatedRule, Some(project))
+        handleValidationExceptions {
+          implicit val updatedRequest: Request[AnyContent] = updateJsonRequest(request, currentRule)
+          deserializeCompileTime[TransformRule]() { updatedRule =>
+            updateRule(currentRule.update(updatedRule))
+            serializeCompileTime[TransformRule](updatedRule, Some(project))
+          }
         }
       }
     }
@@ -536,12 +541,24 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
     implicit val prefixes: Prefixes = project.config.prefixes
     task.synchronized {
-      implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task))
+      implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, identifierGenerator(task), validationEnabled = true)
       processRule(task, ruleName) { parentRule =>
-        deserializeCompileTime[TransformRule]() { newChildRule =>
-          addRuleToTransformTask(parentRule, newChildRule, afterRuleId)
+        handleValidationExceptions {
+          deserializeCompileTime[TransformRule]() { newChildRule =>
+            addRuleToTransformTask(parentRule, newChildRule, afterRuleId)
+          }
         }
       }
+    }
+  }
+
+  // Handles exceptions thrown by transform rule validation
+  private def handleValidationExceptions[T](block: => T): T = {
+    try {
+      block
+    } catch {
+      case ex: UriPatternParserException =>
+        throw BadUserInputException("Invalid URI pattern found. Details: " + ex.getMessage, None)
     }
   }
 

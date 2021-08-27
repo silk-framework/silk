@@ -19,5 +19,6 @@ GET           /reports/report                                                   
 # Validation
 
 POST          /validation/sourcePath/:projectId                                 controllers.workspaceApi.ValidationApi.validateSourcePath(projectId: String)
+POST          /validation/uriPattern/:projectId                                controllers.workspaceApi.ValidationApi.validateUriPattern(projectId: String)
 
 ->            /projects                   projectsApi.Routes
