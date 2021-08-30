@@ -21,7 +21,13 @@ import {
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import { ParentElement } from '../../../components/ParentElement';
-import {checkValuePathValidity, createMappingAsync, fetchSuggestions} from '../../../store';
+import {
+    checkUriPatternValidity,
+    checkValuePathValidity,
+    createMappingAsync,
+    fetchUriPatternAutoCompletions,
+    fetchValuePathSuggestions
+} from '../../../store';
 import { convertToUri } from '../../../utils/convertToUri';
 import ErrorView from '../../../components/ErrorView';
 import AutoComplete from '../../../components/AutoComplete';
@@ -35,7 +41,7 @@ import { wasTouched } from '../../../utils/wasTouched';
 import { newValueIsIRI } from '../../../utils/newValueIsIRI';
 import TargetCardinality from "../../../components/TargetCardinality";
 import MultiAutoComplete from "../../../components/MultiAutoComplete";
-import AutoSuggestion from "../../../components/AutoSuggestion/AutoSuggestion";
+import AutoSuggestion, {IReplacementResult} from "../../../components/AutoSuggestion/AutoSuggestion";
 
 interface IProps {
     id?: string
@@ -280,7 +286,7 @@ export class ObjectRuleForm extends Component<IProps, any> {
                     onChange={value => {
                         this.handleChangeValue('sourceProperty', value);
                     }}
-                    fetchSuggestions={(input, cursorPosition) => fetchSuggestions(autoCompleteRuleId, input, cursorPosition)}
+                    fetchSuggestions={(input, cursorPosition) => fetchValuePathSuggestions(autoCompleteRuleId, input, cursorPosition)}
                     checkInput={checkValuePathValidity}
                 />
             );
@@ -291,13 +297,17 @@ export class ObjectRuleForm extends Component<IProps, any> {
         if (id) {
             if (modifiedValues.uriRuleType === 'uri') {
                 patternInput = (
-                    <TextField
+                    <AutoSuggestion
+                        id={"uri-pattern-auto-suggestion"}
                         label="URI pattern"
-                        className="ecc-silk-mapping__ruleseditor__pattern"
-                        value={modifiedValues.pattern}
-                        onChange={({ value }) => {
+                        initialValue={modifiedValues.pattern}
+                        clearIconText={"Clear URI pattern"}
+                        validationErrorText={"The entered URI pattern is invalid."}
+                        onChange={value => {
                             this.handleChangeValue('pattern', value);
                         }}
+                        fetchSuggestions={(input, cursorPosition) => fetchUriPatternAutoCompletions(autoCompleteRuleId, input, cursorPosition)}
+                        checkInput={checkUriPatternValidity}
                     />
                 );
             } else {

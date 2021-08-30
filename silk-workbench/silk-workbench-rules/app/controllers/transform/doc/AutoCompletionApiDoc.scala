@@ -35,6 +35,15 @@ object AutoCompletionApiDoc {
       }
     """
 
+  final val uriPatternAutoCompletionRequestExample =
+    """
+      {
+        "inputString": "urn:uriPath1:{pathPart[valueA < 5]/valueB}-suffixA",
+        "cursorPosition": 18,
+        "maxSuggestions": 50
+      }
+    """
+
   final val partialSourcePathsResponseExample =
     """
       {
