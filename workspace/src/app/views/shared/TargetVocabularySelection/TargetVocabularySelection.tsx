@@ -74,6 +74,7 @@ export function TargetVocabularySelection(props: ITargetVocabularySelectionProps
                     label={t("widget.TargetVocabularySelection.multiSelectionRadioButtonLabel")}
                     availableVocabularies={props.multiSelection?.vocabularies || []}
                     preselection={props.multiSelection?.initialSelection}
+                    onSelection={(vocabs) => setValue(vocabs.map((v) => v.uri).join(","))}
                 />
             )}
         </FieldItem>
@@ -120,7 +121,7 @@ function TargetVocabularyRadioMenu({ selectionConfig, onChange }: ITargetVocabul
                     checked={selectedItem.multiSelection}
                     label={selectionConfig.multiSelection.label}
                     onChange={() => handleChange({ multiSelection: true })}
-                    value={true}
+                    value={"__multi_selection__"}
                 />
             )}
         </FieldItemRow>

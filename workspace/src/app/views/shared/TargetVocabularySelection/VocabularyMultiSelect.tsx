@@ -26,7 +26,6 @@ export default function VocabularyMultiSelect({ availableVocabularies, onSelecti
     const [selectedVocabs, setSelectedVocabs] = useState<IVocabularyInfo[]>([]);
     const [filteredVocabs, setFilteredVocabs] = useState<IVocabularyInfo[]>([]);
     const [searchQuery, setSearchQuery] = useState<string | undefined>(undefined);
-    const [preselectedVocabs, setPreselectedVocabs] = useState<IVocabularyInfo[]>([]);
 
     const preselect = () =>
         preselection ? availableVocabularies.filter((v) => preselection.includes(v.uri)) : availableVocabularies;
@@ -34,7 +33,6 @@ export default function VocabularyMultiSelect({ availableVocabularies, onSelecti
     useEffect(() => {
         if (preselection) {
             setSelectedVocabs(preselect());
-            setPreselectedVocabs(preselect());
         }
     }, []);
 

@@ -59,7 +59,12 @@ export function DefaultTargetVocabularySelection({ id, name, intent, defaultValu
             selectedItem={selectedItem}
             multiSelection={{
                 label: t("widget.TargetVocabularySelection.multiSelectionRadioButtonLabel"),
-                initialSelection: !initialStaticEntry ? (defaultValue || "").trim().split(",") : [],
+                initialSelection: !initialStaticEntry
+                    ? (defaultValue || "")
+                          .trim()
+                          .split(",")
+                          .map((v) => v.trim())
+                    : [],
                 vocabularies,
             }}
             onChange={onChange}
