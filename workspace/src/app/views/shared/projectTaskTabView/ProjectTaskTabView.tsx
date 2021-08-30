@@ -21,7 +21,7 @@ import { IItemLink } from "@ducks/shared/typings";
 import { requestItemLinks } from "@ducks/shared/requests";
 import { commonSel } from "@ducks/common";
 import Loading from "../Loading";
-import { HOST, PUBLIC_URL, SERVE_PATH } from "../../../constants/path";
+import { SERVE_PATH } from "../../../constants/path";
 import "./projectTaskTabView.scss";
 import { IProjectTaskView, IViewActions, viewRegistry } from "../../registry/ViewRegistry";
 import * as H from "history";

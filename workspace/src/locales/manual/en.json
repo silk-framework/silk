@@ -421,6 +421,27 @@
         }
     },
     "WorkflowEditor": {
+        "sidebar": {
+            "searchInput": "Find datasets and workflow operators",
+            "searchTooltip": "Search for datasets and workflow operators both in the nodes used in the canvas and new tasks in the sidebar. Pressing the <Enter> key refreshes the list from the server.",
+            "availableTasks": "Available task",
+            "availableTasks_plural": "Available tasks ({{count}})",
+            "usedTasks": "Matching node",
+            "usedTasks_plural": "Matching nodes ({{count}})",
+            "cycleNext": "Next match",
+            "cyclePrevious": "Previous match",
+            "cycleTooltip": "Cycle through {{totalMatches}} currently used instances of this task",
+            "cancelCycling": "Cancel cycling"
+        },
+        "header": {
+            "saveBtnTooltip": "Save the current state of the workflow"
+        },
+        "handle": {
+            "configuration": {
+                "label": "Configuration input",
+                "tooltip": "Values passed here will be used to reconfigure the operator parameters. The attribute names must match the name of the parameters to be reconfigured. It's possible to configure a subset of all available parameters."
+            }
+        },
         "edge": {
             "menu": {
                 "delete": {
@@ -434,15 +455,6 @@
             "WorkflowEditor_fetchTaskList": "Could not fetch available workflow datasets and operators.",
             "WorkflowEditor_saveWorkflow": "Failed to save the workflow.",
             "WorkflowEditor_fetchWorkflow": "Failed to load the workflow."
-        },
-        "handle": {
-            "configuration": {
-                "label": "Configuration input",
-                "tooltip": "Values passed here will be used to reconfigure the operator parameters. The attribute names must match the name of the parameters to be reconfigured. It's possible to configure a subset of all available parameters."
-            }
-        },
-        "header": {
-            "saveBtnTooltip": "Save the current state of the workflow"
         },
         "node": {
             "menu": {
