@@ -13,15 +13,3 @@ case class SourcePathValidationRequest(pathExpression: String)
 object SourcePathValidationRequest {
   implicit val sourcePathValidationRequestFormat: Format[SourcePathValidationRequest] = Json.format[SourcePathValidationRequest]
 }
-
-/**
-  * Response for a source path validation request.
-  * @param valid      If the path expression id valid or not.
-  * @param parseError If not valid, this contains the parse error details.
-  */
-case class SourcePathValidationResponse(valid: Boolean, parseError: Option[PartialParseError])
-
-object SourcePathValidationResponse {
-  implicit val partialParseErrorFormat: Format[PartialParseError] = Json.format[PartialParseError]
-  implicit val sourcePathValidationResponseFormat: Format[SourcePathValidationResponse] = Json.format[SourcePathValidationResponse]
-}

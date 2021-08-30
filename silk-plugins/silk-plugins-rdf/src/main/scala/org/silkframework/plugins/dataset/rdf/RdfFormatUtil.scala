@@ -136,8 +136,6 @@ object RdfFormatUtil {
         model.createResource(new AnonId(lexicalValue)).asNode
       case dateType: DateAndTimeValueType =>
         model.createTypedLiteral(lexicalValue, dateType.xmlSchemaType(lexicalValue)).asNode()
-      case ValueType.DATE_TIME =>
-        model.createTypedLiteral(lexicalValue, ValueType.DATE_TIME.xmlSchemaType(lexicalValue)).asNode()
       case valueType: ValueType if valueType.uri.isDefined =>
         model.createTypedLiteral(lexicalValue, valueType.uri.get).asNode()
       case _ =>

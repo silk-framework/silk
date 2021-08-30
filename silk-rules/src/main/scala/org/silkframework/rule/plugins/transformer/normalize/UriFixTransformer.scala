@@ -28,6 +28,10 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, T
     output = Array("http://example.org/some/path")
   ),
   new TransformExample(
+    input1 = Array("http://example.org/path?query=some+stuff#hashtag"),
+    output = Array("http://example.org/path?query=some+stuff#hashtag")
+  ),
+  new TransformExample(
     input1 = Array("urn:valid:uri"),
     output = Array("urn:valid:uri")
   ),

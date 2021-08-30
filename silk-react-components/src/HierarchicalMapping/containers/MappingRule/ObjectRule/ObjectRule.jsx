@@ -114,7 +114,7 @@ class ObjectRule extends React.Component {
         const rule = _.cloneDeep(this.props.ruleData);
         rule.rules.uriRule = {
             type: 'uri',
-            pattern: '/',
+            pattern: `{}/${rule.id}`,
         };
         updateObjectMappingAsync(rule)
             .subscribe(

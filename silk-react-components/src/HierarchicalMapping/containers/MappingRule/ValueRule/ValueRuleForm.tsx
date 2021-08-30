@@ -3,7 +3,7 @@ import {Card, CardActions, CardContent, CardTitle, ScrollingHOC, Spinner,} from 
 import {AffirmativeButton, DismissiveButton, TextField,} from '@gui-elements/legacy-replacements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
-import store, {checkValuePathValidity, fetchSuggestions} from '../../../store';
+import store, {checkValuePathValidity, fetchValuePathSuggestions} from '../../../store';
 import {convertToUri} from '../../../utils/convertToUri';
 import ErrorView from '../../../components/ErrorView';
 import AutoComplete from '../../../components/AutoComplete';
@@ -273,7 +273,7 @@ export function ValueRuleForm(props: IProps) {
                         'sourceProperty',
                         setSourceProperty
                     )}
-                    fetchSuggestions={(input, cursorPosition) => fetchSuggestions(autoCompleteRuleId, input, cursorPosition)}
+                    fetchSuggestions={(input, cursorPosition) => fetchValuePathSuggestions(autoCompleteRuleId, input, cursorPosition)}
                     checkInput={checkValuePathValidity}
                     onInputChecked={setValuePathValid}
                     onFocusChange={setValuePathInputHasFocus}
