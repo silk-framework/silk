@@ -1,4 +1,4 @@
-import { Button, FieldItem, Highlighter, MenuItem } from "@gui-elements/index";
+import { Button, FieldItem, Highlighter, MenuItem, OverflowText } from "@gui-elements/index";
 import React, { useEffect, useState } from "react";
 import { MultiSelect } from "@blueprintjs/select";
 import { extractSearchWords, matchesAllWords } from "@gui-elements/src/components/Typography/Highlighter";
@@ -13,6 +13,8 @@ interface IProps {
     preselection?: string[];
     // Callback when the selection changes. This is e.g. used to cache the last selection externally.
     onSelection?: (selectedVocabs: IVocabularyInfo[]) => any;
+    // If it should be possible in the multi-select to add custom entries
+    allowCustomEntries?: boolean;
 }
 
 const VocabularyMultiSelectBP = MultiSelect.ofType<IVocabularyInfo>();
@@ -22,13 +24,30 @@ const vocabLabel = (vocabInfo: IVocabularyInfo) => {
 };
 
 /** Vocabulary multi-select component. */
-export default function VocabularyMultiSelect({ availableVocabularies, onSelection, preselection, label }: IProps) {
+export default function VocabularyMultiSelect({
+    availableVocabularies,
+    onSelection,
+    preselection,
+    label,
+    allowCustomEntries,
+}: IProps) {
     const [selectedVocabs, setSelectedVocabs] = useState<IVocabularyInfo[]>([]);
     const [filteredVocabs, setFilteredVocabs] = useState<IVocabularyInfo[]>([]);
     const [searchQuery, setSearchQuery] = useState<string | undefined>(undefined);
 
-    const preselect = () =>
-        preselection ? availableVocabularies.filter((v) => preselection.includes(v.uri)) : availableVocabularies;
+    const preselect = (): IVocabularyInfo[] => {
+        const vocabMap = new Map<string, IVocabularyInfo>(availableVocabularies.map((vocab) => [vocab.uri, vocab]));
+        return preselection
+            ? preselection.map((vocabUri) => {
+                  return vocabMap.has(vocabUri)
+                      ? (vocabMap.get(vocabUri) as IVocabularyInfo)
+                      : {
+                            uri: vocabUri,
+                            label: vocabUri,
+                        };
+              })
+            : [];
+    };
 
     useEffect(() => {
         if (preselection) {
@@ -65,13 +84,20 @@ export default function VocabularyMultiSelect({ availableVocabularies, onSelecti
         return selectedVocabs.some((v) => v.uri === vocab.uri);
     };
 
+    const vocabInfoString = (vocabInfo: IVocabularyInfo): string => {
+        const classInfo = vocabInfo.nrClasses ? `${vocabInfo.nrClasses} classes` : undefined;
+        const propertyInfo = vocabInfo.nrProperties ? `${vocabInfo.nrProperties} properties` : undefined;
+        const infix = classInfo && propertyInfo ? ", " : "";
+        return classInfo || propertyInfo ? `(${classInfo}${infix}${propertyInfo})` : "";
+    };
+
     const renderVocabulary = (vocabInfo: IVocabularyInfo, { modifiers, handleClick }) => {
         return (
             <MenuItem
                 icon={vocabSelected(vocabInfo) ? "state-checked" : "state-unchecked"}
                 active={modifiers.active}
                 key={vocabInfo.uri}
-                label={"property count: " + vocabInfo.nrProperties}
+                label={vocabInfoString(vocabInfo)}
                 onClick={handleClick}
                 text={optionRenderer(vocabInfo)}
                 shouldDismissPopover={false}
@@ -108,6 +134,35 @@ export default function VocabularyMultiSelect({ availableVocabularies, onSelecti
         setSearchQuery(query);
     };
 
+    const illegalCharsRegex = /\s|,|<|>/;
+
+    const createVocabularyFromQuery = (query: string): IVocabularyInfo => {
+        return {
+            uri: query,
+            label: query,
+        };
+    };
+
+    const newItemRenderer = (query: string, active: boolean, handleClick) => {
+        // Lightweight test to check if the query could be a valid URI or file name
+        if (
+            allowCustomEntries &&
+            !illegalCharsRegex.test(query) &&
+            (query.indexOf(":") > 0 || query.indexOf(".") > 0)
+        ) {
+            return (
+                <MenuItem
+                    id={"new-vocab-item"}
+                    icon={"item-add-artefact"}
+                    active={active}
+                    key={query}
+                    onClick={handleClick}
+                    text={<OverflowText>{`Add vocabulary URI '${query}'`}</OverflowText>}
+                />
+            );
+        }
+    };
+
     return (
         <FieldItem
             labelAttributes={{
@@ -118,7 +173,6 @@ export default function VocabularyMultiSelect({ availableVocabularies, onSelecti
         >
             <VocabularyMultiSelectBP
                 popoverProps={{
-                    // portalContainer: context.portalContainer,
                     minimal: true,
                     fill: true,
                     position: "bottom-left",
@@ -141,6 +195,8 @@ export default function VocabularyMultiSelect({ availableVocabularies, onSelecti
                     tagProps: { minimal: true },
                 }}
                 selectedItems={selectedVocabs}
+                createNewItemRenderer={newItemRenderer}
+                createNewItemFromQuery={createVocabularyFromQuery}
             />
         </FieldItem>
     );

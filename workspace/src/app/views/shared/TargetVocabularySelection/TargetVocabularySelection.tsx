@@ -5,6 +5,7 @@ import VocabularyMultiSelect from "./VocabularyMultiSelect";
 import { useTranslation } from "react-i18next";
 
 interface ITargetVocabularySelectionProps {
+    id?: string;
     // The static entries, one value per radio button
     staticEntries: StaticVocabularyEntry[];
 
@@ -22,6 +23,8 @@ interface ITargetVocabularySelectionProps {
     };
     // Called when the selection changes. In case of multi-select, vocabulary values/URIs are concatenated with ','.
     onChange: (value: string) => any;
+    // If it should be possible in the multi-select to add custom entries
+    allowCustomEntries?: boolean;
 }
 
 export type StaticVocabularyEntry = {
@@ -68,15 +71,18 @@ export function TargetVocabularySelection(props: ITargetVocabularySelectionProps
 
     return (
         <FieldItem>
-            <TargetVocabularyRadioMenu selectionConfig={props} onChange={handleOnChange} />
-            {showMultiSelect && (
-                <VocabularyMultiSelect
-                    label={t("widget.TargetVocabularySelection.multiSelectionRadioButtonLabel")}
-                    availableVocabularies={props.multiSelection?.vocabularies || []}
-                    preselection={props.multiSelection?.initialSelection}
-                    onSelection={(vocabs) => setValue(vocabs.map((v) => v.uri).join(","))}
-                />
-            )}
+            <div id={props.id}>
+                <TargetVocabularyRadioMenu selectionConfig={props} onChange={handleOnChange} />
+                {showMultiSelect && (
+                    <VocabularyMultiSelect
+                        label={t("widget.TargetVocabularySelection.multiSelectionRadioButtonLabel")}
+                        availableVocabularies={props.multiSelection?.vocabularies || []}
+                        preselection={props.multiSelection?.initialSelection}
+                        onSelection={(vocabs) => setValue(vocabs.map((v) => v.uri).join(","))}
+                        allowCustomEntries={true}
+                    />
+                )}
+            </div>
         </FieldItem>
     );
 }

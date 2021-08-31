@@ -6,11 +6,6 @@ import { IVocabularyInfo } from "./typings";
 import Loading from "../Loading";
 import { IInputAttributes } from "../modals/CreateArtefactModal/ArtefactForms/InputMapper";
 
-interface IProps {
-    onChange: (value: string) => any;
-    initialValue?: string;
-}
-
 /** Target vocabulary selection component that has static entries 'all installed vocabularies' and 'none'.
  *  And alternatively allows to multi-select all available vocabularies (from the global vocabulary cache). */
 export function DefaultTargetVocabularySelection({ id, name, intent, defaultValue, onChange }: IInputAttributes) {
@@ -55,6 +50,7 @@ export function DefaultTargetVocabularySelection({ id, name, intent, defaultValu
         <Loading />
     ) : (
         <TargetVocabularySelection
+            id={id}
             staticEntries={staticEntries}
             selectedItem={selectedItem}
             multiSelection={{
@@ -68,6 +64,7 @@ export function DefaultTargetVocabularySelection({ id, name, intent, defaultValu
                 vocabularies,
             }}
             onChange={onChange}
+            allowCustomEntries={true}
         />
     );
 }

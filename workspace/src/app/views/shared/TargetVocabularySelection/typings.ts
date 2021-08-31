@@ -5,9 +5,9 @@ export interface IVocabularyInfo {
     // Optional (preferred) label of the vocabulary
     label?: string;
     // Number of classes
-    nrClasses: number;
+    nrClasses?: number;
     // Number of properties
-    nrProperties: number;
+    nrProperties?: number;
 }
 
 export interface IVocabularyInfoRequestResult {
