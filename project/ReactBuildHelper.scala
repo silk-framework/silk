@@ -76,8 +76,8 @@ object ReactBuildHelper {
     while(tries <= maxRetries) {
       val (out, err) = (new StringBuffer(), new StringBuffer())
       val logger = ProcessLogger(
-        out.append(_),
-        err.append(_)
+        line => out.append(line).append("\n"),
+        line => err.append(line).append("\n")
       )
       val proc = Process(command, workingDir)
       val exitCode = proc.!(logger)
@@ -88,6 +88,7 @@ object ReactBuildHelper {
             s"${workingDir.getCanonicalPath} failed with error code " + exitCode +
             s" and error output: ${err.toString}"
         if(tries == maxRetries) {
+          log.warning(s"Executing process ${command.mkString(" ")} has failed. Output before failure:\n$out\nError output:\n$err")
           throw new Error(errorMessage)
         } else {
           log.warning(errorMessage + "\nRetrying execution...")
