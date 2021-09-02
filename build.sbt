@@ -82,7 +82,8 @@ lazy val commonSettings = Seq(
     case other =>
       val oldStrategy = (assembly / assemblyMergeStrategy).value
       oldStrategy(other)
-  }
+  },
+  javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
 )
 
 //////////////////////////////////////////////////////////////////////////////
