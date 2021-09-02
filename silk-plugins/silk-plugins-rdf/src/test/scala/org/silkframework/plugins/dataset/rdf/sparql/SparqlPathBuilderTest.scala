@@ -3,6 +3,7 @@ package org.silkframework.plugins.dataset.rdf.sparql
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.rdf.SparqlPathBuilder
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.testutil.equalIgnoringWhitespace
 
 class SparqlPathBuilderTest extends FlatSpec with Matchers {
@@ -23,6 +24,21 @@ class SparqlPathBuilderTest extends FlatSpec with Matchers {
 
   it should "include Filter statements" in {
     build(s"?a/<1>[<2> = <3>]") should be(equalIgnoringWhitespace("OPTIONAL { ?s <1> ?v0 . ?v0 <2> ?f1 . FILTER(?f1 = <3>). }"))
+  }
+
+  it should "check for special paths and generate the correct query" in {
+    for(path <- Seq(
+      "?a/<urn:prop:PropA>/#text/propB",
+      "?a/<urn:prop:PropA>\\#text",
+      "?a/<urn:prop:PropA>/#lang/propB",
+      "?a/<urn:prop:PropA>\\#lang"
+    )) {
+      intercept[ValidationException] {
+        build(path)
+      }
+    }
+    build(s"?a/<urn:prop:PropA>/#lang") should be(equalIgnoringWhitespace("OPTIONAL { ?s <urn:prop:PropA> ?v0 . }"))
+    build(s"?a/<urn:prop:PropA>/#text") should be(equalIgnoringWhitespace("OPTIONAL { ?s <urn:prop:PropA> ?v0 . }"))
   }
 
   def build(path: String, useOptional: Boolean = true): String = SparqlPathBuilder(Seq(UntypedPath.parse(path)), useOptional = useOptional)

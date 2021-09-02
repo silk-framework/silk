@@ -44,6 +44,7 @@ GET           /tasks/:project/:task/rule/:rule/completions/targetProperties     
 POST          /tasks/:project/:task/rule/:rule/completions/targetProperties        controllers.transform.AutoCompletionApi.targetPropertiesPost(project: String, task: String, rule: String, term ?= "", maxResults: Int  ?= 30, fullUris: Boolean ?= false)
 GET           /tasks/:project/:task/rule/:rule/completions/valueTypes              controllers.transform.AutoCompletionApi.valueTypes(project: String, task: String, rule: String, term ?= "", maxResults: Int  ?= 30)
 POST          /tasks/:project/:task/rule/:rule/completions/partialSourcePaths      controllers.transform.AutoCompletionApi.partialSourcePath(project: String, task: String, rule: String)
+POST          /tasks/:project/:task/rule/:rule/completions/uriPattern              controllers.transform.AutoCompletionApi.uriPattern(project: String, task: String, rule: String)
 
 GET           /tasks/:project/:task/targetVocabulary/vocabularies                  controllers.transform.TargetVocabularyApi.vocabularyInfos(project: String, task: String)
 GET           /tasks/:project/:task/targetVocabulary/type                          controllers.transform.TargetVocabularyApi.getTypeInfo(project: String, task: String, uri: String)

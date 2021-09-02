@@ -12,6 +12,8 @@ import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.{UriFixTransformer, UrlEncodeTransformer}
 import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer, EmptyValueTransformer}
+import org.silkframework.rule.util.UriPatternParser.{ConstantPart, PathPart}
+import org.silkframework.rule.util.{UriPatternParser, UriPatternSegments}
 import org.silkframework.runtime.plugin.PluginObjectParameterNoSchema
 import org.silkframework.runtime.serialization.XmlSerialization.fromXml
 import org.silkframework.runtime.serialization._
@@ -253,7 +255,7 @@ case class PatternUriMapping(id: Identifier = "uri",
                              metaData: MetaData = MetaData.empty,
                              prefixes: Prefixes = Prefixes.empty) extends UriMapping {
 
-  override val operator: Input = UriPattern.parse(pattern.trim())(prefixes)
+  override lazy val operator: Input = UriPattern.parse(pattern.trim())(prefixes)
 
   override val target: Option[MappingTarget] = None
 
@@ -356,7 +358,7 @@ case class ObjectMapping(id: Identifier = "mapping",
     }
   }
 
-  override val operator: Input = {
+  override lazy val operator: Input = {
     uriRule(sourcePath) match {
       case Some(rule) =>
         rule.operator
@@ -495,25 +497,20 @@ private object UriPattern {
     * Parses a URI pattern into an input operator tree.
     */
   def parse(pattern: String)(implicit prefixes: Prefixes): Input = {
-    // FIXME we should write a real parser for this
+    val segments = UriPatternParser.parseIntoSegments(pattern, allowIncompletePattern = false).segments
     val inputs = {
-      if(pattern == "{}") {
+      if(segments == IndexedSeq(PathPart("", _))) {
         Seq(TransformInput("uri", UriFixTransformer(), Seq(PathInput("path", UntypedPath.empty))))
       } else {
-        var firstConstant: String = ""
-        for ((str, i) <- pattern.split("[\\{\\}]").toList.zipWithIndex) yield {
-          if (i % 2 == 0) {
-            if(i == 0) {
-              firstConstant = str
-            }
-            TransformInput("constant" + i, ConstantTransformer(str))
-          } else {
-            if(i == 1 && firstConstant == "") {
+        segments.zipWithIndex.map { case (segment, idx) =>
+          segment match {
+            case PathPart(serializedPath, _) if idx == 0 =>
               // There is a path at the start of the URI pattern, this value needs to become a valid URI
-              TransformInput("fixUri" + i, UriFixTransformer(), Seq(PathInput("path" + i, UntypedPath.parse(str))))
-            } else {
-              TransformInput("encode" + i, UrlEncodeTransformer(), Seq(PathInput("path" + i, UntypedPath.parse(str))))
-            }
+              TransformInput("fixUri" + idx, UriFixTransformer(), Seq(PathInput("path" + idx, UntypedPath.parse(serializedPath))))
+            case PathPart(serializedPath, _) =>
+              TransformInput("encode" + idx, UrlEncodeTransformer(), Seq(PathInput("path" + idx, UntypedPath.parse(serializedPath))))
+            case ConstantPart(value, _) =>
+              TransformInput("constant" + idx, ConstantTransformer(value))
           }
         }
       }
@@ -552,5 +549,4 @@ private object UriPattern {
       case TransformInput(id, ConstantTransformer(constant), Nil) => constant
     }.mkString("")
   }
-
 }

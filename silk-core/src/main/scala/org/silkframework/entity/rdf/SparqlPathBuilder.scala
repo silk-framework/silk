@@ -16,6 +16,8 @@ package org.silkframework.entity.rdf
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths._
+import org.silkframework.entity.rdf.SparqlEntitySchema.specialPaths
+import org.silkframework.runtime.validation.ValidationException
 
 /**
  * Builds SPARQL patterns from paths.
@@ -71,11 +73,17 @@ object SparqlPathBuilder {
    */
   private def buildOperators(subject: String, operators: List[PathOperator], vars: Vars): String = {
     if (operators.isEmpty) return ""
+    validateOperators(operators)
 
     implicit val prefixes = Prefixes.empty
 
     val operatorSparql = operators.head match {
-      case ForwardOperator(property) => subject + " <" + property + "> " + vars.newTempVar + " .\n"
+      case ForwardOperator(property) =>
+        if(forwardSpecialPaths.contains(property.uri)) {
+          ""
+        } else {
+          subject + " <" + property + "> " + vars.newTempVar + " .\n"
+        }
       case BackwardOperator(property) => vars.newTempVar + " <" + property + "> " + subject + " .\n"
       case LanguageFilter(op, lang) => "FILTER(lang(" + subject + ") " + op + " '" + lang + "') . \n"
       case PropertyFilter(property, op, value) => subject + " <" + property.uri + "> " + vars.newFilterVar + " .\n" +
@@ -86,6 +94,21 @@ object SparqlPathBuilder {
       operatorSparql + buildOperators(vars.curTempVar, operators.tail, vars)
     } else {
       operatorSparql
+    }
+  }
+
+  private val forwardSpecialPaths = Set(specialPaths.LANG, specialPaths.TEXT)
+
+  private def validateOperators(operators: List[PathOperator]): Unit = {
+    val lastIndex = operators.size - 1
+    operators.zipWithIndex.foreach { case (po, idx) =>
+      po match {
+        case ForwardOperator(p) if forwardSpecialPaths.contains(p.uri) && idx < lastIndex =>
+          throw new ValidationException(s"Special path '${p.uri}' is only allowed at the end of a path expression!")
+        case BackwardOperator(p) if forwardSpecialPaths.contains(p.uri) =>
+          throw new ValidationException(s"Special path '${p.uri}' not allowed as backward path!")
+        case _ =>
+      }
     }
   }
 
