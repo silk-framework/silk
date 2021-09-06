@@ -85,8 +85,8 @@ export default function VocabularyMultiSelect({
     };
 
     const vocabInfoString = (vocabInfo: IVocabularyInfo): string => {
-        const classInfo = vocabInfo.nrClasses ? `${vocabInfo.nrClasses} classes` : undefined;
-        const propertyInfo = vocabInfo.nrProperties ? `${vocabInfo.nrProperties} properties` : undefined;
+        const classInfo = vocabInfo.nrClasses ? `${vocabInfo.nrClasses} classes` : "";
+        const propertyInfo = vocabInfo.nrProperties ? `${vocabInfo.nrProperties} properties` : "";
         const infix = classInfo && propertyInfo ? ", " : "";
         return classInfo || propertyInfo ? `(${classInfo}${infix}${propertyInfo})` : "";
     };
