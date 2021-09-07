@@ -63,7 +63,7 @@ class CleanPopulationTask(population: Population, fitnessFunction: (LinkageRule 
   }
 
   private def compareOperators(operator1: Node, operator2: OperatorNode): Boolean = (operator1, operator2) match {
-    case (AggregationNode(agg1, _, ops1), AggregationNode(agg2, _, ops2)) => {
+    case (AggregationNode(agg1, _, ops1, _), AggregationNode(agg2, _, ops2, _)) => {
       agg1 == agg2 &&
           ops1.forall(op1 => ops2.exists(op2 => compareOperators(op1, op2)))
     }
@@ -134,9 +134,9 @@ class CleanPopulationTask(population: Population, fitnessFunction: (LinkageRule 
    * Removes all redundant operators of an aggregation node.
    */
   private def cleanAggregation(location: NodeTraverser)(implicit fitness: Double): NodeTraverser = location.node match {
-    case AggregationNode(_, _, (operator: AggregationNode) :: Nil) =>  cleanAggregation(location.moveDown.get)
-    case AggregationNode(_, _, operator :: Nil) => location.moveDown.get
-    case AggregationNode(_, _, operators) => removeRedundantOperators(location, Nil, operators)
+    case AggregationNode(_, _, (operator: AggregationNode) :: Nil, _) =>  cleanAggregation(location.moveDown.get)
+    case AggregationNode(_, _, operator :: Nil, _) => location.moveDown.get
+    case AggregationNode(_, _, operators, _) => removeRedundantOperators(location, Nil, operators)
     case _ => location
   }
 
