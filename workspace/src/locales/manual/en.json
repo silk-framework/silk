@@ -410,6 +410,22 @@
                 }
             }
         },
+        "TaskActivityOverview": {
+            "actions": {
+                "errorMessages": {
+                    "start": "Starting activity {{activityName}} has failed.",
+                    "cancel": "Stopping activity {{activityName}} has failed.",
+                    "restart": "Restarting activity {{activityName}} has failed."
+                }
+            },
+            "title": "Activity overview",
+            "reloadAllCaches": "Reload all caches",
+            "activityControl": {
+                "startActivity": "Start activity",
+                "reloadActivity": "Restart activity",
+                "stopActivity": "Stop activity"
+            }
+        },
         "TaskConfigWidget": {
             "loading": "Loading update dialog...",
             "noPreview": "No preview available",

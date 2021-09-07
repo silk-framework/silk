@@ -7,6 +7,9 @@ interface IFetchOptions {
     url: string;
     method?: Method;
     body?: any;
+    query?: {
+        [key: string]: string;
+    };
     headers?: any;
 }
 
@@ -29,6 +32,7 @@ export const fetch = async <T = any>({
     body,
     method = "GET",
     headers = {},
+    query,
 }: IFetchOptions): Promise<FetchResponse<T> | never> => {
     const curToken = axios.CancelToken.source();
     const cToken = curToken.token;
@@ -48,6 +52,9 @@ export const fetch = async <T = any>({
 
     if (method === "GET") {
         config.params = body;
+    }
+    if (query) {
+        config.params = query;
     }
     try {
         if (isTestEnv) {

@@ -13,6 +13,7 @@ import { ProjectTaskTabView } from "../../shared/projectTaskTabView/ProjectTaskT
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
 import NotFound from "../NotFound";
+import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
 
 export default function () {
     const error = useSelector(datasetSel.errorSelector);
@@ -59,6 +60,8 @@ export default function () {
                     <RelatedItems />
                     <Spacing />
                     <TaskConfig projectId={projectId} taskId={taskId} />
+                    <Spacing />
+                    <TaskActivityOverview projectId={projectId} taskId={taskId} />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>

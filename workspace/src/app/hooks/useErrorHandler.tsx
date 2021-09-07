@@ -5,6 +5,11 @@ import { useDispatch, useSelector } from "react-redux";
 import errorSelector from "@ducks/error/selectors";
 import { registerNewError, clearOneOrMoreErrors } from "@ducks/error/errorSlice";
 
+/**
+ * @param errorId      An application wide unique error ID. This will be uniquely represented in the error widget.
+ * @param errorMessage A human readable error message that should be shown in the UI.
+ * @param cause        The actual error that has happened.
+ */
 type ErrorHandlerRegisterFuncType = (errorId: string, errorMessage: string, cause: DIErrorTypes | null) => JSX.Element;
 
 interface ErrorHandlerDict {

@@ -29,8 +29,8 @@
     },
     "dependencies": {
         "@babel/core": "7.9.0",
-        "@blueprintjs/core": "^3.36.0",
-        "@blueprintjs/select": "^3.15.0",
+        "@blueprintjs/core": "^3.49.1",
+        "@blueprintjs/select": "^3.18.1",
         "@carbon/icons": "^10.22.0",
         "@carbon/icons-react": "^10.22.0",
         "@reduxjs/toolkit": "^1.4.0",

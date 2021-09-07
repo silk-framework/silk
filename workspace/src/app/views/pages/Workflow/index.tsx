@@ -13,6 +13,7 @@ import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
 import NotFound from "../NotFound";
 import { ProjectTaskParams } from "views/shared/typings";
+import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
 
 export default function () {
     const error = useSelector(datasetSel.errorSelector);
@@ -74,6 +75,8 @@ export default function () {
             <WorkspaceSide>
                 <Section>
                     <RelatedItems messageEventReloadTrigger={(messageId) => messageId === "workflowSaved"} />
+                    <Spacing />
+                    <TaskActivityOverview projectId={projectId} taskId={taskId} />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>

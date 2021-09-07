@@ -1,13 +1,14 @@
 import React, { memo } from "react";
 import { Spinner } from "@gui-elements/index";
+import { SpinnerPosition, SpinnerSize, SpinnerStroke } from "@gui-elements/src/components/Spinner/Spinner";
 
 interface IProps {
     className?: string;
     color?: string;
     description?: string; // currently unsupported (TODO)
-    position?: string;
-    size?: string;
-    stroke?: string;
+    position?: SpinnerPosition;
+    size?: SpinnerSize;
+    stroke?: SpinnerStroke;
     posGlobal?: boolean;
     posLocal?: boolean;
     posInline?: boolean;

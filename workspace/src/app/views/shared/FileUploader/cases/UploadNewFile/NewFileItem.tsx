@@ -1,6 +1,5 @@
 import React from "react";
-import { Button, Notification, Spacing } from "@gui-elements/index";
-import ProgressBar from "@gui-elements/blueprint/progressbar";
+import { Button, Notification, ProgressBar, Spacing } from "@gui-elements/index";
 import { Intent } from "@gui-elements/blueprint/constants";
 import { UppyFile } from "@uppy/core";
 import { useTranslation } from "react-i18next";

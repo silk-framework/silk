@@ -23,7 +23,8 @@
     "noEmit": true,
     "jsx": "preserve",
     "noImplicitAny": false,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "experimentalDecorators": true
   },
   "include": [
     "./src"
