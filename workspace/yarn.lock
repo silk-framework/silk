@@ -1583,6 +1583,13 @@
   resolved "https://artifactory.eccenca.com/api/npm/npm/@types/core-js/-/core-js-2.5.4.tgz#fc42ebde7d9cfa7c5f2668f117449b02348e41fd"
   integrity sha1-/ELr3n2c+nxfJmjxF0SbAjSOQf0=
 
+"@types/create-hash@^1.2.2":
+  version "1.2.2"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/create-hash/-/create-hash-1.2.2.tgz#e87247083df8478f6b83655592bde0d709028235"
+  integrity sha1-6HJHCD34R49rg2VVkr3g1wkCgjU=
+  dependencies:
+    "@types/node" "*"
+
 "@types/d3-array@^2":
   version "2.12.2"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@types/d3-array/-/d3-array-2.12.2.tgz#e381839b7cbfdb247ec1e608a8ffc73b5eb4d1f3"
@@ -2373,6 +2380,11 @@
   version "4.2.2"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@xtuc/long/-/long-4.2.2.tgz#d291c6a4e97989b5c61d9acf396ae4fe133a718d"
   integrity sha1-0pHGpOl5ibXGHZrPOWrk/hM6cY0=
+
+D@^1.0.0:
+  version "1.0.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/D/-/D-1.0.0.tgz#c348a4e034f72847be51206fc530fc089e9cc2a9"
+  integrity sha1-w0ik4DT3KEe+USBvxTD8CJ6cwqk=
 
 abab@^2.0.0:
   version "2.0.3"
@@ -4152,7 +4164,7 @@ create-ecdh@^4.0.0:
     bn.js "^4.1.0"
     elliptic "^6.0.0"
 
-create-hash@^1.1.0, create-hash@^1.1.2:
+create-hash@^1.1.0, create-hash@^1.1.2, create-hash@^1.2.0:
   version "1.2.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/create-hash/-/create-hash-1.2.0.tgz#889078af11a63756bcfb59bd221996be3a9ef196"
   integrity sha1-iJB4rxGmN1a8+1m9IhmWvjqe8ZY=
