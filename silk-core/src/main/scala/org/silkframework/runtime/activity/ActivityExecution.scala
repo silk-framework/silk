@@ -83,6 +83,7 @@ private class ActivityExecution[T](activity: Activity[T],
   }
 
   override def cancel()(implicit user: UserContext): Unit = {
+    // TODO: Fix race condition. This needs to be synchronized with all state updates
     if (status().isRunning && !status().isInstanceOf[Status.Canceling]) {
       this.cancelledByUser = user
       this.cancelTimestamp = Some(Instant.now)

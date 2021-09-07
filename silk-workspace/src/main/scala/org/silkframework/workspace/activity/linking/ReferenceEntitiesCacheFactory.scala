@@ -20,4 +20,6 @@ case class ReferenceEntitiesCacheFactory() extends TaskActivityFactory[LinkSpec,
   def apply(task: ProjectTask[LinkSpec]): Activity[ReferenceEntities] = {
     new ReferenceEntitiesCache(task)
   }
+
+  override def isCacheActivity: Boolean = true
 }

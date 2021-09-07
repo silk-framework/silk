@@ -20,6 +20,8 @@ case class GlobalVocabularyCacheFactory() extends GlobalWorkspaceActivityFactory
   override def apply(): Activity[VocabularyCacheValue] = {
     GlobalVocabularyCache()
   }
+
+  override def isCacheActivity: Boolean = true
 }
 
 /** A cache for global vocabularies that can be used in any project. */

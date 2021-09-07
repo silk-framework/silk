@@ -170,6 +170,8 @@ case class LinkSpec(@Param(label = "Source input", value = "The source input to 
       case _ =>
     }
   }
+
+  override def mainActivities: Seq[String] = Seq("ExecuteLinking")
 }
 
 object LinkSpec {

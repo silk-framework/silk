@@ -1,6 +1,6 @@
 package controllers.workspace.activityApi
 
-import controllers.workspace.activityApi.ActivityListResponse.{ActivityInstance, ActivityListEntry}
+import controllers.workspace.activityApi.ActivityListResponse.{ActivityCharacteristics, ActivityInstance, ActivityListEntry}
 import org.silkframework.runtime.activity.{HasValue, UserContext}
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.WorkspaceActivity
@@ -13,11 +13,14 @@ object ActivityFacade {
   def listActivities(projectName: String,
                      taskName: String)
                     (implicit user: UserContext): Seq[ActivityListEntry] = {
+    var mainActivities: Seq[String] = Seq.empty
     val activities =
       if(projectName.nonEmpty) {
         val project = WorkspaceFactory().workspace.project(projectName)
         if(taskName.nonEmpty) {
-          project.anyTask(taskName).activities
+          val task = project.anyTask(taskName)
+          mainActivities = task.data.mainActivities
+          task.activities
         } else {
           project.activities
         }
@@ -28,7 +31,11 @@ object ActivityFacade {
     for(activity <- activities) yield {
       ActivityListEntry(
         name = activity.name.toString,
-        instances = activity.allInstances.keys.toSeq.map(id => ActivityInstance(id.toString))
+        instances = activity.allInstances.keys.toSeq.map(id => ActivityInstance(id.toString)),
+        activityCharacteristics = ActivityCharacteristics(
+          isMainActivity = mainActivities.contains(activity.name.toString),
+          isCacheActivity = activity.isCacheActivity
+        )
       )
     }
   }

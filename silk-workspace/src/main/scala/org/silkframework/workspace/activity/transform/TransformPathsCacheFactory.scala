@@ -18,4 +18,6 @@ case class TransformPathsCacheFactory() extends TaskActivityFactory[TransformSpe
   def apply(task: ProjectTask[TransformSpec]): CachedActivity[CachedEntitySchemata] = {
     new TransformPathsCache(task)
   }
+
+  override def isCacheActivity: Boolean = true
 }
