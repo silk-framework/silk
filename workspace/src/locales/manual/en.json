@@ -418,6 +418,35 @@
                     "restart": "Restarting activity {{activityName}} has failed."
                 }
             },
+            "activities": {
+                "ExecuteDefaultWorkflow": {
+                    "title": "Execute workflow"
+                },
+                "ExecuteLinking": {
+                    "title": "Execute linking"
+                },
+                "ExecuteScheduler": {
+                    "title": "Execute scheduler"
+                },
+                "ExecuteTransform": {
+                    "title": "Execute transformation"
+                },
+                "LinkingPathsCache": {
+                    "title": "Source path cache"
+                },
+                "ReferenceEntitiesCache": {
+                    "title": "Reference entities cache"
+                },
+                "TransformPathsCache": {
+                    "title": "Source paths cache"
+                },
+                "TypesCache": {
+                    "title": "Types cache"
+                },
+                "VocabularyCache": {
+                    "title": "Vocabulary cache"
+                }
+            },
             "title": "Activity overview",
             "reloadAllCaches": "Reload all caches",
             "activityControl": {

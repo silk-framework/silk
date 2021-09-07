@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@gui-elements/src/components/Card";
-import { Divider } from "@gui-elements/index";
+import { Divider, Spacing } from "@gui-elements/index";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -130,21 +130,24 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const activityControl = (activity: IActivityListEntry): JSX.Element => {
         const activityFunctions = activityFunctionsCreator(activity.name);
         return (
-            <DataIntegrationActivityControl
-                label={activity.name}
-                data-test-id={`activity-control-${projectId}-${taskId}-${activity.name}`}
-                executeActivityAction={activityFunctions.executeActivityAction}
-                registerForUpdates={activityFunctions.registerForUpdates}
-                unregisterFromUpdates={activityFunctions.unregisterFromUpdates}
-                translate={translate}
-                showFailureReportAction={true}
-                showProgress={true}
-                showReloadAction={activity.activityCharacteristics.isCacheActivity}
-                showStartAction={!activity.activityCharacteristics.isCacheActivity}
-                showStopAction={true}
-                key={activity.name}
-                showViewValueAction={activity.activityCharacteristics.isCacheActivity}
-            />
+            <>
+                <DataIntegrationActivityControl
+                    label={t(`widget.TaskActivityOverview.activities.${activity.name}.title`, activity.name)}
+                    data-test-id={`activity-control-${projectId}-${taskId}-${activity.name}`}
+                    executeActivityAction={activityFunctions.executeActivityAction}
+                    registerForUpdates={activityFunctions.registerForUpdates}
+                    unregisterFromUpdates={activityFunctions.unregisterFromUpdates}
+                    translate={translate}
+                    showFailureReportAction={true}
+                    showProgress={true}
+                    showReloadAction={activity.activityCharacteristics.isCacheActivity}
+                    showStartAction={!activity.activityCharacteristics.isCacheActivity}
+                    showStopAction={true}
+                    key={activity.name}
+                    showViewValueAction={activity.activityCharacteristics.isCacheActivity}
+                />
+                <Spacing size={"small"} />
+            </>
         );
     };
 
