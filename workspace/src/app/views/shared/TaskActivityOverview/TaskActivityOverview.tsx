@@ -14,6 +14,8 @@ import { connectWebSocket } from "../../../services/websocketUtils";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import { DIErrorTypes } from "@ducks/error/typings";
 import useErrorHandler from "../../../hooks/useErrorHandler";
+import { useSelector } from "react-redux";
+import { commonSel } from "@ducks/common";
 
 interface IProps {
     projectId: string;
@@ -36,6 +38,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const [activityStatusMap] = useState<Map<string, IActivityStatus>>(new Map());
     const [activityFunctionsMap] = useState<Map<string, IActivityControlFunctions>>(new Map());
     const [activityUpdateCallback] = useState<Map<string, (status: IActivityStatus) => any>>(new Map());
+    const { isOpen } = useSelector(commonSel.artefactModalSelector);
     const [loading, setLoading] = useState<boolean>(true);
     const setUpdateSwitch = useState<boolean>(false)[1];
 
@@ -158,8 +161,10 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
 
     // Fetch activity infos and get updates
     useEffect(() => {
-        fetchTaskActivityInfos();
-    }, []);
+        if (!isOpen) {
+            fetchTaskActivityInfos();
+        }
+    }, [isOpen]);
 
     const activitiesWithStatus = activities.filter((a) => activityStatusMap.get(activityKeyOfEntry(a)));
     const mainActivities = activitiesWithStatus.filter((a) => a.activityCharacteristics.isMainActivity);
