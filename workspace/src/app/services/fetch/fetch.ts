@@ -8,7 +8,7 @@ interface IFetchOptions {
     method?: Method;
     body?: any;
     query?: {
-        [key: string]: string;
+        [key: string]: string | boolean | number | undefined | null;
     };
     headers?: any;
 }

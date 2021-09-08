@@ -6,6 +6,11 @@ export interface IActivityListEntry {
     instances: { id: string }[];
     // Characteristics of an activity.
     activityCharacteristics: IActivityCharacteristics;
+    // Meta data of an activity
+    metaData?: {
+        projectId?: string;
+        taskId?: string;
+    };
 }
 
 /** Characteristics of a specific activity. */

@@ -12,18 +12,19 @@ export const fetchActivityInfos = async (
 ): Promise<FetchResponse<IActivityListEntry[]>> => {
     return fetch({
         url: legacyApiEndpoint(`/activities/list`),
-        body: {
+        query: {
             project: projectId,
             task: taskId,
+            addDependentActivities: true,
         },
     });
 };
 
 /** Creates the activity action function that fires requests to the backend. */
 export const activityActionCreator = (
-    projectId: string,
-    taskId: string,
     activityName: string,
+    projectId: string | undefined,
+    taskId: string | undefined,
     handleError: (activityName: string, action: ActivityAction, error: DIErrorTypes) => any
 ) => {
     return async (action: ActivityAction) => {

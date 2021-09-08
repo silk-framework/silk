@@ -26,6 +26,8 @@ interface IActivityControlFunctions {
     executeActivityAction: (action: ActivityAction) => void;
 }
 
+type StringOrUndefined = string | undefined;
+
 export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
@@ -41,26 +43,68 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         setUpdateSwitch((old) => !old);
     };
 
+    const updateQuery = (
+        projectId: StringOrUndefined,
+        taskId: StringOrUndefined,
+        activityName: StringOrUndefined
+    ): string => {
+        const start = projectId || taskId || activityName ? "?" : "";
+        const project = projectId ? "project=" + projectId : undefined;
+        const task = taskId ? "task=" + taskId : undefined;
+        const activity = activityName ? "activity=" + activityName : undefined;
+        const params = [project, task, activity].filter((param) => param).join("&");
+        return start + params;
+    };
+
+    const activityKey = (activity: string, projectId: StringOrUndefined, taskId: StringOrUndefined) =>
+        `${activity}|${projectId ?? ""}|${taskId ?? ""}`;
+
+    const activityKeyOfEntry = (entry: IActivityListEntry): string => {
+        // Task activities do not have a metaData object, fill in with parameters from props.
+        const metaData = entry.metaData || { projectId, taskId };
+        return activityKey(entry.name, metaData?.projectId, metaData?.taskId);
+    };
+
+    const requestUpdates = (
+        updateActivityStatus: (activityStatus: IActivityStatus) => any,
+        project: StringOrUndefined,
+        task: StringOrUndefined,
+        activityName: StringOrUndefined
+    ) => {
+        const query = updateQuery(project, task, activityName);
+        return connectWebSocket(
+            legacyApiEndpoint(`/activities/updatesWebSocket${query}`),
+            legacyApiEndpoint(`/activities/updates${query}`),
+            updateActivityStatus
+        );
+    };
+
     const fetchTaskActivityInfos = async () => {
         setLoading(true);
         const updateActivityStatus = (activityStatus: IActivityStatus) => {
-            const oldValue = activityStatusMap.get(activityStatus.activity);
-            activityStatusMap.set(activityStatus.activity, activityStatus);
-            activityUpdateCallback.get(activityStatus.activity)?.(activityStatus);
+            const key = activityKey(activityStatus.activity, activityStatus.project, activityStatus.task);
+            const oldValue = activityStatusMap.get(key);
+            activityStatusMap.set(key, activityStatus);
+            activityUpdateCallback.get(key)?.(activityStatus);
             if (!oldValue || oldValue.isRunning !== activityStatus.isRunning) {
                 triggerUpdate();
             }
         };
         try {
             const activityRequest = fetchActivityInfos(projectId, taskId);
-            const updateCleanUpFunction = connectWebSocket(
-                legacyApiEndpoint(`/activities/updatesWebSocket?project=${projectId}&task=${taskId}`),
-                legacyApiEndpoint(`/activities/updates?project=${projectId}&task=${taskId}`),
-                updateActivityStatus
-            );
-            const activityListResponse = await activityRequest;
-            setActivities(activityListResponse.data);
-            return await updateCleanUpFunction;
+            const updateCleanUpFunction = requestUpdates(updateActivityStatus, projectId, taskId, undefined);
+            const activityList = (await activityRequest).data;
+            const additionCleanUpFunctions = activityList
+                .filter((a) => a.metaData)
+                .map((a) => {
+                    // These are additional activities that we need to get updates for
+                    return requestUpdates(updateActivityStatus, a.metaData?.projectId, a.metaData?.taskId, a.name);
+                });
+            setActivities(activityList);
+            const cleanUpFunctions = await Promise.all([updateCleanUpFunction, ...additionCleanUpFunctions]);
+            return () => {
+                cleanUpFunctions.forEach((fn) => fn());
+            };
         } catch {
             // TODO: Handle error
         } finally {
@@ -79,33 +123,35 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     };
 
     // Register an observer from the activity widget
-    const createRegisterForUpdatesFn = (activityName: string) => (callback: (status: IActivityStatus) => any) => {
-        activityUpdateCallback.set(activityName, callback);
+    const createRegisterForUpdatesFn = (activityKey: string) => (callback: (status: IActivityStatus) => any) => {
+        activityUpdateCallback.set(activityKey, callback);
         // Send current value
-        const currentStatus = activityStatusMap.get(activityName);
+        const currentStatus = activityStatusMap.get(activityKey);
         currentStatus && callback(currentStatus);
     };
 
-    const createUnregisterFromUpdateFn = (activityName: string) => () => {
-        activityUpdateCallback.delete(activityName);
+    const createUnregisterFromUpdateFn = (activityKey: string) => () => {
+        activityUpdateCallback.delete(activityKey);
     };
 
     // Creates and/or returns the memoized activity action function
-    const activityFunctionsCreator = (activityName: string): IActivityControlFunctions => {
-        if (activityFunctionsMap.has(activityName)) {
-            return activityFunctionsMap.get(activityName) as IActivityControlFunctions;
+    const activityFunctionsCreator = (activity: IActivityListEntry): IActivityControlFunctions => {
+        const key = activityKeyOfEntry(activity);
+        const metaData = activity.metaData || { projectId, taskId };
+        if (activityFunctionsMap.has(key)) {
+            return activityFunctionsMap.get(key) as IActivityControlFunctions;
         } else {
             const activityControlFunctions: IActivityControlFunctions = {
                 executeActivityAction: activityActionCreator(
-                    projectId,
-                    taskId,
-                    activityName,
+                    activity.name,
+                    metaData.projectId,
+                    metaData.taskId,
                     handleActivityActionError
                 ),
-                registerForUpdates: createRegisterForUpdatesFn(activityName),
-                unregisterFromUpdates: createUnregisterFromUpdateFn(activityName),
+                registerForUpdates: createRegisterForUpdatesFn(key),
+                unregisterFromUpdates: createUnregisterFromUpdateFn(key),
             };
-            activityFunctionsMap.set(activityName, activityControlFunctions);
+            activityFunctionsMap.set(key, activityControlFunctions);
             return activityControlFunctions;
         }
     };
@@ -115,12 +161,17 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         fetchTaskActivityInfos();
     }, []);
 
-    const activitiesWithStatus = activities.filter((a) => activityStatusMap.get(a.name));
+    const activitiesWithStatus = activities.filter((a) => activityStatusMap.get(activityKeyOfEntry(a)));
     const mainActivities = activitiesWithStatus.filter((a) => a.activityCharacteristics.isMainActivity);
     const nonMainActivities = activitiesWithStatus.filter((a) => !a.activityCharacteristics.isMainActivity);
     const cacheActivities = nonMainActivities.filter((a) => a.activityCharacteristics.isCacheActivity);
-    const runningNonMainActivities = nonMainActivities.filter((a) => activityStatusMap.get(a.name)?.isRunning);
-    const failedNonMainActivities = nonMainActivities.filter((a) => activityStatusMap.get(a.name)?.failed);
+    // TODO: Caches are duplicated when showing them as running and in caches section
+    const runningNonMainActivities = nonMainActivities.filter(
+        (a) => activityStatusMap.get(activityKeyOfEntry(a))?.isRunning && !a.activityCharacteristics.isCacheActivity
+    );
+    const failedNonMainActivities = nonMainActivities.filter(
+        (a) => activityStatusMap.get(activityKeyOfEntry(a))?.failed
+    );
     const nrActivitiesToShow =
         mainActivities.length +
         runningNonMainActivities.length +
@@ -128,7 +179,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         cacheActivities.length;
 
     const activityControl = (activity: IActivityListEntry): JSX.Element => {
-        const activityFunctions = activityFunctionsCreator(activity.name);
+        const activityFunctions = activityFunctionsCreator(activity);
         return (
             <>
                 <DataIntegrationActivityControl
@@ -157,24 +208,6 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                 <CardTitle>
                     <h3>{t("widget.TaskActivityOverview.title")}</h3>
                 </CardTitle>
-                {/*<CardOptions>*/}
-                {/*    <ContextMenu*/}
-                {/*        data-test-id={"related-item-context-menu"}*/}
-                {/*        togglerText={t("common.action.moreOptions", "Show more options")}*/}
-                {/*    >*/}
-                {/*        <MenuItem*/}
-                {/*            text={t("widget.TaskActivityOverview.reloadAllCaches")}*/}
-                {/*            icon={"item-reload"}*/}
-                {/*            onClick={*/}
-                {/*                (e) => {*/}
-                {/*                    e.preventDefault();*/}
-                {/*                    e.stopPropagation();*/}
-                {/*                    alert("TODO") // TODO*/}
-                {/*                }*/}
-                {/*            }*/}
-                {/*        />*/}
-                {/*    </ContextMenu>*/}
-                {/*</CardOptions>*/}
             </CardHeader>
             <Divider />
             <CardContent>
