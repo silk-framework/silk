@@ -62,8 +62,17 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                        in = ParameterIn.QUERY,
                        schema = new Schema(implementation = classOf[String])
                      )
-                     taskName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    val response = ActivityFacade.listActivities(projectName, taskName)
+                     taskName: String,
+                     @Parameter(
+                       name = "add dependent activities",
+                       description = "Optional parameter to also request activities that a task depends on.",
+                       required = false,
+                       in = ParameterIn.QUERY,
+                       schema = new Schema(implementation = classOf[Boolean])
+                     )
+                     addDependentActivities: Boolean
+                    ): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
+    val response = ActivityFacade.listActivities(projectName, taskName, addDependentActivities)
     Ok(Json.toJson(response))
   }
 
@@ -581,9 +590,13 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     }
 
     val taskActivities: Seq[WorkspaceActivity[_]] = {
-      for(project <- projects;
-          task <- tasks(project);
-          activity <- activities(task)) yield activity
+      if(activityName.nonEmpty && workspaceActivities.nonEmpty) {
+        Seq.empty
+      } else {
+        for(project <- projects;
+            task <- tasks(project);
+            activity <- activities(task)) yield activity
+      }
     }
 
     workspaceActivities ++ projectActivities ++ taskActivities

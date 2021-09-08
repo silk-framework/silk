@@ -143,7 +143,7 @@ GET           /projects/:project/tasks/:task/activities/:activity/status        
 GET           /projects/:project/tasks/:task/activities/:activity/value         controllers.workspace.ActivityApi.getActivityValue(project: String, task: String, activity: String)
 
 # General Activities API
-GET           /activities/list                                                  controllers.workspace.ActivityApi.listActivities(project ?= "", task ?= "")
+GET           /activities/list                                                  controllers.workspace.ActivityApi.listActivities(project ?= "", task ?= "", addDependentActivities: Boolean ?= false)
 POST          /activities/start                                                 controllers.workspace.ActivityApi.startActivity(project ?= "", task ?= "", activity)
 POST          /activities/startBlocking                                         controllers.workspace.ActivityApi.startActivityBlocking(project ?= "", task ?= "", activity)
 POST          /activities/cancel                                                controllers.workspace.ActivityApi.cancelActivity(project ?= "", task ?= "", activity)
