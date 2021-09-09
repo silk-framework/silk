@@ -111,4 +111,16 @@ object WorkspaceApiDoc {
       }
     """
 
+  final val targetVocabularyExample =
+    """
+      {
+        "vocabularies": [
+          {
+            "nrClasses": 0,
+            "nrProperties": 61,
+            "uri": "urn:foaf.owl"
+          }
+        ]
+      }
+    """
 }

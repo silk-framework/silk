@@ -64,9 +64,7 @@ object VocabularyCacheValue {
       case TargetVocabularyCategory(category) =>
         val vocabularies: Seq[Vocabulary] = category match {
           case TargetVocabularyParameterEnum.`allInstalled` =>
-            WorkspaceFactory().workspace.activity[GlobalVocabularyCache].value.get.
-                map(_.vocabularies).
-                getOrElse(Seq.empty)
+            globalVocabularies
           case TargetVocabularyParameterEnum.`noVocabularies` => Seq.empty
         }
         new VocabularyCacheValue(vocabularies, None)
@@ -79,6 +77,12 @@ object VocabularyCacheValue {
       case None =>
         vocabularies
     }
+  }
+
+  def globalVocabularies(implicit userContext: UserContext): Seq[Vocabulary] = {
+    WorkspaceFactory().workspace.activity[GlobalVocabularyCache].value.get.
+      map(_.vocabularies).
+      getOrElse(Seq.empty)
   }
 
 }
