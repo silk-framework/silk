@@ -15,7 +15,7 @@ import scala.reflect.ClassTag
 /**
   * An activity that is either attached to a project (ProjectActivity) or a task (TaskActivity) or is a GlobalWorkspaceActivity.
   */
-abstract class F[ActivityType <: HasValue : ClassTag]() {
+abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
 
   /**
     * Generates new identifiers for created activity instances.
