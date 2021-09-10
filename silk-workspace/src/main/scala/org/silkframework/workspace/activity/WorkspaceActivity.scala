@@ -15,7 +15,7 @@ import scala.reflect.ClassTag
 /**
   * An activity that is either attached to a project (ProjectActivity) or a task (TaskActivity) or is a GlobalWorkspaceActivity.
   */
-abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
+abstract class F[ActivityType <: HasValue : ClassTag]() {
 
   /**
     * Generates new identifiers for created activity instances.
@@ -167,17 +167,14 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     */
   protected final def addInstance(config: Map[String, String]): (Identifier, ActivityControl[ActivityType#ValueType]) = synchronized {
     val identifier = if(isSingleton) name else identifierGenerator.generate("")
-    val newControl = createInstance(config)
-    // Update the status and value mirrors to point to the new instance
-    status.asInstanceOf[ObservableMirror[Status]].updateObservable(newControl.status)
-    value.asInstanceOf[ObservableMirror[ActivityType#ValueType]].updateObservable(newControl.value)
 
     if(isSingleton) {
       if(config != currentParameters) {
-        value.asInstanceOf[ObservableMirror[ActivityType#ValueType]].updateObservable(newControl.value)
+        val newControl = createControl(config)
         currentInstance = newControl
       }
     } else {
+      val newControl = createControl(config)
       if(instances.size >= WorkspaceActivity.MAX_CONTROLS_PER_ACTIVITY) {
         val activityDescription = projectOpt.map(p => s"In project ${p.name} activity '$name'").getOrElse(s"In workspace activity '$name'")
         log.warning(s"$activityDescription: Dropping an activity control instance because the control " +
@@ -190,6 +187,14 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
 
     currentParameters = config
     (identifier, currentInstance)
+  }
+
+  private def createControl(config: Map[String, String]): ActivityControl[ActivityType#ValueType] = {
+    val newControl = createInstance(config)
+    // Update the status and value mirrors to point to the new instance
+    status.asInstanceOf[ObservableMirror[Status]].updateObservable(newControl.status)
+    value.asInstanceOf[ObservableMirror[ActivityType#ValueType]].updateObservable(newControl.value)
+    newControl
   }
 
   final def removeActivityInstance(instanceId: Identifier): Unit = synchronized {
