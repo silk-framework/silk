@@ -96,7 +96,7 @@ trait WorkspaceProvider {
   private[workspace] def retainExternalTaskLoadingError(projectId: String,
                                                         loadingError: TaskLoadingError): Unit = synchronized {
     val loadingErrors = externalLoadingErrors.getOrElse(projectId, Vector.empty)
-    val loadingErrorsWithoutTaskId = loadingErrors.filter(_.id != loadingError.id)
+    val loadingErrorsWithoutTaskId = loadingErrors.filter(_.taskId != loadingError.taskId)
     externalLoadingErrors.put(projectId, loadingErrorsWithoutTaskId :+ loadingError)
   }
 
@@ -114,9 +114,9 @@ trait WorkspaceProvider {
   /** Removes the external task loading error that might exist. */
   private[workspace] def removeExternalTaskLoadingError(projectId: String, taskId: String): Unit = synchronized {
     val loadingErrors = externalLoadingErrors.getOrElse(projectId, Vector.empty)
-    externalLoadingErrors.put(projectId, loadingErrors.filter(_.id != taskId))
+    externalLoadingErrors.put(projectId, loadingErrors.filter(_.taskId != taskId))
   }
 }
 
 /** Task loading error. */
-case class TaskLoadingError(id: String, throwable: Throwable, label: Option[String] = None, description: Option[String] = None)
+case class TaskLoadingError(projectId: Option[String], taskId: String, throwable: Throwable, label: Option[String] = None, description: Option[String] = None)

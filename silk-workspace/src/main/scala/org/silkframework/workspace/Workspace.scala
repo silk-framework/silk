@@ -79,7 +79,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
             s"Available activities: ${activities.map(_.name).mkString(", ")}"))
   }
 
-  private val activityMap: Map[Class[_], GlobalWorkspaceActivity[_ <: HasValue]] = activities.map(a => (a.factory.activityType, a)).toMap
+  private lazy val activityMap: Map[Class[_], GlobalWorkspaceActivity[_ <: HasValue]] = activities.map(a => (a.factory.activityType, a)).toMap
 
   /** Get global workspace activity by type. */
   def activity[T <: HasValue : ClassTag]: GlobalWorkspaceActivity[T] = {

@@ -55,4 +55,7 @@ While running, the progress is tracked by the *progress* field (0 to 100 percent
       }
     """
 
+  final val activityErrorReportJsonExample = """""" // TODO
+
+  final val activityErrorReportMarkdownExample = """""" // TODO
 }
