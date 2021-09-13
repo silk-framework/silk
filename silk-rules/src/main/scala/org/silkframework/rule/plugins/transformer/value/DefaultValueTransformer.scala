@@ -1,12 +1,13 @@
 package org.silkframework.rule.plugins.transformer.value
 
 import org.silkframework.rule.input.Transformer
+import org.silkframework.runtime.plugin.PluginCategories
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin, TransformExample, TransformExamples}
 
 @Plugin(
   id = "defaultValue",
   label = "Default Value",
-  categories = Array("Value"),
+  categories = Array("Value", PluginCategories.recommended),
   description = "Generates a default value, if the input values are empty. Forwards any non-empty values."
 )
 @TransformExamples(Array(
