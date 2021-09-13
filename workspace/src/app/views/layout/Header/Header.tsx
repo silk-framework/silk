@@ -69,14 +69,16 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
         );
     };
 
-    return !isAuth ? null : (
+    return !isAuth ? (
+        <></>
+    ) : (
         <ApplicationHeader
             aria-label={`${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}: ${APPLICATION_NAME}`}
         >
             <ApplicationTitle
                 prefix={APPLICATION_CORPORATION_NAME}
                 isNotDisplayed={!isApplicationSidebarExpanded}
-                isAlignedWithSidebar={isApplicationSidebarExpanded}
+                isApplicationSidebarExpanded={isApplicationSidebarExpanded}
             >
                 {APPLICATION_NAME}
             </ApplicationTitle>
@@ -85,8 +87,11 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                 onClick={onClickApplicationSidebarExpand}
                 isActive={isApplicationSidebarExpanded}
             />
-            <ApplicationSidebarNavigation expanded={isApplicationSidebarExpanded}>
-                {!!dmBaseUrl && (
+            <ApplicationSidebarNavigation
+                isRail={!isApplicationSidebarExpanded}
+                expanded={isApplicationSidebarExpanded}
+            >
+                {!!dmBaseUrl ? (
                     <>
                         <TitleSubsection>{t("navigation.side.dmBrowser", "Browse in DataManager")}</TitleSubsection>
                         <Menu>
@@ -100,11 +105,13 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                     />
                                 ))
                             ) : (
-                                <MenuItem text="DataManager" href={dmBaseUrl} />
+                                <MenuItem icon="application-explore" text="DataManager" href={dmBaseUrl} />
                             )}
                         </Menu>
                         <Divider addSpacing="xlarge" />
                     </>
+                ) : (
+                    <></>
                 )}
                 <TitleSubsection>{t("navigation.side.diBrowse", "Create in DataIntegration")}</TitleSubsection>
                 <Menu>
