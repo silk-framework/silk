@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { RouteProps } from "react-router";
 import { ConnectedRouter } from "connected-react-router";
 import { useDispatch, useSelector } from "react-redux";
@@ -23,26 +23,24 @@ export default function App({ externalRoutes, routes }: IProps) {
         dispatch(commonOp.fetchCommonSettingsAsync());
         dispatch(commonOp.fetchExportTypesAsync());
     }, [commonOp]);
+    const [sideNavExpanded, setsideNavExpanded] = useState(false);
 
     return (
         <ConnectedRouter history={getHistory()}>
-            <ApplicationContainer
-                isSideNavExpanded={false}
-                render={({ isSideNavExpanded, onClickSideNavExpand }: any) => (
-                    <>
-                        <Header
-                            isApplicationSidebarExpanded={isSideNavExpanded}
-                            onClickApplicationSidebarExpand={onClickSideNavExpand}
-                        />
-                        <ApplicationContent
-                            isApplicationSidebarExpanded={isSideNavExpanded}
-                            isApplicationSidebarRail={!isSideNavExpanded && isAuth}
-                        >
-                            <RouterOutlet routes={routes} />
-                        </ApplicationContent>
-                    </>
-                )}
-            />
+            <ApplicationContainer>
+                <Header
+                    isApplicationSidebarExpanded={sideNavExpanded}
+                    onClickApplicationSidebarExpand={() => {
+                        setsideNavExpanded(!sideNavExpanded);
+                    }}
+                />
+                <ApplicationContent
+                    isApplicationSidebarExpanded={sideNavExpanded}
+                    isApplicationSidebarRail={!sideNavExpanded && isAuth}
+                >
+                    <RouterOutlet routes={routes} />
+                </ApplicationContent>
+            </ApplicationContainer>
             <RecentlyViewedModal />
         </ConnectedRouter>
     );
