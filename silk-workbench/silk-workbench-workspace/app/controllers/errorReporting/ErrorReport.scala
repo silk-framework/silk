@@ -45,8 +45,29 @@ object ErrorReport {
       taskDescription foreach { taskDescription => sb.append(s"* Task description: $taskDescription\n")}
       activityId.foreach(id => sb.append(s"* Activity ID: $id\n"))
       errorMessage foreach { message => sb.append(s"* Error message: `$message`\n")}
+      for((subErrorMessages, idx) <- stackTrace.map(subErrorMessages).zipWithIndex;
+          subErrorMessage <- subErrorMessages) {
+        if(idx == 0) {
+          sb.append(s"* Cause error messages:\n")
+        }
+        sb.append(s"  - $subErrorMessage\n")
+      }
       stackTrace foreach { st => sb.append(asMarkdown(st))}
       sb.toString
+    }
+
+    private def subErrorMessages(stackTrace: Stacktrace): List[String] = {
+      stackTrace.cause match {
+        case Some(c) =>
+          c.errorMessage match {
+            case Some(msg) =>
+              msg :: subErrorMessages(c)
+            case None =>
+              subErrorMessages(c)
+          }
+        case None =>
+          Nil
+      }
     }
 
     // Render the stacktrace as markdown
@@ -57,7 +78,7 @@ object ErrorReport {
           sb.append("  ").append(line).append("\n")
         }
         stacktrace.cause foreach { c =>
-          sb.append(s"Cause: ${stacktrace.errorMessage.getOrElse("<no error message>")}\n")
+          sb.append(s"Cause: ${c.errorMessage.getOrElse("<no error message>")}\n")
           renderStacktrace(c)}
       }
       sb.append("* Stacktrace:\n  ```\n")
