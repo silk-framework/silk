@@ -4,11 +4,12 @@ import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.transform.doc.TargetVocabularyApiDoc
 import controllers.util.SerializationUtils._
+import controllers.workspace.workspaceRequests.{VocabularyInfo, VocabularyInfos}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
-import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.vocab.{VocabularyClass, VocabularyProperty}
 import org.silkframework.runtime.activity.UserContext
@@ -19,7 +20,7 @@ import org.silkframework.util.Uri
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.transform.{VocabularyCache, VocabularyCacheValue}
 import org.silkframework.workspace.{Project, WorkspaceFactory}
-import play.api.libs.json.{Format, JsValue, Json, Writes}
+import play.api.libs.json.{JsValue, Json, Writes}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import javax.inject.Inject
@@ -396,21 +397,4 @@ class TargetVocabularyApi  @Inject() () extends InjectedController with UserCont
     }
     Ok(Json.toJson(VocabularyInfos(vocabInfoSeq)))
   }
-}
-
-/** Vocabulary information.
-  *
-  * @param uri          URI of the vocabulary (graph).
-  * @param label        Preferred label of the vocabulary.
-  * @param nrClasses    Number of classes in the vocabulary.
-  * @param nrProperties Number of properties in the vocabulary.
-  */
-case class VocabularyInfo(uri: String, label: Option[String], nrClasses: Int, nrProperties: Int)
-
-object VocabularyInfo {
-  implicit val vocabularyInfoJsonFormat: Format[VocabularyInfo] = Json.format[VocabularyInfo]
-}
-case class VocabularyInfos(vocabularies: Seq[VocabularyInfo])
-object VocabularyInfos {
-  implicit val vocabularyInfosJsonFormat: Format[VocabularyInfos] = Json.format[VocabularyInfos]
 }

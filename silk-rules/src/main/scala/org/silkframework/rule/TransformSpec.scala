@@ -57,9 +57,7 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
                            autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
                          errorOutput: IdentifierOptionParameter = IdentifierOptionParameter(None),
                          @Param(label = "Target vocabularies", value = "Use installed vocabularies for auto-suggestion and selection of target classes and target properties " +
-                             "of this transformation.",
-                             autoCompletionProvider = classOf[TargetVocabularyAutoCompletionProvider],
-                           autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = false)
+                             "of this transformation.")
                          targetVocabularies: TargetVocabularyParameter = TargetVocabularyCategory(TargetVocabularyParameterEnum.allInstalled),
                          @Param("If true, a validation error (such as a data type mismatch) will abort the execution. " +
                                 "If false, the execution will continue, adding a validation error to the execution report.")

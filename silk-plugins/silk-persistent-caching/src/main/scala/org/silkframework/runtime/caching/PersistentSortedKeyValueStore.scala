@@ -9,7 +9,7 @@ import org.silkframework.util.FileUtils.toFileUtils
 import org.silkframework.util.Identifier
 
 import java.io.{File, IOException}
-import java.nio.ByteBuffer
+import java.nio.{Buffer, ByteBuffer}
 import java.nio.ByteBuffer.allocateDirect
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
@@ -97,7 +97,8 @@ case class PersistentSortedKeyValueStore(databaseId: Identifier,
     } else {
       keyBuffer.put(Array(Byte.MinValue)) // TODO: How to better handle empty strings? An empty byte buffer evokes an error being raised later on.
     }
-    keyBuffer.flip()
+    // Casting to Buffer to avoid conflict mentioned here: https://stackoverflow.com/questions/61267495/exception-in-thread-main-java-lang-nosuchmethoderror-java-nio-bytebuffer-flip
+    keyBuffer.asInstanceOf[Buffer].flip()
     keyBuffer
   }
 
@@ -114,7 +115,8 @@ case class PersistentSortedKeyValueStore(databaseId: Identifier,
       valueBytes = CompressionHelper.lz4Compress(valueBytes, addLengthPreamble = true)
     }
     val valueBuffer = allocateDirect(valueBytes.length)
-    valueBuffer.put(valueBytes).flip()
+    // Casting to Buffer to avoid conflict mentioned here: https://stackoverflow.com/questions/61267495/exception-in-thread-main-java-lang-nosuchmethoderror-java-nio-bytebuffer-flip
+    valueBuffer.put(valueBytes).asInstanceOf[Buffer].flip()
     valueBuffer
   }
 
