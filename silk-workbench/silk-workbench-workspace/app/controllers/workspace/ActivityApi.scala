@@ -601,7 +601,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
       taskLabel = taskOpt.map(t => t.metaData.formattedLabel(t.id, Int.MaxValue)),
       taskDescription = taskOpt.flatMap(_.metaData.description),
       activityId = Some(activityId),
-      errorSummary = "Activity execution has failed: " + activityId,
+      errorSummary = s"Execution of activity '$activityId' has failed.",
       errorMessage = Option(cause.getMessage),
       stackTrace = Some(Stacktrace.fromException(cause))
     )
