@@ -32,5 +32,5 @@ export const Loading = memo<IProps>(function LoadingIndicator({
             forwardedProps = { position: "local" };
     }
 
-    return <Spinner {...forwardedProps} {...otherProps} />;
+    return <Spinner {...forwardedProps} {...otherProps} delay={1000} />;
 });

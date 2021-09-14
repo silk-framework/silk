@@ -7,7 +7,7 @@ import {
     DataIntegrationActivityControl,
 } from "@gui-elements/src/components/dataIntegrationComponents/ActivityControl/DataIntegrationActivityControl";
 import { IActivityListEntry } from "./taskActivityOverviewTypings";
-import { activityActionCreator, fetchActivityInfos } from "./taskActivityOverviewRequests";
+import { activityActionCreator, fetchActivityErrorReport, fetchActivityInfos } from "./taskActivityOverviewRequests";
 import { IActivityStatus } from "@gui-elements/src/components/dataIntegrationComponents/ActivityControl/ActivityControlTypes";
 import Loading from "../Loading";
 import { connectWebSocket } from "../../../services/websocketUtils";
@@ -16,6 +16,7 @@ import { DIErrorTypes } from "@ducks/error/typings";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
+import ReactMarkdown from "react-markdown";
 
 interface IProps {
     projectId: string;
@@ -108,11 +109,33 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
             return () => {
                 cleanUpFunctions.forEach((fn) => fn());
             };
-        } catch {
-            // TODO: Handle error
+        } catch (ex) {
+            registerError(
+                `taskActivityOverview-fetchTaskActivityInfos`,
+                t("widget.TaskActivityOverview.errorMessages.errorReport.fetchReport"),
+                ex
+            );
         } finally {
             setLoading(false);
         }
+    };
+
+    // Returns a function that fetches the error report for a particular activity
+    const fetchErrorReportFactory = (activity: IActivityListEntry) => {
+        const project = activity.metaData ? activity.metaData.projectId : projectId;
+        const task = activity.metaData ? activity.metaData.taskId : taskId;
+        return async (markdown: boolean) => {
+            try {
+                const response = await fetchActivityErrorReport(activity.name, project, task, markdown);
+                return response.data;
+            } catch (ex) {
+                registerError(
+                    `taskActivityOverview-fetchErrorReport`,
+                    t("widget.TaskActivityOverview.errorMessages.errorReport.fetchReport"),
+                    ex
+                );
+            }
+        };
     };
 
     const translate = useCallback((key: string) => t("widget.TaskActivityOverview.activityControl." + key), [t]);
@@ -120,7 +143,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const handleActivityActionError = (activityName: string, action: ActivityAction, error: DIErrorTypes) => {
         registerError(
             `taskActivityOverview-${activityName}-action`,
-            t("widget.TaskActivityOverview.actions.errorMessages." + action, { activityName: activityName }),
+            t("widget.TaskActivityOverview.errorMessages.actions." + action, { activityName: activityName }),
             error
         );
     };
@@ -170,12 +193,11 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const mainActivities = activitiesWithStatus.filter((a) => a.activityCharacteristics.isMainActivity);
     const nonMainActivities = activitiesWithStatus.filter((a) => !a.activityCharacteristics.isMainActivity);
     const cacheActivities = nonMainActivities.filter((a) => a.activityCharacteristics.isCacheActivity);
-    // TODO: Caches are duplicated when showing them as running and in caches section
     const runningNonMainActivities = nonMainActivities.filter(
         (a) => activityStatusMap.get(activityKeyOfEntry(a))?.isRunning && !a.activityCharacteristics.isCacheActivity
     );
     const failedNonMainActivities = nonMainActivities.filter(
-        (a) => activityStatusMap.get(activityKeyOfEntry(a))?.failed
+        (a) => activityStatusMap.get(activityKeyOfEntry(a))?.failed && !a.activityCharacteristics.isCacheActivity
     );
     const nrActivitiesToShow =
         mainActivities.length +
@@ -194,7 +216,15 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                     registerForUpdates={activityFunctions.registerForUpdates}
                     unregisterFromUpdates={activityFunctions.unregisterFromUpdates}
                     translate={translate}
-                    showFailureReportAction={true}
+                    failureReportAction={{
+                        title: "", // The title is already repeated in the markdown
+                        allowDownload: true,
+                        closeButtonValue: t("common.action.close"),
+                        downloadButtonValue: t("common.action.download"),
+                        renderMarkdown: true,
+                        renderReport: (markdown) => <ReactMarkdown source={markdown as string} />,
+                        fetchErrorReport: fetchErrorReportFactory(activity),
+                    }}
                     showProgress={true}
                     showReloadAction={activity.activityCharacteristics.isCacheActivity}
                     showStartAction={!activity.activityCharacteristics.isCacheActivity}

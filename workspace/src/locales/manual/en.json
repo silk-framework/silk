@@ -411,13 +411,6 @@
             }
         },
         "TaskActivityOverview": {
-            "actions": {
-                "errorMessages": {
-                    "start": "Starting activity {{activityName}} has failed.",
-                    "cancel": "Stopping activity {{activityName}} has failed.",
-                    "restart": "Restarting activity {{activityName}} has failed."
-                }
-            },
             "activities": {
                 "ExecuteDefaultWorkflow": {
                     "title": "Execute workflow"
@@ -430,6 +423,9 @@
                 },
                 "ExecuteTransform": {
                     "title": "Execute transformation"
+                },
+                "GlobalVocabularyCache": {
+                    "title": "Primary vocabulary cache"
                 },
                 "LinkingPathsCache": {
                     "title": "Source path cache"
@@ -444,16 +440,28 @@
                     "title": "Types cache"
                 },
                 "VocabularyCache": {
-                    "title": "Vocabulary cache"
+                    "title": "Target vocabulary cache"
                 }
             },
-            "title": "Activity overview",
-            "reloadAllCaches": "Reload all caches",
             "activityControl": {
                 "startActivity": "Start activity",
                 "reloadActivity": "Restart activity",
-                "stopActivity": "Stop activity"
-            }
+                "stopActivity": "Stop activity",
+                "showErrorReport": "Show error report"
+            },
+            "errorMessages": {
+                "actions": {
+                    "start": "Starting activity {{activityName}} has failed.",
+                    "cancel": "Stopping activity {{activityName}} has failed.",
+                    "restart": "Restarting activity {{activityName}} has failed."
+                },
+                "errorReport": {
+                    "fetchReport": "Fetching activity execution error report has failed."
+                }
+
+            },
+            "reloadAllCaches": "Reload all caches",
+            "title": "Activity overview"
         },
         "TaskConfigWidget": {
             "loading": "Loading update dialog...",
