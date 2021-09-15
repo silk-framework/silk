@@ -69,7 +69,7 @@ class ProjectLoadingErrorIntegrationTest extends FlatSpec with SingleProjectWork
     createProject(otherProject)
     val errorReport = taskErrorReport
     errorReport must have size 2
-    errorReport.map(_.taskId) mustBe Seq(failingDataset, failingCustomTask)
+    errorReport.flatMap(_.taskId) mustBe Seq(failingDataset, failingCustomTask)
     val datasetError = errorReport.head
     checkFailingDatasetReport(datasetError)
   }

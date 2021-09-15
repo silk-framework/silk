@@ -26,7 +26,7 @@ object ErrorReport {
                              taskDescription: Option[String] = None,
                              errorMessage: Option[String] = None,
                              stackTrace: Option[Stacktrace] = None) {
-    private def readableTaskName = taskLabel.getOrElse(taskId)
+    private def readableTaskName = taskLabel.getOrElse(taskId.getOrElse("-"))
     /** Render as markdown.
       *
       * @param taskNr If rendered in an overall task report, this is the index of the failed task.

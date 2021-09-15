@@ -12,6 +12,8 @@ import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.{ConfigTestTrait, SparqlMockServerTrait}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
 
+import scala.util.Try
+
 class SafeModeIntegrationTest extends FlatSpec
     with ConfigTestTrait
     with SparqlMockServerTrait
@@ -100,9 +102,13 @@ class SafeModeIntegrationTest extends FlatSpec
 
   it should "prevent access to external datasets when safe-mode is on" in {
     val activity = transformation(sparqlTransform).activity[ExecuteTransform]
-    intercept[SafeModeException] {
-      activity.control.startBlocking()
+    val executionResult = Try(activity.control.startBlocking())
+    executionResult.isFailure mustBe true
+    var ex = executionResult.failed.get
+    while(ex.getCause != null) {
+      ex = ex.getCause
     }
+    ex mustBe a[SafeModeException]
     checkOutputEmpty()
     activity.status().failed mustBe true
     intercept[SafeModeException] {
