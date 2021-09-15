@@ -16,6 +16,7 @@ GET           /vocabularies                                                     
 # Execution Report API
 GET           /reports/list                                                     controllers.workspaceApi.ReportsApi.listReports(projectId: Option[String] ?= None, taskId: Option[String] ?= None)
 GET           /reports/report                                                   controllers.workspaceApi.ReportsApi.retrieveReport(projectId, taskId, time)
+GET           /reports/reportUpdates                                            controllers.workspaceApi.ReportsApi.currentReportUpdates(projectId, taskId, timestamp: Long ?= 0)
 
 # Validation
 

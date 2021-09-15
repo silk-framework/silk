@@ -4,6 +4,8 @@ import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.util.Identifier
 
+import java.time.Instant
+
 /**
   * A workflow execution report.
   *
@@ -50,5 +52,6 @@ case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq
   *
   * @param nodeId The node identifier within the workflow
   * @param report The execution report.
+  * @param timestamp Timestamp of the last update.
   */
-case class WorkflowTaskReport(nodeId: Identifier, report: ExecutionReport)
+case class WorkflowTaskReport(nodeId: Identifier, report: ExecutionReport, timestamp: Instant = Instant.now())

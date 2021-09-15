@@ -1,15 +1,19 @@
 package controllers.workspaceApi
 
+import controllers.core.UserContextActions
 import controllers.workspaceApi.doc.ReportsApiDoc
 import io.swagger.v3.oas.annotations.enums.ParameterIn
-import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.ActivitySerializers.ActivityExecutionResultJsonFormat
-import org.silkframework.serialization.json.ExecutionReportSerializers.ExecutionReportJsonFormat
+import org.silkframework.serialization.json.ExecutionReportSerializers.{ExecutionReportJsonFormat, WorkflowTaskReportJsonFormat}
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.WorkspaceFactory
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow}
 import org.silkframework.workspace.reports.{ExecutionReportManager, ReportIdentifier}
 import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
@@ -18,7 +22,7 @@ import java.time.Instant
 import javax.inject.Inject
 
 @Tag(name = "Execution reports", description = "List and retrieve workflow execution reports.")
-class ReportsApi @Inject() () extends InjectedController {
+class ReportsApi @Inject() () extends InjectedController with UserContextActions {
 
   @Operation(
     summary = "List reports",
@@ -102,6 +106,63 @@ class ReportsApi @Inject() () extends InjectedController {
     val report = ExecutionReportManager().retrieveReport(ReportIdentifier(projectId, taskId, Instant.parse(time)))
     val jsonFormat = new ActivityExecutionResultJsonFormat()(ExecutionReportJsonFormat)
     Ok(jsonFormat.write(report))
+  }
+
+  @Operation(
+    summary = "Report updates",
+    description = "Retrieves updates of the current execution report.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json"
+        ))
+      )
+    ))
+  def currentReportUpdates(@Parameter(
+                             name = "projectId",
+                             description = "The project id of the report",
+                             required = true,
+                             in = ParameterIn.QUERY,
+                             schema = new Schema(implementation = classOf[String])
+                           )
+                           projectId: String,
+                           @Parameter(
+                             name = "taskId",
+                             description = "The task id of the report",
+                             required = true,
+                             in = ParameterIn.QUERY,
+                             schema = new Schema(implementation = classOf[String])
+                           )
+                           taskId: String,
+                           @Parameter(
+                             name = "timestamp",
+                             description = "Only return status updates that happened after this timestamp. Provided in milliseconds since midnight, January 1, 1970 UTC. If not provided or 0, all updates will be returned.",
+                             required = false,
+                             in = ParameterIn.QUERY,
+                             schema = new Schema(implementation = classOf[String])
+                           )
+                           timestamp: Long): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
+    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+    val project = WorkspaceFactory().workspace.project(projectId)
+    val workflow = project.task[Workflow](taskId)
+    // TODO if we are running on Spark, this should use the respective activity
+    val activity = workflow.activity[LocalWorkflowExecutorGeneratingProvenance]
+    val startTime = System.currentTimeMillis()
+    val report = activity.value().report
+
+    Ok(
+      Json.obj(
+        "timestamp" -> startTime,
+        "updates" ->
+          JsArray(
+            for(taskReport <- report.taskReports if taskReport.timestamp.toEpochMilli > timestamp) yield {
+              WorkflowTaskReportJsonFormat.writeSummary(taskReport)
+            }
+          )
+      )
+    )
   }
 
 }
