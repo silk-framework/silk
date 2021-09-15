@@ -60,7 +60,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         return start + params;
     };
 
-    const activityKey = (activity: string, projectId: StringOrUndefined, taskId: StringOrUndefined) =>
+    const activityKey = (activity: string, projectId: StringOrUndefined, taskId: StringOrUndefined): string =>
         `${activity}|${projectId ?? ""}|${taskId ?? ""}`;
 
     const activityKeyOfEntry = (entry: IActivityListEntry): string => {
@@ -205,10 +205,18 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         failedNonMainActivities.length +
         cacheActivities.length;
 
+    const queryString = (activity: IActivityListEntry): string => {
+        const project = activity.metaData ? activity.metaData.projectId : projectId;
+        const task = activity.metaData ? activity.metaData.taskId : taskId;
+        const projectParameter = project ? `&project=${project}` : "";
+        const taskParameter = task ? `&task=${task}` : "";
+        return `?activity=${activity.name}${projectParameter}${taskParameter}`;
+    };
+
     const activityControl = (activity: IActivityListEntry): JSX.Element => {
         const activityFunctions = activityFunctionsCreator(activity);
         return (
-            <>
+            <span key={activity.name}>
                 <DataIntegrationActivityControl
                     label={t(`widget.TaskActivityOverview.activities.${activity.name}.title`, activity.name)}
                     data-test-id={`activity-control-${projectId}-${taskId}-${activity.name}`}
@@ -229,11 +237,17 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                     showReloadAction={activity.activityCharacteristics.isCacheActivity}
                     showStartAction={!activity.activityCharacteristics.isCacheActivity}
                     showStopAction={true}
-                    key={activity.name}
-                    showViewValueAction={activity.activityCharacteristics.isCacheActivity}
+                    viewValueAction={
+                        activity.activityCharacteristics.isCacheActivity
+                            ? {
+                                  tooltip: t("widget.TaskActivityOverview.activityControl.viewCachedData"),
+                                  action: legacyApiEndpoint("/activities/value") + queryString(activity),
+                              }
+                            : undefined
+                    }
                 />
                 <Spacing size={"small"} />
-            </>
+            </span>
         );
     };
 

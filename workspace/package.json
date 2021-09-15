@@ -32,7 +32,7 @@
         "@blueprintjs/core": "^3.49.1",
         "@blueprintjs/select": "^3.18.1",
         "@carbon/icons": "^10.22.0",
-        "@carbon/icons-react": "^10.22.0",
+        "@carbon/icons-react": "^10.38.0",
         "@reduxjs/toolkit": "^1.4.0",
         "@svgr/webpack": "4.3.3",
         "@testing-library/jest-dom": "^5.11.0",

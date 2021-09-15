@@ -454,7 +454,8 @@
                 "startActivity": "Start activity",
                 "reloadActivity": "Restart activity",
                 "stopActivity": "Stop activity",
-                "showErrorReport": "Show error report"
+                "showErrorReport": "Show error report",
+                "viewCachedData": "View cached data in new tab"
             },
             "errorMessages": {
                 "actions": {
