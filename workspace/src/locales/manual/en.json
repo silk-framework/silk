@@ -410,6 +410,13 @@
                 }
             }
         },
+        "TargetVocabularySelection": {
+            "multiSelectionRadioButtonLabel": "Select individual vocabularies",
+            "staticEntryLabel": {
+                "none": "No vocabularies",
+                "all": "All installed vocabularies"
+            }
+        },
         "TaskConfigWidget": {
             "loading": "Loading update dialog...",
             "noPreview": "No preview available",
