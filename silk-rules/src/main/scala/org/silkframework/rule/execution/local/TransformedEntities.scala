@@ -72,7 +72,7 @@ class TransformedEntities(task: Task[TransformSpec],
         lastUpdateTime = System.currentTimeMillis()
       }
     }
-    context.value() = report.build()
+    context.value() = report.build(isDone = true)
     context.status.updateMessage(s"Finished Executing ($count Entities)")
   }
 

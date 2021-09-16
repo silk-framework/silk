@@ -42,7 +42,9 @@ object ExecutionReportSerializers {
           task = GenericTaskJsonFormat.read(requiredValue(value, TASK)),
           summary = arrayValue(value, SUMMARY).value.map(deserializeValue),
           warnings = arrayValue(value, WARNINGS).value.map(_.as[String]),
-          operation = stringValueOption(value, OPERATION)
+          operation = stringValueOption(value, OPERATION),
+          isDone = booleanValueOption(value, IS_DONE).getOrElse(true),
+          entityCount = numberValueOption(value, ENTITY_COUNT).map(_.intValue).getOrElse(0)
         )
       }
     }
@@ -54,6 +56,8 @@ object ExecutionReportSerializers {
         TASK -> GenericTaskJsonFormat.write(value.task),
         SUMMARY -> value.summary.map(serializeValue),
         WARNINGS -> value.warnings,
+        IS_DONE -> value.isDone,
+        ENTITY_COUNT -> value.entityCount
       )
     }
 
@@ -74,8 +78,8 @@ object ExecutionReportSerializers {
     override def write(value: TransformReport)(implicit writeContext: WriteContext[JsValue]): JsObject = {
       ExecutionReportJsonFormat.serializeBasicValues(value) ++
         Json.obj(
-          ENTITY_COUNTER -> value.entityCounter,
-          ENTITY_ERROR_COUNTER -> value.entityErrorCounter,
+          ENTITY_COUNTER -> value.entityCount,
+          ENTITY_ERROR_COUNTER -> value.entityErrorCount,
           RULE_RESULTS -> writeRuleResults(value.ruleResults),
           GLOBAL_ERRORS -> value.globalErrors
         )
@@ -85,8 +89,8 @@ object ExecutionReportSerializers {
       implicit val taskFormat = new TaskJsonFormat[TransformSpec]()
       TransformReport(
         task = taskFormat.read(requiredValue(value, TASK)),
-        entityCounter = numberValue(value, ENTITY_COUNTER).longValue,
-        entityErrorCounter = numberValue(value, ENTITY_ERROR_COUNTER).longValue,
+        entityCount = numberValue(value, ENTITY_COUNTER).intValue,
+        entityErrorCount = numberValue(value, ENTITY_ERROR_COUNTER).intValue,
         ruleResults = readRuleResults(objectValue(value, RULE_RESULTS)),
         globalErrors = arrayValue(value, GLOBAL_ERRORS).value.map(_.as[String])
       )
@@ -162,11 +166,14 @@ object ExecutionReportSerializers {
     }
 
     def writeSummary(value: WorkflowTaskReport)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      val report = value.report
       Json.obj(
         NODE -> value.nodeId.toString,
         TIMESTAMP -> value.timestamp.toEpochMilli,
-        OPERATION -> value.report.operation,
-        WARNINGS -> value.report.warnings
+        OPERATION -> report.operation,
+        WARNINGS -> report.warnings,
+        IS_DONE -> report.isDone,
+        ENTITY_COUNT -> report.entityCount
       )
     }
   }
@@ -218,6 +225,8 @@ object ExecutionReportSerializers {
     final val LABEL = "label"
     final val SUMMARY = "summary"
     final val WARNINGS = "warnings"
+    final val IS_DONE = "isDone"
+    final val ENTITY_COUNT = "entityCount"
     final val NODE = "nodeId" // node id within a workflow
     final val TIMESTAMP = "timestamp"
 

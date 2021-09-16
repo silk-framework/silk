@@ -12,9 +12,6 @@ import org.silkframework.workspace.ProjectTask
 
 import scala.collection.mutable
 
-/**
-  * Created by robert on 9/21/2016.
-  */
 trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecutionReport] {
 
   /** Returns the workflow task */
@@ -199,7 +196,7 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
                                    task: Task[_ <: TaskSpec],
                                    taskContext: ActivityMonitor[ExecutionReport]): Unit = {
     // Add initial task report
-    activityContext.value() = activityContext.value().addReport(nodeId, SimpleExecutionReport(task, Seq.empty, Seq.empty))
+    activityContext.value() = activityContext.value().addReport(nodeId, SimpleExecutionReport(task, Seq.empty, Seq.empty, isDone = false, entityCount = 0))
     // Listen for changes and update the task report for each change
     val listener = new TaskReportListener(reportListeners.size, nodeId)
     taskContext.value.subscribe(listener)

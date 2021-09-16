@@ -1,10 +1,10 @@
 package org.silkframework.rule.execution
 
-import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.config.Task
 import org.silkframework.entity.Entity
 import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.rule.{TransformRule, TransformSpec}
 import org.silkframework.rule.execution.TransformReport.{RuleError, RuleResult}
+import org.silkframework.rule.{TransformRule, TransformSpec}
 import org.silkframework.util.Identifier
 
 /**
@@ -13,9 +13,9 @@ import org.silkframework.util.Identifier
   */
 private class TransformReportBuilder(task: Task[TransformSpec], rules: Seq[TransformRule],  previousReport: TransformReport) {
 
-  private var entityCounter = previousReport.entityCounter
+  private var entityCounter = previousReport.entityCount
 
-  private var entityErrorCounter = previousReport.entityErrorCounter
+  private var entityErrorCounter = previousReport.entityErrorCount
 
   private var ruleResults: Map[Identifier, RuleResult] = {
     previousReport.ruleResults ++ rules.map(rule => (rule.id, RuleResult())).toMap
@@ -46,7 +46,7 @@ private class TransformReportBuilder(task: Task[TransformSpec], rules: Seq[Trans
     entityErrorCounter += 1
   }
 
-  def build(): TransformReport = {
-    TransformReport(task, entityCounter, entityErrorCounter, ruleResults, previousReport.globalErrors)
+  def build(isDone: Boolean = false): TransformReport = {
+    TransformReport(task, entityCounter, entityErrorCounter, ruleResults, previousReport.globalErrors, isDone)
   }
 }

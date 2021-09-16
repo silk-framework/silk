@@ -48,8 +48,8 @@ class ExecuteTransformTest extends FlatSpec with Matchers with MockitoSugar {
     verify(outputMock).writeEntity("uri", IndexedSeq(Seq("valid"), Seq("valid")))
     // This functionality has been removed in the LocalExecutor and needs to be reimplemented: verify(errorOutputMock).writeEntity("", IndexedSeq(Seq("invalid"), Seq("valid")))
     val resultStats = executeTransformResultHolder()
-    resultStats.entityCounter shouldBe 2
-    resultStats.entityErrorCounter shouldBe 1
+    resultStats.entityCount shouldBe 2
+    resultStats.entityErrorCount shouldBe 1
     resultStats.ruleResults.size shouldBe 2
     resultStats.ruleResults("propTransform").errorCount shouldBe 1
     resultStats.ruleResults("prop2Transform").errorCount shouldBe 0

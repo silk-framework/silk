@@ -122,7 +122,7 @@ class GenerateLinks(task: Task[LinkSpec],
       }
       filteredLinks = filteredLinks.take(linkLimit)
     }
-    context.value.update(Linking(task, filteredLinks, context.value().statistics, context.value().matcherWarnings))
+    context.value.update(Linking(task, filteredLinks, context.value().statistics, context.value().matcherWarnings, isDone = true))
 
     //Output links
     // TODO dont commit links to context if the task is not configured to hold links

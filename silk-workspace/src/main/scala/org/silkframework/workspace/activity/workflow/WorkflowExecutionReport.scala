@@ -12,7 +12,7 @@ import java.time.Instant
   * @param task The workflow that was executed
   * @param taskReports A map from each workflow operator id to its corresponding report
   */
-case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq[WorkflowTaskReport] = IndexedSeq.empty) extends ExecutionReport {
+case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq[WorkflowTaskReport] = IndexedSeq.empty, isDone: Boolean = false) extends ExecutionReport {
 
   /**
     * Adds a new task report.
@@ -45,6 +45,8 @@ case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq
       Seq.empty
     }
   }
+
+  override def entityCount: Int = taskReports.size
 }
 
 /**

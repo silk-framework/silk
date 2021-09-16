@@ -100,7 +100,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
       WorkflowTaskReport(name, res: TransformReport, _) <- report.report.taskReports
       (column, RuleResult(count, _)) <- res.ruleResults
     } {
-      lines :+= s"$name;${res.entityCounter};${res.entityErrorCounter};$column;$count"
+      lines :+= s"$name;${res.entityCount};${res.entityErrorCount};$column;$count"
     }
 
     Ok(lines.mkString("\n"))

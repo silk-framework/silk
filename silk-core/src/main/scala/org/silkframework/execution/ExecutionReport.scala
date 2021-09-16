@@ -34,4 +34,15 @@ trait ExecutionReport {
     */
   def warnings: Seq[String]
 
+  /**
+    * True, if the execution finished.
+    * False, if the execution is still running and the report reflects the current execution progress.
+    */
+  def isDone: Boolean
+
+  /**
+    * The number of entities that have been processed.
+    */
+  def entityCount: Int
+
 }

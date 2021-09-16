@@ -117,7 +117,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     data match {
       case LinksTable(links, linkType, _) =>
         withLinkSink(dataset, execution) { linkSink =>
-          writeLinks(linkSink, links, linkType)
+          writeLinks(dataset, linkSink, links, linkType)
         }
       case tripleEntityTable: TripleEntityTable =>
         withEntitySink(dataset, execution) { entitySink =>
@@ -325,12 +325,17 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     logger.log(Level.INFO, "Finished writing " + entityCount + " entities with type '" + entityTable.entitySchema.typeUri + "' in " + time + " seconds")
   }
 
-  private def writeLinks(sink: LinkSink, links: Seq[Link], linkType: Uri)
-                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+  private def writeLinks(dataset: Task[DatasetSpec[DatasetType]], sink: LinkSink, links: Seq[Link], linkType: Uri)
+                        (implicit userContext: UserContext, prefixes: Prefixes, context: ActivityContext[ExecutionReport]): Unit = {
+    implicit val report: ExecutionReportUpdater = WriteLinksReportUpdater(dataset, context)
     val startTime = System.currentTimeMillis()
     sink.init()
-    for (link <- links) sink.writeLink(link, linkType.uri)
+    for (link <- links) {
+      sink.writeLink(link, linkType.uri)
+      report.increaseEntityCounter()
+    }
     val time = (System.currentTimeMillis - startTime) / 1000.0
+    report.executionDone()
     logger.log(Level.INFO, "Finished writing links in " + time + " seconds")
   }
 
@@ -389,6 +394,13 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
   case class ReadEntitiesReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
     override def operationLabel: Option[String] = Some("read")
     override def entityProcessVerb: String = "read"
+  }
+
+  case class WriteLinksReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def entityLabelSingle: String = "Link"
+    override def entityLabelPlural: String = "Links"
+    override def operationLabel: Option[String] = Some("write")
+    override def entityProcessVerb: String = "written"
   }
 
   /**
