@@ -450,6 +450,11 @@
                     "title": "Target vocabulary cache"
                 }
             },
+            "cacheGroup": {
+                "title": "Caches",
+                "cacheAgePrefix": "Updated before: ",
+                "cacheAgePrefixIndividual": "updated before: "
+            },
             "activityControl": {
                 "startActivity": "Start activity",
                 "reloadActivity": "Restart activity",

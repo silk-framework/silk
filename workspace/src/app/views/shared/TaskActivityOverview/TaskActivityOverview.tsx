@@ -1,12 +1,25 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@gui-elements/src/components/Card";
-import { Divider, Spacing } from "@gui-elements/index";
+import {
+    Divider,
+    Icon,
+    OverviewItem,
+    OverviewItemDescription,
+    OverviewItemLine,
+    Spacing,
+    Spinner,
+    WhiteSpaceContainer,
+} from "@gui-elements/index";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
     ActivityAction,
     DataIntegrationActivityControl,
 } from "@gui-elements/src/components/dataIntegrationComponents/ActivityControl/DataIntegrationActivityControl";
-import { IActivityListEntry } from "./taskActivityOverviewTypings";
+import {
+    IActivityCachesOverallStatus,
+    IActivityControlFunctions,
+    IActivityListEntry,
+} from "./taskActivityOverviewTypings";
 import { activityActionCreator, fetchActivityErrorReport, fetchActivityInfos } from "./taskActivityOverviewRequests";
 import { IActivityStatus } from "@gui-elements/src/components/dataIntegrationComponents/ActivityControl/ActivityControlTypes";
 import Loading from "../Loading";
@@ -17,16 +30,12 @@ import useErrorHandler from "../../../hooks/useErrorHandler";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import ReactMarkdown from "react-markdown";
+import ContentBlobToggler from "../ContentBlobToggler";
+import { ElapsedDateTimeDisplay } from "@gui-elements/src/components/dataIntegrationComponents/DateTimeDisplay/ElapsedDateTimeDisplay";
 
 interface IProps {
     projectId: string;
     taskId: string;
-}
-
-interface IActivityControlFunctions {
-    registerForUpdates: (callback: (status: IActivityStatus) => any) => any;
-    unregisterFromUpdates: () => any;
-    executeActivityAction: (action: ActivityAction) => void;
 }
 
 type StringOrUndefined = string | undefined;
@@ -35,6 +44,8 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
     const [activities, setActivities] = useState<IActivityListEntry[]>([]);
+    // So the update functions can access the current activities
+    const [unmanagedState] = useState<{ activities: IActivityListEntry[] }>({ activities: [] });
     // Map from activity to current status
     const [activityStatusMap] = useState<Map<string, IActivityStatus>>(new Map());
     const [activityFunctionsMap] = useState<Map<string, IActivityControlFunctions>>(new Map());
@@ -42,6 +53,11 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const { isOpen } = useSelector(commonSel.artefactModalSelector);
     const [loading, setLoading] = useState<boolean>(true);
     const setUpdateSwitch = useState<boolean>(false)[1];
+    const [cachesOverallStatus] = useState<IActivityCachesOverallStatus>({
+        failedActivities: 0,
+        oldestStartTime: undefined,
+        currentlyExecuting: false,
+    });
 
     const triggerUpdate = () => {
         setUpdateSwitch((old) => !old);
@@ -83,6 +99,38 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         );
     };
 
+    const updateOverallCacheState = (): boolean => {
+        let triggerUpdate = false;
+        const cacheActivityKeys = unmanagedState.activities
+            .filter((a) => a.activityCharacteristics.isCacheActivity)
+            .map((a) => activityKeyOfEntry(a));
+        const cacheActivityStatus = cacheActivityKeys
+            .map((activityKey) => activityStatusMap.get(activityKey))
+            .filter((a) => a) as IActivityStatus[];
+        // Update currently-executing state
+        const executing = cacheActivityStatus.some((status) => status.isRunning);
+        if (cachesOverallStatus.currentlyExecuting !== executing) {
+            cachesOverallStatus.currentlyExecuting = executing;
+            triggerUpdate = true;
+        }
+        // Update failed activities
+        const failedActivities = cacheActivityStatus.filter((a) => a.failed).length;
+        if (cachesOverallStatus.failedActivities !== failedActivities) {
+            cachesOverallStatus.failedActivities = failedActivities;
+            triggerUpdate = true;
+        }
+        // Update oldest start time
+        const oldestStartTime = cacheActivityStatus
+            .map((a) => a.startTime as string)
+            .filter((a) => a)
+            .sort((a, b) => (a < b ? -1 : 1))[0];
+        if (cachesOverallStatus.oldestStartTime !== oldestStartTime) {
+            cachesOverallStatus.oldestStartTime = oldestStartTime;
+            triggerUpdate = true;
+        }
+        return triggerUpdate;
+    };
+
     const fetchTaskActivityInfos = async () => {
         setLoading(true);
         const updateActivityStatus = (activityStatus: IActivityStatus) => {
@@ -90,7 +138,8 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
             const oldValue = activityStatusMap.get(key);
             activityStatusMap.set(key, activityStatus);
             activityUpdateCallback.get(key)?.(activityStatus);
-            if (!oldValue || oldValue.isRunning !== activityStatus.isRunning) {
+            const shouldTriggerUpdate = updateOverallCacheState();
+            if (!oldValue || oldValue.isRunning !== activityStatus.isRunning || shouldTriggerUpdate) {
                 triggerUpdate();
             }
         };
@@ -105,6 +154,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                     return requestUpdates(updateActivityStatus, a.metaData?.projectId, a.metaData?.taskId, a.name);
                 });
             setActivities(activityList);
+            unmanagedState.activities = activityList;
             const cleanUpFunctions = await Promise.all([updateCleanUpFunction, ...additionCleanUpFunctions]);
             return () => {
                 cleanUpFunctions.forEach((fn) => fn());
@@ -215,15 +265,23 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
 
     const activityControl = (activity: IActivityListEntry): JSX.Element => {
         const activityFunctions = activityFunctionsCreator(activity);
+        const activityLabel = t(`widget.TaskActivityOverview.activities.${activity.name}.title`, activity.name);
+        const elapsedTime = activity.activityCharacteristics.isCacheActivity
+            ? {
+                  prefix: ` (${t("widget.TaskActivityOverview.cacheGroup.cacheAgePrefixIndividual")}`,
+                  suffix: ")",
+              }
+            : undefined;
         return (
             <span key={activity.name}>
                 <DataIntegrationActivityControl
-                    label={t(`widget.TaskActivityOverview.activities.${activity.name}.title`, activity.name)}
+                    label={activityLabel}
                     data-test-id={`activity-control-${projectId}-${taskId}-${activity.name}`}
                     executeActivityAction={activityFunctions.executeActivityAction}
                     registerForUpdates={activityFunctions.registerForUpdates}
                     unregisterFromUpdates={activityFunctions.unregisterFromUpdates}
                     translate={translate}
+                    elapsedTimeOfLastStart={elapsedTime}
                     failureReportAction={{
                         title: "", // The title is already repeated in the markdown
                         allowDownload: true,
@@ -251,6 +309,49 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         );
     };
 
+    const cacheWidget = () => {
+        return (
+            <Card>
+                <OverviewItem>
+                    <OverviewItemDescription>
+                        <OverviewItemLine>
+                            {t("widget.TaskActivityOverview.cacheGroup.title", "Caches")}
+                        </OverviewItemLine>
+                        <OverviewItemLine>
+                            {cachesOverallStatus.oldestStartTime ? (
+                                <>
+                                    <ElapsedDateTimeDisplay
+                                        prefix={t("widget.TaskActivityOverview.cacheGroup.cacheAgePrefix")}
+                                        dateTime={cachesOverallStatus.oldestStartTime}
+                                    />
+                                    <Spacing vertical={true} />
+                                </>
+                            ) : (
+                                ""
+                            )}
+                            {cachesOverallStatus.failedActivities ? (
+                                <>
+                                    <Icon
+                                        name={"state-warning"}
+                                        tooltipText={`${cachesOverallStatus.failedActivities} failed activities`}
+                                    />
+                                    <Spacing vertical={true} />
+                                </>
+                            ) : (
+                                ""
+                            )}
+                            {cachesOverallStatus.currentlyExecuting ? (
+                                <Spinner position={"inline"} size={"tiny"} />
+                            ) : (
+                                ""
+                            )}
+                        </OverviewItemLine>
+                    </OverviewItemDescription>
+                </OverviewItem>
+            </Card>
+        );
+    };
+
     return nrActivitiesToShow > 0 ? (
         <Card data-test-id={"taskActivityOverview"}>
             <CardHeader>
@@ -265,10 +366,24 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                 ) : (
                     <>
                         {mainActivities.map((a) => activityControl(a))}
+                        {cacheActivities.length ? (
+                            <ContentBlobToggler
+                                textToggleReduce={"Hide"}
+                                textToggleExtend={"Open"}
+                                contentPreview={cacheWidget()}
+                                contentFullview={
+                                    <>
+                                        {cacheWidget()}
+                                        <WhiteSpaceContainer marginBottom="small" marginLeft="regular">
+                                            <Spacing size={"small"} />
+                                            {cacheActivities.map((a) => activityControl(a))}
+                                        </WhiteSpaceContainer>
+                                    </>
+                                }
+                            />
+                        ) : null}
                         {failedNonMainActivities.map((a) => activityControl(a))}
                         {runningNonMainActivities.map((a) => activityControl(a))}
-                        {/* TODO: cache activity widget */}
-                        {cacheActivities.map((a) => activityControl(a))}
                     </>
                 )}
             </CardContent>
