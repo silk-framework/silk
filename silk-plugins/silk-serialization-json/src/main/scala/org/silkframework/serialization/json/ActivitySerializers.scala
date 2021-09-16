@@ -82,7 +82,7 @@ object ActivitySerializers {
     }
   }
 
-  class ExtendedStatusJsonFormat(project: String, task: String, activity: String, startTime: Option[Instant]) extends WriteOnlyJsonFormat[Status] {
+  class ExtendedStatusJsonFormat(project: String, task: String, activity: String, startTime: => Option[Instant]) extends WriteOnlyJsonFormat[Status] {
 
     def this(activity: WorkspaceActivity[_]) = {
       this(activity.projectOpt.map(_.name.toString).getOrElse(""), activity.taskOption.map(_.id.toString).getOrElse(""), activity.name, activity.startTime)
