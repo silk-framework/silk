@@ -73,27 +73,30 @@ export const TaskActivityWidget = ({ projectId, taskId, activityName, label = ""
     const executeActions = activityActionCreator(activityName, projectId, taskId, handleError);
     const translate = useCallback((key: string) => t("widget.TaskActivityOverview.activityControl." + key), [t]);
 
+    // TODO: Fix size issues with activity control and tooltip
     return (
-        <DataIntegrationActivityControl
-            label={label}
-            data-test-id={`activity-control-workflow-editor`}
-            executeActivityAction={executeActions}
-            registerForUpdates={registerForUpdate}
-            unregisterFromUpdates={() => {}}
-            translate={translate}
-            failureReportAction={{
-                title: "", // The title is already repeated in the markdown
-                allowDownload: true,
-                closeButtonValue: t("common.action.close"),
-                downloadButtonValue: t("common.action.download"),
-                renderMarkdown: true,
-                renderReport: (markdown) => <ReactMarkdown source={markdown as string} />,
-                fetchErrorReport: activityErrorReport,
-            }}
-            showProgress={true}
-            showStartAction={true}
-            showStopAction={true}
-            showReloadAction={false}
-        />
+        <div style={{ minWidth: "400px", maxWidth: "400px" }}>
+            <DataIntegrationActivityControl
+                label={label}
+                data-test-id={`activity-control-workflow-editor`}
+                executeActivityAction={executeActions}
+                registerForUpdates={registerForUpdate}
+                unregisterFromUpdates={() => {}}
+                translate={translate}
+                failureReportAction={{
+                    title: "", // The title is already repeated in the markdown
+                    allowDownload: true,
+                    closeButtonValue: t("common.action.close"),
+                    downloadButtonValue: t("common.action.download"),
+                    renderMarkdown: true,
+                    renderReport: (markdown) => <ReactMarkdown source={markdown as string} />,
+                    fetchErrorReport: activityErrorReport,
+                }}
+                showProgress={true}
+                showStartAction={true}
+                showStopAction={true}
+                showReloadAction={false}
+            />
+        </div>
     );
 };
