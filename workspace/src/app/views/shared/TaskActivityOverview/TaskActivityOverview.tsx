@@ -313,6 +313,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                             {cachesOverallStatus.oldestStartTime ? (
                                 <>
                                     <ElapsedDateTimeDisplay
+                                        data-test-id={"cacheGroup-cache-age"}
                                         prefix={t("widget.TaskActivityOverview.cacheGroup.cacheAgePrefix")}
                                         dateTime={cachesOverallStatus.oldestStartTime}
                                     />
