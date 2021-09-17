@@ -1219,7 +1219,7 @@
     "@carbon/icon-helpers" "^10.10.0"
     prop-types "^15.7.2"
 
-"@carbon/icons-react@^10.42.0":
+"@carbon/icons-react@^10.38.0":
   version "10.38.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@carbon/icons-react/-/icons-react-10.38.0.tgz#fd5050f3a630a20a2d46a21ba2b141adcd65c548"
   integrity sha1-/VBQ86YwogotRqIborFBrc1lxUg=

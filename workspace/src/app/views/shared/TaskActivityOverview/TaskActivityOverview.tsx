@@ -357,20 +357,22 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                     <>
                         {mainActivities.map((a) => activityControl(a))}
                         {cacheActivities.length ? (
-                            <ContentBlobToggler
-                                textToggleReduce={"Hide"}
-                                textToggleExtend={"Open"}
-                                contentPreview={<CacheWidget />}
-                                contentFullview={
-                                    <>
-                                        {<CacheWidget />}
-                                        <WhiteSpaceContainer marginBottom="small" marginLeft="regular">
-                                            <Spacing size={"small"} />
-                                            {cacheActivities.map((a) => activityControl(a))}
-                                        </WhiteSpaceContainer>
-                                    </>
-                                }
-                            />
+                            <div data-test-id={"taskActivityOverview-cacheActivityGroup"}>
+                                <ContentBlobToggler
+                                    textToggleReduce={"Hide"}
+                                    textToggleExtend={"Open"}
+                                    contentPreview={<CacheWidget />}
+                                    contentFullview={
+                                        <>
+                                            {<CacheWidget />}
+                                            <WhiteSpaceContainer marginBottom="small" marginLeft="regular">
+                                                <Spacing size={"small"} />
+                                                {cacheActivities.map((a) => activityControl(a))}
+                                            </WhiteSpaceContainer>
+                                        </>
+                                    }
+                                />
+                            </div>
                         ) : null}
                         {failedNonMainActivities.map((a) => activityControl(a))}
                         {runningNonMainActivities.map((a) => activityControl(a))}
