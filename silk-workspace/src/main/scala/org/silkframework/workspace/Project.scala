@@ -207,12 +207,13 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     * @tparam T The task type.
     */
   def addTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty)
-                                       (implicit userContext: UserContext): Unit = synchronized {
+                                       (implicit userContext: UserContext): ProjectTask[T] = synchronized {
     if(allTasks.exists(_.id == name)) {
       throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
     }
-    module[T].add(name, taskData, metaData.asNewMetaData)
+    val task = module[T].add(name, taskData, metaData.asNewMetaData)
     provider.removeExternalTaskLoadingError(config.id, name)
+    task
   }
 
   /**
@@ -222,7 +223,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     * @param taskData The task data.
     */
   def addAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty)
-                (implicit userContext: UserContext): Unit = synchronized {
+                (implicit userContext: UserContext): ProjectTask[TaskSpec] = synchronized {
     if(allTasks.exists(_.id == name)) {
       throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
     }

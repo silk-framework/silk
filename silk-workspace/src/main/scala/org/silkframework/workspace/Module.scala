@@ -74,13 +74,14 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
   }
 
   def add(name: Identifier, taskData: TaskData, metaData: MetaData)
-         (implicit userContext: UserContext): Unit = {
+         (implicit userContext: UserContext) : ProjectTask[TaskData] = {
     val task = new ProjectTask(name, taskData, metaData, this)
     validator.validate(project, task)
     provider.putTask(project.name, task)
     task.startActivities()
     cachedTasks += ((name, task))
     logger.info(s"Added task '$name' to project ${project.name}. " + userContext.logInfo)
+    task
   }
 
   /**
