@@ -292,8 +292,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         );
     };
 
-    const cacheWidget = () => {
-        console.warn(new Date().getTime() - new Date(cachesOverallStatus.oldestStartTime as string).getTime());
+    const CacheWidget = () => {
         return (
             <Card>
                 <OverviewItem>
@@ -354,10 +353,10 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                             <ContentBlobToggler
                                 textToggleReduce={"Hide"}
                                 textToggleExtend={"Open"}
-                                contentPreview={cacheWidget()}
+                                contentPreview={<CacheWidget />}
                                 contentFullview={
                                     <>
-                                        {cacheWidget()}
+                                        {<CacheWidget />}
                                         <WhiteSpaceContainer marginBottom="small" marginLeft="regular">
                                             <Spacing size={"small"} />
                                             {cacheActivities.map((a) => activityControl(a))}
