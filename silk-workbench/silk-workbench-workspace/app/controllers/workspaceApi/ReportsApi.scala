@@ -1,6 +1,9 @@
 package controllers.workspaceApi
 
+import akka.actor.ActorSystem
+import akka.stream.Materializer
 import controllers.core.UserContextActions
+import controllers.util.AkkaUtils
 import controllers.workspaceApi.doc.ReportsApiDoc
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
@@ -9,20 +12,20 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.WriteContext
-import org.silkframework.serialization.json.ActivitySerializers.ActivityExecutionResultJsonFormat
+import org.silkframework.serialization.json.ActivitySerializers.{ActivityExecutionResultJsonFormat, ExtendedStatusJsonFormat}
 import org.silkframework.serialization.json.ExecutionReportSerializers.{ExecutionReportJsonFormat, WorkflowTaskReportJsonFormat}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow}
 import org.silkframework.workspace.reports.{ExecutionReportManager, ReportIdentifier}
 import play.api.libs.json.{JsArray, JsValue, Json}
-import play.api.mvc.{Action, AnyContent, InjectedController}
+import play.api.mvc.{Action, AnyContent, InjectedController, WebSocket}
 
 import java.time.Instant
 import javax.inject.Inject
 
 @Tag(name = "Execution reports", description = "List and retrieve workflow execution reports.")
-class ReportsApi @Inject() () extends InjectedController with UserContextActions {
+class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) extends InjectedController with UserContextActions {
 
   @Operation(
     summary = "List reports",
@@ -163,6 +166,47 @@ class ReportsApi @Inject() () extends InjectedController with UserContextActions
           )
       )
     )
+  }
+
+  @Operation(
+    summary = "Report updates (websocket)",
+    description = "Retrieves updates of the current execution report.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json"
+        ))
+      )
+    ))
+  def currentReportUpdatesWebsocket(@Parameter(
+                                      name = "projectId",
+                                      description = "The project id of the report",
+                                      required = true,
+                                      in = ParameterIn.QUERY,
+                                      schema = new Schema(implementation = classOf[String])
+                                    )
+                                    projectId: String,
+                                    @Parameter(
+                                      name = "taskId",
+                                      description = "The task id of the report",
+                                      required = true,
+                                      in = ParameterIn.QUERY,
+                                      schema = new Schema(implementation = classOf[String])
+                                    )
+                                    taskId: String): WebSocket = {
+    implicit val userContext: UserContext = UserContext.Empty
+    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+
+    val project = WorkspaceFactory().workspace.project(projectId)
+    val workflow = project.task[Workflow](taskId)
+    // TODO if we are running on Spark, this should use the respective activity
+    val activity = workflow.activity[LocalWorkflowExecutorGeneratingProvenance]
+    implicit val format = new ExtendedStatusJsonFormat(activity)
+
+    val source = AkkaUtils.createSource(activity.status).map(format.write)
+    AkkaUtils.createWebSocket(source)
   }
 
 }
