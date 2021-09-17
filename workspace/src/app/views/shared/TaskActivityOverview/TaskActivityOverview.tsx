@@ -3,6 +3,7 @@ import {
     Divider,
     Icon,
     OverviewItem,
+    OverviewItemActions,
     OverviewItemDescription,
     OverviewItemLine,
     Spacing,
@@ -299,6 +300,14 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                     <OverviewItemDescription>
                         <OverviewItemLine>
                             {t("widget.TaskActivityOverview.cacheGroup.title", "Caches")}
+                            {cachesOverallStatus.currentlyExecuting ? (
+                                <>
+                                    <Spacing vertical={true} />
+                                    <Spinner position={"inline"} size={"small"} />
+                                </>
+                            ) : (
+                                ""
+                            )}
                         </OverviewItemLine>
                         <OverviewItemLine>
                             {cachesOverallStatus.oldestStartTime ? (
@@ -312,24 +321,22 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                             ) : (
                                 ""
                             )}
-                            {cachesOverallStatus.failedActivities ? (
-                                <>
-                                    <Icon
-                                        name={"state-warning"}
-                                        tooltipText={`${cachesOverallStatus.failedActivities} failed activities`}
-                                    />
-                                    <Spacing vertical={true} />
-                                </>
-                            ) : (
-                                ""
-                            )}
-                            {cachesOverallStatus.currentlyExecuting ? (
-                                <Spinner position={"inline"} size={"tiny"} />
-                            ) : (
-                                ""
-                            )}
                         </OverviewItemLine>
                     </OverviewItemDescription>
+                    <OverviewItemActions>
+                        {cachesOverallStatus.failedActivities ? (
+                            <>
+                                <Icon
+                                    name={"state-warning"}
+                                    tooltipText={`${cachesOverallStatus.failedActivities} failed activities`}
+                                />
+                                <Spacing vertical={true} />
+                            </>
+                        ) : (
+                            ""
+                        )}
+                        <Spacing />
+                    </OverviewItemActions>
                 </OverviewItem>
             </Card>
         );
