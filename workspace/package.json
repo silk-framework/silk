@@ -20,7 +20,7 @@
         "watch-di-dev": "node scripts/build-di.dev.js --watch",
         "watch": "node scripts/build-di.dev.js --watch",
         "build-di-dev": "node scripts/build-di.dev.js",
-        "build-di-prod": "node scripts/build-di.prod.js",
+        "build-di-prod": "node --max_old_space_size=2048 scripts/build-di.prod.js",
         "build": "node scripts/build.js",
         "test": "node scripts/test.js",
         "test-ci": "export CI=true && node scripts/test.js --coverage --reporters=\"jest-junit\"",
