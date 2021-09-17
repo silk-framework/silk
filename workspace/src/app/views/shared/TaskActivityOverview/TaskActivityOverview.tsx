@@ -20,7 +20,7 @@ import {
     IActivityControlFunctions,
     IActivityListEntry,
 } from "./taskActivityOverviewTypings";
-import { activityActionCreator, fetchActivityErrorReport, fetchActivityInfos } from "./taskActivityOverviewRequests";
+import { activityActionCreator, fetchActivityInfos } from "./taskActivityOverviewRequests";
 import { IActivityStatus } from "@gui-elements/src/components/dataIntegrationComponents/ActivityControl/ActivityControlTypes";
 import Loading from "../Loading";
 import { connectWebSocket } from "../../../services/websocketUtils";
@@ -293,6 +293,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     };
 
     const cacheWidget = () => {
+        console.warn(new Date().getTime() - new Date(cachesOverallStatus.oldestStartTime as string).getTime());
         return (
             <Card>
                 <OverviewItem>
