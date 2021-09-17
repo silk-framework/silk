@@ -10,13 +10,13 @@ import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.activity.{Observable, UserContext}
 import org.silkframework.runtime.serialization.WriteContext
-import org.silkframework.serialization.json.ActivitySerializers.{ActivityExecutionResultJsonFormat, ExtendedStatusJsonFormat}
+import org.silkframework.serialization.json.ActivitySerializers.ActivityExecutionResultJsonFormat
 import org.silkframework.serialization.json.ExecutionReportSerializers.{ExecutionReportJsonFormat, WorkflowTaskReportJsonFormat}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.WorkspaceFactory
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutionReportWithProvenance}
 import org.silkframework.workspace.reports.{ExecutionReportManager, ReportIdentifier}
 import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController, WebSocket}
@@ -112,6 +112,39 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
   }
 
   @Operation(
+    summary = "Current report",
+    description = "Retrieves the current execution report.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json"
+        ))
+      )
+    ))
+  def currentReport(@Parameter(
+                      name = "projectId",
+                      description = "The project id of the report",
+                      required = true,
+                      in = ParameterIn.QUERY,
+                      schema = new Schema(implementation = classOf[String])
+                    )
+                    projectId: String,
+                    @Parameter(
+                      name = "taskId",
+                      description = "The task id of the report",
+                      required = true,
+                      in = ParameterIn.QUERY,
+                      schema = new Schema(implementation = classOf[String])
+                    )
+                    taskId: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
+    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+    val report = retrieveCurrentReport(projectId, taskId).apply().report
+    Ok(ExecutionReportJsonFormat.write(report))
+  }
+
+  @Operation(
     summary = "Report updates",
     description = "Retrieves updates of the current execution report.",
     responses = Array(
@@ -148,12 +181,8 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
                            )
                            timestamp: Long): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
     implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
-    val project = WorkspaceFactory().workspace.project(projectId)
-    val workflow = project.task[Workflow](taskId)
-    // TODO if we are running on Spark, this should use the respective activity
-    val activity = workflow.activity[LocalWorkflowExecutorGeneratingProvenance]
     val startTime = System.currentTimeMillis()
-    val report = activity.value().report
+    val report = retrieveCurrentReport(projectId, taskId).apply().report
 
     Ok(
       Json.obj(
@@ -198,15 +227,26 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
                                     taskId: String): WebSocket = {
     implicit val userContext: UserContext = UserContext.Empty
     implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+    val currentReport = retrieveCurrentReport(projectId, taskId)
 
+    var lastUpdate = Instant.MIN
+    val source = AkkaUtils.createSource(currentReport).map { value =>
+      lastUpdate = value.report.taskReports.maxBy(_.timestamp).timestamp
+      JsArray(
+        for(taskReport <- value.report.taskReports if taskReport.timestamp isAfter lastUpdate) yield {
+          WorkflowTaskReportJsonFormat.writeSummary(taskReport)
+        }
+      )
+    }
+    AkkaUtils.createWebSocket(source)
+  }
+
+  private def retrieveCurrentReport(projectId: String, taskId: String)(implicit userContext: UserContext): Observable[WorkflowExecutionReportWithProvenance] = {
     val project = WorkspaceFactory().workspace.project(projectId)
     val workflow = project.task[Workflow](taskId)
     // TODO if we are running on Spark, this should use the respective activity
     val activity = workflow.activity[LocalWorkflowExecutorGeneratingProvenance]
-    implicit val format = new ExtendedStatusJsonFormat(activity)
-
-    val source = AkkaUtils.createSource(activity.status).map(format.write)
-    AkkaUtils.createWebSocket(source)
+    activity.value
   }
 
 }
