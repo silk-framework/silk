@@ -32,6 +32,7 @@ import { commonSel } from "@ducks/common";
 import ReactMarkdown from "react-markdown";
 import ContentBlobToggler from "../ContentBlobToggler";
 import { ElapsedDateTimeDisplay } from "@gui-elements/src/components/dataIntegrationComponents/DateTimeDisplay/ElapsedDateTimeDisplay";
+import { activityErrorReportFactory, activityQueryString } from "./taskActivityUtils.";
 
 interface IProps {
     projectId: string;
@@ -63,19 +64,6 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         setUpdateSwitch((old) => !old);
     };
 
-    const updateQuery = (
-        projectId: StringOrUndefined,
-        taskId: StringOrUndefined,
-        activityName: StringOrUndefined
-    ): string => {
-        const start = projectId || taskId || activityName ? "?" : "";
-        const project = projectId ? "project=" + projectId : undefined;
-        const task = taskId ? "task=" + taskId : undefined;
-        const activity = activityName ? "activity=" + activityName : undefined;
-        const params = [project, task, activity].filter((param) => param).join("&");
-        return start + params;
-    };
-
     const activityKey = (activity: string, projectId: StringOrUndefined, taskId: StringOrUndefined): string =>
         `${activity}|${projectId ?? ""}|${taskId ?? ""}`;
 
@@ -91,7 +79,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         task: StringOrUndefined,
         activityName: StringOrUndefined
     ) => {
-        const query = updateQuery(project, task, activityName);
+        const query = activityQueryString(project, task, activityName);
         return connectWebSocket(
             legacyApiEndpoint(`/activities/updatesWebSocket${query}`),
             legacyApiEndpoint(`/activities/updates${query}`),
@@ -174,25 +162,20 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const fetchErrorReportFactory = (activity: IActivityListEntry) => {
         const project = activity.metaData ? activity.metaData.projectId : projectId;
         const task = activity.metaData ? activity.metaData.taskId : taskId;
-        return async (markdown: boolean) => {
-            try {
-                const response = await fetchActivityErrorReport(activity.name, project, task, markdown);
-                return response.data;
-            } catch (ex) {
-                registerError(
-                    `taskActivityOverview-fetchErrorReport`,
-                    t("widget.TaskActivityOverview.errorMessages.errorReport.fetchReport"),
-                    ex
-                );
-            }
-        };
+        return activityErrorReportFactory(activity.name, project, task, (ex) => {
+            registerError(
+                `taskActivityOverview-fetchErrorReport`,
+                t("widget.TaskActivityOverview.errorMessages.errorReport.fetchReport"),
+                ex
+            );
+        });
     };
 
     const translate = useCallback((key: string) => t("widget.TaskActivityOverview.activityControl." + key), [t]);
 
     const handleActivityActionError = (activityName: string, action: ActivityAction, error: DIErrorTypes) => {
         registerError(
-            `taskActivityOverview-${activityName}-action`,
+            `taskActivityOverview-${activityName}-${action}`,
             t("widget.TaskActivityOverview.errorMessages.actions." + action, { activityName: activityName }),
             error
         );
