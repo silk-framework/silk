@@ -47,7 +47,9 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                   (implicit userContext: UserContext): Unit = {
     cancelled = false
     runWorkflow(context, updateUserContext(userContext))
-    context.value.updateWith(_.copy(isDone = true))
+    for(value <- context.value.get) {
+      context.value() = value.copy(isDone = true)
+    }
   }
 
   private def runWorkflow(implicit context: ActivityContext[WorkflowExecutionReport], userContext: UserContext): Unit = {

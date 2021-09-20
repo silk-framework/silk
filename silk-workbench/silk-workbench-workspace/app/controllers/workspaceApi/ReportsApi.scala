@@ -13,12 +13,12 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.activity.{Observable, UserContext}
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.ActivitySerializers.ActivityExecutionResultJsonFormat
-import org.silkframework.serialization.json.ExecutionReportSerializers.{ExecutionReportJsonFormat, WorkflowTaskReportJsonFormat}
+import org.silkframework.serialization.json.ExecutionReportSerializers.ExecutionReportJsonFormat
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.WorkspaceFactory
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutionReportWithProvenance}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutionReportWithProvenance, WorkflowTaskReport}
 import org.silkframework.workspace.reports.{ExecutionReportManager, ReportIdentifier}
-import play.api.libs.json.{JsArray, JsValue, Json}
+import play.api.libs.json.{JsArray, JsValue, Json, OFormat}
 import play.api.mvc.{Action, AnyContent, InjectedController, WebSocket}
 
 import java.time.Instant
@@ -184,17 +184,12 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
     val startTime = System.currentTimeMillis()
     val report = retrieveCurrentReport(projectId, taskId).apply().report
 
-    Ok(
-      Json.obj(
-        "timestamp" -> startTime,
-        "updates" ->
-          JsArray(
-            for(taskReport <- report.taskReports if taskReport.timestamp.toEpochMilli > timestamp) yield {
-              WorkflowTaskReportJsonFormat.writeSummary(taskReport)
-            }
-          )
-      )
-    )
+    val updates =
+      for(taskReport <- report.taskReports if taskReport.timestamp.toEpochMilli > timestamp) yield {
+        ReportSummary(taskReport)
+      }
+
+    Ok(Json.toJson(ReportUpdates(startTime, updates)))
   }
 
   @Operation(
@@ -231,12 +226,14 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
 
     var lastUpdate = Instant.MIN
     val source = AkkaUtils.createSource(currentReport).map { value =>
+      val json =
+        JsArray(
+          for(taskReport <- value.report.taskReports if taskReport.timestamp isAfter lastUpdate) yield {
+            Json.toJson(ReportSummary(taskReport))
+          }
+        )
       lastUpdate = value.report.taskReports.maxBy(_.timestamp).timestamp
-      JsArray(
-        for(taskReport <- value.report.taskReports if taskReport.timestamp isAfter lastUpdate) yield {
-          WorkflowTaskReportJsonFormat.writeSummary(taskReport)
-        }
-      )
+      json
     }
     AkkaUtils.createWebSocket(source)
   }
@@ -249,4 +246,29 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
     activity.value
   }
 
+}
+
+case class ReportUpdates(timestamp: Long, updates: IndexedSeq[ReportSummary])
+
+object ReportUpdates {
+  implicit val reportUpdatesFormat: OFormat[ReportUpdates] = Json.format[ReportUpdates]
+}
+
+case class ReportSummary(node: String, timestamp: Long, operation: Option[String], warnings: Seq[String], isDone: Boolean, entityCount: Int)
+
+object ReportSummary {
+
+  implicit val reportSummaryFormat: OFormat[ReportSummary] = Json.format[ReportSummary]
+
+  def apply(value: WorkflowTaskReport): ReportSummary = {
+    val report = value.report
+    ReportSummary(
+      node = value.nodeId.toString,
+      timestamp = value.timestamp.toEpochMilli,
+      operation = report.operation,
+      warnings = report.warnings,
+      isDone = report.isDone,
+      entityCount =report.entityCount
+    )
+  }
 }

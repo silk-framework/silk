@@ -164,18 +164,6 @@ object ExecutionReportSerializers {
         (NODE -> JsString(value.nodeId.toString)) +
         (TIMESTAMP -> JsNumber(value.timestamp.toEpochMilli))
     }
-
-    def writeSummary(value: WorkflowTaskReport)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      val report = value.report
-      Json.obj(
-        NODE -> value.nodeId.toString,
-        TIMESTAMP -> value.timestamp.toEpochMilli,
-        OPERATION -> report.operation,
-        WARNINGS -> report.warnings,
-        IS_DONE -> report.isDone,
-        ENTITY_COUNT -> report.entityCount
-      )
-    }
   }
 
   implicit object WorkflowExecutionReportJsonFormat extends JsonFormat[WorkflowExecutionReport] {
