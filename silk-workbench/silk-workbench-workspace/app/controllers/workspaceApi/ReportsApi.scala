@@ -152,7 +152,10 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
         responseCode = "200",
         description = "Success",
         content = Array(new Content(
-          mediaType = "application/json"
+          mediaType = "application/json",
+          schema = new Schema(
+            implementation = classOf[ReportUpdates]
+          )
         ))
       )
     ))
@@ -200,7 +203,10 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
         responseCode = "200",
         description = "Success",
         content = Array(new Content(
-          mediaType = "application/json"
+          mediaType = "application/json",
+          schema = new Schema(
+            implementation = classOf[ReportUpdates]
+          )
         ))
       )
     ))
@@ -226,14 +232,12 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
 
     var lastUpdate = Instant.MIN
     val source = AkkaUtils.createSource(currentReport).map { value =>
-      val json =
-        JsArray(
-          for(taskReport <- value.report.taskReports if taskReport.timestamp isAfter lastUpdate) yield {
-            Json.toJson(ReportSummary(taskReport))
-          }
-        )
+      val updates =
+        for(taskReport <- value.report.taskReports if taskReport.timestamp isAfter lastUpdate) yield {
+          ReportSummary(taskReport)
+        }
       lastUpdate = value.report.taskReports.maxBy(_.timestamp).timestamp
-      json
+      Json.toJson(ReportUpdates(lastUpdate.toEpochMilli, updates))
     }
     AkkaUtils.createWebSocket(source)
   }
@@ -248,6 +252,9 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
 
 }
 
+@Schema(
+  description = "Represents a set of updates to the workflow execution status."
+)
 case class ReportUpdates(timestamp: Long, updates: IndexedSeq[ReportSummary])
 
 object ReportUpdates {
