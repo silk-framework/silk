@@ -6,7 +6,7 @@ import controllers.core.UserContextActions
 import controllers.util.AkkaUtils
 import controllers.workspaceApi.doc.ReportsApiDoc
 import io.swagger.v3.oas.annotations.enums.ParameterIn
-import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
@@ -253,15 +253,55 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
 }
 
 @Schema(
-  description = "Represents a set of updates to the workflow execution status."
+  description = "Represents a set of updates to the execution status of individual workflow nodes."
 )
-case class ReportUpdates(timestamp: Long, updates: IndexedSeq[ReportSummary])
+case class ReportUpdates(@Schema(
+                           description = "Timestamp (milliseconds since the epoch of 1970-01-01T00:00:00).",
+                           required = true
+                         )
+                         timestamp: Long,
+                         @ArraySchema(
+                           schema = new Schema(
+                             description = "All updates since the given timestamp. Contains a separate entry for each node that changed.",
+                             implementation = classOf[ReportSummary]
+                           )
+                         )
+                         updates: IndexedSeq[ReportSummary])
 
 object ReportUpdates {
   implicit val reportUpdatesFormat: OFormat[ReportUpdates] = Json.format[ReportUpdates]
 }
 
-case class ReportSummary(node: String, timestamp: Long, operation: Option[String], warnings: Seq[String], isDone: Boolean, entityCount: Int)
+case class ReportSummary(@Schema(
+                           description = "The identifier of the updated node.",
+                           required = true
+                         )
+                         node: String,
+                         @Schema(
+                           description = "Timestamp of the last update to this node (milliseconds since the epoch of 1970-01-01T00:00:00).",
+                           required = true
+                         )
+                         timestamp: Long,
+                         @Schema(
+                           description = "Short label for the executed operation, e.g., 'read' or 'write' (optional).",
+                           required = false
+                         )
+                         operation: Option[String],
+                         @ArraySchema(
+                           schema = new Schema(
+                             description = "If issues occurred during execution of this node, this contains a list of user-friendly messages.",
+                             implementation = classOf[String]
+                           )
+                         )
+                         warnings: Seq[String],
+                         @Schema(
+                           description = "True, if the execution of this node finished. False, if the execution is still running.",
+                         )
+                         isDone: Boolean,
+                         @Schema(
+                           description = "The number of entities that have been processed.",
+                         )
+                         entityCount: Int)
 
 object ReportSummary {
 
