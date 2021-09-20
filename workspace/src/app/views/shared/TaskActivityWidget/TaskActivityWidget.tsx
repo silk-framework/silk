@@ -51,16 +51,16 @@ export const TaskActivityWidget = ({ projectId, taskId, activityName, label = ""
     };
 
     // Register for activity status updates in backend
-    const registerForUpdates = async () => {
+    const registerForUpdates = () => {
         const query = activityQueryString(projectId, taskId, activityName);
-        return await connectWebSocket(
+        return connectWebSocket(
             legacyApiEndpoint(`/activities/updatesWebSocket${query}`),
             legacyApiEndpoint(`/activities/updates${query}`),
             updateActivityStatus
         );
     };
     useEffect(() => {
-        registerForUpdates();
+        return registerForUpdates();
     }, []);
 
     const activityErrorReport = activityErrorReportFactory(activityName, projectId, taskId, (ex) => {

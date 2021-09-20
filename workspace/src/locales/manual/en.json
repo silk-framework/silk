@@ -470,8 +470,8 @@
                 },
                 "errorReport": {
                     "fetchReport": "Fetching activity execution error report has failed."
-                }
-
+                },
+                "fetchActivityInfo": "Fetching activities list has failed."
             },
             "reloadAllCaches": "Reload all caches",
             "title": "Activity overview"

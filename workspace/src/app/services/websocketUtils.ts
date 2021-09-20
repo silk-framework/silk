@@ -11,11 +11,11 @@ import { fetch } from "./fetch/fetch";
  * @param updateFunc   Function to be called on every update. Receives a single argument, which is the received JSON object.
  *
  */
-export const connectWebSocket = async <T>(
+export const connectWebSocket = <T>(
     webSocketUrl: string,
     pollingUrl: string,
     updateFunc: (updateItem: T) => any
-): Promise<CleanUpFunction> => {
+): CleanUpFunction => {
     const cleanUpFunctions: CleanUpFunction[] = [];
     const fixedWebSocketUrl = convertToWebsocketUrl(webSocketUrl);
     const websocket = new WebSocket(fixedWebSocketUrl);
@@ -23,12 +23,15 @@ export const connectWebSocket = async <T>(
         updateFunc(JSON.parse(evt.data));
     };
 
-    cleanUpFunctions.push(() => websocket.close(1000, "Closing web socket connection."));
+    cleanUpFunctions.push(() => {
+        console.log("WEBSOCKET CLOSED");
+        websocket.close(1000, "Closing web socket connection.");
+    });
 
     websocket.onerror = function (event) {
         console.log("Connecting to WebSocket at '" + fixedWebSocketUrl + "' failed. Falling back to polling...");
         let lastUpdate = 0;
-        setInterval(async function () {
+        const timeout = setInterval(async function () {
             let timestampedUrl = pollingUrl + (pollingUrl.indexOf("?") >= 0 ? "&" : "?") + "timestamp=" + lastUpdate;
             const response = await fetch({
                 url: timestampedUrl,
@@ -40,6 +43,9 @@ export const connectWebSocket = async <T>(
                 responseData.updates.forEach(updateFunc);
             }
         }, 1000);
+        cleanUpFunctions.push(() => {
+            clearInterval(timeout);
+        });
     };
     return () => {
         cleanUpFunctions.forEach((cleanUpFn) => cleanUpFn());

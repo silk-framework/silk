@@ -74,6 +74,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         return activityKey(entry.name, metaData?.projectId, metaData?.taskId);
     };
 
+    // Request activity updates
     const requestUpdates = (
         updateActivityStatus: (activityStatus: IActivityStatus) => any,
         project: StringOrUndefined,
@@ -120,7 +121,24 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         return triggerUpdate;
     };
 
-    const fetchTaskActivityInfos = async () => {
+    const fetchActivityList = async () => {
+        setLoading(true);
+        try {
+            const activityRequest = fetchActivityInfos(projectId, taskId);
+            const activityList = (await activityRequest).data;
+            setActivities(activityList);
+            unmanagedState.activities = activityList;
+        } catch (ex) {
+            registerError(
+                `taskActivityOverview-fetchTaskActivityInfos`,
+                t("widget.TaskActivityOverview.errorMessages.fetchActivityInfo"),
+                ex
+            );
+            setLoading(false);
+        }
+    };
+
+    const requestActivityUpdates = () => {
         setLoading(true);
         const updateActivityStatus = (activityStatus: IActivityStatus) => {
             const key = activityKey(activityStatus.activity, activityStatus.project, activityStatus.task);
@@ -133,25 +151,21 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
             }
         };
         try {
-            const activityRequest = fetchActivityInfos(projectId, taskId);
             const updateCleanUpFunction = requestUpdates(updateActivityStatus, projectId, taskId, undefined);
-            const activityList = (await activityRequest).data;
-            const additionCleanUpFunctions = activityList
+            const additionCleanUpFunctions = activities
                 .filter((a) => a.metaData)
                 .map((a) => {
                     // These are additional activities that we need to get updates for
                     return requestUpdates(updateActivityStatus, a.metaData?.projectId, a.metaData?.taskId, a.name);
                 });
-            setActivities(activityList);
-            unmanagedState.activities = activityList;
-            const cleanUpFunctions = await Promise.all([updateCleanUpFunction, ...additionCleanUpFunctions]);
+            const cleanUpFunctions = [updateCleanUpFunction, ...additionCleanUpFunctions];
             return () => {
                 cleanUpFunctions.forEach((fn) => fn());
             };
         } catch (ex) {
             registerError(
                 `taskActivityOverview-fetchTaskActivityInfos`,
-                t("widget.TaskActivityOverview.errorMessages.errorReport.fetchReport"),
+                t("widget.TaskActivityOverview.errorMessages.fetchActivityInfo"),
                 ex
             );
         } finally {
@@ -216,12 +230,24 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         }
     };
 
-    // Fetch activity infos and get updates
     useEffect(() => {
         if (!isOpen) {
-            fetchTaskActivityInfos();
+            setActivities([]);
+            unmanagedState.activities = [];
+            fetchActivityList();
         }
-    }, [isOpen]);
+    }, [isOpen, projectId, taskId]);
+
+    // Fetch activity infos and get updates
+    useEffect(() => {
+        if (activities.length > 0) {
+            cachesOverallStatus.oldestStartTime = undefined;
+            activityStatusMap.clear();
+            activityFunctionsMap.clear();
+            activityUpdateCallback.clear();
+            return requestActivityUpdates();
+        }
+    }, [activities]);
 
     const activitiesWithStatus = activities.filter((a) => activityStatusMap.get(activityKeyOfEntry(a)));
     const mainActivities = activitiesWithStatus.filter((a) => a.activityCharacteristics.isMainActivity);
