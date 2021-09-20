@@ -26,7 +26,7 @@ export function Datalist({
     }
 
     if (isLoading) {
-        return <Loading description={t("DataList.loading", "Loading data.")} />;
+        return <Loading delay={0} description={t("DataList.loading", "Loading data.")} />;
     } else if (isEmpty) {
         return emptyContainer || <Notification>{emptyListMessage}</Notification>;
     }
