@@ -24,7 +24,6 @@ export const connectWebSocket = <T>(
     };
 
     cleanUpFunctions.push(() => {
-        console.log("WEBSOCKET CLOSED");
         websocket.close(1000, "Closing web socket connection.");
     });
 

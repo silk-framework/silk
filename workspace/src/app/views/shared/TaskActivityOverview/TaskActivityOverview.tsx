@@ -32,7 +32,10 @@ import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import ReactMarkdown from "react-markdown";
 import ContentBlobToggler from "../ContentBlobToggler";
-import { ElapsedDateTimeDisplay } from "@gui-elements/src/components/dataIntegrationComponents/DateTimeDisplay/ElapsedDateTimeDisplay";
+import {
+    ElapsedDateTimeDisplay,
+    TimeUnits,
+} from "@gui-elements/src/components/dataIntegrationComponents/DateTimeDisplay/ElapsedDateTimeDisplay";
 import { activityErrorReportFactory, activityQueryString } from "./taskActivityUtils.";
 
 interface IProps {
@@ -273,13 +276,16 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         return `?activity=${activity.name}${projectParameter}${taskParameter}`;
     };
 
+    const translateUnits = (unit: TimeUnits) => t("common.units." + unit, unit);
+
     const activityControl = (activity: IActivityListEntry): JSX.Element => {
         const activityFunctions = activityFunctionsCreator(activity);
         const activityLabel = t(`widget.TaskActivityOverview.activities.${activity.name}.title`, activity.name);
         const elapsedTime = activity.activityCharacteristics.isCacheActivity
             ? {
                   prefix: ` (${t("widget.TaskActivityOverview.cacheGroup.cacheAgePrefixIndividual")}`,
-                  suffix: ")",
+                  suffix: `${t("widget.TaskActivityOverview.cacheGroup.cacheAgeSuffix")})`,
+                  translate: translateUnits,
               }
             : undefined;
         return (
@@ -341,7 +347,9 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                                     <ElapsedDateTimeDisplay
                                         data-test-id={"cacheGroup-cache-age"}
                                         prefix={t("widget.TaskActivityOverview.cacheGroup.cacheAgePrefix")}
+                                        suffix={t("widget.TaskActivityOverview.cacheGroup.cacheAgeSuffix")}
                                         dateTime={cachesOverallStatus.oldestStartTime}
+                                        translateUnits={translateUnits}
                                     />
                                     <Spacing vertical={true} />
                                 </>

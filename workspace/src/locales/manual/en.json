@@ -244,6 +244,16 @@
         "sorter": {
             "recentlyViewed": "Recently viewed"
         },
+        "units": {
+            "second": "second",
+            "seconds": "seconds",
+            "minute": "minute",
+            "minutes": "minutes",
+            "hour": "hour",
+            "hours": "hours",
+            "day": "day",
+            "days": "days"
+        },
         "words": {
             "advancedOptions": "Advanced options",
             "all": "All",
@@ -452,8 +462,9 @@
             },
             "cacheGroup": {
                 "title": "Caches",
-                "cacheAgePrefix": "Updated before: ",
-                "cacheAgePrefixIndividual": "updated before: "
+                "cacheAgePrefix": "Updated ",
+                "cacheAgeSuffix": " ago",
+                "cacheAgePrefixIndividual": "updated "
             },
             "activityControl": {
                 "startActivity": "Start activity",
