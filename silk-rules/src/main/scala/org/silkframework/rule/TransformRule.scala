@@ -12,8 +12,8 @@ import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.{UriFixTransformer, UrlEncodeTransformer}
 import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer, EmptyValueTransformer}
+import org.silkframework.rule.util.UriPatternParser
 import org.silkframework.rule.util.UriPatternParser.{ConstantPart, PathPart}
-import org.silkframework.rule.util.{UriPatternParser, UriPatternSegments}
 import org.silkframework.runtime.plugin.PluginObjectParameterNoSchema
 import org.silkframework.runtime.serialization.XmlSerialization.fromXml
 import org.silkframework.runtime.serialization._
@@ -146,7 +146,7 @@ sealed trait ValueTransformRule extends TransformRule
 case class RootMappingRule(override val rules: MappingRules,
                            id: Identifier = RootMappingRule.defaultId,
                            mappingTarget: MappingTarget = RootMappingRule.defaultMappingTarget,
-                           metaData: MetaData = MetaData(RootMappingRule.defaultLabel)) extends ContainerTransformRule with PluginObjectParameterNoSchema {
+                           metaData: MetaData = MetaData.empty) extends ContainerTransformRule with PluginObjectParameterNoSchema {
 
   override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 
