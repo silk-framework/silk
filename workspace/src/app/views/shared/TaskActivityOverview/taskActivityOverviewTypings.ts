@@ -24,9 +24,13 @@ interface IActivityCharacteristics {
     isCacheActivity: boolean;
 }
 
+/** Functions that are called inside an activity control and must be provided from the outside. */
 export interface IActivityControlFunctions {
+    // Register a callback, so the activity control receives updates
     registerForUpdates: (callback: (status: IActivityStatus) => any) => any;
+    // Un-register from updates in case the activity control gets removed
     unregisterFromUpdates: () => any;
+    // Executes different activity actions, e.g. start, cancel, restart
     executeActivityAction: (action: ActivityAction) => void;
 }
 

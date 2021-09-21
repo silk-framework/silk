@@ -2,6 +2,7 @@ import { fetchActivityErrorReport } from "./taskActivityOverviewRequests";
 import { DIErrorTypes } from "@ducks/error/typings";
 import { IActivityExecutionReport } from "@gui-elements/src/components/dataIntegrationComponents/ActivityControl/DataIntegrationActivityControl";
 
+/** Returns the error report function that should be given to the activity control as parameter. */
 export const activityErrorReportFactory = (
     activityName: string,
     project: string | undefined,
@@ -20,6 +21,7 @@ export const activityErrorReportFactory = (
 
 type StringOrUndefined = string | undefined;
 
+/** Generates the query string for activity related requests. */
 export const activityQueryString = (
     projectId: StringOrUndefined,
     taskId: StringOrUndefined,

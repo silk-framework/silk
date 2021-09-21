@@ -16,6 +16,7 @@ import ReactMarkdown from "react-markdown";
 interface IProps {
     projectId: string;
     taskId: string;
+    // Activity name/ID this control is rendered for
     activityName: string;
     // Label that should be displayed above the progress bar
     label?: string;

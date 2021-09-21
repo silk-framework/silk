@@ -45,29 +45,37 @@ interface IProps {
 
 type StringOrUndefined = string | undefined;
 
+/** Displays some activities of a task, usually the main activity, cache activities and other failed or running activities. */
 export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
     const [activities, setActivities] = useState<IActivityListEntry[]>([]);
-    // So the update functions can access the current activities
+    /** Setup some values whose update should not trigger re-renders. Re-renders are explicitly triggered only when necessary via triggerUpdate().*/
+    // Basically a clone of activities, so the update functions can access the current activities
     const [unmanagedState] = useState<{ activities: IActivityListEntry[] }>({ activities: [] });
-    // Map from activity to current status
+    // Stores the current status for each activity
     const [activityStatusMap] = useState<Map<string, IActivityStatus>>(new Map());
+    // Contains the memoized activity control execution functions for each activity
     const [activityFunctionsMap] = useState<Map<string, IActivityControlFunctions>>(new Map());
+    // Contains the callback function from a specific activity control that needs to be called every time the status changes, so only the affected activity is re-rendered.
     const [activityUpdateCallback] = useState<Map<string, (status: IActivityStatus) => any>>(new Map());
-    const { isOpen } = useSelector(commonSel.artefactModalSelector);
-    const [loading, setLoading] = useState<boolean>(true);
-    const setUpdateSwitch = useState<boolean>(false)[1];
+    // The aggregated status of all cache activities
     const [cachesOverallStatus] = useState<IActivityCachesOverallStatus>({
         failedActivities: 0,
         oldestStartTime: undefined,
         currentlyExecuting: false,
     });
+    // Need to re-render task activities when a potential configuration change has occurred, e.g. different input data source.
+    const { isOpen } = useSelector(commonSel.artefactModalSelector);
+    const [loading, setLoading] = useState<boolean>(true);
 
+    // Used for explicit re-render trigger
+    const setUpdateSwitch = useState<boolean>(false)[1];
     const triggerUpdate = () => {
         setUpdateSwitch((old) => !old);
     };
 
+    // Used for keys in activity->value maps
     const activityKey = (activity: string, projectId: StringOrUndefined, taskId: StringOrUndefined): string =>
         `${activity}|${projectId ?? ""}|${taskId ?? ""}`;
 
@@ -77,7 +85,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         return activityKey(entry.name, metaData?.projectId, metaData?.taskId);
     };
 
-    // Request activity updates
+    // Request activity updates via websocket or polling. If a task is depending on other activities than its own, this is executed multiple times.
     const requestUpdates = (
         updateActivityStatus: (activityStatus: IActivityStatus) => any,
         project: StringOrUndefined,
@@ -92,6 +100,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         );
     };
 
+    // Updates the overall cache state corresponding to the current activity states
     const updateOverallCacheState = (): boolean => {
         let triggerUpdate = false;
         const cacheActivityKeys = unmanagedState.activities
@@ -124,6 +133,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         return triggerUpdate;
     };
 
+    // Fetch list of activities for the task
     const fetchActivityList = async () => {
         setLoading(true);
         try {
@@ -141,8 +151,10 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         }
     };
 
+    // Request all relevant activity updates
     const requestActivityUpdates = () => {
         setLoading(true);
+        // Callback function when an update comes in
         const updateActivityStatus = (activityStatus: IActivityStatus) => {
             const key = activityKey(activityStatus.activity, activityStatus.project, activityStatus.task);
             const oldValue = activityStatusMap.get(key);
@@ -154,7 +166,9 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
             }
         };
         try {
+            // For task activities
             const updateCleanUpFunction = requestUpdates(updateActivityStatus, projectId, taskId, undefined);
+            // For additional activities the task depends on
             const additionCleanUpFunctions = activities
                 .filter((a) => a.metaData)
                 .map((a) => {
@@ -189,7 +203,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         });
     };
 
-    const translate = useCallback((key: string) => t("widget.TaskActivityOverview.activityControl." + key), [t]);
+    const translateActions = useCallback((key: string) => t("widget.TaskActivityOverview.activityControl." + key), [t]);
 
     const handleActivityActionError = (activityName: string, action: ActivityAction, error: DIErrorTypes) => {
         registerError(
@@ -202,11 +216,12 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     // Register an observer from the activity widget
     const createRegisterForUpdatesFn = (activityKey: string) => (callback: (status: IActivityStatus) => any) => {
         activityUpdateCallback.set(activityKey, callback);
-        // Send current value
+        // Send current value if it exists
         const currentStatus = activityStatusMap.get(activityKey);
         currentStatus && callback(currentStatus);
     };
 
+    // Unregister from updates when an activity control is not shown anymore
     const createUnregisterFromUpdateFn = (activityKey: string) => () => {
         activityUpdateCallback.delete(activityKey);
     };
@@ -233,6 +248,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         }
     };
 
+    // Fetch activity list
     useEffect(() => {
         if (!isOpen) {
             setActivities([]);
@@ -241,7 +257,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         }
     }, [isOpen, projectId, taskId]);
 
-    // Fetch activity infos and get updates
+    // Request updates for activities
     useEffect(() => {
         if (activities.length > 0) {
             cachesOverallStatus.oldestStartTime = undefined;
@@ -252,6 +268,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         }
     }, [activities]);
 
+    // Categorize activities
     const activitiesWithStatus = activities.filter((a) => activityStatusMap.get(activityKeyOfEntry(a)));
     const mainActivities = activitiesWithStatus.filter((a) => a.activityCharacteristics.isMainActivity);
     const nonMainActivities = activitiesWithStatus.filter((a) => !a.activityCharacteristics.isMainActivity);
@@ -262,12 +279,14 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const failedNonMainActivities = nonMainActivities.filter(
         (a) => activityStatusMap.get(activityKeyOfEntry(a))?.failed && !a.activityCharacteristics.isCacheActivity
     );
+    // to decide if the widget should be shown at all
     const nrActivitiesToShow =
         mainActivities.length +
         runningNonMainActivities.length +
         failedNonMainActivities.length +
         cacheActivities.length;
 
+    // Query string for an activity related backend request
     const queryString = (activity: IActivityListEntry): string => {
         const project = activity.metaData ? activity.metaData.projectId : projectId;
         const task = activity.metaData ? activity.metaData.taskId : taskId;
@@ -276,8 +295,10 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         return `?activity=${activity.name}${projectParameter}${taskParameter}`;
     };
 
+    // For the elapsed time component, showing when a cache was last updated
     const translateUnits = (unit: TimeUnits) => t("common.units." + unit, unit);
 
+    // A single activity control
     const activityControl = (activity: IActivityListEntry): JSX.Element => {
         const activityFunctions = activityFunctionsCreator(activity);
         const activityLabel = t(`widget.TaskActivityOverview.activities.${activity.name}.title`, activity.name);
@@ -296,7 +317,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                     executeActivityAction={activityFunctions.executeActivityAction}
                     registerForUpdates={activityFunctions.registerForUpdates}
                     unregisterFromUpdates={activityFunctions.unregisterFromUpdates}
-                    translate={translate}
+                    translate={translateActions}
                     elapsedTimeOfLastStart={elapsedTime}
                     failureReportAction={{
                         title: "", // The title is already repeated in the markdown
@@ -325,7 +346,8 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         );
     };
 
-    const CacheWidget = () => {
+    // Widget that wraps and summarizes the cache activities
+    const CacheGroupWidget = () => {
         return (
             <Card>
                 <OverviewItem>
@@ -396,10 +418,10 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                                 <ContentBlobToggler
                                     textToggleReduce={"Hide"}
                                     textToggleExtend={"Open"}
-                                    contentPreview={<CacheWidget />}
+                                    contentPreview={<CacheGroupWidget />}
                                     contentFullview={
                                         <>
-                                            {<CacheWidget />}
+                                            {<CacheGroupWidget />}
                                             <WhiteSpaceContainer marginBottom="small" marginLeft="regular">
                                                 <Spacing size={"small"} />
                                                 {cacheActivities.map((a) => activityControl(a))}
