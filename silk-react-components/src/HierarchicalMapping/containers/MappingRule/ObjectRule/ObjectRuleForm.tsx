@@ -329,6 +329,7 @@ export const ObjectRuleForm = (props: IProps) => {
                             )
                         }
                         <TextField
+                            data-test-id={"object-rule-form-label-input"}
                             label="Label"
                             className="ecc-silk-mapping__ruleseditor__label"
                             value={modifiedValues.label}
