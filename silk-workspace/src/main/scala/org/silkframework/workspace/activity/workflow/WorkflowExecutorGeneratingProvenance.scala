@@ -1,20 +1,29 @@
 package org.silkframework.workspace.activity.workflow
 
-import java.util.logging.Logger
-
 import org.silkframework.config.PlainTask
-import org.silkframework.execution.ExecutionReport
 import org.silkframework.runtime.activity._
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.reports.{ExecutionReportManager, ReportIdentifier}
 
+import java.util.logging.Logger
+
 /**
   * Executes a workflow child activity and generates provenance data (PROV-O) and writes it into the backend.
   */
 trait WorkflowExecutorGeneratingProvenance extends Activity[WorkflowExecutionReportWithProvenance] {
+
   def workflowTask: ProjectTask[Workflow]
+
   private val log = Logger.getLogger(getClass.getName)
+
+  override def initialValue: Option[WorkflowExecutionReportWithProvenance] = {
+    Some(
+      WorkflowExecutionReportWithProvenance(
+        report = WorkflowExecutionReport(workflowTask),
+        workflowExecutionProvenance = WorkflowExecutionProvenanceData(ActivityExecutionMetaData())
+    ))
+  }
 
   /** The activity that executes the workflow and produces a workflow execution report */
   def workflowExecutionActivity(): Activity[WorkflowExecutionReport]
