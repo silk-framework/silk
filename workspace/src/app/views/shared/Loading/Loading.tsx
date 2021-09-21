@@ -19,7 +19,7 @@ export const Loading = memo<IProps>(function LoadingIndicator({
     posGlobal = false,
     posLocal = true,
     posInline = false,
-    delay = 1000,
+    delay,
     ...otherProps
 }) {
     let forwardedProps = {};
@@ -33,6 +33,6 @@ export const Loading = memo<IProps>(function LoadingIndicator({
         default:
             forwardedProps = { position: "local" };
     }
-
-    return <Spinner {...forwardedProps} {...otherProps} delay={delay} />;
+    const showDelay = delay ?? (posGlobal ? 0 : 1000);
+    return <Spinner {...forwardedProps} {...otherProps} delay={showDelay} />;
 });
