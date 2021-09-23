@@ -197,7 +197,7 @@
             "showApiDoc": "API"
         },
         "app": {
-            "build": "Data integration",
+            "build": "Build",
             "loading": "Loading page."
         },
         "dataTypes": {
