@@ -29,7 +29,7 @@ import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/Cre
 import { NotificationsMenu } from "../../shared/ApplicationNotifications/NotificationsMenu";
 import { triggerHotkeyHandler } from "../../shared/HotKeyHandler/HotKeyHandler";
 import { APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
-import { CONTEXT_PATH } from "../../../constants/path";
+import { CONTEXT_PATH, SERVE_PATH } from "../../../constants/path";
 import { APP_VIEWHEADER_ID } from "../../shared/PageHeader/PageHeader";
 
 interface IProps {
@@ -73,12 +73,19 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
         <></>
     ) : (
         <ApplicationHeader
-            aria-label={`${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}: ${APPLICATION_NAME}`}
+            aria-label={`${APPLICATION_NAME} @ ${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}`}
         >
             <ApplicationTitle
-                prefix={APPLICATION_CORPORATION_NAME}
+                href={SERVE_PATH}
+                prefix={""}
                 isNotDisplayed={!isApplicationSidebarExpanded}
                 isApplicationSidebarExpanded={isApplicationSidebarExpanded}
+                depiction={
+                    <img
+                        src={CONTEXT_PATH + "/core/logoSmall.png"}
+                        alt={`Logo: ${APPLICATION_NAME} @ ${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}`}
+                    />
+                }
             >
                 {APPLICATION_NAME}
             </ApplicationTitle>
@@ -93,19 +100,27 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
             >
                 {!!dmBaseUrl ? (
                     <>
-                        <TitleSubsection>{t("navigation.side.dmBrowser", "Browse in DataManager")}</TitleSubsection>
+                        <TitleSubsection title={t("navigation.side.dmBrowserTooltip", "")}>
+                            {t("navigation.side.dmBrowser", "Explore")}
+                        </TitleSubsection>
                         <Menu>
                             {dmModuleLinks ? (
                                 dmModuleLinks.map((link) => (
                                     <MenuItem
                                         icon={link.icon}
                                         text={t("navigation.side.dm." + link.path, link.defaultLabel)}
+                                        htmlTitle={t("navigation.side.dm." + link.path + "Tooltip")}
                                         href={dmBaseUrl + "/" + link.path}
                                         key={link.path}
                                     />
                                 ))
                             ) : (
-                                <MenuItem icon="application-explore" text="DataManager" href={dmBaseUrl} />
+                                <MenuItem
+                                    icon="application-explore"
+                                    text={t("navigation.side.dm.explore", "Knowledge Graphs")}
+                                    htmlTitle={t("navigation.side.dm.exploreTooltip")}
+                                    href={dmBaseUrl}
+                                />
                             )}
                         </Menu>
                         <Divider addSpacing="xlarge" />
@@ -113,16 +128,20 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                 ) : (
                     <></>
                 )}
-                <TitleSubsection>{t("navigation.side.diBrowse", "Create in DataIntegration")}</TitleSubsection>
+                <TitleSubsection title={t("navigation.side.diBrowseTooltip", "")}>
+                    {t("navigation.side.diBrowse", "Build")}
+                </TitleSubsection>
                 <Menu>
                     <MenuItem
                         icon="artefact-project"
                         text={t("navigation.side.di.projects", "Projects")}
+                        htmlTitle={t("navigation.side.di.projectsTooltip")}
                         onClick={() => handleNavigate("project")}
                     />
                     <MenuItem
                         icon="artefact-dataset"
                         text={t("navigation.side.di.datasets", "Datasets")}
+                        htmlTitle={t("navigation.side.di.datasetsTooltip")}
                         onClick={() => handleNavigate("dataset")}
                     />
                 </Menu>
