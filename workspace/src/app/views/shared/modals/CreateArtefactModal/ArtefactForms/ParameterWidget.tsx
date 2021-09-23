@@ -2,27 +2,19 @@ import React from "react";
 import ReactMarkdown from "react-markdown";
 import { sharedOp } from "@ducks/shared";
 import { IArtefactItemProperty, IPropertyAutocomplete, ITaskParameter } from "@ducks/common/typings";
-import {
-    AutoCompleteField,
-    WhiteSpaceContainer,
-    FieldItem,
-    FieldSet,
-    Label,
-    TitleSubsection,
-} from "@gui-elements/index";
+import { AutoCompleteField, FieldItem, FieldSet, Label, TitleSubsection } from "@gui-elements/index";
+import ContentBlobToggler, { firstNonEmptyLine } from "@gui-elements/src/cmem/ContentBlobToggler";
 import { Intent } from "@gui-elements/blueprint/constants";
 import { InputMapper } from "./InputMapper";
 import { AppToaster } from "../../../../../services/toaster";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
 import { INPUT_TYPES } from "../../../../../constants";
 import { useTranslation } from "react-i18next";
-import { firstNonEmptyLine } from "../../../ContentBlobToggler";
-import { ContentBlobToggler } from "../../../ContentBlobToggler/ContentBlobToggler";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import { createNewItemRendererFactory } from "@gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
 
-const MAXLENGTH_TOOLTIP = 40;
-const MAXLENGTH_SIMPLEHELP = 288;
+const MAXLENGTH_TOOLTIP = 32;
+const MAXLENGTH_SIMPLEHELP = 192;
 
 interface IHookFormParam {
     errors: any;
@@ -142,22 +134,39 @@ export const ParameterWidget = (props: IProps) => {
         propertyHelperText = (
             <ContentBlobToggler
                 className="di__parameter_widget__description"
-                contentPreview={description}
+                previewContent={description}
                 previewMaxLength={MAXLENGTH_SIMPLEHELP}
-                contentFullview={description}
-                renderContentFullview={(content) => {
+                renderPreview={(content, maxLength) => {
+                    if (
+                        !!maxLength &&
+                        maxLength > 0 &&
+                        typeof content === "string" &&
+                        content === content.substr(0, maxLength)
+                    ) {
+                        return <ReactMarkdown children={content} />;
+                    }
                     return (
-                        <WhiteSpaceContainer
-                            marginTop="tiny"
-                            marginRight="xlarge"
-                            marginBottom="small"
-                            marginLeft="regular"
-                        >
-                            <ReactMarkdown source={description} />
-                        </WhiteSpaceContainer>
+                        <ReactMarkdown
+                            children={firstNonEmptyLine(content)?.toString().substr(0, maxLength) || ""}
+                            allowedElements={[]}
+                            unwrapDisallowed
+                        />
                     );
                 }}
-                renderContentPreview={firstNonEmptyLine}
+                fullviewContent={<ReactMarkdown children={description?.toString() || ""} />}
+                enableToggler={(previewSource, previewRendered, previewMaxLength, fullviewSource, fullviewRendered) => {
+                    if (
+                        !!previewMaxLength &&
+                        previewMaxLength > 0 &&
+                        typeof previewSource === "string" &&
+                        previewSource === previewSource.substr(0, previewMaxLength)
+                    ) {
+                        return false;
+                    }
+                    return true;
+                }}
+                textToggleExtend={t("common.words.more", "more")}
+                textToggleReduce={t("common.words.less", "less")}
             />
         );
     }

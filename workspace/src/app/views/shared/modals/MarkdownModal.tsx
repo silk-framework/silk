@@ -32,7 +32,7 @@ const MarkdownModal = ({ onDiscard, isOpen, markdown, title = "Error report" }) 
             ]}
         >
             <HtmlContentBlock>
-                <ReactMarkdown source={markdown} />
+                <ReactMarkdown children={markdown} />
             </HtmlContentBlock>
         </SimpleDialog>
     );

@@ -13,6 +13,7 @@ import {
     Spacing,
     TitleSubsection,
 } from "@gui-elements/index";
+import ContentBlobToggler from "@gui-elements/src/cmem/ContentBlobToggler";
 import { useTranslation } from "react-i18next";
 import Uppy, { UppyFile } from "@uppy/core";
 import { workspaceApi } from "../../../utils/getApiEndpoint";
@@ -27,10 +28,8 @@ import { IProjectExecutionStatus, IProjectImportDetails } from "@ducks/workspace
 import { Loading } from "../Loading/Loading";
 import { useDispatch } from "react-redux";
 import { routerOp } from "@ducks/router";
-import { ContentBlobToggler } from "../ContentBlobToggler/ContentBlobToggler";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
 import ReactMarkdown from "react-markdown";
-import { firstNonEmptyLine } from "../ContentBlobToggler";
 import { UploadNewFile } from "../FileUploader/cases/UploadNewFile/UploadNewFile";
 
 interface IProps {
@@ -288,13 +287,28 @@ export function ProjectImportModal({ close, back }: IProps) {
                         <PropertyValue>
                             <ContentBlobToggler
                                 className="di__dataset__metadata-description"
-                                contentPreview={details.description}
+                                previewContent={details.description}
                                 previewMaxLength={128}
-                                contentFullview={details.description}
-                                renderContentFullview={(content) => {
-                                    return <ReactMarkdown source={details.description} />;
+                                fullviewContent={<ReactMarkdown children={details.description} />}
+                                textToggleExtend={t("common.words.more", "more")}
+                                textToggleReduce={t("common.words.less", "less")}
+                                enableToggler={(
+                                    previewSource,
+                                    previewRendered,
+                                    previewMaxLength,
+                                    fullviewSource,
+                                    fullviewRendered
+                                ) => {
+                                    if (
+                                        !!previewMaxLength &&
+                                        previewMaxLength > 0 &&
+                                        typeof previewSource === "string" &&
+                                        previewSource === previewSource.substr(0, previewMaxLength)
+                                    ) {
+                                        return false;
+                                    }
+                                    return true;
                                 }}
-                                renderContentPreview={firstNonEmptyLine}
                             />
                         </PropertyValue>
                     </PropertyValuePair>

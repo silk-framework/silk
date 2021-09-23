@@ -400,7 +400,9 @@ export function CreateArtefactModal() {
                 >
                     <HtmlContentBlock>
                         <ReactMarkdown
-                            source={selectedArtefact?.markdownDocumentation ?? selectedArtefact?.description}
+                            children={
+                                (selectedArtefact?.markdownDocumentation || "") ?? (selectedArtefact?.description || "")
+                            }
                         />
                     </HtmlContentBlock>
                 </SimpleDialog>
@@ -493,9 +495,10 @@ export function CreateArtefactModal() {
                                                         >
                                                             <HtmlContentBlock>
                                                                 <ReactMarkdown
-                                                                    source={
+                                                                    children={
                                                                         artefact.markdownDocumentation ||
-                                                                        artefact.description
+                                                                        artefact.description ||
+                                                                        ""
                                                                     }
                                                                 />
                                                             </HtmlContentBlock>
