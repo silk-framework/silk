@@ -8,7 +8,7 @@ export function AdvancedOptionsArea({ children, open = false, ...otherProps }: a
     return (
         <Accordion>
             <AccordionItem
-                title={<TitleSubsection>{t("common.words.advancedOptions", "Advanced options")}</TitleSubsection>}
+                label={<TitleSubsection>{t("common.words.advancedOptions", "Advanced options")}</TitleSubsection>}
                 fullWidth
                 elevated
                 open={open}
