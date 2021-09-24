@@ -1,9 +1,9 @@
 import React, {useEffect, useState} from 'react';
 import {Card, CardActions, CardContent, CardTitle, ScrollingHOC, Spinner,} from '@eccenca/gui-elements';
-import {AffirmativeButton, DismissiveButton, TextField,} from '@gui-elements/legacy-replacements';
+import {AffirmativeButton, DismissiveButton, TextField as LegacyTextField,} from '@gui-elements/legacy-replacements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
-import store, {checkValuePathValidity, fetchValuePathSuggestions} from '../../../store';
+import store, {checkValuePathValidity, fetchValuePathSuggestions, getEditorHref} from '../../../store';
 import {convertToUri} from '../../../utils/convertToUri';
 import ErrorView from '../../../components/ErrorView';
 import AutoComplete from '../../../components/AutoComplete';
@@ -14,6 +14,8 @@ import {wasTouched} from '../../../utils/wasTouched';
 import {newValueIsIRI} from '../../../utils/newValueIsIRI';
 import TargetCardinality from "../../../components/TargetCardinality";
 import AutoSuggestion from '../../../components/AutoSuggestion/AutoSuggestion'
+import ComplexEditButton from "../../../elements/buttons/ComplexEditButton";
+import {TextField} from "@gui-elements/index";
 
 const LANGUAGES_LIST = [
     'en', 'de', 'es', 'fr', 'bs', 'bg', 'ca', 'ce', 'zh', 'hr', 'cs', 'da', 'nl', 'eo', 'fi', 'ka', 'el', 'hu', 'ga', 'is', 'it',
@@ -151,9 +153,13 @@ export function ValueRuleForm(props: IProps) {
         }
     }
 
-    const handleConfirm = event => {
+    const handleConfirm = (event) => {
         event.stopPropagation();
         event.persist();
+        saveRule()
+    }
+
+    const saveRule = (onSuccess?: (ruleId?: string) => any) => {
         setLoading(true)
         store.createMappingAsync({
             id: props.id,
@@ -166,7 +172,7 @@ export function ValueRuleForm(props: IProps) {
             sourceProperty: trimValue(sourceProperty),
             isAttribute: isAttribute,
         }).subscribe(
-            () => {
+            (response) => {
                 if (props.onAddNewRule) {
                     props.onAddNewRule(() => {
                         handleCloseWithChanges()
@@ -174,6 +180,7 @@ export function ValueRuleForm(props: IProps) {
                 } else {
                     handleCloseWithChanges()
                 }
+                onSuccess?.(response?.body?.id)
             },
             err => {
                 setError(err)
@@ -242,6 +249,36 @@ export function ValueRuleForm(props: IProps) {
         return targetPropertyNotEmpty && languageTagSet;
     }
 
+    const handleComplexEdit = (event) => {
+        const saveRuleAndGoToComplexEditor = () => {
+            event.preventDefault()
+            event.stopPropagation()
+            saveRule((ruleId) => {
+                const href = getEditorHref(ruleId ?? id)
+                if(href) {
+                    window.location.href = href
+                }
+            })
+        }
+        if(!id) {
+            saveRuleAndGoToComplexEditor()
+        } else {
+            if(changed) {
+                saveRuleAndGoToComplexEditor()
+            }
+            // Go to URL, href is set correctly
+        }
+    };
+
+    const allowConfirm = allowConfirmation();
+
+    const complexEditButton = (asLink: boolean = false) => allowConfirm ? <ComplexEditButton
+        asLink={asLink}
+        onClick={handleComplexEdit}
+        href={id ? getEditorHref(id) : "#"}
+        tooltip={changed || !id ? "Save rule and open formula editor" : "Open formula editor"}
+    /> : null
+
     // template rendering
     const render = () => {
         if (loading) {
@@ -253,41 +290,40 @@ export function ValueRuleForm(props: IProps) {
             false
         ;
 
-        const allowConfirm = allowConfirmation();
-
         const title = !id ? <CardTitle>Add value mapping</CardTitle> : false;
 
         // TODO: Unfold complex mapping
         let sourcePropertyInput: React.ReactElement | undefined = undefined;
 
         if (type === MAPPING_RULE_TYPE_DIRECT) {
-            sourcePropertyInput = (
-                <AutoSuggestion
-                    id={"value-path-auto-suggestion"}
-                    label="Value path"
-                    initialValue={typeof sourceProperty === "string" ? sourceProperty : sourceProperty.value}
-                    clearIconText={"Clear value path"}
-                    validationErrorText={"The entered value path is invalid."}
-                    onChange={handleChangeSelectBox.bind(
-                        null,
-                        'sourceProperty',
-                        setSourceProperty
-                    )}
-                    fetchSuggestions={(input, cursorPosition) => fetchValuePathSuggestions(autoCompleteRuleId, input, cursorPosition)}
-                    checkInput={checkValuePathValidity}
-                    onInputChecked={setValuePathValid}
-                    onFocusChange={setValuePathInputHasFocus}
-                />
+            sourcePropertyInput = (<>
+                    <AutoSuggestion
+                        id={"value-path-auto-suggestion"}
+                        label="Value path"
+                        initialValue={typeof sourceProperty === "string" ? sourceProperty : sourceProperty.value}
+                        clearIconText={"Clear value path"}
+                        validationErrorText={"The entered value path is invalid."}
+                        onChange={handleChangeSelectBox.bind(
+                            null,
+                            'sourceProperty',
+                            setSourceProperty
+                        )}
+                        fetchSuggestions={(input, cursorPosition) => fetchValuePathSuggestions(autoCompleteRuleId, input, cursorPosition)}
+                        checkInput={checkValuePathValidity}
+                        onInputChecked={setValuePathValid}
+                        onFocusChange={setValuePathInputHasFocus}
+                    />
+                    {complexEditButton(true)}
+                </>
             );
         } else if (type === MAPPING_RULE_TYPE_COMPLEX) {
-            sourcePropertyInput = (
-                <TextField
-                    data-id="test-complex-input"
-                    disabled
-                    label="Value formula"
-                    value="The value formula cannot be modified in the edit form."
-                />
-            );
+            sourcePropertyInput = <TextField
+                data-id="test-complex-input"
+                disabled
+                label="Value formula"
+                value="The value formula cannot be modified in the edit form."
+                rightElement={complexEditButton()}
+            />
         }
         const exampleView = !_.isEmpty(sourceProperty) && valuePathValid && !valuePathInputHasFocus ? (
             <ExampleView
@@ -358,7 +394,7 @@ export function ValueRuleForm(props: IProps) {
                         />
                         {sourcePropertyInput}
                         {exampleView}
-                        <TextField
+                        <LegacyTextField
                             label="Label"
                             className="ecc-silk-mapping__ruleseditor__label"
                             value={label}
@@ -368,7 +404,7 @@ export function ValueRuleForm(props: IProps) {
                                 setLabel
                             )}
                         />
-                        <TextField
+                        <LegacyTextField
                             multiline
                             label="Description"
                             className="ecc-silk-mapping__ruleseditor__comment"
