@@ -124,13 +124,24 @@ class ValueRule extends React.Component {
                             /> : null
                         }
                         {
+                            this.props.type === MAPPING_RULE_TYPE_DIRECT && !sourcePath && !sourcePaths
+                                ? <ObjectSourcePath>
+                                    <code>{"<empty>"}</code>
+                                    <ComplexEditButton
+                                        onClick={this.handleComplexEdit}
+                                        href={this.state.href}
+                                        tooltip="Convert to value formula"
+                                    />
+                                </ObjectSourcePath> : null
+                        }
+                        {
                             this.props.type === MAPPING_RULE_TYPE_DIRECT && sourcePath
                                 ? <ObjectSourcePath>
                                         <code>{sourcePath}</code>
                                         <ComplexEditButton
                                             onClick={this.handleComplexEdit}
                                             href={this.state.href}
-                                            tooltip="Convert value path to value formula"
+                                            tooltip="Convert simple value rule to value formula"
                                         />
                                 </ObjectSourcePath> : null
                         }

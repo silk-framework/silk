@@ -10,6 +10,7 @@ const ComplexEditButton = ({ onClick, href, tooltip }) => {
     }
     return (
         <Button
+            data-test-id={"complex-rule-edit-button"}
             raised
             iconName="edit"
             className="ecc-silk-mapping__ruleseditor__actionrow-complex-edit"
