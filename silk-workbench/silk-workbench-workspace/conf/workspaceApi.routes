@@ -11,6 +11,7 @@ GET           /projectImport/:projectImportId                                   
 DELETE        /projectImport/:projectImportId                                   controllers.workspaceApi.ProjectImportApi.removeProjectImport(projectImportId: String)
 POST          /projectImport/:projectImportId                                   controllers.workspaceApi.ProjectImportApi.startProjectImport(projectImportId: String, generateNewId: Boolean ?= false, overwriteExisting: Boolean ?= false, newProjectId: Option[String] ?= None)
 GET           /projectImport/:projectImportId/status                            controllers.workspaceApi.ProjectImportApi.projectImportExecutionStatus(projectImportId: String, timeout: Int ?= 20000)
+GET           /vocabularies                                                     controllers.workspaceApi.WorkspaceVocabularyApi.vocabularies()
 
 # Execution Report API
 GET           /reports/list                                                     controllers.workspaceApi.ReportsApi.listReports(projectId: Option[String] ?= None, taskId: Option[String] ?= None)
@@ -19,5 +20,6 @@ GET           /reports/report                                                   
 # Validation
 
 POST          /validation/sourcePath/:projectId                                 controllers.workspaceApi.ValidationApi.validateSourcePath(projectId: String)
+POST          /validation/uriPattern/:projectId                                controllers.workspaceApi.ValidationApi.validateUriPattern(projectId: String)
 
 ->            /projects                   projectsApi.Routes

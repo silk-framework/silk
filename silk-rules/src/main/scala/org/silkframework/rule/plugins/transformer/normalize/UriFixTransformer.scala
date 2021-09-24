@@ -1,9 +1,9 @@
 package org.silkframework.rule.plugins.transformer.normalize
 
-import java.net.{URI, URLEncoder}
-
 import org.silkframework.rule.input.SimpleTransformer
 import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, TransformExamples}
+
+import java.net.{URI, URISyntaxException, URLEncoder}
 
 /**
   * Fixes URIs if necessary
@@ -28,6 +28,10 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, T
     output = Array("http://example.org/some/path")
   ),
   new TransformExample(
+    input1 = Array("http://example.org/path?query=some+stuff#hashtag"),
+    output = Array("http://example.org/path?query=some+stuff#hashtag")
+  ),
+  new TransformExample(
     input1 = Array("urn:valid:uri"),
     output = Array("urn:valid:uri")
   ),
@@ -37,25 +41,45 @@ import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, T
   ),
   new TransformExample(
     input1 = Array("http://domain/##path#"),
-    output = Array("http://domain/%23%23path#")
+    output = Array("http://domain/#%23path%23")
+  ),
+  new TransformExample(
+    input1 = Array("http : invalid URI"),
+    output = Array("urn:url-encoded-value:http+%3A+invalid+URI")
   )
 ))
 case class UriFixTransformer(uriPrefix: String = "urn:url-encoded-value:") extends SimpleTransformer {
+
+  // Allowed scheme according to RFC 2396:
+  // scheme = alpha *( alpha | digit | "+" | "-" | "." )
+  private val schemeRegex = "\\w[\\w\\d+.-]*"
+
+  // Regex to match URI-like strings that can be fixed
+  private val lenientUriRegex = s"($schemeRegex):([^#]+)(#.*)?".r
+
   override def evaluate(value: String): String = {
-    value.indexOf(':') match {
-      case -1 =>
-        // Cannot be an absolute URI, generate encoded value URI
-        uriPrefix + URLEncoder.encode(value, "UTF-8")
-      case colonIdx: Int =>
-        val (scheme, rest) = value.splitAt(colonIdx)
-        val uri = rest.drop(1).lastIndexOf('#') match {
-          case -1 =>
-            new URI(scheme, rest.drop(1), null)
-          case fragmentIdx: Int =>
-            val (path, fragment) = rest.drop(1).splitAt(fragmentIdx)
-            new URI(scheme, path, fragment.drop(1))
-        }
-        uri.toASCIIString
+    try {
+      value match {
+        case lenientUriRegex(scheme, schemeSpecificPart, fragment) =>
+          if (fragment != null) {
+            new URI(scheme, schemeSpecificPart, fragment.substring(1)).toASCIIString
+          } else {
+            new URI(scheme, schemeSpecificPart, null).toASCIIString
+          }
+        case _ =>
+          generateUri(value)
+      }
+    } catch {
+      case _: URISyntaxException =>
+        generateUri(value)
     }
+  }
+
+  /**
+    * Generates a valid URI from an arbitrary string.
+    */
+  @inline
+  private def generateUri(value: String): String = {
+    uriPrefix + URLEncoder.encode(value, "UTF-8")
   }
 }

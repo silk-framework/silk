@@ -103,7 +103,6 @@ case class Completion(@Schema(description = "The value to be filled if the user 
                       isCompletion: Boolean,
                       @Schema(
                         description = "Some extra values depending on the category (arbitrary JSON)",
-                        required = false,
                         implementation = classOf[Object], // Dummy type, because JsValue is not recognized as JSON by Swagger
                       )
                       extra: Option[JsValue] = None) {

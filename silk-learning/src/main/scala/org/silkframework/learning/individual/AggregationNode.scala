@@ -15,15 +15,26 @@
 package org.silkframework.learning.individual
 
 import org.silkframework.config.Prefixes
-import org.silkframework.rule.similarity.{Aggregation, Aggregator}
+import org.silkframework.rule.similarity.{Aggregation, Aggregator, SingleValueAggregator}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.util.IdentifierGenerator
 
-case class AggregationNode(aggregation: String, weight: Int, operators: List[OperatorNode]) extends OperatorNode {
+case class AggregationNode(aggregation: String, weight: Int, operators: List[OperatorNode], isSingleValueAggregator: Boolean) extends OperatorNode {
   override val children = operators
 
-  override def updateChildren(children: List[Node]) = {
-    AggregationNode(aggregation, weight, children.map(_.asInstanceOf[OperatorNode]))
+  override def updateChildren(children: List[Node]): AggregationNode = {
+    copy(operators = children.map(_.asInstanceOf[OperatorNode]))
+  }
+
+  def copy(aggregation: String = this.aggregation,
+           weight: Int = this.weight,
+           operators: List[OperatorNode] = this.operators,
+           isSingleValueAggregator: Boolean = this.isSingleValueAggregator): AggregationNode = {
+    if(isSingleValueAggregator) {
+      AggregationNode(aggregation, weight, operators.take(1), isSingleValueAggregator)
+    } else {
+      AggregationNode(aggregation, weight, operators, isSingleValueAggregator)
+    }
   }
 
   def build(implicit identifiers: IdentifierGenerator): Aggregation = {
@@ -45,6 +56,6 @@ object AggregationNode {
 
     val operatorNodes = aggregation.operators.map(OperatorNode.load).toList
 
-    AggregationNode(aggregatorId, aggregation.weight, operatorNodes)
+    AggregationNode(aggregatorId, aggregation.weight, operatorNodes, aggregation.aggregator.isInstanceOf[SingleValueAggregator])
   }
 }
