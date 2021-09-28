@@ -134,6 +134,7 @@ export function ValueRuleForm(props: IProps) {
                         };
 
                         initialValues.type && setType(initialValues.type)
+                        setValuePathValid(initialValues.type === MAPPING_RULE_TYPE_COMPLEX)
                         initialValues.comment && setComment(initialValues.comment)
                         initialValues.label && setLabel(initialValues.label)
                         initialValues.targetProperty && setTargetProperty(initialValues.targetProperty)
@@ -325,18 +326,16 @@ export function ValueRuleForm(props: IProps) {
                 rightElement={complexEditButton()}
             />
         }
-        const exampleView = !_.isEmpty(sourceProperty) && valuePathValid && !valuePathInputHasFocus ? (
+        const exampleView = !_.isEmpty(sourceProperty) && valuePathValid && !valuePathInputHasFocus || type === MAPPING_RULE_TYPE_COMPLEX? (
             <ExampleView
-                id={props.parentId || 'root'}
+                id={type === MAPPING_RULE_TYPE_COMPLEX ? id : props.parentId || 'root'}
                 key={
                     typeof sourceProperty === "string" ? sourceProperty : sourceProperty.value
                 }
-                rawRule={state}
+                rawRule={type === MAPPING_RULE_TYPE_COMPLEX ? undefined : state}
                 ruleType={type}
             />
-        ) : (
-            false
-        );
+        ) : null;
         return (
             <div className="ecc-silk-mapping__ruleseditor">
                 <Card shadow={!id ? 1 : 0}>
@@ -426,6 +425,7 @@ export function ValueRuleForm(props: IProps) {
                             Save
                         </AffirmativeButton>
                         <DismissiveButton
+                            data-test-id={"value-rule-form-edit-cancel-btn"}
                             className="ecc-silk-mapping__ruleseditor___actionrow-cancel"
                             raised
                             onClick={handleClose}
