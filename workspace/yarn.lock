@@ -1205,7 +1205,7 @@
   resolved "https://artifactory.eccenca.com/api/npm/npm/@carbon/icon-helpers/-/icon-helpers-10.23.0.tgz#9811b44baead9422bb809f082ff6da27db8be1fa"
   integrity sha1-mBG0S66tlCK7gJ8IL/baJ9uL4fo=
 
-"@carbon/icons-react@^10.22.0", "@carbon/icons-react@^10.39.0":
+"@carbon/icons-react@^10.39.0":
   version "10.39.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@carbon/icons-react/-/icons-react-10.39.0.tgz#7f340f7726419d0be38e3068838f3fdeccdc81df"
   integrity sha1-fzQPdyZBnQvjjjBog48/3szcgd8=
@@ -1214,7 +1214,7 @@
     "@carbon/telemetry" "0.0.0-alpha.6"
     prop-types "^15.7.2"
 
-"@carbon/icons@^10.22.0":
+"@carbon/icons@^10.39.0":
   version "10.39.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@carbon/icons/-/icons-10.39.0.tgz#376daef8815d20775d8baffdd9c64028da9dfbbf"
   integrity sha1-N22u+IFdIHddi6/92cZAKNqd+78=
@@ -1724,7 +1724,7 @@
     "@types/node" "*"
     "@types/responselike" "*"
 
-"@types/carbon-components-react@^7.10.2":
+"@types/carbon-components-react@^7.42.0":
   version "7.42.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@types/carbon-components-react/-/carbon-components-react-7.42.0.tgz#87ef8a2953ce81dcdd1fbf7404f30ca817d6754b"
   integrity sha1-h++KKVPOgdzdH790BPMMqBfWdUs=
@@ -3768,7 +3768,7 @@ capture-exit@^2.0.0:
   dependencies:
     rsvp "^4.8.4"
 
-carbon-components-react@^7.25.0:
+carbon-components-react@^7.44.2:
   version "7.44.2"
   resolved "https://artifactory.eccenca.com/api/npm/npm/carbon-components-react/-/carbon-components-react-7.44.2.tgz#314b48c4abfdc00081cbcf3d4a919a88d58385c3"
   integrity sha1-MUtIxKv9wACBy889SpGaiNWDhcM=
@@ -3791,7 +3791,7 @@ carbon-components-react@^7.25.0:
     wicg-inert "^3.1.1"
     window-or-global "^1.0.1"
 
-carbon-components@^10.25.0:
+carbon-components@^10.44.0:
   version "10.44.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/carbon-components/-/carbon-components-10.44.0.tgz#80a68e71798c6f1272af41aed0d54da1bef62f9a"
   integrity sha1-gKaOcXmMbxJyr0Gu0NVNob72L5o=
