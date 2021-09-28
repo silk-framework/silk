@@ -91,6 +91,8 @@ export interface IProps {
     onFocusChange?: (hasFocus: boolean) => any
     // Optional ID to attach to the outer element
     id?: string
+    // If the <Tab> key should be used for auto-completing items. Else it will have its default behavior.
+    useTabForCompletions?: boolean
 }
 
 /** Input component that allows partial, fine-grained auto-completion, i.e. of sub-strings of the input string.
@@ -106,6 +108,7 @@ const AutoSuggestion = ({
                             onFocusChange,
                             id,
                             onInputChecked,
+                            useTabForCompletions = false,
                         }: IProps) => {
     const [value, setValue] = React.useState(initialValue);
     const [cursorPosition, setCursorPosition] = React.useState(0);
@@ -266,7 +269,7 @@ const AutoSuggestion = ({
 
     const handleInputEditorKeyPress = (event: KeyboardEvent) => {
         const overWrittenKeys: Array<string> = Object.values(OVERWRITTEN_KEYS);
-        if (overWrittenKeys.includes(event.key)) {
+        if (overWrittenKeys.includes(event.key) && (useTabForCompletions || event.key !== OVERWRITTEN_KEYS.Tab)) {
             event.preventDefault();
             setKeyPressedFromEditor(OVERWRITTEN_KEYS[event.key]);
             setKeyPressCounter((counter) => ++counter);
@@ -384,6 +387,7 @@ const AutoSuggestion = ({
                         initialValue={value}
                         onFocusChange={handleInputFocus}
                         onKeyDown={handleInputEditorKeyPress}
+                        enableTab={useTabForCompletions}
                         onSelection={setSelectedTextRanges}/>
                     {!!value && (
                         <span className={BlueprintClassNames.INPUT_ACTION}>
