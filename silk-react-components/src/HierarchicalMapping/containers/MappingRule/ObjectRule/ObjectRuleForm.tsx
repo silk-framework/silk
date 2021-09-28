@@ -306,7 +306,6 @@ export const ObjectRuleForm = (props: IProps) => {
                         />
                         {targetCardinality}
                         {patternInput}
-                        {sourcePropertyInput}
                         {
                             // Data preview
                             (!uriPatternHasFocus && uriPatternIsValid && (modifiedValues.pattern || modifiedValues.uriRule)) && (
@@ -328,6 +327,7 @@ export const ObjectRuleForm = (props: IProps) => {
                                 />
                             )
                         }
+                        {sourcePropertyInput}
                         <TextField
                             data-test-id={"object-rule-form-label-input"}
                             label="Label"

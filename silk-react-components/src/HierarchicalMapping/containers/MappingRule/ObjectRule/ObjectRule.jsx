@@ -6,7 +6,6 @@ import {
 } from '@eccenca/gui-elements';
 import _ from 'lodash';
 import { getEditorHref, updateObjectMappingAsync } from '../../../store';
-import ExampleView from '../ExampleView';
 import ObjectMappingRuleForm from './ObjectRuleForm';
 
 import {
@@ -236,6 +235,11 @@ class ObjectRule extends React.Component {
                             />
                         }
                         {
+                            _.get(ruleData, 'rules.uriRule.id')
+                                ? <ExampleTarget uriRuleId={_.get(ruleData, 'rules.uriRule.id')}/>
+                                : null
+                        }
+                        {
                             isObjectRule(type) && ruleData.sourcePath
                                 ? <ObjectSourcePath type={ruleData.type}>
                                     <SourcePath
@@ -245,11 +249,6 @@ class ObjectRule extends React.Component {
                                         }}
                                     />
                                 </ObjectSourcePath> : null
-                        }
-                        {
-                            _.get(ruleData, 'rules.uriRule.id')
-                                ? <ExampleTarget uriRuleId={_.get(ruleData, 'rules.uriRule.id')}/>
-                                : null
                         }
                         {
                             _.get(ruleData, 'metadata.label')
