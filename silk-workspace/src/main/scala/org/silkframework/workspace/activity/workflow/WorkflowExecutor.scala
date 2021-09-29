@@ -215,3 +215,9 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
     }
   }
 }
+
+/** When thrown from a workflow task inside a workflow, this will lead to the immediate stop of the workflow execution.
+  * Other than a cancellation by a user, this will not lead to a cancelled execution.
+  * This should be used in cases where continuing the execution might not make sense.
+  * Instead the workflow execution will be successful. */
+class StopWorkflowExecutionException(msg: String) extends Exception(msg)
