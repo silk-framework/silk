@@ -106,14 +106,16 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   }
 
   private def executeWorkflowOperatorInput(input: WorkflowDependencyNode,
-                                           output: ExecutorOutput)
+                                           output: ExecutorOutput,
+                                           requestingWorkflowOperator: Task[_ <: TaskSpec])
                                           (implicit workflowRunContext: WorkflowRunContext): Option[LocalEntities] = {
     executeWorkflowNode(input, output) match {
       case Some(entityTable) =>
         Some(entityTable)
       case None if output.requestedSchema.isDefined =>
-        throw WorkflowExecutionException(s"In workflow ${workflowTask.id.toString} operator node ${input.nodeId} defined an input" +
-            s" schema for input $input, but did not receive any result.")
+        val inputTask = task(input)
+        throw WorkflowExecutionException(s"Workflow operator '${requestingWorkflowOperator.taskLabel(Int.MaxValue)}' defined an input" +
+            s" schema for its input '${inputTask.taskLabel(Int.MaxValue)}', but did not receive any result from it in workflow '${workflowTask.taskLabel(Int.MaxValue)}' .")
       case None =>
         None
     }
@@ -172,11 +174,11 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                   and output warning */
         val useInputs = checkInputsAgainstSchema(operatorNode, inputs, schemata)
         for ((input, schema) <- useInputs.zip(schemata)) yield {
-          executeWorkflowOperatorInput(input, ExecutorOutput(Some(operatorTask), Some(schema)))
+          executeWorkflowOperatorInput(input, ExecutorOutput(Some(operatorTask), Some(schema)), operatorTask)
         }
       case None =>
         for (input <- inputs) yield {
-          executeWorkflowOperatorInput(input, ExecutorOutput(Some(operatorTask), None))
+          executeWorkflowOperatorInput(input, ExecutorOutput(Some(operatorTask), None), operatorTask)
         }
     }
   }
