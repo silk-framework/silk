@@ -57,7 +57,7 @@ case class GeographicDistanceMetric(unit: String = "km") extends SimpleDistanceM
 
         latIndex conjunction lonIndex
       }
-      case None => Index.empty
+      case None => Index.empty conjunction Index.empty
     }
   }
 

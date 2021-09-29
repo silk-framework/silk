@@ -24,7 +24,7 @@ const RuleTitle = ({ rule, ...otherProps }) => {
         return uri ? (
             <ThingName id={uri} {...otherProps} />
         ) : (
-            <NotAvailable />
+            <span>Mapping</span>
         );
     case MAPPING_RULE_TYPE_DIRECT:
     case MAPPING_RULE_TYPE_OBJECT:
