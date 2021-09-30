@@ -30,6 +30,12 @@ val buildReactExternally = {
   result
 }
 
+val compileParameters: Seq[String] = if(System.getProperty("java.version").split("\\.").head.toInt > 8) {
+  Seq("--release", "8", "-Xlint")
+} else {
+  Seq("-source", "1.8", "-target", "1.8", "-Xlint")
+}
+
 (Global / concurrentRestrictions) += Tags.limit(Tags.Test, 1)
 
 val scalaTestOptions = {
@@ -83,7 +89,7 @@ lazy val commonSettings = Seq(
       val oldStrategy = (assembly / assemblyMergeStrategy).value
       oldStrategy(other)
   },
-  javacOptions ++= Seq("-source", "1.8", "-target", "1.8", "-Xlint")
+  javacOptions ++= compileParameters
 )
 
 //////////////////////////////////////////////////////////////////////////////
