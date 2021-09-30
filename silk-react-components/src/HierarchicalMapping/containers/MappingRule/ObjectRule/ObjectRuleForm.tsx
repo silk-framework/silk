@@ -10,13 +10,14 @@ import {
     ScrollingHOC,
 } from '@eccenca/gui-elements';
 import {
-    FieldItem
+    Button,
+    FieldItem, TextField
 } from '@gui-elements/index';
 import {
     AffirmativeButton,
     DismissiveButton,
     Radio,
-    TextField,
+    TextField as LegacyTextField,
 } from '@gui-elements/legacy-replacements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
@@ -65,6 +66,8 @@ export const ObjectRuleForm = (props: IProps) => {
     const [saveObjectError, setSaveObjectError] = useState<any>(undefined)
     const [uriPatternHasFocus, setUriPatternHasFocus] = useState<boolean>(false)
     const [uriPatternIsValid, setUriPatternIsValid] = useState<boolean>(true)
+    // When creating a new rule only when this is enabled the URI pattern input will be shown
+    const [createCustomUriPatternForNewRule, setCreateCustomUriPatternForNewRule] = useState<boolean>(false)
 
     useEffect(() => {
         const { id, scrollIntoView } = props;
@@ -258,32 +261,42 @@ export const ObjectRuleForm = (props: IProps) => {
 
         let patternInput: JSX.Element | undefined = undefined
 
-        if (id) {
-            if (modifiedValues.uriRuleType === 'uri') {
-                patternInput = (
-                    <AutoSuggestion
-                        id={"uri-pattern-auto-suggestion"}
-                        label="URI pattern"
-                        initialValue={modifiedValues.pattern}
-                        clearIconText={"Clear URI pattern"}
-                        validationErrorText={"The entered URI pattern is invalid."}
-                        onChange={value => {
-                            handleChangeValue('pattern', value);
-                        }}
-                        fetchSuggestions={(input, cursorPosition) => fetchUriPatternAutoCompletions(autoCompleteRuleId, input, cursorPosition)}
-                        checkInput={checkUriPattern}
-                        onFocusChange={setUriPatternHasFocus}
-                    />
-                );
-            } else {
-                patternInput = (
+    // URI pattern
+        if (!id || modifiedValues.uriRuleType === 'uri') {
+            if (!id && !createCustomUriPatternForNewRule) {
+                patternInput = <FieldItem labelAttributes={{text: "URI pattern"}}>
                     <TextField
+                        data-id="object-rule-form-default-pattern"
                         disabled
-                        label="URI formula"
-                        value="This URI cannot be edited in the edit form."
+                        value="Default pattern."
+                        rightElement={<Button
+                            onClick={() => setCreateCustomUriPatternForNewRule(true)}
+                        >Create custom pattern</Button>}
                     />
-                );
+                </FieldItem>
+            } else {
+                patternInput = <AutoSuggestion
+                    id={"uri-pattern-auto-suggestion"}
+                    label="URI pattern"
+                    initialValue={modifiedValues.pattern}
+                    clearIconText={"Clear URI pattern"}
+                    validationErrorText={"The entered URI pattern is invalid."}
+                    onChange={value => {
+                        handleChangeValue('pattern', value);
+                    }}
+                    fetchSuggestions={(input, cursorPosition) => fetchUriPatternAutoCompletions(autoCompleteRuleId, input, cursorPosition)}
+                    checkInput={checkUriPattern}
+                    onFocusChange={setUriPatternHasFocus}
+                />
             }
+        } else {
+            patternInput = (
+                <LegacyTextField
+                    disabled
+                    label="URI formula"
+                    value="This URI cannot be edited in the edit form."
+                />
+            );
         }
 
         return (
@@ -328,14 +341,14 @@ export const ObjectRuleForm = (props: IProps) => {
                             )
                         }
                         {sourcePropertyInput}
-                        <TextField
+                        <LegacyTextField
                             data-test-id={"object-rule-form-label-input"}
                             label="Label"
                             className="ecc-silk-mapping__ruleseditor__label"
                             value={modifiedValues.label}
                             onChange={({ value }) => { handleChangeValue('label', value); }}
                         />
-                        <TextField
+                        <LegacyTextField
                             multiline
                             label="Description"
                             className="ecc-silk-mapping__ruleseditor__comment"
