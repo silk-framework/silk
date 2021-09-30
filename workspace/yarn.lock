@@ -3800,11 +3800,6 @@ carbon-components@^10.44.0:
     lodash.debounce "^4.0.8"
     warning "^3.0.0"
 
-carbon-icons@^7.0.7:
-  version "7.0.7"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/carbon-icons/-/carbon-icons-7.0.7.tgz#ebafe3e9fa25df973796a8eca06d8a7c501cc610"
-  integrity sha1-66/j6fol35c3lqjsoG2KfFAcxhA=
-
 case-sensitive-paths-webpack-plugin@2.3.0:
   version "2.3.0"
   resolved "https://artifactory.eccenca.com/api/npm/npm/case-sensitive-paths-webpack-plugin/-/case-sensitive-paths-webpack-plugin-2.3.0.tgz#23ac613cc9a856e4f88ff8bb73bbb5e989825cf7"
