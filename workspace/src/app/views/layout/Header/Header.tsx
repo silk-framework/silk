@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Store from "store";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 import {
     ApplicationHeader,
     ApplicationSidebarNavigation,
@@ -39,16 +40,14 @@ interface IProps {
 
 export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarExpanded }: IProps) {
     const dispatch = useDispatch();
-
+    const brwsrLocation = useLocation();
+    const brwsrParams = new URLSearchParams(brwsrLocation.search?.substring(1));
     const [currentLanguage, setCurrentLanguage] = useState(Store.get("locale"));
-
     const { hotKeys } = useSelector(commonSel.initialSettingsSelector);
     const isAuth = useSelector(commonSel.isAuthSelector);
     const { dmBaseUrl, dmModuleLinks } = useSelector(commonSel.initialSettingsSelector);
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
-
     const [t] = useTranslation();
-
     const [displayUserMenu, toggleUserMenuDisplay] = useState<boolean>(false);
 
     const handleCreateDialog = () => {
@@ -137,12 +136,14 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         text={t("navigation.side.di.projects", "Projects")}
                         htmlTitle={t("navigation.side.di.projectsTooltip")}
                         onClick={() => handleNavigate("project")}
+                        active={brwsrLocation.pathname === SERVE_PATH && brwsrParams.get("itemType") === "project"}
                     />
                     <MenuItem
                         icon="artefact-dataset"
                         text={t("navigation.side.di.datasets", "Datasets")}
                         htmlTitle={t("navigation.side.di.datasetsTooltip")}
                         onClick={() => handleNavigate("dataset")}
+                        active={brwsrLocation.pathname === SERVE_PATH && brwsrParams.get("itemType") === "dataset"}
                     />
                 </Menu>
             </ApplicationSidebarNavigation>
