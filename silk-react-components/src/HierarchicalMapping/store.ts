@@ -745,7 +745,7 @@ export const fetchValuePathSuggestions = (ruleId: string | undefined, inputStrin
 }
 
 // Fetches (partial) auto-complete suggestions for a path expression inside a URI pattern
-export const fetchUriPatternAutoCompletions = (ruleId: string | undefined, inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
+export const fetchUriPatternAutoCompletions = (ruleId: string | undefined, inputString: string, cursorPosition: number, objectContextPath?: string): Promise<IPartialAutoCompleteResult | undefined> => {
     return new Promise((resolve, reject) => {
         if(!ruleId) {
             resolve(undefined)
@@ -757,7 +757,8 @@ export const fetchUriPatternAutoCompletions = (ruleId: string | undefined, input
                 transformTask,
                 ruleId,
                 inputString,
-                cursorPosition
+                cursorPosition,
+                objectContextPath
             ).then((suggestions) => resolve(suggestions?.data))
                 .catch((err) => reject(err));
         }

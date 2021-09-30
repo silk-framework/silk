@@ -284,7 +284,8 @@ export const ObjectRuleForm = (props: IProps) => {
                     onChange={value => {
                         handleChangeValue('pattern', value);
                     }}
-                    fetchSuggestions={(input, cursorPosition) => fetchUriPatternAutoCompletions(autoCompleteRuleId, input, cursorPosition)}
+                    fetchSuggestions={(input, cursorPosition) =>
+                        fetchUriPatternAutoCompletions(autoCompleteRuleId, input, cursorPosition, id ? undefined : modifiedValues.sourceProperty)}
                     checkInput={checkUriPattern}
                     onFocusChange={setUriPatternHasFocus}
                 />
