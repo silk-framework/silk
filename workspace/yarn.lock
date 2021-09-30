@@ -3757,9 +3757,8 @@ caniuse-api@^3.0.0:
     lodash.uniq "^4.5.0"
 
 caniuse-lite@^1.0.0, caniuse-lite@^1.0.30000981, caniuse-lite@^1.0.30001035, caniuse-lite@^1.0.30001039, caniuse-lite@^1.0.30001043:
-  version "1.0.30001050"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/caniuse-lite/-/caniuse-lite-1.0.30001050.tgz#11218af4b6b85dc1089536f31e10e3181e849e71"
-  integrity sha1-ESGK9La4XcEIlTbzHhDjGB6EnnE=
+  version "1.0.30001261"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/caniuse-lite/-/caniuse-lite-1.0.30001261.tgz"
 
 capture-exit@^2.0.0:
   version "2.0.0"
