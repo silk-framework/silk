@@ -225,6 +225,11 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
     )
   }
 
+  it should "retrieve paths with base path and type URI set" in {
+    val xmlEntities = XmlDoc("persons.xml", basePath = "Person")
+    xmlEntities atPath("Events") valuesAt("Birth") shouldBe Seq(Seq("May 1900"))
+  }
+
   it should "generate default URIs for attribute object paths" in {
     val uris = (XmlDoc("persons.xml", "") atPath "Person/Events/@count").uris
     uris should not be empty
@@ -243,11 +248,11 @@ abstract class XmlSourceTestBase extends FlatSpec with Matchers {
   /**
     * References an XML document from the test resources.
     */
-  case class XmlDoc(name: String, uriPattern: String = "{#tag}") {
+  case class XmlDoc(name: String, uriPattern: String = "{#tag}", basePath: String = "") {
 
     private val resourceLoader = ClasspathResourceLoader("org/silkframework/plugins/dataset/xml")
 
-    private val source = xmlSource(name, uriPattern)
+    private val source = xmlSource(name, uriPattern, basePath)
 
     def withUriPattern(pattern: String): XmlDoc = {
       copy(uriPattern = pattern)

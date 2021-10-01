@@ -64,8 +64,14 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
     * @return
     */
   private def loadXmlNodes(typeUri: String): Seq[XmlTraverser] = {
-    // If a type URI is provided, we use it as path. Otherwise we are using the base Path (which is deprecated)
-    val pathStr = if (typeUri.isEmpty) basePath else typeUri
+    val typeUriPart = if (typeUri.isEmpty) {
+      ""
+    } else if(typeUri.startsWith("\\") || typeUri.startsWith("/") || typeUri.startsWith("[")) {
+      typeUri
+    } else {
+      "/" + typeUri
+    }
+    val pathStr = basePath + typeUriPart
     // Load XML
     val xml = file.read(XML.load)
     val rootTraverser = XmlTraverser(xml)
