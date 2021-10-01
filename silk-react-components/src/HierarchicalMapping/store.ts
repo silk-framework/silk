@@ -518,7 +518,7 @@ export const getSuggestionsAsync = (data: ISuggestAsyncProps,
 };
 
 export const childExampleAsync = data => {
-    const {ruleType, rawRule, id} = data;
+    const {ruleType, rawRule, id, objectPath} = data;
     const getRule = (rawRule, type) => {
         switch (type) {
             case MAPPING_RULE_TYPE_DIRECT:
@@ -540,7 +540,7 @@ export const childExampleAsync = data => {
         return silkStore
             .request({
                 topic: 'transform.task.rule.child.peak',
-                data: {...getApiDetails(), id, rule},
+                data: {...getApiDetails(), id, rule, objectPath},
             })
             .map(mapPeakResult);
     }

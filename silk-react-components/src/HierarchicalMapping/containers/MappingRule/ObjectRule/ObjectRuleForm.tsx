@@ -266,10 +266,11 @@ export const ObjectRuleForm = (props: IProps) => {
             if (!id && !createCustomUriPatternForNewRule) {
                 patternInput = <FieldItem labelAttributes={{text: "URI pattern"}}>
                     <TextField
-                        data-id="object-rule-form-default-pattern"
+                        data-test-id="object-rule-form-default-pattern"
                         disabled
                         value="Default pattern."
                         rightElement={<Button
+                            data-test-id="object-rule-form-default-pattern-custom-pattern-btn"
                             onClick={() => setCreateCustomUriPatternForNewRule(true)}
                         >Create custom pattern</Button>}
                     />
@@ -338,6 +339,7 @@ export const ObjectRuleForm = (props: IProps) => {
                                         // when not "pattern" then it is "uriRule"
                                         modifiedValues.pattern ? MAPPING_RULE_TYPE_URI : modifiedValues.uriRule.type
                                     }
+                                    objectSourcePathContext={!id ? modifiedValues.sourceProperty : undefined}
                                 />
                             )
                         }

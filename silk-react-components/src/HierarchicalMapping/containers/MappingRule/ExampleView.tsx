@@ -13,9 +13,11 @@ interface IProps {
     id: string
     rawRule?: object
     ruleType: string
+    // An additional path in which context the examples should be generated, e.g. needed in the creation of an object rule when a source path is specified.
+    objectSourcePathContext?: string
 }
 /** Shows example input and output values for a mapping rule. */
-export const ExampleView = ({id, rawRule, ruleType}: IProps) => {
+export const ExampleView = ({id, rawRule, ruleType, objectSourcePathContext}: IProps) => {
     const [example, setExample] = useState<any>(undefined)
     const [error, setError] = useState<any>(undefined)
 
@@ -25,6 +27,7 @@ export const ExampleView = ({id, rawRule, ruleType}: IProps) => {
             id: id,
             rawRule: rawRule,
             ruleType: ruleType,
+            objectPath: objectSourcePathContext
         }).subscribe(
             ({ example }) => {
                 setExample(example);
