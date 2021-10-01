@@ -1,13 +1,13 @@
 import React, {useEffect, useState} from 'react';
-import PropTypes from 'prop-types';
 
-import { Chip, Spinner } from '@eccenca/gui-elements';
+import {Chip} from '@eccenca/gui-elements';
 import ErrorView from '../../components/ErrorView';
 import _ from 'lodash';
 
-import { childExampleAsync, ruleExampleAsync } from '../../store';
-import { InfoBox } from '../../components/InfoBox';
-import { isDebugMode } from '../../utils/isDebugMode';
+import {childExampleAsync, ruleExampleAsync} from '../../store';
+import {InfoBox} from '../../components/InfoBox';
+import {isDebugMode} from '../../utils/isDebugMode';
+import {Notification} from "@gui-elements/index";
 
 interface IProps {
     id: string
@@ -37,7 +37,7 @@ export const ExampleView = ({id, rawRule, ruleType, objectSourcePathContext}: IP
                 setError(error);
             }
         );
-    }, [])
+    }, [id, objectSourcePathContext])
 
     if (error) {
         return <ErrorView {...error} titlePrefix={"There has been an error loading the examples: "}/>;
@@ -50,8 +50,8 @@ export const ExampleView = ({id, rawRule, ruleType, objectSourcePathContext}: IP
     const pathsCount = _.size(example.sourcePaths);
     const resultsCount = _.size(example.results);
 
-    if (pathsCount === 0 && resultsCount === 0) {
-        return null;
+    if (resultsCount === 0) {
+        return <Notification>Preview has returned no results.</Notification>
     }
 
     const sourcePaths =

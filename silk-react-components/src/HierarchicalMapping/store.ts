@@ -67,7 +67,8 @@ export function getDefinedApiDetails() {
 }
 
 const mapPeakResult = (returned) => {
-    if (_.get(returned, 'body.status.id') !== 'success') {
+    const resultStatus = _.get(returned, 'body.status.id')
+    if (resultStatus !== 'success' && resultStatus !== 'empty') {
         return {
             title: 'Could not load preview',
             detail: _.get(

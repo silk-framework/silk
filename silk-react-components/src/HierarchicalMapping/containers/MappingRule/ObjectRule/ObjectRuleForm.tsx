@@ -42,7 +42,10 @@ import { wasTouched } from '../../../utils/wasTouched';
 import { newValueIsIRI } from '../../../utils/newValueIsIRI';
 import TargetCardinality from "../../../components/TargetCardinality";
 import MultiAutoComplete from "../../../components/MultiAutoComplete";
-import AutoSuggestion, {IReplacementResult} from "../../../components/AutoSuggestion/AutoSuggestion";
+import AutoSuggestion, {
+    IPartialAutoCompleteResult,
+    IReplacementResult
+} from "../../../components/AutoSuggestion/AutoSuggestion";
 
 interface IProps {
     id?: string
@@ -66,6 +69,8 @@ export const ObjectRuleForm = (props: IProps) => {
     const [saveObjectError, setSaveObjectError] = useState<any>(undefined)
     const [uriPatternHasFocus, setUriPatternHasFocus] = useState<boolean>(false)
     const [uriPatternIsValid, setUriPatternIsValid] = useState<boolean>(true)
+    const [objectPathValid, setObjectPathValid] = useState<boolean>(true)
+    const [objectPathInputHasFocus, setObjectPathInputHasFocus] = useState<boolean>(false)
     // When creating a new rule only when this is enabled the URI pattern input will be shown
     const [createCustomUriPatternForNewRule, setCreateCustomUriPatternForNewRule] = useState<boolean>(false)
 
@@ -253,8 +258,10 @@ export const ObjectRuleForm = (props: IProps) => {
                     onChange={value => {
                         handleChangeValue('sourceProperty', value);
                     }}
-                    fetchSuggestions={(input, cursorPosition) => fetchValuePathSuggestions(autoCompleteRuleId, input, cursorPosition)}
+                    fetchSuggestions={(input, cursorPosition) => fetchValuePathSuggestions(parentId, input, cursorPosition)}
                     checkInput={checkValuePathValidity}
+                    onInputChecked={setObjectPathValid}
+                    onFocusChange={setObjectPathInputHasFocus}
                 />
             );
         }
@@ -286,7 +293,7 @@ export const ObjectRuleForm = (props: IProps) => {
                         handleChangeValue('pattern', value);
                     }}
                     fetchSuggestions={(input, cursorPosition) =>
-                        fetchUriPatternAutoCompletions(autoCompleteRuleId, input, cursorPosition, id ? undefined : modifiedValues.sourceProperty)}
+                        fetchUriPatternAutoCompletions(parentId, input, cursorPosition, modifiedValues.sourceProperty)}
                     checkInput={checkUriPattern}
                     onFocusChange={setUriPatternHasFocus}
                 />
@@ -323,24 +330,26 @@ export const ObjectRuleForm = (props: IProps) => {
                         {patternInput}
                         {
                             // Data preview
-                            (!uriPatternHasFocus && uriPatternIsValid && (modifiedValues.pattern || modifiedValues.uriRule)) && (
-                                <ExampleView
-                                    id={parentId || 'root'}
-                                    rawRule={
-                                        // when not "pattern" then it is "uriRule"
-                                        modifiedValues.pattern ?
-                                            {
-                                                type: MAPPING_RULE_TYPE_URI,
-                                                pattern: modifiedValues.pattern,
-                                            }
-                                            : modifiedValues.uriRule
-                                    }
-                                    ruleType={
-                                        // when not "pattern" then it is "uriRule"
-                                        modifiedValues.pattern ? MAPPING_RULE_TYPE_URI : modifiedValues.uriRule.type
-                                    }
-                                    objectSourcePathContext={!id ? modifiedValues.sourceProperty : undefined}
-                                />
+                            (!uriPatternHasFocus && uriPatternIsValid && !objectPathInputHasFocus && objectPathValid && (modifiedValues.pattern || modifiedValues.uriRule)) && (
+                                <FieldItem labelAttributes={{text: "Examples of target data"}}>
+                                    <ExampleView
+                                        id={parentId || 'root'}
+                                        rawRule={
+                                            // when not "pattern" then it is "uriRule"
+                                            modifiedValues.pattern ?
+                                                {
+                                                    type: MAPPING_RULE_TYPE_URI,
+                                                    pattern: modifiedValues.pattern,
+                                                }
+                                                : modifiedValues.uriRule
+                                        }
+                                        ruleType={
+                                            // when not "pattern" then it is "uriRule"
+                                            modifiedValues.pattern ? MAPPING_RULE_TYPE_URI : modifiedValues.uriRule.type
+                                        }
+                                        objectSourcePathContext={modifiedValues.sourceProperty}
+                                    />
+                                </FieldItem>
                             )
                         }
                         {sourcePropertyInput}
