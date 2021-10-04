@@ -118,6 +118,8 @@ case class GlobalUriPatternCacheValue(uriPatterns: Map[String, Set[String]],
 
 object GlobalUriPatternCache {
   final val CONFIG_KEY_ENABLED = "caches.global.uriPatternCache.enabled"
+  final val CONFIG_KEY_TIME_BETWEEN_REFRESHES = "caches.global.uriPatternCache.timeBetweenRefreshes"
+  final val CONFIG_KEY_WAIT_FOR_CACHE_TO_FINISH = "caches.global.uriPatternCache.waitForCacheToFinish"
 
   /** Extracts all URI patterns from a transform rule and connects them with the target type URIs used in the mappings. */
   def extractUriPatterns(transformRule: TransformRule,

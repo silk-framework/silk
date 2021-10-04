@@ -63,7 +63,7 @@ describe("ExampleView Component", () => {
                 results: []
             })
             const wrapper = getWrapper()
-            expect(wrapper.getDOMNode()).toBeNull();
+            expect(wrapper.text()).toMatch("no result")
         });
     });
 });

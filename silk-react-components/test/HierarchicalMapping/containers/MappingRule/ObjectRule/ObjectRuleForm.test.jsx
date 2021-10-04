@@ -5,7 +5,7 @@ import {CardTitle} from '@eccenca/gui-elements';
 import ExampleView from '../../../../../src/HierarchicalMapping/containers/MappingRule/ExampleView';
 import * as Store from '../../../../../src/HierarchicalMapping/store';
 import EventEmitter from '../../../../../src/HierarchicalMapping/utils/EventEmitter';
-import {changeValue, findAll, findSingleElement, logWrapperHtml} from "../../../utils/TestHelpers";
+import {byTestId, changeValue, findAll, findSingleElement, logWrapperHtml} from "../../../utils/TestHelpers";
 import {waitFor} from "@testing-library/react";
 
 const props = {
@@ -77,7 +77,8 @@ describe("ObjectMappingRuleForm Component", () => {
         });
     
         it('should render ExampleView component, when pattern or uriRule presented', () => {
-            expect(wrapper.find(ExampleView)).toHaveLength(1);
+            logWrapperHtml(wrapper)
+            expect(findAll(wrapper, byTestId("object-rule-form-example-preview"))).toHaveLength(1);
         });
     
         it('should render input for editing label of rule', () => {

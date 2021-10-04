@@ -59,7 +59,7 @@ export const ExampleView = ({id, rawRule, ruleType, objectSourcePathContext}: IP
 
     return (
         <InfoBox>
-            <table className="mdl-data-table ecc-silk-mapping__rulesviewer__examples-table">
+            <table data-test-id={"example-preview-table"} className="mdl-data-table ecc-silk-mapping__rulesviewer__examples-table">
                 <thead>
                 <tr>
                     <th className="ecc-silk-mapping__rulesviewer__examples-table__path">

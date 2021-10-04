@@ -1,18 +1,6 @@
-import React, {Component, useEffect, useState} from 'react';
-import PropTypes from 'prop-types';
-import {
-    Card,
-    CardTitle,
-    CardContent,
-    CardActions,
-    RadioGroup,
-    Spinner,
-    ScrollingHOC,
-} from '@eccenca/gui-elements';
-import {
-    Button,
-    FieldItem, TextField
-} from '@gui-elements/index';
+import React, {useEffect, useState} from 'react';
+import {Card, CardActions, CardContent, CardTitle, RadioGroup, ScrollingHOC, Spinner,} from '@eccenca/gui-elements';
+import {Button, FieldItem, Notification, TextField} from '@gui-elements/index';
 import {
     AffirmativeButton,
     DismissiveButton,
@@ -21,7 +9,7 @@ import {
 } from '@gui-elements/legacy-replacements';
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
-import { ParentElement } from '../../../components/ParentElement';
+import {ParentElement} from '../../../components/ParentElement';
 import {
     checkUriPatternValidity,
     checkValuePathValidity,
@@ -29,27 +17,21 @@ import {
     fetchUriPatternAutoCompletions,
     fetchValuePathSuggestions
 } from '../../../store';
-import { convertToUri } from '../../../utils/convertToUri';
+import {convertToUri} from '../../../utils/convertToUri';
 import ErrorView from '../../../components/ErrorView';
 import AutoComplete from '../../../components/AutoComplete';
-import {
-    MAPPING_RULE_TYPE_ROOT,
-    } from '../../../utils/constants';
-import { MAPPING_RULE_TYPE_URI, MESSAGES } from '../../../utils/constants';
+import {MAPPING_RULE_TYPE_ROOT, MAPPING_RULE_TYPE_URI, MESSAGES,} from '../../../utils/constants';
 import EventEmitter from '../../../utils/EventEmitter';
-import { trimValue } from '../../../utils/trimValue';
-import { wasTouched } from '../../../utils/wasTouched';
-import { newValueIsIRI } from '../../../utils/newValueIsIRI';
+import {trimValue} from '../../../utils/trimValue';
+import {wasTouched} from '../../../utils/wasTouched';
+import {newValueIsIRI} from '../../../utils/newValueIsIRI';
 import TargetCardinality from "../../../components/TargetCardinality";
 import MultiAutoComplete from "../../../components/MultiAutoComplete";
-import AutoSuggestion, {
-    IPartialAutoCompleteResult,
-    IReplacementResult
-} from "../../../components/AutoSuggestion/AutoSuggestion";
+import AutoSuggestion from "../../../components/AutoSuggestion/AutoSuggestion";
 
 interface IProps {
     id?: string
-    parentId: string
+    parentId?: string
     scrollIntoView: ({topOffset: number}) => any
     onAddNewRule: (callback: () => any) => any
     scrollElementIntoView: () => any
@@ -266,47 +248,80 @@ export const ObjectRuleForm = (props: IProps) => {
             );
         }
 
-        let patternInput: JSX.Element | undefined = undefined
+    let patternInput: JSX.Element | undefined = undefined
 
     // URI pattern
-        if (!id || modifiedValues.uriRuleType === 'uri') {
-            if (!id && !createCustomUriPatternForNewRule) {
-                patternInput = <FieldItem labelAttributes={{text: "URI pattern"}}>
-                    <TextField
-                        data-test-id="object-rule-form-default-pattern"
-                        disabled
-                        value="Default pattern."
-                        rightElement={<Button
-                            data-test-id="object-rule-form-default-pattern-custom-pattern-btn"
-                            onClick={() => setCreateCustomUriPatternForNewRule(true)}
-                        >Create custom pattern</Button>}
-                    />
-                </FieldItem>
-            } else {
-                patternInput = <AutoSuggestion
-                    id={"uri-pattern-auto-suggestion"}
-                    label="URI pattern"
-                    initialValue={modifiedValues.pattern}
-                    clearIconText={"Clear URI pattern"}
-                    validationErrorText={"The entered URI pattern is invalid."}
-                    onChange={value => {
-                        handleChangeValue('pattern', value);
-                    }}
-                    fetchSuggestions={(input, cursorPosition) =>
-                        fetchUriPatternAutoCompletions(parentId, input, cursorPosition, modifiedValues.sourceProperty)}
-                    checkInput={checkUriPattern}
-                    onFocusChange={setUriPatternHasFocus}
-                />
-            }
-        } else {
-            patternInput = (
-                <LegacyTextField
+    if (!id || modifiedValues.uriRuleType === 'uri') {
+        if (!modifiedValues.pattern && !createCustomUriPatternForNewRule) {
+            patternInput = <FieldItem labelAttributes={{text: "URI pattern"}}>
+                <TextField
+                    data-test-id="object-rule-form-default-pattern"
                     disabled
-                    label="URI formula"
-                    value="This URI cannot be edited in the edit form."
+                    value="Default pattern."
+                    rightElement={<Button
+                        data-test-id="object-rule-form-default-pattern-custom-pattern-btn"
+                        onClick={() => setCreateCustomUriPatternForNewRule(true)}
+                    >Create custom pattern</Button>}
                 />
-            );
+            </FieldItem>
+        } else {
+            patternInput = <AutoSuggestion
+                id={"uri-pattern-auto-suggestion"}
+                label="URI pattern"
+                initialValue={modifiedValues.pattern}
+                clearIconText={"Clear URI pattern"}
+                validationErrorText={"The entered URI pattern is invalid."}
+                onChange={value => {
+                    handleChangeValue('pattern', value);
+                }}
+                fetchSuggestions={(input, cursorPosition) =>
+                    fetchUriPatternAutoCompletions(parentId ? parentId : "root", input, cursorPosition, modifiedValues.sourceProperty)}
+                checkInput={checkUriPattern}
+                onFocusChange={setUriPatternHasFocus}
+            />
         }
+    } else {
+        patternInput = (
+            <LegacyTextField
+                disabled
+                label="URI formula"
+                value="This URI cannot be edited in the edit form."
+            />
+        );
+    }
+
+    let previewExamples: null | JSX.Element = null
+
+    if(!modifiedValues.pattern && !modifiedValues.uriRule) {
+        previewExamples =
+            <Notification data-test-id={"object-rule-form-preview-no-pattern"}>No preview shown for default URI pattern.</Notification>
+    } else if (uriPatternHasFocus || objectPathInputHasFocus) {
+        previewExamples =
+            <Notification data-test-id={"object-rule-form-preview-no-results"}>No preview is shown while updating URI
+                pattern or value path.</Notification>
+    } else if (!uriPatternIsValid || !objectPathValid) {
+        previewExamples =
+            <Notification warning={true} data-test-id={"object-rule-form-preview-invalid-input"}>URI pattern or value
+                path is invalid. No preview shown.</Notification>
+    } else if (modifiedValues.pattern || modifiedValues.uriRule) {
+        previewExamples = <ExampleView
+            id={parentId || 'root'}
+            rawRule={
+                // when not "pattern" then it is "uriRule"
+                modifiedValues.pattern ?
+                    {
+                        type: MAPPING_RULE_TYPE_URI,
+                        pattern: modifiedValues.pattern,
+                    }
+                    : modifiedValues.uriRule
+            }
+            ruleType={
+                // when not "pattern" then it is "uriRule"
+                modifiedValues.pattern ? MAPPING_RULE_TYPE_URI : modifiedValues.uriRule.type
+            }
+            objectSourcePathContext={modifiedValues.sourceProperty}
+        />
+    }
 
         return (
             <div className="ecc-silk-mapping__ruleseditor">
@@ -329,28 +344,9 @@ export const ObjectRuleForm = (props: IProps) => {
                         {targetCardinality}
                         {patternInput}
                         {
-                            // Data preview
-                            (!uriPatternHasFocus && uriPatternIsValid && !objectPathInputHasFocus && objectPathValid && (modifiedValues.pattern || modifiedValues.uriRule)) && (
-                                <FieldItem labelAttributes={{text: "Examples of target data"}}>
-                                    <ExampleView
-                                        id={parentId || 'root'}
-                                        rawRule={
-                                            // when not "pattern" then it is "uriRule"
-                                            modifiedValues.pattern ?
-                                                {
-                                                    type: MAPPING_RULE_TYPE_URI,
-                                                    pattern: modifiedValues.pattern,
-                                                }
-                                                : modifiedValues.uriRule
-                                        }
-                                        ruleType={
-                                            // when not "pattern" then it is "uriRule"
-                                            modifiedValues.pattern ? MAPPING_RULE_TYPE_URI : modifiedValues.uriRule.type
-                                        }
-                                        objectSourcePathContext={modifiedValues.sourceProperty}
-                                    />
-                                </FieldItem>
-                            )
+                            <FieldItem data-test-id="object-rule-form-example-preview" labelAttributes={{text: "Examples of target data"}}>
+                                {previewExamples}
+                            </FieldItem>
                         }
                         {sourcePropertyInput}
                         <LegacyTextField
