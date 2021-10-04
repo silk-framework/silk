@@ -28,7 +28,7 @@ case class JsonDataset(
   uriPattern: String = "",
   @Param(value = "Maximum depth of written JSON. This acts as a safe guard if a recursive structure is written.", advanced = true)
   maxDepth: Int = DEFAULT_MAX_SIZE,
-  @Param(value = "Streaming allows for reading large JSON files.", advanced = true)
+  @Param(value = "Streaming allows for reading large JSON files. If streaming is enabled, backward paths are not supported.", advanced = true)
   streaming: Boolean = true) extends Dataset with ResourceBasedDataset {
 
   private val jsonTemplate = JsonTemplate.parse(template)
