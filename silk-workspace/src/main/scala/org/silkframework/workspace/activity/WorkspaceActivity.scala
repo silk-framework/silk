@@ -161,6 +161,9 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     addInstance(config)
   }
 
+  /** Marks an activity as a cache activity, i.e. an activity that stores a cached value of something that is potentially expensive to compute. */
+  def isCacheActivity: Boolean = factory.isCacheActivity
+
   /**
     * Adds a new instance of this activity type.
     * If this is a singleton activity, it will only be updated if the configuration changed.
@@ -170,8 +173,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
 
     if(isSingleton) {
       if(config != currentParameters) {
-        val newControl = createControl(config)
-        currentInstance = newControl
+        currentInstance = createControl(config)
       }
     } else {
       val newControl = createControl(config)

@@ -18,4 +18,6 @@ case class VocabularyCacheFactory() extends TaskActivityFactory[TransformSpec, V
   def apply(task: ProjectTask[TransformSpec]): VocabularyCache = {
     new VocabularyCache(task)
   }
+
+  override def isCacheActivity: Boolean = true
 }

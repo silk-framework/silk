@@ -41,18 +41,16 @@ private class ActivityExecution[T](activity: Activity[T],
   // Locks the access to the runningThread variable
   private object ThreadLock
 
+  // Locks the access to the status variable when needed
+  private object StatusLock
+
   @volatile
   private var runningThread: Option[Thread] = None
 
   override def startTime: Option[Instant] = startTimestamp
 
   override def start()(implicit user: UserContext): Unit = {
-    // Check if the current activity is still running
-    if (status().isRunning) {
-      throw new IllegalStateException(s"Cannot start while activity ${this.activity.name} is still running!")
-    }
-    // FIXME: Here is a mini race condition if two threads call start() at the same time, see CMEM-934
-    setStartMetaData(user)
+    initStatus(user)
     // Execute activity
     val forkJoin = new ForkJoinRunner()
     forkJoinRunner = Some(forkJoin)
@@ -63,19 +61,30 @@ private class ActivityExecution[T](activity: Activity[T],
     }
   }
 
+  // Checks if the activity is already running (and fails if it is) and inits the status.
+  private def initStatus(user: UserContext): Unit = {
+    StatusLock.synchronized {
+      // Check if the current activity is still running
+      if (status().isRunning) {
+        throw new IllegalStateException(s"Cannot start while activity ${this.activity.name} is still running!")
+      }
+      setStartMetaData(user)
+    }
+  }
+
   override def startBlocking()(implicit user: UserContext): Unit = synchronized {
-    setStartMetaData(user)
+    initStatus(user)
     ForkJoinPool.managedBlock(new BlockingRunner())
   }
 
-  private def setStartMetaData(user: UserContext) = {
+  private def setStartMetaData(user: UserContext): Unit = {
     resetMetaData()
     status.update(Status.Waiting())
     this.startedByUser = user
   }
 
   override def startBlockingAndGetValue(initialValue: Option[T])(implicit user: UserContext): T = synchronized {
-    setStartMetaData(user)
+    initStatus(user)
     for (v <- initialValue)
       value.update(v)
     runActivity()
@@ -83,15 +92,17 @@ private class ActivityExecution[T](activity: Activity[T],
   }
 
   override def cancel()(implicit user: UserContext): Unit = {
-    if (status().isRunning && !status().isInstanceOf[Status.Canceling]) {
-      this.cancelledByUser = user
-      this.cancelTimestamp = Some(Instant.now)
-      status.update(Status.Canceling(status().progress))
-      children().foreach(_.cancel())
-      activity.cancelExecution()
-      ThreadLock.synchronized {
-        runningThread foreach { thread =>
-          thread.interrupt() // To interrupt an activity that might be blocking on something else, e.g. slow network connection
+    StatusLock.synchronized {
+      if (status().isRunning && !status().isInstanceOf[Status.Canceling]) {
+        this.cancelledByUser = user
+        this.cancelTimestamp = Some(Instant.now)
+        status.update(Status.Canceling(status().progress))
+        children().foreach(_.cancel())
+        activity.cancelExecution()
+        ThreadLock.synchronized {
+          runningThread foreach { thread =>
+            thread.interrupt() // To interrupt an activity that might be blocking on something else, e.g. slow network connection
+          }
         }
       }
     }
@@ -146,10 +157,14 @@ private class ActivityExecution[T](activity: Activity[T],
       startTimestamp = Some(Instant.ofEpochMilli(startTime))
       try {
         activity.run(this)
-        status.update(Status.Finished(success = true, System.currentTimeMillis - startTime, cancelled = activity.wasCancelled()))
+        StatusLock.synchronized {
+          status.update(Status.Finished(success = true, System.currentTimeMillis - startTime, cancelled = activity.wasCancelled()))
+        }
       } catch {
         case ex: Throwable =>
-          status.update(Status.Finished(success = false, System.currentTimeMillis - startTime, cancelled = activity.wasCancelled(), Some(ex)))
+          StatusLock.synchronized {
+            status.update(Status.Finished(success = false, System.currentTimeMillis - startTime, cancelled = activity.wasCancelled(), Some(ex)))
+          }
           if(!activity.wasCancelled()) {
             throw ex
           }

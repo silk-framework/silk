@@ -1,7 +1,6 @@
 package org.silkframework.rule
 
 import java.util.NoSuchElementException
-
 import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.entity._
@@ -275,6 +274,8 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
   }
 
   private def listPath(pathOperators: List[PathOperator]) =  List(UntypedPath(pathOperators))
+
+  override def mainActivities: Seq[String] = Seq("ExecuteTransform")
 }
 
 case class TransformTask(id: Identifier, data: TransformSpec, metaData: MetaData = MetaData.empty) extends Task[TransformSpec] {
