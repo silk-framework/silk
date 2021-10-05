@@ -29,7 +29,7 @@ import { Loading } from "../Loading/Loading";
 import { useDispatch } from "react-redux";
 import { routerOp } from "@ducks/router";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
-import ReactMarkdown from "react-markdown";
+import MarkdownParser from "@gui-elements/src/cmem/markdown";
 import { UploadNewFile } from "../FileUploader/cases/UploadNewFile/UploadNewFile";
 
 interface IProps {
@@ -289,7 +289,7 @@ export function ProjectImportModal({ close, back }: IProps) {
                                 className="di__dataset__metadata-description"
                                 previewContent={details.description}
                                 previewMaxLength={128}
-                                fullviewContent={<ReactMarkdown children={details.description} />}
+                                fullviewContent={<MarkdownParser>{details.description}</MarkdownParser>}
                                 textToggleExtend={t("common.words.more", "more")}
                                 textToggleReduce={t("common.words.less", "less")}
                                 enableToggler={(

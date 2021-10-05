@@ -1,5 +1,5 @@
 import React from "react";
-import ReactMarkdown from "react-markdown";
+import MarkdownParser from "@gui-elements/src/cmem/markdown";
 import { sharedOp } from "@ducks/shared";
 import { IArtefactItemProperty, IPropertyAutocomplete, ITaskParameter } from "@ducks/common/typings";
 import { AutoCompleteField, FieldItem, FieldSet, Label, TitleSubsection } from "@gui-elements/index";
@@ -143,17 +143,15 @@ export const ParameterWidget = (props: IProps) => {
                         typeof content === "string" &&
                         content === content.substr(0, maxLength)
                     ) {
-                        return <ReactMarkdown children={content} />;
+                        return <MarkdownParser>{content}</MarkdownParser>;
                     }
                     return (
-                        <ReactMarkdown
-                            children={firstNonEmptyLine(content)?.toString().substr(0, maxLength) || ""}
-                            allowedElements={[]}
-                            unwrapDisallowed
-                        />
+                        <MarkdownParser removeMarkup>
+                            {firstNonEmptyLine(content)?.toString().substr(0, maxLength) || ""}
+                        </MarkdownParser>
                     );
                 }}
-                fullviewContent={<ReactMarkdown children={description?.toString() || ""} />}
+                fullviewContent={<MarkdownParser>{description?.toString() || ""}</MarkdownParser>}
                 enableToggler={(previewSource, previewRendered, previewMaxLength, fullviewSource, fullviewRendered) => {
                     if (
                         !!previewMaxLength &&

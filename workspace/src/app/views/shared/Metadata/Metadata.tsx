@@ -3,7 +3,7 @@ import { Controller, useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
-import ReactMarkdown from "react-markdown";
+import MarkdownParser from "@gui-elements/src/cmem/markdown";
 import {
     Button,
     Card,
@@ -250,7 +250,7 @@ export function Metadata(props: IProps) {
                                     className="di__dataset__metadata-description"
                                     previewContent={description}
                                     previewMaxLength={128}
-                                    fullviewContent={<ReactMarkdown children={description} />}
+                                    fullviewContent={<MarkdownParser>{description}</MarkdownParser>}
                                     textToggleExtend={t("common.words.more", "more")}
                                     textToggleReduce={t("common.words.less", "less")}
                                     enableToggler={(
