@@ -33,7 +33,7 @@ import { commonSel } from "@ducks/common";
 import ReactMarkdown from "react-markdown";
 import ContentBlobToggler from "../ContentBlobToggler";
 import { ElapsedDateTimeDisplay, TimeUnits } from "@gui-elements/src/cmem/DateTimeDisplay/ElapsedDateTimeDisplay";
-import { activityErrorReportFactory, activityQueryString } from "./taskActivityUtils.";
+import { activityErrorReportFactory, activityQueryString } from "./taskActivityUtils";
 
 interface IProps {
     projectId: string;

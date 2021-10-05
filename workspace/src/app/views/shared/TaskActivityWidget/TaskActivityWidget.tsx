@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import React, { useCallback, useEffect, useState } from "react";
 import { IActivityStatus } from "@gui-elements/src/cmem/ActivityControl/ActivityControlTypes";
-import { activityErrorReportFactory, activityQueryString } from "../TaskActivityOverview/taskActivityUtils.";
+import { activityErrorReportFactory, activityQueryString } from "../TaskActivityOverview/taskActivityUtils";
 import { connectWebSocket } from "../../../services/websocketUtils";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import { activityActionCreator } from "../TaskActivityOverview/taskActivityOverviewRequests";
