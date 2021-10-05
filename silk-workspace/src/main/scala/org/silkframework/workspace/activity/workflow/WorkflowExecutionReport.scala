@@ -1,7 +1,7 @@
 package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.config.{Task, TaskSpec}
-import org.silkframework.execution.ExecutionReport
+import org.silkframework.execution.{ExecutionReport, SimpleExecutionReport}
 import org.silkframework.util.Identifier
 
 import java.time.Instant
@@ -33,6 +33,21 @@ case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq
       copy(taskReports = taskReports.updated(index, WorkflowTaskReport(nodeId, report)))
     } else {
       throw new IndexOutOfBoundsException(s"Invalid task report index: $index")
+    }
+  }
+
+  /**
+    * Updates a task report if a node failed.
+    */
+  def addFailedNode(nodeId: Identifier, ex: Throwable): WorkflowExecutionReport = {
+    taskReports.reverse.zipWithIndex.find(_._1.nodeId == nodeId) match {
+      case Some((workflowReport, index)) =>
+        val report = workflowReport.report
+        val errorMsg = ex.getMessage
+        val errorReport = SimpleExecutionReport(report.task, report.summary, report.warnings, Some(errorMsg), isDone = true, report.entityCount, report.operation)
+        copy(taskReports = taskReports.updated(index, WorkflowTaskReport(nodeId, errorReport)))
+      case None =>
+        throw new IndexOutOfBoundsException(s"Invalid task node identifier: $nodeId")
     }
   }
 

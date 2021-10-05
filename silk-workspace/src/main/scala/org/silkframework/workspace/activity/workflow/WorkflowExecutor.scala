@@ -11,6 +11,7 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTask
 
 import scala.collection.mutable
+import scala.util.control.NonFatal
 
 trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecutionReport] {
 
@@ -52,8 +53,13 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     implicit val userContext: UserContext = workflowRunContext.userContext
     val taskContext = workflowRunContext.taskContext(nodeId, task)
     updateProgress(operation, task)
-    val result = ExecutorRegistry.execute(task, inputs, output, executionContext, taskContext)
-    result
+    try {
+      ExecutorRegistry.execute(task, inputs, output, executionContext, taskContext)
+    } catch {
+      case NonFatal(ex) =>
+        workflowRunContext.activityContext.value.updateWith(_.addFailedNode(nodeId, ex))
+        throw ex
+    }
   }
 
   /**
@@ -196,7 +202,7 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
                                    task: Task[_ <: TaskSpec],
                                    taskContext: ActivityMonitor[ExecutionReport]): Unit = {
     // Add initial task report
-    activityContext.value() = activityContext.value().addReport(nodeId, SimpleExecutionReport(task, Seq.empty, Seq.empty, isDone = false, entityCount = 0))
+    activityContext.value.updateWith(_.addReport(nodeId, SimpleExecutionReport(task, Seq.empty, Seq.empty, None, isDone = false, entityCount = 0)))
     // Listen for changes and update the task report for each change
     val listener = new TaskReportListener(reportListeners.size, nodeId)
     taskContext.value.subscribe(listener)
@@ -208,7 +214,7 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
     */
   private class TaskReportListener(index: Int, nodeId: Identifier) extends (ExecutionReport => Unit) {
     def apply(report: ExecutionReport): Unit = activityContext.value.synchronized {
-      activityContext.value() = activityContext.value().updateReport(index, nodeId, report)
+      activityContext.value.updateWith(_.updateReport(index, nodeId, report))
     }
   }
 }

@@ -42,6 +42,7 @@ object ExecutionReportSerializers {
           task = GenericTaskJsonFormat.read(requiredValue(value, TASK)),
           summary = arrayValue(value, SUMMARY).value.map(deserializeValue),
           warnings = arrayValue(value, WARNINGS).value.map(_.as[String]),
+          error = stringValueOption(value, ERROR),
           operation = stringValueOption(value, OPERATION),
           isDone = booleanValueOption(value, IS_DONE).getOrElse(true),
           entityCount = numberValueOption(value, ENTITY_COUNT).map(_.intValue).getOrElse(0)
@@ -56,6 +57,7 @@ object ExecutionReportSerializers {
         TASK -> GenericTaskJsonFormat.write(value.task),
         SUMMARY -> value.summary.map(serializeValue),
         WARNINGS -> value.warnings,
+        ERROR -> value.error,
         IS_DONE -> value.isDone,
         ENTITY_COUNT -> value.entityCount
       )

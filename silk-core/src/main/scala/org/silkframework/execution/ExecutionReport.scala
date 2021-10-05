@@ -35,6 +35,11 @@ trait ExecutionReport {
   def warnings: Seq[String]
 
   /**
+    * Error message in case a fatal error occurred.
+    */
+  def error: Option[String] = None
+
+  /**
     * True, if the execution finished.
     * False, if the execution is still running and the report reflects the current execution progress.
     */

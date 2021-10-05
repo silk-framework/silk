@@ -85,7 +85,7 @@ trait ExecutionReportUpdater {
             s"Runtime since first ${entityLabelSingle.toLowerCase} $entityProcessVerb" -> s"${(firstEntityStart - start).toDouble / 1000} seconds") ++
           Seq("Number of executions" -> numberOfExecutions.toString).filter(_ => numberOfExecutions > 0) ++
           additionalFields()
-      context.value.update(SimpleExecutionReport(task, stats, Seq.empty, addEndTime, entitiesEmitted, operationLabel))
+      context.value.update(SimpleExecutionReport(task, stats, Seq.empty, None, addEndTime, entitiesEmitted, operationLabel))
       lastUpdate = System.currentTimeMillis()
     }
   }

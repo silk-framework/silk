@@ -296,6 +296,11 @@ case class ReportSummary(@Schema(
                          )
                          warnings: Seq[String],
                          @Schema(
+                           description = "Error message in case a fatal error occurred.",
+                           required = false
+                         )
+                         error: Option[String],
+                         @Schema(
                            description = "True, if the execution of this node finished. False, if the execution is still running.",
                          )
                          isDone: Boolean,
@@ -315,6 +320,7 @@ object ReportSummary {
       timestamp = value.timestamp.toEpochMilli,
       operation = report.operation,
       warnings = report.warnings,
+      error = report.error,
       isDone = report.isDone,
       entityCount =report.entityCount
     )
