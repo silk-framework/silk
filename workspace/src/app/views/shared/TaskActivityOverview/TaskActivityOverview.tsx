@@ -15,14 +15,14 @@ import { useTranslation } from "react-i18next";
 import {
     ActivityAction,
     DataIntegrationActivityControl,
-} from "@gui-elements/src/components/dataIntegrationComponents/ActivityControl/DataIntegrationActivityControl";
+} from "@gui-elements/src/cmem/ActivityControl/DataIntegrationActivityControl";
 import {
     IActivityCachesOverallStatus,
     IActivityControlFunctions,
     IActivityListEntry,
 } from "./taskActivityOverviewTypings";
 import { activityActionCreator, fetchActivityInfos } from "./taskActivityOverviewRequests";
-import { IActivityStatus } from "@gui-elements/src/components/dataIntegrationComponents/ActivityControl/ActivityControlTypes";
+import { IActivityStatus } from "@gui-elements/src/cmem/ActivityControl/ActivityControlTypes";
 import Loading from "../Loading";
 import { connectWebSocket } from "../../../services/websocketUtils";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
@@ -32,10 +32,7 @@ import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import ReactMarkdown from "react-markdown";
 import ContentBlobToggler from "../ContentBlobToggler";
-import {
-    ElapsedDateTimeDisplay,
-    TimeUnits,
-} from "@gui-elements/src/components/dataIntegrationComponents/DateTimeDisplay/ElapsedDateTimeDisplay";
+import { ElapsedDateTimeDisplay, TimeUnits } from "@gui-elements/src/cmem/DateTimeDisplay/ElapsedDateTimeDisplay";
 import { activityErrorReportFactory, activityQueryString } from "./taskActivityUtils.";
 
 interface IProps {

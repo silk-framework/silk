@@ -2,7 +2,7 @@ import { DIErrorTypes } from "@ducks/error/typings";
 import { useTranslation } from "react-i18next";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import React, { useCallback, useEffect, useState } from "react";
-import { IActivityStatus } from "@gui-elements/src/components/dataIntegrationComponents/ActivityControl/ActivityControlTypes";
+import { IActivityStatus } from "@gui-elements/src/cmem/ActivityControl/ActivityControlTypes";
 import { activityErrorReportFactory, activityQueryString } from "../TaskActivityOverview/taskActivityUtils.";
 import { connectWebSocket } from "../../../services/websocketUtils";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
@@ -10,7 +10,7 @@ import { activityActionCreator } from "../TaskActivityOverview/taskActivityOverv
 import {
     ActivityAction,
     DataIntegrationActivityControl,
-} from "@gui-elements/src/components/dataIntegrationComponents/ActivityControl/DataIntegrationActivityControl";
+} from "@gui-elements/src/cmem/ActivityControl/DataIntegrationActivityControl";
 import ReactMarkdown from "react-markdown";
 
 interface IProps {
