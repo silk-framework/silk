@@ -5,15 +5,14 @@ import {
     Checkbox,
     FieldItem,
     Notification,
-    SimpleDialog,
-    PropertyValueList,
-    PropertyValuePair,
     PropertyName,
     PropertyValue,
+    PropertyValueList,
+    PropertyValuePair,
+    SimpleDialog,
     Spacing,
     TitleSubsection,
 } from "@gui-elements/index";
-import ContentBlobToggler from "@gui-elements/src/cmem/ContentBlobToggler";
 import { useTranslation } from "react-i18next";
 import Uppy, { UppyFile } from "@uppy/core";
 import { workspaceApi } from "../../../utils/getApiEndpoint";
@@ -29,7 +28,7 @@ import { Loading } from "../Loading/Loading";
 import { useDispatch } from "react-redux";
 import { routerOp } from "@ducks/router";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
-import MarkdownParser from "@gui-elements/src/cmem/markdown";
+import { Markdown, StringPreviewContentBlobToggler } from "@gui-elements/cmem";
 import { UploadNewFile } from "../FileUploader/cases/UploadNewFile/UploadNewFile";
 
 interface IProps {
@@ -285,30 +284,14 @@ export function ProjectImportModal({ close, back }: IProps) {
                     <PropertyValuePair hasSpacing hasDivider>
                         <PropertyName>{t("form.field.description", "Description")}</PropertyName>
                         <PropertyValue>
-                            <ContentBlobToggler
+                            <StringPreviewContentBlobToggler
                                 className="di__dataset__metadata-description"
                                 previewContent={details.description}
                                 previewMaxLength={128}
-                                fullviewContent={<MarkdownParser>{details.description}</MarkdownParser>}
-                                textToggleExtend={t("common.words.more", "more")}
-                                textToggleReduce={t("common.words.less", "less")}
-                                enableToggler={(
-                                    previewSource,
-                                    previewRendered,
-                                    previewMaxLength,
-                                    fullviewSource,
-                                    fullviewRendered
-                                ) => {
-                                    if (
-                                        !!previewMaxLength &&
-                                        previewMaxLength > 0 &&
-                                        typeof previewSource === "string" &&
-                                        previewSource === previewSource.substr(0, previewMaxLength)
-                                    ) {
-                                        return false;
-                                    }
-                                    return true;
-                                }}
+                                fullviewContent={<Markdown>{details.description}</Markdown>}
+                                toggleExtendText={t("common.words.more", "more")}
+                                toggleReduceText={t("common.words.less", "less")}
+                                firstNonEmptyLineOnly={true}
                             />
                         </PropertyValue>
                     </PropertyValuePair>

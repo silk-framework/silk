@@ -1,9 +1,8 @@
 import React from "react";
-import MarkdownParser from "@gui-elements/src/cmem/markdown";
+import { Markdown, StringPreviewContentBlobToggler } from "@gui-elements/cmem";
 import { sharedOp } from "@ducks/shared";
 import { IArtefactItemProperty, IPropertyAutocomplete, ITaskParameter } from "@ducks/common/typings";
 import { AutoCompleteField, FieldItem, FieldSet, Label, TitleSubsection } from "@gui-elements/index";
-import ContentBlobToggler, { firstNonEmptyLine } from "@gui-elements/src/cmem/ContentBlobToggler";
 import { Intent } from "@gui-elements/blueprint/constants";
 import { InputMapper } from "./InputMapper";
 import { AppToaster } from "../../../../../services/toaster";
@@ -132,39 +131,14 @@ export const ParameterWidget = (props: IProps) => {
     let propertyHelperText: JSX.Element | null = null;
     if (description && description.length > MAXLENGTH_TOOLTIP) {
         propertyHelperText = (
-            <ContentBlobToggler
+            <StringPreviewContentBlobToggler
                 className="di__parameter_widget__description"
                 previewContent={description}
                 previewMaxLength={MAXLENGTH_SIMPLEHELP}
-                renderPreview={(content, maxLength) => {
-                    if (
-                        !!maxLength &&
-                        maxLength > 0 &&
-                        typeof content === "string" &&
-                        content === content.substr(0, maxLength)
-                    ) {
-                        return <MarkdownParser>{content}</MarkdownParser>;
-                    }
-                    return (
-                        <MarkdownParser removeMarkup>
-                            {firstNonEmptyLine(content)?.toString().substr(0, maxLength) || ""}
-                        </MarkdownParser>
-                    );
-                }}
-                fullviewContent={<MarkdownParser>{description?.toString() || ""}</MarkdownParser>}
-                enableToggler={(previewSource, previewRendered, previewMaxLength, fullviewSource, fullviewRendered) => {
-                    if (
-                        !!previewMaxLength &&
-                        previewMaxLength > 0 &&
-                        typeof previewSource === "string" &&
-                        previewSource === previewSource.substr(0, previewMaxLength)
-                    ) {
-                        return false;
-                    }
-                    return true;
-                }}
-                textToggleExtend={t("common.words.more", "more")}
-                textToggleReduce={t("common.words.less", "less")}
+                fullviewContent={<Markdown>{description ?? ""}</Markdown>}
+                toggleExtendText={t("common.words.more", "more")}
+                toggleReduceText={t("common.words.less", "less")}
+                firstNonEmptyLineOnly={true}
             />
         );
     }

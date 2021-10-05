@@ -3,7 +3,7 @@ import { Controller, useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
-import MarkdownParser from "@gui-elements/src/cmem/markdown";
+import { Markdown } from "@gui-elements/cmem";
 import {
     Button,
     Card,
@@ -15,17 +15,16 @@ import {
     Divider,
     FieldItem,
     IconButton,
+    Label,
     Notification,
-    PropertyValueList,
-    PropertyValuePair,
     PropertyName,
     PropertyValue,
-    Label,
+    PropertyValueList,
+    PropertyValuePair,
+    Spacing,
     TextArea,
     TextField,
-    Spacing,
 } from "@gui-elements/index";
-import ContentBlobToggler from "@gui-elements/src/cmem/ContentBlobToggler";
 import { Intent } from "@gui-elements/blueprint/constants";
 import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
@@ -33,6 +32,7 @@ import { routerOp } from "@ducks/router";
 import { sharedOp } from "@ducks/shared";
 import { Loading } from "../Loading/Loading";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
+import { StringPreviewContentBlobToggler } from "@gui-elements/src/cmem/ContentBlobToggler/StringPreviewContentBlobToggler";
 
 interface IProps {
     projectId?: string;
@@ -246,30 +246,14 @@ export function Metadata(props: IProps) {
                         <PropertyValuePair hasSpacing hasDivider>
                             <PropertyName>{t("form.field.description", "Description")}</PropertyName>
                             <PropertyValue>
-                                <ContentBlobToggler
+                                <StringPreviewContentBlobToggler
                                     className="di__dataset__metadata-description"
                                     previewContent={description}
                                     previewMaxLength={128}
-                                    fullviewContent={<MarkdownParser>{description}</MarkdownParser>}
-                                    textToggleExtend={t("common.words.more", "more")}
-                                    textToggleReduce={t("common.words.less", "less")}
-                                    enableToggler={(
-                                        previewSource,
-                                        previewRendered,
-                                        previewMaxLength,
-                                        fullviewSource,
-                                        fullviewRendered
-                                    ) => {
-                                        if (
-                                            !!previewMaxLength &&
-                                            previewMaxLength > 0 &&
-                                            typeof previewSource === "string" &&
-                                            previewSource === previewSource.substr(0, previewMaxLength)
-                                        ) {
-                                            return false;
-                                        }
-                                        return true;
-                                    }}
+                                    fullviewContent={<Markdown>{description}</Markdown>}
+                                    toggleExtendText={t("common.words.more", "more")}
+                                    toggleReduceText={t("common.words.less", "less")}
+                                    firstNonEmptyLineOnly={true}
                                 />
                             </PropertyValue>
                         </PropertyValuePair>

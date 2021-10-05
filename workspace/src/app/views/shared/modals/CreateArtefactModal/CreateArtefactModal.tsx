@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
-import MarkdownParser from "@gui-elements/src/cmem/markdown";
+import { Markdown } from "@gui-elements/cmem";
 import {
     Button,
     Card,
@@ -399,9 +399,9 @@ export function CreateArtefactModal() {
                     size="small"
                 >
                     <HtmlContentBlock>
-                        <MarkdownParser allowHtml>
+                        <Markdown allowHtml>
                             {(selectedArtefact?.markdownDocumentation || "") ?? (selectedArtefact?.description || "")}
-                        </MarkdownParser>
+                        </Markdown>
                     </HtmlContentBlock>
                 </SimpleDialog>
             )}
@@ -492,11 +492,11 @@ export function CreateArtefactModal() {
                                                             size="small"
                                                         >
                                                             <HtmlContentBlock>
-                                                                <MarkdownParser allowHtml>
+                                                                <Markdown allowHtml>
                                                                     {artefact.markdownDocumentation ||
                                                                         artefact.description ||
                                                                         ""}
-                                                                </MarkdownParser>
+                                                                </Markdown>
                                                             </HtmlContentBlock>
                                                         </SimpleDialog>
                                                     )}
