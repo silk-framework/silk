@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {Card, CardActions, CardContent, CardTitle, RadioGroup, ScrollingHOC, Spinner,} from '@eccenca/gui-elements';
-import {Button, FieldItem, Notification, TextField} from '@gui-elements/index';
+import {Button, FieldItem, Notification, Spacing, TextField, Toolbar, ToolbarSection} from '@gui-elements/index';
 import {
     AffirmativeButton,
     DismissiveButton,
@@ -15,7 +15,7 @@ import {
     checkValuePathValidity,
     createMappingAsync,
     fetchUriPatternAutoCompletions,
-    fetchValuePathSuggestions
+    fetchValuePathSuggestions, useApiDetails
 } from '../../../store';
 import {convertToUri} from '../../../utils/convertToUri';
 import ErrorView from '../../../components/ErrorView';
@@ -28,6 +28,9 @@ import {newValueIsIRI} from '../../../utils/newValueIsIRI';
 import TargetCardinality from "../../../components/TargetCardinality";
 import MultiAutoComplete from "../../../components/MultiAutoComplete";
 import AutoSuggestion from "../../../components/AutoSuggestion/AutoSuggestion";
+import silkApi from "../../../../api/silkRestApi";
+import {IUriPattern} from "../../../../api/types";
+import {UriPatternSelectionModal} from "./UriPatternSelectionModal";
 
 interface IProps {
     id?: string
@@ -55,6 +58,13 @@ export const ObjectRuleForm = (props: IProps) => {
     const [objectPathInputHasFocus, setObjectPathInputHasFocus] = useState<boolean>(false)
     // When creating a new rule only when this is enabled the URI pattern input will be shown
     const [createCustomUriPatternForNewRule, setCreateCustomUriPatternForNewRule] = useState<boolean>(false)
+    const [uriPatternSuggestions, setUriPatternSuggestions] = useState<IUriPattern[]>([])
+    const [showUriPatternModal, setShowUriPatternModal] = useState<boolean>(false)
+    const {baseUrl} = useApiDetails()
+
+    const distinctUriPatterns = Array.from(new Map(uriPatternSuggestions
+        .filter(p => p.value !== (props.ruleData as any).pattern)
+        .map(p => [p.value, p])).values())
 
     useEffect(() => {
         const { id, scrollIntoView } = props;
@@ -64,6 +74,16 @@ export const ObjectRuleForm = (props: IProps) => {
             EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, { id: 0 });
         }
     }, [])
+
+    useEffect(() => {
+        const pureUri = (uri: string) => uri.replace(/^<|>$/g, "")
+        if(modifiedValues.targetEntityType?.length > 0 && baseUrl !== undefined) {
+            silkApi.uriPatternsByTypes(baseUrl, modifiedValues.targetEntityType.map(t => typeof t === "string" ? pureUri(t) : pureUri(t.value)))
+                .then(result => {
+                    setUriPatternSuggestions(result.data.results)
+                })
+        }
+    }, [modifiedValues.targetEntityType.map(t => t.value).join(""), baseUrl])
 
     /**
      * Saves the modified data
@@ -153,14 +173,12 @@ export const ObjectRuleForm = (props: IProps) => {
             return <Spinner />;
         }
 
-        // FIXME: also check if data really has changed before allow saving
         const allowConfirm =
             modifiedValues.type === MAPPING_RULE_TYPE_ROOT || !_.isEmpty(modifiedValues.targetProperty) || modifiedValues.sourceProperty && !_.isEmpty(modifiedValues.sourceProperty.trim());
         const errorMessage = saveObjectError && (
             <ErrorView {...saveObjectError} />
         );
 
-        // TODO: add source path if: parent, not edit, not root element
         const title = !id && <CardTitle>Add object mapping</CardTitle>;
 
         let targetPropertyInput: JSX.Element | undefined = undefined
@@ -178,7 +196,6 @@ export const ObjectRuleForm = (props: IProps) => {
         );
 
         if (modifiedValues.type !== MAPPING_RULE_TYPE_ROOT) {
-            // TODO: where to get get list of target properties
             targetPropertyInput = (
                 <AutoComplete
                     placeholder="Target property"
@@ -278,6 +295,15 @@ export const ObjectRuleForm = (props: IProps) => {
                     fetchUriPatternAutoCompletions(parentId ? parentId : "root", input, cursorPosition, modifiedValues.sourceProperty)}
                 checkInput={checkUriPattern}
                 onFocusChange={setUriPatternHasFocus}
+                rightElement={distinctUriPatterns.length > 0 ? <>
+                    <Spacing vertical={true} size={"tiny"} />
+                    <Button
+                        data-test-id="object-rule-form-uri-pattern-selection-btn"
+                        elevated={true}
+                        tooltip={`Choose URI pattern from ${distinctUriPatterns.length} existing URI pattern/s.`}
+                        onClick={() => setShowUriPatternModal(true)}
+                    >Choose</Button>
+                </> : undefined}
             />
         }
     } else {
@@ -343,6 +369,11 @@ export const ObjectRuleForm = (props: IProps) => {
                         />
                         {targetCardinality}
                         {patternInput}
+                        {showUriPatternModal && distinctUriPatterns.length > 0 && <UriPatternSelectionModal
+                            onClose={() => setShowUriPatternModal(false)}
+                            uriPatterns={distinctUriPatterns}
+                            onSelect={uriPattern => handleChangeValue('pattern', uriPattern.value)}
+                        />}
                         {
                             <FieldItem data-test-id="object-rule-form-example-preview" labelAttributes={{text: "Examples of target data"}}>
                                 {previewExamples}

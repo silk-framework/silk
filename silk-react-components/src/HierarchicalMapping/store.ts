@@ -720,7 +720,7 @@ export const prefixesAsync = () => {
 };
 
 
-const getValuePathSuggestion = (ruleId:string, inputString: string, cursorPosition:number): HttpResponsePromise => {
+const getValuePathSuggestion = (ruleId:string, inputString: string, cursorPosition:number): HttpResponsePromise<any> => {
     const { baseUrl, transformTask, project } = getDefinedApiDetails();
     return silkApi.getSuggestionsForAutoCompletion(
         baseUrl,
