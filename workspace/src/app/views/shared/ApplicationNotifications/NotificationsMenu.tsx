@@ -136,7 +136,7 @@ export function NotificationsMenu() {
                                     {errorDetails ? (
                                         <Accordion>
                                             <AccordionItem
-                                                title={<TitleSubsection>More details</TitleSubsection>}
+                                                label={<TitleSubsection>More details</TitleSubsection>}
                                                 elevated
                                                 condensed
                                                 open={false}
