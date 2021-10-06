@@ -158,7 +158,7 @@ object Resource {
   /**
     * Maximum resource size in bytes that should be loaded into memory.
     */
-  private lazy val maxInMemorySize = {
+  lazy val maxInMemorySize: Long = {
     DefaultConfig.instance.forClass(classOf[Resource]).getMemorySize("maxInMemorySize").toBytes
   }
 
