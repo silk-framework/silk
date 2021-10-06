@@ -19,4 +19,5 @@ export const INPUT_TYPES = {
     PASSWORD: "password",
     RESOURCE: "resource",
     OBJECT: "objectParameter",
+    TARGET_VOCABULARY: "targetVocabularies",
 };
