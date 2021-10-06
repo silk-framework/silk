@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {Card, CardActions, CardContent, CardTitle, RadioGroup, ScrollingHOC, Spinner,} from '@eccenca/gui-elements';
-import {Button, FieldItem, Notification, Spacing, TextField, Toolbar, ToolbarSection} from '@gui-elements/index';
+import {Button, FieldItem, Notification, Spacing, TextField} from '@gui-elements/index';
 import {
     AffirmativeButton,
     DismissiveButton,
@@ -15,7 +15,8 @@ import {
     checkValuePathValidity,
     createMappingAsync,
     fetchUriPatternAutoCompletions,
-    fetchValuePathSuggestions, useApiDetails
+    fetchValuePathSuggestions,
+    useApiDetails
 } from '../../../store';
 import {convertToUri} from '../../../utils/convertToUri';
 import ErrorView from '../../../components/ErrorView';
@@ -41,6 +42,9 @@ interface IProps {
     ruleData: object
     parent: any
 }
+
+// Extracts the pure URI string if it has the form "<...>"
+const pureUri = (uri: string) => uri ? uri.replace(/^<|>$/g, "") : uri
 
 /**
  * Provides the editable form for object mappings.
@@ -75,15 +79,16 @@ export const ObjectRuleForm = (props: IProps) => {
         }
     }, [])
 
+    const targetClassUris = () => modifiedValues.targetEntityType.map(t => typeof t === "string" ? pureUri(t) : pureUri(t.value))
+
     useEffect(() => {
-        const pureUri = (uri: string) => uri.replace(/^<|>$/g, "")
-        if(modifiedValues.targetEntityType?.length > 0 && baseUrl !== undefined) {
-            silkApi.uriPatternsByTypes(baseUrl, modifiedValues.targetEntityType.map(t => typeof t === "string" ? pureUri(t) : pureUri(t.value)))
+        if(modifiedValues.targetEntityType && modifiedValues.targetEntityType.length > 0 && baseUrl !== undefined) {
+            silkApi.uriPatternsByTypes(baseUrl, targetClassUris())
                 .then(result => {
                     setUriPatternSuggestions(result.data.results)
                 })
         }
-    }, [modifiedValues.targetEntityType.map(t => t.value).join(""), baseUrl])
+    }, [modifiedValues.targetEntityType ? targetClassUris().join("") : "", baseUrl])
 
     /**
      * Saves the modified data

@@ -22,7 +22,8 @@ const props = {
         targetProperty: '',
         entityConnection: '',
         uriRuleType: 'uri',
-        pattern: "pattern"
+        pattern: "pattern",
+        isAttribute: false
     },
 };
 
@@ -77,7 +78,6 @@ describe("ObjectMappingRuleForm Component", () => {
         });
     
         it('should render ExampleView component, when pattern or uriRule presented', () => {
-            logWrapperHtml(wrapper)
             expect(findAll(wrapper, byTestId("object-rule-form-example-preview"))).toHaveLength(1);
         });
     
