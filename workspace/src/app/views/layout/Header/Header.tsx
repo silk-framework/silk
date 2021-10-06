@@ -89,7 +89,11 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                 {APPLICATION_NAME}
             </ApplicationTitle>
             <ApplicationSidebarToggler
-                aria-label={t("navigation.side.open", "Open navigation")}
+                aria-label={
+                    isApplicationSidebarExpanded
+                        ? t("navigation.side.close", "Close navigation")
+                        : t("navigation.side.open", "Open navigation")
+                }
                 onClick={onClickApplicationSidebarExpand}
                 isActive={isApplicationSidebarExpanded}
             />

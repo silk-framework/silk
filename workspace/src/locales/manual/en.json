@@ -314,7 +314,8 @@
                 "vocabTooltip": "Shows the list of all managed vocabularies. It let's you (un-)install vocabularies from RDF files or the integrated catalog."
             },
             "dmBrowser": "Explore",
-            "open": "Open navigation"
+            "open": "Open navigation",
+            "close": "Close navigation"
         }
     },
     "pages": {
