@@ -320,6 +320,20 @@ body{
   line-height: 40px;
 }
 
+.rule-toolbar-label {
+  margin-right: 20px;
+  color: rgb(113, 113, 113);
+  line-height: 15px;
+  font-size: 11px;
+}
+
+.rule-toolbar-value {
+  margin-right: 20px;
+  color: rgb(113, 113, 113);
+  line-height: 20px;
+  font-size: 15px;
+}
+
 /* operator draggables */
 .non-breaking-label {
   white-space: nowrap;
