@@ -273,8 +273,7 @@ export function ValueRuleForm(props: IProps) {
 
     const allowConfirm = allowConfirmation();
 
-    const complexEditButton = (asLink: boolean = false) => allowConfirm ? <ComplexEditButton
-        asLink={asLink}
+    const complexEditButton = () => allowConfirm ? <ComplexEditButton
         onClick={handleComplexEdit}
         href={id ? getEditorHref(id) : "#"}
         tooltip={changed || !id ? "Save rule and open formula editor" : "Open formula editor"}
@@ -313,8 +312,8 @@ export function ValueRuleForm(props: IProps) {
                         checkInput={checkValuePathValidity}
                         onInputChecked={setValuePathValid}
                         onFocusChange={setValuePathInputHasFocus}
+                        rightElement={complexEditButton()}
                     />
-                    {complexEditButton(true)}
                 </>
             );
         } else if (type === MAPPING_RULE_TYPE_COMPLEX) {

@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useState} from "react";
 import CodeMirror from "codemirror";
-import { FieldItem, IconButton, Spinner, Label } from "@gui-elements/index";
+import {FieldItem, IconButton, Spinner, Label, ToolbarSection, Toolbar, Spacing} from "@gui-elements/index";
 import { Classes as BlueprintClassNames } from "@blueprintjs/core";
 
 //custom components
@@ -91,6 +91,10 @@ export interface IProps {
     onFocusChange?: (hasFocus: boolean) => any
     // Optional ID to attach to the outer element
     id?: string
+    // If the <Tab> key should be used for auto-completing items. Else it will have its default behavior.
+    useTabForCompletions?: boolean
+    // An additional element that is put to the right side of the input field
+    rightElement?: JSX.Element
 }
 
 /** Input component that allows partial, fine-grained auto-completion, i.e. of sub-strings of the input string.
@@ -106,6 +110,8 @@ const AutoSuggestion = ({
                             onFocusChange,
                             id,
                             onInputChecked,
+                            rightElement,
+                            useTabForCompletions = false,
                         }: IProps) => {
     const [value, setValue] = React.useState(initialValue);
     const [cursorPosition, setCursorPosition] = React.useState(0);
@@ -133,6 +139,10 @@ const AutoSuggestion = ({
     const [selectedTextRanges, setSelectedTextRanges] = useState<IRange[]>([])
 
     const pathIsValid = validationResponse?.valid ?? true;
+
+    React.useEffect(() => {
+        setValue(initialValue)
+    }, [initialValue])
 
     //handle keypress
     React.useEffect(() => {
@@ -266,7 +276,7 @@ const AutoSuggestion = ({
 
     const handleInputEditorKeyPress = (event: KeyboardEvent) => {
         const overWrittenKeys: Array<string> = Object.values(OVERWRITTEN_KEYS);
-        if (overWrittenKeys.includes(event.key)) {
+        if (overWrittenKeys.includes(event.key) && (useTabForCompletions || event.key !== OVERWRITTEN_KEYS.Tab)) {
             event.preventDefault();
             setKeyPressedFromEditor(OVERWRITTEN_KEYS[event.key]);
             setKeyPressCounter((counter) => ++counter);
@@ -358,6 +368,39 @@ const AutoSuggestion = ({
     }
 
     const hasError = !!value && !pathIsValid && !pathValidationPending;
+    const autoSuggestionInput = <div id={id} className="ecc-auto-suggestion-box">
+        <div className={`ecc-auto-suggestion-box__editor-box ${BlueprintClassNames.INPUT_GROUP} ${BlueprintClassNames.FILL} ${hasError ? BlueprintClassNames.INTENT_DANGER : ""}`}>
+            <SingleLineCodeEditor
+                mode="null"
+                setEditorInstance={setEditorInstance}
+                onChange={handleChange}
+                onCursorChange={handleCursorChange}
+                initialValue={value}
+                onFocusChange={handleInputFocus}
+                onKeyDown={handleInputEditorKeyPress}
+                enableTab={useTabForCompletions}
+                onSelection={setSelectedTextRanges}/>
+            {!!value && (
+                <span className={BlueprintClassNames.INPUT_ACTION}>
+                            <IconButton
+                                data-test-id={"value-path-clear-btn"}
+                                name="operation-clear"
+                                text={clearIconText}
+                                onClick={handleInputEditorClear}
+                            />
+                        </span>
+            )}
+        </div>
+        <Dropdown
+            left={coords.left}
+            loading={suggestionsPending}
+            options={suggestions}
+            isOpen={!suggestionsPending && shouldShowDropdown}
+            onItemSelectionChange={handleDropdownChange}
+            currentlyFocusedIndex={currentIndex}
+            itemToHighlight={handleItemHighlighting}
+        />
+    </div>
 
     return (
         <FieldItem
@@ -374,38 +417,10 @@ const AutoSuggestion = ({
             hasStateDanger={hasError}
             messageText={hasError ? validationErrorText : undefined}
         >
-            <div id={id} className="ecc-auto-suggestion-box">
-                <div className={`ecc-auto-suggestion-box__editor-box ${BlueprintClassNames.INPUT_GROUP} ${BlueprintClassNames.FILL} ${hasError ? BlueprintClassNames.INTENT_DANGER : ""}`}>
-                    <SingleLineCodeEditor
-                        mode="null"
-                        setEditorInstance={setEditorInstance}
-                        onChange={handleChange}
-                        onCursorChange={handleCursorChange}
-                        initialValue={value}
-                        onFocusChange={handleInputFocus}
-                        onKeyDown={handleInputEditorKeyPress}
-                        onSelection={setSelectedTextRanges}/>
-                    {!!value && (
-                        <span className={BlueprintClassNames.INPUT_ACTION}>
-                            <IconButton
-                                data-test-id={"value-path-clear-btn"}
-                                name="operation-clear"
-                                text={clearIconText}
-                                onClick={handleInputEditorClear}
-                            />
-                        </span>
-                    )}
-                </div>
-                <Dropdown
-                    left={coords.left}
-                    loading={suggestionsPending}
-                    options={suggestions}
-                    isOpen={!suggestionsPending && shouldShowDropdown}
-                    onItemSelectionChange={handleDropdownChange}
-                    currentlyFocusedIndex={currentIndex}
-                    itemToHighlight={handleItemHighlighting}
-                />
-            </div>
+            {rightElement ? <Toolbar noWrap={true}>
+                <ToolbarSection canGrow={true}>{autoSuggestionInput}</ToolbarSection>
+                <ToolbarSection>{rightElement}</ToolbarSection>
+            </Toolbar> : autoSuggestionInput}
         </FieldItem>
     );
 };
