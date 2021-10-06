@@ -94,7 +94,7 @@ export interface IProps {
     // If the <Tab> key should be used for auto-completing items. Else it will have its default behavior.
     useTabForCompletions?: boolean
     // An additional element that is put to the right side of the input field
-    rightElement?: JSX.Element
+    rightElement?: JSX.Element | null
 }
 
 /** Input component that allows partial, fine-grained auto-completion, i.e. of sub-strings of the input string.
