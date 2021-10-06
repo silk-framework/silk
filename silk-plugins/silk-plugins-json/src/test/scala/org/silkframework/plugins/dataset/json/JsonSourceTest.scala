@@ -287,6 +287,11 @@ abstract class JsonSourceTest extends FlatSpec with MustMatchers {
     entities1.head.values.head mustBe Seq("A", "B")
     entities2.head.values.head mustBe entities3.map(_.uri.uri)
   }
+  it should "not generate any entities for this object path" in {
+    val source = createSource(resources.get("objectPathTest.json"), "", "")
+    val entities = source.retrieve(EntitySchema("pathA/pathA", typedPaths = IndexedSeq(UntypedPath("#text").asStringTypedPath))).entities.toList
+    entities mustBe empty
+  }
 
   private def jsonSource(json: String): JsonSource = {
     val jsonResource = InMemoryResourceManager().get("temp.json")
