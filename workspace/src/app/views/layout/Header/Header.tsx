@@ -40,8 +40,8 @@ interface IProps {
 
 export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarExpanded }: IProps) {
     const dispatch = useDispatch();
-    const brwsrLocation = useLocation();
-    const brwsrParams = new URLSearchParams(brwsrLocation.search?.substring(1));
+    const location = useLocation();
+    const locationParams = new URLSearchParams(location.search?.substring(1));
     const [currentLanguage, setCurrentLanguage] = useState(Store.get("locale"));
     const { hotKeys } = useSelector(commonSel.initialSettingsSelector);
     const isAuth = useSelector(commonSel.isAuthSelector);
@@ -68,9 +68,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
         );
     };
 
-    return !isAuth ? (
-        <></>
-    ) : (
+    return !isAuth ? null : (
         <ApplicationHeader
             aria-label={`${APPLICATION_NAME} @ ${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}`}
         >
@@ -140,14 +138,14 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         text={t("navigation.side.di.projects", "Projects")}
                         htmlTitle={t("navigation.side.di.projectsTooltip")}
                         onClick={() => handleNavigate("project")}
-                        active={brwsrLocation.pathname === SERVE_PATH && brwsrParams.get("itemType") === "project"}
+                        active={location.pathname === SERVE_PATH && locationParams.get("itemType") === "project"}
                     />
                     <MenuItem
                         icon="artefact-dataset"
                         text={t("navigation.side.di.datasets", "Datasets")}
                         htmlTitle={t("navigation.side.di.datasetsTooltip")}
                         onClick={() => handleNavigate("dataset")}
-                        active={brwsrLocation.pathname === SERVE_PATH && brwsrParams.get("itemType") === "dataset"}
+                        active={location.pathname === SERVE_PATH && locationParams.get("itemType") === "dataset"}
                     />
                 </Menu>
             </ApplicationSidebarNavigation>
