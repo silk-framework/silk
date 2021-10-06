@@ -30,6 +30,12 @@ val buildReactExternally = {
   result
 }
 
+val compileParameters: Seq[String] = if(System.getProperty("java.version").split("\\.").head.toInt > 8) {
+  Seq("--release", "8", "-Xlint")
+} else {
+  Seq("-source", "1.8", "-target", "1.8", "-Xlint")
+}
+
 (Global / concurrentRestrictions) += Tags.limit(Tags.Test, 1)
 
 val scalaTestOptions = {
@@ -67,7 +73,7 @@ lazy val commonSettings = Seq(
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.9" % "test",
   libraryDependencies += "net.codingwell" %% "scala-guice" % "4.2.11" % "test",
-  libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.11",
+  libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3",
   libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % "test",
   libraryDependencies += "com.google.inject" % "guice" % "4.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
@@ -82,7 +88,8 @@ lazy val commonSettings = Seq(
     case other =>
       val oldStrategy = (assembly / assemblyMergeStrategy).value
       oldStrategy(other)
-  }
+  },
+  javacOptions ++= compileParameters
 )
 
 //////////////////////////////////////////////////////////////////////////////
@@ -100,7 +107,8 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1",
     libraryDependencies += "commons-io" % "commons-io" % "2.4",
-    libraryDependencies += "org.lz4" % "lz4-java" % "1.4.0"
+    libraryDependencies += "org.lz4" % "lz4-java" % "1.4.0",
+    libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1"
   )
 
 lazy val rules = (project in file("silk-rules"))

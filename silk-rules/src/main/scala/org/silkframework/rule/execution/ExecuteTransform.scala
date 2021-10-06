@@ -28,6 +28,9 @@ class ExecuteTransform(task: Task[TransformSpec],
   def run(context: ActivityContext[TransformReport])
          (implicit userContext: UserContext): Unit = {
     cancelled = false
+    // Reset transform report
+    context.value() = TransformReport(task)
+
     // Get fresh data source and entity sink
     val dataSource = input(userContext)
     val entitySink = output(userContext)

@@ -170,14 +170,11 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
 
     if(isSingleton) {
       if(config != currentParameters) {
-        val newControl = createInstance(config)
-        // Update the status and value mirrors to point to the new instance
-        status.asInstanceOf[ObservableMirror[Status]].updateObservable(newControl.status)
-        value.asInstanceOf[ObservableMirror[ActivityType#ValueType]].updateObservable(newControl.value)
+        val newControl = createControl(config)
         currentInstance = newControl
       }
     } else {
-      val newControl = createInstance(config)
+      val newControl = createControl(config)
       if(instances.size >= WorkspaceActivity.MAX_CONTROLS_PER_ACTIVITY) {
         val activityDescription = projectOpt.map(p => s"In project ${p.name} activity '$name'").getOrElse(s"In workspace activity '$name'")
         log.warning(s"$activityDescription: Dropping an activity control instance because the control " +
@@ -190,6 +187,14 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
 
     currentParameters = config
     (identifier, currentInstance)
+  }
+
+  private def createControl(config: Map[String, String]): ActivityControl[ActivityType#ValueType] = {
+    val newControl = createInstance(config)
+    // Update the status and value mirrors to point to the new instance
+    status.asInstanceOf[ObservableMirror[Status]].updateObservable(newControl.status)
+    value.asInstanceOf[ObservableMirror[ActivityType#ValueType]].updateObservable(newControl.value)
+    newControl
   }
 
   final def removeActivityInstance(instanceId: Identifier): Unit = synchronized {

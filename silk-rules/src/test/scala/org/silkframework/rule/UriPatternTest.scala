@@ -21,5 +21,4 @@ class UriPatternTest extends FlatSpec with Matchers {
     val input = UriPattern.parse(uriPattern)
     UriPattern.unapply(input) shouldBe Some(uriPattern)
   }
-
 }

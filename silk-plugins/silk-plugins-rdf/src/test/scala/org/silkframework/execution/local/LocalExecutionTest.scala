@@ -1,7 +1,7 @@
 package org.silkframework.execution.local
 
 import org.scalatest.{FlatSpec, Matchers}
-import org.silkframework.util.InMemoryWorkspaceTestTrait
+import org.silkframework.workspace.InMemoryWorkspaceTestTrait
 
 /**
   * Created on 9/2/16.

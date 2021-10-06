@@ -38,7 +38,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     (response \ "metadata" \ "label").as[String] mustBe "Test Transform"
     // An id and a label has been generated for the root mapping
     (response \ DATA \ PARAMETERS \ "mappingRule" \ "id").as[String] mustBe ROOT_RULE_ID
-    (response \ DATA \ PARAMETERS \ "mappingRule" \ "metadata" \ "label").as[String] mustBe "Root Mapping"
+    (response \ DATA \ PARAMETERS \ "mappingRule" \ "metadata" \ "label").as[String] mustBe ""
   }
 
   "Check that we can GET the transform task as XML" in {
@@ -209,7 +209,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
  |        "isAttribute":false
  |    },
  |    "metadata": {
- |        "label": "Root Mapping"
+ |        "label": ""
  |    }
  |}
       """.stripMargin
@@ -555,4 +555,32 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     response.status mustBe 404
   }
 
+  "Return 400 if trying to store an invalid URI pattern rule" in {
+    for((invalidPattern, errorMustInclude) <- Seq(("urn:{{", "illegal character"), ("http://example.org/not valid", "invalid uri pattern found"))) {
+      val postResponse = client.url(s"$baseUrl/transform/tasks/$project/$task/rule/root/rules").post(Json.parse(
+        s"""
+        {
+          "type": "uri",
+          "pattern": "$invalidPattern"
+        }
+      """
+      ))
+      val postJsonError = checkResponseExactStatusCode(postResponse, BAD_REQUEST).json
+      postJsonError.toString().toLowerCase must include (errorMustInclude)
+      val putResponse = client.url(s"$baseUrl/transform/tasks/$project/$task/rule/root").put(Json.parse(
+        s"""
+        {
+          "rules": {
+            "uriRule": {
+              "type": "uri",
+              "pattern": "$invalidPattern"
+            }
+          }
+        }
+      """
+      ))
+      val putJsonError = checkResponseExactStatusCode(putResponse, BAD_REQUEST).json
+      putJsonError.toString().toLowerCase must include (errorMustInclude)
+    }
+  }
 }

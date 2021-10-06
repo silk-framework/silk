@@ -1,11 +1,12 @@
 import React from "react";
-import { mount, shallow } from 'enzyme';
-import { ObjectRuleForm } from '../../../../../src/HierarchicalMapping/containers/MappingRule/ObjectRule/ObjectRuleForm';
-import { CardTitle, Spinner } from '@eccenca/gui-elements';
-import ErrorView from '../../../../../src/HierarchicalMapping/components/ErrorView';
+import {mount, shallow} from 'enzyme';
+import {ObjectRuleForm} from '../../../../../src/HierarchicalMapping/containers/MappingRule/ObjectRule/ObjectRuleForm';
+import {CardTitle} from '@eccenca/gui-elements';
 import ExampleView from '../../../../../src/HierarchicalMapping/containers/MappingRule/ExampleView';
 import * as Store from '../../../../../src/HierarchicalMapping/store';
 import EventEmitter from '../../../../../src/HierarchicalMapping/utils/EventEmitter';
+import {changeValue, findAll, findSingleElement, logWrapperHtml} from "../../../utils/TestHelpers";
+import {waitFor} from "@testing-library/react";
 
 const props = {
     id: '1',
@@ -27,9 +28,9 @@ const props = {
 
 const selectors = {
     TARGET_PROP_AUTOCOMPLETE: '[data-id="autocomplete_target_prop"]',
-    ENTITY_CON_RADIO: '[data-id="entity_radio_group"]',
+    ENTITY_CON_RADIO: 'ul[data-id="entity_radio_group"]',
     OBJECT_VALUE_PATH: '#object-value-path-auto-suggestion',
-    URI_INPUT: '.ecc-silk-mapping__ruleseditor__pattern',
+    URI_INPUT: '#uri-pattern-auto-suggestion',
     RULE_LABEL_INPUT: '.ecc-silk-mapping__ruleseditor__label',
     RULE_DESC_INPUT: '.ecc-silk-mapping__ruleseditor__comment',
     CONFIRM_BUTTON: 'button.ecc-silk-mapping__ruleseditor__actionrow-save',
@@ -38,7 +39,7 @@ const selectors = {
 
 
 
-const getWrapper = (renderer = shallow, arg = props) => renderer(
+const getWrapper = (arg = props) => mount(
     <ObjectRuleForm {...arg} />
 );
 
@@ -46,27 +47,11 @@ describe("ObjectMappingRuleForm Component", () => {
     describe("on component mounted, ", () => {
         let wrapper;
         beforeEach(() => {
-            wrapper = getWrapper(shallow);
-        });
-        
-        it("should loading indicator present if data still loading", () => {
-            wrapper.setState({
-                loading: true
-            });
-            expect(wrapper.find(Spinner)).toHaveLength(1);
-        });
-        
-        it("should show the error message, when it's happened", () => {
-            wrapper.setState({
-                saveObjectError: {
-                    title: 'Error',
-                }
-            });
-            expect(wrapper.find(ErrorView)).toHaveLength(1);
+            wrapper = getWrapper();
         });
         
         it("should show the title, when `id` not presented", () => {
-            const wrapper = getWrapper(shallow, {
+            const wrapper = getWrapper({
                 ...props,
                 id: false
             });
@@ -79,16 +64,16 @@ describe("ObjectMappingRuleForm Component", () => {
             });
         
             it('should render Radio group of entity connections', () => {
-                expect(wrapper.find(selectors.ENTITY_CON_RADIO)).toHaveLength(1);
+                expect(findAll(wrapper, selectors.ENTITY_CON_RADIO)).toHaveLength(1);
             });
         
             it('should render Source property Autocomplete box', () => {
-                expect(wrapper.find(selectors.OBJECT_VALUE_PATH)).toHaveLength(1);
+                expect(findAll(wrapper, selectors.OBJECT_VALUE_PATH)).toHaveLength(1);
             });
         });
     
         it('should render URI pattern input box, when `id` presented', () => {
-            expect(wrapper.find(selectors.URI_INPUT)).toHaveLength(1);
+            expect(findAll(wrapper, selectors.URI_INPUT)).toHaveLength(1);
         });
     
         it('should render ExampleView component, when pattern or uriRule presented', () => {
@@ -96,11 +81,11 @@ describe("ObjectMappingRuleForm Component", () => {
         });
     
         it('should render input for editing label of rule', () => {
-            expect(wrapper.find(selectors.RULE_LABEL_INPUT)).toHaveLength(1);
+            expect(findAll(wrapper, selectors.RULE_LABEL_INPUT)).toHaveLength(1);
         });
     
         it('should render input for editing description of rule', () => {
-            expect(wrapper.find(selectors.RULE_DESC_INPUT)).toHaveLength(1);
+            expect(findAll(wrapper, selectors.RULE_DESC_INPUT)).toHaveLength(1);
         });
         
         afterEach(() => {
@@ -114,24 +99,27 @@ describe("ObjectMappingRuleForm Component", () => {
             emitMock = jest.spyOn(EventEmitter, 'emit');
         });
         
-        it("should save button call createMapping function, when value changed", () => {
+        it("should save button call createMapping function, when value changed", async () => {
             const createMappingAsyncMock = jest.spyOn(Store, 'createMappingAsync');
-            const wrapper = getWrapper(mount, {
+            const wrapper = getWrapper({
                 ...props,
                 ruleData: {
                     ...props.ruleData,
                     type: 'root',
+                    label: "initial label"
                 }
             });
-            wrapper.setState({
-                changed: true
-            });
-            wrapper.find(selectors.CONFIRM_BUTTON).first().simulate("click");
-            expect(createMappingAsyncMock).toBeCalled();
+            const input = findSingleElement(wrapper, "[data-test-id=\"object-rule-form-label-input\"]")
+            changeValue(input, "new label")
+            await waitFor(() => {
+                wrapper.update()
+                findSingleElement(wrapper, selectors.CONFIRM_BUTTON).simulate("click");
+                expect(createMappingAsyncMock).toBeCalled();
+            })
         });
         
         it("should cancel button emit the event which will discard the form", () => {
-            const wrapper = getWrapper(mount);
+            const wrapper = getWrapper();
             wrapper.find(selectors.CANCEL_BUTTON).first().simulate("click", {
                 stopPropagation: jest.fn()
             });

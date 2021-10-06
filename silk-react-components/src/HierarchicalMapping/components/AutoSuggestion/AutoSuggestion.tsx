@@ -61,12 +61,12 @@ export interface IValidationResult {
     // If the input value is valid or not
     valid: boolean,
     parseError?: {
-        // Where the error is located
-        offset: number
         // Detail error message
         message: string
-        // The input before the cursor that is considered invalid
-        inputLeadingToError: string
+        // Start of the parse error in the input string
+        start: number
+        // End of the parse error in the input string
+        end: number
     }
 }
 
@@ -91,6 +91,8 @@ export interface IProps {
     onFocusChange?: (hasFocus: boolean) => any
     // Optional ID to attach to the outer element
     id?: string
+    // If the <Tab> key should be used for auto-completing items. Else it will have its default behavior.
+    useTabForCompletions?: boolean
 }
 
 /** Input component that allows partial, fine-grained auto-completion, i.e. of sub-strings of the input string.
@@ -106,6 +108,7 @@ const AutoSuggestion = ({
                             onFocusChange,
                             id,
                             onInputChecked,
+                            useTabForCompletions = false,
                         }: IProps) => {
     const [value, setValue] = React.useState(initialValue);
     const [cursorPosition, setCursorPosition] = React.useState(0);
@@ -159,14 +162,13 @@ const AutoSuggestion = ({
     React.useEffect(() => {
         const parseError = validationResponse?.parseError;
         if (parseError && editorInstance) {
-            const { offset, inputLeadingToError, message } = parseError;
-            const start = inputLeadingToError.length > 1 ? offset - inputLeadingToError.length + 1 : offset
-            const end = offset + 2;
+            const { message, start, end } = parseError;
+            // TODO: Display error message
             editorInstance.getDoc().getEditor()
             const marker = editorInstance.markText(
                 { line: 0, ch: start },
                 { line: 0, ch: end },
-                { className: "ecc-text-error-highlighting" }
+                { className: "ecc-text-error-highlighting", title: message }
             );
             setErrorMarkers((previousMarkers) => {
                 previousMarkers.forEach(marker => marker.clear())
@@ -267,7 +269,7 @@ const AutoSuggestion = ({
 
     const handleInputEditorKeyPress = (event: KeyboardEvent) => {
         const overWrittenKeys: Array<string> = Object.values(OVERWRITTEN_KEYS);
-        if (overWrittenKeys.includes(event.key)) {
+        if (overWrittenKeys.includes(event.key) && (useTabForCompletions || event.key !== OVERWRITTEN_KEYS.Tab)) {
             event.preventDefault();
             setKeyPressedFromEditor(OVERWRITTEN_KEYS[event.key]);
             setKeyPressCounter((counter) => ++counter);
@@ -366,7 +368,8 @@ const AutoSuggestion = ({
                 text: (
                     <>
                         {label}
-                        {pathValidationPending && (
+                        &nbsp;
+                        {(pathValidationPending || suggestionsPending) && (
                             <Spinner size="tiny" position="inline" description="Validating value path" />
                         )}
                     </>)
@@ -384,6 +387,7 @@ const AutoSuggestion = ({
                         initialValue={value}
                         onFocusChange={handleInputFocus}
                         onKeyDown={handleInputEditorKeyPress}
+                        enableTab={useTabForCompletions}
                         onSelection={setSelectedTextRanges}/>
                     {!!value && (
                         <span className={BlueprintClassNames.INPUT_ACTION}>
@@ -400,7 +404,7 @@ const AutoSuggestion = ({
                     left={coords.left}
                     loading={suggestionsPending}
                     options={suggestions}
-                    isOpen={shouldShowDropdown}
+                    isOpen={!suggestionsPending && shouldShowDropdown}
                     onItemSelectionChange={handleDropdownChange}
                     currentlyFocusedIndex={currentIndex}
                     itemToHighlight={handleItemHighlighting}

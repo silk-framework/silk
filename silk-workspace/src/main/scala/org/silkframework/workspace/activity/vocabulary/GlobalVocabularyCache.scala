@@ -6,6 +6,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.workspace.activity.GlobalWorkspaceActivityFactory
 import org.silkframework.workspace.activity.transform.VocabularyCacheValue
 
+import java.util.logging.Logger
 import scala.collection.mutable
 
 @Plugin(
@@ -24,6 +25,7 @@ case class GlobalVocabularyCacheFactory() extends GlobalWorkspaceActivityFactory
 
 /** A cache for global vocabularies that can be used in any project. */
 case class GlobalVocabularyCache() extends Activity[VocabularyCacheValue] {
+  private val log: Logger = Logger.getLogger(getClass.getName)
   private val cache: mutable.HashMap[String, Vocabulary] = new mutable.HashMap[String, Vocabulary]()
   private var vocabsToUpdate: Set[String] = Set.empty
   @volatile
@@ -65,10 +67,11 @@ case class GlobalVocabularyCache() extends Activity[VocabularyCacheValue] {
           installVocabulary(vocabManager, vocabURI)
         }
         // Remove uninstalled vocabs
-        for (vocabURi <- cache.keys) {
-          if (!installedVocabularies.contains(vocabURi)) {
-            cache.remove(vocabURi)
+        for (vocabURI <- cache.keys) {
+          if (!installedVocabularies.contains(vocabURI)) {
+            cache.remove(vocabURI)
             setLastUpdated()
+            log.info(s"Vocabulary '$vocabURI' has been removed from the cache.")
           }
         }
       case None =>
@@ -79,9 +82,17 @@ case class GlobalVocabularyCache() extends Activity[VocabularyCacheValue] {
   private def installVocabulary(vocabManager: VocabularyManager,
                                 vocabURI: String)
                                (implicit userContext: UserContext): Unit = {
+    val startTime = System.currentTimeMillis()
+    var updated = false
     vocabManager.get(vocabURI, None) foreach { vocabulary =>
       cache.put(vocabURI, vocabulary)
       setLastUpdated()
+      updated = true
+    }
+    if(updated) {
+      log.info(s"Vocabulary '$vocabURI' has been updated in ${System.currentTimeMillis() - startTime}ms.")
+    } else {
+      log.warning(s"Processed request to update vocabulary '$vocabURI', but no vocabulary has been found.")
     }
   }
 }
