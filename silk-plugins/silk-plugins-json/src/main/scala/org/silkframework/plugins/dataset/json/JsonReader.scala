@@ -15,9 +15,16 @@ class JsonReader(parser: JsonParser) extends AutoCloseable {
 
   private var names: List[String] = List[String]()
 
+  // True, if the current token is a simple value (string, number, etc.)
+  private var tokenAtSimpleValue: Boolean = false
+
   def nextToken(): JsonToken = {
     val prevToken = parser.currentToken()
     val token = parser.nextToken()
+    if(tokenAtSimpleValue) {
+      names = names.tail
+      tokenAtSimpleValue = false
+    }
     token match {
       case JsonToken.START_OBJECT |
            JsonToken.START_ARRAY if prevToken == JsonToken.FIELD_NAME =>
@@ -28,6 +35,13 @@ class JsonReader(parser: JsonParser) extends AutoCloseable {
       case JsonToken.END_OBJECT |
            JsonToken.END_ARRAY if names.nonEmpty =>
         names = names.tail
+      case  JsonToken.VALUE_STRING |
+            JsonToken.VALUE_NUMBER_INT |
+            JsonToken.VALUE_NUMBER_FLOAT |
+            JsonToken.VALUE_FALSE |
+            JsonToken.VALUE_TRUE if parser.getCurrentName != null =>
+        names ::= parser.getCurrentName
+        tokenAtSimpleValue = true
       case _ =>
     }
     token
