@@ -316,6 +316,10 @@
             "dmBrowser": "Explore",
             "open": "Open navigation",
             "close": "Close navigation"
+        },
+        "user": {
+            "open": "Open user menu",
+            "close": "Close user menu"
         }
     },
     "pages": {

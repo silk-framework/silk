@@ -162,7 +162,8 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                 {displayUserMenu ? (
                     <>
                         <ApplicationToolbarAction
-                            aria-label="Close user menu"
+                            aria-label={t("navigation.user.close", "Close user menu")}
+                            tooltipAlignment="end"
                             isActive={true}
                             onClick={() => {
                                 toggleUserMenuDisplay(false);
@@ -246,7 +247,8 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                 ) : (
                     <ApplicationToolbarAction
                         id={"headerUserMenu"}
-                        aria-label="Open user menu"
+                        aria-label={t("navigation.user.open", "Open user menu")}
+                        tooltipAlignment="end"
                         isActive={false}
                         onClick={() => {
                             toggleUserMenuDisplay(true);
