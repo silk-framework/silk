@@ -80,6 +80,8 @@ class JsonReader(parser: JsonParser) extends AutoCloseable {
 
     private val startByteOffset = parser.getCurrentLocation.getByteOffset
 
+    private val maxSize = Resource.maxInMemorySize()
+
     /**
       * Builds a JSON node for a given element that includes all its children.
       * On return, the parser will be positioned on the element that directly follows the element.
@@ -137,10 +139,10 @@ class JsonReader(parser: JsonParser) extends AutoCloseable {
     def nextTokenSafe(): Unit = {
       nextToken()
       val currentSize = parser.getCurrentLocation.getByteOffset - startByteOffset
-      if(currentSize > Resource.maxInMemorySize) {
+      if(currentSize > maxSize) {
         throw new ResourceTooLargeException("Tried to load an entity into memory that is larger than the configured maximum " +
-              s"(size: $currentSize, maximum size: ${Resource.maxInMemorySize}). " +
-              s"Configure '${classOf[Resource].getName}.maxInMemorySize' in order to increase this limit.")
+              s"(size: $currentSize, maximum size: $maxSize}). " +
+              s"Configure '${Resource.maxInMemorySizeParameterName}' in order to increase this limit.")
       }
     }
   }

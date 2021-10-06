@@ -1,6 +1,8 @@
 package org.silkframework.runtime.resource
 
-import org.silkframework.config.DefaultConfig
+import com.typesafe.config.Config
+import org.silkframework.config.ConfigValue
+import org.silkframework.runtime.resource.Resource.maxInMemorySizeParameterName
 
 import java.io.{ByteArrayOutputStream, InputStream}
 import java.time.Instant
@@ -143,9 +145,9 @@ trait Resource {
   def checkSizeForInMemory(): Unit = {
     size match {
       case Some(s) =>
-        if(s > Resource.maxInMemorySize) {
-          throw new ResourceTooLargeException(s"Resource $name is too large to be loaded into memory (size: $s, maximum size: ${Resource.maxInMemorySize}). " +
-            s"Configure '${classOf[Resource].getName}.maxInMemorySize' in order to increase this limit.")
+        if(s > Resource.maxInMemorySize()) {
+          throw new ResourceTooLargeException(s"Resource $name is too large to be loaded into memory (size: $s, maximum size: ${Resource.maxInMemorySize()}). " +
+            s"Configure '$maxInMemorySizeParameterName' in order to increase this limit.")
         }
       case None =>
         log.warning(s"Could not determine size of resource $name for loading contents into memory.")
@@ -155,11 +157,13 @@ trait Resource {
 
 object Resource {
 
+  final val maxInMemorySizeParameterName = s"${classOf[Resource].getName}.maxInMemorySize"
+
   /**
     * Maximum resource size in bytes that should be loaded into memory.
     */
-  lazy val maxInMemorySize: Long = {
-    DefaultConfig.instance.forClass(classOf[Resource]).getMemorySize("maxInMemorySize").toBytes
+  val maxInMemorySize: ConfigValue[Long] = (config: Config) => {
+    config.getMemorySize(maxInMemorySizeParameterName).toBytes
   }
 
 }
