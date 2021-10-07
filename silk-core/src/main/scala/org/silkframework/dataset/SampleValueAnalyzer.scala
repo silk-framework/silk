@@ -120,9 +120,13 @@ trait HierarchicalSampleValueAnalyzerExtractionSource extends SchemaExtractionSo
   override def retrieveTypes(limit: Option[Int] = None)
                             (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
     val schema = extractSchema(PathCategorizerValueAnalyzerFactory(), pathLimit = schemaElementLimit, sampleLimit = Some(1))
-    for(schemaClass <- schema.classes) yield {
+    val types = for(schemaClass <- schema.classes) yield {
       val operators = UntypedPath.parse(schemaClass.sourceType)
       (schemaClass.sourceType, pathRank(operators.size))
+    }
+    limit match {
+      case Some(l) if types.size > l => types.take(l)
+      case _ => types
     }
   }
 
@@ -152,7 +156,10 @@ trait HierarchicalSampleValueAnalyzerExtractionSource extends SchemaExtractionSo
         }
       }
     }
-    pathBuffer.toIndexedSeq
+    limit match {
+      case Some(l) if pathBuffer.size > l => pathBuffer.take(l).toIndexedSeq
+      case _ => pathBuffer.toIndexedSeq
+    }
   }
 
   private def pathRank(pathLength: Int): Double = 1.0 / (pathLength + 1)

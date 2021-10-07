@@ -110,6 +110,14 @@ abstract class JsonSourceTest extends FlatSpec with MustMatchers {
     paths.map(_.toUntypedPath.normalizedSerialization) mustBe Seq("type", "number")
   }
 
+  it should "return max. limit paths for retrievePaths" in {
+    jsonExampleSource.retrievePaths(Uri(""), limit = Some(3)) must have size 3
+  }
+
+  it should "return max. limit paths for retrieveTypes" in {
+    jsonExampleSource.retrieveTypes(limit = Some(2)) must have size 2
+  }
+
   it should "return valid URIs for resource paths" in {
     val result = jsonExampleSource.retrieve(EntitySchema(Uri(""), typedPaths = IndexedSeq(UntypedPath.parse("/persons").asStringTypedPath))).entities
     val uris = result.flatMap(_.values.flatten).toSeq
