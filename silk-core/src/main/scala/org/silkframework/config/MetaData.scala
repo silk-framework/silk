@@ -78,7 +78,11 @@ object MetaData {
     * Generates a nice label from an identifier.
     */
   def labelFromId(id: String): String = {
-    splitId(id)
+    if(id.forall(_.isUpper)) {
+      id
+    } else {
+      splitId(id)
+    }
   }
 
   /**

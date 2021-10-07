@@ -250,7 +250,7 @@ trait UriMapping extends ValueTransformRule
   * @param id      The name of this mapping
   * @param pattern A template pattern for generating the URIs based on the entity properties
   */
-case class PatternUriMapping(id: Identifier = "uri",
+case class PatternUriMapping(id: Identifier = "URI",
                              pattern: String = "http://example.org/{ID}",
                              metaData: MetaData = MetaData.empty,
                              prefixes: Prefixes = Prefixes.empty) extends UriMapping {
@@ -271,7 +271,7 @@ case class PatternUriMapping(id: Identifier = "uri",
   * @param id      The name of this mapping
   * @param operator The operator tree that generates the URI.
   */
-case class ComplexUriMapping(id: Identifier = "complexUri",
+case class ComplexUriMapping(id: Identifier = "complexURI",
                              operator: Input,
                              metaData: MetaData = MetaData.empty) extends UriMapping {
 
