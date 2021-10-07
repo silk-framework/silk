@@ -147,7 +147,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
  |            "id": "uri",
  |            "pattern": "http://example.org/{PersonID}",
  |            "metadata": {
- |                "label": "uri"
+ |                "label": "URI"
  |            }
  |        },
  |        "typeRules": [
