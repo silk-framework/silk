@@ -5,7 +5,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.entity.ValueType
 import org.silkframework.plugins.dataset.InternalDatasetTrait
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.util.InMemoryWorkspaceTestTrait
+import org.silkframework.workspace.InMemoryWorkspaceTestTrait
 
 /**
   * Tests the internal dataset. This test is located in this module as the default is to use the RDF-based one from this module.
