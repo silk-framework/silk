@@ -32,6 +32,7 @@ object SearchApiModel {
   final val PROJECT_LABEL = "projectLabel"
   final val PLUGIN_ID = "pluginId"
   final val PLUGIN_LABEL = "pluginLabel"
+  final val PARAMETERS = "parameters"
   // type values
   final val PROJECT_TYPE = "project"
   /* JSON serialization */
@@ -270,7 +271,13 @@ object SearchApiModel {
                                     required = false,
                                     nullable = true
                                   )
-                                  facets: Option[Seq[FacetSetting]] = None) extends SearchRequestTrait {
+                                  facets: Option[Seq[FacetSetting]] = None,
+                                  @Schema(
+                                    description = "If set to true, the current configuration for each task item is returned in the search response.",
+                                    required = false,
+                                    nullable = true
+                                  )
+                                  addTaskParameters: Option[Boolean] = Some(false)) extends SearchRequestTrait {
     /** The offset used for paging. */
     def workingOffset: Int =  offset.getOrElse(FacetedSearchRequest.DEFAULT_OFFSET)
 
@@ -442,23 +449,32 @@ object SearchApiModel {
       )
     }
 
-    private def toJson(typedTasks: TypedTasks): Seq[JsObject] = {
-      typedTasks.tasks.map(t => toJson(t, typedTasks))
-    }
+    private val addParameters = addTaskParameters.getOrElse(false)
 
     private def toJson(task: ProjectTask[_ <: TaskSpec],
                        typedTask: TypedTasks): JsObject = {
       val pd = PluginDescription(task)
-      JsObject(Seq(
-        PROJECT_ID -> JsString(typedTask.project),
-        PROJECT_LABEL -> JsString(typedTask.projectLabel),
-        TYPE -> JsString(typedTask.itemType.id),
-        ID -> JsString(task.id),
-        LABEL -> JsString(label(task)),
-        DESCRIPTION -> JsString(""),
-        PLUGIN_ID -> JsString(pd.id),
-        PLUGIN_LABEL -> JsString(pd.label)
-      ) ++ task.metaData.description.map(d => DESCRIPTION -> JsString(d)))
+      val parameters = if(addParameters) {
+        implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+        val jsonValue = TaskSpecJsonFormat.write(task.data)
+        Seq(PARAMETERS -> (jsonValue \ "parameters").as[JsObject])
+      } else {
+        Seq.empty
+      }
+      JsObject(
+        Seq(
+          PROJECT_ID -> JsString(typedTask.project),
+          PROJECT_LABEL -> JsString(typedTask.projectLabel),
+          TYPE -> JsString(typedTask.itemType.id),
+          ID -> JsString(task.id),
+          LABEL -> JsString(label(task)),
+          DESCRIPTION -> JsString(""),
+          PLUGIN_ID -> JsString(pd.id),
+          PLUGIN_LABEL -> JsString(pd.label)
+        )
+          ++ task.metaData.description.map(d => DESCRIPTION -> JsString(d))
+          ++ parameters
+      )
     }
   }
 

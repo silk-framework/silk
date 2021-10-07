@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, {Component, useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import {
     Card,
@@ -56,64 +56,35 @@ interface IProps {
 /**
  * Provides the editable form for object mappings.
  */
-export class ObjectRuleForm extends Component<IProps, any> {
-    // define property types
-    static propTypes = {
-        id: PropTypes.string,
-        parentId: PropTypes.string.isRequired,
-        scrollIntoView: PropTypes.func.isRequired,
-        onAddNewRule: PropTypes.func.isRequired,
-        scrollElementIntoView: PropTypes.func.isRequired,
-        ruleData: PropTypes.object.isRequired,
-    };
+export const ObjectRuleForm = (props: IProps) => {
+    const [loading, setLoading] = useState(false)
+    const [changed, setChanged] = useState(false)
+    const create = !props.id
+    // get a deep copy of origin data for modification
+    const [modifiedValues, setModifiedValues] = useState<any>(_.cloneDeep(props.ruleData))
+    const [saveObjectError, setSaveObjectError] = useState<any>(undefined)
+    const [uriPatternHasFocus, setUriPatternHasFocus] = useState<boolean>(false)
+    const [uriPatternIsValid, setUriPatternIsValid] = useState<boolean>(true)
 
-    /**
-     * React's lifecycle method
-     * @param props
-     */
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            loading: false,
-            changed: false,
-            create: !props.id,
-            // get a deep copy of origin data for modification
-            modifiedValues: _.cloneDeep(props.ruleData),
-            saveObjectError: undefined,
-        };
-
-        this.handleConfirm = this.handleConfirm.bind(this);
-        this.handleChangeValue = this.handleChangeValue.bind(this);
-        this.handleClose = this.handleClose.bind(this);
-    }
-
-    /**
-     * React's lifecycle method
-     */
-    componentDidMount() {
-        const { id, scrollIntoView } = this.props;
+    useEffect(() => {
+        const { id, scrollIntoView } = props;
         // set screen focus to this element
         scrollIntoView({ topOffset: 75 });
         if (!id) {
             EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, { id: 0 });
         }
-    }
+    }, [])
 
     /**
      * Saves the modified data
-     * @param event
      */
-    handleConfirm(event) {
+    const handleConfirm = (event) => {
         event.stopPropagation();
         event.persist();
-        this.setState({
-            loading: true,
-        });
-        const { modifiedValues } = this.state;
+        setLoading(true)
         createMappingAsync({
-            id: this.props.id,
-            parentId: this.props.parentId,
+            id: props.id,
+            parentId: props.parentId,
             type: modifiedValues.type,
             comment: modifiedValues.comment,
             label: modifiedValues.label,
@@ -126,31 +97,26 @@ export class ObjectRuleForm extends Component<IProps, any> {
         }, true)
             .subscribe(
                 () => {
-                    if (this.props.onAddNewRule) {
-                        this.props.onAddNewRule(() => {
-                            this.handleClose(event);
+                    if (props.onAddNewRule) {
+                        props.onAddNewRule(() => {
+                            handleClose(event);
                         });
                     } else {
-                        this.handleClose(event);
+                        handleClose(event);
                     }
                 },
                 err => {
-                    this.setState({
-                        saveObjectError: err.response.body,
-                        loading: false,
-                    });
+                    setSaveObjectError(err.response.body)
+                    setLoading(false)
                 }
             );
     }
 
     /**
      * Handle input changes from user
-     * @param name
-     * @param value
      */
-    handleChangeValue(name, value) {
-        const { id, ruleData } = this.props;
-        const { create, modifiedValues } = this.state;
+    const handleChangeValue = (name, value) => {
+        const { id, ruleData } = props;
 
         const newModifiedValues = {
             ...modifiedValues,
@@ -166,32 +132,30 @@ export class ObjectRuleForm extends Component<IProps, any> {
                 EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id });
             }
         }
-        this.setState({
-            modifiedValues: newModifiedValues,
-            changed,
-        });
+        setChanged(changed)
+        setModifiedValues(newModifiedValues)
     }
 
     /**
      * handle form close event
      * @param event
      */
-    handleClose(event) {
+    const handleClose = (event) => {
         event.stopPropagation();
-        const { id = 0 } = this.props;
+        const { id = 0 } = props;
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id });
         EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, { id });
     }
 
-    /**
-     * React's lifecycle method
-     * @returns {*}
-     */
-    render() {
-        const { id, parentId, parent } = this.props;
-        const {
-            saveObjectError, loading, modifiedValues, changed,
-        } = this.state;
+    const checkUriPattern = async(uriPattern: string) => {
+        const validationResult = await checkUriPatternValidity(uriPattern)
+        if(validationResult?.valid !== undefined) {
+            setUriPatternIsValid(validationResult?.valid as boolean)
+        }
+        return validationResult
+    }
+
+        const { id, parentId, parent } = props;
 
         const autoCompleteRuleId = id || parentId;
 
@@ -219,7 +183,7 @@ export class ObjectRuleForm extends Component<IProps, any> {
                 className="ecc-silk-mapping__ruleseditor__isAttribute"
                 isAttribute={modifiedValues.isAttribute}
                 isObjectMapping={true}
-                onChange={(value) => this.handleChangeValue('isAttribute', value)}
+                onChange={(value) => handleChangeValue('isAttribute', value)}
             />
         );
 
@@ -236,7 +200,7 @@ export class ObjectRuleForm extends Component<IProps, any> {
                     ruleId={autoCompleteRuleId}
                     data-id="autocomplete_target_prop"
                     value={modifiedValues.targetProperty}
-                    onChange={value => { this.handleChangeValue('targetProperty', value); }}
+                    onChange={value => { handleChangeValue('targetProperty', value); }}
                     resetQueryToValue={true}
                     itemDisplayLabel={(item) => item.label ? `${item.label} <${item.value}>` : item.value}
                 />
@@ -244,7 +208,7 @@ export class ObjectRuleForm extends Component<IProps, any> {
             entityRelationInput = (
                 <FieldItem>
                     <RadioGroup
-                        onChange={({ value }) => { this.handleChangeValue('entityConnection', value); }}
+                        onChange={({ value }) => { handleChangeValue('entityConnection', value); }}
                         value={
                             !_.isEmpty(modifiedValues.entityConnection)
                                 ? modifiedValues.entityConnection
@@ -284,7 +248,7 @@ export class ObjectRuleForm extends Component<IProps, any> {
                     clearIconText={"Clear value path"}
                     validationErrorText={"The entered value path is invalid."}
                     onChange={value => {
-                        this.handleChangeValue('sourceProperty', value);
+                        handleChangeValue('sourceProperty', value);
                     }}
                     fetchSuggestions={(input, cursorPosition) => fetchValuePathSuggestions(autoCompleteRuleId, input, cursorPosition)}
                     checkInput={checkValuePathValidity}
@@ -304,10 +268,11 @@ export class ObjectRuleForm extends Component<IProps, any> {
                         clearIconText={"Clear URI pattern"}
                         validationErrorText={"The entered URI pattern is invalid."}
                         onChange={value => {
-                            this.handleChangeValue('pattern', value);
+                            handleChangeValue('pattern', value);
                         }}
                         fetchSuggestions={(input, cursorPosition) => fetchUriPatternAutoCompletions(autoCompleteRuleId, input, cursorPosition)}
-                        checkInput={checkUriPatternValidity}
+                        checkInput={checkUriPattern}
+                        onFocusChange={setUriPatternHasFocus}
                     />
                 );
             } else {
@@ -337,14 +302,13 @@ export class ObjectRuleForm extends Component<IProps, any> {
                             ruleId={autoCompleteRuleId}
                             value={modifiedValues.targetEntityType}
                             creatable
-                            onChange={value => { this.handleChangeValue('targetEntityType', value); }}
+                            onChange={value => { handleChangeValue('targetEntityType', value); }}
                         />
                         {targetCardinality}
                         {patternInput}
-                        {sourcePropertyInput}
                         {
                             // Data preview
-                            (modifiedValues.pattern || modifiedValues.uriRule) && (
+                            (!uriPatternHasFocus && uriPatternIsValid && (modifiedValues.pattern || modifiedValues.uriRule)) && (
                                 <ExampleView
                                     id={parentId || 'root'}
                                     rawRule={
@@ -363,25 +327,27 @@ export class ObjectRuleForm extends Component<IProps, any> {
                                 />
                             )
                         }
+                        {sourcePropertyInput}
                         <TextField
+                            data-test-id={"object-rule-form-label-input"}
                             label="Label"
                             className="ecc-silk-mapping__ruleseditor__label"
                             value={modifiedValues.label}
-                            onChange={({ value }) => { this.handleChangeValue('label', value); }}
+                            onChange={({ value }) => { handleChangeValue('label', value); }}
                         />
                         <TextField
                             multiline
                             label="Description"
                             className="ecc-silk-mapping__ruleseditor__comment"
                             value={modifiedValues.comment}
-                            onChange={({ value }) => { this.handleChangeValue('comment', value); }}
+                            onChange={({ value }) => { handleChangeValue('comment', value); }}
                         />
                     </CardContent>
                     <CardActions className="ecc-silk-mapping__ruleseditor__actionrow">
                         <AffirmativeButton
                             className="ecc-silk-mapping__ruleseditor__actionrow-save"
                             raised
-                            onClick={this.handleConfirm}
+                            onClick={handleConfirm}
                             disabled={!allowConfirm || !changed}
                         >
                             Save
@@ -389,7 +355,7 @@ export class ObjectRuleForm extends Component<IProps, any> {
                         <DismissiveButton
                             className="ecc-silk-mapping__ruleseditor__actionrow-cancel"
                             raised
-                            onClick={this.handleClose}
+                            onClick={handleClose}
                         >
                             Cancel
                         </DismissiveButton>
@@ -397,7 +363,6 @@ export class ObjectRuleForm extends Component<IProps, any> {
                 </Card>
             </div>
         );
-    }
 }
 
 export default ScrollingHOC(ObjectRuleForm);
