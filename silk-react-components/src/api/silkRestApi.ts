@@ -110,6 +110,19 @@ const silkApi = {
         return this.handleErrorCode(promise);
     },
 
+    /**
+     * Retrieves reports for a given workflow node.
+     */
+    retrieveWorkflowNodeExecutionReports: function(baseUrl, projectId, taskId, nodeId) {
+        const requestUrl = this.workflowNodeExecutionReportsEndpoint(baseUrl, projectId, taskId, nodeId);
+
+        const promise = superagent
+            .get(requestUrl)
+            .accept(CONTENT_TYPE_JSON);
+
+        return this.handleErrorCode(promise);
+    },
+
     /** Retrieves information of the registered vocabularies of this transformation */
     retrieveTransformVocabularyInfos: function(baseUrl: string, projectId: string, transformTaskId: string): HttpResponsePromise {
         const requestUrl = this.vocabularyInfoEndpoint(baseUrl, projectId, transformTaskId)
@@ -224,6 +237,10 @@ const silkApi = {
 
     reportEndpoint: function(baseUrl, projectId, taskId, time) {
         return `${baseUrl}/api/workspace/reports/report?projectId=${projectId}&taskId=${taskId}&time=${time}`;
+    },
+
+    workflowNodeExecutionReportsEndpoint: function(baseUrl, projectId, taskId, nodeId) {
+        return `${baseUrl}/api/workspace/reports/currentReport/nodeReports?projectId=${projectId}&taskId=${taskId}&nodeId=${nodeId}`;
     },
 
     vocabularyInfoEndpoint: function(baseUrl: string, projectId: string, transformTaskId: string) {

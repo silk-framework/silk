@@ -15,6 +15,18 @@ import java.time.Instant
 case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq[WorkflowTaskReport] = IndexedSeq.empty, isDone: Boolean = false) extends ExecutionReport {
 
   /**
+    * Retrieves all task reports for a given workflow node id.
+    */
+  def retrieveReports(nodeId: Identifier): Seq[ExecutionReport] = {
+    val reports = taskReports.filter(_.nodeId == nodeId).map(_.report)
+    if(reports.nonEmpty) {
+      reports
+    } else {
+      throw new NoSuchElementException(s"No report for node '$nodeId' found.")
+    }
+  }
+
+  /**
     * Adds a new task report.
     *
     * @return The updated workflow report
@@ -38,6 +50,8 @@ case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq
 
   /**
     * Updates a task report if a node failed.
+    *
+    * @return The updated workflow report
     */
   def addFailedNode(nodeId: Identifier, ex: Throwable): WorkflowExecutionReport = {
     taskReports.reverse.zipWithIndex.find(_._1.nodeId == nodeId) match {
@@ -47,10 +61,15 @@ case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq
         val errorReport = SimpleExecutionReport(report.task, report.summary, report.warnings, Some(errorMsg), isDone = true, report.entityCount, report.operation)
         copy(taskReports = taskReports.updated(index, WorkflowTaskReport(nodeId, errorReport)))
       case None =>
-        throw new IndexOutOfBoundsException(s"Invalid task node identifier: $nodeId")
+        throw new NoSuchElementException(s"Invalid task node identifier: $nodeId")
     }
   }
 
+  /**
+    * Returns a copy of this report in which itself and all its task reports are marked as done.
+    *
+    * @return The updated workflow report
+    */
   def asDone(): WorkflowExecutionReport = {
     copy(taskReports = taskReports.map(r => r.copy(report = r.report.asDone())), isDone = true)
   }

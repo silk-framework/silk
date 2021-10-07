@@ -1,0 +1,29 @@
+
+@import org.silkframework.workspace.activity.workflow.Workflow
+@import org.silkframework.workbench.Context
+@import org.silkframework.runtime.activity.UserContext
+@import controllers.core.routes.{Assets => CoreAssets}
+
+@(context: Context[Workflow], nodeId: String)(implicit request: RequestHeader, userContext: UserContext)
+
+@header = {
+  <script src="@CoreAssets.at("libs/silk-react-components/main.js")" type="text/javascript"></script>
+}
+
+@content = {
+  <div id="react-workflowNodeExecutionReport"></div>
+
+  <script type="text/javascript">
+    silkReactComponents.workflowNodeExecutionReport(
+      'react-workflowNodeExecutionReport',
+      {
+          baseUrl: '@config.baseUrl',
+          project: '@context.project.name',
+          task: '@context.task.id',
+          nodeId: '@nodeId'
+      }
+    );
+  </script>
+}
+
+@main(Some(context), titleLabel = context.task.taskLabel())(header)(toolbar = null)(content)

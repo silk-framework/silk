@@ -18,6 +18,7 @@ GET           /reports/list                                                     
 GET           /reports/report                                                   controllers.workspaceApi.ReportsApi.retrieveReport(projectId, taskId, time)
 
 GET           /reports/currentReport/value                                      controllers.workspaceApi.ReportsApi.currentReport(projectId, taskId)
+GET           /reports/currentReport/nodeReports                                controllers.workspaceApi.ReportsApi.currentWorkflowNodeReport(projectId, taskId, nodeId)
 GET           /reports/currentReport/updates                                    controllers.workspaceApi.ReportsApi.currentReportUpdates(projectId, taskId, timestamp: Long ?= 0)
 GET           /reports/currentReport/updatesWebSocket                           controllers.workspaceApi.ReportsApi.currentReportUpdatesWebsocket(projectId, taskId)
 

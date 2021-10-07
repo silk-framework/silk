@@ -145,6 +145,48 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
   }
 
   @Operation(
+    summary = "Current workflow node report",
+    description = "Retrieves the current execution report of a single workflow node.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json"
+        ))
+      )
+    ))
+  def currentWorkflowNodeReport(@Parameter(
+                                  name = "projectId",
+                                  description = "The project id of the report",
+                                  required = true,
+                                  in = ParameterIn.QUERY,
+                                  schema = new Schema(implementation = classOf[String])
+                                )
+                                projectId: String,
+                                @Parameter(
+                                  name = "taskId",
+                                  description = "The task id of the report",
+                                  required = true,
+                                  in = ParameterIn.QUERY,
+                                  schema = new Schema(implementation = classOf[String])
+                                )
+                                taskId: String,
+                                @Parameter(
+                                  name = "nodeId",
+                                  description = "The workflow node id",
+                                  required = true,
+                                  in = ParameterIn.QUERY,
+                                  schema = new Schema(implementation = classOf[String])
+                                )
+                                nodeId: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
+    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+    val workflowReport = retrieveCurrentReport(projectId, taskId).apply().report
+    val taskReports = workflowReport.retrieveReports(nodeId)
+    Ok(JsArray(taskReports.map(ExecutionReportJsonFormat.write)))
+  }
+
+  @Operation(
     summary = "Report updates",
     description = "Retrieves updates of the current execution report.",
     responses = Array(
