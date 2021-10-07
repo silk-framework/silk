@@ -286,7 +286,7 @@ export function ProjectImportModal({ close, back }: IProps) {
                         <PropertyValue>
                             <StringPreviewContentBlobToggler
                                 className="di__dataset__metadata-description"
-                                previewContent={details.description}
+                                content={details.description}
                                 previewMaxLength={128}
                                 fullviewContent={<Markdown>{details.description}</Markdown>}
                                 toggleExtendText={t("common.words.more", "more")}

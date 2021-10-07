@@ -140,7 +140,7 @@ export const ParameterWidget = (props: IProps) => {
         propertyHelperText = (
             <StringPreviewContentBlobToggler
                 className="di__parameter_widget__description"
-                previewContent={description}
+                content={description}
                 previewMaxLength={MAXLENGTH_SIMPLEHELP}
                 fullviewContent={
                     <WhiteSpaceContainer

@@ -248,7 +248,7 @@ export function Metadata(props: IProps) {
                             <PropertyValue>
                                 <StringPreviewContentBlobToggler
                                     className="di__dataset__metadata-description"
-                                    previewContent={description}
+                                    content={description}
                                     previewMaxLength={128}
                                     fullviewContent={<Markdown>{description}</Markdown>}
                                     toggleExtendText={t("common.words.more", "more")}
