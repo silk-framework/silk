@@ -46,6 +46,11 @@ trait ExecutionReport {
   def isDone: Boolean
 
   /**
+    * Returns a done version of this report.
+    */
+  def asDone(): ExecutionReport
+
+  /**
     * The number of entities that have been processed.
     */
   def entityCount: Int

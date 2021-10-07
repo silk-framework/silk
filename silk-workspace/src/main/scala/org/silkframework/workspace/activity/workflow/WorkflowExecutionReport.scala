@@ -51,6 +51,10 @@ case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq
     }
   }
 
+  def asDone(): WorkflowExecutionReport = {
+    copy(taskReports = taskReports.map(r => r.copy(report = r.report.asDone())), isDone = true)
+  }
+
   override def summary: Seq[(String, String)] = Seq.empty
 
   override def warnings: Seq[String] = {

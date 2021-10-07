@@ -47,9 +47,6 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                   (implicit userContext: UserContext): Unit = {
     cancelled = false
     runWorkflow(context, updateUserContext(userContext))
-    for(value <- context.value.get) {
-      context.value() = value.copy(isDone = true)
-    }
   }
 
   private def runWorkflow(implicit context: ActivityContext[WorkflowExecutionReport], userContext: UserContext): Unit = {
@@ -77,6 +74,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
           throw e // Only rethrow exception if the activity was not cancelled, else the error could be due to the cancellation.
         }
     } finally {
+      context.value.updateWith(_.asDone())
       this.executionContext.executeShutdownHooks()
     }
   }

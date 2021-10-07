@@ -35,6 +35,11 @@ case class TransformReport(task: Task[TransformSpec],
     }
     allErrors
   }
+
+  /**
+    * Returns a done version of this report.
+    */
+  def asDone(): ExecutionReport = copy(isDone = true)
 }
 
 object TransformReport {
@@ -51,7 +56,7 @@ object TransformReport {
     /**
       * Increases the error counter, but does not add a new sample error.
       */
-    def withError() = {
+    def withError(): RuleResult = {
       copy(
         errorCount = errorCount + 1
       )
@@ -60,7 +65,7 @@ object TransformReport {
     /**
       * Increases the error counter and adds a new sample error.
       */
-    def withError(error: RuleError) = {
+    def withError(error: RuleError): RuleResult = {
       copy(
         errorCount = errorCount + 1,
         sampleErrors :+ error

@@ -43,6 +43,11 @@ case class Linking(task: Task[LinkSpec],
   }
 
   override def entityCount: Int = links.size
+
+  /**
+    * Returns a done version of this report.
+    */
+  def asDone(): ExecutionReport = copy(isDone = true)
 }
 
 case class LinkingStatistics(entityCount: DPair[Int] = DPair.fill(0))
