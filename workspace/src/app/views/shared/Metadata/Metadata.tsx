@@ -3,7 +3,7 @@ import { Controller, useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
-import ReactMarkdown from "react-markdown";
+import { Markdown } from "@gui-elements/cmem";
 import {
     Button,
     Card,
@@ -15,15 +15,15 @@ import {
     Divider,
     FieldItem,
     IconButton,
+    Label,
     Notification,
-    PropertyValueList,
-    PropertyValuePair,
     PropertyName,
     PropertyValue,
-    Label,
+    PropertyValueList,
+    PropertyValuePair,
+    Spacing,
     TextArea,
     TextField,
-    Spacing,
 } from "@gui-elements/index";
 import { Intent } from "@gui-elements/blueprint/constants";
 import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/typings";
@@ -32,8 +32,7 @@ import { routerOp } from "@ducks/router";
 import { sharedOp } from "@ducks/shared";
 import { Loading } from "../Loading/Loading";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
-import { ContentBlobToggler } from "../ContentBlobToggler/ContentBlobToggler";
-import { firstNonEmptyLine } from "../ContentBlobToggler";
+import { StringPreviewContentBlobToggler } from "@gui-elements/src/cmem/ContentBlobToggler/StringPreviewContentBlobToggler";
 
 interface IProps {
     projectId?: string;
@@ -247,15 +246,14 @@ export function Metadata(props: IProps) {
                         <PropertyValuePair hasSpacing hasDivider>
                             <PropertyName>{t("form.field.description", "Description")}</PropertyName>
                             <PropertyValue>
-                                <ContentBlobToggler
+                                <StringPreviewContentBlobToggler
                                     className="di__dataset__metadata-description"
-                                    contentPreview={description}
+                                    previewContent={description}
                                     previewMaxLength={128}
-                                    contentFullview={description}
-                                    renderContentFullview={(content) => {
-                                        return <ReactMarkdown source={description} />;
-                                    }}
-                                    renderContentPreview={firstNonEmptyLine}
+                                    fullviewContent={<Markdown>{description}</Markdown>}
+                                    toggleExtendText={t("common.words.more", "more")}
+                                    toggleReduceText={t("common.words.less", "less")}
+                                    firstNonEmptyLineOnly={true}
                                 />
                             </PropertyValue>
                         </PropertyValuePair>
