@@ -325,9 +325,9 @@ export function ValueRuleForm(props: IProps) {
                 rightElement={complexEditButton()}
             />
         }
-        const exampleView = !_.isEmpty(sourceProperty) && valuePathValid && !valuePathInputHasFocus || type === MAPPING_RULE_TYPE_COMPLEX? (
+        const exampleView = !_.isEmpty(sourceProperty) && valuePathValid && !valuePathInputHasFocus || (type === MAPPING_RULE_TYPE_COMPLEX && id) ? (
             <ExampleView
-                id={type === MAPPING_RULE_TYPE_COMPLEX ? id : props.parentId || 'root'}
+                id={type === MAPPING_RULE_TYPE_COMPLEX ? id!! : props.parentId || 'root'}
                 key={
                     typeof sourceProperty === "string" ? sourceProperty : sourceProperty.value
                 }
