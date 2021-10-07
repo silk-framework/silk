@@ -2,7 +2,14 @@ import React from "react";
 import { Markdown, StringPreviewContentBlobToggler } from "@gui-elements/cmem";
 import { sharedOp } from "@ducks/shared";
 import { IArtefactItemProperty, IPropertyAutocomplete, ITaskParameter } from "@ducks/common/typings";
-import { AutoCompleteField, FieldItem, FieldSet, Label, TitleSubsection } from "@gui-elements/index";
+import {
+    AutoCompleteField,
+    FieldItem,
+    FieldSet,
+    Label,
+    TitleSubsection,
+    WhiteSpaceContainer,
+} from "@gui-elements/index";
 import { Intent } from "@gui-elements/blueprint/constants";
 import { InputMapper } from "./InputMapper";
 import { AppToaster } from "../../../../../services/toaster";
@@ -135,7 +142,16 @@ export const ParameterWidget = (props: IProps) => {
                 className="di__parameter_widget__description"
                 previewContent={description}
                 previewMaxLength={MAXLENGTH_SIMPLEHELP}
-                fullviewContent={<Markdown>{description ?? ""}</Markdown>}
+                fullviewContent={
+                    <WhiteSpaceContainer
+                        marginTop="tiny"
+                        marginRight="xlarge"
+                        marginBottom="small"
+                        marginLeft="regular"
+                    >
+                        <Markdown>{description ?? ""}</Markdown>
+                    </WhiteSpaceContainer>
+                }
                 toggleExtendText={t("common.words.more", "more")}
                 toggleReduceText={t("common.words.less", "less")}
                 firstNonEmptyLineOnly={true}
