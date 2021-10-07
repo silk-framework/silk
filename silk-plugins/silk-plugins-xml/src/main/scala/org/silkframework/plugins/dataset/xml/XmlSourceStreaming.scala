@@ -25,26 +25,6 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
   with PeakDataSource with PathCoverageDataSource with ValueCoverageDataSource with XmlSourceTrait with HierarchicalSampleValueAnalyzerExtractionSource {
 
   private val xmlFactory = XMLInputFactory.newInstance()
-  final val schemaElementLimit = 100 * 1000
-
-  /**
-    * Retrieves known types in this source.
-    * Each path from the root corresponds to one type.
-    *
-    * @param limit Restricts the number of types to be retrieved. If not given, all found types are returned.
-    */
-  override def retrieveTypes(limit: Option[Int])
-                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
-    if(file.nonEmpty) {
-      val schema = extractSchema(PathCategorizerValueAnalyzerFactory(), pathLimit = schemaElementLimit, sampleLimit = Some(1))
-      for(schemaClass <- schema.classes) yield {
-        val operators = UntypedPath.parse(schemaClass.sourceType)
-        (schemaClass.sourceType, pathRank(operators.size))
-      }
-    } else {
-      Traversable.empty
-    }
-  }
 
   // Create and init stream reader, positions the stream reader on the first tag
   private def initStreamReader(inputStream: InputStream) = {
@@ -69,37 +49,6 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
   private val basePathPartsReversed = basePathParts.reverse
 
   private val basePathLength = basePathParts.length
-
-  /**
-    * Retrieves the most frequent paths in this source.
-    *
-    * @param typeUri The entity type, which provides the base path from which paths shall be collected.
-    * @param depth Only retrieve paths up to a certain length.
-    * @param limit Restricts the number of paths to be retrieved. If not given, all found paths are returned.
-    */
-  override def retrievePaths(typeUri: Uri, depth: Int = Int.MaxValue, limit: Option[Int] = None)
-                            (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
-    val schema = extractSchema(PathCategorizerValueAnalyzerFactory(), pathLimit = schemaElementLimit, sampleLimit = Some(1))
-    val pathBuffer = mutable.ArrayBuffer[TypedPath]()
-    val normalizedTypeUri = typeUri.toString.dropWhile(_ == '/')
-    for(schemaClass <- schema.classes if schemaClass.sourceType.startsWith(normalizedTypeUri)) {
-      val relativeClass = schemaClass.sourceType.drop(normalizedTypeUri.length).dropWhile(_ == '/')
-      val classPath = UntypedPath.parse(relativeClass)
-      if(classPath.size > 0 && classPath.size <= depth) {
-        pathBuffer.append(TypedPath(classPath, ValueType.URI, isAttribute = false))
-      }
-      for(schemaPath <- schemaClass.properties) {
-        val typedPath = TypedPath(UntypedPath.parse(relativeClass + "/" + schemaPath.path.normalizedSerialization), ValueType.STRING,
-          isAttribute = schemaPath.path.normalizedSerialization.startsWith("@"))
-        if(typedPath.size <= depth) {
-          pathBuffer.append(typedPath)
-        }
-      }
-    }
-    pathBuffer.toIndexedSeq
-  }
-
-  private def pathRank(pathLength: Int): Double = 1.0 / (pathLength + 1)
 
   override def retrieveXmlPaths(typeUri: Uri, depth: Int, limit: Option[Int], onlyLeafNodes: Boolean, onlyInnerNodes: Boolean): IndexedSeq[TypedPath] = {
     val inputStream = file.inputStream
@@ -329,6 +278,10 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
   private def collectPaths(reader: XMLStreamReader, path: UntypedPath, onlyLeafNodes: Boolean, onlyInnerNodes: Boolean, depth: Int): Seq[TypedPath] = {
     assert(reader.isStartElement)
     assert(!(onlyInnerNodes && onlyLeafNodes), "onlyInnerNodes and onlyLeafNodes cannot be set to true at the same time")
+
+    if(!file.nonEmpty) {
+      return Seq.empty
+    }
 
     // Collect attribute paths
     val attributePaths: IndexedSeq[TypedPath] = fetchAttributePaths(reader, path)
