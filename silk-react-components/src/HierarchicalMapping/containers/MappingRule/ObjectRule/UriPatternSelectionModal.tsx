@@ -18,6 +18,7 @@ export const UriPatternSelectionModal = ({uriPatterns, onSelect, onClose}: IProp
     const itemOption = (uriPattern: IUriPattern, query: string, modifiers) => {
         return <MenuItem
             key={uriPattern.value}
+            onClick={() => handleSelect(uriPattern)}
             active={modifiers.active}
             internalProps={{popoverProps: {fill: true}}}
             text={<OverflowText inline={true} title={uriPattern.value} style={{minWidth: "35vw"}}>
