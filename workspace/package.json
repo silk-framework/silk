@@ -152,7 +152,7 @@
             "^(?!.*\\.(js|jsx|ts|tsx|css|json)$)": "<rootDir>/config/jest/fileTransform.js"
         },
         "transformIgnorePatterns": [
-            "node_modules/(?!react-markdown|vfile|unist-util-stringify-position|).+\\.(js|jsx|ts|tsx)$",
+  	    "[/\\\\]node_modules[/\\\\](?!react-markdown|vfile|unist-util-stringify-position|).+\\.(js|jsx|ts|tsx)$",
             "^.+\\.module\\.(css|sass|scss)$"
         ],
         "moduleNameMapper": {
