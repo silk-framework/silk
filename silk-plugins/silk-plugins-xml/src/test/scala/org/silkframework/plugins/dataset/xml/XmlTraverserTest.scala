@@ -30,6 +30,13 @@ class XmlTraverserTest extends FlatSpec with MustMatchers {
     evaluate("/A", ValueType.INT) mustBe Seq()
   }
 
+  it should "not fail for tags that contain dots" in {
+    val xml = <A.B>Value</A.B>
+    val traverser: XmlTraverser = XmlTraverser(xml)
+    // Should not fail (CMEM-3752)
+    traverser.generateUri("") mustBe "urn:instance:AB#310208258"
+  }
+
   private def evaluate(pathStr: String, valueType: ValueType = ValueType.STRING)(implicit traverser: XmlTraverser) = {
     traverser.evaluatePathAsString(typedPath(pathStr, valueType), "")
   }
