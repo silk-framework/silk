@@ -12,7 +12,8 @@ import java.time.Instant
   * @param task The workflow that was executed
   * @param taskReports A map from each workflow operator id to its corresponding report
   */
-case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq[WorkflowTaskReport] = IndexedSeq.empty, isDone: Boolean = false) extends ExecutionReport {
+case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq[WorkflowTaskReport] = IndexedSeq.empty,
+                                   isDone: Boolean = false, version: Int = 0) extends ExecutionReport {
 
   /**
     * Retrieves all task reports for a given workflow node id.
@@ -32,7 +33,7 @@ case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq
     * @return The updated workflow report
     */
   def addReport(nodeId: Identifier, report: ExecutionReport): WorkflowExecutionReport = {
-    copy(taskReports = taskReports :+ WorkflowTaskReport(nodeId, report))
+    copy(taskReports = taskReports :+ WorkflowTaskReport(nodeId, report, version), version = version + 1)
   }
 
   /**
@@ -42,7 +43,7 @@ case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq
     */
   def updateReport(index: Int, nodeId: Identifier, report: ExecutionReport): WorkflowExecutionReport = {
     if(index < taskReports.size) {
-      copy(taskReports = taskReports.updated(index, WorkflowTaskReport(nodeId, report)))
+      copy(taskReports = taskReports.updated(index, WorkflowTaskReport(nodeId, report, version + 1, Instant.now())), version = version + 1)
     } else {
       throw new IndexOutOfBoundsException(s"Invalid task report index: $index")
     }
@@ -56,10 +57,11 @@ case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq
   def addFailedNode(nodeId: Identifier, ex: Throwable): WorkflowExecutionReport = {
     taskReports.reverse.zipWithIndex.find(_._1.nodeId == nodeId) match {
       case Some((workflowReport, index)) =>
+        val timestamp = Instant.now()
         val report = workflowReport.report
         val errorMsg = ex.getMessage
         val errorReport = SimpleExecutionReport(report.task, report.summary, report.warnings, Some(errorMsg), isDone = true, report.entityCount, report.operation)
-        copy(taskReports = taskReports.updated(index, WorkflowTaskReport(nodeId, errorReport)))
+        copy(taskReports = taskReports.updated(index, WorkflowTaskReport(nodeId, errorReport, version + 1, timestamp)), version = version + 1)
       case None =>
         throw new NoSuchElementException(s"Invalid task node identifier: $nodeId")
     }
@@ -71,7 +73,8 @@ case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq
     * @return The updated workflow report
     */
   def asDone(): WorkflowExecutionReport = {
-    copy(taskReports = taskReports.map(r => r.copy(report = r.report.asDone())), isDone = true)
+    val timestamp = Instant.now()
+    copy(taskReports = taskReports.map(r => r.copy(report = r.report.asDone(), version = version + 1, timestamp = timestamp)), isDone = true, version = version + 1)
   }
 
   override def summary: Seq[(String, String)] = Seq.empty
@@ -94,4 +97,4 @@ case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq
   * @param report The execution report.
   * @param timestamp Timestamp of the last update.
   */
-case class WorkflowTaskReport(nodeId: Identifier, report: ExecutionReport, timestamp: Instant = Instant.now())
+case class WorkflowTaskReport(nodeId: Identifier, report: ExecutionReport, version: Int = 0, timestamp: Instant = Instant.now())

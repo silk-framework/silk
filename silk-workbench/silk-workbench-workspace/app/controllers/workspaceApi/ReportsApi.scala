@@ -272,16 +272,14 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
     implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
     val currentReport = retrieveCurrentReport(projectId, taskId)
 
-    var lastUpdate = Instant.EPOCH
+    var previousVersion = -1
     val source = AkkaUtils.createSource(currentReport).map { value =>
       val updates =
-        for(taskReport <- value.report.taskReports if taskReport.timestamp isAfter lastUpdate) yield {
+        for(taskReport <- value.report.taskReports if taskReport.version > previousVersion) yield {
           ReportSummary(taskReport)
         }
-      if(value.report.taskReports.nonEmpty) {
-        lastUpdate = value.report.taskReports.maxBy(_.timestamp).timestamp
-      }
-      Json.toJson(ReportUpdates(lastUpdate.toEpochMilli, updates))
+      previousVersion = value.report.version
+      Json.toJson(ReportUpdates(System.currentTimeMillis(), updates))
     }
     AkkaUtils.createWebSocket(source)
   }
