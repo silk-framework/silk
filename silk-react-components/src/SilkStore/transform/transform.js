@@ -15,7 +15,6 @@ silkStore
     .subject('transform.task.rules.get')
     .subscribe(({data, replySubject}) => {
         const {baseUrl, project, transformTask} = data;
-
         superagent
             .get(`${baseUrl}/transform/tasks/${project}/${transformTask}/rules`)
             .accept('application/json')

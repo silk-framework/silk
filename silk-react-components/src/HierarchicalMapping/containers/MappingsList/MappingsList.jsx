@@ -45,7 +45,7 @@ class MappingsList extends React.Component {
     };
     
     state = {
-        items: rulesToList(this.props.rules, this.props.currentRuleId),
+        items: rulesToList(this.props.rules, this.props.parentRuleId || this.props.currentRuleId),
     };
     
     constructor(props) {
@@ -57,7 +57,7 @@ class MappingsList extends React.Component {
     componentWillReceiveProps(nextProps) {
         if (!_.isEqual(this.props, nextProps)) {
             this.setState({
-                items: rulesToList(nextProps.rules, nextProps.currentRuleId),
+                items: rulesToList(nextProps.rules, nextProps.parentRuleId || nextProps.currentRuleId),
             });
         }
     }

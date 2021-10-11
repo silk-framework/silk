@@ -71,6 +71,7 @@ describe("ValueRule Component", () => {
         });
         
         it('should ObjectSourcePath component rendered, when `props.type` equal to `direct` and sourcePath presented', () => {
+            const wrapper = getWrapper(shallow, {...props, sourcePath: "path", sourcePaths: undefined});
             expect(wrapper.find(ObjectSourcePath)).toHaveLength(1);
         });
     
