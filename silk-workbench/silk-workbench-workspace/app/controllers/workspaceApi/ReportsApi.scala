@@ -16,7 +16,7 @@ import org.silkframework.serialization.json.ActivitySerializers.ActivityExecutio
 import org.silkframework.serialization.json.ExecutionReportSerializers.ExecutionReportJsonFormat
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.WorkspaceFactory
-import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowExecutionReportWithProvenance, WorkflowTaskReport}
+import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow, WorkflowExecutionReportWithProvenance, WorkflowTaskReport}
 import org.silkframework.workspace.reports.{ExecutionReportManager, ReportIdentifier}
 import play.api.libs.json.{JsArray, JsValue, Json, OFormat}
 import play.api.mvc.{Action, AnyContent, InjectedController, WebSocket}
@@ -287,7 +287,14 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
   private def retrieveCurrentReport(projectId: String, taskId: String)(implicit userContext: UserContext): Observable[WorkflowExecutionReportWithProvenance] = {
     val project = WorkspaceFactory().workspace.project(projectId)
     val workflow = project.task[Workflow](taskId)
-    val activity = workflow.activity("ExecuteDefaultWorkflow")
+    val activity =
+      try {
+        workflow.activity("ExecuteDefaultWorkflow")
+      } catch {
+        case _: NoSuchElementException =>
+          // Fall back to local executor because ExecuteDefaultWorkflow is part of the Spark module
+          workflow.activity[LocalWorkflowExecutorGeneratingProvenance]
+      }
     activity.value.asInstanceOf[Observable[WorkflowExecutionReportWithProvenance]]
   }
 
