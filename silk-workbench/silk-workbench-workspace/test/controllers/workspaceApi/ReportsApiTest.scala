@@ -161,7 +161,7 @@ case class TestCustomTask() extends CustomTask {
   var reportHolder: ValueHolder[ExecutionReport] = null
 
   def updateReport(entityCount: Int, isDone: Boolean = false): Unit = {
-    reportHolder.update(SimpleExecutionReport(PlainTask("dummmy", this), summary = Seq.empty, warnings = Seq.empty, isDone = isDone, entityCount = entityCount, operation = None))
+    reportHolder.update(SimpleExecutionReport(PlainTask("dummmy", this), summary = Seq.empty, error = None, warnings = Seq.empty, isDone = isDone, entityCount = entityCount, operation = None))
   }
 
   override def inputSchemataOpt: Option[Seq[EntitySchema]] = None
