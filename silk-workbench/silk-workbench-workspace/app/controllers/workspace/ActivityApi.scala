@@ -9,17 +9,16 @@ import controllers.workspace.activityApi.ActivityListResponse.ActivityListEntry
 import controllers.workspace.activityApi.{ActivityFacade, StartActivityResponse}
 import controllers.workspace.doc.ActivityApiDoc
 import io.swagger.v3.oas.annotations.enums.ParameterIn
-import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.TaskSpec
-import org.silkframework.runtime.activity.{Activity, UserContext, _}
+import org.silkframework.runtime.activity._
 import org.silkframework.runtime.serialization.WriteContext
-import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException, ValidationException}
+import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.ActivitySerializers.ExtendedStatusJsonFormat
-import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
@@ -225,8 +224,16 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                        in = ParameterIn.QUERY,
                        schema = new Schema(implementation = classOf[String])
                      )
-                     activityName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    val activity = activityControl(projectName, taskName, activityName)
+                     activityName: String,
+                     @Parameter(
+                       name = "instance",
+                       description = ActivityApiDoc.activityInstanceParameterDesc,
+                       required = false,
+                       in = ParameterIn.QUERY,
+                       schema = new Schema(implementation = classOf[String])
+                     )
+                     activityInstance: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
+    val activity = activityControl(projectName, taskName, activityName, activityInstance)
     activity.cancel()
     Ok
   }
@@ -234,8 +241,9 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
   def restartActivity(projectName: String,
                       taskName: String,
                       activityName: String,
+                      activityInstance: String,
                       blocking: Boolean): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    val activity = activityControl(projectName, taskName, activityName)
+    val activity = activityControl(projectName, taskName, activityName, activityInstance)
     activity.reset()
     if(blocking) {
       activity.startBlocking()
@@ -325,8 +333,16 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                           in = ParameterIn.QUERY,
                           schema = new Schema(implementation = classOf[String])
                         )
-                        activityName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    val activity = activityControl(projectName, taskName, activityName)
+                        activityName: String,
+                        @Parameter(
+                          name = "instance",
+                          description = ActivityApiDoc.activityInstanceParameterDesc,
+                          required = false,
+                          in = ParameterIn.QUERY,
+                          schema = new Schema(implementation = classOf[String])
+                        )
+                        activityInstance: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
+    val activity = activityControl(projectName, taskName, activityName, activityInstance)
     implicit val writeContext = WriteContext[JsValue]()
 
     Ok(new ExtendedStatusJsonFormat(projectName, taskName, activityName, activity.startTime).write(activity.status()))
@@ -368,13 +384,21 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                          in = ParameterIn.QUERY,
                          schema = new Schema(implementation = classOf[String])
                        )
-                       activityName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext: UserContext =>
+                       activityName: String,
+                       @Parameter(
+                         name = "instance",
+                         description = ActivityApiDoc.activityInstanceParameterDesc,
+                         required = false,
+                         in = ParameterIn.QUERY,
+                         schema = new Schema(implementation = classOf[String])
+                       )
+                       activityInstance: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext: UserContext =>
     implicit val project: Option[Project] = if(projectName.trim.isEmpty) {
       None
     } else {
       Some(WorkspaceFactory().workspace.project(projectName))
     }
-    val activity = activityControl(projectName, taskName, activityName)
+    val activity = activityControl(projectName, taskName, activityName, activityInstance)
     val value = activity.value()
     SerializationUtils.serializeRuntime(value)
   }
@@ -441,6 +465,14 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                                )
                                activityName: String,
                                @Parameter(
+                                 name = "instance",
+                                 description = "Optional activity instance identifier. Non-singleton activity types allow multiple concurrent instances that are identified by their instance id.",
+                                 required = false,
+                                 in = ParameterIn.QUERY,
+                                 schema = new Schema(implementation = classOf[String])
+                               )
+                               activityInstance: String,
+                               @Parameter(
                                  name = "timestamp",
                                  description = "Only return status updates that happened after this timestamp. Provided in milliseconds since midnight, January 1, 1970 UTC. If not provided or 0, the stati of all matching activities are returned.",
                                  required = false,
@@ -458,7 +490,8 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
         "updates" ->
           JsArray(
             for(activity <- activities if activity.status().timestamp > timestamp) yield {
-              new ExtendedStatusJsonFormat(activity).write(activity.status())
+              val activityControl = activityControlForInstance(activity, activityInstance)
+              new ExtendedStatusJsonFormat(activity).write(activityControl.status())
             }
           )
       )
@@ -500,7 +533,15 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                                        in = ParameterIn.QUERY,
                                        schema = new Schema(implementation = classOf[String])
                                      )
-                                     activityName: String): WebSocket = {
+                                     activityName: String,
+                                     @Parameter(
+                                       name = "instance",
+                                       description = "Optional activity instance identifier. Non-singleton activity types allow multiple concurrent instances that are identified by their instance id.",
+                                       required = false,
+                                       in = ParameterIn.QUERY,
+                                       schema = new Schema(implementation = classOf[String])
+                                     )
+                                     activityInstance: String): WebSocket = {
 
     implicit val userContext = UserContext.Empty
     implicit val writeContext = WriteContext[JsValue]()
@@ -509,7 +550,8 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     val sources =
       for(activity <- activities) yield {
         implicit val format = new ExtendedStatusJsonFormat(activity)
-        AkkaUtils.createSource(activity.status).map(format.write)
+        val activityControl = activityControlForInstance(activity, activityInstance)
+        AkkaUtils.createSource(activityControl.status).map(format.write)
       }
 
     // Combine all sources into a single flow
@@ -520,25 +562,10 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
   /**
     * Retrieves a single workspace activity.
     */
-  private def activityControl(projectName: String, taskName: String, activityName: String)
+  private def activityControl(projectName: String, taskName: String, activityName: String, activityInstance: String)
                              (implicit userContext: UserContext): ActivityControl[_] = {
-    val workspace = WorkspaceFactory().workspace
-    if(projectName.trim.isEmpty) {
-      workspace.activity(activityName).control
-    } else {
-      val project = workspace.project(projectName)
-      if (taskName.nonEmpty) {
-        val task = project.anyTask(taskName)
-        val activities = task.activities.flatMap(_.allInstances.get(activityName).asInstanceOf[Option[ActivityControl[_]]].toSeq)
-        activities match {
-          case Seq(activity) => activity
-          case Seq() => throw new NotFoundException(s"Activity with id $activityName not found")
-          case _ => throw new ValidationException(s"Multiple activities with id $activityName found")
-        }
-      } else {
-        project.activity(activityName).control
-      }
-    }
+    val activity = ActivityFacade.getActivity(projectName, taskName, activityName)
+    activityControlForInstance(activity, activityInstance)
   }
 
   /**
@@ -602,24 +629,11 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     workspaceActivities ++ projectActivities ++ taskActivities
   }
 
-  /** Only affects activities with singleton==false setting, removes activity control instance */
-  def removeActivityControl(projectName: String,
-                            taskName: String,
-                            activityName: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    val activity = activityControl(projectName, taskName, activityName)
-    activity.cancel()
-    Ok
-  }
-
-  private def removeActivityControl(projectName: String, taskName: String, activityName: String)
-                                   (implicit userContext: UserContext): Unit = {
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val activityId: Identifier = activityName
-    if (taskName.nonEmpty) {
-      val task = project.anyTask(taskName)
-      task.activities.foreach(_.removeActivityInstance(activityId))
+  private def activityControlForInstance(activity: WorkspaceActivity[_], activityInstance: String): ActivityControl[_] = {
+    if(activityInstance.nonEmpty) {
+      activity.instance(activityInstance)
     } else {
-      project.activity(activityName).removeActivityInstance(activityId)
+      activity.control
     }
   }
 

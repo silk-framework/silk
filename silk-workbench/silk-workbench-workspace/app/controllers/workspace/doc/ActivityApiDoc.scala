@@ -55,4 +55,6 @@ While running, the progress is tracked by the *progress* field (0 to 100 percent
       }
     """
 
+  final val activityInstanceParameterDesc = "Optional activity instance identifier. Non-singleton activity types allow multiple concurrent instances that are identified by their instance id.",
+
 }
