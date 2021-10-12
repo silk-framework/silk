@@ -135,7 +135,7 @@ export const ParameterWidget = (props: IProps) => {
         }
     };
 
-    let propertyHelperText: JSX.Element | null = null;
+    let propertyHelperText: JSX.Element | undefined = undefined;
     if (description && description.length > MAXLENGTH_TOOLTIP) {
         propertyHelperText = (
             <StringPreviewContentBlobToggler
@@ -222,7 +222,7 @@ export const ParameterWidget = (props: IProps) => {
         );
     } else {
         return (
-            <FieldItem
+            <FieldSet
                 labelAttributes={{
                     text: title,
                     info: required ? t("common.words.required") : "",
@@ -285,7 +285,7 @@ export const ParameterWidget = (props: IProps) => {
                         initialValues={initialValues}
                     />
                 )}
-            </FieldItem>
+            </FieldSet>
         );
     }
 };

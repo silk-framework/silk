@@ -264,7 +264,7 @@ export function ProjectImportModal({ close, back }: IProps) {
                 htmlFor: "projectFile-input",
             }}
             hasStateDanger={uploadError !== null}
-            messageText={uploadError}
+            messageText={uploadError !== null ? uploadError : undefined}
         >
             {uploader}
         </FieldItem>
