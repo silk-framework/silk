@@ -29,22 +29,22 @@ class ActivityClient(baseUrl: String, projectId: Identifier, taskId: Identifier)
     checkResponse(startActivityRequest.post(parameters map { case (k, v) => (k, Seq(v)) }))
   }
 
-  def activityValue(activityId: String, contentType: String = "application/json"): WSResponse = {
-    val getActivityValueRequest = client.url(s"$activities/$activityId/value")
+  def activityValue(activityId: String, instanceId: Option[String] = None, contentType: String = "application/json"): WSResponse = {
+    val getActivityValueRequest = client.url(s"$activities/$activityId/value" + instanceId.map(id => s"?instance=$id").mkString)
     val response = getActivityValueRequest.addHttpHeaders(("ACCEPT", contentType)).get()
     checkResponse(response)
   }
 
-  def activityStatus(activityId: String): JsValue = {
-    val getActivityStatusRequest = client.url(s"$activities/$activityId/status")
+  def activityStatus(activityId: String, instanceId: Option[String] = None): JsValue = {
+    val getActivityStatusRequest = client.url(s"$activities/$activityId/status" + instanceId.map(id => s"?instance=$id").mkString)
     val statusResponse = getActivityStatusRequest.get()
     checkResponse(statusResponse).json
   }
 
-  def waitForActivity(activityId: String): Unit = {
+  def waitForActivity(activityId: String, instanceId: Option[String] = None): Unit = {
     var isRunning = false
     do {
-      isRunning = (activityStatus(activityId) \ "isRunning").as[JsBoolean].value
+      isRunning = (activityStatus(activityId, instanceId) \ "isRunning").as[JsBoolean].value
       Thread.sleep(200)
     } while(isRunning)
   }
