@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
-import ReactMarkdown from "react-markdown";
+import { Markdown } from "@gui-elements/cmem";
 import {
     Button,
     Card,
@@ -399,9 +399,9 @@ export function CreateArtefactModal() {
                     size="small"
                 >
                     <HtmlContentBlock>
-                        <ReactMarkdown
-                            source={selectedArtefact?.markdownDocumentation ?? selectedArtefact?.description}
-                        />
+                        <Markdown allowHtml>
+                            {(selectedArtefact?.markdownDocumentation || "") ?? (selectedArtefact?.description || "")}
+                        </Markdown>
                     </HtmlContentBlock>
                 </SimpleDialog>
             )}
@@ -492,12 +492,11 @@ export function CreateArtefactModal() {
                                                             size="small"
                                                         >
                                                             <HtmlContentBlock>
-                                                                <ReactMarkdown
-                                                                    source={
-                                                                        artefact.markdownDocumentation ||
-                                                                        artefact.description
-                                                                    }
-                                                                />
+                                                                <Markdown allowHtml>
+                                                                    {artefact.markdownDocumentation ||
+                                                                        artefact.description ||
+                                                                        ""}
+                                                                </Markdown>
                                                             </HtmlContentBlock>
                                                         </SimpleDialog>
                                                     )}

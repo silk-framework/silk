@@ -197,7 +197,7 @@
             "showApiDoc": "API"
         },
         "app": {
-            "build": "Data integration",
+            "build": "Build",
             "loading": "Loading page."
         },
         "dataTypes": {
@@ -299,16 +299,27 @@
         "side": {
             "di": {
                 "datasets": "Datasets",
-                "projects": "Projects"
+                "datasetsTooltip": "Shows the list of all datasets across all build projects.",
+                "projects": "Projects",
+                "projectsTooltip": "Shows the list of all data-integration build projects."
             },
-            "diBrowse": "Data integration",
+            "diBrowse": "Build",
+            "diBrowseTooltip": "Used to manage data-integration projects to build a knowledge graph from existing datasources",
             "dm": {
-                "explore": "Exploration",
+                "explore": "Knowledge Graphs",
+                "exploreTooltip": "A generic RDF graph data browser and editor.",
                 "query": "Queries",
-                "vocab": "Vocabulary management"
+                "queryTooltip": "Used to write, store, describe, search and run SPARQL queries.",
+                "vocab": "Vocabularies",
+                "vocabTooltip": "Shows the list of all managed vocabularies. It let's you (un-)install vocabularies from RDF files or the integrated catalog."
             },
-            "dmBrowser": "Knowledge graph",
-            "open": "Open navigation"
+            "dmBrowser": "Explore",
+            "open": "Open navigation",
+            "close": "Close navigation"
+        },
+        "user": {
+            "open": "Open user menu",
+            "close": "Close user menu"
         }
     },
     "pages": {
@@ -408,6 +419,13 @@
                         "workflow": "Workflow"
                     }
                 }
+            }
+        },
+        "TargetVocabularySelection": {
+            "multiSelectionRadioButtonLabel": "Select individual vocabularies",
+            "staticEntryLabel": {
+                "none": "No vocabularies",
+                "all": "All installed vocabularies"
             }
         },
         "TaskConfigWidget": {
