@@ -58,7 +58,7 @@ class WorkflowClient(baseUrl: String, projectId: Identifier, workflowId: Identif
           && location.get.filter(_.isLetter).endsWith("executionExecuteWorkflowWithPayload"),
         "Location header is not set or has wrong value! Value: " + location)
       activity.waitForActivity(activityId)
-      activity.activityValue(activityId, accept)
+      activity.activityValue(activityId, contentType = accept)
     }
   }
 
