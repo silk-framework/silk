@@ -87,7 +87,15 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
           val inputStream = file.inputStream
           try {
             val reader: XMLStreamReader = initStreamReader(inputStream)
-            val entityPath = UntypedPath.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath
+            val typeUri = entitySchema.typeUri.uri
+            val typeUriPart = if (typeUri.isEmpty) { ""
+            } else if(typeUri.startsWith("\\") || typeUri.startsWith("/") || typeUri.startsWith("[")) {
+              typeUri
+            } else {
+              "/" + typeUri
+            }
+            val pathStr = basePath + typeUriPart
+            val entityPath = UntypedPath.parse(pathStr) ++ entitySchema.subPath
             val entityPathSegments = PathSegments(entityPath)
             var hasNext = goToFirstEntity(reader, entityPath)
             var count = 0

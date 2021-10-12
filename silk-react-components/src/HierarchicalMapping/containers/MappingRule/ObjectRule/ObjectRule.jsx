@@ -222,7 +222,7 @@ class ObjectRule extends React.Component {
                                 />
                         }
                         {
-                            _.get(ruleData, 'rules.typeRules[0].uri')
+                            _.get(ruleData, 'rules.typeRules[0].typeUri')
                                 ? <ObjectTypeRules
                                     typeRules={_.get(ruleData, 'rules.typeRules') || {}}/>
                                 : null

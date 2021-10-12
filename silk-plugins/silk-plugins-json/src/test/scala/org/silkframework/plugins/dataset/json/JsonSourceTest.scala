@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.json
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset._
-import org.silkframework.entity._
+import org.silkframework.entity.{EntitySchema, _}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryResourceManager, Resource, ResourceLoader}
@@ -201,6 +201,12 @@ abstract class JsonSourceTest extends FlatSpec with MustMatchers {
     entities.map(_.values) mustBe Seq(Seq(Seq("val")), Seq(Seq("val2")))
   }
 
+  it should "retrieve path values with base path and type URI set" in {
+    val source: DataSource = jsonSource(jsonComplex, basePath = "objects")
+    val entities = source.retrieve(EntitySchema("nestedObject", typedPaths = IndexedSeq(UntypedPath.parse("nestedValue").asStringTypedPath))).entities
+    entities.map(_.values) mustBe Seq(Seq(Seq("nested")))
+  }
+
   it should "handle entity schema with sub paths and type URI" in {
     val source: DataSource = jsonSource(jsonWithNullObject)
     val entities = source.retrieve(EntitySchema("objects", typedPaths = IndexedSeq(UntypedPath.parse("nestedValue").asStringTypedPath), subPath = UntypedPath("nestedObject"))).entities
@@ -301,7 +307,7 @@ abstract class JsonSourceTest extends FlatSpec with MustMatchers {
     entities mustBe empty
   }
 
-  private def jsonSource(json: String): JsonSource = {
+  private def jsonSource(json: String, basePath: String = ""): JsonSource = {
     val jsonResource = InMemoryResourceManager().get("temp.json")
     jsonResource.writeString(json)
     createSource(jsonResource, "", "")
