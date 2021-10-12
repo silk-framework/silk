@@ -317,12 +317,12 @@ export function ValueRuleForm(props: IProps) {
                 </>
             );
         } else if (type === MAPPING_RULE_TYPE_COMPLEX) {
+            let editButton = complexEditButton()
             sourcePropertyInput = <TextField
                 data-id="test-complex-input"
                 disabled
-                label="Value formula"
                 value="The value formula cannot be modified in the edit form."
-                rightElement={complexEditButton()}
+                rightElement={editButton !== null ? editButton : undefined }
             />
         }
         const exampleView = !_.isEmpty(sourceProperty) && valuePathValid && !valuePathInputHasFocus || (type === MAPPING_RULE_TYPE_COMPLEX && id) ? (
