@@ -1,11 +1,10 @@
 package helper
 
 import org.silkframework.runtime.activity.Status
-import org.silkframework.runtime.activity.Status.{Finished, Idle}
+import org.silkframework.runtime.activity.Status.Idle
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.serialization.json.ActivitySerializers.StatusJsonFormat
 import play.api.libs.json.{JsObject, JsValue}
-import play.api.libs.ws.WSResponse
 
 trait ActivityApiClient extends ApiClient {
 
@@ -28,7 +27,7 @@ trait ActivityApiClient extends ApiClient {
   private def startTaskActivity(projectId: String, taskId: String, activityId: String): String = {
     val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/activities/$activityId/start")
     val response = request.post("")
-    (checkResponse(response).body[JsValue].as[JsObject] \ "activityId").as[String]
+    (checkResponse(response).body[JsValue].as[JsObject] \ "instanceId").as[String]
   }
 
   def taskActivityStatus(projectId: String, taskId: String, activityId: String): Status = {

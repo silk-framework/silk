@@ -64,11 +64,11 @@ class ActivityApiTest extends PlaySpec with IntegrationTestTrait with BeforeAndA
     val activity1 = activityClient.start(multiActivityId, Map("message" -> "1", "sleepTime" -> "2000"))
     val activity2 = activityClient.start(multiActivityId, Map("message" -> "2", "sleepTime" -> "2000"))
 
-    activityClient.waitForActivity(multiActivityId, Some(activity1))
-    activityClient.waitForActivity(multiActivityId, Some(activity2))
+    activityClient.waitForActivity(activity1)
+    activityClient.waitForActivity(activity2)
 
-    activityClient.activityValue(multiActivityId, Some(activity1)).json mustBe JsString("1")
-    activityClient.activityValue(multiActivityId, Some(activity2)).json mustBe JsString("2")
+    activityClient.activityValue(activity1).json mustBe JsString("1")
+    activityClient.activityValue(activity2).json mustBe JsString("2")
   }
 
   "limit the number of activities that are held in memory" in {

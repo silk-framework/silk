@@ -2,9 +2,10 @@ package controllers.workflow
 
 import controllers.workflow.WorkflowClient.VariableDatasetPayload
 import controllers.workspace.ActivityClient
-import org.silkframework.serialization.json.JsonSerializers.{DATA, PARAMETERS, TASK_TYPE_DATASET, TYPE, TASKTYPE, ID}
+import controllers.workspace.activityApi.StartActivityResponse
+import org.silkframework.serialization.json.JsonSerializers.{DATA, ID, PARAMETERS, TASKTYPE, TASK_TYPE_DATASET, TYPE}
 import org.silkframework.util.Identifier
-import play.api.libs.json.{JsArray, JsObject, JsString, JsValue}
+import play.api.libs.json.{JsArray, JsObject, JsString, JsValue, Json}
 import play.api.libs.ws.{BodyWritable, WSClient, WSRequest, WSResponse}
 
 import scala.concurrent.duration._
@@ -51,14 +52,14 @@ class WorkflowClient(baseUrl: String, projectId: Identifier, workflowId: Identif
       result
     } else {
       val activity = new ActivityClient(baseUrl, projectId, workflowId)
-      val activityId = (result.json \ "activityId").as[JsString].value
+      val response = Json.fromJson[StartActivityResponse](result.json).get
       val location = result.header("Location")
       assert(location.isDefined
           && location.get.startsWith("/workflow/workflows/")
           && location.get.filter(_.isLetter).endsWith("executionExecuteWorkflowWithPayload"),
         "Location header is not set or has wrong value! Value: " + location)
-      activity.waitForActivity(activityId)
-      activity.activityValue(activityId, contentType = accept)
+      activity.waitForActivity(response.activityId, Some(response.instanceId))
+      activity.activityValue(response.activityId, Some(response.instanceId), contentType = accept)
     }
   }
 
