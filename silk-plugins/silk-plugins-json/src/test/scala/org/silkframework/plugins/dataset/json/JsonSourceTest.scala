@@ -310,6 +310,6 @@ abstract class JsonSourceTest extends FlatSpec with MustMatchers {
   private def jsonSource(json: String, basePath: String = ""): JsonSource = {
     val jsonResource = InMemoryResourceManager().get("temp.json")
     jsonResource.writeString(json)
-    createSource(jsonResource, "", "")
+    createSource(jsonResource, basePath = basePath, uriPattern = "")
   }
 }

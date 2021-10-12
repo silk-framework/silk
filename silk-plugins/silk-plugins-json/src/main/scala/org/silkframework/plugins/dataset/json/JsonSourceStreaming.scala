@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.json
 import com.fasterxml.jackson.core.{JsonFactoryBuilder, JsonParser, JsonToken, StreamReadFeature}
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.paths._
+import org.silkframework.entity.paths.{UntypedPath, _}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
@@ -35,7 +35,7 @@ class JsonSourceStreaming(taskId: Identifier, resource: Resource, basePath: Stri
 
   private class Entities(entitySchema: EntitySchema, limit: Option[Int] = None, allowedUris: Set[Uri] = Set.empty) extends Traversable[Entity] {
 
-    private val entityPath = UntypedPath.parse(entitySchema.typeUri.uri) ++ UntypedPath.parse(basePath) ++ entitySchema.subPath
+    private val entityPath = UntypedPath.parse(basePath) ++ UntypedPath.parse(entitySchema.typeUri.uri) ++ entitySchema.subPath
 
     // Validate paths
     checkPaths(entitySchema.typedPaths, isEntitySelectionPath = false)
