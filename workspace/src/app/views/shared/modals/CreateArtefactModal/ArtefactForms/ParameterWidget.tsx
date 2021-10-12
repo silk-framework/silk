@@ -222,7 +222,7 @@ export const ParameterWidget = (props: IProps) => {
         );
     } else {
         return (
-            <FieldSet
+            <FieldItem
                 labelAttributes={{
                     text: title,
                     info: required ? t("common.words.required") : "",
@@ -285,7 +285,7 @@ export const ParameterWidget = (props: IProps) => {
                         initialValues={initialValues}
                     />
                 )}
-            </FieldSet>
+            </FieldItem>
         );
     }
 };
