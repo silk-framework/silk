@@ -1,29 +1,42 @@
 package controllers.workspace
 
+import controllers.errorReporting.ErrorReport.ErrorReportItem
 import helper.IntegrationTestTrait
+import org.scalatest.BeforeAndAfterAll
 import org.scalatestplus.play.PlaySpec
 import org.silkframework.config.{CustomTask, MetaData}
 import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.workspace.activity.{TaskActivityFactory, WorkspaceActivity}
-import org.silkframework.workspace.{ProjectConfig, ProjectTask, WorkspaceFactory}
+import org.silkframework.serialization.json.JsonHelpers
+import org.silkframework.workspace.activity.{GlobalWorkspaceActivityFactory, ProjectActivityFactory, TaskActivityFactory, WorkspaceActivity}
+import org.silkframework.workspace.{Project, ProjectConfig, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 
-class ActivityApiTest extends PlaySpec with IntegrationTestTrait {
+class ActivityApiTest extends PlaySpec with IntegrationTestTrait with BeforeAndAfterAll {
 
   private val projectId = "project"
   private val taskId = "messageTask"
   private val simpleActivityId = "SimpleActivityFactory"
   private val multiActivityId = "MultiActivityFactory"
+  private val failingWorkspaceActivity = "FailingWorkspaceActivityFactory"
+  private val failingProjectActivity = "FailingProjectActivityFactory"
+  private val failingTaskActivity = "FailingTaskActivityFactory"
   private val message = "Message"
 
   private val activityClient = new ActivityClient(baseUrl, projectId, taskId)
 
-  "setup" in {
+  override def initWorkspaceBeforeAll: Boolean = false
+
+  override def beforeAll(): Unit = {
+    super.beforeAll()
     PluginRegistry.registerPlugin(classOf[MessageTask])
     PluginRegistry.registerPlugin(classOf[SimpleActivityFactory])
     PluginRegistry.registerPlugin(classOf[MultiActivityFactory])
+    PluginRegistry.registerPlugin(classOf[FailingActivity])
+    PluginRegistry.registerPlugin(classOf[FailingWorkspaceActivityFactory])
+    PluginRegistry.registerPlugin(classOf[FailingProjectActivityFactory])
+    PluginRegistry.registerPlugin(classOf[FailingTaskActivityFactory])
 
     val project = WorkspaceFactory().workspace.createProject(ProjectConfig(projectId, metaData = MetaData(projectId)))
     project.addTask[MessageTask](taskId, MessageTask(message))
@@ -72,6 +85,39 @@ class ActivityApiTest extends PlaySpec with IntegrationTestTrait {
     runningControlIds mustBe createdControlIds.drop(1)
   }
 
+  "return an error report if an activity has failed" in {
+    // Should return 400 if a task is given without project
+    ActivityClient.activityErrorReport(baseUrl, failingWorkspaceActivity, taskId=Some("sometask"), expectedCode = BAD_REQUEST)
+    // Should 404 if an error report does not exist yet.
+    ActivityClient.activityErrorReport(baseUrl, failingWorkspaceActivity, expectedCode = NOT_FOUND)
+    // Get error report for workspace level activity
+    ActivityClient.startActivityBlocking(baseUrl, failingWorkspaceActivity, expectedStatus = INTERNAL_ERROR)
+    val reportWorkspace = JsonHelpers.fromJsonValidated[ErrorReportItem](ActivityClient.activityErrorReport(baseUrl, failingWorkspaceActivity).json)
+    reportWorkspace.activityId mustBe Some(failingWorkspaceActivity)
+    reportWorkspace.errorMessage mustBe Some("Planned exception")
+    reportWorkspace.projectId mustBe empty
+    reportWorkspace.taskId mustBe empty
+    reportWorkspace.stackTrace must not be empty
+    // Get error report for project level activity
+    ActivityClient.startActivityBlocking(baseUrl, failingProjectActivity, expectedStatus = INTERNAL_ERROR, projectId = Some(projectId))
+    val reportProject = JsonHelpers.fromJsonValidated[ErrorReportItem](ActivityClient.activityErrorReport(baseUrl, failingProjectActivity, projectId = Some(projectId)).json)
+    reportProject.projectId mustBe Some(projectId)
+    reportProject.taskId mustBe empty
+    reportProject.errorMessage mustBe Some("Planned exception")
+    // Get error report for task
+    ActivityClient.startActivityBlocking(baseUrl, failingTaskActivity, expectedStatus = INTERNAL_ERROR, projectId = Some(projectId), taskId = Some(taskId))
+    val reportTask = JsonHelpers.fromJsonValidated[ErrorReportItem](ActivityClient.activityErrorReport(baseUrl,
+      failingTaskActivity, projectId = Some(projectId), taskId = Some(taskId)).json)
+    reportTask.projectId mustBe Some(projectId)
+    reportTask.taskId mustBe Some(taskId)
+    reportTask.errorMessage mustBe Some("Planned exception")
+    // Get Markdown report
+    val markdownReport = ActivityClient.activityErrorReport(baseUrl, failingTaskActivity, projectId = Some(projectId),
+      taskId = Some(taskId), accept = "text/markdown").body
+    markdownReport must startWith ("# Activity execution error report")
+    markdownReport must (include (projectId) and include (taskId) and include (failingTaskActivity) and include ("Planned exception") and include ("ActivityApiTest"))
+  }
+
   override def workspaceProviderId: String = "inMemory"
 
   protected override def routes = Some(classOf[testWorkspace.Routes])
@@ -96,7 +142,6 @@ case class SimpleActivityFactory(sleepTime: Int = 0) extends TaskActivityFactory
       }
     }
   }
-
 }
 
 case class MultiActivityFactory(message: String = "", sleepTime: Int = 0) extends TaskActivityFactory[MessageTask, Activity[String]] {
@@ -115,5 +160,30 @@ case class MultiActivityFactory(message: String = "", sleepTime: Int = 0) extend
       }
     }
   }
+}
 
+case class FailingWorkspaceActivityFactory() extends GlobalWorkspaceActivityFactory[FailingActivity] {
+  override def apply(): Activity[Unit] = {
+    FailingActivity()
+  }
+}
+
+case class FailingProjectActivityFactory() extends ProjectActivityFactory[FailingActivity] {
+  override def apply(project: Project): Activity[Unit] = {
+    FailingActivity()
+  }
+}
+
+case class FailingTaskActivityFactory() extends TaskActivityFactory[MessageTask, FailingActivity] {
+  override def apply(task: ProjectTask[MessageTask]): FailingActivity = {
+    FailingActivity()
+  }
+}
+
+class PlannedException(msg: String) extends RuntimeException(msg)
+
+case class FailingActivity() extends Activity[Unit] {
+  override def run(context: ActivityContext[Unit])(implicit userContext: UserContext): Unit = {
+    throw new PlannedException("Planned exception")
+  }
 }

@@ -41,6 +41,9 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
     PluginRegistry.create[WorkspaceProvider](workspaceProviderId, Map.empty)
   }
 
+  // This will initialize the workspace before any tests are executed
+  def initWorkspaceBeforeAll: Boolean = true
+
   // Workaround for config problem, this should make sure that the workspace is a fresh in-memory RDF workspace
   override protected def beforeAll(): Unit = {
     super.beforeAll()
@@ -55,7 +58,9 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
     oldWorkspaceFactory = WorkspaceFactory.factory
     WorkspaceFactory.factory = rdfWorkspaceFactory
     implicit val testUserContext: UserContext.Empty.type = UserContext.Empty
-    WorkspaceFactory().workspace.projects // Initialize workspace before starting tests
+    if(initWorkspaceBeforeAll) {
+      WorkspaceFactory().workspace.projects // Initialize workspace before starting tests
+    }
   }
 
   override protected def afterAll(): Unit = {

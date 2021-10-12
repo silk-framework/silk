@@ -14,16 +14,17 @@
 
 package org.silkframework.plugins.dataset.rdf.sparql
 
-import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
-import java.util.logging.{Level, Logger}
-
-import org.silkframework.dataset.rdf.{RdfNode, Resource, SparqlEndpoint, SparqlResults}
-import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.dataset.rdf._
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity.rdf.SparqlEntitySchema.specialPaths
 import org.silkframework.entity.rdf.{SparqlEntitySchema, SparqlPathBuilder, SparqlRestriction}
-import org.silkframework.entity.{Entity, EntitySchema}
+import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.plugins.dataset.rdf.sparql.ParallelEntityRetriever.{ExceptionPathValues, ExistingPathValues, PathValues, QueueEndMarker}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
+
+import java.util.concurrent.{LinkedBlockingQueue, TimeUnit}
+import java.util.logging.{Level, Logger}
 
 /**
  * EntityRetriever which executes multiple SPARQL queries (one for each property path) in parallel and merges the results into single entities.
@@ -68,7 +69,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
       val startTime = System.currentTimeMillis()
 
       val pathRetrievers = for (typedPath <- entitySchema.typedPaths) yield {
-        new PathRetriever(SparqlEntitySchema.fromSchema(entitySchema, entityUris), typedPath.toUntypedPath, limit)
+        new PathRetriever(SparqlEntitySchema.fromSchema(entitySchema, entityUris), typedPath, limit)
       }
 
       pathRetrievers.foreach(_.start())
@@ -91,7 +92,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
             s"${graphUri.map(g => s" from graph '$g'").getOrElse("")} in ${System.currentTimeMillis() - startTime}ms.")
       }
       catch {
-        case ex: InterruptedException =>
+        case _: InterruptedException =>
           logger.log(Level.INFO, "Canceled retrieving entities for '" + entitySchema.typeUri + "'")
           canceled = true
         case ex: Exception =>
@@ -121,7 +122,9 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
     }
   }
 
-  private class PathRetriever(entityDesc: SparqlEntitySchema, path: UntypedPath, limit: Option[Int])
+  private class PathRetriever(entityDesc: SparqlEntitySchema,
+                              path: TypedPath,
+                              limit: Option[Int])
                              (implicit userContext: UserContext) extends Thread {
     private val queue = new LinkedBlockingQueue[PathValues](maxQueueSize)
 
@@ -165,7 +168,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
     }
 
     private def queryPath()(implicit userContext: UserContext): SparqlResults = {
-      val sparqlQuery = ParallelEntityRetriever.pathQuery(entityDesc.variable, entityDesc.restrictions, path,
+      val sparqlQuery = ParallelEntityRetriever.pathQuery(entityDesc.variable, entityDesc.restrictions, path.asUntypedPath,
         useDistinct = true, graphUri = graphUri, useOrderBy = useOrderBy, varPrefix = varPrefix, useOptional = true)
 
       endpoint.select(sparqlQuery, limit.getOrElse(Int.MaxValue))
@@ -173,10 +176,16 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
 
     private val QUEUE_OFFER_TIMEOUT = 3600 // 1 hour, just a high number
     private def queueElement(pathValues: PathValues): Boolean = queue.offer(pathValues, QUEUE_OFFER_TIMEOUT, TimeUnit.SECONDS)
+    private val isSpecialLangPath = specialPaths.isLangSpecialPath(path)
+    private val isSpecialTextPath = specialPaths.isTextSpecialPath(path)
+    private val uriRequested = path.valueType == ValueType.URI
 
     private def parseResults(sparqlResults: Traversable[Map[String, RdfNode]]): Unit = {
       var currentSubject: Option[String] = None
       var currentValues: Seq[String] = Seq.empty
+      def addCurrentValue(value: String): Unit = {
+        currentValues = currentValues :+ value
+      }
 
       for (result <- sparqlResults) {
         if (canceled) {
@@ -184,10 +193,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
         }
 
         //Check if we are still reading values for the current subject
-        val subject = result.get(entityDesc.variable) match {
-          case Some(Resource(value)) => Some(value)
-          case _ => None
-        }
+        val subject = EntityRetriever.extractSubject(result, entityDesc.variable)
 
         if (currentSubject.isEmpty) {
           currentSubject = subject
@@ -199,9 +205,7 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
         }
 
         if (currentSubject.isDefined) {
-          for (node <- result.get(varPrefix + "0")) {
-            currentValues = currentValues :+ node.value
-          }
+          addValues(addCurrentValue, result)
         }
       }
 
@@ -209,6 +213,18 @@ class ParallelEntityRetriever(endpoint: SparqlEndpoint,
         queueElement(ExistingPathValues(s, currentValues))
       }
       queueElement(QueueEndMarker)
+    }
+
+    // Adds the requested values via the given add function.
+    private def addValues(addCurrentValue: String => Unit,
+                          result: Map[String, RdfNode]): Unit = {
+      EntityRetriever.extractPathValue(
+        result.get(entityDesc.variable),
+        result.get(varPrefix + "0"),
+        uriRequested = uriRequested,
+        isLangSpecialPath = isSpecialLangPath,
+        isSpecialPathOnly = path.size == 1 && (isSpecialTextPath || isSpecialLangPath)
+      ) foreach(addCurrentValue)
     }
   }
 }

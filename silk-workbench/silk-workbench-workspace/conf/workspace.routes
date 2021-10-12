@@ -156,6 +156,7 @@ GET           /activities/recent                                                
 GET           /activities/log                                                   controllers.workspace.ActivityApi.activityLog()
 GET           /activities/updates                                               controllers.workspace.ActivityApi.getActivityStatusUpdates(project: String ?= "", task: String ?= "", activity: String ?= "", instance: String ?= "", timestamp: Long ?= 0L)
 GET           /activities/updatesWebSocket                                      controllers.workspace.ActivityApi.activityStatusUpdatesWebSocket(project: String ?= "", task: String ?= "", activity: String ?= "", instance: String ?= "")
+GET           /activities/errorReport                                           controllers.workspace.ActivityApi.activityErrorReport(project ?= "", task ?= "", activity)
 
 ############################################################################################################################################
 # Assets

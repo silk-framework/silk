@@ -4,6 +4,8 @@ import akka.actor.ActorSystem
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Merge, Source}
 import controllers.core.UserContextActions
+import controllers.core.util.ControllerUtilsTrait
+import controllers.errorReporting.ErrorReport.{ErrorReportItem, Stacktrace}
 import controllers.util.{AkkaUtils, SerializationUtils}
 import controllers.workspace.activityApi.ActivityListResponse.ActivityListEntry
 import controllers.workspace.activityApi.{ActivityFacade, StartActivityResponse}
@@ -30,7 +32,7 @@ import javax.inject.Inject
 import scala.language.existentials
 
 @Tag(name = "Activities", description = ActivityApiDoc.activityDoc)
-class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) extends InjectedController with UserContextActions {
+class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   @Operation(
     summary = "List activities",
@@ -557,6 +559,120 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     // Combine all sources into a single flow
     val combinedSources = Source.combine(Source.empty, Source.empty, sources :_*)(Merge(_))
     AkkaUtils.createWebSocket(combinedSources)
+  }
+
+  @Operation(
+    summary = "Activity error report",
+    description = "Get a detailed activity error report for a specific workspace, project or task activity.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(ActivityApiDoc.activityErrorReportJsonExample))
+          ),
+          new Content(
+            mediaType = "text/markdown",
+            examples = Array(new ExampleObject(ActivityApiDoc.activityErrorReportMarkdownExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the activity does not exist or there is no error report because the activity has not failed executing."
+      ),
+      new ApiResponse(
+        responseCode = "400",
+        description = "If the parameter combination is invalid."
+      )
+    ))
+  def activityErrorReport(@Parameter(
+                            name = "project",
+                            description = "Optional project identifier. If empty or not provided, activities from all projects are considered.",
+                            in = ParameterIn.QUERY,
+                            schema = new Schema(implementation = classOf[String])
+                          )
+                          projectId: String,
+                          @Parameter(
+                            name = "task",
+                            description = "Optional task identifier. If empty or not provided, activities from all tasks are considered.",
+                            in = ParameterIn.QUERY,
+                            schema = new Schema(implementation = classOf[String])
+                          )
+                          taskId: String,
+                          @Parameter(
+                            name = "activity",
+                            description = "Optional activity identifier. If empty or not provided, updates from all activities that match the task and project are returned.",
+                            in = ParameterIn.QUERY,
+                            required = true,
+                            schema = new Schema(implementation = classOf[String])
+                          )
+                          activityId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val activity = fetchActivity(projectId, taskId, activityId)
+    activity.status.get match {
+      case Some(status) =>
+        if(status.failed) {
+          assert(status.exception.isDefined, "No exception available on failed activity status.")
+          val (markdownHeader, errorReport) = activityErrorReport(projectId, taskId, activityId, status.exception.get)
+          render {
+            case AcceptsMarkdown() =>
+              Ok(markdownHeader + errorReport.asMarkdown(None)).as(MARKDOWN_MIME)
+            case Accepts.Json() => // default is JSON
+              Ok(Json.toJson(errorReport))
+          }
+        } else {
+          throw NotFoundException("Activity did not fail executing. No error report available.")
+        }
+      case None =>
+        throw NotFoundException("Activity has not been run, yet. No error report available.")
+    }
+  }
+
+  // Returns the markdown header and the error report.
+  private def activityErrorReport(projectId: String, taskId: String, activityId: String, cause: Throwable)
+                                 (implicit userContext: UserContext): (String, ErrorReportItem) = {
+    def strToOption(str: String): Option[String] = if(str.trim != "") Some(str) else None
+    val projectOpt = strToOption(projectId).map(getProject)
+    val taskOpt = strToOption(taskId).map(id => anyTask(projectId, id))
+    val errorReport = ErrorReportItem(
+      projectId = projectOpt.map(_.name),
+      projectLabel = projectOpt.filter(p => p.config.metaData.label.nonEmpty && p.name.toString != p.config.metaData.label).map(_.config.metaData.label),
+      taskId = taskOpt.map(_.id),
+      taskLabel = taskOpt.map(t => t.metaData.formattedLabel(t.id, Int.MaxValue)),
+      taskDescription = taskOpt.flatMap(_.metaData.description),
+      activityId = Some(activityId),
+      errorSummary = s"Execution of activity '$activityId' has failed.",
+      errorMessage = Option(cause.getMessage),
+      stackTrace = Some(Stacktrace.fromException(cause))
+    )
+    val projectPart = projectOpt.map(p => s" ${if(taskOpt.isDefined) "in" else "of"} project '${p.config.metaData.formattedLabel(p.name, Int.MaxValue)}'").getOrElse("")
+    val taskPart = taskOpt.map(t => s" of task '${t.metaData.formattedLabel(t.id, Int.MaxValue)}'").getOrElse("")
+    val markdownHeader = s"""# Activity execution error report
+                            |
+                            |Execution of activity '$activityId'$projectPart$taskPart has failed.
+                            |
+                            |""".stripMargin
+    (markdownHeader, errorReport)
+  }
+
+  private def fetchActivity(projectId: String,
+                            taskId: String,
+                            activityId: String)
+                           (implicit userContext: UserContext): WorkspaceActivity[_ <: HasValue] = {
+    (projectId.trim, taskId.trim, activityId.trim) match {
+      case (_, _, "") =>
+        throw BadUserInputException("The activity parameter must be defined!")
+      case ("", "", activityId) =>
+        WorkspaceFactory().workspace.activity(activityId)
+      case (projectId, "", activityId) =>
+        getProject(projectId).activity(activityId)
+      case ("", _, _) =>
+        throw BadUserInputException("Project parameter must be given if task parameter is defined!")
+      case (projectId, taskId, activityId) =>
+        anyTask(projectId, taskId).activity(activityId)
+    }
   }
 
   /**

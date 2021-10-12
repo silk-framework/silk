@@ -16,7 +16,7 @@ package org.silkframework.entity.rdf
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.EntitySchema
-import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.entity.paths.{Path, TypedPath, UntypedPath}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Uri
 
@@ -109,5 +109,15 @@ object SparqlEntitySchema {
           }
         </Paths>
       </EntityDescription>
+  }
+
+  object specialPaths {
+    // Returns the lexical value of the resource/literal this is requested from, e.g. when using a literal for an object mapping.
+    final val TEXT = "#text"
+    // Special path to request the language tag of a literal when the literal is used as the subject of an entity retrieval request.
+    final val LANG = "#lang"
+
+    def isLangSpecialPath(typedPath: Path): Boolean = typedPath.serialize(stripForwardSlash = false).endsWith(s"/$LANG")
+    def isTextSpecialPath(typedPath: Path): Boolean = typedPath.serialize(stripForwardSlash = false).endsWith(s"/$TEXT")
   }
 }

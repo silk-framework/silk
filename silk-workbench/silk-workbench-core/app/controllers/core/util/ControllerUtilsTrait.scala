@@ -1,13 +1,10 @@
 package controllers.core.util
 
-import akka.util.ByteString
-import controllers.util.SerializationUtils
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.{Project, ProjectTask, Workspace, WorkspaceFactory}
-import play.api.http.HttpEntity
 import play.api.libs.json.{JsError, JsValue, Json, Reads}
-import play.api.mvc.{BaseController, Request, ResponseHeader, Result}
+import play.api.mvc.{Accepting, BaseController, Request, Result}
 
 import scala.reflect.ClassTag
 
@@ -16,6 +13,9 @@ import scala.reflect.ClassTag
   */
 trait ControllerUtilsTrait {
   this: BaseController =>
+
+  val MARKDOWN_MIME = "text/markdown"
+  val AcceptsMarkdown = Accepting(MARKDOWN_MIME)
 
   /** Validates the JSON of the request body. Returns a 400 with the error details, if the validation failed. */
   def validateJson[T](body: T => Result)
