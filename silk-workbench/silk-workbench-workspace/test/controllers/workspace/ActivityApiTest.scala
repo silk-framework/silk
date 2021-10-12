@@ -74,7 +74,7 @@ class ActivityApiTest extends PlaySpec with IntegrationTestTrait with BeforeAndA
   "limit the number of activities that are held in memory" in {
     val createdControlIds =
       for(i <- 0 until WorkspaceActivity.MAX_CONTROLS_PER_ACTIVITY + 1) yield {
-        activityClient.start(multiActivityId, Map("message" -> i.toString)).toString
+        activityClient.start(multiActivityId, Map("message" -> i.toString)).instanceId
       }
 
     val activityArray = activityClient.activitiesList().as[JsArray].value
