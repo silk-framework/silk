@@ -10,6 +10,7 @@ import { activityActionCreator } from "../TaskActivityOverview/taskActivityOverv
 import {
     ActivityAction,
     DataIntegrationActivityControl,
+    IActivityControlLayoutProps,
 } from "@gui-elements/src/cmem/ActivityControl/DataIntegrationActivityControl";
 import ReactMarkdown from "react-markdown";
 
@@ -20,10 +21,12 @@ interface IProps {
     activityName: string;
     // Label that should be displayed above the progress bar
     label?: string;
+    // display config
+    layoutConfig?: IActivityControlLayoutProps;
 }
 
 /** Task activity widget to show the activity status and start / stop task activities. */
-export const TaskActivityWidget = ({ projectId, taskId, activityName, label = "" }: IProps) => {
+export const TaskActivityWidget = ({ projectId, taskId, activityName, label = "", layoutConfig }: IProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
     const [updatesHandler] = useState<{ updateHandler: ((status: IActivityStatus) => any) | undefined }>({
@@ -97,6 +100,7 @@ export const TaskActivityWidget = ({ projectId, taskId, activityName, label = ""
                 showStartAction={true}
                 showStopAction={true}
                 showReloadAction={false}
+                layoutConfig={layoutConfig}
             />
         </div>
     );

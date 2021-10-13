@@ -337,6 +337,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                               }
                             : undefined
                     }
+                    layoutConfig={{ border: true }}
                 />
                 <Spacing size={"small"} />
             </span>
