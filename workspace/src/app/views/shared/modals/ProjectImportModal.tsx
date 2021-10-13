@@ -5,11 +5,11 @@ import {
     Checkbox,
     FieldItem,
     Notification,
-    SimpleDialog,
-    PropertyValueList,
-    PropertyValuePair,
     PropertyName,
     PropertyValue,
+    PropertyValueList,
+    PropertyValuePair,
+    SimpleDialog,
     Spacing,
     TitleSubsection,
 } from "@gui-elements/index";
@@ -27,10 +27,8 @@ import { IProjectExecutionStatus, IProjectImportDetails } from "@ducks/workspace
 import { Loading } from "../Loading/Loading";
 import { useDispatch } from "react-redux";
 import { routerOp } from "@ducks/router";
-import { ContentBlobToggler } from "../ContentBlobToggler/ContentBlobToggler";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
-import ReactMarkdown from "react-markdown";
-import { firstNonEmptyLine } from "../ContentBlobToggler";
+import { Markdown, StringPreviewContentBlobToggler } from "@gui-elements/cmem";
 import { UploadNewFile } from "../FileUploader/cases/UploadNewFile/UploadNewFile";
 
 interface IProps {
@@ -266,7 +264,7 @@ export function ProjectImportModal({ close, back }: IProps) {
                 htmlFor: "projectFile-input",
             }}
             hasStateDanger={uploadError !== null}
-            messageText={uploadError}
+            messageText={uploadError !== null ? uploadError : undefined}
         >
             {uploader}
         </FieldItem>
@@ -286,15 +284,14 @@ export function ProjectImportModal({ close, back }: IProps) {
                     <PropertyValuePair hasSpacing hasDivider>
                         <PropertyName>{t("form.field.description", "Description")}</PropertyName>
                         <PropertyValue>
-                            <ContentBlobToggler
+                            <StringPreviewContentBlobToggler
                                 className="di__dataset__metadata-description"
-                                contentPreview={details.description}
+                                content={details.description}
                                 previewMaxLength={128}
-                                contentFullview={details.description}
-                                renderContentFullview={(content) => {
-                                    return <ReactMarkdown source={details.description} />;
-                                }}
-                                renderContentPreview={firstNonEmptyLine}
+                                fullviewContent={<Markdown>{details.description}</Markdown>}
+                                toggleExtendText={t("common.words.more", "more")}
+                                toggleReduceText={t("common.words.less", "less")}
+                                firstNonEmptyLineOnly={true}
                             />
                         </PropertyValue>
                     </PropertyValuePair>
