@@ -62,7 +62,7 @@ class ExecuteTransform(task: Task[TransformSpec],
     errorEntitySink.foreach(_.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get) :+ ErrorOutputWriter.errorProperty, singleEntity))
 
     val entityTable = dataSource.retrieve(rule.inputSchema)
-    val transformedEntities = new TransformedEntities(task, entityTable.entities, rule.transformRule.rules, rule.outputSchema,
+    val transformedEntities = new TransformedEntities(task, entityTable.entities, rule.transformRule.ruleLabel(), rule.transformRule.rules, rule.outputSchema,
       isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, context = context)
     var count = 0
     breakable {

@@ -31,12 +31,12 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
       case mt: MultiEntityTable =>
         val outputTable = mutable.Buffer[LocalEntities]()
         val transformer = new EntityTransformer(task, (mt.asInstanceOf[LocalEntities] +: mt.subTables).to[mutable.Buffer], outputTable, output)
-        transformer.transformEntities(task.rules, outputSchema, transformContext)
+        transformer.transformEntities("root", task.rules, outputSchema, transformContext)
         Some(MultiEntityTable(outputTable.head.entities, outputTable.head.entitySchema, task, outputTable.tail, transformContext.value().globalErrors))
       case _ =>
         val outputTable = mutable.Buffer[LocalEntities]()
         val transformer = new EntityTransformer(task, mutable.Buffer(input), outputTable, output)
-        transformer.transformEntities(task.rules, outputSchema, transformContext)
+        transformer.transformEntities("root", task.rules, outputSchema, transformContext)
         Some(MultiEntityTable(outputTable.head.entities, outputTable.head.entitySchema, task, outputTable.tail, transformContext.value().globalErrors))
     }
   }
@@ -46,16 +46,18 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
                                   outputTables: mutable.Buffer[LocalEntities],
                                   output: ExecutorOutput) {
 
-    def transformEntities(rules: Seq[TransformRule],
+    def transformEntities(ruleLabel: String,
+                          rules: Seq[TransformRule],
                           outputSchema: EntitySchema,
-                          context: ActivityContext[TransformReport]): Unit = {
+                          context: ActivityContext[TransformReport])
+                         (implicit prefixes: Prefixes): Unit = {
 
       val inputTable = inputTables.remove(0)
 
       // Add input errors to transformation report
       context.value() = context.value().copy(globalErrors = context.value().globalErrors ++ inputTable.globalErrors)
 
-      val transformedEntities = new TransformedEntities(task, inputTable.entities, rules, outputSchema,
+      val transformedEntities = new TransformedEntities(task, inputTable.entities, ruleLabel, rules, outputSchema,
         isRequestedSchema = output.requestedSchema.isDefined, abortIfErrorsOccur = task.data.abortIfErrorsOccur, context = context)
       outputTables.append(GenericEntityTable(transformedEntities, outputSchema, task))
 
@@ -68,7 +70,7 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
 
         val updatedChildRules = childRules.copy(uriRule = childRules.uriRule.orElse(objectMapping.uriRule()))
 
-        transformEntities(updatedChildRules, childOutputSchema, context)
+        transformEntities(objectMapping.ruleLabel(), updatedChildRules, childOutputSchema, context)
       }
     }
   }

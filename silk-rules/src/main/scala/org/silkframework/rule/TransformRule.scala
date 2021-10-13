@@ -69,6 +69,17 @@ sealed trait TransformRule extends Operator {
   }
 
   /**
+    * Generates a label for this rule.
+    * Will return the user-defined label, if any is defined.
+    * In case no label is defined, it falls back to the target property.
+    * If no target property is defined, the id will be returned.
+    */
+  def ruleLabel(maxLength: Int = MetaData.DEFAULT_LABEL_MAX_LENGTH)(implicit prefixes: Prefixes): String = {
+    val defaultLabel = target.map(_.propertyUri.serialize).filter(_.nonEmpty).getOrElse(id.toString)
+    metaData.formattedLabel(defaultLabel, maxLength)
+  }
+
+  /**
     * Collects all input paths in this rule.
     */
   def sourcePaths: Seq[TypedPath] = {
@@ -179,8 +190,6 @@ case class RootMappingRule(override val rules: MappingRules,
 object RootMappingRule {
 
   def defaultId: String = "root"
-
-  def defaultLabel: String = "Root Mapping"
 
   def defaultMappingTarget: MappingTarget = MappingTarget(propertyUri = "", valueType = ValueType.URI)
 
