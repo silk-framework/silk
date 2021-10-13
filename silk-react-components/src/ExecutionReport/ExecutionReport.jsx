@@ -95,6 +95,9 @@ export default class ExecutionReport extends React.Component {
         } else if(this.props.executionMetaData != null && this.props.executionMetaData.finishStatus.failed) {
             messages = [ `Task '${this.props.executionReport.label}' failed to execute.` ]
             alertClass = "mdl-alert--danger"
+        } else if(this.props.executionReport.error != null) {
+            messages = [ this.props.executionReport.error ];
+            alertClass = "mdl-alert--danger"
         } else if(this.props.executionReport.warnings.length > 0) {
             messages = this.props.executionReport.warnings;
             alertClass = "mdl-alert--info"
