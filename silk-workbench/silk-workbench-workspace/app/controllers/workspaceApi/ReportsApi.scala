@@ -230,7 +230,7 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
     val report = retrieveCurrentReport(projectId, taskId).apply().report
 
     val updates =
-      for(taskReport <- report.recentReports() if taskReport.timestamp.toEpochMilli > timestamp) yield {
+      for(taskReport <- report.currentReports() if taskReport.timestamp.toEpochMilli >= timestamp) yield {
         ReportSummary(taskReport)
       }
 
@@ -275,7 +275,7 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
     var previousVersion = -1
     val source = AkkaUtils.createSource(currentReport).map { value =>
       val updates =
-        for(taskReport <- value.report.recentReports() if taskReport.version > previousVersion) yield {
+        for(taskReport <- value.report.currentReports() if taskReport.version > previousVersion) yield {
           ReportSummary(taskReport)
         }
       previousVersion = value.report.version
@@ -292,7 +292,7 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
         workflow.activity("ExecuteDefaultWorkflow")
       } catch {
         case _: NoSuchElementException =>
-          // Fall back to local executor because ExecuteDefaultWorkflow is part of the Spark module
+          // Fall back to local executor because ExecuteDefaultWorkflow is part of the Spark module and might not be available
           workflow.activity[LocalWorkflowExecutorGeneratingProvenance]
       }
     activity.value.asInstanceOf[Observable[WorkflowExecutionReportWithProvenance]]

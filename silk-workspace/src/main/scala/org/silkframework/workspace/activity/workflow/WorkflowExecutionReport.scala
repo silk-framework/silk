@@ -19,7 +19,7 @@ case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq
     * Retrieves all current task reports.
     * If there are multiple reports for a single node, only the most recent one is returned.
     */
-  def recentReports(): Iterable[WorkflowTaskReport] = {
+  def currentReports(): Iterable[WorkflowTaskReport] = {
     taskReports.groupBy(_.nodeId).values.map(_.maxBy(_.timestamp))
   }
 
@@ -63,7 +63,7 @@ case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq
     * @return The updated workflow report
     */
   def addFailedNode(nodeId: Identifier, ex: Throwable): WorkflowExecutionReport = {
-    taskReports.reverse.zipWithIndex.find(_._1.nodeId == nodeId) match {
+    taskReports.zipWithIndex.reverse.find(_._1.nodeId == nodeId) match {
       case Some((workflowReport, index)) =>
         val timestamp = Instant.now()
         val report = workflowReport.report
