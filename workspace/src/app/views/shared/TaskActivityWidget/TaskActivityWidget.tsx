@@ -12,7 +12,7 @@ import {
     DataIntegrationActivityControl,
     IActivityControlLayoutProps,
 } from "@gui-elements/src/cmem/ActivityControl/DataIntegrationActivityControl";
-import ReactMarkdown from "react-markdown";
+import { Markdown } from "@gui-elements/cmem";
 
 interface IProps {
     projectId: string;
@@ -93,7 +93,7 @@ export const TaskActivityWidget = ({ projectId, taskId, activityName, label = ""
                     closeButtonValue: t("common.action.close"),
                     downloadButtonValue: t("common.action.download"),
                     renderMarkdown: true,
-                    renderReport: (markdown) => <ReactMarkdown source={markdown as string} />,
+                    renderReport: (markdown) => <Markdown children={markdown as string} />,
                     fetchErrorReport: activityErrorReport,
                 }}
                 showProgress={true}

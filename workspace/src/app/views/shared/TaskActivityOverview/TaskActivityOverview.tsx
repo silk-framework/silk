@@ -30,8 +30,7 @@ import { DIErrorTypes } from "@ducks/error/typings";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import ReactMarkdown from "react-markdown";
-import ContentBlobToggler from "../ContentBlobToggler";
+import { ContentBlobToggler, Markdown } from "@gui-elements/cmem";
 import { ElapsedDateTimeDisplay, TimeUnits } from "@gui-elements/src/cmem/DateTimeDisplay/ElapsedDateTimeDisplay";
 import { activityErrorReportFactory, activityQueryString } from "./taskActivityUtils";
 
@@ -322,7 +321,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                         closeButtonValue: t("common.action.close"),
                         downloadButtonValue: t("common.action.download"),
                         renderMarkdown: true,
-                        renderReport: (markdown) => <ReactMarkdown source={markdown as string} />,
+                        renderReport: (markdown) => <Markdown children={markdown as string} />,
                         fetchErrorReport: fetchErrorReportFactory(activity),
                     }}
                     showProgress={true}
@@ -414,10 +413,10 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                         {cacheActivities.length ? (
                             <div data-test-id={"taskActivityOverview-cacheActivityGroup"}>
                                 <ContentBlobToggler
-                                    textToggleReduce={"Hide"}
-                                    textToggleExtend={"Open"}
-                                    contentPreview={<CacheGroupWidget />}
-                                    contentFullview={
+                                    toggleReduceText={"Hide"}
+                                    toggleExtendText={"Open"}
+                                    previewContent={<CacheGroupWidget />}
+                                    fullviewContent={
                                         <>
                                             {<CacheGroupWidget />}
                                             <WhiteSpaceContainer marginBottom="small" marginLeft="regular">
