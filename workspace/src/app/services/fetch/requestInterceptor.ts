@@ -1,12 +1,11 @@
 import { AxiosRequestConfig } from "axios";
-import { is } from "ramda";
 
 export const requestInterceptor = (config: AxiosRequestConfig) => {
     const cfg = {
         ...config,
     };
 
-    if (config.headers["Content-Type"] === "application/x-www-form-urlencoded" && is(Object, config.data)) {
+    if (config.headers["Content-Type"] === "application/x-www-form-urlencoded" && typeof config.data === "object") {
         const { data } = config;
 
         const serializedData: string[] = [];

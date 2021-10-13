@@ -1,5 +1,5 @@
 import React from "react";
-import ReactMarkdown from "react-markdown";
+import { Markdown } from "@gui-elements/cmem";
 import { Button, SimpleDialog, HtmlContentBlock } from "@gui-elements/index";
 import { useTranslation } from "react-i18next";
 
@@ -40,7 +40,7 @@ const MarkdownModal = ({ onDiscard, isOpen, markdown, title = "Error report" }: 
             ]}
         >
             <HtmlContentBlock>
-                <ReactMarkdown source={markdown} />
+                <Markdown>{markdown}</Markdown>
             </HtmlContentBlock>
         </SimpleDialog>
     );
