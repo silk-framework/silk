@@ -16,6 +16,14 @@ case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq
                                    isDone: Boolean = false, version: Int = 0) extends ExecutionReport {
 
   /**
+    * Retrieves all current task reports.
+    * If there are multiple reports for a single node, only the most recent one is returned.
+    */
+  def recentReports(): Iterable[WorkflowTaskReport] = {
+    taskReports.groupBy(_.nodeId).values.map(_.maxBy(_.timestamp))
+  }
+
+  /**
     * Retrieves all task reports for a given workflow node id.
     */
   def retrieveReports(nodeId: Identifier): Seq[ExecutionReport] = {
@@ -74,7 +82,15 @@ case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq
     */
   def asDone(): WorkflowExecutionReport = {
     val timestamp = Instant.now()
-    copy(taskReports = taskReports.map(r => r.copy(report = r.report.asDone(), version = version + 1, timestamp = timestamp)), isDone = true, version = version + 1)
+    // Marks a report as done. Only updates reports that are not already done to avoid unnecessary updates.
+    def updateReport(taskReport: WorkflowTaskReport): WorkflowTaskReport = {
+      if(taskReport.report.isDone) {
+        taskReport
+      } else {
+        taskReport.copy(report = taskReport.report.asDone(), version = version + 1, timestamp = timestamp)
+      }
+    }
+    copy(taskReports = taskReports.map(updateReport), isDone = true, version = version + 1)
   }
 
   override def summary: Seq[(String, String)] = Seq.empty

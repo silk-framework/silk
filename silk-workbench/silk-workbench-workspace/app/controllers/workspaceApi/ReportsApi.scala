@@ -230,7 +230,7 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
     val report = retrieveCurrentReport(projectId, taskId).apply().report
 
     val updates =
-      for(taskReport <- report.taskReports if taskReport.timestamp.toEpochMilli > timestamp) yield {
+      for(taskReport <- report.recentReports() if taskReport.timestamp.toEpochMilli > timestamp) yield {
         ReportSummary(taskReport)
       }
 
@@ -275,7 +275,7 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
     var previousVersion = -1
     val source = AkkaUtils.createSource(currentReport).map { value =>
       val updates =
-        for(taskReport <- value.report.taskReports if taskReport.version > previousVersion) yield {
+        for(taskReport <- value.report.recentReports() if taskReport.version > previousVersion) yield {
           ReportSummary(taskReport)
         }
       previousVersion = value.report.version
@@ -314,7 +314,7 @@ case class ReportUpdates(@Schema(
                              implementation = classOf[ReportSummary]
                            )
                          )
-                         updates: IndexedSeq[ReportSummary])
+                         updates: Iterable[ReportSummary])
 
 object ReportUpdates {
   implicit val reportUpdatesFormat: OFormat[ReportUpdates] = Json.format[ReportUpdates]
