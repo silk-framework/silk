@@ -32,6 +32,7 @@ class MappingsTree extends React.Component {
 
     componentDidMount() {
         this.updateNavigationTree();
+        EventEmitter.on(MESSAGES.RELOAD, this.updateNavigationTree);
     }
 
     componentDidUpdate(prevProps, prevState, snapshot) {
@@ -67,8 +68,6 @@ class MappingsTree extends React.Component {
         this.setState({
             navigationLoading: true,
         });
-
-        EventEmitter.on(MESSAGES.RELOAD, this.updateNavigationTree);
 
         getHierarchyAsync()
             .subscribe(

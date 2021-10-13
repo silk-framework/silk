@@ -456,7 +456,7 @@ object JsonSerializers {
       if(readContext.validationEnabled) {
         UriPatternParser.parseIntoSegments(pattern, allowIncompletePattern = false).validateAndThrow()
       }
-      PatternUriMapping(name, pattern.trim(), metaData(value, "uri"), readContext.prefixes)
+      PatternUriMapping(name, pattern.trim(), metaData(value, "URI"), readContext.prefixes)
     }
 
     /**
@@ -486,7 +486,7 @@ object JsonSerializers {
       ComplexUriMapping(
         id = identifier(value, "uri"),
         operator = fromJson[Input]((value \ OPERATOR).get),
-        metaData(value, "uri")
+        metaData(value, "URI")
       )
     }
 

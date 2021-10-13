@@ -190,7 +190,16 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
       querySpecificResults.replacements.map(_.value) mustBe allJsonPaths.filter(_.contains("department"))
       genericOperatorResults.replacementInterval mustBe ReplacementInterval(cursorPosition, 0)
     }
+  }
 
+  it should "suggest replacements for path expressions in URI patterns with an addition object path context" in {
+    val inputText = "urn:{nested}"
+    val objectPathContext = "department/tags"
+    val cursorPosition = inputText.length - 1
+    val uriPatternAutoCompletions = uriPatternAutoCompleteRequest(jsonTransform, inputText = inputText,
+      cursorPosition = cursorPosition, objectPath = Some(objectPathContext))
+    val Seq(querySpecificResults, genericOperatorResults) = uriPatternAutoCompletions.replacementResults
+    querySpecificResults.replacements.map(_.value) mustBe allJsonPaths.filter(_.contains("Nested")).map(_.drop(objectPathContext.length + 1))
   }
 
   private def partialAutoCompleteResult(inputString: String = "",
@@ -245,9 +254,10 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
                                             ruleId: String = "root",
                                             inputText: String = "",
                                             cursorPosition: Int = 0,
-                                            maxSuggestions: Option[Int] = None): AutoSuggestAutoCompletionResponse = {
+                                            maxSuggestions: Option[Int] = None,
+                                            objectPath: Option[String] = None): AutoSuggestAutoCompletionResponse = {
     val uriPatternUrl = controllers.transform.routes.AutoCompletionApi.uriPattern(projectId, transformId, ruleId).url
-    val response = client.url(s"$baseUrl$uriPatternUrl").post(Json.toJson(UriPatternAutoCompletionRequest(inputText, cursorPosition, maxSuggestions)))
+    val response = client.url(s"$baseUrl$uriPatternUrl").post(Json.toJson(UriPatternAutoCompletionRequest(inputText, cursorPosition, maxSuggestions, objectPath)))
     JsonHelpers.fromJsonValidated[AutoSuggestAutoCompletionResponse](checkResponse(response).json)
   }
 }

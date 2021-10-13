@@ -1,13 +1,19 @@
 package controllers.transform.autoCompletion
 
+import io.swagger.v3.oas.annotations.media.Schema
 import org.silkframework.rule.util.UriPatternParser.PathPart
 import org.silkframework.rule.util.{UriPatternParser, UriPatternSegments}
 import play.api.libs.json.{Format, Json}
 
-/** Request for auto-completion of path expressions inside URI patterns. */
-case class UriPatternAutoCompletionRequest(inputString: String,
+@Schema(description = "Auto-completion request for a path expression inside a URI pattern.")
+case class UriPatternAutoCompletionRequest(@Schema(description = "The input string that should be auto-completed.", required = true)
+                                           inputString: String,
+                                           @Schema(description = "The cursor position in the input string.", required = true)
                                            cursorPosition: Int,
-                                           maxSuggestions: Option[Int]) extends AutoSuggestAutoCompletionRequest {
+                                           @Schema(description = "The max. number of suggestions to return.", required = true)
+                                           maxSuggestions: Option[Int],
+                                           @Schema(description = "An additional object path this auto-completion should be the context of.", required = false)
+                                           objectPath: Option[String]) extends AutoSuggestAutoCompletionRequest {
   lazy val pathSegments: UriPatternSegments = UriPatternParser.parseIntoSegments(inputString, allowIncompletePattern = true)
   lazy val activePathPart: Option[PathPart] = {
     pathSegments.segments.find(segment => cursorPosition <= segment.segmentPosition.originalEndIndex) match {

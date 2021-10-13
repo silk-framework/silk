@@ -24,7 +24,7 @@ class JsonDatasetTest extends FlatSpec with Matchers with TestUserContextTrait {
       override def inputStream: InputStream = new ByteArrayInputStream(Array.emptyByteArray)
     }
 
-    val dataset = JsonDataset(resource)
+    val dataset = JsonDataset(resource, streaming = false)
     an[ResourceTooLargeException] should be thrownBy dataset.source
   }
 

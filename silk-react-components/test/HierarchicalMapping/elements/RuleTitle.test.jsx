@@ -91,7 +91,7 @@ describe("RuleTitle Component", () => {
                         }
                     }
                 });
-                expect(wrapper.find(NotAvailable)).toHaveLength(1);
+                expect(wrapper.find('span').text()).toEqual('Mapping');
             });
             
             describe('when uri not presented ', () => {

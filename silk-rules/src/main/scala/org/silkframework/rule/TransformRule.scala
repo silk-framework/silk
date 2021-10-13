@@ -12,8 +12,8 @@ import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
 import org.silkframework.rule.plugins.transformer.normalize.{UriFixTransformer, UrlEncodeTransformer}
 import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, ConstantUriTransformer, EmptyValueTransformer}
+import org.silkframework.rule.util.UriPatternParser
 import org.silkframework.rule.util.UriPatternParser.{ConstantPart, PathPart}
-import org.silkframework.rule.util.{UriPatternParser, UriPatternSegments}
 import org.silkframework.runtime.plugin.PluginObjectParameterNoSchema
 import org.silkframework.runtime.serialization.XmlSerialization.fromXml
 import org.silkframework.runtime.serialization._
@@ -146,7 +146,7 @@ sealed trait ValueTransformRule extends TransformRule
 case class RootMappingRule(override val rules: MappingRules,
                            id: Identifier = RootMappingRule.defaultId,
                            mappingTarget: MappingTarget = RootMappingRule.defaultMappingTarget,
-                           metaData: MetaData = MetaData(RootMappingRule.defaultLabel)) extends ContainerTransformRule with PluginObjectParameterNoSchema {
+                           metaData: MetaData = MetaData.empty) extends ContainerTransformRule with PluginObjectParameterNoSchema {
 
   override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 
@@ -250,7 +250,7 @@ trait UriMapping extends ValueTransformRule
   * @param id      The name of this mapping
   * @param pattern A template pattern for generating the URIs based on the entity properties
   */
-case class PatternUriMapping(id: Identifier = "uri",
+case class PatternUriMapping(id: Identifier = "URI",
                              pattern: String = "http://example.org/{ID}",
                              metaData: MetaData = MetaData.empty,
                              prefixes: Prefixes = Prefixes.empty) extends UriMapping {
@@ -271,7 +271,7 @@ case class PatternUriMapping(id: Identifier = "uri",
   * @param id      The name of this mapping
   * @param operator The operator tree that generates the URI.
   */
-case class ComplexUriMapping(id: Identifier = "complexUri",
+case class ComplexUriMapping(id: Identifier = "complexURI",
                              operator: Input,
                              metaData: MetaData = MetaData.empty) extends UriMapping {
 
