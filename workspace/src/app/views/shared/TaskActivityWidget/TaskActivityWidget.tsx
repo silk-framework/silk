@@ -95,7 +95,6 @@ export const TaskActivityWidget = ({ projectId, taskId, activityName, label = ""
                 renderReport: (markdown) => <Markdown children={markdown as string} />,
                 fetchErrorReport: activityErrorReport,
             }}
-            showProgress={true}
             showStartAction={true}
             showStopAction={true}
             showReloadAction={false}

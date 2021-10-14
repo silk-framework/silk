@@ -324,7 +324,6 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                         renderReport: (markdown) => <Markdown children={markdown as string} />,
                         fetchErrorReport: fetchErrorReportFactory(activity),
                     }}
-                    showProgress={true}
                     showReloadAction={activity.activityCharacteristics.isCacheActivity}
                     showStartAction={!activity.activityCharacteristics.isCacheActivity}
                     showStopAction={true}
@@ -336,7 +335,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                               }
                             : undefined
                     }
-                    layoutConfig={{ border: true }}
+                    layoutConfig={{ border: true, visualization: "progressbar" }}
                 />
                 <Spacing size={"small"} />
             </span>
