@@ -79,29 +79,27 @@ export const TaskActivityWidget = ({ projectId, taskId, activityName, label = ""
 
     // TODO: Fix size issues with activity control and tooltip
     return (
-        <div style={{ minWidth: "400px", maxWidth: "400px" }}>
-            <DataIntegrationActivityControl
-                label={label}
-                data-test-id={`activity-control-workflow-editor`}
-                executeActivityAction={executeActions}
-                registerForUpdates={registerForUpdate}
-                unregisterFromUpdates={() => {}}
-                translate={translate}
-                failureReportAction={{
-                    title: "", // The title is already repeated in the markdown
-                    allowDownload: true,
-                    closeButtonValue: t("common.action.close"),
-                    downloadButtonValue: t("common.action.download"),
-                    renderMarkdown: true,
-                    renderReport: (markdown) => <Markdown children={markdown as string} />,
-                    fetchErrorReport: activityErrorReport,
-                }}
-                showProgress={true}
-                showStartAction={true}
-                showStopAction={true}
-                showReloadAction={false}
-                layoutConfig={layoutConfig}
-            />
-        </div>
+        <DataIntegrationActivityControl
+            label={label}
+            data-test-id={`activity-control-workflow-editor`}
+            executeActivityAction={executeActions}
+            registerForUpdates={registerForUpdate}
+            unregisterFromUpdates={() => {}}
+            translate={translate}
+            failureReportAction={{
+                title: "", // The title is already repeated in the markdown
+                allowDownload: true,
+                closeButtonValue: t("common.action.close"),
+                downloadButtonValue: t("common.action.download"),
+                renderMarkdown: true,
+                renderReport: (markdown) => <Markdown children={markdown as string} />,
+                fetchErrorReport: activityErrorReport,
+            }}
+            showProgress={true}
+            showStartAction={true}
+            showStopAction={true}
+            showReloadAction={false}
+            layoutConfig={layoutConfig}
+        />
     );
 };
