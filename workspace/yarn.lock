@@ -2636,6 +2636,11 @@
   resolved "https://artifactory.eccenca.com/api/npm/npm/@xtuc/long/-/long-4.2.2.tgz#d291c6a4e97989b5c61d9acf396ae4fe133a718d"
   integrity sha1-0pHGpOl5ibXGHZrPOWrk/hM6cY0=
 
+D@^1.0.0:
+  version "1.0.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/D/-/D-1.0.0.tgz#c348a4e034f72847be51206fc530fc089e9cc2a9"
+  integrity sha1-w0ik4DT3KEe+USBvxTD8CJ6cwqk=
+
 abab@^2.0.0:
   version "2.0.3"
   resolved "https://artifactory.eccenca.com/api/npm/npm/abab/-/abab-2.0.3.tgz#623e2075e02eb2d3f2475e49f99c91846467907a"

@@ -1,18 +1,18 @@
-import { DIErrorTypes } from "@ducks/error/typings";
-import { useTranslation } from "react-i18next";
-import useErrorHandler from "../../../hooks/useErrorHandler";
 import React, { useCallback, useEffect, useState } from "react";
-import { IActivityStatus } from "@gui-elements/src/cmem/ActivityControl/ActivityControlTypes";
+import { useTranslation } from "react-i18next";
+import {
+    IActivityStatus,
+    ActivityAction,
+    DataIntegrationActivityControl,
+    IActivityControlLayoutProps,
+    Markdown,
+} from "@gui-elements/cmem";
+import { DIErrorTypes } from "@ducks/error/typings";
+import useErrorHandler from "../../../hooks/useErrorHandler";
 import { activityErrorReportFactory, activityQueryString } from "../TaskActivityOverview/taskActivityUtils";
 import { connectWebSocket } from "../../../services/websocketUtils";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import { activityActionCreator } from "../TaskActivityOverview/taskActivityOverviewRequests";
-import {
-    ActivityAction,
-    DataIntegrationActivityControl,
-    IActivityControlLayoutProps,
-} from "@gui-elements/src/cmem/ActivityControl/DataIntegrationActivityControl";
-import { Markdown } from "@gui-elements/cmem";
 
 interface IProps {
     projectId: string;
@@ -79,29 +79,26 @@ export const TaskActivityWidget = ({ projectId, taskId, activityName, label = ""
 
     // TODO: Fix size issues with activity control and tooltip
     return (
-        <div style={{ minWidth: "400px", maxWidth: "400px" }}>
-            <DataIntegrationActivityControl
-                label={label}
-                data-test-id={`activity-control-workflow-editor`}
-                executeActivityAction={executeActions}
-                registerForUpdates={registerForUpdate}
-                unregisterFromUpdates={() => {}}
-                translate={translate}
-                failureReportAction={{
-                    title: "", // The title is already repeated in the markdown
-                    allowDownload: true,
-                    closeButtonValue: t("common.action.close"),
-                    downloadButtonValue: t("common.action.download"),
-                    renderMarkdown: true,
-                    renderReport: (markdown) => <Markdown children={markdown as string} />,
-                    fetchErrorReport: activityErrorReport,
-                }}
-                showProgress={true}
-                showStartAction={true}
-                showStopAction={true}
-                showReloadAction={false}
-                layoutConfig={layoutConfig}
-            />
-        </div>
+        <DataIntegrationActivityControl
+            label={label}
+            data-test-id={`activity-control-workflow-editor`}
+            executeActivityAction={executeActions}
+            registerForUpdates={registerForUpdate}
+            unregisterFromUpdates={() => {}}
+            translate={translate}
+            failureReportAction={{
+                title: "", // The title is already repeated in the markdown
+                allowDownload: true,
+                closeButtonValue: t("common.action.close"),
+                downloadButtonValue: t("common.action.download"),
+                renderMarkdown: true,
+                renderReport: (markdown) => <Markdown children={markdown as string} />,
+                fetchErrorReport: activityErrorReport,
+            }}
+            showStartAction={true}
+            showStopAction={true}
+            showReloadAction={false}
+            layoutConfig={layoutConfig}
+        />
     );
 };

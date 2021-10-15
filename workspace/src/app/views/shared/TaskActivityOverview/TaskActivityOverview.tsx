@@ -1,5 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@gui-elements/src/components/Card";
+import React, { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
     Divider,
     Icon,
     OverviewItem,
@@ -8,21 +13,21 @@ import {
     OverviewItemLine,
     Spacing,
     Spinner,
-    WhiteSpaceContainer,
 } from "@gui-elements/index";
-import React, { useCallback, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
 import {
     ActivityAction,
     DataIntegrationActivityControl,
-} from "@gui-elements/src/cmem/ActivityControl/DataIntegrationActivityControl";
+    IActivityStatus,
+    Markdown,
+    ElapsedDateTimeDisplay,
+    TimeUnits,
+} from "@gui-elements/cmem";
 import {
     IActivityCachesOverallStatus,
     IActivityControlFunctions,
     IActivityListEntry,
 } from "./taskActivityOverviewTypings";
 import { activityActionCreator, fetchActivityInfos } from "./taskActivityOverviewRequests";
-import { IActivityStatus } from "@gui-elements/src/cmem/ActivityControl/ActivityControlTypes";
 import Loading from "../Loading";
 import { connectWebSocket } from "../../../services/websocketUtils";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
@@ -30,8 +35,6 @@ import { DIErrorTypes } from "@ducks/error/typings";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import { ContentBlobToggler, Markdown } from "@gui-elements/cmem";
-import { ElapsedDateTimeDisplay, TimeUnits } from "@gui-elements/src/cmem/DateTimeDisplay/ElapsedDateTimeDisplay";
 import { activityErrorReportFactory, activityQueryString } from "./taskActivityUtils";
 
 interface IProps {
@@ -324,7 +327,6 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                         renderReport: (markdown) => <Markdown children={markdown as string} />,
                         fetchErrorReport: fetchErrorReportFactory(activity),
                     }}
-                    showProgress={true}
                     showReloadAction={activity.activityCharacteristics.isCacheActivity}
                     showStartAction={!activity.activityCharacteristics.isCacheActivity}
                     showStopAction={true}
@@ -336,7 +338,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                               }
                             : undefined
                     }
-                    layoutConfig={{ border: true }}
+                    layoutConfig={{ border: true, visualization: "progressbar" }}
                 />
                 <Spacing size={"small"} />
             </span>
@@ -412,20 +414,9 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                         {mainActivities.map((a) => activityControl(a))}
                         {cacheActivities.length ? (
                             <div data-test-id={"taskActivityOverview-cacheActivityGroup"}>
-                                <ContentBlobToggler
-                                    toggleReduceText={"Hide"}
-                                    toggleExtendText={"Open"}
-                                    previewContent={<CacheGroupWidget />}
-                                    fullviewContent={
-                                        <>
-                                            {<CacheGroupWidget />}
-                                            <WhiteSpaceContainer marginBottom="small" marginLeft="regular">
-                                                <Spacing size={"small"} />
-                                                {cacheActivities.map((a) => activityControl(a))}
-                                            </WhiteSpaceContainer>
-                                        </>
-                                    }
-                                />
+                                <CacheGroupWidget />
+                                <Spacing size={"small"} />
+                                {cacheActivities.map((a) => activityControl(a))}
                             </div>
                         ) : null}
                         {failedNonMainActivities.map((a) => activityControl(a))}
