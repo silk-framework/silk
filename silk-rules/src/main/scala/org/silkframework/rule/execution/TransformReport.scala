@@ -37,6 +37,11 @@ case class TransformReport(task: Task[TransformSpec],
   }
 
   /**
+    * Short description of the operation (plural, past tense).
+    */
+  override def operationDesc: String = "entities generated"
+
+  /**
     * Returns a done version of this report.
     */
   def asDone(): ExecutionReport = copy(isDone = true)

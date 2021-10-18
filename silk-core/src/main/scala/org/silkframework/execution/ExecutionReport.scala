@@ -23,6 +23,12 @@ trait ExecutionReport {
   def operation: Option[String] = None
 
   /**
+    * Short description of the operation (plural, past tense).
+    * Example: "entities processed".
+    */
+  def operationDesc: String
+
+  /**
     * Generates a short summary of this report.
     *
     * @return A sequence of key-value pairs representing the summary table.

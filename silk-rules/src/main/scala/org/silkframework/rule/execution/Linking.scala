@@ -45,6 +45,11 @@ case class Linking(task: Task[LinkSpec],
   override def entityCount: Int = links.size
 
   /**
+    * Short description of the operation (plural, past tense).
+    */
+  override def operationDesc: String = "links generated"
+
+  /**
     * Returns a done version of this report.
     */
   def asDone(): ExecutionReport = copy(isDone = true)

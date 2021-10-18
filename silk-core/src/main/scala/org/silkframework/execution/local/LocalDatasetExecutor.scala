@@ -166,6 +166,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
 
     override def entityLabelPlural: String = "Update queries"
 
+    override def minEntitiesBetweenUpdates: Int = 1
+
     override def additionalFields(): Seq[(String, String)] = {
       if(remainingQueries > 0) {
         Seq(
@@ -212,9 +214,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
           endpoint.update(updateQuery)
           executionReport.increaseEntityCounter()
           executionReport.remainingQueries = queryBuffer.bufferedQuerySize
-          executionReport.update()
         }
-        executionReport.update(force = true, addEndTime = true)
+        executionReport.executionDone()
       case _ =>
         writeGenericLocalEntities(dataset, sparqlUpdateTable, execution)
     }
@@ -312,7 +313,6 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       sink.writeEntity(entity.uri, entity.values)
       entityCount += 1
       if(entityCount % 10000 == 0) {
-        executionReport.update()
         val currentTime = System.currentTimeMillis()
         if(currentTime - 2000 > lastLog) {
           logger.info("Writing entities: " + entityCount)

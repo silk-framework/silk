@@ -35,7 +35,6 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
         while (it.hasNext) {
           batchEmitter.update(updateTask.generate(it.next(), taskProperties))
           reportUpdater.increaseEntityCounter()
-          reportUpdater.update()
         }
       }
     }
@@ -57,7 +56,7 @@ case class LocalSparqlUpdateExecutor() extends LocalExecutor[SparqlUpdateCustomT
             }
           }
         }
-        reportUpdater.update(force = true, addEndTime = true)
+        reportUpdater.executionDone()
         batchEmitter.close()
       }
     }
@@ -106,6 +105,8 @@ case class SparqlUpdateExecutionReportUpdater(task: Task[TaskSpec],
   override def entityLabelPlural: String = "Queries"
 
   override def entityProcessVerb: String = "generated"
+
+  override def minEntitiesBetweenUpdates: Int = 1
 }
 
 case class CrossProductIterator(values: IndexedSeq[Seq[String]],

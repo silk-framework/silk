@@ -301,7 +301,8 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
 }
 
 @Schema(
-  description = "Represents a set of updates to the execution status of individual workflow nodes."
+  description = "Represents a set of updates to the execution status of individual workflow nodes.",
+  example = ReportsApiDoc.reportUpdatesExample
 )
 case class ReportUpdates(@Schema(
                            description = "Timestamp (milliseconds since the epoch of 1970-01-01T00:00:00).",
@@ -335,6 +336,12 @@ case class ReportSummary(@Schema(
                            required = false
                          )
                          operation: Option[String],
+                         @Schema(
+                           description = "Short description of the operation (plural, past tense).",
+                           required = true,
+                           example = "entities processed"
+                         )
+                         operationDesc: String,
                          @ArraySchema(
                            schema = new Schema(
                              description = "If issues occurred during execution of this node, this contains a list of user-friendly messages.",
@@ -366,10 +373,11 @@ object ReportSummary {
       node = value.nodeId.toString,
       timestamp = value.timestamp.toEpochMilli,
       operation = report.operation,
+      operationDesc = report.operationDesc,
       warnings = report.warnings,
       error = report.error,
       isDone = report.isDone,
-      entityCount =report.entityCount
+      entityCount = report.entityCount
     )
   }
 }

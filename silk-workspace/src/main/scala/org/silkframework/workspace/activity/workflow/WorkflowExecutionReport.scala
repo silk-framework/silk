@@ -103,7 +103,9 @@ case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq
     }
   }
 
-  override def entityCount: Int = taskReports.size
+  override def entityCount: Int = taskReports.map(_.nodeId).distinct.size
+
+  override def operationDesc: String = "nodes executed"
 }
 
 /**

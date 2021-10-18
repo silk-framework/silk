@@ -66,7 +66,6 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
     val increase: () => Unit = executionReportUpdater match {
       case Some(updater) => () =>
         updater.increaseEntityCounter()
-        updater.update()
       case None => () => {} // no-op
     }
     new Traversable[Entity] {
@@ -80,7 +79,7 @@ case class LocalSparqlSelectExecutor() extends LocalExecutor[SparqlSelectCustomT
           f(Entity(DataSource.URN_NID_PREFIX + count, values = values, schema = taskData.outputSchema))
           increase()
         }
-        executionReportUpdater.foreach(updater => updater.update(force = true, addEndTime = true))
+        executionReportUpdater.foreach(updater => updater.executionDone())
       }
     }
   }
@@ -94,4 +93,6 @@ case class SparqlSelectExecutionReportUpdater(task: Task[TaskSpec],
   override def entityLabelSingle: String = "Row"
 
   override def entityLabelPlural: String = "Rows"
+
+  override def minEntitiesBetweenUpdates: Int = 1
 }

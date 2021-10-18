@@ -1,6 +1,7 @@
 package org.silkframework.execution
 
 import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.execution.ExecutionReportUpdater.{DEFAULT_DELAY_BETWEEN_UPDATES, DEFAULT_ENTITIES_BETWEEN_UPDATES}
 import org.silkframework.runtime.activity.ActivityContext
 
 import java.time.Instant
@@ -11,7 +12,7 @@ import java.time.format.DateTimeFormatter
   */
 trait ExecutionReportUpdater {
 
-  final val DEFAULT_DELAY_BETWEEN_UPDATES = 1000
+
   /** The task that has been executed. */
   def task: Task[TaskSpec]
   /** The activity context of the task that is executed */
@@ -24,6 +25,8 @@ trait ExecutionReportUpdater {
   def entityLabelPlural: String = "Entities"
   /** The verb that applies to the entity, depending on what task is executed. */
   def entityProcessVerb: String = "processed"
+  /** Minimum number of entities between report updates */
+  def minEntitiesBetweenUpdates: Int = DEFAULT_ENTITIES_BETWEEN_UPDATES
   /** The minimum delay between report updates */
   def delayBetweenUpdates: Int = DEFAULT_DELAY_BETWEEN_UPDATES
 
@@ -41,6 +44,9 @@ trait ExecutionReportUpdater {
       startFirstEntity = Some(System.currentTimeMillis())
     }
     entitiesEmitted += 1
+    if(entitiesEmitted % minEntitiesBetweenUpdates == 0) {
+      update(force = false, addEndTime = false)
+    }
   }
 
   /**
@@ -69,7 +75,7 @@ trait ExecutionReportUpdater {
     * @param force      Force the execution report update. This should only be done rarely.
     * @param addEndTime Adds an end time to the execution report. This should be done with the last update.
     */
-  def update(force: Boolean = false, addEndTime: Boolean = false): Unit = {
+  protected def update(force: Boolean = false, addEndTime: Boolean = false): Unit = {
     if (force || System.currentTimeMillis() - lastUpdate > delayBetweenUpdates) {
       val runtime = System.currentTimeMillis() - start
       val stats = Seq(
@@ -85,8 +91,16 @@ trait ExecutionReportUpdater {
             s"Runtime since first ${entityLabelSingle.toLowerCase} $entityProcessVerb" -> s"${(firstEntityStart - start).toDouble / 1000} seconds") ++
           Seq("Number of executions" -> numberOfExecutions.toString).filter(_ => numberOfExecutions > 0) ++
           additionalFields()
-      context.value.update(SimpleExecutionReport(task, stats, Seq.empty, None, addEndTime, entitiesEmitted, operationLabel))
+      context.value.update(SimpleExecutionReport(task, stats, Seq.empty, None, addEndTime, entitiesEmitted, operationLabel, s"${entityLabelPlural.toLowerCase} $entityProcessVerb"))
       lastUpdate = System.currentTimeMillis()
     }
   }
+}
+
+object ExecutionReportUpdater {
+
+  final val DEFAULT_DELAY_BETWEEN_UPDATES = 500
+
+  final val DEFAULT_ENTITIES_BETWEEN_UPDATES = 100
+
 }
