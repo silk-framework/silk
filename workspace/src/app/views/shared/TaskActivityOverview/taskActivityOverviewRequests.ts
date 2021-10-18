@@ -29,7 +29,7 @@ export const activityActionCreator = (
     projectId: string | undefined,
     taskId: string | undefined,
     handleError: (activityName: string, action: ActivityAction, error: DIErrorTypes) => any
-) => {
+): ((action: ActivityAction) => Promise<void>) => {
     return async (action: ActivityAction) => {
         try {
             await fetch({
