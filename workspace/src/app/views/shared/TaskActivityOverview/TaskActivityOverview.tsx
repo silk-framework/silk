@@ -1,28 +1,37 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@gui-elements/src/components/Card";
+import React, { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
     Divider,
     Icon,
+    IconButton,
     OverviewItem,
     OverviewItemActions,
+    OverviewItemDepiction,
     OverviewItemDescription,
     OverviewItemLine,
     Spacing,
     Spinner,
     WhiteSpaceContainer,
 } from "@gui-elements/index";
-import React, { useCallback, useEffect, useState } from "react";
-import { useTranslation } from "react-i18next";
 import {
     ActivityAction,
+    IActivityControlLayoutProps,
     DataIntegrationActivityControl,
-} from "@gui-elements/src/components/dataIntegrationComponents/ActivityControl/DataIntegrationActivityControl";
+    IActivityStatus,
+    Markdown,
+    ElapsedDateTimeDisplay,
+    TimeUnits,
+} from "@gui-elements/cmem";
 import {
     IActivityCachesOverallStatus,
     IActivityControlFunctions,
     IActivityListEntry,
 } from "./taskActivityOverviewTypings";
 import { activityActionCreator, fetchActivityInfos } from "./taskActivityOverviewRequests";
-import { IActivityStatus } from "@gui-elements/src/components/dataIntegrationComponents/ActivityControl/ActivityControlTypes";
 import Loading from "../Loading";
 import { connectWebSocket } from "../../../services/websocketUtils";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
@@ -30,13 +39,7 @@ import { DIErrorTypes } from "@ducks/error/typings";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import ReactMarkdown from "react-markdown";
-import ContentBlobToggler from "../ContentBlobToggler";
-import {
-    ElapsedDateTimeDisplay,
-    TimeUnits,
-} from "@gui-elements/src/components/dataIntegrationComponents/DateTimeDisplay/ElapsedDateTimeDisplay";
-import { activityErrorReportFactory, activityQueryString } from "./taskActivityUtils.";
+import { activityErrorReportFactory, activityQueryString } from "./taskActivityUtils";
 
 interface IProps {
     projectId: string;
@@ -68,6 +71,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     // Need to re-render task activities when a potential configuration change has occurred, e.g. different input data source.
     const { isOpen } = useSelector(commonSel.artefactModalSelector);
     const [loading, setLoading] = useState<boolean>(true);
+    const [displayCacheList, setDisplayCacheList] = useState<boolean>(false);
 
     // Used for explicit re-render trigger
     const setUpdateSwitch = useState<boolean>(false)[1];
@@ -299,7 +303,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
     const translateUnits = (unit: TimeUnits) => t("common.units." + unit, unit);
 
     // A single activity control
-    const activityControl = (activity: IActivityListEntry): JSX.Element => {
+    const activityControl = (activity: IActivityListEntry, layoutConfig: IActivityControlLayoutProps): JSX.Element => {
         const activityFunctions = activityFunctionsCreator(activity);
         const activityLabel = t(`widget.TaskActivityOverview.activities.${activity.name}.title`, activity.name);
         const elapsedTime = activity.activityCharacteristics.isCacheActivity
@@ -325,10 +329,9 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                         closeButtonValue: t("common.action.close"),
                         downloadButtonValue: t("common.action.download"),
                         renderMarkdown: true,
-                        renderReport: (markdown) => <ReactMarkdown source={markdown as string} />,
+                        renderReport: (markdown) => <Markdown children={markdown as string} />,
                         fetchErrorReport: fetchErrorReportFactory(activity),
                     }}
-                    showProgress={true}
                     showReloadAction={activity.activityCharacteristics.isCacheActivity}
                     showStartAction={!activity.activityCharacteristics.isCacheActivity}
                     showStopAction={true}
@@ -340,62 +343,63 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                               }
                             : undefined
                     }
+                    layoutConfig={layoutConfig}
                 />
                 <Spacing size={"small"} />
             </span>
         );
     };
 
+    let cacheState = cachesOverallStatus.failedActivities ? (
+        <Icon
+            name={"state-warning"}
+            large
+            intent="warning"
+            tooltipText={`${cachesOverallStatus.failedActivities} failed activities`}
+        />
+    ) : (
+        <Icon name={"state-success"} large intent="success" />
+    );
+
     // Widget that wraps and summarizes the cache activities
     const CacheGroupWidget = () => {
         return (
-            <Card>
-                <OverviewItem>
-                    <OverviewItemDescription>
-                        <OverviewItemLine>
-                            {t("widget.TaskActivityOverview.cacheGroup.title", "Caches")}
-                            {cachesOverallStatus.currentlyExecuting ? (
-                                <>
-                                    <Spacing vertical={true} />
-                                    <Spinner position={"inline"} size={"small"} />
-                                </>
-                            ) : (
-                                ""
-                            )}
+            <OverviewItem
+                hasSpacing
+                onClick={() => {
+                    setDisplayCacheList(!displayCacheList);
+                }}
+            >
+                <OverviewItemDepiction keepColors>
+                    {cachesOverallStatus.currentlyExecuting ? (
+                        <Spinner position={"inline"} size={"small"} stroke={"medium"} />
+                    ) : (
+                        cacheState
+                    )}
+                </OverviewItemDepiction>
+                <OverviewItemDescription>
+                    <OverviewItemLine>{t("widget.TaskActivityOverview.cacheGroup.title", "Caches")}</OverviewItemLine>
+                    {cachesOverallStatus.oldestStartTime ? (
+                        <OverviewItemLine small>
+                            <ElapsedDateTimeDisplay
+                                data-test-id={"cacheGroup-cache-age"}
+                                prefix={t("widget.TaskActivityOverview.cacheGroup.cacheAgePrefix")}
+                                suffix={t("widget.TaskActivityOverview.cacheGroup.cacheAgeSuffix")}
+                                dateTime={cachesOverallStatus.oldestStartTime}
+                                translateUnits={translateUnits}
+                            />
                         </OverviewItemLine>
-                        <OverviewItemLine>
-                            {cachesOverallStatus.oldestStartTime ? (
-                                <>
-                                    <ElapsedDateTimeDisplay
-                                        data-test-id={"cacheGroup-cache-age"}
-                                        prefix={t("widget.TaskActivityOverview.cacheGroup.cacheAgePrefix")}
-                                        suffix={t("widget.TaskActivityOverview.cacheGroup.cacheAgeSuffix")}
-                                        dateTime={cachesOverallStatus.oldestStartTime}
-                                        translateUnits={translateUnits}
-                                    />
-                                    <Spacing vertical={true} />
-                                </>
-                            ) : (
-                                ""
-                            )}
-                        </OverviewItemLine>
-                    </OverviewItemDescription>
-                    <OverviewItemActions>
-                        {cachesOverallStatus.failedActivities ? (
-                            <>
-                                <Icon
-                                    name={"state-warning"}
-                                    tooltipText={`${cachesOverallStatus.failedActivities} failed activities`}
-                                />
-                                <Spacing vertical={true} />
-                            </>
-                        ) : (
-                            ""
-                        )}
-                        <Spacing />
-                    </OverviewItemActions>
-                </OverviewItem>
-            </Card>
+                    ) : (
+                        ""
+                    )}
+                </OverviewItemDescription>
+                <OverviewItemActions>
+                    <IconButton
+                        name={displayCacheList ? "toggler-showless" : "toggler-showmore"}
+                        text={displayCacheList ? "Hide single caches" : "Show all single caches"}
+                    />
+                </OverviewItemActions>
+            </OverviewItem>
         );
     };
 
@@ -412,27 +416,28 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
                     <Loading />
                 ) : (
                     <>
-                        {mainActivities.map((a) => activityControl(a))}
+                        {mainActivities.map((a) => activityControl(a, { border: true, visualization: "spinner" }))}
                         {cacheActivities.length ? (
-                            <div data-test-id={"taskActivityOverview-cacheActivityGroup"}>
-                                <ContentBlobToggler
-                                    textToggleReduce={"Hide"}
-                                    textToggleExtend={"Open"}
-                                    contentPreview={<CacheGroupWidget />}
-                                    contentFullview={
-                                        <>
-                                            {<CacheGroupWidget />}
-                                            <WhiteSpaceContainer marginBottom="small" marginLeft="regular">
-                                                <Spacing size={"small"} />
-                                                {cacheActivities.map((a) => activityControl(a))}
-                                            </WhiteSpaceContainer>
-                                        </>
-                                    }
-                                />
-                            </div>
+                            <Card isOnlyLayout elevation={0} data-test-id={"taskActivityOverview-cacheActivityGroup"}>
+                                <CacheGroupWidget />
+                                {displayCacheList && (
+                                    <>
+                                        <Divider />
+                                        <WhiteSpaceContainer paddingTop="small" paddingRight="tiny" paddingLeft="tiny">
+                                            {cacheActivities.map((a) =>
+                                                activityControl(a, { small: true, visualization: "spinner" })
+                                            )}
+                                        </WhiteSpaceContainer>
+                                    </>
+                                )}
+                            </Card>
                         ) : null}
-                        {failedNonMainActivities.map((a) => activityControl(a))}
-                        {runningNonMainActivities.map((a) => activityControl(a))}
+                        {failedNonMainActivities.map((a) =>
+                            activityControl(a, { border: true, visualization: "spinner" })
+                        )}
+                        {runningNonMainActivities.map((a) =>
+                            activityControl(a, { border: true, visualization: "spinner" })
+                        )}
                     </>
                 )}
             </CardContent>

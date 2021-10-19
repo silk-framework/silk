@@ -6,7 +6,7 @@ import { DIErrorTypes } from "@ducks/error/typings";
 import {
     ActivityAction,
     IActivityExecutionReport,
-} from "@gui-elements/src/components/dataIntegrationComponents/ActivityControl/DataIntegrationActivityControl";
+} from "@gui-elements/src/cmem/ActivityControl/DataIntegrationActivityControl";
 
 /** Fetch available activities for the workspace, project or task with optional infos, e.g. characteristics. */
 export const fetchActivityInfos = async (
@@ -29,7 +29,7 @@ export const activityActionCreator = (
     projectId: string | undefined,
     taskId: string | undefined,
     handleError: (activityName: string, action: ActivityAction, error: DIErrorTypes) => any
-) => {
+): ((action: ActivityAction) => Promise<void>) => {
     return async (action: ActivityAction) => {
         try {
             await fetch({
