@@ -2,6 +2,7 @@ package controllers.workspace.workspaceRequests
 
 import config.WorkbenchLinks
 import controllers.workspaceApi.search.ItemType
+import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.config.TaskSpec
 import org.silkframework.workspace.ProjectTask
 import play.api.libs.json.{Json, OFormat}
@@ -12,7 +13,18 @@ import play.api.libs.json.{Json, OFormat}
   * @param copiedTasks Tasks that are copied to the target project
   * @param overwrittenTasks Tasks that would overwrite existing tasks in the target project
   */
-case class CopyTasksResponse(copiedTasks: Set[TaskToBeCopied], overwrittenTasks: Set[TaskToBeCopied])
+case class CopyTasksResponse(@ArraySchema(
+                               schema = new Schema(
+                                 description = "Tasks that are copied to the target project.",
+                                 implementation = classOf[String]
+                             ))
+                             copiedTasks: Set[TaskToBeCopied],
+                             @ArraySchema(
+                               schema = new Schema(
+                                 description = "Tasks that would overwrite existing tasks in the target project.",
+                                 implementation = classOf[String]
+                             ))
+                             overwrittenTasks: Set[TaskToBeCopied])
 
 object CopyTasksResponse {
   implicit val jsonFormat: OFormat[CopyTasksResponse] = Json.format[CopyTasksResponse]
