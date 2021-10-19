@@ -93,7 +93,7 @@ export const TaskActivityWidget = ({
         if (preAction !== undefined) {
             return preAction(() => originalAction(action));
         } else {
-            return originalAction;
+            return originalAction(action);
         }
     };
     const translate = useCallback((key: string) => t("widget.TaskActivityOverview.activityControl." + key), [t]);
