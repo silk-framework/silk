@@ -4,7 +4,7 @@ import play.api.libs.json.{Format, Json}
 
 object ErrorReport {
   /** Stacktrace object. */
-  case class Stacktrace(errorMessage: Option[String], lines: Seq[String], cause: Option[Stacktrace])
+  case class Stacktrace(exceptionClass: String, errorMessage: Option[String], lines: Seq[String], cause: Option[Stacktrace])
 
   object Stacktrace {
     implicit val stacktraceJsonFormat: Format[Stacktrace] = Json.format[Stacktrace]
@@ -12,7 +12,7 @@ object ErrorReport {
     def fromException(exception: Throwable): Stacktrace = {
       val lines = exception.getStackTrace.map(_.toString)
       val cause = Option(exception.getCause).map(fromException)
-      Stacktrace(Option(exception.getMessage), lines, cause)
+      Stacktrace(exception.getClass.getName, Option(exception.getMessage), lines, cause)
     }
   }
 
@@ -70,18 +70,21 @@ object ErrorReport {
       }
     }
 
+    private def intend(str: String, width: Int): String = (" " * width) + str.dropWhile(_.isWhitespace).replaceAll("\n", "\n" + (" " * width))
+
     // Render the stacktrace as markdown
     private def asMarkdown(stacktrace: Stacktrace): String = {
       val sb = new StringBuffer()
       def renderStacktrace(stacktrace: Stacktrace): Unit = {
         for(line <- stacktrace.lines) {
-          sb.append("  ").append(line).append("\n")
+          sb.append(intend("at " + line, 4)).append("\n")
         }
         stacktrace.cause foreach { c =>
-          sb.append(s"Cause: ${c.errorMessage.getOrElse("<no error message>")}\n")
+          sb.append(intend(s"Cause: ${c.exceptionClass}: ${c.errorMessage.getOrElse("<no error message>")}", 2)).append("\n")
           renderStacktrace(c)}
       }
       sb.append("* Stacktrace:\n  ```\n")
+      sb.append(intend(s"${stacktrace.exceptionClass}: ${stacktrace.errorMessage.getOrElse("<no error message>")}", 2))
       renderStacktrace(stacktrace)
       sb.append("  ```\n")
       sb.toString
