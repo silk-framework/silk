@@ -47,7 +47,7 @@ const props = {
             uriRule: null,
             typeRules: [
                 {
-                    uri: 'test'
+                    typeUri: 'test'
                 }
             ],
             propertyRules: []

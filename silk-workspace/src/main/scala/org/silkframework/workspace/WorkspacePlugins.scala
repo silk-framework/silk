@@ -82,5 +82,9 @@ class WorkspacePlugins extends PluginModule {
 
   def autoCompletionProviderPlugins: List[Class[_]] = classOf[DatasetTypeAutoCompletionProvider] :: Nil
 
-  def workspaceActivityPlugins: List[Class[_]] = classOf[GlobalVocabularyCacheFactory] :: Nil
+  def workspaceActivityPlugins: List[Class[_]] = {
+    classOf[GlobalVocabularyCacheFactory] ::
+      classOf[GlobalUriPatternCacheFactory] ::
+      Nil
+  }
 }

@@ -281,4 +281,7 @@ Cause: Unrecognized token 'name': was expecting (JSON String, Number, Array, Obj
   java.base/java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:183)
   ```
   """
+
+  final val activityInstanceParameterDesc = "Optional activity instance identifier. Non-singleton activity types allow multiple concurrent instances that are identified by their instance id.",
+
 }

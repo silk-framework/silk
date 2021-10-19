@@ -67,7 +67,8 @@ export function getDefinedApiDetails() {
 }
 
 const mapPeakResult = (returned) => {
-    if (_.get(returned, 'body.status.id') !== 'success') {
+    const resultStatus = _.get(returned, 'body.status.id')
+    if (resultStatus !== 'success' && resultStatus !== 'empty') {
         return {
             title: 'Could not load preview',
             detail: _.get(
@@ -518,7 +519,7 @@ export const getSuggestionsAsync = (data: ISuggestAsyncProps,
 };
 
 export const childExampleAsync = data => {
-    const {ruleType, rawRule, id} = data;
+    const {ruleType, rawRule, id, objectPath} = data;
     const getRule = (rawRule, type) => {
         switch (type) {
             case MAPPING_RULE_TYPE_DIRECT:
@@ -540,7 +541,7 @@ export const childExampleAsync = data => {
         return silkStore
             .request({
                 topic: 'transform.task.rule.child.peak',
-                data: {...getApiDetails(), id, rule},
+                data: {...getApiDetails(), id, rule, objectPath},
             })
             .map(mapPeakResult);
     }
@@ -719,7 +720,7 @@ export const prefixesAsync = () => {
 };
 
 
-const getValuePathSuggestion = (ruleId:string, inputString: string, cursorPosition:number): HttpResponsePromise => {
+const getValuePathSuggestion = (ruleId:string, inputString: string, cursorPosition:number): HttpResponsePromise<any> => {
     const { baseUrl, transformTask, project } = getDefinedApiDetails();
     return silkApi.getSuggestionsForAutoCompletion(
         baseUrl,
@@ -745,7 +746,7 @@ export const fetchValuePathSuggestions = (ruleId: string | undefined, inputStrin
 }
 
 // Fetches (partial) auto-complete suggestions for a path expression inside a URI pattern
-export const fetchUriPatternAutoCompletions = (ruleId: string | undefined, inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
+export const fetchUriPatternAutoCompletions = (ruleId: string | undefined, inputString: string, cursorPosition: number, objectContextPath?: string): Promise<IPartialAutoCompleteResult | undefined> => {
     return new Promise((resolve, reject) => {
         if(!ruleId) {
             resolve(undefined)
@@ -757,7 +758,8 @@ export const fetchUriPatternAutoCompletions = (ruleId: string | undefined, input
                 transformTask,
                 ruleId,
                 inputString,
-                cursorPosition
+                cursorPosition,
+                objectContextPath
             ).then((suggestions) => resolve(suggestions?.data))
                 .catch((err) => reject(err));
         }

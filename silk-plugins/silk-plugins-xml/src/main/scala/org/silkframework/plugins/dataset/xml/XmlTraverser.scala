@@ -1,11 +1,11 @@
 package org.silkframework.plugins.dataset.xml
 
-import java.net.URLEncoder
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.entity.paths._
 import org.silkframework.util.Identifier
 
+import java.net.URLEncoder
 import scala.collection.mutable.ArrayBuffer
 import scala.xml.Node
 
@@ -69,7 +69,7 @@ case class XmlTraverser(node: InMemoryXmlNode, parentOpt: Option[XmlTraverser] =
     */
   def generateUri(uriPattern: String): String = {
     if (uriPattern.isEmpty) {
-      DataSource.generateEntityUri(node.label, nodeId)
+      DataSource.generateEntityUri(Identifier.fromAllowed(node.label), nodeId)
     } else {
       XmlTraverser.uriRegex.replaceAllIn(uriPattern, m => {
         val pattern = m.group(1)

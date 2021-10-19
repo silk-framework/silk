@@ -269,13 +269,15 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
           case Some(pathPart) =>
             // Inside path expression, do path auto-completion
             withRule(transformTask, ruleId) { case (_, sourcePath) =>
+              implicit val prefixes: Prefixes = transformTask.project.config.prefixes
+              val basePath = sourcePath ++ uriPatternAutoCompletionRequest.objectPath.map(path => UntypedPath.parse(path).operators).getOrElse(Nil)
               val partialSourcePathAutoCompletionRequest = PartialSourcePathAutoCompletionRequest(
                 pathPart.serializedPath,
                 uriPatternAutoCompletionRequest.cursorPosition - pathPart.segmentPosition.originalStartIndex,
                 uriPatternAutoCompletionRequest.maxSuggestions
               )
               val autoCompletionResponse = autoCompletePartialSourcePath(transformTask, partialSourcePathAutoCompletionRequest,
-                sourcePath)
+                basePath)
               val offset = pathPart.segmentPosition.originalStartIndex
               Ok(Json.toJson(autoCompletionResponse.copy(
                 inputString = uriPatternAutoCompletionRequest.inputString,

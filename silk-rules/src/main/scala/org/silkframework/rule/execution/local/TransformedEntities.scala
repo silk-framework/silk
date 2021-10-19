@@ -27,6 +27,7 @@ import scala.util.control.NonFatal
   */
 class TransformedEntities(task: Task[TransformSpec],
                           entities: Traversable[Entity],
+                          ruleLabel: String,
                           rules: Seq[TransformRule],
                           outputSchema: EntitySchema,
                           isRequestedSchema: Boolean,
@@ -88,7 +89,7 @@ class TransformedEntities(task: Task[TransformSpec],
     if(uris.nonEmpty) {
       for (uri <- uris) {
         if(outputSchema.singleEntity && count > 1) {
-          throw new ValidationException("Tried to generate multiple entities, but the root mapping is configured to output a single entity.")
+          throw new ValidationException(s"Tried to generate multiple entities, but the '$ruleLabel' mapping is configured to output a single entity.")
         }
 
         lazy val objectEntity = { // Constructs an entity that only contains object source paths for object mappings
@@ -158,7 +159,7 @@ class TransformedEntities(task: Task[TransformSpec],
     errors.append(ex)
     errorFlag = true
     if(abortIfErrorsOccur) {
-      throw AbortExecutionException(s"Failed to transform entity '${entity.uri}' in rule '${rule.metaData.label}': ${ex.getMessage}", Some(ex))
+      throw AbortExecutionException(s"Failed to transform entity '${entity.uri}' in rule '$ruleLabel': ${ex.getMessage}", Some(ex))
     }
   }
 }

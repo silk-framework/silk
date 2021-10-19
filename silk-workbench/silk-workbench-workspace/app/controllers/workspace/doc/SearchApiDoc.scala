@@ -63,6 +63,7 @@ object SearchApiDoc {
         "limit": 20,
         "sortBy": "label",
         "sortOrder": "ASC",
+        "addTaskParameters": false,
         "facets": [
           {
             "facetId": "datasetType",

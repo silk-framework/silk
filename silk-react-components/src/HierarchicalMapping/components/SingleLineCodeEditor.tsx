@@ -21,6 +21,8 @@ export interface IEditorProps {
   onKeyDown: (event: KeyboardEvent) => any
   // Called when the user selects text
   onSelection: (ranges: IRange[]) => any
+  // If the <Tab> key is enabled as normal input, i.e. it won't have the behavior of changing to the next input element, expected in a web app.
+  enableTab?: boolean
 }
 
 export interface IRange {
@@ -37,6 +39,7 @@ const SingleLineCodeEditor = ({
                                 onFocusChange,
                                 onKeyDown,
                                 onSelection,
+                                enableTab = false,
                               }: IEditorProps) => {
   return (
     <div className={"ecc-input-editor " + BlueprintClassNames.INPUT}>
@@ -57,9 +60,10 @@ const SingleLineCodeEditor = ({
         onFocus={() => onFocusChange(true)}
         onBlur={() => onFocusChange(false)}
         options={{
-          mode: mode,
-          lineNumbers: false,
-          theme: "xq-light",
+            mode: mode,
+            lineNumbers: false,
+            theme: "xq-light",
+            extraKeys: enableTab ? undefined : {Tab: false}
         }}
         onSelection={(editor, data) => {
           if(Array.isArray(data?.ranges)) {
