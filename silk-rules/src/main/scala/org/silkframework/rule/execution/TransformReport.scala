@@ -18,8 +18,8 @@ case class TransformReport(task: Task[TransformSpec],
                            entityErrorCount: Int = 0,
                            ruleResults: Map[Identifier, RuleResult] = Map.empty,
                            globalErrors: Seq[String] = Seq.empty,
-                           isDone: Boolean = false
-                          ) extends ExecutionReport {
+                           isDone: Boolean = false,
+                           override val error: Option[String] = None) extends ExecutionReport {
 
   lazy val summary: Seq[(String, String)] = {
     Seq(

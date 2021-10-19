@@ -1,6 +1,6 @@
 package org.silkframework.rule.execution.local
 
-import org.silkframework.config.Task
+import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.entity.metadata.{EntityMetadata, EntityMetadataXml}
 import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.execution.{AbortExecutionException, ExecutionException}
@@ -32,7 +32,7 @@ class TransformedEntities(task: Task[TransformSpec],
                           outputSchema: EntitySchema,
                           isRequestedSchema: Boolean,
                           abortIfErrorsOccur: Boolean,
-                          context: ActivityContext[TransformReport]) extends Traversable[Entity] {
+                          context: ActivityContext[TransformReport])(implicit prefixes: Prefixes) extends Traversable[Entity] {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
 
@@ -65,15 +65,22 @@ class TransformedEntities(task: Task[TransformSpec],
 
     count = 0
     var lastUpdateTime = System.currentTimeMillis()
-    for(entity <- entities) {
-      mapEntity(entity, f, report)
-      if (count % 100 == 0 && (System.currentTimeMillis() - lastUpdateTime) > updateIntervalInMS) {
-        context.value.update(report.build())
-        context.status.updateMessage(s"Executing ($count Entities)")
-        lastUpdateTime = System.currentTimeMillis()
+    try {
+      for (entity <- entities) {
+        mapEntity(entity, f, report)
+        if (count % 100 == 0 && (System.currentTimeMillis() - lastUpdateTime) > updateIntervalInMS) {
+          context.value.update(report.build())
+          context.status.updateMessage(s"Executing ($count Entities)")
+          lastUpdateTime = System.currentTimeMillis()
+        }
       }
+    } catch {
+      case NonFatal(ex) =>
+        report.setExecutionError(ex.getMessage)
+        throw ex
+    } finally {
+      context.value() = report.build(isDone = true)
     }
-    context.value() = report.build(isDone = true)
     context.status.updateMessage(s"Finished Executing ($count Entities)")
   }
 
@@ -118,7 +125,7 @@ class TransformedEntities(task: Task[TransformSpec],
       }
     } else {
       for(uriRule <- subjectRule) {
-        report.addError(uriRule, entity, new ValidationException("The URI pattern did not generate any URI for this entity."))
+        report.addRuleError(uriRule, entity, new ValidationException("The URI pattern did not generate any URI for this entity."))
       }
       errorFlag = true
     }
@@ -155,11 +162,13 @@ class TransformedEntities(task: Task[TransformSpec],
 
   private def addError(report: TransformReportBuilder, rule: TransformRule, entity: Entity, ex: Throwable): Unit = {
     log.fine("Error during execution of transform rule " + rule.id.toString + ": " + ex.getMessage)
-    report.addError(rule, entity, ex)
+    report.addRuleError(rule, entity, ex)
     errors.append(ex)
     errorFlag = true
     if(abortIfErrorsOccur) {
-      throw AbortExecutionException(s"Failed to transform entity '${entity.uri}' in rule '$ruleLabel': ${ex.getMessage}", Some(ex))
+      val message = "Transform task is configured to fail if any error occurs: " +
+        s"Failed to transform entity '${entity.uri}' with rule '${rule.ruleLabel()}' in '$ruleLabel': ${ex.getMessage}"
+      throw AbortExecutionException(message, Some(ex))
     }
   }
 }

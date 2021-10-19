@@ -246,13 +246,12 @@ try {
   private def writeEntityTableToDataset(workflowDataset: WorkflowDependencyNode,
                                         entityTable: LocalEntities)
                                        (implicit workflowRunContext: WorkflowRunContext): Unit = {
+    val resolvedDataset = resolveDataset(datasetTask(workflowDataset), replaceSinks)
     try {
-      val resolvedDataset = resolveDataset(datasetTask(workflowDataset), replaceSinks)
       execute("Writing", workflowDataset.nodeId, resolvedDataset, Seq(entityTable), ExecutorOutput.empty)
     } catch {
       case NonFatal(ex) =>
-        throw WorkflowExecutionException("Exception occurred while writing to workflow dataset operator " + workflowDataset.nodeId +
-            ". Cause: " + ex.getMessage, Some(ex))
+        throw WorkflowExecutionException(s"Exception occurred while writing to dataset '${resolvedDataset.taskLabel()}'. Cause: " + ex.getMessage, Some(ex))
     }
   }
 
