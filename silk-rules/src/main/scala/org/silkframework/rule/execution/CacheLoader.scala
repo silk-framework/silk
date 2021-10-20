@@ -15,6 +15,7 @@
 package org.silkframework.rule.execution
 
 import org.silkframework.cache.EntityCache
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.runtime.activity.{Activity, ActivityContext, Status, UserContext}
 
@@ -28,7 +29,8 @@ import util.control.Breaks._
  */
 class CacheLoader(source: DataSource,
                   entityCache: EntityCache,
-                  sampleSizeOpt: Option[Int] = None) extends Activity[Unit] {
+                  sampleSizeOpt: Option[Int] = None)
+                 (implicit prefixes: Prefixes) extends Activity[Unit] {
 
   override def name = "Loading"
 

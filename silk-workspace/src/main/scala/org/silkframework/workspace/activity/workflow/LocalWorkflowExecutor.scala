@@ -47,7 +47,13 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                   (implicit userContext: UserContext): Unit = {
     cancelled = false
 
-    runWorkflow(context, updateUserContext(userContext))
+    try {
+      runWorkflow(context, updateUserContext(userContext))
+    } catch {
+      case cancelledWorkflowException: StopWorkflowExecutionException =>
+        // In case of an cancelled workflow from an operator, the workflow should still be successful, else it would
+        context.status.update(cancelledWorkflowException.getMessage, 1)
+    }
   }
 
   private def runWorkflow(implicit context: ActivityContext[WorkflowExecutionReport], userContext: UserContext): Unit = {
@@ -106,14 +112,16 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   }
 
   private def executeWorkflowOperatorInput(input: WorkflowDependencyNode,
-                                           output: ExecutorOutput)
+                                           output: ExecutorOutput,
+                                           requestingWorkflowOperator: Task[_ <: TaskSpec])
                                           (implicit workflowRunContext: WorkflowRunContext): Option[LocalEntities] = {
     executeWorkflowNode(input, output) match {
       case Some(entityTable) =>
         Some(entityTable)
       case None if output.requestedSchema.isDefined =>
-        throw WorkflowExecutionException(s"In workflow ${workflowTask.id.toString} operator node ${input.nodeId} defined an input" +
-            s" schema for input $input, but did not receive any result.")
+        val inputTask = task(input)
+        throw WorkflowExecutionException(s"Workflow operator '${requestingWorkflowOperator.taskLabel(Int.MaxValue)}' defined an input" +
+            s" schema for its input '${inputTask.taskLabel(Int.MaxValue)}', but did not receive any result from it in workflow '${workflowTask.taskLabel(Int.MaxValue)}' .")
       case None =>
         None
     }
@@ -124,8 +132,8 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                       executorOutput: ExecutorOutput,
                                       operator: WorkflowOperator)
                                      (implicit workflowRunContext: WorkflowRunContext): Option[LocalEntities] = {
+    val operatorTask = task(operatorNode)
     try {
-      val operatorTask = task(operatorNode)
       val schemataOpt = operatorTask.data.inputSchemataOpt
       val inputs = operatorNode.inputNodes
       val inputResults = executeWorkflowOperatorInputs(operatorNode, schemataOpt, inputs)
@@ -153,10 +161,12 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     } catch {
       case ex: WorkflowExecutionException =>
         throw ex
+      case ex: StopWorkflowExecutionException =>
+        throw ex
       case NonFatal(ex) =>
-        log.log(Level.WARNING, "Exception during execution of workflow operator " + operatorNode.workflowNode.nodeId, ex)
-        throw WorkflowExecutionException("Exception during execution of workflow operator " + operatorNode.workflowNode.nodeId +
-          ". Cause: " + ex.getMessage, Some(ex))
+        val msg = s"Exception during execution of workflow operator '${operatorTask.taskLabel()}' (${operatorNode.workflowNode.nodeId})."
+        log.log(Level.WARNING, msg, ex)
+        throw WorkflowExecutionException(msg + " Cause: " + ex.getMessage, Some(ex))
     }
   }
 
@@ -172,11 +182,11 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                   and output warning */
         val useInputs = checkInputsAgainstSchema(operatorNode, inputs, schemata)
         for ((input, schema) <- useInputs.zip(schemata)) yield {
-          executeWorkflowOperatorInput(input, ExecutorOutput(Some(operatorTask), Some(schema)))
+          executeWorkflowOperatorInput(input, ExecutorOutput(Some(operatorTask), Some(schema)), operatorTask)
         }
       case None =>
         for (input <- inputs) yield {
-          executeWorkflowOperatorInput(input, ExecutorOutput(Some(operatorTask), None))
+          executeWorkflowOperatorInput(input, ExecutorOutput(Some(operatorTask), None), operatorTask)
         }
     }
   }

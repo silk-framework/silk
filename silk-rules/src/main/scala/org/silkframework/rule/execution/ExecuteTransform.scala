@@ -28,6 +28,9 @@ class ExecuteTransform(task: Task[TransformSpec],
   def run(context: ActivityContext[TransformReport])
          (implicit userContext: UserContext): Unit = {
     cancelled = false
+    // Reset transform report
+    context.value() = TransformReport(task)
+
     // Get fresh data source and entity sink
     val dataSource = input(userContext)
     val entitySink = output(userContext)
@@ -59,7 +62,7 @@ class ExecuteTransform(task: Task[TransformSpec],
     errorEntitySink.foreach(_.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get) :+ ErrorOutputWriter.errorProperty, singleEntity))
 
     val entityTable = dataSource.retrieve(rule.inputSchema)
-    val transformedEntities = new TransformedEntities(task, entityTable.entities, rule.transformRule.rules, rule.outputSchema,
+    val transformedEntities = new TransformedEntities(task, entityTable.entities, rule.transformRule.ruleLabel(), rule.transformRule.rules, rule.outputSchema,
       isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, context = context)
     var count = 0
     breakable {

@@ -1,6 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.formatters
 
 import org.apache.jena.rdf.model.Model
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.LinkSink
 import org.silkframework.entity.Link
 import org.silkframework.runtime.activity.UserContext
@@ -13,12 +14,13 @@ class FormattedJenaLinkSink(model: Model,
   /**
    * Initialize the link sink
    */
-  override def init()(implicit userContext: UserContext): Unit = {}
+  override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = {}
 
   /**
    * Writes a new link to this writer.
    */
-  override def writeLink(link: Link, predicateUri: String)(implicit userContext: UserContext): Unit = {
+  override def writeLink(link: Link, predicateUri: String)
+                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     this.synchronized {
       val linkModel = formatter.formatAsRDF(link, predicateUri)
       model.add(linkModel)

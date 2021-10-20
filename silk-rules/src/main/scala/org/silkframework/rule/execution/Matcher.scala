@@ -40,7 +40,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
               linkageRule: LinkageRule,
               caches: DPair[EntityCache],
               runtimeConfig: RuntimeLinkingConfig = RuntimeLinkingConfig(),
-              sourceEqualsTarget: Boolean = false) extends Activity[IndexedSeq[Link]] {
+              sourceEqualsTarget: Boolean = false) extends Activity[MatcherResult] {
 
   /** The name of this task. */
   override def name: String = "MatchTask"
@@ -53,7 +53,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
   /**
    * Executes the matching.
    */
-  override def run(context: ActivityContext[IndexedSeq[Link]])
+  override def run(context: ActivityContext[MatcherResult])
                   (implicit userContext: UserContext): Unit = {
     val startTime = System.currentTimeMillis()
     def timeoutReached: Boolean = System.currentTimeMillis() - startTime > runtimeConfig.executionTimeout.getOrElse(Long.MaxValue)
@@ -72,12 +72,15 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     val logProgress = progressLogger(context, finishedTasks, scheduler)
     while (!cancelled && (scheduler.isAlive || finishedTasks.get() < scheduler.taskCount) && errors.get().isEmpty) {
       for(result <- poll(executor)) {
-        context.value.update(context.value() ++ result)
+        context.value.updateWith(_.addLinks(result))
         finishedTasks.incrementAndGet()
-        if(runtimeConfig.linkLimit.getOrElse(Int.MaxValue) <= context.value().size
-            || Thread.currentThread().isInterrupted
-            || context.status.isCanceling
-            || timeoutReached) {
+        if(runtimeConfig.linkLimit.getOrElse(Int.MaxValue) <= context.value().links.size) {
+          context.value.updateWith(_.addWarning(s"The configured maximum number of links has been reached and the matching has been stopped."))
+          cancelled = true
+        } else if(timeoutReached) {
+          context.value.updateWith(_.addWarning(s"The configured timeout has been exceeded and the matching has been stopped."))
+          cancelled = true
+        } else if(Thread.currentThread().isInterrupted || context.status.isCanceling) {
           cancelled = true
         }
         logProgress()
@@ -89,7 +92,7 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     }
 
     for (result <- poll(executor)) {
-      context.value.update(context.value() ++ result)
+      context.value.updateWith(_.addLinks(result))
       updateStatus(context, finishedTasks.get(), scheduler.taskCount)
     }
 
@@ -127,15 +130,15 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     )
   }
 
-  private def init(context: ActivityContext[IndexedSeq[Link]]): Unit = {
+  private def init(context: ActivityContext[MatcherResult]): Unit = {
     require(caches.source.blockCount == caches.target.blockCount, "sourceCache.blockCount == targetCache.blockCount")
 
     //Reset properties
-    context.value.update(IndexedSeq.empty)
+    context.value.update(MatcherResult())
     cancelled = false
   }
 
-  private def progressLogger(context: ActivityContext[IndexedSeq[Link]],
+  private def progressLogger(context: ActivityContext[MatcherResult],
                              finishedTasks: AtomicInteger,
                              scheduler: SchedulerThread): () => Unit = {
     var lastLog: Long = 0
@@ -159,10 +162,10 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     }
   }
 
-  private def updateStatus(context: ActivityContext[IndexedSeq[Link]], finishedTasks: Int, nrOfTasks: Int): Unit = {
+  private def updateStatus(context: ActivityContext[MatcherResult], finishedTasks: Int, nrOfTasks: Int): Unit = {
     val statusPrefix = if (loaders.exists(_.status().isRunning)) "Matching (loading):" else "Matching:"
     val statusTasks = " " + finishedTasks + " tasks "
-    val statusLinks = " " + context.value().size + " links."
+    val statusLinks = " " + context.value().links.size + " links."
     context.status.update(statusPrefix + statusTasks + statusLinks, finishedTasks.toDouble / nrOfTasks)
   }
 
@@ -296,3 +299,28 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
     }
   }
 }
+
+/**
+  * The (possibly intermediate) result of a matcher.
+  *
+  * @param links The generated links
+  * @param warnings Issues that occurred during matching
+  */
+case class MatcherResult(links: IndexedSeq[Link] = IndexedSeq.empty, warnings: Seq[String] = Seq.empty) {
+
+  /**
+    * Appends links and returns the updated matcher result.
+    */
+  def addLinks(newLinks: IndexedSeq[Link]): MatcherResult = {
+    copy(links = links ++ newLinks)
+  }
+
+  /**
+    * Appends a warning and returns the updated matcher result.
+    */
+  def addWarning(warning: String): MatcherResult = {
+    copy(warnings = warnings :+ warning)
+  }
+
+}
+

@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useState} from "react";
 import CodeMirror from "codemirror";
-import { FieldItem, IconButton, Spinner, Label } from "@gui-elements/index";
+import {FieldItem, IconButton, Spinner, Label, ToolbarSection, Toolbar, Spacing} from "@gui-elements/index";
 import { Classes as BlueprintClassNames } from "@blueprintjs/core";
 
 //custom components
@@ -61,12 +61,12 @@ export interface IValidationResult {
     // If the input value is valid or not
     valid: boolean,
     parseError?: {
-        // Where the error is located
-        offset: number
         // Detail error message
         message: string
-        // The input before the cursor that is considered invalid
-        inputLeadingToError: string
+        // Start of the parse error in the input string
+        start: number
+        // End of the parse error in the input string
+        end: number
     }
 }
 
@@ -91,6 +91,10 @@ export interface IProps {
     onFocusChange?: (hasFocus: boolean) => any
     // Optional ID to attach to the outer element
     id?: string
+    // If the <Tab> key should be used for auto-completing items. Else it will have its default behavior.
+    useTabForCompletions?: boolean
+    // An additional element that is put to the right side of the input field
+    rightElement?: JSX.Element | null
 }
 
 /** Input component that allows partial, fine-grained auto-completion, i.e. of sub-strings of the input string.
@@ -106,6 +110,8 @@ const AutoSuggestion = ({
                             onFocusChange,
                             id,
                             onInputChecked,
+                            rightElement,
+                            useTabForCompletions = false,
                         }: IProps) => {
     const [value, setValue] = React.useState(initialValue);
     const [cursorPosition, setCursorPosition] = React.useState(0);
@@ -134,6 +140,10 @@ const AutoSuggestion = ({
 
     const pathIsValid = validationResponse?.valid ?? true;
 
+    React.useEffect(() => {
+        setValue(initialValue)
+    }, [initialValue])
+
     //handle keypress
     React.useEffect(() => {
         makeDropDownRespondToKeyPress(keyPressedFromEditor);
@@ -159,14 +169,13 @@ const AutoSuggestion = ({
     React.useEffect(() => {
         const parseError = validationResponse?.parseError;
         if (parseError && editorInstance) {
-            const { offset, inputLeadingToError, message } = parseError;
-            const start = inputLeadingToError.length > 1 ? offset - inputLeadingToError.length + 1 : offset
-            const end = offset + 2;
+            const { message, start, end } = parseError;
+            // TODO: Display error message
             editorInstance.getDoc().getEditor()
             const marker = editorInstance.markText(
                 { line: 0, ch: start },
                 { line: 0, ch: end },
-                { className: "ecc-text-error-highlighting" }
+                { className: "ecc-text-error-highlighting", title: message }
             );
             setErrorMarkers((previousMarkers) => {
                 previousMarkers.forEach(marker => marker.clear())
@@ -267,7 +276,7 @@ const AutoSuggestion = ({
 
     const handleInputEditorKeyPress = (event: KeyboardEvent) => {
         const overWrittenKeys: Array<string> = Object.values(OVERWRITTEN_KEYS);
-        if (overWrittenKeys.includes(event.key)) {
+        if (overWrittenKeys.includes(event.key) && (useTabForCompletions || event.key !== OVERWRITTEN_KEYS.Tab)) {
             event.preventDefault();
             setKeyPressedFromEditor(OVERWRITTEN_KEYS[event.key]);
             setKeyPressCounter((counter) => ++counter);
@@ -359,34 +368,20 @@ const AutoSuggestion = ({
     }
 
     const hasError = !!value && !pathIsValid && !pathValidationPending;
-
-    return (
-        <FieldItem
-            labelAttributes={{
-                text: (
-                    <>
-                        {label}
-                        {pathValidationPending && (
-                            <Spinner size="tiny" position="inline" description="Validating value path" />
-                        )}
-                    </>)
-            }}
-            hasStateDanger={hasError}
-            messageText={hasError ? validationErrorText : undefined}
-        >
-            <div id={id} className="ecc-auto-suggestion-box">
-                <div className={`ecc-auto-suggestion-box__editor-box ${BlueprintClassNames.INPUT_GROUP} ${BlueprintClassNames.FILL} ${hasError ? BlueprintClassNames.INTENT_DANGER : ""}`}>
-                    <SingleLineCodeEditor
-                        mode="null"
-                        setEditorInstance={setEditorInstance}
-                        onChange={handleChange}
-                        onCursorChange={handleCursorChange}
-                        initialValue={value}
-                        onFocusChange={handleInputFocus}
-                        onKeyDown={handleInputEditorKeyPress}
-                        onSelection={setSelectedTextRanges}/>
-                    {!!value && (
-                        <span className={BlueprintClassNames.INPUT_ACTION}>
+    const autoSuggestionInput = <div id={id} className="ecc-auto-suggestion-box">
+        <div className={`ecc-auto-suggestion-box__editor-box ${BlueprintClassNames.INPUT_GROUP} ${BlueprintClassNames.FILL} ${hasError ? BlueprintClassNames.INTENT_DANGER : ""}`}>
+            <SingleLineCodeEditor
+                mode="null"
+                setEditorInstance={setEditorInstance}
+                onChange={handleChange}
+                onCursorChange={handleCursorChange}
+                initialValue={value}
+                onFocusChange={handleInputFocus}
+                onKeyDown={handleInputEditorKeyPress}
+                enableTab={useTabForCompletions}
+                onSelection={setSelectedTextRanges}/>
+            {!!value && (
+                <span className={BlueprintClassNames.INPUT_ACTION}>
                             <IconButton
                                 data-test-id={"value-path-clear-btn"}
                                 name="operation-clear"
@@ -394,18 +389,38 @@ const AutoSuggestion = ({
                                 onClick={handleInputEditorClear}
                             />
                         </span>
-                    )}
-                </div>
-                <Dropdown
-                    left={coords.left}
-                    loading={suggestionsPending}
-                    options={suggestions}
-                    isOpen={shouldShowDropdown}
-                    onItemSelectionChange={handleDropdownChange}
-                    currentlyFocusedIndex={currentIndex}
-                    itemToHighlight={handleItemHighlighting}
-                />
-            </div>
+            )}
+        </div>
+        <Dropdown
+            left={coords.left}
+            loading={suggestionsPending}
+            options={suggestions}
+            isOpen={!suggestionsPending && shouldShowDropdown}
+            onItemSelectionChange={handleDropdownChange}
+            currentlyFocusedIndex={currentIndex}
+            itemToHighlight={handleItemHighlighting}
+        />
+    </div>
+
+    return (
+        <FieldItem
+            labelAttributes={{
+                text: (
+                    <>
+                        {label}
+                        &nbsp;
+                        {(pathValidationPending || suggestionsPending) && (
+                            <Spinner size="tiny" position="inline" description="Validating value path" />
+                        )}
+                    </>)
+            }}
+            hasStateDanger={hasError}
+            messageText={hasError ? validationErrorText : undefined}
+        >
+            {rightElement ? <Toolbar noWrap={true}>
+                <ToolbarSection canGrow={true}>{autoSuggestionInput}</ToolbarSection>
+                <ToolbarSection>{rightElement}</ToolbarSection>
+            </Toolbar> : autoSuggestionInput}
         </FieldItem>
     );
 };

@@ -23,7 +23,7 @@ import scala.util.Random
  * A crossover operator which interchanges the aggregation strategies.
  */
 case class AggregationFunctionCrossover() extends NodePairCrossoverOperator[AggregationNode] {
-  override protected def crossover(nodes: DPair[AggregationNode], random: Random) = {
+  override protected def crossover(nodes: DPair[AggregationNode], random: Random): AggregationNode = {
     nodes.source.copy(aggregation = nodes.target.aggregation)
   }
 }

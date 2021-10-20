@@ -3,7 +3,7 @@
 @**
 * Swagger UI view based on the index.html shipped with the Swagger UI webjar.
 **@
-@(url: String, validatorUrl: String)
+@(url: String, validatorUrl: String, config: String)
 
 <!DOCTYPE html>
 <html lang="en">
@@ -42,12 +42,12 @@
     <script src="@SwaggerUiAssets.at("swagger-ui-bundle.js")" charset="UTF-8"> </script>
     <script src="@SwaggerUiAssets.at("swagger-ui-standalone-preset.js")" charset="UTF-8"> </script>
     <script>
+      const config = @Html(config);
+
       window.onload = function() {
         window.ui = SwaggerUIBundle({
           url: "@url",
           dom_id: '#swagger-ui',
-          deepLinking: true,
-          docExpansion: 'none',
           validatorUrl: '@validatorUrl',
           presets: [
             SwaggerUIBundle.presets.apis,
@@ -56,7 +56,8 @@
           plugins: [
             SwaggerUIBundle.plugins.DownloadUrl
           ],
-          layout: "StandaloneLayout"
+          layout: "StandaloneLayout",
+          ...config
         });
       };
     </script>

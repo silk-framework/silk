@@ -9,8 +9,10 @@ trait VocabularyManager {
 
   def get(uri: String, project: Option[Identifier])(implicit userContext: UserContext): Option[Vocabulary]
 
-  /** Retrieves a list of globally accessible vocabularies. */
-  def retrieveGlobalVocabularies()(implicit userContext: UserContext): Iterable[String]
+  /** Retrieves a list of globally accessible vocabularies.
+    * Returns None if this implementation cannot return a list of global vocabularies.
+    **/
+  def retrieveGlobalVocabularies()(implicit userContext: UserContext): Option[Iterable[String]]
 
 }
 

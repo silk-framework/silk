@@ -10,9 +10,10 @@
   showProgressBar: Boolean,
   showStartButton: Boolean,
   showRestartButton: Boolean,
-  showConfigButton: Boolean)(implicit request: RequestHeader)
+  showConfigButton: Boolean,
+  insideIFrame: Boolean)(implicit request: RequestHeader)
 
-<div id="@id("progress_")" class="activity-control">
+<div id="@id("progress_")" class="activity-control" style="@{if(insideIFrame) "white-space: nowrap;background: transparent" else ""}">
 
   @if(showProgressBar) {
     <div id="@id("progressbar_")" class="activity-progress">
@@ -24,6 +25,7 @@
   }
 
   @if(showStartButton) {
+    <span style="display: inline-block">
     <button id="@id("startButton")"
             name="start" class="activity-button mdl-button mdl-js-button mdl-button--icon"
             onclick="startActivity()" >
@@ -41,9 +43,11 @@
     <div class="mdl-tooltip" for="@id("stopButton")">
       Stop @activity.label
     </div>
+    </span>
   }
 
   @if(showRestartButton) {
+    <span style="display: inline-block">
     <button id="@id("restartButton")"
             name="reset"
             class="activity-button mdl-button mdl-js-button mdl-button--icon"
@@ -53,9 +57,11 @@
     <div class="mdl-tooltip" for="@id("restartButton")">
       Reset @activity.label to its initial value and restart.
     </div>
+    </span>
   }
 
   @if(showConfigButton && task.isDefined) {
+    <span style="display: inline-block">
     <button id="@id("configButton")"
             name="config"
             class="activity-button mdl-button mdl-js-button mdl-button--icon"
@@ -65,9 +71,11 @@
     <div class="mdl-tooltip" for="@id("configButton")">
       Start @activity.label after configuring parameters.
     </div>
+    </span>
   }
 
   @if(showConfigButton && task.isEmpty) {
+    <span style="display: inline-block">
     <button id="@id("configButton")"
             name="config" class="activity-button mdl-button mdl-js-button mdl-button--icon"
             onclick="showDialog('@WorkspaceController.projectActivityConfigDialog(project, activity.name)')" >
@@ -76,6 +84,7 @@
     <div class="mdl-tooltip" for="@id("configButton")">
       Start @activity.label after configuring parameters.
     </div>
+    </span>
   }
 
 </div>
@@ -99,6 +108,13 @@
 
     // Update values
     tooltip.text(status.message);
+    if (@{insideIFrame}) {
+      // Send a message event that the workflow has been saved
+      window.top.postMessage(JSON.stringify({
+        id: "workflowStatusUpdateMessage",
+        message: status.message
+      }), '*');
+    };
     if(status.failed) {
       progressbar.progressbar("option", {value: 100});
       progressbarValue.addClass('status_red');

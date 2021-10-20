@@ -6,7 +6,6 @@ import {
 } from '@eccenca/gui-elements';
 import _ from 'lodash';
 import { getEditorHref, updateObjectMappingAsync } from '../../../store';
-import ExampleView from '../ExampleView';
 import ObjectMappingRuleForm from './ObjectRuleForm';
 
 import {
@@ -74,6 +73,21 @@ class ObjectRule extends React.Component {
         EventEmitter.off(MESSAGES.RULE_VIEW.CLOSE, this.handleCloseEdit);
     }
 
+    componentDidUpdate(prevProps, prevState, snapshot) {
+        if (_.has(this.props, 'ruleData.rules.uriRule.id')) {
+            const newUrl = getEditorHref(this.props.ruleData.rules.uriRule.id)
+            if(this.state.href !== newUrl) {
+                this.setState({
+                    href: newUrl
+                });
+            }
+        } else if(this.state.href !== "") {
+            this.setState({
+                href: ""
+            });
+        }
+    }
+
     componentWillReceiveProps(nextProps) {
         if (_.has(nextProps, 'ruleData.rules.uriRule.id')) {
             this.setState({
@@ -99,7 +113,7 @@ class ObjectRule extends React.Component {
         const rule = _.cloneDeep(this.props.ruleData);
         rule.rules.uriRule = {
             type: 'uri',
-            pattern: '/',
+            pattern: `{}/${rule.id}`,
         };
         updateObjectMappingAsync(rule)
             .subscribe(
@@ -208,7 +222,7 @@ class ObjectRule extends React.Component {
                                 />
                         }
                         {
-                            _.get(ruleData, 'rules.typeRules[0].uri')
+                            _.get(ruleData, 'rules.typeRules[0].typeUri')
                                 ? <ObjectTypeRules
                                     typeRules={_.get(ruleData, 'rules.typeRules') || {}}/>
                                 : null
@@ -221,6 +235,11 @@ class ObjectRule extends React.Component {
                             />
                         }
                         {
+                            _.get(ruleData, 'rules.uriRule.id')
+                                ? <ExampleTarget uriRuleId={_.get(ruleData, 'rules.uriRule.id')}/>
+                                : null
+                        }
+                        {
                             isObjectRule(type) && ruleData.sourcePath
                                 ? <ObjectSourcePath type={ruleData.type}>
                                     <SourcePath
@@ -230,11 +249,6 @@ class ObjectRule extends React.Component {
                                         }}
                                     />
                                 </ObjectSourcePath> : null
-                        }
-                        {
-                            _.get(ruleData, 'rules.uriRule.id')
-                                ? <ExampleTarget uriRuleId={_.get(ruleData, 'rules.uriRule.id')}/>
-                                : null
                         }
                         {
                             _.get(ruleData, 'metadata.label')

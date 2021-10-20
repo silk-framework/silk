@@ -47,7 +47,8 @@ class WorkspacePlugins extends PluginModule {
   def transformActivities: List[Class[_]] =
     classOf[ExecuteTransformFactory] ::
     classOf[TransformPathsCacheFactory] ::
-    classOf[VocabularyCacheFactory] :: Nil
+    classOf[VocabularyCacheFactory] ::
+    Nil
 
   def linkingActivities: List[Class[_]] =
     classOf[EvaluateLinkingFactory] ::
@@ -81,5 +82,9 @@ class WorkspacePlugins extends PluginModule {
 
   def autoCompletionProviderPlugins: List[Class[_]] = classOf[DatasetTypeAutoCompletionProvider] :: Nil
 
-  def workspaceActivityPlugins: List[Class[_]] = classOf[GlobalVocabularyCacheFactory] :: Nil
+  def workspaceActivityPlugins: List[Class[_]] = {
+    classOf[GlobalVocabularyCacheFactory] ::
+      classOf[GlobalUriPatternCacheFactory] ::
+      Nil
+  }
 }

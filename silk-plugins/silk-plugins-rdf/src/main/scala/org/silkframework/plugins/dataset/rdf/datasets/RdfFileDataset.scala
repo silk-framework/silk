@@ -2,7 +2,7 @@ package org.silkframework.plugins.dataset.rdf.datasets
 
 import org.apache.jena.query.DatasetFactory
 import org.apache.jena.riot.{Lang, RDFDataMgr, RDFLanguages}
-import org.silkframework.config.{PlainTask, Task}
+import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.dataset.rdf.{LinkFormatter, RdfDataset, SparqlParams}
@@ -32,7 +32,10 @@ Large datasets should be loaded into an external RDF store and retrieved using t
 case class RdfFileDataset(
   @Param("The RDF file. This may also be a zip archive of multiple RDF files.")
   file: WritableResource,
-  @Param("""RDF format. Can be left empty, in which case it will be auto-detetected based on the file extension. Supported input formats are: "RDF/XML", "N-Triples", "N-Quads", "Turtle". Supported output formats are: "N-Triples".""")
+  @Param(
+    value = """Optional RDF format. If left empty, it will be auto-detected based on the file extension. N-Triples is the only format that can be written, while other formats can only be read.""",
+    autoCompletionProvider = classOf[RdfLangAutocompletionProvider]
+  )
   format: String = "",
   @Param("The graph name to be read. If not provided, the default graph will be used. Must be provided if the format is N-Quads.")
   graph: String = "",
@@ -118,14 +121,14 @@ case class RdfFileDataset(
     private var lastModificationTime: Option[(Long, Int)] = None
 
     override def retrieve(entitySchema: EntitySchema, limit: Option[Int] = None)
-                         (implicit userContext: UserContext): EntityHolder = {
+                         (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
       load()
       val retrievedEntities = EntityRetriever(endpoint).retrieve(entitySchema, entityRestriction, None)
       GenericEntityTable(retrievedEntities, entitySchema, underlyingTask)
     }
 
     override def retrieveByUri(entitySchema: EntitySchema, entities: Seq[Uri])
-                              (implicit userContext: UserContext): EntityHolder = {
+                              (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
       if (entities.isEmpty) {
         EmptyEntityTable(underlyingTask)
       } else {
@@ -135,13 +138,13 @@ case class RdfFileDataset(
     }
 
     override def retrievePaths(typeUri: Uri, depth: Int, limit: Option[Int])
-                              (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
+                              (implicit userContext: UserContext, prefixes: Prefixes): IndexedSeq[TypedPath] = {
       load()
       sparqlSource.retrievePaths(typeUri, depth, limit)
     }
 
     override def retrieveTypes(limit: Option[Int])
-                              (implicit userContext: UserContext): Traversable[(String, Double)] = {
+                              (implicit userContext: UserContext, prefixes: Prefixes): Traversable[(String, Double)] = {
       load()
       sparqlSource.retrieveTypes(limit)
     }

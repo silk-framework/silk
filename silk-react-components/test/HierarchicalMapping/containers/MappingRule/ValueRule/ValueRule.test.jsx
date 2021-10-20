@@ -25,7 +25,7 @@ const props = {
     edit: false,
     type: 'direct',
     sourcePath: [],
-    sourcePaths: [],
+    sourcePaths: ["fields/customfield_12408", "fields/summary"],
     mappingTarget: {
         uri: 'uri',
         valueType: {
@@ -71,6 +71,7 @@ describe("ValueRule Component", () => {
         });
         
         it('should ObjectSourcePath component rendered, when `props.type` equal to `direct` and sourcePath presented', () => {
+            const wrapper = getWrapper(shallow, {...props, sourcePath: "path", sourcePaths: undefined});
             expect(wrapper.find(ObjectSourcePath)).toHaveLength(1);
         });
     
@@ -79,7 +80,9 @@ describe("ValueRule Component", () => {
                 ...props,
                 type: 'object'
             });
-            expect(wrapper.find(ValueSourcePaths)).toHaveLength(1);
+            const valueSourcePaths = wrapper.find(ValueSourcePaths);
+            expect(valueSourcePaths).toHaveLength(1);
+            expect(valueSourcePaths.html()).toContain("Formula uses 2 value paths");
         });
         
         it('should ExampleTarget component rendered, when `props.id` is presented', () => {

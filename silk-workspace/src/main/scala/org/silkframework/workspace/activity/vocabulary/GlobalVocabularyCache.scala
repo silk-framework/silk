@@ -6,6 +6,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.workspace.activity.GlobalWorkspaceActivityFactory
 import org.silkframework.workspace.activity.transform.VocabularyCacheValue
 
+import java.util.logging.Logger
 import scala.collection.mutable
 
 @Plugin(
@@ -24,10 +25,16 @@ case class GlobalVocabularyCacheFactory() extends GlobalWorkspaceActivityFactory
 
 /** A cache for global vocabularies that can be used in any project. */
 case class GlobalVocabularyCache() extends Activity[VocabularyCacheValue] {
+  private val log: Logger = Logger.getLogger(getClass.getName)
   private val cache: mutable.HashMap[String, Vocabulary] = new mutable.HashMap[String, Vocabulary]()
   private var vocabsToUpdate: Set[String] = Set.empty
+  @volatile
+  private var lastUpdated: Option[Long] = None
+  private def setLastUpdated(): Unit = {
+    lastUpdated = Some(System.currentTimeMillis())
+  }
 
-  override def initialValue: Option[VocabularyCacheValue] = Some(new VocabularyCacheValue(Seq.empty))
+  override def initialValue: Option[VocabularyCacheValue] = Some(new VocabularyCacheValue(Seq.empty, lastUpdated))
 
   override def run(context: ActivityContext[VocabularyCacheValue])(implicit userContext: UserContext): Unit = {
     val vocabManager = VocabularyManager()
@@ -38,13 +45,13 @@ case class GlobalVocabularyCache() extends Activity[VocabularyCacheValue] {
         installVocabulary(vocabManager, vocabURI)
         vocabsToUpdate -= vocabURI
       }
-      context.value.update(new VocabularyCacheValue(cache.values.toSeq))
+      context.value.update(new VocabularyCacheValue(cache.values.toSeq, lastUpdated))
       // Check if something has changed
       vocabsToUpdate ++= GlobalVocabularyCache.clearAndGetVocabularies
     }
     // Also update all vocabularies in case a former request has failed
     loadAllInstalledVocabularies(vocabManager)
-    context.value.update(new VocabularyCacheValue(cache.values.toSeq))
+    context.value.update(new VocabularyCacheValue(cache.values.toSeq, lastUpdated))
   }
 
   /* Loads all installed vocabularies and removes uninstalled ones.
@@ -52,24 +59,40 @@ case class GlobalVocabularyCache() extends Activity[VocabularyCacheValue] {
    */
   private def loadAllInstalledVocabularies(vocabManager: VocabularyManager)
                                           (implicit userContext: UserContext): Unit = {
-    val installedVocabularies = vocabManager.retrieveGlobalVocabularies().toSet
-    // Install all vocabularies that are not loaded in the cache, yet
-    for (vocabURI <- installedVocabularies if !cache.contains(vocabURI) && !cancelled) {
-      installVocabulary(vocabManager, vocabURI)
-    }
-    // Remove uninstalled vocabs
-    for (vocabURi <- cache.keys) {
-      if (!installedVocabularies.contains(vocabURi)) {
-        cache.remove(vocabURi)
-      }
+    vocabManager.retrieveGlobalVocabularies() match {
+      case Some(vocabs) =>
+        val installedVocabularies = vocabs.toSet
+        // Install all vocabularies that are not loaded in the cache, yet
+        for (vocabURI <- installedVocabularies if !cache.contains(vocabURI) && !cancelled) {
+          installVocabulary(vocabManager, vocabURI)
+        }
+        // Remove uninstalled vocabs
+        for (vocabURI <- cache.keys) {
+          if (!installedVocabularies.contains(vocabURI)) {
+            cache.remove(vocabURI)
+            setLastUpdated()
+            log.info(s"Vocabulary '$vocabURI' has been removed from the cache.")
+          }
+        }
+      case None =>
+        // Not possible to load or remove global vocabularies without this information
     }
   }
 
   private def installVocabulary(vocabManager: VocabularyManager,
                                 vocabURI: String)
                                (implicit userContext: UserContext): Unit = {
+    val startTime = System.currentTimeMillis()
+    var updated = false
     vocabManager.get(vocabURI, None) foreach { vocabulary =>
       cache.put(vocabURI, vocabulary)
+      setLastUpdated()
+      updated = true
+    }
+    if(updated) {
+      log.info(s"Vocabulary '$vocabURI' has been updated in ${System.currentTimeMillis() - startTime}ms.")
+    } else {
+      log.warning(s"Processed request to update vocabulary '$vocabURI', but no vocabulary has been found.")
     }
   }
 }

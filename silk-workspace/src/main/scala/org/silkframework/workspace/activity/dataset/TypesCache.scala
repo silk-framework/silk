@@ -1,5 +1,6 @@
 package org.silkframework.workspace.activity.dataset
 
+import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.resource.WritableResource
@@ -17,6 +18,7 @@ class TypesCache(dataset: ProjectTask[GenericDatasetSpec]) extends CachedActivit
 
   override def loadCache(context: ActivityContext[Types], fullReload: Boolean)
                         (implicit userContext: UserContext): Unit = {
+    implicit val prefixes: Prefixes = dataset.project.config.prefixes
     val dataSource = dataset.source
     val types = Types(dataSource.retrieveTypes().toSeq)
     context.value() = types

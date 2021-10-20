@@ -1,8 +1,10 @@
 package controllers.workflow
 
 import controllers.core.UserContextActions
+import models.workflow.WorkflowConfig
 import org.silkframework.workbench.Context
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
+import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
@@ -15,6 +17,13 @@ class WorkflowEditorController @Inject() (accessMonitor: WorkbenchAccessMonitor)
     val context = Context.get[Workflow](project, task, request.path)
     accessMonitor.saveProjectTaskAccess(project, task)
     Ok(views.html.workflow.editor.editor(context))
+  }
+
+  def activityControl(projectId: String, taskId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectId)
+    val task = project.anyTask(taskId)
+    val activity = task.activity(WorkflowConfig.executorName)
+    Ok(views.html.workflow.workflowControl(activity, showButtons = true, insideIFrame = true))
   }
 
   def reports(project: String, task: String): Action[AnyContent] = reportImpl(project, task, None)

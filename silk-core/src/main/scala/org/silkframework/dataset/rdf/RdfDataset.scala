@@ -1,7 +1,8 @@
 package org.silkframework.dataset.rdf
 
-import org.silkframework.dataset.DatasetCharacteristics.SupportedPathExpressions
-import org.silkframework.dataset.{DatasetCharacteristics, Dataset}
+import org.silkframework.dataset.DatasetCharacteristics.{SpecialPathInfo, SupportedPathExpressions}
+import org.silkframework.dataset.{Dataset, DatasetCharacteristics}
+import org.silkframework.entity.rdf.SparqlEntitySchema.specialPaths
 
 trait RdfDataset extends Dataset {
 
@@ -19,7 +20,11 @@ trait RdfDataset extends Dataset {
         multiHopPaths = true,
         backwardPaths = true,
         propertyFilter = true,
-        languageFilter = true
+        languageFilter = true,
+        specialPaths = Seq(
+          SpecialPathInfo(specialPaths.LANG, Some("Returns the language tag of a language-tagged literal.")),
+          SpecialPathInfo(specialPaths.TEXT, Some("Returns the lexical value of the resource or literal this is requested from."))
+        )
       )
     )
   }

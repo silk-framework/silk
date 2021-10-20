@@ -1,7 +1,7 @@
 package org.silkframework.dataset
 
 import org.scalatest.{FlatSpec, MustMatchers}
-import org.silkframework.config.PlainTask
+import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.runtime.activity.UserContext
@@ -11,6 +11,7 @@ class EntityDatasourceTest extends FlatSpec with MustMatchers {
   behavior of "Entity Data Source"
 
   implicit val userContext: UserContext = UserContext.Empty
+  implicit val prefixes: Prefixes = Prefixes.empty
 
   val alibiTask = PlainTask("alibi", DatasetSpec(EmptyDataset))
   val typeUri = Uri("http://entity.com/type1")

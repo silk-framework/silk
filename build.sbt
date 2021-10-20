@@ -30,7 +30,13 @@ val buildReactExternally = {
   result
 }
 
-concurrentRestrictions in Global += Tags.limit(Tags.Test, 1)
+val compileParameters: Seq[String] = if(System.getProperty("java.version").split("\\.").head.toInt > 8) {
+  Seq("--release", "8", "-Xlint")
+} else {
+  Seq("-source", "1.8", "-target", "1.8", "-Xlint")
+}
+
+(Global / concurrentRestrictions) += Tags.limit(Tags.Test, 1)
 
 val scalaTestOptions = {
   if(sys.env.getOrElse("BUILD_ENV", "develop").toLowerCase == "production") {
@@ -50,7 +56,7 @@ lazy val commonSettings = Seq(
     }
   },
   // Building
-  scalaVersion := "2.12.13",
+  scalaVersion := "2.12.14",
   publishTo := {
     val artifactory = "https://artifactory.eccenca.com/"
     // Assumes that version strings for releases, e.g. v3.0.0 or v3.0.0-rc3, do not have a postfix of length 5 or longer.
@@ -62,27 +68,28 @@ lazy val commonSettings = Seq(
     }
   },
   // If SBT_PUBLISH_TESTS_JARS ENV variable is set to "true" then tests jar files will be published that can be used e.g. in testing plugins
-  publishArtifact in (Test, packageBin) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
-  publishArtifact in (Test, packageSrc) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
+  (Test / packageBin / publishArtifact) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
+  (Test / packageSrc / publishArtifact) := sys.env.getOrElse("SBT_PUBLISH_TESTS_JARS", "false").toLowerCase == "true",
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.9" % "test",
   libraryDependencies += "net.codingwell" %% "scala-guice" % "4.2.11" % "test",
-  libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.1.11",
+  libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3",
   libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % "test",
   libraryDependencies += "com.google.inject" % "guice" % "4.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
-  testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
+  (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
 
   // The assembly plugin cannot resolve multiple dependencies to commons logging
-  assemblyMergeStrategy in assembly := {
+  (assembly / assemblyMergeStrategy) := {
     case PathList("org", "apache", "commons", "logging",  xs @ _*) => MergeStrategy.first
     case PathList(xs @ _*) if xs.last endsWith ".class" => MergeStrategy.first
     case PathList(xs @ _*) if xs.last endsWith ".xsd" => MergeStrategy.first
     case PathList(xs @ _*) if xs.last endsWith ".dtd" => MergeStrategy.first
     case other =>
-      val oldStrategy = (assemblyMergeStrategy in assembly).value
+      val oldStrategy = (assembly / assemblyMergeStrategy).value
       oldStrategy(other)
-  }
+  },
+  javacOptions ++= compileParameters
 )
 
 //////////////////////////////////////////////////////////////////////////////
@@ -100,7 +107,8 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "org.scala-lang" % "scala-reflect" % scalaVersion.value,
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1",
     libraryDependencies += "commons-io" % "commons-io" % "2.4",
-    libraryDependencies += "org.lz4" % "lz4-java" % "1.4.0"
+    libraryDependencies += "org.lz4" % "lz4-java" % "1.4.0",
+    libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1"
   )
 
 lazy val rules = (project in file("silk-rules"))
@@ -271,7 +279,7 @@ lazy val reactComponents = (project in file("silk-react-components"))
         }
       }
     },
-    (compile in Compile) := ((compile in Compile) dependsOn buildSilkReact).value,
+    (Compile / compile) := ((Compile / compile) dependsOn buildSilkReact).value,
     watchSources ++= { // Watch all files under the silk-react-components/src directory for changes
       if(buildReactExternally) {
         Seq.empty
@@ -355,7 +363,7 @@ lazy val workbench = (project in file("silk-workbench"))
       libraryDependencies += guice,
       // Linux Packaging, Uncomment to generate Debian packages that register the Workbench as an Upstart service
       // packageArchetype.java_server
-      version in Debian := "2.7.2",
+      (Debian / version) := "2.7.2",
       maintainer := "Robert Isele <silk-discussion@googlegroups.com>",
       packageSummary := "The Silk framework is a tool for discovering relationships between data items within different Linked Data sources.",
       packageDescription := "The Silk framework is a tool for discovering relationships between data items within different Linked Data sources."
@@ -373,10 +381,10 @@ lazy val singlemachine = (project in file("silk-tools/silk-singlemachine"))
     name := "Silk SingleMachine",
     libraryDependencies += "org.slf4j" % "slf4j-jdk14" % "1.7.13",
     // The assembly plugin cannot resolve multiple dependencies to commons logging
-    assemblyMergeStrategy in assembly := {
+    (assembly / assemblyMergeStrategy) := {
       case PathList("org", "apache", "commons", "logging",  xs @ _*) => MergeStrategy.first
       case other =>
-        val oldStrategy = (assemblyMergeStrategy in assembly).value
+        val oldStrategy = (assembly / assemblyMergeStrategy).value
         oldStrategy(other)
     }
   )

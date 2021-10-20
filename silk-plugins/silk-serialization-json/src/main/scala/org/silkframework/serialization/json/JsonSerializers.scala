@@ -9,6 +9,7 @@ import org.silkframework.rule.TransformSpec.{TargetVocabularyListParameter, Targ
 import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
 import org.silkframework.rule.similarity._
+import org.silkframework.rule.util.UriPatternParser
 import org.silkframework.rule.vocab.{GenericInfo, Vocabulary, VocabularyClass, VocabularyProperty}
 import org.silkframework.rule.{MappingTarget, TransformRule, _}
 import org.silkframework.runtime.activity.UserContext
@@ -449,9 +450,13 @@ object JsonSerializers {
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): PatternUriMapping = {
+      implicit val prefixes: Prefixes = readContext.prefixes
       val name = identifier(value, "uri")
-      val pattern = stringValue(value, PATTERN_PROPERTY)
-      PatternUriMapping(name, pattern.trim(), metaData(value, "uri"), readContext.prefixes)
+      val pattern = stringValue(value, PATTERN_PROPERTY).trim()
+      if(readContext.validationEnabled) {
+        UriPatternParser.parseIntoSegments(pattern, allowIncompletePattern = false).validateAndThrow()
+      }
+      PatternUriMapping(name, pattern.trim(), metaData(value, "URI"), readContext.prefixes)
     }
 
     /**
@@ -481,7 +486,7 @@ object JsonSerializers {
       ComplexUriMapping(
         id = identifier(value, "uri"),
         operator = fromJson[Input]((value \ OPERATOR).get),
-        metaData(value, "uri")
+        metaData(value, "URI")
       )
     }
 
@@ -1165,21 +1170,18 @@ object JsonSerializers {
   case class TaskFormatOptions(@Schema(
                                  description = "Include the task meta data.",
                                  defaultValue = "true",
-                                 required = false,
                                  implementation = classOf[Boolean]
                                )
                                includeMetaData: Option[Boolean] = None,
                                @Schema(
                                  description = "Include the task data.",
                                  defaultValue = "true",
-                                 required = false,
                                  implementation = classOf[Boolean]
                                )
                                includeTaskData: Option[Boolean] = None,
                                @Schema(
                                  description = "Retrieves a list of properties as key-value pairs to be displayed to the user.",
                                  defaultValue = "false",
-                                 required = false,
                                  implementation = classOf[Boolean]
                                )
                                includeTaskProperties: Option[Boolean] = None,
@@ -1193,7 +1195,6 @@ object JsonSerializers {
                                @Schema(
                                  description = "Include the input and output schemata of the task.",
                                  defaultValue = "false",
-                                 required = false,
                                  implementation = classOf[Boolean]
                                )
                                includeSchemata: Option[Boolean] = None)

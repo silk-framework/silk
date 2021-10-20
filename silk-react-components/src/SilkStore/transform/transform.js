@@ -15,7 +15,6 @@ silkStore
     .subject('transform.task.rules.get')
     .subscribe(({data, replySubject}) => {
         const {baseUrl, project, transformTask} = data;
-
         superagent
             .get(`${baseUrl}/transform/tasks/${project}/${transformTask}/rules`)
             .accept('application/json')
@@ -168,11 +167,14 @@ silkStore
 silkStore
     .subject('transform.task.rule.child.peak')
     .subscribe(({data, replySubject}) => {
-        const {baseUrl, project, transformTask, rule, id} = data;
+        const {baseUrl, project, transformTask, rule, id, objectPath} = data;
         superagent
             .post(
                 `${baseUrl}/transform/tasks/${project}/${transformTask}/peak/${id}/childRule`
             )
+            .query({
+                objectPath
+            })
             .accept('application/json')
             .send({...rule})
             .observe()

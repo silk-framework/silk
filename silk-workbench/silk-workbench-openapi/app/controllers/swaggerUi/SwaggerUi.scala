@@ -1,44 +1,43 @@
 package controllers.swaggerUi
 
+import com.typesafe.config.{Config, ConfigRenderOptions}
+import config.WorkbenchConfig
 import controllers.openapi.routes.OpenApi
 import controllers.swaggerUi.routes.SwaggerUi
+import io.aurora.utils.play.swagger.SwaggerPlugin
+import org.silkframework.config.{ConfigValue, DefaultConfig}
 import org.silkframework.openapi.OpenApiValidator
-import org.silkframework.runtime.validation.BadUserInputException
-import play.api.libs.json.Json
 import play.api.mvc.{Action, _}
 
 import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
-class SwaggerUi @Inject()(cc: ControllerComponents)(implicit executionContext: ExecutionContext) extends AbstractController(cc) {
+class SwaggerUi @Inject()(cc: ControllerComponents, swaggerPlugin: SwaggerPlugin)(implicit executionContext: ExecutionContext) extends AbstractController(cc) {
 
   def ui: Action[AnyContent] = Action { implicit request =>
     Ok(views.html.openapi.swaggerUi(
-      url = OpenApi.openApiJson.absoluteURL(),
-      validatorUrl = SwaggerUi.validator(None).absoluteURL()
+      url = OpenApi.openApiJson.absoluteURL(WorkbenchConfig().useHttps),
+      validatorUrl = SwaggerUi.validator(None).absoluteURL(WorkbenchConfig().useHttps),
+      config = swaggerUiConfigJson()
     ))
   }
 
-  def validator(url: Option[String]): Action[AnyContent] = Action {
-    url match {
-      case Some(url) =>
-        val result = OpenApiValidator.validate(url)
-        if(result.messages.isEmpty) {
-          Ok.sendResource("icons/valid.png")
-        } else {
-          Ok.sendResource("icons/invalid.png")
-        }
-      case None =>
-        throw new BadUserInputException("Parameter 'url' is missing.")
+  def validator(url: Option[String]): Action[AnyContent] = Action { implicit request =>
+    val result = OpenApiValidator.validate(swaggerPlugin, url)
+    if(result.messages.isEmpty) {
+      Ok.sendResource("icons/valid.png")
+    } else {
+      Ok.sendResource("icons/invalid.png")
     }
   }
 
   def validatorDebug(url: Option[String]): Action[AnyContent] = Action { implicit request =>
-    url match {
-      case Some(u) =>
-        Redirect(OpenApi.validate(u).absoluteURL())
-      case None =>
-        throw new BadUserInputException("Parameter 'url' is missing.")
-    }
+    Redirect(OpenApi.validate(url).absoluteURL(WorkbenchConfig().useHttps))
+  }
+
+  private val swaggerUiConfigJson: ConfigValue[String] = (config: Config) => {
+    val allPluginsConf = config.getObject("swagger.ui")
+    val json = allPluginsConf.render(ConfigRenderOptions.concise())
+    json
   }
 }

@@ -3,6 +3,7 @@ package controllers.transform
 import controllers.transform.autoCompletion._
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.entity.rdf.SparqlEntitySchema.specialPaths
 import org.silkframework.plugins.dataset.json.JsonDataset
 import org.silkframework.rule.TransformSpec
 import org.silkframework.serialization.json.JsonHelpers
@@ -25,9 +26,9 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
   private val jsonOps = Seq("/", "\\", "[")
 
   private val RDF_NS = "https://ns.eccenca.com/source"
-  private val allPersonRdfPaths = Seq("rdf:type", s"<$RDF_NS/address>", s"<$RDF_NS/age>", s"<$RDF_NS/name>")
+  private val allPersonRdfPaths = Seq("rdf:type", s"<$RDF_NS/address>", s"<$RDF_NS/age>", s"<$RDF_NS/name>", specialPaths.LANG, specialPaths.TEXT)
   private val allForwardRdfPaths = Seq("rdf:type", "<https://ns.eccenca.com/source/address>", "<https://ns.eccenca.com/source/age>",
-    "<https://ns.eccenca.com/source/city>", "<https://ns.eccenca.com/source/country>", "<https://ns.eccenca.com/source/name>")
+    "<https://ns.eccenca.com/source/city>", "<https://ns.eccenca.com/source/country>", "<https://ns.eccenca.com/source/name>", specialPaths.LANG, specialPaths.TEXT)
   private val allBackwardRdfPaths = Seq("\\rdf:type", "\\<https://ns.eccenca.com/source/address>")
   // Full serialization of paths
   private def fullPaths(paths: Seq[String]) = paths.map(p => if(p.startsWith("\\")) p else "/" + p)
@@ -176,10 +177,35 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     resultFirstProp.replacementResults.head.replacementInterval mustBe ReplacementInterval(0, input.length - secondPathOp.length)
   }
 
+  it should "suggest replacements for path expression in URI pattern" in {
+    val inputText = "urn:{department}"
+    for(cursorPosition <- Seq(inputText.length - 1, inputText.length - 2)) {
+      val uriPatternAutoCompletions = uriPatternAutoCompleteRequest(jsonTransform, inputText = "urn:{department}", cursorPosition = cursorPosition)
+      uriPatternAutoCompletions.inputString mustBe inputText
+      uriPatternAutoCompletions.cursorPosition mustBe cursorPosition
+      uriPatternAutoCompletions.replacementResults must have size(2)
+      val Seq(querySpecificResults, genericOperatorResults) = uriPatternAutoCompletions.replacementResults
+      querySpecificResults.extractedQuery mustBe "department"
+      querySpecificResults.replacementInterval mustBe ReplacementInterval("urn:{".length, "department".length)
+      querySpecificResults.replacements.map(_.value) mustBe allJsonPaths.filter(_.contains("department"))
+      genericOperatorResults.replacementInterval mustBe ReplacementInterval(cursorPosition, 0)
+    }
+  }
+
+  it should "suggest replacements for path expressions in URI patterns with an addition object path context" in {
+    val inputText = "urn:{nested}"
+    val objectPathContext = "department/tags"
+    val cursorPosition = inputText.length - 1
+    val uriPatternAutoCompletions = uriPatternAutoCompleteRequest(jsonTransform, inputText = inputText,
+      cursorPosition = cursorPosition, objectPath = Some(objectPathContext))
+    val Seq(querySpecificResults, genericOperatorResults) = uriPatternAutoCompletions.replacementResults
+    querySpecificResults.replacements.map(_.value) mustBe allJsonPaths.filter(_.contains("Nested")).map(_.drop(objectPathContext.length + 1))
+  }
+
   private def partialAutoCompleteResult(inputString: String = "",
                                         cursorPosition: Int = 0,
-                                        replacementResult: Seq[ReplacementResults]): PartialSourcePathAutoCompletionResponse = {
-    PartialSourcePathAutoCompletionResponse(inputString, cursorPosition, replacementResult)
+                                        replacementResult: Seq[ReplacementResults]): AutoSuggestAutoCompletionResponse = {
+    AutoSuggestAutoCompletionResponse(inputString, cursorPosition, replacementResult)
   }
 
   private def replacementResults(from: Int = 0,
@@ -192,7 +218,7 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     completions
   )
 
-  private def resultWithoutCompletions(result: PartialSourcePathAutoCompletionResponse): PartialSourcePathAutoCompletionResponse = {
+  private def resultWithoutCompletions(result: AutoSuggestAutoCompletionResponse): AutoSuggestAutoCompletionResponse = {
     result.copy(replacementResults = result.replacementResults.map(_.copy(replacements = null)))
   }
 
@@ -210,7 +236,7 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
 
   private def rdfSuggestions(inputText: String): Seq[String] = rdfSuggestions(inputText, inputText.length)
 
-  private def suggestedValues(result: PartialSourcePathAutoCompletionResponse): Seq[String] = {
+  private def suggestedValues(result: AutoSuggestAutoCompletionResponse): Seq[String] = {
     result.replacementResults.flatMap(_.replacements.map(_.value))
   }
 
@@ -218,9 +244,20 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
                                                    ruleId: String = "root",
                                                    inputText: String = "",
                                                    cursorPosition: Int = 0,
-                                                   maxSuggestions: Option[Int] = None): PartialSourcePathAutoCompletionResponse = {
+                                                   maxSuggestions: Option[Int] = None): AutoSuggestAutoCompletionResponse = {
     val partialUrl = controllers.transform.routes.AutoCompletionApi.partialSourcePath(projectId, transformId, ruleId).url
     val response = client.url(s"$baseUrl$partialUrl").post(Json.toJson(PartialSourcePathAutoCompletionRequest(inputText, cursorPosition, maxSuggestions)))
-    JsonHelpers.fromJsonValidated[PartialSourcePathAutoCompletionResponse](checkResponse(response).json)
+    JsonHelpers.fromJsonValidated[AutoSuggestAutoCompletionResponse](checkResponse(response).json)
+  }
+
+  private def uriPatternAutoCompleteRequest(transformId: String,
+                                            ruleId: String = "root",
+                                            inputText: String = "",
+                                            cursorPosition: Int = 0,
+                                            maxSuggestions: Option[Int] = None,
+                                            objectPath: Option[String] = None): AutoSuggestAutoCompletionResponse = {
+    val uriPatternUrl = controllers.transform.routes.AutoCompletionApi.uriPattern(projectId, transformId, ruleId).url
+    val response = client.url(s"$baseUrl$uriPatternUrl").post(Json.toJson(UriPatternAutoCompletionRequest(inputText, cursorPosition, maxSuggestions, objectPath)))
+    JsonHelpers.fromJsonValidated[AutoSuggestAutoCompletionResponse](checkResponse(response).json)
   }
 }

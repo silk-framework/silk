@@ -59,11 +59,8 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
         description = "If the specified project, task or rule has not been found."
       )
   ))
-  def sourcePaths(@Parameter(
-                    name = "project",
-                    description = "The project identifier",
+  def sourcePaths(@Parameter(name = "project", description = "The project identifier", in = ParameterIn.PATH,
                     required = true,
-                    in = ParameterIn.PATH,
                     schema = new Schema(implementation = classOf[String])
                   )
                   projectName: String,
@@ -86,7 +83,6 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                   @Parameter(
                     name = "term",
                     description = "The search term. Will also return non-exact matches (e.g., naMe == name) and matches from labels.",
-                    required = false,
                     in = ParameterIn.QUERY,
                     schema = new Schema(implementation = classOf[String], defaultValue = "")
                   )
@@ -94,7 +90,6 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                   @Parameter(
                     name = "maxResults",
                     description = "The maximum number of results.",
-                    required = false,
                     in = ParameterIn.QUERY,
                     schema = new Schema(implementation = classOf[Int], defaultValue = "30")
                   )
@@ -121,13 +116,16 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
     sourcePath.filter(op => op.isInstanceOf[ForwardOperator] || op.isInstanceOf[BackwardOperator])
   }
 
-  private def validateAutoCompletionRequest(autoCompletionRequest: PartialSourcePathAutoCompletionRequest): Unit = {
+  private def validateAutoCompletionRequest(autoCompletionRequest: AutoSuggestAutoCompletionRequest): Unit = {
     if(autoCompletionRequest.cursorPosition > autoCompletionRequest.inputString.length) {
-      throw BadUserInputException("Cursor position must not be greater than the length of input string!")
+      throw BadUserInputException("Cursor position must not be greater than the length of the input string!")
+    }
+    if(autoCompletionRequest.cursorPosition < 0) {
+      throw BadUserInputException("Cursor position must not be negative.")
     }
     autoCompletionRequest.maxSuggestions foreach { maxSuggestions =>
-      if(maxSuggestions < 0) {
-        throw BadUserInputException("Parameter 'maxSuggestions' must not be negative!")
+      if(maxSuggestions <= 0) {
+        throw BadUserInputException("Parameter 'maxSuggestions' must not be negative or zero!")
       }
     }
   }
@@ -142,7 +140,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
         content = Array(
           new Content(
             mediaType = "application/json",
-            schema = new Schema(implementation = classOf[PartialSourcePathAutoCompletionResponse]),
+            schema = new Schema(implementation = classOf[AutoSuggestAutoCompletionResponse]),
             examples = Array(new ExampleObject(AutoCompletionApiDoc.partialSourcePathsResponseExample))
           )
         )
@@ -161,72 +159,151 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
       )
     )
   )
-  def partialSourcePath(@Parameter(
-                          name = "project",
-                          description = "The project identifier",
+  def partialSourcePath(@Parameter(name = "project", description = "The project identifier", in = ParameterIn.PATH,
                           required = true,
-                          in = ParameterIn.PATH,
                           schema = new Schema(implementation = classOf[String])
                         )
                         projectId: String,
-                        @Parameter(
-                          name = "task",
-                          description = "The task identifier",
+                        @Parameter(name = "task", description = "The task identifier", in = ParameterIn.PATH,
                           required = true,
-                          in = ParameterIn.PATH,
                           schema = new Schema(implementation = classOf[String])
                         )
                         transformTaskId: String,
-                        @Parameter(
-                          name = "rule",
-                          description = "The rule identifier",
+                        @Parameter(name = "rule", description = "The rule identifier", in = ParameterIn.PATH,
                           required = true,
-                          in = ParameterIn.PATH,
                           schema = new Schema(implementation = classOf[String])
                         )
                         ruleId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>
     implicit userContext =>
-      val (project, transformTask) = projectAndTask[TransformSpec](projectId, transformTaskId)
-      implicit val prefixes: Prefixes = project.config.prefixes
+      val (_, transformTask) = projectAndTask[TransformSpec](projectId, transformTaskId)
       validateJson[PartialSourcePathAutoCompletionRequest] { autoCompletionRequest =>
         validateAutoCompletionRequest(autoCompletionRequest)
-        validatePartialSourcePathAutoCompletionRequest(autoCompletionRequest)
         withRule(transformTask, ruleId) { case (_, sourcePath) =>
-          val isRdfInput = TransformUtils.isRdfInput(transformTask)
-          val pathToReplace = PartialSourcePathAutocompletionHelper.pathToReplace(autoCompletionRequest, isRdfInput)
-          val dataSourceCharacteristicsOpt = TransformUtils.datasetCharacteristics(transformTask)
-          // compute relative paths
-          val pathBeforeReplacement = UntypedPath.partialParse(autoCompletionRequest.inputString.take(pathToReplace.from)).partialPath
-          val completeSubPath = sourcePath ++ pathBeforeReplacement.operators
-          val simpleSubPath = simplePath(completeSubPath)
-          val forwardOnlySubPath = forwardOnlyPath(simpleSubPath)
-          val allPaths = pathsCacheCompletions(transformTask, simpleSubPath.nonEmpty && isRdfInput)
-          val pathOpFilter = (autoCompletionRequest.isInBackwardOp, autoCompletionRequest.isInExplicitForwardOp) match {
-            case (true, false) => OpFilter.Backward
-            case (false, true) => OpFilter.Forward
-            case _ => OpFilter.None
-          }
-          val relativePaths = extractRelativePaths(simpleSubPath, forwardOnlySubPath, allPaths, isRdfInput, oneHopOnly = pathToReplace.insideFilter,
-              serializeFull = !pathToReplace.insideFilter && pathToReplace.from > 0, pathOpFilter = pathOpFilter
-            )
-          val dataSourceSpecialPathCompletions = PartialSourcePathAutocompletionHelper.specialPathCompletions(dataSourceCharacteristicsOpt, pathToReplace, pathOpFilter)
-          // Add known paths
-          val completions: Completions = relativePaths ++ dataSourceSpecialPathCompletions
-          // Return filtered result
-          val filteredResults = PartialSourcePathAutocompletionHelper.filterResults(autoCompletionRequest, pathToReplace, completions)
-          val operatorCompletions = PartialSourcePathAutocompletionHelper.operatorCompletions(dataSourceCharacteristicsOpt, pathToReplace, autoCompletionRequest)
-          partialAutoCompletionResult(autoCompletionRequest, pathToReplace, operatorCompletions, filteredResults)
+          val autoCompletionResponse = autoCompletePartialSourcePath(transformTask, autoCompletionRequest, sourcePath)
+          Ok(Json.toJson(autoCompletionResponse))
         }
       }
   }
 
-  private def partialAutoCompletionResult(autoCompletionRequest: PartialSourcePathAutoCompletionRequest,
+  // Returns an auto-completion result for a partial path request
+  private def autoCompletePartialSourcePath(transformTask: ProjectTask[TransformSpec],
+                                            autoCompletionRequest: PartialSourcePathAutoCompletionRequest,
+                                            sourcePath: List[PathOperator])
+                                           (implicit userContext: UserContext): AutoSuggestAutoCompletionResponse = {
+    implicit val prefixes: Prefixes = transformTask.project.config.prefixes
+    val isRdfInput = TransformUtils.isRdfInput(transformTask)
+    val pathToReplace = PartialSourcePathAutocompletionHelper.pathToReplace(autoCompletionRequest, isRdfInput)
+    val dataSourceCharacteristicsOpt = TransformUtils.datasetCharacteristics(transformTask)
+    // compute relative paths
+    val pathBeforeReplacement = UntypedPath.partialParse(autoCompletionRequest.inputString.take(pathToReplace.from)).partialPath
+    val completeSubPath = sourcePath ++ pathBeforeReplacement.operators
+    val simpleSubPath = simplePath(completeSubPath)
+    val forwardOnlySubPath = forwardOnlyPath(simpleSubPath)
+    val allPaths = pathsCacheCompletions(transformTask, simpleSubPath.nonEmpty && isRdfInput)
+    val pathOpFilter = (autoCompletionRequest.isInBackwardOp, autoCompletionRequest.isInExplicitForwardOp) match {
+      case (true, false) => OpFilter.Backward
+      case (false, true) => OpFilter.Forward
+      case _ => OpFilter.None
+    }
+    val relativePaths = extractRelativePaths(simpleSubPath, forwardOnlySubPath, allPaths, isRdfInput, oneHopOnly = pathToReplace.insideFilter,
+      serializeFull = !pathToReplace.insideFilter && pathToReplace.from > 0, pathOpFilter = pathOpFilter
+    )
+    val dataSourceSpecialPathCompletions = PartialSourcePathAutocompletionHelper.specialPathCompletions(dataSourceCharacteristicsOpt, pathToReplace, pathOpFilter)
+    // Add known paths
+    val completions: Completions = relativePaths ++ dataSourceSpecialPathCompletions
+    // Return filtered result
+    val filteredResults = PartialSourcePathAutocompletionHelper.filterResults(autoCompletionRequest, pathToReplace, completions)
+    val operatorCompletions = PartialSourcePathAutocompletionHelper.operatorCompletions(dataSourceCharacteristicsOpt, pathToReplace, autoCompletionRequest)
+    partialAutoCompletionResult(autoCompletionRequest, pathToReplace, operatorCompletions, filteredResults)
+  }
+
+  @Operation(
+    summary = "URI pattern auto-completion",
+    description = "Returns source path auto-completion suggestions when the cursor position is inside a path expression of a URI pattern. The results may only replace a part of the original input string.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = AutoCompletionApiDoc.partialSourcePathsResponseDescription,
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            schema = new Schema(implementation = classOf[AutoSuggestAutoCompletionResponse]),
+            examples = Array(new ExampleObject(AutoCompletionApiDoc.partialSourcePathsResponseExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, task or rule has not been found."
+      )
+    ))
+  @RequestBody(
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[UriPatternAutoCompletionRequest]),
+        examples = Array(new ExampleObject(AutoCompletionApiDoc.uriPatternAutoCompletionRequestExample))
+      )
+    )
+  )
+  def uriPattern(
+                  @Parameter(name = "project", description = "The project identifier", in = ParameterIn.PATH,
+                    required = true,
+                    schema = new Schema(implementation = classOf[String])
+                  )
+                  projectId: String,
+                  @Parameter(name = "task", description = "The task identifier", in = ParameterIn.PATH,
+                    required = true,
+                    schema = new Schema(implementation = classOf[String])
+                  )
+                  transformTaskId: String,
+                  @Parameter(name = "rule", description = "The rule identifier", in = ParameterIn.PATH,
+                    required = true,
+                    schema = new Schema(implementation = classOf[String])
+                  )
+                  ruleId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+      val (_, transformTask) = projectAndTask[TransformSpec](projectId, transformTaskId)
+      validateJson[UriPatternAutoCompletionRequest] { uriPatternAutoCompletionRequest =>
+        validateAutoCompletionRequest(uriPatternAutoCompletionRequest)
+        uriPatternAutoCompletionRequest.activePathPart match {
+          case Some(pathPart) =>
+            // Inside path expression, do path auto-completion
+            withRule(transformTask, ruleId) { case (_, sourcePath) =>
+              implicit val prefixes: Prefixes = transformTask.project.config.prefixes
+              val basePath = sourcePath ++ uriPatternAutoCompletionRequest.objectPath.map(path => UntypedPath.parse(path).operators).getOrElse(Nil)
+              val partialSourcePathAutoCompletionRequest = PartialSourcePathAutoCompletionRequest(
+                pathPart.serializedPath,
+                uriPatternAutoCompletionRequest.cursorPosition - pathPart.segmentPosition.originalStartIndex,
+                uriPatternAutoCompletionRequest.maxSuggestions
+              )
+              val autoCompletionResponse = autoCompletePartialSourcePath(transformTask, partialSourcePathAutoCompletionRequest,
+                basePath)
+              val offset = pathPart.segmentPosition.originalStartIndex
+              Ok(Json.toJson(autoCompletionResponse.copy(
+                inputString = uriPatternAutoCompletionRequest.inputString,
+                cursorPosition = uriPatternAutoCompletionRequest.cursorPosition,
+                // Fix replacement intervals
+                replacementResults = autoCompletionResponse.replacementResults.map(replacementResult =>
+                  replacementResult.copy(replacementInterval = replacementResult.replacementInterval.copy(from = replacementResult.replacementInterval.from + offset)))
+              )))
+            }
+          case None =>
+            Ok(Json.toJson(AutoSuggestAutoCompletionResponse(
+              uriPatternAutoCompletionRequest.inputString,
+              uriPatternAutoCompletionRequest.cursorPosition,
+              Seq.empty
+            )))
+        }
+      }
+  }
+
+  private def partialAutoCompletionResult(autoCompletionRequest: AutoSuggestAutoCompletionRequest,
                                           pathToReplace: PathToReplace,
                                           operatorCompletions: Option[ReplacementResults],
-                                          filteredResults: Completions): Result = {
+                                          filteredResults: Completions): AutoSuggestAutoCompletionResponse = {
     val from = pathToReplace.from
     val length = pathToReplace.length
-    val response = PartialSourcePathAutoCompletionResponse(
+    AutoSuggestAutoCompletionResponse(
       autoCompletionRequest.inputString,
       autoCompletionRequest.cursorPosition,
       replacementResults = Seq(
@@ -237,16 +314,6 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
         )
       ) ++ operatorCompletions
     )
-    Ok(Json.toJson(response))
-  }
-
-  private def validatePartialSourcePathAutoCompletionRequest(request: PartialSourcePathAutoCompletionRequest): Unit = {
-    var error = ""
-    if(request.cursorPosition < 0) error = "Cursor position must be >= 0"
-    if(request.maxSuggestions.nonEmpty && request.maxSuggestions.get <= 0) error = "Max suggestions must be larger zero"
-    if(error != "") {
-      throw BadUserInputException(error)
-    }
   }
 
   private def withRule[T](transformTask: ProjectTask[TransformSpec],
@@ -371,7 +438,6 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                            @Parameter(
                              name = "term",
                              description = "The search term. Will also return non-exact matches (e.g., naMe == name) and matches from labels.",
-                             required = false,
                              in = ParameterIn.QUERY,
                              schema = new Schema(implementation = classOf[String], defaultValue = "")
                            )
@@ -379,7 +445,6 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                            @Parameter(
                              name = "maxResults",
                              description = "The maximum number of results.",
-                             required = false,
                              in = ParameterIn.QUERY,
                              schema = new Schema(implementation = classOf[Int], defaultValue = "30")
                            )
@@ -387,7 +452,6 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                            @Parameter(
                              name = "fullUris",
                              description = "Return full URIs instead of prefixed ones.",
-                             required = false,
                              in = ParameterIn.QUERY,
                              schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
                            )
@@ -456,7 +520,6 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                              @Parameter(
                                name = "term",
                                description = "The search term. Will also return non-exact matches (e.g., naMe == name) and matches from labels.",
-                               required = false,
                                in = ParameterIn.QUERY,
                                schema = new Schema(implementation = classOf[String], defaultValue = "")
                              )
@@ -464,7 +527,6 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                              @Parameter(
                                name = "maxResults",
                                description = "The maximum number of results.",
-                               required = false,
                                in = ParameterIn.QUERY,
                                schema = new Schema(implementation = classOf[Int], defaultValue = "30")
                              )
@@ -536,7 +598,6 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                   @Parameter(
                     name = "term",
                     description = "The search term. Will also return non-exact matches (e.g., naMe == name) and matches from labels.",
-                    required = false,
                     in = ParameterIn.QUERY,
                     schema = new Schema(implementation = classOf[String], defaultValue = "")
                   )
@@ -544,7 +605,6 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                   @Parameter(
                     name = "maxResults",
                     description = "The maximum number of results.",
-                    required = false,
                     in = ParameterIn.QUERY,
                     schema = new Schema(implementation = classOf[Int], defaultValue = "30")
                   )
@@ -604,7 +664,6 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                  @Parameter(
                    name = "term",
                    description = "The search term. Will also return non-exact matches (e.g., naMe == name) and matches from labels.",
-                   required = false,
                    in = ParameterIn.QUERY,
                    schema = new Schema(implementation = classOf[String], defaultValue = "")
                  )
@@ -612,7 +671,6 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                  @Parameter(
                    name = "maxResults",
                    description = "The maximum number of results.",
-                   required = false,
                    in = ParameterIn.QUERY,
                    schema = new Schema(implementation = classOf[Int], defaultValue = "30")
                  )
@@ -752,5 +810,3 @@ object AutoCompletionApi {
   }
 
 }
-
-

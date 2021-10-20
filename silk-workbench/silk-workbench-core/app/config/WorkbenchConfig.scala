@@ -19,12 +19,14 @@ import scala.util.{Failure, Success, Try}
  *
  * @param title The application title.
  * @param logo The application logo. Must point to a file in the conf directory.
+ * @param logoSmall Small version of the application logo. Must point to a file in the conf directory.
  * @param welcome Welcome message. Must point to a file in the conf directory.
  * @param tabs The shown tabs.
  */
 case class WorkbenchConfig(title: String = "Silk Workbench",
                            version: String,
                            logo: Resource,
+                           logoSmall: Resource,
                            welcome: Resource,
                            about: Resource,
                            mdlStyle: Option[Resource],
@@ -148,6 +150,7 @@ object WorkbenchConfig {
       title = config.getOptional[String]("workbench.title").getOrElse("Silk Workbench"),
       version = version,
       logo = resourceLoader.get(config.getOptional[String]("workbench.logo").getOrElse("logo.png")),
+      logoSmall = resourceLoader.get(config.getOptional[String]("workbench.logoSmall").getOrElse("logo.png")),
       welcome = resourceLoader.get(config.getOptional[String]("workbench.welcome").getOrElse("welcome.html")),
       about = resourceLoader.get(config.getOptional[String]("workbench.about").getOrElse("about.html")),
       mdlStyle = config.getOptional[String]("workbench.mdlStyle").map(r=>resourceLoader.get(r)),
@@ -156,7 +159,8 @@ object WorkbenchConfig {
                config.getOptional[Boolean]("workbench.tabs.generateLinks").getOrElse(true),
                config.getOptional[Boolean]("workbench.tabs.learn").getOrElse(true),
                config.getOptional[Boolean]("workbench.tabs.referenceLinks").getOrElse(true),
-               config.getOptional[Boolean]("workbench.tabs.status").getOrElse(true)
+               config.getOptional[Boolean]("workbench.tabs.status").getOrElse(true),
+               config.getOptional[Boolean]("workbench.tabs.legacyWorkflowEditor").getOrElse(true)
              ),
       protocol = config.getOptional[String]("workbench.protocol").getOrElse("http"),
       loggedOut = resourceLoader.get("loggedOut.html")
@@ -187,5 +191,6 @@ object WorkbenchConfig {
                   generateLinks: Boolean = true,
                   learn: Boolean = true,
                   referenceLinks:Boolean = true,
-                  status: Boolean = true)
+                  status: Boolean = true,
+                  legacyWorkflowEditor: Boolean = true)
 }

@@ -11,15 +11,14 @@ import org.silkframework.runtime.activity.UserContext
   */
 class TableLinkSink(entitySink: EntitySink) extends LinkSink {
 
-  override def init()(implicit userContext: UserContext): Unit = {
-    implicit val prefixes = Prefixes.empty
+  override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
     entitySink.openTable(LINKS_TYPE, Seq(
       TypedProperty(SOURCE_COLUMN, ValueType.STRING, isBackwardProperty = false, isAttribute = true),
       TypedProperty(TARGET_COLUMN, ValueType.STRING, isBackwardProperty = false, isAttribute = true)), singleEntity = false)
   }
 
   override def writeLink(link: Link, predicateUri: String)
-                        (implicit userContext: UserContext){
+                        (implicit userContext: UserContext, prefixes: Prefixes){
     entitySink.writeEntity(link.source, Seq(Seq(link.source), Seq(link.target)))
   }
 

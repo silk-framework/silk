@@ -1,7 +1,7 @@
 package org.silkframework.util
 
 import java.io.{IOException, InputStream, OutputStream}
-import java.nio.ByteBuffer
+import java.nio.{Buffer, ByteBuffer}
 import java.nio.channels.{ReadableByteChannel, WritableByteChannel}
 import java.nio.channels.Channels
 
@@ -14,7 +14,8 @@ object StreamUtils {
   def fastChannelCopy(src: ReadableByteChannel, dest: WritableByteChannel): Unit = {
     val buffer = ByteBuffer.allocateDirect(16 * 1024)
     while (src.read(buffer) != -1) { // prepare the buffer to be drained
-      buffer.flip
+      // Casting to Buffer to avoid conflict mentioned here: https://stackoverflow.com/questions/61267495/exception-in-thread-main-java-lang-nosuchmethoderror-java-nio-bytebuffer-flip
+      buffer.asInstanceOf[Buffer].flip()
       // write to the channel, may block
       dest.write(buffer)
       // If partial transfer, shift remainder down
@@ -22,7 +23,8 @@ object StreamUtils {
       buffer.compact
     }
     // EOF will leave buffer in fill state
-    buffer.flip
+    // Casting to Buffer to avoid conflict mentioned here: https://stackoverflow.com/questions/61267495/exception-in-thread-main-java-lang-nosuchmethoderror-java-nio-bytebuffer-flip
+    buffer.asInstanceOf[Buffer].flip()
     // make sure the buffer is fully drained.
     while (buffer.hasRemaining) {
       dest.write(buffer)

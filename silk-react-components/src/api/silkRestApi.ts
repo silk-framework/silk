@@ -1,14 +1,15 @@
 import superagent from '@eccenca/superagent';
 import Promise from 'bluebird';
+import {IUriPatternsResult} from "./types";
 
 const CONTENT_TYPE_JSON = 'application/json';
 
-export interface IHttpResponse {
+export interface IHttpResponse<T> {
     status: number
-    data: any
+    data: T
 }
 
-export type HttpResponsePromise = Promise<IHttpResponse>
+export type HttpResponsePromise<T> = Promise<IHttpResponse<T>>
 
 /**
  * API for the DataIntegration REST API. This includes the pure REST calls returning the results as JSON without any
@@ -111,7 +112,7 @@ const silkApi = {
     },
 
     /** Retrieves information of the registered vocabularies of this transformation */
-    retrieveTransformVocabularyInfos: function(baseUrl: string, projectId: string, transformTaskId: string): HttpResponsePromise {
+    retrieveTransformVocabularyInfos: function(baseUrl: string, projectId: string, transformTaskId: string): HttpResponsePromise<any> {
         const requestUrl = this.vocabularyInfoEndpoint(baseUrl, projectId, transformTaskId)
 
         const promise = superagent
@@ -124,7 +125,7 @@ const silkApi = {
     /** Retrieves target properties that are valid for the specific transform rule as target property. */
     retrieveTransformTargetProperties: function(baseUrl: string, projectId: string, taskId: string, ruleId: string,
                                                 searchTerm?: string, maxResults: number = 30, vocabularies?: string[],
-                                                fullUris: boolean = true): HttpResponsePromise {
+                                                fullUris: boolean = true): HttpResponsePromise<any> {
         const requestUrl = this.transformTargetPropertyEndpoint(baseUrl, projectId, taskId, ruleId, searchTerm, maxResults, fullUris);
 
         const promise = superagent
@@ -162,13 +163,24 @@ const silkApi = {
         )
     },
 
+    /** Returns all known URI patterns for the given type URIs. */
+    uriPatternsByTypes: function(baseUrl: string, typeUris: string[]): HttpResponsePromise<IUriPatternsResult> {
+        const requestUrl = this.uriPatternsByTypesEndpoint(baseUrl)
+
+        return this.handleErrorCode(superagent
+            .post(requestUrl)
+            .accept(CONTENT_TYPE_JSON)
+            .set('Content-Type', CONTENT_TYPE_JSON)
+            .send({targetClassUris: typeUris}))
+    },
+
     /**
      * Handles the HTTP status. Calls reject for error codes != 2xx
      * @param superAgentPromise The promise from the superagent API
      * @param bodyHandler       function to convert the body or set the data field with a constant value.
      * @returns Promise
      */
-    handleErrorCode: (superAgentPromise): HttpResponsePromise => {
+    handleErrorCode: <T>(superAgentPromise): HttpResponsePromise<T> => {
         return new Promise((resolve, reject) => {
             superAgentPromise
                 .then(({ status, body }) => {
@@ -230,18 +242,34 @@ const silkApi = {
         return `${baseUrl}/transform/tasks/${projectId}/${transformTaskId}/targetVocabulary/vocabularies`;
     },
 
+    uriPatternsByTypesEndpoint: function(baseUrl) {
+        return `${baseUrl}/api/workspace/uriPatterns`
+    },
+
     transformTargetPropertyEndpoint: function(baseUrl: string, projectId: string, transformTaskId: string, ruleId: string,
                                               searchTerm: string, maxResults: number, fullUris: boolean): string {
         const encodedSearchTerm = searchTerm ? encodeURIComponent(searchTerm) : ""
         return `${baseUrl}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/targetProperties?term=${encodedSearchTerm}&maxResults=${maxResults}&fullUris=${fullUris}`
     },
 
-    getSuggestionsForAutoCompletion: function(baseUrl: string, projectId:string, transformTaskId:string, ruleId:string, inputString:string, cursorPosition: number): HttpResponsePromise {
+    getSuggestionsForAutoCompletion: function(baseUrl: string, projectId:string, transformTaskId:string, ruleId:string, inputString:string, cursorPosition: number): HttpResponsePromise<any> {
         const requestUrl = `${baseUrl}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/partialSourcePaths`;
         const promise = superagent
             .post(requestUrl)
             .set("Content-Type", CONTENT_TYPE_JSON)
             .send({ inputString, cursorPosition, maxSuggestions: 50 });
+        return this.handleErrorCode(promise)
+    },
+
+    getUriTemplateSuggestionsForAutoCompletion: function(baseUrl: string, projectId:string, transformTaskId:string, ruleId:string,
+                                                         inputString:string,
+                                                         cursorPosition: number,
+                                                         objectContextPath?: string): HttpResponsePromise<any> {
+        const requestUrl = `${baseUrl}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/uriPattern`;
+        const promise = superagent
+            .post(requestUrl)
+            .set("Content-Type", CONTENT_TYPE_JSON)
+            .send({ inputString, cursorPosition, maxSuggestions: 50, objectPath: objectContextPath });
         return this.handleErrorCode(promise)
     },
 
@@ -251,6 +279,15 @@ const silkApi = {
             .post(requestUrl)
             .set("Content-Type", CONTENT_TYPE_JSON)
             .send({ pathExpression });
+        return this.handleErrorCode(promise);
+    },
+
+    validateUriPattern: function(baseUrl:string, projectId:string, uriPattern: string) {
+        const requestUrl = `${baseUrl}/api/workspace/validation/uriPattern/${projectId}`;
+        const promise = superagent
+            .post(requestUrl)
+            .set("Content-Type", CONTENT_TYPE_JSON)
+            .send({ uriPattern });
         return this.handleErrorCode(promise);
     }
 

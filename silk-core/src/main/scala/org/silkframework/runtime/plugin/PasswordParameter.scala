@@ -1,33 +1,34 @@
 package org.silkframework.runtime.plugin
 
+import org.silkframework.execution.AbortExecutionException
+import org.silkframework.runtime.plugin.StringParameterType.PasswordParameterType
+import org.silkframework.runtime.plugin.StringParameterType.PasswordParameterType.key
+import org.silkframework.util.AesCrypto
+
 import java.security.InvalidKeyException
 import java.util.logging.Logger
-
 import javax.crypto.BadPaddingException
-import org.silkframework.execution.{AbortExecutionException, ExecutionException}
-import org.silkframework.runtime.plugin.StringParameterType.PasswordParameterType
-import org.silkframework.util.AesCrypto
 
 /**
   * A parameter that contains passwords and should be handled differently than plain text in various places, e.g. UI.
   *
-  * @param str The AES encrypted Base64-encoded password
+  * @param encryptedValue The AES encrypted Base64-encoded password
   */
-case class PasswordParameter(str: String) {
+case class PasswordParameter(encryptedValue: String) {
   private val log: Logger = Logger.getLogger(getClass.getName)
 
-  override def toString: String = if(str == null || str == "") {
-    str // Handle empty string as empty password and vice versa
+  override def toString: String = if(encryptedValue == null || encryptedValue == "") {
+    encryptedValue // Handle empty string as empty password and vice versa
   } else {
-    PasswordParameterType.PREAMBLE + str
+    PasswordParameterType.PREAMBLE + encryptedValue
   }
 
   def decryptedString: String = {
-    if(str == null || str == "") {
-      str // Handle empty string as empty password and vice versa
+    if(encryptedValue == null || encryptedValue == "") {
+      encryptedValue // Handle empty string as empty password and vice versa
     } else {
       try {
-        AesCrypto.decrypt(PasswordParameterType.key, str)
+        AesCrypto.decrypt(PasswordParameterType.key, encryptedValue)
       } catch {
         case ex: InvalidKeyException =>
           throw AbortExecutionException(s"The password parameter encryption key is invalid. Value for " +
@@ -43,5 +44,11 @@ case class PasswordParameter(str: String) {
 object PasswordParameter {
 
   def empty: PasswordParameter = PasswordParameter("")
+
+  def encrypt(str: String): PasswordParameter = {
+    PasswordParameter(
+      encryptedValue = AesCrypto.encrypt(key, str)
+    )
+  }
 
 }

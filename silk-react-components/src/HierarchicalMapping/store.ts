@@ -67,7 +67,8 @@ export function getDefinedApiDetails() {
 }
 
 const mapPeakResult = (returned) => {
-    if (_.get(returned, 'body.status.id') !== 'success') {
+    const resultStatus = _.get(returned, 'body.status.id')
+    if (resultStatus !== 'success' && resultStatus !== 'empty') {
         return {
             title: 'Could not load preview',
             detail: _.get(
@@ -518,7 +519,7 @@ export const getSuggestionsAsync = (data: ISuggestAsyncProps,
 };
 
 export const childExampleAsync = data => {
-    const {ruleType, rawRule, id} = data;
+    const {ruleType, rawRule, id, objectPath} = data;
     const getRule = (rawRule, type) => {
         switch (type) {
             case MAPPING_RULE_TYPE_DIRECT:
@@ -540,7 +541,7 @@ export const childExampleAsync = data => {
         return silkStore
             .request({
                 topic: 'transform.task.rule.child.peak',
-                data: {...getApiDetails(), id, rule},
+                data: {...getApiDetails(), id, rule, objectPath},
             })
             .map(mapPeakResult);
     }
@@ -719,7 +720,7 @@ export const prefixesAsync = () => {
 };
 
 
-const getSuggestion = (ruleId:string, inputString: string, cursorPosition:number): HttpResponsePromise => {
+const getValuePathSuggestion = (ruleId:string, inputString: string, cursorPosition:number): HttpResponsePromise<any> => {
     const { baseUrl, transformTask, project } = getDefinedApiDetails();
     return silkApi.getSuggestionsForAutoCompletion(
         baseUrl,
@@ -732,14 +733,35 @@ const getSuggestion = (ruleId:string, inputString: string, cursorPosition:number
 }
 
 // Fetches (partial) auto-complete suggestions for the value path
-export const fetchSuggestions = (ruleId: string | undefined, inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
+export const fetchValuePathSuggestions = (ruleId: string | undefined, inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
     return new Promise((resolve, reject) => {
         if(!ruleId) {
             resolve(undefined)
         } else {
-            getSuggestion(ruleId, inputString, cursorPosition)
+            getValuePathSuggestion(ruleId, inputString, cursorPosition)
                 .then((suggestions) => resolve(suggestions?.data))
                 .catch((err) => reject(err))
+        }
+    })
+}
+
+// Fetches (partial) auto-complete suggestions for a path expression inside a URI pattern
+export const fetchUriPatternAutoCompletions = (ruleId: string | undefined, inputString: string, cursorPosition: number, objectContextPath?: string): Promise<IPartialAutoCompleteResult | undefined> => {
+    return new Promise((resolve, reject) => {
+        if(!ruleId) {
+            resolve(undefined)
+        } else {
+            const {baseUrl, transformTask, project} = getDefinedApiDetails();
+            silkApi.getUriTemplateSuggestionsForAutoCompletion(
+                baseUrl,
+                project,
+                transformTask,
+                ruleId,
+                inputString,
+                cursorPosition,
+                objectContextPath
+            ).then((suggestions) => resolve(suggestions?.data))
+                .catch((err) => reject(err));
         }
     })
 }
@@ -749,10 +771,29 @@ const pathValidation = (inputString:string) => {
     return silkApi.validatePathExpression(baseUrl,project,inputString)
 }
 
+const uriPatternValidation = (inputString:string) => {
+    const {baseUrl, project} = getDefinedApiDetails()
+    return silkApi.validateUriPattern(baseUrl,project,inputString)
+}
+
 // Checks if the value path syntax is valid
 export const checkValuePathValidity = (inputString): Promise<IValidationResult | undefined> => {
     return new Promise((resolve, reject) => {
         pathValidation(inputString)
+            .then((response) => {
+                const payload = response?.data
+                resolve(payload)
+            })
+            .catch((err) => {
+                reject(err)
+            })
+    })
+}
+
+// Checks if the value path syntax is valid
+export const checkUriPatternValidity = (uriPattern: string): Promise<IValidationResult | undefined> => {
+    return new Promise((resolve, reject) => {
+        uriPatternValidation(uriPattern)
             .then((response) => {
                 const payload = response?.data
                 resolve(payload)

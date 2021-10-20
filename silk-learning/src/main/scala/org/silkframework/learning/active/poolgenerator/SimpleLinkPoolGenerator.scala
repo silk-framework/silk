@@ -14,7 +14,7 @@
 
 package org.silkframework.learning.active.poolgenerator
 
-import org.silkframework.config.PlainTask
+import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.entity.paths.TypedPath
@@ -37,15 +37,17 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
   override def generator(inputs: DPair[DataSource],
                          linkSpec: LinkSpec,
                          paths: Seq[DPair[TypedPath]],
-                         randomSeed: Long): Activity[UnlabeledLinkPool] = {
+                         randomSeed: Long)
+                        (implicit prefixes: Prefixes): Activity[UnlabeledLinkPool] = {
     new LinkPoolGenerator(inputs, linkSpec, paths)
   }
 
   def runtimeConfig = RuntimeLinkingConfig(partitionSize = 100, useFileCache = false, generateLinksWithEntities = true)
 
   private class LinkPoolGenerator(inputs: DPair[DataSource],
-                          linkSpec: LinkSpec,
-                          paths: Seq[DPair[TypedPath]]) extends Activity[UnlabeledLinkPool] {
+                                  linkSpec: LinkSpec,
+                                  paths: Seq[DPair[TypedPath]])
+                                 (implicit prefixes: Prefixes) extends Activity[UnlabeledLinkPool] {
 
     override val initialValue = Some(UnlabeledLinkPool.empty)
 

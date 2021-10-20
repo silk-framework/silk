@@ -1,7 +1,7 @@
 package controllers.workspace
 
 import controllers.core.{AutoCompletableTestPlugin, TestAutoCompletionProvider}
-import controllers.workspaceApi.search.SearchApiModel.{DESCRIPTION, FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult, Facets, ID, KeywordFacetSetting, LABEL, PLUGIN_ID, PLUGIN_LABEL, PROJECT_ID, PROJECT_LABEL, SortBy, SortOrder, SortableProperty}
+import controllers.workspaceApi.search.SearchApiModel.{DESCRIPTION, FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult, Facets, ID, KeywordFacetSetting, LABEL, PARAMETERS, PLUGIN_ID, PLUGIN_LABEL, PROJECT_ID, PROJECT_LABEL, SortBy, SortOrder, SortableProperty}
 import controllers.workspaceApi.search._
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
@@ -319,6 +319,20 @@ class SearchApiIntegrationTest extends FlatSpec
     pluginParameterAutoCompletion(ParameterAutoCompletionRequest("datasetSelectionParameter", "typeUri", projectId,
       dependsOnParameterValues = Some(Seq("jsonXYZ")))) mustBe
         JsArray(Seq("", "top", "top/middle").map(v => Json.obj("value" -> v)))
+  }
+
+  it should "support returning task parameter values when requested" in {
+    val resultWithoutParameters = facetedSearchRequest(
+      FacetedSearchRequest(textQuery = Some(s"xyz dataset"))
+    )._1.results
+    resultWithoutParameters must have size 1
+    (resultWithoutParameters.head \ PARAMETERS).asOpt[JsObject] must not be defined
+    val resultWithParameters = facetedSearchRequest(
+      FacetedSearchRequest(textQuery = Some(s"xyz dataset"), addTaskParameters = Some(true))
+    )._1.results
+    val parameters = (resultWithParameters.head \ PARAMETERS).asOpt[JsObject]
+    parameters mustBe defined
+    (parameters.get \ "file").as[String] mustBe "xyz.json"
   }
 
   private def resourceNames(defaultResults: IndexedSeq[collection.Map[String, JsValue]]) = {

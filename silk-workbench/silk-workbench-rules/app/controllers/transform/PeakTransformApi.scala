@@ -1,7 +1,7 @@
 package controllers.transform
 
 import controllers.core.UserContextActions
-import controllers.transform.PeakTransformApi.{_}
+import controllers.transform.PeakTransformApi._
 import controllers.transform.doc.PeakApiDoc
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils._
@@ -16,7 +16,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpointEntityTable}
 import org.silkframework.entity._
-import org.silkframework.entity.paths.Path
+import org.silkframework.entity.paths.{Path, UntypedPath}
 import org.silkframework.plugins.dataset.rdf.executors.LocalSparqlSelectExecutor
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.rule.TransformSpec.RuleSchemata
@@ -26,7 +26,7 @@ import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{Project, ProjectTask}
-import play.api.libs.json.{Json, Writes}
+import play.api.libs.json.{Format, Json, Writes}
 import play.api.mvc._
 
 import javax.inject.Inject
@@ -36,11 +36,7 @@ import scala.util.control.NonFatal
 @Tag(name = "Transform")
 class PeakTransformApi @Inject() () extends InjectedController with UserContextActions {
 
-  implicit private val peakStatusWrites: Writes[PeakStatus] = Json.writes[PeakStatus]
-  implicit private val peakResultWrites: Writes[PeakResult] = Json.writes[PeakResult]
-  implicit private val peakResultsWrites: Writes[PeakResults] = Json.writes[PeakResults]
-
-  /**
+    /**
     * Get sample source and transformed values for a named rule.
     */
   @Operation(
@@ -136,55 +132,55 @@ class PeakTransformApi @Inject() () extends InjectedController with UserContextA
       )
     )
   )
-  def peakChildRule(@Parameter(
-                      name = "project",
-                      description = "The project identifier",
+  def peakChildRule(@Parameter(name = "project", description = "The project identifier",
                       required = true,
                       in = ParameterIn.PATH,
                       schema = new Schema(implementation = classOf[String])
                     )
                     projectName: String,
-                    @Parameter(
-                      name = "task",
-                      description = "The task identifier",
+                    @Parameter(name = "task", description = "The task identifier",
                       required = true,
                       in = ParameterIn.PATH,
                       schema = new Schema(implementation = classOf[String])
                     )
                     taskName: String,
-                    @Parameter(
-                      name = "rule",
-                      description = "The rule identifier",
+                    @Parameter(name = "rule", description = "The rule identifier",
                       required = true,
                       in = ParameterIn.PATH,
                       schema = new Schema(implementation = classOf[String])
                     )
                     ruleName: String,
-                    @Parameter(
-                      name = "limit",
-                      description = "The maximum number of transformed example entities.",
+                    @Parameter(name = "limit", description = "The maximum number of transformed example entities.",
                       required = false,
                       in = ParameterIn.QUERY,
                       schema = new Schema(implementation = classOf[Int], defaultValue = TRANSFORMATION_PREVIEW_LIMIT_STR)
                     )
                     limit: Int = TRANSFORMATION_PREVIEW_LIMIT,
-                    @Parameter(
-                      name = "maxTryEntities",
-                      description = "The maximum number of example entities to try to transform before giving up.",
+                    @Parameter(name = "maxTryEntities", description = "The maximum number of example entities to try to transform before giving up.",
                       required = false,
                       in = ParameterIn.QUERY,
                       schema = new Schema(implementation = classOf[Int], defaultValue = MAX_TRY_ENTITIES_DEFAULT_STR)
                     )
-                    maxTryEntities: Int = MAX_TRY_ENTITIES_DEFAULT): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                    maxTryEntities: Int = MAX_TRY_ENTITIES_DEFAULT,
+                    @Parameter(name = "objectPath", description = "An additional object path this auto-completion should be the context of.", required = false,
+                      in = ParameterIn.QUERY, schema = new Schema(implementation = classOf[String]))
+                    objectPath: Option[String]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val (project, task) = projectAndTask(projectName, taskName)
     val transformSpec = task.data
     val parentRule = transformSpec.oneRuleEntitySchemaById(ruleName).get
     val inputTaskId = transformSpec.selection.inputId
-    implicit val readContext: ReadContext = ReadContext(prefixes = project.config.prefixes, resources = project.resources)
+    implicit val prefixes: Prefixes = project.config.prefixes
+    implicit val readContext: ReadContext = ReadContext(prefixes = prefixes, resources = project.resources)
 
     deserializeCompileTime[TransformRule]() { rule =>
       val updatedParentRule = parentRule.transformRule.withChildren(Seq(rule)).asInstanceOf[TransformRule]
-      val ruleSchemata = RuleSchemata.create(updatedParentRule, transformSpec.selection, parentRule.inputSchema.subPath).copy(transformRule = rule)
+      val initialRuleSchemata = RuleSchemata.create(updatedParentRule, transformSpec.selection, parentRule.inputSchema.subPath).copy(transformRule = rule)
+      val ruleSchemata = if(objectPath.isDefined && objectPath.get.nonEmpty) {
+        val inputSchema = initialRuleSchemata.inputSchema.copy(subPath = UntypedPath(initialRuleSchemata.inputSchema.subPath.operators ++ UntypedPath.parse(objectPath.get).operators))
+        RuleSchemata(initialRuleSchemata.transformRule, inputSchema, initialRuleSchemata.outputSchema)
+      } else {
+        initialRuleSchemata
+      }
       peakRule(project, inputTaskId, ruleSchemata, limit, maxTryEntities)
     }
   }
@@ -343,12 +339,17 @@ object PeakTransformApi {
     }
     (tryCounter, errorCounter, errorMessage, resultBuffer)
   }
+}
 
-  // Peak API
-  case class PeakResults(sourcePaths: Option[Seq[Seq[String]]], results: Option[Seq[PeakResult]], status: PeakStatus)
+// Peak API
+case class PeakResults(sourcePaths: Option[Seq[Seq[String]]], results: Option[Seq[PeakResult]], status: PeakStatus)
 
-  case class PeakStatus(id: String, msg: String)
+case class PeakStatus(id: String, msg: String)
 
-  case class PeakResult(sourceValues: Seq[Seq[String]], transformedValues: Seq[String])
+case class PeakResult(sourceValues: Seq[Seq[String]], transformedValues: Seq[String])
 
+object PeakResults {
+  implicit val peakStatusWrites: Format[PeakStatus] = Json.format[PeakStatus]
+  implicit val peakResultWrites: Format[PeakResult] = Json.format[PeakResult]
+  implicit val peakResultsWrites: Format[PeakResults] = Json.format[PeakResults]
 }
