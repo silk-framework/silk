@@ -24,7 +24,10 @@ trait Activity[T] extends HasValue {
    * By default, the name is generated from the name of the implementing class.
    * Can be overridden in implementing classes.
    */
-  def name: String = getClass.getSimpleName.toSentenceCase
+  def name: String = {
+    println("Class: " + getClass.getSimpleName)
+    getClass.getSimpleName.toSentenceCase
+  }
 
   /**
    * Executes this activity.
@@ -112,7 +115,6 @@ object Activity {
       }
     }
   }
-
 }
 
 
