@@ -44,6 +44,7 @@ object ExecutionReportSerializers {
           warnings = arrayValue(value, WARNINGS).value.map(_.as[String]),
           error = stringValueOption(value, ERROR),
           operation = stringValueOption(value, OPERATION),
+          operationDesc = stringValueOption(value, OPERATION_DESC).getOrElse(ExecutionReport.DEFAULT_OPERATION_DESC),
           isDone = booleanValueOption(value, IS_DONE).getOrElse(true),
           entityCount = numberValueOption(value, ENTITY_COUNT).map(_.intValue).getOrElse(0)
         )
@@ -54,6 +55,7 @@ object ExecutionReportSerializers {
       Json.obj(
         LABEL -> value.task.taskLabel(),
         OPERATION -> value.operation,
+        OPERATION_DESC -> value.operationDesc,
         TASK -> GenericTaskJsonFormat.write(value.task),
         SUMMARY -> value.summary.map(serializeValue),
         WARNINGS -> value.warnings,
@@ -211,6 +213,7 @@ object ExecutionReportSerializers {
   object Keys {
 
     final val OPERATION = "operation"
+    final val OPERATION_DESC = "operationDesc"
     final val TASK = "task"
     final val LABEL = "label"
     final val SUMMARY = "summary"

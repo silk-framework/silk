@@ -62,3 +62,9 @@ trait ExecutionReport {
   def entityCount: Int
 
 }
+
+object ExecutionReport {
+
+  final val DEFAULT_OPERATION_DESC = "entities processed"
+
+}

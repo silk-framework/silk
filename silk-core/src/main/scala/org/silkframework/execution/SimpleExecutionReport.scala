@@ -12,7 +12,7 @@ case class SimpleExecutionReport(task: Task[TaskSpec],
                                  isDone: Boolean,
                                  entityCount: Int,
                                  override val operation: Option[String] = None,
-                                 override val operationDesc: String = "entities processed") extends ExecutionReport {
+                                 override val operationDesc: String = ExecutionReport.DEFAULT_OPERATION_DESC) extends ExecutionReport {
 
   /**
     * Returns a done version of this report.
