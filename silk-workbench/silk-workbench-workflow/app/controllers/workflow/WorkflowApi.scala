@@ -185,11 +185,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
         headers = Array(
           new Header(
             name = "Location",
-            schema =
-              new Schema(
-                implementation = classOf[String],
-                example = "/workflow/workflows/projectName/workflowName/execution/ExecuteWorkflowWithPayload14"
-              )
+            schema = new Schema(example = "/workflow/workflows/projectName/workflowName/execution/ExecuteWorkflowWithPayload14")
           )
         ),
         content = Array(
