@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject,
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import org.silkframework.execution.SimpleExecutionReport
 import org.silkframework.runtime.activity.{Observable, UserContext}
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.ActivitySerializers.ActivityExecutionResultJsonFormat
@@ -182,7 +183,20 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
                                 nodeId: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
     implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
     val workflowReport = retrieveCurrentReport(projectId, taskId).apply().report
-    val taskReports = workflowReport.retrieveReports(nodeId)
+    var taskReports = workflowReport.retrieveReports(nodeId)
+    if(taskReports.isEmpty) {
+      val task = WorkspaceFactory().workspace.project(projectId).task[Workflow](taskId)
+      taskReports = Seq(
+        SimpleExecutionReport(
+          task = task,
+          summary = Seq.empty,
+          warnings = Seq(s"No execution report available for task '${task.taskLabel()}' yet."),
+          error = None,
+          isDone = false,
+          entityCount = 0
+        )
+      )
+    }
     Ok(JsArray(taskReports.map(ExecutionReportJsonFormat.write)))
   }
 

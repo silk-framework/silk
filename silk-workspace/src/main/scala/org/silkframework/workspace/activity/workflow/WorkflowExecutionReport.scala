@@ -25,14 +25,10 @@ case class WorkflowExecutionReport(task: Task[TaskSpec], taskReports: IndexedSeq
 
   /**
     * Retrieves all task reports for a given workflow node id.
+    * Will be empty if there are no reports found.
     */
   def retrieveReports(nodeId: Identifier): Seq[ExecutionReport] = {
-    val reports = taskReports.filter(_.nodeId == nodeId).map(_.report)
-    if(reports.nonEmpty) {
-      reports
-    } else {
-      throw new NoSuchElementException(s"No report for node '$nodeId' found.")
-    }
+    taskReports.filter(_.nodeId == nodeId).map(_.report)
   }
 
   /**
