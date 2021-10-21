@@ -98,8 +98,8 @@ private class ActivityExecution[T](activity: Activity[T],
         this.cancelTimestamp = Some(Instant.now)
         status.update(Status.Canceling(status().progress))
         children().foreach(_.cancel())
-        activity.cancelExecution()
         ThreadLock.synchronized {
+          activity.cancelExecution()
           runningThread foreach { thread =>
             thread.interrupt() // To interrupt an activity that might be blocking on something else, e.g. slow network connection
           }
@@ -164,9 +164,9 @@ private class ActivityExecution[T](activity: Activity[T],
         case ex: Throwable =>
           StatusLock.synchronized {
             status.update(Status.Finished(success = false, System.currentTimeMillis - startTime, cancelled = activity.wasCancelled(), Some(ex)))
-          }
-          if(!activity.wasCancelled()) {
-            throw ex
+            if(!activity.wasCancelled()) {
+              throw ex
+            }
           }
       } finally {
         if(children().nonEmpty) {

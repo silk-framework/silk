@@ -12,6 +12,7 @@ import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.workspace.activity.{GlobalWorkspaceActivityFactory, ProjectActivityFactory, TaskActivityFactory, WorkspaceActivity}
 import org.silkframework.workspace.{Project, ProjectConfig, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
+import play.api.routing.Router
 
 class ActivityApiTest extends PlaySpec with IntegrationTestTrait with BeforeAndAfterAll {
 
@@ -120,7 +121,7 @@ class ActivityApiTest extends PlaySpec with IntegrationTestTrait with BeforeAndA
 
   override def workspaceProviderId: String = "inMemory"
 
-  protected override def routes = Some(classOf[testWorkspace.Routes])
+  protected override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkspace.Routes])
 }
 
 case class MessageTask(message: String) extends CustomTask {
@@ -131,15 +132,17 @@ case class MessageTask(message: String) extends CustomTask {
 case class SimpleActivityFactory(sleepTime: Int = 0) extends TaskActivityFactory[MessageTask, Activity[String]] {
 
   def apply(task: ProjectTask[MessageTask]): Activity[String] = {
-    new Activity[String] {
-      override def run(context: ActivityContext[String])
-                      (implicit userContext: UserContext): Unit = {
-        // Sleep a bit to make sure that multiple activities have to be run at the same time.
-        if(sleepTime > 0) {
-          Thread.sleep(sleepTime)
-        }
-        context.value() = task.data.message
+    SimpleActivity(task)
+  }
+
+  case class SimpleActivity(task: ProjectTask[MessageTask]) extends Activity[String] {
+    override def run(context: ActivityContext[String])
+                    (implicit userContext: UserContext): Unit = {
+      // Sleep a bit to make sure that multiple activities have to be run at the same time.
+      if(sleepTime > 0) {
+        Thread.sleep(sleepTime)
       }
+      context.value() = task.data.message
     }
   }
 }
@@ -149,15 +152,17 @@ case class MultiActivityFactory(message: String = "", sleepTime: Int = 0) extend
   override def isSingleton: Boolean = false
 
   def apply(task: ProjectTask[MessageTask]): Activity[String] = {
-    new Activity[String] {
-      override def run(context: ActivityContext[String])
-                      (implicit userContext: UserContext): Unit = {
-        // Sleep a bit to make sure that multiple activities have to be run at the same time.
-        if(sleepTime > 0) {
-          Thread.sleep(sleepTime)
-        }
-        context.value() = message
+    MultiActivity()
+  }
+
+  case class MultiActivity() extends Activity[String] {
+    override def run(context: ActivityContext[String])
+                    (implicit userContext: UserContext): Unit = {
+      // Sleep a bit to make sure that multiple activities have to be run at the same time.
+      if(sleepTime > 0) {
+        Thread.sleep(sleepTime)
       }
+      context.value() = message
     }
   }
 }
