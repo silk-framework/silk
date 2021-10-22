@@ -186,7 +186,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                                 info: t("common.words.required"),
                                 htmlFor: LABEL,
                             }}
-                            hasStateDanger={errorMessage("Label", errors.label) ? true : false}
+                            hasStateDanger={!!errorMessage("Label", errors.label)}
                             messageText={errorMessage("Label", errors.label)}
                         >
                             <TextField
@@ -194,6 +194,12 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                                 name={LABEL}
                                 onChange={handleChange(LABEL)}
                                 intent={errors.label ? Intent.DANGER : Intent.NONE}
+                                onKeyDown={(e) => {
+                                    if (e.keyCode === 13) {
+                                        e.preventDefault();
+                                        return false;
+                                    }
+                                }}
                             />
                         </FieldItem>
                         <FieldItem
