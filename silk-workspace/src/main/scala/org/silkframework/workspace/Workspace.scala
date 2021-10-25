@@ -100,7 +100,6 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   /** Load the projects of a user into the workspace. At the moment all users have access to all projects, so this is only,
     * executed once. */
   private def loadUserProjects()(implicit userContext: UserContext): Unit = {
-    throw ServiceUnavailableException("TODO: remove")
     // FIXME: Extension for access control should happen here.
     if (!initialized) { // Avoid lock
       if(loadProjectsLock.tryLock(waitForWorkspaceInitialization, TimeUnit.MILLISECONDS)) {
