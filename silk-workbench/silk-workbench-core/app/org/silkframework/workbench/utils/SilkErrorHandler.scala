@@ -1,18 +1,17 @@
 package org.silkframework.workbench.utils
 
-import java.util.logging.{Level, Logger}
-import javax.inject.Provider
-
-import org.silkframework.runtime.validation.{BadUserInputException, ForbiddenException, NotAuthorizedException, RequestException}
+import org.silkframework.runtime.validation._
 import org.silkframework.workbench.utils.SilkErrorHandler.prefersHtml
 import play.api.PlayException.ExceptionSource
 import play.api._
 import play.api.http.Status._
 import play.api.http.{DefaultHttpErrorHandler, MimeTypes}
-import play.api.mvc.Results.{BadRequest, Forbidden, InternalServerError, NotFound}
+import play.api.mvc.Results.{BadRequest, Forbidden, InternalServerError, NotFound, ServiceUnavailable}
 import play.api.mvc.{AcceptExtractors, RequestHeader, Result, Results}
 import play.api.routing.Router
 
+import java.util.logging.{Level, Logger}
+import javax.inject.Provider
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionException, Future}
 
@@ -106,7 +105,24 @@ class SilkErrorHandler (env: Environment,
     * @param exception The exception.
     */
   override protected def onDevServerError(request: RequestHeader, exception: UsefulException): Future[Result] = {
-    Future.successful(InternalServerError(views.html.serverError(exception)(request.session)))
+    errorPage(request, exception)
+  }
+
+  // Return the error page
+  private def errorPage(request: RequestHeader, exception: UsefulException) = {
+    exception.cause match {
+      case _: ServiceUnavailableException =>
+        Future.successful(ServiceUnavailable(
+          views.html.serverError(
+            exception, "info",
+            showExceptionId = false,
+            showDetails = false,
+            title = Some("Service temporary unavailable"),
+            details = Option(exception.cause.getMessage)
+          )(request.session)))
+      case _ =>
+        Future.successful(InternalServerError(views.html.serverError(exception, "danger")(request.session)))
+    }
   }
 
   /**
@@ -116,7 +132,7 @@ class SilkErrorHandler (env: Environment,
     * @param exception The exception.
     */
   override protected def onProdServerError(request: RequestHeader, exception: UsefulException): Future[Result] = {
-    Future.successful(InternalServerError(views.html.serverError(exception)(request.session)))
+    errorPage(request, exception)
   }
 
   private def handleError(requestPath: String, ex: Throwable): Result = {
