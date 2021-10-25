@@ -10,6 +10,7 @@ import { IProjectTask } from "@ducks/shared/typings";
 import { IDetailedArtefactItem } from "@ducks/common/typings";
 import { commonSlice } from "@ducks/common/commonSlice";
 import { useTranslation } from "react-i18next";
+import useErrorHandler from "../../../hooks/useErrorHandler";
 
 interface IProps {
     projectId: string;
@@ -26,6 +27,7 @@ export interface ITaskSchemaAndData {
  */
 export function TaskConfig(props: IProps) {
     const dispatch = useDispatch();
+    const { registerError } = useErrorHandler();
     const [loading, setLoading] = useState(false);
     const [labelledTaskData, setLabelledTaskData] = useState<ITaskSchemaAndData | undefined>(undefined);
     const { isOpen } = useSelector(commonSel.artefactModalSelector);
@@ -61,7 +63,7 @@ export function TaskConfig(props: IProps) {
                 })
             );
         } catch (e) {
-            console.log(e);
+            registerError("TaskConfig-openConfigModal", "Cannot open edit dialog.", e);
         } finally {
             setLoading(false);
         }
@@ -76,6 +78,8 @@ export function TaskConfig(props: IProps) {
                 const taskDescription = await artefactProperties(taskData.data.type);
                 setLabelledTaskData({ taskData, taskDescription });
             }
+        } catch (ex) {
+            registerError("TaskConfig-initPreviewData", "Failed to load config data.", ex);
         } finally {
             setLoading(false);
         }

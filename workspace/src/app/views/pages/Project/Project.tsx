@@ -31,6 +31,7 @@ import ConfigurationWidget from "./ProjectNamespacePrefixManagementWidget";
 import WarningWidget from "./WarningWidget";
 import FileWidget from "./FileWidget";
 import NotFound from "../NotFound";
+import { diErrorMessage } from "@ducks/error/typings";
 
 const Project = () => {
     const dispatch = useDispatch();
@@ -120,6 +121,7 @@ const Project = () => {
                                 {!data.length && error.detail ? (
                                     <Notification
                                         danger={true}
+                                        warning={error?.status === 503}
                                         actions={
                                             <Button
                                                 text={t("common.action.retry", "Retry")}
@@ -129,8 +131,14 @@ const Project = () => {
                                             />
                                         }
                                     >
-                                        <h3>{t("http.error.fetchNotResult", "Error, cannot fetch results.")}</h3>
-                                        <p>{error.detail}</p>
+                                        <h3>
+                                            {error?.status !== 503
+                                                ? t("http.error.fetchNotResult", "Error, cannot fetch results.")
+                                                : t("common.messages.temporarilyUnavailableMessage", {
+                                                      detailMessage: diErrorMessage(error),
+                                                  })}
+                                        </h3>
+                                        {error?.status !== 503 && <p>{error.detail}</p>}
                                     </Notification>
                                 ) : (
                                     <SearchList />

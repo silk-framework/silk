@@ -16,12 +16,10 @@ import {
     FieldItem,
     IconButton,
     Label,
-    Notification,
     PropertyName,
     PropertyValue,
     PropertyValueList,
     PropertyValuePair,
-    Spacing,
     TextArea,
     TextField,
 } from "@gui-elements/index";
@@ -31,8 +29,8 @@ import { commonSel } from "@ducks/common";
 import { routerOp } from "@ducks/router";
 import { sharedOp } from "@ducks/shared";
 import { Loading } from "../Loading/Loading";
-import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 import { StringPreviewContentBlobToggler } from "@gui-elements/src/cmem/ContentBlobToggler/StringPreviewContentBlobToggler";
+import useErrorHandler from "../../../hooks/useErrorHandler";
 
 interface IProps {
     projectId?: string;
@@ -44,6 +42,7 @@ export function Metadata(props: IProps) {
     const { control, handleSubmit } = useForm();
     const location = useLocation();
     const dispatch = useDispatch();
+    const { registerError } = useErrorHandler();
 
     const _projectId = useSelector(commonSel.currentProjectIdSelector);
     const _taskId = useSelector(commonSel.currentTaskIdSelector);
@@ -55,10 +54,9 @@ export function Metadata(props: IProps) {
     const [data, setData] = useState({} as IMetadata);
     const [editData, setEditData] = useState({} as IMetadata);
     const [isEditing, setIsEditing] = useState(false);
-    const [getRequestError, setGetRequestError] = useState<ErrorResponse | null>(null);
-    const [updateRequestError, setUpdateRequestError] = useState<ErrorResponse | null>(null);
     const [t] = useTranslation();
 
+    // Form errors
     const [errors, setErrors] = useState({
         form: {
             label: false,
@@ -98,7 +96,6 @@ export function Metadata(props: IProps) {
     };
 
     const getTaskMetadata = async (taskId?: string, projectId?: string) => {
-        setGetRequestError(null);
         try {
             const result = await letLoading(() => {
                 return sharedOp.getTaskMetadataAsync(taskId, projectId);
@@ -106,15 +103,12 @@ export function Metadata(props: IProps) {
             setData(result);
             return result;
         } catch (error) {
-            if (error.isFetchError) {
-                setGetRequestError((error as FetchError).errorResponse);
-            }
+            registerError("Metadata-getTaskMetaData", "Fetching meta data has failed.", error);
             return {};
         }
     };
 
     const onSubmit = async (inputs: IMetadataUpdatePayload) => {
-        setUpdateRequestError(null);
         if (!inputs.label) {
             return setErrors({
                 ...errors,
@@ -145,21 +139,7 @@ export function Metadata(props: IProps) {
 
             toggleEdit();
         } catch (ex) {
-            if (ex.isFetchError) {
-                if (ex.isHttpError) {
-                    setUpdateRequestError(
-                        new ErrorResponse(
-                            t("Metadata.updateFailed", "Updating meta data has failed"),
-                            ex.errorResponse.detail,
-                            ex.httpStatus
-                        )
-                    );
-                } else {
-                    setUpdateRequestError(ex.errorResponse);
-                }
-            } else {
-                console.warn("Meta data update request has failed: " + ex);
-            }
+            registerError("Metadata-submit", "Updating meta data has failed.", ex);
         }
     };
 
@@ -259,18 +239,6 @@ export function Metadata(props: IProps) {
                         </PropertyValuePair>
                     )}
                 </PropertyValueList>
-            )}
-            {getRequestError && (
-                <>
-                    <Spacing />
-                    <Notification message={getRequestError.asString()} danger />
-                </>
-            )}
-            {updateRequestError && (
-                <>
-                    <Spacing />
-                    <Notification message={updateRequestError.asString()} danger />
-                </>
             )}
         </CardContent>
     );

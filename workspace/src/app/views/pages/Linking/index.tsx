@@ -1,11 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useParams } from "react-router";
-import { useSelector } from "react-redux";
 import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@gui-elements/index";
-import { Intent } from "@gui-elements/blueprint/constants";
-import { datasetSel } from "@ducks/dataset";
 import { DATA_TYPES } from "../../../constants";
-import { AppToaster } from "../../../services/toaster";
 import Metadata from "../../shared/Metadata";
 import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
 import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
@@ -15,19 +11,8 @@ import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactMana
 import NotFound from "../NotFound";
 
 export default function () {
-    const error = useSelector(datasetSel.errorSelector);
     const { taskId, projectId } = useParams();
     const [notFound, setNotFound] = useState(false);
-
-    useEffect(() => {
-        if (error?.detail) {
-            AppToaster.show({
-                message: error.detail,
-                intent: Intent.DANGER,
-                timeout: 0,
-            });
-        }
-    }, [error.detail]);
 
     const { pageHeader, updateActionsMenu } = usePageHeader({
         type: DATA_TYPES.LINKING,

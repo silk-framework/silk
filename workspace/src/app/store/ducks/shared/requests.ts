@@ -18,24 +18,16 @@ import {
     IMetadataUpdatePayload,
     IPreviewResponse,
     IProjectMetadataResponse,
+    IProjectResource,
     IProjectTask,
     IRelatedItemsResponse,
     IRequestAutocompletePayload,
     IResourceListPayload,
-    IProjectResource,
     IResourcePreview,
     ITaskMetadataResponse,
 } from "@ducks/shared/typings";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { ITypeProfilingDetails } from "../../../views/shared/profiling/PropertyProfilingOverview/PropertyProfilingOverview";
-
-/**
- * @private
- * @param error: HttpError
- */
-const handleError = (error) => {
-    return error.errorResponse;
-};
 
 /**
  * Default Endpoint to get autocompletion values
@@ -86,15 +78,11 @@ export const requestTaskData = async (
         queryParams.withLabels = true;
     }
 
-    try {
-        const { data } = await fetch({
-            url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}`),
-            body: queryParams,
-        });
-        return data;
-    } catch (e) {
-        throw handleError(e);
-    }
+    const { data } = await fetch({
+        url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}`),
+        body: queryParams,
+    });
+    return data;
 };
 
 /**
@@ -141,19 +129,14 @@ export const requestRelatedItems = async (
     projectId: string,
     taskId: string,
     textQuery: string = ""
-): Promise<IRelatedItemsResponse> => {
+): Promise<FetchResponse<IRelatedItemsResponse>> => {
     const query = qs.stringify(textQuery);
-    try {
-        const { data } = await fetch({
-            url: workspaceApi(`/projects/${projectId}/tasks/${taskId}/relatedItems${query}`),
-            body: {
-                textQuery: textQuery,
-            },
-        });
-        return data;
-    } catch (e) {
-        throw handleError(e);
-    }
+    return fetch({
+        url: workspaceApi(`/projects/${projectId}/tasks/${taskId}/relatedItems${query}`),
+        body: {
+            textQuery: textQuery,
+        },
+    });
 };
 
 export const requestDatasetTypes = async (

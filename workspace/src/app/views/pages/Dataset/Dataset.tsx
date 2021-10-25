@@ -3,13 +3,10 @@ import { useSelector } from "react-redux";
 import { useParams } from "react-router";
 import { useTranslation } from "react-i18next";
 import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@gui-elements/index";
-import { Intent } from "@gui-elements/blueprint/constants";
 import { commonSel } from "@ducks/common";
 import { requestTaskData } from "@ducks/shared/requests";
-import { datasetSel } from "@ducks/dataset";
 import { IProjectTask } from "@ducks/shared/typings";
 import { DATA_TYPES } from "../../../constants";
-import { AppToaster } from "../../../services/toaster";
 import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
 import { DataPreview } from "../../shared/DataPreview/DataPreview";
 import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
@@ -19,6 +16,7 @@ import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
 import Metadata from "../../shared/Metadata";
 import NotFound from "../NotFound";
+import useErrorHandler from "../../../hooks/useErrorHandler";
 
 // The dataset plugins that should show the data preview automatically without user interaction.
 const automaticallyPreviewedDatasets = ["json", "xml", "csv"];
@@ -26,22 +24,13 @@ const automaticallyPreviewedDatasets = ["json", "xml", "csv"];
 const noDataPreviewDatasets = ["variableDataset"];
 
 export function Dataset() {
-    const error = useSelector(datasetSel.errorSelector);
     const { taskId, projectId } = useParams();
+    const { registerError } = useErrorHandler();
     const [t] = useTranslation();
     const [mainViewLoading, setMainViewLoading] = useState(true);
     const [taskData, setTaskData] = useState<IProjectTask | null>(null);
+    const [notFound, setNotFound] = useState(false);
     const { dmBaseUrl } = useSelector(commonSel.initialSettingsSelector);
-
-    useEffect(() => {
-        if (error?.detail) {
-            AppToaster.show({
-                message: error.detail,
-                intent: Intent.DANGER,
-                timeout: 0,
-            });
-        }
-    }, [error.detail]);
 
     const fetchDatasetTaskData = async () => {
         setMainViewLoading(true);
@@ -50,6 +39,8 @@ export function Dataset() {
             if (projectTask?.data?.type) {
                 setTaskData(projectTask);
             }
+        } catch (ex) {
+            registerError("Dataset-fetchDatasetTaskData", "Error fetching dataset information.", ex);
         } finally {
             setMainViewLoading(false);
         }
@@ -97,7 +88,9 @@ export function Dataset() {
         }
     }, [pluginId]);
 
-    return mainViewLoading || !!taskData ? (
+    return notFound ? (
+        <NotFound />
+    ) : (
         <WorkspaceContent className="eccapp-di__dataset">
             {pageHeader}
             <ArtefactManagementOptions
@@ -105,6 +98,7 @@ export function Dataset() {
                 taskId={taskId}
                 itemType={DATA_TYPES.DATASET}
                 updateActionsMenu={updateActionsMenu}
+                notFoundCallback={setNotFound}
             />
             <WorkspaceMain>
                 <Section>
@@ -126,7 +120,5 @@ export function Dataset() {
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>
-    ) : (
-        <NotFound />
     );
 }

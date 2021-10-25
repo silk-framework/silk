@@ -4,7 +4,7 @@ import { DIErrorFormat } from "./typings";
 
 type RegisterErrorActionType = {
     payload: {
-        newError: Pick<DIErrorFormat, "id" | "message" | "cause">;
+        newError: Pick<DIErrorFormat, "id" | "message" | "cause" | "alternativeIntent">;
     };
 };
 
