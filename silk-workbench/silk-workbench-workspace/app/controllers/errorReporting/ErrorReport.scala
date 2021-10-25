@@ -32,7 +32,7 @@ object ErrorReport {
       * @param taskNr If rendered in an overall task report, this is the index of the failed task.
       */
     def asMarkdown(taskNr: Option[Int]): String = {
-      val sb = new StringBuffer()
+      val sb = new StringBuilder()
       taskNr match {
         case Some(nr) => sb.append(s"## Task $nr: $readableTaskName")
         case None => sb.append("## Details")
@@ -74,7 +74,7 @@ object ErrorReport {
 
     // Render the stacktrace as markdown
     private def asMarkdown(stacktrace: Stacktrace): String = {
-      val sb = new StringBuffer()
+      val sb = new StringBuilder()
       def renderStacktrace(stacktrace: Stacktrace): Unit = {
         for(line <- stacktrace.lines) {
           sb.append(intend("at " + line, 4)).append("\n")
