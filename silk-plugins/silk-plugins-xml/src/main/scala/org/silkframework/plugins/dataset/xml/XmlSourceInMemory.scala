@@ -11,6 +11,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
+import org.xml.sax.SAXParseException
 
 import scala.xml.XML
 
@@ -58,6 +59,8 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
     GenericEntityTable(limitedEntities, entitySchema, underlyingTask)
   }
 
+  private case class XMLReadException(msg: String, cause: Throwable) extends RuntimeException(msg, cause)
+
   /**
     * Returns the XML nodes found at the base path and
     *
@@ -73,10 +76,15 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
     }
     val pathStr = basePath + typeUriPart
     // Load XML
-    val xml = file.read(XML.load)
-    val rootTraverser = XmlTraverser(xml)
-    // Move to base path
-    rootTraverser.evaluatePath(UntypedPath.parse(pathStr))
+    try {
+      val xml = file.read(XML.load)
+      val rootTraverser = XmlTraverser(xml)
+      // Move to base path
+      rootTraverser.evaluatePath(UntypedPath.parse(pathStr))
+    } catch {
+      case ex: SAXParseException =>
+        throw XMLReadException(s"Error occurred while reading XML file '${file.name}': " + ex.getMessage, ex)
+    }
   }
 
   private class Entities(xml: Seq[XmlTraverser], entityDesc: EntitySchema) extends Traversable[Entity] {
