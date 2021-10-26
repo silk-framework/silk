@@ -10,6 +10,7 @@ import { IProjectTask } from "@ducks/shared/typings";
 import { IDetailedArtefactItem } from "@ducks/common/typings";
 import { commonSlice } from "@ducks/common/commonSlice";
 import { useTranslation } from "react-i18next";
+import useErrorHandler from "../../../hooks/useErrorHandler";
 
 interface IProps {
     projectId: string;
@@ -25,6 +26,7 @@ export interface ITaskSchemaAndData {
  * Task config widget that shows config options and allows to change them.
  */
 export function TaskConfig(props: IProps) {
+    const { registerError } = useErrorHandler();
     const dispatch = useDispatch();
     const [loading, setLoading] = useState(false);
     const [labelledTaskData, setLabelledTaskData] = useState<ITaskSchemaAndData | undefined>(undefined);
@@ -61,7 +63,7 @@ export function TaskConfig(props: IProps) {
                 })
             );
         } catch (e) {
-            console.log(e);
+            registerError("taskConfig-openConfigModal", "Could not fetch configuration details.", e);
         } finally {
             setLoading(false);
         }
@@ -76,6 +78,8 @@ export function TaskConfig(props: IProps) {
                 const taskDescription = await artefactProperties(taskData.data.type);
                 setLabelledTaskData({ taskData, taskDescription });
             }
+        } catch (e) {
+            registerError("taskConfig-openConfigModal", "Could not fetch configuration details.", e);
         } finally {
             setLoading(false);
         }

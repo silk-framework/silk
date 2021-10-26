@@ -320,7 +320,7 @@ export const mockedAxiosError = (httpStatus?: number, errorData?: any): AxiosErr
         message: "Mocked Axios error",
         config: {},
         response: {
-            status: httpStatus ?? 200,
+            status: httpStatus ?? 500,
             data: errorData,
             statusText: "error status",
             headers: {},

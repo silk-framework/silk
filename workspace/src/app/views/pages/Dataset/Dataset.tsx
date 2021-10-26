@@ -19,6 +19,7 @@ import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
 import Metadata from "../../shared/Metadata";
 import NotFound from "../NotFound";
+import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
 
 // The dataset plugins that should show the data preview automatically without user interaction.
 const automaticallyPreviewedDatasets = ["json", "xml", "csv"];
@@ -123,6 +124,8 @@ export function Dataset() {
                     <RelatedItems />
                     <Spacing />
                     <TaskConfig projectId={projectId} taskId={taskId} />
+                    <Spacing />
+                    <TaskActivityOverview projectId={projectId} taskId={taskId} />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>

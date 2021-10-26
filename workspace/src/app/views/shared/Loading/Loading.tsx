@@ -1,22 +1,25 @@
 import React, { memo } from "react";
 import { Spinner } from "@gui-elements/index";
+import { SpinnerPosition, SpinnerSize, SpinnerStroke } from "@gui-elements/src/components/Spinner/Spinner";
 
 interface IProps {
     className?: string;
     color?: string;
     description?: string; // currently unsupported (TODO)
-    position?: string;
-    size?: string;
-    stroke?: string;
+    position?: SpinnerPosition;
+    size?: SpinnerSize;
+    stroke?: SpinnerStroke;
     posGlobal?: boolean;
     posLocal?: boolean;
     posInline?: boolean;
+    delay?: number;
 }
 
 export const Loading = memo<IProps>(function LoadingIndicator({
     posGlobal = false,
     posLocal = true,
     posInline = false,
+    delay,
     ...otherProps
 }) {
     let forwardedProps = {};
@@ -30,6 +33,6 @@ export const Loading = memo<IProps>(function LoadingIndicator({
         default:
             forwardedProps = { position: "local" };
     }
-
-    return <Spinner {...forwardedProps} {...otherProps} />;
+    const showDelay = delay ?? (posGlobal ? 0 : 1000);
+    return <Spinner {...forwardedProps} {...otherProps} delay={showDelay} />;
 });

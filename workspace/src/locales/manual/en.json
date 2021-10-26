@@ -244,6 +244,16 @@
         "sorter": {
             "recentlyViewed": "Recently viewed"
         },
+        "units": {
+            "second": "second",
+            "seconds": "seconds",
+            "minute": "minute",
+            "minutes": "minutes",
+            "hour": "hour",
+            "hours": "hours",
+            "day": "day",
+            "days": "days"
+        },
         "words": {
             "advancedOptions": "Advanced options",
             "all": "All",
@@ -427,6 +437,66 @@
                 "none": "No vocabularies",
                 "all": "All installed vocabularies"
             }
+        },
+        "TaskActivityOverview": {
+            "activities": {
+                "ExecuteDefaultWorkflow": {
+                    "title": "Execute workflow"
+                },
+                "ExecuteLinking": {
+                    "title": "Execute linking"
+                },
+                "ExecuteScheduler": {
+                    "title": "Execute scheduler"
+                },
+                "ExecuteTransform": {
+                    "title": "Execute transformation"
+                },
+                "GlobalVocabularyCache": {
+                    "title": "Primary vocabulary cache"
+                },
+                "LinkingPathsCache": {
+                    "title": "Source path cache"
+                },
+                "ReferenceEntitiesCache": {
+                    "title": "Reference entities cache"
+                },
+                "TransformPathsCache": {
+                    "title": "Source paths cache"
+                },
+                "TypesCache": {
+                    "title": "Types cache"
+                },
+                "VocabularyCache": {
+                    "title": "Target vocabulary cache"
+                }
+            },
+            "cacheGroup": {
+                "title": "Caches",
+                "cacheAgePrefix": "Updated ",
+                "cacheAgeSuffix": " ago",
+                "cacheAgePrefixIndividual": "updated "
+            },
+            "activityControl": {
+                "startActivity": "Start activity",
+                "reloadActivity": "Restart activity",
+                "stopActivity": "Stop activity",
+                "showErrorReport": "Show error report",
+                "viewCachedData": "View cached data in new tab"
+            },
+            "errorMessages": {
+                "actions": {
+                    "start": "Starting activity {{activityName}} has failed.",
+                    "cancel": "Stopping activity {{activityName}} has failed.",
+                    "restart": "Restarting activity {{activityName}} has failed."
+                },
+                "errorReport": {
+                    "fetchReport": "Fetching activity execution error report has failed."
+                },
+                "fetchActivityInfo": "Fetching activities list has failed."
+            },
+            "reloadAllCaches": "Reload all caches",
+            "title": "Activity overview"
         },
         "TaskConfigWidget": {
             "loading": "Loading update dialog...",

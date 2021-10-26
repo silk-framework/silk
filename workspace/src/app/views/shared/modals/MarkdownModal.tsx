@@ -3,7 +3,15 @@ import { Markdown } from "@gui-elements/cmem";
 import { Button, SimpleDialog, HtmlContentBlock } from "@gui-elements/index";
 import { useTranslation } from "react-i18next";
 
-const MarkdownModal = ({ onDiscard, isOpen, markdown, title = "Error report" }) => {
+interface IProps {
+    onDiscard: () => any;
+    isOpen: boolean;
+    markdown: string;
+    title?: string;
+}
+
+/** Render markdown in a modal. */
+const MarkdownModal = ({ onDiscard, isOpen, markdown, title = "Error report" }: IProps) => {
     const [t] = useTranslation();
 
     const handleDownload = () => {

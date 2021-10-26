@@ -305,9 +305,9 @@
     "@babel/types" "^7.8.3"
 
 "@babel/helper-validator-identifier@^7.14.5", "@babel/helper-validator-identifier@^7.14.9":
-  version "7.15.7"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@babel/helper-validator-identifier/-/helper-validator-identifier-7.15.7.tgz#220df993bfe904a4a6b02ab4f3385a5ebf6e2389"
-  integrity sha1-Ig35k7/pBKSmsCq08zhaXr9uI4k=
+  version "7.14.9"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@babel/helper-validator-identifier/-/helper-validator-identifier-7.14.9.tgz#6654d171b2024f6d8ee151bf2509699919131d48"
+  integrity sha1-ZlTRcbICT22O4VG/JQlpmRkTHUg=
 
 "@babel/helper-validator-identifier@^7.9.0", "@babel/helper-validator-identifier@^7.9.5":
   version "7.9.5"
@@ -1161,12 +1161,18 @@
     "@babel/helper-validator-identifier" "^7.14.9"
     to-fast-properties "^2.0.0"
 
-"@blueprintjs/core@^3.36.0":
-  version "3.36.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@blueprintjs/core/-/core-3.36.0.tgz#0a271092050c17b84f29426594708180a1b5401a"
-  integrity sha1-CicQkgUMF7hPKUJllHCBgKG1QBo=
+"@blueprintjs/colors@^3.0.0":
+  version "3.0.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@blueprintjs/colors/-/colors-3.0.0.tgz#f121dc1bc24cc367668a425911fa8ff52e87014a"
+  integrity sha1-8SHcG8JMw2dmikJZEfqP9S6HAUo=
+
+"@blueprintjs/core@^3.49.1":
+  version "3.49.1"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@blueprintjs/core/-/core-3.49.1.tgz#6824ddb11ce2858f0b009c8ae0c774547e3edb0a"
+  integrity sha1-aCTdsRzihY8LAJyK4Md0VH4+2wo=
   dependencies:
-    "@blueprintjs/icons" "^3.23.0"
+    "@blueprintjs/colors" "^3.0.0"
+    "@blueprintjs/icons" "^3.29.0"
     "@types/dom4" "^2.0.1"
     classnames "^2.2"
     dom4 "^2.1.5"
@@ -1178,20 +1184,20 @@
     resize-observer-polyfill "^1.5.1"
     tslib "~1.13.0"
 
-"@blueprintjs/icons@^3.23.0":
-  version "3.23.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@blueprintjs/icons/-/icons-3.23.0.tgz#4cfe0db4363971ac5d8a0a59590a6efc16115dc6"
-  integrity sha1-TP4NtDY5caxdigpZWQpu/BYRXcY=
+"@blueprintjs/icons@^3.29.0":
+  version "3.29.0"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@blueprintjs/icons/-/icons-3.29.0.tgz#2e786c6264a1783f2df9423749236189a84c436e"
+  integrity sha1-LnhsYmSheD8t+UI3SSNhiahMQ24=
   dependencies:
     classnames "^2.2"
     tslib "~1.13.0"
 
-"@blueprintjs/select@^3.15.0":
-  version "3.15.0"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@blueprintjs/select/-/select-3.15.0.tgz#6307017df896fbd7b523fc08e41097b475be0831"
-  integrity sha1-YwcBffiW+9e1I/wI5BCXtHW+CDE=
+"@blueprintjs/select@^3.18.1":
+  version "3.18.1"
+  resolved "https://artifactory.eccenca.com/api/npm/npm/@blueprintjs/select/-/select-3.18.1.tgz#655219326c09c80adf2711c0dd17191034c92248"
+  integrity sha1-ZVIZMmwJyArfJxHA3RcZEDTJIkg=
   dependencies:
-    "@blueprintjs/core" "^3.36.0"
+    "@blueprintjs/core" "^3.49.1"
     classnames "^2.2"
     tslib "~1.13.0"
 
@@ -1764,13 +1770,6 @@
   version "2.5.4"
   resolved "https://artifactory.eccenca.com/api/npm/npm/@types/core-js/-/core-js-2.5.4.tgz#fc42ebde7d9cfa7c5f2668f117449b02348e41fd"
   integrity sha1-/ELr3n2c+nxfJmjxF0SbAjSOQf0=
-
-"@types/create-hash@^1.2.2":
-  version "1.2.2"
-  resolved "https://artifactory.eccenca.com/api/npm/npm/@types/create-hash/-/create-hash-1.2.2.tgz#e87247083df8478f6b83655592bde0d709028235"
-  integrity sha1-6HJHCD34R49rg2VVkr3g1wkCgjU=
-  dependencies:
-    "@types/node" "*"
 
 "@types/d3-array@^2":
   version "2.12.2"
