@@ -140,12 +140,18 @@ export default function SearchItem({
                             {item.description &&
                                 wrapTooltip(
                                     item.description.length > 80,
-                                    <Markdown reHypePlugins={[highlightSearchWordsPluginFactory(searchValue)]}>
+                                    <Markdown
+                                        reHypePlugins={
+                                            searchValue ? [highlightSearchWordsPluginFactory(searchValue)] : undefined
+                                        }
+                                    >
                                         {item.description}
                                     </Markdown>,
                                     <Markdown
                                         allowedElements={["a", "mark"]}
-                                        reHypePlugins={[highlightSearchWordsPluginFactory(searchValue)]}
+                                        reHypePlugins={
+                                            searchValue ? [highlightSearchWordsPluginFactory(searchValue)] : undefined
+                                        }
                                     >
                                         {item.description}
                                     </Markdown>
