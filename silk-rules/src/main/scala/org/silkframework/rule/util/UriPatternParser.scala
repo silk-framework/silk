@@ -48,15 +48,15 @@ object UriPatternParser {
     // The segments of the URI pattern
     val pathSegments = new ArrayBuffer[UriPatternSegment]
     // The current string of the next path segment
-    var currentValue = new StringBuffer()
+    var currentValue = new StringBuilder()
     // Keep track of the current index
     var index = 0
     def indexRange: (Int, Int) = (index, index + 1)
 
     def addConstantPart(): Unit = {
-      if (currentValue.length() > 0) {
-        pathSegments.append(ConstantPart(currentValue.toString, SegmentPosition(index - currentValue.length(), index)))
-        currentValue = new StringBuffer()
+      if (currentValue.nonEmpty) {
+        pathSegments.append(ConstantPart(currentValue.toString, SegmentPosition(index - currentValue.length, index)))
+        currentValue = new StringBuilder()
       }
     }
     def handleStartPathExpression(): Unit = {
@@ -65,8 +65,8 @@ object UriPatternParser {
     }
 
     def handleEndPathExpression(): Unit = {
-      pathSegments.append(PathPart(currentValue.toString, SegmentPosition(index - currentValue.length(), index)))
-      currentValue = new StringBuffer()
+      pathSegments.append(PathPart(currentValue.toString, SegmentPosition(index - currentValue.length, index)))
+      currentValue = new StringBuilder()
       pathPositionStatus = None
     }
 

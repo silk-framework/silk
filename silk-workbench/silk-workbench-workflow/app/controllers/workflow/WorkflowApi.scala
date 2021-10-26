@@ -4,6 +4,7 @@ import controllers.core.UserContextActions
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils
 import controllers.workflow.doc.WorkflowApiDoc
+import controllers.workspace.activityApi.StartActivityResponse
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.headers.Header
@@ -238,8 +239,9 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
 
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
     val id = activity.start(workflowConfiguration)
+    val result = StartActivityResponse(activity.name, id)
 
-    Created(Json.obj(("activityId", id.toString)))
+    Created(Json.toJson(result))
         .withHeaders(LOCATION -> controllers.workflow.routes.WorkflowApi.removeVariableWorkflowExecution(projectName, workflowTaskName, id).url)
   }
 

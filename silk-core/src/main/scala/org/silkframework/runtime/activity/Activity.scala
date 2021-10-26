@@ -97,7 +97,10 @@ object Activity {
         currentActivity.get.run(context)
         currentActivity = None
       }
-      override def cancelExecution()(implicit userContext: UserContext): Unit = currentActivity.foreach(_.cancelExecution())
+      override def cancelExecution()(implicit userContext: UserContext): Unit = {
+        currentActivity.foreach(_.cancelExecution())
+        super.cancelExecution()
+      }
 
       override def resetCancelFlag()(implicit userContext: UserContext): Unit = {
         currentActivity.foreach(_.resetCancelFlag())
@@ -109,7 +112,6 @@ object Activity {
       }
     }
   }
-
 }
 
 

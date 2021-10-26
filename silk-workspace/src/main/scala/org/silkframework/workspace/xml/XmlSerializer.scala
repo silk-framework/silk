@@ -109,15 +109,15 @@ private abstract class XmlSerializer[TaskType <: TaskSpec : ClassTag] {
             Try(XmlSerialization.fromXml[Task[TaskType]](elem)) match {
               case Success(task) => Left(task)
               case Failure(ex) =>
-                Right(TaskLoadingError(taskId, ex, label = metaData.map(_.label), description = metaData.flatMap(_.description)))
+                Right(TaskLoadingError(None, taskId, ex, label = metaData.map(_.label), description = metaData.flatMap(_.description)))
             }
           case None =>
-            Right(TaskLoadingError(alternativeTaskId.getOrElse(s"No ID! Resource:$resourceName"),
+            Right(TaskLoadingError(None, alternativeTaskId.getOrElse(s"No ID! Resource:$resourceName"),
               new RuntimeException(s"Could not find 'id' attribute in XML from file $resourceName${alternativeTaskId.map(n => s" for task '$n'").getOrElse("")}.")))
         }
 
       case Failure(ex) =>
-        Right(TaskLoadingError(alternativeTaskId.getOrElse(s"No ID! Resource:$resourceName"), ex))
+        Right(TaskLoadingError(None, alternativeTaskId.getOrElse(s"No ID! Resource:$resourceName"), ex))
     }
   }
 }

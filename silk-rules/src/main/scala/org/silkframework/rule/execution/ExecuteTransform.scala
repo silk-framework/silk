@@ -9,6 +9,7 @@ import org.silkframework.rule.execution.local.TransformedEntities
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 
 import scala.util.control.Breaks._
+import scala.util.control.NonFatal
 
 /**
   * Executes a set of transformation rules.
@@ -61,7 +62,12 @@ class ExecuteTransform(task: Task[TransformSpec],
     entitySink.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get), singleEntity)
     errorEntitySink.foreach(_.openTable(rule.outputSchema.typeUri, rule.outputSchema.typedPaths.map(_.property.get) :+ ErrorOutputWriter.errorProperty, singleEntity))
 
-    val entityTable = dataSource.retrieve(rule.inputSchema)
+    val entityTable = try {
+      dataSource.retrieve(rule.inputSchema)
+    } catch {
+      case NonFatal(ex) =>
+        throw new RuntimeException("Failed to retrieve input entities from data source.", ex)
+    }
     val transformedEntities = new TransformedEntities(task, entityTable.entities, rule.transformRule.ruleLabel(), rule.transformRule.rules, rule.outputSchema,
       isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, context = context)
     var count = 0
