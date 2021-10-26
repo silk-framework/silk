@@ -1,6 +1,7 @@
 package org.silkframework.workbench.utils
 
 import org.silkframework.runtime.validation.{RequestException, ValidationIssue}
+import org.silkframework.util.StringUtils.toStringUtils
 import play.api.libs.json.{JsNull, JsString, JsValue, Json}
 import play.api.mvc.Result
 import play.api.mvc.Results.Status
@@ -46,8 +47,8 @@ object ErrorResult {
       case requestEx: RequestException =>
         format(requestEx.errorTitle, requestEx.getMessage, cause)
       case _ =>
-        val errorTitle = ex.getClass.getSimpleName.replace("Exception", "")
-        val readableTitle = errorTitle.flatMap(c => if (c.isUpper) " " + c.toLower else c.toString).trim.capitalize
+        val errorTitle = ex.getClass.getSimpleName.replace("Exception", "Error")
+        val readableTitle = errorTitle.toSentenceCase
         format(readableTitle, ex.getMessage, cause)
     }
   }

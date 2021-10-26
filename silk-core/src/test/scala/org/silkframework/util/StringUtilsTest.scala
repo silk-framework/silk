@@ -3,7 +3,7 @@ package org.silkframework.util
 import org.scalatest.{FlatSpec, Matchers}
 import StringUtils._
 
-class StringUtilsTest extends FlatSpec with Matchers {{
+class StringUtilsTest extends FlatSpec with Matchers {
 
   behavior of "StringUtils.toSentenceCase"
 
@@ -18,6 +18,8 @@ class StringUtilsTest extends FlatSpec with Matchers {{
   it should "retain abbreviations" in {
     "keepABC DEF".toSentenceCase shouldBe "Keep ABC DEF"
   }
-}
 
+  it should "split before the last upper case character before a lower case character" in {
+    "XMLError".toSentenceCase shouldBe "XML error"
+  }
 }

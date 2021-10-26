@@ -145,6 +145,7 @@ class StringUtils(str: String) {
       val prevChar: Char = str.charAt(i - 1)
       val curChar = str.charAt(i)
       val nextIsUpper = i + 1 < str.length && str.charAt(i + 1).isUpper
+      val nextIsLower = i + 1 < str.length && str.charAt(i + 1).isLower
       if(prevChar.isSpaceChar) {
         if(i == 0 || (curChar.isUpper && nextIsUpper)) {
           sb += curChar.toUpper
@@ -158,6 +159,9 @@ class StringUtils(str: String) {
         } else {
           sb += curChar.toLower
         }
+      } else if(prevChar.isUpper && curChar.isUpper && nextIsLower) {
+        sb += ' '
+        sb += curChar.toLower
       } else {
         sb += curChar
       }

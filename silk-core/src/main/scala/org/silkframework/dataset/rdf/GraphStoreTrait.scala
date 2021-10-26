@@ -105,22 +105,24 @@ trait GraphStoreTrait {
 
   def deleteGraph(graph: String)
                  (implicit userContext: UserContext): Unit = {
-    log.fine(s"Deleting graph $graph from Graph Store")
+    log.fine(s"Deleting graph '$graph' from Graph Store")
     var tries = 0
     var success = false
     while(!success && tries < 2) {
       tries += 1
-      val connection = initConnection(graph)
-      connection.setRequestMethod("DELETE")
-      success = connection.getResponseCode / 100 == 2
-      if(!success) {
-        if(tries == 1 && connection.getResponseCode == UNAUTHORIZED) {
-          handleAuthenticationError(userContext)
-          log.fine(s"Request to delete graph $graph has been successful.")
-        } else if(connection.getResponseCode / 100 == 5) {
-          // Try again on server error
-        } else {
-          handleError(connection, s"Could not delete graph $graph!")
+      GraphStoreTrait.handleTimeoutErrors(defaultTimeouts.readTimeoutMs, s"Deleting graph '$graph' has failed: ") {
+        val connection = initConnection(graph)
+        connection.setRequestMethod("DELETE")
+        success = connection.getResponseCode / 100 == 2
+        if (!success) {
+          if (tries == 1 && connection.getResponseCode == UNAUTHORIZED) {
+            handleAuthenticationError(userContext)
+            log.fine(s"Request to delete graph $graph has been successful.")
+          } else if (connection.getResponseCode / 100 == 5) {
+            // Try again on server error
+          } else {
+            handleError(connection, s"Could not delete graph $graph!")
+          }
         }
       }
     }
@@ -179,26 +181,39 @@ case class ConnectionClosingOutputStream(connection: HttpURLConnection,
 
   override def close(): Unit = {
     try {
-      outputStream.close()
-      val responseCode = connection.getResponseCode
-      if(responseCode / 100 == 2) {
-        log.fine("Successfully written to graph store output stream.")
-      } else {
-        if(responseCode == 401) {
-          errorHandler.authenticationErrorHandler(userContext) // Nothing else we can do here, all the data has already been written
+      GraphStoreTrait.handleTimeoutErrors(connection.getReadTimeout) {
+        outputStream.close()
+        val responseCode = connection.getResponseCode
+        if(responseCode / 100 == 2) {
+          log.fine("Successfully written to graph store output stream.")
+        } else {
+          if(responseCode == 401) {
+            errorHandler.authenticationErrorHandler(userContext) // Nothing else we can do here, all the data has already been written
+          }
+          errorHandler.genericErrorHandler(connection, s"Could not write to graph store. Got $responseCode response code.")
         }
-        errorHandler.genericErrorHandler(connection, s"Could not write to graph store. Got $responseCode response code.")
       }
-    } catch {
-      case _: SocketTimeoutException =>
-        throw new RuntimeException("A read timeout has occurred during writing via the GraphStore protocol. " +
-            s"You might want to increase 'graphstore.default.read.timeout.ms' in the application config. " +
-            s"It is currently set to ${connection.getReadTimeout}ms.")
     } finally {
       connection.disconnect()
     }
   }
 }
+
+private object GraphStoreTrait {
+  // Handle socket read timeouts
+  def handleTimeoutErrors[T](readTimeoutMs: Int, errorPrefix: String = "")(block: => T): T = {
+    try {
+      block
+    } catch {
+      case ex: SocketTimeoutException =>
+        throw new GraphStoreException(errorPrefix + "A read timeout has occurred during writing via the GraphStore protocol. " +
+          s"You might want to increase 'graphstore.default.read.timeout.ms' in the application config. " +
+          s"It is currently set to ${readTimeoutMs}ms.", ex)
+    }
+  }
+}
+
+private class GraphStoreException(msg: String, cause: Throwable) extends RuntimeException(msg, cause)
 
 case class ConnectionClosingInputStream(createConnection: () => HttpURLConnection,
                                         userContext: UserContext,

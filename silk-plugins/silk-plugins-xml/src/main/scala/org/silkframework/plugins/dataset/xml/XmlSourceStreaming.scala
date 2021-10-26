@@ -13,7 +13,7 @@ import org.silkframework.util.{Identifier, Uri}
 
 import java.io.InputStream
 import java.util.concurrent.atomic.AtomicInteger
-import javax.xml.stream.{XMLInputFactory, XMLStreamConstants, XMLStreamReader}
+import javax.xml.stream.{XMLInputFactory, XMLStreamConstants, XMLStreamException, XMLStreamReader}
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
@@ -26,15 +26,22 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
 
   private val xmlFactory = XMLInputFactory.newInstance()
 
+  private case class XMLReadException(msg: String, cause: Throwable) extends RuntimeException(msg, cause)
+
   // Create and init stream reader, positions the stream reader on the first tag
   private def initStreamReader(inputStream: InputStream) = {
-    val reader = xmlFactory.createXMLStreamReader(inputStream)
-    var foundStartElement = false
-    while(reader.hasNext && !foundStartElement) {
-      reader.next()
-      foundStartElement = reader.isStartElement
+    try {
+      val reader = xmlFactory.createXMLStreamReader(inputStream)
+      var foundStartElement = false
+      while (reader.hasNext && !foundStartElement) {
+        reader.next()
+        foundStartElement = reader.isStartElement
+      }
+      reader
+    } catch {
+      case ex: XMLStreamException =>
+        throw XMLReadException(s"Error occurred reading XML file '${file.name}': " + ex.getMessage, ex)
     }
-    reader
   }
 
   private val basePathParts: List[String] = {
