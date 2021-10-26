@@ -14,7 +14,7 @@ case class UriPatternAutoCompletionRequest(@Schema(description = "The input stri
                                            maxSuggestions: Option[Int],
                                            @Schema(description = "An additional object path this auto-completion should be the context of.", required = false)
                                            objectPath: Option[String]) extends AutoSuggestAutoCompletionRequest {
-  lazy val pathSegments: UriPatternSegments = UriPatternParser.parseIntoSegments(inputString, allowIncompletePattern = true)
+  private lazy val pathSegments: UriPatternSegments = UriPatternParser.parseIntoSegments(inputString, allowIncompletePattern = true)
   lazy val activePathPart: Option[PathPart] = {
     pathSegments.segments.find(segment => cursorPosition <= segment.segmentPosition.originalEndIndex) match {
       case Some(pathPart @ PathPart(_, position)) if position.originalStartIndex <= cursorPosition =>

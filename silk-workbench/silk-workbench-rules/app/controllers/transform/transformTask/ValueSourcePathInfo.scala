@@ -1,6 +1,6 @@
 package controllers.transform.transformTask
 
-import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import play.api.libs.json.{Format, Json}
 
 /**
@@ -34,13 +34,19 @@ case class ValueSourcePathInfo(@Schema(
   * @param dataTypeSubPaths The string representations of the data type sub-paths.
   * @param objectSubPaths   The string representations of the object sub-paths.
   */
-case class ObjectValueSourcePathInfo(@Schema(
-                                       description = "Direct value paths, i.e. of all direct sub-paths of length 1 of the object values of the path."
-                                     )
+case class ObjectValueSourcePathInfo(@ArraySchema(
+                                       schema = new Schema(
+                                         description = "Direct value paths, i.e. of all direct sub-paths of length 1 of the object values of the path.",
+                                         required = true,
+                                         implementation = classOf[String]
+                                     ))
                                      dataTypeSubPaths: Seq[String],
-                                     @Schema(
-                                       description = "Direct object paths, i.e. of all direct sub-paths of length 1 of the object values of the path."
-                                     )
+                                     @ArraySchema(
+                                       schema = new Schema(
+                                         description = "Direct object paths, i.e. of all direct sub-paths of length 1 of the object values of the path.",
+                                         required = true,
+                                         implementation = classOf[String]
+                                     ))
                                      objectSubPaths: Seq[String])
 
 object ObjectValueSourcePathInfo {

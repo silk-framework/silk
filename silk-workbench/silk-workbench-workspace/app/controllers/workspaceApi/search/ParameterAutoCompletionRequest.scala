@@ -1,5 +1,6 @@
 package controllers.workspaceApi.search
 
+import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import play.api.libs.json.{Format, Json}
 
 /**
@@ -17,6 +18,11 @@ import play.api.libs.json.{Format, Json}
 case class ParameterAutoCompletionRequest(pluginId: String,
                                           parameterId: String,
                                           projectId: String,
+                                          @ArraySchema(
+                                            schema = new Schema(
+                                              description = "The parameter values this parameter auto-completion depends on. These dependencies are stated in the @Param annotation of the parameter.",
+                                              implementation = classOf[String]
+                                            ))
                                           dependsOnParameterValues: Option[Seq[String]] = None,
                                           textQuery: Option[String] = None,
                                           offset: Option[Int] = None,

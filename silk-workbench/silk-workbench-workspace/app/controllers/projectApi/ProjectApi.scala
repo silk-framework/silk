@@ -50,7 +50,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
           new Header(
             name = "Location",
             description = "The URI of the new project",
-            schema = new Schema(implementation = classOf[String], example = "/api/workspace/projects/projectx42")
+            schema = new Schema(example = "/api/workspace/projects/projectx42")
           ))
       )
     ))

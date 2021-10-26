@@ -266,11 +266,13 @@ object SearchApiModel {
                                     nullable = true
                                   )
                                   sortOrder: Option[SortOrder.Value] = None,
-                                  @Schema(
-                                    description = "Defines what facets are set to which values. The 'keyword' facet allows multiple values to be set.",
-                                    required = false,
-                                    nullable = true
-                                  )
+                                  @ArraySchema(
+                                    schema = new Schema(
+                                      description = "Defines what facets are set to which values. The 'keyword' facet allows multiple values to be set.",
+                                      required = false,
+                                      nullable = true,
+                                      implementation = classOf[String]
+                                    ))
                                   facets: Option[Seq[FacetSetting]] = None,
                                   @Schema(
                                     description = "If set to true, the current configuration for each task item is returned in the search response.",

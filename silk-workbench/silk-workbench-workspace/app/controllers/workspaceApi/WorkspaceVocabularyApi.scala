@@ -21,6 +21,7 @@ class WorkspaceVocabularyApi extends InjectedController with UserContextActions 
     responses = Array(
       new ApiResponse(
         responseCode = "200",
+        description = "All vocabularies in the cache.",
         content = Array(new Content(
           mediaType = "application/json",
           examples = Array(new ExampleObject(WorkspaceApiDoc.targetVocabularyExample))
