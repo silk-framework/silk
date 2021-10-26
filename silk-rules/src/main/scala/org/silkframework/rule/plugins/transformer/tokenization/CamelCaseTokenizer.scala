@@ -43,16 +43,16 @@ case class CamelCaseTokenizer() extends Transformer {
   def splitOnCamelCase(value: String): Seq[String] = {
     val tokens = ArrayBuffer[String]()
     var lastWasLowerCase = false
-    var sb = new StringBuffer
+    var sb = new StringBuilder
     for(c <- value) {
       if(c.isUpper && lastWasLowerCase) {
         tokens += sb.toString
-        sb = new StringBuffer
+        sb = new StringBuilder
       }
       sb.append(c)
       lastWasLowerCase = c.isLower
     }
-    if(sb.length>0) {
+    if(sb.nonEmpty) {
       tokens += sb.toString
     }
     tokens

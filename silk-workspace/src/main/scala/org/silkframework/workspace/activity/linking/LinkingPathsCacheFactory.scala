@@ -22,4 +22,6 @@ case class LinkingPathsCacheFactory() extends TaskActivityFactory[LinkSpec, Link
   def apply(task: ProjectTask[LinkSpec]): Activity[DPair[EntitySchema]] = {
     new LinkingPathsCache(task)
   }
+
+  override def isCacheActivity: Boolean = true
 }

@@ -20,4 +20,6 @@ class TypesCacheFactory extends DatasetActivityFactory[Dataset, TypesCache] {
   def apply(task: ProjectTask[GenericDatasetSpec]): Activity[Types] = {
     new TypesCache(task)
   }
+
+  override def isCacheActivity: Boolean = true
 }

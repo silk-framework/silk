@@ -243,6 +243,8 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
       element.copyNode(position = newPosition)
     }
   }
+
+  override def mainActivities: Seq[String] = Seq("ExecuteDefaultWorkflow")
 }
 
 /** Plugin parameter for the workflow operators. */

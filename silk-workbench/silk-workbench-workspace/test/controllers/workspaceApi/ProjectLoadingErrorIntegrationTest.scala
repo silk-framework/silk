@@ -1,6 +1,6 @@
 package controllers.workspaceApi
 
-import controllers.workspaceApi.project.ProjectLoadingErrors.ProjectTaskLoadingErrorResponse
+import controllers.errorReporting.ErrorReport.ErrorReportItem
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.MetaData
@@ -59,7 +59,7 @@ class ProjectLoadingErrorIntegrationTest extends FlatSpec with SingleProjectWork
 
   it should "report loading failures in JSON for a specific task" in {
     val jsonReport = checkResponse(client.url(s"$baseUrl${taskReportEndpoint(failingDataset)}").withHttpHeaders(ACCEPT -> APPLICATION_JSON).get()).json
-    val errorReport = Json.fromJson[ProjectTaskLoadingErrorResponse](jsonReport).get
+    val errorReport = Json.fromJson[ErrorReportItem](jsonReport).get
     checkFailingDatasetReport(errorReport)
   }
 
@@ -69,7 +69,7 @@ class ProjectLoadingErrorIntegrationTest extends FlatSpec with SingleProjectWork
     createProject(otherProject)
     val errorReport = taskErrorReport
     errorReport must have size 2
-    errorReport.map(_.taskId) mustBe Seq(failingDataset, failingCustomTask)
+    errorReport.flatMap(_.taskId) mustBe Seq(failingDataset, failingCustomTask)
     val datasetError = errorReport.head
     checkFailingDatasetReport(datasetError)
   }
@@ -86,13 +86,13 @@ class ProjectLoadingErrorIntegrationTest extends FlatSpec with SingleProjectWork
     taskErrorReport must have size 0
   }
 
-  private def taskErrorReport: Seq[ProjectTaskLoadingErrorResponse] = {
+  private def taskErrorReport: Seq[ErrorReportItem] = {
     val jsonReport = checkResponse(client.url(s"$baseUrl$tasksReportEndpoint").withHttpHeaders(ACCEPT -> APPLICATION_JSON).get()).json
-    val errorReport = Json.fromJson[Seq[ProjectTaskLoadingErrorResponse]](jsonReport).get
+    val errorReport = Json.fromJson[Seq[ErrorReportItem]](jsonReport).get
     errorReport
   }
 
-  private def checkFailingDatasetReport(datasetError: ProjectTaskLoadingErrorResponse): Unit = {
+  private def checkFailingDatasetReport(datasetError: ErrorReportItem): Unit = {
     datasetError.errorMessage must not be empty
     datasetError.errorSummary must not be ""
     datasetError.stackTrace must not be empty

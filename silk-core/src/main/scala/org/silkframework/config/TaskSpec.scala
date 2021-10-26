@@ -69,6 +69,9 @@ trait TaskSpec {
 
   /** Related links for this task that can be presented to the user. */
   def taskLinks: Seq[TaskLink] = Seq.empty
+
+  /** The main (execution) activities that should stand out from all the registered activities of this task. */
+  def mainActivities: Seq[String] = Seq.empty
 }
 
 /** A task link.

@@ -136,6 +136,9 @@ class StringUtils(str: String) {
     * Undos camel case, e.g., helloWorld is converted to "Hello world"
     */
   def toSentenceCase: String = {
+    if(str.isEmpty) {
+      return str
+    }
     val sb = new StringBuilder()
     sb += str.charAt(0).toUpper
     for(i <- 1 until str.length) {

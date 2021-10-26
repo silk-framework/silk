@@ -59,10 +59,10 @@ case class NormalizeCharsTransformer() extends SimpleTransformer {
   }
 
   private def stripNonDiacritics(orig: String): String = {
-    val ret = new StringBuffer()
+    val ret = new StringBuilder()
     for (i <- 0 until orig.length()) {
       val source = orig.charAt(i)
-      val replace = NONDIACRITICS.get(source).getOrElse(source)
+      val replace = NONDIACRITICS.getOrElse(source, source)
       ret.append(replace)
     }
     ret.toString

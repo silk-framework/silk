@@ -3,20 +3,21 @@ package controllers.projectApi
 import config.WorkbenchConfig
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
+import controllers.errorReporting.ErrorReport.ErrorReportItem
 import controllers.projectApi.doc.ProjectApiDoc
 import controllers.workspace.JsonSerializer
 import controllers.workspaceApi.IdentifierUtils
 import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, ProjectCreationData}
-import controllers.workspaceApi.project.ProjectLoadingErrors.ProjectTaskLoadingErrorResponse
+import controllers.workspaceApi.project.ProjectLoadingErrors
 import controllers.workspaceApi.projectTask.{ItemCloneRequest, ItemCloneResponse}
 import controllers.workspaceApi.search.ItemType
-import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.headers.Header
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{MetaData, Prefixes}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
@@ -26,7 +27,7 @@ import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.ProjectConfig
 import org.silkframework.workspace.io.WorkspaceIO
 import play.api.libs.json.{JsValue, Json}
-import play.api.mvc.{Accepting, Action, AnyContent, InjectedController}
+import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import java.net.URI
 import javax.inject.Inject
@@ -37,9 +38,6 @@ import scala.util.Try
   */
 @Tag(name = "Projects", description = "Access to all projects in the workspace.")
 class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
-  private val MARKDOWN_MIME = "text/markdown"
-  private val AcceptsMarkdown = Accepting(MARKDOWN_MIME)
-
   /** Create a project given the meta data. Automatically generates an ID. */
   @Operation(
     summary = "Create project",
@@ -384,9 +382,9 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
                                     )
                                     taskId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = getProject(projectId)
-    project.loadingErrors.find(_.id == taskId) match {
+    project.loadingErrors.find(_.taskId == taskId) match {
       case Some(loadingError) =>
-        val failedTask = ProjectTaskLoadingErrorResponse.fromTaskLoadingError(loadingError)
+        val failedTask = ProjectLoadingErrors.fromTaskLoadingError(loadingError)
         val taskLabel = failedTask.taskLabel.filter(_.trim != "").getOrElse(failedTask.taskId)
         render {
           case AcceptsMarkdown() =>
@@ -395,7 +393,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
                                     |Task '$taskLabel' in project '${project.config.metaData.label}' has failed loading.
                                     |
                                     |""".stripMargin
-            Ok(markdownHeader + failedTask.asMarkdown(None)).withHeaders("Content-type" -> MARKDOWN_MIME)
+            Ok(markdownHeader + failedTask.asMarkdown(None)).as(MARKDOWN_MIME)
           case Accepts.Json() => // default is JSON
             Ok(Json.toJson(failedTask))
         }
@@ -437,7 +435,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
                                     )
                                     projectId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = getProject(projectId)
-    val failedTasks = project.loadingErrors.map(ProjectTaskLoadingErrorResponse.fromTaskLoadingError)
+    val failedTasks = project.loadingErrors.map(ProjectLoadingErrors.fromTaskLoadingError)
     render {
       case AcceptsMarkdown() =>
         val sb = new StringBuilder()
