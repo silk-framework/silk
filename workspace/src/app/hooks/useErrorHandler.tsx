@@ -1,9 +1,11 @@
 import React from "react";
-import { DIErrorFormat, DIErrorTypes } from "@ducks/error/typings";
+import { DIErrorFormat, diErrorMessage, DIErrorTypes } from "@ducks/error/typings";
 import { Notification } from "@gui-elements/index";
 import { useDispatch, useSelector } from "react-redux";
 import errorSelector from "@ducks/error/selectors";
 import { registerNewError, clearOneOrMoreErrors } from "@ducks/error/errorSlice";
+import { ErrorResponse, FetchError } from "../services/fetch/responseInterceptor";
+import { useTranslation } from "react-i18next";
 
 /**
  * @param errorId      An application wide unique error ID. This will be uniquely represented in the error widget.
@@ -24,6 +26,7 @@ export type RegisterErrorType = Pick<DIErrorFormat, "id" | "message" | "cause">;
 const useErrorHandler = (): ErrorHandlerDict => {
     const error = useSelector(errorSelector);
     const dispatch = useDispatch();
+    const [t] = useTranslation();
 
     /** register a new error to the error stack
      *
@@ -41,9 +44,34 @@ const useErrorHandler = (): ErrorHandlerDict => {
             message: errorMessage,
             cause,
         };
-        //push error to state
-        dispatch(registerNewError({ newError: error }));
-        return <Notification message={errorMessage} warning />;
+        // Handle 503 errors differently
+        if (isTemporarilyUnavailableError(cause)) {
+            const tempUnavailableMessage = t("common.messages.temporarilyUnavailableMessage", {
+                detailMessage: diErrorMessage(cause),
+            });
+            dispatch(
+                registerNewError({
+                    newError: {
+                        id: "temporarily-unavailable",
+                        message: tempUnavailableMessage,
+                        cause: null,
+                        alternativeIntent: "warning",
+                    },
+                })
+            );
+            return <Notification message={tempUnavailableMessage} info />;
+        } else {
+            dispatch(registerNewError({ newError: error }));
+            return <Notification message={errorMessage} warning />;
+        }
+    };
+
+    const isTemporarilyUnavailableError = (error?: DIErrorTypes | null): boolean => {
+        return (
+            !!error &&
+            (((error as FetchError).isFetchError && (error as FetchError).httpStatus === 503) ||
+                (error as ErrorResponse).status === 503)
+        );
     };
 
     // get a list of all errors

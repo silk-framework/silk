@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { Card, CardContent, CardHeader, CardTitle, Divider } from "@gui-elements/index";
-import { sharedOp } from "@ducks/shared";
 import DataList from "../Datalist";
 import Spacing from "@gui-elements/src/components/Separation/Spacing";
 import { IRelatedItem, IRelatedItemsResponse } from "@ducks/shared/typings";
@@ -10,6 +9,8 @@ import { SearchBar } from "../SearchBar/SearchBar";
 import { usePagination } from "@gui-elements/src/components/Pagination/Pagination";
 import { useTranslation } from "react-i18next";
 import { RelatedItem } from "./RelatedItem";
+import useErrorHandler from "../../../hooks/useErrorHandler";
+import { requestRelatedItems } from "@ducks/shared/requests";
 
 interface IProps {
     projectId?: string;
@@ -23,6 +24,7 @@ export function RelatedItems(props: IProps) {
     const _projectId = useSelector(commonSel.currentProjectIdSelector);
     const _taskId = useSelector(commonSel.currentTaskIdSelector);
     const { isOpen } = useSelector(commonSel.artefactModalSelector);
+    const { registerError } = useErrorHandler();
 
     const projectId = props.projectId || _projectId;
     const taskId = props.taskId || _taskId;
@@ -70,12 +72,17 @@ export function RelatedItems(props: IProps) {
     // Fetches and updates the related items of the project task
     const getRelatedItemsData = async (projectId: string, taskId: string, textQuery: string) => {
         setLoading(true);
-        const data = await sharedOp.getRelatedItemsAsync(projectId, taskId, textQuery);
-        if (data.items) {
-            onTotalChange(data.total);
-            setData(data);
+        try {
+            const response = await requestRelatedItems(projectId, taskId, textQuery);
+            if (response.data.items) {
+                onTotalChange(response.data.total);
+                setData(response.data);
+            }
+        } catch (ex) {
+            registerError("RelatedItems-getRelatedItemsData", "Failed to fetch related items.", ex);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     // Postfix for the title showing the filtered number and total number of related items.

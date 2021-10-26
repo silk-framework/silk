@@ -3,16 +3,16 @@ import React, { useEffect } from "react";
 import "./index.scss";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { AppToaster } from "../../../services/toaster";
-import { Intent } from "@gui-elements/blueprint/constants";
 import WorkspaceSearch from "./WorkspaceSearch";
 import { routerSel } from "@ducks/router";
 import { Grid, GridColumn, GridRow } from "@gui-elements/index";
 import { EmptyWorkspace } from "./EmptyWorkspace/EmptyWorkspace";
 import { commonOp, commonSel } from "@ducks/common";
+import useErrorHandler from "../../../hooks/useErrorHandler";
 
 export function Workspace() {
     const dispatch = useDispatch();
+    const { registerError } = useErrorHandler();
 
     const error = useSelector(workspaceSel.errorSelector);
     const qs = useSelector(routerSel.routerSearchSelector);
@@ -20,12 +20,8 @@ export function Workspace() {
     const projectId = useSelector(commonSel.currentProjectIdSelector);
 
     useEffect(() => {
-        if (error?.detail) {
-            AppToaster.show({
-                message: error.detail,
-                intent: Intent.DANGER,
-                timeout: 0,
-            });
+        if (error.detail) {
+            registerError("workspace-page-error", "An error has occurred during loading the page.", error);
         }
     }, [error.detail]);
 
