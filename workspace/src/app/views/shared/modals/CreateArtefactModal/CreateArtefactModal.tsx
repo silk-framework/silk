@@ -49,6 +49,7 @@ export function CreateArtefactModal() {
     const [actionLoading, setActionLoading] = useState(false);
     const [t] = useTranslation();
 
+    const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
     const modalStore = useSelector(commonSel.artefactModalSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
 
@@ -516,7 +517,11 @@ export function CreateArtefactModal() {
     return (
         <ErrorBoundary>
             {isProjectImport ? (
-                <ProjectImportModal close={closeModal} back={() => setIsProjectImport(false)} />
+                <ProjectImportModal
+                    close={closeModal}
+                    back={() => setIsProjectImport(false)}
+                    maxFileUploadSizeBytes={maxFileUploadSize}
+                />
             ) : (
                 createDialog
             )}
