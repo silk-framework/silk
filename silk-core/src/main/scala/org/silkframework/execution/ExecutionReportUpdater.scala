@@ -75,7 +75,7 @@ trait ExecutionReportUpdater {
     * @param force      Force the execution report update. This should only be done rarely.
     * @param addEndTime Adds an end time to the execution report. This should be done with the last update.
     */
-  protected def update(force: Boolean = false, addEndTime: Boolean = false): Unit = {
+  protected def update(force: Boolean, addEndTime: Boolean): Unit = {
     if (force || System.currentTimeMillis() - lastUpdate > delayBetweenUpdates) {
       val runtime = System.currentTimeMillis() - start
       val stats = Seq(
