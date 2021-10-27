@@ -23,6 +23,7 @@ import org.silkframework.workspace.activity.workflow._
 import org.silkframework.workspace.{Project, ProjectConfig, ProjectTask, WorkspaceFactory}
 import play.api.routing.Router
 import controllers.workspaceApi.routes.ReportsApi
+import org.scalatest.concurrent.Eventually.eventually
 import play.api.libs.json.Json
 
 import scala.collection.mutable.ArrayBuffer
@@ -61,9 +62,7 @@ class ReportsApiTest extends FlatSpec with IntegrationTestTrait with ReportsApiC
     activity.start()
 
     // Wait until first task is being executed
-    while(activity.value().report.taskReports.isEmpty) {
-      Thread.sleep(100)
-    }
+    eventually(activity.value().report.taskReports.isEmpty)
 
     // Check the initial execution report
     val report = currentReport(project.config.id, workflowTask.id).asInstanceOf[WorkflowExecutionReport]
