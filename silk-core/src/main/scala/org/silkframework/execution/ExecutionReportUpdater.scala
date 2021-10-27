@@ -35,6 +35,7 @@ trait ExecutionReportUpdater {
   private var lastUpdate = 0L
   private var entitiesEmitted = 0
   private var numberOfExecutions = 0
+  private var error: Option[String] = None
 
   def additionalFields(): Seq[(String, String)] = Seq.empty
 
@@ -47,6 +48,10 @@ trait ExecutionReportUpdater {
     if(entitiesEmitted % minEntitiesBetweenUpdates == 0) {
       update(force = false, addEndTime = false)
     }
+  }
+
+  def setExecutionError(error: Option[String] = None): Unit = {
+    this.error = error
   }
 
   /**
@@ -91,7 +96,7 @@ trait ExecutionReportUpdater {
             s"Runtime since first ${entityLabelSingle.toLowerCase} $entityProcessVerb" -> s"${(firstEntityStart - start).toDouble / 1000} seconds") ++
           Seq("Number of executions" -> numberOfExecutions.toString).filter(_ => numberOfExecutions > 0) ++
           additionalFields()
-      context.value.update(SimpleExecutionReport(task, stats, Seq.empty, None, addEndTime, entitiesEmitted, operationLabel, s"${entityLabelPlural.toLowerCase} $entityProcessVerb"))
+      context.value.update(SimpleExecutionReport(task, stats, Seq.empty, error, addEndTime, entitiesEmitted, operationLabel, s"${entityLabelPlural.toLowerCase} $entityProcessVerb"))
       lastUpdate = System.currentTimeMillis()
     }
   }

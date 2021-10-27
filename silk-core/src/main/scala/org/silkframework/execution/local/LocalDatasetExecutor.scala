@@ -13,6 +13,7 @@ import org.silkframework.util.Uri
 
 import java.util
 import java.util.logging.{Level, Logger}
+import scala.util.control.NonFatal
 
 /**
   * Local dataset executor that handles read and writes to [[Dataset]] tasks.
@@ -408,11 +409,18 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     */
   case class ReportingTraversable(entities: Traversable[Entity])(implicit executionReport: ExecutionReportUpdater) extends Traversable[Entity] {
     override def foreach[U](f: Entity => U): Unit = {
-      for(entity <- entities) {
-        f(entity)
-        executionReport.increaseEntityCounter()
+      try {
+        for(entity <- entities) {
+          f(entity)
+          executionReport.increaseEntityCounter()
+        }
+      } catch {
+        case NonFatal(ex) =>
+          executionReport.setExecutionError(Some(ex.getMessage))
+          throw ex
+      } finally {
+        executionReport.executionDone()
       }
-      executionReport.executionDone()
     }
   }
 }
