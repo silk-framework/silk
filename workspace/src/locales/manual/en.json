@@ -527,7 +527,7 @@
         "header": {
             "saveBtnTooltip": "Save the current state of the workflow",
             "warning": {
-                "tooltip": "focuses on failed node and opens execution report"
+                "tooltip": "Focuses on failed node and opens execution report"
             }
         },
         "handle": {
