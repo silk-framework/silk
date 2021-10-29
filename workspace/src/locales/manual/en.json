@@ -522,8 +522,14 @@
             "cycleTooltip": "Cycle through {{totalMatches}} currently used instances of this task",
             "cancelCycling": "Cancel cycling"
         },
+        "executionReport": {
+            "title": "Workflow execution report"
+        },
         "header": {
-            "saveBtnTooltip": "Save the current state of the workflow"
+            "saveBtnTooltip": "Save the current state of the workflow",
+            "warning": {
+                "tooltip": "Focuses on failed node and opens execution report"
+            }
         },
         "handle": {
             "configuration": {
