@@ -1,6 +1,6 @@
 package org.silkframework.rule.execution
 
-import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.config.Task
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.TransformReport._
@@ -9,32 +9,42 @@ import org.silkframework.util.Identifier
 /**
   * Holds the state of the transform execution.
   *
-  * @param entityCounter The number of entities that have been transformed, including erroneous entities.
-  * @param entityErrorCounter The number of entities that have been erroneous.
+  * @param entityCount The number of entities that have been transformed, including erroneous entities.
+  * @param entityErrorCount The number of entities that have been erroneous.
   * @param ruleResults The transformation statistics for each mapping rule by name.
   */
 case class TransformReport(task: Task[TransformSpec],
-                           entityCounter: Long = 0L,
-                           entityErrorCounter: Long = 0L,
+                           entityCount: Int = 0,
+                           entityErrorCount: Int = 0,
                            ruleResults: Map[Identifier, RuleResult] = Map.empty,
-                           globalErrors: Seq[String] = Seq.empty
-                          ) extends ExecutionReport {
+                           globalErrors: Seq[String] = Seq.empty,
+                           isDone: Boolean = false,
+                           override val error: Option[String] = None) extends ExecutionReport {
 
   lazy val summary: Seq[(String, String)] = {
     Seq(
-      "Number of entities" -> entityCounter.toString,
-      "Number of errors" -> entityErrorCounter.toString
+      "Number of entities" -> entityCount.toString,
+      "Number of errors" -> entityErrorCount.toString
     )
   }
 
   def warnings: Seq[String] = {
     var allErrors = globalErrors
-    if(entityErrorCounter != 0) {
-      allErrors :+= s"Validation issues occurred on $entityErrorCounter entities."
+    if(entityErrorCount != 0) {
+      allErrors :+= s"Validation issues occurred on $entityErrorCount entities."
     }
     allErrors
   }
 
+  /**
+    * Short description of the operation (plural, past tense).
+    */
+  override def operationDesc: String = "entities generated"
+
+  /**
+    * Returns a done version of this report.
+    */
+  def asDone(): ExecutionReport = copy(isDone = true)
 }
 
 object TransformReport {
@@ -51,7 +61,7 @@ object TransformReport {
     /**
       * Increases the error counter, but does not add a new sample error.
       */
-    def withError() = {
+    def withError(): RuleResult = {
       copy(
         errorCount = errorCount + 1
       )
@@ -60,7 +70,7 @@ object TransformReport {
     /**
       * Increases the error counter and adds a new sample error.
       */
-    def withError(error: RuleError) = {
+    def withError(error: RuleError): RuleResult = {
       copy(
         errorCount = errorCount + 1,
         sampleErrors :+ error

@@ -13,6 +13,7 @@ import org.silkframework.util.Uri
 
 import java.util
 import java.util.logging.{Level, Logger}
+import scala.util.control.NonFatal
 
 /**
   * Local dataset executor that handles read and writes to [[Dataset]] tasks.
@@ -117,7 +118,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     data match {
       case LinksTable(links, linkType, _) =>
         withLinkSink(dataset, execution) { linkSink =>
-          writeLinks(linkSink, links, linkType)
+          writeLinks(dataset, linkSink, links, linkType)
         }
       case tripleEntityTable: TripleEntityTable =>
         withEntitySink(dataset, execution) { entitySink =>
@@ -166,6 +167,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
 
     override def entityLabelPlural: String = "Update queries"
 
+    override def minEntitiesBetweenUpdates: Int = 1
+
     override def additionalFields(): Seq[(String, String)] = {
       if(remainingQueries > 0) {
         Seq(
@@ -212,9 +215,8 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
           endpoint.update(updateQuery)
           executionReport.increaseEntityCounter()
           executionReport.remainingQueries = queryBuffer.bufferedQuerySize
-          executionReport.update()
         }
-        executionReport.update(force = true, addEndTime = true)
+        executionReport.executionDone()
       case _ =>
         writeGenericLocalEntities(dataset, sparqlUpdateTable, execution)
     }
@@ -312,7 +314,6 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
       sink.writeEntity(entity.uri, entity.values)
       entityCount += 1
       if(entityCount % 10000 == 0) {
-        executionReport.update()
         val currentTime = System.currentTimeMillis()
         if(currentTime - 2000 > lastLog) {
           logger.info("Writing entities: " + entityCount)
@@ -325,12 +326,17 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     logger.log(Level.INFO, "Finished writing " + entityCount + " entities with type '" + entityTable.entitySchema.typeUri + "' in " + time + " seconds")
   }
 
-  private def writeLinks(sink: LinkSink, links: Seq[Link], linkType: Uri)
-                        (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
+  private def writeLinks(dataset: Task[DatasetSpec[DatasetType]], sink: LinkSink, links: Seq[Link], linkType: Uri)
+                        (implicit userContext: UserContext, prefixes: Prefixes, context: ActivityContext[ExecutionReport]): Unit = {
+    implicit val report: ExecutionReportUpdater = WriteLinksReportUpdater(dataset, context)
     val startTime = System.currentTimeMillis()
     sink.init()
-    for (link <- links) sink.writeLink(link, linkType.uri)
+    for (link <- links) {
+      sink.writeLink(link, linkType.uri)
+      report.increaseEntityCounter()
+    }
     val time = (System.currentTimeMillis - startTime) / 1000.0
+    report.executionDone()
     logger.log(Level.INFO, "Finished writing links in " + time + " seconds")
   }
 
@@ -391,16 +397,30 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityProcessVerb: String = "read"
   }
 
+  case class WriteLinksReportUpdater(task: Task[TaskSpec], context: ActivityContext[ExecutionReport]) extends ExecutionReportUpdater {
+    override def entityLabelSingle: String = "Link"
+    override def entityLabelPlural: String = "Links"
+    override def operationLabel: Option[String] = Some("write")
+    override def entityProcessVerb: String = "written"
+  }
+
   /**
     * An entity traversable that forwards all entity traversals to an execution report.
     */
   case class ReportingTraversable(entities: Traversable[Entity])(implicit executionReport: ExecutionReportUpdater) extends Traversable[Entity] {
     override def foreach[U](f: Entity => U): Unit = {
-      for(entity <- entities) {
-        f(entity)
-        executionReport.increaseEntityCounter()
+      try {
+        for(entity <- entities) {
+          f(entity)
+          executionReport.increaseEntityCounter()
+        }
+      } catch {
+        case NonFatal(ex) =>
+          executionReport.setExecutionError(Some(ex.getMessage))
+          throw ex
+      } finally {
+        executionReport.executionDone()
       }
-      executionReport.executionDone()
     }
   }
 }

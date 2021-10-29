@@ -56,4 +56,21 @@ object ReportsApiDoc {
         }
       }
     """
+
+  final val reportUpdatesExample =
+    """
+      {
+        "timestamp": 1634547683161,
+        "updates": [
+          {
+            "node": "85ad8f57-f7ba-492c-a470-9176c0d8fd4c_dataset",
+            "timestamp": 1634547463671,
+            "operation": "read",
+            "warnings": [],
+            "isDone": false,
+            "entityCount": 5373
+          }
+        ]
+      }
+    """
 }

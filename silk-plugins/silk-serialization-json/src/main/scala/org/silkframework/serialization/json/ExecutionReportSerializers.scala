@@ -13,6 +13,8 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowExecutionReport, WorkflowExecutionReportWithProvenance, WorkflowTaskReport}
 import play.api.libs.json._
 
+import java.time.Instant
+
 object ExecutionReportSerializers {
 
   implicit object ExecutionReportJsonFormat extends JsonFormat[ExecutionReport] {
@@ -40,7 +42,11 @@ object ExecutionReportSerializers {
           task = GenericTaskJsonFormat.read(requiredValue(value, TASK)),
           summary = arrayValue(value, SUMMARY).value.map(deserializeValue),
           warnings = arrayValue(value, WARNINGS).value.map(_.as[String]),
-          operation = stringValueOption(value, OPERATION)
+          error = stringValueOption(value, ERROR),
+          operation = stringValueOption(value, OPERATION),
+          operationDesc = stringValueOption(value, OPERATION_DESC).getOrElse(ExecutionReport.DEFAULT_OPERATION_DESC),
+          isDone = booleanValueOption(value, IS_DONE).getOrElse(true),
+          entityCount = numberValueOption(value, ENTITY_COUNT).map(_.intValue).getOrElse(0)
         )
       }
     }
@@ -49,9 +55,13 @@ object ExecutionReportSerializers {
       Json.obj(
         LABEL -> value.task.taskLabel(),
         OPERATION -> value.operation,
+        OPERATION_DESC -> value.operationDesc,
         TASK -> GenericTaskJsonFormat.write(value.task),
         SUMMARY -> value.summary.map(serializeValue),
         WARNINGS -> value.warnings,
+        ERROR -> value.error,
+        IS_DONE -> value.isDone,
+        ENTITY_COUNT -> value.entityCount
       )
     }
 
@@ -72,8 +82,8 @@ object ExecutionReportSerializers {
     override def write(value: TransformReport)(implicit writeContext: WriteContext[JsValue]): JsObject = {
       ExecutionReportJsonFormat.serializeBasicValues(value) ++
         Json.obj(
-          ENTITY_COUNTER -> value.entityCounter,
-          ENTITY_ERROR_COUNTER -> value.entityErrorCounter,
+          ENTITY_COUNTER -> value.entityCount,
+          ENTITY_ERROR_COUNTER -> value.entityErrorCount,
           RULE_RESULTS -> writeRuleResults(value.ruleResults),
           GLOBAL_ERRORS -> value.globalErrors
         )
@@ -83,8 +93,8 @@ object ExecutionReportSerializers {
       implicit val taskFormat = new TaskJsonFormat[TransformSpec]()
       TransformReport(
         task = taskFormat.read(requiredValue(value, TASK)),
-        entityCounter = numberValue(value, ENTITY_COUNTER).longValue,
-        entityErrorCounter = numberValue(value, ENTITY_ERROR_COUNTER).longValue,
+        entityCount = numberValue(value, ENTITY_COUNTER).intValue,
+        entityErrorCount = numberValue(value, ENTITY_ERROR_COUNTER).intValue,
         ruleResults = readRuleResults(objectValue(value, RULE_RESULTS)),
         globalErrors = arrayValue(value, GLOBAL_ERRORS).value.map(_.as[String])
       )
@@ -136,11 +146,35 @@ object ExecutionReportSerializers {
 
   }
 
+  implicit object WorkflowTaskReportJsonFormat extends JsonFormat[WorkflowTaskReport] {
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): WorkflowTaskReport = {
+      WorkflowTaskReport(
+        nodeId = stringValue(value, NODE),
+        report = ExecutionReportJsonFormat.read(value),
+        timestamp = Instant.ofEpochMilli(numberValue(value, TIMESTAMP).longValue)
+      )
+    }
+
+    override def write(value: WorkflowTaskReport)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      val reportJson = value.report match {
+        case t: TransformReport =>
+          TransformReportJsonFormat.write(t)
+        case report: ExecutionReport =>
+          ExecutionReportJsonFormat.write(report)
+      }
+
+      reportJson +
+        (NODE -> JsString(value.nodeId.toString)) +
+        (TIMESTAMP -> JsNumber(value.timestamp.toEpochMilli))
+    }
+  }
+
   implicit object WorkflowExecutionReportJsonFormat extends JsonFormat[WorkflowExecutionReport] {
 
     override def write(value: WorkflowExecutionReport)(implicit writeContext: WriteContext[JsValue]): JsObject = {
       ExecutionReportJsonFormat.serializeBasicValues(value) +
-        (TASK_REPORTS -> JsArray(value.taskReports.map(serializeTaskReport)))
+        (TASK_REPORTS -> JsArray(value.taskReports.map(WorkflowTaskReportJsonFormat.write)))
     }
 
     override def read(value: JsValue)(implicit readContext: ReadContext): WorkflowExecutionReport = {
@@ -148,10 +182,7 @@ object ExecutionReportSerializers {
       val taskReports = requiredValue(value, TASK_REPORTS) match {
         case jsArray: JsArray =>
           for(report <- jsArray.value) yield {
-            WorkflowTaskReport(
-              nodeId = stringValue(report, NODE),
-              report = ExecutionReportJsonFormat.read(report)
-            )
+            WorkflowTaskReportJsonFormat.read(report)
           }
         case jsObject: JsObject =>
           // deprecated format
@@ -170,17 +201,6 @@ object ExecutionReportSerializers {
         taskReports = IndexedSeq(taskReports: _*)
       )
     }
-
-    private def serializeTaskReport(workflowReport: WorkflowTaskReport)
-                                   (implicit writeContext: WriteContext[JsValue]): JsValue = {
-      val reportJson = workflowReport.report match {
-        case t: TransformReport =>
-          TransformReportJsonFormat.write(t)
-        case report: ExecutionReport =>
-          ExecutionReportJsonFormat.write(report)
-      }
-      reportJson + (NODE -> JsString(workflowReport.nodeId.toString))
-    }
   }
 
   implicit object WorkflowExecutionReportWithProvenanceJsonFormat extends WriteOnlyJsonFormat[WorkflowExecutionReportWithProvenance] {
@@ -193,11 +213,15 @@ object ExecutionReportSerializers {
   object Keys {
 
     final val OPERATION = "operation"
+    final val OPERATION_DESC = "operationDesc"
     final val TASK = "task"
     final val LABEL = "label"
     final val SUMMARY = "summary"
     final val WARNINGS = "warnings"
+    final val IS_DONE = "isDone"
+    final val ENTITY_COUNT = "entityCount"
     final val NODE = "nodeId" // node id within a workflow
+    final val TIMESTAMP = "timestamp"
 
     final val KEY = "key"
     final val VALUE = "value"

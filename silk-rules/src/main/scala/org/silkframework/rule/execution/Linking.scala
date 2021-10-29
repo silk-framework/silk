@@ -14,7 +14,8 @@ import scala.collection.mutable
 case class Linking(task: Task[LinkSpec],
                    links : Seq[Link] = Seq.empty,
                    statistics: LinkingStatistics = LinkingStatistics(),
-                   matcherWarnings: Seq[String] = Seq.empty) extends ExecutionReport {
+                   matcherWarnings: Seq[String] = Seq.empty,
+                   isDone: Boolean = false) extends ExecutionReport {
 
   def rule: LinkageRule = task.data.rule
 
@@ -41,6 +42,17 @@ case class Linking(task: Task[LinkSpec],
     warnings
   }
 
+  override def entityCount: Int = links.size
+
+  /**
+    * Short description of the operation (plural, past tense).
+    */
+  override def operationDesc: String = "links generated"
+
+  /**
+    * Returns a done version of this report.
+    */
+  def asDone(): ExecutionReport = copy(isDone = true)
 }
 
 case class LinkingStatistics(entityCount: DPair[Int] = DPair.fill(0))

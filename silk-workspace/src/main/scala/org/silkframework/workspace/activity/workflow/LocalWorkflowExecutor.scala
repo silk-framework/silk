@@ -46,8 +46,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   override def run(context: ActivityContext[WorkflowExecutionReport])
                   (implicit userContext: UserContext): Unit = {
     cancelled = false
-
-    try {
+try {
       runWorkflow(context, updateUserContext(userContext))
     } catch {
       case cancelledWorkflowException: StopWorkflowExecutionException =>
@@ -81,6 +80,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
           throw e // Only rethrow exception if the activity was not cancelled, else the error could be due to the cancellation.
         }
     } finally {
+      context.value.updateWith(_.asDone())
       this.executionContext.executeShutdownHooks()
     }
   }
@@ -246,13 +246,12 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   private def writeEntityTableToDataset(workflowDataset: WorkflowDependencyNode,
                                         entityTable: LocalEntities)
                                        (implicit workflowRunContext: WorkflowRunContext): Unit = {
+    val resolvedDataset = resolveDataset(datasetTask(workflowDataset), replaceSinks)
     try {
-      val resolvedDataset = resolveDataset(datasetTask(workflowDataset), replaceSinks)
       execute("Writing", workflowDataset.nodeId, resolvedDataset, Seq(entityTable), ExecutorOutput.empty)
     } catch {
       case NonFatal(ex) =>
-        throw WorkflowExecutionException("Exception occurred while writing to workflow dataset operator " + workflowDataset.nodeId +
-            ". Cause: " + ex.getMessage, Some(ex))
+        throw WorkflowExecutionException(s"Exception occurred while writing to dataset '${resolvedDataset.taskLabel()}'. Cause: " + ex.getMessage, Some(ex))
     }
   }
 

@@ -21,6 +21,13 @@ export default class ExecutionReport extends React.Component {
     }
     
     renderSummary() {
+        let title;
+        if (this.props.executionReport.entityCount != null && this.props.executionReport.operationDesc != null) {
+            title = "Execution: " + this.props.executionReport.entityCount + " " + this.props.executionReport.operationDesc
+        } else {
+            title = "Execution Report"
+        }
+
         let executionMetaData = [];
         if(this.props.executionMetaData != null) {
             executionMetaData = executionMetaData.concat([
@@ -68,7 +75,7 @@ export default class ExecutionReport extends React.Component {
 
         return <Card className="silk-report-card">
             <CardTitle>
-                Execution Report
+                {title}
             </CardTitle>
             <CardContent>
                 {this.renderWarning()}
@@ -94,6 +101,9 @@ export default class ExecutionReport extends React.Component {
             alertClass = "mdl-alert--warning";
         } else if(this.props.executionMetaData != null && this.props.executionMetaData.finishStatus.failed) {
             messages = [ `Task '${this.props.executionReport.label}' failed to execute.` ]
+            alertClass = "mdl-alert--danger"
+        } else if(this.props.executionReport.error != null) {
+            messages = [ this.props.executionReport.error ];
             alertClass = "mdl-alert--danger"
         } else if(this.props.executionReport.warnings.length > 0) {
             messages = this.props.executionReport.warnings;

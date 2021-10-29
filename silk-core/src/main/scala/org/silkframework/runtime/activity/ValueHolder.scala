@@ -38,6 +38,6 @@ class ValueHolder[T](initialValue: => Option[T]) extends Observable[T] {
     * @param func Function to be called with the current value. The value will be updated to the result of the function.
     */
   def updateWith(func: T => T): Unit = {
-    update(func(value))
+    update(func(apply()))
   }
 }

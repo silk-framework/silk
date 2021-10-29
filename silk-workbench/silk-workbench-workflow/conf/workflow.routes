@@ -4,6 +4,7 @@ GET        /activityControl                                     controllers.work
 GET        /editor/:project/:task                               controllers.workflow.WorkflowEditorController.editor(project: String, task: String)
 GET        /report/:project/:task                               controllers.workflow.WorkflowEditorController.reports(project: String, task: String)
 GET        /report/:project/:task/:report                       controllers.workflow.WorkflowEditorController.report(project: String, task: String, report: String)
+GET        /workflowNodeReport/:project/:task/:nodeId           controllers.workflow.WorkflowEditorController.workflowNodeReport(project: String, task: String, nodeId: String)
 
 GET        /workflows/:project                                  controllers.workflow.WorkflowApi.getWorkflows(project: String)
 

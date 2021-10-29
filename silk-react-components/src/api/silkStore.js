@@ -14,10 +14,10 @@ const silkStore = {
     },
 
     /**
-     * Retrieves a workflow task execution report.
+     * Retrieves execution reports for a single workflow node.
      */
-    getCurrentWorkflowExecutionReport: (baseUrl, projectId, taskId) => {
-        return silkApi.activityResult(baseUrl, projectId, taskId, "ExecuteLocalWorkflow")
+    getWorkflowNodeExecutionReports: (baseUrl, projectId, taskId, nodeId) => {
+        return silkApi.retrieveWorkflowNodeExecutionReports(baseUrl, projectId, taskId, nodeId)
             .then(({data}) => {
                 return data;
             });

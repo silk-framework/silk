@@ -169,6 +169,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     *
     * @param activityName The name of the requested activity
     * @return The activity control for the requested activity
+    * @throws NoSuchElementException If no activity with the specified name has been found.
     */
   def activity(activityName: String): TaskActivity[TaskType, _ <: HasValue] = {
     taskActivities.find(_.name == activityName)
