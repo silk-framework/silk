@@ -49,6 +49,7 @@ export function CreateArtefactModal() {
     const [actionLoading, setActionLoading] = useState(false);
     const [t] = useTranslation();
 
+    const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
     const modalStore = useSelector(commonSel.artefactModalSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
 
@@ -266,7 +267,7 @@ export function CreateArtefactModal() {
 
     // Rank title matches higher
     if (searchValue.trim() !== "") {
-        const regex = createMultiWordRegex(extractSearchWords(searchValue));
+        const regex = createMultiWordRegex(extractSearchWords(searchValue), false);
         const titleMatches: IArtefactItem[] = [];
         const nonTitleMatches: IArtefactItem[] = [];
         artefactListWithProject.forEach((artefactItem) => {
@@ -276,6 +277,7 @@ export function CreateArtefactModal() {
                 nonTitleMatches.push(artefactItem);
             }
         });
+        titleMatches.sort((a, b) => (a.title!!.length < b.title!!.length ? -1 : 1));
         artefactListWithProject = [...titleMatches, ...nonTitleMatches];
     }
 
@@ -515,7 +517,11 @@ export function CreateArtefactModal() {
     return (
         <ErrorBoundary>
             {isProjectImport ? (
-                <ProjectImportModal close={closeModal} back={() => setIsProjectImport(false)} />
+                <ProjectImportModal
+                    close={closeModal}
+                    back={() => setIsProjectImport(false)}
+                    maxFileUploadSizeBytes={maxFileUploadSize}
+                />
             ) : (
                 createDialog
             )}

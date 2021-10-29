@@ -239,7 +239,8 @@
             "noResults": "No results.",
             "noTypes": "No types found",
             "serverError": "Server error",
-            "taskOverwrittenPrompt": "I understand that some tasks will be overwritten"
+            "taskOverwrittenPrompt": "I understand that some tasks will be overwritten",
+            "temporarilyUnavailableMessage": "Service is temporarily unavailable. Details: {{detailMessage}}"
         },
         "sorter": {
             "recentlyViewed": "Recently viewed"

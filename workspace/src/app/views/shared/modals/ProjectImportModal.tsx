@@ -36,9 +36,11 @@ interface IProps {
     close: () => void;
     // Optional back action
     back?: () => void;
+    /** The max. file upload size in bytes. */
+    maxFileUploadSizeBytes?: number;
 }
 
-export function ProjectImportModal({ close, back }: IProps) {
+export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IProps) {
     const [t] = useTranslation();
     const [uppy] = useState(Uppy());
     const dispatch = useDispatch();
@@ -64,6 +66,14 @@ export function ProjectImportModal({ close, back }: IProps) {
         uppy.getPlugin("XHRUpload").setOptions({
             endpoint: workspaceApi(`/projectImport`),
         });
+
+        if (maxFileUploadSizeBytes) {
+            uppy.setOptions({
+                restrictions: {
+                    maxFileSize: maxFileUploadSizeBytes,
+                },
+            });
+        }
     }, []);
 
     useEffect(() => {

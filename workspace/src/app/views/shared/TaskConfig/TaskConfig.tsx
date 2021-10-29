@@ -63,7 +63,7 @@ export function TaskConfig(props: IProps) {
                 })
             );
         } catch (e) {
-            registerError("taskConfig-openConfigModal", "Could not fetch configuration details.", e);
+            registerError("TaskConfig-openConfigModal", "Cannot open edit dialog.", e);
         } finally {
             setLoading(false);
         }
@@ -78,8 +78,8 @@ export function TaskConfig(props: IProps) {
                 const taskDescription = await artefactProperties(taskData.data.type);
                 setLabelledTaskData({ taskData, taskDescription });
             }
-        } catch (e) {
-            registerError("taskConfig-openConfigModal", "Could not fetch configuration details.", e);
+        } catch (ex) {
+            registerError("TaskConfig-initPreviewData", "Failed to load config data.", ex);
         } finally {
             setLoading(false);
         }
