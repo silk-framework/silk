@@ -148,6 +148,7 @@ export default function SearchItem({
                                         {item.description}
                                     </Markdown>,
                                     <Markdown
+                                        inheritBlock
                                         allowedElements={["a", "mark"]}
                                         reHypePlugins={
                                             searchValue ? [highlightSearchWordsPluginFactory(searchValue)] : undefined

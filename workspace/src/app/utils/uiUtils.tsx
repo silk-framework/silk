@@ -9,7 +9,7 @@ export const wrapTooltip = (
 ): JSX.Element => {
     if (wrapPredicate) {
         return (
-            <Tooltip content={childTooltip} position="bottom-left">
+            <Tooltip content={childTooltip} position="bottom-left" size="large">
                 {child}
             </Tooltip>
         );
