@@ -10,7 +10,7 @@ val silkVersion = {
   val version = sys.env.getOrElse("GIT_DESCRIBE", NEXT_VERSION + "-SNAPSHOT")
   val configPath = "silk-workbench/silk-workbench-core/conf/reference.conf"
   // Check if silk is located inside a sub-folder
-  val outFile = if(new File("silk").exists()) {
+  val outFile = if(new File("silk/build.sbt").exists()) {
     new File("silk", configPath)
   } else {
     new File(configPath)
