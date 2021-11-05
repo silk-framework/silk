@@ -199,7 +199,7 @@ export default function SearchItem({
                         data-test-id={"open-duplicate-modal"}
                         name="item-copy"
                         text={t("common.action.clone", "Clone")}
-                        onClick={onOpenDuplicateModal}
+                        onClick={() => onOpenDuplicateModal(item)}
                     />
                     {!!itemLinks.length && (
                         <IconButton

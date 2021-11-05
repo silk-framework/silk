@@ -154,7 +154,7 @@
             "^(?!.*\\.(js|jsx|ts|tsx|css|json)$)": "<rootDir>/config/jest/fileTransform.js"
         },
         "transformIgnorePatterns": [
-  	    "[/\\\\]node_modules[/\\\\](?!react-markdown|vfile|unist-util-stringify-position|).+\\.(js|jsx|ts|tsx)$",
+            "[/\\\\]node_modules[/\\\\](?!react-markdown|vfile|unist-util-stringify-position|).+\\.(js|jsx|ts|tsx)$",
             "^.+\\.module\\.(css|sass|scss)$"
         ],
         "moduleNameMapper": {
@@ -194,9 +194,9 @@
         "@testing-library/jest-dom": "^5.11.0",
         "@testing-library/react": "^10.4.3",
         "@testing-library/user-event": "^12.0.11",
-        "@types/core-js": "^2.5.3",
         "@types/carbon-components-react": "^7.42.0",
         "@types/codemirror": "^0.0.88",
+        "@types/core-js": "^2.5.3",
         "@types/enzyme": "^3.9.1",
         "@types/enzyme-adapter-react-16": "^1.0.5",
         "@types/jest": "^24.0.23",
@@ -240,6 +240,7 @@
         "jest-resolve": "24.9.0",
         "jest-watch-typeahead": "0.4.2",
         "lint-staged": "^10.1.7",
+        "localforage": "^1.10.0",
         "mini-css-extract-plugin": "0.9.0",
         "node-sass": "4.12.0",
         "optimize-css-assets-webpack-plugin": "5.0.3",
@@ -262,9 +263,9 @@
         "ts-pnp": "1.1.6",
         "typescript": "^3.9.5",
         "webpack": "4.42.0",
+        "webpack-cli": "^3.3.10",
         "webpack-dev-server": "3.10.3",
         "webpack-manifest-plugin": "2.2.0",
-        "webpack-cli": "^3.3.10",
         "workbox-webpack-plugin": "4.3.1"
     }
 }
