@@ -1154,12 +1154,18 @@
     lodash "^4.17.19"
     to-fast-properties "^2.0.0"
 
-"@blueprintjs/core@^3.36.0":
-  version "3.36.0"
-  resolved "https://registry.yarnpkg.com/@blueprintjs/core/-/core-3.36.0.tgz#0a271092050c17b84f29426594708180a1b5401a"
-  integrity sha512-7VUyF+qWelDysajK0Xowlou+iqbGAFfGaM3znpmm7OEEIli5XRWjG9rhNuEk3sP7zbdOJpyqh5PAPDQvm5Sxmg==
+"@blueprintjs/colors@^4.0.0-alpha.1":
+  version "4.0.0-alpha.1"
+  resolved "https://registry.yarnpkg.com/@blueprintjs/colors/-/colors-4.0.0-alpha.1.tgz#370684b404e5400494169c54cc3a31385fc6db6a"
+  integrity sha512-i95xW/cAIijJAMIBDrXw1WLbGVXVaRDRG1Ga0CxOtMVwL20zvdXlQj7EMqhkgVEJo9LaKNIDliPI+jsh7h5Lag==
+
+"@blueprintjs/core@^3.49.1", "@blueprintjs/core@^3.51.3":
+  version "3.51.3"
+  resolved "https://registry.yarnpkg.com/@blueprintjs/core/-/core-3.51.3.tgz#d74dd9ac299c0d8f635f04a81c8bda7ef534f069"
+  integrity sha512-Z3xGWBMBuboKFx19uxWNAUjITsCmpm+594R/KEAM578uT6yoydT6s5S7N12APAsFe8w3H1Yu2hbWHlHTvRfOhA==
   dependencies:
-    "@blueprintjs/icons" "^3.23.0"
+    "@blueprintjs/colors" "^4.0.0-alpha.1"
+    "@blueprintjs/icons" "^3.31.0"
     "@types/dom4" "^2.0.1"
     classnames "^2.2"
     dom4 "^2.1.5"
@@ -1171,20 +1177,20 @@
     resize-observer-polyfill "^1.5.1"
     tslib "~1.13.0"
 
-"@blueprintjs/icons@^3.23.0":
-  version "3.23.0"
-  resolved "https://registry.yarnpkg.com/@blueprintjs/icons/-/icons-3.23.0.tgz#4cfe0db4363971ac5d8a0a59590a6efc16115dc6"
-  integrity sha512-QOQ3P5bU1FiEwnMBl5Chn433ONSSTIMgC+zZJttyXV0m8R7D1bPBJJqIMuANXtRld/Fj+8IzoQ6jfaVUG16slA==
+"@blueprintjs/icons@^3.31.0":
+  version "3.31.0"
+  resolved "https://registry.yarnpkg.com/@blueprintjs/icons/-/icons-3.31.0.tgz#9b3075a45e93dacaf4363390e9985263d2999c6e"
+  integrity sha512-6pXhHC8zEvoDKN5KNsIHNuCRKsemmRbXNv1jweB95VaFzR1M+Mik+Qi+13Wd+VtZrzes2ZcWttIeyuK91NoLCw==
   dependencies:
     classnames "^2.2"
     tslib "~1.13.0"
 
-"@blueprintjs/select@^3.15.0":
-  version "3.15.0"
-  resolved "https://registry.yarnpkg.com/@blueprintjs/select/-/select-3.15.0.tgz#6307017df896fbd7b523fc08e41097b475be0831"
-  integrity sha512-pRiCVqzrJ+bV/Aac9OouxniD2DJVCVNnkk6KJET7PU9ZxD7Bo/42W9xmTlUCSd7r6FRRarYyKbRRjRXGP7U78g==
+"@blueprintjs/select@^3.18.1":
+  version "3.18.10"
+  resolved "https://registry.yarnpkg.com/@blueprintjs/select/-/select-3.18.10.tgz#6f71a070da17e478701a0417f138e4b18e051b1f"
+  integrity sha512-0G3ZHTGi+FJeXdE7nn5UPxZyEWgRR/jE+LckHiq9Aqmh62JweLUDwMmofBP9o72k+zvMVtTyn78QLAxfHJN5Xw==
   dependencies:
-    "@blueprintjs/core" "^3.36.0"
+    "@blueprintjs/core" "^3.51.3"
     classnames "^2.2"
     tslib "~1.13.0"
 
