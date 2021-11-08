@@ -245,11 +245,13 @@ export function CreateArtefactModal() {
         .every((searchWord) => "project".includes(searchWord));
 
     // Filter artefact list and add project item
-    let artefactListWithProject = artefactsList.filter(
-        (artefact) =>
-            selectedDType === "all" ||
-            (artefact.taskType && routerOp.itemTypeToPath(artefact.taskType) === selectedDType)
-    );
+    let artefactListWithProject = artefactsList
+        .filter(
+            (artefact) =>
+                selectedDType === "all" ||
+                (artefact.taskType && routerOp.itemTypeToPath(artefact.taskType) === selectedDType)
+        )
+        .sort((a, b) => a.title!.localeCompare(b.title!));
     if (showProjectItem && (selectedDType === "all" || selectedDType === "project")) {
         artefactListWithProject = [
             {
