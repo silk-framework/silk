@@ -45,7 +45,7 @@ case class ProjectConfig(id: Identifier = Identifier.random,
     projectResourceUriOpt.getOrElse(generateDefaultUri)
   }
 
-  override def label(maxLength: Int): String = {
+  override def label(maxLength: Int)(implicit prefixes: Prefixes): String = {
     metaData.formattedLabel(id, maxLength)
   }
 }

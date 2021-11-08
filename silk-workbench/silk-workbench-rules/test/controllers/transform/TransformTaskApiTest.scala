@@ -34,11 +34,11 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     val request = client.url(s"$baseUrl/transform/tasks/$project/$task").
       addHttpHeaders("ACCEPT" -> "application/json")
     val response = Json.parse(checkResponse(request.get()).body)
-    // A label has been generated for this transform
-    (response \ "metadata" \ "label").as[String] mustBe "Test Transform"
+    // No label should be generated for this transform
+    (response \ "metadata" \ "label").isDefined mustBe false
     // An id and a label has been generated for the root mapping
     (response \ DATA \ PARAMETERS \ "mappingRule" \ "id").as[String] mustBe ROOT_RULE_ID
-    (response \ DATA \ PARAMETERS \ "mappingRule" \ "metadata" \ "label").as[String] mustBe ""
+    (response \ DATA \ PARAMETERS \ "mappingRule" \ "metadata" \ "label").isDefined mustBe false
   }
 
   "Check that we can GET the transform task as XML" in {
@@ -93,7 +93,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
         }
       """
     }
-    (json \ "metadata" \ "label").as[String] mustBe "name"
+    (json \ "metadata" \ "label").isDefined mustBe false
+    (json \ "metadata" \ "description").as[String] mustBe "direct rule description"
   }
 
   "Update meta data of direct mapping rule" in {
@@ -132,7 +133,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
         }
       """
     }
-    (json \ "metadata" \ "label").as[String] mustBe "address"
+    (json \ "metadata" \ "label").isDefined mustBe false
+    (json \ "id").as[String] mustBe OBJECT_RULE_ID
   }
 
   "Retrieve full mapping rule tree" in {
@@ -147,7 +149,6 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
  |            "id": "uri",
  |            "pattern": "http://example.org/{PersonID}",
  |            "metadata": {
- |                "label": "URI"
  |            }
  |        },
  |        "typeRules": [
@@ -156,7 +157,6 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
  |                "id": "explicitlyDefinedId",
  |                "typeUri": "target:Person",
  |                "metadata": {
- |                    "label": "Person"
  |                }
  |            }
  |        ],
@@ -196,7 +196,6 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
  |                },
  |                "sourcePath": "source:address",
  |                "metadata": {
- |                    "label": "address"
  |                }
 
  |            }
@@ -209,7 +208,6 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
  |        "isAttribute":false
  |    },
  |    "metadata": {
- |        "label": ""
  |    }
  |}
       """.stripMargin
@@ -238,7 +236,6 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
             "propertyRules" : [ ]
           },
           "metadata" : {
-            "label" : "address"
           }
         }
       """
@@ -481,9 +478,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     val originalInput = as[ObjectMapping](originalTransformRule).operator
     val clonedInput = as[ObjectMapping](clonedTransformRule).operator
     originalInput mustBe clonedInput
-    val originalLabel = originalTransformRule.metaData.label
     val clonedLabel = clonedTransformRule.metaData.label
-    clonedLabel mustBe s"Copy of $originalLabel"
+    clonedLabel mustBe Some(s"Copy of target:address")
   }
 
   "Copy root mapping rule as child rule of itself" in {
@@ -497,9 +493,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     val originalUriRule = as[RootMappingRule](originalTransformRule).rules.uriRule.get.operator
     val clonedUriRule = as[ObjectMapping](clonedTransformRule).rules.uriRule.get.operator
     clonedUriRule mustBe originalUriRule
-    val originalLabel = originalTransformRule.metaData.label
     val clonedLabel = clonedTransformRule.metaData.label
-    clonedLabel mustBe s"Copy of $originalLabel"
+    clonedLabel mustBe Some(s"Copy of root")
     clonedTransformRule.target mustBe Some(MappingTarget(TransformTaskApi.ROOT_COPY_TARGET_PROPERTY, ValueType.URI))
   }
 

@@ -74,7 +74,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
       val pd = PluginDescription(task)
       val itemType = ItemType.itemType(task)
       val itemLinks = ItemType.itemTypeLinks(itemType, projectId, task.id, Some(task.data))
-      RelatedItem(task.id, task.fullTaskLabel, task.metaData.description, itemType.label, itemLinks, pd.label)
+      RelatedItem(task.id, task.fullLabel, task.metaData.description, itemType.label, itemLinks, pd.label)
     }
     val filteredItems = filterRelatedItems(relatedItems, textQuery)
     val total = relatedItems.size

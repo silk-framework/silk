@@ -70,7 +70,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     * @param workflowRunContext Workflow Context
     */
   protected def updateProgress(operation: String, task: Task[_ >: TaskSpec])(implicit workflowRunContext: WorkflowRunContext): Unit = {
-    val taskLabel = task.taskLabel(maxLength = math.max(10, 40 - operation.length))
+    val taskLabel = task.label(maxLength = math.max(10, 40 - operation.length))
     val progress = (workflowRunContext.alreadyExecuted.size.toDouble + 1) / (workflowNodes.size + 1)
     workflowRunContext.activityContext.status.update(s"$operation $taskLabel", progress)
   }
@@ -145,7 +145,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
       ).asInstanceOf[Task[T]]
     } catch {
       case ex: ValidationException =>
-        throw new ValidationException(s"Failed to re-configure task '${task.taskLabel()}'. Error details: " + ex.getMessage)
+        throw new ValidationException(s"Failed to re-configure task '${task.label()}'. Error details: " + ex.getMessage)
     }
   }
 

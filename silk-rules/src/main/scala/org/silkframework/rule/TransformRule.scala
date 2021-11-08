@@ -1,7 +1,7 @@
 package org.silkframework.rule
 
 import org.silkframework.config.MetaData.MetaDataXmlFormat
-import org.silkframework.config.{MetaData, Prefixes}
+import org.silkframework.config.{HasMetaData, MetaData, Prefixes}
 import org.silkframework.dataset.TypedProperty
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
@@ -30,7 +30,7 @@ import scala.xml.{Node, Null}
   * A transformations rule generates property values from based on an arbitrary operator tree consisting of property paths and transformations.
   * Sub classes are defined for special cases, such as direct mappings.
   */
-sealed trait TransformRule extends Operator {
+sealed trait TransformRule extends Operator with HasMetaData {
 
   /** The name of this rule. */
   def id: Identifier
@@ -74,7 +74,7 @@ sealed trait TransformRule extends Operator {
     * In case no label is defined, it falls back to the target property.
     * If no target property is defined, the id will be returned.
     */
-  def ruleLabel(maxLength: Int = MetaData.DEFAULT_LABEL_MAX_LENGTH)(implicit prefixes: Prefixes): String = {
+  override def label(maxLength: Int = MetaData.DEFAULT_LABEL_MAX_LENGTH)(implicit prefixes: Prefixes): String = {
     val defaultLabel = target.map(_.propertyUri.serialize).filter(_.nonEmpty).getOrElse(id.toString)
     metaData.formattedLabel(defaultLabel, maxLength)
   }

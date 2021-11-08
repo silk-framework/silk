@@ -296,7 +296,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
       JsObject(addLabelsToValues(projectName, parameterValues, pluginDescription))
     } catch {
       case NonFatal(ex) =>
-        log.warning(s"Could not get labels of plugin parameters for task '${task.taskLabel()}' in project '$projectName'. Details: " + ex.getMessage)
+        log.warning(s"Could not get labels of plugin parameters for task '${task.label()}' in project '$projectName'. Details: " + ex.getMessage)
         JsObject(parameterValues)
     }
   }

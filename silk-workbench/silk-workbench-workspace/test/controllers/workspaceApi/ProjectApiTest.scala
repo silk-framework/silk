@@ -31,7 +31,7 @@ class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatcher
       val (label, description) = (s"Some project!", Some(s"Project description $i"))
       val response: WSResponse = createProjectByLabel(label, description)
       val metaData = JsonSerializers.fromJson[MetaData]((response.json \ "metaData").get)
-      metaData.label mustBe label
+      metaData.label mustBe Some(label)
       metaData.description mustBe description
       val locationHeader = response.header("Location")
       val projectId = (response.json \ "name").get.as[String]
@@ -57,7 +57,7 @@ class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatcher
     val metaDataResponse = JsonSerializers.fromJson[MetaData](checkResponse(response).json)
     val metaData = retrieveOrCreateProject(projectId).config.metaData
     metaData mustBe metaDataResponse
-    metaData.label mustBe newLabel
+    metaData.label mustBe Some(newLabel)
     metaData.description mustBe newDescription
   }
 

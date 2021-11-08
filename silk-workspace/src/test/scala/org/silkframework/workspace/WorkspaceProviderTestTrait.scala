@@ -328,7 +328,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
     workspace.reload()
     val oldMetaData = transformTaskUpdated.metaData
     val newMetaData = workspace.project(PROJECT_NAME).anyTask(TRANSFORM_ID).metaData
-    newMetaData.label shouldBe newTransformTaskLabel
+    newMetaData.label shouldBe Some(newTransformTaskLabel)
     newMetaData.description should not be oldMetaData.description
     newMetaData.modified should not be oldMetaData.modified
   }

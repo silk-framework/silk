@@ -47,7 +47,7 @@ class TransformEditor @Inject() (accessMonitor: WorkbenchAccessMonitor) extends 
   /** Fetch relative source paths for a specific rule and render widget. */
   def rulePaths(projectName: String, taskName: String, ruleName: String, groupPaths: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
     val (project, transformTask) = projectAndTask[TransformSpec](projectName, taskName)
-    val sourceName = project.anyTask(transformTask.data.selection.inputId).taskLabel()
+    val sourceName = project.anyTask(transformTask.data.selection.inputId).label()
     val prefixes = project.config.prefixes
     transformTask.data.nestedRuleAndSourcePath(ruleName) match {
       case Some((_, sourcePath)) =>

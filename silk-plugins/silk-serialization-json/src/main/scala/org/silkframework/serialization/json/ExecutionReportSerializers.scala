@@ -53,7 +53,7 @@ object ExecutionReportSerializers {
 
     def serializeBasicValues(value: ExecutionReport)(implicit writeContext: WriteContext[JsValue]): JsObject = {
       Json.obj(
-        LABEL -> value.task.taskLabel(),
+        LABEL -> value.task.label(),
         OPERATION -> value.operation,
         OPERATION_DESC -> value.operationDesc,
         TASK -> GenericTaskJsonFormat.write(value.task),

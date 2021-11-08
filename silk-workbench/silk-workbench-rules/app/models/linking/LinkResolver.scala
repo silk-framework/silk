@@ -55,15 +55,15 @@ object LinkResolver {
           case ds: RdfDataset =>
             dataManagerUrl match {
               case Some(url) =>
-                new DataManagerResolver(sourceTask.taskLabel(), ds, url)
+                new DataManagerResolver(sourceTask.label(), ds, url)
               case None =>
-                DereferencingLinkResolver(sourceTask.taskLabel())
+                DereferencingLinkResolver(sourceTask.label())
             }
           case _ =>
-            NoLinkResolver(sourceTask.taskLabel())
+            NoLinkResolver(sourceTask.label())
         }
       case _ =>
-        NoLinkResolver(sourceTask.taskLabel())
+        NoLinkResolver(sourceTask.label())
     }
   }
 

@@ -167,7 +167,7 @@ class TransformedEntities(task: Task[TransformSpec],
     errorFlag = true
     if(abortIfErrorsOccur) {
       val message = "Transform task is configured to fail if any error occurs: " +
-        s"Failed to transform entity '${entity.uri}' with rule '${rule.ruleLabel()}' in '$ruleLabel': ${ex.getMessage}"
+        s"Failed to transform entity '${entity.uri}' with rule '${rule.label()}' in '$ruleLabel': ${ex.getMessage}"
       throw AbortExecutionException(message, Some(ex))
     }
   }

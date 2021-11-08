@@ -49,7 +49,7 @@ object TaskToBeCopied {
     TaskToBeCopied(
       taskType = ItemType.itemType(task).label,
       id = task.id,
-      label = task.taskLabel(),
+      label = task.label(),
       originalTaskLink = WorkbenchLinks.editorLink(task),
       overwrittenTaskLink = overwrittenTask.map(WorkbenchLinks.editorLink)
     )

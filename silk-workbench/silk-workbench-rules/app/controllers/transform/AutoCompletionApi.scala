@@ -323,7 +323,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
       case Some(value) =>
         block(value)
       case None =>
-        throw new NotFoundException("Requesting auto-completion for non-existent rule " + ruleId + " in transformation task " + transformTask.fullTaskLabel + "!")
+        throw new NotFoundException("Requesting auto-completion for non-existent rule " + ruleId + " in transformation task " + transformTask.fullLabel + "!")
     }
   }
 

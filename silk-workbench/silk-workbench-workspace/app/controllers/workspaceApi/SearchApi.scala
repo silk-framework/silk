@@ -119,14 +119,14 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
           val pd = PluginDescription(task)
           Seq(
             "taskId" -> JsString(task.id),
-            "taskLabel" -> JsString(taskOpt.get.taskLabel()),
+            "taskLabel" -> JsString(taskOpt.get.label()),
             PLUGIN_ID -> JsString(pd.id),
             PLUGIN_LABEL -> JsString(pd.label)
           )
         }
         Some(JsObject(Seq(
           "projectId" -> JsString(item.projectId),
-          "projectLabel" -> JsString(taskOpt.get.taskLabel()),
+          "projectLabel" -> JsString(taskOpt.get.label()),
           "itemType" -> JsString(itemType.id),
           "itemLinks" -> Json.toJson(ItemType.itemTypeLinks(
             itemType,

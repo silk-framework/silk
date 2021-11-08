@@ -590,8 +590,8 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     implicit val idGenerator: IdentifierGenerator = identifierGenerator(task)
     ruleToCopy.operator match {
       case t: TransformRule =>
-        val originalLabel = if(t.metaData.label.isDefined) t.metaData.label.get else t.target.map(_.propertyUri.toString).getOrElse("unlabeled")
-        val newLabel = "Copy of " + originalLabel
+        implicit val prefixes: Prefixes = task.project.config.prefixes
+        val newLabel = "Copy of " + t.fullLabel
         val transformRuleCopy = assignNewIdsToRule(t)
         transformRuleCopy.withMetaData(t.metaData.copy(label = Some(newLabel)))
       case other: Operator => throw new RuntimeException("Selected operator was not transform rule. Operator ID: " + other.id)
