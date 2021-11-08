@@ -165,7 +165,7 @@
 
 @task(project: Project, taskType: TaskType, actions: TaskActions) = {
   <li id="task:@{project.name}:@actions.task.id" data-jstree='{"icon":"@taskType.icon"}'>
-    @{ if(actions.task.metaData.label.trim != "") actions.task.metaData.label else { actions.task.id } }
+    @actions.task.taskLabel()
     @for(path <- actions.propertiesDialog) {
       @button("Properties", "Edit task properties", "wrench.png", s"workspaceDialog('$path')")
     }

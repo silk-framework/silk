@@ -39,7 +39,7 @@ class ActivityApiTest extends PlaySpec with IntegrationTestTrait with BeforeAndA
     PluginRegistry.registerPlugin(classOf[FailingProjectActivityFactory])
     PluginRegistry.registerPlugin(classOf[FailingTaskActivityFactory])
 
-    val project = WorkspaceFactory().workspace.createProject(ProjectConfig(projectId, metaData = MetaData(projectId)))
+    val project = WorkspaceFactory().workspace.createProject(ProjectConfig(projectId, metaData = MetaData.empty))
     project.addTask[MessageTask](taskId, MessageTask(message))
   }
 

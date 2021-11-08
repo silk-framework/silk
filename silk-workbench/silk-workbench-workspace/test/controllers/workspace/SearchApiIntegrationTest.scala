@@ -235,7 +235,7 @@ class SearchApiIntegrationTest extends FlatSpec
     val uniqueId = "veryUnique"
     val newProject = "newProject"
     val newTask = "newTask"
-    val metaData = MetaData("", Some("A" + uniqueId + "Z"))
+    val metaData = MetaData(None, Some("A" + uniqueId + "Z"))
 
     val project = retrieveOrCreateProject(newProject)
     try {

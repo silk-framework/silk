@@ -243,10 +243,8 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
         throw new BadUserInputException("Invalid project XML format. config.xml does not contain Prefixes section.")
       }
       val projectId = (xml \ "@resourceUri").text.split("[/#:]").last
-      val metaData = (xml \ "MetaData").headOption.map(MetaData.MetaDataXmlFormat.read).getOrElse(
-        MetaData(projectId)
-      )
-      ProjectImportDetails(projectId, metaData.label, metaData.description, XmlZipWithResourcesProjectMarshaling.marshallerId,
+      val metaData = (xml \ "MetaData").headOption.map(MetaData.MetaDataXmlFormat.read).getOrElse(MetaData.empty)
+      ProjectImportDetails(projectId, metaData.label.getOrElse(projectId), metaData.description, XmlZipWithResourcesProjectMarshaling.marshallerId,
         projectAlreadyExists = false, None)
     } catch {
       case ex: RequestException =>

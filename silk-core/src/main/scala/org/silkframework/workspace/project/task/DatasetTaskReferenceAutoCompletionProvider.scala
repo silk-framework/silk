@@ -17,7 +17,7 @@ case class DatasetTaskReferenceAutoCompletionProvider() extends PluginParameterA
                                       workspace: WorkspaceReadTrait)
                                      (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
     val taskProject = dependOnParameterValues.headOption.getOrElse(projectId)
-    val allDatasets = workspace.project(taskProject).tasks[GenericDatasetSpec].map(spec => AutoCompletionResult(spec.id, Some(spec.metaData.label)))
+    val allDatasets = workspace.project(taskProject).tasks[GenericDatasetSpec].map(spec => AutoCompletionResult(spec.id, spec.metaData.label))
     filterResults(searchQuery, allDatasets)
   }
 
@@ -29,6 +29,6 @@ case class DatasetTaskReferenceAutoCompletionProvider() extends PluginParameterA
                             workspace: WorkspaceReadTrait)
                            (implicit userContext: UserContext): Option[String] = {
     val taskProject = dependOnParameterValues.headOption.getOrElse(projectId)
-    workspace.project(taskProject).taskOption[GenericDatasetSpec](value).map(_.metaData.label)
+    workspace.project(taskProject).taskOption[GenericDatasetSpec](value).flatMap(_.metaData.label)
   }
 }

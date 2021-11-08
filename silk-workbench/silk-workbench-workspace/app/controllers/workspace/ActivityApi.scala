@@ -638,7 +638,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     val taskOpt = strToOption(taskId).map(id => anyTask(projectId, id))
     val errorReport = ErrorReportItem(
       projectId = projectOpt.map(_.name),
-      projectLabel = projectOpt.filter(p => p.config.metaData.label.nonEmpty && p.name.toString != p.config.metaData.label).map(_.config.metaData.label),
+      projectLabel = projectOpt.filter(p => p.config.metaData.label.nonEmpty && p.name.toString != p.config.metaData.label.get).flatMap(_.config.metaData.label),
       taskId = taskOpt.map(_.id),
       taskLabel = taskOpt.map(t => t.metaData.formattedLabel(t.id, Int.MaxValue)),
       taskDescription = taskOpt.flatMap(_.metaData.description),

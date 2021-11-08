@@ -70,19 +70,19 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
 
   val metaData =
     MetaData(
-      label = "Task Label",
+      label = Some("Task Label"),
       description = Some("Some Task Description")
     )
 
   val metaDataUpdated =
     MetaData(
-      label = "Updated Task Label",
+      label = Some("Updated Task Label"),
       description = Some("Updated Task Description")
     )
 
-  val dataset = PlainTask(DATASET_ID, DatasetSpec(MockDataset("default")), metaData = MetaData(DATASET_ID, Some(DATASET_ID + " description")))
+  val dataset = PlainTask(DATASET_ID, DatasetSpec(MockDataset("default")), metaData = MetaData(Some(DATASET_ID), Some(DATASET_ID + " description")))
 
-  val datasetUpdated = PlainTask(DATASET_ID, DatasetSpec(MockDataset("updated"), uriAttribute = Some("uri")), metaData = MetaData(DATASET_ID))
+  val datasetUpdated = PlainTask(DATASET_ID, DatasetSpec(MockDataset("updated"), uriAttribute = Some("uri")), metaData = MetaData(Some(DATASET_ID)))
 
   private val dummyType = "urn:test:dummyType"
   private val dummyRestriction = Restriction.custom("  ?a <urn:test:prop1> 1 .\n\n  ?a <urn:test:prop2> true .\n")(Prefixes.default)
@@ -107,9 +107,9 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
                 MappingRules(DirectMapping(
                   id = TRANSFORM_ID,
                   sourcePath = UntypedPath("prop1"),
-                  metaData = MetaData("Direct Rule Label", Some("Direct Rule Description"))
+                  metaData = MetaData(Some("Direct Rule Label"), Some("Direct Rule Description"))
                 )),
-              metaData = MetaData("Root Rule Label", Some("Root Rule Description")))
+              metaData = MetaData(Some("Root Rule Label"), Some("Root Rule Description")))
         ),
       metaData = metaData
   )
@@ -125,10 +125,10 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
               MappingRules(DirectMapping(
                 id = TRANSFORM_ID + 2,
                 sourcePath = UntypedPath("prop5"),
-                metaData = MetaData("Direct Rule New Label", Some("Direct Rule New Description"))
+                metaData = MetaData(Some("Direct Rule New Label"), Some("Direct Rule New Description"))
               )),
             mappingTarget = transformTask.data.mappingRule.mappingTarget.copy(isAttribute = true),
-            metaData = MetaData("Root Rule New Label", Some("Root Rule New Description"))
+            metaData = MetaData(Some("Root Rule New Label"), Some("Root Rule New Description"))
           ),
        abortIfErrorsOccur = true
       ),
@@ -144,25 +144,25 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
           mappingRule = RootMappingRule(
             MappingRules(
               uriRule = None,
-              typeRules = Seq(TypeMapping(typeUri = "Person", metaData = MetaData("type"))),
+              typeRules = Seq(TypeMapping(typeUri = "Person", metaData = MetaData(Some("type")))),
               propertyRules = Seq(
-                DirectMapping("name", sourcePath = UntypedPath("name"), mappingTarget = MappingTarget("name"), MetaData("name")),
+                DirectMapping("name", sourcePath = UntypedPath("name"), mappingTarget = MappingTarget("name"), MetaData(Some("name"))),
                 ObjectMapping(
                   sourcePath = UntypedPath.empty,
                   target = Some(MappingTarget("address")),
                   rules = MappingRules(
-                    uriRule = Some(PatternUriMapping(pattern = s"https://silkframework.org/ex/Address_{city}_{country}", metaData = MetaData("uri"))),
+                    uriRule = Some(PatternUriMapping(pattern = s"https://silkframework.org/ex/Address_{city}_{country}", metaData = MetaData(Some("uri")))),
                     typeRules = Seq.empty,
                     propertyRules = Seq(
-                      DirectMapping("city", sourcePath = UntypedPath("city"), mappingTarget = MappingTarget("city"), MetaData("city")),
-                      DirectMapping("country", sourcePath = UntypedPath("country"), mappingTarget = MappingTarget("country"), MetaData("country"))
+                      DirectMapping("city", sourcePath = UntypedPath("city"), mappingTarget = MappingTarget("city"), MetaData(Some("city"))),
+                      DirectMapping("country", sourcePath = UntypedPath("country"), mappingTarget = MappingTarget("country"), MetaData(Some("country")))
                     )
                   ),
-                  metaData = MetaData("object")
+                  metaData = MetaData(Some("object"))
                 )
               )
             ),
-            metaData = MetaData("root")
+            metaData = MetaData(Some("root"))
           )
         ),
       metaData = metaData
@@ -237,13 +237,13 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
   it should "read and write project meta data" in {
     implicit val us: UserContext = specificUserContext2
     Thread.sleep(2) // Wait shortly, so modified time is different than creation time
-    val projectLabel = "named project"
-    val projectDescription = "project description"
-    val newMetaData = MetaData(projectLabel, description = Some(projectDescription))
+    val projectLabel = Some("named project")
+    val projectDescription = Some("project description")
+    val newMetaData = MetaData(projectLabel, description = projectDescription)
     val originalMetaData = project.config.metaData
     workspace.updateProjectMetaData(PROJECT_NAME, newMetaData)
     refreshTest {
-      checkUpdateMetaData(project.config.metaData, originalMetaData.copy(label = projectLabel, description = Some(projectDescription)), specificUserContext, specificUserContext2)
+      checkUpdateMetaData(project.config.metaData, originalMetaData.copy(label = projectLabel, description = projectDescription), specificUserContext, specificUserContext2)
     }
   }
 
@@ -254,7 +254,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
 
   private def createProject(projectName: String)
                            (implicit userContext: UserContext): ProjectConfig = {
-    val project = ProjectConfig(projectName, metaData = MetaData(projectName))
+    val project = ProjectConfig(projectName, metaData = MetaData(Some(projectName)))
     workspace.createProject(project)(userContext)
     project
   }
@@ -324,7 +324,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
     implicit val us: UserContext = emptyUserContext
     val newTransformTaskLabel = "newTransformTask"
     workspace.project(PROJECT_NAME).removeAnyTask(TRANSFORM_ID, removeDependentTasks = false)
-    workspace.project(PROJECT_NAME).addTask[TransformSpec](TRANSFORM_ID, transformTaskUpdated.data, MetaData(newTransformTaskLabel))
+    workspace.project(PROJECT_NAME).addTask[TransformSpec](TRANSFORM_ID, transformTaskUpdated.data, MetaData(Some(newTransformTaskLabel)))
     workspace.reload()
     val oldMetaData = transformTaskUpdated.metaData
     val newMetaData = workspace.project(PROJECT_NAME).anyTask(TRANSFORM_ID).metaData
@@ -373,10 +373,10 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
     val label = "Linking Task 1"
     val description = "Description of linking task"
     val originalMetaData = linkingTask.metaData
-    project.updateTask[LinkSpec](LINKING_TASK_ID, linkingTask, Some(MetaData(label, Some(description))))
+    project.updateTask[LinkSpec](LINKING_TASK_ID, linkingTask, Some(MetaData(Some(label), Some(description))))
     withWorkspaceRefresh(PROJECT_NAME) {
       val task = project.task[LinkSpec](LINKING_TASK_ID)
-      checkUpdateMetaData(task.metaData, originalMetaData.copy(label = label, description = Some(description)), specificUserContext, emptyUserContext)
+      checkUpdateMetaData(task.metaData, originalMetaData.copy(label = Some(label), description = Some(description)), specificUserContext, emptyUserContext)
     }
   }
 

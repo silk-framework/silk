@@ -15,10 +15,10 @@
 package org.silkframework.workspace
 
 import java.util.logging.Logger
-
 import com.typesafe.config.ConfigException
+
 import javax.inject.Inject
-import org.silkframework.config.{Config, DefaultConfig, MetaData, Prefixes}
+import org.silkframework.config.{Config, DefaultConfig, HasMetaData, MetaData, Prefixes}
 import org.silkframework.util.Identifier
 
 /**
@@ -32,7 +32,8 @@ import org.silkframework.util.Identifier
 case class ProjectConfig(id: Identifier = Identifier.random,
                          prefixes: Prefixes = Prefixes.default,
                          projectResourceUriOpt: Option[String] = None,
-                         metaData: MetaData = MetaData.empty) {
+                         metaData: MetaData = MetaData.empty) extends HasMetaData {
+
   def withMetaData(metaData: MetaData): ProjectConfig = this.copy(metaData = metaData)
 
   def generateDefaultUri: String = {
@@ -42,6 +43,10 @@ case class ProjectConfig(id: Identifier = Identifier.random,
   /** Returns the project resource URI if set or generates the default URI for this project. */
   def resourceUriOrElseDefaultUri: String = {
     projectResourceUriOpt.getOrElse(generateDefaultUri)
+  }
+
+  override def label(maxLength: Int): String = {
+    metaData.formattedLabel(id, maxLength)
   }
 }
 
