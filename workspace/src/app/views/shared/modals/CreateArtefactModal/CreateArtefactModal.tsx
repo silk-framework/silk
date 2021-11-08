@@ -291,8 +291,6 @@ export function CreateArtefactModal() {
 
     const isCreationUpdateDialog = selectedArtefactKey || updateExistingTask;
 
-    console.log({ selectedArtefact });
-
     const createDialog = (
         <SimpleDialog
             size="large"
