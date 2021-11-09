@@ -523,7 +523,7 @@
             "availableTasks": "Available task",
             "availableTasks_plural": "Available tasks ({{count}})",
             "usedTasks": "Matching node",
-            "usedTasks_plural": "Matching nodes ({{count}})",
+            "usedTasks_plural": "Node matches ({{count}})",
             "cycleNext": "Next match",
             "cyclePrevious": "Previous match",
             "cycleTooltip": "Cycle through {{totalMatches}} currently used instances of this task",
