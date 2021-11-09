@@ -648,6 +648,8 @@ ul.ecc-hierarchical-mapping-error-list {
 }
 
 .ecc-silk-mapping__rulesviewer__examples-table {
+    table-layout: unset !important;
+    width: 100%;
 
     th, td {
         white-space: normal;
@@ -670,14 +672,14 @@ ul.ecc-hierarchical-mapping-error-list {
             padding: $ecc-size-block-whitespace/2 0;
 
             .mdl-chip {
-                white-space: pre-wrap;
+                // white-space: pre-wrap; // not clear why this was made but it produces linebreaks and display bugs
             }
         }
         &.ecc-silk-mapping__rulesviewer__examples-table__result {
             padding: $ecc-size-block-whitespace/2 0em $ecc-size-block-whitespace/2 $ecc-size-block-whitespace;
 
             .mdl-chip {
-                white-space: pre-wrap;
+                // white-space: pre-wrap; // not clear why this was made but it produces linebreaks and display bugs
             }
         }
     }
@@ -692,7 +694,7 @@ ul.ecc-hierarchical-mapping-error-list {
     }
 
     .mdl-chip {
-        max-width: 30rem;
+        box-sizing: border-box;
     }
 
     tbody {
