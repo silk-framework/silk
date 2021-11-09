@@ -510,6 +510,13 @@
         }
     },
     "WorkflowEditor": {
+        "canvasControlTooltips": {
+            "fitview": "Center workflow",
+            "zoomin": "Zoom in",
+            "zoomout": "Zoom out",
+            "lock": "Switch to read-only mode",
+            "unlock": "Switch to edit mode"
+        },
         "sidebar": {
             "searchInput": "Find datasets and workflow operators",
             "searchTooltip": "Search for datasets and workflow operators both in the nodes used in the canvas and new tasks in the sidebar. Pressing the <Enter> key refreshes the list from the server.",

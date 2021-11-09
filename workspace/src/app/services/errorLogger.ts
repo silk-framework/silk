@@ -30,10 +30,10 @@ let __tableInstance: any = null;
 const tableInstance: () => any = () => {
     if (!__tableInstance) {
         __tableInstance = new Dexie(LOG_TABLE);
+        __tableInstance.version(1).stores({
+            [LOG_TABLE]: "++id, name, message, stack, client, react_stack, network",
+        });
     }
-    __tableInstance.version(1).stores({
-        [LOG_TABLE]: "++id, name, message, stack, client, react_stack, network",
-    });
     return __tableInstance;
 };
 
