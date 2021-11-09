@@ -19,14 +19,14 @@ trait HasMetaData {
 
   /**
     * Returns a label for this object.
-    * Per default, it will fall back to the identifier, if no label is defined.
+    * Per default, it will fall back to generating a label from the identifier, if no label is defined.
     * Subclasses may override this behaviour.
     * Truncates the label to maxLength characters.
     *
     * @param maxLength the max length in characters
     */
   def label(maxLength: Int = MetaData.DEFAULT_LABEL_MAX_LENGTH)(implicit prefixes: Prefixes = Prefixes.empty): String = {
-    metaData.formattedLabel(id, maxLength)
+    metaData.formattedLabel(MetaData.labelFromId(id), maxLength)
   }
 
   /**

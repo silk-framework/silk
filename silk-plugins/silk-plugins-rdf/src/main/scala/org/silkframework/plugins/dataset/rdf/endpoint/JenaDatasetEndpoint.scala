@@ -2,13 +2,14 @@ package org.silkframework.plugins.dataset.rdf.endpoint
 
 import java.io._
 import java.util.logging.Logger
-
 import org.apache.jena.query.{Dataset, Query, QueryExecution, QueryExecutionFactory}
 import org.apache.jena.rdf.model.{Model, ModelFactory}
 import org.apache.jena.riot.{Lang, RDFLanguages}
 import org.apache.jena.update.{UpdateExecutionFactory, UpdateFactory, UpdateProcessor}
 import org.silkframework.dataset.rdf.{GraphStoreTrait, SparqlEndpoint, SparqlParams}
 import org.silkframework.runtime.activity.UserContext
+
+import scala.util.control.NonFatal
 
 /**
   * A SPARQL endpoint which executes all queries on a Jena Dataset.
@@ -20,7 +21,13 @@ class JenaDatasetEndpoint(dataset: Dataset, val sparqlParams: SparqlParams = Spa
   }
 
   override def createUpdateExecution(query: String): UpdateProcessor = {
-    UpdateExecutionFactory.create(UpdateFactory.create(query), dataset)
+    try {
+      UpdateExecutionFactory.create(UpdateFactory.create(query), dataset)
+    }
+    catch {
+      case NonFatal(ex) =>
+        throw ex
+    }
   }
 
   override def graphStoreEndpoint(graph: String): String = {
