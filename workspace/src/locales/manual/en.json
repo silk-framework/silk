@@ -556,6 +556,9 @@
                 "remove": {
                     "label": "Remove node"
                 },
+                "showExecutionReport": {
+                    "label": "Show execution report"
+                },
                 "showSummary": {
                     "label": "Show summary"
                 },
