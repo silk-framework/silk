@@ -175,7 +175,7 @@ export function ArtefactManagementOptions({
                     : [],
             actionsFullMenu: projectId || taskId ? getFullMenu() : [],
         });
-    }, [projectId, taskId, itemType, exportTypes, itemLinks]);
+    }, [projectId, taskId, itemType, exportTypes, itemLinks, t]);
 
     useEffect(() => {
         updateActionsMenu(<ActionsMenu {...menuItems} />);

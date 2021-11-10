@@ -252,7 +252,7 @@ export function Metadata(props: IProps) {
                     <Button
                         data-test-id={"submitBtn"}
                         affirmative
-                        text={t("common.action.submit", "Submit")}
+                        text={t("common.action.save", "Save")}
                         type={"submit"}
                     />
                     <Button text={t("common.action.cancel")} onClick={toggleEdit} />
