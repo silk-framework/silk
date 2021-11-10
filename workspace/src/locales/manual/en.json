@@ -527,9 +527,11 @@
         },
         "header": {
             "saveBtnTooltip": "Save the current state of the workflow",
+            "toggleProgressLabel": "Toggle progress",
             "warning": {
                 "tooltip": "Focuses on failed node and opens execution report"
-            }
+            },
+            "warningMenuTooltip": "Show list of errors and warnings"
         },
         "handle": {
             "configuration": {
@@ -552,6 +554,9 @@
             "WorkflowEditor_fetchWorkflow": "Failed to load the workflow."
         },
         "node": {
+            "actions": {
+                "showExecutionReport": "Show execution report"
+            },
             "menu": {
                 "remove": {
                     "label": "Remove node"
