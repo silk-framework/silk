@@ -273,7 +273,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             {orderTasksByLabel(info.copiedTasks)?.map((t) => (
                                 <OverviewItem key={t.id} className="copy-modal-item">
                                     <OverviewItemDepiction>
-                                        <ItemDepiction itemType={t.taskType} size={{ small: true }} />
+                                        <ItemDepiction itemType={t.taskType} size={{ large: true }} />
                                     </OverviewItemDepiction>
                                     <OverviewItemLine>
                                         <Link href={t.originalTaskLink} target="_blank">
