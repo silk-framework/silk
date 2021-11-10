@@ -246,6 +246,15 @@ export default function SearchItem({
                             text={t("common.action.clone", "Clone")}
                             onClick={onOpenDuplicateModal}
                         />
+                        <MenuDivider />
+                        <MenuItem
+                            data-test-id="search-item-delete-btn"
+                            key="delete"
+                            icon={"item-remove"}
+                            onClick={onOpenDeleteModal}
+                            text={t("common.action.delete", "Delete")}
+                            intent="danger"
+                        />
                     </ContextMenu>
                 </OverviewItemActions>
             </OverviewItem>
