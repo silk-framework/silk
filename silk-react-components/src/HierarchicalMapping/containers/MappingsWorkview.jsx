@@ -403,7 +403,7 @@ class MappingsWorkview extends React.Component {
                         onAskDiscardChanges={this.props.onAskDiscardChanges}
                         onClickedRemove={this.props.onClickedRemove}
                     />
-                    {listSuggestions ? false : listMappings}
+                    {(this.state.loading || listSuggestions) ? false : listMappings}
                 </div>
                 {listSuggestions}
                 {createRuleForm}
