@@ -46,6 +46,7 @@ interface ItemResponseType {
     originalTaskLink: string;
     overwrittenTaskLink?: string;
     taskType: string;
+    pluginId: string;
 }
 
 interface CopyResponsePayload {
@@ -240,7 +241,11 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             {orderTasksByLabel(info.overwrittenTasks)?.map((t) => (
                                 <OverviewItem key={t.id} className="copy-modal-item">
                                     <OverviewItemDepiction>
-                                        <ItemDepiction itemType={t.taskType} size={{ small: true }} />
+                                        <ItemDepiction
+                                            itemType={t.taskType}
+                                            pluginId={t.pluginId}
+                                            size={{ large: true }}
+                                        />
                                     </OverviewItemDepiction>
                                     <OverviewItemLine>
                                         <Tooltip content={`open ${t.taskType} "${t.label}" in a new window`}>
@@ -273,7 +278,11 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             {orderTasksByLabel(info.copiedTasks)?.map((t) => (
                                 <OverviewItem key={t.id} className="copy-modal-item">
                                     <OverviewItemDepiction>
-                                        <ItemDepiction itemType={t.taskType} size={{ large: true }} />
+                                        <ItemDepiction
+                                            itemType={t.taskType}
+                                            pluginId={t.pluginId}
+                                            size={{ large: true }}
+                                        />
                                     </OverviewItemDepiction>
                                     <OverviewItemLine>
                                         <Link href={t.originalTaskLink} target="_blank">
