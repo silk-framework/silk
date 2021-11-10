@@ -83,7 +83,8 @@
     },
     "DeleteModal": {
         "confirmMsg": "The {{itemType}} '{{name}}' is used by other items! Deleting this item will also delete all depending items listed below:",
-        "deleteResource": "{{type}} '{{name}}' will be deleted"
+        "deleteResource": "{{type}} '{{name}}' will be deleted.",
+        "projectNote": "All contained items will be deleted, too."
     },
     "Deletedialog": {
         "loading": "Loading delete dialog."

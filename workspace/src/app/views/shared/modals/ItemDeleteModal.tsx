@@ -104,6 +104,9 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                                 type: itemType,
                                 name: data.label || item.id || item.projectId,
                             })}
+                            {!item.id && (
+                                <> {t("DeleteModal.projectNote", "All contained items will be deleted, too.")}</>
+                            )}
                         </p>
                     ),
                     title: deleteTitle,
