@@ -299,7 +299,7 @@ export const ObjectRuleForm = (props: IProps) => {
                 fetchSuggestions={(input, cursorPosition) =>
                     fetchUriPatternAutoCompletions(parentId ? parentId : "root", input, cursorPosition, modifiedValues.sourceProperty)}
                 checkInput={checkUriPattern}
-                onFocusChange={setUriPatternHasFocus}
+                onFocusChange={() => setUriPatternHasFocus(!uriPatternHasFocus)}
                 rightElement={distinctUriPatterns.length > 0 ? <>
                     <Spacing vertical={true} size={"tiny"} />
                     <Button
