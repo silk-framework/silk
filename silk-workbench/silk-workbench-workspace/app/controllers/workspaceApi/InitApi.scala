@@ -29,12 +29,21 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
   private val dmLinkIcon = "icon"
   private val dmLinkDefaultLabel = "defaultLabel"
   private val playMaxFileUploadSizeKey = "play.http.parser.maxDiskBuffer"
+  private val versionKey = "workbench.version"
   private lazy val cfg = DefaultConfig.instance()
   private val log: Logger = Logger.getLogger(getClass.getName)
 
   lazy val dmBaseUrl: Option[JsString] = {
     if(cfg.hasPath(dmConfigKey)) {
       Some(JsString(cfg.getString(dmConfigKey)))
+    } else {
+      None
+    }
+  }
+
+  lazy val version: Option[JsString] = {
+    if(cfg.hasPath(versionKey)) {
+      Some(JsString(cfg.getString(versionKey)))
     } else {
       None
     }
@@ -65,7 +74,8 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
     val withDmUrl = dmBaseUrl.map { url =>
       resultJson + ("dmBaseUrl" -> url) + ("dmModuleLinks" -> JsArray(dmLinks.map(Json.toJson(_))))
     }.getOrElse(resultJson)
-    Ok(withDmUrl)
+    val withVersion = version.map(v => withDmUrl + ("version" -> v)).getOrElse(withDmUrl)
+    Ok(withVersion)
   }
 
   val supportedLanguages = Set("en", "de")
