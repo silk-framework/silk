@@ -462,7 +462,7 @@ ul.ecc-hierarchical-mapping-error-list {
 }
 
 .ecc-silk-mapping__ruleitem-reorderhandler {
-    width: $ecc-size-blockelement-margin-horizontal;
+    width: $eccgui-size-block-whitespace;
     position: absolute;
     top: $ecc-size-block-whitespace / 2;
     left: $ecc-size-block-whitespace / 2;
@@ -471,7 +471,7 @@ ul.ecc-hierarchical-mapping-error-list {
     background-color: to_color($color-white);
 
     & + .mdl-list__item {
-        padding-left: 2 * $ecc-size-blockelement-margin-horizontal;
+        padding-left: 2 * $eccgui-size-block-whitespace;
     }
 
     .ege-contextmenu__wrapper {
@@ -482,8 +482,10 @@ ul.ecc-hierarchical-mapping-error-list {
         bottom: 1px;
     }
 
-    .eccgui-button,
-    .eccgui-icon {
+    .#{eccgui}-button,
+    .#{eccgui}-icon,
+    .#{eccgui}-contextmenu,
+    .#{$ns}-popover-target {
         overflow: hidden;
         position: absolute;
         left: 0;
@@ -493,10 +495,15 @@ ul.ecc-hierarchical-mapping-error-list {
         border-radius: 0;
         min-width: 0;
         line-height: 100%;
-        opacity: 0.61;
+        padding: 0;
+        margin: 0 !important;
+    }
+
+    .#{eccgui}-button {
+        opacity: $eccgui-opacity-muted;
 
         &:hover, &:focus, &:active {
-            opacity: 1;
+            opacity: $eccgui-opacity-regular;
         }
     }
 
