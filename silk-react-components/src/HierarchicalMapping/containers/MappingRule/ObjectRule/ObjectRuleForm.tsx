@@ -15,7 +15,7 @@ import {
     checkValuePathValidity,
     createMappingAsync,
     fetchUriPatternAutoCompletions,
-    fetchValuePathSuggestions,
+    fetchValuePathSuggestions, updateVocabularyCacheEntry,
     useApiDetails
 } from '../../../store';
 import {convertToUri} from '../../../utils/convertToUri';
@@ -64,7 +64,11 @@ export const ObjectRuleForm = (props: IProps) => {
     const [createCustomUriPatternForNewRule, setCreateCustomUriPatternForNewRule] = useState<boolean>(false)
     const [uriPatternSuggestions, setUriPatternSuggestions] = useState<IUriPattern[]>([])
     const [showUriPatternModal, setShowUriPatternModal] = useState<boolean>(false)
-    const {baseUrl} = useApiDetails()
+    const [targetEntityTypeOptions, setTargetEntityTypeOptions] = useState<Map<string, any>>(new Map())
+    const {baseUrl, project, transformTask} = useApiDetails()
+    const { id, parentId, parent } = props;
+
+    const autoCompleteRuleId = id || parentId;
 
     const distinctUriPatterns = Array.from(new Map(uriPatternSuggestions
         .filter(p => p.value !== (props.ruleData as any).pattern)
@@ -78,6 +82,49 @@ export const ObjectRuleForm = (props: IProps) => {
             EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, { id: 0 });
         }
     }, [])
+
+    const uriValue = (uri: string) => {
+        if(!uri) {
+            return uri
+        }
+        return uri.replaceAll(/(^<)|(>$)/g, "")
+    }
+
+    // Fetch labels for target entity types
+    useEffect(() => {
+        if(modifiedValues.targetEntityType && modifiedValues.targetEntityType.length > 0 && baseUrl !== undefined && project && transformTask) {
+            modifiedValues.targetEntityType.forEach((targetEntityType) => {
+                if(typeof targetEntityType === "string") {
+                    const value = uriValue(targetEntityType)
+                    if(value !== targetEntityType || value.includes(":")) {
+                        fetchTargetEntityUriInfo(value, targetEntityType)
+                    }
+                }
+            })
+        }
+    }, [id, parentId, !!modifiedValues.targetEntityType, baseUrl, project, transformTask])
+
+    const fetchTargetEntityUriInfo = async (uri: string, originalTargetEntityType: string) => {
+        const {data} = await silkApi.retrieveTargetVocabularyTypeOrPropertyInfo(baseUrl!!, project!!, transformTask!!, uri)
+        if(data?.genericInfo) {
+            const info = data?.genericInfo
+            const typeInfo = {value: info.uri, label: info.label ?? info.uri, description: info.description}
+            targetEntityTypeOptions?.set(info.uri, typeInfo)
+            targetEntityTypeOptions?.set(uri, typeInfo)
+            updateVocabularyCacheEntry(originalTargetEntityType, info.label, info.description)
+            setModifiedValues(old => ({
+                ...old,
+                targetEntityType: old.targetEntityType.map(o => {
+                    const value = typeof o === "string" ? uriValue(o) : uriValue(o.value)
+                    if (targetEntityTypeOptions.has(value)) {
+                        return targetEntityTypeOptions.get(value)
+                    } else {
+                        return o
+                    }
+                })
+            }))
+        }
+    }
 
     const targetClassUris = () => modifiedValues.targetEntityType.map(t => typeof t === "string" ? pureUri(t) : pureUri(t.value))
 
@@ -169,10 +216,6 @@ export const ObjectRuleForm = (props: IProps) => {
         }
         return validationResult
     }
-
-        const { id, parentId, parent } = props;
-
-        const autoCompleteRuleId = id || parentId;
 
         if (loading) {
             return <Spinner />;
