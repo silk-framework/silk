@@ -175,6 +175,9 @@ export interface IInitFrontend {
 
     /** Hotkey configuration for the frontend. */
     hotKeys: Partial<Record<HotKeyIds, string>>;
+
+    /** The application version. */
+    version?: string;
 }
 
 type HotKeyIds = "quickSearch";

@@ -83,7 +83,8 @@
     },
     "DeleteModal": {
         "confirmMsg": "The {{itemType}} '{{name}}' is used by other items! Deleting this item will also delete all depending items listed below:",
-        "deleteResource": "{{type}} '{{name}}' will be deleted"
+        "deleteResource": "{{type}} '{{name}}' will be deleted.",
+        "projectNote": "All contained items will be deleted, too."
     },
     "Deletedialog": {
         "loading": "Loading delete dialog."
@@ -205,7 +206,7 @@
             "dataset": "dataset",
             "genericArtefactLabel": "item",
             "linking": "linking",
-            "project": "Project",
+            "project": "project",
             "projectDesc": "Projects let you group related items. All items that depend on each other need to be in the same project.",
             "task": "task",
             "transform": "transform",
@@ -535,9 +536,11 @@
         },
         "header": {
             "saveBtnTooltip": "Save the current state of the workflow",
+            "toggleProgressLabel": "Toggle progress",
             "warning": {
                 "tooltip": "Focuses on failed node and opens execution report"
-            }
+            },
+            "warningMenuTooltip": "Show list of errors and warnings"
         },
         "handle": {
             "configuration": {
@@ -560,6 +563,9 @@
             "WorkflowEditor_fetchWorkflow": "Failed to load the workflow."
         },
         "node": {
+            "actions": {
+                "showExecutionReport": "Show execution report"
+            },
             "menu": {
                 "remove": {
                     "label": "Remove node"
