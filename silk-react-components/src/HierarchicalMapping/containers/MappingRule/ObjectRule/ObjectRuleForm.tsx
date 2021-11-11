@@ -15,7 +15,7 @@ import {
     checkValuePathValidity,
     createMappingAsync,
     fetchUriPatternAutoCompletions,
-    fetchValuePathSuggestions,
+    fetchValuePathSuggestions, updateVocabularyCacheEntry,
     useApiDetails
 } from '../../../store';
 import {convertToUri} from '../../../utils/convertToUri';
@@ -97,20 +97,21 @@ export const ObjectRuleForm = (props: IProps) => {
                 if(typeof targetEntityType === "string") {
                     const value = uriValue(targetEntityType)
                     if(value !== targetEntityType || value.includes(":")) {
-                        fetchTargetEntityUriInfo(value)
+                        fetchTargetEntityUriInfo(value, targetEntityType)
                     }
                 }
             })
         }
     }, [id, parentId, !!modifiedValues.targetEntityType, baseUrl, project, transformTask])
 
-    const fetchTargetEntityUriInfo = async (uri: string) => {
+    const fetchTargetEntityUriInfo = async (uri: string, originalTargetEntityType: string) => {
         const {data} = await silkApi.retrieveTargetVocabularyTypeOrPropertyInfo(baseUrl!!, project!!, transformTask!!, uri)
         if(data?.genericInfo) {
             const info = data?.genericInfo
             const typeInfo = {value: info.uri, label: info.label ?? info.uri, description: info.description}
             targetEntityTypeOptions?.set(info.uri, typeInfo)
             targetEntityTypeOptions?.set(uri, typeInfo)
+            updateVocabularyCacheEntry(originalTargetEntityType, info.label, info.description)
             setModifiedValues(old => ({
                 ...old,
                 targetEntityType: old.targetEntityType.map(o => {
