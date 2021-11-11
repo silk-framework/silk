@@ -98,7 +98,7 @@ export type RecursivePartial<T> = {
 
 export const withMount = (component) => mount(component);
 
-export const withRender = (component, rerender?: Function) => (rerender ? rerender(component) : render(component));
+export const withRender = (component) => render(component);
 
 /** Returns a wrapper for the application. */
 export const testWrapper = (

@@ -245,11 +245,13 @@ export function CreateArtefactModal() {
         .every((searchWord) => "project".includes(searchWord));
 
     // Filter artefact list and add project item
-    let artefactListWithProject = artefactsList.filter(
-        (artefact) =>
-            selectedDType === "all" ||
-            (artefact.taskType && routerOp.itemTypeToPath(artefact.taskType) === selectedDType)
-    );
+    let artefactListWithProject = artefactsList
+        .filter(
+            (artefact) =>
+                selectedDType === "all" ||
+                (artefact.taskType && routerOp.itemTypeToPath(artefact.taskType) === selectedDType)
+        )
+        .sort((a, b) => a.title!.localeCompare(b.title!));
     if (showProjectItem && (selectedDType === "all" || selectedDType === "project")) {
         artefactListWithProject = [
             {
@@ -306,10 +308,10 @@ export function CreateArtefactModal() {
                     : t("CreateModal.createTitleGeneric")
             }
             headerOptions={
-                selectedArtefactTitle ? (
+                selectedArtefactTitle && (selectedArtefact?.markdownDocumentation || selectedArtefact?.description) ? (
                     <IconButton
                         name="item-question"
-                        onClick={(e) => handleShowEnhancedDescription(e, selectedArtefactKey)}
+                        onClick={(e) => handleShowEnhancedDescription(e, selectedArtefact.key)}
                     />
                 ) : null
             }
@@ -402,7 +404,7 @@ export function CreateArtefactModal() {
                 >
                     <HtmlContentBlock>
                         <Markdown allowHtml>
-                            {(selectedArtefact?.markdownDocumentation || "") ?? (selectedArtefact?.description || "")}
+                            {selectedArtefact?.markdownDocumentation || selectedArtefact?.description || ""}
                         </Markdown>
                     </HtmlContentBlock>
                 </SimpleDialog>
@@ -432,78 +434,85 @@ export function CreateArtefactModal() {
                                             hasSpacing
                                             columns={2}
                                         >
-                                            {artefactListWithProject.map((artefact) => (
-                                                <Card
-                                                    isOnlyLayout
-                                                    key={artefact.key}
-                                                    className={
-                                                        toBeAddedKey === artefact.key ? HelperClasses.Intent.ACCENT : ""
-                                                    }
-                                                >
-                                                    <OverviewItem
-                                                        hasSpacing
-                                                        data-test-id={`artefact-plugin-${artefact.key}`}
-                                                        onClick={() => handleArtefactSelect(artefact)}
-                                                        onKeyDown={handleEnter}
+                                            {artefactListWithProject.map((artefact) => {
+                                                const description =
+                                                    artefact.markdownDocumentation || artefact.description || "";
+                                                return (
+                                                    <Card
+                                                        isOnlyLayout
+                                                        key={artefact.key}
+                                                        className={
+                                                            toBeAddedKey === artefact.key
+                                                                ? HelperClasses.Intent.ACCENT
+                                                                : ""
+                                                        }
                                                     >
-                                                        <OverviewItemDepiction>
-                                                            <ItemDepiction
-                                                                itemType={artefact.taskType}
-                                                                pluginId={artefact.key}
-                                                            />
-                                                        </OverviewItemDepiction>
-                                                        <OverviewItemDescription>
-                                                            <OverviewItemLine>
-                                                                <strong>
-                                                                    <Highlighter
-                                                                        label={artefact.title}
-                                                                        searchValue={searchValue}
-                                                                    />
-                                                                </strong>
-                                                            </OverviewItemLine>
-                                                            <OverviewItemLine small>
-                                                                <OverflowText useHtmlElement="p">
-                                                                    <Highlighter
-                                                                        label={artefact.description}
-                                                                        searchValue={searchValue}
-                                                                    />
-                                                                </OverflowText>
-                                                            </OverviewItemLine>
-                                                        </OverviewItemDescription>
-                                                        <OverviewItemActions>
-                                                            <IconButton
-                                                                name="item-question"
-                                                                onClick={(e) => {
-                                                                    handleShowEnhancedDescription(e, artefact.key);
-                                                                }}
-                                                            />
-                                                        </OverviewItemActions>
-                                                    </OverviewItem>
-                                                    {idEnhancedDescription === artefact.key && (
-                                                        <SimpleDialog
-                                                            isOpen
-                                                            title={artefact.title}
-                                                            actions={
-                                                                <Button
-                                                                    text="Close"
-                                                                    onClick={() => {
-                                                                        setIdEnhancedDescription("");
-                                                                    }}
-                                                                />
-                                                            }
-                                                            size="small"
+                                                        <OverviewItem
+                                                            hasSpacing
+                                                            data-test-id={`artefact-plugin-${artefact.key}`}
+                                                            onClick={() => handleArtefactSelect(artefact)}
+                                                            onKeyDown={handleEnter}
                                                         >
-                                                            <HtmlContentBlock>
-                                                                <Markdown allowHtml>
-                                                                    {artefact.markdownDocumentation ||
-                                                                        artefact.description ||
-                                                                        ""}
-                                                                </Markdown>
-                                                            </HtmlContentBlock>
-                                                        </SimpleDialog>
-                                                    )}
-                                                </Card>
-                                            ))}
+                                                            <OverviewItemDepiction>
+                                                                <ItemDepiction
+                                                                    itemType={artefact.taskType}
+                                                                    pluginId={artefact.key}
+                                                                />
+                                                            </OverviewItemDepiction>
+                                                            <OverviewItemDescription>
+                                                                <OverviewItemLine>
+                                                                    <strong>
+                                                                        <Highlighter
+                                                                            label={artefact.title}
+                                                                            searchValue={searchValue}
+                                                                        />
+                                                                    </strong>
+                                                                </OverviewItemLine>
+                                                                <OverviewItemLine small>
+                                                                    <OverflowText useHtmlElement="p">
+                                                                        <Highlighter
+                                                                            label={artefact.description}
+                                                                            searchValue={searchValue}
+                                                                        />
+                                                                    </OverflowText>
+                                                                </OverviewItemLine>
+                                                            </OverviewItemDescription>
+                                                            {description ? (
+                                                                <OverviewItemActions>
+                                                                    <IconButton
+                                                                        name="item-question"
+                                                                        onClick={(e) => {
+                                                                            handleShowEnhancedDescription(
+                                                                                e,
+                                                                                artefact.key
+                                                                            );
+                                                                        }}
+                                                                    />
+                                                                </OverviewItemActions>
+                                                            ) : null}
+                                                        </OverviewItem>
+                                                        {idEnhancedDescription === artefact.key && (
+                                                            <SimpleDialog
+                                                                isOpen
+                                                                title={artefact.title}
+                                                                actions={
+                                                                    <Button
+                                                                        text="Close"
+                                                                        onClick={() => {
+                                                                            setIdEnhancedDescription("");
+                                                                        }}
+                                                                    />
+                                                                }
+                                                                size="small"
+                                                            >
+                                                                <HtmlContentBlock>
+                                                                    <Markdown allowHtml>{description}</Markdown>
+                                                                </HtmlContentBlock>
+                                                            </SimpleDialog>
+                                                        )}
+                                                    </Card>
+                                                );
+                                            })}
                                         </OverviewItemList>
                                     )}
                                 </GridColumn>

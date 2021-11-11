@@ -70,6 +70,7 @@ export interface ITaskMetadataResponse {
     project: string;
     label: string;
     id: string;
+    description?: string;
     relations: IRelations;
 }
 
