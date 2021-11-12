@@ -113,7 +113,8 @@
     },
     "Metadata": {
         "loading": "Loading summary data.",
-        "updateFailed": "Updating meta data has failed"
+        "updateFailed": "Updating meta data has failed",
+        "unsavedMetaDataWarning": "There are unsaved changes that will be lost. Do you still want to proceed?"
     },
     "OverwriteModal": {
         "overwriteFile": "File '{{fileName}}' already exists. Do you want to overwrite it?"
