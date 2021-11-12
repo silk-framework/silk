@@ -4,9 +4,9 @@
 
 import React from 'react';
 import _ from 'lodash';
-import { Spinner } from '@eccenca/gui-elements';
+import {Spinner} from '@eccenca/gui-elements';
 import PropTypes from 'prop-types';
-import { copyRuleAsync, errorChannel, getApiDetails, getRuleAsync } from '../store';
+import {copyRuleAsync, errorChannel, getApiDetails, getRuleAsync} from '../store';
 import MappingHeader from './MappingHeader';
 import RootMappingRule from './RootMappingRule';
 import ObjectMappingRuleForm from './MappingRule/ObjectRule/ObjectRuleForm';
@@ -22,7 +22,7 @@ import {
     MESSAGES,
 } from '../utils/constants';
 import EventEmitter from '../utils/EventEmitter';
-import { isDebugMode } from '../utils/isDebugMode';
+import {isDebugMode} from '../utils/isDebugMode';
 
 class MappingsWorkview extends React.Component {
     // define property types
@@ -313,7 +313,7 @@ class MappingsWorkview extends React.Component {
 
     render() {
         const {rules = {}, id} = this.state.ruleData;
-        const loading = this.state.loading ? <Spinner/> : false;
+        const loading = this.state.loading ? <Spinner /> : false;
         const createType = _.get(this.state, 'ruleEditView.type', false);
 
         const createRuleForm = createType ? (
@@ -380,7 +380,7 @@ class MappingsWorkview extends React.Component {
                     onMappingCreate={this.handleCreate}
                 />
             ) : (
-                false
+                null
             );
 
         return (
@@ -403,7 +403,7 @@ class MappingsWorkview extends React.Component {
                         onAskDiscardChanges={this.props.onAskDiscardChanges}
                         onClickedRemove={this.props.onClickedRemove}
                     />
-                    {(this.state.loading || listSuggestions) ? false : listMappings}
+                    {listSuggestions ? false : listMappings}
                 </div>
                 {listSuggestions}
                 {createRuleForm}
