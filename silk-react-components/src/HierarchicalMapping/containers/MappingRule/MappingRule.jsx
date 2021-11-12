@@ -179,6 +179,7 @@ export class MappingRule extends React.Component {
             <div className="ecc-silk-mapping__ruleitem-reorderhandler" key={id}>
                 <ContextMenu togglerElement="item-draggable" style={{align: "left", valign: "top"}}>
                     <MenuItem
+                        data-test-id={"reorder-mapping-move-to-top"}
                         text={"Move to top"}
                         onClick={() => this.handleMoveElement({
                             parentId,
@@ -188,6 +189,7 @@ export class MappingRule extends React.Component {
                         })}
                     />
                     <MenuItem
+                        data-test-id={"reorder-mapping-move-up"}
                         text={"Move up"}
                         onClick={() => this.handleMoveElement({
                             parentId,
@@ -197,6 +199,7 @@ export class MappingRule extends React.Component {
                         })}
                     />
                     <MenuItem
+                        data-test-id={"reorder-mapping-move-down"}
                         text={"Move down"}
                         onClick={() => this.handleMoveElement({
                             parentId,
@@ -206,6 +209,7 @@ export class MappingRule extends React.Component {
                         })}
                     />
                     <MenuItem
+                        data-test-id={"reorder-mapping-move-to-bottom"}
                         text={"Move to bottom"}
                         onClick={() => this.handleMoveElement({
                             parentId,

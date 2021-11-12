@@ -23,21 +23,23 @@ export const ExampleView = ({id, rawRule, ruleType, objectSourcePathContext}: IP
 
     useEffect(() => {
         const ruleExampleFunc = rawRule ? childExampleAsync : ruleExampleAsync;
-        ruleExampleFunc({
-            id: id,
-            rawRule: rawRule,
-            ruleType: ruleType,
-            objectPath: objectSourcePathContext
-        }).subscribe(
-            ({ example }) => {
-                setExample(example);
-            },
-            error => {
-                isDebugMode('err MappingRuleOverview: rule.example');
-                setError(error);
-            }
-        );
-    }, [id, objectSourcePathContext])
+        const timeoutId = setTimeout(
+            () => ruleExampleFunc({
+                id: id,
+                rawRule: rawRule,
+                ruleType: ruleType,
+                objectPath: objectSourcePathContext
+            }).subscribe(
+                ({example}) => {
+                    setExample(example);
+                },
+                error => {
+                    isDebugMode('err MappingRuleOverview: rule.example');
+                    setError(error);
+                }
+            ), 500)
+        return () => clearTimeout(timeoutId)
+    }, [id, objectSourcePathContext, ruleType, rawRule])
 
     if (error) {
         return <ErrorView {...error} titlePrefix={"There has been an error loading the examples: "}/>;
