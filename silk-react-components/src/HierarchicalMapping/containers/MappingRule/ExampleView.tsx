@@ -15,30 +15,36 @@ interface IProps {
     ruleType: string
     // An additional path in which context the examples should be generated, e.g. needed in the creation of an object rule when a source path is specified.
     objectSourcePathContext?: string
+    // The number of milliseconds to wait before updating the example view on changes. Changes are aggregated and only one request will be send if changes happen below this delay.
+    updateDelay?: number
 }
 /** Shows example input and output values for a mapping rule. */
-export const ExampleView = ({id, rawRule, ruleType, objectSourcePathContext}: IProps) => {
+export const ExampleView = ({id, rawRule, ruleType, objectSourcePathContext, updateDelay = 500}: IProps) => {
     const [example, setExample] = useState<any>(undefined)
     const [error, setError] = useState<any>(undefined)
 
     useEffect(() => {
         const ruleExampleFunc = rawRule ? childExampleAsync : ruleExampleAsync;
-        const timeoutId = setTimeout(
-            () => ruleExampleFunc({
-                id: id,
-                rawRule: rawRule,
-                ruleType: ruleType,
-                objectPath: objectSourcePathContext
-            }).subscribe(
-                ({example}) => {
-                    setExample(example);
-                },
-                error => {
-                    isDebugMode('err MappingRuleOverview: rule.example');
-                    setError(error);
-                }
-            ), 500)
-        return () => clearTimeout(timeoutId)
+        const updateFn = () => ruleExampleFunc({
+            id: id,
+            rawRule: rawRule,
+            ruleType: ruleType,
+            objectPath: objectSourcePathContext
+        }).subscribe(
+            ({example}) => {
+                setExample(example);
+            },
+            error => {
+                isDebugMode('err MappingRuleOverview: rule.example');
+                setError(error);
+            }
+        )
+        if(updateDelay > 0) {
+            const timeoutId = setTimeout(updateFn, updateDelay)
+            return () => clearTimeout(timeoutId)
+        } else {
+            updateFn()
+        }
     }, [id, objectSourcePathContext, ruleType, rawRule])
 
     if (error) {
