@@ -229,11 +229,12 @@ export function Metadata(props: IProps) {
                                 <StringPreviewContentBlobToggler
                                     className="di__dataset__metadata-description"
                                     content={description}
-                                    previewMaxLength={128}
                                     fullviewContent={<Markdown>{description}</Markdown>}
                                     toggleExtendText={t("common.words.more", "more")}
                                     toggleReduceText={t("common.words.less", "less")}
                                     firstNonEmptyLineOnly={true}
+                                    renderPreviewAsMarkdown={true}
+                                    allowedHtmlElementsInPreview={["a"]}
                                 />
                             </PropertyValue>
                         </PropertyValuePair>
@@ -251,7 +252,7 @@ export function Metadata(props: IProps) {
                     <Button
                         data-test-id={"submitBtn"}
                         affirmative
-                        text={t("common.action.submit", "Submit")}
+                        text={t("common.action.save", "Save")}
                         type={"submit"}
                     />
                     <Button text={t("common.action.cancel")} onClick={toggleEdit} />
