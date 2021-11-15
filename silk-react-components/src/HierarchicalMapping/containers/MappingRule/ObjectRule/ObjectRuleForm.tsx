@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {Card, CardActions, CardContent, CardTitle, RadioGroup, ScrollingHOC, Spinner,} from '@eccenca/gui-elements';
 import {Button, FieldItem, Notification, Spacing, TextField} from '@gui-elements/index';
 import {
@@ -15,7 +15,7 @@ import {
     checkValuePathValidity,
     createMappingAsync,
     fetchUriPatternAutoCompletions,
-    fetchValuePathSuggestions,
+    fetchValuePathSuggestions, updateVocabularyCacheEntry,
     useApiDetails
 } from '../../../store';
 import {convertToUri} from '../../../utils/convertToUri';
@@ -56,15 +56,17 @@ export const ObjectRuleForm = (props: IProps) => {
     // get a deep copy of origin data for modification
     const [modifiedValues, setModifiedValues] = useState<any>(_.cloneDeep(props.ruleData))
     const [saveObjectError, setSaveObjectError] = useState<any>(undefined)
-    const [uriPatternHasFocus, setUriPatternHasFocus] = useState<boolean>(false)
     const [uriPatternIsValid, setUriPatternIsValid] = useState<boolean>(true)
     const [objectPathValid, setObjectPathValid] = useState<boolean>(true)
-    const [objectPathInputHasFocus, setObjectPathInputHasFocus] = useState<boolean>(false)
     // When creating a new rule only when this is enabled the URI pattern input will be shown
     const [createCustomUriPatternForNewRule, setCreateCustomUriPatternForNewRule] = useState<boolean>(false)
     const [uriPatternSuggestions, setUriPatternSuggestions] = useState<IUriPattern[]>([])
     const [showUriPatternModal, setShowUriPatternModal] = useState<boolean>(false)
-    const {baseUrl} = useApiDetails()
+    const [targetEntityTypeOptions] = useState<Map<string, any>>(new Map())
+    const {baseUrl, project, transformTask} = useApiDetails()
+    const { id, parentId, parent } = props;
+
+    const autoCompleteRuleId = id || parentId;
 
     const distinctUriPatterns = Array.from(new Map(uriPatternSuggestions
         .filter(p => p.value !== (props.ruleData as any).pattern)
@@ -79,11 +81,54 @@ export const ObjectRuleForm = (props: IProps) => {
         }
     }, [])
 
+    const uriValue = (uri: string) => {
+        if(!uri) {
+            return uri
+        }
+        return uri.replaceAll(/(^<)|(>$)/g, "")
+    }
+
+    // Fetch labels for target entity types
+    useEffect(() => {
+        if(modifiedValues.targetEntityType && modifiedValues.targetEntityType.length > 0 && baseUrl !== undefined && project && transformTask) {
+            modifiedValues.targetEntityType.forEach((targetEntityType) => {
+                if(typeof targetEntityType === "string") {
+                    const value = uriValue(targetEntityType)
+                    if(value !== targetEntityType || value.includes(":")) {
+                        fetchTargetEntityUriInfo(value, targetEntityType)
+                    }
+                }
+            })
+        }
+    }, [id, parentId, !!modifiedValues.targetEntityType, baseUrl, project, transformTask])
+
+    const fetchTargetEntityUriInfo = async (uri: string, originalTargetEntityType: string) => {
+        const {data} = await silkApi.retrieveTargetVocabularyTypeOrPropertyInfo(baseUrl!!, project!!, transformTask!!, uri)
+        if(data?.genericInfo) {
+            const info = data?.genericInfo
+            const typeInfo = {value: info.uri, label: info.label ?? info.uri, description: info.description}
+            targetEntityTypeOptions?.set(info.uri, typeInfo)
+            targetEntityTypeOptions?.set(uri, typeInfo)
+            updateVocabularyCacheEntry(originalTargetEntityType, info.label, info.description)
+            setModifiedValues(old => ({
+                ...old,
+                targetEntityType: old.targetEntityType.map(o => {
+                    const value = typeof o === "string" ? uriValue(o) : uriValue(o.value)
+                    if (targetEntityTypeOptions.has(value)) {
+                        return targetEntityTypeOptions.get(value)
+                    } else {
+                        return o
+                    }
+                })
+            }))
+        }
+    }
+
     const targetClassUris = () => modifiedValues.targetEntityType.map(t => typeof t === "string" ? pureUri(t) : pureUri(t.value))
 
     useEffect(() => {
-        if(modifiedValues.targetEntityType && modifiedValues.targetEntityType.length > 0 && baseUrl !== undefined) {
-            silkApi.uriPatternsByTypes(baseUrl, targetClassUris())
+        if(modifiedValues.targetEntityType && modifiedValues.targetEntityType.length > 0 && baseUrl !== undefined && project) {
+            silkApi.uriPatternsByTypes(baseUrl, project, targetClassUris())
                 .then(result => {
                     setUriPatternSuggestions(result.data.results)
                 })
@@ -169,10 +214,6 @@ export const ObjectRuleForm = (props: IProps) => {
         }
         return validationResult
     }
-
-        const { id, parentId, parent } = props;
-
-        const autoCompleteRuleId = id || parentId;
 
         if (loading) {
             return <Spinner />;
@@ -265,7 +306,6 @@ export const ObjectRuleForm = (props: IProps) => {
                     fetchSuggestions={(input, cursorPosition) => fetchValuePathSuggestions(parentId, input, cursorPosition)}
                     checkInput={checkValuePathValidity}
                     onInputChecked={setObjectPathValid}
-                    onFocusChange={setObjectPathInputHasFocus}
                 />
             );
         }
@@ -299,7 +339,6 @@ export const ObjectRuleForm = (props: IProps) => {
                 fetchSuggestions={(input, cursorPosition) =>
                     fetchUriPatternAutoCompletions(parentId ? parentId : "root", input, cursorPosition, modifiedValues.sourceProperty)}
                 checkInput={checkUriPattern}
-                onFocusChange={setUriPatternHasFocus}
                 rightElement={distinctUriPatterns.length > 0 ? <>
                     <Spacing vertical={true} size={"tiny"} />
                     <Button
@@ -326,10 +365,6 @@ export const ObjectRuleForm = (props: IProps) => {
     if(!modifiedValues.pattern && !modifiedValues.uriRule) {
         previewExamples =
             <Notification data-test-id={"object-rule-form-preview-no-pattern"}>No preview shown for default URI pattern.</Notification>
-    } else if (uriPatternHasFocus || objectPathInputHasFocus) {
-        previewExamples =
-            <Notification data-test-id={"object-rule-form-preview-no-results"}>No preview is shown while updating URI
-                pattern or value path.</Notification>
     } else if (!uriPatternIsValid || !objectPathValid) {
         previewExamples =
             <Notification warning={true} data-test-id={"object-rule-form-preview-invalid-input"}>URI pattern or value

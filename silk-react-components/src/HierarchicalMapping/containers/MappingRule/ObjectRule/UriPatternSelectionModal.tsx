@@ -41,7 +41,7 @@ export const UriPatternSelectionModal = ({uriPatterns, onSelect, onClose}: IProp
             onClose={onClose}
             isOpen={true}
             title={"Choose from existing URI patterns"}
-            actions={<Button onClick={onClose}>Close</Button>}
+            actions={<Button data-test-id={"uri-pattern-selection-modal-close-btn"} onClick={onClose}>Close</Button>}
         >
             <AutoCompleteField<IUriPattern, IUriPattern>
                 onSearch={handleSearch}

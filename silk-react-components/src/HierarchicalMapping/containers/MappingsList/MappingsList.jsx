@@ -1,9 +1,9 @@
 import React from 'react';
 import _ from 'lodash';
-import { Card, CardTitle, Info, } from '@eccenca/gui-elements';
+import {Card, CardTitle,} from '@eccenca/gui-elements';
 import PropTypes from 'prop-types';
-import { DragDropContext, Droppable } from 'react-beautiful-dnd';
-import { orderRulesAsync } from '../../store';
+import {DragDropContext, Droppable} from 'react-beautiful-dnd';
+import {orderRulesAsync} from '../../store';
 import DraggableItem from '../MappingRule/DraggableItem';
 import rulesToList from '../../utils/rulesToList';
 import ListActions from './ListActions';

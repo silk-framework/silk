@@ -45,9 +45,22 @@ class WorkspaceUriPatternApiTest extends FlatSpec with SingleProjectWorkspacePro
     ))
   }
 
+  it should "resolve qualified names in the request" in {
+    val prefix = "somePrefix"
+    addProjectPrefixes(projectId, Map(prefix -> "urn:root:"))
+    userWorkspace.activity[GlobalUriPatternCache].control.waitUntilFinished()
+    uriPatterns(Seq(s"$prefix:type")) mustBe UriPatternResponse(Seq(
+      UriPatternResult(
+        "urn:root:type",
+        Some("urn:root:{ID}--{…@id}"),
+        "urn:root:{ID}--{Properties/Property/Key/@id}"
+      )
+    ))
+  }
+
   private def uriPatterns(typeUris: Seq[String]): UriPatternResponse = {
     val url = controllers.workspaceApi.routes.WorkspaceUriPatternApi.uriPatterns()
-    val response = client.url(s"$baseUrl$url").post(Json.toJson(UriPatternRequest(typeUris)))
+    val response = client.url(s"$baseUrl$url").post(Json.toJson(UriPatternRequest(typeUris, projectId)))
     JsonHelpers.fromJsonValidated[UriPatternResponse](checkResponse(response).json)
   }
 

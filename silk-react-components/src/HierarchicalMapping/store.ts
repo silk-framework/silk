@@ -359,6 +359,14 @@ export const generateRuleAsync = (correspondences, parentId, uriPrefix) => {
         });
 };
 
+/** Updates an entry in the vocabulary cache, but only if it exists. */
+export const updateVocabularyCacheEntry = (uri: string, label: string | undefined, description: string | undefined) => {
+    if (vocabularyCache[uri]) {
+        vocabularyCache[uri].label = label
+        vocabularyCache[uri].description = description
+    }
+}
+
 export const getVocabInfoAsync = (uri, field) => {
     const path = [uri, field];
 
