@@ -101,9 +101,12 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                     render: () => (
                         <p>
                             {t("DeleteModal.deleteResource", {
-                                type: itemType,
+                                type: itemType[0].toUpperCase() + itemType.substring(1),
                                 name: data.label || item.id || item.projectId,
                             })}
+                            {!item.id && (
+                                <> {t("DeleteModal.projectNote", "All contained items will be deleted, too.")}</>
+                            )}
                         </p>
                     ),
                     title: deleteTitle,
@@ -116,7 +119,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                 render: () => (
                     <p>
                         {t("DeleteModal.deleteResource", {
-                            type: itemType,
+                            type: itemType[0].toUpperCase() + itemType.substring(1),
                             name: item.label || item.id || item.projectId,
                         })}
                     </p>

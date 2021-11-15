@@ -21,6 +21,9 @@ import {
     TitleSubsection,
     Spacing,
     WorkspaceHeader,
+    ToolbarSection,
+    Toolbar,
+    HtmlContentBlock,
 } from "@gui-elements/index";
 import { commonOp, commonSel } from "@ducks/common";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
@@ -45,7 +48,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
     const [currentLanguage, setCurrentLanguage] = useState(Store.get("locale"));
     const { hotKeys } = useSelector(commonSel.initialSettingsSelector);
     const isAuth = useSelector(commonSel.isAuthSelector);
-    const { dmBaseUrl, dmModuleLinks } = useSelector(commonSel.initialSettingsSelector);
+    const { dmBaseUrl, dmModuleLinks, version } = useSelector(commonSel.initialSettingsSelector);
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
     const [t] = useTranslation();
     const [displayUserMenu, toggleUserMenuDisplay] = useState<boolean>(false);
@@ -170,76 +173,88 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                             <Icon name="navigation-close" description="Close icon" large />
                         </ApplicationToolbarAction>
                         <ApplicationToolbarPanel aria-label="User menu" expanded={true}>
-                            <Menu>
-                                <div>
-                                    <Button
-                                        onClick={() => handleLanguageChange("en")}
-                                        disabled={currentLanguage === "en"}
-                                    >
-                                        En
-                                    </Button>
-                                    <Button
-                                        onClick={() => handleLanguageChange("de")}
-                                        disabled={currentLanguage === "de"}
-                                    >
-                                        De
-                                    </Button>
-                                </div>
-                                <MenuDivider />
-                                {hotKeys.quickSearch && (
-                                    <MenuItem
-                                        text={
-                                            <>
-                                                {t("RecentlyViewedModal.title")}
-                                                <Spacing vertical={true} size="small" />
-                                                <Button
-                                                    outlined={true}
-                                                    small={true}
-                                                    tooltip={`Hotkey: ${hotKeys.quickSearch}`}
-                                                >
-                                                    {hotKeys.quickSearch}
-                                                </Button>
-                                            </>
-                                        }
-                                        href={"#"}
-                                        onClick={(e) => {
-                                            if (e) {
-                                                e.preventDefault();
-                                            }
-                                            triggerHotkeyHandler(hotKeys.quickSearch as string);
-                                        }}
-                                        icon={"operation-search"}
-                                    />
-                                )}
-                                <MenuItem
-                                    text={t("common.action.activity", "Activity overview")}
-                                    href={CONTEXT_PATH + "/workspace/allActivities"}
-                                    icon={"application-activities"}
-                                />
-                                <MenuItem
-                                    text={t("common.action.showApiDoc", "API")}
-                                    href={CONTEXT_PATH + "/doc/api"}
-                                    icon={"application-homepage"}
-                                />
-                                <MenuItem
-                                    text={t("common.action.backOld", "Back to old workspace")}
-                                    href={CONTEXT_PATH + "/workspace"}
-                                    icon={"application-legacygui"}
-                                />
-                                {!!dmBaseUrl && (
-                                    <>
+                            <Toolbar verticalStack={true} style={{ height: "100%" }}>
+                                <ToolbarSection canGrow={true} style={{ width: "100%" }}>
+                                    <Menu>
+                                        <div>
+                                            <Button
+                                                onClick={() => handleLanguageChange("en")}
+                                                disabled={currentLanguage === "en"}
+                                            >
+                                                En
+                                            </Button>
+                                            <Button
+                                                onClick={() => handleLanguageChange("de")}
+                                                disabled={currentLanguage === "de"}
+                                            >
+                                                De
+                                            </Button>
+                                        </div>
                                         <MenuDivider />
+                                        {hotKeys.quickSearch && (
+                                            <MenuItem
+                                                text={
+                                                    <>
+                                                        {t("RecentlyViewedModal.title")}
+                                                        <Spacing vertical={true} size="small" />
+                                                        <Button
+                                                            outlined={true}
+                                                            small={true}
+                                                            tooltip={`Hotkey: ${hotKeys.quickSearch}`}
+                                                        >
+                                                            {hotKeys.quickSearch}
+                                                        </Button>
+                                                    </>
+                                                }
+                                                href={"#"}
+                                                onClick={(e) => {
+                                                    if (e) {
+                                                        e.preventDefault();
+                                                    }
+                                                    triggerHotkeyHandler(hotKeys.quickSearch as string);
+                                                }}
+                                                icon={"operation-search"}
+                                            />
+                                        )}
                                         <MenuItem
-                                            id={"logoutAction"}
-                                            text={t("common.action.logout", "Logout")}
-                                            onClick={() => {
-                                                dispatch(commonOp.logoutFromDi());
-                                            }}
-                                            icon={"operation-logout"}
+                                            text={t("common.action.activity", "Activity overview")}
+                                            href={CONTEXT_PATH + "/workspace/allActivities"}
+                                            icon={"application-activities"}
                                         />
-                                    </>
-                                )}
-                            </Menu>
+                                        <MenuItem
+                                            text={t("common.action.showApiDoc", "API")}
+                                            href={CONTEXT_PATH + "/doc/api"}
+                                            icon={"application-homepage"}
+                                        />
+                                        <MenuItem
+                                            text={t("common.action.backOld", "Back to old workspace")}
+                                            href={CONTEXT_PATH + "/workspace"}
+                                            icon={"application-legacygui"}
+                                        />
+                                        {!!dmBaseUrl && (
+                                            <>
+                                                <MenuDivider />
+                                                <MenuItem
+                                                    id={"logoutAction"}
+                                                    text={t("common.action.logout", "Logout")}
+                                                    onClick={() => {
+                                                        dispatch(commonOp.logoutFromDi());
+                                                    }}
+                                                    icon={"operation-logout"}
+                                                />
+                                            </>
+                                        )}
+                                    </Menu>
+                                </ToolbarSection>
+                                <ToolbarSection style={{ width: "100%" }}>
+                                    <HtmlContentBlock small>
+                                        {version ?? null} by{" "}
+                                        <a href="https://eccenca.com/" target="_new">
+                                            eccenca GmbH
+                                        </a>
+                                    </HtmlContentBlock>
+                                </ToolbarSection>
+                            </Toolbar>
                         </ApplicationToolbarPanel>
                     </>
                 ) : (
