@@ -5,6 +5,7 @@ object WorkspaceUriPatternApiDoc {
   final val uriPatternsRequest =
 """
 {
+  "projectId": "someProject",
   "targetClassUris": [
     "urn:class:A",
     "urn:class:B"

@@ -194,14 +194,14 @@ const silkApi = {
     },
 
     /** Returns all known URI patterns for the given type URIs. */
-    uriPatternsByTypes: function(baseUrl: string, typeUris: string[]): HttpResponsePromise<IUriPatternsResult> {
+    uriPatternsByTypes: function(baseUrl: string, projectId: string, typeUris: string[]): HttpResponsePromise<IUriPatternsResult> {
         const requestUrl = this.uriPatternsByTypesEndpoint(baseUrl)
 
         return this.handleErrorCode(superagent
             .post(requestUrl)
             .accept(CONTENT_TYPE_JSON)
             .set('Content-Type', CONTENT_TYPE_JSON)
-            .send({targetClassUris: typeUris}))
+            .send({projectId, targetClassUris: typeUris}))
     },
 
     /**

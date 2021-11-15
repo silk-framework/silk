@@ -127,8 +127,8 @@ export const ObjectRuleForm = (props: IProps) => {
     const targetClassUris = () => modifiedValues.targetEntityType.map(t => typeof t === "string" ? pureUri(t) : pureUri(t.value))
 
     useEffect(() => {
-        if(modifiedValues.targetEntityType && modifiedValues.targetEntityType.length > 0 && baseUrl !== undefined) {
-            silkApi.uriPatternsByTypes(baseUrl, targetClassUris())
+        if(modifiedValues.targetEntityType && modifiedValues.targetEntityType.length > 0 && baseUrl !== undefined && project) {
+            silkApi.uriPatternsByTypes(baseUrl, project, targetClassUris())
                 .then(result => {
                     setUriPatternSuggestions(result.data.results)
                 })
