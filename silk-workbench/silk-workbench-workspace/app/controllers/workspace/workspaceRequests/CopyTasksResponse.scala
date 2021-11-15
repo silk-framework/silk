@@ -5,6 +5,7 @@ import controllers.workspaceApi.search.ItemType
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.config.TaskSpec
 import org.silkframework.workspace.ProjectTask
+import org.silkframework.runtime.plugin.PluginDescription
 import play.api.libs.json.{Json, OFormat}
 
 /**
@@ -39,7 +40,7 @@ object CopyTasksResponse {
   * @param originalTaskLink Browser link to the original task
   * @param overwrittenTaskLink Browser link to the overwritten task, if any
   */
-case class TaskToBeCopied(taskType: String, id: String, label: String, originalTaskLink: String, overwrittenTaskLink: Option[String])
+case class TaskToBeCopied(pluginId: String, taskType: String, id: String, label: String, originalTaskLink: String, overwrittenTaskLink: Option[String])
 
 object TaskToBeCopied {
 
@@ -47,6 +48,7 @@ object TaskToBeCopied {
 
   def fromTask(task: ProjectTask[_ <: TaskSpec], overwrittenTask: Option[ProjectTask[_ <: TaskSpec]]): TaskToBeCopied = {
     TaskToBeCopied(
+      pluginId = PluginDescription(task).id,
       taskType = ItemType.itemType(task).label,
       id = task.id,
       label = task.label(),

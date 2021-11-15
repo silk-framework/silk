@@ -96,7 +96,8 @@ object ExecutionReportSerializers {
         entityCount = numberValue(value, ENTITY_COUNTER).intValue,
         entityErrorCount = numberValue(value, ENTITY_ERROR_COUNTER).intValue,
         ruleResults = readRuleResults(objectValue(value, RULE_RESULTS)),
-        globalErrors = arrayValue(value, GLOBAL_ERRORS).value.map(_.as[String])
+        globalErrors = arrayValue(value, GLOBAL_ERRORS).value.map(_.as[String]),
+        error = stringValueOption(value, ERROR)
       )
     }
 

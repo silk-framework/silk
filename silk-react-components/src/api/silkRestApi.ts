@@ -135,6 +135,23 @@ const silkApi = {
         return this.handleErrorCode(promise);
     },
 
+    /**
+     * Fetches infos about a target type or property URI from the vocabulary.
+     * @param uri The target type or property URI.
+     */
+    retrieveTargetVocabularyTypeOrPropertyInfo: function(baseUrl: string, projectId: string, transformTaskId: string, uri: string): HttpResponsePromise<any> {
+        const requestUrl = this.targetVocabularyTypeOrPropertyInfoEndpoint(baseUrl, projectId, transformTaskId)
+
+        const promise = superagent
+            .get(requestUrl)
+            .accept(CONTENT_TYPE_JSON)
+            .query({
+               uri
+            });
+
+        return this.handleErrorCode(promise);
+    },
+
     /** Retrieves target properties that are valid for the specific transform rule as target property. */
     retrieveTransformTargetProperties: function(baseUrl: string, projectId: string, taskId: string, ruleId: string,
                                                 searchTerm?: string, maxResults: number = 30, vocabularies?: string[],
@@ -177,14 +194,14 @@ const silkApi = {
     },
 
     /** Returns all known URI patterns for the given type URIs. */
-    uriPatternsByTypes: function(baseUrl: string, typeUris: string[]): HttpResponsePromise<IUriPatternsResult> {
+    uriPatternsByTypes: function(baseUrl: string, projectId: string, typeUris: string[]): HttpResponsePromise<IUriPatternsResult> {
         const requestUrl = this.uriPatternsByTypesEndpoint(baseUrl)
 
         return this.handleErrorCode(superagent
             .post(requestUrl)
             .accept(CONTENT_TYPE_JSON)
             .set('Content-Type', CONTENT_TYPE_JSON)
-            .send({targetClassUris: typeUris}))
+            .send({projectId, targetClassUris: typeUris}))
     },
 
     /**
@@ -257,6 +274,10 @@ const silkApi = {
 
     vocabularyInfoEndpoint: function(baseUrl: string, projectId: string, transformTaskId: string) {
         return `${baseUrl}/transform/tasks/${projectId}/${transformTaskId}/targetVocabulary/vocabularies`;
+    },
+
+    targetVocabularyTypeOrPropertyInfoEndpoint: function(baseUrl: string, projectId: string, transformTaskId: string) {
+        return `${baseUrl}/transform/tasks/${projectId}/${transformTaskId}/targetVocabulary/typeOrProperty`;
     },
 
     uriPatternsByTypesEndpoint: function(baseUrl) {

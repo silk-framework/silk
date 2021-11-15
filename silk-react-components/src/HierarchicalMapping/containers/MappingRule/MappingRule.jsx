@@ -5,24 +5,16 @@
 import React from 'react';
 import _ from 'lodash';
 
-import {
-    Button,
-    ConfirmationDialog,
-    ContextMenu,
-    DismissiveButton,
-    DisruptiveButton,
-    MenuItem,
-    Spinner,
-} from '@eccenca/gui-elements';
 import ValueMappingRule from './ValueRule/ValueRule';
 import ObjectRule from './ObjectRule/ObjectRule';
-import { isObjectRule, isRootOrObjectRule, MAPPING_RULE_TYPE_OBJECT, MESSAGES } from '../../utils/constants';
+import {isObjectRule, isRootOrObjectRule, MESSAGES} from '../../utils/constants';
 import className from 'classnames';
 import EventEmitter from '../../utils/EventEmitter';
 import PropTypes from 'prop-types';
 import MappingRuleRow from './MappingRuleRow';
 import NavigateButton from '../../elements/buttons/NavigateButton';
 import ExpandButton from '../../elements/buttons/ExpandButton';
+import {ContextMenu, MenuItem, Spinner} from "@gui-elements/index";
 
 export class MappingRule extends React.Component {
     // define property types
@@ -185,47 +177,47 @@ export class MappingRule extends React.Component {
         );
         const reorderHandleButton = !this.props.expanded ? (
             <div className="ecc-silk-mapping__ruleitem-reorderhandler" key={id}>
-                <ContextMenu iconName="reorder" align="left" valign="top">
+                <ContextMenu togglerElement="item-draggable" style={{align: "left", valign: "top"}}>
                     <MenuItem
+                        data-test-id={"reorder-mapping-move-to-top"}
+                        text={"Move to top"}
                         onClick={() => this.handleMoveElement({
                             parentId,
                             fromPos: pos,
                             toPos: 0,
                             id,
                         })}
-                    >
-                        Move to top
-                    </MenuItem>
+                    />
                     <MenuItem
+                        data-test-id={"reorder-mapping-move-up"}
+                        text={"Move up"}
                         onClick={() => this.handleMoveElement({
                             parentId,
                             fromPos: pos,
                             toPos: Math.max(0, pos - 1),
                             id,
                         })}
-                    >
-                        Move up
-                    </MenuItem>
+                    />
                     <MenuItem
+                        data-test-id={"reorder-mapping-move-down"}
+                        text={"Move down"}
                         onClick={() => this.handleMoveElement({
                             parentId,
                             fromPos: pos,
                             toPos: Math.min(pos + 1, count - 1),
                             id,
                         })}
-                    >
-                        Move down
-                    </MenuItem>
+                    />
                     <MenuItem
+                        data-test-id={"reorder-mapping-move-to-bottom"}
+                        text={"Move to bottom"}
                         onClick={() => this.handleMoveElement({
                             parentId,
                             fromPos: pos,
                             toPos: count - 1,
                             id,
                         })}
-                    >
-                        Move to bottom
-                    </MenuItem>
+                    />
                 </ContextMenu>
             </div>
         ) : (
