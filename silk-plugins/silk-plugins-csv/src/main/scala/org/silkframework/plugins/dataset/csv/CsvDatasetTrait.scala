@@ -32,6 +32,7 @@ trait CsvDatasetTrait {
   val separatorChar: Char =
     if (separator == "\\t") { '\t' }
     else if (separator.length == 1) { separator.head }
+    else if(separator.isEmpty) { ',' }
     else { throw new IllegalArgumentException(s"Invalid separator: '$separator'. Must be a single character.") }
 
   val arraySeparatorChar: Option[Char] =
