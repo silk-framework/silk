@@ -83,7 +83,8 @@
     },
     "DeleteModal": {
         "confirmMsg": "The {{itemType}} '{{name}}' is used by other items! Deleting this item will also delete all depending items listed below:",
-        "deleteResource": "{{type}} '{{name}}' will be deleted"
+        "deleteResource": "{{type}} '{{name}}' will be deleted.",
+        "projectNote": "All contained items will be deleted, too."
     },
     "Deletedialog": {
         "loading": "Loading delete dialog."
@@ -112,7 +113,8 @@
     },
     "Metadata": {
         "loading": "Loading summary data.",
-        "updateFailed": "Updating meta data has failed"
+        "updateFailed": "Updating meta data has failed",
+        "unsavedMetaDataWarning": "There are unsaved changes that will be lost. Do you still want to proceed?"
     },
     "OverwriteModal": {
         "overwriteFile": "File '{{fileName}}' already exists. Do you want to overwrite it?"
@@ -204,7 +206,7 @@
             "dataset": "dataset",
             "genericArtefactLabel": "item",
             "linking": "linking",
-            "project": "Project",
+            "project": "project",
             "projectDesc": "Projects let you group related items. All items that depend on each other need to be in the same project.",
             "task": "task",
             "transform": "transform",
