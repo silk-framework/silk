@@ -140,7 +140,16 @@ sealed trait TransformRule extends Operator with HasMetaData {
 /**
   * Base trait for all rules that can have child rules.
   */
-sealed trait ContainerTransformRule extends TransformRule
+sealed trait ContainerTransformRule extends TransformRule {
+  override def label(maxLength: Int)(implicit prefixes: Prefixes): String = {
+    val typeLabel = rules.typeRules.map(typeUri => prefixes.shorten(typeUri.typeUri.uri)).mkString(", ")
+    if(typeLabel.nonEmpty) {
+      typeLabel
+    } else {
+      super.label(maxLength)
+    }
+  }
+}
 
 /**
   * Base trait for all rule that generate a value and do not have any child rules.
@@ -158,6 +167,14 @@ case class RootMappingRule(override val rules: MappingRules,
                            id: Identifier = RootMappingRule.defaultId,
                            mappingTarget: MappingTarget = RootMappingRule.defaultMappingTarget,
                            metaData: MetaData = MetaData.empty) extends ContainerTransformRule with PluginObjectParameterNoSchema {
+
+  override def label(maxLength: Int)(implicit prefixes: Prefixes): String = {
+    if(metaData.label.isEmpty && rules.typeRules.isEmpty) {
+      "Mapping"
+    } else {
+      super.label(maxLength)
+    }
+  }
 
   override def withMetaData(metaData: MetaData): TransformRule = this.copy(metaData = metaData)
 
