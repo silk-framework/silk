@@ -39,6 +39,7 @@ import { TaskType } from "@ducks/shared/typings";
 import { ProjectImportModal } from "../ProjectImportModal";
 import ItemDepiction from "../../../shared/ItemDepiction";
 import { ErrorBoundary } from "carbon-components-react/lib/components/ErrorBoundary";
+import { uppercaseFirstChar } from "../../../../utils/transformers";
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
@@ -256,7 +257,7 @@ export function CreateArtefactModal() {
         artefactListWithProject = [
             {
                 key: DATA_TYPES.PROJECT,
-                title: t("common.dataTypes.project"),
+                title: uppercaseFirstChar(t("common.dataTypes.project")),
                 description: t(
                     "common.dataTypes.projectDesc",
                     "Projects let you group related items. All items that depend on each other need to be in the same project."
