@@ -3,7 +3,7 @@ package org.silkframework.plugins.dataset.hierarchical
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{EntitySink, TypedProperty}
 import org.silkframework.entity.ValueType
-import org.silkframework.plugins.dataset.hierarchical.HierarchicalSink.{DEFAULT_MAX_SIZE, RDF_TYPE}
+import HierarchicalSink.{DEFAULT_MAX_SIZE, RDF_TYPE}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.runtime.validation.ValidationException
@@ -138,7 +138,8 @@ abstract class HierarchicalSink extends EntitySink {
     }
 
     writer.startEntity()
-    for((value, property) <- entity.values zip properties(entity.tableIndex)) {
+    // TODO make sorting configurable
+    for((value, property) <- (entity.values zip properties(entity.tableIndex)).sortBy(!_._2.isAttribute)) {
       writer.startProperty(property, value.size)
       if(property.valueType == ValueType.URI && property.propertyUri != RDF_TYPE) {
         for(v <- value) {

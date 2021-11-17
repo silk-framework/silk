@@ -111,7 +111,7 @@ class XmlSinkTest extends FlatSpec with Matchers {
       entityTables = Seq(entities),
       expected =
         <Root xmlns="urn:schema:">
-          <Element xmlns:ns1="http://example1.org/" ns1:id="101" xmlns:ns0="http://example2.org/" ns0:id="102" />
+          <Element xmlns:ns0="http://example1.org/" ns0:id="101" xmlns:ns1="http://example2.org/" ns1:id="102" />
         </Root>
     )
   }
@@ -123,19 +123,19 @@ class XmlSinkTest extends FlatSpec with Matchers {
         typedPaths =
           IndexedSeq(
             TypedPath(UntypedPath("http://example1.org/id"), ValueType.STRING, isAttribute = true),
+            TypedPath(UntypedPath("#text"), ValueType.STRING, isAttribute = false),
             TypedPath(UntypedPath("http://example2.org/id"), ValueType.STRING, isAttribute = true),
-            TypedPath(UntypedPath("#text"), ValueType.STRING, isAttribute = false)
           )
       )
 
-    val entities = Seq(Entity("someUri", IndexedSeq(Seq("101"), Seq("102"), Seq("Value")), schema))
+    val entities = Seq(Entity("someUri", IndexedSeq(Seq("101"), Seq("Value"), Seq("102")), schema))
 
     test(
       template = "<Root><?Element?></Root>",
       entityTables = Seq(entities),
       expected =
-        <Root xmlns="urn:schema:">
-          <Element xmlns:ns1="http://example1.org/" ns1:id="101" xmlns:ns0="http://example2.org/" ns0:id="102">Value</Element>
+        <Root>
+          <Element xmlns:ns0="http://example1.org/" ns0:id="101" xmlns:ns1="http://example2.org/" ns1:id="102">Value</Element>
         </Root>
     )
   }
@@ -204,7 +204,7 @@ class XmlSinkTest extends FlatSpec with Matchers {
       template = "<Persons><?Person?></Persons>",
       entityTables = Seq(persons, names),
       expected =
-        <Persons xmlns="urn:schema:">
+        <Persons>
           <Person id="001">
             <Name>
               <FirstName>John</FirstName>
