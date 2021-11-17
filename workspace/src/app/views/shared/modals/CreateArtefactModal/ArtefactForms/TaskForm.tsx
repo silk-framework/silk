@@ -13,6 +13,8 @@ import { useTranslation } from "react-i18next";
 export interface IProps {
     form: any;
 
+    detectChange: (key: string, val: any) => void;
+
     artefact: IDetailedArtefactItem;
 
     projectId: string;
@@ -44,7 +46,7 @@ const datasetConfigPreview = (
 };
 
 /** The task creation/update form. */
-export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
+export function TaskForm({ form, projectId, artefact, updateTask, detectChange }: IProps) {
     const { properties, required: requiredRootParameters } = artefact;
     const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
@@ -153,6 +155,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                 setDependentValues({ ...dependentValues });
             }
             setValue(key, value);
+            detectChange(key, value);
             triggerValidation(key);
         },
         []

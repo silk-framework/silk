@@ -6,12 +6,13 @@ import { useTranslation } from "react-i18next";
 
 interface IProps {
     form: any;
+    detectChange: (key: string, val: any) => void;
 }
 
 const LABEL = "label";
 const DESCRIPTION = "description";
 /** The project create form */
-export function ProjectForm({ form }: IProps) {
+export function ProjectForm({ form, detectChange }: IProps) {
     const { register, errors, triggerValidation, setValue } = form;
     const [t] = useTranslation();
 
@@ -23,6 +24,7 @@ export function ProjectForm({ form }: IProps) {
         return (e) => {
             const value = e.target ? e.target.value : e;
             setValue(key, value);
+            detectChange(key, value);
             triggerValidation();
         };
     };
