@@ -13,9 +13,9 @@
 @generateOptions = @{ (tasks: Seq[ProjectTask[_]]) =>
   for(task <- tasks) yield {
     if(inputId.isDefined && task.id.toString == inputId.get) {
-        <option value={task.id} selected="selected">{task.taskLabel()}</option>
+        <option value={task.id} selected="selected">{task.label()}</option>
     } else {
-        <option value={task.id}>{task.taskLabel()}</option>
+        <option value={task.id}>{task.label()}</option>
     }
   }
 }

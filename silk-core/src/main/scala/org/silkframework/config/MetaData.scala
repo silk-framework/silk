@@ -11,7 +11,7 @@ import scala.xml._
 /**
   * Holds meta data about a task.
   */
-case class MetaData(label: String,
+case class MetaData(label: Option[String],
                     description: Option[String] = None,
                     modified: Option[Instant] = None,
                     created: Option[Instant] = None,
@@ -26,10 +26,11 @@ case class MetaData(label: String,
     */
   def formattedLabel(defaultLabel: String, maxLength: Int = MetaData.DEFAULT_LABEL_MAX_LENGTH): String = {
     assert(maxLength > 5, "maxLength for task label must be at least 5 chars long")
-    val trimmedLabel = if(label.trim != "") {
-      label.trim
-    } else {
-      defaultLabel
+    val trimmedLabel = label match {
+      case Some(l) if l.trim != "" =>
+        l.trim
+      case _ =>
+        defaultLabel
     }
     if(trimmedLabel.length > maxLength) {
       val sideLength = (maxLength - 2) / 2
@@ -72,7 +73,7 @@ object MetaData {
 
   val DEFAULT_LABEL_MAX_LENGTH = 50
 
-  def empty: MetaData = MetaData("", None, None, None, None, None)
+  def empty: MetaData = MetaData(None, None, None, None, None, None)
 
   /**
     * Generates a nice label from an identifier.
@@ -114,7 +115,7 @@ object MetaData {
       */
     def read(node: Node)(implicit readContext: ReadContext): MetaData = {
       MetaData(
-        label = (node \ "Label").text,
+        label = Some((node \ "Label").text).filter(_.nonEmpty),
         description = Some((node \ "Description").text).filter(_.nonEmpty),
         modified = (node \ "Modified").headOption.map(node => Instant.parse(node.text)),
         created = (node \ "Created").headOption.map(node => Instant.parse(node.text)),
@@ -129,7 +130,7 @@ object MetaData {
     def write(data: MetaData)(implicit writeContext: WriteContext[Node]): Node = {
       val descriptionPCData = PCData(data.description.getOrElse(""))
       <MetaData>
-        <Label>{data.label}</Label>
+        <Label>{data.label.getOrElse("")}</Label>
         <Description xml:space="preserve">{descriptionPCData}</Description>
         { data.modified.map(instant => <Modified>{instant.toString}</Modified>).toSeq }
         { data.created.map(instant => <Created>{instant.toString}</Created>).toSeq }

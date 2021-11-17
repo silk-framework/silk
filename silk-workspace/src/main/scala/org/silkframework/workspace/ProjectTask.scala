@@ -220,8 +220,8 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   def metaDataFields(): Seq[(String, String)] = {
     // ID is part of the metaData
     var metaDataFields: Vector[(String, String)] = Vector(("Task identifier", id.toString))
-    if(metaData.label.trim != "") {
-      metaDataFields = metaDataFields :+ "Label" -> metaData.label
+    for(label <- metaData.label if label.trim != "") {
+      metaDataFields = metaDataFields :+ "Label" -> label
     }
     metaData.description foreach { description =>
       metaDataFields = metaDataFields :+ "Description" -> description

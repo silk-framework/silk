@@ -1,14 +1,12 @@
 package org.silkframework.workspace.xml
 
-import java.io.InputStream
-
-import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config.{MetaData, Task, TaskSpec}
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.TaskLoadingError
 
+import java.io.InputStream
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
 import scala.xml.{Elem, XML}
@@ -109,7 +107,7 @@ private abstract class XmlSerializer[TaskType <: TaskSpec : ClassTag] {
             Try(XmlSerialization.fromXml[Task[TaskType]](elem)) match {
               case Success(task) => Left(task)
               case Failure(ex) =>
-                Right(TaskLoadingError(None, taskId, ex, label = metaData.map(_.label), description = metaData.flatMap(_.description)))
+                Right(TaskLoadingError(None, taskId, ex, label = metaData.flatMap(_.label), description = metaData.flatMap(_.description)))
             }
           case None =>
             Right(TaskLoadingError(None, alternativeTaskId.getOrElse(s"No ID! Resource:$resourceName"),

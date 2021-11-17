@@ -249,7 +249,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
         val mergedMetaData = mergeMetaData(task.metaData, metaData)
         task.update(taskData, Some(mergedMetaData.asUpdatedMetaData))
       case None =>
-        addTask[T](name, taskData, metaData.getOrElse(MetaData(MetaData.labelFromId(name))).asNewMetaData)
+        addTask[T](name, taskData, metaData.getOrElse(MetaData.empty).asNewMetaData)
     }
   }
 

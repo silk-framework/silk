@@ -121,7 +121,7 @@ trait FacetCollector[T <: TaskSpec] {
     if (classTag.runtimeClass.isAssignableFrom(projectTask.data.getClass)) {
       projectTask.asInstanceOf[ProjectTask[T]]
     } else {
-      throw new IllegalArgumentException(s"Task '${projectTask.taskLabel()}' has not correct type for facet collector ${this.getClass.getSimpleName}.")
+      throw new IllegalArgumentException(s"Task '${projectTask.label()}' has not correct type for facet collector ${this.getClass.getSimpleName}.")
     }
   }
 
