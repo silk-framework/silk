@@ -21,6 +21,7 @@ class XmlEntityWriter(outputStream: OutputStream, template: XmlOutputTemplate) e
   // Counts all generated namespace prefixes
   private var prefixCounter = 0
 
+  // Indicates if the first root element has been written already
   private var rootElementWritten: Boolean = false
 
   // All properties in the path between the root and the current element
