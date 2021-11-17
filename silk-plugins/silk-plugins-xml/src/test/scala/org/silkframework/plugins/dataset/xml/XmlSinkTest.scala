@@ -6,6 +6,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, _}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
+import org.silkframework.runtime.validation.ValidationException
 
 import scala.xml.{Node, PrettyPrinter, XML}
 
@@ -276,13 +277,34 @@ class XmlSinkTest extends FlatSpec with Matchers {
     )
   }
 
+  it should "not allow writing multiple elements if the output template does not allow it" in {
+    val schema =
+      EntitySchema(
+        typeUri = "",
+        typedPaths =
+          IndexedSeq(
+            TypedPath(UntypedPath("Value"), ValueType.STRING, isAttribute = false),
+          )
+      )
+
+    val entities = Seq(Entity("e1", IndexedSeq(Seq("1")), schema), Entity("e2", IndexedSeq(Seq("1")), schema))
+
+    an[ValidationException] should be thrownBy {
+      test(
+        template = "<?Entity?>",
+        entityTables = Seq(entities),
+        expected = <shouldNotGenerateAnyXml/>
+      )
+    }
+  }
+
   private def test(template: String, entityTables: Seq[Seq[Entity]], expected: Node): Unit = {
     implicit val userContext: UserContext = UserContext.Empty
     implicit val prefixes: Prefixes = Prefixes.empty
     // Create in-memory XML sink
     val resourceMgr = InMemoryResourceManager()
     val resource = resourceMgr.get("test.xml")
-    val sink = new XmlSink(resource, template)
+    val sink = new XmlSink(resource, XmlOutputTemplate.parse(template))
 
     // Write entity tables
     for(entityTable <- entityTables) {

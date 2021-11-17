@@ -5,9 +5,11 @@ import org.silkframework.runtime.resource.WritableResource
 
 import java.io.OutputStream
 
-class XmlSink(val resource: WritableResource, outputTemplate: String) extends HierarchicalSink {
+class XmlSink(val resource: WritableResource,
+              outputTemplate: XmlOutputTemplate,
+              override val maxDepth: Int = HierarchicalSink.DEFAULT_MAX_SIZE) extends HierarchicalSink {
 
   override protected def createWriter(outputStream: OutputStream): HierarchicalEntityWriter = {
-    new XmlEntityWriter(outputStream, XmlTemplate.parse(outputTemplate))
+    new XmlEntityWriter(outputStream, outputTemplate)
   }
 }

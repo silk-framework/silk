@@ -2,14 +2,14 @@ package org.silkframework.plugins.dataset.xml
 
 import com.sun.xml.internal.txw2.output.IndentingXMLStreamWriter
 import org.silkframework.dataset.TypedProperty
-import org.silkframework.plugins.dataset.hierarchical.HierarchicalEntityWriter
+import org.silkframework.plugins.dataset.hierarchical.{HierarchicalEntityWriter, HierarchicalSink}
 import org.silkframework.runtime.validation.ValidationException
 
 import java.io.OutputStream
 import javax.xml.stream.{XMLOutputFactory, XMLStreamWriter}
 
-//TODO add maximum nesting level
-class XmlEntityWriter(outputStream: OutputStream, template: XmlTemplate) extends HierarchicalEntityWriter {
+
+class XmlEntityWriter(outputStream: OutputStream, template: XmlOutputTemplate) extends HierarchicalEntityWriter {
 
   // TODO replace IndentingXMLStreamWriter with class that is not from com.sun package
   private val writer: XMLStreamWriter = {
@@ -18,11 +18,13 @@ class XmlEntityWriter(outputStream: OutputStream, template: XmlTemplate) extends
     new IndentingXMLStreamWriter(factory.createXMLStreamWriter(outputStream))
   }
 
+  // Counts all generated namespace prefixes
   private var prefixCounter = 0
 
-  private var level: Int = 0
+  private var rootElementWritten: Boolean = false
 
-  private var properties: List[String] = List[String]()
+  // All properties in the path between the root and the current element
+  private var properties: List[String] = List[String](template.rootElementName)
 
   /**
     * Open this writer.
@@ -37,21 +39,29 @@ class XmlEntityWriter(outputStream: OutputStream, template: XmlTemplate) extends
     * Must be followed by calls to [[startProperty]] to write property values.
     */
   override def startEntity(): Unit = {
-    if(level == 0) {
-      writer.writeStartElement(template.rootElementName)
+    // Make sure that the output template allows multiple root entities
+    if(rootElementWritten) {
+      if(template.isSingleInstruction && properties.tail.isEmpty) {
+        throw new ValidationException("Cannot insert more than one element at document root. Your output template definition only allows one entity.")
+      }
     } else {
-      //TODO property uri could be empty
-      writer.writeStartElement(properties.head)
+      rootElementWritten = true
     }
-    level += 1
+    // The property URI might be empty (i.e., object mapping with empty target path) in which case the values should be attached to the parent
+    val property = properties.head
+    if(property.nonEmpty) {
+      writer.writeStartElement(property)
+    }
   }
 
   /**
     * Called after all properties of the current entity have been written.
     */
   override def endEntity(): Unit = {
-    writer.writeEndElement()
-    level -= 1
+    val property = properties.head
+    if(property.nonEmpty) {
+      writer.writeEndElement()
+    }
   }
 
   /**
@@ -60,10 +70,6 @@ class XmlEntityWriter(outputStream: OutputStream, template: XmlTemplate) extends
     */
   override def startProperty(property: TypedProperty, numberOfValues: Int): Unit = {
     properties ::= property.propertyUri
-    if(property.isAttribute) {
-
-    } else {
-    }
   }
 
   /**
@@ -84,7 +90,7 @@ class XmlEntityWriter(outputStream: OutputStream, template: XmlTemplate) extends
         case _ =>
           throw new ValidationException(s"Cannot write multiple attributes for property '$property'.")
       }
-    } else {
+    } else if(property.propertyUri != HierarchicalSink.RDF_TYPE) {
       for(v <- value) {
         if(property.propertyUri == "#text") {
           writer.writeCharacters(v)
@@ -116,7 +122,9 @@ class XmlEntityWriter(outputStream: OutputStream, template: XmlTemplate) extends
     if(separatorIndex == -1) {
       writer.writeStartElement(uri)
     } else {
-      writer.writeStartElement(uri.substring(0, separatorIndex + 1), uri.substring(separatorIndex + 1))
+      val prefix = uri.substring(0, separatorIndex + 1)
+      addPrefix(prefix)
+      writer.writeStartElement(prefix, uri.substring(separatorIndex + 1))
     }
   }
 
@@ -129,11 +137,19 @@ class XmlEntityWriter(outputStream: OutputStream, template: XmlTemplate) extends
       writer.writeAttribute(uri, value)
     } else {
       val prefix = uri.substring(0, separatorIndex + 1)
-      if(writer.getPrefix(prefix) == null) {
-        writer.setPrefix("ns" + prefixCounter, prefix)
-        prefixCounter += 1
-      }
+      addPrefix(prefix)
       writer.writeAttribute(prefix, uri.substring(separatorIndex + 1), value)
+    }
+  }
+
+  /**
+    * Adds a prefix, if it has not been registered already.
+    * Generates a readable name.
+    */
+  private def addPrefix(prefix: String): Unit = {
+    if(writer.getPrefix(prefix) == null) {
+      writer.setPrefix("ns" + prefixCounter, prefix)
+      prefixCounter += 1
     }
   }
 }
