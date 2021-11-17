@@ -494,7 +494,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     val clonedUriRule = as[ObjectMapping](clonedTransformRule).rules.uriRule.get.operator
     clonedUriRule mustBe originalUriRule
     val clonedLabel = clonedTransformRule.metaData.label
-    clonedLabel mustBe Some(s"Copy of root")
+    clonedLabel mustBe Some(s"Copy of target:Person")
     clonedTransformRule.target mustBe Some(MappingTarget(TransformTaskApi.ROOT_COPY_TARGET_PROPERTY, ValueType.URI))
   }
 
