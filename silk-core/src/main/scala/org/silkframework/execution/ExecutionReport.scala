@@ -15,7 +15,7 @@ trait ExecutionReport {
   /**
     * A user-friendly label for this report, usually just the task label.
     */
-  def label: String = task.taskLabel()
+  def label: String = task.label()
 
   /**
     * Short label for the executed operation, e.g., read or write (optional).

@@ -41,9 +41,9 @@
  * A single operator in the toolbox.
  *@
 @toolboxOperator(taskActions: TaskActions) = {
-  <div id="toolbox_@taskActions.task.id" class="toolboxOperator" title="@taskActions.task.taskLabel(maxLength = 1024)">
+  <div id="toolbox_@taskActions.task.id" class="toolboxOperator" title="@taskActions.task.label(maxLength = 1024)">
     @*<img src="@icon">*@
-    @taskActions.task.taskLabel()
+    @taskActions.task.label()
     @if(taskActions.taskType.typeName != "Dataset") {
       @operator(taskActions, workflow)
     } else {

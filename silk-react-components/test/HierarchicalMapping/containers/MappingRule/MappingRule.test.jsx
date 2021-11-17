@@ -1,19 +1,11 @@
 import React from "react";
-import { mount, render, shallow } from 'enzyme';
+import {mount, shallow} from 'enzyme';
 import MappingRule from '../../../../src/HierarchicalMapping/containers/MappingRule/MappingRule';
-import {
-    Button,
-    ConfirmationDialog,
-    ContextMenu,
-    DismissiveButton,
-    DisruptiveButton,
-    MenuItem,
-    Spinner,
-} from '@eccenca/gui-elements';
 import ObjectRule from '../../../../src/HierarchicalMapping/containers/MappingRule/ObjectRule/ObjectRule';
 import ValueMappingRule from '../../../../src/HierarchicalMapping/containers/MappingRule/ValueRule/ValueRule';
 import NavigateButton from '../../../../src/HierarchicalMapping/elements/buttons/NavigateButton';
 import ExpandButton from '../../../../src/HierarchicalMapping/elements/buttons/ExpandButton';
+import {findAll, logWrapperHtml} from "../../utils/TestHelpers";
 
 const onRuleIdChangeFn = jest.fn();
 const onExpandFn = jest.fn();
@@ -72,7 +64,7 @@ describe("MappingRule Component", () => {
     describe("on component mounted, ", () => {
         let wrapper;
         beforeEach(() => {
-            wrapper = getWrapper(shallow);
+            wrapper = getWrapper(mount);
             wrapper.setState({
                 loading: false
             })
@@ -82,7 +74,7 @@ describe("MappingRule Component", () => {
             wrapper.setState({
                 loading: true
             });
-            expect(wrapper.find(Spinner)).toHaveLength(1)
+            expect(findAll(wrapper, "div.eccgui-spinner")).toHaveLength(1)
         });
 
         it('should rendered NavigateButton, when type is object', () => {
@@ -115,7 +107,7 @@ describe("MappingRule Component", () => {
         });
 
         it('should render reorder context menu, when rule is not expanded', () => {
-            expect(wrapper.find(ContextMenu)).toHaveLength(1);
+            expect(findAll(wrapper, ".eccgui-contextmenu")).toHaveLength(1);
         });
 
         afterEach(() => {

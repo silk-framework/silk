@@ -25,7 +25,7 @@ class SerializationUtilsTest extends FlatSpec with MustMatchers with MockitoSuga
 
   val testObject = new TestSubSubClass()
   implicit val project: Project = mock[Project]
-  when(project.config).thenReturn(ProjectConfig(metaData = MetaData("abc")))
+  when(project.config).thenReturn(ProjectConfig(metaData = MetaData(Some("abc"))))
   val request: Request[AnyContent] = mock[Request[AnyContent]]
   when(request.acceptedTypes).thenReturn(List())
   when(request.mediaType).thenReturn(None)

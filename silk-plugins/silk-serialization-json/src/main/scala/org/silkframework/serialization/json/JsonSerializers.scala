@@ -90,19 +90,14 @@ object JsonSerializers {
     final val CREATED_BY = "createdBy"
     final val LAST_MODIFIED_BY = "lastModifiedBy"
 
-    override def read(value: JsValue)(implicit readContext: ReadContext): MetaData = {
-      read(value, "")
-    }
-
     /**
       * Reads meta data. Generates a label if no label is provided in the json.
       *
       * @param value The json to read the meta data from.
-      * @param identifier If no label is provided in the json, use this identifier to generate a label.
       */
-    def read(value: JsValue, identifier: String)(implicit readContext: ReadContext): MetaData = {
+    override def read(value: JsValue)(implicit readContext: ReadContext): MetaData = {
       MetaData(
-        label = stringValueOption(value, LABEL).getOrElse(MetaData.labelFromId(identifier)),
+        label = stringValueOption(value, LABEL).filter(_.nonEmpty),
         description = stringValueOption(value, DESCRIPTION),
         modified = stringValueOption(value, MODIFIED).map(Instant.parse),
         created = stringValueOption(value, CREATED).map(Instant.parse),
@@ -112,10 +107,10 @@ object JsonSerializers {
     }
 
     override def write(value: MetaData)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      var json =
-        Json.obj(
-          LABEL -> JsString(value.label)
-        )
+      var json = Json.obj()
+      for(label <- value.label if label.nonEmpty) {
+        json += LABEL -> JsString(label)
+      }
       for(description <- value.description if description.nonEmpty) {
         json += DESCRIPTION -> JsString(description)
       }
@@ -387,10 +382,9 @@ object JsonSerializers {
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): RootMappingRule = {
       val mappingRules = fromJson[MappingRules](mustBeDefined(value, RULES_PROPERTY))
-      val typeName = mappingRules.typeRules.flatMap(_.typeUri.localName).headOption
       val id = identifier(value, RootMappingRule.defaultId)
       val mappingTarget = optionalValue(value, MAPPING_TARGET).map(fromJson[MappingTarget]).getOrElse(RootMappingRule.defaultMappingTarget)
-      RootMappingRule(id = id, rules = mappingRules, mappingTarget = mappingTarget, metaData = metaData(value, typeName.getOrElse("RootMapping")))
+      RootMappingRule(id = id, rules = mappingRules, mappingTarget = mappingTarget, metaData = metaData(value))
     }
 
     /**
@@ -422,7 +416,7 @@ object JsonSerializers {
       val typeUri =  Uri.parse(stringValue(value, TYPE_PROPERTY), readContext.prefixes)
       val typeName = typeUri.localName.getOrElse("type")
       val name = identifier(value, typeName)
-      TypeMapping(name,typeUri, metaData(value, typeName))
+      TypeMapping(name,typeUri, metaData(value))
     }
 
     /**
@@ -456,7 +450,7 @@ object JsonSerializers {
       if(readContext.validationEnabled) {
         UriPatternParser.parseIntoSegments(pattern, allowIncompletePattern = false).validateAndThrow()
       }
-      PatternUriMapping(name, pattern.trim(), metaData(value, "URI"), readContext.prefixes)
+      PatternUriMapping(name, pattern.trim(), metaData(value), readContext.prefixes)
     }
 
     /**
@@ -486,7 +480,7 @@ object JsonSerializers {
       ComplexUriMapping(
         id = identifier(value, "uri"),
         operator = fromJson[Input]((value \ OPERATOR).get),
-        metaData(value, "URI")
+        metaData(value)
       )
     }
 
@@ -547,7 +541,7 @@ object JsonSerializers {
       val mappingName = mappingTarget.propertyUri.localName.getOrElse("ValueMapping")
       val id = identifier(value, mappingName)
       val sourcePath = silkPath(id, stringValue(value, SOURCE_PATH_PROPERTY))
-      DirectMapping(id, sourcePath, mappingTarget, metaData(value, mappingName))
+      DirectMapping(id, sourcePath, mappingTarget, metaData(value))
     }
 
     /**
@@ -583,7 +577,7 @@ object JsonSerializers {
       val mappingName = mappingTarget.flatMap(_.propertyUri.localName).getOrElse("ObjectMapping")
       val id = identifier(value, mappingName)
       val sourcePath = silkPath(id, stringValue(value, SOURCE_PATH))
-      ObjectMapping(id, sourcePath, mappingTarget, children, metaData(value, mappingName), readContext.prefixes)
+      ObjectMapping(id, sourcePath, mappingTarget, children, metaData(value), readContext.prefixes)
     }
 
     /**
@@ -638,7 +632,7 @@ object JsonSerializers {
         id = id,
         operator = fromJson[Input]((jsValue \ OPERATOR).get),
         target = mappingTarget,
-        metaData(jsValue, mappingName)
+        metaData(jsValue)
       )
       TransformRule.simplify(complex)(readContext.prefixes)
     }
@@ -1061,19 +1055,20 @@ object JsonSerializers {
       }
       val id: Identifier = stringValueOption(value, ID).map(_.trim).filter(_.nonEmpty).map(Identifier.apply).getOrElse {
         // Generate unique ID from label if no ID was supplied
-        val md = metaData(value, "id")
-        val label = md.label.trim
-        if(label.isEmpty) {
-          throw BadUserInputException("The label must not be empty if no ID is provided!")
+        val md = metaData(value)
+        md.label match {
+          case Some(label) if label.trim.nonEmpty =>
+            generateTaskId(label)
+          case _ =>
+            throw BadUserInputException("The label must not be empty if no ID is provided!")
         }
-        generateTaskId(label)
       }
       // In older serializations the task data has been directly attached to this JSON object
       val dataJson = optionalValue(value, DATA).getOrElse(value)
       PlainTask(
         id = id,
         data = fromJson[T](dataJson),
-        metaData = metaData(value, id)
+        metaData = metaData(value)
       )
     }
 
@@ -1348,12 +1343,12 @@ object JsonSerializers {
     * @param json The json to read the meta data from.
     * @param identifier If no label is provided in the json, use this identifier to generate a label.
     */
-  private def metaData(json: JsValue, identifier: String)(implicit readContext: ReadContext): MetaData = {
+  private def metaData(json: JsValue)(implicit readContext: ReadContext): MetaData = {
     optionalValue(json, METADATA) match {
       case Some(metaDataJson) =>
-        MetaDataJsonFormat.read(metaDataJson, identifier)
+        MetaDataJsonFormat.read(metaDataJson)
       case None =>
-        MetaData(MetaData.labelFromId(identifier))
+        MetaData.empty
     }
   }
 

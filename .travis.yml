@@ -14,7 +14,7 @@ install:
 notifications:
   email:
     recipients:
-      - markus.freudenberg@eccenca.com
+      - robert.isele@eccenca.com
     on_success: change
     on_failure: change
 

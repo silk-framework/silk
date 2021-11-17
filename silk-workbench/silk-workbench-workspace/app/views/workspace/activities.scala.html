@@ -153,7 +153,7 @@
 
 @taskActivities(project: Project, task: ProjectTask[_ <: TaskSpec]) = {
   <li id="task_@{project.name}_@task.id" class="jstree-open">
-    @task.taskLabel()
+    @task.label()
     <ul>
     @for(activity <- task.activities) {
       @taskActivityStatus(project, task, activity)

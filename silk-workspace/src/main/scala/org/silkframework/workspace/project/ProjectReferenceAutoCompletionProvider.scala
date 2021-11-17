@@ -24,7 +24,7 @@ case class ProjectReferenceAutoCompletionProvider() extends PluginParameterAutoC
     workspace.projects.map(_.config) map { projectConfig=>
       val label = projectConfig.metaData.label
       val value = projectConfig.id.toString
-      AutoCompletionResult(value, Some(label))
+      AutoCompletionResult(value, label)
     }
   }
 }

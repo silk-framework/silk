@@ -29,19 +29,25 @@ case class GlobalVocabularyCacheFactory() extends GlobalWorkspaceActivityFactory
 case class GlobalVocabularyCache() extends Activity[VocabularyCacheValue] {
   private val log: Logger = Logger.getLogger(getClass.getName)
   private val cache: mutable.HashMap[String, Vocabulary] = new mutable.HashMap[String, Vocabulary]()
-  private var vocabsToUpdate: Set[String] = Set.empty
   @volatile
   private var lastUpdated: Option[Long] = None
   private def setLastUpdated(): Unit = {
     lastUpdated = Some(System.currentTimeMillis())
   }
 
+  override def reset()(implicit userContext: UserContext): Unit = {
+    // Mark all vocabularies for reload, but do not clean the cache, so it becomes eventually updated, but still delivers stale results for a while.
+    super.reset()
+    cache.keysIterator.foreach(key => GlobalVocabularyCache.putVocabularyInQueue(key))
+  }
+
   override def initialValue: Option[VocabularyCacheValue] = Some(new VocabularyCacheValue(Seq.empty, lastUpdated))
 
   override def run(context: ActivityContext[VocabularyCacheValue])(implicit userContext: UserContext): Unit = {
     val vocabManager = VocabularyManager()
-    vocabsToUpdate = GlobalVocabularyCache.clearAndGetVocabularies
+    var vocabsToUpdate = GlobalVocabularyCache.clearAndGetVocabularies
     while(vocabsToUpdate.nonEmpty && !cancelled) {
+      log.info(s"Going to update ${vocabsToUpdate.size} vocabularies...")
       // Update vocabs that were changed by a user
       for(vocabURI <- vocabsToUpdate) {
         installVocabulary(vocabManager, vocabURI)

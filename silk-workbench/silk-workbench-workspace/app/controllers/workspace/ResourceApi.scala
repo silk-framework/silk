@@ -307,7 +307,7 @@ class ResourceApi  @Inject() (pluginApiCache: PluginApiCache) extends InjectedCo
     val dependentTasks: Seq[TaskLinkInfo] = project.allTasks
       .filter(_.referencedResources.map(_.name).contains(resourceName))
       .map { task =>
-        TaskLinkInfo(task.id, task.fullTaskLabel, pluginApiCache.taskTypeByClass(task.taskType))
+        TaskLinkInfo(task.id, task.fullLabel, pluginApiCache.taskTypeByClass(task.taskType))
       }
     Ok(Json.toJson(dependentTasks))
   }

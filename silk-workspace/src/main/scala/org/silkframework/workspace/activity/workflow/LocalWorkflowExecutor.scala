@@ -120,8 +120,8 @@ try {
         Some(entityTable)
       case None if output.requestedSchema.isDefined =>
         val inputTask = task(input)
-        throw WorkflowExecutionException(s"Workflow operator '${requestingWorkflowOperator.taskLabel(Int.MaxValue)}' defined an input" +
-            s" schema for its input '${inputTask.taskLabel(Int.MaxValue)}', but did not receive any result from it in workflow '${workflowTask.taskLabel(Int.MaxValue)}' .")
+        throw WorkflowExecutionException(s"Workflow operator '${requestingWorkflowOperator.label(Int.MaxValue)}' defined an input" +
+            s" schema for its input '${inputTask.label(Int.MaxValue)}', but did not receive any result from it in workflow '${workflowTask.label(Int.MaxValue)}' .")
       case None =>
         None
     }
@@ -164,7 +164,7 @@ try {
       case ex: StopWorkflowExecutionException =>
         throw ex
       case NonFatal(ex) =>
-        val msg = s"Exception during execution of workflow operator '${operatorTask.taskLabel()}' (${operatorNode.workflowNode.nodeId})."
+        val msg = s"Exception during execution of workflow operator '${operatorTask.label()}' (${operatorNode.workflowNode.nodeId})."
         log.log(Level.WARNING, msg, ex)
         throw WorkflowExecutionException(msg + " Cause: " + ex.getMessage, Some(ex))
     }
@@ -251,7 +251,7 @@ try {
       execute("Writing", workflowDataset.nodeId, resolvedDataset, Seq(entityTable), ExecutorOutput.empty)
     } catch {
       case NonFatal(ex) =>
-        throw WorkflowExecutionException(s"Exception occurred while writing to dataset '${resolvedDataset.taskLabel()}'. Cause: " + ex.getMessage, Some(ex))
+        throw WorkflowExecutionException(s"Exception occurred while writing to dataset '${resolvedDataset.label()}'. Cause: " + ex.getMessage, Some(ex))
     }
   }
 

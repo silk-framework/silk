@@ -66,7 +66,7 @@ export default class WorkflowExecutionReport extends React.Component {
                { this.renderTaskDescription(warnings) }
              </span>
              <span className="mdl-list__item-secondary-content">
-               { this.renderTaskIcon(warnings) }
+               { this.renderTaskIcon(warnings, report.error) }
              </span>
            </li>
   }
@@ -79,8 +79,10 @@ export default class WorkflowExecutionReport extends React.Component {
     }
   }
 
-  renderTaskIcon(warnings) {
-    if(warnings != null && warnings.length > 0) {
+  renderTaskIcon(warnings, error) {
+    if(error) {
+      return <Icon name="danger" className="silk-report-list-item-icon-red" />
+    } else if(warnings != null && warnings.length > 0) {
       return <Icon name="warning" className="silk-report-list-item-icon-red" />
     } else {
       return <Icon name="done" className="silk-report-list-item-icon-green" />

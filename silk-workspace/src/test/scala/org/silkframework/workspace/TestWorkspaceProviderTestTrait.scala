@@ -72,7 +72,7 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
   def retrieveOrCreateProject(projectId: Identifier)(implicit userContext: UserContext): Project = {
     WorkspaceFactory().workspace(userContext).findProject(projectId) match{
       case Some(p) => p
-      case None => WorkspaceFactory().workspace(userContext).createProject(new ProjectConfig(projectId, metaData = MetaData(projectId)))
+      case None => WorkspaceFactory().workspace(userContext).createProject(new ProjectConfig(projectId, metaData = MetaData(Some(projectId))))
     }
   }
 }

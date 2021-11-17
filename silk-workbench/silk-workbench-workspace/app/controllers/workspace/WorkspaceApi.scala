@@ -3,14 +3,13 @@ package controllers.workspace
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.workspace.doc.WorkspaceApiDoc
-import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse, UpdateGlobalVocabularyRequest, VocabularyInfo, VocabularyInfos}
-import io.swagger.v3.oas.annotations.Operation
+import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse, UpdateGlobalVocabularyRequest}
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
-import io.swagger.v3.oas.annotations.Parameter
-import io.swagger.v3.oas.annotations.parameters.RequestBody
-import io.swagger.v3.oas.annotations.enums.ParameterIn
 import org.silkframework.config._
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
 import org.silkframework.runtime.activity.Activity
@@ -22,7 +21,6 @@ import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeExcep
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace._
 import org.silkframework.workspace.activity.ProjectExecutor
-import org.silkframework.workspace.activity.transform.VocabularyCacheValue
 import org.silkframework.workspace.activity.vocabulary.GlobalVocabularyCache
 import org.silkframework.workspace.io.{SilkConfigExporter, SilkConfigImporter, WorkspaceIO}
 import play.api.libs.json.{JsValue, Json}
@@ -143,7 +141,7 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     if (WorkspaceFactory().workspace.projects.exists(_.name.toString == project)) {
       ErrorResult(CONFLICT, "Conflict", s"Project with name '$project' already exists. Creation failed.")
     } else {
-      val projectConfig = ProjectConfig(project, metaData = MetaData(project).asNewMetaData)
+      val projectConfig = ProjectConfig(project, metaData = MetaData(Some(project)).asNewMetaData)
       projectConfig.copy(projectResourceUriOpt = Some(projectConfig.generateDefaultUri))
       val newProject = WorkspaceFactory().workspace.createProject(projectConfig)
       Created(JsonSerializer.projectJson(newProject))

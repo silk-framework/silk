@@ -14,12 +14,12 @@ case class SparqlEndpointDatasetAutoCompletionProvider() extends PluginParameter
                                      (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
     val allResults = workspace.project(projectId).tasks[GenericDatasetSpec]
         .filter(datasetSpec => datasetSpec.data.plugin.isInstanceOf[RdfDataset])
-        .map(datasetSpec => AutoCompletionResult(datasetSpec.id, Some(datasetSpec.metaData.label)))
+        .map(datasetSpec => AutoCompletionResult(datasetSpec.id, datasetSpec.metaData.label))
     filterResults(searchQuery, allResults)
   }
 
   override def valueToLabel(projectId: String, value: String, dependOnParameterValues: Seq[String], workspace: WorkspaceReadTrait)
                            (implicit userContext: UserContext): Option[String] = {
-    workspace.project(projectId).taskOption[GenericDatasetSpec](value).map(_.metaData.label)
+    workspace.project(projectId).taskOption[GenericDatasetSpec](value).flatMap(_.metaData.label)
   }
 }

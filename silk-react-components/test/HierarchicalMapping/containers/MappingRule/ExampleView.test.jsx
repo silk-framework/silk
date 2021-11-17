@@ -2,12 +2,14 @@ import React from "react";
 import ExampleView from '../../../../src/HierarchicalMapping/containers/MappingRule/ExampleView';
 import {ErrorView} from '../../../../src/HierarchicalMapping/components/ErrorView';
 import {mount} from "enzyme";
-import {findAll} from "../../utils/TestHelpers";
+import {findAll, logWrapperHtml} from "../../utils/TestHelpers";
+import {waitFor} from "@testing-library/react";
 
 const props = {
     id: 'id',
     rawRule: {},
     ruleType: {},
+    updateDelay: 0
 };
 
 let mockExampleResponse = undefined
@@ -45,10 +47,12 @@ const setMockError = (error) => {
 
 describe("ExampleView Component", () => {
     describe("on component mounted, ",() => {
-        it("should render ErrorView component, when error presented", () => {
+        it("should render ErrorView component, when error presented", async () => {
             setMockError({})
             const wrapper = getWrapper()
-            expect(wrapper.find(ErrorView)).toHaveLength(1);
+            await waitFor(() => {
+                expect(wrapper.find(ErrorView)).toHaveLength(1);
+            })
         });
     
         it("should render empty div, when `state.example` is undefined", () => {

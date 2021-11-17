@@ -1,16 +1,15 @@
 package controllers.linking
 
-import controllers.core.{UserContextActions}
 import controllers.core.UserContextActions
 import controllers.linking.doc.LinkingTaskApiDoc
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils
 import io.swagger.v3.oas.annotations.enums.ParameterIn
-import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{MetaData, PlainTask, Prefixes}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.{Entity, FullLink, MinimalLink, Restriction}
@@ -73,7 +72,7 @@ class LinkingTaskApi @Inject() () extends InjectedController with UserContextAct
             output = output
           )
 
-        proj.addTask(task, linkSpec, MetaData(MetaData.labelFromId(task)))
+        proj.addTask(task, linkSpec, MetaData.empty)
       }
     }
     Ok

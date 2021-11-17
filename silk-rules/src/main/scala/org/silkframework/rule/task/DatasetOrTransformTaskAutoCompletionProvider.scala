@@ -20,7 +20,7 @@ case class DatasetOrTransformTaskAutoCompletionProvider() extends PluginParamete
     val taskProject = dependOnParameterValues.headOption.getOrElse(projectId)
     val allDatasets = workspace.project(taskProject).tasks[GenericDatasetSpec]
     val allTransformTasks = workspace.project(taskProject).tasks[TransformSpec]
-    val all = (allDatasets ++ allTransformTasks).map(spec => AutoCompletionResult(spec.id, Some(spec.metaData.label).filter(_.nonEmpty)))
+    val all = (allDatasets ++ allTransformTasks).map(spec => AutoCompletionResult(spec.id, spec.metaData.label))
     filterResults(searchQuery, all)
   }
 
@@ -34,7 +34,7 @@ case class DatasetOrTransformTaskAutoCompletionProvider() extends PluginParamete
     val taskProject = dependOnParameterValues.headOption.getOrElse(projectId)
     workspace.project(taskProject)
       .anyTaskOption(value)
-      .map(_.metaData.label)
+      .flatMap(_.metaData.label)
       .filter(_.nonEmpty) // No empty string labels. This can still happen when loading old projects
   }
 }

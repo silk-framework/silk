@@ -68,7 +68,7 @@ class ProjectImportApiTest extends FlatSpec with SingleProjectWorkspaceProviderT
     (statusJson \ "failureMessage").toOption must not be defined
     workspaceProvider.readProjects().size mustBe (projectCount + 1)
     val newProjectMetaData = workspaceProject(generatedProjectId).config.metaData
-    newProjectMetaData.label mustBe expectedProjectLabel
+    newProjectMetaData.label mustBe Some(expectedProjectLabel)
     newProjectMetaData.description mustBe Some(expectedProjectDescription)
   }
 

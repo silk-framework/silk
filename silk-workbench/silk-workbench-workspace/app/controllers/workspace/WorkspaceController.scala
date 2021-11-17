@@ -39,9 +39,9 @@ class WorkspaceController @Inject() () extends InjectedController with UserConte
   def removeTaskDialog(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
-    val dependentTasks = task.findDependentTasks(recursive = false).map(project.anyTask(_).taskLabel()).toSeq
+    val dependentTasks = task.findDependentTasks(recursive = false).map(project.anyTask(_).label()).toSeq
 
-    Ok(views.html.workspace.removeTaskDialog(projectName, taskName, task.taskLabel(), dependentTasks))
+    Ok(views.html.workspace.removeTaskDialog(projectName, taskName, task.label(), dependentTasks))
   }
 
   def removeResourceDialog(name: String, path: String): Action[AnyContent] = Action {
