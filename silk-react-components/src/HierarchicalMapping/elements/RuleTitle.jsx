@@ -4,7 +4,8 @@ import { NotAvailable } from '@eccenca/gui-elements';
 import { ThingName } from '../components/ThingName';
 
 import {
-    MAPPING_RULE_TYPE_ROOT,
+    MAPPING_RULE_TYPE_COMPLEX_URI,
+    MAPPING_RULE_TYPE_ROOT, MAPPING_RULE_TYPE_URI,
 } from '../utils/constants';
 import { MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT } from '../utils/constants';
 
@@ -35,7 +36,12 @@ const RuleTitle = ({ rule, ...otherProps }) => {
         ) : (
             <NotAvailable />
         );
+    case MAPPING_RULE_TYPE_URI:
+    case MAPPING_RULE_TYPE_COMPLEX_URI:
+        return <span>uri</span>
     }
+
+    return <NotAvailable />;
 };
 
 export default RuleTitle;
