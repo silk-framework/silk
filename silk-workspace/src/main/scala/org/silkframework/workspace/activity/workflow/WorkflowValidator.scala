@@ -33,7 +33,7 @@ object WorkflowValidator extends DefaultTaskValidator[Workflow] {
       // Make sure that this workflow does not contain any workflows that itself contain other workflows
       for(nestedWorkflow <- nestedWorkflows) {
         if(collectNestedWorkflows(project, nestedWorkflow).nonEmpty) {
-          throw new TaskValidationException(s"Workflow ${workflow.taskLabel()} is not allowed to include ${nestedWorkflow.taskLabel()} " +
+          throw new TaskValidationException(s"Workflow ${workflow.label()} is not allowed to include ${nestedWorkflow.label()} " +
             "because that workflow already contains nested workflows.")
         }
       }
@@ -41,8 +41,8 @@ object WorkflowValidator extends DefaultTaskValidator[Workflow] {
       // Make sure that this workflow is not referenced by another workflow
       for (otherWorkflow <- project.tasks[Workflow] if otherWorkflow.id != workflow.id) {
         if(otherWorkflow.data.nodes.exists(_.task == workflow.id)) {
-          throw new TaskValidationException(s"Workflow ${workflow.taskLabel()} is not allowed to nest workflows " +
-            s"because it's already nested inside ${otherWorkflow.taskLabel()}")
+          throw new TaskValidationException(s"Workflow ${workflow.label()} is not allowed to nest workflows " +
+            s"because it's already nested inside ${otherWorkflow.label()}")
         }
       }
     }

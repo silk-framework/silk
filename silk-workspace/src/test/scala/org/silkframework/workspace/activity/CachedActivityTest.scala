@@ -14,10 +14,10 @@ class CachedActivityTest extends FlatSpec with MustMatchers with TestUserContext
 
   behavior of "CachedActivity"
 
-  private val initialValue = MetaData("Initial", modified = Some(Instant.ofEpochSecond(0L)))
-  private val value1 = MetaData("Label 1", modified = Some(Instant.ofEpochSecond(1L)))
-  private val value2 = MetaData("Label 2", modified = Some(Instant.ofEpochSecond(2L)))
-  private val value3 = MetaData("Label 3", modified = Some(Instant.ofEpochSecond(2L)))
+  private val initialValue = MetaData(Some("Initial"), modified = Some(Instant.ofEpochSecond(0L)))
+  private val value1 = MetaData(Some("Label 1"), modified = Some(Instant.ofEpochSecond(1L)))
+  private val value2 = MetaData(Some("Label 2"), modified = Some(Instant.ofEpochSecond(2L)))
+  private val value3 = MetaData(Some("Label 3"), modified = Some(Instant.ofEpochSecond(2L)))
 
   // The value to be loaded and cached
   private var currentValue = initialValue

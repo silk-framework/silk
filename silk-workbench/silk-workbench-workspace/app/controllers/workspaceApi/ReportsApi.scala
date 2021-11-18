@@ -190,7 +190,7 @@ class ReportsApi @Inject() (implicit system: ActorSystem, mat: Materializer) ext
         SimpleExecutionReport(
           task = task,
           summary = Seq.empty,
-          warnings = Seq(s"No execution report available for task '${task.taskLabel()}' yet."),
+          warnings = Seq(s"No execution report available for task '${task.label()}' yet."),
           error = None,
           isDone = false,
           entityCount = 0

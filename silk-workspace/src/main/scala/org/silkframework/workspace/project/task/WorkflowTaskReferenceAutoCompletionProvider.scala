@@ -17,7 +17,7 @@ case class WorkflowTaskReferenceAutoCompletionProvider() extends PluginParameter
                                       workspace: WorkspaceReadTrait)
                                      (implicit userContext: UserContext): Traversable[AutoCompletionResult] = {
     val taskProject = dependOnParameterValues.headOption.getOrElse(projectId)
-    val allWorkflows = workspace.project(taskProject).tasks[Workflow].map(w => AutoCompletionResult(w.id, Some(w.metaData.label)))
+    val allWorkflows = workspace.project(taskProject).tasks[Workflow].map(w => AutoCompletionResult(w.id, w.metaData.label))
     filterResults(searchQuery, allWorkflows)
   }
 
@@ -29,6 +29,6 @@ case class WorkflowTaskReferenceAutoCompletionProvider() extends PluginParameter
                             workspace: WorkspaceReadTrait)
                            (implicit userContext: UserContext): Option[String] = {
     val taskProject = dependOnParameterValues.headOption.getOrElse(projectId)
-    workspace.project(taskProject).taskOption[Workflow](value).map(_.metaData.label)
+    workspace.project(taskProject).taskOption[Workflow](value).flatMap(_.metaData.label)
   }
 }

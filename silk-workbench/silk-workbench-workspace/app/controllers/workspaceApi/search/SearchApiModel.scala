@@ -140,7 +140,7 @@ object SearchApiModel {
                                     matchTaskProperties: Boolean,
                                     matchProject: Boolean): Boolean = {
       val pluginLabel = PluginDescription(task).label
-      val taskLabel = task.fullTaskLabel
+      val taskLabel = task.fullLabel
       val description = task.metaData.description.getOrElse("")
       val searchInProperties = if(matchTaskProperties) task.data.properties(task.project.config.prefixes).map(p => p._2).mkString(" ") else ""
       val searchInProject = if(matchProject) label(task.project) else ""
@@ -151,7 +151,7 @@ object SearchApiModel {
     /** Match search terms against project. */
     protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String], project: Project): Boolean = {
       val id = project.config.id
-      val label = project.config.metaData.label
+      val label = project.config.metaData.label.getOrElse("")
       val description = project.config.metaData.description.getOrElse("")
       matchesSearchTerm(lowerCaseSearchTerms, id, label, description, "project")
     }
@@ -436,7 +436,7 @@ object SearchApiModel {
         case ItemType.task => project.tasks[CustomTask]
         case ItemType.project => Seq.empty
       }
-      TypedTasks(project.name, project.config.metaData.label ,itemType, tasks)
+      TypedTasks(project.name, project.config.fullLabel ,itemType, tasks)
     }
 
     private def toJson(project: Project): JsObject = {
@@ -481,15 +481,11 @@ object SearchApiModel {
   }
 
   private def label(project: Project): String = {
-    if(project.config.metaData.label.trim.nonEmpty) {
-      project.config.metaData.label.trim
-    } else {
-      project.name
-    }
+    project.config.label()
   }
 
   private def label(task: ProjectTask[_ <: TaskSpec]): String = {
-    task.fullTaskLabel
+    task.fullLabel
   }
 
   private def label(projectOrTask: ProjectOrTask): String = {

@@ -33,7 +33,7 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
 
   private val metaData =
     MetaData(
-      label = "my linking task",
+      label = Some("my linking task"),
       description = Some("some comment"),
       modified = Some(Instant.now)
     )

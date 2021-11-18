@@ -1,19 +1,17 @@
 package org.silkframework.workspace.xml
 
-import java.util.logging.{Level, Logger}
-
 import org.silkframework.config._
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
-import org.silkframework.util.{Identifier, XMLUtils}
+import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.io.WorkspaceIO
 import org.silkframework.workspace.{ProjectConfig, TaskLoadingError, WorkspaceProvider}
 
+import java.util.logging.{Level, Logger}
 import scala.reflect.ClassTag
-import scala.util.Try
 import scala.util.control.NonFatal
 import scala.xml.{Elem, XML}
 
@@ -63,7 +61,7 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
     implicit val readContext: ReadContext = ReadContext()
     (configXML \ "MetaData").headOption.
         map(n => XmlSerialization.fromXml[MetaData](n)).
-        getOrElse(MetaData(projectName)) // Set label to ID
+        getOrElse(MetaData(Some(projectName))) // Set label to ID
   }
 
   override def putProject(config: ProjectConfig)

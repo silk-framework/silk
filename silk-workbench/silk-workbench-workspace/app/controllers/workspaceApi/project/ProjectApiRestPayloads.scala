@@ -15,7 +15,7 @@ object ProjectApiRestPayloads {
     * @param description optional description of the item
     */
   case class ItemMetaData(label: String, description: Option[String] = None) {
-    def asMetaData: MetaData = MetaData(label, description)
+    def asMetaData: MetaData = MetaData(Some(label), description)
   }
 
   object ItemMetaData {

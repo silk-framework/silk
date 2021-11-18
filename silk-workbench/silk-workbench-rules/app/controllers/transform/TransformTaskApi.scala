@@ -135,7 +135,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
           case _ =>
             val rule = RootMappingRule(rules = MappingRules.empty)
             val transformSpec = TransformSpec(input, rule, output, None, targetVocabularies)
-            project.addTask(taskName, transformSpec, MetaData(MetaData.labelFromId(taskName)))
+            project.addTask(taskName, transformSpec, MetaData.empty)
         }
 
         Ok
@@ -590,10 +590,10 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     implicit val idGenerator: IdentifierGenerator = identifierGenerator(task)
     ruleToCopy.operator match {
       case t: TransformRule =>
-        val originalLabel = if(t.metaData.label.trim != "") t.metaData.label else t.target.map(_.propertyUri.toString).getOrElse("unlabeled")
-        val newLabel = "Copy of " + originalLabel
+        implicit val prefixes: Prefixes = task.project.config.prefixes
+        val newLabel = "Copy of " + t.fullLabel
         val transformRuleCopy = assignNewIdsToRule(t)
-        transformRuleCopy.withMetaData(t.metaData.copy(label = newLabel))
+        transformRuleCopy.withMetaData(t.metaData.copy(label = Some(newLabel)))
       case other: Operator => throw new RuntimeException("Selected operator was not transform rule. Operator ID: " + other.id)
     }
   }

@@ -156,7 +156,7 @@
       @button("Add", "Add " + taskType.typeName, "plus.png", s"workspaceDialog('$path')")
     }
     <ul>
-      @for(actions <- taskActions.sortBy(_.task.taskLabel()).reverse) {
+      @for(actions <- taskActions.sortBy(_.task.label()).reverse) {
         @task(project, taskType, actions)
       }
     </ul>
@@ -165,7 +165,7 @@
 
 @task(project: Project, taskType: TaskType, actions: TaskActions) = {
   <li id="task:@{project.name}:@actions.task.id" data-jstree='{"icon":"@taskType.icon"}'>
-    @{ if(actions.task.metaData.label.trim != "") actions.task.metaData.label else { actions.task.id } }
+    @actions.task.label()
     @for(path <- actions.propertiesDialog) {
       @button("Properties", "Edit task properties", "wrench.png", s"workspaceDialog('$path')")
     }

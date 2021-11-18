@@ -197,7 +197,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
 
   "patch transform task" in {
     createCsvFileDataset(project, TRANSFORM_OUTPUT_DATASET, "none.csv")
-    retrieveOrCreateProject(project).anyTask(TRANSFORM_OUTPUT_DATASET).updateMetaData(MetaData(label = OUTPUT_DATASET_LABEL))
+    retrieveOrCreateProject(project).anyTask(TRANSFORM_OUTPUT_DATASET).updateMetaData(MetaData(label = Some(OUTPUT_DATASET_LABEL)))
     val updateJson = s"""{
                        |    "id": "$transformId",
                        |    "data": {
@@ -338,7 +338,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
   }
 
   "get tasks with parameter value labels" in {
-    retrieveOrCreateProject(project).anyTask(datasetId).updateMetaData(MetaData(label = datasetLabel))
+    retrieveOrCreateProject(project).anyTask(datasetId).updateMetaData(MetaData(label = Some(datasetLabel)))
     def taskValuesWithLabel(taskId: String): Seq[(JsValue, Option[String])] = {
       val parameters = (checkResponse(client.url(s"$baseUrl/workspace/projects/$project/tasks/$taskId?withLabels=true").
           withHttpHeaders("Accept" -> "application/json").
@@ -351,7 +351,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
     val inMemoryDatasetLabel = "An in-memory dataset"
     val p = workspaceProject(project)
     // Add tasks
-    p.addAnyTask(inMemoryDataset, DatasetSpec(InMemoryDataset()), MetaData(label = inMemoryDatasetLabel))
+    p.addAnyTask(inMemoryDataset, DatasetSpec(InMemoryDataset()), MetaData(label = Some(inMemoryDatasetLabel)))
     p.addAnyTask(sparqlSelect, SparqlSelectCustomTask("SELECT * WHERE {?s ?p ?o}", optionalInputDataset = SparqlEndpointDatasetParameter(inMemoryDataset)))
     p.addAnyTask(sparqlDataset, DatasetSpec(SparqlDataset("http://endpoint")))
     // Check tasks

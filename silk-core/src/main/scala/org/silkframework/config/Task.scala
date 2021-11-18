@@ -13,7 +13,7 @@ import scala.xml._
   *
   * @tparam TaskType The type of this task, e.g., TransformSpec.
   */
-trait Task[+TaskType <: TaskSpec] {
+trait Task[+TaskType <: TaskSpec] extends HasMetaData {
   /** The id of this task. */
   def id: Identifier
 
@@ -45,16 +45,6 @@ trait Task[+TaskType <: TaskSpec] {
 
   /** Find tasks that are either input or output to this task. */
   def findRelatedTasksInsideWorkflows()(implicit userContext: UserContext): Set[Identifier] = Set.empty
-
-  /**
-    * Returns the label if defined or the task ID. Truncates the label to maxLength characters.
-    * @param maxLength the max length in characters
-    */
-  def taskLabel(maxLength: Int = MetaData.DEFAULT_LABEL_MAX_LENGTH): String = {
-    metaData.formattedLabel(id, maxLength)
-  }
-
-  def fullTaskLabel: String = taskLabel(Int.MaxValue)
 
   override def equals(obj: scala.Any): Boolean = obj match {
     case task: Task[_] =>

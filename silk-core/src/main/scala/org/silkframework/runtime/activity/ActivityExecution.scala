@@ -92,17 +92,22 @@ private class ActivityExecution[T](activity: Activity[T],
   }
 
   override def cancel()(implicit user: UserContext): Unit = {
+    var cancelling = false
     StatusLock.synchronized {
       if (status().isRunning && !status().isInstanceOf[Status.Canceling]) {
+        cancelling = true
         this.cancelledByUser = user
         this.cancelTimestamp = Some(Instant.now)
         status.update(Status.Canceling(status().progress))
-        children().foreach(_.cancel())
-        ThreadLock.synchronized {
-          activity.cancelExecution()
-          runningThread foreach { thread =>
-            thread.interrupt() // To interrupt an activity that might be blocking on something else, e.g. slow network connection
-          }
+      }
+    }
+    if(cancelling) {
+      // cancel children outside of lock to not run into dead locks
+      children().foreach(_.cancel())
+        activity.cancelExecution()
+      ThreadLock.synchronized {
+        runningThread foreach { thread =>
+          thread.interrupt() // To interrupt an activity that might be blocking on something else, e.g. slow network connection
         }
       }
     }

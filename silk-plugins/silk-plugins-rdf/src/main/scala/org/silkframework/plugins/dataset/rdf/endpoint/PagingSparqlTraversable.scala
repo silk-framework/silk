@@ -19,7 +19,6 @@ import scala.util.matching.Regex
 object PagingSparqlTraversable {
 
   val graphPatternRegex: Regex = """[Gg][Rr][Aa][Pp][Hh]\s+<""".r
-  private val xmlFactory = XMLInputFactory.newInstance()
 
   private val logger = Logger.getLogger(getClass.getName)
 
@@ -47,12 +46,12 @@ object PagingSparqlTraversable {
     override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
       val parsedQuery = QueryFactory.create(query)
       // Don't set graph if the query is already containing a GRAPH pattern (not easily possible to check with parsed query)
-      if(graphPatternRegex.findFirstIn(query).isEmpty) {
+      if(graphPatternRegex.findFirstIn(query).isEmpty && parsedQuery.getGraphURIs.size() == 0) {
         params.graph foreach { graphURI =>
           parsedQuery.addGraphURI(graphURI)
         }
       }
-
+      // FIXME: Also inject FROM NAMED when GRAPH pattern exists and no FROM NAMED was defined in the original query (breaking change).
       if (parsedQuery.hasLimit || parsedQuery.hasOffset) {
         val inputStream = executeQuery(parsedQuery.serialize(Syntax.syntaxSPARQL_11))
         try {

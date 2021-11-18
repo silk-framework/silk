@@ -3,19 +3,19 @@ package controllers.workspaceApi
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.workspaceApi.doc.WorkspaceUriPatternApiDoc
-import controllers.workspaceApi.search.SearchApiModel.SearchRequest
 import controllers.workspaceApi.uriPattern.{UriPatternRequest, UriPatternResponse, UriPatternResult}
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
-import org.silkframework.config.DefaultConfig
-import org.silkframework.entity.paths.{DirectionalPathOperator, ForwardOperator, UntypedPath}
-import org.silkframework.rule.util.{UriPatternParser, UriPatternSegments}
+import org.silkframework.config.{DefaultConfig, Prefixes}
+import org.silkframework.entity.paths.{DirectionalPathOperator, UntypedPath}
 import org.silkframework.rule.util.UriPatternParser.{ConstantPart, PathPart}
+import org.silkframework.rule.util.{UriPatternParser, UriPatternSegments}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.util.Uri
 import org.silkframework.workspace.WorkspaceFactory
 import org.silkframework.workspace.activity.GlobalWorkspaceActivity
 import org.silkframework.workspace.activity.transform.{GlobalUriPatternCache, GlobalUriPatternCacheValue}
@@ -48,17 +48,19 @@ class WorkspaceUriPatternApi extends InjectedController with UserContextActions 
     content = Array(
       new Content(
         mediaType = "application/json",
-        schema = new Schema(implementation = classOf[SearchRequest], example = WorkspaceUriPatternApiDoc.uriPatternsRequest)
+        schema = new Schema(implementation = classOf[UriPatternRequest], example = WorkspaceUriPatternApiDoc.uriPatternsRequest)
       ))
   )
-  def uriPatterns(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+  def uriPatterns(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit r => implicit userContext =>
     validateJson[UriPatternRequest] { request =>
+      implicit val prefixes: Prefixes = getProject(request.projectId).config.prefixes
       if(request.targetClassUris.isEmpty) {
         throw new BadUserInputException("At least one target class must be specified!")
       }
+      val absoluteTargetClassUris = request.targetClassUris.map(uri => Try(Uri.parse(uri, prefixes).uri).getOrElse(uri))
       globalUriPatternCacheValue match {
         case Some(cacheValue) =>
-          val uriPatternResults = for(targetClass <- request.targetClassUris;
+          val uriPatternResults = for(targetClass <- absoluteTargetClassUris;
               uriPattern <- cacheValue.uriPatterns.get(targetClass).toSeq.flatten;
               uriPatternSegments <- Try(UriPatternParser.parseIntoSegments(uriPattern, allowIncompletePattern = false)).toOption) yield {
             val label = uriPatternLabel(uriPatternSegments)
