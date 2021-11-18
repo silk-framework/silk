@@ -5,11 +5,13 @@ import React from "react";
 export const wrapTooltip = (
     wrapPredicate: boolean,
     childTooltip: string | JSX.Element,
-    child: JSX.Element
+    child: JSX.Element,
+    position: string = "bottom-left",
+    size: "large" | "small" | "medium" = "large"
 ): JSX.Element => {
     if (wrapPredicate) {
         return (
-            <Tooltip content={childTooltip} position="bottom-left">
+            <Tooltip content={childTooltip} position={position} size={size} minimal>
                 {child}
             </Tooltip>
         );

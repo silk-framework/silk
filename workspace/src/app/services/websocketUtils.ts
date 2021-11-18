@@ -51,13 +51,17 @@ export const connectWebSocket = <T>(
     };
 };
 
-const convertToWebsocketUrl = (url: string): string => {
+export const convertToWebsocketUrl = (url: string): string => {
     const u = new URL(url);
     let wsProtocol = "ws";
-    if (u.protocol === "https") {
+    if (u.protocol === "https:") {
         wsProtocol = "wss";
     }
-    return `${wsProtocol}://${u.host}${u.pathname}${u.search}`;
+    let pathName = u.pathname;
+    if (pathName === "/") {
+        pathName = "";
+    }
+    return `${wsProtocol}://${u.host}${pathName}${u.search}`;
 };
 
 // Function that should be called to clean up

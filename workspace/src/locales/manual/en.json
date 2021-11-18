@@ -83,7 +83,8 @@
     },
     "DeleteModal": {
         "confirmMsg": "The {{itemType}} '{{name}}' is used by other items! Deleting this item will also delete all depending items listed below:",
-        "deleteResource": "{{type}} '{{name}}' will be deleted"
+        "deleteResource": "{{type}} '{{name}}' will be deleted.",
+        "projectNote": "All contained items will be deleted, too."
     },
     "Deletedialog": {
         "loading": "Loading delete dialog."
@@ -112,7 +113,8 @@
     },
     "Metadata": {
         "loading": "Loading summary data.",
-        "updateFailed": "Updating meta data has failed"
+        "updateFailed": "Updating meta data has failed",
+        "unsavedMetaDataWarning": "There are unsaved changes that will be lost. Do you still want to proceed?"
     },
     "OverwriteModal": {
         "overwriteFile": "File '{{fileName}}' already exists. Do you want to overwrite it?"
@@ -191,7 +193,7 @@
             "resetSelection": "Reset selection",
             "retry": "Retry",
             "save": "Save",
-            "showDetails": "Open details",
+            "showDetails": "Open details page",
             "submit": "Submit",
             "update": "Update",
             "showApiDoc": "API"
@@ -204,7 +206,7 @@
             "dataset": "dataset",
             "genericArtefactLabel": "item",
             "linking": "linking",
-            "project": "Project",
+            "project": "project",
             "projectDesc": "Projects let you group related items. All items that depend on each other need to be in the same project.",
             "task": "task",
             "transform": "transform",
@@ -510,13 +512,20 @@
         }
     },
     "WorkflowEditor": {
+        "canvasControlTooltips": {
+            "fitview": "Center workflow",
+            "zoomin": "Zoom in",
+            "zoomout": "Zoom out",
+            "lock": "Switch to read-only mode",
+            "unlock": "Switch to edit mode"
+        },
         "sidebar": {
             "searchInput": "Find datasets and workflow operators",
             "searchTooltip": "Search for datasets and workflow operators both in the nodes used in the canvas and new tasks in the sidebar. Pressing the <Enter> key refreshes the list from the server.",
             "availableTasks": "Available task",
             "availableTasks_plural": "Available tasks ({{count}})",
             "usedTasks": "Matching node",
-            "usedTasks_plural": "Matching nodes ({{count}})",
+            "usedTasks_plural": "Node matches ({{count}})",
             "cycleNext": "Next match",
             "cyclePrevious": "Previous match",
             "cycleTooltip": "Cycle through {{totalMatches}} currently used instances of this task",
@@ -527,9 +536,11 @@
         },
         "header": {
             "saveBtnTooltip": "Save the current state of the workflow",
+            "toggleProgressLabel": "Toggle progress",
             "warning": {
                 "tooltip": "Focuses on failed node and opens execution report"
-            }
+            },
+            "warningMenuTooltip": "Show list of errors and warnings"
         },
         "handle": {
             "configuration": {
@@ -552,9 +563,15 @@
             "WorkflowEditor_fetchWorkflow": "Failed to load the workflow."
         },
         "node": {
+            "actions": {
+                "showExecutionReport": "Show execution report"
+            },
             "menu": {
                 "remove": {
                     "label": "Remove node"
+                },
+                "showExecutionReport": {
+                    "label": "Show execution report"
                 },
                 "showSummary": {
                     "label": "Show summary"
