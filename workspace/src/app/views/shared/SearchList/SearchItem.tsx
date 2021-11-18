@@ -29,6 +29,8 @@ import { useTranslation } from "react-i18next";
 import ItemDepiction from "../../shared/ItemDepiction";
 import { useProjectTabsView } from "../projectTaskTabView/projectTabsViewHooks";
 import { wrapTooltip } from "../../../utils/uiUtils";
+import { Markdown } from "@gui-elements/cmem";
+import highlightSearchWordsPluginFactory from "@gui-elements/src/cmem/markdown/highlightSearchWords";
 
 interface IProps {
     item: ISearchResultsServer;
@@ -117,7 +119,7 @@ export default function SearchItem({
 
     return (
         <Card isOnlyLayout>
-            <OverviewItem hasSpacing onClick={onRowClick ? onRowClick : undefined}>
+            <OverviewItem hasSpacing onClick={onRowClick ? onRowClick : undefined} data-test-id={"search-item"}>
                 <OverviewItemDepiction>
                     <ItemDepiction itemType={item.type} pluginId={item.pluginId} />
                 </OverviewItemDepiction>
@@ -138,8 +140,22 @@ export default function SearchItem({
                             {item.description &&
                                 wrapTooltip(
                                     item.description.length > 80,
-                                    item.description,
-                                    <Highlighter label={item.description} searchValue={searchValue} />
+                                    <Markdown
+                                        reHypePlugins={
+                                            searchValue ? [highlightSearchWordsPluginFactory(searchValue)] : undefined
+                                        }
+                                    >
+                                        {item.description}
+                                    </Markdown>,
+                                    <Markdown
+                                        inheritBlock
+                                        allowedElements={["a", "mark"]}
+                                        reHypePlugins={
+                                            searchValue ? [highlightSearchWordsPluginFactory(searchValue)] : undefined
+                                        }
+                                    >
+                                        {item.description}
+                                    </Markdown>
                                 )}
                         </OverflowText>
                     </OverviewItemLine>
@@ -183,7 +199,7 @@ export default function SearchItem({
                         data-test-id={"open-duplicate-modal"}
                         name="item-copy"
                         text={t("common.action.clone", "Clone")}
-                        onClick={onOpenDuplicateModal}
+                        onClick={() => onOpenDuplicateModal(item)}
                     />
                     {!!itemLinks.length && (
                         <IconButton
@@ -204,13 +220,6 @@ export default function SearchItem({
                             </>
                         ) : null}
                         <MenuItem
-                            data-test-id="search-item-delete-btn"
-                            key="delete"
-                            icon={"item-remove"}
-                            onClick={onOpenDeleteModal}
-                            text={t("common.action.delete", "Delete")}
-                        />
-                        <MenuItem
                             data-test-id="search-item-copy-btn"
                             key="copy"
                             icon="item-clone"
@@ -229,6 +238,15 @@ export default function SearchItem({
                             icon="item-copy"
                             text={t("common.action.clone", "Clone")}
                             onClick={onOpenDuplicateModal}
+                        />
+                        <MenuDivider />
+                        <MenuItem
+                            data-test-id="search-item-delete-btn"
+                            key="delete"
+                            icon={"item-remove"}
+                            onClick={onOpenDeleteModal}
+                            text={t("common.action.delete", "Delete")}
+                            intent="danger"
                         />
                     </ContextMenu>
                 </OverviewItemActions>

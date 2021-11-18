@@ -49,7 +49,7 @@ export class FetchError {
     errorResponse: ErrorResponse;
 
     get message(): string {
-        return this.errorDetails.message;
+        return this.errorResponse.detail;
     }
 
     get isHttpError(): boolean {

@@ -26,22 +26,32 @@ interface IError {
 const LOG_TABLE = "logs";
 const REQUEST_INTERVAL = 5 * 60 * 1000;
 
-const tableInstance: any = new Dexie(LOG_TABLE);
-tableInstance.version(1).stores({
-    [LOG_TABLE]: "++id, name, message, stack, client, react_stack, network",
-});
+let __tableInstance: any = null;
+const tableInstance: () => any = () => {
+    if (!__tableInstance) {
+        __tableInstance = new Dexie(LOG_TABLE);
+        __tableInstance.version(1).stores({
+            [LOG_TABLE]: "++id, name, message, stack, client, react_stack, network",
+        });
+    }
+    return __tableInstance;
+};
 
 const timerId = setTimeout(async function checkLogs() {
-    const logs = await tableInstance[LOG_TABLE].toArray();
-    if (logs.length) {
-        try {
-            sendError(logs);
-        } catch (e) {
-            console.log(e);
-        } finally {
-            clearTimeout(timerId);
-            setTimeout(checkLogs, REQUEST_INTERVAL);
+    try {
+        const logs = await tableInstance()[LOG_TABLE].toArray();
+        if (logs.length) {
+            try {
+                sendError(logs);
+            } catch (e) {
+                console.log(e);
+            } finally {
+                clearTimeout(timerId);
+                setTimeout(checkLogs, REQUEST_INTERVAL);
+            }
         }
+    } catch (ex) {
+        console.warn("Check logs failed. Error message: " + ex.message);
     }
 }, REQUEST_INTERVAL);
 
@@ -152,7 +162,7 @@ const logError = (error: FetchError | Error, reactErrorInfo?: ErrorInfo): boolea
             err = generateDefaultError("Uncaught Error type received ", error);
         }
 
-        tableInstance[LOG_TABLE].put({
+        tableInstance()[LOG_TABLE].put({
             ...err,
             client,
         });
@@ -176,7 +186,7 @@ const sendError = async (logs) => {
         console.log(logs);
     }
 
-    tableInstance[LOG_TABLE].clear();
+    tableInstance()[LOG_TABLE].clear();
     return true;
 };
 

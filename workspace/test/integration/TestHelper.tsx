@@ -98,7 +98,7 @@ export type RecursivePartial<T> = {
 
 export const withMount = (component) => mount(component);
 
-export const withRender = (component, rerender?: Function) => (rerender ? rerender(component) : render(component));
+export const withRender = (component) => render(component);
 
 /** Returns a wrapper for the application. */
 export const testWrapper = (
@@ -274,7 +274,9 @@ export const mockedAxiosResponse = ({ status = 200, data = "" }: IAxiosResponse 
 };
 
 /** Returns the Axios queue item based on the given criteria. */
-const axiosMockItemByCriteria = (criteria: string | ExtendedAxiosMockRequestCriteria): AxiosMockQueueItem => {
+const axiosMockItemByCriteria = (
+    criteria: string | ExtendedAxiosMockRequestCriteria
+): AxiosMockQueueItem | undefined => {
     if (typeof criteria === "string") {
         return mockAxios.getReqByUrl(criteria);
     } else {
@@ -318,7 +320,7 @@ export const mockedAxiosError = (httpStatus?: number, errorData?: any): AxiosErr
         message: "Mocked Axios error",
         config: {},
         response: {
-            status: httpStatus,
+            status: httpStatus ?? 500,
             data: errorData,
             statusText: "error status",
             headers: {},
@@ -351,7 +353,7 @@ export const mockAxiosResponse = (
                 mockAxios.mockResponseFor(criteria, response as HttpResponse, silentMode);
             }
         } else {
-            mockAxios.mockResponseFor(criteria, response as HttpResponse, silentMode);
+            mockAxios.mockResponseFor(criteria, undefined, silentMode);
         }
     } else {
         throw new Error("No request to mock for " + criteria);

@@ -1,14 +1,14 @@
 import React from "react";
-import ReactMarkdown from "react-markdown";
+import { Markdown, StringPreviewContentBlobToggler } from "@gui-elements/cmem";
 import { sharedOp } from "@ducks/shared";
 import { IArtefactItemProperty, IPropertyAutocomplete, ITaskParameter } from "@ducks/common/typings";
 import {
     AutoCompleteField,
-    WhiteSpaceContainer,
     FieldItem,
     FieldSet,
     Label,
     TitleSubsection,
+    WhiteSpaceContainer,
 } from "@gui-elements/index";
 import { Intent } from "@gui-elements/blueprint/constants";
 import { InputMapper } from "./InputMapper";
@@ -16,13 +16,11 @@ import { AppToaster } from "../../../../../services/toaster";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
 import { INPUT_TYPES } from "../../../../../constants";
 import { useTranslation } from "react-i18next";
-import { firstNonEmptyLine } from "../../../ContentBlobToggler";
-import { ContentBlobToggler } from "../../../ContentBlobToggler/ContentBlobToggler";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import { createNewItemRendererFactory } from "@gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
 
-const MAXLENGTH_TOOLTIP = 40;
-const MAXLENGTH_SIMPLEHELP = 288;
+const MAXLENGTH_TOOLTIP = 32;
+const MAXLENGTH_SIMPLEHELP = 192;
 
 interface IHookFormParam {
     errors: any;
@@ -137,27 +135,26 @@ export const ParameterWidget = (props: IProps) => {
         }
     };
 
-    let propertyHelperText: JSX.Element | null = null;
+    let propertyHelperText: JSX.Element | undefined = undefined;
     if (description && description.length > MAXLENGTH_TOOLTIP) {
         propertyHelperText = (
-            <ContentBlobToggler
+            <StringPreviewContentBlobToggler
                 className="di__parameter_widget__description"
-                contentPreview={description}
+                content={description}
                 previewMaxLength={MAXLENGTH_SIMPLEHELP}
-                contentFullview={description}
-                renderContentFullview={(content) => {
-                    return (
-                        <WhiteSpaceContainer
-                            marginTop="tiny"
-                            marginRight="xlarge"
-                            marginBottom="small"
-                            marginLeft="regular"
-                        >
-                            <ReactMarkdown source={description} />
-                        </WhiteSpaceContainer>
-                    );
-                }}
-                renderContentPreview={firstNonEmptyLine}
+                fullviewContent={
+                    <WhiteSpaceContainer
+                        marginTop="tiny"
+                        marginRight="xlarge"
+                        marginBottom="small"
+                        marginLeft="regular"
+                    >
+                        <Markdown>{description ?? ""}</Markdown>
+                    </WhiteSpaceContainer>
+                }
+                toggleExtendText={t("common.words.more", "more")}
+                toggleReduceText={t("common.words.less", "less")}
+                firstNonEmptyLineOnly={true}
             />
         );
     }

@@ -11,6 +11,7 @@ import { defaultValueAsJs, stringValueAsJs } from "../../../../../utils/transfor
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { useTranslation } from "react-i18next";
+import { DefaultTargetVocabularySelection } from "../../../TargetVocabularySelection/DefaultTargetVocabularySelection";
 
 interface IProps {
     projectId: string;
@@ -29,7 +30,7 @@ interface IProps {
 }
 
 /** The attributes for the GUI components. */
-interface IInputAttributes {
+export interface IInputAttributes {
     id: string;
     name: string;
     intent: Intent;
@@ -92,6 +93,8 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
             return <CodeEditor {...inputAttributes} />;
         case INPUT_TYPES.PASSWORD:
             return <TextField {...inputAttributes} type={"password"} />;
+        case INPUT_TYPES.TARGET_VOCABULARY:
+            return <DefaultTargetVocabularySelection {...inputAttributes} />;
         case INPUT_TYPES.RESOURCE:
             const resourceNameFn = (item) => item.name;
             return (

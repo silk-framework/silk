@@ -85,7 +85,11 @@ export function NotificationsMenu() {
                 enforceFocus={false}
                 openOnTargetFocus={false}
                 content={
-                    <Notification danger onDismiss={() => setDisplayLastNotification(false)}>
+                    <Notification
+                        danger={!messages[0].alternativeIntent}
+                        warning={messages[0].alternativeIntent === "warning"}
+                        onDismiss={() => setDisplayLastNotification(false)}
+                    >
                         {messages[0].message}
                     </Notification>
                 }
@@ -130,13 +134,18 @@ export function NotificationsMenu() {
                         const errorDetails = parseErrorCauseMsg(item.cause);
                         return (
                             <div key={"message" + id}>
-                                <Notification danger fullWidth onDismiss={() => removeMessages(item)}>
+                                <Notification
+                                    danger={!item.alternativeIntent}
+                                    warning={item.alternativeIntent === "warning"}
+                                    fullWidth
+                                    onDismiss={() => removeMessages(item)}
+                                >
                                     {`${item.message} (${formatDuration(now.getTime() - item.timestamp)} ago)`}
                                     <Spacing size="small" />
                                     {errorDetails ? (
                                         <Accordion>
                                             <AccordionItem
-                                                title={<TitleSubsection>More details</TitleSubsection>}
+                                                label={<TitleSubsection>More details</TitleSubsection>}
                                                 elevated
                                                 condensed
                                                 open={false}

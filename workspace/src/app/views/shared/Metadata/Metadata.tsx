@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
-import { useLocation } from "react-router";
+import { Prompt, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
-import ReactMarkdown from "react-markdown";
+import { Markdown } from "@gui-elements/cmem";
 import {
     Button,
     Card,
@@ -15,15 +14,13 @@ import {
     Divider,
     FieldItem,
     IconButton,
-    Notification,
-    PropertyValueList,
-    PropertyValuePair,
+    Label,
     PropertyName,
     PropertyValue,
-    Label,
+    PropertyValueList,
+    PropertyValuePair,
     TextArea,
     TextField,
-    Spacing,
 } from "@gui-elements/index";
 import { Intent } from "@gui-elements/blueprint/constants";
 import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/typings";
@@ -31,9 +28,9 @@ import { commonSel } from "@ducks/common";
 import { routerOp } from "@ducks/router";
 import { sharedOp } from "@ducks/shared";
 import { Loading } from "../Loading/Loading";
-import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
-import { ContentBlobToggler } from "../ContentBlobToggler/ContentBlobToggler";
-import { firstNonEmptyLine } from "../ContentBlobToggler";
+import { StringPreviewContentBlobToggler } from "@gui-elements/src/cmem/ContentBlobToggler/StringPreviewContentBlobToggler";
+import useErrorHandler from "../../../hooks/useErrorHandler";
+import * as H from "history";
 
 interface IProps {
     projectId?: string;
@@ -42,9 +39,9 @@ interface IProps {
 }
 
 export function Metadata(props: IProps) {
-    const { control, handleSubmit } = useForm();
     const location = useLocation();
     const dispatch = useDispatch();
+    const { registerError } = useErrorHandler();
 
     const _projectId = useSelector(commonSel.currentProjectIdSelector);
     const _taskId = useSelector(commonSel.currentTaskIdSelector);
@@ -54,18 +51,33 @@ export function Metadata(props: IProps) {
 
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState({} as IMetadata);
-    const [editData, setEditData] = useState({} as IMetadata);
+    const [formEditData, setFormEditData] = useState<IMetadataUpdatePayload | undefined>(undefined);
     const [isEditing, setIsEditing] = useState(false);
-    const [getRequestError, setGetRequestError] = useState<ErrorResponse | null>(null);
-    const [updateRequestError, setUpdateRequestError] = useState<ErrorResponse | null>(null);
+    const [unsavedChanges, setUnsavedChanges] = useState(false);
     const [t] = useTranslation();
 
+    // Form errors
     const [errors, setErrors] = useState({
         form: {
             label: false,
         },
         alerts: {},
     });
+
+    const setDirtyState = React.useCallback(() => {
+        setUnsavedChanges(true);
+        window.onbeforeunload = () => true;
+    }, []);
+
+    const removeDirtyState = React.useCallback(() => {
+        setUnsavedChanges(false);
+        window.onbeforeunload = null;
+    }, []);
+
+    // On unmount remove dirty state behavior
+    React.useEffect(() => {
+        return removeDirtyState;
+    }, []);
 
     const { label, description } = data;
 
@@ -93,13 +105,14 @@ export function Metadata(props: IProps) {
                     return; // Do not toggle edit mode, request has failed
                 }
             }
-            setEditData(metaData);
+            setFormEditData({ label: metaData.label, description: metaData.description });
+        } else {
+            removeDirtyState();
         }
         setIsEditing(!isEditing);
     };
 
     const getTaskMetadata = async (taskId?: string, projectId?: string) => {
-        setGetRequestError(null);
         try {
             const result = await letLoading(() => {
                 return sharedOp.getTaskMetadataAsync(taskId, projectId);
@@ -107,16 +120,13 @@ export function Metadata(props: IProps) {
             setData(result);
             return result;
         } catch (error) {
-            if (error.isFetchError) {
-                setGetRequestError((error as FetchError).errorResponse);
-            }
+            registerError("Metadata-getTaskMetaData", "Fetching meta data has failed.", error);
             return {};
         }
     };
 
-    const onSubmit = async (inputs: IMetadataUpdatePayload) => {
-        setUpdateRequestError(null);
-        if (!inputs.label) {
+    const onSubmit = async () => {
+        if (!formEditData?.label) {
             return setErrors({
                 ...errors,
                 form: {
@@ -131,13 +141,12 @@ export function Metadata(props: IProps) {
                 label: false,
             },
         });
-        // Store if error occurs
-        setEditData(inputs);
 
         try {
             const result = await letLoading(async () => {
                 const path = location.pathname;
-                const metadata = await sharedOp.updateTaskMetadataAsync(inputs, taskId, projectId);
+                const metadata = await sharedOp.updateTaskMetadataAsync(formEditData!!, taskId, projectId);
+                removeDirtyState();
                 dispatch(routerOp.updateLocationState(path, projectId as string, metadata));
                 return metadata;
             });
@@ -146,21 +155,7 @@ export function Metadata(props: IProps) {
 
             toggleEdit();
         } catch (ex) {
-            if (ex.isFetchError) {
-                if (ex.isHttpError) {
-                    setUpdateRequestError(
-                        new ErrorResponse(
-                            t("Metadata.updateFailed", "Updating meta data has failed"),
-                            ex.errorResponse.detail,
-                            ex.httpStatus
-                        )
-                    );
-                } else {
-                    setUpdateRequestError(ex.errorResponse);
-                }
-            } else {
-                console.warn("Meta data update request has failed: " + ex);
-            }
+            registerError("Metadata-submit", "Updating meta data has failed.", ex);
         }
     };
 
@@ -185,6 +180,39 @@ export function Metadata(props: IProps) {
         </>
     );
 
+    // Show 'unsaved changes' prompt when navigating away via React routing
+    const routingPrompt: (newLocation: H.Location, action: H.Action) => string | boolean = (newLocation, action) => {
+        // Only complain when navigating away from current page.
+        return unsavedChanges && action !== "REPLACE" ? (t("Metadata.unsavedMetaDataWarning") as string) : true;
+    };
+
+    const onLabelChange = (e) => {
+        if (formEditData && e.target !== undefined) {
+            const hasToReRender = !formEditData.label || !e.target.value;
+            formEditData.label = e.target.value;
+            if (hasToReRender) {
+                // Label has changed either from empty or was set to empty. Need to re-render.
+                setFormEditData({ ...formEditData });
+            }
+            checkEditState();
+        }
+    };
+
+    const onDescriptionChange = (e) => {
+        if (formEditData && e.target !== undefined) {
+            formEditData.description = e.target.value;
+            checkEditState();
+        }
+    };
+
+    const checkEditState = () => {
+        if (formEditData && (formEditData.label !== data.label || formEditData.description !== data.description)) {
+            setDirtyState();
+        } else {
+            removeDirtyState();
+        }
+    };
+
     const widgetContent = (
         <CardContent data-test-id={"metaDataWidget"}>
             {loading && <Loading description={t("Metadata.loading", "Loading summary data.")} />}
@@ -205,12 +233,11 @@ export function Metadata(props: IProps) {
                                 }
                                 hasStateDanger={errors.form.label}
                             >
-                                <Controller
-                                    as={TextField}
+                                <TextField
                                     name="label"
                                     id="label"
-                                    control={control}
-                                    defaultValue={editData.label}
+                                    onChange={onLabelChange}
+                                    defaultValue={formEditData?.label}
                                     intent={errors.form.label ? Intent.DANGER : Intent.NONE}
                                 />
                             </FieldItem>
@@ -222,12 +249,11 @@ export function Metadata(props: IProps) {
                         </PropertyName>
                         <PropertyValue>
                             <FieldItem>
-                                <Controller
-                                    as={TextArea}
+                                <TextArea
                                     name="description"
                                     id="description"
-                                    control={control}
-                                    defaultValue={editData.description}
+                                    onChange={onDescriptionChange}
+                                    defaultValue={formEditData?.description}
                                     fullWidth={true}
                                 />
                             </FieldItem>
@@ -247,32 +273,20 @@ export function Metadata(props: IProps) {
                         <PropertyValuePair hasSpacing hasDivider>
                             <PropertyName>{t("form.field.description", "Description")}</PropertyName>
                             <PropertyValue>
-                                <ContentBlobToggler
+                                <StringPreviewContentBlobToggler
                                     className="di__dataset__metadata-description"
-                                    contentPreview={description}
-                                    previewMaxLength={128}
-                                    contentFullview={description}
-                                    renderContentFullview={(content) => {
-                                        return <ReactMarkdown source={description} />;
-                                    }}
-                                    renderContentPreview={firstNonEmptyLine}
+                                    content={description}
+                                    fullviewContent={<Markdown>{description}</Markdown>}
+                                    toggleExtendText={t("common.words.more", "more")}
+                                    toggleReduceText={t("common.words.less", "less")}
+                                    firstNonEmptyLineOnly={true}
+                                    renderPreviewAsMarkdown={true}
+                                    allowedHtmlElementsInPreview={["a"]}
                                 />
                             </PropertyValue>
                         </PropertyValuePair>
                     )}
                 </PropertyValueList>
-            )}
-            {getRequestError && (
-                <>
-                    <Spacing />
-                    <Notification message={getRequestError.asString()} danger />
-                </>
-            )}
-            {updateRequestError && (
-                <>
-                    <Spacing />
-                    <Notification message={updateRequestError.asString()} danger />
-                </>
             )}
         </CardContent>
     );
@@ -280,12 +294,15 @@ export function Metadata(props: IProps) {
     const widgetFooter =
         !loading && isEditing ? (
             <>
+                <Prompt when={unsavedChanges} message={routingPrompt} />
                 <Divider />
                 <CardActions>
                     <Button
                         data-test-id={"submitBtn"}
+                        disabled={!unsavedChanges || !formEditData?.label}
+                        onClick={onSubmit}
                         affirmative
-                        text={t("common.action.submit", "Submit")}
+                        text={t("common.action.save", "Save")}
                         type={"submit"}
                     />
                     <Button text={t("common.action.cancel")} onClick={toggleEdit} />
@@ -293,13 +310,11 @@ export function Metadata(props: IProps) {
             </>
         ) : null;
 
-    const widgetFull = (
+    return (
         <Card data-test-id={"meta-data-card"}>
             {widgetHeader}
             {widgetContent}
             {widgetFooter}
         </Card>
     );
-
-    return isEditing ? <form onSubmit={handleSubmit(onSubmit)}>{widgetFull}</form> : widgetFull;
 }

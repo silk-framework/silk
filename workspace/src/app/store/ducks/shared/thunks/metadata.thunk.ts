@@ -16,23 +16,19 @@ export const getTaskMetadataAsync = async (itemId?: string, projectId?: string):
     if (!itemId && !projectId) {
         throw new Error("Either item ID or project ID must be defined in the meta data component.");
     }
-    try {
-        const response =
-            projectId && itemId
-                ? await requestTaskMetadata(itemId, projectId)
-                : await requestProjectMetadata(itemId ? itemId : (projectId as string));
+    const response =
+        projectId && itemId
+            ? await requestTaskMetadata(itemId, projectId)
+            : await requestProjectMetadata(itemId ? itemId : (projectId as string));
 
-        const { label, name, metaData, id, relations, description, type }: any = response.data;
+    const { label, name, metaData, id, relations, description, type }: any = response.data;
 
-        return {
-            label: label || (metaData ? metaData.label : name) || id,
-            description: description || (metaData ? metaData.description : ""),
-            relations: relations,
-            type: type || "project",
-        };
-    } catch (e) {
-        return e;
-    }
+    return {
+        label: label || (metaData ? metaData.label : name) || id,
+        description: description || (metaData ? metaData.description : ""),
+        relations: relations,
+        type: type || "project",
+    };
 };
 
 export const updateTaskMetadataAsync = async (

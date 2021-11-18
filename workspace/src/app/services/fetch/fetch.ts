@@ -7,6 +7,9 @@ interface IFetchOptions {
     url: string;
     method?: Method;
     body?: any;
+    query?: {
+        [key: string]: string | boolean | number | undefined | null;
+    };
     headers?: any;
 }
 
@@ -17,18 +20,19 @@ axios.interceptors.request.use(requestInterceptor);
 axios.interceptors.response.use(responseInterceptorOnSuccess, responseInterceptorOnError);
 
 /**
- * @public
- * @param url
- * @param body   The body of the request. In case of a GET request, these are the query parameters.
- * @param method
- * @param headers
- * @param params the URL parameters to be sent with the request
+ * @param url     URL of the request
+ * @param body    Optional body of the request. In case of a GET request, these are the query parameters.
+ * @param method  HTTP method, default: GET
+ * @param headers Optional HTTP headers
+ * @param params  the URL parameters to be sent with the request
+ * @throws FetchError
  */
 export const fetch = async <T = any>({
     url,
     body,
     method = "GET",
     headers = {},
+    query,
 }: IFetchOptions): Promise<FetchResponse<T> | never> => {
     const curToken = axios.CancelToken.source();
     const cToken = curToken.token;
@@ -48,6 +52,9 @@ export const fetch = async <T = any>({
 
     if (method === "GET") {
         config.params = body;
+    }
+    if (query) {
+        config.params = query;
     }
     try {
         if (isTestEnv) {

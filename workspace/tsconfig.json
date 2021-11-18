@@ -1,31 +1,27 @@
 {
-  "compilerOptions": {
-    "baseUrl": "./src/app",
-    "paths": {
-      "@gui-elements/*": ["./../libs/gui-elements/*"],
-      "@ducks/*": ["./store/ducks/*"]
+    "compilerOptions": {
+        "baseUrl": "./src/app",
+        "paths": {
+            "@gui-elements/*": ["./../libs/gui-elements/*"],
+            "@ducks/*": ["./store/ducks/*"]
+        },
+        "target": "es5",
+        "lib": ["dom", "dom.iterable", "esnext"],
+        "allowJs": true,
+        "skipLibCheck": true,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true,
+        "module": "esnext",
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "downlevelIteration": true,
+        "noEmit": true,
+        "jsx": "preserve",
+        "noImplicitAny": false,
+        "strictNullChecks": true,
+        "experimentalDecorators": true
     },
-    "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "noEmit": true,
-    "jsx": "preserve",
-    "noImplicitAny": false,
-    "strictNullChecks": true
-  },
-  "include": [
-    "./src"
-  ]
+    "include": ["./src"]
 }
