@@ -8,6 +8,8 @@ import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{Project, ProjectTask}
 
+import java.util.concurrent.ConcurrentHashMap
+import java.util.logging.Logger
 import scala.collection.immutable.ListMap
 import scala.collection.mutable
 import scala.reflect.ClassTag
@@ -42,6 +44,9 @@ trait ItemTypeFacetCollector[T  <: TaskSpec] {
 }
 
 object ItemTypeFacetCollector {
+  private val logger: Logger = Logger.getLogger(this.getClass.getName)
+  private val facetErrorsLogged = new ConcurrentHashMap[String, Long]()
+
   /** Returns true if the project task should be in the result set according to the facet setting.
     * It collects facet values after filtering.
     * Values are collected for each facet, when no other facet filters out a project task. */
@@ -64,7 +69,14 @@ object ItemTypeFacetCollector {
             matchingFacets.add(facetSetting.facetId)
           }
         case None =>
-          throw new IllegalArgumentException(s"Facet ID '${facetSetting.facetId}' is not available for facet collector '${this.getClass.getSimpleName}'.")
+          // Unknown facet always matches
+          matchingFacets.add(facetSetting.facetId)
+          val facetKey = this.getClass.getSimpleName + "_" + facetSetting.facetId
+          if(Option(facetErrorsLogged.get(facetKey)).isEmpty || facetErrorsLogged.get(facetKey) < (System.currentTimeMillis() - 1000)) {
+            logger.warning(s"Wrong facet configuration in search request. Facet ID '${facetSetting.facetId}' is " +
+              s"not available for facet collector '${this.getClass.getSimpleName}'.")
+            facetErrorsLogged.put(facetKey, System.currentTimeMillis())
+          }
       }
     }
     val allMatch = facetSettings.size == matchingFacets.size // Only when all requested facet settings match, it's an overall match

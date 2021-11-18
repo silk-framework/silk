@@ -14,13 +14,14 @@
 
 package org.silkframework.workspace
 
-import java.util.logging.{Level, Logger}
-
-import javax.inject.Inject
 import org.silkframework.config.{Config, DefaultConfig}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.workspace.resources.ResourceRepository
+
+import java.time.Instant
+import java.util.logging.{Level, Logger}
+import javax.inject.Inject
 
 class PluginBasedWorkspaceFactory extends WorkspaceFactory {
 
@@ -29,16 +30,25 @@ class PluginBasedWorkspaceFactory extends WorkspaceFactory {
 }
 
 object PluginBasedWorkspaceFactory {
+
   private val log: Logger = Logger.getLogger(this.getClass.getName.stripSuffix("$"))
+
   @Inject
   private var configMgr: Config = DefaultConfig.instance
+
+  @volatile
+  private var timestamp: Instant = Instant.MIN
 
   private var _workspace: Option[Workspace] = None
 
   def workspace(implicit userContext: UserContext): Workspace = this.synchronized {
     _workspace match {
-      case Some(w) => w
-      case None =>
+      case Some(w) if !timestamp.isBefore(configMgr.timestamp) => w
+      case _ =>
+        if(_workspace.nonEmpty) {
+          log.info("Reloading workspace because the configuration has been updated.")
+        }
+        timestamp = configMgr.timestamp
         try {
           val w = initWorkspace
           _workspace = Some(w)
