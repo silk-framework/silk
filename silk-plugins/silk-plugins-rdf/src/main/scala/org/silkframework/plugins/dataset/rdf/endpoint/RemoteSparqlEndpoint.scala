@@ -89,7 +89,7 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
     //Open connection
     val httpConnection = new URL(queryUrl).openConnection.asInstanceOf[HttpURLConnection]
     setConnectionTimeouts(httpConnection)
-    httpConnection.setRequestProperty("ACCEPT", constructSerialization.getContentType.getContentType)
+    httpConnection.setRequestProperty("ACCEPT", RDFLanguages.NTRIPLES.getContentType.getContentType)
     //Set authentication
     for ((user, password) <- sparqlParams.login) {
       httpConnection.setRequestProperty("Authorization", "Basic " + DatatypeConverter.printBase64Binary((user + ":" + password).getBytes))
