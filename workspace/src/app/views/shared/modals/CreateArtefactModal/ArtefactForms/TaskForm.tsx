@@ -57,6 +57,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, detectChange }
     const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
     const initialValues = existingTaskValuesToFlatParameters(updateTask);
     const [t] = useTranslation();
+    const { label, description } = form.watch([LABEL, DESCRIPTION]);
 
     // addition restriction for the hook form parameter values
     const valueRestrictions = (param: IArtefactItemProperty) => {
@@ -74,6 +75,8 @@ export function TaskForm({ form, projectId, artefact, updateTask, detectChange }
 
     useEffect(() => {
         setDoChange(true);
+        setValue("label", label);
+        setValue("description", description);
     }, [projectId]);
 
     useEffect(() => {
@@ -209,6 +212,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, detectChange }
                             <TextField
                                 id={LABEL}
                                 name={LABEL}
+                                value={label ?? ""}
                                 onChange={handleChange(LABEL)}
                                 intent={errors.label ? Intent.DANGER : Intent.NONE}
                                 onKeyDown={(e) => {
@@ -226,7 +230,12 @@ export function TaskForm({ form, projectId, artefact, updateTask, detectChange }
                                 htmlFor: DESCRIPTION,
                             }}
                         >
-                            <TextArea id={DESCRIPTION} name={DESCRIPTION} onChange={handleChange(DESCRIPTION)} />
+                            <TextArea
+                                id={DESCRIPTION}
+                                name={DESCRIPTION}
+                                value={description ?? ""}
+                                onChange={handleChange(DESCRIPTION)}
+                            />
                         </FieldItem>
                     </>
                 )}

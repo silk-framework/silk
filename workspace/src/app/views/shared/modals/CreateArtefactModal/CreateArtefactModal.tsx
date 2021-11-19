@@ -43,7 +43,7 @@ import ProjectSelection from "./ArtefactForms/ProjectSelection";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { workspaceSel } from "@ducks/workspace";
 
-const ignorableFields = ["label", "description"];
+const ignorableFields = new Set(["label", "description"]);
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
@@ -261,8 +261,7 @@ export function CreateArtefactModal() {
     const shouldShowWarningModal = (precondition: boolean): boolean => {
         let shouldShow = false;
         for (let field in formValueChanges) {
-            if (!ignorableFields.includes(field) && formValueChanges[field].shouldPrompt && !shouldShow)
-                shouldShow = true;
+            if (!ignorableFields.has(field) && formValueChanges[field].shouldPrompt && !shouldShow) shouldShow = true;
             else continue;
         }
         return !!(precondition && shouldShow);
@@ -271,8 +270,10 @@ export function CreateArtefactModal() {
     // reset to defaults, if label/description already existed it remains.
     const resetFormOnConfirmation = () => {
         const resetValue = {};
-        ignorableFields.forEach((field) => {
-            if (formValueChanges[field]) {
+        Object.keys(formValueChanges).forEach((field) => {
+            if (!ignorableFields.has(field)) {
+                delete formValueChanges[field];
+            } else {
                 resetValue[field] = formValueChanges[field].lastValue;
             }
         });
@@ -355,7 +356,7 @@ export function CreateArtefactModal() {
         // Project / task creation
         if (selectedArtefactKey) {
             if (projectArtefactSelected) {
-                artefactForm = addChangeProjectHandler(<ProjectForm detectChange={detectFormChange} form={form} />);
+                artefactForm = <ProjectForm form={form} />;
             } else {
                 const detailedArtefact = cachedArtefactProperties[selectedArtefactKey];
                 if (detailedArtefact && projectId) {
