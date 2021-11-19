@@ -12,11 +12,9 @@ export const fetchStoredLang: () => string = () => {
 };
 
 // Sets the language in local storage
-export const setStoredLang: (lang: string, userChoice?: boolean) => void = (lang, userChoice = false) => {
+export const setStoredLang: (lang: string) => void = (lang) => {
     Store.set("i18nextLng", lang);
-    if (userChoice) {
-        Store.set("i18nUserChoice", true);
-    }
+    Store.set("i18nUserChoice", true);
 };
 
 i18n.use(initReactI18next)

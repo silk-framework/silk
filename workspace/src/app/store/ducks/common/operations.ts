@@ -15,7 +15,7 @@ import { requestCreateProject, requestCreateTask, requestUpdateProjectTask } fro
 import { routerOp } from "@ducks/router";
 import { TaskType } from "@ducks/shared/typings";
 import { HttpError } from "../../../services/fetch/responseInterceptor";
-import i18Instance, { fetchStoredLang, setStoredLang } from "../../../../language";
+import i18Instance, { fetchStoredLang } from "../../../../language";
 
 const {
     setError,
@@ -46,6 +46,9 @@ const fetchCommonSettingsAsync = () => {
             const selectedLng = fetchStoredLang();
             if (!selectedLng) {
                 dispatch(changeLocale(data.initialLanguage));
+            } else {
+                // Just make sure that specific flags for DM are set
+                dispatch(changeLocale(selectedLng));
             }
         } catch (error) {
             dispatch(setError(error));
@@ -280,7 +283,6 @@ const resetArtefactModal = (shouldClose: boolean = false) => (dispatch) => {
 const changeLocale = (locale: string) => {
     return async (dispatch) => {
         await i18Instance.changeLanguage(locale);
-        setStoredLang(locale, true);
         dispatch(changeLanguage(locale));
     };
 };
