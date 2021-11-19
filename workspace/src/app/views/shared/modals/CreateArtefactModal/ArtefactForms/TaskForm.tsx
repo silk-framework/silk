@@ -9,6 +9,7 @@ import { DataPreview } from "../../../DataPreview/DataPreview";
 import { IDatasetConfigPreview } from "@ducks/shared/typings";
 import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../../../utils/transformers";
 import { useTranslation } from "react-i18next";
+import Loading from "../../../Loading";
 
 export interface IProps {
     form: any;
@@ -51,6 +52,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, detectChange }
     const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
     const [dependentValues, setDependentValues] = useState<Record<string, any>>({});
+    const [doChange, setDoChange] = useState<boolean>(false);
 
     const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
     const initialValues = existingTaskValuesToFlatParameters(updateTask);
@@ -69,6 +71,16 @@ export function TaskForm({ form, projectId, artefact, updateTask, detectChange }
             return {};
         }
     };
+
+    useEffect(() => {
+        setDoChange(true);
+    }, [projectId]);
+
+    useEffect(() => {
+        if (doChange) {
+            setDoChange(false);
+        }
+    }, [doChange]);
 
     useEffect(() => {
         // All keys (also nested ones are stores in here)
@@ -141,7 +153,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, detectChange }
             }
             returnKeys.forEach((key) => unregister(key));
         };
-    }, [properties, register]);
+    }, [properties, register, projectId]);
 
     const handleChange = useCallback(
         (key) => (e) => {
@@ -177,7 +189,9 @@ export function TaskForm({ form, projectId, artefact, updateTask, detectChange }
     const advancedParams = visibleParams.filter(([k, param]) => param.advanced);
     const formHooks = { errors };
 
-    return (
+    return doChange ? (
+        <Loading />
+    ) : (
         <>
             <form>
                 {updateTask ? null : (
