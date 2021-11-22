@@ -14,7 +14,8 @@ import scala.util.{Failure, Success, Try}
 @Plugin(
   id = "sparqlCopyOperator",
   label = "SPARQL Construct query",
-  description = "A task that executes a SPARQL Construct query on a SPARQL enabled data source and outputs the SPARQL result."
+  description = "A task that executes a SPARQL Construct query on a SPARQL enabled data source and outputs the SPARQL result. " +
+    "If the result should be written to the same RDF store it is read from, the SPARQL Update operator is preferable."
 )
 case class SparqlCopyCustomTask(
     @Param(label = "Construct query", value = "A SPARQL 1.1 construct query", example = "construct { ?s ?p ?o } where { ?s ?p ?o }")
