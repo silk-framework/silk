@@ -362,7 +362,7 @@ export const ObjectRuleForm = (props: IProps) => {
 
     let previewExamples: null | JSX.Element = null
 
-    if(!modifiedValues.pattern && !modifiedValues.uriRule) {
+    if(!modifiedValues.pattern && (!modifiedValues.uriRule || modifiedValues.uriRule.type === MAPPING_RULE_TYPE_URI)) {
         previewExamples =
             <Notification data-test-id={"object-rule-form-preview-no-pattern"}>No preview shown for default URI pattern.</Notification>
     } else if (!uriPatternIsValid || !objectPathValid) {
