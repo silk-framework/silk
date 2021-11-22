@@ -69,7 +69,7 @@ export const ObjectRuleForm = (props: IProps) => {
     const autoCompleteRuleId = id || parentId;
 
     const distinctUriPatterns = Array.from(new Map(uriPatternSuggestions
-        .filter(p => p.value !== (props.ruleData as any).pattern)
+        .filter(p => p.value !== (modifiedValues as any).pattern)
         .map(p => [p.value, p])).values())
 
     useEffect(() => {
@@ -440,7 +440,7 @@ export const ObjectRuleForm = (props: IProps) => {
                             className="ecc-silk-mapping__ruleseditor__actionrow-save"
                             raised
                             onClick={handleConfirm}
-                            disabled={!allowConfirm || !changed}
+                            disabled={!allowConfirm || !changed || !uriPatternIsValid || !objectPathValid}
                         >
                             Save
                         </AffirmativeButton>
