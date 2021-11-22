@@ -6,6 +6,7 @@ import controllers.workspace.workspaceRequests.CopyTasksResponse
 import helper.IntegrationTestTrait
 import org.scalatest.{BeforeAndAfterAll, MustMatchers}
 import org.scalatestplus.play.PlaySpec
+import org.silkframework.config.MetaData
 import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.StringValueType
@@ -136,10 +137,10 @@ class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with MustMatch
       val responseJson = checkResponse(createRequest(ResourceApi.resourceUsage(project.name, resourceName)).get()).json
       val tasks = Json.fromJson[Seq[TaskLinkInfo]](responseJson).get
       tasks must contain theSameElementsAs Seq(
-        TaskLinkInfo(datasetUsingResource, datasetUsingResource, Some(TASK_TYPE_DATASET)),
-        TaskLinkInfo(taskUsingResource, taskUsingResource, Some(TASK_TYPE_CUSTOM_TASK)),
-        TaskLinkInfo(transformTaskUsingResource, transformTaskUsingResource, Some(TASK_TYPE_TRANSFORM)),
-        TaskLinkInfo(linkingTaskUsingResource, linkingTaskUsingResource, Some(TASK_TYPE_LINKING))
+        TaskLinkInfo(datasetUsingResource, MetaData.labelFromId(datasetUsingResource), Some(TASK_TYPE_DATASET)),
+        TaskLinkInfo(taskUsingResource, MetaData.labelFromId(taskUsingResource), Some(TASK_TYPE_CUSTOM_TASK)),
+        TaskLinkInfo(transformTaskUsingResource, MetaData.labelFromId(transformTaskUsingResource), Some(TASK_TYPE_TRANSFORM)),
+        TaskLinkInfo(linkingTaskUsingResource, MetaData.labelFromId(linkingTaskUsingResource), Some(TASK_TYPE_LINKING))
       )
     }
   }

@@ -3,7 +3,6 @@ package controllers.projectApi
 import config.WorkbenchConfig
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.errorReporting.ErrorReport.ErrorReportItem
 import controllers.projectApi.doc.ProjectApiDoc
 import controllers.workspace.JsonSerializer
 import controllers.workspaceApi.IdentifierUtils
@@ -67,11 +66,12 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
   def createNewProject(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
       validateJson[ProjectCreationData] { projectCreationData =>
         val metaData = projectCreationData.metaData.asMetaData
-        val label = metaData.label.trim
-        if(label == "") {
-          throw BadUserInputException("The label must not be empty!")
+        val generatedId = metaData.label match {
+          case Some(label) if label.trim.nonEmpty =>
+            IdentifierUtils.generateProjectId(label)
+          case _ =>
+            throw BadUserInputException("The label must not be empty!")
         }
-        val generatedId = IdentifierUtils.generateProjectId(label)
         val project = workspace.createProject(ProjectConfig(generatedId, metaData = cleanUpMetaData(metaData).asNewMetaData))
         Created(JsonSerializer.projectJson(project)).
             withHeaders(LOCATION -> s"${WorkbenchConfig.applicationContext}/api/workspace/projects/$generatedId")
@@ -137,7 +137,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
   }
 
   private def cleanUpMetaData(metaData: MetaData) = {
-    MetaData(metaData.label.trim, metaData.description.filter(_.trim.nonEmpty))
+    MetaData(metaData.label.map(_.trim).filter(_.nonEmpty), metaData.description.filter(_.trim.nonEmpty))
   }
 
   /** Update the project meta data. */
@@ -179,7 +179,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
     validateJson[ItemMetaData] { newMetaData =>
       val cleanedNewMetaData = newMetaData
       val oldProjectMetaData = workspace.project(projectId).config.metaData
-      val mergedMetaData = oldProjectMetaData.copy(label = cleanedNewMetaData.label, description = cleanedNewMetaData.description)
+      val mergedMetaData = oldProjectMetaData.copy(label = Some(cleanedNewMetaData.label), description = cleanedNewMetaData.description)
       val updatedMetaData = workspace.updateProjectMetaData(projectId, mergedMetaData.asUpdatedMetaData)
       Ok(JsonSerializers.toJson(updatedMetaData))
     }

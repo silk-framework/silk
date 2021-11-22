@@ -235,7 +235,7 @@ class SearchApiIntegrationTest extends FlatSpec
     val uniqueId = "veryUnique"
     val newProject = "newProject"
     val newTask = "newTask"
-    val metaData = MetaData("", Some("A" + uniqueId + "Z"))
+    val metaData = MetaData(None, Some("A" + uniqueId + "Z"))
 
     val project = retrieveOrCreateProject(newProject)
     try {
@@ -258,14 +258,14 @@ class SearchApiIntegrationTest extends FlatSpec
     val project = retrieveOrCreateProject(newProject)
     try {
       val workflow = Workflow(Seq.empty, Seq.empty)
-      project.addAnyTask(csvATask, workflow)
+      val task = project.addAnyTask(csvATask, workflow)
       val result = facetedSearchRequest(
-        FacetedSearchRequest(itemType = Some(ItemType.workflow), textQuery = Some(s"$csvATask $newProject"))
+        FacetedSearchRequest(itemType = Some(ItemType.workflow), textQuery = Some(s"${task.fullLabel} $newProject"))
       )._1
       result.results must have size 1
       resultAsMap(result.results.head).filter{ case (key, _) => Set(PROJECT_LABEL, LABEL).contains(key)} mustBe Map(
         PROJECT_LABEL -> newProject,
-        LABEL -> "csvA"
+        LABEL -> task.fullLabel
       )
     } finally {
       WorkspaceFactory().workspace.removeProject(newProject)

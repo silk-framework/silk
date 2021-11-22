@@ -31,7 +31,7 @@ trait WorkflowExecutorGeneratingProvenance extends Activity[WorkflowExecutionRep
   override def run(context: ActivityContext[WorkflowExecutionReportWithProvenance])
                   (implicit userContext: UserContext): Unit = {
     val workflowExecutor: Activity[WorkflowExecutionReport] = workflowExecutionActivity()
-    val control = context.child(workflowExecutor, 0.95)
+    val control = context.child(workflowExecutor, 1.0)
     try {
       log.fine("Start child workflow executor activity")
       // Propagate workflow execution report
@@ -39,8 +39,7 @@ trait WorkflowExecutorGeneratingProvenance extends Activity[WorkflowExecutionRep
         context.value.update(WorkflowExecutionReportWithProvenance(executionReport, WorkflowExecutionProvenanceData(ActivityExecutionMetaData())))
       }
       control.value.subscribe(listener)
-      control.start()
-      control.waitUntilFinished()
+      control.startBlocking()
     } finally {
       control.lastResult match {
         case Some(lastResult) =>

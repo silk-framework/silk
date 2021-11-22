@@ -70,7 +70,7 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
 
         val updatedChildRules = childRules.copy(uriRule = childRules.uriRule.orElse(objectMapping.uriRule()))
 
-        transformEntities(objectMapping.ruleLabel(), updatedChildRules, childOutputSchema, context)
+        transformEntities(objectMapping.label(), updatedChildRules, childOutputSchema, context)
       }
     }
   }

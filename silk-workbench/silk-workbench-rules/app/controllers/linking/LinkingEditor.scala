@@ -27,7 +27,7 @@ class LinkingEditor @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     val task = project.task[LinkSpec](taskName)
     val pathsCache = task.activity[LinkingPathsCache].control
     val prefixes = project.config.prefixes
-    val sourceNames = task.data.dataSelections.map(s => project.anyTask(s.inputId.toString).taskLabel())
+    val sourceNames = task.data.dataSelections.map(s => project.anyTask(s.inputId.toString).label())
 
     if(pathsCache.status().isRunning) {
       val loadingMsg = f"Cache loading (${pathsCache.status().progress.getOrElse(0.0) * 100}%.1f%%)"
