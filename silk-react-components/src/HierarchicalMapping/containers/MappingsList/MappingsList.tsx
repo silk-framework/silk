@@ -1,7 +1,5 @@
-import React from 'react';
-import _ from 'lodash';
+import React, {useEffect, useState} from 'react';
 import {Card, CardTitle,} from '@eccenca/gui-elements';
-import PropTypes from 'prop-types';
 import {DragDropContext, Droppable} from 'react-beautiful-dnd';
 import {orderRulesAsync} from '../../store';
 import DraggableItem from '../MappingRule/DraggableItem';
@@ -10,82 +8,69 @@ import ListActions from './ListActions';
 import EmptyList from './EmptyList';
 import reorderArray from '../../utils/reorderArray';
 
-class MappingsList extends React.Component {
-    static propTypes = {
-        rules: PropTypes.array.isRequired,
-        currentRuleId: PropTypes.string.isRequired,
-        parentRuleId: PropTypes.string,
-        isCopying: PropTypes.bool,
-        handleCopy: PropTypes.func,
-        handlePaste: PropTypes.func,
-        handleClone: PropTypes.func,
-        onClickedRemove: PropTypes.func,
-        onShowSuggestions: PropTypes.func,
-        onRuleIdChange: PropTypes.func,
-        onAskDiscardChanges: PropTypes.func
-    };
-    
-    static defaultProps = {
-        rules: [],
-        isCopying: false,
-        handleCopy: () => {
-        },
-        handlePaste: () => {
-        },
-        handleClone: () => {
-        },
-        onClickedRemove: () => {
-        },
-        onShowSuggestions: () => {
-        },
-        onRuleIdChange: () => {
-        },
-        onAskDiscardChanges: () => {
-        }
-    };
-    
-    state = {
-        items: rulesToList(this.props.rules, this.props.parentRuleId || this.props.currentRuleId),
-    };
-    
-    constructor(props) {
-        super(props);
-        this.handleOrderRules = this.handleOrderRules.bind(this);
-        this.onDragEnd = this.onDragEnd.bind(this);
-    }
-    
-    componentWillReceiveProps(nextProps) {
-        if (!_.isEqual(this.props, nextProps)) {
-            this.setState({
-                items: rulesToList(nextProps.rules, nextProps.parentRuleId || nextProps.currentRuleId),
-            });
-        }
-    }
-    
-    handleOrderRules({fromPos, toPos}) {
+interface MappingsListProps {
+    rules: any[],
+    loading: boolean,
+    currentRuleId: string,
+    parentRuleId?: string,
+    isCopying?: boolean,
+    handleCopy?: () => any,
+    handlePaste?: () => any,
+    handleClone?: () => any,
+    onClickedRemove?: () => any,
+    onShowSuggestions?: () => any,
+    onRuleIdChange?: () => any,
+    onAskDiscardChanges?: () => any
+    // Executes when one of the create mapping options are clicked. The type specifies the type of mapping.
+    onMappingCreate?: (mappingSkeleton: { type: "direct" | "object" }) => any
+}
+
+const nop = () => {
+}
+
+/** The list of mapping rules of an object/root mapping. */
+const MappingsList = ({
+                          rules = [],
+                          loading,
+                          currentRuleId,
+                          parentRuleId,
+                          isCopying = false,
+                          handleCopy = nop,
+                          handlePaste = nop,
+                          handleClone = nop,
+                          onClickedRemove = nop,
+                          onShowSuggestions = nop,
+                          onRuleIdChange = nop,
+                          onAskDiscardChanges = nop,
+                          onMappingCreate = nop
+                      }: MappingsListProps) => {
+    const [items, setItems] = useState<any[]>(rulesToList(rules, parentRuleId || currentRuleId))
+
+    useEffect(() => {
+        setItems(rulesToList(rules, parentRuleId || currentRuleId))
+    }, [rules, parentRuleId, currentRuleId])
+
+    const handleOrderRules = ({fromPos, toPos}: {fromPos: number, toPos: number}) => {
         const childrenRules = reorderArray(
-            this.state.items.map(a => a.key),
+            items.map(a => a.key),
             fromPos,
             toPos
         );
         
         orderRulesAsync({
             childrenRules,
-            id: this.props.parentRuleId,
+            id: parentRuleId,
         });
         
         // FIXME: this should be in success part of request in case of error but results in content flickering than
         // manage ordering local
-        this.setState({
-            items: reorderArray(this.state.items, fromPos, toPos)
-        });
+        setItems(reorderArray(items, fromPos, toPos))
     }
     
-    onDragStart(result) {
-    }
+    const onDragStart = () => { }
     
     // template rendering
-    onDragEnd(result) {
+    const onDragEnd = (result) => {
         // dropped outside the list
         if (!result.destination) {
             return;
@@ -97,27 +82,12 @@ class MappingsList extends React.Component {
             return;
         }
         
-        const reload = false;
-        this.handleOrderRules({
+        handleOrderRules({
             fromPos,
             toPos,
-            reload,
         });
     };
-    
-    render() {
-        const {
-            rules,
-            handleCopy,
-            handleClone,
-            onRuleIdChange,
-            onAskDiscardChanges,
-            onClickedRemove,
-            onShowSuggestions,
-            handlePaste,
-            onMappingCreate
-        } = this.props;
-        
+
         return (
             <div className="ecc-silk-mapping__ruleslist">
                 <Card shadow={0}>
@@ -131,8 +101,8 @@ class MappingsList extends React.Component {
                             ? <EmptyList/>
                             : (
                                 <DragDropContext
-                                    onDragStart={this.onDragStart}
-                                    onDragEnd={this.onDragEnd}
+                                    onDragStart={onDragStart}
+                                    onDragEnd={onDragEnd}
                                 >
                                     <Droppable droppableId="droppable">
                                         {(provided) => (
@@ -141,7 +111,7 @@ class MappingsList extends React.Component {
                                                 {...provided.droppableProps}
                                             >
                                                 {
-                                                    this.state.items.map((item, index) => <DraggableItem
+                                                    items.map((item, index) => <DraggableItem
                                                         {...item.props}
                                                         pos={index}
                                                         handleCopy={handleCopy}
@@ -149,7 +119,7 @@ class MappingsList extends React.Component {
                                                         onRuleIdChange={onRuleIdChange}
                                                         onAskDiscardChanges={onAskDiscardChanges}
                                                         onClickedRemove={onClickedRemove}
-                                                        onOrderRules={this.handleOrderRules}
+                                                        onOrderRules={handleOrderRules}
                                                     />)
                                                 }
                                                 {provided.placeholder}
@@ -163,11 +133,11 @@ class MappingsList extends React.Component {
                         onMappingCreate={onMappingCreate}
                         onPaste={handlePaste}
                         onShowSuggestions={onShowSuggestions}
+                        listLoading={loading}
                     />
                 </Card>
             </div>
         );
-    }
 }
 
 export default MappingsList;

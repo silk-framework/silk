@@ -1,19 +1,12 @@
 import React from "react";
-import { shallow, mount } from 'enzyme';
-import {
-    ContextMenu,
-    BreadcrumbList,
-    BreadcrumbItem,
-    MenuItem,
-} from '@eccenca/gui-elements';
+import {mount, shallow} from 'enzyme';
 
 import MappingsList from '../../../../src/HierarchicalMapping/containers/MappingsList/MappingsList';
 import EmptyList from '../../../../src/HierarchicalMapping/containers/MappingsList/EmptyList';
-import { DragDropContext } from 'react-beautiful-dnd';
+import {DragDropContext} from 'react-beautiful-dnd';
 import DraggableItem from '../../../../src/HierarchicalMapping/containers/MappingRule/DraggableItem';
 import ListActions from '../../../../src/HierarchicalMapping/containers/MappingsList/ListActions';
-
-const onClickedRemoveFn = jest.fn();
+import {findAll} from "../../utils/TestHelpers";
 
 const props = {
     rules: [
@@ -117,9 +110,10 @@ const props = {
             }
         }],
     currentRuleId: 'root',
+    loading: false
 };
 
-const getWrapper = (renderer = shallow, args = props) => renderer(
+const getWrapper: <T>(renderer: (component: any) => T, args?: any) => T = (renderer, args = props) => renderer(
     <MappingsList {...args} />
 );
 
@@ -204,7 +198,7 @@ describe("MappingsList Component", () => {
                     }
                 ]
             });
-            expect(wrapper.find(DraggableItem)).toHaveLength(1);
+            expect(findAll(wrapper, `ol[data-rbd-droppable-id="droppable"] li.ecc-silk-mapping__ruleitem`)).toHaveLength(1)
         });
 
         afterEach(() => {

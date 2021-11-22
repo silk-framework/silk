@@ -16,11 +16,23 @@ const openToBottomFn = () => {
     return toBottom;
 };
 
-const ListActions = ({ onMappingCreate, onPaste, onShowSuggestions }) => {
-    return (
+interface ListActionsProps {
+    // Executes when one of the create mapping options are clicked. The type specifies the type of mapping.
+    onMappingCreate: (mappingSkeleton: { type: "direct" | "object" }) => any
+    // Executes when the 'Paste' option is clicked
+    onPaste: () => any
+    // Executes when the 'Mapping suggestion' option is clicked
+    onShowSuggestions: () => any
+    // true if the mapping rules list is still loading
+    listLoading: boolean
+}
+
+const ListActions = ({ onMappingCreate, onPaste, onShowSuggestions, listLoading }: ListActionsProps) => {
+    return listLoading ? null : (
         <FloatingActionList
             fabSize="large"
             fixed
+            disabled={true}
             iconName="add"
             openToBottom={openToBottomFn}
             actions={_.concat(
