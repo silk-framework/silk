@@ -440,7 +440,7 @@ export const ObjectRuleForm = (props: IProps) => {
                             className="ecc-silk-mapping__ruleseditor__actionrow-save"
                             raised
                             onClick={handleConfirm}
-                            disabled={!allowConfirm || !changed || !uriPatternIsValid || !objectPathValid}
+                            disabled={!allowConfirm || !changed || !uriPatternIsValid && modifiedValues.pattern || !objectPathValid}
                         >
                             Save
                         </AffirmativeButton>
