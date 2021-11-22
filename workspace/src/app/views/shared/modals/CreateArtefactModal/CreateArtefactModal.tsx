@@ -298,7 +298,6 @@ export function CreateArtefactModal() {
         if (currentProject)
             return (
                 <>
-                    {/** // TODO Add translation */}
                     {showProjectSelection ? (
                         <ProjectSelection
                             resetForm={resetFormOnConfirmation}
@@ -308,11 +307,16 @@ export function CreateArtefactModal() {
                         />
                     ) : (
                         <Notification
-                            message={`Project: ${currentProject.label} currently selected`}
+                            message={`${t("CreateModal.projectContext.selectedProject", "Selected project")}: ${
+                                currentProject.label
+                            }`}
                             actions={
                                 <IconButton
                                     name="item-edit"
-                                    text="Select a different project"
+                                    text={t(
+                                        "CreateModal.projectContext.changeProjectButton",
+                                        "Select a different project"
+                                    )}
                                     onClick={() => setShowProjectSelection(true)}
                                 />
                             }

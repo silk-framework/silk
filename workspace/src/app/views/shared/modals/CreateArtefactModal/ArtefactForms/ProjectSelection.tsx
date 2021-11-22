@@ -1,6 +1,7 @@
 import React from "react";
-import { FieldItem, AutoCompleteField, Notification, SimpleDialog, Button } from "@gui-elements/index";
+import { FieldItem, AutoCompleteField, Notification, AlertDialog, Button } from "@gui-elements/index";
 import { useSelector, useDispatch } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { commonOp, commonSel } from "@ducks/common";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { requestSearchList } from "@ducks/workspace/requests";
@@ -27,6 +28,7 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
 }) => {
     const dispatch = useDispatch();
     const projectId = useSelector(commonSel.currentProjectIdSelector);
+    const [t] = useTranslation();
     const [showModal, setShowModal] = React.useState<boolean>(false);
     const [newProject, setNewProject] = React.useState<ISearchResultsServer | null>();
 
@@ -60,25 +62,29 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
      * Warning prompt that shows when there are task form changes other label/description
      */
     const warningModalForChangingProject = (
-        <SimpleDialog
-            size="small"
+        <AlertDialog
+            danger
+            size="tiny"
             isOpen={true}
-            title="Project change warning"
+            title={t("CreateModal.projectContext.resetModalTitle", "Project change warning")}
             actions={[
                 <Button
-                    text="Confirm"
-                    hasStateDanger
+                    text={t("CreateModal.projectContext.changeProjectButton", "Ok")}
                     onClick={() => {
                         resetForm();
                         handleProjectUpdate(newProject!);
                     }}
                 />,
-                <Button text="Cancel" onClick={onClose} />,
+                <Button text={t("common.action.cancel", "Cancel")} onClick={onClose} />,
             ]}
         >
-            {/** //Todo add translation here **/}
-            <p>All settings except title/description are going to be reset</p>
-        </SimpleDialog>
+            <p>
+                {t(
+                    "CreateModal.projectContext.configResetInfo",
+                    "All settings except title/description are going to be reset."
+                )}
+            </p>
+        </AlertDialog>
     );
 
     return (
@@ -86,10 +92,9 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
             {showModal && newProject ? warningModalForChangingProject : null}
             <FieldItem
                 key={"copy-label"}
-                // TODO ADD translation
                 labelAttributes={{
                     htmlFor: "project-select",
-                    text: "Select project",
+                    text: t("CreateModal.projectContext.selectProjectLabel", "Select project"),
                 }}
             >
                 <AutoCompleteField
@@ -118,12 +123,18 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
                         resetValue: null,
                         resetButtonText: "operation-clear",
                     }}
-                    // TODO ADD translation
-                    noResultText={"No Result"}
+                    noResultText={t("CreateModal.projectContext.noOptions", "No Result")}
                 />
             </FieldItem>
-            {/* // TODO ADD translation */}
-            {(!projectId && <Notification message="Please select project first, before configuration." />) || null}
+            {(!projectId && (
+                <Notification
+                    message={t(
+                        "CreateModal.projectContext.selectProjectInfo",
+                        "Please select project first, before configuration."
+                    )}
+                />
+            )) ||
+                null}
         </>
     );
 };
