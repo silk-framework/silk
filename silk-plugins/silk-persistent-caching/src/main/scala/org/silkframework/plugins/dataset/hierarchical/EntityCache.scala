@@ -66,7 +66,7 @@ private case class EntityCache() extends Closeable {
   private def readEntity(uri: String, buffer: ByteBuffer): CachedEntity = {
     val inputStream = new ObjectInputStream(new ByteBufferBackedInputStream(buffer))
     try {
-      val values = inputStream.readObject().asInstanceOf[Seq[Seq[String]]]
+      val values = inputStream.readObject().asInstanceOf[IndexedSeq[Seq[String]]]
       val index = inputStream.readInt()
       CachedEntity(uri, values, index)
     } finally {

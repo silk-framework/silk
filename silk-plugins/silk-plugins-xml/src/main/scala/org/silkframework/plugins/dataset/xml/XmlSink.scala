@@ -9,6 +9,8 @@ class XmlSink(val resource: WritableResource,
               outputTemplate: XmlOutputTemplate,
               override val maxDepth: Int = HierarchicalSink.DEFAULT_MAX_SIZE) extends HierarchicalSink {
 
+  protected override val writeAttributesFirst: Boolean = true
+
   override protected def createWriter(outputStream: OutputStream): HierarchicalEntityWriter = {
     new XmlEntityWriter(outputStream, outputTemplate)
   }

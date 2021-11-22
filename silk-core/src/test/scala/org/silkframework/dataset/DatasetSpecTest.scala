@@ -23,7 +23,7 @@ class DatasetSpecTest extends FlatSpec with Matchers {
     implicit val prefixes: Prefixes = Prefixes.empty
     val sink = datasetSpec.entitySink
     sink.openTable("someType", Seq(TypedProperty("existingProperty", ValueType.STRING, isBackwardProperty = false)), singleEntity = false)
-    sink.writeEntity("entityUri", Seq(Seq("someValue")))
+    sink.writeEntity("entityUri", IndexedSeq(Seq("someValue")))
     sink.closeTable()
     sink.close()
 

@@ -45,7 +45,7 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
     this.properties = properties
   }
 
-  override def writeEntity(subject: String, values: Seq[Seq[String]])
+  override def writeEntity(subject: String, values: IndexedSeq[Seq[String]])
                           (implicit userContext: UserContext): Unit = {
     for((property, valueSet) <- properties zip values; value <- valueSet) {
       if(property.isBackwardProperty) {

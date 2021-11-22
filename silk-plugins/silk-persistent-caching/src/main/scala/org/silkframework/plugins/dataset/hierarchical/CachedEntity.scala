@@ -8,4 +8,4 @@ package org.silkframework.plugins.dataset.hierarchical
   * @param values The values of the entity
   * @param tableIndex The index of the table this entity belongs to.
   */
-private case class CachedEntity(uri: String, values: Seq[Seq[String]], tableIndex: Int)
+private case class CachedEntity(uri: String, values: IndexedSeq[Seq[String]], tableIndex: Int)
