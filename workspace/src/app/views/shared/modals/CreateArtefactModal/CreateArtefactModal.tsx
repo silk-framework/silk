@@ -431,6 +431,7 @@ export function CreateArtefactModal() {
     const createDialog = (
         <SimpleDialog
             size="large"
+            data-test-id="create-dialog-modal"
             preventSimpleClosing={true}
             hasBorder
             title={

@@ -75,8 +75,6 @@ export function TaskForm({ form, projectId, artefact, updateTask, detectChange }
 
     useEffect(() => {
         setDoChange(true);
-        setValue("label", label);
-        setValue("description", description);
     }, [projectId]);
 
     useEffect(() => {
@@ -195,7 +193,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, detectChange }
     return doChange ? (
         <Loading />
     ) : (
-        <>
+        <div data-test-id="task-form">
             <form>
                 {updateTask ? null : (
                     <>
@@ -289,6 +287,6 @@ export function TaskForm({ form, projectId, artefact, updateTask, detectChange }
                     </>
                 )}
             </form>
-        </>
+        </div>
     );
 }
