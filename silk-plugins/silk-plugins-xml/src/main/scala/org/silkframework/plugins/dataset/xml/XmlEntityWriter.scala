@@ -1,8 +1,8 @@
 package org.silkframework.plugins.dataset.xml
 
-import com.sun.xml.internal.txw2.output.IndentingXMLStreamWriter
 import org.silkframework.dataset.TypedProperty
 import org.silkframework.plugins.dataset.hierarchical.{HierarchicalEntityWriter, HierarchicalSink}
+import org.silkframework.plugins.dataset.xml.util.IndentingXMLStreamWriter
 import org.silkframework.runtime.validation.ValidationException
 
 import java.io.OutputStream
@@ -11,7 +11,6 @@ import javax.xml.stream.{XMLOutputFactory, XMLStreamWriter}
 
 class XmlEntityWriter(outputStream: OutputStream, template: XmlOutputTemplate) extends HierarchicalEntityWriter {
 
-  // TODO replace IndentingXMLStreamWriter with class that is not from com.sun package
   private val writer: XMLStreamWriter = {
     val factory = XMLOutputFactory.newInstance()
     factory.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, true)
@@ -42,7 +41,7 @@ class XmlEntityWriter(outputStream: OutputStream, template: XmlOutputTemplate) e
   override def startEntity(): Unit = {
     // Make sure that the output template allows multiple root entities
     if(rootElementWritten) {
-      if(template.isSingleInstruction && properties.tail.isEmpty) {
+      if(template.isRootTemplate && properties.tail.isEmpty) {
         throw new ValidationException("Cannot insert more than one element at document root. Your output template definition only allows one entity.")
       }
     } else {
