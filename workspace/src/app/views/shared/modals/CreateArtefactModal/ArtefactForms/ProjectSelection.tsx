@@ -1,7 +1,5 @@
 import React from "react";
 import { FieldItem, AutoCompleteField, Notification, SimpleDialog, Button } from "@gui-elements/index";
-import { useSelector, useDispatch } from "react-redux";
-import { commonOp, commonSel } from "@ducks/common";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { requestSearchList } from "@ducks/workspace/requests";
 
@@ -17,6 +15,12 @@ interface ProjectSelectionProps {
 
     /** reset the form if there have been entries other than label/description **/
     resetForm: () => void;
+
+    /** current project context */
+    selectedProject: ISearchResultsServer | undefined;
+
+    /**getWorkspace Projects*/
+    getWorkspaceProjects: (textQuery: string) => Promise<ISearchResultsServer[]>;
 }
 
 const ProjectSelection: React.FC<ProjectSelectionProps> = ({
@@ -24,37 +28,12 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
     onClose,
     shouldShowWarningModal,
     resetForm,
+    selectedProject,
+    getWorkspaceProjects,
 }) => {
-    const dispatch = useDispatch();
-    const projectId = useSelector(commonSel.currentProjectIdSelector);
+    const projectId = selectedProject?.id;
     const [showModal, setShowModal] = React.useState<boolean>(false);
     const [newProject, setNewProject] = React.useState<ISearchResultsServer | null>();
-
-    const handleSearch = async (textQuery: string): Promise<ISearchResultsServer[]> => {
-        try {
-            const payload = {
-                limit: 10,
-                offset: 0,
-                itemType: "project",
-                textQuery,
-            };
-            const results = (await requestSearchList(payload)).results;
-            return results;
-        } catch (err) {
-            console.warn("err", { err });
-            return [];
-        }
-    };
-
-    /**
-     * sets selected projectId to global state.
-     * sets selected project as context for artefact modal
-     * @param project
-     */
-    const handleProjectUpdate = (project: ISearchResultsServer) => {
-        dispatch(commonOp.setProjectId(project.id));
-        setCurrentProject(project);
-    };
 
     /**
      * Warning prompt that shows when there are task form changes other label/description
@@ -70,7 +49,7 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
                     hasStateDanger
                     onClick={() => {
                         resetForm();
-                        handleProjectUpdate(newProject!);
+                        setCurrentProject(newProject!);
                     }}
                 />,
                 <Button text="Cancel" onClick={onClose} />,
@@ -93,15 +72,16 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
                 }}
             >
                 <AutoCompleteField
-                    autoFocus
-                    onSearch={handleSearch}
+                    autoFocus={!!selectedProject}
+                    onSearch={getWorkspaceProjects}
                     onChange={(item) => {
                         if (item) {
                             const show = shouldShowWarningModal(item.id !== projectId);
                             setNewProject(item);
                             setShowModal(show);
                             if (!projectId || !show) {
-                                handleProjectUpdate(item);
+                                resetForm();
+                                setCurrentProject(item);
                             }
                         }
                     }}

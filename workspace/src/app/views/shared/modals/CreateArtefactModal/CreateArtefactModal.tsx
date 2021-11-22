@@ -42,6 +42,7 @@ import { ErrorBoundary } from "carbon-components-react/lib/components/ErrorBound
 import ProjectSelection from "./ArtefactForms/ProjectSelection";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { workspaceSel } from "@ducks/workspace";
+import { requestSearchList } from "@ducks/workspace/requests";
 
 const ignorableFields = new Set(["label", "description"]);
 
@@ -56,7 +57,6 @@ export function CreateArtefactModal() {
 
     const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
     const modalStore = useSelector(commonSel.artefactModalSelector);
-    const projectId = useSelector(commonSel.currentProjectIdSelector);
 
     const {
         selectedArtefact,
@@ -82,17 +82,22 @@ export function CreateArtefactModal() {
     const toBeAddedKey: string | undefined = toBeAdded?.key;
     const [currentProject, setCurrentProject] = useState<ISearchResultsServer | undefined>(undefined);
     const [showProjectSelection, setShowProjectSelection] = useState<boolean>(false);
-    const data = useSelector(workspaceSel.resultsSelector);
     const [formValueChanges, setFormValueChanges] = React.useState<{
         [key: string]: { lastValue: any; shouldPrompt: boolean };
     }>({});
+    const isEmptyWorkspace = useSelector(workspaceSel.isEmptyPageSelector);
+    const projectId = useSelector(commonSel.currentProjectIdSelector);
 
-    /** set the current Project when opening modal from a project **/
+    /** set the current Project when opening modal from a project
+     * i.e project id already exists **/
     React.useEffect(() => {
-        if (projectId && !currentProject) {
-            setCurrentProject(() => data.find((item) => item.projectId === projectId || item.id === projectId));
-        }
-    }, [projectId, data.map((i) => i.id).join("|"), currentProject, selectedArtefactKey]);
+        (async () => {
+            if (projectId) {
+                const results = await getWorkspaceProjects();
+                setCurrentProject(() => results.find((item) => item.id === projectId));
+            }
+        })();
+    }, [projectId, selectedArtefactKey]);
 
     useEffect(() => {
         if (!isOpen) {
@@ -103,7 +108,7 @@ export function CreateArtefactModal() {
 
     // Fetch Artefact list
     useEffect(() => {
-        if (isOpen) {
+        if (isOpen && !isEmptyWorkspace) {
             dispatch(
                 commonOp.fetchArtefactsListAsync({
                     textQuery: searchValue,
@@ -132,6 +137,22 @@ export function CreateArtefactModal() {
                     textQuery,
                 })
             );
+        }
+    };
+
+    const getWorkspaceProjects = async (textQuery: string = "") => {
+        try {
+            const payload = {
+                limit: 10,
+                offset: 0,
+                itemType: "project",
+                textQuery,
+            };
+            const results = (await requestSearchList(payload)).results;
+            return results;
+        } catch (err) {
+            console.warn("err", { err });
+            return [];
         }
     };
 
@@ -304,7 +325,9 @@ export function CreateArtefactModal() {
                             resetForm={resetFormOnConfirmation}
                             setCurrentProject={updateCurrentSelectedProject}
                             shouldShowWarningModal={shouldShowWarningModal}
+                            selectedProject={currentProject}
                             onClose={() => setShowProjectSelection(false)}
+                            getWorkspaceProjects={getWorkspaceProjects}
                         />
                     ) : (
                         <Notification
@@ -336,7 +359,9 @@ export function CreateArtefactModal() {
                 resetForm={resetFormOnConfirmation}
                 shouldShowWarningModal={shouldShowWarningModal}
                 setCurrentProject={updateCurrentSelectedProject}
+                selectedProject={currentProject}
                 onClose={() => setShowProjectSelection(false)}
+                getWorkspaceProjects={getWorkspaceProjects}
             />
         );
     }
@@ -359,13 +384,14 @@ export function CreateArtefactModal() {
                 artefactForm = <ProjectForm form={form} />;
             } else {
                 const detailedArtefact = cachedArtefactProperties[selectedArtefactKey];
-                if (detailedArtefact && projectId) {
+                const activeProjectId = projectId ?? currentProject?.id;
+                if (detailedArtefact && activeProjectId) {
                     artefactForm = addChangeProjectHandler(
                         <TaskForm
                             detectChange={detectFormChange}
                             form={form}
                             artefact={detailedArtefact}
-                            projectId={projectId}
+                            projectId={activeProjectId}
                         />
                     );
                 }
