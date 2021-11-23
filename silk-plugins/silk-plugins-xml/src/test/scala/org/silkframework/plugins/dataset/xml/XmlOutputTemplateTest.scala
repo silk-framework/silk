@@ -14,7 +14,7 @@ class XmlOutputTemplateTest extends FlatSpec with Matchers {
     exception.getCause should not be (null)
 
     an[XmlOutputTemplate.NoValidXmlException] shouldBe thrownBy {
-      XmlOutputTemplate.parse("<?Invalid Processing Instruction?>")
+      XmlOutputTemplate.parse("<? InvalidProcessingInstruction?>")
     }
   }
 
