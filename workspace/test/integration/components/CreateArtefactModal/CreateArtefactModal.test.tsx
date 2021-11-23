@@ -68,6 +68,9 @@ describe("Task creation widget", () => {
 
         const provider = testWrapper(<CreateArtefactModal />, history, {
             common: {
+                initialSettings: {
+                    emptyWorkspace: false,
+                },
                 artefactModal: {
                     isOpen: true,
                     updateExistingTask: existingTask,
@@ -92,7 +95,7 @@ describe("Task creation widget", () => {
 
     const fetchDialog = async (wrapper: ReactWrapper<any, any>) => {
         return await waitFor(() => {
-            return findSingleElement(wrapper, byTestId("simpleDialogWidget"));
+            return findSingleElement(wrapper, byTestId("create-dialog-modal"));
         });
     };
 
@@ -205,10 +208,10 @@ describe("Task creation widget", () => {
     };
 
     it("should show only the project artefact to select when on the main search page", async () => {
-        const { wrapper } = createArtefactWrapper();
+        const { wrapper } = await createMockedListWrapper();
         const dialog = await fetchDialog(wrapper);
         const items = selectionItems(dialog);
-        expect(items).toHaveLength(1);
+        expect(items).toHaveLength(3);
         expect(items[0].html()).toContain("Project");
     });
 
@@ -423,7 +426,7 @@ describe("Task creation widget", () => {
     });
 
     it("should check if the info Icon for task artefact exist", async () => {
-        const { wrapper } = createArtefactWrapper();
+        const { wrapper } = await createMockedListWrapper();
         const dialog = await fetchDialog(wrapper);
         const items = selectionItems(dialog);
         const randomItem = items[0];
@@ -432,7 +435,7 @@ describe("Task creation widget", () => {
     });
 
     it("should show the info dialog when info icon is clicked", async () => {
-        const { wrapper } = createArtefactWrapper();
+        const { wrapper } = await createMockedListWrapper();
         const dialog = await fetchDialog(wrapper);
         const items = selectionItems(dialog);
         const randomItem = items[0];
