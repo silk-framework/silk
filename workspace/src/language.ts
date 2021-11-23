@@ -13,7 +13,6 @@ export const fetchStoredLang: () => string = () => {
 
 // Sets the language in local storage
 export const setStoredLang: (lang: string) => void = (lang) => {
-    Store.set("i18nextLng", lang);
     Store.set("i18nUserChoice", true);
 };
 
