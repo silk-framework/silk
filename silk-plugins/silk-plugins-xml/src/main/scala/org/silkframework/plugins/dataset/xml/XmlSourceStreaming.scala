@@ -68,7 +68,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
         case None => paths
       }
     } catch {
-      case _: PathNotExistsException =>
+      case _: PathNotFoundException =>
         IndexedSeq.empty
     } finally {
       inputStream.close()
@@ -124,7 +124,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
 
             }
           } catch {
-            case _: PathNotExistsException =>
+            case _: PathNotFoundException =>
               // do nothing, no entity will be output
           } finally {
             inputStream.close()
@@ -282,8 +282,6 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
       assert(assertionValue, assertErrorMessage)
     }
   }
-
-  class PathNotExistsException(msg: String) extends Exception(msg: String)
 
   /**
     * Collects all paths inside the current element.
