@@ -43,6 +43,7 @@ import ProjectSelection from "./ArtefactForms/ProjectSelection";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { workspaceSel } from "@ducks/workspace";
 import { requestSearchList } from "@ducks/workspace/requests";
+import { uppercaseFirstChar } from "../../../../utils/transformers";
 
 const ignorableFields = new Set(["label", "description"]);
 
@@ -421,7 +422,7 @@ export function CreateArtefactModal() {
         artefactListWithProject = [
             {
                 key: DATA_TYPES.PROJECT,
-                title: t("common.dataTypes.project"),
+                title: uppercaseFirstChar(t("common.dataTypes.project")),
                 description: t(
                     "common.dataTypes.projectDesc",
                     "Projects let you group related items. All items that depend on each other need to be in the same project."
