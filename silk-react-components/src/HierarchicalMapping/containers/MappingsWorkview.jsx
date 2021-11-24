@@ -378,6 +378,7 @@ class MappingsWorkview extends React.Component {
                     onClickedRemove={this.props.onClickedRemove}
                     onShowSuggestions={this.handleShowSuggestions}
                     onMappingCreate={this.handleCreate}
+                    loading={this.state.loading}
                 />
             ) : (
                 null
