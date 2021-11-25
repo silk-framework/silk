@@ -115,7 +115,7 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
                         (implicit userContext: UserContext, prefixes: Prefixes, random: Random): UnlabeledLinkPool = Timer("Generating Pool") {
     var pool = context.value().pool
 
-    //Build unlabeled pool
+    // Build unlabeled pool
     val poolPaths = context.value().pool.entityDescs.map(_.typedPaths)
     if(context.value().pool.isEmpty || poolPaths != paths) {
       context.status.updateMessage("Loading pool")
@@ -128,8 +128,11 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
       }
     }
 
-    //Assert that no reference links are in the pool
+    // Assert that no reference links are in the pool
     pool = pool.withoutLinks(linkSpec.referenceLinks.positive ++ linkSpec.referenceLinks.negative)
+    if(pool.links.isEmpty) {
+      throw new LearningException("All available link candidates have been confirmed or declined.")
+    }
 
     // Update pool
     context.value() = context.value().copy(pool = pool)
@@ -138,7 +141,7 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
 
   private def generatePathPairs(paths: DPair[Seq[TypedPath]]): Seq[DPair[TypedPath]] = {
     if(paths.source.toSet.diff(paths.target.toSet).size <= paths.source.size.toDouble * 0.1) {
-      // If boths sources share most path, assume that the schemata are equal and generate direct pairs
+      // If both sources share most path, assume that the schemata are equal and generate direct pairs
       for((source, target) <- paths.source zip paths.target) yield DPair(source, target)
     } else {
       // If both source have different paths, generate the complete cartesian product

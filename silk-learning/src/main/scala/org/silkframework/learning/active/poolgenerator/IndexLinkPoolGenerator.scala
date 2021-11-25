@@ -101,7 +101,7 @@ class IndexLinkPoolGenerator extends LinkPoolGenerator {
         val sourcePartition = sourceCache.read(sourceBlock, sourcePartitionIndex)
         val targetPartition = targetCache.read(targetBlock, targetPartitionIndex)
 
-        val entityPairs = runtimeConfig.executionMethod.comparisonPairs(sourcePartition, targetPartition, full = false)
+        val entityPairs = runtimeConfig.executionMethod.comparisonPairs(sourcePartition, targetPartition, full = true)
         for (entityPair <- entityPairs if count < maxLinksPerPathPair) {
           val sourceValues = normalize(entityPair.source.evaluate(sourceIndex)).toSet
           val targetValues = normalize(entityPair.target.evaluate(targetIndex)).toSet
