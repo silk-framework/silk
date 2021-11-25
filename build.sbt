@@ -30,7 +30,7 @@ val buildReactExternally = {
   result
 }
 
-val (compileParameters, scalaCompileParameters): (Seq[String], Seq[String]) = if(System.getProperty("java.version").split("\\.").head.toInt > 8) {
+val compilerParams: (Seq[String], Seq[String]) = if(System.getProperty("java.version").split("\\.").head.toInt > 8) {
   (Seq("--release", "8", "-Xlint"), Seq("-release", "8"))
 } else {
   (Seq("-source", "1.8", "-target", "1.8", "-Xlint"), Seq.empty)
@@ -89,8 +89,8 @@ lazy val commonSettings = Seq(
       val oldStrategy = (assembly / assemblyMergeStrategy).value
       oldStrategy(other)
   },
-  scalacOptions ++= scalaCompileParameters,
-  javacOptions ++= javaCompileParameters
+  scalacOptions ++= compilerParams._2,
+  javacOptions ++= compilerParams._1,
 )
 
 //////////////////////////////////////////////////////////////////////////////
