@@ -6,7 +6,8 @@ import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.learning.active.UnlabeledLinkPool
-import org.silkframework.learning.active.poolgenerator.LinkPoolGeneratorUtils._
+import org.silkframework.rule.plugins.distance.characterbased.LevenshteinDistance
+import org.silkframework.rule.similarity.DistanceMeasure
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.util.DPair
@@ -18,13 +19,22 @@ import scala.util.Random
   * Link Pool Generator that generates link candidates based indices.
   * Uses separate entity caches for each path in each data source and matches all combinations of caches between both data sources.
   */
-class IndexLinkPoolGenerator extends LinkPoolGenerator {
+class IndexLinkPoolGenerator(shuffleLinks: Boolean = true) extends LinkPoolGenerator {
 
   // Load this many entities from each data source
   private val maxEntities = 10000
 
   // For each pair of paths, generate at most that many links that have matching values for the given paths.
   private val maxLinksPerPathPair = 1000
+
+  // Distance measure that will be used for comparing values
+  private val distanceMeasure: DistanceMeasure = LevenshteinDistance()
+
+  // Link candidates will be generated for values closer than the max distance (according to the distance measure)
+  private val maxDistance: Double = 1.0
+
+  // Maximum number of indices for each path value. Additional indices will be cropped.
+  private val maxIndices: Int = 5
 
   override def generator(inputs: DPair[DataSource], linkSpec: LinkSpec, paths: Seq[DPair[TypedPath]], randomSeed: Long)
                         (implicit prefixes: Prefixes): Activity[UnlabeledLinkPool] = {
@@ -39,16 +49,16 @@ class IndexLinkPoolGenerator extends LinkPoolGenerator {
 
     private val runtimeConfig = RuntimeLinkingConfig(partitionSize = 100, useFileCache = false, generateLinksWithEntities = true)
 
-    private val fullEntitySchema = entitySchema(linkSpec, paths)
+    private val fullEntitySchema = LinkPoolGeneratorUtils.entitySchema(linkSpec, paths)
 
     override def run(context: ActivityContext[UnlabeledLinkPool])(implicit userContext: UserContext): Unit = {
       implicit val random: Random = new Random(randomSeed)
 
       context.status.update("Loading source dataset", 0.1)
-      val sourceCaches = loadCaches(inputs.source, fullEntitySchema.source, "source")
+      val sourceCaches = loadCaches(inputs.source, fullEntitySchema.source, sourceOrTarget = true)
 
       context.status.update("Loading target dataset", 0.2)
-      val targetCaches = loadCaches(inputs.target, fullEntitySchema.target, "target")
+      val targetCaches = loadCaches(inputs.target, fullEntitySchema.target, sourceOrTarget = false)
 
       context.status.update("Finding candidates", 0.3)
       val links = new mutable.LinkedHashSet[Link]
@@ -60,16 +70,17 @@ class IndexLinkPoolGenerator extends LinkPoolGenerator {
         findLinks(sourceCache, sourceIndex, targetCache, targetIndex, links)
       }
 
-      context.value() = UnlabeledLinkPool(fullEntitySchema, shuffleLinks(links.toSeq))
+      val shuffledLinks = if(shuffleLinks) LinkPoolGeneratorUtils.shuffleLinks(links.toSeq) else links.toSeq
+      context.value() = UnlabeledLinkPool(fullEntitySchema, shuffledLinks)
     }
 
     /**
       * Given an entity schema, loads a separate cache for each of its paths
       */
-    def loadCaches(input: DataSource, entitySchema: EntitySchema, name: String)(implicit userContext: UserContext, random: Random): Seq[EntityCache] = {
+    def loadCaches(input: DataSource, entitySchema: EntitySchema, sourceOrTarget: Boolean)(implicit userContext: UserContext, random: Random): Seq[EntityCache] = {
       val caches =
         for(pathIndex <- entitySchema.typedPaths.indices) yield {
-          def indexFunction(e: Entity) = Index.oneDim(normalize(e.evaluate(pathIndex)).map(_.hashCode).toSet)
+          def indexFunction(e: Entity): Index = distanceMeasure.index(normalize(e.evaluate(pathIndex)), limit = maxDistance, sourceOrTarget = false).crop(maxIndices)
           val cache = new MemoryEntityCache(entitySchema, indexFunction, runtimeConfig)
           cache
         }
@@ -103,9 +114,9 @@ class IndexLinkPoolGenerator extends LinkPoolGenerator {
 
         val entityPairs = runtimeConfig.executionMethod.comparisonPairs(sourcePartition, targetPartition, full = true)
         for (entityPair <- entityPairs if count < maxLinksPerPathPair) {
-          val sourceValues = normalize(entityPair.source.evaluate(sourceIndex)).toSet
-          val targetValues = normalize(entityPair.target.evaluate(targetIndex)).toSet
-          if(sourceValues.exists(targetValues.contains)) {
+          val sourceValues = normalize(entityPair.source.evaluate(sourceIndex))
+          val targetValues = normalize(entityPair.target.evaluate(targetIndex))
+          if(distanceMeasure(sourceValues, targetValues) <= maxDistance) {
             links.add(new LinkWithEntities(entityPair.source.uri, entityPair.target.uri, entityPair))
             count += 1
           }
