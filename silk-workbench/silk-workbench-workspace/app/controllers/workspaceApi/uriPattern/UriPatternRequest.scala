@@ -14,7 +14,13 @@ case class UriPatternRequest(@ArraySchema(
                                description = "The project ID.",
                                required = true,
                                implementation = classOf[String])
-                             projectId: String)
+                             projectId: String,
+                             @Schema(
+                               description = "When unique values are requested each URI pattern will only appear once even when found for different type URIs.",
+                               required = false,
+                               defaultValue = "false",
+                               implementation = classOf[Boolean])
+                             uniqueValues: Option[Boolean] = Some(false))
 
 object UriPatternRequest {
   implicit val uriPatternRequestFormat: Format[UriPatternRequest] = Json.format[UriPatternRequest]
