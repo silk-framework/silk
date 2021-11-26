@@ -59,7 +59,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                 : "common.dataTypes.project"
         );
         setDeleteModalOptions({
-            render: () => <Loading description={t("Deletedialog.loading", "Loading delete dialog.")} />,
+            render: () => <Loading description={t("Deletedialog.loading", "Loading delete dialog.")} delay={0} />,
             onConfirm: handleConfirmRemove(false),
         });
         const deleteTitle = t("common.action.DeleteSmth", {

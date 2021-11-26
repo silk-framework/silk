@@ -165,7 +165,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
     };
 
     if (loading) {
-        return <Loading />;
+        return <Loading delay={0} />;
     }
 
     const modalTitle = item.id ? t("common.action.CopyItems") : t("common.action.CopyProject");

@@ -376,7 +376,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     };
 
     const dialogItem = loading ? (
-        <Loading />
+        <Loading delay={0} />
     ) : projectDetailsError !== null ? (
         errorRetryElement(
             "Failed to retrieve project import details. " + projectDetailsError,

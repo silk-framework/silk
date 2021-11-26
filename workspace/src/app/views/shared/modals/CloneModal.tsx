@@ -75,7 +75,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
     };
 
     return loading ? (
-        <Loading />
+        <Loading delay={0} />
     ) : (
         <SimpleDialog
             data-test-id={"clone-item-to-modal"}

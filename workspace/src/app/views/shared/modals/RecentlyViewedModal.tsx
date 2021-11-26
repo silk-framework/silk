@@ -224,7 +224,7 @@ export function RecentlyViewedModal() {
             title={t("RecentlyViewedModal.title")}
             actions={<Button onClick={close}>{t("common.action.close")}</Button>}
         >
-            {loading ? <Loading /> : error ? errorView(error) : recentlyViewedAutoCompletion()}
+            {loading ? <Loading delay={0} /> : error ? errorView(error) : recentlyViewedAutoCompletion()}
         </SimpleDialog>
     );
 }
