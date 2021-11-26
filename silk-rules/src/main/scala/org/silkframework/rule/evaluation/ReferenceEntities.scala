@@ -172,7 +172,7 @@ object ReferenceEntities {
      * Deserialize a value from XML.
      */
     override def read(implicit streamReader: XMLStreamReader, readContext: ReadContext): ReferenceEntities = {
-      val transformerFactory = TransformerFactory.newInstance("com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl", getClass.getClassLoader)
+      val transformerFactory = TransformerFactory.newInstance("org.apache.xalan.processor.TransformerFactoryImpl", getClass.getClassLoader)
       implicit val transformer: Transformer = transformerFactory.newTransformer
       placeOnStartTag("Pair")
       val entityDescs = readNextObject[DPair[EntitySchema]]
