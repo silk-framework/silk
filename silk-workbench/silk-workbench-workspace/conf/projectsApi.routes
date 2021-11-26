@@ -17,6 +17,7 @@ GET           /:projectId/failedTasksReport/:taskId                    controlle
 # Project Tasks
 #################
 
+GET           /:projectId/validateIdentifier                           controllers.projectApi.ProjectTaskApi.validateIdentifier(projectId: String, taskIdentifier:String)
 GET           /:projectId/tasks/:taskId/relatedItems                   controllers.projectApi.ProjectTaskApi.relatedItems(projectId: String, taskId: String, textQuery: Option[String] ?= None)
 GET           /:projectId/tasks/:taskId/links                          controllers.projectApi.ProjectTaskApi.itemLinks(projectId: String, taskId: String)
 GET           /:projectId/tasks/:taskId/itemInfo                       controllers.projectApi.ProjectTaskApi.itemInfo(projectId: String, taskId: String)
