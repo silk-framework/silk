@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.xml
 
-import org.apache.xalan.processor.TransformerFactoryImpl
+import org.apache.xalan.xsltc.trax.TransformerFactoryImpl
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{EntitySink, TypedProperty}
 import org.silkframework.entity.ValueType
@@ -84,6 +84,7 @@ class XmlSink(resource: WritableResource, outputTemplate: String) extends Entity
 
   override def close()(implicit userContext: UserContext): Unit = {
     val transformerFactory = new TransformerFactoryImpl() // We have to specify this here explicitly, else it will take the Saxon implementation
+    transformerFactory.setAttribute("indent-number", 2)
     val transformer = transformerFactory.newTransformer
 
     transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8")
