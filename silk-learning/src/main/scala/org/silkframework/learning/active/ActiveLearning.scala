@@ -18,6 +18,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.learning.active.linkselector.WeightedLinkageRule
+import org.silkframework.learning.active.poolgenerator.MatchingPathsFinder
 import org.silkframework.learning.cleaning.CleanPopulationTask
 import org.silkframework.learning.generation.{GeneratePopulation, LinkageRuleGenerator}
 import org.silkframework.learning.reproduction.{Randomize, Reproduction}
@@ -47,7 +48,7 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
     val linkSpec = task.data
     val datasets = task.dataSources
     val paths = getPaths()
-    val referenceEntities = getReferenceEntities()
+    val referenceEntities = getReferenceEntities(context)
     implicit val prefixes = task.project.config.prefixes
     implicit val projectResources = task.project.resources
 
@@ -60,7 +61,7 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
     val pool = updatePool(linkSpec, datasets, context, paths)
 
     // Create linkage rule generator
-    val generator = linkageRuleGenerator(context, referenceEntities)
+    val generator = linkageRuleGenerator(context)
 
     // Build initial population, if still empty
     buildPopulation(linkSpec, generator, context)
@@ -93,11 +94,20 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
   }
 
   // Retrieves reference entities
-  private def getReferenceEntities()(implicit userContext: UserContext) = {
+  private def getReferenceEntities(context: ActivityContext[ActiveLearningState])(implicit userContext: UserContext) = {
+    context.status.updateMessage("Waiting for reference entities cache")
     // Update reference entities cache
     val entitiesCache = task.activity[ReferenceEntitiesCache].control
-    entitiesCache.waitUntilFinished()
-    entitiesCache.startBlocking()
+    if(entitiesCache.status().isRunning) {
+      entitiesCache.waitUntilFinished()
+    }
+    try {
+      entitiesCache.startBlocking()
+    } catch {
+      case _: IllegalStateException =>
+        // Someone started the cache in the meantime
+        entitiesCache.waitUntilFinished()
+    }
 
     // Check if all links have been loaded
     val referenceEntities = entitiesCache.value()
@@ -117,7 +127,7 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
 
     // Build unlabeled pool
     val poolPaths = context.value().pool.entityDescs.map(_.typedPaths)
-    if(context.value().pool.isEmpty || poolPaths != paths) {
+    if(context.value().pool.isEmpty) {
       context.status.updateMessage("Loading pool")
       val pathPairs = generatePathPairs(paths)
       val generator = config.active.linkPoolGenerator.generator(datasets, linkSpec, pathPairs, random.nextLong())
@@ -126,6 +136,9 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
       if (pool.links.isEmpty) {
         throw new LearningException("Could not find any link candidates. Learning is not possible on this dataset(s).")
       }
+
+      // Find matching paths
+      context.value.updateWith(_.copy(comparisonPaths = MatchingPathsFinder(pool.links)))
     }
 
     // Assert that no reference links are in the pool
@@ -149,14 +162,18 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
     }
   }
 
-  private def linkageRuleGenerator(context: ActivityContext[ActiveLearningState],
-                                   referenceEntities: ReferenceEntities)
+  private def linkageRuleGenerator(context: ActivityContext[ActiveLearningState])
                                   (implicit prefixes: Prefixes, resourceManager: ResourceManager): LinkageRuleGenerator = {
-    val generator = Timer("LinkageRuleGenerator") {
-      LinkageRuleGenerator(referenceEntities merge ReferenceEntities.fromEntities(context.value().pool.links.map(_.entities.get), Nil), config.components)
+
+
+    if(context.value().generator.isEmpty) {
+      val generator = LinkageRuleGenerator(context.value().comparisonPaths, config.components)
+      context.value() = context.value().copy(generator = generator)
     }
-    context.value() = context.value().copy(generator = generator)
-    generator
+    context.value().generator
+//    val generator = Timer("LinkageRuleGenerator") {
+//      LinkageRuleGenerator(referenceEntities merge ReferenceEntities.fromEntities(context.value().pool.links.map(_.entities.get), Nil), config.components)
+//    }
   }
 
   private def buildPopulation(linkSpec: LinkSpec,

@@ -15,6 +15,7 @@
 package org.silkframework.learning.active.linkselector
 
 import org.silkframework.entity.Link
+import org.silkframework.learning.active.LinkCandidate
 import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.evaluation.ReferenceEntities
 
@@ -29,23 +30,23 @@ import scala.util.Random
  */
 case class KullbackLeiblerDivergenceSelector(normalize: Boolean = false) extends LinkSelector {
 
-  override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities)(implicit random: Random): Seq[Link] = {
+  override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[LinkCandidate], referenceEntities: ReferenceEntities)(implicit random: Random): Seq[LinkCandidate] = {
     val proj = projection(rules, referenceEntities)
 
     val positiveLinks = referenceEntities.positiveEntities map LinkSelectorHelper.pairToLink
     val negativeLinks = referenceEntities.negativeEntities map LinkSelectorHelper.pairToLink
 
     val unlabeled = unlabeledLinks.map(proj)
-    val positive = positiveLinks.map(proj)
-    val negative = negativeLinks.map(proj)
+    val positive = positiveLinks.map(LinkCandidate.fromLink).map(proj)
+    val negative = negativeLinks.map(LinkCandidate.fromLink).map(proj)
 
     val rank = ranking(rules, unlabeled, positive, negative)
-    val rankedLinks = unlabeled.map(l => l.link.update(confidence = Some(rank(l))))
+    val rankedLinks = unlabeled.map(l => l.link.withConfidence(rank(l)))
 
     rankedLinks.sortBy(-_.confidence.get).take(3)
   }
 
-  private def projection(rules: Seq[WeightedLinkageRule], referenceEntities: ReferenceEntities): (Link => ProjLink) = {
+  private def projection(rules: Seq[WeightedLinkageRule], referenceEntities: ReferenceEntities): (LinkCandidate => ProjLink) = {
     new KullbackLeiblerDivergence(rules)
   }
 
@@ -53,9 +54,9 @@ case class KullbackLeiblerDivergenceSelector(normalize: Boolean = false) extends
     new Ranking(rules, unlabeled, positive, negative)
   }
 
-  private class KullbackLeiblerDivergence(rules: Seq[WeightedLinkageRule]) extends (Link => ProjLink) {
+  private class KullbackLeiblerDivergence(rules: Seq[WeightedLinkageRule]) extends (LinkCandidate => ProjLink) {
     
-    def apply(link: Link): ProjLink = {
+    def apply(link: LinkCandidate): ProjLink = {
       /** The consensus probability that this link is correct */
       val q = rules.map(probability(_, link)).sum / rules.size
 
@@ -96,7 +97,7 @@ case class KullbackLeiblerDivergenceSelector(normalize: Boolean = false) extends
     }
   }
 
-  private class ProjLink(val link: Link, val vector: Seq[Double])
+  private class ProjLink(val link: LinkCandidate, val vector: Seq[Double])
 }
 
 

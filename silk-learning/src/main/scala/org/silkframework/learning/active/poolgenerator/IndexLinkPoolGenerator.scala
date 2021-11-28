@@ -5,9 +5,10 @@ import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.entity.paths.TypedPath
-import org.silkframework.learning.active.UnlabeledLinkPool
+import org.silkframework.learning.active
+import org.silkframework.learning.active.{LinkCandidate, MatchingValues, UnlabeledLinkPool}
 import org.silkframework.rule.plugins.distance.characterbased.LevenshteinDistance
-import org.silkframework.rule.similarity.DistanceMeasure
+import org.silkframework.rule.similarity.SimpleDistanceMeasure
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.util.DPair
@@ -19,7 +20,7 @@ import scala.util.Random
   * Link Pool Generator that generates link candidates based indices.
   * Uses separate entity caches for each path in each data source and matches all combinations of caches between both data sources.
   */
-class IndexLinkPoolGenerator(shuffleLinks: Boolean = true) extends LinkPoolGenerator {
+class IndexLinkPoolGenerator() extends LinkPoolGenerator {
 
   // Load this many entities from each data source
   private val maxEntities = 10000
@@ -28,7 +29,8 @@ class IndexLinkPoolGenerator(shuffleLinks: Boolean = true) extends LinkPoolGener
   private val maxLinksPerPathPair = 1000
 
   // Distance measure that will be used for comparing values
-  private val distanceMeasure: DistanceMeasure = LevenshteinDistance()
+  // TODO also use numeric measure?
+  private val distanceMeasure: SimpleDistanceMeasure = LevenshteinDistance()
 
   // Link candidates will be generated for values closer than the max distance (according to the distance measure)
   private val maxDistance: Double = 1.0
@@ -52,6 +54,14 @@ class IndexLinkPoolGenerator(shuffleLinks: Boolean = true) extends LinkPoolGener
     private val fullEntitySchema = LinkPoolGeneratorUtils.entitySchema(linkSpec, paths)
 
     override def run(context: ActivityContext[UnlabeledLinkPool])(implicit userContext: UserContext): Unit = {
+      val linkCandidates = findLinkCandidates(context)
+      context.status.update("Weighting link candidates", 0.9)
+      val weightedCandidates = weightLinkCandidates(linkCandidates)
+      context.value() = UnlabeledLinkPool(fullEntitySchema, weightedCandidates.toSeq)
+    }
+
+    private def findLinkCandidates(context: ActivityContext[UnlabeledLinkPool])
+                                  (implicit userContext: UserContext): Iterable[LinkCandidate] = {
       implicit val random: Random = new Random(randomSeed)
 
       context.status.update("Loading source dataset", 0.1)
@@ -60,24 +70,22 @@ class IndexLinkPoolGenerator(shuffleLinks: Boolean = true) extends LinkPoolGener
       context.status.update("Loading target dataset", 0.2)
       val targetCaches = loadCaches(inputs.target, fullEntitySchema.target, sourceOrTarget = false)
 
-      context.status.update("Finding candidates", 0.3)
-      val links = new mutable.LinkedHashSet[Link]
+      context.status.update("Finding link candidates", 0.3)
+      val links = new mutable.HashMap[DPair[String], LinkCandidate]()
       for {
         (sourceCache, sourceIndex) <- sourceCaches.zipWithIndex
         (targetCache, targetIndex) <- targetCaches.zipWithIndex
       } {
-        context.status.updateProgress(0.3 + 0.7 * (sourceIndex * targetCaches.size + targetIndex).toDouble / (sourceCaches.size * targetCaches.size).toDouble, logStatus = false)
+        context.status.updateProgress(0.3 + 0.6 * (sourceIndex * targetCaches.size + targetIndex).toDouble / (sourceCaches.size * targetCaches.size).toDouble, logStatus = false)
         findLinks(sourceCache, sourceIndex, targetCache, targetIndex, links)
       }
-
-      val shuffledLinks = if(shuffleLinks) LinkPoolGeneratorUtils.shuffleLinks(links.toSeq) else links.toSeq
-      context.value() = UnlabeledLinkPool(fullEntitySchema, shuffledLinks)
+      links.values
     }
 
     /**
       * Given an entity schema, loads a separate cache for each of its paths
       */
-    def loadCaches(input: DataSource, entitySchema: EntitySchema, sourceOrTarget: Boolean)(implicit userContext: UserContext, random: Random): Seq[EntityCache] = {
+    private def loadCaches(input: DataSource, entitySchema: EntitySchema, sourceOrTarget: Boolean)(implicit userContext: UserContext, random: Random): Seq[EntityCache] = {
       val caches =
         for(pathIndex <- entitySchema.typedPaths.indices) yield {
           def indexFunction(e: Entity): Index = distanceMeasure.index(normalize(e.evaluate(pathIndex)), limit = maxDistance, sourceOrTarget = false).crop(maxIndices)
@@ -100,7 +108,8 @@ class IndexLinkPoolGenerator(shuffleLinks: Boolean = true) extends LinkPoolGener
       * Finds links between two sequences of entity caches.
       * Each cache contains entities indexed by a single path.
       */
-    def findLinks(sourceCache: EntityCache, sourceIndex: Int, targetCache: EntityCache, targetIndex: Int, links: mutable.Set[Link]): Unit = {
+    private def findLinks(sourceCache: EntityCache, sourcePathIndex: Int, targetCache: EntityCache, targetPathIndex: Int,
+                          links: mutable.Map[DPair[String], LinkCandidate]): Int = {
       var count = 0
       for {
         sourceBlock <- 0 until sourceCache.blockCount
@@ -114,22 +123,65 @@ class IndexLinkPoolGenerator(shuffleLinks: Boolean = true) extends LinkPoolGener
 
         val entityPairs = runtimeConfig.executionMethod.comparisonPairs(sourcePartition, targetPartition, full = true)
         for (entityPair <- entityPairs if count < maxLinksPerPathPair) {
-          val sourceValues = normalize(entityPair.source.evaluate(sourceIndex))
-          val targetValues = normalize(entityPair.target.evaluate(targetIndex))
-          if(distanceMeasure(sourceValues, targetValues) <= maxDistance) {
-            links.add(new LinkWithEntities(entityPair.source.uri, entityPair.target.uri, entityPair))
-            count += 1
+          val entityUris = DPair(entityPair.source.uri.uri, entityPair.target.uri.uri)
+          val sourceValues = normalize(entityPair.source.evaluate(sourcePathIndex))
+          val targetValues = normalize(entityPair.target.evaluate(targetPathIndex))
+          for {
+            sourceValue <- sourceValues
+            targetValue <- targetValues
+          } {
+            if (distanceMeasure.evaluate(sourceValue, targetValue) <= maxDistance) {
+              val matchingPair = MatchingValues(sourcePathIndex, targetPathIndex, sourceValue, targetValue)
+              // Either update an existing link candidate for the same entities or create a new one
+              val linkCandidate =
+                links.get(entityUris) match {
+                  case Some(link) =>
+                    link.withMatch(matchingPair)
+                  case None =>
+                    active.LinkCandidate(entityPair.source, entityPair.target, Seq(matchingPair))
+                }
+              links.put(entityUris, linkCandidate)
+              count += 1
+            }
           }
         }
       }
+      count
     }
 
     /**
       * Normalizes values before they are indexed and matched.
       */
     @inline
-    def normalize(values: Seq[String]): Seq[String] = {
+    private def normalize(values: Seq[String]): Seq[String] = {
       values.map(_.toLowerCase)
+    }
+
+    private def weightLinkCandidates(linkCandidates: Traversable[LinkCandidate]): Traversable[LinkCandidate] = {
+      // TODO make more efficient
+      val sourceFrequencies = frequency(linkCandidates.flatMap(_.matchingValues.map(_.normalizedSourceValue)))
+      val targetFrequencies = frequency(linkCandidates.flatMap(_.matchingValues.map(_.normalizedTargetValue)))
+
+      // TODO remove
+      //val filterted = linkCandidates.filter(_.matchingValues.exists(_.normalizedSourceValue == "mimikatz"))
+      //println(filterted)
+
+      for(linkCandidate <- linkCandidates) yield {
+        val scoredMatchingValues =
+          for(matchingValues <- linkCandidate.matchingValues) yield {
+            val score =  1.0 / (math.pow(sourceFrequencies(matchingValues.normalizedSourceValue), 2.0) + math.pow(targetFrequencies(matchingValues.normalizedTargetValue), 2.0))
+            matchingValues.copy(score = score)
+          }
+        linkCandidate.copy(matchingValues = scoredMatchingValues, confidence = Some(scoredMatchingValues.map(_.score).sum))
+      }
+    }
+
+    private def frequency(values: Traversable[String]): mutable.Map[String, Int] = {
+      val map = mutable.Map[String, Int]()
+      for(value <- values) {
+        map.put(value, map.getOrElse(value, 0) + 1)
+      }
+      map
     }
   }
 }

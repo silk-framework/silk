@@ -3,14 +3,14 @@ package org.silkframework.learning.active.poolgenerator
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.{DataSource, DatasetSpec, EmptyDataset, EntityDatasource}
-import org.silkframework.entity.{Entity, EntitySchema, Link, ValueType}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity.{Entity, EntitySchema, Link, ValueType}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.plugins.distance.characterbased.LevenshteinDistance
-import org.silkframework.runtime.activity.{Activity, TestUserContextTrait}
+import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.util.DPair
 
-class IndexLinkPoolGeneratorTest extends FlatSpec with Matchers with TestUserContextTrait {
+class IndexLinkPoolGeneratorTest extends FlatSpec with Matchers {
 
   behavior of "IndexLinkPoolGenerator"
 
@@ -26,6 +26,7 @@ class IndexLinkPoolGeneratorTest extends FlatSpec with Matchers with TestUserCon
   private val dummyTask = PlainTask("dataset", DatasetSpec(EmptyDataset))
 
   private implicit val prefixes: Prefixes = Prefixes.empty
+  private implicit def userContext: UserContext = UserContext.Empty
 
   it should "generate link candidates for all entities with similar values" in {
     val sourceValues = Seq(
@@ -56,7 +57,7 @@ class IndexLinkPoolGeneratorTest extends FlatSpec with Matchers with TestUserCon
 
   private def generateLinkCandidates(sourceValues: Seq[String], targetValues: Seq[String]): Seq[Link] = {
     val sources = DPair(createSource(sourceValues), createSource(targetValues))
-    val generator = new IndexLinkPoolGenerator(shuffleLinks = false)
+    val generator = new IndexLinkPoolGenerator()
     val generatorActivity = generator.generator(sources, LinkSpec(), schema.typedPaths.map(p => DPair.fill[TypedPath](p)), randomSeed = 0)
     val pool = Activity(generatorActivity).startBlockingAndGetValue()
     pool.links

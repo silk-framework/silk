@@ -1,7 +1,8 @@
 package org.silkframework.learning.active.poolgenerator
 
-import org.silkframework.entity.{EntitySchema, Link, LinkWithEntities}
+import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.TypedPath
+import org.silkframework.learning.active.LinkCandidate
 import org.silkframework.rule.LinkSpec
 import org.silkframework.util.DPair
 
@@ -18,9 +19,9 @@ private object LinkPoolGeneratorUtils {
   /**
     * Enriches a sequence of links with new links by recombining the linked entities.
     */
-  def shuffleLinks(links: Seq[Link]): Seq[Link] = {
+  def shuffleLinks(links: Seq[LinkCandidate]): Seq[LinkCandidate] = {
     if(links.nonEmpty) {
-      val shuffledLinks = for ((s, t) <- links zip (links.tail :+ links.head)) yield new LinkWithEntities(s.source, t.target, DPair(s.entities.get.source, t.entities.get.target))
+      val shuffledLinks = for ((s, t) <- links zip (links.tail :+ links.head)) yield LinkCandidate(s.sourceEntity, t.targetEntity)
       links ++ shuffledLinks
     } else {
       links

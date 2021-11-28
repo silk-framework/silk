@@ -3,7 +3,7 @@ package org.silkframework.learning.active.poolgenerator
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.paths.TypedPath
-import org.silkframework.learning.active.UnlabeledLinkPool
+import org.silkframework.learning.active.{LinkCandidate, UnlabeledLinkPool}
 import org.silkframework.learning.active.poolgenerator.LinkPoolGeneratorUtils._
 import org.silkframework.rule.execution.GenerateLinks
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
@@ -34,7 +34,7 @@ class LinkSpecLinkPoolGenerator(maxLinks: Int = LinkSpecLinkPoolGenerator.defaul
         override def entityDescs = entitySchemata
       }
 
-      val links = context.child(generateLinks, 1.0).startBlockingAndGetValue().links
+      val links = context.child(generateLinks, 1.0).startBlockingAndGetValue().links.map(LinkCandidate.fromLink)
 
       context.value() = UnlabeledLinkPool(linkSpec.entityDescriptions, shuffleLinks(links))
     }

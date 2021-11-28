@@ -1,10 +1,9 @@
 package controllers.linking
 
 import java.util.logging.Logger
-
 import models.linking.LinkCandidateDecision
 import org.silkframework.entity.{Link, MinimalLink}
-import org.silkframework.learning.active.ActiveLearning
+import org.silkframework.learning.active.{ActiveLearning, LinkCandidate}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.ProjectTask
@@ -24,7 +23,7 @@ object ActiveLearningIterator {
     *                    If true, a new active learning is started in every iteration. This is slower, but deterministic.
     */
   def nextActiveLearnCandidate(decision: String, linkSource: String, linkTarget: String, task: ProjectTask[LinkSpec], synchronous: Boolean = false)
-                              (implicit userContext: UserContext): Option[Link] = {
+                              (implicit userContext: UserContext): Option[LinkCandidate] = {
     val activeLearn = task.activity[ActiveLearning].control
     // Try to find the chosen link candidate in the pool, because the pool links have entities attached
     val linkCandidate = activeLearn.value().pool.links.find(l => l.source == linkSource && l.target == linkTarget) match {
