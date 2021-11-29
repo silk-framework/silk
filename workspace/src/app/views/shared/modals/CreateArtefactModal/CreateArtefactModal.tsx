@@ -210,6 +210,7 @@ export function CreateArtefactModal() {
                         )
                     );
                 } else {
+                    !projectId && currentProject && dispatch(commonOp.setProjectId(currentProject.id));
                     await dispatch(commonOp.createArtefactAsync(form.getValues(), taskType(selectedArtefactKey)));
                 }
             } else {
