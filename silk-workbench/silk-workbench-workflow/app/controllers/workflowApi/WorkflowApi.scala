@@ -7,6 +7,7 @@ import controllers.util.ProjectUtils.getProjectAndTask
 import controllers.workflowApi.doc.WorkflowApiDoc
 import controllers.workflowApi.variableWorkflow.VariableWorkflowRequestUtils
 import controllers.workflowApi.workflow.{WorkflowInfo, WorkflowNodePortConfig, WorkflowNodesPortConfig}
+import controllers.workspace.activityApi.StartActivityResponse
 import controllers.workspaceApi.search.ItemType
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
@@ -16,6 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.CustomTask
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
+import org.silkframework.workspace.activity.TaskActivity
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.http.HttpEntity
 import play.api.libs.json.Json
@@ -225,14 +227,39 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
     val (workflowConfig, mimeTypeOpt) = VariableWorkflowRequestUtils.queryStringToWorkflowConfig(project, workflowTask)
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
     val id = activity.startBlocking(workflowConfig)
-    if(mimeTypeOpt.isDefined) {
-      val outputResource = activity.instance(id).value().resourceManager.get(VariableWorkflowRequestUtils.OUTPUT_FILE_RESOURCE_NAME, mustExist = true)
-      Result(
-        header = ResponseHeader(OK, Map.empty),
-        body = HttpEntity.Strict(ByteString(outputResource.loadAsBytes), mimeTypeOpt)
-      )
-    } else {
-      NoContent
+    getResult(activity, id, mimeTypeOpt)
+  }
+
+  def executeVariableWorkflowAsync(projectName: String,
+                                   workflowTaskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
+    val (workflowConfig, mimeTypeOpt) = VariableWorkflowRequestUtils.queryStringToWorkflowConfig(project, workflowTask)
+    val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
+    val id = activity.start(workflowConfig)
+    val result = StartActivityResponse(activity.name, id)
+    Created(Json.toJson(result))
+  }
+
+  def variableWorkflowAsyncResult(projectName: String,
+                                  workflowTaskName: String,
+                                  instanceId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
+    val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
+    val mimeType = VariableWorkflowRequestUtils.findAcceptedMimeType()
+
+    getResult(activity, instanceId, Some(mimeType))
+  }
+
+  private def getResult(activity: TaskActivity[Workflow, WorkflowWithPayloadExecutor], instanceId: String, mediaType: Option[String])(implicit request: Request[_]) = {
+    mediaType match {
+      case Some(mimeType) =>
+        val outputResource = activity.instance(instanceId).value().resourceManager.get(VariableWorkflowRequestUtils.OUTPUT_FILE_RESOURCE_NAME, mustExist = true)
+        Result(
+          header = ResponseHeader(OK, Map.empty),
+          body = HttpEntity.Strict(ByteString(outputResource.loadAsBytes), Some(mimeType))
+        )
+      case None =>
+        NoContent
     }
   }
 

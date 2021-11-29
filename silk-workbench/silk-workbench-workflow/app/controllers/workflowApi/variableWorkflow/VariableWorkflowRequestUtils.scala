@@ -7,7 +7,7 @@ import org.silkframework.workbench.utils.{NotAcceptableException, UnsupportedMed
 import org.silkframework.workspace.Project
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.libs.json._
-import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded, AnyContentAsJson, AnyContentAsRaw, AnyContentAsXml, Request}
+import play.api.mvc._
 
 import scala.io.Source
 
@@ -115,8 +115,7 @@ object VariableWorkflowRequestUtils {
       throw BadUserInputException(s"Workflow task '${workflowTask.label()}' must contain at most one variable data source " +
           s"and one variable output dataset. Instead it has ${variableDatasets.dataSources.size} variable sources and ${variableDatasets.sinks.size} variable sinks.")
     }
-    val mediaType = request.mediaType map { mt =>
-      val mediaType = mt.mediaType + "/" + mt.mediaSubType
+    val mediaType = request.contentType map { mediaType =>
       if(!validMediaTypes.contains(mediaType)) {
         throwUnsupportedMediaType(mediaType)
       }
@@ -171,6 +170,16 @@ object VariableWorkflowRequestUtils {
         JsString(content)
       case _ =>
         throwUnsupportedMediaType(request.contentType.getOrElse("-none-"))
+    }
+  }
+
+  def findAcceptedMimeType()(implicit request: Request[_]): String = {
+    val mimeTypeOpt = acceptedMimeType.find(mimeType => request.accepts(mimeType))
+    mimeTypeOpt match {
+      case Some(mimeType) =>
+        mimeType
+      case None =>
+        throwUnsupportedMediaType(request.acceptedTypes.mkString("'", " , ", "'"))
     }
   }
 
