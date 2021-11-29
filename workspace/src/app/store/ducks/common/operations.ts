@@ -190,7 +190,7 @@ const createArtefactAsync = (formData, taskType: TaskType | "Project") => {
 const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: TaskType) => {
     return async (dispatch, getState) => {
         const currentProjectId = commonSel.currentProjectIdSelector(getState());
-        const { label, description, ...restFormData } = formData;
+        const { label, description, id, ...restFormData } = formData;
         const requestData = buildTaskObject(restFormData);
         const metadata = {
             label,
@@ -199,6 +199,7 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: TaskT
 
         const payload = {
             metadata,
+            id,
             data: {
                 taskType: taskType,
                 type: artefactId,
