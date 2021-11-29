@@ -18,7 +18,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.learning.active.linkselector.WeightedLinkageRule
-import org.silkframework.learning.active.poolgenerator.MatchingPathsFinder
+import org.silkframework.learning.active.poolgenerator.ComparisonPathsGenerator
 import org.silkframework.learning.cleaning.CleanPopulationTask
 import org.silkframework.learning.generation.{GeneratePopulation, LinkageRuleGenerator}
 import org.silkframework.learning.reproduction.{Randomize, Reproduction}
@@ -126,7 +126,6 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
     var pool = context.value().pool
 
     // Build unlabeled pool
-    val poolPaths = context.value().pool.entityDescs.map(_.typedPaths)
     if(context.value().pool.isEmpty) {
       context.status.updateMessage("Loading pool")
       val pathPairs = generatePathPairs(paths)
@@ -138,7 +137,7 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
       }
 
       // Find matching paths
-      context.value.updateWith(_.copy(comparisonPaths = MatchingPathsFinder(pool.links)))
+      context.value.updateWith(_.copy(comparisonPaths = ComparisonPathsGenerator(pool.links, linkSpec)))
     }
 
     // Assert that no reference links are in the pool
@@ -171,9 +170,6 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
       context.value() = context.value().copy(generator = generator)
     }
     context.value().generator
-//    val generator = Timer("LinkageRuleGenerator") {
-//      LinkageRuleGenerator(referenceEntities merge ReferenceEntities.fromEntities(context.value().pool.links.map(_.entities.get), Nil), config.components)
-//    }
   }
 
   private def buildPopulation(linkSpec: LinkSpec,

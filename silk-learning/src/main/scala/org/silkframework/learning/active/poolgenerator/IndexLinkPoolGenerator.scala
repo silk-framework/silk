@@ -25,11 +25,11 @@ class IndexLinkPoolGenerator() extends LinkPoolGenerator {
   // Load this many entities from each data source
   private val maxEntities = 10000
 
-  // For each pair of paths, generate at most that many links that have matching values for the given paths.
+  // For each pair of paths, generate at most that many link candidates that have matching values for the given paths.
   private val maxLinksPerPathPair = 1000
 
   // Distance measure that will be used for comparing values
-  // TODO also use numeric measure?
+  // At the moment, we are always using the levenshtein distance, but this could be extended to use other measures, such as the numeric distance.
   private val distanceMeasure: SimpleDistanceMeasure = LevenshteinDistance()
 
   // Link candidates will be generated for values closer than the max distance (according to the distance measure)
@@ -158,14 +158,20 @@ class IndexLinkPoolGenerator() extends LinkPoolGenerator {
     }
 
     private def weightLinkCandidates(linkCandidates: Traversable[LinkCandidate]): Traversable[LinkCandidate] = {
-      // TODO make more efficient
-      val sourceFrequencies = frequency(linkCandidates.flatMap(_.matchingValues.map(_.normalizedSourceValue)))
-      val targetFrequencies = frequency(linkCandidates.flatMap(_.matchingValues.map(_.normalizedTargetValue)))
+      // Compute value frequencies
+      val sourceFrequencies = mutable.Map[String, Int]()
+      val targetFrequencies = mutable.Map[String, Int]()
+      for {
+        linkCandidate <- linkCandidates
+        matchingValues <- linkCandidate.matchingValues
+      } {
+        val sourceValue = matchingValues.normalizedSourceValue
+        val targetValue = matchingValues.normalizedTargetValue
+        sourceFrequencies.put(sourceValue, sourceFrequencies.getOrElse(sourceValue, 0) + 1)
+        targetFrequencies.put(targetValue, targetFrequencies.getOrElse(targetValue, 0) + 1)
+      }
 
-      // TODO remove
-      //val filterted = linkCandidates.filter(_.matchingValues.exists(_.normalizedSourceValue == "mimikatz"))
-      //println(filterted)
-
+      // Update scores
       for(linkCandidate <- linkCandidates) yield {
         val scoredMatchingValues =
           for(matchingValues <- linkCandidate.matchingValues) yield {
@@ -174,14 +180,6 @@ class IndexLinkPoolGenerator() extends LinkPoolGenerator {
           }
         linkCandidate.copy(matchingValues = scoredMatchingValues, confidence = Some(scoredMatchingValues.map(_.score).sum))
       }
-    }
-
-    private def frequency(values: Traversable[String]): mutable.Map[String, Int] = {
-      val map = mutable.Map[String, Int]()
-      for(value <- values) {
-        map.put(value, map.getOrElse(value, 0) + 1)
-      }
-      map
     }
   }
 }

@@ -6,7 +6,7 @@ import org.silkframework.dataset.{DatasetSpec, EmptyDataset, EntityDatasource}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema, Link, ValueType}
 import org.silkframework.learning.active.linkselector.MaximumConfidenceSelector
-import org.silkframework.learning.active.poolgenerator.{IndexLinkPoolGenerator, MatchingPathsFinder}
+import org.silkframework.learning.active.poolgenerator.{IndexLinkPoolGenerator, ComparisonPathsGenerator}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.ReferenceEntities
 import org.silkframework.runtime.activity.{Activity, UserContext}
@@ -64,7 +64,7 @@ class LinkCandidatesRankingIntegrationTest extends FlatSpec with Matchers {
   private implicit val prefixes: Prefixes = Prefixes.empty
   private implicit def userContext: UserContext = UserContext.Empty
 
-  "MaximumSimilaritySelector" should "select link candidates which are the most similar according to TF/IDF" in {
+  "ActiveLearning" should "rank link candidates and comparison pairs" in {
     implicit val random: Random = new Random(0)
 
     // Generate link candidates from entities
@@ -82,7 +82,7 @@ class LinkCandidatesRankingIntegrationTest extends FlatSpec with Matchers {
     sortedCandidates(1).confidence shouldBe > (sortedCandidates(2).confidence)
 
     // Find matching paths
-    val matchingPaths = MatchingPathsFinder(linkCandidates)
+    val matchingPaths = ComparisonPathsGenerator(linkCandidates, LinkSpec())
     matchingPaths shouldBe expectedPathPairs
   }
 }
