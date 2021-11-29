@@ -20,4 +20,5 @@ export const INPUT_TYPES = {
     RESOURCE: "resource",
     OBJECT: "objectParameter",
     TARGET_VOCABULARY: "targetVocabularies",
+    IDENTIFIER: "identifier",
 };

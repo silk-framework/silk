@@ -222,6 +222,7 @@ export function CreateArtefactModal() {
                 form={form}
                 artefact={updateExistingTask.taskPluginDetails}
                 projectId={updateExistingTask.projectId}
+                taskId={updateExistingTask.taskId}
                 updateTask={{ parameterValues: updateExistingTask.currentParameterValues }}
             />
         );

@@ -14,6 +14,8 @@ import { useTranslation } from "react-i18next";
 import { DefaultTargetVocabularySelection } from "../../../TargetVocabularySelection/DefaultTargetVocabularySelection";
 
 interface IProps {
+    disabled?: boolean;
+    inputButton?: JSX.Element | undefined;
     projectId: string;
     parameter: ITaskParameter;
     // Blueprint intent
@@ -42,7 +44,7 @@ export interface IInputAttributes {
 }
 
 /** Maps an atomic value to the corresponding value type widget. */
-export function InputMapper({ projectId, parameter, intent, onChange, initialValues }: IProps) {
+export function InputMapper({ projectId, parameter, intent, onChange, initialValues, disabled, inputButton }: IProps) {
     const [t] = useTranslation();
     const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
     const { paramId, param } = parameter;
@@ -124,6 +126,6 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
         case INPUT_TYPES.OPTION_INT:
         case INPUT_TYPES.STRING:
         default:
-            return <TextField {...inputAttributes} />;
+            return <TextField {...inputAttributes} disabled={disabled} rightElement={inputButton} />;
     }
 }

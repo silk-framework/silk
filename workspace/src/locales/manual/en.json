@@ -6,6 +6,9 @@
         "noMatch": "No match found.",
         "updateTitle": "Update item of type {{type}}"
     },
+    "ShowIdentifierModal": {
+        "title": "Item Identifier Modal"
+    },
     "DataList": {
         "loading": "Loading data."
     },
@@ -160,8 +163,13 @@
     "RelatedItems": {
         "title": "Related items"
     },
+    "Copy": {
+        "copied": "Copied",
+        "copyClipboard": "Copy to clipboard"
+    },
     "common": {
         "action": {
+            "showIdentifier": "show Identifier",
             "AddSmth": "Add {{smth}}",
             "CloneSmth": "Clone {{smth}}",
             "CopySmth": "Copy {{smth}} artefacts",

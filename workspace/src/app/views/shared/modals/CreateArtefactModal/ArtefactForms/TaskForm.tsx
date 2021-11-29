@@ -9,6 +9,9 @@ import { DataPreview } from "../../../DataPreview/DataPreview";
 import { IDatasetConfigPreview } from "@ducks/shared/typings";
 import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../../../utils/transformers";
 import { useTranslation } from "react-i18next";
+import useCopyButton from "../../../../../hooks/useCopyButton";
+import { debounce } from "../../../../../utils/debounce";
+import { requestTaskIdValidation } from "@ducks/common/requests";
 
 export interface IProps {
     form: any;
@@ -16,6 +19,8 @@ export interface IProps {
     artefact: IDetailedArtefactItem;
 
     projectId: string;
+
+    taskId?: string;
 
     // This is set if this is an update form instead of a create form.
     updateTask?: {
@@ -28,6 +33,8 @@ export interface IProps {
 
 const LABEL = "label";
 const DESCRIPTION = "description";
+const IDENTIFIER = "id";
+const disabledFields = new Set([IDENTIFIER]);
 
 const datasetConfigPreview = (
     projectId: string,
@@ -44,14 +51,43 @@ const datasetConfigPreview = (
 };
 
 /** The task creation/update form. */
-export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
-    const { properties, required: requiredRootParameters } = artefact;
+export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IProps) {
+    const artefactWithId: IDetailedArtefactItem = {
+        ...artefact,
+        properties: {
+            ...artefact.properties,
+            id: {
+                advanced: true,
+                description: "A custom identifier e.g new-task-plugin",
+                parameterType: INPUT_TYPES.IDENTIFIER,
+                title: "Task identifier",
+                type: "string",
+                value: "",
+                visibleInDialog: true,
+            },
+        },
+    };
+
+    const updateTaskWithId = taskId
+        ? {
+              parameterValues: {
+                  ...updateTask?.parameterValues,
+                  id: {
+                      value: taskId,
+                  },
+              },
+          }
+        : updateTask;
+
+    const { properties, required: requiredRootParameters } = artefactWithId;
     const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
     const [dependentValues, setDependentValues] = useState<Record<string, any>>({});
 
     const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
-    const initialValues = existingTaskValuesToFlatParameters(updateTask);
+    const initialValues = existingTaskValuesToFlatParameters(updateTaskWithId);
+    const [copyButton] = useCopyButton([{ text: taskId ?? "" }]);
+
     const [t] = useTranslation();
 
     // addition restriction for the hook form parameter values
@@ -61,6 +97,17 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                 pattern: {
                     value: /^[0-9]*$/,
                     message: t("form.validations.integer", "must be an integer number"),
+                },
+            };
+        } else if (param.parameterType === INPUT_TYPES.IDENTIFIER) {
+            // Todo add german translation
+            return {
+                pattern: {
+                    value: /^[a-zA-z0-9_-]*$/g,
+                    message: t(
+                        "form.validations.identifier",
+                        "includes characters and numbers with only '_' & '-' as allowed special characters"
+                    ),
                 },
             };
         } else {
@@ -106,12 +153,17 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                     let value = defaultValueAsJs(param);
                     returnKeys.push(key);
                     register(
-                        { name: key },
-                        { required: requiredParameters.includes(paramId), ...valueRestrictions(param) }
+                        {
+                            name: key,
+                        },
+                        {
+                            required: requiredParameters.includes(paramId),
+                            ...valueRestrictions(param),
+                        }
                     );
                     // Set default value
                     let currentValue = value;
-                    if (updateTask && parameterValues[paramId] !== undefined) {
+                    if (updateTaskWithId && parameterValues[paramId] !== undefined) {
                         // Set existing value
                         currentValue = parameterValues[paramId].value;
                     }
@@ -124,22 +176,48 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
             });
         };
 
-        if (!updateTask) {
+        if (!updateTaskWithId) {
             register({ name: LABEL }, { required: true });
-            register({ name: DESCRIPTION });
+            register({
+                name: DESCRIPTION,
+            });
         }
-        registerParameters("", visibleParams, updateTask ? updateTask.parameterValues : {}, requiredRootParameters);
+        registerParameters(
+            "",
+            visibleParams,
+            updateTaskWithId ? updateTaskWithId.parameterValues : {},
+            requiredRootParameters
+        );
         setFormValueKeys(returnKeys);
 
         // Unsubscribe
         return () => {
-            if (!updateTask) {
+            if (!updateTaskWithId) {
                 unregister(LABEL);
                 unregister(DESCRIPTION);
             }
             returnKeys.forEach((key) => unregister(key));
         };
-    }, [properties, register]);
+    }, []);
+
+    /** check if custom validation is unique */
+    const handleTaskIdValidation = useCallback(
+        debounce(async (customTaskId?: string) => {
+            try {
+                if (customTaskId) {
+                    const res = await requestTaskIdValidation(customTaskId, projectId);
+                    if (res.axiosResponse.status === 200) {
+                        form.clearError("id");
+                    }
+                }
+            } catch (err) {
+                if (err.status === 409) {
+                    form.setError("id", "pattern", "custom task id must be unique");
+                }
+            }
+        }, 500),
+        []
+    );
 
     const handleChange = useCallback(
         (key) => (e) => {
@@ -150,9 +228,16 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                 // This is rather a hack, since the callback is memoized the clojure always captures the initial (empty) object, thus we need the state object to be mutable.
                 dependentValues[key] = value;
                 // We still need to update the state with a new object to trigger re-render though.
-                setDependentValues({ ...dependentValues });
+                setDependentValues({
+                    ...dependentValues,
+                });
             }
             setValue(key, value);
+            //verify task identifier
+            if (key === IDENTIFIER) {
+                if (!value) form.clearError("id");
+                handleTaskIdValidation(value);
+            }
             triggerValidation(key);
         },
         []
@@ -177,7 +262,7 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
     return (
         <>
             <form>
-                {updateTask ? null : (
+                {updateTaskWithId ? null : (
                     <>
                         <FieldItem
                             key={LABEL}
@@ -220,7 +305,10 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                         pluginId={artefact.pluginId}
                         formParamId={key}
                         required={requiredRootParameters.includes(key)}
-                        taskParameter={{ paramId: key, param: properties[key] }}
+                        taskParameter={{
+                            paramId: key,
+                            param: properties[key],
+                        }}
                         formHooks={formHooks}
                         changeHandlers={changeHandlers}
                         initialValues={initialValues}
@@ -233,14 +321,19 @@ export function TaskForm({ form, projectId, artefact, updateTask }: IProps) {
                             <ParameterWidget
                                 key={key}
                                 projectId={projectId}
+                                disabled={updateTask && disabledFields.has(key)}
                                 pluginId={artefact.pluginId}
                                 formParamId={key}
                                 required={requiredRootParameters.includes(key)}
-                                taskParameter={{ paramId: key, param: properties[key] }}
+                                taskParameter={{
+                                    paramId: key,
+                                    param: properties[key],
+                                }}
                                 formHooks={formHooks}
                                 changeHandlers={changeHandlers}
                                 initialValues={initialValues}
                                 dependentValues={dependentValues}
+                                inputButton={key === IDENTIFIER && taskId ? copyButton : undefined}
                             />
                         ))}
                     </AdvancedOptionsArea>

@@ -1,5 +1,5 @@
 import fetch from "../../../services/fetch";
-import { coreApi, legacyApiEndpoint, workspaceApi } from "../../../utils/getApiEndpoint";
+import { coreApi, legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
 import { IDetailedArtefactItem, IOverviewArtefactItemList, IExportTypes, IInitFrontend } from "@ducks/common/typings";
 
 const handleError = (error) => {
@@ -47,6 +47,21 @@ export const requestArtefactList = async (payload: any): Promise<IOverviewArtefa
             body: payload,
         });
         return data;
+    } catch (e) {
+        throw handleError(e);
+    }
+};
+
+/**
+ * validate custom task id
+ * @returns
+ */
+export const requestTaskIdValidation = async (taskId: string, projectId: string) => {
+    try {
+        const res = await fetch({
+            url: projectApi(`/${projectId}/validateIdentifier?taskIdentifier=${taskId}`),
+        });
+        return res;
     } catch (e) {
         throw handleError(e);
     }
