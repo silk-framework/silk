@@ -1,5 +1,5 @@
 import { IArtefactModal, ICommonState } from "./typings";
-import Store from "store";
+import { fetchStoredLang } from "../../../../language";
 
 export function initialArtefactModalState(): IArtefactModal {
     return {
@@ -16,7 +16,7 @@ export function initialArtefactModalState(): IArtefactModal {
 
 export function initialCommonState(): ICommonState {
     return {
-        locale: Store.get("locale"),
+        locale: fetchStoredLang(),
         currentProjectId: undefined,
         currentTaskId: undefined,
         authenticated: true,
