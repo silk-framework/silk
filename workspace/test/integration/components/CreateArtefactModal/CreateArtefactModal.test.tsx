@@ -95,7 +95,7 @@ describe("Task creation widget", () => {
 
     const fetchDialog = async (wrapper: ReactWrapper<any, any>) => {
         return await waitFor(() => {
-            return findSingleElement(wrapper, byTestId("create-dialog-modal"));
+            return findSingleElement(wrapper, byTestId("simpleDialogWidget"));
         });
     };
 
