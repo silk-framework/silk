@@ -18,6 +18,8 @@ object VariableWorkflowRequestUtils {
   final val INPUT_FILE_RESOURCE_NAME = "variable_workflow_json_input"
   final val OUTPUT_FILE_RESOURCE_NAME = "variable_workflow_output_file"
 
+  final val QUERY_PARAM_OUTPUT_TYPE = "output:type"
+
   final val xmlMimeType = "application/xml"
   final val jsonMimeType = "application/json"
   final val ntriplesMimeType = "application/n-triples"
@@ -43,20 +45,33 @@ object VariableWorkflowRequestUtils {
     **/
   private def variableDataSinkConfig(datasetId: String)
                                     (implicit request: Request[_]): VariableDataSinkConfig = {
-    acceptedMimeType.find(mimeType => request.accepts(mimeType)) match {
-      case Some(mimeType) =>
-        val (datasetType: String, datasetParameters: Map[String, String]) = mimeType match {
-          case "application/json" => ("json", Map.empty)
-          case "application/xml" => ("xml", Map.empty)
-          case "application/n-triples" => ("file", Map("format" -> "N-Triples"))
-          case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" => ("excel", Map.empty)
-          case "text/comma-separated-values" | "text/csv" => ("csv", Map.empty)
-        }
-        val sinkConfig = datasetConfigJson(datasetId, datasetType, datasetParameters, OUTPUT_FILE_RESOURCE_NAME)
-        VariableDataSinkConfig(sinkConfig, mimeType)
+    request.getQueryString(QUERY_PARAM_OUTPUT_TYPE) match {
+      case Some(datasetType) =>
+        val datasetParams: Map[String, String] =
+          if(datasetType == "file") {
+            Map("format" -> "N-Triples")
+          } else {
+            Map.empty
+          }
+        val sinkConfig = datasetConfigJson(datasetId, datasetType, datasetParams, OUTPUT_FILE_RESOURCE_NAME)
+        VariableDataSinkConfig(sinkConfig, jsonMimeType)
       case None =>
-        throw NotAcceptableException("Cannot produce response in any of the requested mime types. Supported mime types are: "
-            + acceptedMimeType.mkString(", "))
+        acceptedMimeType.find(mimeType => request.accepts(mimeType)) match {
+          case Some(mimeType) =>
+            val (datasetType: String, datasetParameters: Map[String, String]) = mimeType match {
+              case "application/json" => ("json", Map.empty)
+              case "application/xml" => ("xml", Map.empty)
+              case "application/n-triples" => ("file", Map("format" -> "N-Triples"))
+              case "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" => ("excel", Map.empty)
+              case "text/comma-separated-values" | "text/csv" => ("csv", Map.empty)
+            }
+            val sinkConfig = datasetConfigJson(datasetId, datasetType, datasetParameters, OUTPUT_FILE_RESOURCE_NAME)
+            VariableDataSinkConfig(sinkConfig, mimeType)
+          case None =>
+            throw NotAcceptableException("Cannot produce response in any of the requested mime types." +
+              s"Need to set the output type either in the query parameter '$QUERY_PARAM_OUTPUT_TYPE' or by setting the accept header. " +
+              "Supported mime types are: " + acceptedMimeType.mkString(", "))
+        }
     }
   }
 
@@ -170,16 +185,6 @@ object VariableWorkflowRequestUtils {
         JsString(content)
       case _ =>
         throwUnsupportedMediaType(request.contentType.getOrElse("-none-"))
-    }
-  }
-
-  def findAcceptedMimeType()(implicit request: Request[_]): String = {
-    val mimeTypeOpt = acceptedMimeType.find(mimeType => request.accepts(mimeType))
-    mimeTypeOpt match {
-      case Some(mimeType) =>
-        mimeType
-      case None =>
-        throwUnsupportedMediaType(request.acceptedTypes.mkString("'", " , ", "'"))
     }
   }
 

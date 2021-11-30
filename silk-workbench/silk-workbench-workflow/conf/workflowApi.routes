@@ -1,9 +1,9 @@
-GET   /result/:projectId/:workflowId          controllers.workflowApi.WorkflowApi.variableWorkflowResultGet(projectId: String, workflowId: String)
-POST  /result/:projectId/:workflowId          controllers.workflowApi.WorkflowApi.variableWorkflowResultPost(projectId: String, workflowId: String)
+GET   /result/:projectId/:workflowId            controllers.workflowApi.WorkflowApi.variableWorkflowResultGet(projectId: String, workflowId: String)
+POST  /result/:projectId/:workflowId            controllers.workflowApi.WorkflowApi.variableWorkflowResultPost(projectId: String, workflowId: String)
 
-POST  /asyncExecution/:projectId/:workflowId  controllers.workflowApi.WorkflowApi.executeVariableWorkflowAsync(projectId: String, workflowId: String)
-GET   /asyncResult/:projectId/:workflowId     controllers.workflowApi.WorkflowApi.variableWorkflowAsyncResult(projectId: String, workflowId: String, instanceId: String)
+POST  /executeAsync/:projectId/:workflowId      controllers.workflowApi.WorkflowApi.executeVariableWorkflowAsync(projectId: String, workflowId: String)
+GET   /executionResult/:projectId/:workflowId   controllers.workflowApi.WorkflowApi.variableWorkflowAsyncResult(projectId: String, workflowId: String, instanceId: String)
 
-GET   /info                                   controllers.workflowApi.WorkflowApi.workflowInfoList()
-GET   /info/:projectId/:workflowId            controllers.workflowApi.WorkflowApi.workflowInfo(projectId: String, workflowId: String)
-GET   /config/:projectId/:workflowId/ports    controllers.workflowApi.WorkflowApi.workflowNodesConfig(projectId: String, workflowId: String)
+GET   /info                                     controllers.workflowApi.WorkflowApi.workflowInfoList()
+GET   /info/:projectId/:workflowId              controllers.workflowApi.WorkflowApi.workflowInfo(projectId: String, workflowId: String)
+GET   /config/:projectId/:workflowId/ports      controllers.workflowApi.WorkflowApi.workflowNodesConfig(projectId: String, workflowId: String)

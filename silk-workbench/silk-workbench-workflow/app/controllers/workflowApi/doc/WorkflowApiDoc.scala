@@ -15,6 +15,21 @@ For some data types (JSON, XML and CSV), the POST body can contain arbitrary con
 is expected to have. This goes beyond the simple query or form parameter input, where only exactly one input entity would be generated.
 The corresponding content type must be specified in these cases."""
 
+  final val variableWorkflowResultPostDescriptionAsync =
+    """Executes a workflow with parameters from the request query string or form URL encoded body.
+This endpoint will start the workflow execution, but not wait for its completion.
+It will return the activity identifiers, which can be used to check the execution status using the Activity API.
+Once the workflow execution completed, the result can be retrieved using the 'Parameterized workflow execution result (asynchronous)' endpoint.
+Compatible with all workflows that contain a single variable dataset that is used as input dataset and a single
+variable dataset as output – each dataset can be used several times in the same workflow.
+The output data type is specified via 'output:type' query parameter.
+A single entity is build from the provided request parameters and injected into the variable source dataset.
+There must be at least one form or query parameter specified in the request. If empty entities as input
+must be supported, a POST request with empty JSON or XML object/element should be used, see below.
+For some data types (JSON, XML and CSV), the POST body can contain arbitrary content that the data source
+is expected to have. This goes beyond the simple query or form parameter input, where only exactly one input entity would be generated.
+The corresponding content type must be specified in these cases."""
+
   final val variableWorkflowResultGetDescription =
     """For a GET request the parameter and values are provided via the query string of the URL.
 In order to provide multiple values for an input property, the same query parameter should be used multiple times,

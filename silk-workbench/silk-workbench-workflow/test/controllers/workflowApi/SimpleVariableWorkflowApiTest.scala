@@ -176,15 +176,15 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
   }
 
   it should "execute a workflow asynchronously" in {
-    val startResponse = executeVariableWorkflowAsync(outputOnlyWorkflow, Map.empty)
+    val startResponse = executeVariableWorkflowAsync(outputOnlyWorkflow, "xml")
 
     // Wait for completion
     val activityClient = new ActivityClient(baseUrl, projectId, outputOnlyWorkflow)
     activityClient.waitForActivity(startResponse.activityId, Some(startResponse.instanceId))
 
     // Retrieve result
-    val response = checkResponseExactStatusCode(getVariableWorkflowResult(outputOnlyWorkflow, startResponse.instanceId, APPLICATION_JSON))
-    checkForCorrectReturnType(APPLICATION_JSON, response.body, noValues = false)
+    val response = checkResponseExactStatusCode(getVariableWorkflowResult(outputOnlyWorkflow, startResponse.instanceId, APPLICATION_XML))
+    checkForCorrectReturnType(APPLICATION_XML, response.body, noValues = false)
     checkForValues(1, Seq("csv value 1"), response.body)
     checkForValues(2, Seq("csv value 2"), response.body)
   }
@@ -263,10 +263,12 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
   }
 
   private def executeVariableWorkflowAsync(workflowId: String,
+                                           datasetType: String,
                                            parameters: Map[String, Seq[String]] = Map.empty,
                                            contentOpt: Option[(String, String)] = None): StartActivityResponse = {
     val path =  controllers.workflowApi.routes.WorkflowApi.executeVariableWorkflowAsync(projectId, workflowId).url
     val request = client.url(s"$baseUrl$path")
+                        .withQueryStringParameters((VariableWorkflowRequestUtils.QUERY_PARAM_OUTPUT_TYPE -> datasetType))
     val response =
       contentOpt match {
         case Some(content) =>
