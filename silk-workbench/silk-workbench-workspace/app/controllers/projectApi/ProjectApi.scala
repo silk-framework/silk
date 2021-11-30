@@ -23,6 +23,8 @@ import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.serialization.json.JsonSerializers.MetaDataJsonFormat
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
+import org.silkframework.util.Identifier
+import org.silkframework.workspace.exceptions.IdentifierAlreadyExistsException
 import org.silkframework.workspace.ProjectConfig
 import org.silkframework.workspace.io.WorkspaceIO
 import play.api.libs.json.{JsValue, Json}
@@ -37,6 +39,24 @@ import scala.util.Try
   */
 @Tag(name = "Projects", description = "Access to all projects in the workspace.")
 class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
+  //validate the project id field by ensuring it's unique and corresponds to the right format
+  def validateIdentifier(
+                         @Parameter(
+                           name = "identifier",
+                           description = "the custom project id set by the user",
+                           required = true,
+                           in = ParameterIn.QUERY,
+                           schema = new Schema(implementation = classOf[String])
+                         )
+                         projectIdentifier: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val projectId = Identifier(projectIdentifier)
+    if(projectExists(projectId)) {
+      throw IdentifierAlreadyExistsException(s"Project id '$projectIdentifier' is not unique as there is already a project with this name.")
+    }
+    Ok(Json.toJson(""))
+  }
+
+  
   /** Create a project given the meta data. Automatically generates an ID. */
   @Operation(
     summary = "Create project",

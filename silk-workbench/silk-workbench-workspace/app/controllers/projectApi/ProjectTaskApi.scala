@@ -30,7 +30,7 @@ import scala.util.Try
 @Tag(name = "Project tasks", description = "Access to all tasks in a project.")
 class ProjectTaskApi @Inject()() extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
-    //validate the id field by ensuring it's unique and corresponds to the right format
+    //validate the task id field by ensuring it's unique and corresponds to the right format
   def validateIdentifier(@Parameter(
                           name = "projectId",
                           description = "The project identifier",
