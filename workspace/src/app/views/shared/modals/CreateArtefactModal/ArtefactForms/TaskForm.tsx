@@ -259,7 +259,9 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IPro
     }, [formValueKeys]);
 
     const normalParams = visibleParams.filter(([k, param]) => !param.advanced);
-    const advancedParams = visibleParams.filter(([k, param]) => param.advanced);
+    const advancedParams = visibleParams
+        .filter(([k, param]) => param.advanced)
+        .sort((a, b) => (a[0] === IDENTIFIER ? -1 : b[0] === IDENTIFIER ? -1 : 0));
     const formHooks = { errors };
 
     return (
