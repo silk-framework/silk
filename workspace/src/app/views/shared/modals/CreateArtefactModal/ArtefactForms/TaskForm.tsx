@@ -207,12 +207,14 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IPro
                 if (customTaskId) {
                     const res = await requestTaskIdValidation(customTaskId, projectId);
                     if (res.axiosResponse.status === 200) {
-                        form.clearError("id");
+                        form.clearError(IDENTIFIER);
                     }
                 }
             } catch (err) {
                 if (err.status === 409) {
                     form.setError("id", "pattern", "custom task id must be unique");
+                } else {
+                    triggerValidation(IDENTIFIER);
                 }
             }
         }, 500),
@@ -235,7 +237,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IPro
             setValue(key, value);
             //verify task identifier
             if (key === IDENTIFIER) {
-                if (!value) form.clearError("id");
+                if (!value) form.clearError(IDENTIFIER);
                 handleTaskIdValidation(value);
             }
             triggerValidation(key);
