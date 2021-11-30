@@ -200,7 +200,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IPro
         };
     }, []);
 
-    /** check if custom validation is unique */
+    /** check if custom task id is unique and is valid */
     const handleTaskIdValidation = useCallback(
         debounce(async (customTaskId?: string) => {
             try {

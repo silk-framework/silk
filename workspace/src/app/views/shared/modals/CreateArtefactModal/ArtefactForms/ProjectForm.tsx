@@ -1,8 +1,11 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { FieldItem, TextField, TextArea } from "@gui-elements/index";
-import { errorMessage } from "./ParameterWidget";
+import { errorMessage, ParameterWidget } from "./ParameterWidget";
 import { Intent } from "@gui-elements/blueprint/constants";
 import { useTranslation } from "react-i18next";
+import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
+import { requestProjectIdValidation } from "@ducks/common/requests";
+import { debounce } from "../../../../../utils/debounce";
 
 interface IProps {
     form: any;
@@ -10,20 +13,63 @@ interface IProps {
 
 const LABEL = "label";
 const DESCRIPTION = "description";
+const IDENTIFIER = "id";
+
 /** The project create form */
 export function ProjectForm({ form }: IProps) {
     const { register, errors, triggerValidation, setValue } = form;
     const [t] = useTranslation();
 
-    useEffect(() => {
+    /** check if custom task id is unique and is valid */
+    const handleProjectIdValidation = React.useCallback(
+        debounce(async (customProjectId?: string) => {
+            try {
+                if (customProjectId) {
+                    const res = await requestProjectIdValidation(customProjectId);
+                    if (res.axiosResponse.status === 200) {
+                        form.clearError(IDENTIFIER);
+                    }
+                }
+            } catch (err) {
+                if (err.status === 409) {
+                    form.setError("id", "pattern", "custom task id must be unique");
+                } else {
+                    triggerValidation(IDENTIFIER);
+                }
+            }
+        }, 200),
+        []
+    );
+
+    React.useEffect(() => {
         register({ name: LABEL }, { required: true });
         register({ name: DESCRIPTION });
+        register(
+            {
+                name: IDENTIFIER,
+            },
+            {
+                pattern: {
+                    value: /^[a-zA-z0-9_-]*$/g,
+                    message: t(
+                        "form.validations.identifier",
+                        "includes characters and numbers with only '_' & '-' as allowed special characters"
+                    ),
+                },
+            }
+        );
     }, [register]);
     const onValueChange = (key) => {
         return (e) => {
             const value = e.target ? e.target.value : e;
             setValue(key, value);
-            triggerValidation();
+            //verify project identifier
+            if (key === IDENTIFIER) {
+                if (!value) form.clearError(IDENTIFIER);
+                handleProjectIdValidation(value);
+            } else {
+                triggerValidation(key);
+            }
         };
     };
     return (
@@ -60,6 +106,30 @@ export function ProjectForm({ form }: IProps) {
                     onChange={onValueChange(DESCRIPTION)}
                 />
             </FieldItem>
+            <AdvancedOptionsArea>
+                <FieldItem
+                    labelAttributes={{
+                        text: "Project identifier",
+                        htmlFor: IDENTIFIER,
+                    }}
+                    helperText={"A custom identifier e.g new-task-plugin"}
+                    hasStateDanger={!!errorMessage(IDENTIFIER, errors.id)}
+                    messageText={errorMessage(IDENTIFIER, errors.id)}
+                >
+                    <TextField
+                        id={IDENTIFIER}
+                        name={IDENTIFIER}
+                        onChange={onValueChange(IDENTIFIER)}
+                        intent={errors.id ? Intent.DANGER : Intent.NONE}
+                        onKeyDown={(e) => {
+                            if (e.keyCode === 13) {
+                                e.preventDefault();
+                                return false;
+                            }
+                        }}
+                    />
+                </FieldItem>
+            </AdvancedOptionsArea>
         </>
     );
 }

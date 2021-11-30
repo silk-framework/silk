@@ -53,6 +53,20 @@ export const requestArtefactList = async (payload: any): Promise<IOverviewArtefa
 };
 
 /**
+ * validate custom projectId
+ */
+export const requestProjectIdValidation = async (projectId: string) => {
+    try {
+        const res = await fetch({
+            url: projectApi(`/validateIdentifier?projectIdentifier=${projectId}`),
+        });
+        return res;
+    } catch (err) {
+        throw handleError(err);
+    }
+};
+
+/**
  * validate custom task id
  * @returns
  */
