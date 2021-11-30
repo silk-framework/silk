@@ -45,6 +45,8 @@ interface IProps {
 
     onRowClick?();
 
+    toggleShowIdentifierModal(item: ISearchResultsServer);
+
     parentProjectId?: string;
 }
 
@@ -58,6 +60,7 @@ export default function SearchItem({
     onOpenCopyToModal,
     onRowClick,
     parentProjectId,
+    toggleShowIdentifierModal,
 }: IProps) {
     const dispatch = useDispatch();
     const exportTypes = useSelector(commonSel.exportTypesSelector);
@@ -238,6 +241,12 @@ export default function SearchItem({
                             icon="item-copy"
                             text={t("common.action.clone", "Clone")}
                             onClick={onOpenDuplicateModal}
+                        />
+                        <MenuItem
+                            data-test-id={"open-duplicate-modal"}
+                            icon="item-viewdetails"
+                            text={t("common.action.showIdentifier", "Show Identifier")}
+                            onClick={toggleShowIdentifierModal}
                         />
                         <MenuDivider />
                         <MenuItem
