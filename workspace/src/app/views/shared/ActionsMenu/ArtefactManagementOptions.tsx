@@ -132,15 +132,12 @@ export function ArtefactManagementOptions({
                 actionHandler: toggleCloneModal,
                 "data-test-id": "header-clone-button",
             },
-        ];
-
-        if (itemType !== DATA_TYPES.PROJECT) {
-            fullMenu.push({
+            {
                 text: t("common.action.showIdentifier", "Show Identifier"),
                 actionHandler: toggleShowIdentifierModal,
                 "data-test-id": "header-item-identifier-button",
-            });
-        }
+            },
+        ];
 
         if (itemType === DATA_TYPES.PROJECT && !!exportTypes.length) {
             const subitems: { text: string; actionHandler: () => any }[] = [];
@@ -206,7 +203,7 @@ export function ArtefactManagementOptions({
             {copyToModalOpen && (
                 <CopyToModal item={itemData} onDiscard={toggleCopyToModal} onConfirmed={handleCopyConfirmed} />
             )}
-            {showIdentifierOpen && taskId && (
+            {showIdentifierOpen && (
                 <ShowIdentifierModal onDiscard={toggleShowIdentifierModal} taskId={taskId} projectId={projectId} />
             )}
             {displayItemLink && (

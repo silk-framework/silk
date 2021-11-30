@@ -14,13 +14,17 @@ import { useTranslation } from "react-i18next";
 
 interface ShowIdentifierProps {
     onDiscard: () => void;
-    taskId: string;
+    taskId?: string;
     projectId: string;
 }
 
 const ShowIdentifierModal: React.FC<ShowIdentifierProps> = ({ onDiscard, taskId, projectId }) => {
     const [t] = useTranslation();
-    const [projectCopyBtn, taskCopyBtn] = useCopyButton([{ text: projectId }, { text: taskId }]);
+    const buttons = [{ text: projectId }];
+    if (taskId) {
+        buttons.push({ text: taskId });
+    }
+    const [projectCopyBtn, taskCopyBtn] = useCopyButton(buttons);
 
     return (
         <SimpleDialog
@@ -36,21 +40,25 @@ const ShowIdentifierModal: React.FC<ShowIdentifierProps> = ({ onDiscard, taskId,
         >
             <Card>
                 <CardHeader>
-                    <CardTitle>Project Id</CardTitle>
+                    <CardTitle>{`{project-id}`}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <TextField disabled value={projectId} rightElement={projectCopyBtn} />
                 </CardContent>
             </Card>
+            {taskId ? (
+                <>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>{`{project-id}:{task-id}`}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <TextField disabled value={`${projectId}:${taskId}`} rightElement={taskCopyBtn} />
+                        </CardContent>
+                    </Card>
+                </>
+            ) : null}
             <Spacing size="medium" vertical />
-            <Card>
-                <CardHeader>
-                    <CardTitle>Task Id</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <TextField disabled value={taskId} rightElement={taskCopyBtn} />
-                </CardContent>
-            </Card>
         </SimpleDialog>
     );
 };
