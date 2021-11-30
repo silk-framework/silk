@@ -396,7 +396,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
     if(activity.status().isRunning) {
       throw BadUserInputException("Workflow is still running.")
     } else if(activity.status().failed) {
-      throw BadUserInputException("Workflow failed.")
+      throw BadUserInputException("Workflow failed.", activity.status().exception)
     }
 
     // Return output
