@@ -48,7 +48,8 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
                          )
                          taskIdentifier: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = getProject(projectId)
-    if(project.allTasks.exists(_.id == Identifier(taskIdentifier))) {
+    val taskId = Identifier(taskIdentifier)
+    if(project.allTasks.exists(_.id == taskId)) {
       throw IdentifierAlreadyExistsException(s"Task name '$taskIdentifier' is not unique as there is already a task in project '${projectId}' with this name.")
     }
     Ok(Json.toJson(""))
