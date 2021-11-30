@@ -217,14 +217,14 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IPro
                     triggerValidation(IDENTIFIER);
                 }
             }
-        }, 500),
+        }, 200),
         []
     );
 
     const handleChange = useCallback(
         (key) => (e) => {
             const { triggerValidation } = form;
-            const value = e.target ? e.target.value : e;
+            const value = (e.target ? e.target.value : e).trim();
 
             if (dependentValues[key] !== undefined) {
                 // This is rather a hack, since the callback is memoized the clojure always captures the initial (empty) object, thus we need the state object to be mutable.
@@ -239,8 +239,9 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IPro
             if (key === IDENTIFIER) {
                 if (!value) form.clearError(IDENTIFIER);
                 handleTaskIdValidation(value);
+            } else {
+                triggerValidation(key);
             }
-            triggerValidation(key);
         },
         []
     );
