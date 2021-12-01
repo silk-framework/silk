@@ -113,8 +113,6 @@ export function CreateArtefactModal() {
                     );
                 }
             })();
-        } else if (!isOpen) {
-            setCurrentProject(undefined);
         }
     }, [projectId, selectedArtefactKey, isOpen]);
 
