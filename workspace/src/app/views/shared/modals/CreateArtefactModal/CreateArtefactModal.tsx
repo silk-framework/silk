@@ -150,7 +150,7 @@ export function CreateArtefactModal() {
 
     const handleSearch = (textQuery: string) => {
         setSearchValue(textQuery);
-        if (projectId) {
+        if (!isEmptyWorkspace) {
             dispatch(
                 commonOp.fetchArtefactsListAsync({
                     textQuery,
