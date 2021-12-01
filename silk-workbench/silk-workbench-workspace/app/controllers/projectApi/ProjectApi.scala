@@ -80,11 +80,12 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
       new Content(
         mediaType = "application/json",
         schema = new Schema(implementation = classOf[ProjectCreationData]),
-        examples = Array(new ExampleObject("{ \"metaData\": { \"label\": \"Project label\", \"description\": \"Project description\" } }"))
+        examples = Array(new ExampleObject("{ \"id\": \"Project id\" \"metaData\": { \"label\": \"Project label\", \"description\": \"Project description\" } }"))
       ))
   )
   def createNewProject(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
       validateJson[ProjectCreationData] { projectCreationData =>
+        val id = projectCreationData.id
         val metaData = projectCreationData.metaData.asMetaData
         val generatedId = metaData.label match {
           case Some(label) if label.trim.nonEmpty =>
@@ -92,9 +93,13 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
           case _ =>
             throw BadUserInputException("The label must not be empty!")
         }
-        val project = workspace.createProject(ProjectConfig(generatedId, metaData = cleanUpMetaData(metaData).asNewMetaData))
+        val projectId = id match { 
+           case Some(v) => Identifier(v)
+           case None => generatedId
+        }
+        val project = workspace.createProject(ProjectConfig(projectId, metaData = cleanUpMetaData(metaData).asNewMetaData))
         Created(JsonSerializer.projectJson(project)).
-            withHeaders(LOCATION -> s"${WorkbenchConfig.applicationContext}/api/workspace/projects/$generatedId")
+            withHeaders(LOCATION -> s"${WorkbenchConfig.applicationContext}/api/workspace/projects/$projectId")
       }
   }
 
