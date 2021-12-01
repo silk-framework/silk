@@ -5,7 +5,6 @@ import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.entity.paths.TypedPath
-import org.silkframework.learning.active
 import org.silkframework.learning.active.{LinkCandidate, MatchingValues, UnlabeledLinkPool}
 import org.silkframework.rule.plugins.distance.characterbased.LevenshteinDistance
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
@@ -56,8 +55,10 @@ class IndexLinkPoolGenerator() extends LinkPoolGenerator {
     override def run(context: ActivityContext[UnlabeledLinkPool])(implicit userContext: UserContext): Unit = {
       val linkCandidates = findLinkCandidates(context)
       context.status.update("Weighting link candidates", 0.9)
-      val weightedCandidates = weightLinkCandidates(linkCandidates)
-      context.value() = UnlabeledLinkPool(fullEntitySchema, weightedCandidates.toSeq)
+      val weightedCandidates = weightLinkCandidates(linkCandidates).toSeq
+      // If we found fewer than 30 candidates, we use shuffling to generate some additional ones
+      val allCandidates = if(weightedCandidates.size > 30) weightedCandidates else LinkPoolGeneratorUtils.shuffleLinks(weightedCandidates)
+      context.value() = UnlabeledLinkPool(fullEntitySchema, allCandidates)
     }
 
     private def findLinkCandidates(context: ActivityContext[UnlabeledLinkPool])
@@ -138,7 +139,7 @@ class IndexLinkPoolGenerator() extends LinkPoolGenerator {
                   case Some(link) =>
                     link.withMatch(matchingPair)
                   case None =>
-                    active.LinkCandidate(entityPair.source, entityPair.target, Seq(matchingPair))
+                    LinkCandidate(entityPair.source, entityPair.target, Seq(matchingPair))
                 }
               links.put(entityUris, linkCandidate)
               count += 1

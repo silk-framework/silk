@@ -23,7 +23,11 @@ case class LinkCandidate(sourceEntity: Entity, targetEntity: Entity,
   override def reverse: Link = LinkCandidate(targetEntity, sourceEntity, matchingValues.map(_.reverse), confidence)
 
   def withMatch(pair: MatchingValues): LinkCandidate = {
-    copy(matchingValues = matchingValues :+ pair)
+    if(matchingValues.exists(m => m.sourcePathIndex == pair.sourcePathIndex && m.targetPathIndex == pair.targetPathIndex)) {
+      this
+    } else {
+      copy(matchingValues = matchingValues :+ pair)
+    }
   }
 
   def withConfidence(confidence: Double): LinkCandidate = {

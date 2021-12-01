@@ -75,7 +75,7 @@ class Learning @Inject() (implicit mat: Materializer) extends InjectedController
 
             Ok(views.html.learning.linkCandidate(link, sourceValues, targetValues, context))
           case None =>
-            Ok("No link candidate generated, please wait for completion or restart...")
+            Ok(views.html.learning.linkCandidateMissing(context))
         }
       case None =>
         ErrorResult(BadUserInputException("query parameters missing"))

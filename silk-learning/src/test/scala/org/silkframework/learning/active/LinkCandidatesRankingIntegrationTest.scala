@@ -5,7 +5,7 @@ import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.{DatasetSpec, EmptyDataset, EntityDatasource}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema, Link, ValueType}
-import org.silkframework.learning.active.linkselector.MaximumConfidenceSelector
+import org.silkframework.learning.active.linkselector.BestMatchSelector
 import org.silkframework.learning.active.poolgenerator.{IndexLinkPoolGenerator, ComparisonPathsGenerator}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.ReferenceEntities
@@ -75,7 +75,7 @@ class LinkCandidatesRankingIntegrationTest extends FlatSpec with Matchers {
     val linkCandidates = Activity(generatorActivity).startBlockingAndGetValue().links
 
     // Find top link candidates
-    val sortedCandidates = MaximumConfidenceSelector()(Seq.empty, linkCandidates, ReferenceEntities.empty)
+    val sortedCandidates = BestMatchSelector()(Seq.empty, linkCandidates, ReferenceEntities.empty)
     // Make sure that it identified the top 2 candidates correctly
     sortedCandidates.take(2) shouldBe top2LinkCandidates
     // Make sure that the following candidate scored worse
