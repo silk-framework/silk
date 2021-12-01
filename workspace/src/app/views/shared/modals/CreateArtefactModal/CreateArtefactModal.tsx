@@ -337,6 +337,7 @@ export function CreateArtefactModal() {
                             }`}
                             actions={
                                 <IconButton
+                                    data-test-id="project-selection-btn"
                                     name="item-edit"
                                     text={t(
                                         "CreateModal.projectContext.changeProjectButton",
