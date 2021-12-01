@@ -408,7 +408,7 @@ export function CreateArtefactModal() {
                 artefactForm = <ProjectForm form={form} />;
             } else {
                 const detailedArtefact = cachedArtefactProperties[selectedArtefactKey];
-                const activeProjectId = projectId ?? currentProject?.id;
+                const activeProjectId = currentProject?.id ?? projectId;
                 if (detailedArtefact && activeProjectId) {
                     artefactForm = addChangeProjectHandler(
                         <TaskForm
