@@ -2,6 +2,7 @@ import React from "react";
 import { FieldItem, AutoCompleteField, Notification, Button, AlertDialog } from "@gui-elements/index";
 import { useTranslation } from "react-i18next";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
+import { ProjectIdAndLabel } from "../CreateArtefactModal";
 
 interface ProjectSelectionProps {
     /** handle project selection **/
@@ -11,13 +12,13 @@ interface ProjectSelectionProps {
     onClose: () => void;
 
     /** Decide whether to show modal or not by factoring both the form changes and whether or not a project has been selected **/
-    shouldShowWarningModal: (precondition: boolean) => boolean;
+    modifiedValuesExist: () => boolean;
 
     /** reset the form if there have been entries other than label/description **/
     resetForm: () => void;
 
     /** current project context */
-    selectedProject: ISearchResultsServer | undefined;
+    selectedProject: ProjectIdAndLabel | undefined;
 
     /**getWorkspace Projects*/
     getWorkspaceProjects: (textQuery: string) => Promise<ISearchResultsServer[]>;
@@ -26,14 +27,14 @@ interface ProjectSelectionProps {
 const ProjectSelection: React.FC<ProjectSelectionProps> = ({
     setCurrentProject,
     onClose,
-    shouldShowWarningModal,
+    modifiedValuesExist,
     resetForm,
     selectedProject,
     getWorkspaceProjects,
 }) => {
     const projectId = selectedProject?.id;
     const [t] = useTranslation();
-    const [showModal, setShowModal] = React.useState<boolean>(false);
+    const [showWarningModal, setShowWarningModal] = React.useState<boolean>(false);
     const [newProject, setNewProject] = React.useState<ISearchResultsServer | null>();
 
     /**
@@ -67,7 +68,7 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
 
     return (
         <>
-            {showModal && newProject ? warningModalForChangingProject : null}
+            {showWarningModal && newProject ? warningModalForChangingProject : null}
             <FieldItem
                 key={"copy-label"}
                 labelAttributes={{
@@ -80,10 +81,10 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
                     onSearch={getWorkspaceProjects}
                     onChange={(item) => {
                         if (item) {
-                            const show = shouldShowWarningModal(item.id !== projectId);
+                            const show = item.id !== projectId && modifiedValuesExist();
                             setNewProject(item);
-                            setShowModal(show);
-                            if (!projectId || !show) {
+                            setShowWarningModal(show);
+                            if (!show) {
                                 resetForm();
                                 setCurrentProject(item);
                             }
@@ -91,7 +92,7 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
                     }}
                     popoverProps={{
                         onClosed: () => {
-                            projectId && !showModal && onClose();
+                            projectId && !showWarningModal && onClose();
                         },
                     }}
                     itemValueRenderer={(item) => item.label}

@@ -44,13 +44,21 @@ import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { workspaceSel } from "@ducks/workspace";
 import { requestSearchList } from "@ducks/workspace/requests";
 import { uppercaseFirstChar } from "../../../../utils/transformers";
+import { requestProjectMetadata } from "@ducks/shared/requests";
+import useErrorHandler from "../../../../hooks/useErrorHandler";
 
 const ignorableFields = new Set(["label", "description"]);
+
+export interface ProjectIdAndLabel {
+    id: string;
+    label: string;
+}
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
     const form = useForm();
 
+    const { registerError } = useErrorHandler();
     const [searchValue, setSearchValue] = useState("");
     const [idEnhancedDescription, setIdEnhancedDescription] = useState("");
     const [actionLoading, setActionLoading] = useState(false);
@@ -81,7 +89,7 @@ export function CreateArtefactModal() {
     const selectedArtefactTitle: string | undefined = selectedArtefact?.title;
 
     const toBeAddedKey: string | undefined = toBeAdded?.key;
-    const [currentProject, setCurrentProject] = useState<ISearchResultsServer | undefined>(undefined);
+    const [currentProject, setCurrentProject] = useState<ProjectIdAndLabel | undefined>(undefined);
     const [showProjectSelection, setShowProjectSelection] = useState<boolean>(false);
     const [formValueChanges, setFormValueChanges] = React.useState<{
         [key: string]: { lastValue: any; shouldPrompt: boolean };
@@ -92,13 +100,23 @@ export function CreateArtefactModal() {
     /** set the current Project when opening modal from a project
      * i.e project id already exists **/
     React.useEffect(() => {
-        (async () => {
-            if (projectId) {
-                const results = await getWorkspaceProjects();
-                setCurrentProject(() => results.find((item) => item.id === projectId));
-            }
-        })();
-    }, [projectId, selectedArtefactKey]);
+        if (projectId && isOpen) {
+            (async () => {
+                try {
+                    const projectLabel = (await requestProjectMetadata(projectId)).data.label;
+                    setCurrentProject({ id: projectId, label: projectLabel });
+                } catch (e) {
+                    registerError(
+                        "CreateArtefactModal-fetch-project-meta-data",
+                        "Could not fetch project information",
+                        e
+                    );
+                }
+            })();
+        } else if (!isOpen) {
+            setCurrentProject(undefined);
+        }
+    }, [projectId, selectedArtefactKey, isOpen]);
 
     useEffect(() => {
         if (!isOpen) {
@@ -152,7 +170,7 @@ export function CreateArtefactModal() {
             const results = (await requestSearchList(payload)).results;
             return results;
         } catch (err) {
-            console.warn("err", { err });
+            registerError("CreateArtefactModal-getWorkspaceProjects", "Could not fetch project list.", err);
             return [];
         }
     };
@@ -277,17 +295,16 @@ export function CreateArtefactModal() {
 
     /**
      *
-     * @param precondition from the ProjectSelection component,
-     * basically if a project has been selected that is different from the current project
+     * Returns true if any of item parameters has been modified. Meta data fields like label and description are excluded.
      * @returns {boolean}
      */
-    const shouldShowWarningModal = (precondition: boolean): boolean => {
+    const modifiedParameterValuesExist = (): boolean => {
         let shouldShow = false;
         for (let field in formValueChanges) {
             if (!ignorableFields.has(field) && formValueChanges[field].shouldPrompt && !shouldShow) shouldShow = true;
             else continue;
         }
-        return !!(precondition && shouldShow);
+        return shouldShow;
     };
 
     // reset to defaults, if label/description already existed it remains.
@@ -325,7 +342,7 @@ export function CreateArtefactModal() {
                         <ProjectSelection
                             resetForm={resetFormOnConfirmation}
                             setCurrentProject={updateCurrentSelectedProject}
-                            shouldShowWarningModal={shouldShowWarningModal}
+                            modifiedValuesExist={modifiedParameterValuesExist}
                             selectedProject={currentProject}
                             onClose={() => setShowProjectSelection(false)}
                             getWorkspaceProjects={getWorkspaceProjects}
@@ -364,7 +381,7 @@ export function CreateArtefactModal() {
         artefactForm = (
             <ProjectSelection
                 resetForm={resetFormOnConfirmation}
-                shouldShowWarningModal={shouldShowWarningModal}
+                modifiedValuesExist={modifiedParameterValuesExist}
                 setCurrentProject={updateCurrentSelectedProject}
                 selectedProject={currentProject}
                 onClose={() => setShowProjectSelection(false)}
