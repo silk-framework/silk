@@ -40,7 +40,6 @@ import { ProjectImportModal } from "../ProjectImportModal";
 import ItemDepiction from "../../../shared/ItemDepiction";
 import { ErrorBoundary } from "carbon-components-react/lib/components/ErrorBoundary";
 import ProjectSelection from "./ArtefactForms/ProjectSelection";
-import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { workspaceSel } from "@ducks/workspace";
 import { requestSearchList } from "@ducks/workspace/requests";
 import { uppercaseFirstChar } from "../../../../utils/transformers";
@@ -94,7 +93,7 @@ export function CreateArtefactModal() {
     const [formValueChanges, setFormValueChanges] = React.useState<{
         [key: string]: {
             initialValue: any;
-            shouldPrompt: boolean;
+            isModified: boolean;
         };
     }>({});
     const isEmptyWorkspace = useSelector(workspaceSel.isEmptyPageSelector);
@@ -275,22 +274,18 @@ export function CreateArtefactModal() {
     };
 
     /**
-     * track true changes that have happened in task form.
-     * for example a ---> b ---> a. here assuming a is a Falsy value and B is a Truthy Value,
-     * a --> b is a true while change b --> a is a false change.
-     * @param key form field
-     * @param val form value
+     * Tracks changes. When the changed deviate from the initial value it will set a isModified flag.
      */
     const detectFormChange = (key: string, val: any, oldValue: any) => {
         if (formValueChanges[key]) {
             const initialValue = formValueChanges[key].initialValue;
             if (initialValue !== val) {
-                formValueChanges[key].shouldPrompt = true;
+                formValueChanges[key].isModified = true;
             } else {
-                formValueChanges[key].shouldPrompt = false;
+                formValueChanges[key].isModified = false;
             }
         } else {
-            formValueChanges[key] = { initialValue: oldValue, shouldPrompt: true };
+            formValueChanges[key] = { initialValue: oldValue, isModified: true };
         }
     };
 
@@ -302,13 +297,13 @@ export function CreateArtefactModal() {
     const modifiedParameterValuesExist = (): boolean => {
         let shouldShow = false;
         for (let field in formValueChanges) {
-            if (!ignorableFields.has(field) && formValueChanges[field].shouldPrompt && !shouldShow) shouldShow = true;
+            if (!ignorableFields.has(field) && formValueChanges[field].isModified && !shouldShow) shouldShow = true;
             else continue;
         }
         return shouldShow;
     };
 
-    // reset to defaults, if label/description already existed it remains.
+    // reset to defaults, if label/description already existed they remain.
     const resetFormOnConfirmation = () => {
         const resetValue = {};
         Object.keys(formValueChanges).forEach((field) => {
@@ -325,7 +320,7 @@ export function CreateArtefactModal() {
      * sets to selected project from ProjectSelection
      * @param item Project
      */
-    const updateCurrentSelectedProject = (item: ISearchResultsServer) => {
+    const updateCurrentSelectedProject = (item: ProjectIdAndLabel) => {
         setShowProjectSelection(false);
         setCurrentProject(item);
     };
