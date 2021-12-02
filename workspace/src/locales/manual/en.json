@@ -4,9 +4,7 @@
         "createTitleGeneric": "Create new item",
         "loading": "Loading artefact type list.",
         "noMatch": "No match found.",
-        "updateTitle": "Update item of type {{type}}",
-        "itemIdentifier": "A custom identifier e.g new-task-plugin",
-        "itemIdentifierLabel": "Item Identifier"
+        "updateTitle": "Update item of type {{type}}"
     },
     "ShowIdentifierModal": {
         "title": "Item Identifier Modal"
@@ -165,7 +163,14 @@
     "RelatedItems": {
         "title": "Related items"
     },
-    "Copy": {
+    "CustomIdentifierInput": {
+        "IdentifierTitle": "{{item}} Identifier",
+        "itemIdentifier": "A custom identifier e.g new-task-plugin",
+        "validations": {
+            "unique": "custom task id must be unique"
+        }
+    },
+    "useCopyButton": {
         "copied": "Copied",
         "copyClipboard": "Copy to clipboard"
     },

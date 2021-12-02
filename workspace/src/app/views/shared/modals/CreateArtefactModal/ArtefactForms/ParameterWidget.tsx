@@ -27,12 +27,6 @@ interface IHookFormParam {
 }
 
 interface IProps {
-    //removes interactivity from textfield input
-    disabled?: boolean;
-
-    //add component to the right of textField of input
-    inputButton?: JSX.Element | undefined;
-
     projectId: string;
     // The ID of the parent object
     pluginId: string;
@@ -97,8 +91,6 @@ export const ParameterWidget = (props: IProps) => {
         changeHandlers,
         initialValues,
         dependentValues,
-        disabled,
-        inputButton,
     } = props;
     const errors = formHooks.errors[taskParameter.paramId];
     const propertyDetails = taskParameter.param;
@@ -231,7 +223,6 @@ export const ParameterWidget = (props: IProps) => {
     } else {
         return (
             <FieldItem
-                disabled={disabled}
                 labelAttributes={{
                     text: title,
                     info: required ? t("common.words.required") : "",
@@ -292,8 +283,6 @@ export const ParameterWidget = (props: IProps) => {
                         intent={errors ? Intent.DANGER : Intent.NONE}
                         onChange={changeHandlers[formParamId]}
                         initialValues={initialValues}
-                        disabled={disabled}
-                        inputButton={inputButton}
                     />
                 )}
             </FieldItem>

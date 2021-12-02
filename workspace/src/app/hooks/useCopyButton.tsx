@@ -38,8 +38,8 @@ const useCopyButton = (data: Array<ICopyData>, resetTimeout = COPY_RESET_TIMEOUT
             }}
         >
             {activeButton === `${index}`
-                ? ctaMessage || t("Copy.copied", "Copied")
-                : confirmationMessage || t("Copy.copyClipboard", "Copy to clipboard")}
+                ? ctaMessage || t("useCopyButton.copied", "Copied")
+                : confirmationMessage || t("useCopyButton.copyClipboard", "Copy to clipboard")}
         </Button>
     ));
 };

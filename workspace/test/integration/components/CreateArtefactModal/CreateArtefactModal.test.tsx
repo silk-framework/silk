@@ -380,7 +380,6 @@ describe("Task creation widget", () => {
         intParam: value("100"),
         booleanParam: value("true"),
         stringParam: value("string value"),
-        id: value("taskId"),
         restrictionParam: value("restriction value"),
         multiLineParam: value("multiline value"),
         passwordParam: value("password value"),

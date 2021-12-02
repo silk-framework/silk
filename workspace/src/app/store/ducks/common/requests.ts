@@ -1,6 +1,7 @@
 import fetch from "../../../services/fetch";
 import { coreApi, legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
 import { IDetailedArtefactItem, IOverviewArtefactItemList, IExportTypes, IInitFrontend } from "@ducks/common/typings";
+import { FetchResponse } from "services/fetch/responseInterceptor";
 
 const handleError = (error) => {
     return error.errorResponse;
@@ -53,41 +54,34 @@ export const requestArtefactList = async (payload: any): Promise<IOverviewArtefa
 };
 
 /**
- * validate custom projectId
- */
-export const requestProjectIdValidation = async (projectId: string) => {
-    try {
-        const res = await fetch({
-            url: projectApi(
-                `/validateIdentifier?${new URLSearchParams({
-                    projectIdentifier: projectId,
-                })}`
-            ),
-        });
-        return res;
-    } catch (err) {
-        throw handleError(err);
-    }
-};
-
-/**
- * validate custom task id
+ * validate custom projectId by ensuring uniqueness and makes sanity checks
+ * @param projectId
  * @returns
  */
-export const requestTaskIdValidation = async (taskId: string, projectId: string) => {
-    try {
-        const res = await fetch({
-            url: projectApi(
-                `/${projectId}/validateIdentifier?${new URLSearchParams({
-                    taskIdentifier: taskId,
-                })}`
-            ),
-        });
-        return res;
-    } catch (e) {
-        throw handleError(e);
-    }
-};
+export const requestProjectIdValidation = async (projectId: string): Promise<FetchResponse<void>> =>
+    fetch({
+        url: projectApi(
+            `/validateIdentifier?${new URLSearchParams({
+                projectIdentifier: projectId,
+            })}`
+        ),
+    });
+
+/**
+ * validate custom taskId by ensuring uniqueness and makes sanity checks
+ * @param taskId
+ * @param projectId
+ * @returns
+ */
+
+export const requestTaskIdValidation = (taskId: string, projectId: string): Promise<FetchResponse<void>> =>
+    fetch({
+        url: projectApi(
+            `/${projectId}/validateIdentifier?${new URLSearchParams({
+                taskIdentifier: taskId,
+            })}`
+        ),
+    });
 
 /**
  * Get properties(form) for specific plugin
