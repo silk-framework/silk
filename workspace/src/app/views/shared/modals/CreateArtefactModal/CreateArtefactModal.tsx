@@ -92,7 +92,10 @@ export function CreateArtefactModal() {
     const [currentProject, setCurrentProject] = useState<ProjectIdAndLabel | undefined>(undefined);
     const [showProjectSelection, setShowProjectSelection] = useState<boolean>(false);
     const [formValueChanges, setFormValueChanges] = React.useState<{
-        [key: string]: { lastValue: any; shouldPrompt: boolean };
+        [key: string]: {
+            initialValue: any;
+            shouldPrompt: boolean;
+        };
     }>({});
     const isEmptyWorkspace = useSelector(workspaceSel.isEmptyPageSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
@@ -278,16 +281,16 @@ export function CreateArtefactModal() {
      * @param key form field
      * @param val form value
      */
-    const detectFormChange = (key: string, val: any) => {
+    const detectFormChange = (key: string, val: any, oldValue: any) => {
         if (formValueChanges[key]) {
-            const lastValue = formValueChanges[key].lastValue;
-            if (lastValue !== val && val) {
-                formValueChanges[key] = { lastValue: val, shouldPrompt: true };
+            const initialValue = formValueChanges[key].initialValue;
+            if (initialValue !== val) {
+                formValueChanges[key].shouldPrompt = true;
             } else {
                 formValueChanges[key].shouldPrompt = false;
             }
         } else {
-            formValueChanges[key] = { lastValue: val, shouldPrompt: true };
+            formValueChanges[key] = { initialValue: oldValue, shouldPrompt: true };
         }
     };
 
@@ -312,7 +315,7 @@ export function CreateArtefactModal() {
             if (!ignorableFields.has(field)) {
                 delete formValueChanges[field];
             } else {
-                resetValue[field] = formValueChanges[field].lastValue;
+                resetValue[field] = form.getValues()[field];
             }
         });
         form.reset(resetValue);
@@ -390,7 +393,7 @@ export function CreateArtefactModal() {
 
     if (updateExistingTask) {
         // Task update
-        artefactForm = addChangeProjectHandler(
+        artefactForm = (
             <TaskForm
                 form={form}
                 detectChange={detectFormChange}

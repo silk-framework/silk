@@ -14,7 +14,7 @@ import Loading from "../../../Loading";
 export interface IProps {
     form: any;
 
-    detectChange: (key: string, val: any) => void;
+    detectChange: (key: string, val: any, oldValue: any) => void;
 
     artefact: IDetailedArtefactItem;
 
@@ -73,6 +73,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, detectChange }
         }
     };
 
+    /** Set doChange in order to re-render/reset the task form when the project has changed. */
     useEffect(() => {
         setDoChange(true);
     }, [projectId]);
@@ -83,6 +84,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, detectChange }
         }
     }, [doChange]);
 
+    /** Initialize: register parameters, set default/existing values etc. */
     useEffect(() => {
         // All keys (also nested ones are stores in here)
         const returnKeys: string[] = [];
@@ -156,6 +158,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, detectChange }
         };
     }, [properties, register, projectId]);
 
+    /** Change handler for a specific parameter. */
     const handleChange = useCallback(
         (key) => (e) => {
             const { triggerValidation } = form;
@@ -167,16 +170,16 @@ export function TaskForm({ form, projectId, artefact, updateTask, detectChange }
                 // We still need to update the state with a new object to trigger re-render though.
                 setDependentValues({ ...dependentValues });
             }
+            const oldValue = getValues()[key];
             setValue(key, value);
-            detectChange(key, value);
+            detectChange(key, value, oldValue);
             triggerValidation(key);
         },
         []
     );
 
     /**
-     * changeHandlers pass to ParameterWidget
-     * and serve for register new values, which generated when `type=object`
+     * All change handlers that will be passed to the ParameterWidget components.
      */
     const changeHandlers = useMemo(() => {
         const handlers = {};
