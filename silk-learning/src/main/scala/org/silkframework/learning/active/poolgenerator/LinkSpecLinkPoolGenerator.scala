@@ -2,6 +2,7 @@ package org.silkframework.learning.active.poolgenerator
 
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.DataSource
+import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.learning.active.{LinkCandidate, UnlabeledLinkPool}
 import org.silkframework.learning.active.poolgenerator.LinkPoolGeneratorUtils._
@@ -30,13 +31,17 @@ class LinkSpecLinkPoolGenerator(maxLinks: Int = LinkSpecLinkPoolGenerator.defaul
 
     override def run(context: ActivityContext[UnlabeledLinkPool])(implicit userContext: UserContext): Unit = {
       val entitySchemata = entitySchema(linkSpec, paths)
-      val generateLinks = new GenerateLinks(PlainTask("PoolGenerator", linkSpec), inputs, None, runtimeConfig) {
-        override def entityDescs = entitySchemata
+      if (linkSpec.rule.operator.isDefined) {
+        val generateLinks = new GenerateLinks(PlainTask("PoolGenerator", linkSpec), inputs, None, runtimeConfig) {
+          override def entityDescs: DPair[EntitySchema] = entitySchemata
+        }
+
+        val links = context.child(generateLinks, 1.0).startBlockingAndGetValue().links.map(LinkCandidate.fromLink)
+
+        context.value() = UnlabeledLinkPool(linkSpec.entityDescriptions, shuffleLinks(links))
+      } else {
+        context.value() = UnlabeledLinkPool(entitySchemata, Seq.empty)
       }
-
-      val links = context.child(generateLinks, 1.0).startBlockingAndGetValue().links.map(LinkCandidate.fromLink)
-
-      context.value() = UnlabeledLinkPool(linkSpec.entityDescriptions, shuffleLinks(links))
     }
   }
 }
