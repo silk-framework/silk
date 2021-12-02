@@ -58,7 +58,11 @@ export const requestArtefactList = async (payload: any): Promise<IOverviewArtefa
 export const requestProjectIdValidation = async (projectId: string) => {
     try {
         const res = await fetch({
-            url: projectApi(`/validateIdentifier?projectIdentifier=${projectId}`),
+            url: projectApi(
+                `/validateIdentifier?${new URLSearchParams({
+                    projectIdentifier: projectId,
+                })}`
+            ),
         });
         return res;
     } catch (err) {
@@ -73,7 +77,11 @@ export const requestProjectIdValidation = async (projectId: string) => {
 export const requestTaskIdValidation = async (taskId: string, projectId: string) => {
     try {
         const res = await fetch({
-            url: projectApi(`/${projectId}/validateIdentifier?taskIdentifier=${taskId}`),
+            url: projectApi(
+                `/${projectId}/validateIdentifier?${new URLSearchParams({
+                    taskIdentifier: taskId,
+                })}`
+            ),
         });
         return res;
     } catch (e) {

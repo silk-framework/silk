@@ -5,7 +5,6 @@ import { Intent } from "@gui-elements/blueprint/constants";
 import { useTranslation } from "react-i18next";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
 import { requestProjectIdValidation } from "@ducks/common/requests";
-import { debounce } from "../../../../../utils/debounce";
 
 interface IProps {
     form: any;
@@ -21,41 +20,27 @@ export function ProjectForm({ form }: IProps) {
     const [t] = useTranslation();
 
     /** check if custom task id is unique and is valid */
-    const handleProjectIdValidation = React.useCallback(
-        debounce(async (customProjectId?: string) => {
-            if (!customProjectId) return form.clearError(IDENTIFIER);
-            try {
-                const res = await requestProjectIdValidation(customProjectId);
-                if (res.axiosResponse.status === 200) {
-                    form.clearError(IDENTIFIER);
-                }
-            } catch (err) {
-                if (err.status === 409) {
-                    form.setError("id", "pattern", "custom task id must be unique");
-                } else {
-                    form.setError("id", "pattern", err.detail);
-                }
+    const handleProjectIdValidation = async (customProjectId?: string) => {
+        if (!customProjectId) return form.clearError(IDENTIFIER);
+        try {
+            const res = await requestProjectIdValidation(customProjectId);
+            if (res.axiosResponse.status === 200) {
+                form.clearError(IDENTIFIER);
             }
-        }, 200),
-        []
-    );
+        } catch (err) {
+            if (err.status === 409) {
+                form.setError("id", "pattern", "custom task id must be unique");
+            } else {
+                form.setError("id", "pattern", err.detail);
+            }
+        }
+    };
 
     React.useEffect(() => {
         register({ name: LABEL }, { required: true });
         register({ name: DESCRIPTION });
-        register(
-            { name: IDENTIFIER },
-            {
-                pattern: {
-                    value: /^[^\s]+[a-zA-z0-9_-]*[^\s]+$/g,
-                    message: t(
-                        "form.validations.identifier",
-                        "includes characters and numbers with only '_' & '-' as allowed special characters"
-                    ),
-                },
-            }
-        );
-    }, [register]);
+        register({ name: IDENTIFIER });
+    }, []);
 
     const onValueChange = (key) => {
         return async (e) => {

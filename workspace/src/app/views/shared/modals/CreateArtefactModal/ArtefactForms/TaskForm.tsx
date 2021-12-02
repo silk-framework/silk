@@ -99,17 +99,6 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IPro
                     message: t("form.validations.integer", "must be an integer number"),
                 },
             };
-        } else if (param.parameterType === INPUT_TYPES.IDENTIFIER) {
-            // Todo add german translation
-            return {
-                pattern: {
-                    value: /^[^\s]+[a-zA-z0-9_-]*[^\s]+$/g,
-                    message: t(
-                        "form.validations.identifier",
-                        "includes characters and numbers with only '_' & '-' as allowed special characters"
-                    ),
-                },
-            };
         } else {
             return {};
         }
