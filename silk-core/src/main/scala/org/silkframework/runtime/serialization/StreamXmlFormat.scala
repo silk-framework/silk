@@ -1,11 +1,11 @@
 package org.silkframework.runtime.serialization
 
-import java.io.{InputStream, OutputStream}
+import org.apache.xalan.xsltc.trax.DOM2SAX
 
+import java.io.{InputStream, OutputStream}
 import javax.xml.stream.util.StreamReaderDelegate
 import javax.xml.stream.{XMLInputFactory, XMLStreamConstants, XMLStreamReader}
-import javax.xml.transform.{Transformer}
-import com.sun.org.apache.xalan.internal.xsltc.trax.DOM2SAX
+import javax.xml.transform.Transformer
 import javax.xml.parsers.DocumentBuilderFactory
 import org.w3c.dom.{Document, Element}
 

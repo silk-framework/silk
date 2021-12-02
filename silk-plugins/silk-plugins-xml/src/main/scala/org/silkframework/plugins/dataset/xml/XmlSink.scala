@@ -1,21 +1,20 @@
 package org.silkframework.plugins.dataset.xml
 
-import java.io.StringReader
-
-import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.transform.OutputKeys
-import javax.xml.transform.dom.DOMSource
-import javax.xml.transform.stream.StreamResult
-import com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl
+import org.apache.xalan.xsltc.trax.TransformerFactoryImpl
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{EntitySink, TypedProperty}
-import org.silkframework.entity.{UriValueType, ValueType}
+import org.silkframework.entity.ValueType
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 import org.w3c.dom.{Document, Element, Node, ProcessingInstruction}
 
+import java.io.StringReader
+import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.transform.OutputKeys
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.stream.StreamResult
 import scala.collection.mutable
 import scala.xml.InputSource
 
@@ -85,6 +84,7 @@ class XmlSink(resource: WritableResource, outputTemplate: String) extends Entity
 
   override def close()(implicit userContext: UserContext): Unit = {
     val transformerFactory = new TransformerFactoryImpl() // We have to specify this here explicitly, else it will take the Saxon implementation
+    transformerFactory.setAttribute("indent-number", 2)
     val transformer = transformerFactory.newTransformer
 
     transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8")
