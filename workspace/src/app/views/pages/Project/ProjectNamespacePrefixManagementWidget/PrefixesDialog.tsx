@@ -65,7 +65,10 @@ const PrefixesDialog = ({ onCloseModal, isOpen, existingPrefixes, projectId }: I
             }
         >
             {isLoading ? (
-                <Loading description={t("widget.ConfigWidget.loadingPrefix", "Loading prefix configuration.")} />
+                <Loading
+                    description={t("widget.ConfigWidget.loadingPrefix", "Loading prefix configuration.")}
+                    delay={0}
+                />
             ) : (
                 <>
                     <PrefixNew

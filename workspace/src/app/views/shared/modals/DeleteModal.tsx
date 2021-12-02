@@ -50,7 +50,7 @@ export default function DeleteModal({
             data-test-id={otherProps["data-test-id"]}
             actions={
                 removeLoading ? (
-                    <Loading />
+                    <Loading delay={0} />
                 ) : (
                     [
                         <Button

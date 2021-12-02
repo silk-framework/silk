@@ -501,7 +501,7 @@ export function CreateArtefactModal() {
             actions={
                 isCreationUpdateDialog ? (
                     actionLoading ? (
-                        <Loading size={"small"} color={"primary"} />
+                        <Loading size={"small"} color={"primary"} delay={0} />
                     ) : (
                         [
                             <Button
@@ -606,6 +606,7 @@ export function CreateArtefactModal() {
                                     {loading ? (
                                         <Loading
                                             description={t("CreateModal.loading", "Loading artefact type list.")}
+                                            delay={0}
                                         />
                                     ) : artefactListWithProject.length === 0 ? (
                                         <Notification message={t("CreateModal.noMatch", "No match found.")} />
