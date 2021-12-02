@@ -4,7 +4,9 @@
         "createTitleGeneric": "Create new item",
         "loading": "Loading artefact type list.",
         "noMatch": "No match found.",
-        "updateTitle": "Update item of type {{type}}"
+        "updateTitle": "Update item of type {{type}}",
+        "itemIdentifier": "A custom identifier e.g new-task-plugin",
+        "itemIdentifierLabel": "Item Identifier"
     },
     "ShowIdentifierModal": {
         "title": "Item Identifier Modal"
@@ -170,6 +172,7 @@
     "common": {
         "action": {
             "showIdentifier": "show Identifier",
+
             "AddSmth": "Add {{smth}}",
             "CloneSmth": "Clone {{smth}}",
             "CopySmth": "Copy {{smth}} artefacts",

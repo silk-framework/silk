@@ -196,7 +196,7 @@ export function SearchList() {
                             onConfirmed={handleCloneConfirmed}
                         />
                     )}
-                    {projectId && selectedItem && (
+                    {projectId && selectedItem && showIdentifierOpen && (
                         <ShowIdentifierModal
                             projectId={projectId}
                             taskId={selectedItem.id}

@@ -1,6 +1,6 @@
 import React from "react";
 import { FieldItem, TextField, TextArea } from "@gui-elements/index";
-import { errorMessage, ParameterWidget } from "./ParameterWidget";
+import { errorMessage } from "./ParameterWidget";
 import { Intent } from "@gui-elements/blueprint/constants";
 import { useTranslation } from "react-i18next";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
@@ -23,18 +23,17 @@ export function ProjectForm({ form }: IProps) {
     /** check if custom task id is unique and is valid */
     const handleProjectIdValidation = React.useCallback(
         debounce(async (customProjectId?: string) => {
+            if (!customProjectId) return form.clearError(IDENTIFIER);
             try {
-                if (customProjectId) {
-                    const res = await requestProjectIdValidation(customProjectId);
-                    if (res.axiosResponse.status === 200) {
-                        form.clearError(IDENTIFIER);
-                    }
+                const res = await requestProjectIdValidation(customProjectId);
+                if (res.axiosResponse.status === 200) {
+                    form.clearError(IDENTIFIER);
                 }
             } catch (err) {
                 if (err.status === 409) {
                     form.setError("id", "pattern", "custom task id must be unique");
                 } else {
-                    triggerValidation(IDENTIFIER);
+                    form.setError("id", "pattern", err.detail);
                 }
             }
         }, 200),
@@ -45,12 +44,10 @@ export function ProjectForm({ form }: IProps) {
         register({ name: LABEL }, { required: true });
         register({ name: DESCRIPTION });
         register(
-            {
-                name: IDENTIFIER,
-            },
+            { name: IDENTIFIER },
             {
                 pattern: {
-                    value: /^[a-zA-z0-9_-]*$/g,
+                    value: /^[^\s]+[a-zA-z0-9_-]*[^\s]+$/g,
                     message: t(
                         "form.validations.identifier",
                         "includes characters and numbers with only '_' & '-' as allowed special characters"
@@ -59,17 +56,14 @@ export function ProjectForm({ form }: IProps) {
             }
         );
     }, [register]);
+
     const onValueChange = (key) => {
-        return (e) => {
+        return async (e) => {
             const value = e.target ? e.target.value : e;
             setValue(key, value);
+            const initialValidation = await triggerValidation(key);
             //verify project identifier
-            if (key === IDENTIFIER) {
-                if (!value) form.clearError(IDENTIFIER);
-                handleProjectIdValidation(value);
-            } else {
-                triggerValidation(key);
-            }
+            if (key === IDENTIFIER && initialValidation) handleProjectIdValidation(value);
         };
     };
     return (

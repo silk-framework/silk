@@ -52,15 +52,17 @@ const datasetConfigPreview = (
 
 /** The task creation/update form. */
 export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IProps) {
+    const [t] = useTranslation();
+
     const artefactWithId: IDetailedArtefactItem = {
         ...artefact,
         properties: {
             ...artefact.properties,
             id: {
                 advanced: true,
-                description: "A custom identifier e.g new-task-plugin",
+                description: t("CreateModal.itemIdentifier", "A custom identifier e.g new-task-plugin"),
                 parameterType: INPUT_TYPES.IDENTIFIER,
-                title: "Task identifier",
+                title: t("CreateModal.itemIdentifierLabel", "Item Identifier"),
                 type: "string",
                 value: "",
                 visibleInDialog: true,
@@ -88,8 +90,6 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IPro
     const initialValues = existingTaskValuesToFlatParameters(updateTaskWithId);
     const [copyButton] = useCopyButton([{ text: taskId ?? "" }]);
 
-    const [t] = useTranslation();
-
     // addition restriction for the hook form parameter values
     const valueRestrictions = (param: IArtefactItemProperty) => {
         if (param.parameterType === INPUT_TYPES.INTEGER) {
@@ -103,7 +103,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IPro
             // Todo add german translation
             return {
                 pattern: {
-                    value: /^[a-zA-z0-9_-]*$/g,
+                    value: /^[^\s]+[a-zA-z0-9_-]*[^\s]+$/g,
                     message: t(
                         "form.validations.identifier",
                         "includes characters and numbers with only '_' & '-' as allowed special characters"
@@ -203,18 +203,17 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IPro
     /** check if custom task id is unique and is valid */
     const handleTaskIdValidation = useCallback(
         debounce(async (customTaskId?: string) => {
+            if (!customTaskId) return form.clearError(IDENTIFIER);
             try {
-                if (customTaskId) {
-                    const res = await requestTaskIdValidation(customTaskId, projectId);
-                    if (res.axiosResponse.status === 200) {
-                        form.clearError(IDENTIFIER);
-                    }
+                const res = await requestTaskIdValidation(customTaskId, projectId);
+                if (res.axiosResponse.status === 200) {
+                    form.clearError(IDENTIFIER);
                 }
             } catch (err) {
                 if (err.status === 409) {
                     form.setError("id", "pattern", "custom task id must be unique");
                 } else {
-                    triggerValidation(IDENTIFIER);
+                    form.setError("id", "pattern", err.detail);
                 }
             }
         }, 200),
@@ -222,9 +221,9 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IPro
     );
 
     const handleChange = useCallback(
-        (key) => (e) => {
+        (key) => async (e) => {
             const { triggerValidation } = form;
-            const value = (e.target ? e.target.value : e).trim();
+            const value = e.target ? e.target.value : e;
 
             if (dependentValues[key] !== undefined) {
                 // This is rather a hack, since the callback is memoized the clojure always captures the initial (empty) object, thus we need the state object to be mutable.
@@ -235,13 +234,9 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IPro
                 });
             }
             setValue(key, value);
+            const initialValidation = await triggerValidation(key);
             //verify task identifier
-            if (key === IDENTIFIER) {
-                if (!value) form.clearError(IDENTIFIER);
-                handleTaskIdValidation(value);
-            } else {
-                triggerValidation(key);
-            }
+            if (key === IDENTIFIER && initialValidation) handleTaskIdValidation(value);
         },
         []
     );
