@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/silk-framework/silk.svg?branch=develop)](https://travis-ci.org/silk-framework/silk)
+[![Build Status](https://app.travis-ci.com/silk-framework/silk.svg?branch=develop)](https://app.travis-ci.com/silk-framework/silk)
 [![Deploy](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy?template=https://github.com/silk-framework/silk)
 
 # Silk Link Discovery Framework
