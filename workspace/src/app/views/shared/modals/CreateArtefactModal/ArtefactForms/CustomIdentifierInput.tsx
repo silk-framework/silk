@@ -35,7 +35,7 @@ export const handleCustomIdValidation = debounce(
             const res = !projectId
                 ? await requestProjectIdValidation(customId)
                 : await requestTaskIdValidation(customId, projectId);
-            if (res.axiosResponse.status === 200) {
+            if (res.axiosResponse.status === 204) {
                 form.clearError(IDENTIFIER);
             }
         } catch (err) {
