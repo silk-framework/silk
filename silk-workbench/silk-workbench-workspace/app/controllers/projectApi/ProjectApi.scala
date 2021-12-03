@@ -39,7 +39,21 @@ import scala.util.Try
   */
 @Tag(name = "Projects", description = "Access to all projects in the workspace.")
 class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
-  //validate the project id field by ensuring it's unique and corresponds to the right format
+  /** validate the project id field by ensuring it's unique and corresponds to the right format **/
+  @Operation(
+    summary = "validates custom project id",
+    description = "Receives a custom id and checks for uniqueness and sanity",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "custom id is both valid and unique",
+      ),
+      new ApiResponse (
+        responseCode = "409",
+        description = "if the custom id isn't unique, i.e, there is an existing project with same id",
+      )
+    )
+  )
   def validateIdentifier(
                          @Parameter(
                            name = "identifier",
@@ -53,7 +67,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
     if(projectExists(projectId)) {
       throw IdentifierAlreadyExistsException(s"Project id '$projectIdentifier' is not unique as there is already a project with this name.")
     }
-    Ok(Json.toJson(""))
+    NoContent
   }
 
   

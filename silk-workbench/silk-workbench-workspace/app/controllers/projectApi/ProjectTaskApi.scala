@@ -30,7 +30,21 @@ import scala.util.Try
 @Tag(name = "Project tasks", description = "Access to all tasks in a project.")
 class ProjectTaskApi @Inject()() extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
-    //validate the task id field by ensuring it's unique and corresponds to the right format
+  //validate the task id field by ensuring it's unique and corresponds to the right format
+  @Operation(
+      summary = "validates custom task id",
+      description = "Receives a custom id and checks for uniqueness and sanity",
+      responses = Array(
+        new ApiResponse(
+          responseCode = "200",
+          description = "custom id is both valid and unique",
+        ),
+        new ApiResponse (
+          responseCode = "409",
+          description = "if the custom id isn't unique, i.e, there is an existing task under the same project ctx with same id",
+        )
+      )
+    )
   def validateIdentifier(@Parameter(
                           name = "projectId",
                           description = "The project identifier",
@@ -52,7 +66,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
     if(project.allTasks.exists(_.id == taskId)) {
       throw IdentifierAlreadyExistsException(s"Task name '$taskIdentifier' is not unique as there is already a task in project '${projectId}' with this name.")
     }
-    Ok(Json.toJson(""))
+    NoContent
   }
 
 
