@@ -12,8 +12,13 @@ const IDENTIFIER = "id";
 
 interface IProps {
     form: any;
+    /** handles input change */
     onValueChange: (val: string) => (event: any) => Promise<void>;
+
+    /** existing task with preset id **/
     taskId?: string;
+
+    /** existing project with preset id **/
     projectId?: string;
 }
 

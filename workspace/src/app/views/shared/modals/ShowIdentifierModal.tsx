@@ -13,17 +13,26 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 
 interface ShowIdentifierProps {
+    /**close the modal**/
     onDiscard: () => void;
-    taskId?: string;
+
+    /**project Id only visible in a project ctx */
     projectId: string;
+
+    /** taskId only visible under a selected task in a project ctx*/
+    taskId?: string;
 }
 
 const ShowIdentifierModal: React.FC<ShowIdentifierProps> = ({ onDiscard, taskId, projectId }) => {
+    const [buttons] = React.useState<Array<{ text: string }>>([{ text: projectId }]);
     const [t] = useTranslation();
-    const buttons = [{ text: projectId }];
-    if (taskId) {
-        buttons.push({ text: taskId });
-    }
+
+    React.useEffect(() => {
+        if (taskId) {
+            buttons.push({ text: taskId });
+        }
+    }, [taskId]);
+
     const [projectCopyBtn, taskCopyBtn] = useCopyButton(buttons);
 
     return (
