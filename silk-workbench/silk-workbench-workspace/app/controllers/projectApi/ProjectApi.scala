@@ -45,7 +45,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
     description = "Receives a custom id and checks for uniqueness and sanity",
     responses = Array(
       new ApiResponse(
-        responseCode = "200",
+        responseCode = "204",
         description = "custom id is both valid and unique",
       ),
       new ApiResponse (
