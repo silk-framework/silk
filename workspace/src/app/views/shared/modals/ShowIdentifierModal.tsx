@@ -1,13 +1,4 @@
-import {
-    Button,
-    TextField,
-    SimpleDialog,
-    Spacing,
-    Card,
-    CardHeader,
-    CardTitle,
-    CardContent,
-} from "@gui-elements/index";
+import { Button, TextField, SimpleDialog, Spacing, TitleSubsection } from "@gui-elements/index";
 import useCopyButton from "../../../hooks/useCopyButton";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -46,27 +37,25 @@ const ShowIdentifierModal: React.FC<ShowIdentifierProps> = ({ onDiscard, taskId,
                 </Button>,
             ]}
         >
-            <Card>
-                <CardHeader>
-                    <CardTitle>{taskId ? `{TaskId}` : `{projectId}`}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <TextField disabled value={taskId ? taskId : projectId} rightElement={idCopyBtn} />
-                </CardContent>
-            </Card>
+            <TitleSubsection>
+                {taskId
+                    ? `{${t("CreateModal.CustomIdentifierInput.TaskId")}}`
+                    : `{${t("CreateModal.CustomIdentifierInput.ProjectId")}}`}
+            </TitleSubsection>
+            <TextField disabled value={taskId ? taskId : projectId} rightElement={idCopyBtn} />
             {taskId ? (
                 <>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>{`{projectId}:{taskId}`}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <TextField disabled value={`${projectId}:${taskId}`} rightElement={combinedCopyBtn} />
-                        </CardContent>
-                    </Card>
+                    <Spacing size="medium" />
+                    <TitleSubsection>
+                        {`
+                            {${t("CreateModal.CustomIdentifierInput.ProjectId")}}
+                            :
+                            {${t("CreateModal.CustomIdentifierInput.TaskId")}}
+                        `}
+                    </TitleSubsection>
+                    <TextField disabled value={`${projectId}:${taskId}`} rightElement={combinedCopyBtn} />
                 </>
             ) : null}
-            <Spacing size="medium" vertical />
         </SimpleDialog>
     );
 };

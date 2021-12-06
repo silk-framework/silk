@@ -133,7 +133,7 @@ export function ArtefactManagementOptions({
                 "data-test-id": "header-clone-button",
             },
             {
-                text: t("common.action.showIdentifier", "Show Identifier"),
+                text: t("common.action.showIdentifier", "Show identifier"),
                 actionHandler: toggleShowIdentifierModal,
                 "data-test-id": "header-item-identifier-button",
             },

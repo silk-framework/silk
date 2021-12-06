@@ -4,10 +4,18 @@
         "createTitleGeneric": "Create new item",
         "loading": "Loading artefact type list.",
         "noMatch": "No match found.",
-        "updateTitle": "Update item of type {{type}}"
+        "updateTitle": "Update item of type {{type}}",
+        "CustomIdentifierInput": {
+            "ProjectId": "Project identifier",
+            "TaskId": "Item identifier",
+            "helperDescription": "An unique identifier, e.g. `my-new-element`. This identifier is used for references and URLs.",
+            "validations": {
+                "unique": "Identifier must be unique. The entered identifier is already used for another element."
+            }
+        }
     },
     "ShowIdentifierModal": {
-        "title": "Item Identifier Modal"
+        "title": "Item identifier"
     },
     "DataList": {
         "loading": "Loading data."
@@ -163,21 +171,9 @@
     "RelatedItems": {
         "title": "Related items"
     },
-    "CustomIdentifierInput": {
-        "IdentifierTitle": "{{item}} Identifier",
-        "itemIdentifier": "A custom identifier e.g new-task-plugin",
-        "validations": {
-            "unique": "custom task id must be unique"
-        }
-    },
-    "useCopyButton": {
-        "copied": "Copied",
-        "copyClipboard": "Copy to clipboard"
-    },
     "common": {
         "action": {
-            "showIdentifier": "show Identifier",
-
+            "showIdentifier": "Show identifier",
             "AddSmth": "Add {{smth}}",
             "CloneSmth": "Clone {{smth}}",
             "CopySmth": "Copy {{smth}} artefacts",
@@ -212,7 +208,8 @@
             "showDetails": "Open details page",
             "submit": "Submit",
             "update": "Update",
-            "showApiDoc": "API"
+            "showApiDoc": "API",
+            "copyClipboard": "Copy to clipboard"
         },
         "app": {
             "build": "Build",
@@ -283,7 +280,8 @@
             "more": "more",
             "required": "required",
             "sortOptions": "Sort options",
-            "summary": "Summary"
+            "summary": "Summary",
+            "copied": "Copied"
         }
     },
     "form": {

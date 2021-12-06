@@ -245,7 +245,7 @@ export default function SearchItem({
                         <MenuItem
                             data-test-id={"open-duplicate-modal"}
                             icon="item-viewdetails"
-                            text={t("common.action.showIdentifier", "Show Identifier")}
+                            text={t("common.action.showIdentifier", "Show identifier")}
                             onClick={toggleShowIdentifierModal}
                         />
                         <MenuDivider />
