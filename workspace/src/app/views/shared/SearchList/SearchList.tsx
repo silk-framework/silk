@@ -141,7 +141,6 @@ export function SearchList() {
     ) : (
         <Notification>{t("common.messages.noItems", { items: "items" })}</Notification>
     );
-
     return (
         <>
             <AppliedFacets />
@@ -196,10 +195,10 @@ export function SearchList() {
                             onConfirmed={handleCloneConfirmed}
                         />
                     )}
-                    {projectId && selectedItem && showIdentifierOpen && (
+                    {selectedItem && showIdentifierOpen && (
                         <ShowIdentifierModal
-                            projectId={projectId}
-                            taskId={selectedItem.id}
+                            projectId={selectedItem.projectId}
+                            taskId={selectedItem.type !== "project" ? selectedItem.id : undefined}
                             onDiscard={onDiscardModals}
                         />
                     )}

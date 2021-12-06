@@ -12,6 +12,8 @@ interface ICopyData {
     confirmationMessage?: string;
     /** external callback, that would be called when the copy action has happened**/
     handler?: (text: string) => void | undefined;
+    /** test id for button */
+    "data-test-id"?: string;
 }
 
 const COPY_RESET_TIMEOUT = 1000;
@@ -28,8 +30,9 @@ const useCopyButton = (data: Array<ICopyData>, resetTimeout = COPY_RESET_TIMEOUT
         return () => timeoutId && clearTimeout(timeoutId);
     }, [activeButton]);
 
-    return data.map(({ handler, text, ctaMessage, confirmationMessage }, index) => (
+    return data.map(({ handler, text, ctaMessage, confirmationMessage, ...rest }, index) => (
         <Button
+            {...rest}
             onClick={() => {
                 copyToClipboard(text);
                 setActiveButton(`${index}`);

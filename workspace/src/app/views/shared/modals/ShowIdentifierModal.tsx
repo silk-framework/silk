@@ -24,16 +24,15 @@ interface ShowIdentifierProps {
 }
 
 const ShowIdentifierModal: React.FC<ShowIdentifierProps> = ({ onDiscard, taskId, projectId }) => {
-    const [buttons] = React.useState<Array<{ text: string }>>([{ text: projectId }]);
+    const [data, setData] = React.useState([{ text: taskId ? taskId : projectId, "data-test-id": "id-copy-btn" }]);
+    const [idCopyBtn, combinedCopyBtn] = useCopyButton(data);
     const [t] = useTranslation();
 
     React.useEffect(() => {
         if (taskId) {
-            buttons.push({ text: taskId });
+            setData((buttons) => [...buttons, { text: `${projectId}:${taskId}`, "data-test-id": "combined-copy-btn" }]);
         }
     }, [taskId]);
-
-    const [projectCopyBtn, taskCopyBtn] = useCopyButton(buttons);
 
     return (
         <SimpleDialog
@@ -42,27 +41,27 @@ const ShowIdentifierModal: React.FC<ShowIdentifierProps> = ({ onDiscard, taskId,
             isOpen={true}
             onClose={onDiscard}
             actions={[
-                <Button key="cancel" onClick={onDiscard}>
+                <Button key="cancel" onClick={onDiscard} data-test-id="show-cancel-button">
                     {t("common.action.cancel")}
                 </Button>,
             ]}
         >
             <Card>
                 <CardHeader>
-                    <CardTitle>{`{project-id}`}</CardTitle>
+                    <CardTitle>{taskId ? `{TaskId}` : `{projectId}`}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <TextField disabled value={projectId} rightElement={projectCopyBtn} />
+                    <TextField disabled value={taskId ? taskId : projectId} rightElement={idCopyBtn} />
                 </CardContent>
             </Card>
             {taskId ? (
                 <>
                     <Card>
                         <CardHeader>
-                            <CardTitle>{`{project-id}:{task-id}`}</CardTitle>
+                            <CardTitle>{`{projectId}:{taskId}`}</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <TextField disabled value={`${projectId}:${taskId}`} rightElement={taskCopyBtn} />
+                            <TextField disabled value={`${projectId}:${taskId}`} rightElement={combinedCopyBtn} />
                         </CardContent>
                     </Card>
                 </>
