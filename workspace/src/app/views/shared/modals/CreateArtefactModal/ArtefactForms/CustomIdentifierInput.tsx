@@ -40,7 +40,7 @@ export const handleCustomIdValidation = debounce(
             }
         } catch (err) {
             if (err.errorResponse.status === 409) {
-                form.setError("id", "pattern", t("CustomIdentifierInput.validations.unique"));
+                form.setError("id", "pattern", t("CreateModal.CustomIdentifierInput.validations.unique"));
             } else {
                 form.setError("id", "pattern", err.errorResponse.detail);
             }
@@ -59,10 +59,12 @@ const CustomIdentifierInput = ({ form, onValueChange, taskId, projectId }: IProp
         <FieldItem
             disabled={!!taskId}
             labelAttributes={{
-                text: t("CustomIdentifierInput.IdentifierTitle", { item: projectId ? "Task" : "Project" }),
+                text: projectId
+                    ? t("CreateModal.CustomIdentifierInput.TaskId")
+                    : t("CreateModal.CustomIdentifierInput.ProjectId"),
                 htmlFor: IDENTIFIER,
             }}
-            helperText={t("CustomIdentifierInput.itemIdentifier")}
+            helperText={t("CreateModal.CustomIdentifierInput.helperDescription")}
             hasStateDanger={!!errorMessage(IDENTIFIER, errors.id)}
             messageText={errorMessage(IDENTIFIER, errors.id)}
         >
