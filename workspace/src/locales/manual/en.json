@@ -5,6 +5,15 @@
         "loading": "Loading artefact type list.",
         "noMatch": "No match found.",
         "updateTitle": "Update item of type {{type}}",
+        "projectContext": {
+            "configResetInfo": "All settings are going to be reset, except label and description.",
+            "selectProjectLabel": "Select target project",
+            "noOptions": "No projects found.",
+            "selectProjectInfo": "Select the target project for the new item first, then you can configure it here.",
+            "selectedProject": "Selected target project",
+            "changeProjectButton": "Change target project",
+            "resetModalTitle": "Configuration reset necessary"
+        },
         "CustomIdentifierInput": {
             "ProjectId": "Project identifier",
             "TaskId": "Item identifier",

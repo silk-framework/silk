@@ -11,9 +11,12 @@ import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../.
 import { useTranslation } from "react-i18next";
 import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentifierInput";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
+import Loading from "../../../Loading";
 
 export interface IProps {
     form: any;
+
+    detectChange: (key: string, val: any, oldValue: any) => void;
 
     artefact: IDetailedArtefactItem;
 
@@ -49,17 +52,18 @@ const datasetConfigPreview = (
 };
 
 /** The task creation/update form. */
-export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IProps) {
-    const [t] = useTranslation();
-
+export function TaskForm({ form, projectId, artefact, updateTask, taskId, detectChange }: IProps) {
     const { properties, required: requiredRootParameters } = artefact;
     const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
     const [dependentValues, setDependentValues] = useState<Record<string, any>>({});
+    const [doChange, setDoChange] = useState<boolean>(false);
     const { registerError } = useErrorHandler();
 
     const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
     const initialValues = existingTaskValuesToFlatParameters(updateTask);
+    const [t] = useTranslation();
+    const { label, description } = form.watch([LABEL, DESCRIPTION]);
 
     // addition restriction for the hook form parameter values
     const valueRestrictions = (param: IArtefactItemProperty) => {
@@ -75,6 +79,18 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IPro
         }
     };
 
+    /** Set doChange in order to re-render/reset the task form when the project has changed. */
+    useEffect(() => {
+        setDoChange(true);
+    }, [projectId]);
+
+    useEffect(() => {
+        if (doChange) {
+            setDoChange(false);
+        }
+    }, [doChange]);
+
+    /** Initialize: register parameters, set default/existing values etc. */
     useEffect(() => {
         // All keys (also nested ones are stores in here)
         const returnKeys: string[] = [];
@@ -153,8 +169,9 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IPro
             }
             returnKeys.forEach((key) => unregister(key));
         };
-    }, []);
+    }, [properties, register, projectId]);
 
+    /** Change handler for a specific parameter. */
     const handleChange = useCallback(
         (key) => async (e) => {
             const { triggerValidation } = form;
@@ -168,7 +185,9 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IPro
                     ...dependentValues,
                 });
             }
+            const oldValue = getValues()[key];
             setValue(key, value);
+            detectChange(key, value, oldValue);
             await triggerValidation(key);
             //verify task identifier
             if (key === IDENTIFIER) handleCustomIdValidation(t, form, registerError, value, projectId);
@@ -177,8 +196,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IPro
     );
 
     /**
-     * changeHandlers pass to ParameterWidget
-     * and serve for register new values, which generated when `type=object`
+     * All change handlers that will be passed to the ParameterWidget components.
      */
     const changeHandlers = useMemo(() => {
         const handlers = {};
@@ -192,8 +210,10 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IPro
     const advancedParams = visibleParams.filter(([k, param]) => param.advanced);
     const formHooks = { errors };
 
-    return (
-        <>
+    return doChange ? (
+        <Loading />
+    ) : (
+        <div data-test-id="task-form">
             <form>
                 {updateTask ? null : (
                     <>
@@ -210,6 +230,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IPro
                             <TextField
                                 id={LABEL}
                                 name={LABEL}
+                                value={label ?? ""}
                                 onChange={handleChange(LABEL)}
                                 intent={errors.label ? Intent.DANGER : Intent.NONE}
                                 onKeyDown={(e) => {
@@ -227,7 +248,12 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IPro
                                 htmlFor: DESCRIPTION,
                             }}
                         >
-                            <TextArea id={DESCRIPTION} name={DESCRIPTION} onChange={handleChange(DESCRIPTION)} />
+                            <TextArea
+                                id={DESCRIPTION}
+                                name={DESCRIPTION}
+                                value={description ?? ""}
+                                onChange={handleChange(DESCRIPTION)}
+                            />
                         </FieldItem>
                     </>
                 )}
@@ -292,6 +318,6 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IPro
                     </>
                 )}
             </form>
-        </>
+        </div>
     );
 }
