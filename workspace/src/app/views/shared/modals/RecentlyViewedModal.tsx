@@ -205,7 +205,9 @@ export function RecentlyViewedModal() {
                 itemRenderer={itemOption}
                 onChange={onChange}
                 autoFocus={true}
-                inputProps={{ placeholder: t("RecentlyViewedModal.placeholder") }}
+                inputProps={{
+                    placeholder: t("RecentlyViewedModal.placeholder"),
+                }}
                 createNewItem={{
                     itemFromQuery: globalSearch,
                     itemRenderer: createNewItemRenderer,
@@ -218,11 +220,16 @@ export function RecentlyViewedModal() {
     };
     return (
         <SimpleDialog
+            data-test-id={"quick-search-modal"}
             transitionDuration={20}
             onClose={close}
             isOpen={isOpen}
             title={t("RecentlyViewedModal.title")}
-            actions={<Button onClick={close}>{t("common.action.close")}</Button>}
+            actions={
+                <Button data-test-id={"close-quick-search-modal-btn"} onClick={close}>
+                    {t("common.action.close")}
+                </Button>
+            }
         >
             {loading ? <Loading delay={0} /> : error ? errorView(error) : recentlyViewedAutoCompletion()}
         </SimpleDialog>
