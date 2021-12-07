@@ -23,6 +23,8 @@ import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.serialization.json.JsonSerializers.MetaDataJsonFormat
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
+import org.silkframework.util.Identifier
+import org.silkframework.workspace.exceptions.IdentifierAlreadyExistsException
 import org.silkframework.workspace.ProjectConfig
 import org.silkframework.workspace.io.WorkspaceIO
 import play.api.libs.json.{JsValue, Json}
@@ -37,6 +39,45 @@ import scala.util.Try
   */
 @Tag(name = "Projects", description = "Access to all projects in the workspace.")
 class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
+  /** validate the project id field by ensuring it's unique and corresponds to the right format **/
+  @Operation(
+    summary = "validates custom project id",
+    description = "Receives a custom ID and checks for uniqueness and validity.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "204",
+        description = "The custom ID is both valid and unique.",
+      ),
+      new ApiResponse(
+        responseCode = "400",
+        description = "The custom ID is not valid.",
+      ),
+      new ApiResponse (
+        responseCode = "409",
+        description = "The custom ID isn't unique, i.e, there is an existing project with the same ID.",
+      )
+    )
+  )
+  def validateIdentifier(
+                         @Parameter(
+                           name = "identifier",
+                           description = "the custom project id set by the user",
+                           required = true,
+                           in = ParameterIn.QUERY,
+                           schema = new Schema(implementation = classOf[String])
+                         )
+                         projectIdentifier: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val projectId = Try(Identifier(projectIdentifier)).fold(
+      ex =>
+        throw new BadUserInputException("Invalid identifier", Some(ex)),
+      id => id)
+    if(projectExists(projectId)) {
+      throw IdentifierAlreadyExistsException(s"Project id '$projectIdentifier' is not unique as there is already a project with this name.")
+    }
+    NoContent
+  }
+
+  
   /** Create a project given the meta data. Automatically generates an ID. */
   @Operation(
     summary = "Create project",
@@ -60,11 +101,12 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
       new Content(
         mediaType = "application/json",
         schema = new Schema(implementation = classOf[ProjectCreationData]),
-        examples = Array(new ExampleObject("{ \"metaData\": { \"label\": \"Project label\", \"description\": \"Project description\" } }"))
+        examples = Array(new ExampleObject("{ \"id\": \"Project id\" \"metaData\": { \"label\": \"Project label\", \"description\": \"Project description\" } }"))
       ))
   )
   def createNewProject(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
       validateJson[ProjectCreationData] { projectCreationData =>
+        val id = projectCreationData.id
         val metaData = projectCreationData.metaData.asMetaData
         val generatedId = metaData.label match {
           case Some(label) if label.trim.nonEmpty =>
@@ -72,9 +114,13 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
           case _ =>
             throw BadUserInputException("The label must not be empty!")
         }
-        val project = workspace.createProject(ProjectConfig(generatedId, metaData = cleanUpMetaData(metaData).asNewMetaData))
+        val projectId = id match { 
+           case Some(v) => Identifier(v)
+           case None => generatedId
+        }
+        val project = workspace.createProject(ProjectConfig(projectId, metaData = cleanUpMetaData(metaData).asNewMetaData))
         Created(JsonSerializer.projectJson(project)).
-            withHeaders(LOCATION -> s"${WorkbenchConfig.applicationContext}/api/workspace/projects/$generatedId")
+            withHeaders(LOCATION -> s"${WorkbenchConfig.applicationContext}/api/workspace/projects/$projectId")
       }
   }
 

@@ -69,7 +69,7 @@ export const ObjectRuleForm = (props: IProps) => {
     const autoCompleteRuleId = id || parentId;
 
     const distinctUriPatterns = Array.from(new Map(uriPatternSuggestions
-        .filter(p => p.value !== (props.ruleData as any).pattern)
+        .filter(p => p.value !== (modifiedValues as any).pattern)
         .map(p => [p.value, p])).values())
 
     useEffect(() => {
@@ -141,6 +141,7 @@ export const ObjectRuleForm = (props: IProps) => {
     const handleConfirm = (event) => {
         event.stopPropagation();
         event.persist();
+        const uriPattern = trimValue(modifiedValues.pattern)
         setLoading(true)
         createMappingAsync({
             id: props.id,
@@ -152,7 +153,8 @@ export const ObjectRuleForm = (props: IProps) => {
             targetProperty: trimValue(modifiedValues.targetProperty),
             targetEntityType: modifiedValues.targetEntityType,
             isAttribute: modifiedValues.isAttribute,
-            pattern: trimValue(modifiedValues.pattern),
+            // Reset URI pattern if it was previously set and is now empty
+            pattern: modifiedValues.uriRule?.type === MAPPING_RULE_TYPE_URI && !uriPattern ? null : uriPattern,
             entityConnection: modifiedValues.entityConnection === 'to',
         }, true)
             .subscribe(
@@ -310,11 +312,11 @@ export const ObjectRuleForm = (props: IProps) => {
             );
         }
 
-    let patternInput: JSX.Element | undefined = undefined
+    let patternInput: JSX.Element | undefined
 
     // URI pattern
     if (!id || modifiedValues.uriRuleType === 'uri') {
-        if (!modifiedValues.pattern && !createCustomUriPatternForNewRule) {
+        if (!modifiedValues.pattern && !createCustomUriPatternForNewRule && (!id || !(props.ruleData as any).pattern)) {
             patternInput = <FieldItem labelAttributes={{text: "URI pattern"}}>
                 <TextField
                     data-test-id="object-rule-form-default-pattern"
@@ -362,7 +364,7 @@ export const ObjectRuleForm = (props: IProps) => {
 
     let previewExamples: null | JSX.Element = null
 
-    if(!modifiedValues.pattern && !modifiedValues.uriRule) {
+    if(!modifiedValues.pattern && (!modifiedValues.uriRule || modifiedValues.uriRule.type === MAPPING_RULE_TYPE_URI)) {
         previewExamples =
             <Notification data-test-id={"object-rule-form-preview-no-pattern"}>No preview shown for default URI pattern.</Notification>
     } else if (!uriPatternIsValid || !objectPathValid) {
@@ -440,7 +442,7 @@ export const ObjectRuleForm = (props: IProps) => {
                             className="ecc-silk-mapping__ruleseditor__actionrow-save"
                             raised
                             onClick={handleConfirm}
-                            disabled={!allowConfirm || !changed}
+                            disabled={!allowConfirm || !changed || !uriPatternIsValid && modifiedValues.pattern || !objectPathValid}
                         >
                             Save
                         </AffirmativeButton>

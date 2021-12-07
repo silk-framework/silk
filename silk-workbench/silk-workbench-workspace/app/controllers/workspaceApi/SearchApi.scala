@@ -126,7 +126,7 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
         }
         Some(JsObject(Seq(
           "projectId" -> JsString(item.projectId),
-          "projectLabel" -> JsString(taskOpt.get.label()),
+          "projectLabel" -> JsString(project.config.label()),
           "itemType" -> JsString(itemType.id),
           "itemLinks" -> Json.toJson(ItemType.itemTypeLinks(
             itemType,

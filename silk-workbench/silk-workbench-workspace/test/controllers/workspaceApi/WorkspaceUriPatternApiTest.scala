@@ -43,6 +43,14 @@ class WorkspaceUriPatternApiTest extends FlatSpec with SingleProjectWorkspacePro
         "urn:events:{Birth}-{<https://example.com/path/unknown>}"
       )
     ))
+    // No duplicates
+    uriPatterns(Seq("urn:event:type", "urn:object:type"), unique = true) mustBe UriPatternResponse(Seq(
+      UriPatternResult(
+        "urn:event:type",
+        Some("urn:events:{Birth}-{…unknown}"),
+        "urn:events:{Birth}-{<https://example.com/path/unknown>}"
+      )
+    ))
   }
 
   it should "resolve qualified names in the request" in {
@@ -58,9 +66,9 @@ class WorkspaceUriPatternApiTest extends FlatSpec with SingleProjectWorkspacePro
     ))
   }
 
-  private def uriPatterns(typeUris: Seq[String]): UriPatternResponse = {
+  private def uriPatterns(typeUris: Seq[String], unique: Boolean = false): UriPatternResponse = {
     val url = controllers.workspaceApi.routes.WorkspaceUriPatternApi.uriPatterns()
-    val response = client.url(s"$baseUrl$url").post(Json.toJson(UriPatternRequest(typeUris, projectId)))
+    val response = client.url(s"$baseUrl$url").post(Json.toJson(UriPatternRequest(typeUris, projectId, uniqueValues = Some(unique))))
     JsonHelpers.fromJsonValidated[UriPatternResponse](checkResponse(response).json)
   }
 

@@ -23,7 +23,7 @@ object ProjectApiRestPayloads {
   }
 
   /** Data to create a project. */
-  case class ProjectCreationData(metaData: ItemMetaData)
+  case class ProjectCreationData(metaData: ItemMetaData, id:Option[String])
 
   object ProjectCreationData {
     implicit val projectCreationData: Format[ProjectCreationData] = Json.format[ProjectCreationData]
