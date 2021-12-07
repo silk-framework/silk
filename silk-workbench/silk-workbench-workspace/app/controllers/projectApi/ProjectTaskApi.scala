@@ -32,16 +32,20 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
 
   //validate the task id field by ensuring it's unique and corresponds to the right format
   @Operation(
-      summary = "validates custom task id",
-      description = "Receives a custom id and checks for uniqueness and sanity",
+      summary = "Validates custom task ID",
+      description = "Receives a custom ID and checks for uniqueness and validity.",
       responses = Array(
         new ApiResponse(
           responseCode = "204",
-          description = "custom id is both valid and unique",
+          description = "The custom ID is both valid and unique.",
+        ),
+        new ApiResponse(
+          responseCode = "400",
+          description = "The custom ID is not valid.",
         ),
         new ApiResponse (
           responseCode = "409",
-          description = "if the custom id isn't unique, i.e, there is an existing task under the same project ctx with same id",
+          description = "The custom ID isn't unique, i.e, there is an existing task in the same project with the same ID.",
         )
       )
     )
@@ -62,7 +66,10 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
                          )
                          taskIdentifier: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = getProject(projectId)
-    val taskId = Identifier(taskIdentifier)
+    val taskId = Try(Identifier(taskIdentifier)).fold(
+      ex =>
+        throw new BadUserInputException("Invalid identifier", Some(ex)),
+      id => id)
     if(project.allTasks.exists(_.id == taskId)) {
       throw IdentifierAlreadyExistsException(s"Task name '$taskIdentifier' is not unique as there is already a task in project '${projectId}' with this name.")
     }

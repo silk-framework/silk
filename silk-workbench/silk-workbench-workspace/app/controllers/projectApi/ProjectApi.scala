@@ -42,15 +42,19 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
   /** validate the project id field by ensuring it's unique and corresponds to the right format **/
   @Operation(
     summary = "validates custom project id",
-    description = "Receives a custom id and checks for uniqueness and sanity",
+    description = "Receives a custom ID and checks for uniqueness and validity.",
     responses = Array(
       new ApiResponse(
         responseCode = "204",
-        description = "custom id is both valid and unique",
+        description = "The custom ID is both valid and unique.",
+      ),
+      new ApiResponse(
+        responseCode = "400",
+        description = "The custom ID is not valid.",
       ),
       new ApiResponse (
         responseCode = "409",
-        description = "if the custom id isn't unique, i.e, there is an existing project with same id",
+        description = "The custom ID isn't unique, i.e, there is an existing project with the same ID.",
       )
     )
   )
@@ -63,7 +67,10 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
                            schema = new Schema(implementation = classOf[String])
                          )
                          projectIdentifier: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val projectId = Identifier(projectIdentifier)
+    val projectId = Try(Identifier(projectIdentifier)).fold(
+      ex =>
+        throw new BadUserInputException("Invalid identifier", Some(ex)),
+      id => id)
     if(projectExists(projectId)) {
       throw IdentifierAlreadyExistsException(s"Project id '$projectIdentifier' is not unique as there is already a project with this name.")
     }
