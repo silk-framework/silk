@@ -16,6 +16,8 @@ import org.silkframework.config.Prefixes
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.util.Identifier
+import org.silkframework.workspace.exceptions.IdentifierAlreadyExistsException
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
@@ -27,6 +29,53 @@ import scala.util.Try
   */
 @Tag(name = "Project tasks", description = "Access to all tasks in a project.")
 class ProjectTaskApi @Inject()() extends InjectedController with UserContextActions with ControllerUtilsTrait {
+
+  //validate the task id field by ensuring it's unique and corresponds to the right format
+  @Operation(
+      summary = "Validates custom task ID",
+      description = "Receives a custom ID and checks for uniqueness and validity.",
+      responses = Array(
+        new ApiResponse(
+          responseCode = "204",
+          description = "The custom ID is both valid and unique.",
+        ),
+        new ApiResponse(
+          responseCode = "400",
+          description = "The custom ID is not valid.",
+        ),
+        new ApiResponse (
+          responseCode = "409",
+          description = "The custom ID isn't unique, i.e, there is an existing task in the same project with the same ID.",
+        )
+      )
+    )
+  def validateIdentifier(@Parameter(
+                          name = "projectId",
+                          description = "The project identifier",
+                          required = true,
+                          in = ParameterIn.PATH,
+                          schema = new Schema(implementation = classOf[String])
+                         )
+                         projectId: String,
+                         @Parameter(
+                           name = "identifier",
+                           description = "the custom task id set by the user",
+                           required = true,
+                           in = ParameterIn.QUERY,
+                           schema = new Schema(implementation = classOf[String])
+                         )
+                         taskIdentifier: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = getProject(projectId)
+    val taskId = Try(Identifier(taskIdentifier)).fold(
+      ex =>
+        throw new BadUserInputException("Invalid identifier", Some(ex)),
+      id => id)
+    if(project.allTasks.exists(_.id == taskId)) {
+      throw IdentifierAlreadyExistsException(s"Task name '$taskIdentifier' is not unique as there is already a task in project '${projectId}' with this name.")
+    }
+    NoContent
+  }
+
 
   /** Fetch all related items (tasks) for a specific project task. */
   @Operation(

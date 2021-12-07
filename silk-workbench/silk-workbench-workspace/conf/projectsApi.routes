@@ -1,6 +1,7 @@
 # Projects
 
 POST          /                                                        controllers.projectApi.ProjectApi.createNewProject()
+GET           /validateIdentifier                                     controllers.projectApi.ProjectApi.validateIdentifier(projectIdentifier:String)
 POST          /:projectId/clone                                        controllers.projectApi.ProjectApi.cloneProject(projectId: String)
 PUT           /:projectId/metaData                                     controllers.projectApi.ProjectApi.updateProjectMetaData(projectId: String)
 GET           /:projectId/metaData                                     controllers.projectApi.ProjectApi.getProjectMetaData(projectId: String)
@@ -16,7 +17,7 @@ GET           /:projectId/failedTasksReport/:taskId                    controlle
 #################
 # Project Tasks
 #################
-
+GET           /:projectId/validateIdentifier                           controllers.projectApi.ProjectTaskApi.validateIdentifier(projectId: String, taskIdentifier:String)
 GET           /:projectId/tasks/:taskId/relatedItems                   controllers.projectApi.ProjectTaskApi.relatedItems(projectId: String, taskId: String, textQuery: Option[String] ?= None)
 GET           /:projectId/tasks/:taskId/links                          controllers.projectApi.ProjectTaskApi.itemLinks(projectId: String, taskId: String)
 GET           /:projectId/tasks/:taskId/itemInfo                       controllers.projectApi.ProjectTaskApi.itemInfo(projectId: String, taskId: String)
