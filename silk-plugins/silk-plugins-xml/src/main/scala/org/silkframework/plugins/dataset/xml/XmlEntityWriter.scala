@@ -84,11 +84,11 @@ class XmlEntityWriter(outputStream: OutputStream, template: XmlOutputTemplate) e
     */
   override def writeValue(value: Seq[String], property: TypedProperty): Unit = {
     if(property.isAttribute) {
-      value match {
-        case Seq(v) =>
-          writeAttribute(property.propertyUri, v)
-        case _ =>
-          throw new ValidationException(s"Cannot write multiple attributes for property '$property'.")
+      if(value.size > 1) {
+        throw new ValidationException(s"Cannot write multiple attributes for property '$property'.")
+      }
+      for(v <- value) {
+        writeAttribute(property.propertyUri, v)
       }
     } else if(property.propertyUri != HierarchicalSink.RDF_TYPE) {
       for(v <- value) {
