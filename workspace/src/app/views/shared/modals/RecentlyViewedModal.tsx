@@ -212,6 +212,7 @@ export function RecentlyViewedModal() {
                     itemFromQuery: globalSearch,
                     itemRenderer: createNewItemRenderer,
                 }}
+                popoverProps={{ placement: "bottom", boundary: "viewport" }}
                 // This is used for the key generation of the option React elements, even though this is not displayed anywhere.
                 itemValueRenderer={(item) => `${item.projectId} ${item.taskId ? item.taskId : ""}`}
                 noResultText={t("common.messages.noResults")}
