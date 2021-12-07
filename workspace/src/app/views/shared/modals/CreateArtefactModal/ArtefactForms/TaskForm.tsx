@@ -10,6 +10,7 @@ import { IDatasetConfigPreview } from "@ducks/shared/typings";
 import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../../../utils/transformers";
 import { useTranslation } from "react-i18next";
 import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentifierInput";
+import useErrorHandler from "../../../../../hooks/useErrorHandler";
 
 export interface IProps {
     form: any;
@@ -55,6 +56,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IPro
     const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
     const [dependentValues, setDependentValues] = useState<Record<string, any>>({});
+    const { registerError } = useErrorHandler();
 
     const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
     const initialValues = existingTaskValuesToFlatParameters(updateTask);
@@ -169,7 +171,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId }: IPro
             setValue(key, value);
             await triggerValidation(key);
             //verify task identifier
-            if (key === IDENTIFIER) handleCustomIdValidation(t, form, value, projectId);
+            if (key === IDENTIFIER) handleCustomIdValidation(t, form, registerError, value, projectId);
         },
         []
     );

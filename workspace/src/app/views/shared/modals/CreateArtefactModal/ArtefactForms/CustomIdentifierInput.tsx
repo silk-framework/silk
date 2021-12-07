@@ -7,6 +7,7 @@ import { requestProjectIdValidation, requestTaskIdValidation } from "@ducks/comm
 import useCopyButton from "../../../../../hooks/useCopyButton";
 import { useTranslation } from "react-i18next";
 import { TFunction } from "i18next";
+import { ErrorHandlerRegisterFuncType } from "../../../../../hooks/useErrorHandler";
 
 const IDENTIFIER = "id";
 
@@ -29,7 +30,13 @@ interface IProps {
  * @returns
  */
 export const handleCustomIdValidation = debounce(
-    async (t: TFunction, form: any, customId: string, projectId?: string) => {
+    async (
+        t: TFunction,
+        form: any,
+        registerError: ErrorHandlerRegisterFuncType,
+        customId: string,
+        projectId?: string
+    ) => {
         if (!customId) return form.clearError(IDENTIFIER);
         try {
             const res = !projectId
@@ -39,10 +46,12 @@ export const handleCustomIdValidation = debounce(
                 form.clearError(IDENTIFIER);
             }
         } catch (err) {
-            if (err.errorResponse.status === 409) {
-                form.setError("id", "pattern", t("CreateModal.CustomIdentifierInput.validations.unique"));
+            if (err.httpStatus === 409) {
+                form.setError("id", "manual", t("CreateModal.CustomIdentifierInput.validations.unique"));
+            } else if (err.httpStatus === 400) {
+                form.setError("id", "manual", t("CreateModal.CustomIdentifierInput.validations.invalid"));
             } else {
-                form.setError("id", "pattern", err.errorResponse.detail);
+                registerError("handleCustomIdValidation", "There has been an error validating the custom ID.", err);
             }
         }
     },

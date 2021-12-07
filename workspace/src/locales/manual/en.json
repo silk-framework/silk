@@ -10,7 +10,8 @@
             "TaskId": "Item identifier",
             "helperDescription": "An unique identifier, e.g. `my-new-element`. This identifier is used for references and URLs.",
             "validations": {
-                "unique": "Identifier must be unique. The entered identifier is already used for another element."
+                "invalid": "Only following characters (ranges) are allowed in a valid ID: a - z, A - Z, 0 - 9, _, -",
+                "unique": "Identifier must be unique. The entered identifier is already used for another item."
             }
         }
     },

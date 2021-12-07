@@ -12,7 +12,11 @@ import { useTranslation } from "react-i18next";
  * @param errorMessage A human readable error message that should be shown in the UI.
  * @param cause        The actual error that has happened.
  */
-type ErrorHandlerRegisterFuncType = (errorId: string, errorMessage: string, cause: DIErrorTypes | null) => JSX.Element;
+export type ErrorHandlerRegisterFuncType = (
+    errorId: string,
+    errorMessage: string,
+    cause: DIErrorTypes | null
+) => JSX.Element;
 
 interface ErrorHandlerDict {
     registerError: ErrorHandlerRegisterFuncType;
