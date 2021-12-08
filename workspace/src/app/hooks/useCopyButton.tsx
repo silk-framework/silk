@@ -2,6 +2,7 @@ import React from "react";
 import { Button } from "@gui-elements/index";
 import { useTranslation } from "react-i18next";
 import { copyToClipboard } from "../utils/copyToClipboard";
+import useErrorHandler from "./useErrorHandler";
 
 interface ICopyData {
     /** text content to copy to clipboard**/
@@ -20,6 +21,7 @@ const COPY_RESET_TIMEOUT = 1000;
 
 const useCopyButton = (data: Array<ICopyData>, resetTimeout = COPY_RESET_TIMEOUT): JSX.Element[] => {
     const [activeButton, setActiveButton] = React.useState<string | undefined>();
+    const { registerError } = useErrorHandler();
     const [t] = useTranslation();
     let timeoutId;
 
@@ -34,10 +36,14 @@ const useCopyButton = (data: Array<ICopyData>, resetTimeout = COPY_RESET_TIMEOUT
         <Button
             {...rest}
             onClick={() => {
-                copyToClipboard(text);
-                setActiveButton(`${index}`);
-                //external callback
-                handler && handler(text);
+                try {
+                    copyToClipboard(text);
+                    setActiveButton(`${index}`);
+                    //external callback
+                    handler && handler(text);
+                } catch (ex) {
+                    registerError("useCopyButton", "Could not copy text via copy button.", ex);
+                }
             }}
         >
             {activeButton === `${index}`
