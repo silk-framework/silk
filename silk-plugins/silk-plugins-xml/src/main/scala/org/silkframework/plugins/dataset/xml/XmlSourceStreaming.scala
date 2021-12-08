@@ -7,7 +7,7 @@ import org.silkframework.entity.paths._
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.Resource
+import org.silkframework.runtime.resource.{Resource, ResourceTooLargeException}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
 
@@ -23,7 +23,8 @@ import scala.util.Try
   */
 class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) extends DataSource
   with PeakDataSource with PathCoverageDataSource with ValueCoverageDataSource with XmlSourceTrait with HierarchicalSampleValueAnalyzerExtractionSource {
-
+  // We can only get the character offset not the byte offset, so this is an approximiation
+  private val maxEntitySizeInBytes = Resource.maxInMemorySize
   private val xmlFactory = XMLInputFactory.newInstance()
 
   private case class XMLReadException(msg: String, cause: Throwable) extends RuntimeException(msg, cause)
@@ -110,7 +111,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
               val node = if(entityPathSegments.endsWithAttribute) {
                 buildAttributeNode(reader, entityPathSegments.pathSegment(entityPathSegments.nrPathSegments - 1).forwardOp.get.property.uri)
               } else {
-                buildNode(reader)
+                NodeBuilder(reader).buildNode()
               }
               val traverser = XmlTraverser(node)
 
@@ -133,6 +134,57 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
       }
 
     GenericEntityTable(entities, entitySchema, underlyingTask)
+  }
+
+  private case class NodeBuilder(reader: XMLStreamReader) {
+
+    private val startCharOffset = reader.getLocation.getCharacterOffset
+
+    private val maxSize = Resource.maxInMemorySize()
+
+    /**
+      * Builds a XML node for a given start element that includes all its children.
+      * The parser must be positioned on the start element when calling this method.
+      * On return, the parser will be positioned on the element that directly follows the element.
+      */
+    def buildNode(): InMemoryXmlElem = {
+      assert(reader.isStartElement)
+      val currentSize = reader.getLocation.getCharacterOffset - startCharOffset
+      if(currentSize > maxSize) {
+        throw new ResourceTooLargeException("Tried to load an entity into memory that is larger than the configured maximum " +
+          s"(size: $currentSize, maximum size: $maxSize}). " +
+          s"Configure '${Resource.maxInMemorySizeParameterName}' in order to increase this limit.")
+      }
+      val lineNumber = reader.getLocation.getLineNumber
+      val columnNumber = reader.getLocation.getColumnNumber
+
+      // Remember label
+      val label = reader.getLocalName
+
+      // Collect attributes on this element
+      val attributes = for(i <- 0 until reader.getAttributeCount) yield {
+        reader.getAttributeLocalName(i) -> reader.getAttributeValue(i)
+      }
+
+      // Collect child nodes
+      val children = new ArrayBuffer[InMemoryXmlNode]()
+      reader.next()
+      while(!reader.isEndElement) {
+        if(reader.isStartElement) {
+          children.append(buildNode())
+        } else if(reader.isCharacters) {
+          children.append(InMemoryXmlText(reader.getText))
+          reader.next()
+        } else {
+          reader.next()
+        }
+      }
+
+      // Move to the element after the end element.
+      reader.next()
+
+      InMemoryXmlElem(s"$lineNumber-$columnNumber", label, attributes.toMap, children.toArray)
+    }
   }
 
   /**
@@ -376,44 +428,6 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
     assert(value.isDefined, s"Cannot build attribute node for missing attribute '$attributeName'.")
     reader.next()
     InMemoryXmlAttribute(attributeName, value.get)
-  }
-
-  /**
-    * Builds a XML node for a given start element that includes all its children.
-    * The parser must be positioned on the start element when calling this method.
-    * On return, the parser will be positioned on the element that directly follows the element.
-    */
-  private def buildNode(reader: XMLStreamReader): InMemoryXmlElem = {
-    assert(reader.isStartElement)
-    val lineNumber = reader.getLocation.getLineNumber
-    val columnNumber = reader.getLocation.getColumnNumber
-
-    // Remember label
-    val label = reader.getLocalName
-
-    // Collect attributes on this element
-    val attributes = for(i <- 0 until reader.getAttributeCount) yield {
-      reader.getAttributeLocalName(i) -> reader.getAttributeValue(i)
-    }
-
-    // Collect child nodes
-    val children = new ArrayBuffer[InMemoryXmlNode]()
-    reader.next()
-    while(!reader.isEndElement) {
-      if(reader.isStartElement) {
-        children.append(buildNode(reader))
-      } else if(reader.isCharacters) {
-        children.append(InMemoryXmlText(reader.getText))
-        reader.next()
-      } else {
-        reader.next()
-      }
-    }
-
-    // Move to the element after the end element.
-    reader.next()
-
-    InMemoryXmlElem(s"$lineNumber-$columnNumber", label, attributes.toMap, children.toArray)
   }
 
   /**
