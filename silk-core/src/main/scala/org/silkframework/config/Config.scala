@@ -115,7 +115,7 @@ class DefaultConfig private() extends Config {
     */
   def forClass(clazz: Class[_], mustExist: Boolean = true): TypesafeConfig = {
     val config = apply()
-    val className = clazz.getName
+    val className = clazz.getName.stripSuffix("$")
     if(config.hasPath(className)) {
       config.getConfig(className)
     } else if(!mustExist) {
