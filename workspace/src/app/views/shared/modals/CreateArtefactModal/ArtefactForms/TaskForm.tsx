@@ -9,6 +9,8 @@ import { DataPreview } from "../../../DataPreview/DataPreview";
 import { IDatasetConfigPreview } from "@ducks/shared/typings";
 import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../../../utils/transformers";
 import { useTranslation } from "react-i18next";
+import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentifierInput";
+import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import Loading from "../../../Loading";
 
 export interface IProps {
@@ -19,6 +21,8 @@ export interface IProps {
     artefact: IDetailedArtefactItem;
 
     projectId: string;
+
+    taskId?: string;
 
     // This is set if this is an update form instead of a create form.
     updateTask?: {
@@ -31,6 +35,7 @@ export interface IProps {
 
 const LABEL = "label";
 const DESCRIPTION = "description";
+const IDENTIFIER = "id";
 
 const datasetConfigPreview = (
     projectId: string,
@@ -47,12 +52,13 @@ const datasetConfigPreview = (
 };
 
 /** The task creation/update form. */
-export function TaskForm({ form, projectId, artefact, updateTask, detectChange }: IProps) {
+export function TaskForm({ form, projectId, artefact, updateTask, taskId, detectChange }: IProps) {
     const { properties, required: requiredRootParameters } = artefact;
     const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
     const [dependentValues, setDependentValues] = useState<Record<string, any>>({});
     const [doChange, setDoChange] = useState<boolean>(false);
+    const { registerError } = useErrorHandler();
 
     const visibleParams = Object.entries(properties).filter(([key, param]) => param.visibleInDialog);
     const initialValues = existingTaskValuesToFlatParameters(updateTask);
@@ -123,8 +129,13 @@ export function TaskForm({ form, projectId, artefact, updateTask, detectChange }
                     let value = defaultValueAsJs(param);
                     returnKeys.push(key);
                     register(
-                        { name: key },
-                        { required: requiredParameters.includes(paramId), ...valueRestrictions(param) }
+                        {
+                            name: key,
+                        },
+                        {
+                            required: requiredParameters.includes(paramId),
+                            ...valueRestrictions(param),
+                        }
                     );
                     // Set default value
                     let currentValue = value;
@@ -144,6 +155,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, detectChange }
         if (!updateTask) {
             register({ name: LABEL }, { required: true });
             register({ name: DESCRIPTION });
+            register({ name: IDENTIFIER });
         }
         registerParameters("", visibleParams, updateTask ? updateTask.parameterValues : {}, requiredRootParameters);
         setFormValueKeys(returnKeys);
@@ -153,6 +165,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, detectChange }
             if (!updateTask) {
                 unregister(LABEL);
                 unregister(DESCRIPTION);
+                unregister(IDENTIFIER);
             }
             returnKeys.forEach((key) => unregister(key));
         };
@@ -160,7 +173,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, detectChange }
 
     /** Change handler for a specific parameter. */
     const handleChange = useCallback(
-        (key) => (e) => {
+        (key) => async (e) => {
             const { triggerValidation } = form;
             const value = e.target ? e.target.value : e;
 
@@ -168,12 +181,16 @@ export function TaskForm({ form, projectId, artefact, updateTask, detectChange }
                 // This is rather a hack, since the callback is memoized the clojure always captures the initial (empty) object, thus we need the state object to be mutable.
                 dependentValues[key] = value;
                 // We still need to update the state with a new object to trigger re-render though.
-                setDependentValues({ ...dependentValues });
+                setDependentValues({
+                    ...dependentValues,
+                });
             }
             const oldValue = getValues()[key];
             setValue(key, value);
             detectChange(key, value, oldValue);
-            triggerValidation(key);
+            await triggerValidation(key);
+            //verify task identifier
+            if (key === IDENTIFIER) handleCustomIdValidation(t, form, registerError, value, projectId);
         },
         []
     );
@@ -247,31 +264,42 @@ export function TaskForm({ form, projectId, artefact, updateTask, detectChange }
                         pluginId={artefact.pluginId}
                         formParamId={key}
                         required={requiredRootParameters.includes(key)}
-                        taskParameter={{ paramId: key, param: properties[key] }}
+                        taskParameter={{
+                            paramId: key,
+                            param: properties[key],
+                        }}
                         formHooks={formHooks}
                         changeHandlers={changeHandlers}
                         initialValues={initialValues}
                         dependentValues={dependentValues}
                     />
                 ))}
-                {advancedParams.length > 0 && (
-                    <AdvancedOptionsArea>
-                        {advancedParams.map(([key, param]) => (
-                            <ParameterWidget
-                                key={key}
-                                projectId={projectId}
-                                pluginId={artefact.pluginId}
-                                formParamId={key}
-                                required={requiredRootParameters.includes(key)}
-                                taskParameter={{ paramId: key, param: properties[key] }}
-                                formHooks={formHooks}
-                                changeHandlers={changeHandlers}
-                                initialValues={initialValues}
-                                dependentValues={dependentValues}
-                            />
-                        ))}
-                    </AdvancedOptionsArea>
-                )}
+
+                <AdvancedOptionsArea>
+                    <CustomIdentifierInput
+                        form={form}
+                        onValueChange={handleChange}
+                        taskId={taskId}
+                        projectId={projectId}
+                    />
+                    {advancedParams.map(([key, param]) => (
+                        <ParameterWidget
+                            key={key}
+                            projectId={projectId}
+                            pluginId={artefact.pluginId}
+                            formParamId={key}
+                            required={requiredRootParameters.includes(key)}
+                            taskParameter={{
+                                paramId: key,
+                                param: properties[key],
+                            }}
+                            formHooks={formHooks}
+                            changeHandlers={changeHandlers}
+                            initialValues={initialValues}
+                            dependentValues={dependentValues}
+                        />
+                    ))}
+                </AdvancedOptionsArea>
                 {artefact.taskType?.toLowerCase() === DATA_TYPES.DATASET && (
                     <>
                         <Spacing />

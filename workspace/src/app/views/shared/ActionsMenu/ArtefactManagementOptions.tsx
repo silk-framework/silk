@@ -14,6 +14,7 @@ import CloneModal from "../modals/CloneModal";
 import { ProjectTaskTabView } from "../projectTaskTabView/ProjectTaskTabView";
 import { ActionsMenu, TActionsMenuItem, IActionsMenuProps } from "./ActionsMenu";
 import CopyToModal from "../modals/CopyToModal/CopyToModal";
+import ShowIdentifierModal from "../modals/ShowIdentifierModal";
 
 interface IProps {
     projectId: string;
@@ -39,6 +40,7 @@ export function ArtefactManagementOptions({
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [cloneModalOpen, setCloneModalOpen] = useState(false);
     const [copyToModalOpen, setCopyToModalOpen] = useState<boolean>(false);
+    const [showIdentifierOpen, setShowIdentifierOpen] = useState<boolean>(false);
     const [itemLinks, setItemLinks] = useState<IItemLink[]>([]);
     const [menuItems, setMenuItems] = useState<IActionsMenuProps>({});
     const exportTypes = useSelector(commonSel.exportTypesSelector);
@@ -102,6 +104,10 @@ export function ArtefactManagementOptions({
         setDisplayItemLink(linkItem);
     };
 
+    const toggleShowIdentifierModal = () => {
+        setShowIdentifierOpen((show) => !show);
+    };
+
     const toggleDeleteModal = () => {
         setDeleteModalOpen(!deleteModalOpen);
     };
@@ -125,6 +131,11 @@ export function ArtefactManagementOptions({
                 text: t("common.action.clone", "Clone"),
                 actionHandler: toggleCloneModal,
                 "data-test-id": "header-clone-button",
+            },
+            {
+                text: t("common.action.showIdentifier", "Show identifier"),
+                actionHandler: toggleShowIdentifierModal,
+                "data-test-id": "header-item-identifier-button",
             },
         ];
 
@@ -186,13 +197,14 @@ export function ArtefactManagementOptions({
             {deleteModalOpen && (
                 <ItemDeleteModal item={itemData} onClose={toggleDeleteModal} onConfirmed={handleDeleteConfirm} />
             )}
-
             {cloneModalOpen && (
                 <CloneModal item={itemData} onDiscard={toggleCloneModal} onConfirmed={handleCloneConfirmed} />
             )}
-
             {copyToModalOpen && (
                 <CopyToModal item={itemData} onDiscard={toggleCopyToModal} onConfirmed={handleCopyConfirmed} />
+            )}
+            {showIdentifierOpen && (
+                <ShowIdentifierModal onDiscard={toggleShowIdentifierModal} taskId={taskId} projectId={projectId} />
             )}
             {displayItemLink && (
                 <ProjectTaskTabView

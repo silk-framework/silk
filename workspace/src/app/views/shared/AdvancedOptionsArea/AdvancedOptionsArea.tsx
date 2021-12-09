@@ -6,7 +6,7 @@ export function AdvancedOptionsArea({ children, open = false, ...otherProps }: a
     const [t] = useTranslation();
 
     return (
-        <Accordion>
+        <Accordion data-test-id="advanced-option-accordion">
             <AccordionItem
                 label={<TitleSubsection>{t("common.words.advancedOptions", "Advanced options")}</TitleSubsection>}
                 fullWidth

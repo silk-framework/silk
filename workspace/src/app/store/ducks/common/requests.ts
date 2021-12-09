@@ -1,6 +1,7 @@
 import fetch from "../../../services/fetch";
-import { coreApi, legacyApiEndpoint, workspaceApi } from "../../../utils/getApiEndpoint";
+import { coreApi, legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
 import { IDetailedArtefactItem, IOverviewArtefactItemList, IExportTypes, IInitFrontend } from "@ducks/common/typings";
+import { FetchResponse } from "services/fetch/responseInterceptor";
 
 const handleError = (error) => {
     return error.errorResponse;
@@ -51,6 +52,36 @@ export const requestArtefactList = async (payload: any): Promise<IOverviewArtefa
         throw handleError(e);
     }
 };
+
+/**
+ * validate custom projectId by ensuring uniqueness and makes sanity checks
+ * @param projectId
+ * @returns
+ */
+export const requestProjectIdValidation = async (projectId: string): Promise<FetchResponse<void>> =>
+    fetch({
+        url: projectApi(
+            `/validateIdentifier?${new URLSearchParams({
+                projectIdentifier: projectId,
+            })}`
+        ),
+    });
+
+/**
+ * validate custom taskId by ensuring uniqueness and makes sanity checks
+ * @param taskId
+ * @param projectId
+ * @returns
+ */
+
+export const requestTaskIdValidation = (taskId: string, projectId: string): Promise<FetchResponse<void>> =>
+    fetch({
+        url: projectApi(
+            `/${projectId}/validateIdentifier?${new URLSearchParams({
+                taskIdentifier: taskId,
+            })}`
+        ),
+    });
 
 /**
  * Get properties(form) for specific plugin

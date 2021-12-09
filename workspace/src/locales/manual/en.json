@@ -13,7 +13,19 @@
             "selectedProject": "Selected target project",
             "changeProjectButton": "Change target project",
             "resetModalTitle": "Configuration reset necessary"
+        },
+        "CustomIdentifierInput": {
+            "ProjectId": "Project identifier",
+            "TaskId": "Item identifier",
+            "helperDescription": "An unique identifier, e.g. `my-new-element`. This identifier is used for references and URLs.",
+            "validations": {
+                "invalid": "Only following characters (ranges) are allowed in a valid ID: a - z, A - Z, 0 - 9, _, -",
+                "unique": "Identifier must be unique. The entered identifier is already used for another item."
+            }
         }
+    },
+    "ShowIdentifierModal": {
+        "title": "Item identifier"
     },
     "DataList": {
         "loading": "Loading data."
@@ -171,6 +183,7 @@
     },
     "common": {
         "action": {
+            "showIdentifier": "Show identifier",
             "AddSmth": "Add {{smth}}",
             "CloneSmth": "Clone {{smth}}",
             "CopySmth": "Copy {{smth}} artefacts",
@@ -205,7 +218,8 @@
             "showDetails": "Open details page",
             "submit": "Submit",
             "update": "Update",
-            "showApiDoc": "API"
+            "showApiDoc": "API",
+            "copyClipboard": "Copy to clipboard"
         },
         "app": {
             "build": "Build",
@@ -276,7 +290,8 @@
             "more": "more",
             "required": "required",
             "sortOptions": "Sort options",
-            "summary": "Summary"
+            "summary": "Summary",
+            "copied": "Copied"
         }
     },
     "form": {

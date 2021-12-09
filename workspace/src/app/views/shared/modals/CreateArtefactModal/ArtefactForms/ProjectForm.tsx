@@ -1,8 +1,11 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { FieldItem, TextField, TextArea } from "@gui-elements/index";
 import { errorMessage } from "./ParameterWidget";
 import { Intent } from "@gui-elements/blueprint/constants";
 import { useTranslation } from "react-i18next";
+import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
+import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentifierInput";
+import useErrorHandler from "../../../../../hooks/useErrorHandler";
 
 interface IProps {
     form: any;
@@ -10,20 +13,27 @@ interface IProps {
 
 const LABEL = "label";
 const DESCRIPTION = "description";
+const IDENTIFIER = "id";
+
 /** The project create form */
 export function ProjectForm({ form }: IProps) {
     const { register, errors, triggerValidation, setValue } = form;
     const [t] = useTranslation();
+    const { registerError } = useErrorHandler();
 
-    useEffect(() => {
+    React.useEffect(() => {
         register({ name: LABEL }, { required: true });
         register({ name: DESCRIPTION });
-    }, [register]);
+        register({ name: IDENTIFIER });
+    }, []);
+
     const onValueChange = (key) => {
-        return (e) => {
+        return async (e) => {
             const value = e.target ? e.target.value : e;
             setValue(key, value);
-            triggerValidation();
+            await triggerValidation(key);
+            //verify project identifier
+            if (key === IDENTIFIER) handleCustomIdValidation(t, form, registerError, value);
         };
     };
     return (
@@ -60,6 +70,9 @@ export function ProjectForm({ form }: IProps) {
                     onChange={onValueChange(DESCRIPTION)}
                 />
             </FieldItem>
+            <AdvancedOptionsArea>
+                <CustomIdentifierInput form={form} onValueChange={onValueChange} />
+            </AdvancedOptionsArea>
         </>
     );
 }
