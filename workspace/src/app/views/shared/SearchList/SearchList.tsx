@@ -15,6 +15,7 @@ import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { useTranslation } from "react-i18next";
 import CopyToModal from "../modals/CopyToModal/CopyToModal";
 import { IModalItem } from "@ducks/shared/typings";
+import ShowIdentifierModal from "../modals/ShowIdentifierModal";
 
 export function SearchList() {
     const dispatch = useDispatch();
@@ -30,6 +31,7 @@ export function SearchList() {
     const [selectedItem, setSelectedItem] = useState<IModalItem | null>(null);
     const [showCloneModal, setShowCloneModal] = useState(false);
     const [copyToModalOpen, setCopyToModalOpen] = useState<boolean>(false);
+    const [showIdentifierOpen, setShowIdentifierOpen] = useState<boolean>(false);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const [t] = useTranslation();
 
@@ -38,6 +40,7 @@ export function SearchList() {
         setShowCloneModal(false);
         setDeleteModalOpen(false);
         setCopyToModalOpen(false);
+        setShowIdentifierOpen(false);
     };
 
     const fixItemIdSettings = (item) => {
@@ -57,6 +60,11 @@ export function SearchList() {
 
     const onOpenDeleteModal = (item: ISearchResultsServer) => {
         setDeleteModalOpen(true);
+        setSelectedItem(fixItemIdSettings(item));
+    };
+
+    const toggleShowIdentifierModal = (item) => {
+        setShowIdentifierOpen((show) => !show);
         setSelectedItem(fixItemIdSettings(item));
     };
 
@@ -133,7 +141,6 @@ export function SearchList() {
     ) : (
         <Notification>{t("common.messages.noItems", { items: "items" })}</Notification>
     );
-
     return (
         <>
             <AppliedFacets />
@@ -151,6 +158,7 @@ export function SearchList() {
                         onOpenDeleteModal={() => onOpenDeleteModal(item)}
                         onOpenDuplicateModal={() => onOpenDuplicateModal(item)}
                         onOpenCopyToModal={() => onOpenCopyToModal(item)}
+                        toggleShowIdentifierModal={() => toggleShowIdentifierModal(item)}
                         searchValue={appliedFilters.textQuery}
                         parentProjectId={projectId}
                     />
@@ -185,6 +193,13 @@ export function SearchList() {
                             item={selectedItem}
                             onDiscard={onDiscardModals}
                             onConfirmed={handleCloneConfirmed}
+                        />
+                    )}
+                    {selectedItem && showIdentifierOpen && (
+                        <ShowIdentifierModal
+                            projectId={selectedItem.projectId}
+                            taskId={selectedItem.type !== "project" ? selectedItem.id : undefined}
+                            onDiscard={onDiscardModals}
                         />
                     )}
                 </>
