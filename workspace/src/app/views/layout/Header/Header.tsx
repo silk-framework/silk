@@ -71,6 +71,8 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
         );
     };
 
+    const searchURL = (page: string) => `?itemType=${page}&page=1&limit=10`;
+
     return !isAuth ? null : (
         <ApplicationHeader
             aria-label={`${APPLICATION_NAME} @ ${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}`}
@@ -141,6 +143,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         text={t("navigation.side.di.projects", "Projects")}
                         htmlTitle={t("navigation.side.di.projectsTooltip")}
                         onClick={() => handleNavigate("project")}
+                        href={location.pathname + searchURL("project")}
                         active={location.pathname === SERVE_PATH && locationParams.get("itemType") === "project"}
                     />
                     <MenuItem
@@ -148,6 +151,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         text={t("navigation.side.di.datasets", "Datasets")}
                         htmlTitle={t("navigation.side.di.datasetsTooltip")}
                         onClick={() => handleNavigate("dataset")}
+                        href={location.pathname + searchURL("dataset")}
                         active={location.pathname === SERVE_PATH && locationParams.get("itemType") === "dataset"}
                     />
                 </Menu>
