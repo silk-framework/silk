@@ -230,7 +230,7 @@ object DatasetSpec {
       isOpen = true
     }
 
-    override def writeEntity(subject: String, values: Seq[Seq[String]])
+    override def writeEntity(subject: String, values: IndexedSeq[Seq[String]])
                             (implicit userContext: UserContext): Unit = {
       require(isOpen, "Output must be opened before writing statements to it")
       datasetSpec.uriAttribute match {

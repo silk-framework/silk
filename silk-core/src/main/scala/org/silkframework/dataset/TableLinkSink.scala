@@ -19,7 +19,7 @@ class TableLinkSink(entitySink: EntitySink) extends LinkSink {
 
   override def writeLink(link: Link, predicateUri: String)
                         (implicit userContext: UserContext, prefixes: Prefixes){
-    entitySink.writeEntity(link.source, Seq(Seq(link.source), Seq(link.target)))
+    entitySink.writeEntity(link.source, IndexedSeq(Seq(link.source), Seq(link.target)))
   }
 
   override def close()(implicit userContext: UserContext): Unit = {
