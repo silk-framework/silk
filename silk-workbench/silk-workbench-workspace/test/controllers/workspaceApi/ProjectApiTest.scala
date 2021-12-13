@@ -90,8 +90,8 @@ class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatcher
     Json.fromJson[Map[String, String]](responseJson)
   }
 
-  private def createProjectByLabel(label: String, description: Option[String] = None): WSResponse = {
-    val responseFuture = client.url(s"$baseUrl$projectsUrl").post(Json.toJson(ProjectCreationData(ItemMetaData(label, description))))
+  private def createProjectByLabel(label: String, description: Option[String] = None, id: Option[String] = None): WSResponse = {
+    val responseFuture = client.url(s"$baseUrl$projectsUrl").post(Json.toJson(ProjectCreationData(ItemMetaData(label, description), id)))
     val response = checkResponse(responseFuture)
     response
   }
