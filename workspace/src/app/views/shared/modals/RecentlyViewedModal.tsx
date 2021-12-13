@@ -205,11 +205,14 @@ export function RecentlyViewedModal() {
                 itemRenderer={itemOption}
                 onChange={onChange}
                 autoFocus={true}
-                inputProps={{ placeholder: t("RecentlyViewedModal.placeholder") }}
+                inputProps={{
+                    placeholder: t("RecentlyViewedModal.placeholder"),
+                }}
                 createNewItem={{
                     itemFromQuery: globalSearch,
                     itemRenderer: createNewItemRenderer,
                 }}
+                popoverProps={{ placement: "bottom", boundary: "viewport" }}
                 // This is used for the key generation of the option React elements, even though this is not displayed anywhere.
                 itemValueRenderer={(item) => `${item.projectId} ${item.taskId ? item.taskId : ""}`}
                 noResultText={t("common.messages.noResults")}
@@ -218,13 +221,18 @@ export function RecentlyViewedModal() {
     };
     return (
         <SimpleDialog
+            data-test-id={"quick-search-modal"}
             transitionDuration={20}
             onClose={close}
             isOpen={isOpen}
             title={t("RecentlyViewedModal.title")}
-            actions={<Button onClick={close}>{t("common.action.close")}</Button>}
+            actions={
+                <Button data-test-id={"close-quick-search-modal-btn"} onClick={close}>
+                    {t("common.action.close")}
+                </Button>
+            }
         >
-            {loading ? <Loading /> : error ? errorView(error) : recentlyViewedAutoCompletion()}
+            {loading ? <Loading delay={0} /> : error ? errorView(error) : recentlyViewedAutoCompletion()}
         </SimpleDialog>
     );
 }

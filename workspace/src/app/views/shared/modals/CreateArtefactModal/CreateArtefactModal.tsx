@@ -39,12 +39,25 @@ import { TaskType } from "@ducks/shared/typings";
 import { ProjectImportModal } from "../ProjectImportModal";
 import ItemDepiction from "../../../shared/ItemDepiction";
 import { ErrorBoundary } from "carbon-components-react/lib/components/ErrorBoundary";
+import ProjectSelection from "./ArtefactForms/ProjectSelection";
+import { workspaceSel } from "@ducks/workspace";
+import { requestSearchList } from "@ducks/workspace/requests";
 import { uppercaseFirstChar } from "../../../../utils/transformers";
+import { requestProjectMetadata } from "@ducks/shared/requests";
+import useErrorHandler from "../../../../hooks/useErrorHandler";
+
+const ignorableFields = new Set(["label", "description"]);
+
+export interface ProjectIdAndLabel {
+    id: string;
+    label: string;
+}
 
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
     const form = useForm();
 
+    const { registerError } = useErrorHandler();
     const [searchValue, setSearchValue] = useState("");
     const [idEnhancedDescription, setIdEnhancedDescription] = useState("");
     const [actionLoading, setActionLoading] = useState(false);
@@ -52,7 +65,6 @@ export function CreateArtefactModal() {
 
     const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
     const modalStore = useSelector(commonSel.artefactModalSelector);
-    const projectId = useSelector(commonSel.currentProjectIdSelector);
 
     const {
         selectedArtefact,
@@ -76,6 +88,35 @@ export function CreateArtefactModal() {
     const selectedArtefactTitle: string | undefined = selectedArtefact?.title;
 
     const toBeAddedKey: string | undefined = toBeAdded?.key;
+    const [currentProject, setCurrentProject] = useState<ProjectIdAndLabel | undefined>(undefined);
+    const [showProjectSelection, setShowProjectSelection] = useState<boolean>(false);
+    const [formValueChanges, setFormValueChanges] = React.useState<{
+        [key: string]: {
+            initialValue: any;
+            isModified: boolean;
+        };
+    }>({});
+    const isEmptyWorkspace = useSelector(workspaceSel.isEmptyPageSelector);
+    const projectId = useSelector(commonSel.currentProjectIdSelector);
+
+    /** set the current Project when opening modal from a project
+     * i.e project id already exists **/
+    React.useEffect(() => {
+        if (projectId && isOpen) {
+            (async () => {
+                try {
+                    const projectLabel = (await requestProjectMetadata(projectId)).data.label;
+                    setCurrentProject({ id: projectId, label: projectLabel });
+                } catch (e) {
+                    registerError(
+                        "CreateArtefactModal-fetch-project-meta-data",
+                        "Could not fetch project information",
+                        e
+                    );
+                }
+            })();
+        }
+    }, [projectId, selectedArtefactKey, isOpen]);
 
     useEffect(() => {
         if (!isOpen) {
@@ -86,7 +127,7 @@ export function CreateArtefactModal() {
 
     // Fetch Artefact list
     useEffect(() => {
-        if (projectId && isOpen) {
+        if (isOpen && !isEmptyWorkspace) {
             dispatch(
                 commonOp.fetchArtefactsListAsync({
                     textQuery: searchValue,
@@ -95,7 +136,7 @@ export function CreateArtefactModal() {
         } else {
             dispatch(commonOp.resetArtefactsList());
         }
-    }, [!!projectId, isOpen]);
+    }, [isOpen]);
 
     const handleAdd = () => {
         if (toBeAddedKey === DATA_TYPES.PROJECT) {
@@ -109,12 +150,28 @@ export function CreateArtefactModal() {
 
     const handleSearch = (textQuery: string) => {
         setSearchValue(textQuery);
-        if (projectId) {
+        if (!isEmptyWorkspace) {
             dispatch(
                 commonOp.fetchArtefactsListAsync({
                     textQuery,
                 })
             );
+        }
+    };
+
+    const getWorkspaceProjects = async (textQuery: string = "") => {
+        try {
+            const payload = {
+                limit: 10,
+                offset: 0,
+                itemType: "project",
+                textQuery,
+            };
+            const results = (await requestSearchList(payload)).results;
+            return results;
+        } catch (err) {
+            registerError("CreateArtefactModal-getWorkspaceProjects", "Could not fetch project list.", err);
+            return [];
         }
     };
 
@@ -171,6 +228,7 @@ export function CreateArtefactModal() {
                         )
                     );
                 } else {
+                    !projectId && currentProject && dispatch(commonOp.setProjectId(currentProject.id));
                     await dispatch(commonOp.createArtefactAsync(form.getValues(), taskType(selectedArtefactKey)));
                 }
             } else {
@@ -203,8 +261,11 @@ export function CreateArtefactModal() {
     const resetModal = (closeModal?: boolean) => {
         setIsProjectImport(false);
         setToBeAdded(undefined);
+        setCurrentProject(undefined);
         form.reset();
+        setFormValueChanges({});
         form.clearError();
+
         dispatch(commonOp.resetArtefactModal(closeModal));
     };
 
@@ -212,16 +273,128 @@ export function CreateArtefactModal() {
         setIsProjectImport(true);
     };
 
+    /**
+     * Tracks changes. When the changed deviate from the initial value it will set a isModified flag.
+     */
+    const detectFormChange = (key: string, val: any, oldValue: any) => {
+        if (formValueChanges[key]) {
+            const initialValue = formValueChanges[key].initialValue;
+            if (initialValue !== val) {
+                formValueChanges[key].isModified = true;
+            } else {
+                formValueChanges[key].isModified = false;
+            }
+        } else {
+            formValueChanges[key] = { initialValue: oldValue, isModified: true };
+        }
+    };
+
+    /**
+     *
+     * Returns true if any of item parameters has been modified. Meta data fields like label and description are excluded.
+     * @returns {boolean}
+     */
+    const modifiedParameterValuesExist = (): boolean => {
+        let shouldShow = false;
+        for (let field in formValueChanges) {
+            if (!ignorableFields.has(field) && formValueChanges[field].isModified && !shouldShow) shouldShow = true;
+            else continue;
+        }
+        return shouldShow;
+    };
+
+    // reset to defaults, if label/description already existed they remain.
+    const resetFormOnConfirmation = () => {
+        const resetValue = {};
+        Object.keys(formValueChanges).forEach((field) => {
+            if (!ignorableFields.has(field)) {
+                delete formValueChanges[field];
+            } else {
+                resetValue[field] = form.getValues()[field];
+            }
+        });
+        form.reset(resetValue);
+    };
+
+    /**
+     * sets to selected project from ProjectSelection
+     * @param item Project
+     */
+    const updateCurrentSelectedProject = (item: ProjectIdAndLabel) => {
+        setShowProjectSelection(false);
+        setCurrentProject(item);
+    };
+
+    /**
+     * Adds Notification Icon and ProjectSelection component to task form.
+     * @param artefactForm
+     * @returns
+     */
+    const addChangeProjectHandler = (artefactForm: JSX.Element): JSX.Element => {
+        if (currentProject)
+            return (
+                <>
+                    {showProjectSelection ? (
+                        <ProjectSelection
+                            resetForm={resetFormOnConfirmation}
+                            setCurrentProject={updateCurrentSelectedProject}
+                            modifiedValuesExist={modifiedParameterValuesExist}
+                            selectedProject={currentProject}
+                            onClose={() => setShowProjectSelection(false)}
+                            getWorkspaceProjects={getWorkspaceProjects}
+                        />
+                    ) : (
+                        <Notification
+                            message={`${t("CreateModal.projectContext.selectedProject", "Selected project")}: ${
+                                currentProject.label
+                            }`}
+                            actions={
+                                <IconButton
+                                    data-test-id="project-selection-btn"
+                                    name="item-edit"
+                                    text={t(
+                                        "CreateModal.projectContext.changeProjectButton",
+                                        "Select a different project"
+                                    )}
+                                    onClick={() => setShowProjectSelection(true)}
+                                />
+                            }
+                        />
+                    )}
+                    <Spacing size="tiny" vertical />
+                    {artefactForm}
+                </>
+            );
+        return artefactForm;
+    };
+
     const projectArtefactSelected = selectedArtefactKey === DATA_TYPES.PROJECT;
 
     let artefactForm: JSX.Element | null = null;
+
+    /** if no current Project context, redirect to project selection first */
+    if (selectedArtefactKey && !currentProject) {
+        artefactForm = (
+            <ProjectSelection
+                resetForm={resetFormOnConfirmation}
+                modifiedValuesExist={modifiedParameterValuesExist}
+                setCurrentProject={updateCurrentSelectedProject}
+                selectedProject={currentProject}
+                onClose={() => setShowProjectSelection(false)}
+                getWorkspaceProjects={getWorkspaceProjects}
+            />
+        );
+    }
+
     if (updateExistingTask) {
         // Task update
         artefactForm = (
             <TaskForm
                 form={form}
+                detectChange={detectFormChange}
                 artefact={updateExistingTask.taskPluginDetails}
                 projectId={updateExistingTask.projectId}
+                taskId={updateExistingTask.taskId}
                 updateTask={{ parameterValues: updateExistingTask.currentParameterValues }}
             />
         );
@@ -232,8 +405,16 @@ export function CreateArtefactModal() {
                 artefactForm = <ProjectForm form={form} />;
             } else {
                 const detailedArtefact = cachedArtefactProperties[selectedArtefactKey];
-                if (detailedArtefact && projectId) {
-                    artefactForm = <TaskForm form={form} artefact={detailedArtefact} projectId={projectId} />;
+                const activeProjectId = currentProject?.id ?? projectId;
+                if (detailedArtefact && activeProjectId) {
+                    artefactForm = addChangeProjectHandler(
+                        <TaskForm
+                            detectChange={detectFormChange}
+                            form={form}
+                            artefact={detailedArtefact}
+                            projectId={activeProjectId}
+                        />
+                    );
                 }
             }
         }
@@ -321,7 +502,7 @@ export function CreateArtefactModal() {
             actions={
                 isCreationUpdateDialog ? (
                     actionLoading ? (
-                        <Loading size={"small"} color={"primary"} />
+                        <Loading size={"small"} color={"primary"} delay={0} />
                     ) : (
                         [
                             <Button
@@ -426,6 +607,7 @@ export function CreateArtefactModal() {
                                     {loading ? (
                                         <Loading
                                             description={t("CreateModal.loading", "Loading artefact type list.")}
+                                            delay={0}
                                         />
                                     ) : artefactListWithProject.length === 0 ? (
                                         <Notification message={t("CreateModal.noMatch", "No match found.")} />

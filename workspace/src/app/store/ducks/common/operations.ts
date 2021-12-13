@@ -15,8 +15,7 @@ import { requestCreateProject, requestCreateTask, requestUpdateProjectTask } fro
 import { routerOp } from "@ducks/router";
 import { TaskType } from "@ducks/shared/typings";
 import { HttpError } from "../../../services/fetch/responseInterceptor";
-import i18Instance from "../../../../language";
-import Store from "store";
+import i18Instance, { fetchStoredLang } from "../../../../language";
 
 const {
     setError,
@@ -44,9 +43,12 @@ const fetchCommonSettingsAsync = () => {
             const data = await requestInitFrontend();
             dispatch(setInitialSettings(data));
 
-            const selectedLng = Store.get("locale");
+            const selectedLng = fetchStoredLang();
             if (!selectedLng) {
                 dispatch(changeLocale(data.initialLanguage));
+            } else {
+                // Just make sure that specific flags for DM are set
+                dispatch(changeLocale(selectedLng));
             }
         } catch (error) {
             dispatch(setError(error));
@@ -188,7 +190,7 @@ const createArtefactAsync = (formData, taskType: TaskType | "Project") => {
 const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: TaskType) => {
     return async (dispatch, getState) => {
         const currentProjectId = commonSel.currentProjectIdSelector(getState());
-        const { label, description, ...restFormData } = formData;
+        const { label, description, id, ...restFormData } = formData;
         const requestData = buildTaskObject(restFormData);
         const metadata = {
             label,
@@ -197,6 +199,7 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: TaskT
 
         const payload = {
             metadata,
+            id,
             data: {
                 taskType: taskType,
                 type: artefactId,
@@ -249,17 +252,19 @@ const fetchUpdateTaskAsync = (projectId: string, itemId: string, formData: any) 
     };
 };
 
-const fetchCreateProjectAsync = (formData: { label: string; description?: string }) => {
+const fetchCreateProjectAsync = (formData: { label: string; description?: string; id?: string }) => {
     return async (dispatch) => {
         dispatch(setModalError({}));
-        const { label, description } = formData;
+        const { label, description, id } = formData;
+        const payload = {
+            metaData: {
+                label,
+                description,
+            },
+        };
+        if (id) payload["id"] = id;
         try {
-            const data = await requestCreateProject({
-                metaData: {
-                    label,
-                    description,
-                },
-            });
+            const data = await requestCreateProject(payload);
             // Added project, workspace state may have changed
             dispatch(commonOp.fetchCommonSettingsAsync());
             dispatch(closeArtefactModal());
@@ -281,7 +286,6 @@ const resetArtefactModal = (shouldClose: boolean = false) => (dispatch) => {
 const changeLocale = (locale: string) => {
     return async (dispatch) => {
         await i18Instance.changeLanguage(locale);
-        Store.set("locale", locale);
         dispatch(changeLanguage(locale));
     };
 };

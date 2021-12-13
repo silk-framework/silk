@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import Store from "store";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
@@ -14,16 +13,16 @@ import {
     ApplicationToolbarSection,
     Button,
     Divider,
+    HtmlContentBlock,
     Icon,
     Menu,
     MenuDivider,
     MenuItem,
-    TitleSubsection,
     Spacing,
-    WorkspaceHeader,
-    ToolbarSection,
+    TitleSubsection,
     Toolbar,
-    HtmlContentBlock,
+    ToolbarSection,
+    WorkspaceHeader,
 } from "@gui-elements/index";
 import { commonOp, commonSel } from "@ducks/common";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
@@ -35,6 +34,7 @@ import { triggerHotkeyHandler } from "../../shared/HotKeyHandler/HotKeyHandler";
 import { APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { CONTEXT_PATH, SERVE_PATH } from "../../../constants/path";
 import { APP_VIEWHEADER_ID } from "../../shared/PageHeader/PageHeader";
+import { fetchStoredLang } from "../../../../language";
 
 interface IProps {
     onClickApplicationSidebarExpand: any;
@@ -45,7 +45,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
     const dispatch = useDispatch();
     const location = useLocation();
     const locationParams = new URLSearchParams(location.search?.substring(1));
-    const [currentLanguage, setCurrentLanguage] = useState(Store.get("locale"));
+    const [currentLanguage, setCurrentLanguage] = useState(fetchStoredLang());
     const { hotKeys } = useSelector(commonSel.initialSettingsSelector);
     const isAuth = useSelector(commonSel.isAuthSelector);
     const { dmBaseUrl, dmModuleLinks, version } = useSelector(commonSel.initialSettingsSelector);
@@ -70,6 +70,8 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
             })
         );
     };
+
+    const searchURL = (page: string) => `?itemType=${page}&page=1&limit=10`;
 
     return !isAuth ? null : (
         <ApplicationHeader
@@ -141,6 +143,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         text={t("navigation.side.di.projects", "Projects")}
                         htmlTitle={t("navigation.side.di.projectsTooltip")}
                         onClick={() => handleNavigate("project")}
+                        href={location.pathname + searchURL("project")}
                         active={location.pathname === SERVE_PATH && locationParams.get("itemType") === "project"}
                     />
                     <MenuItem
@@ -148,6 +151,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         text={t("navigation.side.di.datasets", "Datasets")}
                         htmlTitle={t("navigation.side.di.datasetsTooltip")}
                         onClick={() => handleNavigate("dataset")}
+                        href={location.pathname + searchURL("dataset")}
                         active={location.pathname === SERVE_PATH && locationParams.get("itemType") === "dataset"}
                     />
                 </Menu>

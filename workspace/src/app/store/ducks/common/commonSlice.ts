@@ -13,6 +13,7 @@ import {
     IInitFrontend,
     IProjectTaskUpdatePayload,
 } from "@ducks/common/typings";
+import { setStoredLang } from "../../../../language";
 
 /**
  * @override connect-react-router location change action
@@ -85,7 +86,9 @@ export const commonSlice = createSlice({
         },
 
         changeLanguage: (state, action: PayloadAction<string>) => {
-            state.locale = action.payload;
+            const lang = action.payload;
+            state.locale = lang;
+            setStoredLang(lang);
         },
 
         loginSuccess: (state) => {

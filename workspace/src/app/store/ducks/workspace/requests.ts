@@ -30,6 +30,7 @@ export interface ISearchListResponse {
 }
 
 export interface ICreateProjectPayload {
+    id?: string;
     metaData: {
         label: string;
         description?: string;

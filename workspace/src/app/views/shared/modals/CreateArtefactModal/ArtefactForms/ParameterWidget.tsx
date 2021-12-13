@@ -59,6 +59,8 @@ export const errorMessage = (title: string, errors: any) => {
         return `${title} ${errors.message}.`;
     } else if (errors.type === "required") {
         return `${title} must be specified.`;
+    } else if (errors.type === "manual") {
+        return errors.message;
     } else {
         return "";
     }
