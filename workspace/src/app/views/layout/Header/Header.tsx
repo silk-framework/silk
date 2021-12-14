@@ -47,7 +47,6 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
     const locationParams = new URLSearchParams(location.search?.substring(1));
     const [currentLanguage, setCurrentLanguage] = useState(fetchStoredLang());
     const { hotKeys } = useSelector(commonSel.initialSettingsSelector);
-    const isAuth = useSelector(commonSel.isAuthSelector);
     const { dmBaseUrl, dmModuleLinks, version } = useSelector(commonSel.initialSettingsSelector);
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
     const [t] = useTranslation();
@@ -73,7 +72,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
 
     const searchURL = (page: string) => `?itemType=${page}&page=1&limit=10`;
 
-    return !isAuth ? null : (
+    return (
         <ApplicationHeader
             aria-label={`${APPLICATION_NAME} @ ${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}`}
         >
