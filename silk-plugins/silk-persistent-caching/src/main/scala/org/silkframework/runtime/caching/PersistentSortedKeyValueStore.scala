@@ -383,7 +383,7 @@ object PersistentSortedKeyValueStore {
 
   private val cacheDirectoryConfigKey = "caches.persistence.directory"
 
-  private val defaultDbSizeConfigKey = "caches.persistence.sizeLimit"
+  private val defaultDbSizeConfigKey = "caches.persistence.maxSize"
 
   // Init temp dir
   removeTempDirectories()
