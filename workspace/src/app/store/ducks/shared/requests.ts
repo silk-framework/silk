@@ -1,0 +1,207 @@
+import {
+    datasetsLegacyApi,
+    legacyApiEndpoint,
+    profilingApi,
+    projectApi,
+    resourcesLegacyApi,
+    workspaceApi,
+} from "../../../utils/getApiEndpoint";
+import fetch from "../../../services/fetch";
+import qs from "qs";
+import {
+    IAutocompleteDefaultResponse,
+    IDatasetConfigPreview,
+    IDatasetPreview,
+    IDatasetTypePayload,
+    IItemLink,
+    IMetadataUpdatePayload,
+    IPreviewResponse,
+    IProjectMetadataResponse,
+    IProjectResource,
+    IProjectTask,
+    IRelatedItemsResponse,
+    IRequestAutocompletePayload,
+    IResourceListPayload,
+    IResourcePreview,
+    ITaskMetadataResponse,
+} from "@ducks/shared/typings";
+import { FetchResponse } from "../../../services/fetch/responseInterceptor";
+import { ITypeProfilingDetails } from "../../../views/shared/profiling/PropertyProfilingOverview/PropertyProfilingOverview";
+
+/**
+ * Default Endpoint to get autocompletion values
+ * @param payload
+ */
+export const requestAutocompleteResults = async (
+    payload: IRequestAutocompletePayload
+): Promise<FetchResponse<IAutocompleteDefaultResponse[]>> => {
+    return fetch({
+        url: workspaceApi(`/pluginParameterAutoCompletion`),
+        method: "POST",
+        body: payload,
+    });
+};
+
+/**
+ * Get Project Metadata
+ * @param itemId
+ */
+export const requestProjectMetadata = async (itemId: string): Promise<FetchResponse<IProjectMetadataResponse>> => {
+    return fetch({
+        url: projectApi(`/${itemId}/metaData`),
+    });
+};
+
+export const requestTaskMetadata = async (
+    itemId: string,
+    projectId?: string
+): Promise<FetchResponse<ITaskMetadataResponse>> => {
+    return fetch({
+        url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}/metadata`),
+    });
+};
+
+/**
+ * Returns the task data for a specific project task.
+ * @param projectId The project of the task.
+ * @param itemId    The task ID
+ * @param withLabel If true, then the returned JSON will contain optional labels in addition to the actual values, for presentation purposes.
+ */
+export const requestTaskData = async (
+    projectId: string,
+    itemId: string,
+    withLabel: boolean = false
+): Promise<IProjectTask> => {
+    const queryParams: any = {};
+    if (withLabel) {
+        queryParams.withLabels = true;
+    }
+
+    const { data } = await fetch({
+        url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}`),
+        body: queryParams,
+    });
+    return data;
+};
+
+/**
+ * Updates the meta data of a project.
+ * @param itemId
+ * @param payload
+ */
+export const requestUpdateProjectMetadata = async (
+    itemId: string,
+    payload: IMetadataUpdatePayload
+): Promise<FetchResponse<IProjectMetadataResponse>> => {
+    return fetch({
+        url: workspaceApi(`/projects/${itemId}/metaData`),
+        method: "PUT",
+        body: payload,
+    });
+};
+
+/**
+ * Updates project task meta data.
+ * @param itemId    The ID of the task.
+ * @param payload   The meta data object.
+ * @param projectId The project of the task.
+ */
+export const requestUpdateTaskMetadata = async (
+    itemId: string,
+    payload: IMetadataUpdatePayload,
+    projectId?: string
+): Promise<FetchResponse<ITaskMetadataResponse>> => {
+    return fetch({
+        url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}/metadata`),
+        method: "PUT",
+        body: payload,
+    });
+};
+
+/**
+ * Returns related items of a task
+ * @param projectId The project of the task
+ * @param taskId The ID of the project task.
+ * @param textQuery A multi-word text query to filter the related items by.
+ */
+export const requestRelatedItems = async (
+    projectId: string,
+    taskId: string,
+    textQuery: string = ""
+): Promise<FetchResponse<IRelatedItemsResponse>> => {
+    const query = qs.stringify(textQuery);
+    return fetch({
+        url: workspaceApi(`/projects/${projectId}/tasks/${taskId}/relatedItems${query}`),
+        body: {
+            textQuery: textQuery,
+        },
+    });
+};
+
+export const requestDatasetTypes = async (
+    datasetId: string,
+    projectId: string,
+    payload: IDatasetTypePayload = {}
+): Promise<FetchResponse<string[]>> => {
+    return fetch({
+        url: legacyApiEndpoint(`projects/${projectId}/datasets/${datasetId}/types`),
+        method: "GET",
+        body: payload,
+    });
+};
+
+export const requestResourcesList = async (
+    projectId: string,
+    filters: IResourceListPayload = {}
+): Promise<FetchResponse<IProjectResource[]>> => {
+    return fetch({
+        url: legacyApiEndpoint(`/projects/${projectId}/resources`),
+        body: filters,
+    });
+};
+
+export const requestPreview = async (
+    preview: IResourcePreview | IDatasetConfigPreview | IDatasetPreview
+): Promise<FetchResponse<IPreviewResponse>> => {
+    const url = (preview as IDatasetPreview).dataset ? datasetsLegacyApi("preview") : resourcesLegacyApi("preview");
+    return fetch({
+        url,
+        method: "POST",
+        body: preview,
+    });
+};
+
+/** Profiles a specific type from the dataset. */
+export const profileDatasetType = async (
+    projectId: string,
+    datasetId: string,
+    typePath: string
+): Promise<FetchResponse<void>> => {
+    const url = profilingApi(`/profileType/${projectId}/${datasetId}`);
+    return fetch({
+        url,
+        method: "POST",
+        body: {
+            sourceType: typePath,
+        },
+    });
+};
+
+/** Returns profiling information about a specific type from a dataset. */
+export const datasetTypeProfilingInfo = async (
+    projectId: string,
+    datasetId: string,
+    type: string
+): Promise<FetchResponse<ITypeProfilingDetails>> => {
+    const url = profilingApi(`/schemaClass/${projectId}/${datasetId}`);
+    return fetch({
+        url,
+        body: { typePath: type },
+    });
+};
+
+export const requestItemLinks = async (projectId: string, taskId: string): Promise<FetchResponse<IItemLink[]>> => {
+    return fetch({
+        url: workspaceApi(`/projects/${projectId}/tasks/${taskId}/links`),
+    });
+};

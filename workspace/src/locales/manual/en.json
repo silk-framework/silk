@@ -1,0 +1,613 @@
+{
+    "CreateModal": {
+        "createTitle": "Create new item of type {{type}}",
+        "createTitleGeneric": "Create new item",
+        "loading": "Loading artefact type list.",
+        "noMatch": "No match found.",
+        "updateTitle": "Update item of type {{type}}",
+        "projectContext": {
+            "configResetInfo": "All settings are going to be reset, except label and description.",
+            "selectProjectLabel": "Select target project",
+            "noOptions": "No projects found.",
+            "selectProjectInfo": "Select the target project for the new item first, then you can configure it here.",
+            "selectedProject": "Selected target project",
+            "changeProjectButton": "Change target project",
+            "resetModalTitle": "Configuration reset necessary"
+        },
+        "CustomIdentifierInput": {
+            "ProjectId": "Project identifier",
+            "TaskId": "Item identifier",
+            "helperDescription": "An unique identifier, e.g. `my-new-element`. This identifier is used for references and URLs.",
+            "validations": {
+                "invalid": "Only following characters (ranges) are allowed in a valid ID: a - z, A - Z, 0 - 9, _, -",
+                "unique": "Identifier must be unique. The entered identifier is already used for another item."
+            }
+        }
+    },
+    "ShowIdentifierModal": {
+        "title": "Item identifier"
+    },
+    "DataList": {
+        "loading": "Loading data."
+    },
+    "DataPreview": {
+        "load": "Load preview",
+        "loading": "Loading preview data.",
+        "noAttributes": "No attributes found. This might be an empty dataset.",
+        "notLoading": "Validation failed. Not loading preview.",
+        "previewOf": "Preview of",
+        "reload": "Reload preview",
+        "typeSelection": "Type Selection",
+        "typeSelectionBack": "Back to type selection",
+        "typeSelectionTooltip": "The data source consists of multiple types. Select one type from the list for a preview. There are max. 1000 types fetched at any time."
+    },
+    "DataProfiling": {
+        "attributes": {
+            "count": {
+                "comment": "The count of profiled values. Note that usually only a sample of the dataset is profiled, i.e., the total number of values in the dataset may be higher",
+                "label": "Count"
+            },
+            "datatype": {
+                "comment": "The detected data type.",
+                "label": "Data type"
+            },
+            "distribution": {
+                "comment": "The distribution of values. Depending on the data type the histogram can be interpreted differently. For interval scaled types this is usually the histogram from the min to the max value.",
+                "label": "Distribution"
+            },
+            "max": {
+                "comment": "The largest value of all profiled values. The representation of the value can be normalized, depending on the detected data type.",
+                "label": "Max. value"
+            },
+            "maxStrLength": {
+                "comment": "The longest string length in number of characters.",
+                "label": "Length (max)"
+            },
+            "mean": {
+                "comment": "The arithmetic mean of all profiled values. The representation of the value can be normalized, depending on the detected data type.",
+                "label": "Mean value"
+            },
+            "meanStrLength": {
+                "comment": "The average string length in number of characters of all profiled values.",
+                "label": "Length (avg)"
+            },
+            "min": {
+                "comment": "The smallest value of all profiled values. The representation of the value can be normalized, depending on the detected data type.",
+                "label": "Min. value"
+            },
+            "minStringLength": {
+                "comment": "The shortest string length in number of characters.",
+                "label": "Length (min)"
+            },
+            "profilingTimestamp": {
+                "comment": "The time the profiling information was extracted from the data source.",
+                "label": "Profiling timestamp"
+            },
+            "regexPatterns": {
+                "comment": "A set of extracted regular expression patterns that cover all of the profiled values.",
+                "label": "Regex patterns"
+            },
+            "samples": {
+                "comment": "Values sampled from all profiled values. Usually this sample is uniformly selected from the set of unique values. The representation of the values can be normalized, depending on the detected data type.",
+                "label": "Samples"
+            },
+            "uniqueCount": {
+                "comment": "The count of unique values.",
+                "label": "Count (unique)"
+            }
+        },
+        "noAttributeProfile": "No profiling data available.",
+        "profilingInfoHeader": "Profiling info for {{path}} data",
+        "profilingInfoTooltip": "Show extended profiling info for {{path}}",
+        "profilingNotAvailable": "No profiling data available, yet.",
+        "profilingRunning": "Running profiling on"
+    },
+    "DeleteModal": {
+        "confirmMsg": "The {{itemType}} '{{name}}' is used by other items! Deleting this item will also delete all depending items listed below:",
+        "deleteResource": "{{type}} '{{name}}' will be deleted.",
+        "projectNote": "All contained items will be deleted, too."
+    },
+    "Deletedialog": {
+        "loading": "Loading delete dialog."
+    },
+    "FileMenu": {
+        "create": "Create empty file",
+        "empty": "Select file from project",
+        "new": "Upload new file"
+    },
+    "FileUploader": {
+        "abort": "Abort and keep file",
+        "abortOnly": "Abort Upload",
+        "abortProcess": "Abort upload process?",
+        "changeFile": "Change file",
+        "createNewFile": "New file name",
+        "dropzone": "Drop files here or browse",
+        "fileNotSpecified": "File name not specified",
+        "modalTitle": "Upload file",
+        "retry": "Retry",
+        "retryAbortMessage": "The {{fileName}} upload process aborted",
+        "retryMessage": "Something going wrong during upload process for {{fileName}}",
+        "selectFromProject": "Select file from projects",
+        "successfullyUploaded": "{{uploadedName}} was successfully uploaded",
+        "uploadError": "An upload error has occurred for file '{{fileName}}'. Details: {{errorDetails}}",
+        "waitFor": "File '{{fileName}}' is being uploaded."
+    },
+    "Metadata": {
+        "loading": "Loading summary data.",
+        "updateFailed": "Updating meta data has failed",
+        "unsavedMetaDataWarning": "There are unsaved changes that will be lost. Do you still want to proceed?"
+    },
+    "OverwriteModal": {
+        "overwriteFile": "File '{{fileName}}' already exists. Do you want to overwrite it?"
+    },
+    "Pagination": {
+        "backwardText": "Previous page",
+        "forwardText": "Next page",
+        "itemRangeText": "{{min}}–{{max}} of {{total}} items",
+        "itemsPerPage": "Items per page:",
+        "pageRangeText": "of {{total}} pages"
+    },
+    "ParameterWidget": {
+        "AutoComplete": {
+            "createNewItem": "Custom entry: '{{query}}'"
+        }
+    },
+    "PrefixDialog": {
+        "deletePrefix": "Prefix '{{prefixName}}' will be deleted.",
+        "overwritePrefix": "Update existing prefix '{{prefixName}}'?",
+        "prefixNameInvalid": "The prefix name you have entered is invalid",
+        "prefixUriInvalid": "The entered URI prefix must be a valid URI / IRI.",
+        "prefixUriInvalidChar": "The entered URI prefix contains invalid characters. First invalid character at position {{idx}} is '{{char}}'."
+    },
+    "ProjectImportModal": {
+        "importBtn": "Import project",
+        "importSummary": "Imported project summary",
+        "importUnderFreshIdBtn": "Import as new project",
+        "openExistingProject": "Open existing project page",
+        "projectFile": "Choose project file to import:",
+        "replaceImportBtn": "Replace existing project",
+        "responseInvalid": "Invalid response received from project upload. Project import cannot proceed.",
+        "responseUploadError": "File {{file}} could not be uploaded! {{details}}",
+        "restoreNotice": "Want to restore an existing project?",
+        "restoreStarter": "Import project file",
+        "title": "Project import",
+        "warningExistingProject": "A project with the same ID already exists! Choose to either overwrite the existing project or import the project under a freshly generated ID."
+    },
+    "RecentlyViewedModal": {
+        "globalSearch": "Search in workspace for '{{query}}'",
+        "placeholder": "Search recently viewed items or in workspace",
+        "title": "Quick search"
+    },
+    "RelatedItems": {
+        "title": "Related items"
+    },
+    "common": {
+        "action": {
+            "showIdentifier": "Show identifier",
+            "AddSmth": "Add {{smth}}",
+            "CloneSmth": "Clone {{smth}}",
+            "CopySmth": "Copy {{smth}} artefacts",
+            "CreateSmth": "Create {{smth}}",
+            "DeleteSmth": "Delete {{smth}}",
+            "RemoveSmth": "Remove {{smth}}",
+            "ShowSmth": "Show {{smth}}",
+            "CopyItems": "Copy Items to another project",
+            "CopyProject": "Copy to another project",
+            "abort": "Abort",
+            "activity": "Activity overview",
+            "add": "Add",
+            "backOld": "Back to old workspace",
+            "cancel": "Cancel",
+            "copy": "Copy",
+            "clone": "Clone",
+            "close": "Close",
+            "confirm": "Confirm",
+            "create": "Create",
+            "delete": "Delete",
+            "download": "Download",
+            "export": "Export to",
+            "exportTo": "Export to",
+            "logout": "Logout",
+            "moreOptions": "Show more options",
+            "profilingStart": "Start profiling",
+            "profilingUpdate": "Update profiling",
+            "replace": "Replace",
+            "resetSelection": "Reset selection",
+            "retry": "Retry",
+            "save": "Save",
+            "showDetails": "Open details page",
+            "submit": "Submit",
+            "update": "Update",
+            "showApiDoc": "API",
+            "copyClipboard": "Copy to clipboard"
+        },
+        "app": {
+            "build": "Build",
+            "loading": "Loading page."
+        },
+        "dataTypes": {
+            "dataset": "dataset",
+            "genericArtefactLabel": "item",
+            "linking": "linking",
+            "project": "project",
+            "projectDesc": "Projects let you group related items. All items that depend on each other need to be in the same project.",
+            "task": "task",
+            "transform": "transform",
+            "workflow": "workflow"
+        },
+        "iframeWindow": {
+            "Explore": "Data exploration",
+            "Learning": "Learning",
+            "Linking editor": "Linking editor",
+            "Linking evaluation": "Linking evaluation",
+            "Linking execution": "Linking execution",
+            "Mapping editor": "Mapping editor",
+            "Query": "Query editor",
+            "Reference links": "Reference links",
+            "Transform evaluation": "Transform evaluation",
+            "Transform execution": "Transform execution",
+            "Workflow editor": "Workflow editor",
+            "Workflow report": "Workflow report"
+        },
+        "messages": {
+            "actionFailed": "{{action}} action failed. Details: {{error}}",
+            "allTypes": "All types",
+            "cloneModalTitle": "New name of cloned {{item}}",
+            "cloneOf": "Copy of {{item}}",
+            "copyModalTitle": "New name of copied {{item}}",
+            "copyModalProjectSelect": "Select Project Target",
+            "copyModalOverwrittenTasks": " Overwritten tasks ({{tasks}})",
+            "copyModalCopiedTasks": "Copied tasks ({{tasks}})",
+            "createFirstItems": "Create your first {{items}} now.",
+            "errorDataTypes": "Fetch error for dataset types",
+            "noItems": "No {{items}} found.",
+            "noResults": "No results.",
+            "noTypes": "No types found",
+            "serverError": "Server error",
+            "taskOverwrittenPrompt": "I understand that some tasks will be overwritten",
+            "temporarilyUnavailableMessage": "Service is temporarily unavailable. Details: {{detailMessage}}"
+        },
+        "sorter": {
+            "recentlyViewed": "Recently viewed"
+        },
+        "units": {
+            "second": "second",
+            "seconds": "seconds",
+            "minute": "minute",
+            "minutes": "minutes",
+            "hour": "hour",
+            "hours": "hours",
+            "day": "day",
+            "days": "days"
+        },
+        "words": {
+            "advancedOptions": "Advanced options",
+            "all": "All",
+            "and": "and",
+            "back": "Back",
+            "itemType": "Item type",
+            "less": "less",
+            "more": "more",
+            "required": "required",
+            "sortOptions": "Sort options",
+            "summary": "Summary",
+            "copied": "Copied"
+        }
+    },
+    "form": {
+        "field": {
+            "description": "Description",
+            "label": "Label",
+            "searchField": "Enter search term"
+        },
+        "projectForm": {
+            "importProjectButton": "Import existing project",
+            "projectDesc": "Project description",
+            "projectTitle": "Project title",
+            "title": "Title"
+        },
+        "validations": {
+            "integer": "must be an integer number",
+            "isRequired": "{{field}} is required",
+            "parameter": "Parameter validation failed. Please fix the issues first."
+        }
+    },
+    "http": {
+        "error": {
+            "aborted": "Request Aborted",
+            "fetchNotResult": "Error, cannot fetch results.",
+            "largeRequest": "Request too large",
+            "networkFileUpload": "Can't upload file '{{fileName}}', please check your connection and try again",
+            "not": {
+                "authenticated": "Not authenticated",
+                "authorized": "Not authorized",
+                "available": "Temporarily unavailable",
+                "found": "Not found",
+                "markdown": "Sorry but we can't find the markdown information for this report",
+                "proxy": "Not authorized (proxy)",
+                "valid": "Invalid request"
+            },
+            "requestFailed": "Preview request failed",
+            "server": "Server error",
+            "timeout": "Timeout"
+        }
+    },
+    "navigation": {
+        "side": {
+            "di": {
+                "datasets": "Datasets",
+                "datasetsTooltip": "Shows the list of all datasets across all build projects.",
+                "projects": "Projects",
+                "projectsTooltip": "Shows the list of all data-integration build projects."
+            },
+            "diBrowse": "Build",
+            "diBrowseTooltip": "Used to manage data-integration projects to build a knowledge graph from existing datasources",
+            "dm": {
+                "explore": "Knowledge Graphs",
+                "exploreTooltip": "A generic RDF graph data browser and editor.",
+                "query": "Queries",
+                "queryTooltip": "Used to write, store, describe, search and run SPARQL queries.",
+                "vocab": "Vocabularies",
+                "vocabTooltip": "Shows the list of all managed vocabularies. It let's you (un-)install vocabularies from RDF files or the integrated catalog."
+            },
+            "dmBrowser": "Explore",
+            "open": "Open navigation",
+            "close": "Close navigation"
+        },
+        "user": {
+            "open": "Open user menu",
+            "close": "Close user menu"
+        }
+    },
+    "pages": {
+        "dataset": {
+            "title": "Data preview"
+        },
+        "notFound": {
+            "backLink": "Go to homepage",
+            "text": "The page you requested does not exist.",
+            "title": "Page not found"
+        },
+        "project": {
+            "content": "Contents",
+            "loading": "Loading project data"
+        },
+        "workspace": {
+            "contents": "Contents",
+            "createProject": "Create Project",
+            "empty": "Your workspace is empty. In order to start, create a new project or import an existing project from an exported project file."
+        }
+    },
+    "widget": {
+        "ConfigWidget": {
+            "loading": "Loading configuration list.",
+            "loadingPrefix": "Loading prefix configuration.",
+            "prefix": "Prefix",
+            "prefixTitle": "Manage Prefixes",
+            "prefix_plural": "Prefixes",
+            "title": "Configuration"
+        },
+        "FacetsList": {
+            "facet": {
+                "createdBy": {
+                    "description": "The user who created the item.",
+                    "label": "Created by",
+                    "valueLabel": {
+                        "": "Unknown user"
+                    }
+                },
+                "datasetFileResource": {
+                    "description": "The file resource of a file based dataset.",
+                    "label": "Dataset file"
+                },
+                "datasetType": {
+                    "description": "The concrete type of a dataset, e.g. its data model and format etc.",
+                    "label": "Dataset type"
+                },
+                "lastModifiedBy": {
+                    "description": "The user who last modified the item.",
+                    "label": "Last modified by",
+                    "valueLabels": {
+                        "": "Unknown user"
+                    }
+                },
+                "taskType": {
+                    "description": "The concrete type of a task.",
+                    "label": "Task type"
+                },
+                "transformInputResource": {
+                    "description": "In case the input is a file resource based dataset, these are the file names of these resources.",
+                    "label": "Transformed file resource"
+                },
+                "workflowExecutionStatus": {
+                    "description": "Allows to filter by the status of the last execution of the workflow.",
+                    "label": "Last execution status"
+                }
+            }
+        },
+        "FileWidget": {
+            "deleteFile": "Delete File",
+            "deleted": "File '{{fileName}}' will be deleted.",
+            "edit": "Edit prefix settings",
+            "empty": "No files are found, add them here to use it later",
+            "file": "File",
+            "files": "Files",
+            "loading": "Loading file list.",
+            "removeFromDatasets": "File '{{fileName}}' is in use by following items:",
+            "removeText": "Do you really want to delete file",
+            "sort": {
+                "modified": "Last modified",
+                "name": "Name",
+                "size": "Size (bytes)"
+            }
+        },
+        "Filterbar": {
+            "subsections": {
+                "titles": {
+                    "itemType": "Item type"
+                },
+                "valueLabels": {
+                    "itemType": {
+                        "dataset": "Dataset",
+                        "linking": "Linking",
+                        "project": "Project",
+                        "task": "Task",
+                        "transform": "Transform",
+                        "workflow": "Workflow"
+                    }
+                }
+            }
+        },
+        "TargetVocabularySelection": {
+            "multiSelectionRadioButtonLabel": "Select individual vocabularies",
+            "staticEntryLabel": {
+                "none": "No vocabularies",
+                "all": "All installed vocabularies"
+            }
+        },
+        "TaskActivityOverview": {
+            "activities": {
+                "ExecuteDefaultWorkflow": {
+                    "title": "Execute workflow"
+                },
+                "ExecuteLinking": {
+                    "title": "Execute linking"
+                },
+                "ExecuteScheduler": {
+                    "title": "Execute scheduler"
+                },
+                "ExecuteTransform": {
+                    "title": "Execute transformation"
+                },
+                "GlobalVocabularyCache": {
+                    "title": "Primary vocabulary cache"
+                },
+                "LinkingPathsCache": {
+                    "title": "Source path cache"
+                },
+                "ReferenceEntitiesCache": {
+                    "title": "Reference entities cache"
+                },
+                "TransformPathsCache": {
+                    "title": "Source paths cache"
+                },
+                "TypesCache": {
+                    "title": "Types cache"
+                },
+                "VocabularyCache": {
+                    "title": "Target vocabulary cache"
+                }
+            },
+            "cacheGroup": {
+                "title": "Caches",
+                "cacheAgePrefix": "Updated ",
+                "cacheAgeSuffix": " ago",
+                "cacheAgePrefixIndividual": "updated "
+            },
+            "activityControl": {
+                "startActivity": "Start activity",
+                "reloadActivity": "Restart activity",
+                "stopActivity": "Stop activity",
+                "showErrorReport": "Show error report",
+                "viewCachedData": "View cached data in new tab"
+            },
+            "errorMessages": {
+                "actions": {
+                    "start": "Starting activity {{activityName}} has failed.",
+                    "cancel": "Stopping activity {{activityName}} has failed.",
+                    "restart": "Restarting activity {{activityName}} has failed."
+                },
+                "errorReport": {
+                    "fetchReport": "Fetching activity execution error report has failed."
+                },
+                "fetchActivityInfo": "Fetching activities list has failed."
+            },
+            "reloadAllCaches": "Reload all caches",
+            "title": "Activity overview"
+        },
+        "TaskConfigWidget": {
+            "loading": "Loading update dialog...",
+            "noPreview": "No preview available",
+            "title": "Configuration"
+        },
+        "WarningWidget": {
+            "loading": "Loading log messages.",
+            "title": "Error log"
+        }
+    },
+    "WorkflowEditor": {
+        "canvasControlTooltips": {
+            "fitview": "Center workflow",
+            "zoomin": "Zoom in",
+            "zoomout": "Zoom out",
+            "lock": "Switch to read-only mode",
+            "unlock": "Switch to edit mode"
+        },
+        "sidebar": {
+            "searchInput": "Find datasets and workflow operators",
+            "searchTooltip": "Search for datasets and workflow operators both in the nodes used in the canvas and new tasks in the sidebar. Pressing the <Enter> key refreshes the list from the server.",
+            "availableTasks": "Available task",
+            "availableTasks_plural": "Available tasks ({{count}})",
+            "usedTasks": "Matching node",
+            "usedTasks_plural": "Node matches ({{count}})",
+            "cycleNext": "Next match",
+            "cyclePrevious": "Previous match",
+            "cycleTooltip": "Cycle through {{totalMatches}} currently used instances of this task",
+            "cancelCycling": "Cancel cycling"
+        },
+        "executionReport": {
+            "title": "Workflow execution report"
+        },
+        "header": {
+            "saveBtnTooltip": "Save the current state of the workflow",
+            "toggleProgressLabel": "Toggle progress",
+            "warning": {
+                "tooltip": "Focuses on failed node and opens execution report"
+            },
+            "warningMenuTooltip": "Show list of errors and warnings"
+        },
+        "handle": {
+            "configuration": {
+                "label": "Configuration input",
+                "tooltip": "Values passed here will be used to reconfigure the operator parameters. The attribute names must match the name of the parameters to be reconfigured. It's possible to configure a subset of all available parameters."
+            }
+        },
+        "edge": {
+            "menu": {
+                "delete": {
+                    "label": "Remove edge",
+                    "tooltip": "Removes the edge. Alternatively you can delete (multiple) selected workflow elements by pressing the [←] (backspace) key on the keyboard."
+                }
+            }
+        },
+        "errors": {
+            "WorkflowEditor_fetchPortsConfigs": "Could not load task configurations.",
+            "WorkflowEditor_fetchTaskList": "Could not fetch available workflow datasets and operators.",
+            "WorkflowEditor_saveWorkflow": "Failed to save the workflow.",
+            "WorkflowEditor_fetchWorkflow": "Failed to load the workflow."
+        },
+        "node": {
+            "actions": {
+                "showExecutionReport": "Show execution report"
+            },
+            "menu": {
+                "remove": {
+                    "label": "Remove node"
+                },
+                "showExecutionReport": {
+                    "label": "Show execution report"
+                },
+                "showSummary": {
+                    "label": "Show summary"
+                },
+                "toggleConfigPort": {
+                    "label": "Toggle config port",
+                    "description": "Show or hide config port that allows to re-configure parameters of this workflow node by inputting a single flat entity/row with properties matching the parameter IDs. Parameter IDs are listed in the documentation of the corresponding DataIntegration plugin."
+                }
+            }
+        },
+        "warnings": {
+            "unsavedChanges": "There are unsaved changes. Do you still want to close the workflow editor?"
+        }
+    }
+}
