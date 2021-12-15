@@ -1,9 +1,10 @@
 package org.silkframework.runtime.caching
 
+import com.typesafe.config.Config
 import org.lmdbjava.DbiFlags.MDB_CREATE
 import org.lmdbjava.Env.create
 import org.lmdbjava._
-import org.silkframework.config.DefaultConfig
+import org.silkframework.config.{ConfigValue, DefaultConfig}
 import org.silkframework.dataset.rdf.ClosableIterator
 import org.silkframework.util.FileUtils.toFileUtils
 import org.silkframework.util.Identifier
@@ -61,7 +62,7 @@ case class PersistentSortedKeyValueStore(databaseId: Identifier,
 
   private def createEnv(): Env[ByteBuffer] = {
     create()
-        .setMapSize(config.maxSizeInMB * 1024 * 1024)
+        .setMapSize(config.maxSizeInBytes)
         .setMaxDbs(1)
         .open(dbDirectory, EnvFlags.MDB_NOSYNC, EnvFlags.MDB_NOTLS)
   }
@@ -382,6 +383,8 @@ object PersistentSortedKeyValueStore {
 
   private val cacheDirectoryConfigKey = "caches.persistence.directory"
 
+  private val defaultDbSizeConfigKey = "caches.persistence.sizeLimit"
+
   // Init temp dir
   removeTempDirectories()
 
@@ -421,7 +424,13 @@ object PersistentSortedKeyValueStore {
   def byteBufferToString(byteBuffer: ByteBuffer): String = UTF_8.decode(byteBuffer).toString
 
   /** The max. size of the DB. Does not hurt to over-estimate. Actions will fail if limit is reached. */
-  final val MAX_DB_SIZE_MB = 10000 // 10GB
+  final val defaultMaxSizeInBytes: ConfigValue[Long] = (config: Config) => {
+    if(config.hasPath(defaultDbSizeConfigKey)) {
+      config.getMemorySize(defaultDbSizeConfigKey).toBytes
+    } else {
+      10L * 1024 * 1024 * 1024 // 10 GB
+    }
+  }
 
   /** The max key size. This can only be changed via compile time flags in LMDB. */
   final val MAX_KEY_SIZE_BYTES = 511
