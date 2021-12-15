@@ -198,6 +198,7 @@ vfs.src(["src/app/**/*.{js,jsx,ts,tsx}", "!src/app/**/*.spec.{js,jsx,ts,tsx}", "
     )
     .pipe(vfs.dest("./"));
 
+fs.mkdirSync("src/locales/generated", { recursive: true });
 for (const lang of ["en", "de"]) {
     if (!foundLanguages.includes(lang)) {
         writeJsonFile({}, `src/locales/generated/${lang}.json`);

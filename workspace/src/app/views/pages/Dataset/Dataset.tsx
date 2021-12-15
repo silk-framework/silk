@@ -8,7 +8,6 @@ import { requestTaskData } from "@ducks/shared/requests";
 import { IProjectTask } from "@ducks/shared/typings";
 import { DATA_TYPES } from "../../../constants";
 import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";
-import { DataPreview } from "../../shared/DataPreview/DataPreview";
 import { TaskConfig } from "../../shared/TaskConfig/TaskConfig";
 import { Loading } from "../../shared/Loading/Loading";
 import { ProjectTaskTabView } from "../../shared/projectTaskTabView/ProjectTaskTabView";
@@ -19,6 +18,7 @@ import NotFound from "../NotFound";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { ProjectTaskParams } from "views/shared/typings";
 import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
+import { SUPPORTED_PLUGINS, viewRegistry } from "../../registry/ViewRegistry";
 
 // The dataset plugins that should show the data preview automatically without user interaction.
 const automaticallyPreviewedDatasets = ["json", "xml", "csv"];
@@ -52,6 +52,7 @@ export function Dataset() {
 
     const showPreviewAutomatically = automaticallyPreviewedDatasets.includes(taskData?.data?.type ?? "");
     const showPreview = !noDataPreviewDatasets.includes(taskData?.data?.type ?? "");
+    const dataPreviewComponent = viewRegistry.pluginComponent(SUPPORTED_PLUGINS.DATA_PREVIEW);
 
     useEffect(() => {
         if (taskId && projectId) {
@@ -64,8 +65,9 @@ export function Dataset() {
             return dmBaseUrl && <ProjectTaskTabView iFrameName={"detail-page-iframe"} />;
         } else {
             return (
-                showPreview && (
-                    <DataPreview
+                showPreview &&
+                dataPreviewComponent && (
+                    <dataPreviewComponent.Component
                         id={"datasetPageDataPreview"}
                         title={t("pages.dataset.title", "Data preview")}
                         preview={{ project: projectId, dataset: taskId }}

@@ -5,13 +5,13 @@ import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
 import { FieldItem, Spacing, TextArea, TextField } from "@gui-elements/index";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
 import { errorMessage, ParameterWidget } from "./ParameterWidget";
-import { DataPreview } from "../../../DataPreview/DataPreview";
 import { IDatasetConfigPreview } from "@ducks/shared/typings";
 import { defaultValueAsJs, existingTaskValuesToFlatParameters } from "../../../../../utils/transformers";
 import { useTranslation } from "react-i18next";
 import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentifierInput";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import Loading from "../../../Loading";
+import { SUPPORTED_PLUGINS, viewRegistry } from "../../../../registry/ViewRegistry";
 
 export interface IProps {
     form: any;
@@ -64,6 +64,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
     const initialValues = existingTaskValuesToFlatParameters(updateTask);
     const [t] = useTranslation();
     const { label, description } = form.watch([LABEL, DESCRIPTION]);
+    const dataPreviewPlugin = viewRegistry.pluginComponent(SUPPORTED_PLUGINS.DATA_PREVIEW);
 
     // addition restriction for the hook form parameter values
     const valueRestrictions = (param: IArtefactItemProperty) => {
@@ -303,18 +304,20 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                 {artefact.taskType?.toLowerCase() === DATA_TYPES.DATASET && (
                     <>
                         <Spacing />
-                        <DataPreview
-                            title={t("pages.dataset.title")}
-                            preview={datasetConfigPreview(projectId, artefact.pluginId, getValues())}
-                            externalValidation={{
-                                validate: triggerValidation,
-                                errorMessage: t(
-                                    "form.validations.parameter",
-                                    "Parameter validation failed. Please fix the issues first."
-                                ),
-                            }}
-                            datasetConfigValues={getValues}
-                        />
+                        {dataPreviewPlugin && (
+                            <dataPreviewPlugin.Component
+                                title={t("pages.dataset.title")}
+                                preview={datasetConfigPreview(projectId, artefact.pluginId, getValues())}
+                                externalValidation={{
+                                    validate: triggerValidation,
+                                    errorMessage: t(
+                                        "form.validations.parameter",
+                                        "Parameter validation failed. Please fix the issues first."
+                                    ),
+                                }}
+                                datasetConfigValues={getValues}
+                            />
+                        )}
                     </>
                 )}
             </form>

@@ -35,6 +35,7 @@ import { APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME 
 import { CONTEXT_PATH, SERVE_PATH } from "../../../constants/path";
 import { APP_VIEWHEADER_ID } from "../../shared/PageHeader/PageHeader";
 import { fetchStoredLang } from "../../../../language";
+import { SUPPORTED_PLUGINS, viewRegistry } from "../../registry/ViewRegistry";
 
 interface IProps {
     onClickApplicationSidebarExpand: any;
@@ -51,6 +52,8 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
     const [t] = useTranslation();
     const [displayUserMenu, toggleUserMenuDisplay] = useState<boolean>(false);
+    const diUserMenuItems = viewRegistry.pluginComponent(SUPPORTED_PLUGINS.DI_USER_MENU_ITEMS);
+    const diUserMenuFooter = viewRegistry.pluginComponent(SUPPORTED_PLUGINS.DI_USER_MENU_FOOTER);
 
     const handleCreateDialog = () => {
         dispatch(commonOp.setSelectedArtefactDType(appliedFilters.itemType));
@@ -234,29 +237,18 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                             href={CONTEXT_PATH + "/workspace"}
                                             icon={"application-legacygui"}
                                         />
-                                        {!!dmBaseUrl && (
-                                            <>
-                                                <MenuDivider />
-                                                <MenuItem
-                                                    id={"logoutAction"}
-                                                    text={t("common.action.logout", "Logout")}
-                                                    onClick={() => {
-                                                        dispatch(commonOp.logoutFromDi());
-                                                    }}
-                                                    icon={"operation-logout"}
-                                                />
-                                            </>
-                                        )}
+                                        {!!dmBaseUrl && diUserMenuItems && <diUserMenuItems.Component />}
                                     </Menu>
                                 </ToolbarSection>
-                                <ToolbarSection style={{ width: "100%" }}>
-                                    <HtmlContentBlock small>
-                                        {version ?? null} by{" "}
-                                        <a href="https://eccenca.com/" target="_new">
-                                            eccenca GmbH
-                                        </a>
-                                    </HtmlContentBlock>
-                                </ToolbarSection>
+                                {diUserMenuFooter ? (
+                                    <diUserMenuFooter.Component version={version} />
+                                ) : (
+                                    version && (
+                                        <ToolbarSection style={{ width: "10%" }}>
+                                            <HtmlContentBlock small>{version}</HtmlContentBlock>
+                                        </ToolbarSection>
+                                    )
+                                )}
                             </Toolbar>
                         </ApplicationToolbarPanel>
                     </>

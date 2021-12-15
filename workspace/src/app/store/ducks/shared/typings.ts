@@ -104,13 +104,6 @@ export interface IItemLink {
     itemType?: string;
 }
 
-export interface IItemInfo {
-    itemType: {
-        id: string;
-        label: string;
-    };
-}
-
 export interface IRelatedItemsResponse {
     total: number;
     items: IRelatedItem[];

@@ -44,10 +44,6 @@ export const datasetsLegacyApi = (relativePath: string) => {
     return rootPath("/datasets") + prependSlash(relativePath);
 };
 
-export const profilingApi = (relativePath: string) => {
-    return apiPath("/profiling") + prependSlash(relativePath);
-};
-
 /** In order to build correct paths this function will prepend a slash before the relative path if it's missing. */
 const prependSlash = (relativePath: string): string => {
     if (relativePath.startsWith("/") || relativePath.startsWith("?")) {

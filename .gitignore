@@ -16,7 +16,7 @@ target/
 .cache*
 **/.idea
 myScripts
-scripts
+./scripts
 # Ignore generated JavaScript from React components
 silk-workbench/silk-workbench-core/public/libs/silk-react-components/
 silk-workbench/silk-workbench-core/public/libs/dynep/

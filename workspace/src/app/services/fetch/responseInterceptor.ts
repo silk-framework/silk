@@ -1,7 +1,5 @@
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { logError } from "../errorLogger";
-import { getStore } from "../../store/configureStore";
-import { commonOp } from "@ducks/common";
 import { isDevelopment } from "../../constants/path";
 import i18n from "../../../language";
 
@@ -162,7 +160,7 @@ export const responseInterceptorOnError = (error: AxiosError) => {
 
         // UnAuthorized
         if (401 === error.response.status) {
-            getStore().dispatch(commonOp.logout()); // FIXME: Add re-login logic
+            // FIXME: Add re-login logic
             return Promise.reject(new HttpError(error));
         }
         return Promise.reject(new HttpError(error));
