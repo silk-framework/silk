@@ -1,0 +1,26 @@
+
+{
+  "name": "silk",
+  "description": "We use Lerna and Yarn workspace to use the gui-elements sub-module in the workspace and silk-react-components projects without duplication.",
+  "private": true,
+  "license": "Apache 2.0",
+  "workspaces": [
+    "silk-react-components",
+    "workspace",
+    "libs/gui-elements"
+  ],
+  "scripts": {
+    "bootstrap": "lerna bootstrap"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.10.5",
+    "@babel/core": "^7.10.5",
+    "@babel/preset-env": "^7.10.4",
+    "babel-jest": "^26.1.0",
+    "cross-env": "^5.2.0",
+    "del-cli": "^3.0.1",
+    "jest": "^26.1.0",
+    "lerna": "^3.22.1",
+    "prettier": "^2.0.5"
+  }
+}

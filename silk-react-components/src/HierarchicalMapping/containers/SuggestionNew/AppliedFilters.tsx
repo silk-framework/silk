@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tag, TagList } from "@gui-elements/index";
+import { Tag, TagList } from "gui-elements";
 import { COLUMN_FILTERS } from "./constants";
 import _ from 'lodash';
 

@@ -7,7 +7,7 @@ import _ from 'lodash';
 import {childExampleAsync, ruleExampleAsync} from '../../store';
 import {InfoBox} from '../../components/InfoBox';
 import {isDebugMode} from '../../utils/isDebugMode';
-import {Notification} from "@gui-elements/index";
+import {Notification} from "gui-elements";
 
 interface IProps {
     id: string

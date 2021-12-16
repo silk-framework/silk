@@ -65,7 +65,7 @@
     "pnp-webpack-plugin": "^1.6.4",
     "postcss-flexbugs-fixes": "^4.2.1",
     "postcss-loader": "3.0.0",
-    "postcss-normalize": "^9.0.0",
+    "postcss-normalize": "^10.0.0",
     "postcss-preset-env": "^6.7.0",
     "react": "^16.13.0",
     "react-app-polyfill": "^1.0.6",
@@ -74,7 +74,6 @@
     "react-dev-utils": "10.2.1",
     "react-dom": "^16.13.0",
     "react-flow-renderer": "^9.6.7",
-    "react-markdown": "^7.0.1",
     "rehype-raw": "^6.1.0",
     "remark-definition-list": "^1.1.0",
     "remark-gfm": "^3.0.0",
@@ -88,7 +87,8 @@
     "ts-pnp": "^1.1.6",
     "typescript": "^3.9.5",
     "url-loader": "2.3.0",
-    "webpack": "4.42.0"
+    "webpack": "4.42.0",
+    "gui-elements": "0.0.1"
   },
   "devDependencies": {
     "@babel/plugin-transform-react-jsx": "^7.3.0",

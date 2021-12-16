@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '@gui-elements/legacy-replacements';
+import { Button } from "gui-elements/legacy-replacements";
 
 const NavigateButton = ({ onClick, id }) => {
     return (

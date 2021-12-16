@@ -5,7 +5,7 @@ import {
     Spacing,
     Toolbar,
     ToolbarSection, Tooltip,
-} from "@gui-elements/index";
+} from "gui-elements/index";
 import { SourcePathInfoBox } from "./SourcePathInfoBox";
 import {SuggestionTypeValues} from "../../suggestion.typings";
 

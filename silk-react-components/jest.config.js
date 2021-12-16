@@ -42,8 +42,7 @@ module.exports = {
     ],
     "moduleNameMapper": {
         "^react-native$": "react-native-web",
-        "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy",
-        "@gui-elements(.*)$": "<rootDir>/src/libs/gui-elements/$1",
+        "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy"
     },
     "moduleFileExtensions": [
         "js",

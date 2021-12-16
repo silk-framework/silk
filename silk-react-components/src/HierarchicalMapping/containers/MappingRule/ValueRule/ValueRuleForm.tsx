@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {Card, CardActions, CardContent, CardTitle, ScrollingHOC, Spinner,} from '@eccenca/gui-elements';
-import {AffirmativeButton, DismissiveButton, TextField as LegacyTextField,} from '@gui-elements/legacy-replacements';
+import {AffirmativeButton, DismissiveButton, TextField as LegacyTextField,} from "gui-elements/legacy-replacements";
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import store, {checkValuePathValidity, fetchValuePathSuggestions, getEditorHref} from '../../../store';
@@ -15,7 +15,7 @@ import {newValueIsIRI} from '../../../utils/newValueIsIRI';
 import TargetCardinality from "../../../components/TargetCardinality";
 import AutoSuggestion from '../../../components/AutoSuggestion/AutoSuggestion'
 import ComplexEditButton from "../../../elements/buttons/ComplexEditButton";
-import {TextField} from "@gui-elements/index";
+import {TextField} from "gui-elements";
 
 const LANGUAGES_LIST = [
     'en', 'de', 'es', 'fr', 'bs', 'bg', 'ca', 'ce', 'zh', 'hr', 'cs', 'da', 'nl', 'eo', 'fi', 'ka', 'el', 'hu', 'ga', 'is', 'it',

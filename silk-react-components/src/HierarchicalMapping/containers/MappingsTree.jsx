@@ -10,7 +10,7 @@ import {
 import {
     Card,
     CardContent,
-} from '@gui-elements';
+} from 'gui-elements';
 
 import RuleTypes from '../elements/RuleTypes';
 import RuleTitle from '../elements/RuleTitle';

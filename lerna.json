@@ -1,0 +1,11 @@
+{
+  "lerna": "2.11.0",
+  "packages": [
+    "workspace",
+    "silk-react-components/",
+    "libs/gui-elements"
+  ],
+  "version": "independent",
+  "npmClient": "yarn",
+  "useWorkspaces": true
+}
