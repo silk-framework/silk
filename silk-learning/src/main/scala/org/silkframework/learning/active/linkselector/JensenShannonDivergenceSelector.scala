@@ -15,6 +15,7 @@
 package org.silkframework.learning.active.linkselector
 
 import org.silkframework.entity.{Entity, Link}
+import org.silkframework.learning.active.LinkCandidate
 import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.evaluation.ReferenceEntities
 import org.silkframework.util.DPair
@@ -29,7 +30,7 @@ case class JensenShannonDivergenceSelector(fulfilledOnly: Boolean = true) extend
   /**
    * Returns the links with the highest Jensen-Shannon divergence from any reference link.
    */
-  override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities)(implicit random: Random): Seq[Link] = {
+  override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[LinkCandidate], referenceEntities: ReferenceEntities)(implicit random: Random): Seq[LinkCandidate] = {
     val posDist = referenceEntities.positiveEntities.map(referencePair => new ReferenceLinkDistance(referencePair, rules, true))
     val negDist = referenceEntities.negativeEntities.map(referencePair => new ReferenceLinkDistance(referencePair, rules, false))
     val dist = posDist ++ negDist
@@ -42,9 +43,9 @@ case class JensenShannonDivergenceSelector(fulfilledOnly: Boolean = true) extend
   /**
    * Ranks a link by updating its confidence to the distance from the closes reference link.
    */
-  private def rankLink(dist: Traversable[ReferenceLinkDistance])(link: Link): Link = {
+  private def rankLink(dist: Traversable[ReferenceLinkDistance])(link: LinkCandidate): LinkCandidate = {
     val minDist = dist.map(_(link)).min
-    link.update(confidence = Some(minDist))
+    link.withConfidence(minDist)
   }
 
   /**

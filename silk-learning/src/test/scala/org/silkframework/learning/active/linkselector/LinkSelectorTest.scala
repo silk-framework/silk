@@ -16,10 +16,11 @@ package org.silkframework.learning.active.linkselector
 
 import org.silkframework.entity._
 import org.silkframework.entity.paths.UntypedPath
+import org.silkframework.learning.active.LinkCandidate
 import org.silkframework.rule.evaluation.ReferenceEntities
+import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.aggegrator.MinimumAggregator
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric
-import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.similarity.{Aggregation, Comparison}
 import org.silkframework.util.{DPair, Uri}
 
@@ -78,11 +79,8 @@ object LinkSelectorTest extends App {
   }
 
   def link(label1: String, date1: String, label2: String, date2: String) = {
-    Link(
-      source = label1 + date1,
-      target = label2 + date2,
-      entities = Some(entities(label1, date1, label2, date2))
-    )
+    val e = entities(label1, date1, label2, date2)
+    LinkCandidate(e.source, e.target)
   }
 
   def entities(label1: String, date1: String, label2: String, date2: String): DPair[Entity] = {

@@ -14,11 +14,12 @@
 
 package org.silkframework.rule.plugins.distance.equality
 
-import org.silkframework.test.PluginTest
+import org.silkframework.rule.test.DistanceMeasureTest
 import org.silkframework.testutil.approximatelyEqualTo
 
 
-class EqualityMetricTest extends PluginTest {
+class EqualityMetricTest extends DistanceMeasureTest[EqualityMetric] {
+
   lazy val metric = new EqualityMetric()
   val t = 1.0
 
@@ -33,6 +34,4 @@ class EqualityMetricTest extends PluginTest {
     metric.evaluate("  _", "  _", t) should be(approximatelyEqualTo(0.0))
     metric.evaluate("123", "123", t) should be(approximatelyEqualTo(0.0))
   }
-
-  override def pluginObject = metric
 }
