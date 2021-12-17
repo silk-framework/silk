@@ -12,7 +12,11 @@ import scala.collection.mutable
 object ComparisonPathsGenerator {
 
   def apply(linkCandidates: Traversable[LinkCandidate], linkSpec: LinkSpec): Seq[DPair[TypedPath]] = {
-    (fromLinkCandidates(linkCandidates) ++ fromLinkSpec(linkSpec)).distinct
+    val comparisonPairs = (fromLinkCandidates(linkCandidates) ++ fromLinkSpec(linkSpec)).distinct
+    if(comparisonPairs.isEmpty) {
+      throw new Exception("Did not find any matching paths from the current linkage rule and by matching the source data.")
+    }
+    comparisonPairs
   }
 
   private def fromLinkCandidates(linkCandidates: Traversable[LinkCandidate]): Seq[DPair[TypedPath]] = {
@@ -24,11 +28,6 @@ object ComparisonPathsGenerator {
       val paths = DPair(matchingPair.sourcePath(linkCandidate.sourceEntity), matchingPair.targetPath(linkCandidate.targetEntity))
       pathScores.put(paths, pathScores.getOrElse(paths, 0.0) + matchingPair.score)
     }
-
-    if(pathScores.isEmpty) {
-      throw new Exception("Did not find any matching paths")
-    }
-
     pathScores.toSeq.sortBy(-_._2).map(_._1)
   }
 
