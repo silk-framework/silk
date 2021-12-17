@@ -1,6 +1,6 @@
 import React from "react";
 import { DIErrorFormat, diErrorMessage, DIErrorTypes } from "@ducks/error/typings";
-import { Notification } from "@gui-elements/index";
+import { Notification } from "gui-elements";
 import { useDispatch, useSelector } from "react-redux";
 import errorSelector from "@ducks/error/selectors";
 import { registerNewError, clearOneOrMoreErrors } from "@ducks/error/errorSlice";

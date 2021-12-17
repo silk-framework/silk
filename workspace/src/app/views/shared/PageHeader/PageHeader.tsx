@@ -12,8 +12,8 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     TitlePage,
-} from "@gui-elements/index";
-import { IBreadcrumbItemProps } from "@gui-elements/src/components/Breadcrumb/BreadcrumbItem";
+} from "gui-elements";
+import { IBreadcrumbItemProps } from "gui-elements/src/components/Breadcrumb/BreadcrumbItem";
 import { routerOp } from "@ducks/router";
 import { APPLICATION_CORPORATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { fetchBreadcrumbs } from "./breadcrumbsHelper";

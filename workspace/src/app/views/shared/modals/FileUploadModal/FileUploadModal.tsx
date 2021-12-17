@@ -1,5 +1,5 @@
 import React, { useDebugValue, useState } from "react";
-import { Button, SimpleDialog } from "@gui-elements/index";
+import { Button, SimpleDialog } from "gui-elements";
 import FileUploader from "../../FileUploader";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";

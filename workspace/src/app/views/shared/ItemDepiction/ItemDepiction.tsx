@@ -1,5 +1,5 @@
 import React from "react";
-import { Icon } from "@gui-elements/index";
+import { Icon } from "gui-elements";
 
 const sizes = ["large", "small"] as const;
 type Sizes = typeof sizes[number];

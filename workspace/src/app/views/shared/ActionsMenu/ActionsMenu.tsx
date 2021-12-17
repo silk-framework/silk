@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, ContextMenu, IconButton, MenuItem, OverflowText } from "@gui-elements/index";
+import { Button, ContextMenu, IconButton, MenuItem, OverflowText } from "gui-elements";
 
 interface IActionBasicProps {
     text: string;

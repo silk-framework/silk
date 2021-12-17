@@ -16,7 +16,7 @@ import {
     IconButton,
     Modal,
     Spacing,
-} from "@gui-elements/index";
+} from "gui-elements";
 import { IItemLink } from "@ducks/shared/typings";
 import { requestItemLinks } from "@ducks/shared/requests";
 import { commonSel } from "@ducks/common";

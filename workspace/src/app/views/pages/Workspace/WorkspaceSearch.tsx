@@ -14,7 +14,7 @@ import {
     WorkspaceContent,
     WorkspaceMain,
     WorkspaceSide,
-} from "@gui-elements/index";
+} from "gui-elements";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import SearchList from "../../shared/SearchList";
 import SearchBar from "../../shared/SearchBar";

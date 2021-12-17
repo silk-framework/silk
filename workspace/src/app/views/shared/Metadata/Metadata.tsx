@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Prompt, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Markdown } from "@gui-elements/cmem";
+import { Markdown } from "gui-elements/cmem";
 import {
     Button,
     Card,
@@ -21,14 +21,14 @@ import {
     PropertyValuePair,
     TextArea,
     TextField,
-} from "@gui-elements/index";
-import { Intent } from "@gui-elements/blueprint/constants";
+} from "gui-elements";
+import { Intent } from "gui-elements/blueprint/constants";
 import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
 import { routerOp } from "@ducks/router";
 import { sharedOp } from "@ducks/shared";
 import { Loading } from "../Loading/Loading";
-import { StringPreviewContentBlobToggler } from "@gui-elements/src/cmem/ContentBlobToggler/StringPreviewContentBlobToggler";
+import { StringPreviewContentBlobToggler } from "gui-elements/src/cmem/ContentBlobToggler/StringPreviewContentBlobToggler";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import * as H from "history";
 

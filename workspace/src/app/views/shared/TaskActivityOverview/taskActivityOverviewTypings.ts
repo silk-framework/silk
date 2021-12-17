@@ -1,5 +1,5 @@
-import { IActivityStatus } from "@gui-elements/src/cmem/ActivityControl/ActivityControlTypes";
-import { ActivityAction } from "@gui-elements/src/cmem/ActivityControl/DataIntegrationActivityControl";
+import { IActivityStatus } from "gui-elements/src/cmem/ActivityControl/ActivityControlTypes";
+import { ActivityAction } from "gui-elements/src/cmem/ActivityControl/DataIntegrationActivityControl";
 
 /** Response object of the response array of an activity list request. */
 export interface IActivityListEntry {

@@ -10,7 +10,7 @@ import {
     Icon,
     Notification,
     TitleMainsection,
-} from "@gui-elements/index";
+} from "gui-elements";
 
 /**
  * Catch the children components errors

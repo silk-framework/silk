@@ -1,7 +1,7 @@
 import React from "react";
-import { FieldItem, TextField } from "@gui-elements/index";
+import { FieldItem, TextField } from "gui-elements";
 import { errorMessage } from "./ParameterWidget";
-import { Intent } from "@gui-elements/blueprint/constants";
+import { Intent } from "gui-elements/blueprint/constants";
 import { debounce } from "../../../../../utils/debounce";
 import { requestProjectIdValidation, requestTaskIdValidation } from "@ducks/common/requests";
 import useCopyButton from "../../../../../hooks/useCopyButton";

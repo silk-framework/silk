@@ -1,6 +1,6 @@
 import { fetchActivityErrorReport } from "./taskActivityOverviewRequests";
 import { DIErrorTypes } from "@ducks/error/typings";
-import { IActivityExecutionReport } from "@gui-elements/src/cmem/ActivityControl/DataIntegrationActivityControl";
+import { IActivityExecutionReport } from "gui-elements/src/cmem/ActivityControl/DataIntegrationActivityControl";
 
 /** Returns the error report function that should be given to the activity control as parameter. */
 export const activityErrorReportFactory = (

@@ -17,7 +17,7 @@ import {
     OverviewItemDepiction,
     Link,
     Tooltip,
-} from "@gui-elements/index";
+} from "gui-elements";
 import { Loading } from "../../Loading/Loading";
 import { ICloneOptions } from "../CloneModal";
 import { ErrorResponse, FetchError } from "services/fetch/responseInterceptor";

@@ -11,9 +11,9 @@ import {
     OverviewItemLine,
     SimpleDialog,
     Spacing,
-} from "@gui-elements/index";
-import { extractSearchWords } from "@gui-elements/src/components/Typography/Highlighter";
-import { CLASSPREFIX as eccguiprefix } from "@gui-elements/src/configuration/constants";
+} from "gui-elements";
+import { extractSearchWords } from "gui-elements/src/components/Typography/Highlighter";
+import { CLASSPREFIX as eccguiprefix } from "gui-elements/src/configuration/constants";
 import useHotKey from "../HotKeyHandler/HotKeyHandler";
 import { useTranslation } from "react-i18next";
 import { recentlyViewedItems } from "@ducks/workspace/requests";
@@ -26,10 +26,10 @@ import { routerOp } from "@ducks/router";
 import { useLocation } from "react-router";
 import { commonSel } from "@ducks/common";
 import { absolutePageUrl } from "@ducks/router/operations";
-import Tag from "@gui-elements/src/components/Tag/Tag";
+import Tag from "gui-elements/src/components/Tag/Tag";
 import { ItemDepiction } from "../ItemDepiction/ItemDepiction";
-import { createNewItemRendererFactory } from "@gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
-import { IRenderModifiers } from "@gui-elements/src/components/AutocompleteField/AutoCompleteField";
+import { createNewItemRendererFactory } from "gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
+import { IRenderModifiers } from "gui-elements/src/components/AutocompleteField/AutoCompleteField";
 import { uppercaseFirstChar } from "../../../utils/transformers";
 
 /** Shows the recently viewed items a user has visited. Also allows to trigger a workspace search. */

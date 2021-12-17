@@ -1,4 +1,4 @@
-import { Tooltip } from "@gui-elements/index";
+import { Tooltip } from "gui-elements";
 import React from "react";
 
 /** Wraps an element inside a tooltip when the wrap predicate is true. */

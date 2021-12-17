@@ -9,9 +9,9 @@ import {
     OverviewItemLine,
     Spacing,
     //Spacing,
-} from "@gui-elements/index";
+} from "gui-elements";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
-import Tag from "@gui-elements/src/components/Tag/Tag";
+import Tag from "gui-elements/src/components/Tag/Tag";
 import { ResourceLink } from "../ResourceLink/ResourceLink";
 import React from "react";
 import { IRelatedItem } from "@ducks/shared/typings";

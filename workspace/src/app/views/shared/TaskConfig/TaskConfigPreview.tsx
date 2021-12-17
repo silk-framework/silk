@@ -6,7 +6,7 @@ import {
     PropertyName,
     PropertyValue,
     Notification,
-} from "@gui-elements/index";
+} from "gui-elements";
 import React from "react";
 import { IArtefactItemProperty, IDetailedArtefactItem } from "@ducks/common/typings";
 import { useTranslation } from "react-i18next";

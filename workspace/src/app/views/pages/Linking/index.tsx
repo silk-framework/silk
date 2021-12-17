@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useParams } from "react-router";
-import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@gui-elements/index";
+import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "gui-elements";
 import { DATA_TYPES } from "../../../constants";
 import Metadata from "../../shared/Metadata";
 import { RelatedItems } from "../../shared/RelatedItems/RelatedItems";

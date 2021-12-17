@@ -1,7 +1,7 @@
-import { Button, FieldItem, Highlighter, MenuItem, OverflowText } from "@gui-elements/index";
+import { Button, FieldItem, Highlighter, MenuItem, OverflowText } from "gui-elements";
 import React, { useEffect, useState } from "react";
 import { MultiSelect } from "@blueprintjs/select";
-import { extractSearchWords, matchesAllWords } from "@gui-elements/src/components/Typography/Highlighter";
+import { extractSearchWords, matchesAllWords } from "gui-elements/src/components/Typography/Highlighter";
 import { IVocabularyInfo } from "./typings";
 
 interface IProps {

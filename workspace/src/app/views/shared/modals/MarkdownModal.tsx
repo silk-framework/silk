@@ -1,6 +1,6 @@
 import React from "react";
-import { Markdown } from "@gui-elements/cmem";
-import { Button, SimpleDialog, HtmlContentBlock } from "@gui-elements/index";
+import { Markdown } from "gui-elements/cmem";
+import { Button, SimpleDialog, HtmlContentBlock } from "gui-elements";
 import { useTranslation } from "react-i18next";
 
 interface IProps {

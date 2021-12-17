@@ -12,7 +12,7 @@ import {
     SimpleDialog,
     Spacing,
     TitleSubsection,
-} from "@gui-elements/index";
+} from "gui-elements";
 import { useTranslation } from "react-i18next";
 import Uppy, { UppyFile } from "@uppy/core";
 import { workspaceApi } from "../../../utils/getApiEndpoint";
@@ -28,7 +28,7 @@ import { Loading } from "../Loading/Loading";
 import { useDispatch } from "react-redux";
 import { routerOp } from "@ducks/router";
 import { absoluteProjectPath } from "../../../utils/routerUtils";
-import { Markdown, StringPreviewContentBlobToggler } from "@gui-elements/cmem";
+import { Markdown, StringPreviewContentBlobToggler } from "gui-elements/cmem";
 import { UploadNewFile } from "../FileUploader/cases/UploadNewFile/UploadNewFile";
 
 interface IProps {

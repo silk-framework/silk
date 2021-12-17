@@ -4,8 +4,8 @@ import "@uppy/core/dist/style.css";
 import "@uppy/drag-drop/dist/style.css";
 import "@uppy/progress-bar/dist/style.css";
 
-import { Button, Divider, FieldItem, Icon, TextField } from "@gui-elements/index";
-import { IAutoCompleteFieldProps } from "@gui-elements/src/components/AutocompleteField/AutoCompleteField";
+import { Button, Divider, FieldItem, Icon, TextField } from "gui-elements";
+import { IAutoCompleteFieldProps } from "gui-elements/src/components/AutocompleteField/AutoCompleteField";
 import { UploadNewFile } from "./cases/UploadNewFile/UploadNewFile";
 import { FileSelectionOptions, FileMenuItems } from "./FileSelectionOptions";
 import { SelectFileFromExisting } from "./cases/SelectFileFromExisting";

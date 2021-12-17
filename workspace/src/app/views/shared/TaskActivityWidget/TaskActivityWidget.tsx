@@ -6,7 +6,7 @@ import {
     DataIntegrationActivityControl,
     IActivityControlLayoutProps,
     Markdown,
-} from "@gui-elements/cmem";
+} from "gui-elements/cmem";
 import { DIErrorTypes } from "@ducks/error/typings";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { activityErrorReportFactory, activityQueryString } from "../TaskActivityOverview/taskActivityUtils";

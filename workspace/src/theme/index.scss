@@ -2,8 +2,8 @@
 // no explicit style definitions outside the gui elements
 
 // basic elements
-@import "@gui-elements/";
+@import "~gui-elements";
 // extensions for cmem context
-@import "@gui-elements/src/cmem/";
+@import "~gui-elements/src/cmem";
 // other extensions
-@import "@gui-elements/src/extensions/";
+@import "~gui-elements/src/extensions";

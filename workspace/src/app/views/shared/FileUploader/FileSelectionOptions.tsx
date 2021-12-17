@@ -1,4 +1,4 @@
-import { RadioButton, FieldItemRow, FieldItem } from "@gui-elements/index";
+import { RadioButton, FieldItemRow, FieldItem } from "gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
 

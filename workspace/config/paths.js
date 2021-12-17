@@ -86,6 +86,7 @@ module.exports = {
     appGuiElementsFolder: resolveApp("../silk-react-components/src/libs/gui-elements"),
     ducksFolder: resolveApp("src/app/store/ducks"),
     diTargetPublicFolder: resolveApp("../target/web/public/main"),
+    guiElements: resolveApp("../libs/gui-elements"),
 };
 
 module.exports.moduleFileExtensions = moduleFileExtensions;

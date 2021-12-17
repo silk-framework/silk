@@ -4,7 +4,7 @@ import { ConnectedRouter } from "connected-react-router";
 import { useDispatch } from "react-redux";
 
 import { commonOp } from "@ducks/common";
-import { ApplicationContainer, ApplicationContent } from "@gui-elements/index";
+import { ApplicationContainer, ApplicationContent } from "gui-elements";
 
 import Header from "./views/layout/Header";
 import RouterOutlet from "./RouterOutlet";

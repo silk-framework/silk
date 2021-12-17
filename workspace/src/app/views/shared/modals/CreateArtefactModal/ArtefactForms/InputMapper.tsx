@@ -1,6 +1,6 @@
 import React from "react";
 import { INPUT_TYPES } from "../../../../../constants";
-import { Switch, TextArea, TextField } from "@gui-elements/index";
+import { Switch, TextArea, TextField } from "gui-elements";
 import { CodeEditor } from "../../../QueryEditor/CodeEditor";
 import { ITaskParameter } from "@ducks/common/typings";
 import { Intent } from "@blueprintjs/core";

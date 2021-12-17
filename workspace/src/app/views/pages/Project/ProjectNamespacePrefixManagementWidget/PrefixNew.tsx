@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { AlertDialog, Button, FieldItem, FieldItemRow, FieldSet, Icon, TextField } from "@gui-elements/index";
+import { AlertDialog, Button, FieldItem, FieldItemRow, FieldSet, Icon, TextField } from "gui-elements";
 import { useTranslation } from "react-i18next";
 import { IPrefixDefinition } from "@ducks/workspace/typings";
 

@@ -1,4 +1,4 @@
-import { Button, TextField, SimpleDialog, Spacing, TitleSubsection } from "@gui-elements/index";
+import { Button, TextField, SimpleDialog, Spacing, TitleSubsection } from "gui-elements";
 import useCopyButton from "../../../hooks/useCopyButton";
 import React from "react";
 import { useTranslation } from "react-i18next";

@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "@gui-elements/index";
+import { Link } from "gui-elements";
 
 export function ResourceLink({ children, handlerResourcePageLoader, handlerResourceQuickInformationLoader, url }: any) {
     const stopEvent = (event) => {

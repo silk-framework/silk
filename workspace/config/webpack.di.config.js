@@ -296,6 +296,7 @@ module.exports = function (webpackEnv, isWatch) {
                 // It's important to do this before Babel processes the JS.
                 {
                     test: /\.(js|mjs|jsx|ts|tsx)$/,
+                    include: [paths.appSrc, paths.guiElements],
                     enforce: "pre",
                     use: [
                         {
@@ -308,7 +309,6 @@ module.exports = function (webpackEnv, isWatch) {
                             loader: require.resolve("eslint-loader"),
                         },
                     ],
-                    include: paths.appSrc,
                 },
                 {
                     // "oneOf" will traverse all following loaders until one will
@@ -330,11 +330,13 @@ module.exports = function (webpackEnv, isWatch) {
                         // The preset includes JSX, Flow, TypeScript, and some ESnext features.
                         {
                             test: /\.(js|mjs|jsx|ts|tsx)$/,
-                            include: paths.appSrc,
+                            include: [paths.appSrc, paths.guiElements],
                             loader: require.resolve("babel-loader"),
                             options: {
                                 customize: require.resolve("babel-preset-react-app/webpack-overrides"),
-
+                                presets: [
+                                    ["react-app", {"flow": false, "typescript": true}],
+                                ],
                                 plugins: [
                                     [
                                         require.resolve("babel-plugin-named-asset-import"),

@@ -1,6 +1,6 @@
 import React, { memo } from "react";
-import { Spinner } from "@gui-elements/index";
-import { SpinnerPosition, SpinnerSize, SpinnerStroke } from "@gui-elements/src/components/Spinner/Spinner";
+import { Spinner } from "gui-elements";
+import { SpinnerPosition, SpinnerSize, SpinnerStroke } from "gui-elements/src/components/Spinner/Spinner";
 
 interface IProps {
     className?: string;

@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { IArtefactItemProperty, IDetailedArtefactItem, IPropertyAutocomplete } from "@ducks/common/typings";
-import { Intent } from "@gui-elements/blueprint/constants";
+import { Intent } from "gui-elements/blueprint/constants";
 import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
-import { FieldItem, Spacing, TextArea, TextField } from "@gui-elements/index";
+import { FieldItem, Spacing, TextArea, TextField } from "gui-elements";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
 import { errorMessage, ParameterWidget } from "./ParameterWidget";
 import { IDatasetConfigPreview } from "@ducks/shared/typings";

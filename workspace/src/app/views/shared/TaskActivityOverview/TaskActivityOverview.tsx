@@ -16,7 +16,7 @@ import {
     Spacing,
     Spinner,
     WhiteSpaceContainer,
-} from "@gui-elements/index";
+} from "gui-elements";
 import {
     ActivityAction,
     IActivityControlLayoutProps,
@@ -25,7 +25,7 @@ import {
     Markdown,
     ElapsedDateTimeDisplay,
     TimeUnits,
-} from "@gui-elements/cmem";
+} from "gui-elements/cmem";
 import {
     IActivityCachesOverallStatus,
     IActivityControlFunctions,

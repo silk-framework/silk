@@ -11,7 +11,7 @@ import {
     TitleSubsection,
     Accordion,
     AccordionItem,
-} from "@gui-elements/index";
+} from "gui-elements";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { useSelector } from "react-redux";
 import errorSelector from "@ducks/error/selectors";

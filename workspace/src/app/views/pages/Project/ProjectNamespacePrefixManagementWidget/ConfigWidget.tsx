@@ -17,7 +17,7 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     OverviewItemList,
-} from "@gui-elements/index";
+} from "gui-elements";
 import { useTranslation } from "react-i18next";
 import { commonSel } from "@ducks/common";
 

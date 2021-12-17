@@ -1,6 +1,6 @@
 import React from "react";
 import { Loading } from "../Loading/Loading";
-import { OverviewItemList, Notification } from "@gui-elements/index";
+import { OverviewItemList, Notification } from "gui-elements";
 import { useTranslation } from "react-i18next";
 
 interface IProps {

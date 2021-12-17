@@ -1,8 +1,8 @@
 import React, { useDebugValue, useEffect, useState } from "react";
 import { matchPath, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
-import { IBreadcrumbItemProps } from "@gui-elements/src/components/Breadcrumb/BreadcrumbItem";
-import BreadcrumbList from "@gui-elements/src/components/Breadcrumb/BreadcrumbList";
+import { IBreadcrumbItemProps } from "gui-elements/src/components/Breadcrumb/BreadcrumbItem";
+import BreadcrumbList from "gui-elements/src/components/Breadcrumb/BreadcrumbList";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import appRoutes from "../../../appRoutes";
 import { getFullRoutePath } from "../../../utils/routerUtils";

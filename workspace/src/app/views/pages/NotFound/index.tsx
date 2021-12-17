@@ -8,7 +8,7 @@ import {
     HtmlContentBlock,
     Button,
     Icon,
-} from "@gui-elements/index";
+} from "gui-elements";
 import { PUBLIC_URL, SERVE_PATH } from "../../../constants/path";
 import { useTranslation } from "react-i18next";
 

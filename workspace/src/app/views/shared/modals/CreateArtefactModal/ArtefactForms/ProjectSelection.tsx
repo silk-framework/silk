@@ -1,5 +1,5 @@
 import React from "react";
-import { FieldItem, AutoCompleteField, Notification, Button, AlertDialog } from "@gui-elements/index";
+import { FieldItem, AutoCompleteField, Notification, Button, AlertDialog } from "gui-elements";
 import { useTranslation } from "react-i18next";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { ProjectIdAndLabel } from "../CreateArtefactModal";

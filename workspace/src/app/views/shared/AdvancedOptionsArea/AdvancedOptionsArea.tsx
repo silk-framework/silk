@@ -1,5 +1,5 @@
 import React from "react";
-import { Accordion, AccordionItem, TitleSubsection } from "@gui-elements/index";
+import { Accordion, AccordionItem, TitleSubsection } from "gui-elements";
 import { useTranslation } from "react-i18next";
 
 export function AdvancedOptionsArea({ children, open = false, ...otherProps }: any) {

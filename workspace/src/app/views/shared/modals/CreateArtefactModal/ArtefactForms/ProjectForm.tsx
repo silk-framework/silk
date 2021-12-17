@@ -1,7 +1,7 @@
 import React from "react";
-import { FieldItem, TextField, TextArea } from "@gui-elements/index";
+import { FieldItem, TextField, TextArea } from "gui-elements";
 import { errorMessage } from "./ParameterWidget";
-import { Intent } from "@gui-elements/blueprint/constants";
+import { Intent } from "gui-elements/blueprint/constants";
 import { useTranslation } from "react-i18next";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
 import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentifierInput";

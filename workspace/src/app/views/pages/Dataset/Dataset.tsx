@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router";
 import { useTranslation } from "react-i18next";
-import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "@gui-elements/index";
+import { Section, Spacing, WorkspaceContent, WorkspaceMain, WorkspaceSide } from "gui-elements";
 import { commonSel } from "@ducks/common";
 import { requestTaskData } from "@ducks/shared/requests";
 import { IProjectTask } from "@ducks/shared/typings";

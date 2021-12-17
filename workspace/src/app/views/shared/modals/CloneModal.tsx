@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, FieldItem, Notification, SimpleDialog, Spacing, TextField } from "@gui-elements/index";
+import { Button, FieldItem, Notification, SimpleDialog, Spacing, TextField } from "gui-elements";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 import { requestCloneProject, requestCloneTask } from "@ducks/workspace/requests";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";

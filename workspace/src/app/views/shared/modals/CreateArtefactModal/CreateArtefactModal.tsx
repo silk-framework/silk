@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
-import { Markdown } from "@gui-elements/cmem";
+import { Markdown } from "gui-elements/cmem";
 import {
     Button,
     Card,
@@ -23,8 +23,8 @@ import {
     OverviewItemList,
     SimpleDialog,
     Spacing,
-} from "@gui-elements/index";
-import { createMultiWordRegex, extractSearchWords } from "@gui-elements/src/components/Typography/Highlighter";
+} from "gui-elements";
+import { createMultiWordRegex, extractSearchWords } from "gui-elements/src/components/Typography/Highlighter";
 import { commonOp, commonSel } from "@ducks/common";
 import { IArtefactItem, IArtefactModal, IDetailedArtefactItem } from "@ducks/common/typings";
 import Loading from "../../Loading";

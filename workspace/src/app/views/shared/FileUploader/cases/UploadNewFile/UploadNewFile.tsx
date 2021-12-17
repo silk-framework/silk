@@ -1,7 +1,7 @@
 import { DragDrop } from "@uppy/react";
 import React, { useEffect, useState } from "react";
 import Uppy, { UppyFile } from "@uppy/core";
-import { Button, Notification, Spacing } from "@gui-elements/index";
+import { Button, Notification, Spacing } from "gui-elements";
 import { useTranslation } from "react-i18next";
 import { NewFileItem } from "./NewFileItem";
 import { ReplacementFileItem } from "./ReplacementFileItem";

@@ -24,7 +24,7 @@ const item = {
 };
 
 const getWrapper = (currentUrl: string = `${SERVE_PATH}`) => {
-    const history = createMemoryHistory();
+    const history = createMemoryHistory<{}>();
     history.push(currentUrl);
 
     const provider = testWrapper(
@@ -33,7 +33,10 @@ const getWrapper = (currentUrl: string = `${SERVE_PATH}`) => {
             onOpenDeleteModal={onOpenDeleteModalFn}
             onOpenDuplicateModal={onOpenDuplicateModalFn}
             onRowClick={onRowClickFn}
-        />,
+            onOpenCopyToModal={() => {
+            }}
+            toggleShowIdentifierModal={() => {
+            }}/>,
         history,
         {}
     );

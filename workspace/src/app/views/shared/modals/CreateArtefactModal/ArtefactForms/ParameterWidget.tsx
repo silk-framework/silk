@@ -1,5 +1,5 @@
 import React from "react";
-import { Markdown, StringPreviewContentBlobToggler } from "@gui-elements/cmem";
+import { Markdown, StringPreviewContentBlobToggler } from "gui-elements/cmem";
 import { sharedOp } from "@ducks/shared";
 import { IArtefactItemProperty, IPropertyAutocomplete, ITaskParameter } from "@ducks/common/typings";
 import {
@@ -9,15 +9,15 @@ import {
     Label,
     TitleSubsection,
     WhiteSpaceContainer,
-} from "@gui-elements/index";
-import { Intent } from "@gui-elements/blueprint/constants";
+} from "gui-elements";
+import { Intent } from "gui-elements/blueprint/constants";
 import { InputMapper } from "./InputMapper";
 import { AppToaster } from "../../../../../services/toaster";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
 import { INPUT_TYPES } from "../../../../../constants";
 import { useTranslation } from "react-i18next";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
-import { createNewItemRendererFactory } from "@gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
+import { createNewItemRendererFactory } from "gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
 
 const MAXLENGTH_TOOLTIP = 32;
 const MAXLENGTH_SIMPLEHELP = 192;

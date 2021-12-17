@@ -1,4 +1,4 @@
-import { FieldItem, TextField } from "@gui-elements/index";
+import { FieldItem, TextField } from "gui-elements";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
