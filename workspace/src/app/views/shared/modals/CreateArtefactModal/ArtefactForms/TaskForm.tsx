@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentifierInput";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import Loading from "../../../Loading";
-import { SUPPORTED_PLUGINS, viewRegistry } from "../../../../registry/ViewRegistry";
+import { SUPPORTED_PLUGINS, viewRegistry } from "../../../../plugins/PluginRegistry";
 
 export interface IProps {
     form: any;

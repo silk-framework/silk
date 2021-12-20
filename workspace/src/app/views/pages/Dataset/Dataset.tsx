@@ -18,7 +18,7 @@ import NotFound from "../NotFound";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { ProjectTaskParams } from "views/shared/typings";
 import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
-import { SUPPORTED_PLUGINS, viewRegistry } from "../../registry/ViewRegistry";
+import { SUPPORTED_PLUGINS, viewRegistry } from "../../plugins/PluginRegistry";
 
 // The dataset plugins that should show the data preview automatically without user interaction.
 const automaticallyPreviewedDatasets = ["json", "xml", "csv"];

@@ -28,7 +28,7 @@ export interface IPluginComponent {
     Component: (params: { [key: string]: any }) => JSX.Element;
 }
 
-class ViewRegistry {
+class PluginRegistry {
     // Stores all views for a specific plugin
     private pluginViewRegistry: Map<string, IProjectTaskView[]>;
     private pluginComponents: Map<string, IPluginComponent>;
@@ -73,7 +73,7 @@ class ViewRegistry {
     }
 }
 
-export const viewRegistry = new ViewRegistry();
+export const viewRegistry = new PluginRegistry();
 
 export const SUPPORTED_PLUGINS = {
     DATA_PREVIEW: "di:dataPreview",

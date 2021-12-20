@@ -23,7 +23,7 @@ import { commonSel } from "@ducks/common";
 import Loading from "../Loading";
 import { SERVE_PATH } from "../../../constants/path";
 import "./projectTaskTabView.scss";
-import { IProjectTaskView, IViewActions, viewRegistry } from "../../registry/ViewRegistry";
+import { IProjectTaskView, IViewActions, viewRegistry } from "../../plugins/PluginRegistry";
 import * as H from "history";
 
 // Get the bookmark value

@@ -35,7 +35,7 @@ import { APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME 
 import { CONTEXT_PATH, SERVE_PATH } from "../../../constants/path";
 import { APP_VIEWHEADER_ID } from "../../shared/PageHeader/PageHeader";
 import { fetchStoredLang } from "../../../../language";
-import { SUPPORTED_PLUGINS, viewRegistry } from "../../registry/ViewRegistry";
+import { SUPPORTED_PLUGINS, viewRegistry } from "../../plugins/PluginRegistry";
 
 interface IProps {
     onClickApplicationSidebarExpand: any;
