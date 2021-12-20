@@ -67,8 +67,7 @@ module.exports = function (webpackEnv, isWatch) {
     // common function to get style loaders
     const getStyleLoaders = (cssOptions, preProcessor) => {
         const loaders = [
-            isEnvDevelopment && require.resolve("style-loader"),
-            isEnvProduction && {
+            {
                 loader: MiniCssExtractPlugin.loader,
                 options: Object.assign({}, shouldUseRelativeAssetPaths ? { publicPath: "../../" } : undefined),
             },
@@ -265,7 +264,7 @@ module.exports = function (webpackEnv, isWatch) {
                 // Support React Native Web
                 // https://www.smashingmagazine.com/2016/08/a-glimpse-into-the-future-with-react-native-for-web/
                 "react-native": "react-native-web",
-                "@gui-elements": paths.appGuiElementsFolder,
+                "@gui-elements": paths.guiElements,
                 "@ducks": paths.ducksFolder,
             },
             plugins: [
@@ -415,6 +414,7 @@ module.exports = function (webpackEnv, isWatch) {
                         // extensions .module.scss or .module.sass
                         {
                             test: sassRegex,
+                            include: [paths.appSrc, paths.guiElements],
                             exclude: sassModuleRegex,
                             use: getStyleLoaders(
                                 {
@@ -526,7 +526,7 @@ module.exports = function (webpackEnv, isWatch) {
             // See https://github.com/facebook/create-react-app/issues/186
             isEnvDevelopment && new WatchMissingNodeModulesPlugin(paths.appNodeModules),
 
-            isEnvProduction &&
+
                 new MiniCssExtractPlugin({
                     // Options similar to the same options in webpackOptions.output
                     // both options are optional

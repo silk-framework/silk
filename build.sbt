@@ -1,4 +1,5 @@
-import sbt._
+import sbt.{File, taskKey, _}
+
 import java.io._
 
 //////////////////////////////////////////////////////////////////////////////
@@ -301,6 +302,51 @@ lazy val reactComponents = (project in file("silk-react-components"))
   )
 
 //////////////////////////////////////////////////////////////////////////////
+// Silk React Workbench
+//////////////////////////////////////////////////////////////////////////////
+
+val buildDiReact = taskKey[Unit]("Builds Workbench React module")
+
+lazy val reactUI = (project in file("workspace"))
+  .settings(commonSettings: _*)
+  .settings(
+    name := "Workspace React UI",
+    //////////////////////////////////////////////////////////////////////////////
+    // React UI pipeline
+    //////////////////////////////////////////////////////////////////////////////
+    /** Check that all necessary build tool for the JS pipeline are available */
+    checkJsBuildTools := Def.taskDyn {
+      if(!buildReactExternally) {
+        Def.task { ReactBuildHelper.checkReactBuildTool() }
+      } else {
+        Def.task { }
+      }
+    }.value,
+    /** Build DataIntegration React */
+    buildDiReact := {
+      checkJsBuildTools.value
+      if(!buildReactExternally) {
+        val reactWatchConfig = WatchConfig(new File(baseDirectory.value, "src"), fileRegex = """\.(tsx|ts|scss|json)$""")
+        def distFile(name: String): File = new File(baseDirectory.value, "../public/" + name)
+        if (Watcher.staleTargetFiles(reactWatchConfig, Seq(distFile("index.html")))) {
+          BuildReactUI.buildReactComponents(baseDirectory.value, "Workbench")
+        }
+      }
+    },
+    (Compile / compile) := ((Compile / compile) dependsOn buildDiReact).value,
+    watchSources ++= { // Watch all files under the workspace/src directory for changes
+      if(buildReactExternally) {
+        Seq.empty // Do not watch sources if the workspace is built externally
+      } else {
+        val paths = for(path <- Path.allSubpaths(baseDirectory.value / "src")) yield {
+          path._1
+        }
+        paths.toSeq
+      }
+    }
+  )
+
+//////////////////////////////////////////////////////////////////////////////
 // Workbench
 //////////////////////////////////////////////////////////////////////////////
 
@@ -318,8 +364,8 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
   .enablePlugins(PlayScala)
-  .dependsOn(workbenchCore % "compile->compile;test->test", pluginsRdf, pluginsCsv % "test->compile", pluginsXml % "test->compile")
-  .aggregate(workbenchCore)
+  .dependsOn(workbenchCore % "compile->compile;test->test", pluginsRdf, pluginsCsv % "test->compile", pluginsXml % "test->compile", reactUI)
+  .aggregate(workbenchCore, reactUI)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workbench Workspace",

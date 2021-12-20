@@ -22,6 +22,10 @@ function ensureSlash(inputPath, needsSlash) {
     }
 }
 
+function buildConfig() {
+    // Search for build config file ""
+}
+
 const getPublicUrl = (appPackageJson) => envPublicUrl || require(appPackageJson).homepage;
 
 // We use `PUBLIC_URL` environment variable or "homepage" field to infer
@@ -66,10 +70,10 @@ module.exports = {
     dotenv: resolveApp(".env"),
     appPath: resolveApp("."),
     appBuild: resolveApp("build"),
-    watchDIBuild: resolveApp("../target/web/public/main"),
-    watchDIAssets: resolveApp("../target/web/public/main/lib/silk-workbench-core/new-workspace"),
-    appDIBuild: resolveApp("../public"),
-    appDIAssets: resolveApp("../silk/silk-workbench/silk-workbench-core/public/new-workspace"),
+    watchDIBuild: resolveApp("../../target/web/public/main"),
+    watchDIAssets: resolveApp("../../target/web/public/main/lib/silk-workbench-core/new-workspace"),
+    appDIBuild: resolveApp("../../public"),
+    appDIAssets: resolveApp("../silk-workbench/silk-workbench-core/public/new-workspace"),
     appDIAssetsUrl: "/core/assets/new-workspace/",
     appPublic: resolveApp("public"),
     appHtml: resolveApp("public/index.html"),
@@ -78,14 +82,11 @@ module.exports = {
     appSrc: resolveApp("src"),
     appTsConfig: resolveApp("tsconfig.json"),
     yarnLockFile: resolveApp("yarn.lock"),
-    testsSetup: resolveModule(resolveApp, "src/setupTests"),
     proxySetup: resolveApp("src/setupProxy.js"),
     appNodeModules: resolveApp("node_modules"),
     publicUrl: getPublicUrl(resolveApp("package.json")),
     servedPath: getServedPath(resolveApp("package.json")),
-    appGuiElementsFolder: resolveApp("../silk-react-components/src/libs/gui-elements"),
     ducksFolder: resolveApp("src/app/store/ducks"),
-    diTargetPublicFolder: resolveApp("../target/web/public/main"),
     guiElements: resolveApp("../libs/gui-elements"),
 };
 
