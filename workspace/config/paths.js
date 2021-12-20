@@ -23,7 +23,29 @@ function ensureSlash(inputPath, needsSlash) {
 }
 
 function buildConfig() {
-    // Search for build config file ""
+    // Search for build config file "silk-ui-build.properties"
+    const configFile = "silk-ui-build.properties"
+    let configProperties = {}
+    let dir = ""
+    for(let count = 0; count < 3; count += 1) {
+        try {
+            const configPath = dir + configFile
+            dir = dir + "../"
+            const fileContent = fs.readFileSync(configPath).toString("utf-8")
+            console.log("Found Silk UI config file at " + configPath)
+            const lines = fileContent.split("\n")
+            lines
+                .map(p => p.trim().split("="))
+                .filter(p => p.length > 1 && !p[0].startsWith("#"))
+                .forEach(([p, v]) => {
+                    configProperties[p] = v
+                })
+            dir = dir + "../"
+        } catch(ex) {
+            // ignore errors
+        }
+    }
+    return configProperties
 }
 
 const getPublicUrl = (appPackageJson) => envPublicUrl || require(appPackageJson).homepage;
@@ -65,14 +87,18 @@ const resolveModule = (resolveFn, filePath) => {
     return resolveFn(`${filePath}.js`);
 };
 
+const silkConfig = buildConfig()
+
+const configValue = (key, defaultValue) => silkConfig[key] ? silkConfig[key] : defaultValue
+
 // config after eject: we're in ./config/
 module.exports = {
     dotenv: resolveApp(".env"),
     appPath: resolveApp("."),
     appBuild: resolveApp("build"),
-    watchDIBuild: resolveApp("../../target/web/public/main"),
-    watchDIAssets: resolveApp("../../target/web/public/main/lib/silk-workbench-core/new-workspace"),
-    appDIBuild: resolveApp("../../public"),
+    watchDIBuild: resolveApp(configValue("watchDIBuild", "../../target/web/public/main")),
+    watchDIAssets: resolveApp(configValue("watchDIAssets", "../../target/web/public/main/lib/silk-workbench-core/new-workspace")),
+    appDIBuild: resolveApp(configValue("appDIBuild", "../../public")),
     appDIAssets: resolveApp("../silk-workbench/silk-workbench-core/public/new-workspace"),
     appDIAssetsUrl: "/core/assets/new-workspace/",
     appPublic: resolveApp("public"),
@@ -88,6 +114,7 @@ module.exports = {
     servedPath: getServedPath(resolveApp("package.json")),
     ducksFolder: resolveApp("src/app/store/ducks"),
     guiElements: resolveApp("../libs/gui-elements"),
+    silkConfig
 };
 
 module.exports.moduleFileExtensions = moduleFileExtensions;

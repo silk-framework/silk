@@ -3,6 +3,7 @@ const fs = require("fs");
 const _ = require("lodash");
 const eol = require("eol");
 const path = require("path");
+const paths = require("../config/paths");
 const VirtualFile = require("vinyl");
 const vfs = require("vinyl-fs");
 ("use strict");
@@ -29,8 +30,9 @@ function writeJsonFile(value, targetPath) {
 // Checks env variable ADDITIONAL_LANGUAGE_FILES to contain a directory path to additional language files
 // The directory must contain files in the format '<LANG_CODE>.json', e.g. 'en.json'.
 function fetchAdditionalLanguageFiles() {
-    if (process.env.ADDITIONAL_LANGUAGE_FILES) {
-        const additional = process.env.ADDITIONAL_LANGUAGE_FILES.replace(/\/$/, "");
+    const additionalFiles = paths.silkConfig.additionalLanguageFolder ? paths.silkConfig.additionalLanguageFolder :process.env.ADDITIONAL_LANGUAGE_FILES
+    if (additionalFiles) {
+        const additional = additionalFiles.replace(/\/$/, "");
         return fs.readdirSync(additional).map((file) => `${additional}/${file}`);
     } else {
         return [];
