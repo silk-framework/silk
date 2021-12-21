@@ -83,4 +83,5 @@ export const SUPPORTED_PLUGINS = {
     DATA_PREVIEW: "di:dataPreview",
     DI_USER_MENU_ITEMS: "di:userMenuItems",
     DI_USER_MENU_FOOTER: "di:userMenuFooter",
+    DI_LANGUAGE_SWITCHER: "di:languageSwitcher"
 };

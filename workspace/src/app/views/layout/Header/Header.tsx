@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useTranslation } from "react-i18next";
-import { useLocation } from "react-router-dom";
+import React, {useState} from "react";
+import {useDispatch, useSelector} from "react-redux";
+import {useTranslation} from "react-i18next";
+import {useLocation} from "react-router-dom";
 import {
     ApplicationHeader,
     ApplicationSidebarNavigation,
@@ -24,18 +24,17 @@ import {
     ToolbarSection,
     WorkspaceHeader,
 } from "gui-elements";
-import { commonOp, commonSel } from "@ducks/common";
-import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { routerOp } from "@ducks/router";
+import {commonOp, commonSel} from "@ducks/common";
+import {workspaceOp, workspaceSel} from "@ducks/workspace";
+import {routerOp} from "@ducks/router";
 import CreateButton from "../../shared/buttons/CreateButton";
-import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
-import { NotificationsMenu } from "../../shared/ApplicationNotifications/NotificationsMenu";
-import { triggerHotkeyHandler } from "../../shared/HotKeyHandler/HotKeyHandler";
-import { APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
-import { CONTEXT_PATH, SERVE_PATH } from "../../../constants/path";
-import { APP_VIEWHEADER_ID } from "../../shared/PageHeader/PageHeader";
-import { fetchStoredLang } from "../../../../language";
-import { SUPPORTED_PLUGINS, pluginRegistry } from "../../plugins/PluginRegistry";
+import {CreateArtefactModal} from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
+import {NotificationsMenu} from "../../shared/ApplicationNotifications/NotificationsMenu";
+import {triggerHotkeyHandler} from "../../shared/HotKeyHandler/HotKeyHandler";
+import {APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME} from "../../../constants/base";
+import {CONTEXT_PATH, SERVE_PATH} from "../../../constants/path";
+import {APP_VIEWHEADER_ID} from "../../shared/PageHeader/PageHeader";
+import {pluginRegistry, SUPPORTED_PLUGINS} from "../../plugins/PluginRegistry";
 import {UserMenuFooterProps} from "../../plugins/plugin.types";
 
 interface IProps {
@@ -47,7 +46,6 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
     const dispatch = useDispatch();
     const location = useLocation();
     const locationParams = new URLSearchParams(location.search?.substring(1));
-    const [currentLanguage, setCurrentLanguage] = useState(fetchStoredLang());
     const { hotKeys } = useSelector(commonSel.initialSettingsSelector);
     const { dmBaseUrl, dmModuleLinks, version } = useSelector(commonSel.initialSettingsSelector);
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
@@ -55,14 +53,10 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
     const [displayUserMenu, toggleUserMenuDisplay] = useState<boolean>(false);
     const diUserMenuItems = pluginRegistry.pluginComponent(SUPPORTED_PLUGINS.DI_USER_MENU_ITEMS);
     const diUserMenuFooter = pluginRegistry.pluginComponent<UserMenuFooterProps>(SUPPORTED_PLUGINS.DI_USER_MENU_FOOTER);
+    const languageSwitcher = pluginRegistry.pluginComponent(SUPPORTED_PLUGINS.DI_LANGUAGE_SWITCHER)
 
     const handleCreateDialog = () => {
         dispatch(commonOp.setSelectedArtefactDType(appliedFilters.itemType));
-    };
-
-    const handleLanguageChange = (locale: string) => {
-        setCurrentLanguage(locale);
-        dispatch(commonOp.changeLocale(locale));
     };
 
     const handleNavigate = (page: string) => {
@@ -183,20 +177,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                             <Toolbar verticalStack={true} style={{ height: "100%" }}>
                                 <ToolbarSection canGrow={true} style={{ width: "100%" }}>
                                     <Menu>
-                                        <div>
-                                            <Button
-                                                onClick={() => handleLanguageChange("en")}
-                                                disabled={currentLanguage === "en"}
-                                            >
-                                                En
-                                            </Button>
-                                            <Button
-                                                onClick={() => handleLanguageChange("de")}
-                                                disabled={currentLanguage === "de"}
-                                            >
-                                                De
-                                            </Button>
-                                        </div>
+                                        {languageSwitcher && <languageSwitcher.Component />}
                                         <MenuDivider />
                                         {hotKeys.quickSearch && (
                                             <MenuItem
