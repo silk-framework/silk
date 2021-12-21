@@ -36,6 +36,7 @@ import { CONTEXT_PATH, SERVE_PATH } from "../../../constants/path";
 import { APP_VIEWHEADER_ID } from "../../shared/PageHeader/PageHeader";
 import { fetchStoredLang } from "../../../../language";
 import { SUPPORTED_PLUGINS, pluginRegistry } from "../../plugins/PluginRegistry";
+import {UserMenuFooterProps} from "../../plugins/plugin.types";
 
 interface IProps {
     onClickApplicationSidebarExpand: any;
@@ -53,7 +54,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
     const [t] = useTranslation();
     const [displayUserMenu, toggleUserMenuDisplay] = useState<boolean>(false);
     const diUserMenuItems = pluginRegistry.pluginComponent(SUPPORTED_PLUGINS.DI_USER_MENU_ITEMS);
-    const diUserMenuFooter = pluginRegistry.pluginComponent(SUPPORTED_PLUGINS.DI_USER_MENU_FOOTER);
+    const diUserMenuFooter = pluginRegistry.pluginComponent<UserMenuFooterProps>(SUPPORTED_PLUGINS.DI_USER_MENU_FOOTER);
 
     const handleCreateDialog = () => {
         dispatch(commonOp.setSelectedArtefactDType(appliedFilters.itemType));

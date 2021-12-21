@@ -414,7 +414,6 @@ module.exports = function (webpackEnv, isWatch) {
                         // extensions .module.scss or .module.sass
                         {
                             test: sassRegex,
-                            include: [paths.appSrc, paths.guiElements],
                             exclude: sassModuleRegex,
                             use: getStyleLoaders(
                                 {

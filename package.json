@@ -12,6 +12,10 @@
   "scripts": {
     "bootstrap": "lerna bootstrap"
   },
+  "dependencies": {
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1"
+  },
   "devDependencies": {
     "@babel/cli": "^7.10.5",
     "@babel/core": "^7.10.5",

@@ -43,6 +43,7 @@ export interface IDatasetPreview {
     typeUri?: string;
 }
 
+/** Parameters of the data preview component. */
 export interface DataPreviewProps {
     // The title of the widget
     title: string;
@@ -57,4 +58,9 @@ export interface DataPreviewProps {
     autoLoad?: boolean;
     // An optional ID for the preview widget
     id?: string;
+}
+
+/** User menu footer component. */
+export interface UserMenuFooterProps {
+    version?: string
 }

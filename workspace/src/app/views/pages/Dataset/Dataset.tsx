@@ -53,7 +53,7 @@ export function Dataset() {
 
     const showPreviewAutomatically = automaticallyPreviewedDatasets.includes(taskData?.data?.type ?? "");
     const showPreview = !noDataPreviewDatasets.includes(taskData?.data?.type ?? "");
-    const dataPreviewComponent = pluginRegistry.pluginComponent<DataPreviewProps>(SUPPORTED_PLUGINS.DATA_PREVIEW);
+    const DataPreviewComponent = pluginRegistry.pluginComponent<DataPreviewProps>(SUPPORTED_PLUGINS.DATA_PREVIEW);
 
     useEffect(() => {
         if (taskId && projectId) {
@@ -67,8 +67,8 @@ export function Dataset() {
         } else {
             return (
                 showPreview &&
-                dataPreviewComponent && (
-                    <dataPreviewComponent.Component
+                DataPreviewComponent && (
+                    <DataPreviewComponent.Component
                         id={"datasetPageDataPreview"}
                         title={t("pages.dataset.title", "Data preview")}
                         preview={{ project: projectId, dataset: taskId }}

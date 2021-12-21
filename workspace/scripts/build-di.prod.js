@@ -69,6 +69,7 @@ function logSpentTime() {
 // We require that you explicitly set browsers and do not fall back to
 // browserslist defaults.
 const { checkBrowsers } = require("react-dev-utils/browsersHelper");
+const utils = require("./build.utils");
 const { startLog, stopLog } = logSpentTime();
 
 checkBrowsers(paths.appPath, isInteractive)
@@ -130,7 +131,8 @@ checkBrowsers(paths.appPath, isInteractive)
 
 // Create the production build and print the deployment instructions.
 function build(previousFileSizes) {
-    const compiler = webpack(config);
+    const adaptedConfig = utils.adaptWebpackConfig(config)
+    const compiler = webpack(adaptedConfig);
 
     return new Promise((resolve, reject) => {
         compiler.run((err, stats) => {

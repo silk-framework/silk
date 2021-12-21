@@ -91,6 +91,30 @@ const silkConfig = buildConfig()
 
 const configValue = (key, defaultValue) => silkConfig[key] ? silkConfig[key] : defaultValue
 
+// Allow to add additional source paths, e.g. proprietary code that will be bundled together with the core code.
+// Paths are separated by ';' and are relative to the 'workspace' folder.
+const additionalSourcePaths = () => {
+    const pathsString = silkConfig.additionalSources ? silkConfig.additionalSources : process.env.ADDITIONAL_SOURCE_PATHS
+    if(pathsString) {
+        return pathsString.split(";")
+            .map(path => resolveApp(path))
+    } else {
+        return []
+    }
+}
+
+// Allow to add additional entry points, e.g. from proprietary code that will be bundled together with the core code.
+// Entries are separated by ';' and are relative to the 'workspace' folder.
+const additionalEntries = () => {
+    const entriesString = silkConfig.additionalEntries ? silkConfig.additionalEntries : process.env.ADDITIONAL_ENTRIES
+    if(entriesString) {
+        return entriesString.split(";")
+            .map(path => resolveApp(path))
+    } else {
+        return []
+    }
+}
+
 // config after eject: we're in ./config/
 module.exports = {
     dotenv: resolveApp(".env"),
@@ -114,7 +138,9 @@ module.exports = {
     servedPath: getServedPath(resolveApp("package.json")),
     ducksFolder: resolveApp("src/app/store/ducks"),
     guiElements: resolveApp("../libs/gui-elements"),
-    silkConfig
+    silkConfig,
+    additionalSourcePaths,
+    additionalEntries
 };
 
 module.exports.moduleFileExtensions = moduleFileExtensions;

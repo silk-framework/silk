@@ -49,11 +49,11 @@
     "lodash": "^4.17.4",
     "mark.js": "^8.11.1",
     "mdl-selectfield": "1.0.3",
-    "react": "^16.13.0",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
     "react-app-polyfill": "^1.0.6",
     "react-beautiful-dnd": "^13.0.0",
     "react-codemirror2": "^7.2.1",
-    "react-dom": "^16.13.0",
     "react-flow-renderer": "^9.6.7",
     "gui-elements": "0.0.1"
   },
