@@ -1,27 +1,21 @@
 import {
-    datasetsLegacyApi,
     legacyApiEndpoint,
     projectApi,
-    resourcesLegacyApi,
     workspaceApi,
 } from "../../../utils/getApiEndpoint";
 import fetch from "../../../services/fetch";
 import qs from "qs";
 import {
     IAutocompleteDefaultResponse,
-    IDatasetConfigPreview,
-    IDatasetPreview,
     IDatasetTypePayload,
     IItemLink,
     IMetadataUpdatePayload,
-    IPreviewResponse,
     IProjectMetadataResponse,
     IProjectResource,
     IProjectTask,
     IRelatedItemsResponse,
     IRequestAutocompletePayload,
     IResourceListPayload,
-    IResourcePreview,
     ITaskMetadataResponse,
 } from "@ducks/shared/typings";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
@@ -155,17 +149,6 @@ export const requestResourcesList = async (
     return fetch({
         url: legacyApiEndpoint(`/projects/${projectId}/resources`),
         body: filters,
-    });
-};
-
-export const requestPreview = async (
-    preview: IResourcePreview | IDatasetConfigPreview | IDatasetPreview
-): Promise<FetchResponse<IPreviewResponse>> => {
-    const url = (preview as IDatasetPreview).dataset ? datasetsLegacyApi("preview") : resourcesLegacyApi("preview");
-    return fetch({
-        url,
-        method: "POST",
-        body: preview,
     });
 };
 
