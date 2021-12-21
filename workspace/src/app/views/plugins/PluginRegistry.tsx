@@ -19,20 +19,21 @@ export interface IProjectTaskView {
 }
 
 /** A plugin component that can receive arbitrary parameters. */
-export interface IPluginComponent {
+export interface IPluginComponent<I> {
     // The ID of the plugin component that must be globally unique
     id: string;
     // The label that should be shown to the user
     label: string;
     // Function that renders the view
-    Component: (params: { [key: string]: any }) => JSX.Element;
+    Component: (params: I) => JSX.Element;
 }
 
 class PluginRegistry {
     // Stores all views for a specific plugin
     private pluginViewRegistry: Map<string, IProjectTaskView[]>;
-    private pluginComponents: Map<string, IPluginComponent>;
+    private pluginComponents: Map<string, IPluginComponent<any>>;
 
+    /** Register a view component for a specific task plugin. Each task plugin can have multiple views registered. */
     public registerTaskView(pluginId: string, view: IProjectTaskView) {
         let views: IProjectTaskView[] | undefined = this.pluginViewRegistry.get(pluginId);
         if (!views) {
@@ -48,7 +49,8 @@ class PluginRegistry {
         }
     }
 
-    public registerPluginComponent(pluginComponent: IPluginComponent) {
+    /** Registers a plugin component. The type parameter is just for documentation and type checking on the caller-side. */
+    public registerPluginComponent<I>(pluginComponent: IPluginComponent<I>) {
         if (this.pluginComponents.has(pluginComponent.id)) {
             console.warn(
                 `Trying to register a plugin component with ID '${pluginComponent.id}' that already exists in the plugin component registry!`
@@ -60,15 +62,17 @@ class PluginRegistry {
 
     constructor() {
         this.pluginViewRegistry = new Map<string, IProjectTaskView[]>();
-        this.pluginComponents = new Map<string, IPluginComponent>();
+        this.pluginComponents = new Map<string, IPluginComponent<any>>();
     }
 
+    /** Fetches the task views of a task plugin. */
     public taskViews(taskPluginId: string): IProjectTaskView[] {
         const views = this.pluginViewRegistry.get(taskPluginId);
         return views ? [...views] : [];
     }
 
-    public pluginComponent(pluginId: string): IPluginComponent | undefined {
+    /** Fetches a plugin component. The type parameter is just for documentation and type checking on the caller-side. */
+    public pluginComponent<I>(pluginId: string): IPluginComponent<I> | undefined {
         return this.pluginComponents.get(pluginId);
     }
 }
