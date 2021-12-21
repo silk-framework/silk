@@ -108,7 +108,7 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
                     </ContextMenu>
                 )}
             </OverviewItemActions>
-            {projectTabView}
+            {projectTabView ?? null}
         </OverviewItem>
     );
 }

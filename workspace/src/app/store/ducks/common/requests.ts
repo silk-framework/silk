@@ -1,7 +1,7 @@
 import fetch from "../../../services/fetch";
 import { coreApi, legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
 import { IDetailedArtefactItem, IOverviewArtefactItemList, IExportTypes, IInitFrontend } from "@ducks/common/typings";
-import { FetchResponse } from "services/fetch/responseInterceptor";
+import {FetchResponse} from "../../../services/fetch/responseInterceptor";
 
 const handleError = (error) => {
     return error.errorResponse;

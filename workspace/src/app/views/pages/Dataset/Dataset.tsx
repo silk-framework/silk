@@ -16,7 +16,7 @@ import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactMana
 import Metadata from "../../shared/Metadata";
 import NotFound from "../NotFound";
 import useErrorHandler from "../../../hooks/useErrorHandler";
-import { ProjectTaskParams } from "views/shared/typings";
+import {ProjectTaskParams} from "../../shared/typings";
 import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
 import { SUPPORTED_PLUGINS, viewRegistry } from "../../plugins/PluginRegistry";
 

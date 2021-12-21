@@ -8,7 +8,7 @@ import { ProjectTaskTabView } from "../../shared/projectTaskTabView/ProjectTaskT
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
 import NotFound from "../NotFound";
-import { ProjectTaskParams } from "views/shared/typings";
+import {ProjectTaskParams} from "../../shared/typings";
 
 export default function () {
     const { taskId, projectId } = useParams<ProjectTaskParams>();

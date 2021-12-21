@@ -20,11 +20,11 @@ import {
 } from "gui-elements";
 import { Loading } from "../../Loading/Loading";
 import { ICloneOptions } from "../CloneModal";
-import { ErrorResponse, FetchError } from "services/fetch/responseInterceptor";
 import { useTranslation } from "react-i18next";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { requestCopyProject, requestCopyTask, requestSearchList } from "@ducks/workspace/requests";
 import ItemDepiction from "../../ItemDepiction";
+import {ErrorResponse, FetchError} from "../../../../services/fetch/responseInterceptor";
 
 //custom styles
 require("./CopyToModal.scss");
