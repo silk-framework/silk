@@ -33,7 +33,7 @@ class PluginRegistry {
     private pluginViewRegistry: Map<string, IProjectTaskView[]>;
     private pluginComponents: Map<string, IPluginComponent>;
 
-    public registerView(pluginId: string, view: IProjectTaskView) {
+    public registerTaskView(pluginId: string, view: IProjectTaskView) {
         let views: IProjectTaskView[] | undefined = this.pluginViewRegistry.get(pluginId);
         if (!views) {
             views = [];
@@ -63,7 +63,7 @@ class PluginRegistry {
         this.pluginComponents = new Map<string, IPluginComponent>();
     }
 
-    public projectTaskViews(taskPluginId: string): IProjectTaskView[] {
+    public taskViews(taskPluginId: string): IProjectTaskView[] {
         const views = this.pluginViewRegistry.get(taskPluginId);
         return views ? [...views] : [];
     }
@@ -73,7 +73,7 @@ class PluginRegistry {
     }
 }
 
-export const viewRegistry = new PluginRegistry();
+export const pluginRegistry = new PluginRegistry();
 
 export const SUPPORTED_PLUGINS = {
     DATA_PREVIEW: "di:dataPreview",

@@ -23,7 +23,7 @@ import { commonSel } from "@ducks/common";
 import Loading from "../Loading";
 import { SERVE_PATH } from "../../../constants/path";
 import "./projectTaskTabView.scss";
-import { IProjectTaskView, IViewActions, viewRegistry } from "../../plugins/PluginRegistry";
+import { IProjectTaskView, IViewActions, pluginRegistry } from "../../plugins/PluginRegistry";
 import * as H from "history";
 
 // Get the bookmark value
@@ -113,7 +113,7 @@ export function ProjectTaskTabView({
     React.useEffect(() => {
         if (projectId && taskId) {
             if (taskViewConfig?.pluginId) {
-                setTaskViews(viewRegistry.projectTaskViews(taskViewConfig.pluginId));
+                setTaskViews(pluginRegistry.taskViews(taskViewConfig.pluginId));
             } else {
                 setTaskViews([]);
             }

@@ -18,7 +18,7 @@ import NotFound from "../NotFound";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import {ProjectTaskParams} from "../../shared/typings";
 import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
-import { SUPPORTED_PLUGINS, viewRegistry } from "../../plugins/PluginRegistry";
+import { SUPPORTED_PLUGINS, pluginRegistry } from "../../plugins/PluginRegistry";
 
 // The dataset plugins that should show the data preview automatically without user interaction.
 const automaticallyPreviewedDatasets = ["json", "xml", "csv"];
@@ -52,7 +52,7 @@ export function Dataset() {
 
     const showPreviewAutomatically = automaticallyPreviewedDatasets.includes(taskData?.data?.type ?? "");
     const showPreview = !noDataPreviewDatasets.includes(taskData?.data?.type ?? "");
-    const dataPreviewComponent = viewRegistry.pluginComponent(SUPPORTED_PLUGINS.DATA_PREVIEW);
+    const dataPreviewComponent = pluginRegistry.pluginComponent(SUPPORTED_PLUGINS.DATA_PREVIEW);
 
     useEffect(() => {
         if (taskId && projectId) {

@@ -35,7 +35,7 @@ import { APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME 
 import { CONTEXT_PATH, SERVE_PATH } from "../../../constants/path";
 import { APP_VIEWHEADER_ID } from "../../shared/PageHeader/PageHeader";
 import { fetchStoredLang } from "../../../../language";
-import { SUPPORTED_PLUGINS, viewRegistry } from "../../plugins/PluginRegistry";
+import { SUPPORTED_PLUGINS, pluginRegistry } from "../../plugins/PluginRegistry";
 
 interface IProps {
     onClickApplicationSidebarExpand: any;
@@ -52,8 +52,8 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
     const [t] = useTranslation();
     const [displayUserMenu, toggleUserMenuDisplay] = useState<boolean>(false);
-    const diUserMenuItems = viewRegistry.pluginComponent(SUPPORTED_PLUGINS.DI_USER_MENU_ITEMS);
-    const diUserMenuFooter = viewRegistry.pluginComponent(SUPPORTED_PLUGINS.DI_USER_MENU_FOOTER);
+    const diUserMenuItems = pluginRegistry.pluginComponent(SUPPORTED_PLUGINS.DI_USER_MENU_ITEMS);
+    const diUserMenuFooter = pluginRegistry.pluginComponent(SUPPORTED_PLUGINS.DI_USER_MENU_FOOTER);
 
     const handleCreateDialog = () => {
         dispatch(commonOp.setSelectedArtefactDType(appliedFilters.itemType));
