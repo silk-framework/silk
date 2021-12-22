@@ -266,7 +266,7 @@ lazy val reactComponents = (project in file("silk-react-components"))
 
         def distFile(name: String): File = new File(baseDirectory.value, "dist/" + name)
         if (Watcher.staleTargetFiles(reactWatchConfig, Seq(distFile("main.js"), distFile("style.css")))) {
-          ReactBuildHelper.buildReactComponents(baseDirectory.value, distRoot, "Silk")
+          ReactBuildHelper.buildReactComponentsAndCopy(baseDirectory.value, distRoot, "Silk")
         }
       }
       // Transpile pure JavaScript files
@@ -326,10 +326,11 @@ lazy val reactUI = (project in file("workspace"))
     buildDiReact := {
       checkJsBuildTools.value
       if(!buildReactExternally) {
+        // TODO: Add additional source directories
         val reactWatchConfig = WatchConfig(new File(baseDirectory.value, "src"), fileRegex = """\.(tsx|ts|scss|json)$""")
-        def distFile(name: String): File = new File(baseDirectory.value, "../public/" + name)
+        def distFile(name: String): File = new File(baseDirectory.value, "../../public/" + name)
         if (Watcher.staleTargetFiles(reactWatchConfig, Seq(distFile("index.html")))) {
-          BuildReactUI.buildReactComponents(baseDirectory.value, "Workbench")
+          ReactBuildHelper.buildReactComponents(baseDirectory.value, "Workbench")
         }
       }
     },
