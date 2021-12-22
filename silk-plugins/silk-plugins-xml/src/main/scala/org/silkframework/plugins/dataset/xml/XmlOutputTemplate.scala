@@ -1,5 +1,6 @@
 package org.silkframework.plugins.dataset.xml
 
+import net.sf.saxon.jaxp.SaxonTransformerFactory
 import org.silkframework.plugins.dataset.xml.util.PrefixSuffixXMLStreamWriter
 import org.silkframework.runtime.validation.ValidationException
 import org.w3c.dom.{Document, Node, ProcessingInstruction}
@@ -21,6 +22,10 @@ import scala.xml._
   * @param isRootTemplate True, if this is a template of the form <?MyEntity?>, i.e., consists of a single processing instruction.
   */
 case class XmlOutputTemplate(doc: Document, rootElementName: String, isRootTemplate: Boolean) {
+  lazy val transformerFactory: TransformerFactory = {
+    // Not all transformers support StAXResult objects as target, manually pick transformer
+    new SaxonTransformerFactory()
+  }
 
   def writePrefix(writer: XMLStreamWriter): Unit = {
     if(isRootTemplate) {
@@ -42,7 +47,7 @@ case class XmlOutputTemplate(doc: Document, rootElementName: String, isRootTempl
   private def writeTemplate(writer: XMLStreamWriter, writeSuffix: Boolean): Unit = {
     val source = new DOMSource(doc)
     val result = new StAXResult(new PrefixSuffixXMLStreamWriter(writer, writeSuffix))
-    val transformer = TransformerFactory.newInstance.newTransformer()
+    val transformer = transformerFactory.newTransformer()
     transformer.transform(source, result)
   }
 
