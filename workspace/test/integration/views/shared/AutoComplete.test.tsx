@@ -2,7 +2,7 @@ import React from "react";
 import {
     AutoCompleteField,
     IAutoCompleteFieldProps,
-} from "../../../../src/libs/gui-elements/src/components/AutocompleteField/AutoCompleteField";
+} from "gui-elements/src/components/AutocompleteField/AutoCompleteField";
 import { addDocumentCreateRangeMethod, findSingleElement, testWrapper, withMount } from "../../TestHelper";
 import { waitFor } from "@testing-library/react";
 

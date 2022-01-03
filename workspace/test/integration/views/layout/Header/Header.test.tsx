@@ -17,7 +17,7 @@ import Task from "../../../../../src/app/views/pages/Task";
 import { PageHeader, APP_VIEWHEADER_ID } from "../../../../../src/app/views/shared/PageHeader/PageHeader";
 import { waitFor } from "@testing-library/react";
 import { Helmet } from "react-helmet";
-import { ContextMenu } from "../../../../../src/libs/gui-elements";
+import { ContextMenu } from "gui-elements";
 
 describe("Header", () => {
     let hostPath = process.env.HOST;

@@ -4,7 +4,7 @@
         "baseUrl": "./src/app",
         "paths": {
             "@ducks/*": ["./store/ducks/*"]
-        },
+        }
     },
     "include": ["./src"]
 }

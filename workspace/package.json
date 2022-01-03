@@ -130,7 +130,7 @@
         },
         "testEnvironment": "jest-environment-jsdom-fourteen",
         "transform": {
-            "^.+\\.(js|jsx|ts|tsx)$": "<rootDir>/node_modules/babel-jest",
+            "^.+\\.(js|jsx|ts|tsx)$": "babel-jest",
             "^.+\\.css$": "<rootDir>/config/jest/cssTransform.js",
             "^(?!.*\\.(js|jsx|ts|tsx|css|json)$)": "<rootDir>/config/jest/fileTransform.js"
         },
@@ -141,7 +141,6 @@
         "moduleNameMapper": {
             "^react-native$": "react-native-web",
             "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy",
-            "@gui-elements(.*)$": "<rootDir>/../silk-react-components/src/libs/gui-elements/$1",
             "@ducks(.*)$": "<rootDir>/src/app/store/ducks/$1"
         },
         "moduleFileExtensions": [
@@ -169,6 +168,7 @@
     "devDependencies": {
         "@babel/core": "7.9.0",
         "@babel/preset-flow": "^7.16.5",
+        "@babel/preset-typescript": "^7.16.7",
         "@babel/plugin-transform-react-jsx": "^7.3.0",
         "@babel/plugin-transform-react-jsx-self": "^7.2.0",
         "@babel/plugin-transform-react-jsx-source": "^7.2.0",
