@@ -306,6 +306,7 @@ lazy val reactComponents = (project in file("silk-react-components"))
 //////////////////////////////////////////////////////////////////////////////
 
 val buildDiReact = taskKey[Unit]("Builds Workbench React module")
+val generateLanguageFiles = taskKey[Unit]("Generate i18n language files.")
 
 lazy val reactUI = (project in file("workspace"))
   .settings(commonSettings: _*)
@@ -322,9 +323,23 @@ lazy val reactUI = (project in file("workspace"))
         Def.task { }
       }
     }.value,
+    generateLanguageFiles := Def.taskDyn {
+      if(!buildReactExternally) {
+        Def.task[Unit] {
+          val reactWatchConfig = WatchConfig(new File(baseDirectory.value, "src/locales/manual"), fileRegex = """\.json$""")
+          if(Watcher.staleTargetFiles(reactWatchConfig, Seq(new File(baseDirectory.value, "src/locales/generated/en.json")))) {
+            ReactBuildHelper.log.info("Generating i18n language files in 'src/locales/generated'...")
+            ReactBuildHelper.process(Seq(ReactBuildHelper.yarnCommand, "i18n-parser"), baseDirectory.value)
+          }
+        }
+      } else {
+        Def.task { }
+      }
+    }.value,
     /** Build DataIntegration React */
     buildDiReact := {
       checkJsBuildTools.value
+      generateLanguageFiles.value
       if(!buildReactExternally) {
         // TODO: Add additional source directories
         val reactWatchConfig = WatchConfig(new File(baseDirectory.value, "src"), fileRegex = """\.(tsx|ts|scss|json)$""")
@@ -342,7 +357,10 @@ lazy val reactUI = (project in file("workspace"))
         val paths = for(path <- Path.allSubpaths(baseDirectory.value / "src")) yield {
           path._1
         }
-        paths.toSeq
+        paths.toSeq ++ Seq(
+          new File(baseDirectory.value, "src/locales/manual/en.json"),
+          new File(baseDirectory.value, "src/locales/generated/en.json")
+        )
       }
     }
   )
