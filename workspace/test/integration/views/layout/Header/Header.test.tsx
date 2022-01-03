@@ -123,13 +123,14 @@ describe("Header", () => {
         });
     });
 
-    it("should have a logout action that triggers a logout", async () => {
-        await withWindowLocation(async () => {
-            clickElement(wrapper, "#headerUserMenu");
-            clickElement(wrapper, "#logoutAction");
-            await waitFor(() => {
-                expect(window.location.pathname).toBe("/logout");
-            });
-        });
-    });
+    // TODO: Move test to plugin code
+    // it("should have a logout action that triggers a logout", async () => {
+    //     await withWindowLocation(async () => {
+    //         clickElement(wrapper, "#headerUserMenu");
+    //         clickElement(wrapper, "#logoutAction");
+    //         await waitFor(() => {
+    //             expect(window.location.pathname).toBe("/logout");
+    //         });
+    //     });
+    // });
 });

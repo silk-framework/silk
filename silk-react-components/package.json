@@ -109,7 +109,6 @@
     "jest-raw-loader": "^1.0.1",
     "jest-resolve": "24.9.0",
     "jest-watch-typeahead": "0.4.2",
-    "jsdom": "11.11.0",
     "jsplumb": "2.5.1",
     "jstree": "3.2.1",
     "lint-staged": "^10.1.7",
