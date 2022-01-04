@@ -132,7 +132,7 @@ object ReactBuildHelper {
       val source = scala.io.Source.fromFile(packageJson)
       val packageJsonContent = source.getLines().mkString("")
       source.close()
-      packageJsonContent.matches("\"name\"\\s+:\\s+\"silk\"\\s+,")
+      packageJsonContent.matches(".*\"name\"\\s*:\\s*\"silk\"\\s*,.*")
     } else {
       false
     }
