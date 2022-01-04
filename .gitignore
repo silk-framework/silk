@@ -32,3 +32,5 @@ lerna-debug.log
 node_modules
 yarn-error.log
 public
+workspace/junit.xml
+workspace/coverage
