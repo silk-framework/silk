@@ -23,7 +23,7 @@
         "build-di-prod": "node --max_old_space_size=2048 scripts/build-di.prod.js",
         "build": "node scripts/build.js",
         "test": "node scripts/test.js",
-        "test-ci": "export CI=true && node scripts/test.js --coverage --reporters=\"jest-junit\"",
+        "test-ci": "export CI=true && node scripts/test.js --coverage --reporters=\"default\" --reporters=\"jest-junit\"",
         "sync-trans": "sync-i18n --files 'src/locales/manual/*.json' --primary en --languages de --space 4 -- --check",
         "i18n-parser": "node scripts/i18next-scanner.js",
         "compile": "tsc --build"
@@ -125,9 +125,6 @@
             "<rootDir>/src/**/*(*.)@(spec|test).{js,jsx,ts,tsx}",
             "<rootDir>/test/**/*(*.)@(spec|test).{js,jsx,ts,tsx}"
         ],
-        "engines": {
-            "node": " 12.16.1"
-        },
         "testEnvironment": "jest-environment-jsdom-fourteen",
         "transform": {
             "^.+\\.(js|jsx|ts|tsx)$": "babel-jest",
