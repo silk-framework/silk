@@ -222,7 +222,6 @@
             "copyClipboard": "Copy to clipboard"
         },
         "app": {
-            "build": "Build",
             "loading": "Loading page."
         },
         "dataTypes": {
@@ -340,7 +339,6 @@
                 "projects": "Projects",
                 "projectsTooltip": "Shows the list of all data-integration build projects."
             },
-            "diBrowse": "Build",
             "diBrowseTooltip": "Used to manage data-integration projects to build a knowledge graph from existing datasources",
             "dm": {
                 "explore": "Knowledge Graphs",

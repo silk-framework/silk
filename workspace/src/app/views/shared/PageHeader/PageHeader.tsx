@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import ReactDOM from "react-dom";
 import { Helmet } from "react-helmet";
@@ -101,9 +101,12 @@ function PageHeaderContent({
                       .map((o) => o.text)
                       .join(" / ")
                 : "";
-        const application = `${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}`;
+        const brandingSuffix =
+            APPLICATION_CORPORATION_NAME() || APPLICATION_SUITE_NAME()
+                ? ` — ${APPLICATION_CORPORATION_NAME()} ${APPLICATION_SUITE_NAME()}`
+                : "";
 
-        return `${pageTitle || generatedPageTitle} ${typeinfo} ${position} — ${application}`;
+        return `${pageTitle || generatedPageTitle} ${typeinfo} ${position}${brandingSuffix}`;
     };
 
     const getDepictionIcons = () => {

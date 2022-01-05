@@ -1,7 +1,19 @@
-export const APPLICATION_CORPORATION_NAME = "eccenca";
+import { BrandingProps } from "../views/plugins/plugin.types";
+import { pluginRegistry, SUPPORTED_PLUGINS } from "../views/plugins/PluginRegistry";
 
-export const APPLICATION_SUITE_NAME = "Corporate Memory";
+const branding = (): BrandingProps => {
+    const brandingObject = pluginRegistry.pluginComponent<BrandingProps>(SUPPORTED_PLUGINS.DI_BRANDING);
+    return brandingObject
+        ? brandingObject
+        : {
+              applicationName: "Silk",
+              applicationCorporationName: "",
+              applicationSuiteName: "",
+          };
+};
 
-export const APPLICATION_NAME = "Build";
+export const APPLICATION_CORPORATION_NAME = () => branding().applicationCorporationName;
 
-export const CLIENT_ID = "eldsClient";
+export const APPLICATION_SUITE_NAME = () => branding().applicationSuiteName;
+
+export const APPLICATION_NAME = () => branding().applicationName;

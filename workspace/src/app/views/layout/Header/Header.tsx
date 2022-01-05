@@ -1,7 +1,7 @@
-import React, {useState} from "react";
-import {useDispatch, useSelector} from "react-redux";
-import {useTranslation} from "react-i18next";
-import {useLocation} from "react-router-dom";
+import React, { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 import {
     ApplicationHeader,
     ApplicationSidebarNavigation,
@@ -24,18 +24,18 @@ import {
     ToolbarSection,
     WorkspaceHeader,
 } from "gui-elements";
-import {commonOp, commonSel} from "@ducks/common";
-import {workspaceOp, workspaceSel} from "@ducks/workspace";
-import {routerOp} from "@ducks/router";
+import { commonOp, commonSel } from "@ducks/common";
+import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import { routerOp } from "@ducks/router";
 import CreateButton from "../../shared/buttons/CreateButton";
-import {CreateArtefactModal} from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
-import {NotificationsMenu} from "../../shared/ApplicationNotifications/NotificationsMenu";
-import {triggerHotkeyHandler} from "../../shared/HotKeyHandler/HotKeyHandler";
-import {APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME} from "../../../constants/base";
-import {CONTEXT_PATH, SERVE_PATH} from "../../../constants/path";
-import {APP_VIEWHEADER_ID} from "../../shared/PageHeader/PageHeader";
-import {pluginRegistry, SUPPORTED_PLUGINS} from "../../plugins/PluginRegistry";
-import {UserMenuFooterProps} from "../../plugins/plugin.types";
+import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
+import { NotificationsMenu } from "../../shared/ApplicationNotifications/NotificationsMenu";
+import { triggerHotkeyHandler } from "../../shared/HotKeyHandler/HotKeyHandler";
+import { APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
+import { CONTEXT_PATH, SERVE_PATH } from "../../../constants/path";
+import { APP_VIEWHEADER_ID } from "../../shared/PageHeader/PageHeader";
+import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
+import { UserMenuFooterProps } from "../../plugins/plugin.types";
 
 interface IProps {
     onClickApplicationSidebarExpand: any;
@@ -51,9 +51,11 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
     const [t] = useTranslation();
     const [displayUserMenu, toggleUserMenuDisplay] = useState<boolean>(false);
-    const diUserMenuItems = pluginRegistry.pluginComponent(SUPPORTED_PLUGINS.DI_USER_MENU_ITEMS);
-    const diUserMenuFooter = pluginRegistry.pluginComponent<UserMenuFooterProps>(SUPPORTED_PLUGINS.DI_USER_MENU_FOOTER);
-    const languageSwitcher = pluginRegistry.pluginComponent(SUPPORTED_PLUGINS.DI_LANGUAGE_SWITCHER)
+    const diUserMenuItems = pluginRegistry.pluginReactComponent<{}>(SUPPORTED_PLUGINS.DI_USER_MENU_ITEMS);
+    const diUserMenuFooter = pluginRegistry.pluginReactComponent<UserMenuFooterProps>(
+        SUPPORTED_PLUGINS.DI_USER_MENU_FOOTER
+    );
+    const languageSwitcher = pluginRegistry.pluginReactComponent<{}>(SUPPORTED_PLUGINS.DI_LANGUAGE_SWITCHER);
 
     const handleCreateDialog = () => {
         dispatch(commonOp.setSelectedArtefactDType(appliedFilters.itemType));
@@ -69,11 +71,13 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
     };
 
     const searchURL = (page: string) => `?itemType=${page}&page=1&limit=10`;
+    const brandingSuffix =
+        APPLICATION_CORPORATION_NAME() || APPLICATION_SUITE_NAME()
+            ? ` @ ${APPLICATION_CORPORATION_NAME()} ${APPLICATION_SUITE_NAME()}`
+            : "";
 
     return (
-        <ApplicationHeader
-            aria-label={`${APPLICATION_NAME} @ ${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}`}
-        >
+        <ApplicationHeader aria-label={`${APPLICATION_NAME}${brandingSuffix}`}>
             <ApplicationTitle
                 href={SERVE_PATH}
                 prefix={""}
@@ -82,11 +86,11 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                 depiction={
                     <img
                         src={CONTEXT_PATH + "/core/logoSmall.png"}
-                        alt={`Logo: ${APPLICATION_NAME} @ ${APPLICATION_CORPORATION_NAME} ${APPLICATION_SUITE_NAME}`}
+                        alt={`Logo: ${APPLICATION_NAME}${brandingSuffix}`}
                     />
                 }
             >
-                {APPLICATION_NAME}
+                {APPLICATION_NAME()}
             </ApplicationTitle>
             <ApplicationSidebarToggler
                 aria-label={
@@ -132,7 +136,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                     <></>
                 )}
                 <TitleSubsection title={t("navigation.side.diBrowseTooltip", "")}>
-                    {t("navigation.side.diBrowse", "Build")}
+                    {t("navigation.side.diBrowse", "")}
                 </TitleSubsection>
                 <Menu>
                     <MenuItem

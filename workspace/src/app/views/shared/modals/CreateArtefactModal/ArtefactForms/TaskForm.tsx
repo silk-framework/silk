@@ -11,7 +11,7 @@ import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentif
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import Loading from "../../../Loading";
 import { SUPPORTED_PLUGINS, pluginRegistry } from "../../../../plugins/PluginRegistry";
-import {DataPreviewProps, IDatasetConfigPreview} from "../../../../plugins/plugin.types";
+import { DataPreviewProps, IDatasetConfigPreview } from "../../../../plugins/plugin.types";
 
 export interface IProps {
     form: any;
@@ -64,7 +64,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
     const initialValues = existingTaskValuesToFlatParameters(updateTask);
     const [t] = useTranslation();
     const { label, description } = form.watch([LABEL, DESCRIPTION]);
-    const dataPreviewPlugin = pluginRegistry.pluginComponent<DataPreviewProps>(SUPPORTED_PLUGINS.DATA_PREVIEW);
+    const dataPreviewPlugin = pluginRegistry.pluginReactComponent<DataPreviewProps>(SUPPORTED_PLUGINS.DATA_PREVIEW);
 
     // addition restriction for the hook form parameter values
     const valueRestrictions = (param: IArtefactItemProperty) => {

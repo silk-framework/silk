@@ -62,5 +62,15 @@ export interface DataPreviewProps {
 
 /** User menu footer component. */
 export interface UserMenuFooterProps {
-    version?: string
+    version?: string;
+}
+
+/** Branding plugin values. */
+export interface BrandingProps {
+    // The company name of the application
+    applicationCorporationName: string;
+    // If Silk is part of a larger application suite, this should be set.
+    applicationSuiteName: string;
+    // The application name for Silk.
+    applicationName: string;
 }

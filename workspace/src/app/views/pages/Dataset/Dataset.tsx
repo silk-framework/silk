@@ -16,10 +16,10 @@ import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactMana
 import Metadata from "../../shared/Metadata";
 import NotFound from "../NotFound";
 import useErrorHandler from "../../../hooks/useErrorHandler";
-import {ProjectTaskParams} from "../../shared/typings";
+import { ProjectTaskParams } from "../../shared/typings";
 import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
 import { SUPPORTED_PLUGINS, pluginRegistry } from "../../plugins/PluginRegistry";
-import {DataPreviewProps} from "../../plugins/plugin.types";
+import { DataPreviewProps } from "../../plugins/plugin.types";
 
 // The dataset plugins that should show the data preview automatically without user interaction.
 const automaticallyPreviewedDatasets = ["json", "xml", "csv"];
@@ -53,7 +53,7 @@ export function Dataset() {
 
     const showPreviewAutomatically = automaticallyPreviewedDatasets.includes(taskData?.data?.type ?? "");
     const showPreview = !noDataPreviewDatasets.includes(taskData?.data?.type ?? "");
-    const DataPreviewComponent = pluginRegistry.pluginComponent<DataPreviewProps>(SUPPORTED_PLUGINS.DATA_PREVIEW);
+    const DataPreviewComponent = pluginRegistry.pluginReactComponent<DataPreviewProps>(SUPPORTED_PLUGINS.DATA_PREVIEW);
 
     useEffect(() => {
         if (taskId && projectId) {
