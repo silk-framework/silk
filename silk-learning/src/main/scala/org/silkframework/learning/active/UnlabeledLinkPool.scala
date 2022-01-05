@@ -9,11 +9,9 @@ import org.silkframework.util.DPair
  * @param entityDescs The schemata of the two data sources.
  * @param links The unlabeled link candidates.
  */
-case class UnlabeledLinkPool(entityDescs: DPair[EntitySchema], links: Seq[Link]) {
+case class UnlabeledLinkPool(entityDescs: DPair[EntitySchema], links: Seq[LinkCandidate]) {
 
   def isEmpty: Boolean = links.isEmpty
-
-  def withLinks(addLinks: Seq[Link]): UnlabeledLinkPool = copy(links = (links ++ addLinks).distinct)
 
   def withoutLinks(removeLinks: Set[Link]): UnlabeledLinkPool = copy(links = links.filterNot(removeLinks.contains))
 

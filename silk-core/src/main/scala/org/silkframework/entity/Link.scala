@@ -131,6 +131,10 @@ object Link {
     }
   }
 
+  def apply(sourceEntity: Entity, targetEntity: Entity): LinkWithEntities = {
+    new LinkWithEntities(sourceEntity.uri, targetEntity.uri, DPair(sourceEntity, targetEntity))
+  }
+
   def fromXML(node: Node, entityDescription: Option[EntitySchema]): Link = {
     val source = (node \ "Source").text
     val target = (node \ "Target").text

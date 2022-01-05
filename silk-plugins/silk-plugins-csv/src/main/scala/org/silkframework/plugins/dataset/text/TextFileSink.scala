@@ -25,7 +25,7 @@ class TextFileSink(ds: TextFileDataset) extends EntitySink with LinkSink {
 
   override def closeTable()(implicit userContext: UserContext): Unit = { }
 
-  override def writeEntity(subject: String, values: Seq[Seq[String]])(implicit userContext: UserContext): Unit = {
+  override def writeEntity(subject: String, values: IndexedSeq[Seq[String]])(implicit userContext: UserContext): Unit = {
     writer match {
       case Some(w) =>
         w.write(values.flatten.mkString("", " ", "\n"))
@@ -37,7 +37,7 @@ class TextFileSink(ds: TextFileDataset) extends EntitySink with LinkSink {
 
   override def writeLink(link: Link, predicateUri: String)
                         (implicit userContext: UserContext, prefixes: Prefixes): Unit = {
-    writeEntity("", Seq(Seq(link.source), Seq(link.target)))
+    writeEntity("", IndexedSeq(Seq(link.source), Seq(link.target)))
   }
 
   override def clear()(implicit userContext: UserContext): Unit = {

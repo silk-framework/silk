@@ -18,7 +18,7 @@ import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.entity.paths.TypedPath
-import org.silkframework.learning.active.UnlabeledLinkPool
+import org.silkframework.learning.active.{LinkCandidate, UnlabeledLinkPool}
 import org.silkframework.learning.active.poolgenerator.LinkPoolGeneratorUtils._
 import org.silkframework.rule.execution.{GenerateLinks, Linking}
 import org.silkframework.rule.input.PathInput
@@ -91,7 +91,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
         val a = links.flatten.distinct
         //val c = a.groupBy(_.source).values.map(randomElement(_))
         //         .groupBy(_.target).values.map(randomElement(_))
-        Random.shuffle(a.toSeq).take(maxLinks)
+        Random.shuffle(a.toSeq).take(maxLinks).asInstanceOf[Seq[LinkCandidate]]
       }
 
       val metric = EqualityMetric()
@@ -114,7 +114,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
           val size = links(index).size
 
           if (size <= maxLinks && metric(sourceValues, targetValues, maxDistance) <= maxDistance) {
-            links(index) :+= new LinkWithEntities(source = entities.source.uri, target = entities.target.uri, ents = entities)
+            links(index) :+= new LinkCandidate(entities.source, entities.target)
           }
 
           if (size > maxLinks)

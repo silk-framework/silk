@@ -30,10 +30,10 @@ val buildReactExternally = {
   result
 }
 
-val compileParameters: Seq[String] = if(System.getProperty("java.version").split("\\.").head.toInt > 8) {
-  Seq("--release", "8", "-Xlint")
+val compilerParams: (Seq[String], Seq[String]) = if(System.getProperty("java.version").split("\\.").head.toInt > 8) {
+  (Seq("--release", "8", "-Xlint"), Seq("-release", "8"))
 } else {
-  Seq("-source", "1.8", "-target", "1.8", "-Xlint")
+  (Seq("-source", "1.8", "-target", "1.8", "-Xlint"), Seq.empty)
 }
 
 (Global / concurrentRestrictions) += Tags.limit(Tags.Test, 1)
@@ -89,7 +89,8 @@ lazy val commonSettings = Seq(
       val oldStrategy = (assembly / assemblyMergeStrategy).value
       oldStrategy(other)
   },
-  javacOptions ++= compileParameters
+  scalacOptions ++= compilerParams._2,
+  javacOptions ++= compilerParams._1,
 )
 
 //////////////////////////////////////////////////////////////////////////////
@@ -108,7 +109,8 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1",
     libraryDependencies += "commons-io" % "commons-io" % "2.4",
     libraryDependencies += "org.lz4" % "lz4-java" % "1.4.0",
-    libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1"
+    libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1",
+    libraryDependencies += "xalan" % "xalan" % "2.7.2"
   )
 
 lazy val rules = (project in file("silk-rules"))
@@ -159,7 +161,7 @@ lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
   )
 
 lazy val pluginsXml = (project in file("silk-plugins/silk-plugins-xml"))
-  .dependsOn(core, workspace % "compile -> compile;test -> test", pluginsRdf % "test->compile")
+  .dependsOn(core, workspace % "compile -> compile;test -> test", pluginsRdf % "test->compile", persistentCaching)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins XML",

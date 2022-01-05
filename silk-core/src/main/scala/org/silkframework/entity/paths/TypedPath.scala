@@ -68,7 +68,7 @@ case class TypedPath(
     code
   }
 
-  override def toString: String = super.toString + ": " + valueType
+  override def toString: String = s"$normalizedSerialization (${valueType.label})"
 }
 
 object TypedPath {

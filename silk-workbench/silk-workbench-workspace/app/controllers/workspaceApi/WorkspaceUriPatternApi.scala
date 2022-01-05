@@ -23,6 +23,7 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, InjectedController}
 
 import java.time.{Duration, Instant}
+import scala.collection.mutable
 import scala.util.Try
 
 @Tag(name = "Workspace URI patterns")
@@ -66,7 +67,17 @@ class WorkspaceUriPatternApi extends InjectedController with UserContextActions 
             val label = uriPatternLabel(uriPatternSegments)
             UriPatternResult(targetClass, Some(label), uriPattern)
           }
-          Ok(Json.toJson(UriPatternResponse(uriPatternResults)))
+          if(request.uniqueValues.getOrElse(false)) {
+            val existingPatterns = mutable.HashSet[String]()
+            val distinctPatternResult = uriPatternResults.filter(pattern => {
+              val alreadyExists = existingPatterns.contains(pattern.value)
+              existingPatterns.add(pattern.value)
+              !alreadyExists
+            })
+            Ok(Json.toJson(UriPatternResponse(distinctPatternResult)))
+          } else {
+            Ok(Json.toJson(UriPatternResponse(uriPatternResults)))
+          }
         case None =>
           Ok(Json.toJson(UriPatternResponse(results = Seq.empty)))
       }

@@ -14,7 +14,7 @@
 
 package org.silkframework.learning.active.linkselector
 
-import org.silkframework.entity.Link
+import org.silkframework.learning.active.LinkCandidate
 import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.evaluation.ReferenceEntities
 
@@ -26,23 +26,23 @@ import scala.util.Random
  */
 case class UniformSelector() extends LinkSelector {
 
-  def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities)(implicit random: Random): Seq[Link] = {
+  def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[LinkCandidate], referenceEntities: ReferenceEntities)(implicit random: Random): Seq[LinkCandidate] = {
     val proj = projection(rules, referenceEntities)
 
     val positiveLinks = referenceEntities.positiveEntities map LinkSelectorHelper.pairToLink
     val negativeLinks = referenceEntities.negativeEntities map LinkSelectorHelper.pairToLink
 
     val unlabeled = unlabeledLinks.map(proj)
-    val positive = positiveLinks.map(proj)
-    val negative = negativeLinks.map(proj)
+    val positive = positiveLinks.map(LinkCandidate.fromLink).map(proj)
+    val negative = negativeLinks.map(LinkCandidate.fromLink).map(proj)
 
     val rank = ranking(rules, unlabeled, positive, negative)
-    val rankedLinks = unlabeled.par.map(l => l.link.update(confidence = Some(rank(l))))
+    val rankedLinks = unlabeled.par.map(l => l.link.withConfidence(rank(l)))
 
     rankedLinks.seq.sortBy(-_.confidence.get).take(3)
   }
 
-  private def projection(rules: Seq[LinkageRule], referenceEntities: ReferenceEntities): (Link => ProjLink) = {
+  private def projection(rules: Seq[LinkageRule], referenceEntities: ReferenceEntities): (LinkCandidate => ProjLink) = {
     new Projection(rules)
   }
 
@@ -50,8 +50,8 @@ case class UniformSelector() extends LinkSelector {
     new Ranking(rules, unlabeled, positive, negative)
   }
 
-  private class Projection(rules: Seq[LinkageRule]) extends (Link => ProjLink) {
-    def apply(link: Link): ProjLink = {
+  private class Projection(rules: Seq[LinkageRule]) extends (LinkCandidate => ProjLink) {
+    def apply(link: LinkCandidate): ProjLink = {
       new ProjLink(link, rules.map(rule => rule(link.entities.get) * 0.5 + 0.5))
     }
   }
@@ -79,7 +79,7 @@ case class UniformSelector() extends LinkSelector {
     }
   }
 
-  private class ProjLink(val link: Link, val vector: Seq[Double])
+  private class ProjLink(val link: LinkCandidate, val vector: Seq[Double])
 }
 
 

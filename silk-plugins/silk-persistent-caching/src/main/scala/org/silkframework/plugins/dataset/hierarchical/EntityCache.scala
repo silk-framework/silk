@@ -1,10 +1,9 @@
 package org.silkframework.plugins.dataset.hierarchical
 
-import com.fasterxml.jackson.databind.util.ByteBufferBackedInputStream
 import org.silkframework.dataset.rdf.ClosableIterator
 import org.silkframework.runtime.caching.{PersistentSortedKeyValueStore, PersistentSortedKeyValueStoreConfig}
 
-import java.io.{ByteArrayOutputStream, Closeable, ObjectInputStream, ObjectOutputStream}
+import java.io._
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.UUID
@@ -67,7 +66,7 @@ private case class EntityCache() extends Closeable {
   private def readEntity(uri: String, buffer: ByteBuffer): CachedEntity = {
     val inputStream = new ObjectInputStream(new ByteBufferBackedInputStream(buffer))
     try {
-      val values = inputStream.readObject().asInstanceOf[Seq[Seq[String]]]
+      val values = inputStream.readObject().asInstanceOf[IndexedSeq[Seq[String]]]
       val index = inputStream.readInt()
       CachedEntity(uri, values, index)
     } finally {
@@ -88,5 +87,28 @@ private case class EntityCache() extends Closeable {
     override def close(): Unit = iterator.close()
   }
 
+}
+
+private class ByteBufferBackedInputStream(val buffer: ByteBuffer) extends InputStream {
+
+  override def available: Int = buffer.remaining
+
+  override def read: Int = {
+    if (buffer.hasRemaining) {
+      buffer.get & 0xFF
+    } else {
+      -1
+    }
+  }
+
+  override def read(bytes: Array[Byte], off: Int, len: Int): Int = {
+    if (!buffer.hasRemaining) {
+      -1
+    } else {
+      val remainingLen = Math.min(len, buffer.remaining)
+      buffer.get(bytes, off, remainingLen)
+      remainingLen
+    }
+  }
 }
 

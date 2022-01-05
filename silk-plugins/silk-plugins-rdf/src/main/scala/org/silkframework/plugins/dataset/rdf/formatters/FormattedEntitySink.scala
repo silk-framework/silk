@@ -40,7 +40,7 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
     }
   }
 
-  override def writeEntity(subject: String, values: Seq[Seq[String]])
+  override def writeEntity(subject: String, values: IndexedSeq[Seq[String]])
                           (implicit userContext: UserContext): Unit = {
     for((property, valueSet) <- properties zip values;
         value <- valueSet) {

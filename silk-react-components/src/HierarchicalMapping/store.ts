@@ -282,7 +282,8 @@ const prepareObjectMappingPayload = data => {
                     type: MAPPING_RULE_TYPE_URI,
                     pattern: data.pattern,
                 }
-                : undefined,
+                // URI pattern should be reset when set to null
+                : data.pattern === null ? null : undefined,
             typeRules,
         },
     };

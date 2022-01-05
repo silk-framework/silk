@@ -59,7 +59,7 @@ object SafeModeSink extends DataSink with LinkSink with EntitySink {
     SafeModeException.throwSafeModeException()
   }
 
-  override def writeEntity(subject: String, values: Seq[Seq[String]])(implicit userContext: UserContext): Unit = {
+  override def writeEntity(subject: String, values: IndexedSeq[Seq[String]])(implicit userContext: UserContext): Unit = {
     SafeModeException.throwSafeModeException()
   }
 
