@@ -13,9 +13,9 @@ const onOpenDeleteModalFn = jest.fn(),
 const item = {
     description: "",
     itemLinks: [
-        { label: "Mapping editor", path: "/dataintegration/transform/CMEM/regression-845/editor" },
-        { label: "Transform evaluation", path: "/dataintegration/transform/CMEM/regression-845/evaluate" },
-        { label: "Transform execution", path: "/dataintegration/transform/CMEM/regression-845/execute" },
+        { label: "Mapping editor", path: "/transform/CMEM/regression-845/editor" },
+        { label: "Transform evaluation", path: "/transform/CMEM/regression-845/evaluate" },
+        { label: "Transform execution", path: "/transform/CMEM/regression-845/execute" },
     ],
     id: "regression-845",
     label: "",
@@ -33,10 +33,9 @@ const getWrapper = (currentUrl: string = `${SERVE_PATH}`) => {
             onOpenDeleteModal={onOpenDeleteModalFn}
             onOpenDuplicateModal={onOpenDuplicateModalFn}
             onRowClick={onRowClickFn}
-            onOpenCopyToModal={() => {
-            }}
-            toggleShowIdentifierModal={() => {
-            }}/>,
+            onOpenCopyToModal={() => {}}
+            toggleShowIdentifierModal={() => {}}
+        />,
         history,
         {}
     );

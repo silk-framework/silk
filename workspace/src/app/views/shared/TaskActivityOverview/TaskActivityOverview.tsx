@@ -20,7 +20,7 @@ import {
 import {
     ActivityAction,
     IActivityControlLayoutProps,
-    DataIntegrationActivityControl,
+    SilkActivityControl,
     IActivityStatus,
     Markdown,
     ElapsedDateTimeDisplay,
@@ -315,7 +315,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
             : undefined;
         return (
             <span key={activity.name}>
-                <DataIntegrationActivityControl
+                <SilkActivityControl
                     label={activityLabel}
                     data-test-id={`activity-control-${projectId}-${taskId}-${activity.name}`}
                     executeActivityAction={activityFunctions.executeActivityAction}

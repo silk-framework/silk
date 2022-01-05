@@ -1,18 +1,10 @@
 import React from "react";
 import qs from "qs";
-import { createBrowserHistory, createMemoryHistory } from "history";
+import { createMemoryHistory } from "history";
 import mockAxios from "../../__mocks__/axios";
-import {
-    byTestId,
-    findAll,
-    mockedAxiosResponse,
-    testWrapper,
-    withMount,
-    withRender,
-    workspacePath,
-} from "../TestHelper";
+import { byTestId, findAll, mockedAxiosResponse, testWrapper, withMount, workspacePath } from "../TestHelper";
 import { Workspace } from "../../../src/app/views/pages/Workspace/Workspace";
-import { waitFor, fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, waitFor } from "@testing-library/react";
 
 describe("Search Items", () => {
     let hostPath = process.env.HOST;
@@ -23,7 +15,7 @@ describe("Search Items", () => {
         itemLinks: [
             {
                 label: "Project details page",
-                path: "/dataintegration/workbench/projects/eb233297-9d72-4b82-b77c-b2d1ee193c29_NewProject",
+                path: "/workbench/projects/eb233297-9d72-4b82-b77c-b2d1ee193c29_NewProject",
             },
         ],
         label: "New Project",

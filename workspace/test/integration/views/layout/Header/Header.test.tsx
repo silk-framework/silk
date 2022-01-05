@@ -5,24 +5,29 @@ import {
     byTestId,
     clickElement,
     mockedAxiosResponse,
+    setUseParams,
     testWrapper,
     withMount,
-    withWindowLocation,
     workspacePath,
-    logRequests,
-    setUseParams,
 } from "../../../TestHelper";
 import { Header } from "../../../../../src/app/views/layout/Header/Header";
 import Task from "../../../../../src/app/views/pages/Task";
-import { PageHeader, APP_VIEWHEADER_ID } from "../../../../../src/app/views/shared/PageHeader/PageHeader";
+import { APP_VIEWHEADER_ID, PageHeader } from "../../../../../src/app/views/shared/PageHeader/PageHeader";
 import { waitFor } from "@testing-library/react";
 import { Helmet } from "react-helmet";
 import { ContextMenu } from "gui-elements";
+import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../../src/app/views/plugins/PluginRegistry";
+import { BrandingProps } from "../../../../../src/app/views/plugins/plugin.types";
 
 describe("Header", () => {
     let hostPath = process.env.HOST;
     let wrapper;
     let history = createBrowserHistory();
+    pluginRegistry.registerPluginComponent<BrandingProps>(SUPPORTED_PLUGINS.DI_BRANDING, {
+        applicationCorporationName: "some corp",
+        applicationName: "some app",
+        applicationSuiteName: "some suite",
+    });
 
     beforeEach(() => {
         // add explicitely extra tragets for portals, @see https://stackoverflow.com/a/48094582
@@ -69,7 +74,7 @@ describe("Header", () => {
         );
 
         expect(wrapper.find(Helmet).prop("title")).toEqual(
-            "My Page Title (artefacttype) at Workbench / My Project — eccenca Corporate Memory"
+            "My Page Title (artefacttype) at Workbench / My Project — some corp some suite"
         );
     });
 

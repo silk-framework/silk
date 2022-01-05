@@ -3,10 +3,7 @@ import { fetch } from "../../../services/fetch/fetch";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import { IActivityListEntry } from "./taskActivityOverviewTypings";
 import { DIErrorTypes } from "@ducks/error/typings";
-import {
-    ActivityAction,
-    IActivityExecutionReport,
-} from "gui-elements/src/cmem/ActivityControl/DataIntegrationActivityControl";
+import { ActivityAction, IActivityExecutionReport } from "gui-elements/src/cmem/ActivityControl/SilkActivityControl";
 
 /** Fetch available activities for the workspace, project or task with optional infos, e.g. characteristics. */
 export const fetchActivityInfos = async (

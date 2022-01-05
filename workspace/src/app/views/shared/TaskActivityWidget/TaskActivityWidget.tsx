@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import {
     IActivityStatus,
     ActivityAction,
-    DataIntegrationActivityControl,
+    SilkActivityControl,
     IActivityControlLayoutProps,
     Markdown,
 } from "gui-elements/cmem";
@@ -100,7 +100,7 @@ export const TaskActivityWidget = ({
 
     // TODO: Fix size issues with activity control and tooltip
     return (
-        <DataIntegrationActivityControl
+        <SilkActivityControl
             label={label}
             data-test-id={`activity-control-workflow-editor`}
             executeActivityAction={executeAction}
