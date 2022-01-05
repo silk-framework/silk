@@ -1,10 +1,9 @@
 package org.silkframework.learning.active.poolgenerator
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.Link
 import org.silkframework.entity.paths.TypedPath
-import org.silkframework.learning.active.UnlabeledLinkPool
 import org.silkframework.learning.active.poolgenerator.LinkPoolGeneratorUtils._
+import org.silkframework.learning.active.{LinkCandidate, UnlabeledLinkPool}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.util.DPair
@@ -22,7 +21,7 @@ class CombinedLinkPoolGenerator(generators: LinkPoolGenerator*) extends LinkPool
   private class LinkPoolGeneratorActivity(activities: Seq[Activity[UnlabeledLinkPool]], linkSpec: LinkSpec, paths: Seq[DPair[TypedPath]]) extends Activity[UnlabeledLinkPool] {
 
     override def run(context: ActivityContext[UnlabeledLinkPool])(implicit userContext: UserContext): Unit = {
-      val linkBuffer = mutable.Buffer[Link]()
+      val linkBuffer = mutable.Buffer[LinkCandidate]()
       val progressContribution = 1.0 /  activities.size
 
       for(activity <- activities) {
@@ -30,7 +29,7 @@ class CombinedLinkPoolGenerator(generators: LinkPoolGenerator*) extends LinkPool
         linkBuffer ++= control.startBlockingAndGetValue().links
       }
 
-      context.value() = UnlabeledLinkPool(entitySchema(linkSpec, paths), linkBuffer.distinct)
+      context.value() = UnlabeledLinkPool(entitySchema(linkSpec, paths), linkBuffer)
     }
   }
 }

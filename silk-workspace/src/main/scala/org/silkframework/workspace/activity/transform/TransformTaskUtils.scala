@@ -2,13 +2,13 @@ package org.silkframework.workspace.activity.transform
 
 import org.silkframework.config.CustomTask
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, EntitySink}
+import org.silkframework.dataset.{DataSource, EntitySink}
 import org.silkframework.execution.TaskException
 import org.silkframework.rule.{TransformSpec, TransformedDataSource}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 import org.silkframework.workspace.ProjectTask
-import org.silkframework.runtime.validation.ValidationException
 
 /**
   * Adds additional methods to transform tasks.
@@ -45,11 +45,11 @@ object TransformTaskUtils {
 
       // Find the rule that generates the selected type
       if(typeUri.uri.isEmpty) {
-        new TransformedDataSource(source, transformSpec.inputSchema, transformSpec.mappingRule)
+        new TransformedDataSource(source, transformSpec.inputSchema, transformSpec.mappingRule, task)
       } else {
         transformSpec.ruleSchemata.find(_.transformRule.rules.typeRules.map(_.typeUri).contains(typeUri)) match {
           case Some(ruleSchemata) =>
-            new TransformedDataSource(source, ruleSchemata.inputSchema, ruleSchemata.transformRule)
+            new TransformedDataSource(source, ruleSchemata.inputSchema, ruleSchemata.transformRule, task)
           case None =>
             throw new ValidationException(s"No rule matching target type $typeUri found.")
         }

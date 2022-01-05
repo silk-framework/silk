@@ -176,6 +176,8 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
     try {
       SparqlAggregatePathsCollector(failFastEndpoint, params.graph, restriction, limit)
     } catch {
+      case ex: InterruptedException =>
+        throw ex
       case ex: Exception =>
         log.log(Level.INFO, "Failed to retrieve the most frequent paths using a SPARQL 1.1 aggregation query. Falling back to sampling.", ex)
         SparqlSamplePathsCollector(sparqlEndpoint, params.graph, restriction, limit).toIndexedSeq
