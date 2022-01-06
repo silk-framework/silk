@@ -4,7 +4,7 @@
 
 // Generic actions and callbacks on views
 export interface IViewActions {
-    // A callback that is executed every time the workflow is saved
+    // A callback that is executed every time the project task is saved from the view.
     onSave?: () => any;
 }
 
