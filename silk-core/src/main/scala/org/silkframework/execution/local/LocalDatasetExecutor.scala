@@ -6,14 +6,13 @@ import org.silkframework.dataset.DatasetSpec.{EntitySinkWrapper, GenericDatasetS
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
-import org.silkframework.execution.{DatasetExecutor, ExecutionReport, ExecutionReportUpdater, TaskException}
+import org.silkframework.execution._
 import org.silkframework.runtime.activity.{ActivityContext, UserContext}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
 
 import java.util
 import java.util.logging.{Level, Logger}
-import scala.util.control.NonFatal
 
 /**
   * Local dataset executor that handles read and writes to [[Dataset]] tasks.
@@ -402,26 +401,6 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
     override def entityLabelPlural: String = "Links"
     override def operationLabel: Option[String] = Some("write")
     override def entityProcessVerb: String = "written"
-  }
-
-  /**
-    * An entity traversable that forwards all entity traversals to an execution report.
-    */
-  case class ReportingTraversable(entities: Traversable[Entity])(implicit executionReport: ExecutionReportUpdater) extends Traversable[Entity] {
-    override def foreach[U](f: Entity => U): Unit = {
-      try {
-        for(entity <- entities) {
-          f(entity)
-          executionReport.increaseEntityCounter()
-        }
-      } catch {
-        case NonFatal(ex) =>
-          executionReport.setExecutionError(Some(ex.getMessage))
-          throw ex
-      } finally {
-        executionReport.executionDone()
-      }
-    }
   }
 }
 
