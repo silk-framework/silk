@@ -306,6 +306,7 @@ lazy val reactComponents = (project in file("silk-react-components"))
 //////////////////////////////////////////////////////////////////////////////
 
 val buildDiReact = taskKey[Unit]("Builds Workbench React module")
+val lernaBootstrap = taskKey[Unit]("Bootstraps Yarn workspaces and lerna.")
 val generateLanguageFiles = taskKey[Unit]("Generate i18n language files.")
 
 lazy val reactUI = (project in file("workspace"))
@@ -319,6 +320,13 @@ lazy val reactUI = (project in file("workspace"))
     checkJsBuildTools := Def.taskDyn {
       if(!buildReactExternally) {
         Def.task { ReactBuildHelper.checkReactBuildTool() }
+      } else {
+        Def.task { }
+      }
+    }.value,
+    lernaBootstrap := Def.taskDyn {
+      if(!buildReactExternally) {
+        Def.task { ReactBuildHelper.lernaBootstrap(baseDirectory.value) }
       } else {
         Def.task { }
       }
@@ -339,6 +347,7 @@ lazy val reactUI = (project in file("workspace"))
     /** Build DataIntegration React */
     buildDiReact := {
       checkJsBuildTools.value
+      lernaBootstrap.value
       generateLanguageFiles.value
       if(!buildReactExternally) {
         // TODO: Add additional source directories
