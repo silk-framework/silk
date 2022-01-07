@@ -23,7 +23,7 @@
         "build-di-prod": "node --max_old_space_size=2048 scripts/build-di.prod.js",
         "build": "node scripts/build.js",
         "test": "node scripts/test.js",
-        "test-ci": "export CI=true && node scripts/test.js --coverage --reporters=\"default\" --reporters=\"jest-junit\"",
+        "test-ci": "export CI=true && node scripts/test.js --coverage --reporters=\"default\" --reporters=\"jest-junit\" --no-colors",
         "sync-trans": "sync-i18n --files 'src/locales/manual/*.json' --primary en --languages de --space 4 -- --check",
         "i18n-parser": "node scripts/i18next-scanner.js",
         "compile": "tsc --build"
