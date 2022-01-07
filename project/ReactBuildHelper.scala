@@ -140,6 +140,7 @@ object ReactBuildHelper {
 
   /** Install dependencies and bootstrap lerna + yarn workspaces. */
   def lernaBootstrap(reactBuildRoot: File): Unit = BasicIO.synchronized {
+    log.info("Bootstrapping lerna + yarn workspaces environment...")
     // Either bootstrap in Silk or in the directory the build config file has been found
     searchConfigFileRecursively(reactBuildRoot)
       .map(_.getParentFile)
@@ -153,7 +154,7 @@ object ReactBuildHelper {
     }
   }
 
-  def process(command: Seq[String], workingDir: File, maxRetries: Int = 0): String = {
+  def process(command: Seq[String], workingDir: File, maxRetries: Int = 0): String = BasicIO.synchronized {
     var tries = 0
     while(tries <= maxRetries) {
       val (out, err) = (new StringBuffer(), new StringBuffer())
