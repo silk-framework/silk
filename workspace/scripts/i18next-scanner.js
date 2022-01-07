@@ -12,6 +12,8 @@ const TEMP_TARGET_LANG_FILE_DIR = "./target/locales";
 const flattenObjectKeys = require("i18next-scanner/lib/flatten-object-keys").default;
 const omitEmptyObject = require("i18next-scanner/lib/omit-empty-object").default;
 
+const NOT_TRANSLATED = "__STRING_NOT_TRANSLATED__";
+
 function getFileJSON(resPath, parentPath) {
     try {
         return JSON.parse(
@@ -30,7 +32,9 @@ function writeJsonFile(value, targetPath) {
 // Checks env variable ADDITIONAL_LANGUAGE_FILES to contain a directory path to additional language files
 // The directory must contain files in the format '<LANG_CODE>.json', e.g. 'en.json'.
 function fetchAdditionalLanguageFiles() {
-    const additionalFiles = paths.silkConfig.additionalLanguageFolder ? paths.silkConfig.additionalLanguageFolder :process.env.ADDITIONAL_LANGUAGE_FILES
+    const additionalFiles = paths.silkConfig.additionalLanguageFolder
+        ? paths.silkConfig.additionalLanguageFolder
+        : process.env.ADDITIONAL_LANGUAGE_FILES;
     if (additionalFiles) {
         const additional = additionalFiles.replace(/\/$/, "");
         return fs.readdirSync(additional).map((file) => `${additional}/${file}`);
@@ -122,16 +126,6 @@ const deepMerge = (source, target) => {
     return target;
 };
 
-function customTransform(file, enc, done) {
-    const parser = this.parser;
-    const content = fs.readFileSync(file.path, enc);
-    parser.parseFuncFromString(content, { list: ["i18next._"] }, (key, options) => {
-        if (parser.get(key) === "__STRING_NOT_TRANSLATED__") {
-        }
-    });
-    done();
-}
-
 // Merges all existing language files into one for each language
 function createTempLanguageFiles(inputLanguageFiles) {
     const extractLang = /([a-z]{2,2})\.json/;
@@ -158,6 +152,11 @@ function createTempLanguageFiles(inputLanguageFiles) {
     }
     return [...filesByLanguage.keys()];
 }
+
+function customTransform(file, enc, done) {
+    done();
+}
+
 // Init temp locales dir
 fs.rmdirSync(TEMP_TARGET_LANG_FILE_DIR, { recursive: true, force: true });
 fs.mkdirSync(TEMP_TARGET_LANG_FILE_DIR, { recursive: true });
@@ -165,8 +164,54 @@ const manualLangFiles = fs.readdirSync("./src/locales/manual/").map((file) => ".
 // Copy and merge lang files
 const additionalLangFiles = fetchAdditionalLanguageFiles();
 const foundLanguages = createTempLanguageFiles(manualLangFiles.concat(additionalLangFiles));
+
+function generateEmptyLanguageFiles() {
+    fs.mkdirSync("src/locales/generated", { recursive: true });
+    for (const lang of ["en", "de"]) {
+        // If a language file was not available write an empty language file. This is needed for the code to compile.
+        if (!foundLanguages.includes(lang)) {
+            writeJsonFile({}, `src/locales/generated/${lang}.json`);
+        }
+    }
+}
+
+/** Find missing keys and list them. Return error code if there exist missing values. */
+function validate() {
+    const missingKeys = new Map();
+    for (const lang of ["en", "de"]) {
+        const missingKeySet = new Set();
+        missingKeys.set(lang, missingKeySet);
+
+        function checkForMissingValues(currentPath, obj) {
+            if (obj === NOT_TRANSLATED) {
+                missingKeySet.add(currentPath.join("."));
+            } else if (typeof obj === "object") {
+                Object.entries(obj).forEach(([key, value]) => checkForMissingValues([...currentPath, key], value));
+            }
+        }
+
+        const langFileContent = getFileJSON(`src/locales/generated/${lang}.json`);
+        checkForMissingValues([], langFileContent);
+    }
+    const languagesWithMissingKeys = [...missingKeys].filter(([lang, missingKeys]) => missingKeys.size > 0);
+    if (languagesWithMissingKeys.length > 0) {
+        console.warn("Missing translations found!");
+        for (const [lang, missingKeys] of languagesWithMissingKeys) {
+            console.warn(
+                `For language '${lang}' ${missingKeys.size} keys do not have a translation value:\n  - ` +
+                    [...missingKeys].sort((a, b) => (a < b ? -1 : 1)).join("\n  - ")
+            );
+        }
+        process.exit(1);
+    }
+}
+
 const scanner = require("i18next-scanner");
-vfs.src(["src/app/**/*.{js,jsx,ts,tsx}", "!src/app/**/*.spec.{js,jsx,ts,tsx}", "!**/node_modules/**"])
+vfs.src(
+    ["src/app/**/*.{js,jsx,ts,tsx}", "!src/app/**/*.spec.{js,jsx,ts,tsx}", "!**/node_modules/**"].concat(
+        paths.additionalSourcePaths().map((path) => `${path}/**/*.{js,jsx,ts,tsx}`)
+    )
+)
     .pipe(
         scanner(
             {
@@ -175,7 +220,8 @@ vfs.src(["src/app/**/*.{js,jsx,ts,tsx}", "!src/app/**/*.spec.{js,jsx,ts,tsx}", "
                 sort: true,
                 attr: false,
                 defaultLng: "en",
-                trans: false, //this is not work with typescript
+                fallbackKey: false,
+                trans: false, //this is not working with typescript
                 func: {
                     list: ["i18next.t", "i18n.t", "t"],
                     extensions: [".js", ".jsx", ".tsx", ".ts"],
@@ -192,17 +238,14 @@ vfs.src(["src/app/**/*.{js,jsx,ts,tsx}", "!src/app/**/*.spec.{js,jsx,ts,tsx}", "
                     lineEnding: "\n",
                 },
                 lngs: foundLanguages,
-                defaultValue: "__STRING_NOT_TRANSLATED__",
+                defaultValue: () => NOT_TRANSLATED,
             },
             customTransform,
             customFlush
         )
     )
-    .pipe(vfs.dest("./"));
-
-fs.mkdirSync("src/locales/generated", { recursive: true });
-for (const lang of ["en", "de"]) {
-    if (!foundLanguages.includes(lang)) {
-        writeJsonFile({}, `src/locales/generated/${lang}.json`);
-    }
-}
+    .pipe(vfs.dest("./"))
+    .on("end", () => {
+        generateEmptyLanguageFiles();
+        validate();
+    });
