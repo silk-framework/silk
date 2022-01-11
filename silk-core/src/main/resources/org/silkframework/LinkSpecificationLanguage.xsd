@@ -10,6 +10,13 @@
                 <xs:element name="Created" minOccurs="0" maxOccurs="1" type="xs:string"/>
                 <xs:element name="CreatedByUser" minOccurs="0" maxOccurs="1" type="xs:string"/>
                 <xs:element name="LastModifiedByUser" minOccurs="0" maxOccurs="1" type="xs:string"/>
+                <xs:element name="Tags"  minOccurs="0" maxOccurs="1">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="Tag" minOccurs="0" maxOccurs="unbounded" type="xs:string"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
