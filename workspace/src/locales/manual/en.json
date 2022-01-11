@@ -376,6 +376,15 @@
             "empty": "Your workspace is empty. In order to start, create a new project or import an existing project from an exported project file."
         }
     },
+    "taskViews": {
+        "linkRulesEditor": {
+            "errors": {
+                "fetchTaskData": {
+                    "msg": "An error has occurred while fetching the the linking task."
+                }
+            }
+        }
+    },
     "widget": {
         "ConfigWidget": {
             "loading": "Loading configuration list.",

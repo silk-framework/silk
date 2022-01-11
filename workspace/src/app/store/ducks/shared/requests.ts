@@ -1,8 +1,4 @@
-import {
-    legacyApiEndpoint,
-    projectApi,
-    workspaceApi,
-} from "../../../utils/getApiEndpoint";
+import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
 import fetch from "../../../services/fetch";
 import qs from "qs";
 import {
@@ -63,17 +59,16 @@ export const requestTaskData = async (
     projectId: string,
     itemId: string,
     withLabel: boolean = false
-): Promise<IProjectTask> => {
+): Promise<FetchResponse<IProjectTask>> => {
     const queryParams: any = {};
     if (withLabel) {
         queryParams.withLabels = true;
     }
 
-    const { data } = await fetch({
+    return fetch({
         url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}`),
         body: queryParams,
     });
-    return data;
 };
 
 /**
