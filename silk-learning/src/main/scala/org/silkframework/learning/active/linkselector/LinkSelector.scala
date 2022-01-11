@@ -14,7 +14,7 @@
 
 package org.silkframework.learning.active.linkselector
 
-import org.silkframework.entity.Link
+import org.silkframework.learning.active.LinkCandidate
 import org.silkframework.rule.evaluation.ReferenceEntities
 
 import scala.util.Random
@@ -33,5 +33,5 @@ trait LinkSelector {
    *
    * @return A sequence of links which is ordered by informativeness. The number of links which are returned depends on the implementation.
    */
-  def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[Link], referenceEntities: ReferenceEntities)(implicit random: Random): Seq[Link]
+  def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[LinkCandidate], referenceEntities: ReferenceEntities)(implicit random: Random): Seq[LinkCandidate]
 }

@@ -2,16 +2,14 @@ package org.silkframework.rule
 
 import org.silkframework.config.{Prefixes, Task}
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec}
-import org.silkframework.entity.metadata.GenericExecutionFailure
+import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.TypedPath
-import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
-import org.silkframework.failures.FailureClass
-import org.silkframework.runtime.activity.UserContext
+import org.silkframework.rule.execution.TransformReport
+import org.silkframework.rule.execution.local.TransformedEntities
+import org.silkframework.runtime.activity.{ActivityMonitor, UserContext}
 import org.silkframework.util.Uri
-
-import scala.util.{Failure, Success, Try}
 
 /**
   * A data source that transforms all entities using a provided transformation.
@@ -19,7 +17,7 @@ import scala.util.{Failure, Success, Try}
   * @param source        The data source for retrieving the source entities.
   * @param transformRule The transformation
   */
-class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, transformRule: TransformRule) extends DataSource {
+class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, transformRule: TransformRule, task: Task[TransformSpec]) extends DataSource {
   /**
     * Retrieves known generated types in this source.
     *
@@ -53,7 +51,11 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     */
   override def retrieve(entitySchema: EntitySchema, limit: Option[Int])
                        (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
-    GenericEntityTable(retrieveEntities(entitySchema, None, limit), entitySchema, underlyingTask)
+    val sourceEntities = source.retrieve(inputSchema, limit).entities
+    val taskContext = new ActivityMonitor[TransformReport](task.id, None)
+    val transformedEntities = new TransformedEntities(task, sourceEntities, transformRule.label(), transformRule.rules,
+      entitySchema, isRequestedSchema = true, abortIfErrorsOccur = false, taskContext)
+    GenericEntityTable(transformedEntities, entitySchema, underlyingTask)
   }
 
   /**
@@ -68,58 +70,9 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     if(entities.isEmpty) {
       EmptyEntityTable(underlyingTask)
     } else {
-      GenericEntityTable(retrieveEntities(entitySchema, Some(entities), None), entitySchema, underlyingTask)
+      val entitySet = entities.toSet
+      retrieve(entitySchema).filter(e => entitySet.contains(e.uri))
     }
-  }
-
-  private def retrieveEntities(entitySchema: EntitySchema, entities: Option[Seq[Uri]], limit: Option[Int])
-                              (implicit userContext: UserContext, prefixes: Prefixes): Traversable[Entity] = {
-    val subjectRule = transformRule.rules.allRules.find(_.target.isEmpty)
-    val pathRules =
-      for (typedPath <- entitySchema.typedPaths) yield {
-        transformRule.rules.allRules.filter(_.target.map(_.asPath()).contains(typedPath.asUntypedPath))
-      }
-
-    val sourceEntities = source.retrieve(inputSchema, limit).entities
-    def transformedUri: Entity => String = (entity: Entity) => subjectRule.flatMap(_ (entity).headOption).getOrElse(entity.uri.toString)
-    // True if the entity should be output, i.e. if entity URIs are defined the transformed entity URI should be included in that set
-    val filterEntity: Entity => Boolean = entities match {
-      case Some(uris) =>
-        val uriSet = uris.map(_.uri.toString).toSet
-        entity =>  {
-          val uri = transformedUri(entity)
-          uriSet.contains(uri)
-        }
-      case None =>
-        _ => true
-    }
-
-    new Traversable[Entity] {
-      override def foreach[U](f: Entity => U): Unit = {
-        for (entity <- sourceEntities if filterEntity(entity)) yield {
-          val uri = transformedUri(entity)
-          transformedValues(pathRules, entity) match {
-            case Left(transformedValues) =>
-              f(Entity(uri, transformedValues, entitySchema))
-            case Right(throwable) =>
-              f(Entity(uri, entitySchema, FailureClass(GenericExecutionFailure(throwable), source.underlyingTask.id)))
-          }
-        }
-      }
-    }
-  }
-
-  private def transformedValues[U](pathRules: IndexedSeq[Seq[TransformRule]], entity: Entity): Either[IndexedSeq[Seq[String]], Throwable] = {
-    val transformedValues = (for (rules <- pathRules) yield {
-      Try {
-        rules.flatMap(rule => rule(entity))
-      }
-    }).map {
-      case Success(v) => v
-      case Failure(f) =>
-        return Right(f)
-    }
-    Left(transformedValues)
   }
 
   /**

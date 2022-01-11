@@ -21,7 +21,7 @@ class CombinedEntitySink(sinks: Seq[EntitySink]) extends EntitySink {
     }
   }
 
-  override def writeEntity(subject: String, values: Seq[Seq[String]])
+  override def writeEntity(subject: String, values: IndexedSeq[Seq[String]])
                           (implicit userContext: UserContext): Unit = {
     for(sink <- sinks) {
       sink.writeEntity(subject, values)

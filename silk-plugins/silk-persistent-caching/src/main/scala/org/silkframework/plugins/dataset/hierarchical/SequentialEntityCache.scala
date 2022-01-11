@@ -16,7 +16,7 @@ private case class SequentialEntityCache() {
   /**
     * Writes an entity.
     */
-  def putEntity(uri: String, values: Seq[Seq[String]]): Unit = {
+  def putEntity(uri: String, values: IndexedSeq[Seq[String]]): Unit = {
     objectStream.writeBoolean(true) // signal that another entity is following
     objectStream.writeUTF(uri)
     objectStream.writeObject(values)
@@ -35,7 +35,7 @@ private case class SequentialEntityCache() {
     try {
       while (inputStream.readBoolean()) {
         val uri = inputStream.readUTF()
-        val values = inputStream.readObject().asInstanceOf[Seq[Seq[String]]]
+        val values = inputStream.readObject().asInstanceOf[IndexedSeq[Seq[String]]]
         f(CachedEntity(uri, values, 0))
       }
     } finally {

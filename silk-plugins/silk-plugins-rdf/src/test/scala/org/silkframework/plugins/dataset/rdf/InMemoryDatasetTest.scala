@@ -31,7 +31,7 @@ class InMemoryDatasetTest extends FlatSpec with MustMatchers with MockitoSugar {
     entitySink.openTableWithPaths("", paths, false)
     entitySink.writeEntity(
       subject,
-      Seq(entities)
+      IndexedSeq(entities)
     )
     entitySink.closeTable()
     entitySink.close()
