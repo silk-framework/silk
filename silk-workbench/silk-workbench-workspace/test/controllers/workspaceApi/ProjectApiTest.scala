@@ -57,7 +57,7 @@ class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatcher
     val projectId = (createProjectByLabel("will be overwritten", Some("will also be overwritten")).json \ "name").as[String]
     val (newLabel, newDescription) = ("new label", Some("new description"))
     val response = client.url(s"$baseUrl${projectsMetaDataUrl(projectId)}").put(Json.toJson(ItemMetaData(newLabel, newDescription)))
-    val metaDataResponse = Json.fromJson[MetaDataPlain](checkResponse(response).json).get
+    val metaDataResponse = Json.fromJson[MetaDataPlain](checkResponse(response).json).get.toMetaData
     val metaData = retrieveOrCreateProject(projectId).config.metaData
     metaData mustBe metaDataResponse
     metaData.label mustBe Some(newLabel)
@@ -102,7 +102,8 @@ class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatcher
     // Tag the project
     addTagToProject(projectId, tag1.uri)
 
-    getMetaDataExpanded(projectId).tags must contain theSameElementsAs Set(FullTag(tag1.uri, "My Tag"))
+    // Make sure that the tag has been added
+    getMetaDataExpanded(projectId).tags must contain theSameElementsAs Set(tag1)
   }
 
   private def fetchPrefixes: JsResult[Map[String, String]] = {

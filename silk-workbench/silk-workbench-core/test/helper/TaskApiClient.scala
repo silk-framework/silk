@@ -1,8 +1,9 @@
 package helper
 
 import org.silkframework.config.MetaData
-import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
-import play.api.libs.json.JsValue
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.serialization.json.MetaDataSerializers.MetaDataPlain
+import play.api.libs.json.{JsValue, Json}
 import play.api.libs.ws.WSResponse
 
 trait TaskApiClient extends ApiClient {
@@ -30,13 +31,13 @@ trait TaskApiClient extends ApiClient {
     val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/metadata")
     val response = request.get()
     val json = checkResponse(response).json
-    Serialization.formatForType[MetaData, JsValue].read(json)
+    Json.fromJson[MetaDataPlain](json).get.toMetaData
   }
 
   def updateMetaData(projectId: String, taskId: String, metaData: MetaData): Unit = {
     implicit val writeContext = WriteContext[JsValue](projectId = Some(projectId))
     val request = client.url(s"$baseUrl/workspace/projects/$projectId/tasks/$taskId/metadata")
-    val response = request.put(Serialization.formatForType[MetaData, JsValue].write(metaData))
+    val response = request.put(Json.toJson(MetaDataPlain.fromMetaData(metaData)))
     checkResponse(response)
   }
 

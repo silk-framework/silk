@@ -3,7 +3,7 @@ package controllers.projectApi
 import config.WorkbenchConfig
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.projectApi.ProjectApi.{AddTagRequest, AddTagResponse, ProjectTagsResponse}
+import controllers.projectApi.ProjectApi.{AddTagRequest, ProjectTagsResponse}
 import controllers.projectApi.doc.ProjectApiDoc
 import controllers.workspace.JsonSerializer
 import controllers.workspaceApi.IdentifierUtils
@@ -498,7 +498,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
         description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
-          schema = new Schema(implementation = classOf[AddTagResponse])
+          schema = new Schema(implementation = classOf[FullTag])
         ))
       ),
       new ApiResponse(
@@ -681,32 +681,8 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
 
 object ProjectApi {
 
-
-
-
-
+  @Schema(description = "Lists all user-defined tags.")
   case class ProjectTagsResponse(tags: Array[FullTag])
-
-  @Schema(description = "Request to add a new tag")
-  case class AddTagRequest(@Schema(description = "The URI of the new tag. Leave empty to generate a new URI automatically.", required = false, nullable = true)
-                           uri: Option[String],
-                           @Schema(description = "Default label of the tag.", required = true, example = "My Tag")
-                           label: String) {
-
-
-    def execute(project: Project)
-               (implicit userContext: UserContext): AddTagResponse = {
-      val tagUri = uri match {
-        case Some(userUri) =>
-          userUri
-        case None =>
-          project.tags.generateTagUri()
-      }
-      project.tags.putTag(Tag(tagUri, label))
-      AddTagResponse(tagUri)
-    }
-
-  }
 
   object ProjectTagsResponse {
 
@@ -716,10 +692,28 @@ object ProjectApi {
 
   }
 
-  @Schema(description = "The generated tag URI")
-  case class AddTagResponse(uri: String)
+  @Schema(description = "Request to add a new tag.")
+  case class AddTagRequest(@Schema(description = "The URI of the new tag. Leave empty to generate a new URI automatically.", required = false, nullable = true)
+                           uri: Option[String],
+                           @Schema(description = "Default label of the tag.", required = true, example = "My Tag")
+                           label: String) {
+
+
+    def execute(project: Project)
+               (implicit userContext: UserContext): FullTag = {
+      val tagUri = uri match {
+        case Some(userUri) =>
+          userUri
+        case None =>
+          project.tags.generateTagUri()
+      }
+      val tag = Tag(tagUri, label)
+      project.tags.putTag(tag)
+      FullTag.fromTag(tag)
+    }
+
+  }
 
   implicit val projectTagsResponseFormat: Format[ProjectTagsResponse] = Json.format[ProjectTagsResponse]
   implicit val addTagRequestFormat: Format[AddTagRequest] = Json.format[AddTagRequest]
-  implicit val addTagResponseFormat: Format[AddTagResponse] = Json.format[AddTagResponse]
 }

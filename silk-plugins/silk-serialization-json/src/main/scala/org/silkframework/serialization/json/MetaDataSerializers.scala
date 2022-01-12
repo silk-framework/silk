@@ -32,18 +32,36 @@ object MetaDataSerializers {
                            created: Option[Instant] = None,
                            createdByUser: Option[String] = None,
                            lastModifiedByUser: Option[String] = None,
-                           tags: Set[String] = Set.empty) {
+                           tags: Option[Set[String]] = None) {
     def toMetaData: MetaData = {
       MetaDataPlain.toMetaData(this)
     }
   }
 
   object MetaDataPlain {
+
     def fromMetaData(md: MetaData): MetaDataPlain = {
-      MetaDataPlain(md.label, md.description, md.modified, md.created, md.createdByUser.map(_.uri), md.lastModifiedByUser.map(_.uri), md.tags.map(_.uri))
+      MetaDataPlain(
+        label = md.label,
+        description = md.description,
+        modified = md.modified,
+        created = md.created,
+        createdByUser = md.createdByUser.map(_.uri),
+        lastModifiedByUser = md.lastModifiedByUser.map(_.uri),
+        tags = if(md.tags.isEmpty) None else Some(md.tags.map(_.uri))
+      )
     }
+
     def toMetaData(md: MetaDataPlain): MetaData = {
-      MetaData(md.label, md.description, md.modified, md.created, md.createdByUser.map(new Uri(_)), md.lastModifiedByUser.map(new Uri(_)), md.tags.map(new Uri(_)))
+      MetaData(
+        label = md.label,
+        description = md.description,
+        modified = md.modified,
+        created = md.created,
+        createdByUser = md.createdByUser.map(new Uri(_)),
+        lastModifiedByUser = md.lastModifiedByUser.map(new Uri(_)),
+        tags = md.tags.getOrElse(Set.empty).map(new Uri(_))
+      )
     }
   }
 

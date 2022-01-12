@@ -1,18 +1,13 @@
 package controllers.util
 
-import controllers.projectApi.ProjectApi.{AddTagRequest, AddTagResponse, ProjectTagsResponse}
+import controllers.projectApi.ProjectApi.{AddTagRequest, ProjectTagsResponse}
 import helper.ApiClient
 import org.silkframework.util.Identifier
 import controllers.projectApi.routes.ProjectApi
-import org.silkframework.serialization.json.MetaDataSerializers.{MetaDataExpanded, MetaDataPlain}
-import play.api.libs.json.{JsValue, Json}
+import org.silkframework.serialization.json.MetaDataSerializers.{FullTag, MetaDataExpanded, MetaDataPlain}
 import play.api.libs.ws.EmptyBody
 
-import java.util.logging.Logger
-
 trait ProjectApiClient extends ApiClient {
-
-  private val log = Logger.getLogger(getClass.getName)
 
   def getMetaData(projectId: Identifier): MetaDataPlain = {
     getRequest[MetaDataPlain](ProjectApi.getProjectMetaData(projectId))
@@ -32,8 +27,8 @@ trait ProjectApiClient extends ApiClient {
     getRequest[ProjectTagsResponse](ProjectApi.fetchTags(projectId))
   }
 
-  def addTag(projectId: Identifier, addTagRequest: AddTagRequest): AddTagResponse = {
-    postRequest[AddTagRequest, AddTagResponse](ProjectApi.addTag(projectId), addTagRequest)
+  def addTag(projectId: Identifier, addTagRequest: AddTagRequest): FullTag = {
+    postRequest[AddTagRequest, FullTag](ProjectApi.addTag(projectId), addTagRequest)
   }
 
   def deleteTag(projectId: Identifier, tagUri: String): Unit = {

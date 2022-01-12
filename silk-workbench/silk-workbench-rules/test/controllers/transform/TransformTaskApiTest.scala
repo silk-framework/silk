@@ -197,7 +197,6 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
  |                "sourcePath": "source:address",
  |                "metadata": {
  |                }
-
  |            }
  |        ]
  |    },
