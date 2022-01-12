@@ -9,7 +9,7 @@ import org.silkframework.runtime.resource.{Resource, ResourceManager}
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.ActivitySerializers.ExtendedStatusJsonFormat
 import org.silkframework.serialization.json.JsonSerializers
-import org.silkframework.serialization.json.JsonSerializers._
+import org.silkframework.serialization.json.MetaDataSerializers._
 import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{Project, ProjectMarshallingTrait, WorkspaceFactory}

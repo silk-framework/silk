@@ -1,16 +1,14 @@
 package org.silkframework.workspace
 
-import java.util.logging.{Level, Logger}
-
-import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.config.{Tag, Task, TaskSpec}
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.io.WorkspaceIO
 
+import java.util.logging.{Level, Logger}
 import scala.reflect.ClassTag
-import scala.util.Try
 import scala.util.control.NonFatal
 
 /**
@@ -111,6 +109,31 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
     */
   override def deleteTask[T <: TaskSpec : ClassTag](project: Identifier, task: Identifier)(implicit user: UserContext): Unit = {
     executeOnBackends(_.deleteTask(project, task), s"Deleting task $task from project $project")
+  }
+
+  /**
+    * Retrieve a list of all available tags.
+    */
+  def readTags(project: Identifier)
+              (implicit userContext: UserContext): Iterable[Tag] = {
+    primaryWorkspace.readTags(project)
+  }
+
+  /**
+    * Add a new tag.
+    * Adding a tag with an existing URI, will overwrite the corresponding tag.
+    */
+  def putTag(project: Identifier, tag: Tag)
+            (implicit userContext: UserContext): Unit = {
+    executeOnBackends(_.putTag(project, tag), s"Adding/Updating tag ${tag.uri} in project $project")
+  }
+
+  /**
+    * Remove a tag.
+    */
+  def deleteTag(project: Identifier, tagUri: String)
+               (implicit userContext: UserContext): Unit = {
+    executeOnBackends(_.deleteTag(project, tagUri), s"Deleting tag $tagUri in project $project")
   }
 
   /**

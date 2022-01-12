@@ -25,7 +25,6 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowValidator}
 import org.silkframework.workspace.activity.{ProjectActivity, ProjectActivityFactory}
 import org.silkframework.workspace.exceptions.{IdentifierAlreadyExistsException, TaskNotFoundException}
-import org.silkframework.workspace.tags.TagManager
 
 import java.util.logging.{Level, Logger}
 import scala.reflect.ClassTag
@@ -34,9 +33,11 @@ import scala.util.control.NonFatal
 /**
  * A project.
  */
-class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val resources: ResourceManager, val tags: TagManager = new TagManager()) extends ProjectTrait {
+class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val resources: ResourceManager) extends ProjectTrait {
 
   private implicit val logger = Logger.getLogger(classOf[Project].getName)
+
+  val tags = new TagManager(initialConfig.id, provider)
 
   val cacheResources: ResourceManager = provider.projectCache(initialConfig.id)
 

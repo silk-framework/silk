@@ -481,6 +481,24 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
     updatedProject2.prefixes.prefixMap.get(NEW_PREFIX) shouldBe Some("http://new_prefix_updated")
   }
 
+  it should "allow managing tags" in {
+    implicit val us: UserContext = emptyUserContext
+
+    // Make sure that initially the tags are empty
+    workspaceProvider.readTags(PROJECT_NAME) shouldBe empty
+
+    // Add tags and read them back
+    val tag1 = Tag("urn:tag1", "Some Tag 1")
+    val tag2 = Tag("urn:tag2", "Some Tag 2")
+    workspaceProvider.putTag(PROJECT_NAME, tag1)
+    workspaceProvider.putTag(PROJECT_NAME, tag2)
+    workspaceProvider.readTags(PROJECT_NAME) should contain theSameElementsAs Iterable(tag1, tag2)
+
+    // Remove tag
+    workspaceProvider.deleteTag(PROJECT_NAME, tag1.uri)
+    workspaceProvider.readTags(PROJECT_NAME) should contain theSameElementsAs Iterable(tag2)
+  }
+
   /** Executes the block before and after project refresh */
   private def withRefresh(projectName: String)(ex: => Unit)(implicit userContext: UserContext): Unit = {
     ex

@@ -1,6 +1,6 @@
 package org.silkframework.workspace
 
-import org.silkframework.config.{MetaData, PlainTask, Task, TaskSpec}
+import org.silkframework.config.{Tag, Task, TaskSpec}
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.Plugin
@@ -9,7 +9,6 @@ import org.silkframework.util.Identifier
 import org.silkframework.workspace.io.WorkspaceIO
 
 import scala.reflect.ClassTag
-import scala.util.{Success, Try}
 
 @Plugin(
   id = "inMemory",
@@ -89,6 +88,31 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
   }
 
   /**
+    * Retrieve a list of all available tags.
+    */
+  def readTags(project: Identifier)
+              (implicit userContext: UserContext): Iterable[Tag] = {
+    projects(project).tags.values
+  }
+
+  /**
+    * Add a new tag.
+    * Adding a tag with an existing URI, will overwrite the corresponding tag.
+    */
+  def putTag(project: Identifier, tag: Tag)
+            (implicit userContext: UserContext): Unit = {
+    projects(project).tags += ((tag.uri, tag))
+  }
+
+  /**
+    * Remove a tag.
+    */
+  def deleteTag(project: Identifier, tagUri: String)
+               (implicit userContext: UserContext): Unit = {
+    projects(project).tags -= tagUri
+  }
+
+  /**
     * No refresh needed.
     */
   override def refresh()(implicit userContext: UserContext): Unit = {}
@@ -96,6 +120,8 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
   protected class InMemoryProject(val config: ProjectConfig) {
 
     var tasks: Map[Identifier, Task[_]] = Map.empty
+
+    var tags: Map[String, Tag] = Map.empty
 
     val resources = new InMemoryResourceManager
 

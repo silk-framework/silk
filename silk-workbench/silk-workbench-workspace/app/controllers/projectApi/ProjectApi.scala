@@ -3,6 +3,7 @@ package controllers.projectApi
 import config.WorkbenchConfig
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
+import controllers.projectApi.ProjectApi.{AddTagRequest, AddTagResponse, ProjectTagsResponse}
 import controllers.projectApi.doc.ProjectApiDoc
 import controllers.workspace.JsonSerializer
 import controllers.workspaceApi.IdentifierUtils
@@ -15,19 +16,19 @@ import io.swagger.v3.oas.annotations.headers.Header
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.tags.{Tag => OpenApiTag}
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.config.{MetaData, Prefixes}
+import org.silkframework.config.{MetaData, Prefixes, Tag}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.serialization.json.JsonSerializers
-import org.silkframework.serialization.json.JsonSerializers.MetaDataJsonFormat
+import org.silkframework.serialization.json.MetaDataSerializers.{FullTag, MetaDataExpanded, MetaDataPlain}
+import org.silkframework.util.{Identifier, Uri}
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
-import org.silkframework.util.Identifier
 import org.silkframework.workspace.exceptions.IdentifierAlreadyExistsException
-import org.silkframework.workspace.ProjectConfig
 import org.silkframework.workspace.io.WorkspaceIO
-import play.api.libs.json.{JsValue, Json}
+import org.silkframework.workspace.{Project, ProjectConfig}
+import play.api.libs.json.{Format, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import java.net.URI
@@ -37,7 +38,7 @@ import scala.util.Try
 /**
   * REST API for project artifacts.
   */
-@Tag(name = "Projects", description = "Access to all projects in the workspace.")
+@OpenApiTag(name = "Projects", description = "Access to all projects in the workspace.")
 class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
   /** validate the project id field by ensuring it's unique and corresponds to the right format **/
   @Operation(
@@ -196,6 +197,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
         description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
+          schema = new Schema(implementation = classOf[MetaDataPlain]),
           examples = Array(new ExampleObject("{ \"label\": \"New label\", \"description\": \"New description\", \"modified\":\"2020-04-29T13:51:00.349Z\" }"))
         ))
       ),
@@ -227,7 +229,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
       val oldProjectMetaData = workspace.project(projectId).config.metaData
       val mergedMetaData = oldProjectMetaData.copy(label = Some(cleanedNewMetaData.label), description = cleanedNewMetaData.description)
       val updatedMetaData = workspace.updateProjectMetaData(projectId, mergedMetaData.asUpdatedMetaData)
-      Ok(JsonSerializers.toJson(updatedMetaData))
+      Ok(Json.toJson(MetaDataPlain.fromMetaData(updatedMetaData)))
     }
   }
 
@@ -241,6 +243,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
         description = "Success",
         content = Array(new Content(
           mediaType = "application/json",
+          schema = new Schema(implementation = classOf[MetaDataPlain]),
           examples = Array(new ExampleObject("{ \"label\": \"New label\", \"description\": \"New description\", \"modified\":\"2020-04-29T13:51:00.349Z\" }"))
         ))
       ),
@@ -257,7 +260,76 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
                             schema = new Schema(implementation = classOf[String])
                           )
                           projectId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    Ok(JsonSerializers.toJson(getProject(projectId).config.metaData))
+    Ok(Json.toJson(MetaDataPlain.fromMetaData(getProject(projectId).config.metaData)))
+  }
+
+  @Operation(
+    summary = "Retrieve expanded project metadata",
+    description = "Metadata of the project, such as the label and description.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(implementation = classOf[MetaDataExpanded])
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      )
+    ))
+  def getProjectMetaDataExpanded(@Parameter(
+                                   name = "projectId",
+                                   description = "The project identifier",
+                                   required = true,
+                                   in = ParameterIn.PATH,
+                                   schema = new Schema(implementation = classOf[String])
+                                 )
+                                 projectId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = getProject(projectId)
+    Ok(Json.toJson(MetaDataExpanded.fromMetaData(project.config.metaData, project.tags)))
+  }
+
+  @Operation(
+    summary = "Add tag to project",
+    description = "Adds a new tag to a project.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "204",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(implementation = classOf[MetaDataExpanded])
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      )
+    ))
+  def addTagToProject(@Parameter(
+                        name = "projectId",
+                        description = "The project identifier",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      projectId: String,
+                      @Parameter(
+                        name = "tagUri",
+                        description = "The tag URI",
+                        required = true,
+                        in = ParameterIn.PATH,
+                        schema = new Schema(implementation = classOf[String])
+                      )
+                      tagUri: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = getProject(projectId)
+    val newTags = project.config.metaData.tags + Uri(tagUri)
+    val newMetaData = project.config.metaData.copy(tags = newTags)
+    project.config = project.config.withMetaData(newMetaData)
+    NoContent
   }
 
   /** Returns all project prefixes */
@@ -387,6 +459,110 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
     Ok(Json.toJson(newPrefixes.prefixMap))
   }
 
+  @Operation(
+    summary = "Get tags",
+    description = "Retrieves all tags from a project.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(implementation = classOf[ProjectTagsResponse])
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      )
+    ))
+  def fetchTags(@Parameter(
+                  name = "projectId",
+                  description = "The project identifier",
+                  required = true,
+                  in = ParameterIn.PATH,
+                  schema = new Schema(implementation = classOf[String])
+                )
+                projectId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = getProject(projectId)
+    val tags = project.tags.allTags()
+    Ok(Json.toJson(ProjectTagsResponse.fromTags(tags)))
+  }
+
+  @Operation(
+    summary = "Add tag",
+    description = "Create or update a project tag.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "204",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(implementation = classOf[AddTagResponse])
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      )
+    ))
+  @RequestBody(
+    description = "The tag.",
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[AddTagRequest])
+      ))
+  )
+  def addTag(@Parameter(
+               name = "projectId",
+               description = "The project identifier",
+               required = true,
+               in = ParameterIn.PATH,
+               schema = new Schema(implementation = classOf[String])
+             )
+             projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+    validateJson[AddTagRequest] { request =>
+      val response = request.execute(getProject(projectId))
+      Ok(Json.toJson(response))
+    }
+  }
+
+  @Operation(
+    summary = "Remove tag",
+    description = "Deletes a tag.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "204",
+        description = "The tag has been removed."
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      )
+    ))
+  def deleteTag(@Parameter(
+                  name = "projectId",
+                  description = "The project identifier",
+                  required = true,
+                  in = ParameterIn.PATH,
+                  schema = new Schema(implementation = classOf[String])
+                )
+                projectId: String,
+                @Parameter(
+                  name = "tag",
+                  description = "The tag URI",
+                  required = true,
+                  in = ParameterIn.PATH,
+                  schema = new Schema(implementation = classOf[String])
+                )
+                tag: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = getProject(projectId)
+    project.tags.deleteTag(tag)
+    NoContent
+  }
+
   /** Get an error report for tasks that failed loading. */
   @Operation(
     summary = "Project task loading error report",
@@ -498,5 +674,52 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
         Ok(Json.toJson(failedTasks))
     }
   }
+
+
+
 }
 
+object ProjectApi {
+
+
+
+
+
+  case class ProjectTagsResponse(tags: Array[FullTag])
+
+  @Schema(description = "Request to add a new tag")
+  case class AddTagRequest(@Schema(description = "The URI of the new tag. Leave empty to generate a new URI automatically.", required = false, nullable = true)
+                           uri: Option[String],
+                           @Schema(description = "Default label of the tag.", required = true, example = "My Tag")
+                           label: String) {
+
+
+    def execute(project: Project)
+               (implicit userContext: UserContext): AddTagResponse = {
+      val tagUri = uri match {
+        case Some(userUri) =>
+          userUri
+        case None =>
+          project.tags.generateTagUri()
+      }
+      project.tags.putTag(Tag(tagUri, label))
+      AddTagResponse(tagUri)
+    }
+
+  }
+
+  object ProjectTagsResponse {
+
+    def fromTags(tags: Iterable[Tag]): ProjectTagsResponse = {
+      ProjectTagsResponse(tags.map(FullTag.fromTag).toArray[FullTag])
+    }
+
+  }
+
+  @Schema(description = "The generated tag URI")
+  case class AddTagResponse(uri: String)
+
+  implicit val projectTagsResponseFormat: Format[ProjectTagsResponse] = Json.format[ProjectTagsResponse]
+  implicit val addTagRequestFormat: Format[AddTagRequest] = Json.format[AddTagRequest]
+  implicit val addTagResponseFormat: Format[AddTagResponse] = Json.format[AddTagResponse]
+}

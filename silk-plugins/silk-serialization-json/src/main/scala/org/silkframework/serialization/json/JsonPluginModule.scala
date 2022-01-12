@@ -12,7 +12,6 @@ import org.silkframework.serialization.json.WorkflowSerializers.{WorkflowDataset
 class JsonPluginModule extends PluginModule {
 
   override def pluginClasses: Seq[Class[_]] =
-      MetaDataJsonFormat.getClass ::
       StringJsonFormat.getClass ::
       PluginListJsonFormat.getClass ::
       TaskSpecJsonFormat.getClass ::

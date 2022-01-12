@@ -19,8 +19,9 @@ import org.silkframework.runtime.plugin.{ParameterAutoCompletion, PluginDescript
 import org.silkframework.runtime.resource.{FileResource, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.serialization.json.JsonSerializers.{GenericTaskJsonFormat, MetaDataJsonFormat, TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat, fromJson, toJson, _}
+import org.silkframework.serialization.json.JsonSerializers.{GenericTaskJsonFormat, TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat, fromJson, toJson, _}
 import org.silkframework.serialization.json.{JsonSerialization, JsonSerializers}
+import org.silkframework.serialization.json.MetaDataSerializers._
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}

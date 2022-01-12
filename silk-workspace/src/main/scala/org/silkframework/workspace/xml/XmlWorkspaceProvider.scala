@@ -1,10 +1,11 @@
 package org.silkframework.workspace.xml
 
+import org.silkframework.config.Tag.TagXmlFormat
 import org.silkframework.config._
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
+import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlSerialization}
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.io.WorkspaceIO
@@ -13,7 +14,7 @@ import org.silkframework.workspace.{ProjectConfig, TaskLoadingError, WorkspacePr
 import java.util.logging.{Level, Logger}
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
-import scala.xml.{Elem, XML}
+import scala.xml.{Elem, Node, XML}
 
 /**
   * Holds all projects in a xml-based file structure.
@@ -110,6 +111,50 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
   override def deleteTask[T <: TaskSpec : ClassTag](project: Identifier, task: Identifier)
                                                    (implicit userContext: UserContext): Unit = {
     plugin[T].removeTask(task, resources.child(project).child(plugin[T].prefix))
+  }
+
+  /**
+    * Retrieve a list of all available tags.
+    */
+  override def readTags(project: Identifier)
+                       (implicit userContext: UserContext): Iterable[Tag] = {
+    implicit val readContext: ReadContext = ReadContext()
+    val tagXmlFile = resources.child(project).get("tags.xml")
+    if(tagXmlFile.nonEmpty) {
+      val tagXml = tagXmlFile.read(XML.load)
+      (tagXml \ "Tag").map(TagXmlFormat.read)
+    } else {
+      Iterable.empty
+    }
+  }
+
+  /**
+    * Add a new tag.
+    * Adding a tag with an existing URI, will overwrite the corresponding tag.
+    */
+  override def putTag(project: Identifier, tag: Tag)
+                     (implicit userContext: UserContext): Unit = {
+    val tags = readTags(project).filterNot(_.uri == tag.uri) ++ Iterable(tag)
+    updateTags(project, tags)
+  }
+
+  /**
+    * Remove a tag.
+    */
+  override def deleteTag(project: Identifier, tagUri: String)
+                        (implicit userContext: UserContext): Unit = {
+    val tags = readTags(project).filterNot(_.uri == tagUri)
+    updateTags(project, tags)
+  }
+
+  private def updateTags(project: Identifier, tags: Iterable[Tag]): Unit = {
+    implicit val writeContext: WriteContext[Node] = WriteContext[Node]()
+    val tagXml =
+      <Tags>
+        { tags.map(TagXmlFormat.write) }
+      </Tags>
+    val tagXmlFile = resources.child(project).get("tags.xml")
+    tagXmlFile.write()(tagXml.write)
   }
 
   private def plugin[T <: TaskSpec : ClassTag]: XmlSerializer[T] = {
