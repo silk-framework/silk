@@ -1,6 +1,6 @@
 package org.silkframework.serialization.json
 
-import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.config.{MetaData, Tag}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.serialization.json.TransformedJsonFormat.TransformableJsonFormat
@@ -32,6 +32,7 @@ object MetaDataSerializers {
                            created: Option[Instant] = None,
                            createdByUser: Option[String] = None,
                            lastModifiedByUser: Option[String] = None,
+                           @ArraySchema(schema = new Schema(implementation = classOf[String], required = false, nullable = true))
                            tags: Option[Set[String]] = None) {
     def toMetaData: MetaData = {
       MetaDataPlain.toMetaData(this)
@@ -72,6 +73,7 @@ object MetaDataSerializers {
                               created: Option[Instant] = None,
                               createdByUser: Option[String] = None,
                               lastModifiedByUser: Option[String] = None,
+                              @ArraySchema(schema = new Schema(implementation = classOf[FullTag]))
                               tags: Set[FullTag] = Set.empty)
 
   object MetaDataExpanded {

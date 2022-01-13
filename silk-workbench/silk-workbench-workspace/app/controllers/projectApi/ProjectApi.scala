@@ -13,7 +13,7 @@ import controllers.workspaceApi.projectTask.{ItemCloneRequest, ItemCloneResponse
 import controllers.workspaceApi.search.ItemType
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.headers.Header
-import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.media.{ArraySchema, Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.{Tag => OpenApiTag}
@@ -682,12 +682,13 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
 object ProjectApi {
 
   @Schema(description = "Lists all user-defined tags.")
-  case class ProjectTagsResponse(tags: Array[FullTag])
+  case class ProjectTagsResponse(@ArraySchema(schema = new Schema(implementation = classOf[FullTag]))
+                                 tags: Iterable[FullTag])
 
   object ProjectTagsResponse {
 
     def fromTags(tags: Iterable[Tag]): ProjectTagsResponse = {
-      ProjectTagsResponse(tags.map(FullTag.fromTag).toArray[FullTag])
+      ProjectTagsResponse(tags.map(FullTag.fromTag))
     }
 
   }
