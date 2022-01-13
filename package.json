@@ -10,7 +10,6 @@
     "libs/gui-elements"
   ],
   "scripts": {
-    "bootstrap": "lerna bootstrap"
   },
   "dependencies": {
     "react": "^16.13.1",
@@ -24,7 +23,6 @@
     "cross-env": "^5.2.0",
     "del-cli": "^3.0.1",
     "jest": "^26.1.0",
-    "lerna": "^3.22.1",
     "prettier": "^2.0.5"
   }
 }

@@ -75,7 +75,7 @@ object ReactBuildHelper {
     val productionBuild = buildEnv == "production"
     val buildTask = if (productionBuild) "webpack-build" else "webpack-dev-build"
     log.info(s"Building $project React components for $buildEnv, running task $buildTask...")
-    lernaBootstrap(reactBuildRoot)
+    yarnInstall(reactBuildRoot)
 
     // Run build via webpack only, uncomment source map copy instruction when using this
     process(yarnCommand :: buildTask :: Nil, reactBuildRoot) // Build main artifact
@@ -106,7 +106,7 @@ object ReactBuildHelper {
     val productionBuild = buildEnv == "production"
     val buildTask = if (productionBuild) "build-di-prod" else "build-di-dev"
     log.info(s"Building $project React UI for $buildEnv, running task $buildTask...")
-    lernaBootstrap(reactBuildRoot)
+    yarnInstall(reactBuildRoot)
 
     process(yarnCommand :: buildTask :: Nil, reactBuildRoot) // Build main artifact
 
@@ -138,16 +138,15 @@ object ReactBuildHelper {
     }
   }
 
-  /** Install dependencies and bootstrap lerna + yarn workspaces. */
-  def lernaBootstrap(reactBuildRoot: File): Unit = BasicIO.synchronized {
-    log.info("Bootstrapping lerna + yarn workspaces environment...")
+  /** Install dependencies and setup yarn workspaces. */
+  def yarnInstall(reactBuildRoot: File): Unit = BasicIO.synchronized {
+    log.info("Setting up yarn workspaces environment...")
     // Either bootstrap in Silk or in the directory the build config file has been found
     searchConfigFileRecursively(reactBuildRoot)
       .map(_.getParentFile)
       .orElse(findSilkRoot(reactBuildRoot)) match {
-      case Some(bootstrapRoot) =>
-        process(yarnCommand :: Nil, bootstrapRoot, maxRetries = MAX_RETRIES_YARN_DEPENDENCY_RESOLUTION) // Install dependencies
-        process(yarnCommand :: "bootstrap" :: Nil, bootstrapRoot, maxRetries = MAX_RETRIES_YARN_DEPENDENCY_RESOLUTION) // lerna bootstrap
+      case Some(realProjectRoot) =>
+        process(yarnCommand :: Nil, realProjectRoot, maxRetries = MAX_RETRIES_YARN_DEPENDENCY_RESOLUTION) // Install dependencies
       case None =>
         throw new RuntimeException(s"Directory '${reactBuildRoot.getAbsolutePath}' is neither inside the Silk repository nor" +
           s" nested in a directory containing a build config file '$silkBuildPropertiesFile'.")

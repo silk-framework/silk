@@ -306,7 +306,7 @@ lazy val reactComponents = (project in file("silk-react-components"))
 //////////////////////////////////////////////////////////////////////////////
 
 val buildDiReact = taskKey[Unit]("Builds Workbench React module")
-val lernaBootstrap = taskKey[Unit]("Bootstraps Yarn workspaces and lerna.")
+val yarnInstall = taskKey[Unit]("Runs yarn install.")
 val generateLanguageFiles = taskKey[Unit]("Generate i18n language files.")
 
 lazy val reactUI = (project in file("workspace"))
@@ -324,16 +324,16 @@ lazy val reactUI = (project in file("workspace"))
         Def.task { }
       }
     }.value,
-    lernaBootstrap := Def.taskDyn {
+    yarnInstall := Def.taskDyn {
       checkJsBuildTools.value
       if(!buildReactExternally) {
-        Def.task { ReactBuildHelper.lernaBootstrap(baseDirectory.value) }
+        Def.task { ReactBuildHelper.yarnInstall(baseDirectory.value) }
       } else {
         Def.task { }
       }
     }.value,
     generateLanguageFiles := Def.taskDyn {
-      lernaBootstrap.value
+      yarnInstall.value
       if(!buildReactExternally) {
         Def.task[Unit] {
           val reactWatchConfig = WatchConfig(new File(baseDirectory.value, "src/locales/manual"), fileRegex = """\.json$""")
