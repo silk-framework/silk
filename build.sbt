@@ -325,6 +325,7 @@ lazy val reactUI = (project in file("workspace"))
       }
     }.value,
     lernaBootstrap := Def.taskDyn {
+      checkJsBuildTools.value
       if(!buildReactExternally) {
         Def.task { ReactBuildHelper.lernaBootstrap(baseDirectory.value) }
       } else {
@@ -332,6 +333,7 @@ lazy val reactUI = (project in file("workspace"))
       }
     }.value,
     generateLanguageFiles := Def.taskDyn {
+      lernaBootstrap.value
       if(!buildReactExternally) {
         Def.task[Unit] {
           val reactWatchConfig = WatchConfig(new File(baseDirectory.value, "src/locales/manual"), fileRegex = """\.json$""")
@@ -346,8 +348,6 @@ lazy val reactUI = (project in file("workspace"))
     }.value,
     /** Build DataIntegration React */
     buildDiReact := {
-      checkJsBuildTools.value
-      lernaBootstrap.value
       generateLanguageFiles.value
       if(!buildReactExternally) {
         // TODO: Add additional source directories
