@@ -28,6 +28,7 @@ interface IPageHeaderContentBasicProps extends React.HTMLAttributes<HTMLDivEleme
     actionsMenu?: JSX.Element;
 }
 
+/*
 interface IPageHeaderContentAutogenerateBreadcrumbsProps extends IPageHeaderContentBasicProps {
     autogenerateBreadcrumbs: true;
     breadcrumbs?: never;
@@ -41,6 +42,7 @@ interface IPageHeaderContentAutogeneratePageTitleProps extends IPageHeaderConten
 type TPageHeader = IPageHeaderContentBasicProps &
     IPageHeaderContentAutogenerateBreadcrumbsProps &
     IPageHeaderContentAutogeneratePageTitleProps;
+*/
 
 export const APP_VIEWHEADER_ID = "diapp__viewheader";
 

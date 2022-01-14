@@ -17,6 +17,7 @@ import {
     Spinner,
     WhiteSpaceContainer,
 } from "gui-elements";
+import { Definitions as IntentTypes } from "gui-elements/src/common/Intent";
 import {
     ActivityAction,
     IActivityControlLayoutProps,
@@ -354,11 +355,11 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
         <Icon
             name={"state-warning"}
             large
-            intent="warning"
+            intent={IntentTypes.WARNING}
             tooltipText={`${cachesOverallStatus.failedActivities} failed activities`}
         />
     ) : (
-        <Icon name={"state-success"} large intent="success" />
+        <Icon name={"state-success"} large intent={IntentTypes.SUCCESS} />
     );
 
     // Widget that wraps and summarizes the cache activities
