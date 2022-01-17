@@ -22,7 +22,7 @@ import org.silkframework.config.{MetaData, Prefixes, Tag}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.serialization.json.MetaDataSerializers.{FullTag, MetaDataExpanded, MetaDataPlain}
+import org.silkframework.serialization.json.MetaDataSerializers.{FullTag, MetaDataExpanded, MetaDataPlain, tagFormat}
 import org.silkframework.util.{Identifier, Uri}
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.exceptions.IdentifierAlreadyExistsException
@@ -298,11 +298,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
     responses = Array(
       new ApiResponse(
         responseCode = "204",
-        description = "Success",
-        content = Array(new Content(
-          mediaType = "application/json",
-          schema = new Schema(implementation = classOf[MetaDataExpanded])
-        ))
+        description = "Success"
       ),
       new ApiResponse(
         responseCode = "404",
@@ -321,7 +317,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
                         name = "tagUri",
                         description = "The tag URI",
                         required = true,
-                        in = ParameterIn.PATH,
+                        in = ParameterIn.QUERY,
                         schema = new Schema(implementation = classOf[String])
                       )
                       tagUri: String): Action[AnyContent] = UserContextAction { implicit userContext =>
@@ -483,15 +479,30 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
                   in = ParameterIn.PATH,
                   schema = new Schema(implementation = classOf[String])
                 )
-                projectId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+                projectId: String,
+                @Parameter(
+                  name = "filter",
+                  description = "Optional filter term. Only tags that contain the given term will be returned.",
+                  required = false,
+                  in = ParameterIn.QUERY,
+                  schema = new Schema(implementation = classOf[String])
+                )
+                filter: Option[String] = None
+               ): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = getProject(projectId)
     val tags = project.tags.allTags()
-    Ok(Json.toJson(ProjectTagsResponse.fromTags(tags)))
+    val filteredTags = filter match {
+      case Some(search) =>
+        tags.filter(_.label.contains(search))
+      case None =>
+        tags
+    }
+    Ok(Json.toJson(ProjectTagsResponse.fromTags(filteredTags)))
   }
 
   @Operation(
-    summary = "Add tag",
-    description = "Create or update a project tag.",
+    summary = "Create/Update tag",
+    description = "Create or update a tag.",
     responses = Array(
       new ApiResponse(
         responseCode = "204",
@@ -515,7 +526,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
         schema = new Schema(implementation = classOf[AddTagRequest])
       ))
   )
-  def addTag(@Parameter(
+  def createTag(@Parameter(
                name = "projectId",
                description = "The project identifier",
                required = true,

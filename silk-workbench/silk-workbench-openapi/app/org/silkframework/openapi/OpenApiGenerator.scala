@@ -87,29 +87,17 @@ object OpenApiGenerator {
   }
 
   private def comparePaths(v1: (String, PathItem), v2: (String, PathItem)): Boolean = {
-    val path1 = v1._1
-    val path2 = v2._1
-    val namespace1 = namespace(path1)
-    val namespace2 = namespace(path2)
-    if(namespace1.startsWith(namespace2) || namespace2.startsWith(namespace1)) {
-      if(namespace1.length == namespace2.length) {
-        path1.compareTo(path2) < 0
-      } else {
-        namespace1.length < namespace2.length
-      }
-    } else {
-      path1.compareTo(path2) < 0
-    }
+    comparePaths(v1._1, v2._1)
+  }
+
+  def comparePaths(path1: String, path2: String): Boolean = {
+    normalizePath(path1).compareTo(normalizePath(path2)) < 0
   }
 
   @inline
-  private def namespace(path: String): String = {
-    val endIndex = path.lastIndexOf('/')
-    if(endIndex != -1) {
-      path.substring(0, endIndex)
-    } else {
-      path
-    }
+  private def normalizePath(path: String): String = {
+    path.stripPrefix("/api") // Ignore the /api prefix so that new and old endpoints are ordered next to each other
+        .replace('/', '~') // Slashes should be ordered after all alphanumerical characters
   }
 
   private def serializeJson(openApi: OpenAPI): String = {

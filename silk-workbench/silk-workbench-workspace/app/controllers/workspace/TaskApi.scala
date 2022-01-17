@@ -23,6 +23,7 @@ import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers.{GenericTaskJsonFormat, TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat, fromJson, metaData, toJson, _}
 import org.silkframework.serialization.json.{JsonSerialization, JsonSerializers}
 import org.silkframework.serialization.json.MetaDataSerializers._
+import org.silkframework.util.Uri
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
@@ -476,6 +477,89 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     val metaDataJson = taskMetaDataJson(task)
     accessMonitor.saveProjectTaskAccess(project.config.id, task.id)
     Ok(metaDataJson)
+  }
+
+  @Operation(
+    summary = "Retrieve expanded task metadata",
+    description = "Metadata of the task, such as the label and description.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(implementation = classOf[MetaDataExpanded])
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project or task does not exist."
+      )
+    ))
+  def getTaskMetadataExpanded(@Parameter(
+                                 name = "projectId",
+                                 description = "The project identifier",
+                                 required = true,
+                                 in = ParameterIn.PATH,
+                                 schema = new Schema(implementation = classOf[String])
+                               )
+                               projectId: String,
+                               @Parameter(
+                                 name = "task",
+                                 description = "The task identifier",
+                                 required = true,
+                                 in = ParameterIn.PATH,
+                                 schema = new Schema(implementation = classOf[String])
+                               )
+                               taskId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectId)
+    val task = project.anyTask(taskId)
+    Ok(Json.toJson(MetaDataExpanded.fromMetaData(task.metaData, project.tags)))
+  }
+
+  @Operation(
+    summary = "Add tag to task",
+    description = "Adds a new tag to a task.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "204",
+        description = "Success"
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project does not exist."
+      )
+    ))
+  def addTagToTask(@Parameter(
+                      name = "projectId",
+                      description = "The project identifier",
+                      required = true,
+                      in = ParameterIn.PATH,
+                      schema = new Schema(implementation = classOf[String])
+                    )
+                      projectId: String,
+                   @Parameter(
+                     name = "task",
+                     description = "The task identifier",
+                     required = true,
+                     in = ParameterIn.PATH,
+                     schema = new Schema(implementation = classOf[String])
+                   )
+                   taskId: String,
+                   @Parameter(
+                     name = "tagUri",
+                     description = "The tag URI",
+                     required = true,
+                     in = ParameterIn.QUERY,
+                     schema = new Schema(implementation = classOf[String])
+                   )
+                   tagUri: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectId)
+    val task = project.anyTask(taskId)
+    val newTags = task.metaData.tags + Uri(tagUri)
+    val newMetaData = task.metaData.copy(tags = newTags)
+    task.updateMetaData(newMetaData)
+    NoContent
   }
 
   // Task meta data object as JSON
