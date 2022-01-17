@@ -12,7 +12,7 @@ GET           /:projectId/prefixes                                     controlle
 PUT           /:projectId/prefixes/:prefixName                         controllers.projectApi.ProjectApi.addProjectPrefix(projectId: String, prefixName: String)
 DELETE        /:projectId/prefixes/:prefixName                         controllers.projectApi.ProjectApi.deleteProjectPrefix(projectId: String, prefixName: String)
 
-GET           /:projectId/tags                                         controllers.projectApi.ProjectApi.fetchTags(projectId: String, filter: Option[String] ?= "")
+GET           /:projectId/tags                                         controllers.projectApi.ProjectApi.fetchTags(projectId: String, filter: Option[String] ?= None)
 POST          /:projectId/tags/newTag                                  controllers.projectApi.ProjectApi.createTag(projectId: String)
 DELETE        /:projectId/tags/:tag                                    controllers.projectApi.ProjectApi.deleteTag(projectId: String, tag: String)
 

@@ -493,7 +493,8 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
     val tags = project.tags.allTags()
     val filteredTags = filter match {
       case Some(search) =>
-        tags.filter(_.label.contains(search))
+        val lowerCaseSearch = search.toLowerCase
+        tags.filter(_.label.toLowerCase.contains(lowerCaseSearch))
       case None =>
         tags
     }
