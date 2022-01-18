@@ -79,7 +79,7 @@ class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedControlle
       "linking"
     ) flatMap (pl => PluginRegistry.pluginDescriptionsById(pl, Some(Seq(classOf[TaskSpec]))))
     val singlePluginsList = PluginList(ListMap("singleTasks" -> singlePlugins), addMarkdownDocumentation, overviewOnly = true)
-    pluginResult(addMarkdownDocumentation, pluginTypes, singlePluginsList, textQuery, category)
+    pluginResult(addMarkdownDocumentation, pluginTypes, Some(singlePluginsList), textQuery, category, overviewOnly = false)
   }
 
   /** Return plugin description of a single plugin. */
@@ -170,6 +170,60 @@ class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedControlle
     Ok(JsArray(usages))
   }
 
+  /** Rule (operator) plugins. */
+  @Operation(
+    summary = "Rule operator plugins",
+    description = "A list of plugins that can be used in rule editors. Contains meta data of the plugin, i.e. title, description and categories and parameter information.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          examples = Array(new ExampleObject(PluginApiDoc.operatorPluginsExampleJson))
+        ))
+      )
+    ))
+  def ruleOperatorPlugins(@Parameter(
+                            name = "addMarkdownDocumentation",
+                            description = "Add markdown documentation to the result.",
+                            required = false,
+                            in = ParameterIn.QUERY,
+                            schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+                          )
+                          addMarkdownDocumentation: Boolean,
+                          @Parameter(
+                            name = "textQuery",
+                            description = "An optional (multi word) text query to filter the list of plugins.",
+                            required = false,
+                            in = ParameterIn.QUERY,
+                            schema = new Schema(implementation = classOf[String], example = "csv")
+                          )
+                          textQuery: Option[String],
+                          @Parameter(
+                            name = "category",
+                            description = "An optional category. This will only return plugins from the same category.",
+                            required = false,
+                            in = ParameterIn.QUERY,
+                            schema = new Schema(implementation = classOf[String], example = "file")
+                          )
+                          category: Option[String],
+                          @Parameter(
+                            name = "overviewOnly",
+                            description = "If false the whole plugin specification will be returned, else only the high-level meta data is returned, e.g. label and category.",
+                            required = false,
+                            in = ParameterIn.QUERY,
+                            schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+                          )
+                          overviewOnly: Option[Boolean]): Action[AnyContent] = Action { implicit request =>
+    val pluginTypes = Seq(
+      "org.silkframework.rule.input.Transformer",
+      "org.silkframework.rule.similarity.Aggregator",
+      "org.silkframework.rule.similarity.DistanceMeasure"
+    )
+    pluginResult(addMarkdownDocumentation, pluginTypes, None, textQuery, category, overviewOnly = overviewOnly.getOrElse(false))
+  }
+
   private def result(pretty: Boolean, resultJson: JsValue): Result = {
     if (pretty) {
       Ok(Json.prettyPrint(resultJson)).as(JSON)
@@ -180,9 +234,10 @@ class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedControlle
 
   private def pluginResult(addMarkdownDocumentation: Boolean,
                            pluginTypes: Seq[String],
-                           singlePluginList: PluginList,
+                           singlePluginList: Option[PluginList],
                            textQuery: Option[String],
-                           category: Option[String])
+                           category: Option[String],
+                           overviewOnly: Boolean)
                           (implicit request: Request[AnyContent]): Result = {
     def filter(pluginDescription: PluginDescription[_]): Boolean = {
       val matchesCategory = category.forall(c => pluginDescription.categories.contains(c))
@@ -194,8 +249,8 @@ class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedControlle
       matchesCategory && matchesTextQuery
     }
 
-    val pluginList = PluginList.load(pluginTypes, addMarkdownDocumentation, overviewOnly = true)
-    val allPlugins = pluginList.pluginsByType ++ singlePluginList.pluginsByType
+    val pluginList = PluginList.load(pluginTypes, addMarkdownDocumentation, overviewOnly = overviewOnly)
+    val allPlugins = pluginList.pluginsByType ++ singlePluginList.map(_.pluginsByType).getOrElse(ListMap.empty)
     val filteredPlugins = allPlugins map { case (key, pds) =>
       val filteredPDs = pds.filter(pd => filter(pd))
       (key, filteredPDs)

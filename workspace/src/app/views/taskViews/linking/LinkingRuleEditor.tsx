@@ -4,7 +4,7 @@ import useErrorHandler from "../../../hooks/useErrorHandler";
 import { LinkingTaskParameters } from "./linking.types";
 import { useTranslation } from "react-i18next";
 import { IViewActions } from "../../plugins/PluginRegistry";
-import { RuleEditor } from "../../../views/shared/RuleEditor/RuleEditor";
+import { RuleEditor } from "../../shared/RuleEditor/RuleEditor";
 
 export interface LinkingRuleEditorProps<TASK_TYPE> {
     /** Project ID the task is in. */

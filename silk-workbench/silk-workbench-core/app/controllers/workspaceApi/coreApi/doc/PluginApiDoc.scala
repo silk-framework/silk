@@ -19,6 +19,9 @@ object PluginApiDoc {
       }
     """
 
+  final val operatorPluginsExampleJson =
+    """TODO"""
+
   final val pluginDescriptionExampleJson =
     """
       {
