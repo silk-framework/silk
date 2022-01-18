@@ -68,19 +68,16 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     * Reads all tasks of a specific type from a project.
     */
   override def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
-                                                  (implicit userContext: UserContext): Seq[Task[T]] = {
-    val taskClass = implicitly[ClassTag[T]].runtimeClass
-    projects(project).tasks.values.filter(task => taskClass.isAssignableFrom(task.task.data.getClass)).map(_.asInstanceOf[Task[T]]).toSeq
-  }
-
-  override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier,
-                                                       projectResources: ResourceManager)(implicit user: UserContext): Seq[LoadedTask[T]] = {
+                                                  (implicit user: UserContext): Seq[LoadedTask[T]] = {
     val taskClass = implicitly[ClassTag[T]].runtimeClass
     projects(project).tasks.values.filter(task => taskClass.isAssignableFrom(task.task.data.getClass)).map(task => LoadedTask.success(task.asInstanceOf[Task[T]])).toSeq
   }
 
+  /**
+    * Reads all tasks of all types from a project.
+    **/
   override def readAllTasks(project: Identifier, projectResources: ResourceManager)
-                  (implicit user: UserContext): Seq[LoadedTask[_]] = {
+                           (implicit user: UserContext): Seq[LoadedTask[_]] = {
     projects(project).tasks.values.toSeq
   }
 

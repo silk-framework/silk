@@ -71,7 +71,7 @@ object WorkspaceIO {
                                                   resources: ResourceManager,
                                                   projectName: Identifier)
                                                  (implicit userContext: UserContext): Unit = {
-    for(taskTry <- inputWorkspace.readTasksSafe[T](projectName, resources)) {
+    for(taskTry <- inputWorkspace.readTasks[T](projectName, resources)) {
       taskTry.taskOrError match {
         case Right(task) =>
           outputWorkspace.putTask(projectName, task)

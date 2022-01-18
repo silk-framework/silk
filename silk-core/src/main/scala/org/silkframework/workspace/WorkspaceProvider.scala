@@ -46,20 +46,14 @@ trait WorkspaceProvider {
   def projectCache(name: Identifier): ResourceManager
 
   /**
-   * Reads all tasks of a specific type from a project.
-    *
-    * Use readTasksSafe instead of this method.
-   */
+    * Reads all tasks of a specific type from a project.
+    **/
   def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
-                                         (implicit user: UserContext): Seq[Task[T]] = {
-    readTasksSafe[T](project, projectResources).map(_.task)
-  }
+                                         (implicit user: UserContext): Seq[LoadedTask[T]]
 
   /**
-    * Version of readTasks that returns a Seq[Try[Task[T]]]
+    * Reads all tasks of all types from a project.
     **/
-  def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)(implicit user: UserContext): Seq[LoadedTask[T]]
-
   def readAllTasks(project: Identifier, projectResources: ResourceManager)
                   (implicit user: UserContext): Seq[LoadedTask[_]]
 

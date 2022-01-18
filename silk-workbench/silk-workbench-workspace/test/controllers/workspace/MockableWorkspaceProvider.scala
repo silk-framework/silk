@@ -29,17 +29,11 @@ class MockableWorkspaceProvider extends InMemoryWorkspaceProvider {
     )
   }
 
-  override def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)(implicit userContext: UserContext): Seq[Task[T]] = {
-    config.readTasks[T](project, projectResources).getOrElse(
-      super.readTasks[T](project, projectResources)
-    )
-  }
-
-  override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier,
-                                                       projectResources: ResourceManager)
-                                                      (implicit user: UserContext): Seq[LoadedTask[T]] = {
+  override def readTasks[T <: TaskSpec : ClassTag](project: Identifier,
+                                                   projectResources: ResourceManager)
+                                                  (implicit user: UserContext): Seq[LoadedTask[T]] = {
     config.readTasksSafe[T](project, projectResources).getOrElse(
-      super.readTasksSafe[T](project, projectResources)
+      super.readTasks[T](project, projectResources)
     )
   }
 }

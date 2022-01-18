@@ -97,14 +97,9 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
     resources.child(name)
   }
 
-  override def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
-                                                  (implicit userContext: UserContext): Seq[Task[T]] = {
-    plugin[T].loadTasks(resources.child(project).child(plugin[T].prefix), projectResources).map(_.task)
-  }
-
-  override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier,
-                                                       projectResources: ResourceManager)
-                                                      (implicit user: UserContext): Seq[LoadedTask[T]] = {
+  override def readTasks[T <: TaskSpec : ClassTag](project: Identifier,
+                                                   projectResources: ResourceManager)
+                                                  (implicit user: UserContext): Seq[LoadedTask[T]] = {
     plugin[T].loadTasks(resources.child(project).child(plugin[T].prefix), projectResources)
   }
 

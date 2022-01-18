@@ -91,10 +91,10 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
   /**
     * Version of readTasks that returns a Seq[Try[Task[T]]]
     **/
-  override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier,
-                                                       projectResources: ResourceManager)
-                                                      (implicit user: UserContext): Seq[LoadedTask[T]] = {
-    primaryWorkspace.readTasksSafe[T](project, projectResources)
+  override def readTasks[T <: TaskSpec : ClassTag](project: Identifier,
+                                                   projectResources: ResourceManager)
+                                                  (implicit user: UserContext): Seq[LoadedTask[T]] = {
+    primaryWorkspace.readTasks[T](project, projectResources)
   }
 
   override def readAllTasks(project: Identifier, projectResources: ResourceManager)
