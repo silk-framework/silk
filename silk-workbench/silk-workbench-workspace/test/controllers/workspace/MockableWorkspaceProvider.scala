@@ -1,17 +1,15 @@
 package controllers.workspace
 
-import java.util.UUID
-import java.util.concurrent.ConcurrentHashMap
-
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.{InMemoryWorkspaceProvider, ProjectConfig, TaskLoadingError}
+import org.silkframework.workspace.{InMemoryWorkspaceProvider, LoadedTask, ProjectConfig}
 
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import scala.reflect.ClassTag
-import scala.util.Try
 
 @Plugin(
   id = "mockableInMemoryWorkspace",
@@ -39,7 +37,7 @@ class MockableWorkspaceProvider extends InMemoryWorkspaceProvider {
 
   override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier,
                                                        projectResources: ResourceManager)
-                                                      (implicit user: UserContext): Seq[Either[Task[T], TaskLoadingError]] = {
+                                                      (implicit user: UserContext): Seq[LoadedTask[T]] = {
     config.readTasksSafe[T](project, projectResources).getOrElse(
       super.readTasksSafe[T](project, projectResources)
     )
@@ -74,5 +72,5 @@ class BreakableWorkspaceProviderConfig {
                                          (implicit user: UserContext): Option[Seq[Task[T]]] = None
 
   def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
-                                             (implicit user: UserContext): Option[Seq[Either[Task[T], TaskLoadingError]]] = None
+                                             (implicit user: UserContext): Option[Seq[LoadedTask[T]]] = None
 }

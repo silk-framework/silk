@@ -1,7 +1,5 @@
 package org.silkframework.workspace
 
-import java.util.logging.{Level, Logger}
-
 import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
@@ -9,8 +7,8 @@ import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.io.WorkspaceIO
 
+import java.util.logging.{Level, Logger}
 import scala.reflect.ClassTag
-import scala.util.Try
 import scala.util.control.NonFatal
 
 /**
@@ -95,8 +93,13 @@ class CombinedWorkspaceProvider(val primaryWorkspace: WorkspaceProvider,
     **/
   override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier,
                                                        projectResources: ResourceManager)
-                                                      (implicit user: UserContext): Seq[Either[Task[T], TaskLoadingError]] = {
+                                                      (implicit user: UserContext): Seq[LoadedTask[T]] = {
     primaryWorkspace.readTasksSafe[T](project, projectResources)
+  }
+
+  override def readAllTasks(project: Identifier, projectResources: ResourceManager)
+                           (implicit user: UserContext): Seq[LoadedTask[_]] = {
+    primaryWorkspace.readAllTasks(project, projectResources)
   }
 
   /**

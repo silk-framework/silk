@@ -273,7 +273,6 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     provider.readProject(id) match {
       case Some(projectConfig) =>
         val project = new Project(projectConfig, provider, repository.get(projectConfig.id))
-        project.loadTasks()
         project.startActivities()
         addProjectToCache(project)
       case None =>
@@ -299,7 +298,6 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     cachedProjects = for(projectConfig <- provider.readProjects()) yield {
       log.info("Loading project: " + projectConfig.id)
       val project = new Project(projectConfig, provider, repository.get(projectConfig.id))
-      project.loadTasks()
       log.info("Finished loading project '" + projectConfig.id + "'.")
       project
     }

@@ -33,7 +33,8 @@ import scala.util.control.NonFatal
 /**
  * A project.
  */
-class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val resources: ResourceManager) extends ProjectTrait {
+class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val resources: ResourceManager)
+             (implicit userContext: UserContext) extends ProjectTrait {
 
   private implicit val logger = Logger.getLogger(classOf[Project].getName)
 
@@ -45,16 +46,23 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   @volatile
   private var modules = Seq[Module[_ <: TaskSpec]]()
 
-  // Register all default modules
-  registerModule[DatasetSpec[Dataset]]()
-  registerModule[TransformSpec]()
-  registerModule[LinkSpec]()
-  registerModule[Workflow](WorkflowValidator)
-  registerModule[CustomTask]()
+  loadTasks()
 
-  /** Can be called optionally to trigger early loading of tasks. */
-  def loadTasks()(implicit userContext: UserContext): Unit = {
-    modules.foreach(_.load())
+  /** Initializes the project, i.e. registers modules and loads tasks. */
+  private def loadTasks()(implicit userContext: UserContext): Unit = {
+    // Register all default modules
+    registerModule[DatasetSpec[Dataset]]()
+    registerModule[TransformSpec]()
+    registerModule[LinkSpec]()
+    registerModule[Workflow](WorkflowValidator)
+    registerModule[CustomTask]()
+
+    // Load tasks
+    val tasks = provider.readAllTasks(name, resources)
+    for(module <- modules) {
+      val moduleTasks = tasks.filter(task => module.taskType.isAssignableFrom(task.taskType)).asInstanceOf[Seq[LoadedTask[TaskSpec]]]
+      module.asInstanceOf[Module[TaskSpec]].load(moduleTasks)
+    }
   }
 
   /** This must be executed once when the project was loaded into the workspace */
