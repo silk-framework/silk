@@ -30,7 +30,12 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     */
   override def putProject(project: ProjectConfig)
                          (implicit userContext: UserContext): Unit = {
-    projects += ((project.id, new InMemoryProject(project.copy(projectResourceUriOpt = Some(project.resourceUriOrElseDefaultUri)))))
+    projects.get(project.id) match {
+      case Some(existingProject) =>
+        existingProject.config = project
+      case None =>
+        projects += ((project.id, new InMemoryProject(project.copy(projectResourceUriOpt = Some(project.resourceUriOrElseDefaultUri)))))
+    }
   }
 
   /**
@@ -69,8 +74,8 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     */
   override def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
                                                   (implicit user: UserContext): Seq[LoadedTask[T]] = {
-    val taskClass = implicitly[ClassTag[T]].runtimeClass
-    projects(project).tasks.values.filter(task => taskClass.isAssignableFrom(task.task.data.getClass)).map(task => LoadedTask.success(task.asInstanceOf[Task[T]])).toSeq
+    val requestedClass = implicitly[ClassTag[T]].runtimeClass
+    projects(project).tasks.values.filter(task => requestedClass.isAssignableFrom(task.taskType)).map(_.asInstanceOf[LoadedTask[T]]).toSeq
   }
 
   /**
@@ -94,7 +99,7 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     */
   override def refresh()(implicit userContext: UserContext): Unit = {}
 
-  protected class InMemoryProject(val config: ProjectConfig) {
+  protected class InMemoryProject(@volatile var config: ProjectConfig) {
 
     var tasks: Map[Identifier, LoadedTask[_ <: TaskSpec]] = Map.empty
 
