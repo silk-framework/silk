@@ -275,7 +275,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
     implicit val us: UserContext = emptyUserContext
     workspaceProvider.putTask(PROJECT_NAME, datasetUpdated)
     refreshTest {
-      val ds = workspaceProvider.readTasks[GenericDatasetSpec](PROJECT_NAME, projectResources).find(_.task.id.toString == DATASET_ID).get
+      val ds = workspaceProvider.readTasks[GenericDatasetSpec](PROJECT_NAME, projectResources).find(_.task.id.toString == DATASET_ID).get.task
       ds shouldBe datasetUpdated
     }
   }
@@ -308,7 +308,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
     implicit val us: UserContext = emptyUserContext
     workspaceProvider.putTask(PROJECT_NAME, transformTask)
     refreshTest {
-      workspaceProvider.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(transformTask)
+      workspaceProvider.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption.map(_.task) shouldBe Some(transformTask)
     }
   }
 
@@ -316,7 +316,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
     implicit val us: UserContext = emptyUserContext
     workspaceProvider.putTask(PROJECT_NAME, transformTaskUpdated)
     refreshTest {
-      workspaceProvider.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(transformTaskUpdated)
+      workspaceProvider.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption.map(_.task) shouldBe Some(transformTaskUpdated)
     }
   }
 
@@ -337,7 +337,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
     implicit val us: UserContext = emptyUserContext
     workspaceProvider.putTask(PROJECT_NAME, transformTaskHierarchical)
     refreshTest {
-      workspaceProvider.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption shouldBe Some(transformTaskHierarchical)
+      workspaceProvider.readTasks[TransformSpec](PROJECT_NAME, projectResources).headOption.map(_.task) shouldBe Some(transformTaskHierarchical)
     }
   }
 
@@ -346,7 +346,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
     implicit val us: UserContext = emptyUserContext
     workspaceProvider.putTask(PROJECT_NAME, miniWorkflow)
     refreshTest {
-      workspaceProvider.readTasks[Workflow](PROJECT_NAME, projectResources).headOption shouldBe Some(miniWorkflow)
+      workspaceProvider.readTasks[Workflow](PROJECT_NAME, projectResources).headOption.map(_.task) shouldBe Some(miniWorkflow)
     }
   }
 
@@ -354,7 +354,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
     implicit val us: UserContext = emptyUserContext
     workspaceProvider.putTask(PROJECT_NAME, miniWorkflowUpdated)
     refreshTest {
-      workspaceProvider.readTasks[Workflow](PROJECT_NAME, projectResources).headOption shouldBe Some(miniWorkflowUpdated)
+      workspaceProvider.readTasks[Workflow](PROJECT_NAME, projectResources).headOption.map(_.task) shouldBe Some(miniWorkflowUpdated)
     }
   }
 
@@ -362,7 +362,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
     implicit val us: UserContext = emptyUserContext
     workspaceProvider.putTask(PROJECT_NAME, customTask)
     refreshTest {
-      workspaceProvider.readTasks[CustomTask](PROJECT_NAME, projectResources).headOption shouldBe Some(customTask)
+      workspaceProvider.readTasks[CustomTask](PROJECT_NAME, projectResources).headOption.map(_.task) shouldBe Some(customTask)
     }
   }
 
