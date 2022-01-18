@@ -1,6 +1,6 @@
 package controllers.workspace
 
-import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.resource.ResourceManager
@@ -32,7 +32,7 @@ class MockableWorkspaceProvider extends InMemoryWorkspaceProvider {
   override def readTasks[T <: TaskSpec : ClassTag](project: Identifier,
                                                    projectResources: ResourceManager)
                                                   (implicit user: UserContext): Seq[LoadedTask[T]] = {
-    config.readTasksSafe[T](project, projectResources).getOrElse(
+    config.readTasks[T](project, projectResources).getOrElse(
       super.readTasks[T](project, projectResources)
     )
   }
@@ -63,8 +63,9 @@ class BreakableWorkspaceProviderConfig {
                   (implicit user: UserContext): Option[Seq[ProjectConfig]] = None
 
   def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
-                                         (implicit user: UserContext): Option[Seq[Task[T]]] = None
+                                         (implicit user: UserContext): Option[Seq[LoadedTask[T]]] = None
 
-  def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
-                                             (implicit user: UserContext): Option[Seq[LoadedTask[T]]] = None
+  def readAllTasks(project: Identifier, projectResources: ResourceManager)
+                  (implicit user: UserContext): Option[Seq[LoadedTask[_]]] = None
+
 }

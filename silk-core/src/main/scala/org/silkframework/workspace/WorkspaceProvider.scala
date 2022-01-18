@@ -118,7 +118,7 @@ trait WorkspaceProvider {
 
 /**
   * The result of loading a task.
-  * Holds either the loaded tasks or the loading error.
+  * Holds either the loaded task or the loading error.
   */
 case class LoadedTask[T <: TaskSpec : ClassTag](taskOrError: Either[TaskLoadingError, Task[T]]) {
 

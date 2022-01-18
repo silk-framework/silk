@@ -2,7 +2,7 @@ package controllers.workspace
 
 import helper.IntegrationTestTrait
 import org.scalatest.{MustMatchers, TestSuite}
-import org.silkframework.config.{Task, TaskSpec}
+import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.Identifier
@@ -92,13 +92,14 @@ trait ExportIntegrationTestTrait
         throw new RuntimeException("Cannot read projects. Workspace provider is broken!")
       }
 
-      override def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)(implicit user: UserContext): Option[Seq[Task[T]]] = {
+      override def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
+                                                          (implicit user: UserContext): Option[Seq[LoadedTask[T]]] = {
         throw new RuntimeException("Cannot read tasks. Workspace provider is broken!")
       }
 
-      override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
-                                                          (implicit user: UserContext): Option[Seq[LoadedTask[T]]] = {
-        throw new RuntimeException("Cannot read tasks safely. Workspace provider is broken!")
+      override def readAllTasks(project: Identifier, projectResources: ResourceManager)
+                               (implicit user: UserContext): Option[Seq[LoadedTask[_]]] = {
+        throw new RuntimeException("Cannot read all tasks. Workspace provider is broken!")
       }
     }
     MockableWorkspaceProvider.configWorkspace(workspaceId, brokenWorkspace)
