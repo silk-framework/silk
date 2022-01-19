@@ -241,7 +241,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
     val projectDescription = Some("project description")
     val newMetaData = MetaData(projectLabel, description = projectDescription)
     val originalMetaData = project.config.metaData
-    workspace.updateProjectMetaData(PROJECT_NAME, newMetaData)
+    project.updateMetaData(newMetaData)
     refreshTest {
       checkUpdateMetaData(project.config.metaData, originalMetaData.copy(label = projectLabel, description = projectDescription), specificUserContext, specificUserContext2)
     }

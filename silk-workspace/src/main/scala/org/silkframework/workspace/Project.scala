@@ -153,6 +153,19 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     cachedConfig = cachedConfig.copy(prefixes = cachedConfig.prefixes ++ additionalPrefixes)
   }
 
+  /** Update the meta data of a project. */
+  def updateMetaData(metaData: MetaData)
+                    (implicit userContext: UserContext): MetaData = synchronized {
+    val projectConfig = config
+    val oldMetaData = config.metaData
+    val mergedMetaData = oldMetaData.copy(label = metaData.label, description = metaData.description)
+    val updatedProjectConfig = projectConfig.copy(metaData = mergedMetaData.asUpdatedMetaData)
+    config = updatedProjectConfig
+    provider.putProject(updatedProjectConfig)
+    logger.info(s"Project meta data updated for ${projectConfig.labelAndId()}.")
+    updatedProjectConfig.metaData
+  }
+
   /**
    * Retrieves all tasks in this project.
    */

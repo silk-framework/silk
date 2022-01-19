@@ -237,11 +237,11 @@ class SearchApiIntegrationTest extends FlatSpec
     val newTask = "newTask"
     val metaData = MetaData(None, Some("A" + uniqueId + "Z"))
 
-    retrieveOrCreateProject(newProject)
+    val project = retrieveOrCreateProject(newProject)
     try {
-      WorkspaceFactory().workspace.updateProjectMetaData(newProject, metaData)
+      project.updateMetaData(metaData)
       val workflow = Workflow(Seq.empty, Seq.empty)
-      retrieveOrCreateProject(newProject).addAnyTask(newTask, workflow, metaData)
+      project.addAnyTask(newTask, workflow, metaData)
       resultItemIds(facetedSearchRequest(
         FacetedSearchRequest(itemType = Some(ItemType.workflow), textQuery = Some(uniqueId))
       )._1) mustBe Seq(newTask)
