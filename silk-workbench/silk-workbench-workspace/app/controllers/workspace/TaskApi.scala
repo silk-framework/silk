@@ -497,7 +497,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
       )
     ))
   def getTaskMetadataExpanded(@Parameter(
-                                 name = "projectId",
+                                 name = "project",
                                  description = "The project identifier",
                                  required = true,
                                  in = ParameterIn.PATH,
@@ -531,7 +531,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
       )
     ))
   def addTagToTask(@Parameter(
-                      name = "projectId",
+                      name = "project",
                       description = "The project identifier",
                       required = true,
                       in = ParameterIn.PATH,
