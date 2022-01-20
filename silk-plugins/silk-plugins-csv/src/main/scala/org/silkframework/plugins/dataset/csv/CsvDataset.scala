@@ -18,7 +18,7 @@ import org.silkframework.runtime.resource._
 case class CsvDataset (
   @Param("The CSV file. This may also be a zip archive of multiple CSV files that share the same schema.")
     file: WritableResource,
-  @Param("Comma-separated list of URL-encoded properties. If not provided, the list of properties is read from the first line.")
+  @Param("Comma-separated list of properties. If not provided, the list of properties is read from the first line. Properties that are no valid (relative or absolute) URIs will be encoded.")
     properties: String = "",
   @Param("The character that is used to separate values. If not provided, defaults to ',', i.e., comma-separated values. \"\\t\" for specifying tab-separated values, is also supported.")
     separator: String = ",",
