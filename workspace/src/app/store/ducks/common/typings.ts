@@ -60,7 +60,7 @@ export interface IOverviewArtefactItem {
 }
 
 /** The full task plugin description, including detailed schema. */
-export interface IDetailedArtefactItem {
+export interface IPluginDetails {
     title: string;
     description: string;
     taskType: TaskType;
@@ -75,7 +75,7 @@ export interface IDetailedArtefactItem {
 }
 
 /** Overview version of an item description. */
-export interface IArtefactItem {
+export interface IPluginOverview {
     key: string;
     taskType?: string;
     title?: string;
@@ -88,7 +88,7 @@ export interface IArtefactItem {
 export interface IProjectTaskUpdatePayload {
     projectId: string;
     taskId: string;
-    taskPluginDetails: IDetailedArtefactItem;
+    taskPluginDetails: IPluginDetails;
     metaData: IMetadata;
     currentParameterValues: {
         [key: string]: string | object;
@@ -110,7 +110,7 @@ export interface IArtefactModal {
     loading: boolean;
 
     // The list of item types that can be selected.
-    artefactsList: IArtefactItem[];
+    artefactsList: IPluginOverview[];
 
     categories: {
         label: string;
@@ -118,11 +118,11 @@ export interface IArtefactModal {
     }[];
 
     // The selected item type
-    selectedArtefact?: IArtefactItem;
+    selectedArtefact?: IPluginOverview;
 
     // cached plugin descriptions
     cachedArtefactProperties: {
-        [key: string]: IDetailedArtefactItem;
+        [key: string]: IPluginDetails;
     };
 
     // The selected item category

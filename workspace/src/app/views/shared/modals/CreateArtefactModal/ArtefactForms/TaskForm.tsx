@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { IArtefactItemProperty, IDetailedArtefactItem, IPropertyAutocomplete } from "@ducks/common/typings";
+import { IArtefactItemProperty, IPluginDetails, IPropertyAutocomplete } from "@ducks/common/typings";
 import { Intent } from "gui-elements/blueprint/constants";
 import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
 import { FieldItem, Spacing, TextArea, TextField } from "gui-elements";
@@ -18,7 +18,7 @@ export interface IProps {
 
     detectChange: (key: string, val: any, oldValue: any) => void;
 
-    artefact: IDetailedArtefactItem;
+    artefact: IPluginDetails;
 
     projectId: string;
 

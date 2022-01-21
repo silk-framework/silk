@@ -215,12 +215,22 @@ class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedControlle
                             in = ParameterIn.QUERY,
                             schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
                           )
-                          overviewOnly: Option[Boolean]): Action[AnyContent] = Action { implicit request =>
-    val pluginTypes = Seq(
-      "org.silkframework.rule.input.Transformer",
+                          overviewOnly: Option[Boolean],
+                          @Parameter(
+                            name = "inputOperatorsOnly",
+                            description = "If set to true then only input rule operators will be returned, i.e. transformation operators.",
+                            required = false,
+                            in = ParameterIn.QUERY,
+                            schema = new Schema(implementation = classOf[Boolean]))
+                          inputOperatorsOnly: Option[Boolean]): Action[AnyContent] = Action { implicit request =>
+    val inputOperatorBase = Seq(
+      "org.silkframework.rule.input.Transformer"
+    )
+    val linkingOperatorsBase = Seq(
       "org.silkframework.rule.similarity.Aggregator",
       "org.silkframework.rule.similarity.DistanceMeasure"
     )
+    val pluginTypes = if(inputOperatorsOnly.getOrElse(false)) inputOperatorBase else inputOperatorBase ++ linkingOperatorsBase
     pluginResult(addMarkdownDocumentation, pluginTypes, None, textQuery, category, overviewOnly = overviewOnly.getOrElse(false))
   }
 

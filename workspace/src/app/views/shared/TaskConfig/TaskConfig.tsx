@@ -7,7 +7,7 @@ import { requestArtefactProperties } from "@ducks/common/requests";
 import { Loading } from "../Loading/Loading";
 import { TaskConfigPreview } from "./TaskConfigPreview";
 import { IProjectTask } from "@ducks/shared/typings";
-import { IDetailedArtefactItem } from "@ducks/common/typings";
+import { IPluginDetails } from "@ducks/common/typings";
 import { commonSlice } from "@ducks/common/commonSlice";
 import { useTranslation } from "react-i18next";
 import useErrorHandler from "../../../hooks/useErrorHandler";
@@ -19,7 +19,7 @@ interface IProps {
 
 export interface ITaskSchemaAndData {
     taskData: IProjectTask;
-    taskDescription: IDetailedArtefactItem;
+    taskDescription: IPluginDetails;
 }
 
 /**

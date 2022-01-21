@@ -3,6 +3,7 @@
  **/
 import { LinkingRuleEditor } from "../taskViews/linking/LinkingRuleEditor";
 import React from "react";
+import { TransformRuleEditor } from "../taskViews/transform/TransformRuleEditor";
 
 // Generic actions and callbacks on views
 export interface IViewActions {
@@ -100,11 +101,21 @@ class PluginRegistry {
 
 export const pluginRegistry = new PluginRegistry();
 
+// Register linking rule editor
 pluginRegistry.registerTaskView("linking", {
     id: "linkingEditor",
     label: "Linking editor WIP",
     render(projectId: string, taskId: string, viewActions: IViewActions | undefined): JSX.Element {
         return <LinkingRuleEditor projectId={projectId} linkingTaskId={taskId} />;
+    },
+});
+
+// Register transform rule editor. TODO: Remove. This was just for debugging
+pluginRegistry.registerTaskView("transform", {
+    id: "transformEditor",
+    label: "Transform rule editor WIP",
+    render(projectId: string, taskId: string, viewActions: IViewActions | undefined): JSX.Element {
+        return <TransformRuleEditor projectId={projectId} transformTaskId={taskId} ruleId={"uri"} />;
     },
 });
 

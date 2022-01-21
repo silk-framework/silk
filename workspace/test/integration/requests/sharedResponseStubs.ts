@@ -1,5 +1,5 @@
 import { IProjectTask, TaskType } from "../../../src/app/store/ducks/shared/typings";
-import { IArtefactItemProperty, IDetailedArtefactItem } from "../../../src/app/store/ducks/common/typings";
+import { IArtefactItemProperty, IPluginDetails } from "../../../src/app/store/ducks/common/typings";
 
 /** A single task parameter and value. */
 
@@ -133,7 +133,7 @@ export const requestArtefactPropertiesTestResponse = ({
     pluginLabel = "unsetPluginLabel",
     taskType = "CustomTask",
     properties = {},
-}: IArtefactPropertiesTestResponseParams): IDetailedArtefactItem => {
+}: IArtefactPropertiesTestResponseParams): IPluginDetails => {
     return {
         categories: categories,
         description: description,

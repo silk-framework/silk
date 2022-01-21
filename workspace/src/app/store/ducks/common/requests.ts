@@ -1,7 +1,7 @@
 import fetch from "../../../services/fetch";
 import { coreApi, legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
-import { IDetailedArtefactItem, IOverviewArtefactItemList, IExportTypes, IInitFrontend } from "@ducks/common/typings";
-import {FetchResponse} from "../../../services/fetch/responseInterceptor";
+import { IPluginDetails, IOverviewArtefactItemList, IExportTypes, IInitFrontend } from "@ducks/common/typings";
+import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 
 const handleError = (error) => {
     return error.errorResponse;
@@ -87,7 +87,7 @@ export const requestTaskIdValidation = (taskId: string, projectId: string): Prom
  * Get properties(form) for specific plugin
  * @param artefactKey
  */
-export const requestArtefactProperties = async (artefactKey: string): Promise<IDetailedArtefactItem> => {
+export const requestArtefactProperties = async (artefactKey: string): Promise<IPluginDetails> => {
     try {
         const { data } = await fetch({
             url: coreApi(`/plugins/${artefactKey}`),
@@ -110,4 +110,16 @@ export const requestExportTypes = async (): Promise<IExportTypes[]> => {
     } catch (e) {
         throw handleError(e);
     }
+};
+
+/** Fetches the rule operator plugins used in the linking and transform operators. */
+export const requestRuleOperatorPluginDetails = (
+    inputOperatorsOnly: boolean
+): Promise<FetchResponse<IPluginDetails[]>> => {
+    return fetch({
+        url: coreApi("/ruleOperatorPlugins"),
+        query: {
+            inputOperatorsOnly: inputOperatorsOnly,
+        },
+    });
 };

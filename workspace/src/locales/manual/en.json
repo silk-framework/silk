@@ -380,7 +380,20 @@
         "linkRulesEditor": {
             "errors": {
                 "fetchTaskData": {
-                    "msg": "An error has occurred while fetching the the linking task."
+                    "msg": "An error has occurred while fetching the linking task."
+                },
+                "fetchLinkingRuleOperatorDetails": {
+                    "msg": "An error has occurred while fetching the list of linking rule operators."
+                }
+            }
+        },
+        "transformRulesEditor": {
+            "errors": {
+                "fetchTransformRule": {
+                    "msg": "An error has occurred while fetching the transform rule."
+                },
+                "fetchTransformRuleOperatorDetails": {
+                    "msg": "An error has occurred while fetching the list of transform rule operators."
                 }
             }
         }
