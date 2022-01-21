@@ -10,7 +10,9 @@ export interface RuleEditorProps<TASK_TYPE, OPERATOR_TYPE> {
     /** The task the rules are being edited of. */
     taskId: string;
     /** Function to fetch the actual task data to initialize the editor. */
-    fetchTaskData: (projectId: string, taskId: string) => Promise<TASK_TYPE | undefined> | TASK_TYPE | undefined;
+    fetchRuleData: (projectId: string, taskId: string) => Promise<TASK_TYPE | undefined> | TASK_TYPE | undefined;
+    /** Save rule. If true is returned saving was successful, else it failed. TODO: Missing rule tree structure */
+    saveRule: (ruleTree) => Promise<boolean> | boolean;
     /** Fetch available rule operators. */
     fetchRuleOperators: () => Promise<OPERATOR_TYPE[] | undefined> | OPERATOR_TYPE[] | undefined;
     /** Generic actions and callbacks on views. */
@@ -23,7 +25,7 @@ export interface RuleEditorProps<TASK_TYPE, OPERATOR_TYPE> {
 export const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     projectId,
     taskId,
-    fetchTaskData,
+    fetchRuleData,
     fetchRuleOperators,
 }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
     // The task that contains the rule, e.g. transform or linking task
@@ -43,7 +45,7 @@ export const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends objec
     const fetchData = async () => {
         setTaskDataLoading(true);
         try {
-            setTaskData(await fetchTaskData(projectId, taskId));
+            setTaskData(await fetchRuleData(projectId, taskId));
         } finally {
             setTaskDataLoading(false);
         }

@@ -6,7 +6,7 @@ import { IViewActions } from "../../plugins/PluginRegistry";
 import { RuleEditor } from "../../shared/RuleEditor/RuleEditor";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
-import { requestTransformRule } from "./transform.requests";
+import { putTransformRule, requestTransformRule } from "./transform.requests";
 
 export interface TransformRuleEditorProps {
     /** Project ID the task is in. */
@@ -53,12 +53,29 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
         }
     };
 
+    /** Save the rule. */
+    const saveTransformRule = async (ruleTree) => {
+        try {
+            // TODO: Convert rule tree to payload to IComplexMappingRule.
+            await putTransformRule(projectId, transformTaskId, ruleId, {} as IComplexMappingRule);
+            return true;
+        } catch (err) {
+            registerError(
+                "TransformRuleEditor_saveTransformRule",
+                t("taskViews.transformRulesEditor.errors.saveTransformRule.msg"),
+                err
+            );
+            return false;
+        }
+    };
+
     return (
         <RuleEditor<IComplexMappingRule, IPluginDetails>
             projectId={projectId}
             taskId={transformTaskId}
-            fetchTaskData={fetchTransformRule}
+            fetchRuleData={fetchTransformRule}
             fetchRuleOperators={fetchTransformRuleOperatorList}
+            saveRule={saveTransformRule}
         />
     );
 };

@@ -8,6 +8,7 @@ import { RuleEditor } from "../../shared/RuleEditor/RuleEditor";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
 import { IProjectTask } from "@ducks/shared/typings";
+import { requestUpdateProjectTask } from "@ducks/workspace/requests";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -49,12 +50,29 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId }: LinkingRuleEdito
         }
     };
 
+    /** Save the rule. */
+    const saveLinkageRule = async (ruleTree) => {
+        try {
+            // TODO: Convert rule tree to payload for PATCH request, only update the rule part, i.e. data.parameters.rule.
+            await requestUpdateProjectTask(projectId, linkingTaskId, {});
+            return true;
+        } catch (err) {
+            registerError(
+                "LinkingRuleEditor_saveLinkageRule",
+                t("taskViews.linkRulesEditor.errors.saveLinkageRule.msg"),
+                err
+            );
+            return false;
+        }
+    };
+
     return (
         <RuleEditor<IProjectTask<ILinkingTaskParameters>, IPluginDetails>
             projectId={projectId}
             taskId={linkingTaskId}
-            fetchTaskData={fetchTaskData}
+            fetchRuleData={fetchTaskData}
             fetchRuleOperators={fetchLinkingRuleOperatorDetails}
+            saveRule={saveLinkageRule}
         />
     );
 };
