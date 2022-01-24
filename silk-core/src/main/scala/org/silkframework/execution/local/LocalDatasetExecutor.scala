@@ -130,7 +130,7 @@ abstract class LocalDatasetExecutor[DatasetType <: Dataset] extends DatasetExecu
         }
       case tables: MultiEntityTable =>
         implicit val report: ExecutionReportUpdater = WriteEntitiesReportUpdater(dataset, context)
-        if(!dataset.data.characteristics.supportsMultipleTables) {
+        if(tables.subTables.nonEmpty && !dataset.data.characteristics.supportsMultipleTables) {
           throw new ValidationException(s"Dataset '${dataset.fullLabel}' does not support multiple tables, but '${data.task.fullLabel}'" +
             " provided multiple tables (e.g., because it's a hierarchical transformation).")
         }
