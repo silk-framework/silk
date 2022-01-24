@@ -106,16 +106,21 @@ function customFlush(done) {
 }
 
 // Merge source object into target object recursively.
-// The merge is lossless and will result in an error if sub-structures cannot be merged, e.g. values for same key exist and are not both objects.
+// The merge will result in an error if sub-structures cannot be merged, i.e. values for same key exist and are not both objects or both strings.
+// If there are 2 conflicting string values for the same key, the value from the source is taken.
 const deepMerge = (source, target) => {
     for (const key of new Set(Object.keys(target).concat(Object.keys(source)))) {
         if (source[key] !== undefined && target[key] !== undefined) {
-            if (typeof source[key] !== "object" || typeof target[key] !== "object") {
+            if(typeof source[key] === "string" || typeof target[key] === "string") {
+                console.log(`Found 2 conflicting values for key '${key}'. Selected value: '${source[key]}'`)
+                target[key] = source[key]
+            } else if (typeof source[key] === "object" && typeof target[key] === "object") {
+                Object.assign(target[key], deepMerge(target[key], source[key]));
+            } else {
                 throw Error(
-                    `When merging values that are both in source and target, they need both to be ojects. But value for key '${key}' was not.`
+                    `When merging values that are both in source and target, they need both to be objects or both to be strings. But value for key '${key}' was not.`
                 );
             }
-            Object.assign(target[key], deepMerge(target[key], source[key]));
         } else if (source[key] !== undefined) {
             target[key] = source[key];
         }
@@ -161,7 +166,7 @@ function customTransform(file, enc, done) {
 fs.rmdirSync(TEMP_TARGET_LANG_FILE_DIR, { recursive: true, force: true });
 fs.mkdirSync(TEMP_TARGET_LANG_FILE_DIR, { recursive: true });
 const manualLangFiles = fs.readdirSync("./src/locales/manual/").map((file) => "./src/locales/manual/" + file);
-// Copy and merge lang files
+// Copy and merge lang files. String values for keys are overwritten by the additional lang files.
 const additionalLangFiles = fetchAdditionalLanguageFiles();
 const foundLanguages = createTempLanguageFiles(manualLangFiles.concat(additionalLangFiles));
 
@@ -199,7 +204,7 @@ function validate() {
         for (const [lang, missingKeys] of languagesWithMissingKeys) {
             console.warn(
                 `For language '${lang}' ${missingKeys.size} keys do not have a translation value:\n  - ` +
-                    [...missingKeys].sort((a, b) => (a < b ? -1 : 1)).join("\n  - ")
+                [...missingKeys].sort((a, b) => (a < b ? -1 : 1)).join("\n  - ")
             );
         }
         process.exit(1);
