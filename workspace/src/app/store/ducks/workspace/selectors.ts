@@ -49,7 +49,7 @@ const isEmptyPageSelector = createSelector(
     (isLoading, results, commonStore) => !isLoading && !results.length && commonStore.initialSettings.emptyWorkspace
 );
 
-export default {
+const workspaceSelectors = {
     appliedFiltersSelector,
     appliedFacetsSelector,
     resultsSelector,
@@ -65,3 +65,5 @@ export default {
     isEmptyPageSelector,
     widgetsSelector,
 };
+
+export default workspaceSelectors;

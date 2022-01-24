@@ -10,7 +10,7 @@ import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactMana
 import NotFound from "../NotFound";
 import { ProjectTaskParams } from "../../shared/typings";
 
-export default function () {
+export default function WorkflowPage() {
     const { taskId, projectId } = useParams<ProjectTaskParams>();
     const [notFound, setNotFound] = useState(false);
 

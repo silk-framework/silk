@@ -82,8 +82,10 @@ export function ProjectTaskTabView({
     viewActions,
     ...otherProps
 }: IProjectTaskTabView) {
-    const projectId = taskViewConfig?.projectId ?? useSelector(commonSel.currentProjectIdSelector);
-    const taskId = taskViewConfig?.taskId ?? useSelector(commonSel.currentTaskIdSelector);
+    const globalProjectId = useSelector(commonSel.currentProjectIdSelector);
+    const globalTaskId = useSelector(commonSel.currentTaskIdSelector);
+    const projectId = taskViewConfig?.projectId ?? globalProjectId;
+    const taskId = taskViewConfig?.taskId ?? globalTaskId;
     const dispatch = useDispatch();
     const history = useHistory();
     const location = useLocation();

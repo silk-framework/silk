@@ -12,7 +12,7 @@ import NotFound from "../NotFound";
 import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
 import { ProjectTaskParams } from "../../shared/typings";
 
-export default function () {
+export default function TransformPage() {
     const { taskId, projectId } = useParams<ProjectTaskParams>();
     const [notFound, setNotFound] = useState(false);
 

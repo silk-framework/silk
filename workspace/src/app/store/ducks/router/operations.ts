@@ -126,7 +126,7 @@ const updateLocationState = (forPath: string, projectId: string, metaData: IMeta
     };
 };
 
-export default {
+const routerOps = {
     setQueryString,
     goToPage,
     replacePage,
@@ -134,3 +134,5 @@ export default {
     goToTaskPage,
     itemTypeToPath,
 };
+
+export default routerOps;
