@@ -70,5 +70,5 @@ object EmptyDataset extends Dataset with Serializable {
     override def clear()(implicit userContext: UserContext): Unit = {}
   }
 
-  override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly
+  override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly()
 }
