@@ -21,6 +21,9 @@ import { waitFor } from "@testing-library/react";
 describe("Related items", () => {
     let hostPath = process.env.HOST;
     let history: History<LocationState> = null;
+    beforeAll(() => {
+        loadRelatedItems();
+    })
     afterEach(() => {
         mockAxios.reset();
     });
@@ -60,7 +63,7 @@ describe("Related items", () => {
         props: { projectId?: string; taskId?: string } = {},
         currentUrl: string = `${SERVE_PATH}/projects/${PROJECT_ID}/task/${TASK_ID}`
     ) => {
-        history = createBrowserHistory();
+        history = createBrowserHistory<{}>();
         history.location.pathname = currentUrl;
 
         return withMount(testWrapper(<RelatedItems {...props} />, history));
