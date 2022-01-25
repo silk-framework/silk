@@ -96,11 +96,13 @@ class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatcher
     retrieveTags(projectId).tags mustBe empty
 
     // Add a new user-defined tag
-    val tag1 = addTag(projectId, AddTagRequest(None, "My Tag"))
+    val tag1 = createTags(projectId, AddTagRequest(None, "My Tag"))
     retrieveTags(projectId).tags.head.label mustBe "My Tag"
 
-    // Tag the project
-    addTagToProject(projectId, tag1.uri)
+    // Update metadata
+    val currentMetaData = getMetaData(projectId)
+    val updatedMetaData = currentMetaData.copy(tags = Some(Set(tag1.uri)))
+    updateMetaData(projectId, updatedMetaData)
 
     // Make sure that the tag has been added
     getMetaDataExpanded(projectId).tags must contain theSameElementsAs Set(tag1)

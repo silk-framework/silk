@@ -34,6 +34,17 @@ trait ApiClient {
   }
 
   /**
+    * Simple JSON PUT request.
+    */
+  protected def putRequest[RequestType, ResponseType](call: Call, requestBody: RequestType)
+                                                      (implicit writes: Writes[RequestType], reads: Reads[ResponseType]): ResponseType = {
+    val request = createRequest(call)
+    val response = request.put(Json.toJson(requestBody))
+    val responseJson = checkResponse(response).body[JsValue]
+    Json.fromJson[ResponseType](responseJson).get
+  }
+
+  /**
     * Simple JSON POST request.
     */
   protected def postRequest[RequestType, ResponseType](call: Call, requestBody: RequestType)

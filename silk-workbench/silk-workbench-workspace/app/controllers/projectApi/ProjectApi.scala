@@ -23,7 +23,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.MetaDataSerializers.{FullTag, MetaDataExpanded, MetaDataPlain, tagFormat}
-import org.silkframework.util.{Identifier, Uri}
+import org.silkframework.util.Identifier
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.exceptions.IdentifierAlreadyExistsException
 import org.silkframework.workspace.io.WorkspaceIO
@@ -225,9 +225,9 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
                              )
                              projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     validateJson[ItemMetaData] { newMetaData =>
-      val cleanedNewMetaData = newMetaData
+      val cleanedNewMetaData = newMetaData.asMetaData
       val oldProjectMetaData = workspace.project(projectId).config.metaData
-      val mergedMetaData = oldProjectMetaData.copy(label = Some(cleanedNewMetaData.label), description = cleanedNewMetaData.description)
+      val mergedMetaData = oldProjectMetaData.copy(label = cleanedNewMetaData.label, description = cleanedNewMetaData.description, tags = cleanedNewMetaData.tags)
       val updatedMetaData = workspace.updateProjectMetaData(projectId, mergedMetaData.asUpdatedMetaData)
       Ok(Json.toJson(MetaDataPlain.fromMetaData(updatedMetaData)))
     }
@@ -290,42 +290,6 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
                                  projectId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = getProject(projectId)
     Ok(Json.toJson(MetaDataExpanded.fromMetaData(project.config.metaData, project.tags)))
-  }
-
-  @Operation(
-    summary = "Add tag to project",
-    description = "Adds a new tag to a project.",
-    responses = Array(
-      new ApiResponse(
-        responseCode = "204",
-        description = "Success"
-      ),
-      new ApiResponse(
-        responseCode = "404",
-        description = "If the project does not exist."
-      )
-    ))
-  def addTagToProject(@Parameter(
-                        name = "projectId",
-                        description = "The project identifier",
-                        required = true,
-                        in = ParameterIn.PATH,
-                        schema = new Schema(implementation = classOf[String])
-                      )
-                      projectId: String,
-                      @Parameter(
-                        name = "tagUri",
-                        description = "The tag URI",
-                        required = true,
-                        in = ParameterIn.QUERY,
-                        schema = new Schema(implementation = classOf[String])
-                      )
-                      tagUri: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = getProject(projectId)
-    val newTags = project.config.metaData.tags + Uri(tagUri)
-    val newMetaData = project.config.metaData.copy(tags = newTags)
-    project.config = project.config.withMetaData(newMetaData)
-    NoContent
   }
 
   /** Returns all project prefixes */

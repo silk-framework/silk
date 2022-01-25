@@ -163,11 +163,15 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     val diProject = project(projectId)
     val projectConfig = diProject.config
     val oldMetaData = projectConfig.metaData
-    val mergedMetaData = oldMetaData.copy(label = metaData.label, description = metaData.description)
+    val mergedMetaData = oldMetaData.copy(label = metaData.label, description = metaData.description, tags = metaData.tags)
     val updatedProjectConfig = projectConfig.copy(metaData = mergedMetaData.asUpdatedMetaData)
     provider.putProject(updatedProjectConfig)
     removeProjectFromCache(projectId)
-    addProjectToCache(new Project(updatedProjectConfig, provider, repository.get(projectId)))
+    val newProject = new Project(updatedProjectConfig, provider, repository.get(projectId))
+    for(tag <- diProject.tags.allTags()) {
+      newProject.tags.putTag(tag)
+    }
+    addProjectToCache(newProject)
     log.info(s"Project meta data updated for '$projectId'.")
     updatedProjectConfig.metaData
   }

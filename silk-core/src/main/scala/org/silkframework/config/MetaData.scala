@@ -50,7 +50,8 @@ case class MetaData(label: Option[String],
       Some(now),
       Some(now),
       user,
-      user
+      user,
+      tags
     )
   }
 
@@ -61,7 +62,8 @@ case class MetaData(label: Option[String],
       created = created,
       modified = Some(Instant.now()),
       createdByUser = createdByUser,
-      lastModifiedByUser = userUri
+      lastModifiedByUser = userUri,
+      tags = tags
     )
   }
 

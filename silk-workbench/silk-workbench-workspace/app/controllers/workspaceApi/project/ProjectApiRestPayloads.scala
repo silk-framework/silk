@@ -1,6 +1,7 @@
 package controllers.workspaceApi.project
 
 import org.silkframework.config.MetaData
+import org.silkframework.util.Uri
 import play.api.libs.json.{Format, Json}
 
 /**
@@ -14,8 +15,8 @@ object ProjectApiRestPayloads {
     * @param label       label of the item
     * @param description optional description of the item
     */
-  case class ItemMetaData(label: String, description: Option[String] = None) {
-    def asMetaData: MetaData = MetaData(Some(label), description)
+  case class ItemMetaData(label: String, description: Option[String] = None, tags: Option[Set[String]] = None) {
+    def asMetaData: MetaData = MetaData(Some(label), description, tags = tags.getOrElse(Set.empty).map(new Uri(_)))
   }
 
   object ItemMetaData {
