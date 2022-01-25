@@ -47,5 +47,5 @@ case class TextFileDataset(
     */
   override def entitySink(implicit userContext: UserContext): EntitySink = new TextFileSink(this)
 
-  override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly
+  override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly()
 }

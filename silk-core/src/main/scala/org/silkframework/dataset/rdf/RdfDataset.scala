@@ -25,7 +25,8 @@ trait RdfDataset extends Dataset {
           SpecialPathInfo(specialPaths.LANG, Some("Returns the language tag of a language-tagged literal.")),
           SpecialPathInfo(specialPaths.TEXT, Some("Returns the lexical value of the resource or literal this is requested from."))
         )
-      )
+      ),
+      supportsMultipleTables = true
     )
   }
 
