@@ -29,7 +29,7 @@ describe("Related items", () => {
         console.log("items loaded")
         await checkRelatedItems(nrOverallItems, wrapper);
         console.log("Finished beforeEach")
-    }, 60000)
+    }, 120000)
     afterEach(() => {
         mockAxios.reset();
     });
@@ -78,7 +78,7 @@ describe("Related items", () => {
         // Wait for render
         await waitFor(() => {
             expect(wrapper.text()).toContain(`(${nrItems})`);
-        });
+        }, {timeout: 50000});
         // Check items that are displayed in the list
         const shownRelatedItems = findAll(wrapper, "li .eccgui-overviewitem__item");
         expect(shownRelatedItems).toHaveLength(DEFAULT_PAGE_SIZE);
