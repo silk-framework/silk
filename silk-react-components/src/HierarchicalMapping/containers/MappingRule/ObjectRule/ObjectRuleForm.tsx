@@ -1,12 +1,12 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {Card, CardActions, CardContent, CardTitle, RadioGroup, ScrollingHOC, Spinner,} from '@eccenca/gui-elements';
-import {Button, FieldItem, Notification, Spacing, TextField} from '@gui-elements/index';
+import {Button, FieldItem, Notification, Spacing, TextField} from "gui-elements";
 import {
     AffirmativeButton,
     DismissiveButton,
     Radio,
     TextField as LegacyTextField,
-} from '@gui-elements/legacy-replacements';
+} from "gui-elements/legacy-replacements";
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import {ParentElement} from '../../../components/ParentElement';

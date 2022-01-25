@@ -11,7 +11,7 @@ import {
     Spinner,
     Spacing,
     Tooltip,
-} from "@gui-elements/index";
+} from "gui-elements";
 import { ISuggestionWithReplacementInfo } from "./AutoSuggestion";
 
 export interface IDropdownProps {

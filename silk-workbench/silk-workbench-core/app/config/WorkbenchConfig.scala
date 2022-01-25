@@ -1,9 +1,9 @@
 package config
 
-import java.io.File
-
+import java.io.{File, InputStream}
 import com.typesafe.config.{Config => TypesafeConfig}
 import config.WorkbenchConfig.Tabs
+
 import javax.inject.Inject
 import org.silkframework.config.DefaultConfig
 import org.silkframework.runtime.resource._
@@ -88,9 +88,11 @@ object WorkbenchConfig {
       }
     }
 
+    def getClassLoaderResource(resource: String): InputStream = this.getClass.getClassLoader.getResourceAsStream(resource)
+
     private def calculateHtml(): Html = {
       val context = WorkbenchConfig.applicationContext
-      val source = Source.fromInputStream(this.getClass.getClassLoader.getResourceAsStream("public/index.html"))
+      val source = Source.fromInputStream(getClassLoaderResource("public/index.html"))
       val htmlString = source.getLines().mkString("\n")
       source.close()
       val html = injectConfigProperties(context, htmlString)

@@ -3,7 +3,6 @@
     "baseUrl": ".",
     "outDir": "dist/",
     "paths": {
-      "@gui-elements/*": ["src/libs/gui-elements/*"]
     },
     "target": "es5",
     "lib": [

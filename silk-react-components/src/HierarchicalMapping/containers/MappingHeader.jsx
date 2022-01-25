@@ -14,7 +14,7 @@ import {
     CardHeader,
     CardTitle,
     CardOptions,
-} from '@gui-elements';
+} from "gui-elements";
 
 import { ParentStructure } from '../components/ParentStructure';
 import RuleTitle from '../elements/RuleTitle';

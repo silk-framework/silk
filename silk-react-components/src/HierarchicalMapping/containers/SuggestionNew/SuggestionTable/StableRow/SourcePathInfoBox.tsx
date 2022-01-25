@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { HtmlContentBlock } from "@gui-elements/index";
+import { HtmlContentBlock } from "gui-elements";
 import {ITargetWithSelected, SuggestionTypeValues} from "../../suggestion.typings";
 import { SuggestionListContext } from "../../SuggestionContainer";
 import { InfoBoxOverlay } from "./InfoBoxOverlay";
