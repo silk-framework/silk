@@ -1,6 +1,6 @@
 package controllers.workspaceApi
 
-import controllers.projectApi.ProjectApi.AddTagRequest
+import controllers.projectApi.ProjectApi.{CreateTag, CreateTagsRequest}
 import controllers.util.ProjectApiClient
 import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, ProjectCreationData}
 import helper.IntegrationTestTrait
@@ -96,7 +96,7 @@ class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatcher
     retrieveTags(projectId).tags mustBe empty
 
     // Add a new user-defined tag
-    val tag1 = createTags(projectId, AddTagRequest(None, "My Tag"))
+    val tag1 = createTags(projectId, CreateTagsRequest(Seq(CreateTag(None, "My Tag")))).head
     retrieveTags(projectId).tags.head.label mustBe "My Tag"
 
     // Update metadata

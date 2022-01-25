@@ -1,6 +1,6 @@
 package controllers.util
 
-import controllers.projectApi.ProjectApi.{AddTagRequest, ProjectTagsResponse}
+import controllers.projectApi.ProjectApi.{CreateTagsRequest, ProjectTagsResponse}
 import helper.ApiClient
 import org.silkframework.util.Identifier
 import controllers.projectApi.routes.ProjectApi
@@ -24,8 +24,8 @@ trait ProjectApiClient extends ApiClient {
     getRequest[ProjectTagsResponse](ProjectApi.fetchTags(projectId))
   }
 
-  def createTags(projectId: Identifier, addTagRequest: AddTagRequest): FullTag = {
-    postRequest[AddTagRequest, FullTag](ProjectApi.createTag(projectId), addTagRequest)
+  def createTags(projectId: Identifier, addTagRequest: CreateTagsRequest): Iterable[FullTag] = {
+    postRequest[CreateTagsRequest, Iterable[FullTag]](ProjectApi.createTag(projectId), addTagRequest)
   }
 
   def deleteTag(projectId: Identifier, tagUri: String): Unit = {

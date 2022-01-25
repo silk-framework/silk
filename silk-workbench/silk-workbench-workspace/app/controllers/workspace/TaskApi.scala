@@ -517,51 +517,6 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     Ok(Json.toJson(MetaDataExpanded.fromMetaData(task.metaData, project.tags)))
   }
 
-  @Operation(
-    summary = "Add tag to task",
-    description = "Adds a new tag to a task.",
-    responses = Array(
-      new ApiResponse(
-        responseCode = "204",
-        description = "Success"
-      ),
-      new ApiResponse(
-        responseCode = "404",
-        description = "If the project does not exist."
-      )
-    ))
-  def addTagToTask(@Parameter(
-                      name = "project",
-                      description = "The project identifier",
-                      required = true,
-                      in = ParameterIn.PATH,
-                      schema = new Schema(implementation = classOf[String])
-                    )
-                      projectId: String,
-                   @Parameter(
-                     name = "task",
-                     description = "The task identifier",
-                     required = true,
-                     in = ParameterIn.PATH,
-                     schema = new Schema(implementation = classOf[String])
-                   )
-                   taskId: String,
-                   @Parameter(
-                     name = "tagUri",
-                     description = "The tag URI",
-                     required = true,
-                     in = ParameterIn.QUERY,
-                     schema = new Schema(implementation = classOf[String])
-                   )
-                   tagUri: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectId)
-    val task = project.anyTask(taskId)
-    val newTags = task.metaData.tags + Uri(tagUri)
-    val newMetaData = task.metaData.copy(tags = newTags)
-    task.updateMetaData(newMetaData)
-    NoContent
-  }
-
   // Task meta data object as JSON
   private def taskMetaDataJson(task: ProjectTask[_ <: TaskSpec])(implicit userContext: UserContext): JsObject = {
     val formatOptions =

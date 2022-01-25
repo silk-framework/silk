@@ -104,7 +104,6 @@ DELETE        /projects/:project/tasks/:task                                    
 PUT           /projects/:project/tasks/:task/metadata                           controllers.workspace.TaskApi.putTaskMetadata(project: String, task: String)
 GET           /projects/:project/tasks/:task/metadata                           controllers.workspace.TaskApi.getTaskMetadata(project: String, task: String)
 GET           /projects/:project/tasks/:task/metadataExpanded                   controllers.workspace.TaskApi.getTaskMetadataExpanded(project: String, task: String)
-POST          /projects/:project/tasks/:task/metadata/addTag                    controllers.workspace.TaskApi.addTagToTask(project: String, task: String, tagUri: String)
 POST          /projects/:project/tasks/:task/clone                              controllers.workspace.TaskApi.cloneTask(project, task, newTask)
 POST          /projects/:project/tasks/:task/copy                               controllers.workspace.TaskApi.copyTask(project: String, task: String)
 GET           /projects/:project/tasks/:task/cachesLoaded                       controllers.workspace.TaskApi.cachesLoaded(project: String, task: String)

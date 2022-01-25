@@ -3,7 +3,7 @@ package controllers.projectApi
 import config.WorkbenchConfig
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
-import controllers.projectApi.ProjectApi.{AddTagRequest, ProjectTagsResponse}
+import controllers.projectApi.ProjectApi.{CreateTagsRequest, ProjectTagsResponse}
 import controllers.projectApi.doc.ProjectApiDoc
 import controllers.workspace.JsonSerializer
 import controllers.workspaceApi.IdentifierUtils
@@ -78,7 +78,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
     NoContent
   }
 
-  
+
   /** Create a project given the meta data. Automatically generates an ID. */
   @Operation(
     summary = "Create project",
@@ -115,7 +115,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
           case _ =>
             throw BadUserInputException("The label must not be empty!")
         }
-        val projectId = id match { 
+        val projectId = id match {
            case Some(v) => Identifier(v)
            case None => generatedId
         }
@@ -466,8 +466,8 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
   }
 
   @Operation(
-    summary = "Create/Update tag",
-    description = "Create or update a tag.",
+    summary = "Create/Update tags",
+    description = "Create or update tags.",
     responses = Array(
       new ApiResponse(
         responseCode = "204",
@@ -483,23 +483,23 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
       )
     ))
   @RequestBody(
-    description = "The tag.",
+    description = "The tags.",
     required = true,
     content = Array(
       new Content(
         mediaType = "application/json",
-        schema = new Schema(implementation = classOf[AddTagRequest])
+        schema = new Schema(implementation = classOf[CreateTagsRequest])
       ))
   )
-  def createTag(@Parameter(
-               name = "projectId",
-               description = "The project identifier",
-               required = true,
-               in = ParameterIn.PATH,
-               schema = new Schema(implementation = classOf[String])
-             )
-             projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
-    validateJson[AddTagRequest] { request =>
+  def createTags(@Parameter(
+                   name = "projectId",
+                   description = "The project identifier",
+                   required = true,
+                   in = ParameterIn.PATH,
+                   schema = new Schema(implementation = classOf[String])
+                )
+                projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+    validateJson[CreateTagsRequest] { request =>
       val response = request.execute(getProject(projectId))
       Ok(Json.toJson(response))
     }
@@ -669,28 +669,31 @@ object ProjectApi {
 
   }
 
-  @Schema(description = "Request to add a new tag.")
-  case class AddTagRequest(@Schema(description = "The URI of the new tag. Leave empty to generate a new URI automatically.", required = false, nullable = true)
-                           uri: Option[String],
-                           @Schema(description = "Default label of the tag.", required = true, example = "My Tag")
-                           label: String) {
+  case class CreateTag(@Schema(description = "The URI of the new tag. Leave empty to generate a new URI automatically.", required = false, nullable = true)
+                       uri: Option[String],
+                       @Schema(description = "Default label of the tag.", required = true, example = "My Tag")
+                       label: String)
 
+  @Schema(description = "Request to add a new tag.")
+  case class CreateTagsRequest(tags: Iterable[CreateTag]) {
 
     def execute(project: Project)
-               (implicit userContext: UserContext): FullTag = {
-      val tagUri = uri match {
-        case Some(userUri) =>
-          userUri
-        case None =>
-          project.tags.generateTagUri()
+               (implicit userContext: UserContext): Iterable[FullTag] = {
+      for (tag <- tags) yield {
+        val tagUri = tag.uri match {
+          case Some(userUri) =>
+            userUri
+          case None =>
+            project.tags.generateTagUri()
+        }
+        val newTag = Tag(tagUri, tag.label)
+        project.tags.putTag(newTag)
+        FullTag.fromTag(newTag)
       }
-      val tag = Tag(tagUri, label)
-      project.tags.putTag(tag)
-      FullTag.fromTag(tag)
     }
-
   }
 
   implicit val projectTagsResponseFormat: Format[ProjectTagsResponse] = Json.format[ProjectTagsResponse]
-  implicit val addTagRequestFormat: Format[AddTagRequest] = Json.format[AddTagRequest]
+  implicit val createTagFormat: Format[CreateTag] = Json.format[CreateTag]
+  implicit val createTagsRequestFormat: Format[CreateTagsRequest] = Json.format[CreateTagsRequest]
 }
