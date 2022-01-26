@@ -364,7 +364,7 @@ export const mockAxiosResponse = (
  * This function mocks the window.location object and restores it afterwards. */
 export const withWindowLocation = async (block: () => void, location: any = {}) => {
     const oldLocation = window.location;
-    delete window.location;
+    //delete window.location;
     window.location = location;
     await block();
     window.location = oldLocation;
