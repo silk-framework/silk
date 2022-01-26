@@ -25,7 +25,7 @@ trait ProjectApiClient extends ApiClient {
   }
 
   def createTags(projectId: Identifier, addTagRequest: CreateTagsRequest): Iterable[FullTag] = {
-    postRequest[CreateTagsRequest, Iterable[FullTag]](ProjectApi.createTag(projectId), addTagRequest)
+    postRequest[CreateTagsRequest, Iterable[FullTag]](ProjectApi.createTags(projectId), addTagRequest)
   }
 
   def deleteTag(projectId: Identifier, tagUri: String): Unit = {
