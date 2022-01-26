@@ -1,4 +1,4 @@
-import { Elements } from "react-flow-renderer";
+import { Elements, OnLoadParams } from "react-flow-renderer";
 import React from "react";
 
 /**
@@ -15,6 +15,8 @@ export interface RuleEditorModelContextProps {
     isReadOnly: boolean;
     /** Sets the read-only mode of the model. */
     setIsReadOnly: (readOnly: boolean) => any;
+    /** Callback to set the react-flow instance needed for the model. */
+    setReactFlowInstance: (instance: OnLoadParams) => any;
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
@@ -25,4 +27,5 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     isReadOnly: false,
     /** Allows setting the model to read-only mode. */
     setIsReadOnly: () => {},
+    setReactFlowInstance: () => {},
 });

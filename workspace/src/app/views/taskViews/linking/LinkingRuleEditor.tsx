@@ -47,7 +47,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
     /** Fetches the list of operators that can be used in a linking task. */
     const fetchLinkingRuleOperatorDetails = async () => {
         try {
-            return (await requestRuleOperatorPluginDetails(false)).data;
+            const response = (await requestRuleOperatorPluginDetails(false)).data;
+            return Object.values(response);
         } catch (err) {
             registerError(
                 "LinkingRuleEditor_fetchLinkingRuleOperatorDetails",
@@ -79,7 +80,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
             comparison.sourceInput,
             comparison.targetInput,
         ];
-        const aggregatorInputs = (aggregator: IAggregationOperator): ISimilarityOperator[] => aggregator.operators;
+        const aggregatorInputs = (aggregator: IAggregationOperator): ISimilarityOperator[] => aggregator.inputs;
         const operatorNodes: IRuleOperatorNode[] = [];
         // Extracts and adds a single operator node to the array, recursively executes on its children
         // returns the ID of the operator node
@@ -109,6 +110,9 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                             return [parameterId, parameterValue.defaultValue];
                         })
                     ),
+                    portSpecification: {
+                        minInputPorts: 1,
+                    },
                 });
                 return operator.id;
             }
@@ -153,6 +157,9 @@ export const convertRuleOperator = (op: IPluginDetails): IRuleOperator => {
                 return [parameterId, spec];
             })
         ),
+        portSpecification: {
+            minInputPorts: 1, // TODO: where to get this specification from??
+        },
     };
 };
 
@@ -164,6 +171,10 @@ const extractOperatorNodeFromPathInput = (pathInput: IPathInput, result: IRuleOp
         inputs: [],
         parameters: {
             path: pathInput.path,
+        },
+        portSpecification: {
+            minInputPorts: 0,
+            maxInputPorts: 0,
         },
     });
     return pathInput.id;
@@ -184,6 +195,9 @@ const extractOperatorNodeFromTransformInput = (
                 return [parameterId, parameterValue.defaultValue];
             })
         ),
+        portSpecification: {
+            minInputPorts: 1,
+        },
     });
     return transformInput.id;
 };

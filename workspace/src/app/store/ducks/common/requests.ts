@@ -115,7 +115,7 @@ export const requestExportTypes = async (): Promise<IExportTypes[]> => {
 /** Fetches the rule operator plugins used in the linking and transform operators. */
 export const requestRuleOperatorPluginDetails = (
     inputOperatorsOnly: boolean
-): Promise<FetchResponse<IPluginDetails[]>> => {
+): Promise<FetchResponse<{ [key: string]: IPluginDetails }>> => {
     return fetch({
         url: coreApi("/ruleOperatorPlugins"),
         query: {

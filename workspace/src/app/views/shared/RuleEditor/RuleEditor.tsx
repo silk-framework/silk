@@ -1,7 +1,7 @@
 import { RuleEditorModel } from "./RuleEditorModel";
 import React from "react";
 import { RuleEditorView } from "./RuleEditorView";
-import { createRuleEditorContext } from "./contexts/RuleEditorContext";
+import { RuleEditorContext } from "./contexts/RuleEditorContext";
 import { IViewActions } from "../../plugins/PluginRegistry";
 import { IRuleOperator, IRuleOperatorNode } from "./RuleEditor.typings";
 
@@ -32,6 +32,8 @@ export const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends objec
     taskId,
     fetchRuleData,
     fetchRuleOperators,
+    convertRuleOperator,
+    convertToRuleOperatorNodes,
 }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
     // The task that contains the rule, e.g. transform or linking task
     const [taskData, setTaskData] = React.useState<TASK_TYPE | undefined>(undefined);
@@ -41,11 +43,33 @@ export const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends objec
     const [operators, setOperators] = React.useState<OPERATOR_TYPE[]>([]);
     // True while operators are loaded
     const [operatorsLoading, setOperatorsLoading] = React.useState<boolean>(false);
+    // The internal rule operator node model
+    const [initialRuleOperatorNodes, setInitialRuleOperatorNodes] = React.useState<IRuleOperatorNode[] | undefined>(
+        undefined
+    );
+    // The list of available operators that can be added to the canvas
+    const [operatorList, setOperatorList] = React.useState<IRuleOperator[] | undefined>(undefined);
 
     // Fetch the task data
     React.useEffect(() => {
         fetchData();
     }, [projectId, taskId]);
+
+    // Convert task data to internal model
+    React.useEffect(() => {
+        if (taskData) {
+            const nodes = convertToRuleOperatorNodes(taskData);
+            setInitialRuleOperatorNodes(nodes);
+        }
+    }, [taskData]);
+
+    // Convert available operators
+    React.useEffect(() => {
+        if (operators) {
+            const ops = operators.map((op) => convertRuleOperator(op));
+            setOperatorList(ops);
+        }
+    }, [operators]);
 
     const fetchData = async () => {
         setTaskDataLoading(true);
@@ -70,15 +94,14 @@ export const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends objec
         }
     };
 
-    const RuleEditorContext = createRuleEditorContext<TASK_TYPE, OPERATOR_TYPE>();
-
     return (
         <RuleEditorContext.Provider
             value={{
                 editedItem: taskData,
-                operatorList: operators,
+                operatorList: operatorList,
                 editedItemLoading: taskDataLoading,
                 operatorListLoading: operatorsLoading,
+                initialRuleOperatorNodes: initialRuleOperatorNodes,
             }}
         >
             <RuleEditorModel>

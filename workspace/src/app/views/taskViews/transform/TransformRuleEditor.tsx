@@ -45,7 +45,8 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
     /** Fetches the list of operators that can be used in a transform task. */
     const fetchTransformRuleOperatorList = async () => {
         try {
-            return (await requestRuleOperatorPluginDetails(true)).data;
+            const response = (await requestRuleOperatorPluginDetails(true)).data;
+            return Object.values(response);
         } catch (err) {
             registerError(
                 "TransformRuleEditor_fetchTransformRuleOperatorDetails",

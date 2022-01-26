@@ -376,6 +376,15 @@
             "empty": "Your workspace is empty. In order to start, create a new project or import an existing project from an exported project file."
         }
     },
+    "RuleEditor": {
+        "node": {
+            "menu": {
+                "remove": {
+                    "label": "Remove"
+                }
+            }
+        }
+    },
     "taskViews": {
         "linkRulesEditor": {
             "errors": {

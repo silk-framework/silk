@@ -21,6 +21,12 @@ export const RuleEditorView = ({}) => {
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
     const modelContext = React.useContext(RuleEditorModelContext);
 
+    // Triggered after the react-flow instance has been loaded
+    const onLoad = (_reactFlowInstance: OnLoadParams) => {
+        setReactFlowInstance(_reactFlowInstance);
+        modelContext.setReactFlowInstance(_reactFlowInstance);
+    };
+    console.log(modelContext.elements.length);
     return (
         <Grid verticalStretchable={true}>
             <GridRow>
@@ -45,7 +51,7 @@ export const RuleEditorView = ({}) => {
                         // onConnect={onConnect}
                         // onNodeDragStart={handleDragStart}
                         // onNodeDragStop={handleNodeDragStop}
-                        // onLoad={onLoad}
+                        onLoad={onLoad}
                         // onDrop={onDrop}
                         // onDragOver={onDragOver}
                         // nodeTypes={nodeTypes}

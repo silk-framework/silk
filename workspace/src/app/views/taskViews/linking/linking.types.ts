@@ -31,7 +31,7 @@ export interface IAggregationOperator extends ISimilarityOperator {
     /** The ID of the aggregator plugin. */
     aggregator: string;
     /** The inputs to the aggregation. */
-    operators: ISimilarityOperator[];
+    inputs: ISimilarityOperator[];
     type: "Aggregation";
 }
 

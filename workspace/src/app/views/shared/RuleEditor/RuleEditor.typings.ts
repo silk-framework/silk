@@ -1,3 +1,5 @@
+import { NodeContentProps } from "gui-elements/src/extensions/react-flow/nodes/NodeDefault";
+
 interface IRuleOperatorBase {
     /** The operator plugin ID. Taken from the list of available operators. */
     pluginId: string;
@@ -5,6 +7,16 @@ interface IRuleOperatorBase {
     label: string;
     /** Icon that should be displayed for the operator. */
     icon?: string;
+    /** Specification of input ports of the operator node. */
+    portSpecification: IPortSpecification;
+}
+
+/** The specification of the number of ports. */
+interface IPortSpecification {
+    /** Minimal number of input ports. */
+    minInputPorts: number;
+    /** Max. number of input ports. If this is missing, then there is a unlimited number allowed. */
+    maxInputPorts?: number;
 }
 
 /** Rule operator that can be added to a rule. Will be displayed in the sidebar. */
@@ -57,4 +69,15 @@ interface NodePosition {
 
 interface RuleOperatorNodeParameters {
     [parameterKey: string]: string | undefined;
+}
+
+/** Rule editor node with required business data. For convenience. */
+export interface NodeContentPropsWithBusinessData<T> extends NodeContentProps<T> {
+    businessData: T;
+}
+
+/** Business data for rule editor nodes. */
+export interface IRuleNodeData {
+    // If this is a node with dynamic port configuration
+    dynamicPorts?: boolean;
 }
