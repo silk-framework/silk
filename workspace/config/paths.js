@@ -89,7 +89,13 @@ const resolveModule = (resolveFn, filePath) => {
 
 const silkConfig = buildConfig()
 
-const configValue = (key, defaultValue) => silkConfig[key] ? silkConfig[key] : defaultValue
+const configValue = (key, defaultValue) => {
+    const value = silkConfig[key] ? silkConfig[key] : defaultValue
+    if(value !== defaultValue) {
+        console.log(`Using non-default value for config key '${key}': '${value}'`)
+    }
+    return value
+}
 
 // Allow to add additional source paths, e.g. proprietary code that will be bundled together with the core code.
 // Paths are separated by ';' and are relative to the 'workspace' folder.
