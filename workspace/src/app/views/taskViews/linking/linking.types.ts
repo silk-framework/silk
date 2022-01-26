@@ -20,7 +20,10 @@ export interface ISimilarityOperator extends IOperatorNode {
     weight: number;
     /** If the operator is used to generate the index to improve performance of the matching step. */
     indexing?: boolean;
+    /** A similarity operator is either a comparison or aggregation. */
     type: "Comparison" | "Aggregation";
+    /** The parameter values of the operator. */
+    parameters: IOperatorNodeParameters;
 }
 
 /** Aggregation operator. Aggregates multiple scores to a single value. */
@@ -30,7 +33,6 @@ export interface IAggregationOperator extends ISimilarityOperator {
     /** The inputs to the aggregation. */
     operators: ISimilarityOperator[];
     type: "Aggregation";
-    parameters: IOperatorNodeParameters;
 }
 
 /** Comparison operator. Compares 2 resources and outputs a score. */
@@ -40,7 +42,6 @@ export interface IComparisonOperator extends ISimilarityOperator {
     threshold: number;
     /** The comparison plugin ID used for comparing the input values, e.q. 'equality'. */
     metric: string;
-    parameters: IOperatorNodeParameters;
     /** The first input for the comparison. Links are generated from the source. */
     sourceInput: IValueInput;
     /** The second input for the comparison. Links are generated to the target. */

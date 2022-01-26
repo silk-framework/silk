@@ -3,18 +3,23 @@ import React from "react";
 import { RuleEditorView } from "./RuleEditorView";
 import { createRuleEditorContext } from "./contexts/RuleEditorContext";
 import { IViewActions } from "../../plugins/PluginRegistry";
+import { IRuleOperator, IRuleOperatorNode } from "./RuleEditor.typings";
 
-export interface RuleEditorProps<TASK_TYPE, OPERATOR_TYPE> {
+export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     /** Project ID the task is in. */
     projectId: string;
     /** The task the rules are being edited of. */
     taskId: string;
     /** Function to fetch the actual task data to initialize the editor. */
-    fetchRuleData: (projectId: string, taskId: string) => Promise<TASK_TYPE | undefined> | TASK_TYPE | undefined;
+    fetchRuleData: (projectId: string, taskId: string) => Promise<RULE_TYPE | undefined> | RULE_TYPE | undefined;
     /** Save rule. If true is returned saving was successful, else it failed. TODO: Missing rule tree structure */
-    saveRule: (ruleTree) => Promise<boolean> | boolean;
+    saveRule: (ruleTree, originalRuleData: RULE_TYPE) => Promise<boolean> | boolean;
     /** Fetch available rule operators. */
     fetchRuleOperators: () => Promise<OPERATOR_TYPE[] | undefined> | OPERATOR_TYPE[] | undefined;
+    /** Converts the custom format to the internal rule operator format. */
+    convertRuleOperator: (op: OPERATOR_TYPE) => IRuleOperator;
+    /** Converts the external rule representation into the internal rule representation. */
+    convertToRuleOperatorNodes: (ruleData: RULE_TYPE) => IRuleOperatorNode[];
     /** Generic actions and callbacks on views. */
     viewActions?: IViewActions;
 }

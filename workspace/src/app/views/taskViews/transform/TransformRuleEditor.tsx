@@ -7,6 +7,8 @@ import { RuleEditor } from "../../shared/RuleEditor/RuleEditor";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
 import { putTransformRule, requestTransformRule } from "./transform.requests";
+import { convertRuleOperator, extractOperatorNodeFromValueInput } from "../linking/LinkingRuleEditor";
+import { IRuleOperatorNode } from "../../shared/RuleEditor/RuleEditor.typings";
 
 export interface TransformRuleEditorProps {
     /** Project ID the task is in. */
@@ -69,6 +71,13 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
         }
     };
 
+    /** Converts the linking task rule to the internal representation. */
+    const convertToRuleOperatorNodes = (mappingRule: IComplexMappingRule): IRuleOperatorNode[] => {
+        const operatorNodes: IRuleOperatorNode[] = [];
+        extractOperatorNodeFromValueInput(mappingRule.operator, operatorNodes);
+        return operatorNodes;
+    };
+
     return (
         <RuleEditor<IComplexMappingRule, IPluginDetails>
             projectId={projectId}
@@ -76,6 +85,8 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
             fetchRuleData={fetchTransformRule}
             fetchRuleOperators={fetchTransformRuleOperatorList}
             saveRule={saveTransformRule}
+            convertRuleOperator={convertRuleOperator}
+            convertToRuleOperatorNodes={convertToRuleOperatorNodes}
         />
     );
 };
