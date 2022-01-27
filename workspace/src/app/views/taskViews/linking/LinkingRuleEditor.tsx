@@ -167,7 +167,8 @@ const extractSimilarityOperatorNode = (
                 })
             ),
             portSpecification: {
-                minInputPorts: 1,
+                minInputPorts: isComparison ? 2 : 1,
+                maxInputPorts: isComparison ? 2 : undefined,
             },
         });
         return operator.id;
@@ -190,7 +191,7 @@ const extractOperatorNodeFromPathInput = (
 ): string => {
     result.push({
         nodeId: pathInput.id,
-        label: `${isTarget ? "Target path" : "Source path"} ${pathInput.path}`, // TODO: Label?
+        label: `${isTarget ? "Target path:" : "Source path:"} ${pathInput.path}`, // TODO: Label?
         pluginType: "PathInputOperator",
         pluginId: isTarget ? "target" : "source", // We use the plugin ID to denote if this is a source or target path input.
         inputs: [],

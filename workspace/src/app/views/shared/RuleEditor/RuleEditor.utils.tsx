@@ -40,9 +40,10 @@ export function createOperatorNode(
         y: node.position?.y ?? 0,
     });
     const usedInputs = node.inputs.length;
-    const numberOfInputPorts = node.portSpecification.maxInputPorts
-        ? Math.max(node.portSpecification.maxInputPorts, node.portSpecification.minInputPorts, usedInputs)
-        : Math.max(node.portSpecification.minInputPorts, usedInputs + 1);
+    const numberOfInputPorts =
+        node.portSpecification.maxInputPorts != null
+            ? Math.max(node.portSpecification.maxInputPorts, node.portSpecification.minInputPorts, usedInputs)
+            : Math.max(node.portSpecification.minInputPorts, usedInputs + 1);
 
     const handles: IHandleProps[] = [
         ...ruleEditorUtils.createInputHandles(numberOfInputPorts),
@@ -63,7 +64,7 @@ export function createOperatorNode(
 
     return {
         id: node.nodeId,
-        type: "Default", // TODO: Set node type here
+        type: "default", // TODO: Set node type here
         position,
         data,
     };
