@@ -40,6 +40,10 @@ export const TaskTypes: ITaskTypes = {
 
 export type TaskType = "Dataset" | "Linking" | "Transform" | "Workflow" | "CustomTask";
 
+export type RuleOperatorType = "AggregationOperator" | "TransformOperator" | "ComparisonOperator";
+
+export type PluginType = TaskType | RuleOperatorType;
+
 export interface IArbitraryPluginParameters {
     // If requested with withLabels option, then the values will be reified like this: {label: string, value: string | object}
     [key: string]: string | object;

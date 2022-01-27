@@ -1,5 +1,7 @@
 import { Grid, GridRow, GridColumn, Divider } from "gui-elements";
 import { MiniMap } from "gui-elements/src/extensions/react-flow/minimap/MiniMap";
+import { edgeTypes } from "gui-elements/src/extensions/react-flow/edges/edgeTypes";
+import { nodeTypes } from "gui-elements/src/extensions/react-flow/nodes/nodeTypes";
 import { minimapNodeClassName, minimapNodeColor } from "gui-elements/src/extensions/react-flow/minimap/utils";
 import { RuleEditorToolbar } from "./RuleEditorToolbar";
 import ReactFlow, {
@@ -59,6 +61,8 @@ export const RuleEditorView = ({}) => {
                         // onEdgeUpdateStart={onEdgeUpdateStart}
                         // onEdgeUpdateEnd={onEdgeUpdateEnd}
                         // onEdgeUpdate={onEdgeUpdate}
+                        nodeTypes={nodeTypes}
+                        edgeTypes={edgeTypes}
                         connectionLineType={ConnectionLineType.Step}
                         className="eccapp-di__floweditor__graph"
                         snapGrid={snapGrid}

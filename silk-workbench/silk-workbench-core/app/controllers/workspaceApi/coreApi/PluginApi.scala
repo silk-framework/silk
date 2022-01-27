@@ -11,6 +11,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
+import org.silkframework.rule.input.{TransformInput, Transformer}
+import org.silkframework.rule.similarity.{Aggregator, DistanceMeasure}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.plugin.{PluginDescription, PluginList, PluginRegistry}
 import org.silkframework.runtime.serialization.WriteContext
@@ -267,13 +269,17 @@ class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedControlle
     }
     implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
     val pluginListJson = JsonSerializers.toJson(pluginList.copy(pluginsByType = filteredPlugins))
-    val pluginJsonWithTaskType = pluginListJson.as[JsObject].fields.map { case (pluginId, pluginJson) =>
-      pluginCache.taskType(pluginId) match {
+    val pluginJsonWithTaskAndPluginType = pluginListJson.as[JsObject].fields.map { case (pluginId, pluginJson) =>
+      val withTaskType = pluginCache.taskType(pluginId) match {
         case Some(taskType) => (pluginId, pluginJson.as[JsObject] + (JsonSerializers.TASKTYPE -> JsString(taskType)))
         case None => (pluginId, pluginJson)
       }
+      pluginCache.pluginType(pluginId) match {
+        case Some(pluginType) => (pluginId, pluginJson.as[JsObject] + (JsonSerializers.PLUGIN_TYPE -> JsString(pluginType)))
+        case None => (pluginId, pluginJson)
+      }
     }
-    Ok(JsObject(pluginJsonWithTaskType))
+    Ok(JsObject(pluginJsonWithTaskAndPluginType))
   }
 }
 
@@ -288,19 +294,44 @@ class PluginApiCache @Inject()() {
         .toMap
   }
 
+  private lazy val pluginTypeMapById: Map[String, String] = {
+    PluginRegistry.allPlugins
+      .filter(pd => Seq(classOf[TaskSpec], classOf[Dataset], classOf[Transformer], classOf[Aggregator], classOf[DistanceMeasure])
+        .exists(_.isAssignableFrom(pd.pluginClass)))
+      .flatMap(pd => pluginTypeByClass(pd.pluginClass).map(pluginType => (pd.id.toString, pluginType)))
+      .toMap
+  }
+
   def taskType(pluginId: String): Option[String] = {
     itemTypeMapById.get(pluginId)
   }
 
+  def pluginType(pluginId: String): Option[String] = {
+    pluginTypeMapById.get(pluginId)
+  }
+
+  private val taskTypes = Seq(
+    JsonSerializers.TASK_TYPE_DATASET -> classOf[Dataset],
+    JsonSerializers.TASK_TYPE_DATASET -> classOf[DatasetSpec[_ <: Dataset]],
+    JsonSerializers.TASK_TYPE_CUSTOM_TASK -> classOf[CustomTask],
+    JsonSerializers.TASK_TYPE_WORKFLOW -> classOf[Workflow],
+    JsonSerializers.TASK_TYPE_TRANSFORM -> classOf[TransformSpec],
+    JsonSerializers.TASK_TYPE_LINKING -> classOf[LinkSpec]
+  )
+
+  private val ruleOperatorTypes = Seq(
+    JsonSerializers.TRANSFORM_OPERATOR -> classOf[Transformer],
+    JsonSerializers.AGGREGATION_OPERATOR -> classOf[Aggregator],
+    JsonSerializers.COMPARISON_OPERATOR -> classOf[DistanceMeasure]
+  )
+
+  private val allPluginTypes = taskTypes ++ ruleOperatorTypes
+
+  def pluginTypeByClass(pluginClass: Class[_]): Option[String] = {
+    allPluginTypes.find(_._2.isAssignableFrom(pluginClass)).map(_._1)
+  }
+
   def taskTypeByClass(pluginClass: Class[_]): Option[String] = {
-    val taskTypes = Seq(
-      JsonSerializers.TASK_TYPE_DATASET -> classOf[Dataset],
-      JsonSerializers.TASK_TYPE_DATASET -> classOf[DatasetSpec[_ <: Dataset]],
-      JsonSerializers.TASK_TYPE_CUSTOM_TASK -> classOf[CustomTask],
-      JsonSerializers.TASK_TYPE_WORKFLOW -> classOf[Workflow],
-      JsonSerializers.TASK_TYPE_TRANSFORM -> classOf[TransformSpec],
-      JsonSerializers.TASK_TYPE_LINKING -> classOf[LinkSpec]
-    )
     taskTypes.find(_._2.isAssignableFrom(pluginClass)).map(_._1)
   }
 }

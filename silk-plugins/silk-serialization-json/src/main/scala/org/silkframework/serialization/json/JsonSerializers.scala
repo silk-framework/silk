@@ -38,16 +38,23 @@ object JsonSerializers {
   final val TYPE = "type"
   final val DATA = "data"
   final val GENERIC_INFO = "genericInfo"
+  final val PARAMETERS = "parameters"
+  final val URI = "uri"
+  final val METADATA = "metadata"
+  final val OPERATOR = "operator"
+  // Task types
   final val TASKTYPE = "taskType"
   final val TASK_TYPE_DATASET = "Dataset"
   final val TASK_TYPE_CUSTOM_TASK = "CustomTask"
   final val TASK_TYPE_TRANSFORM = "Transform"
   final val TASK_TYPE_LINKING = "Linking"
   final val TASK_TYPE_WORKFLOW = "Workflow"
-  final val PARAMETERS = "parameters"
-  final val URI = "uri"
-  final val METADATA = "metadata"
-  final val OPERATOR = "operator"
+  // Plugin types
+  final val PLUGIN_TYPE = "pluginType"
+  final val AGGREGATION_OPERATOR = "AggregationOperator"
+  final val TRANSFORM_OPERATOR = "TransformOperator"
+  final val COMPARISON_OPERATOR = "ComparisonOperator"
+
 
   implicit object StringJsonFormat extends JsonFormat[String] {
     /**

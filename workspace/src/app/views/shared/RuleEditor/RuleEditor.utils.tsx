@@ -54,7 +54,7 @@ export function createOperatorNode(
         label: node.label,
         minimalShape: "none",
         handles,
-        iconName: findExistingIconName(createIconNameStack("TODO", node.pluginId)), // TODO: Calculate icons
+        iconName: node.icon, // findExistingIconName(createIconNameStack("TODO", node.pluginId)), // TODO: Calculate icons
         businessData: {
             dynamicPorts: !node.portSpecification.maxInputPorts,
         },
@@ -63,7 +63,7 @@ export function createOperatorNode(
 
     return {
         id: node.nodeId,
-        type: "default", // TODO: Set type here
+        type: "Default", // TODO: Set node type here
         position,
         data,
     };

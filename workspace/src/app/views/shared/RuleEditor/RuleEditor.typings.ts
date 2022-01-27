@@ -1,6 +1,11 @@
 import { NodeContentProps } from "gui-elements/src/extensions/react-flow/nodes/NodeDefault";
+import { RuleOperatorType } from "@ducks/shared/typings";
+
+export type PathInputOperator = "PathInputOperator";
 
 interface IRuleOperatorBase {
+    /** Plugin type. */
+    pluginType: string | PathInputOperator | RuleOperatorType;
     /** The operator plugin ID. Taken from the list of available operators. */
     pluginId: string;
     /** The label that will be displayed in the node header. */
@@ -12,7 +17,7 @@ interface IRuleOperatorBase {
 }
 
 /** The specification of the number of ports. */
-interface IPortSpecification {
+export interface IPortSpecification {
     /** Minimal number of input ports. */
     minInputPorts: number;
     /** Max. number of input ports. If this is missing, then there is a unlimited number allowed. */

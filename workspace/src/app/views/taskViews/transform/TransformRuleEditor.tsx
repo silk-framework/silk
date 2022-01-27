@@ -75,7 +75,7 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
     /** Converts the linking task rule to the internal representation. */
     const convertToRuleOperatorNodes = (mappingRule: IComplexMappingRule): IRuleOperatorNode[] => {
         const operatorNodes: IRuleOperatorNode[] = [];
-        extractOperatorNodeFromValueInput(mappingRule.operator, operatorNodes);
+        extractOperatorNodeFromValueInput(mappingRule.operator, operatorNodes, false);
         return operatorNodes;
     };
 

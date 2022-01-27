@@ -1,4 +1,4 @@
-import { IMetadata, TaskType } from "@ducks/shared/typings";
+import { IMetadata, PluginType, TaskType } from "@ducks/shared/typings";
 
 export interface IAvailableDataTypes {
     [key: string]: IAvailableDataType;
@@ -71,6 +71,7 @@ export interface IPluginDetails {
     };
     required: string[];
     pluginId: string;
+    pluginType?: PluginType;
     markdownDocumentation?: string;
 }
 
