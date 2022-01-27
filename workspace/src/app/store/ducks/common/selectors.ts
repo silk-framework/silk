@@ -17,7 +17,7 @@ const initialSettingsSelector = createSelector([commonSelector], (common) => com
 
 const exportTypesSelector = createSelector([commonSelector], (common) => common.exportTypes);
 
-export default {
+const commonSelectors = {
     commonSelector,
     searchStringSelector,
     availableDTypesSelector,
@@ -27,3 +27,5 @@ export default {
     currentProjectIdSelector,
     exportTypesSelector,
 };
+
+export default commonSelectors;

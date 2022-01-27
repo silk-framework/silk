@@ -89,7 +89,13 @@ const resolveModule = (resolveFn, filePath) => {
 
 const silkConfig = buildConfig()
 
-const configValue = (key, defaultValue) => silkConfig[key] ? silkConfig[key] : defaultValue
+const configValue = (key, defaultValue) => {
+    const value = silkConfig[key] ? silkConfig[key] : defaultValue
+    if(value !== defaultValue) {
+        console.log(`Using non-default value for config key '${key}': '${value}'`)
+    }
+    return value
+}
 
 // Allow to add additional source paths, e.g. proprietary code that will be bundled together with the core code.
 // Paths are separated by ';' and are relative to the 'workspace' folder.
@@ -120,9 +126,9 @@ module.exports = {
     dotenv: resolveApp(".env"),
     appPath: resolveApp("."),
     appBuild: resolveApp("build"),
-    watchDIBuild: resolveApp(configValue("watchDIBuild", "../../target/web/public/main")),
-    watchDIAssets: resolveApp(configValue("watchDIAssets", "../../target/web/public/main/lib/silk-workbench-core/new-workspace")),
-    appDIBuild: resolveApp(configValue("appDIBuild", "../../public")),
+    watchDIBuild: resolveApp(configValue("watchDIBuild", "../silk-workbench/target/web/public/main")),
+    watchDIAssets: resolveApp(configValue("watchDIAssets", "../silk-workbench/target/web/public/main/lib/silk-workbench-core/new-workspace")),
+    appDIBuild: resolveApp(configValue("appDIBuild", "../silk-workbench/public")),
     appDIAssets: resolveApp("../silk-workbench/silk-workbench-core/public/new-workspace"),
     appDIAssetsUrl: "/core/assets/new-workspace/",
     appPublic: resolveApp("public"),

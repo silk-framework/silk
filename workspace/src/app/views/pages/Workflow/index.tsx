@@ -8,9 +8,9 @@ import { ProjectTaskTabView } from "../../shared/projectTaskTabView/ProjectTaskT
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
 import NotFound from "../NotFound";
-import {ProjectTaskParams} from "../../shared/typings";
+import { ProjectTaskParams } from "../../shared/typings";
 
-export default function () {
+export default function WorkflowPage() {
     const { taskId, projectId } = useParams<ProjectTaskParams>();
     const [notFound, setNotFound] = useState(false);
 
@@ -22,7 +22,7 @@ export default function () {
 
     // View action that should be triggered when a workflow is saved
     const onSave = () => {
-        window.top.postMessage(
+        window.top?.postMessage(
             JSON.stringify({
                 id: "workflowSaved",
                 message: "Workflow updated",

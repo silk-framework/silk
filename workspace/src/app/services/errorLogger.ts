@@ -18,7 +18,7 @@ interface IClientInfo {
 interface IError {
     name: string;
     message: string;
-    client: IClientInfo;
+    client?: IClientInfo;
     stack?: string;
     network?: any;
 }
@@ -125,8 +125,8 @@ const generateNetworkError = (error: FetchError) => {
  * @param stack
  * @return IError
  */
-const generateDefaultError = (name: string = "DEFAULT_ERROR", data: any, stack?: string): Error => {
-    const err: Error = {
+const generateDefaultError = (name: string = "DEFAULT_ERROR", data: any, stack?: string): IError => {
+    const err: IError = {
         name,
         message: data,
     };

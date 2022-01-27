@@ -7,7 +7,7 @@ import { Reducer, Action, CombinedState } from "redux";
 import { IStore } from "./typings/IStore";
 import error from "@ducks/error";
 
-export default (history): Reducer<CombinedState<IStore>, Action> => {
+const reducers = (history): Reducer<CombinedState<IStore>, Action> => {
     return combineReducers({
         common: common.reducer,
         workspace,
@@ -15,3 +15,5 @@ export default (history): Reducer<CombinedState<IStore>, Action> => {
         router: routerReducers(history),
     });
 };
+
+export default reducers;
