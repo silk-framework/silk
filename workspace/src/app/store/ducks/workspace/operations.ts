@@ -70,7 +70,7 @@ const updateQueryString = () => {
 const setupFiltersFromQs = (queryString: string) => {
     return (dispatch) => {
         try {
-            const parsedQs = qs.parse(queryString, {
+            const parsedQs: any = qs.parse(queryString, {
                 parseArrays: true,
                 comma: true,
                 ignoreQueryPrefix: true,
