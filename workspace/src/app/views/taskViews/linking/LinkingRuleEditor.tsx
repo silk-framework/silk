@@ -19,9 +19,9 @@ import {
     IPortSpecification,
     IRuleOperator,
     IRuleOperatorNode,
-    PathInputOperator,
 } from "../../shared/RuleEditor/RuleEditor.typings";
-import { IPathInput, ITransformOperator, IValueInput } from "../rule.typings";
+import { IPathInput, ITransformOperator, IValueInput } from "../shared/rules/rule.typings";
+import { extractOperatorNodeFromValueInput } from "../shared/rules/rule.utils";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -65,10 +65,22 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
     };
 
     /** Save the rule. */
-    const saveLinkageRule = async (ruleTree) => {
+    const saveLinkageRule = async (ruleOperatorNodes: IRuleOperatorNode[]) => {
         try {
-            // TODO: Convert rule tree to payload for PATCH request, only update the rule part, i.e. data.parameters.rule.
-            await requestUpdateProjectTask(projectId, linkingTaskId, {});
+            const [operatorNodeMap, rootNodes] = convertToRuleOperatorNodeMap(ruleOperatorNodes);
+            if (rootNodes.length > 1) {
+                throw Error(`More than one root node found! Root nodes: ${rootNodes.map((n) => n.label).join(", ")}`);
+            }
+            await requestUpdateProjectTask(projectId, linkingTaskId, {
+                data: {
+                    parameters: {
+                        rule:
+                            rootNodes.length === 1
+                                ? convertRuleOperatorNodeToSimilarityOperator(rootNodes[0], operatorNodeMap)
+                                : undefined,
+                    },
+                },
+            });
             return true;
         } catch (err) {
             registerError(
@@ -77,6 +89,58 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                 err
             );
             return false;
+        }
+    };
+
+    const convertRuleOperatorNodeToSimilarityOperator = (
+        ruleOperatorNode: IRuleOperatorNode | undefined,
+        ruleOperatorNodes: Map<string, IRuleOperatorNode>
+    ): ISimilarityOperator | undefined => {
+        if (ruleOperatorNode) {
+            if (ruleOperatorNode.pluginType === "ComparisonOperator") {
+                if (ruleOperatorNode.inputs.length !== 2 || !ruleOperatorNode.inputs.every((input) => input != null)) {
+                    throw Error(
+                        `Comparison operator '${ruleOperatorNode.label}' must have 2 inputs, but is missing at least 1!`
+                    );
+                }
+                const comparison: IComparisonOperator = {
+                    metric: ruleOperatorNode.pluginId,
+                    sourceInput: convertRuleOperatorNodeToValueInput(
+                        fetchRuleOperatorNode(ruleOperatorNode.inputs[0]!!, ruleOperatorNodes, ruleOperatorNode),
+                        ruleOperatorNodes
+                    ),
+                    targetInput: convertRuleOperatorNodeToValueInput(
+                        fetchRuleOperatorNode(ruleOperatorNode.inputs[1]!!, ruleOperatorNodes, ruleOperatorNode),
+                        ruleOperatorNodes
+                    ),
+                    id: ruleOperatorNode.nodeId,
+                    indexing: false, // TODO: What to set it to?
+                    parameters: {}, // Object.fromEntries(Object.entries(ruleOperator.parameters) TODO: Did I get this right?
+                    //.map(([parameterKey, parameterValue]) => [parameterKey, parameterValue ?? ""])),
+                    type: "Comparison",
+                    threshold: parseFloat(ruleOperatorNode.parameters["threshold"]!!),
+                    weight: parseInt(ruleOperatorNode.parameters["weight"]!!),
+                };
+                return comparison;
+            } else {
+                const aggregation: IAggregationOperator = {
+                    id: ruleOperatorNode.nodeId,
+                    aggregator: ruleOperatorNode.pluginId,
+                    inputs: ruleOperatorNode.inputs
+                        .filter((i) => i != null)
+                        .map(
+                            (i) =>
+                                convertRuleOperatorNodeToSimilarityOperator(
+                                    fetchRuleOperatorNode(i!!, ruleOperatorNodes, ruleOperatorNode),
+                                    ruleOperatorNodes
+                                )!!
+                        ),
+                    parameters: {}, // TODO: add parameters
+                    type: "Aggregation",
+                    weight: parseInt(ruleOperatorNode.parameters["weight"]!!),
+                };
+                return aggregation;
+            }
         }
     };
 
@@ -100,6 +164,84 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
         />
     );
 };
+
+/**
+ * Convert to backend model:
+ */
+
+/** Converts the editor rule operator nodes to a map from ID to node and also returns all root nodes, i.e. nodes without parent. */
+export const convertToRuleOperatorNodeMap = (
+    ruleOperatorNodes: IRuleOperatorNode[]
+): [Map<string, IRuleOperatorNode>, IRuleOperatorNode[]] => {
+    const hasParent: { [key: string]: boolean } = {};
+    const nodeMap = new Map<string, IRuleOperatorNode>(
+        ruleOperatorNodes.map((node) => {
+            node.inputs.filter((i) => i != null).forEach((i) => (hasParent[i!!] = true));
+            return [node.nodeId, node];
+        })
+    );
+    const rootNodes = Object.entries(hasParent)
+        .filter(([nodeId, hasParent]) => hasParent)
+        .map(([nodeId]) => nodeMap.get(nodeId)!!);
+    return [nodeMap, rootNodes];
+};
+
+/** Fetches and operator node from the available nodes. */
+const fetchRuleOperatorNode = (
+    nodeId: string,
+    ruleOperators: Map<string, IRuleOperatorNode>,
+    parentNode?: IRuleOperatorNode
+): IRuleOperatorNode => {
+    const ruleOperatorNode = ruleOperators.get(nodeId);
+    if (ruleOperatorNode) {
+        return ruleOperatorNode;
+    } else {
+        throw new Error(
+            `Rule operator node with ID '${nodeId}' does not exist${
+                parentNode ? `, but is defined as input for node '${parentNode.label}'!` : "!"
+            }`
+        );
+    }
+};
+
+/** Converts a rule operator node to a value input. */
+export const convertRuleOperatorNodeToValueInput = (
+    ruleOperatorNode: IRuleOperatorNode,
+    ruleOperatorNodes: Map<string, IRuleOperatorNode>
+): IValueInput => {
+    if (ruleOperatorNode.pluginType === "TransformOperator") {
+        const transformOperator: ITransformOperator = {
+            id: ruleOperatorNode.nodeId,
+            function: ruleOperatorNode.pluginId,
+            inputs: ruleOperatorNode.inputs
+                .filter((i) => i != null)
+                .map((i) =>
+                    convertRuleOperatorNodeToValueInput(
+                        fetchRuleOperatorNode(i!!, ruleOperatorNodes, ruleOperatorNode),
+                        ruleOperatorNodes
+                    )
+                ),
+            parameters: {}, // TODO: How to get parameters
+            type: "transformInput",
+        };
+        return transformOperator;
+    } else if (ruleOperatorNode.pluginType === "PathInputOperator") {
+        const pathInput: IPathInput = {
+            id: ruleOperatorNode.nodeId,
+            path: ruleOperatorNode.parameters["path"] ?? "",
+            type: "pathInput",
+        };
+        return pathInput;
+    } else {
+        throw Error(
+            `Tried to convert ${ruleOperatorNode.pluginType} node '${ruleOperatorNode.label}' to incompatible value input!`
+        );
+    }
+};
+
+/**
+ * Convert to editor model:
+ */
 
 /** Convert rule operators. */
 export const convertRuleOperator = (op: IPluginDetails): IRuleOperator => {
@@ -153,13 +295,14 @@ const extractSimilarityOperatorNode = (
             : aggregatorInputs(operator as IAggregationOperator).map((input) =>
                   extractSimilarityOperatorNode(input, result)
               );
+        const pluginId = isComparison
+            ? (operator as IComparisonOperator).metric
+            : (operator as IAggregationOperator).aggregator;
         result.push({
             nodeId: operator.id,
-            label: isComparison ? "Comparison" : "Aggregation", // TODO: Adapt label
+            label: pluginId, // TODO: Adapt label
             pluginType: isComparison ? "ComparisonOperator" : "AggregationOperator",
-            pluginId: isComparison
-                ? (operator as IComparisonOperator).metric
-                : (operator as IAggregationOperator).aggregator,
+            pluginId,
             inputs: inputs,
             parameters: Object.fromEntries(
                 Object.entries(operator.parameters).map(([parameterId, parameterValue]) => {
@@ -181,71 +324,5 @@ export const portSpecification = (op: IPluginDetails): IPortSpecification => {
             return { minInputPorts: 2, maxInputPorts: 2 };
         default:
             return { minInputPorts: 1 };
-    }
-};
-
-const extractOperatorNodeFromPathInput = (
-    pathInput: IPathInput,
-    result: IRuleOperatorNode[],
-    isTarget: boolean | undefined
-): string => {
-    result.push({
-        nodeId: pathInput.id,
-        label: `${isTarget ? "Target path:" : "Source path:"} ${pathInput.path}`, // TODO: Label?
-        pluginType: "PathInputOperator",
-        pluginId: isTarget ? "target" : "source", // We use the plugin ID to denote if this is a source or target path input.
-        inputs: [],
-        parameters: {
-            path: pathInput.path,
-        },
-        portSpecification: {
-            minInputPorts: 0,
-            maxInputPorts: 0,
-        },
-    });
-    return pathInput.id;
-};
-
-const extractOperatorNodeFromTransformInput = (
-    transformInput: ITransformOperator,
-    result: IRuleOperatorNode[],
-    isTarget: boolean | undefined
-): string => {
-    const inputs = transformInput.inputs.map((input) => extractOperatorNodeFromValueInput(input, result, isTarget));
-    result.push({
-        nodeId: transformInput.id,
-        inputs: inputs,
-        pluginType: "TransformOperator",
-        pluginId: transformInput.function,
-        label: transformInput.function, // TODO: label
-        parameters: Object.fromEntries(
-            Object.entries(transformInput.parameters).map(([parameterId, parameterValue]) => {
-                return [parameterId, parameterValue.defaultValue];
-            })
-        ),
-        portSpecification: {
-            minInputPorts: 1,
-        },
-    });
-    return transformInput.id;
-};
-
-/** Extract operator nodes from an value input node, i.e. path input or transform operator.
- *
- * @param operator The value input operator.
- * @param result   The result array this operator should be added to.
- * @param isTarget Only important in the context of comparisons where we have to distinguish between source and target paths.
- */
-export const extractOperatorNodeFromValueInput = (
-    operator: IValueInput | undefined,
-    result: IRuleOperatorNode[],
-    isTarget: boolean | undefined
-): string | undefined => {
-    if (operator) {
-        const nodeId =
-            operator.type === "pathInput"
-                ? extractOperatorNodeFromPathInput(operator as IPathInput, result, isTarget)
-                : extractOperatorNodeFromTransformInput(operator as ITransformOperator, result, isTarget);
-        return nodeId;
     }
 };

@@ -38,6 +38,11 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
         });
     };
 
+    const saveRule = () => {
+        // TODO: Convert react-flow nodes to IRuleOperatorNodes
+        return ruleEditorContext.saveRule([]);
+    };
+
     /** Convert initial operator nodes to react-flow model. */
     React.useEffect(() => {
         if (
@@ -72,6 +77,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
                 isReadOnly,
                 setIsReadOnly,
                 setReactFlowInstance,
+                saveRule,
             }}
         >
             {children}

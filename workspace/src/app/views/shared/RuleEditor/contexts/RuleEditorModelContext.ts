@@ -17,6 +17,8 @@ export interface RuleEditorModelContextProps {
     setIsReadOnly: (readOnly: boolean) => any;
     /** Callback to set the react-flow instance needed for the model. */
     setReactFlowInstance: (instance: OnLoadParams) => any;
+    /** Save the current rule. */
+    saveRule: () => Promise<boolean> | boolean;
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
@@ -28,4 +30,7 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     /** Allows setting the model to read-only mode. */
     setIsReadOnly: () => {},
     setReactFlowInstance: () => {},
+    saveRule: () => {
+        return false;
+    },
 });

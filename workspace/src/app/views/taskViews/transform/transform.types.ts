@@ -1,6 +1,6 @@
-import { IInputSource } from "../task.typings";
+import { IInputSource } from "../shared/task.typings";
 import { IMetadata } from "@ducks/shared/typings";
-import { IValueInput } from "../rule.typings";
+import { IValueInput } from "../shared/rules/rule.typings";
 
 /** Parameters of a transform task. */
 export interface ITransformRule {

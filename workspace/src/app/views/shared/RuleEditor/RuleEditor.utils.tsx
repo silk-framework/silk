@@ -1,10 +1,8 @@
 import React from "react";
 import { IHandleProps } from "gui-elements/src/extensions/react-flow/nodes/NodeDefault";
-import { OnLoadParams, Position, FlowElement, Edge, ArrowHeadType } from "react-flow-renderer";
+import { ArrowHeadType, Edge, FlowElement, OnLoadParams, Position } from "react-flow-renderer";
 import { rangeArray } from "../../../utils/basicUtils";
 import { IRuleNodeData, IRuleOperatorNode, NodeContentPropsWithBusinessData } from "./RuleEditor.typings";
-import { createIconNameStack } from "../ItemDepiction/ItemDepiction";
-import { findExistingIconName } from "gui-elements/src/components/Icon/Icon";
 import { RuleNodeMenu } from "./ruleNode/RuleNodeMenu";
 
 /** Constants */

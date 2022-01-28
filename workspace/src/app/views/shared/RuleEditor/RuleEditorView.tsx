@@ -18,7 +18,7 @@ import { RuleEditorModelContext } from "./contexts/RuleEditorModelContext";
 //snap grid
 const snapGrid: [number, number] = [15, 15];
 
-export const RuleEditorView = ({}) => {
+export const RuleEditorView = () => {
     const reactFlowWrapper = React.useRef<any>(null);
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
     const modelContext = React.useContext(RuleEditorModelContext);

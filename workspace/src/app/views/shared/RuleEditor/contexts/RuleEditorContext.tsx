@@ -18,6 +18,8 @@ export interface RuleEditorContextProps {
     operatorListLoading: boolean;
     /** The initial rule nodes, e.g. when loading an existing rule. */
     initialRuleOperatorNodes?: IRuleOperatorNode[];
+    /** Save the rule. */
+    saveRule: (ruleOperatorNodes: IRuleOperatorNode[]) => Promise<boolean> | boolean;
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
@@ -25,4 +27,7 @@ export const RuleEditorContext = React.createContext<RuleEditorContextProps>({
     operatorList: [],
     editedItemLoading: false,
     operatorListLoading: false,
+    saveRule: () => {
+        throw Error("saveRule is not implemented!");
+    },
 });

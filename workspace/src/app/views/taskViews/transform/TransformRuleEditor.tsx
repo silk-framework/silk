@@ -7,8 +7,13 @@ import { RuleEditor } from "../../shared/RuleEditor/RuleEditor";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
 import { putTransformRule, requestTransformRule } from "./transform.requests";
-import { convertRuleOperator, extractOperatorNodeFromValueInput } from "../linking/LinkingRuleEditor";
+import {
+    convertRuleOperator,
+    convertRuleOperatorNodeToValueInput,
+    convertToRuleOperatorNodeMap,
+} from "../linking/LinkingRuleEditor";
 import { IRuleOperatorNode } from "../../shared/RuleEditor/RuleEditor.typings";
+import { extractOperatorNodeFromValueInput } from "../shared/rules/rule.utils";
 
 export interface TransformRuleEditorProps {
     /** Project ID the task is in. */
@@ -57,10 +62,22 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
     };
 
     /** Save the rule. */
-    const saveTransformRule = async (ruleTree) => {
+    const saveTransformRule = async (ruleOperatorNodes: IRuleOperatorNode[], originalRule: IComplexMappingRule) => {
         try {
-            // TODO: Convert rule tree to payload to IComplexMappingRule.
-            await putTransformRule(projectId, transformTaskId, ruleId, {} as IComplexMappingRule);
+            const [operatorNodeMap, rootNodes] = convertToRuleOperatorNodeMap(ruleOperatorNodes);
+            if (rootNodes.length !== 1) {
+                throw Error(
+                    `There must be exactly one root node, but ${
+                        rootNodes.length
+                    } have been found! Root nodes: ${rootNodes.map((n) => n.label).join(", ")}`
+                );
+            }
+            const rule: IComplexMappingRule = {
+                ...originalRule,
+                sourcePaths: [],
+                operator: convertRuleOperatorNodeToValueInput(rootNodes[0], operatorNodeMap),
+            };
+            await putTransformRule(projectId, transformTaskId, ruleId, rule);
             return true;
         } catch (err) {
             registerError(

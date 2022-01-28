@@ -1,5 +1,5 @@
-import { IInputSource } from "../task.typings";
-import { IOperatorNode, IOperatorNodeParameters, IValueInput } from "../rule.typings";
+import { IInputSource } from "../shared/task.typings";
+import { IOperatorNode, IOperatorNodeParameters, IValueInput } from "../shared/rules/rule.typings";
 
 /** A linking rule. */
 export interface ILinkingRule {

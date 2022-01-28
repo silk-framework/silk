@@ -13,7 +13,7 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     /** Function to fetch the actual task data to initialize the editor. */
     fetchRuleData: (projectId: string, taskId: string) => Promise<RULE_TYPE | undefined> | RULE_TYPE | undefined;
     /** Save rule. If true is returned saving was successful, else it failed. TODO: Missing rule tree structure */
-    saveRule: (ruleTree, originalRuleData: RULE_TYPE) => Promise<boolean> | boolean;
+    saveRule: (ruleOperatorNodes: IRuleOperatorNode[], originalRuleData: RULE_TYPE) => Promise<boolean> | boolean;
     /** Fetch available rule operators. */
     fetchRuleOperators: () => Promise<OPERATOR_TYPE[] | undefined> | OPERATOR_TYPE[] | undefined;
     /** Converts the custom format to the internal rule operator format. */
@@ -34,6 +34,7 @@ export const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends objec
     fetchRuleOperators,
     convertRuleOperator,
     convertToRuleOperatorNodes,
+    saveRule,
 }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
     // The task that contains the rule, e.g. transform or linking task
     const [taskData, setTaskData] = React.useState<TASK_TYPE | undefined>(undefined);
@@ -80,6 +81,15 @@ export const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends objec
         }
     };
 
+    const saveRuleOperatorNodes = async (ruleNodeOperators: IRuleOperatorNode[]) => {
+        if (taskData) {
+            return saveRule(ruleNodeOperators, taskData);
+        } else {
+            console.error("No task data loaded, cannot save!");
+            return false;
+        }
+    };
+
     // Fetch the operators
     React.useEffect(() => {
         fetchOperators();
@@ -102,6 +112,7 @@ export const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends objec
                 editedItemLoading: taskDataLoading,
                 operatorListLoading: operatorsLoading,
                 initialRuleOperatorNodes: initialRuleOperatorNodes,
+                saveRule: saveRuleOperatorNodes,
             }}
         >
             <RuleEditorModel>
