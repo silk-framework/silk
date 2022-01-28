@@ -86,3 +86,49 @@ export interface IRuleNodeData {
     // If this is a node with dynamic port configuration
     dynamicPorts?: boolean;
 }
+
+/** Possible operations to the rule model. */
+export type RuleModelEditorOperationType =
+    // Add a new rule node
+    | "add node"
+    // Add a new edge
+    | "add edge"
+    // Remove an existing node
+    | "delete node"
+    // Remove an existing edge
+    | "delete edge"
+    // Change the (number of) input ports of a node
+    | "change input ports"
+    // Start a change transaction. All following change actions will be handled as a single change action.
+    | "transaction start";
+
+/** A rule model edit operation. */
+export interface IRuleModelEditOperation {
+    type: RuleModelEditorOperationType;
+}
+
+/** Starts a new transaction. A change transaction runs until a new transaction is started. */
+export class StartTransactionAction implements IRuleModelEditOperation {
+    type: RuleModelEditorOperationType = "transaction start";
+}
+
+/** Adds a single node. */
+export class AddNodeAction implements IRuleModelEditOperation {
+    type: RuleModelEditorOperationType = "add node";
+    ruleOperator: IRuleOperator;
+    position: NodePosition;
+
+    constructor(ruleOperator: IRuleOperator, position: NodePosition) {
+        this.ruleOperator = ruleOperator;
+        this.position = position;
+    }
+}
+
+export class DeleteNodeAction implements IRuleModelEditOperation {
+    type: RuleModelEditorOperationType = "delete node";
+    nodeId: string;
+
+    constructor(nodeId: string) {
+        this.nodeId = nodeId;
+    }
+}

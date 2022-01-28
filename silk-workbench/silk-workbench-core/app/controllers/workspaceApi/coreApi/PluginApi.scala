@@ -81,7 +81,7 @@ class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedControlle
       "linking"
     ) flatMap (pl => PluginRegistry.pluginDescriptionsById(pl, Some(Seq(classOf[TaskSpec]))))
     val singlePluginsList = PluginList(ListMap("singleTasks" -> singlePlugins), addMarkdownDocumentation, overviewOnly = true)
-    pluginResult(addMarkdownDocumentation, pluginTypes, Some(singlePluginsList), textQuery, category, overviewOnly = false)
+    pluginResult(addMarkdownDocumentation, pluginTypes, Some(singlePluginsList), textQuery, category, overviewOnly = true)
   }
 
   /** Return plugin description of a single plugin. */
@@ -271,13 +271,14 @@ class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedControlle
     val pluginListJson = JsonSerializers.toJson(pluginList.copy(pluginsByType = filteredPlugins))
     val pluginJsonWithTaskAndPluginType = pluginListJson.as[JsObject].fields.map { case (pluginId, pluginJson) =>
       val withTaskType = pluginCache.taskType(pluginId) match {
-        case Some(taskType) => (pluginId, pluginJson.as[JsObject] + (JsonSerializers.TASKTYPE -> JsString(taskType)))
-        case None => (pluginId, pluginJson)
+        case Some(taskType) => pluginJson.as[JsObject] + (JsonSerializers.TASKTYPE -> JsString(taskType))
+        case None => pluginJson
       }
-      pluginCache.pluginType(pluginId) match {
-        case Some(pluginType) => (pluginId, pluginJson.as[JsObject] + (JsonSerializers.PLUGIN_TYPE -> JsString(pluginType)))
-        case None => (pluginId, pluginJson)
+      val withPluginType = pluginCache.pluginType(pluginId) match {
+        case Some(pluginType) => withTaskType.as[JsObject] + (JsonSerializers.PLUGIN_TYPE -> JsString(pluginType))
+        case None => withTaskType
       }
+      (pluginId, withPluginType)
     }
     Ok(JsObject(pluginJsonWithTaskAndPluginType))
   }

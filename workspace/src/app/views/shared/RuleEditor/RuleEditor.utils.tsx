@@ -4,6 +4,7 @@ import { ArrowHeadType, Edge, FlowElement, OnLoadParams, Position } from "react-
 import { rangeArray } from "../../../utils/basicUtils";
 import { IRuleNodeData, IRuleOperatorNode, NodeContentPropsWithBusinessData } from "./RuleEditor.typings";
 import { RuleNodeMenu } from "./ruleNode/RuleNodeMenu";
+import { Tag, Highlighter, Spacing } from "gui-elements";
 
 /** Constants */
 
@@ -58,6 +59,7 @@ export function createOperatorNode(
             dynamicPorts: !node.portSpecification.maxInputPorts,
         },
         menuButtons: <RuleNodeMenu nodeId={node.nodeId} t={t} handleDeleteNode={handleDeleteNode} />,
+        content: node.tags ? createTags(node.tags) : null,
     };
 
     return {
@@ -67,6 +69,26 @@ export function createOperatorNode(
         data,
     };
 }
+
+/** Adds highlighting to the text if query is non-empty. */
+const addHighlighting = (text: string, query?: string): string | JSX.Element => {
+    return query ? <Highlighter label={text} searchValue={query} /> : text;
+};
+
+const createTags = (tags: string[], query?: string) => {
+    return (
+        <>
+            {tags.map((tag, idx) => {
+                return (
+                    <>
+                        <Tag minimal={true}>{addHighlighting(tag, query)}</Tag>
+                        {idx < tags.length + 1 ? <Spacing vertical size="tiny" /> : null}
+                    </>
+                );
+            })}
+        </>
+    );
+};
 
 // At the moment edge IDs are not important for us and can always be re-computed
 let edgeCounter = 0;

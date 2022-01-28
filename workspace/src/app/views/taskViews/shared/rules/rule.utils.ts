@@ -19,6 +19,7 @@ const extractOperatorNodeFromPathInput = (
             minInputPorts: 0,
             maxInputPorts: 0,
         },
+        tags: [isTarget ? "target path" : "source path"],
     });
     return pathInput.id;
 };
@@ -43,6 +44,7 @@ const extractOperatorNodeFromTransformInput = (
         portSpecification: {
             minInputPorts: 1,
         },
+        tags: ["transform", transformInput.function],
     });
     return transformInput.id;
 };

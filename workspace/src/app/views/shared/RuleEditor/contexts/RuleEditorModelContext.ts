@@ -1,5 +1,6 @@
 import { Elements, OnLoadParams } from "react-flow-renderer";
 import React from "react";
+import { IRuleModelEditOperation } from "../RuleEditor.typings";
 
 /**
  * The rule editor model context that contains objects and methods related to the rule model of the editor, i.e.
@@ -19,6 +20,14 @@ export interface RuleEditorModelContextProps {
     setReactFlowInstance: (instance: OnLoadParams) => any;
     /** Save the current rule. */
     saveRule: () => Promise<boolean> | boolean;
+    /** Executes an operation that will change the model. */
+    executeModelEditOperation: (operation: IRuleModelEditOperation) => void;
+}
+
+export interface IModelActions {
+    /** Starts a new change transaction. All actions after this will be handled as a single transaction, e.g. can be undone/redone as on operation. */
+    startChangeTransaction: () => void;
+    deleteNode: (nodeId: string) => void;
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
@@ -33,4 +42,5 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     saveRule: () => {
         return false;
     },
+    executeModelEditOperation: () => {},
 });

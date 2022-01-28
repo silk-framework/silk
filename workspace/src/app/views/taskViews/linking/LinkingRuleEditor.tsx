@@ -313,6 +313,7 @@ const extractSimilarityOperatorNode = (
                 minInputPorts: isComparison ? 2 : 1,
                 maxInputPorts: isComparison ? 2 : undefined,
             },
+            tags: [operator.type, pluginId], // TODO: What tags?
         });
         return operator.id;
     }
