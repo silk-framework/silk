@@ -31,6 +31,9 @@ import { Loading } from "../Loading/Loading";
 import { StringPreviewContentBlobToggler } from "gui-elements/src/cmem/ContentBlobToggler/StringPreviewContentBlobToggler";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import * as H from "history";
+import utils from "./MetadataUtils";
+import { Tag as TagType } from "./Metadatatypings";
+import TagMultiSelect from "./TagMultiselect";
 
 interface IProps {
     projectId?: string;
@@ -54,6 +57,9 @@ export function Metadata(props: IProps) {
     const [formEditData, setFormEditData] = useState<IMetadataUpdatePayload | undefined>(undefined);
     const [isEditing, setIsEditing] = useState(false);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
+    const [tags, setTags] = React.useState<Array<TagType>>([]);
+    const [createdTags, setCreatedTags] = React.useState<Array<Partial<TagType>>>([]);
+    const [selectedTags, setSelectedTags] = React.useState<Array<TagType>>([]);
     const [t] = useTranslation();
 
     // Form errors
@@ -63,6 +69,10 @@ export function Metadata(props: IProps) {
         },
         alerts: {},
     });
+
+    React.useEffect(() => {
+        utils.getAllExistingTags(projectId, taskId).then((res) => setTags(res?.data.tags ?? []));
+    }, []);
 
     const setDirtyState = React.useCallback(() => {
         setUnsavedChanges(true);
@@ -145,6 +155,18 @@ export function Metadata(props: IProps) {
         try {
             const result = await letLoading(async () => {
                 const path = location.pathname;
+                //create new tags if exists
+                const createdTagsResponse = await utils.createNewTag(createdTags, projectId, taskId);
+                //defensive correction to ensure uris match
+                const metadataTags = selectedTags.map((tag) => {
+                    const newlyCreatedTagMatch = (createdTagsResponse?.data ?? []).find((t) => t.label === tag.label);
+                    if (newlyCreatedTagMatch) {
+                        return newlyCreatedTagMatch.uri;
+                    }
+                    return tag.uri;
+                });
+                formEditData.tags = metadataTags;
+                // get tags uri and add to formEditData
                 const metadata = await sharedOp.updateTaskMetadataAsync(formEditData!!, taskId, projectId);
                 removeDirtyState();
                 dispatch(routerOp.updateLocationState(path, projectId as string, metadata));
@@ -259,6 +281,28 @@ export function Metadata(props: IProps) {
                             </FieldItem>
                         </PropertyValue>
                     </PropertyValuePair>
+                    <PropertyValuePair hasSpacing key="tags">
+                        {/** // Todo add german translation for tags here  */}
+                        <PropertyName>
+                            <Label text={t("form.field.tag", "Tag")} />
+                        </PropertyName>
+                        <PropertyValue>
+                            <FieldItem>
+                                <TagMultiSelect
+                                    items={tags}
+                                    onSelection={(params) => {
+                                        setCreatedTags(params.createdTags);
+                                        setSelectedTags(params.selectedTags);
+                                        if (params.selectedTags.length) {
+                                            setDirtyState();
+                                        } else {
+                                            removeDirtyState();
+                                        }
+                                    }}
+                                />
+                            </FieldItem>
+                        </PropertyValue>
+                    </PropertyValuePair>
                 </PropertyValueList>
             )}
             {!loading && !isEditing && (
@@ -284,6 +328,12 @@ export function Metadata(props: IProps) {
                                     allowedHtmlElementsInPreview={["a"]}
                                 />
                             </PropertyValue>
+                        </PropertyValuePair>
+                    )}
+                    {!!tags.length && (
+                        <PropertyValuePair hasSpacing hasDivider>
+                            <PropertyName>{t("form.field.tag", "Tag")}</PropertyName>
+                            <PropertyValue>{utils.DisplayArtefactTags(tags, t)}</PropertyValue>
                         </PropertyValuePair>
                     )}
                 </PropertyValueList>

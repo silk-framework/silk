@@ -298,7 +298,8 @@
         "field": {
             "description": "Description",
             "label": "Label",
-            "searchField": "Enter search term"
+            "searchField": "Enter search term",
+            "tag": "Tag"
         },
         "projectForm": {
             "importProjectButton": "Import existing project",

@@ -88,6 +88,7 @@ export interface IModalItem {
 export interface IMetadataUpdatePayload {
     label: string;
     description?: string;
+    tags?: string[];
 }
 
 export interface IRelatedItem {
