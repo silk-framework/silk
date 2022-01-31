@@ -6,42 +6,45 @@ import { MetadataExpandedResponse, Tag as TagType } from "./Metadatatypings";
 import { ContentBlobToggler } from "gui-elements/cmem";
 import { Tag, TagList } from "gui-elements";
 
-//get existing tags for a project or task
+/**
+ * if both the taskId and projectId are available then fetch the EXPANDED metadata for tasks
+ * else fetch the EXPANDED metadata for project.
+ * @param projectId
+ * @param taskId
+ * @returns
+ */
 const getAllExistingTags = async (
     projectId?: string,
     taskId?: string
-): Promise<FetchResponse<MetadataExpandedResponse> | undefined> => {
-    if (projectId && taskId) {
-        /** fetch tags for task */
-        return fetch({ url: legacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/metadataExpanded`) });
-    } else if (projectId && !taskId) {
-        /** fetch tags for projects */
-        return fetch({ url: workspaceApi(`/projects/${projectId}/metaDataExpanded`) });
-    }
-};
+): Promise<FetchResponse<MetadataExpandedResponse> | undefined> =>
+    projectId && taskId
+        ? fetch({ url: legacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/metadataExpanded`) })
+        : fetch({ url: workspaceApi(`/projects/${projectId}/metaDataExpanded`) });
 
-//create new tags to a project or tasks
+/**
+ * if both the taskId and projectId are available then create new tag for tasks
+ * else fetch the create new tag for project.
+ * @param tags
+ * @param projectId
+ * @param taskId
+ * @returns
+ */
 export const createNewTag = async (
     tags: Array<Partial<TagType>>,
     projectId?: string,
     taskId?: string
-): Promise<FetchResponse<Array<TagType>> | undefined> => {
-    if (projectId && taskId) {
-        //create tags for tasks
-        return fetch({
-            url: legacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/tags/createTags`),
-            method: "post",
-            body: { tags },
-        });
-    } else if (projectId && !taskId) {
-        //create tags for projects
-        return fetch({
-            url: workspaceApi(`/projects/${projectId}/tags/createTags`),
-            method: "post",
-            body: { tags },
-        });
-    }
-};
+): Promise<FetchResponse<Array<TagType>> | undefined> =>
+    projectId && taskId
+        ? fetch({
+              url: legacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/tags/createTags`),
+              method: "post",
+              body: { tags },
+          })
+        : fetch({
+              url: workspaceApi(`/projects/${projectId}/tags/createTags`),
+              method: "post",
+              body: { tags },
+          });
 
 const DisplayArtefactTags = (tags: Array<TagType>, t: (key: string, fallBack: string) => string) => {
     const Tags = (size: "full" | "preview") => {

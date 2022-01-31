@@ -70,10 +70,6 @@ export function Metadata(props: IProps) {
         alerts: {},
     });
 
-    React.useEffect(() => {
-        utils.getAllExistingTags(projectId, taskId).then((res) => setTags(res?.data.tags ?? []));
-    }, []);
-
     const setDirtyState = React.useCallback(() => {
         setUnsavedChanges(true);
         window.onbeforeunload = () => true;
@@ -94,6 +90,7 @@ export function Metadata(props: IProps) {
     useEffect(() => {
         if (projectId) {
             getTaskMetadata(taskId, projectId);
+            utils.getAllExistingTags(projectId, taskId).then((res) => setTags(res?.data.tags ?? []));
         }
     }, [taskId, projectId]);
 
@@ -166,13 +163,13 @@ export function Metadata(props: IProps) {
                     return tag.uri;
                 });
                 formEditData.tags = metadataTags;
-                // get tags uri and add to formEditData
                 const metadata = await sharedOp.updateTaskMetadataAsync(formEditData!!, taskId, projectId);
                 removeDirtyState();
                 dispatch(routerOp.updateLocationState(path, projectId as string, metadata));
                 return metadata;
             });
 
+            utils.getAllExistingTags(projectId, taskId).then((res) => setTags(res?.data.tags ?? []));
             setData(result);
 
             toggleEdit();

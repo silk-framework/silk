@@ -16,9 +16,9 @@ interface TagMultiSelectProps {
 
 const TagMultiSelect: React.FC<TagMultiSelectProps> = ({ items, onSelection }) => {
     const [createdTags, setCreatedTags] = React.useState<Array<Partial<TagType>>>([]);
-    const [itemsCopy, setItemsCopy] = React.useState<Array<TagType>>(items);
+    const [itemsCopy, setItemsCopy] = React.useState<Array<TagType>>([...items]);
     const [filteredTagList, setFilteredTagList] = React.useState<Array<TagType>>([]);
-    const [selectedTags, setSelectedTags] = React.useState<Array<TagType>>([]);
+    const [selectedTags, setSelectedTags] = React.useState<Array<TagType>>([...items]);
     const [searchQuery, setSearchQuery] = React.useState<string | undefined>(undefined);
 
     React.useEffect(() => {
