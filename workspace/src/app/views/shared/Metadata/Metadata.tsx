@@ -15,6 +15,7 @@ import {
     FieldItem,
     IconButton,
     Label,
+    MultiSelect,
     PropertyName,
     PropertyValue,
     PropertyValueList,
@@ -33,7 +34,6 @@ import useErrorHandler from "../../../hooks/useErrorHandler";
 import * as H from "history";
 import utils from "./MetadataUtils";
 import { Tag as TagType } from "./Metadatatypings";
-import TagMultiSelect from "./TagMultiselect";
 
 interface IProps {
     projectId?: string;
@@ -59,7 +59,7 @@ export function Metadata(props: IProps) {
     const [unsavedChanges, setUnsavedChanges] = useState(false);
     const [tags, setTags] = React.useState<Array<TagType>>([]);
     const [createdTags, setCreatedTags] = React.useState<Array<Partial<TagType>>>([]);
-    const [selectedTags, setSelectedTags] = React.useState<Array<TagType>>([]);
+    const [selectedTags, setSelectedTags] = React.useState<Array<TagType>>([...tags]);
     const [t] = useTranslation();
 
     // Form errors
@@ -153,7 +153,7 @@ export function Metadata(props: IProps) {
             const result = await letLoading(async () => {
                 const path = location.pathname;
                 //create new tags if exists
-                const createdTagsResponse = await utils.createNewTag(createdTags, projectId, taskId);
+                const createdTagsResponse = await utils.createNewTag(createdTags, projectId);
                 //defensive correction to ensure uris match
                 const metadataTags = selectedTags.map((tag) => {
                     const newlyCreatedTagMatch = (createdTagsResponse?.data ?? []).find((t) => t.label === tag.label);
@@ -232,6 +232,20 @@ export function Metadata(props: IProps) {
         }
     };
 
+    const handleTagSelectionChange = React.useCallback((params) => {
+        setCreatedTags(params.createdItems);
+        setSelectedTags((oldSelectedTags) => {
+            const prevSelectedTags = oldSelectedTags.map((t) => t.uri).join("|");
+            const newlySelectedTags = params.selectedItems.map((t) => t.uri).join("|");
+            if (prevSelectedTags !== newlySelectedTags) {
+                setDirtyState();
+            } else {
+                removeDirtyState();
+            }
+            return params.selectedItems;
+        });
+    }, []);
+
     const widgetContent = (
         <CardContent data-test-id={"metaDataWidget"}>
             {loading && <Loading description={t("Metadata.loading", "Loading summary data.")} />}
@@ -285,17 +299,13 @@ export function Metadata(props: IProps) {
                         </PropertyName>
                         <PropertyValue>
                             <FieldItem>
-                                <TagMultiSelect
+                                <MultiSelect<TagType>
+                                    canCreateNewItem
+                                    prePopulateWithItems
+                                    equalityProp="uri"
+                                    labelProp="label"
                                     items={tags}
-                                    onSelection={(params) => {
-                                        setCreatedTags(params.createdTags);
-                                        setSelectedTags(params.selectedTags);
-                                        if (params.selectedTags.length) {
-                                            setDirtyState();
-                                        } else {
-                                            removeDirtyState();
-                                        }
-                                    }}
+                                    onSelection={handleTagSelectionChange}
                                 />
                             </FieldItem>
                         </PropertyValue>

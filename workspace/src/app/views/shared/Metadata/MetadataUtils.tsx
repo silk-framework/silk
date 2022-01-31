@@ -31,20 +31,13 @@ const getAllExistingTags = async (
  */
 export const createNewTag = async (
     tags: Array<Partial<TagType>>,
-    projectId?: string,
-    taskId?: string
+    projectId?: string
 ): Promise<FetchResponse<Array<TagType>> | undefined> =>
-    projectId && taskId
-        ? fetch({
-              url: legacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/tags/createTags`),
-              method: "post",
-              body: { tags },
-          })
-        : fetch({
-              url: workspaceApi(`/projects/${projectId}/tags/createTags`),
-              method: "post",
-              body: { tags },
-          });
+    fetch({
+        url: workspaceApi(`/projects/${projectId}/tags/createTags`),
+        method: "post",
+        body: { tags },
+    });
 
 const DisplayArtefactTags = (tags: Array<TagType>, t: (key: string, fallBack: string) => string, minLength = 3) => {
     const Tags = (size: "full" | "preview") => {
@@ -64,7 +57,7 @@ const DisplayArtefactTags = (tags: Array<TagType>, t: (key: string, fallBack: st
     };
     return (
         <>
-            {tags.length <= 3 ? (
+            {tags.length <= minLength ? (
                 Tags("full")
             ) : (
                 <ContentBlobToggler
