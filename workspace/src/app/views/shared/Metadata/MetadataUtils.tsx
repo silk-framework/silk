@@ -46,7 +46,7 @@ export const createNewTag = async (
               body: { tags },
           });
 
-const DisplayArtefactTags = (tags: Array<TagType>, t: (key: string, fallBack: string) => string) => {
+const DisplayArtefactTags = (tags: Array<TagType>, t: (key: string, fallBack: string) => string, minLength = 3) => {
     const Tags = (size: "full" | "preview") => {
         return size === "full" ? (
             <TagList>
@@ -56,7 +56,7 @@ const DisplayArtefactTags = (tags: Array<TagType>, t: (key: string, fallBack: st
             </TagList>
         ) : (
             <TagList>
-                {tags.slice(0, 3).map((tag) => (
+                {tags.slice(0, minLength).map((tag) => (
                     <Tag>{tag.label}</Tag>
                 ))}
             </TagList>

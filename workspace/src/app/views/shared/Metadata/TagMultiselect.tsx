@@ -51,7 +51,7 @@ const TagMultiSelect: React.FC<TagMultiSelectProps> = ({ items, onSelection }) =
     const removeTagFromSelectionViaIndex = (label: string, index: number) => {
         setSelectedTags([...selectedTags.slice(0, index), ...selectedTags.slice(index + 1)]);
         setCreatedTags((tags) => tags.filter((t) => t.label !== label));
-        setItemsCopy((tags) => tags.filter((t) => t.label !== label));
+        // setItemsCopy((tags) => tags.filter((t) => t.label !== label));
     };
 
     const onItemRenderer = (tag: TagType, { handleClick, modifiers }) => {
