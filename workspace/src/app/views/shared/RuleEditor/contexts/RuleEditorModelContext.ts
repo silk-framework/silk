@@ -1,6 +1,6 @@
 import { Elements, OnLoadParams } from "react-flow-renderer";
 import React from "react";
-import { IRuleModelEditOperation } from "../RuleEditor.typings";
+import { IRuleModelEditAction } from "../RuleEditor.typings";
 
 /**
  * The rule editor model context that contains objects and methods related to the rule model of the editor, i.e.
@@ -21,7 +21,15 @@ export interface RuleEditorModelContextProps {
     /** Save the current rule. */
     saveRule: () => Promise<boolean> | boolean;
     /** Executes an operation that will change the model. */
-    executeModelEditOperation: (operation: IRuleModelEditOperation) => void;
+    executeModelEditOperation: (operation: IRuleModelEditAction) => void;
+    /** Undo last changes. Return true if changes have been undone. */
+    undo: () => boolean;
+    /** If there are changes that can be undone. */
+    canUndo: boolean;
+    /** Redo last undone changes. Return true if changes have been redone. */
+    redo: () => boolean;
+    /** If there are changes that can be redone. */
+    canRedo: boolean;
 }
 
 export interface IModelActions {
@@ -43,4 +51,8 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
         return false;
     },
     executeModelEditOperation: () => {},
+    undo: () => false,
+    canUndo: false,
+    redo: () => false,
+    canRedo: false,
 });

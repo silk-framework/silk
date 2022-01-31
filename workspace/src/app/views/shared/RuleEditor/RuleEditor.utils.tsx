@@ -1,6 +1,6 @@
 import React from "react";
 import { IHandleProps } from "gui-elements/src/extensions/react-flow/nodes/NodeDefault";
-import { ArrowHeadType, Edge, FlowElement, OnLoadParams, Position } from "react-flow-renderer";
+import { ArrowHeadType, Edge, FlowElement, Node, OnLoadParams, Position } from "react-flow-renderer";
 import { rangeArray } from "../../../utils/basicUtils";
 import { IRuleNodeData, IRuleOperatorNode, NodeContentPropsWithBusinessData } from "./RuleEditor.typings";
 import { RuleNodeMenu } from "./ruleNode/RuleNodeMenu";
@@ -108,6 +108,11 @@ function createEdge(sourceNodeId: string, targetNodeId: string, targetHandleId: 
 
 // Helper methods for nodes and edges
 const isNode = (element: FlowElement & { source?: string }): boolean => !element.source;
+const asNode = (
+    element: FlowElement | undefined
+): Node<NodeContentPropsWithBusinessData<IRuleNodeData>> | undefined => {
+    return element && isNode(element) ? (element as Node<NodeContentPropsWithBusinessData<IRuleNodeData>>) : undefined;
+};
 const isEdge = (element: FlowElement & { source?: string }): boolean => !isNode(element);
 const asEdge = (element: FlowElement): Edge | undefined => (isEdge(element) ? (element as Edge) : undefined);
 
@@ -119,6 +124,7 @@ const ruleEditorUtils = {
     createOperatorNode,
     isNode,
     isEdge,
+    asNode,
 };
 
 export default ruleEditorUtils;

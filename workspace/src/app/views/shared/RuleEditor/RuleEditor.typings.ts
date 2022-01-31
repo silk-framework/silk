@@ -72,7 +72,7 @@ interface NodePosition {
     y: number;
 }
 
-interface RuleOperatorNodeParameters {
+export interface RuleOperatorNodeParameters {
     [parameterKey: string]: string | undefined;
 }
 
@@ -103,17 +103,17 @@ export type RuleModelEditorOperationType =
     | "transaction start";
 
 /** A rule model edit operation. */
-export interface IRuleModelEditOperation {
+export interface IRuleModelEditAction {
     type: RuleModelEditorOperationType;
 }
 
 /** Starts a new transaction. A change transaction runs until a new transaction is started. */
-export class StartTransactionAction implements IRuleModelEditOperation {
+export class StartTransactionAction implements IRuleModelEditAction {
     type: RuleModelEditorOperationType = "transaction start";
 }
 
 /** Adds a single node. */
-export class AddNodeAction implements IRuleModelEditOperation {
+export class AddNodeAction implements IRuleModelEditAction {
     type: RuleModelEditorOperationType = "add node";
     ruleOperator: IRuleOperator;
     position: NodePosition;
@@ -124,7 +124,7 @@ export class AddNodeAction implements IRuleModelEditOperation {
     }
 }
 
-export class DeleteNodeAction implements IRuleModelEditOperation {
+export class DeleteNodeAction implements IRuleModelEditAction {
     type: RuleModelEditorOperationType = "delete node";
     nodeId: string;
 
