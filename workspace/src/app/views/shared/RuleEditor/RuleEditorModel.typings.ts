@@ -6,45 +6,72 @@ export interface RuleModelChanges {
     operations: RuleModelChangeType[];
 }
 
+export type RuleEditorNode = Node<NodeContentPropsWithBusinessData<IRuleNodeData>>;
+
 export type RuleModelChangeType =
     | AddNode
     | DeleteNode
     | AddEdge
     | DeleteEdge
     | ChangeNodePosition
-    | ChangeNodeParameters;
+    | ChangeNodeParameter;
 
-interface AddNode {
+export interface AddNode {
     type: "Add node";
-    node: Node<NodeContentPropsWithBusinessData<IRuleNodeData>>;
+    node: RuleEditorNode;
 }
 
-interface DeleteNode {
+export interface DeleteNode {
     type: "Delete node";
-    node: Node<NodeContentPropsWithBusinessData<IRuleNodeData>>;
+    node: RuleEditorNode;
 }
 
-interface AddEdge {
+export interface AddEdge {
     type: "Add edge";
     edge: Edge;
 }
 
-interface DeleteEdge {
+export interface DeleteEdge {
     type: "Delete edge";
     edge: Edge;
 }
 
-interface ChangeNodePosition {
+export interface ChangeNodePosition {
     type: "Change node position";
     nodeId: string;
     from: XYPosition;
     to: XYPosition;
 }
 
-export interface ChangeNodeParameters {
+export interface ChangeNodeParameter {
     type: "Change node parameter";
     nodeId: string;
     parameterId: string;
     from: string | undefined;
     to: string | undefined;
 }
+
+// Create rule model changes action from basic change operation
+const toRuleModelChanges = (ruleModelChange: RuleModelChangeType): RuleModelChanges => {
+    return {
+        operations: [ruleModelChange],
+    };
+};
+
+/** Convenience factory functions for rule model changes. */
+export const RuleModelChangesFactory = {
+    addNode: (node: RuleEditorNode): RuleModelChanges => toRuleModelChanges({ type: "Add node", node }),
+    deleteNode: (node: RuleEditorNode): RuleModelChanges => toRuleModelChanges({ type: "Delete node", node }),
+    addEdge: (edge: Edge): RuleModelChanges => toRuleModelChanges({ type: "Add edge", edge }),
+    deleteEdge: (edge: Edge): RuleModelChanges => toRuleModelChanges({ type: "Delete edge", edge }),
+    changeNodePosition: (nodeId: string, from: XYPosition, to: XYPosition): RuleModelChanges =>
+        toRuleModelChanges({ type: "Change node position", nodeId, from, to }),
+    changeNodeParameter: (
+        nodeId: string,
+        parameterId: string,
+        from: string | undefined,
+        to: string | undefined
+    ): RuleModelChanges => {
+        return toRuleModelChanges({ type: "Change node parameter", nodeId, parameterId, from, to });
+    },
+};

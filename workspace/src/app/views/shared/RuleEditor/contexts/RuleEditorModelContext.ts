@@ -21,7 +21,7 @@ export interface RuleEditorModelContextProps {
     /** Save the current rule. */
     saveRule: () => Promise<boolean> | boolean;
     /** Executes an operation that will change the model. */
-    executeModelEditOperation: (operation: IRuleModelEditAction) => void;
+    executeModelEditOperation: IModelActions;
     /** Undo last changes. Return true if changes have been undone. */
     undo: () => boolean;
     /** If there are changes that can be undone. */
@@ -38,6 +38,8 @@ export interface IModelActions {
     deleteNode: (nodeId: string) => void;
 }
 
+const NOP = () => {};
+
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
 export const RuleEditorModelContext = React.createContext<RuleEditorModelContextProps>({
     /** The nodes and edges of the rules graph. */
@@ -45,12 +47,15 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     /** Set to true if the model is in read-only mode. */
     isReadOnly: false,
     /** Allows setting the model to read-only mode. */
-    setIsReadOnly: () => {},
-    setReactFlowInstance: () => {},
+    setIsReadOnly: NOP,
+    setReactFlowInstance: NOP,
     saveRule: () => {
         return false;
     },
-    executeModelEditOperation: () => {},
+    executeModelEditOperation: {
+        startChangeTransaction: NOP,
+        deleteNode: NOP,
+    },
     undo: () => false,
     canUndo: false,
     redo: () => false,

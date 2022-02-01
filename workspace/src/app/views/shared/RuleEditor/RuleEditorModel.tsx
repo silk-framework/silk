@@ -4,20 +4,23 @@ import { RuleEditorModelContext } from "./contexts/RuleEditorModelContext";
 import { RuleEditorContext, RuleEditorContextProps } from "./contexts/RuleEditorContext";
 import ruleEditorUtils from "./RuleEditor.utils";
 import { useTranslation } from "react-i18next";
+import { IRuleNodeData, IRuleOperatorNode, NodeContentPropsWithBusinessData } from "./RuleEditor.typings";
 import {
-    DeleteNodeAction,
-    IRuleModelEditAction,
-    IRuleNodeData,
-    NodeContentPropsWithBusinessData,
-} from "./RuleEditor.typings";
-import { ChangeNodeParameters, RuleModelChanges, RuleModelChangeType } from "./RuleEditorModel.typings";
+    AddEdge,
+    AddNode,
+    ChangeNodeParameter,
+    DeleteEdge,
+    DeleteNode,
+    RuleEditorNode,
+    RuleModelChanges,
+    RuleModelChangesFactory,
+    RuleModelChangeType,
+} from "./RuleEditorModel.typings";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
     children: JSX.Element | JSX.Element[];
 }
-
-type RuleEditorNode = Node<NodeContentPropsWithBusinessData<IRuleNodeData>>;
 
 // Object to denote transaction boundaries between change operations
 const TRANSACTION_BOUNDARY = "Transaction boundary";
@@ -91,7 +94,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
             // Changes must be redone in the reversed order
             const redoChanges = [...changesToUndo].reverse();
             redoChanges.forEach((change) => addRedoRuleModelChange(invertModelChanges(change)));
-            changesToUndo.forEach((change) => executeRuleModelChange(change));
+            changesToUndo.forEach((change) => executeRuleModelChangeInternal(change));
         }
         if (ruleUndoStack.length === 0) {
             setCanUndo(false);
@@ -108,7 +111,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
             // Changes must be redone in the reversed order
             const undoChanges = [...changesToRedo].reverse();
             undoChanges.forEach((change) => addRuleModelChange(invertModelChanges(change)));
-            changesToRedo.forEach((change) => executeRuleModelChange(change));
+            changesToRedo.forEach((change) => executeRuleModelChangeInternal(change));
         }
         if (ruleRedoStack.length === 0) {
             setCanRedo(false);
@@ -153,14 +156,81 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
         setCanUndo(true);
     };
 
-    /** Executes a rule mode change operation on the rule model. */
-    const executeRuleModelChange = (ruleModelChange: RuleModelChanges): void => {
-        // TODO: Execute changes
+    /** Groups rule model changes, so they can be executed more efficiently. */
+    const groupedRuleModelChanges = (ruleModelChange: RuleModelChanges): RuleModelChangeType[][] => {
+        const groupedChanges: RuleModelChangeType[][] = [];
+        let currentType: string | undefined = undefined;
+        let currentChanges: RuleModelChangeType[] = [];
+        // Add changes if there are some
+        const addChanges = () => {
+            if (currentChanges.length > 0) {
+                groupedChanges.push(currentChanges);
+                currentChanges = [];
+            }
+        };
+        ruleModelChange.operations.forEach((op) => {
+            if (op.type !== currentType) {
+                addChanges();
+                currentType = op.type;
+            }
+            currentChanges.push(op);
+        });
+        addChanges();
+        return groupedChanges;
     };
 
-    /** Functions that change the model state. */ // TODO: Add undo/redo to these functions
+    /** Executes a rule mode change operation on the rule model. */
+    const executeRuleModelChangeInternal = (ruleModelChange: RuleModelChanges): void => {
+        const groupedChanges = groupedRuleModelChanges(ruleModelChange);
+        setElements((elements) => {
+            let changedElements = elements;
+            groupedChanges.forEach((groupedChange) => {
+                switch (groupedChange[0].type) {
+                    case "Add node":
+                        changedElements = addElementsInternal(
+                            groupedChange.map((change) => (change as AddNode).node),
+                            changedElements
+                        );
+                    case "Add edge":
+                        changedElements = addElementsInternal(
+                            groupedChange.map((change) => (change as AddEdge).edge),
+                            changedElements
+                        );
+                    case "Delete node":
+                        changedElements = deleteElementsInternal(
+                            groupedChange.map((change) => (change as DeleteNode).node),
+                            changedElements
+                        );
+                    case "Delete edge":
+                        changedElements = deleteElementsInternal(
+                            groupedChange.map((change) => (change as DeleteEdge).edge),
+                            changedElements
+                        );
+                    case "Change node position":
+                    // TODO
+                    case "Change node parameter":
+                    // TODO
+                }
+            });
+            return changedElements;
+        });
+    };
+
+    /** Adds a rule model change action to the undo stack and executes the change on the model. */
+    const addAndExecuteRuleModelChangeInternal = (ruleModelChange: RuleModelChanges): void => {
+        addRuleModelChange(ruleModelChange);
+        executeRuleModelChangeInternal(ruleModelChange);
+    };
+
+    /**
+     * Functions that change the model state.
+     **/
+
+    const addElementsInternal = (elementsToAdd: FlowElement[], els: FlowElement[]) => {
+        return [...els, ...elementsToAdd];
+    };
     // Delete multiple elements and return updated elements array
-    const deleteElements = (elementsToRemove, els: Array<FlowElement>) => {
+    const deleteElementsInternal = (elementsToRemove: FlowElement[], els: FlowElement[]) => {
         return removeElements(elementsToRemove, els);
     };
 
@@ -170,47 +240,68 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
         setElements((els) => {
             const nodes = els.filter((n) => ruleEditorUtils.isNode(n) && nodeIdSet.has(n.id));
             if (nodes.length > 0) {
-                return deleteElements(nodes, els);
+                return deleteElementsInternal(nodes, els);
             } else {
                 return els;
             }
         });
     };
+
+    /**
+     * Public interface model change functions.
+     **/
 
     /** Deletes a single rule node. */
     const deleteNode = (nodeId: string) => {
         setElements((els) => {
             const node = ruleEditorUtils.asNode(els.find((n) => ruleEditorUtils.isNode(n) && n.id === nodeId));
             if (node) {
-                addRuleModelChange({
-                    operations: [
-                        {
-                            type: "Delete node",
-                            node,
-                        },
-                    ],
-                });
-                return deleteElements([node], els);
+                addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.deleteNode(node));
+                return deleteElementsInternal([node], els);
             } else {
                 return els;
             }
         });
     };
 
-    const executeModelEditOperation = (modelEditOperation: IRuleModelEditAction) => {
-        switch (modelEditOperation.type) {
-            case "transaction start":
-                return startChangeTransaction();
-            case "delete node":
-                return deleteNode((modelEditOperation as DeleteNodeAction).nodeId);
-            default:
-                console.error("Tried to execute unsupported operation: " + modelEditOperation.type);
-        }
-    };
-
     const saveRule = () => {
-        // TODO: Convert react-flow nodes to IRuleOperatorNodes
-        return ruleEditorContext.saveRule([]);
+        const nodes: RuleEditorNode[] = [];
+        const nodeInputEdges: Map<string, Edge[]> = new Map();
+        const inputEdgesByNodeId = (nodeId: string): Edge[] => {
+            if (nodeInputEdges.has(nodeId)) {
+                return nodeInputEdges.get(nodeId)!!;
+            } else {
+                const newArray = [];
+                nodeInputEdges.set(nodeId, newArray);
+                return newArray;
+            }
+        };
+        elements.forEach((elem) => {
+            if (ruleEditorUtils.isNode(elem)) {
+                nodes.push(ruleEditorUtils.asNode(elem)!!);
+            } else {
+                const edge = ruleEditorUtils.asEdge(elem)!!;
+                inputEdgesByNodeId(edge.target).push(edge);
+            }
+        });
+        const ruleOperatorNodes = nodes.map((node) => {
+            const inputHandleIds = ruleEditorUtils.inputHandles(node).map((h) => h.id);
+            const inputEdges = nodeInputEdges.get(node.id) ?? [];
+            const inputEdgeMap = new Map(inputEdges.map((e) => [e.id, e.source]));
+            const inputs = inputHandleIds.map((handleId) => (handleId ? inputEdgeMap.get(handleId) : undefined));
+            const originalNode = node.data?.businessData.originalRuleOperatorNode!!;
+            const ruleOperatorNode: IRuleOperatorNode = {
+                inputs,
+                label: originalNode.label, // TODO: Can the label change?
+                nodeId: node.id,
+                parameters: {}, // TODO: Handle parameters
+                pluginId: originalNode.pluginId,
+                pluginType: originalNode.pluginType,
+                portSpecification: originalNode.portSpecification,
+            };
+            return ruleOperatorNode;
+        });
+        return ruleEditorContext.saveRule(ruleOperatorNodes);
     };
 
     /** Convert initial operator nodes to react-flow model. */
@@ -250,11 +341,14 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
                 setIsReadOnly,
                 setReactFlowInstance,
                 saveRule,
-                executeModelEditOperation,
                 undo,
                 canUndo,
                 redo,
                 canRedo,
+                executeModelEditOperation: {
+                    startChangeTransaction,
+                    deleteNode,
+                },
             }}
         >
             {children}

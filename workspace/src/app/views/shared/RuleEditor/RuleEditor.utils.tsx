@@ -5,6 +5,7 @@ import { rangeArray } from "../../../utils/basicUtils";
 import { IRuleNodeData, IRuleOperatorNode, NodeContentPropsWithBusinessData } from "./RuleEditor.typings";
 import { RuleNodeMenu } from "./ruleNode/RuleNodeMenu";
 import { Tag, Highlighter, Spacing } from "gui-elements";
+import { RuleEditorNode } from "./RuleEditorModel.typings";
 
 /** Constants */
 
@@ -56,6 +57,7 @@ export function createOperatorNode(
         handles,
         iconName: node.icon, // findExistingIconName(createIconNameStack("TODO", node.pluginId)), // TODO: Calculate icons
         businessData: {
+            originalRuleOperatorNode: node,
             dynamicPorts: !node.portSpecification.maxInputPorts,
         },
         menuButtons: <RuleNodeMenu nodeId={node.nodeId} t={t} handleDeleteNode={handleDeleteNode} />,
@@ -116,12 +118,20 @@ const asNode = (
 const isEdge = (element: FlowElement & { source?: string }): boolean => !isNode(element);
 const asEdge = (element: FlowElement): Edge | undefined => (isEdge(element) ? (element as Edge) : undefined);
 
+/** Return inpt handles. */
+const inputHandles = (node: RuleEditorNode) => {
+    const handles = node.data?.handles ?? [];
+    const inputHandles = handles.filter((h) => h.type === "target" && !h.category);
+    return inputHandles;
+};
+
 const ruleEditorUtils = {
     asEdge,
     createEdge,
     createInputHandle,
     createInputHandles,
     createOperatorNode,
+    inputHandles,
     isNode,
     isEdge,
     asNode,
