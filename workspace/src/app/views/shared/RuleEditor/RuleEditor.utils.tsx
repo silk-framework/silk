@@ -153,9 +153,7 @@ function createEdge(sourceNodeId: string, targetNodeId: string, targetHandleId: 
 
 // Helper methods for nodes and edges
 const isNode = (element: FlowElement & { source?: string }): boolean => !element.source;
-const asNode = (
-    element: FlowElement | undefined
-): Node<NodeContentPropsWithBusinessData<IRuleNodeData>> | undefined => {
+const asNode = (element: FlowElement | undefined): RuleEditorNode | undefined => {
     return element && isNode(element) ? (element as Node<NodeContentPropsWithBusinessData<IRuleNodeData>>) : undefined;
 };
 const isEdge = (element: FlowElement & { source?: string }): boolean => !isNode(element);

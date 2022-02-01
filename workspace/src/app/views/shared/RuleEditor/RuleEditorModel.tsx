@@ -1,5 +1,5 @@
 import React from "react";
-import { Edge, Elements, FlowElement, OnLoadParams, removeElements } from "react-flow-renderer";
+import { Edge, Elements, FlowElement, OnLoadParams, removeElements, useStoreActions } from "react-flow-renderer";
 import { RuleEditorModelContext } from "./contexts/RuleEditorModelContext";
 import { RuleEditorContext, RuleEditorContextProps } from "./contexts/RuleEditorContext";
 import ruleEditorUtils from "./RuleEditor.utils";
@@ -41,6 +41,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
     const [canUndo, setCanUndo] = React.useState<boolean>(false);
     const [ruleRedoStack, setRuleRedoStack] = React.useState<ChangeStackType[]>([]);
     const [canRedo, setCanRedo] = React.useState<boolean>(false);
+    const updateNodePos = useStoreActions((actions) => actions.updateNodePos);
 
     /**
      * UNDO/REDO handling.
@@ -283,16 +284,40 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
 
     /** Delete multiple nodes, e.g. from a selection. */
     const deleteNodes = (nodeIds: string[]) => {
-        const nodeIdSet = new Set(nodeIds);
         setElements((els) => {
-            const nodes = els
-                .filter((n) => ruleEditorUtils.isNode(n) && nodeIdSet.has(n.id))
-                .map((n) => ruleEditorUtils.asNode(n)!!);
+            const nodes = nodesById(els, nodeIds);
             if (nodes.length > 0) {
                 return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.deleteNodes(nodes), els);
             } else {
                 return els;
             }
+        });
+    };
+
+    const nodesById = (elements: Elements, nodeIds: string[]): RuleEditorNode[] => {
+        const nodeIdSet = new Set(nodeIds);
+        return elements
+            .filter((n) => ruleEditorUtils.isNode(n) && nodeIdSet.has(n.id))
+            .map((n) => ruleEditorUtils.asNode(n)!!);
+    };
+
+    /** Copy and paste nodes with a given offset. */
+    const copyAndPasteNodes = (nodeIds: string[], offset: XYPosition) => {
+        const nodeIdSet = new Set(nodeIds);
+        setElements((els) => {
+            return els.map((elem) => {
+                if (ruleEditorUtils.isNode(elem) && nodeIdSet.has(elem.id)) {
+                    const originalNode = ruleEditorUtils.asNode(elem)!!;
+                    const originalNodePosition = originalNode?.position ?? { x: 0, y: 0 };
+                    return {
+                        ...originalNode,
+                        position: { x: originalNodePosition.x + offset.x, y: originalNodePosition.y + offset.y },
+                        data: { ...originalNode.data },
+                    };
+                } else {
+                    return elem;
+                }
+            });
         });
     };
 
@@ -383,6 +408,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
                     addNode,
                     deleteNode,
                     deleteNodes,
+                    copyAndPasteNodes,
                 },
             }}
         >
