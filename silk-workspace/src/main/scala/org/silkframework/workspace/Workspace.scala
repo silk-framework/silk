@@ -14,11 +14,7 @@
 
 package org.silkframework.workspace
 
-import java.io._
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.locks.ReentrantLock
-import java.util.logging.{Level, Logger}
-import org.silkframework.config.{DefaultConfig, MetaData, Prefixes}
+import org.silkframework.config.{DefaultConfig, Prefixes}
 import org.silkframework.runtime.activity.{HasValue, UserContext}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.validation.{NotFoundException, ServiceUnavailableException}
@@ -27,6 +23,10 @@ import org.silkframework.workspace.activity.{GlobalWorkspaceActivity, GlobalWork
 import org.silkframework.workspace.exceptions.{IdentifierAlreadyExistsException, ProjectNotFoundException}
 import org.silkframework.workspace.resources.ResourceRepository
 
+import java.io._
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.ReentrantLock
+import java.util.logging.{Level, Logger}
 import scala.reflect.ClassTag
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -155,23 +155,6 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     newProject
   }
 
-  /** Update the meta data of a project. */
-  def updateProjectMetaData(projectId: Identifier,
-                            metaData: MetaData)
-                           (implicit userContext: UserContext): MetaData = synchronized {
-    loadUserProjects()
-    val diProject = project(projectId)
-    val projectConfig = diProject.config
-    val oldMetaData = projectConfig.metaData
-    val mergedMetaData = oldMetaData.copy(label = metaData.label, description = metaData.description)
-    val updatedProjectConfig = projectConfig.copy(metaData = mergedMetaData.asUpdatedMetaData)
-    provider.putProject(updatedProjectConfig)
-    removeProjectFromCache(projectId)
-    addProjectToCache(new Project(updatedProjectConfig, provider, repository.get(projectId)))
-    log.info(s"Project meta data updated for '$projectId'.")
-    updatedProjectConfig.metaData
-  }
-
   def removeProject(name: Identifier)
                    (implicit userContext: UserContext): Unit = synchronized {
     loadUserProjects()
@@ -273,7 +256,6 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     provider.readProject(id) match {
       case Some(projectConfig) =>
         val project = new Project(projectConfig, provider, repository.get(projectConfig.id))
-        project.loadTasks()
         project.startActivities()
         addProjectToCache(project)
       case None =>
@@ -299,7 +281,6 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     cachedProjects = for(projectConfig <- provider.readProjects()) yield {
       log.info("Loading project: " + projectConfig.id)
       val project = new Project(projectConfig, provider, repository.get(projectConfig.id))
-      project.loadTasks()
       log.info("Finished loading project '" + projectConfig.id + "'.")
       project
     }

@@ -226,7 +226,7 @@ case class ConnectionClosingInputStream(createConnection: () => HttpURLConnectio
   private lazy val inputStream: InputStream = {
     var tries = 0
     var is: InputStream = null
-    while(tries < 2) {
+    while(is == null && tries < 2) {
       tries += 1
       connection = createConnection()
       connection.connect()
