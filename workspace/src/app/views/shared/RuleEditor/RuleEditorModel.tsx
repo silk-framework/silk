@@ -2,12 +2,13 @@ import React from "react";
 import { Edge, Elements, FlowElement, OnLoadParams, removeElements, useStoreActions } from "react-flow-renderer";
 import { RuleEditorModelContext } from "./contexts/RuleEditorModelContext";
 import { RuleEditorContext, RuleEditorContextProps } from "./contexts/RuleEditorContext";
-import ruleEditorUtils from "./RuleEditor.utils";
+import utils from "./RuleEditor.utils";
 import { useTranslation } from "react-i18next";
 import { IRuleOperator, IRuleOperatorNode } from "./RuleEditor.typings";
 import {
     AddEdge,
     AddNode,
+    ChangeNodePosition,
     DeleteEdge,
     DeleteNode,
     RuleEditorNode,
@@ -223,7 +224,15 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
                     );
                     break;
                 case "Change node position":
-                    // TODO
+                    changedElements = changeNodePositionsInternal(
+                        new Map(
+                            groupedChange.map((change) => {
+                                const nodeChange = change as ChangeNodePosition;
+                                return [nodeChange.nodeId, nodeChange.to];
+                            })
+                        ),
+                        changedElements
+                    );
                     break;
                 case "Change node parameter":
                     // TODO
@@ -245,17 +254,38 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
     /**
      * Functions that change the react-flow model state.
      **/
-
-    const addElementsInternal = (elementsToAdd: FlowElement[], els: FlowElement[]) => {
+    // Add new elements to react-flow model
+    const addElementsInternal = (elementsToAdd: FlowElement[], els: FlowElement[]): Elements => {
         return [...els, ...elementsToAdd];
     };
     // Delete multiple elements and return updated elements array
-    const deleteElementsInternal = (elementsToRemove: FlowElement[], els: FlowElement[]) => {
+    const deleteElementsInternal = (elementsToRemove: FlowElement[], els: FlowElement[]): Elements => {
         return removeElements(elementsToRemove, els);
     };
-
+    // Change the position of nodes
+    const changeNodePositionsInternal = (nodesToMove: Map<string, XYPosition>, els: FlowElement[]): Elements => {
+        return els.map((elem) => {
+            if (utils.isNode(elem) && nodesToMove.has(elem.id)) {
+                const node = utils.asNode(elem)!!;
+                const newPosition = nodesToMove.get(node.id)!!;
+                const movedNode: RuleEditorNode = {
+                    ...node,
+                    data: node.data ? { ...node.data } : undefined,
+                    position: newPosition,
+                };
+                // TODO: Check if the following line is really needed
+                setTimeout(() => updateNodePos({ id: node.id, pos: newPosition }), 50);
+                return movedNode;
+            } else {
+                return elem;
+            }
+        });
+    };
     /**
      * Public interface model change functions.
+     *
+     * All public change functions must call addAndExecuteRuleModelChangeInternal in order to register and execute the changes.
+     * The must not change model elements directly.
      **/
 
     /** Add a new node from the rule operators list. */
@@ -263,7 +293,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
         if (reactFlowInstance) {
             const ruleNode = ruleEditorContext.convertRuleOperatorToRuleNode(ruleOperator);
             ruleNode.position = position;
-            const newNode = ruleEditorUtils.createNewOperatorNode(ruleNode, reactFlowInstance, deleteNode, t, elements);
+            const newNode = utils.createNewOperatorNode(ruleNode, reactFlowInstance, deleteNode, t, elements);
             setElements((els) => {
                 return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(newNode), els);
             });
@@ -273,7 +303,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
     /** Deletes a single rule node. */
     const deleteNode = (nodeId: string) => {
         setElements((els) => {
-            const node = ruleEditorUtils.asNode(els.find((n) => ruleEditorUtils.isNode(n) && n.id === nodeId));
+            const node = utils.asNode(els.find((n) => utils.isNode(n) && n.id === nodeId));
             if (node) {
                 return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.deleteNode(node), els);
             } else {
@@ -285,7 +315,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
     /** Delete multiple nodes, e.g. from a selection. */
     const deleteNodes = (nodeIds: string[]) => {
         setElements((els) => {
-            const nodes = nodesById(els, nodeIds);
+            const nodes = utils.nodesById(els, nodeIds);
             if (nodes.length > 0) {
                 return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.deleteNodes(nodes), els);
             } else {
@@ -294,30 +324,35 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
         });
     };
 
-    const nodesById = (elements: Elements, nodeIds: string[]): RuleEditorNode[] => {
-        const nodeIdSet = new Set(nodeIds);
-        return elements
-            .filter((n) => ruleEditorUtils.isNode(n) && nodeIdSet.has(n.id))
-            .map((n) => ruleEditorUtils.asNode(n)!!);
-    };
-
     /** Copy and paste nodes with a given offset. */
     const copyAndPasteNodes = (nodeIds: string[], offset: XYPosition) => {
-        const nodeIdSet = new Set(nodeIds);
         setElements((els) => {
-            return els.map((elem) => {
-                if (ruleEditorUtils.isNode(elem) && nodeIdSet.has(elem.id)) {
-                    const originalNode = ruleEditorUtils.asNode(elem)!!;
-                    const originalNodePosition = originalNode?.position ?? { x: 0, y: 0 };
-                    return {
-                        ...originalNode,
-                        position: { x: originalNodePosition.x + offset.x, y: originalNodePosition.y + offset.y },
-                        data: { ...originalNode.data },
-                    };
-                } else {
-                    return elem;
-                }
-            });
+            const nodes = utils.nodesById(els, nodeIds);
+            const changePositionActions: ChangeNodePosition[] = nodes.map((node) => ({
+                type: "Change node position",
+                nodeId: node.id,
+                from: node.position,
+                to: {
+                    x: node.position.x + offset.x,
+                    y: node.position.y + offset.y,
+                },
+            }));
+            return addAndExecuteRuleModelChangeInternal({ operations: changePositionActions }, els);
+        });
+    };
+
+    /** Move a node to a new position. */
+    const moveNode = (nodeId: string, newPosition: XYPosition) => {
+        setElements((els) => {
+            const node = utils.nodeById(els, nodeId);
+            if (node) {
+                return addAndExecuteRuleModelChangeInternal(
+                    RuleModelChangesFactory.changeNodePosition(nodeId, node.position, newPosition),
+                    els
+                );
+            } else {
+                return els;
+            }
         });
     };
 
@@ -335,15 +370,15 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
             }
         };
         elements.forEach((elem) => {
-            if (ruleEditorUtils.isNode(elem)) {
-                nodes.push(ruleEditorUtils.asNode(elem)!!);
+            if (utils.isNode(elem)) {
+                nodes.push(utils.asNode(elem)!!);
             } else {
-                const edge = ruleEditorUtils.asEdge(elem)!!;
+                const edge = utils.asEdge(elem)!!;
                 inputEdgesByNodeId(edge.target).push(edge);
             }
         });
         const ruleOperatorNodes = nodes.map((node) => {
-            const inputHandleIds = ruleEditorUtils.inputHandles(node).map((h) => h.id);
+            const inputHandleIds = utils.inputHandles(node).map((h) => h.id);
             const inputEdges = nodeInputEdges.get(node.id) ?? [];
             const inputEdgeMap = new Map(inputEdges.map((e) => [e.id, e.source]));
             const inputs = inputHandleIds.map((handleId) => (handleId ? inputEdgeMap.get(handleId) : undefined));
@@ -373,7 +408,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
             const operatorsNodes = ruleEditorContext.initialRuleOperatorNodes;
             // Create nodes
             const nodes = operatorsNodes.map((operatorNode) => {
-                return ruleEditorUtils.createOperatorNode(operatorNode, reactFlowInstance, deleteNode, t);
+                return utils.createOperatorNode(operatorNode, reactFlowInstance, deleteNode, t);
             });
             // Create edges
             const edges: Edge[] = [];
@@ -381,7 +416,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
                 node.inputs.forEach((inputNodeId, idx) => {
                     if (inputNodeId) {
                         // Edge IDs do not currently matter
-                        edges.push(ruleEditorUtils.createEdge(inputNodeId, node.nodeId, `${idx}`));
+                        edges.push(utils.createEdge(inputNodeId, node.nodeId, `${idx}`));
                     }
                 });
             });
@@ -409,6 +444,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
                     deleteNode,
                     deleteNodes,
                     copyAndPasteNodes,
+                    moveNode,
                 },
             }}
         >

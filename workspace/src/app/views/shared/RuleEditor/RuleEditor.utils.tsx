@@ -166,6 +166,17 @@ const inputHandles = (node: RuleEditorNode) => {
     return inputHandles;
 };
 
+/** Find the rule node by ID. */
+const nodeById = (elements: Elements, nodeId: string): RuleEditorNode | undefined => {
+    return asNode(elements.find((n) => isNode(n) && n.id === nodeId));
+};
+
+/** Return all nodes with one of the given IDs. */
+const nodesById = (elements: Elements, nodeIds: string[]): RuleEditorNode[] => {
+    const nodeIdSet = new Set(nodeIds);
+    return elements.filter((n) => isNode(n) && nodeIdSet.has(n.id)).map((n) => asNode(n)!!);
+};
+
 const ruleEditorUtils = {
     asEdge,
     asNode,
@@ -178,6 +189,8 @@ const ruleEditorUtils = {
     isNode,
     isEdge,
     freshNodeId,
+    nodeById,
+    nodesById,
 };
 
 export default ruleEditorUtils;

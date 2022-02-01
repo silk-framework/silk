@@ -40,6 +40,7 @@ export interface IModelActions {
     deleteNode: (nodeId: string) => void;
     deleteNodes: (nodeIds: string[]) => void;
     copyAndPasteNodes: (nodeIds: string[], offset: XYPosition) => void;
+    moveNode: (nodeId: string, newPosition: XYPosition) => void;
 }
 
 const NOP = () => {};
@@ -62,6 +63,7 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
         deleteNodes: NOP,
         addNode: NOP,
         copyAndPasteNodes: NOP,
+        moveNode: NOP,
     },
     undo: () => false,
     canUndo: false,
