@@ -52,18 +52,46 @@ export interface ChangeNodeParameter {
 }
 
 // Create rule model changes action from basic change operation
-const toRuleModelChanges = (ruleModelChange: RuleModelChangeType): RuleModelChanges => {
+const toRuleModelChanges = (ruleModelChange: RuleModelChangeType | RuleModelChangeType[]): RuleModelChanges => {
     return {
-        operations: [ruleModelChange],
+        operations: Array.isArray(ruleModelChange) ? ruleModelChange : [ruleModelChange],
     };
 };
 
 /** Convenience factory functions for rule model changes. */
 export const RuleModelChangesFactory = {
     addNode: (node: RuleEditorNode): RuleModelChanges => toRuleModelChanges({ type: "Add node", node }),
+    addNodes: (nodes: RuleEditorNode[]): RuleModelChanges =>
+        toRuleModelChanges(
+            nodes.map((node) => ({
+                type: "Add node",
+                node,
+            }))
+        ),
     deleteNode: (node: RuleEditorNode): RuleModelChanges => toRuleModelChanges({ type: "Delete node", node }),
+    deleteNodes: (nodes: RuleEditorNode[]): RuleModelChanges =>
+        toRuleModelChanges(
+            nodes.map((node) => ({
+                type: "Delete node",
+                node,
+            }))
+        ),
     addEdge: (edge: Edge): RuleModelChanges => toRuleModelChanges({ type: "Add edge", edge }),
+    addEdges: (edges: Edge[]): RuleModelChanges =>
+        toRuleModelChanges(
+            edges.map((edge) => ({
+                type: "Add edge",
+                edge,
+            }))
+        ),
     deleteEdge: (edge: Edge): RuleModelChanges => toRuleModelChanges({ type: "Delete edge", edge }),
+    deleteEdges: (edges: Edge[]): RuleModelChanges =>
+        toRuleModelChanges(
+            edges.map((edge) => ({
+                type: "Delete edge",
+                edge,
+            }))
+        ),
     changeNodePosition: (nodeId: string, from: XYPosition, to: XYPosition): RuleModelChanges =>
         toRuleModelChanges({ type: "Change node position", nodeId, from, to }),
     changeNodeParameter: (

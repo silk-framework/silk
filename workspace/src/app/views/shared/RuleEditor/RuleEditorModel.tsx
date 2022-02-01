@@ -1,14 +1,13 @@
 import React from "react";
-import { Edge, Elements, FlowElement, Node, OnLoadParams, removeElements } from "react-flow-renderer";
+import { Edge, Elements, FlowElement, OnLoadParams, removeElements } from "react-flow-renderer";
 import { RuleEditorModelContext } from "./contexts/RuleEditorModelContext";
 import { RuleEditorContext, RuleEditorContextProps } from "./contexts/RuleEditorContext";
 import ruleEditorUtils from "./RuleEditor.utils";
 import { useTranslation } from "react-i18next";
-import { IRuleNodeData, IRuleOperatorNode, NodeContentPropsWithBusinessData } from "./RuleEditor.typings";
+import { IRuleOperatorNode } from "./RuleEditor.typings";
 import {
     AddEdge,
     AddNode,
-    ChangeNodeParameter,
     DeleteEdge,
     DeleteNode,
     RuleEditorNode,
@@ -85,7 +84,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
         }
     };
 
-    /** Undo the last change transaction. */
+    /** Undo the last change-transaction. */
     const undo = (): boolean => {
         const changesToUndo = changeTransactionOperations(ruleUndoStack);
         if (changesToUndo.length > 0) {
@@ -94,7 +93,14 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
             // Changes must be redone in the reversed order
             const redoChanges = [...changesToUndo].reverse();
             redoChanges.forEach((change) => addRedoRuleModelChange(invertModelChanges(change)));
-            changesToUndo.forEach((change) => executeRuleModelChangeInternal(change));
+            // Execute it on the react-flow model
+            setElements((els) => {
+                let currentElements = els;
+                changesToUndo.forEach((change) => {
+                    currentElements = executeRuleModelChangeInternal(change, currentElements);
+                });
+                return currentElements;
+            });
         }
         if (ruleUndoStack.length === 0) {
             setCanUndo(false);
@@ -102,7 +108,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
         return changesToUndo.length > 0;
     };
 
-    /** Redo the last change transaction. */
+    /** Redo the last change-transaction. */
     const redo = () => {
         const changesToRedo = changeTransactionOperations(ruleRedoStack);
         if (changesToRedo.length > 0) {
@@ -111,7 +117,14 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
             // Changes must be redone in the reversed order
             const undoChanges = [...changesToRedo].reverse();
             undoChanges.forEach((change) => addRuleModelChange(invertModelChanges(change)));
-            changesToRedo.forEach((change) => executeRuleModelChangeInternal(change));
+            // Execute it on the react-flow model
+            setElements((els) => {
+                let currentElements = els;
+                changesToRedo.forEach((change) => {
+                    currentElements = executeRuleModelChangeInternal(change, currentElements);
+                });
+                return currentElements;
+            });
         }
         if (ruleRedoStack.length === 0) {
             setCanRedo(false);
@@ -135,19 +148,13 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
         return changesToUndo;
     };
 
-    /**
-     * Execute functions for model changes.
-     */
-
-    const addNode = (node: RuleEditorNode) => {
-        setElements((elements) => [...elements, node]);
-    };
-
+    /** Adds a change action to the REDO stack. */
     const addRedoRuleModelChange = (ruleModelChange: RuleModelChanges) => {
         ruleRedoStack.push(ruleModelChange);
         setCanRedo(true);
     };
 
+    /** Adds a change action to the history / UNDO stack. */
     const addRuleModelChange = (ruleModelChange: RuleModelChanges) => {
         // Clear redo stack, starting a new "branch", former redo operations might have become invalid
         ruleRedoStack.splice(0);
@@ -179,51 +186,62 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
         return groupedChanges;
     };
 
+    /**
+     * Execute functions for model changes.
+     */
+
     /** Executes a rule mode change operation on the rule model. */
-    const executeRuleModelChangeInternal = (ruleModelChange: RuleModelChanges): void => {
+    const executeRuleModelChangeInternal = (ruleModelChange: RuleModelChanges, currentElements: Elements): Elements => {
         const groupedChanges = groupedRuleModelChanges(ruleModelChange);
-        setElements((elements) => {
-            let changedElements = elements;
-            groupedChanges.forEach((groupedChange) => {
-                switch (groupedChange[0].type) {
-                    case "Add node":
-                        changedElements = addElementsInternal(
-                            groupedChange.map((change) => (change as AddNode).node),
-                            changedElements
-                        );
-                    case "Add edge":
-                        changedElements = addElementsInternal(
-                            groupedChange.map((change) => (change as AddEdge).edge),
-                            changedElements
-                        );
-                    case "Delete node":
-                        changedElements = deleteElementsInternal(
-                            groupedChange.map((change) => (change as DeleteNode).node),
-                            changedElements
-                        );
-                    case "Delete edge":
-                        changedElements = deleteElementsInternal(
-                            groupedChange.map((change) => (change as DeleteEdge).edge),
-                            changedElements
-                        );
-                    case "Change node position":
+        let changedElements = currentElements;
+        groupedChanges.forEach((groupedChange) => {
+            switch (groupedChange[0].type) {
+                case "Add node":
+                    changedElements = addElementsInternal(
+                        groupedChange.map((change) => (change as AddNode).node),
+                        changedElements
+                    );
+                    break;
+                case "Add edge":
+                    changedElements = addElementsInternal(
+                        groupedChange.map((change) => (change as AddEdge).edge),
+                        changedElements
+                    );
+                    break;
+                case "Delete node":
+                    changedElements = deleteElementsInternal(
+                        groupedChange.map((change) => (change as DeleteNode).node),
+                        changedElements
+                    );
+                    break;
+                case "Delete edge":
+                    changedElements = deleteElementsInternal(
+                        groupedChange.map((change) => (change as DeleteEdge).edge),
+                        changedElements
+                    );
+                    break;
+                case "Change node position":
                     // TODO
-                    case "Change node parameter":
+                    break;
+                case "Change node parameter":
                     // TODO
-                }
-            });
-            return changedElements;
+                    break;
+            }
         });
+        return changedElements;
     };
 
     /** Adds a rule model change action to the undo stack and executes the change on the model. */
-    const addAndExecuteRuleModelChangeInternal = (ruleModelChange: RuleModelChanges): void => {
+    const addAndExecuteRuleModelChangeInternal = (
+        ruleModelChange: RuleModelChanges,
+        currentElements: Elements
+    ): Elements => {
         addRuleModelChange(ruleModelChange);
-        executeRuleModelChangeInternal(ruleModelChange);
+        return executeRuleModelChangeInternal(ruleModelChange, currentElements);
     };
 
     /**
-     * Functions that change the model state.
+     * Functions that change the react-flow model state.
      **/
 
     const addElementsInternal = (elementsToAdd: FlowElement[], els: FlowElement[]) => {
@@ -232,19 +250,6 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
     // Delete multiple elements and return updated elements array
     const deleteElementsInternal = (elementsToRemove: FlowElement[], els: FlowElement[]) => {
         return removeElements(elementsToRemove, els);
-    };
-
-    /** Delete multiple nodes, e.g. from a selection. */
-    const deleteNodes = (nodeIds: string[]) => {
-        const nodeIdSet = new Set(nodeIds);
-        setElements((els) => {
-            const nodes = els.filter((n) => ruleEditorUtils.isNode(n) && nodeIdSet.has(n.id));
-            if (nodes.length > 0) {
-                return deleteElementsInternal(nodes, els);
-            } else {
-                return els;
-            }
-        });
     };
 
     /**
@@ -256,14 +261,29 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
         setElements((els) => {
             const node = ruleEditorUtils.asNode(els.find((n) => ruleEditorUtils.isNode(n) && n.id === nodeId));
             if (node) {
-                addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.deleteNode(node));
-                return deleteElementsInternal([node], els);
+                return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.deleteNode(node), els);
             } else {
                 return els;
             }
         });
     };
 
+    /** Delete multiple nodes, e.g. from a selection. */
+    const deleteNodes = (nodeIds: string[]) => {
+        const nodeIdSet = new Set(nodeIds);
+        setElements((els) => {
+            const nodes = els
+                .filter((n) => ruleEditorUtils.isNode(n) && nodeIdSet.has(n.id))
+                .map((n) => ruleEditorUtils.asNode(n)!!);
+            if (nodes.length > 0) {
+                return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.deleteNodes(nodes), els);
+            } else {
+                return els;
+            }
+        });
+    };
+
+    /** Save the current rule. */
     const saveRule = () => {
         const nodes: RuleEditorNode[] = [];
         const nodeInputEdges: Map<string, Edge[]> = new Map();
@@ -348,6 +368,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
                 executeModelEditOperation: {
                     startChangeTransaction,
                     deleteNode,
+                    deleteNodes,
                 },
             }}
         >

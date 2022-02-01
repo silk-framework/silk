@@ -1,6 +1,5 @@
 import { Elements, OnLoadParams } from "react-flow-renderer";
 import React from "react";
-import { IRuleModelEditAction } from "../RuleEditor.typings";
 
 /**
  * The rule editor model context that contains objects and methods related to the rule model of the editor, i.e.
@@ -36,6 +35,7 @@ export interface IModelActions {
     /** Starts a new change transaction. All actions after this will be handled as a single transaction, e.g. can be undone/redone as on operation. */
     startChangeTransaction: () => void;
     deleteNode: (nodeId: string) => void;
+    deleteNodes: (nodeIds: string[]) => void;
 }
 
 const NOP = () => {};
@@ -55,6 +55,7 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     executeModelEditOperation: {
         startChangeTransaction: NOP,
         deleteNode: NOP,
+        deleteNodes: NOP,
     },
     undo: () => false,
     canUndo: false,
