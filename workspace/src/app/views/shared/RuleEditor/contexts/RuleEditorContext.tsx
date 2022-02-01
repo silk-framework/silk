@@ -1,5 +1,5 @@
 import React from "react";
-import { IRuleOperatorNode, IRuleOperator } from "../RuleEditor.typings";
+import { IRuleOperator, IRuleOperatorNode } from "../RuleEditor.typings";
 
 /**
  * The rule editor context that contains objects and methods related to the original objects that are being edited and
@@ -20,6 +20,8 @@ export interface RuleEditorContextProps {
     initialRuleOperatorNodes?: IRuleOperatorNode[];
     /** Save the rule. */
     saveRule: (ruleOperatorNodes: IRuleOperatorNode[]) => Promise<boolean> | boolean;
+    /** Converts a rule operator to a rule node. */
+    convertRuleOperatorToRuleNode: (ruleOperator: IRuleOperator) => Omit<IRuleOperatorNode, "nodeId">;
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
@@ -29,5 +31,8 @@ export const RuleEditorContext = React.createContext<RuleEditorContextProps>({
     operatorListLoading: false,
     saveRule: () => {
         throw Error("saveRule is not implemented!");
+    },
+    convertRuleOperatorToRuleNode: () => {
+        throw Error("convertRuleOperatorToRuleNode is not implemented!");
     },
 });

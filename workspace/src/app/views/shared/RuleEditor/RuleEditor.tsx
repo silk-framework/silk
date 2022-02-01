@@ -104,15 +104,32 @@ export const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends objec
         }
     };
 
+    /** Default function to turn a rule operator into a rule node. */
+    const convertRuleOperatorToRuleNode = (ruleOperator: IRuleOperator): Omit<IRuleOperatorNode, "nodeId"> => {
+        return {
+            inputs: [],
+            label: ruleOperator.label,
+            parameters: Object.fromEntries(
+                Object.entries(ruleOperator.parameterSpecification).map(([paramId, paramSpec]) => {
+                    return [paramId, paramSpec.defaultValue];
+                })
+            ),
+            pluginId: ruleOperator.pluginId,
+            pluginType: ruleOperator.pluginType,
+            portSpecification: ruleOperator.portSpecification,
+        };
+    };
+
     return (
         <RuleEditorContext.Provider
             value={{
                 editedItem: taskData,
-                operatorList: operatorList,
+                operatorList,
                 editedItemLoading: taskDataLoading,
                 operatorListLoading: operatorsLoading,
-                initialRuleOperatorNodes: initialRuleOperatorNodes,
+                initialRuleOperatorNodes,
                 saveRule: saveRuleOperatorNodes,
+                convertRuleOperatorToRuleNode,
             }}
         >
             <RuleEditorModel>

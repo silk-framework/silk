@@ -4,7 +4,7 @@ import { RuleEditorModelContext } from "./contexts/RuleEditorModelContext";
 import { RuleEditorContext, RuleEditorContextProps } from "./contexts/RuleEditorContext";
 import ruleEditorUtils from "./RuleEditor.utils";
 import { useTranslation } from "react-i18next";
-import { IRuleOperatorNode } from "./RuleEditor.typings";
+import { IRuleOperator, IRuleOperatorNode } from "./RuleEditor.typings";
 import {
     AddEdge,
     AddNode,
@@ -15,6 +15,7 @@ import {
     RuleModelChangesFactory,
     RuleModelChangeType,
 } from "./RuleEditorModel.typings";
+import { XYPosition } from "react-flow-renderer/dist/types";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
@@ -256,6 +257,18 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
      * Public interface model change functions.
      **/
 
+    /** Add a new node from the rule operators list. */
+    const addNode = (ruleOperator: IRuleOperator, position: XYPosition) => {
+        if (reactFlowInstance) {
+            const ruleNode = ruleEditorContext.convertRuleOperatorToRuleNode(ruleOperator);
+            ruleNode.position = position;
+            const newNode = ruleEditorUtils.createNewOperatorNode(ruleNode, reactFlowInstance, deleteNode, t, elements);
+            setElements((els) => {
+                return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(newNode), els);
+            });
+        }
+    };
+
     /** Deletes a single rule node. */
     const deleteNode = (nodeId: string) => {
         setElements((els) => {
@@ -367,6 +380,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
                 canRedo,
                 executeModelEditOperation: {
                     startChangeTransaction,
+                    addNode,
                     deleteNode,
                     deleteNodes,
                 },

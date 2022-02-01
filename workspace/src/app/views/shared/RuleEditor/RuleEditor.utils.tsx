@@ -6,6 +6,7 @@ import { IRuleNodeData, IRuleOperatorNode, NodeContentPropsWithBusinessData } fr
 import { RuleNodeMenu } from "./ruleNode/RuleNodeMenu";
 import { Tag, Highlighter, Spacing } from "gui-elements";
 import { RuleEditorNode } from "./RuleEditorModel.typings";
+import { Elements } from "react-flow-renderer/dist/types";
 
 /** Constants */
 
@@ -28,13 +29,28 @@ function createInputHandles(numberOfInputPorts: number) {
     return rangeArray(numberOfInputPorts).map((nr) => createInputHandle(nr));
 }
 
+function createNewOperatorNode(
+    newNode: Omit<IRuleOperatorNode, "nodeId">,
+    reactFlowInstance: OnLoadParams,
+    handleDeleteNode: (nodeId: string) => any,
+    t: (string) => string,
+    elements: Elements
+): RuleEditorNode {
+    return createOperatorNode(
+        { ...newNode, nodeId: freshNodeId(elements, newNode.pluginId) },
+        reactFlowInstance,
+        handleDeleteNode,
+        t
+    );
+}
+
 /** Creates a new react-flow rule operator node. */
-export function createOperatorNode(
+function createOperatorNode(
     node: IRuleOperatorNode,
     reactFlowInstance: OnLoadParams,
     handleDeleteNode: (nodeId: string) => any,
     t: (string) => string
-) {
+): RuleEditorNode {
     const position = reactFlowInstance.project({
         x: node.position?.x ?? 0, // TODO: Calculate position based on  algorithm when coordinates are missing
         y: node.position?.y ?? 0,
@@ -92,6 +108,33 @@ const createTags = (tags: string[], query?: string) => {
     );
 };
 
+/** Returns the highest suffix number of a react-flow node with the same base ID.
+ * If a node with exactly the base ID exists it returns 0. */
+function largestBaseSuffixNumber(elements: Array<FlowElement>, baseId: string): number | undefined {
+    let highestSuffix: number | undefined = undefined;
+    elements.forEach((elem) => {
+        if (isNode(elem) && elem.id.startsWith(baseId)) {
+            const suffix = elem.id.substr(baseId.length);
+            if (suffix.length === 0) {
+                highestSuffix = 1;
+            } else {
+                // There is an underscore between the base ID and the number
+                const numberSuffix = parseInt(suffix.substr(1));
+                if (!isNaN(numberSuffix) && (highestSuffix === undefined || highestSuffix < numberSuffix)) {
+                    highestSuffix = numberSuffix;
+                }
+            }
+        }
+    });
+    return highestSuffix;
+}
+
+/** Generates an unused node ID based on a base ID */
+const freshNodeId = (elements: Elements, baseId: string): string => {
+    const currentCount = largestBaseSuffixNumber(elements, baseId);
+    return currentCount !== undefined ? `${baseId}_${currentCount + 1}` : baseId;
+};
+
 // At the moment edge IDs are not important for us and can always be re-computed
 let edgeCounter = 0;
 
@@ -127,14 +170,16 @@ const inputHandles = (node: RuleEditorNode) => {
 
 const ruleEditorUtils = {
     asEdge,
+    asNode,
     createEdge,
     createInputHandle,
     createInputHandles,
+    createNewOperatorNode,
     createOperatorNode,
     inputHandles,
     isNode,
     isEdge,
-    asNode,
+    freshNodeId,
 };
 
 export default ruleEditorUtils;
