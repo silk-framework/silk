@@ -12,6 +12,11 @@ import ruleEditorModelUtils from "../RuleEditorModel.utils";
 
 let modelContext: RuleEditorModelContextProps | undefined;
 const currentContext = () => modelContext as RuleEditorModelContextProps;
+const nodeById = (nodeId: string) => {
+    const node = currentContext().elements.find((elem) => ruleEditorModelUtils.isNode(elem) && elem.id === nodeId);
+    expect(node).toBeTruthy();
+    return ruleEditorModelUtils.asNode(node)!!;
+};
 
 describe("Rule editor model", () => {
     let ruleOperatorNodes: IRuleOperatorNode[] = [];
@@ -183,6 +188,22 @@ describe("Rule editor model", () => {
         expect(currentContext().elements).toHaveLength(3);
         currentContext().saveRule();
         expect(ruleOperatorNodes.map((node) => node.nodeId)).toStrictEqual(["nodeB", "nodeC"]);
+    });
+
+    it("should move a node", async () => {
+        await ruleEditorModel([], [operator("pluginA")]);
+        const startPosition = { x: 2, y: 4 };
+        act(() => {
+            currentContext().executeModelEditOperation.addNode(operator("pluginA"), startPosition);
+        });
+        const nodeId = currentContext().elements[0].id;
+        const newPosition = { x: 100, y: 102 };
+        act(() => {
+            currentContext().executeModelEditOperation.moveNode(nodeId, newPosition);
+        });
+        expect(nodeById(nodeId).position).toStrictEqual(newPosition);
+        currentContext().saveRule();
+        expect(ruleOperatorNodes[0].position).toStrictEqual(newPosition);
     });
 });
 
