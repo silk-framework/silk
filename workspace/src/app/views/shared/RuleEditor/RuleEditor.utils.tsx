@@ -52,7 +52,7 @@ function createOperatorNode(
     t: (string) => string
 ): RuleEditorNode {
     const position = reactFlowInstance.project({
-        x: node.position?.x ?? 0, // TODO: Calculate position based on  algorithm when coordinates are missing
+        x: node.position?.x ?? 0, // TODO: Calculate position based on  algorithm when coordinates are missing CMEM-3922
         y: node.position?.y ?? 0,
     });
     const usedInputs = node.inputs.length;

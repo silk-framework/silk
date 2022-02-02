@@ -4,6 +4,8 @@ import { RuleEditorView } from "./RuleEditorView";
 import { RuleEditorContext } from "./contexts/RuleEditorContext";
 import { IViewActions } from "../../plugins/PluginRegistry";
 import { IRuleOperator, IRuleOperatorNode } from "./RuleEditor.typings";
+import ErrorBoundary from "../../../ErrorBoundary";
+import { ReactFlowProvider } from "react-flow-renderer";
 
 export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     /** Project ID the task is in. */
@@ -12,7 +14,7 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     taskId: string;
     /** Function to fetch the actual task data to initialize the editor. */
     fetchRuleData: (projectId: string, taskId: string) => Promise<RULE_TYPE | undefined> | RULE_TYPE | undefined;
-    /** Save rule. If true is returned saving was successful, else it failed. TODO: Missing rule tree structure */
+    /** Save rule. If true is returned saving was successful, else it failed. */
     saveRule: (ruleOperatorNodes: IRuleOperatorNode[], originalRuleData: RULE_TYPE) => Promise<boolean> | boolean;
     /** Fetch available rule operators. */
     fetchRuleOperators: () => Promise<OPERATOR_TYPE[] | undefined> | OPERATOR_TYPE[] | undefined;
@@ -27,7 +29,7 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
 /**
  * Generic rule editor that can be used to build tree-line rule operator graphs.
  */
-export const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
+const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     projectId,
     taskId,
     fetchRuleData,
@@ -138,3 +140,15 @@ export const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends objec
         </RuleEditorContext.Provider>
     );
 };
+
+const WrappedRuleEditor = <RULE_TYPE extends object, OPERATOR_TYPE extends object>(
+    props: RuleEditorProps<RULE_TYPE, OPERATOR_TYPE>
+) => (
+    <ErrorBoundary>
+        <ReactFlowProvider>
+            <RuleEditor<RULE_TYPE, OPERATOR_TYPE> {...props} />
+        </ReactFlowProvider>
+    </ErrorBoundary>
+);
+
+export default WrappedRuleEditor;

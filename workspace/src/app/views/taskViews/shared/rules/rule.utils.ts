@@ -36,11 +36,7 @@ const extractOperatorNodeFromTransformInput = (
         pluginType: "TransformOperator",
         pluginId: transformInput.function,
         label: transformInput.function, // TODO: label
-        parameters: Object.fromEntries(
-            Object.entries(transformInput.parameters).map(([parameterId, parameterValue]) => {
-                return [parameterId, parameterValue.defaultValue];
-            })
-        ),
+        parameters: transformInput.parameters,
         portSpecification: {
             minInputPorts: 1,
         },

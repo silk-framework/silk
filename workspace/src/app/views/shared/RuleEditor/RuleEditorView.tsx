@@ -28,7 +28,6 @@ export const RuleEditorView = () => {
         setReactFlowInstance(_reactFlowInstance);
         modelContext.setReactFlowInstance(_reactFlowInstance);
     };
-    console.log(modelContext.elements.length);
     return (
         <Grid verticalStretchable={true}>
             <GridRow>

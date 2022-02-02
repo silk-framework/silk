@@ -30,10 +30,5 @@ export interface ITransformOperator extends IValueInput {
 
 /** Parameters of a rule operator. */
 export interface IOperatorNodeParameters {
-    [key: string]: IOperatorParameterValue;
-}
-
-/** Values of a parameterized rule operator. */
-export interface IOperatorParameterValue {
-    defaultValue?: string;
+    [key: string]: string;
 }

@@ -9,7 +9,7 @@ import {
 } from "./linking.types";
 import { useTranslation } from "react-i18next";
 import { IViewActions } from "../../plugins/PluginRegistry";
-import { RuleEditor } from "../../shared/RuleEditor/RuleEditor";
+import RuleEditor from "../../shared/RuleEditor/RuleEditor";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
 import { IProjectTask } from "@ducks/shared/typings";
@@ -115,8 +115,12 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                     ),
                     id: ruleOperatorNode.nodeId,
                     indexing: false, // TODO: What to set it to?
-                    parameters: {}, // Object.fromEntries(Object.entries(ruleOperator.parameters) TODO: Did I get this right?
-                    //.map(([parameterKey, parameterValue]) => [parameterKey, parameterValue ?? ""])),
+                    parameters: Object.fromEntries(
+                        Object.entries(ruleOperatorNode.parameters).map(([parameterKey, parameterValue]) => [
+                            parameterKey,
+                            parameterValue ?? "",
+                        ])
+                    ),
                     type: "Comparison",
                     threshold: parseFloat(ruleOperatorNode.parameters["threshold"]!!),
                     weight: parseInt(ruleOperatorNode.parameters["weight"]!!),
@@ -304,11 +308,7 @@ const extractSimilarityOperatorNode = (
             pluginType: isComparison ? "ComparisonOperator" : "AggregationOperator",
             pluginId,
             inputs: inputs,
-            parameters: Object.fromEntries(
-                Object.entries(operator.parameters).map(([parameterId, parameterValue]) => {
-                    return [parameterId, parameterValue.defaultValue];
-                })
-            ),
+            parameters: operator.parameters,
             portSpecification: {
                 minInputPorts: isComparison ? 2 : 1,
                 maxInputPorts: isComparison ? 2 : undefined,

@@ -65,7 +65,7 @@ export interface IParameterSpecification {
     defaultValue: string;
 }
 
-type ParameterType = "int" | "string" | "multi-line string" | "TODO";
+type ParameterType = "int" | "string" | "multi-line string"; // TODO: Add other types that come from the backend
 
 interface NodePosition {
     x: number;
@@ -87,4 +87,5 @@ export interface IRuleNodeData {
     dynamicPorts?: boolean;
     // The original rule operator node this node was created with.
     originalRuleOperatorNode: IRuleOperatorNode;
+    //
 }

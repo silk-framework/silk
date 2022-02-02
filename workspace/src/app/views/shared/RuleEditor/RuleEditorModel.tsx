@@ -1,5 +1,5 @@
 import React from "react";
-import { Edge, Elements, FlowElement, OnLoadParams, removeElements, useStoreActions } from "react-flow-renderer";
+import { Edge, Elements, OnLoadParams, removeElements, useStoreActions } from "react-flow-renderer";
 import { RuleEditorModelContext } from "./contexts/RuleEditorModelContext";
 import { RuleEditorContext, RuleEditorContextProps } from "./contexts/RuleEditorContext";
 import utils from "./RuleEditor.utils";
@@ -8,6 +8,7 @@ import { IRuleOperator, IRuleOperatorNode } from "./RuleEditor.typings";
 import {
     AddEdge,
     AddNode,
+    ChangeNodeParameter,
     ChangeNodePosition,
     DeleteEdge,
     DeleteNode,
@@ -36,13 +37,22 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
     /** The nodes and edges of the rule editor. */
     const [elements, setElements] = React.useState<Elements>([]);
-    // Contexts
+    /** Rule editor context. */
     const ruleEditorContext = React.useContext<RuleEditorContextProps>(RuleEditorContext);
+    /** The rule editor change history that will be used to UNDO changes. */
     const [ruleUndoStack, setRuleUndoStack] = React.useState<ChangeStackType[]>([]);
+    /** If there are changes that can be undone. */
     const [canUndo, setCanUndo] = React.useState<boolean>(false);
+    /** Stores the REDO history. */
     const [ruleRedoStack, setRuleRedoStack] = React.useState<ChangeStackType[]>([]);
+    /** If there are changes that can be redone, i.e. that have been previously undone. */
     const [canRedo, setCanRedo] = React.useState<boolean>(false);
+    /** react-flow function to update a node position in the canvas. Just changing the position of the elements is not enough. */
     const updateNodePos = useStoreActions((actions) => actions.updateNodePos);
+    /** Manages the parameters of rule nodes. This is done for performance reasons. Only stores diffs to the original value. */
+    const [nodeParameterDiff, setNodeParameterDiff] = React.useState<Map<string, Map<string, string | undefined>>>(
+        new Map()
+    );
 
     /**
      * UNDO/REDO handling.
@@ -161,9 +171,26 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
     const addRuleModelChange = (ruleModelChange: RuleModelChanges) => {
         // Clear redo stack, starting a new "branch", former redo operations might have become invalid
         ruleRedoStack.splice(0);
-        ruleUndoStack.push(ruleModelChange);
+        addOrMergeRuleModelChange(ruleModelChange);
         setCanRedo(false);
         setCanUndo(true);
+    };
+
+    /** Adds a rule model change and in some cases merges them. */
+    const addOrMergeRuleModelChange = (ruleModelChanges: RuleModelChanges) => {
+        const lastChange = asChangeNodeParameter(ruleUndoStack[ruleUndoStack.length - 1]);
+        const parameterChange = asChangeNodeParameter(ruleModelChanges);
+        if (
+            parameterChange &&
+            lastChange &&
+            parameterChange.nodeId === lastChange.nodeId &&
+            parameterChange.parameterId === lastChange.parameterId
+        ) {
+            ruleUndoStack.pop();
+            ruleUndoStack.push(ruleModelChanges);
+        } else {
+            ruleUndoStack.push(ruleModelChanges);
+        }
     };
 
     /** Groups rule model changes, so they can be executed more efficiently. */
@@ -235,7 +262,16 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
                     );
                     break;
                 case "Change node parameter":
-                    // TODO
+                    const nodesParameterDiff: Map<string, Map<string, string | undefined>> = new Map();
+                    groupedChange.forEach((change) => {
+                        const nodeChange = change as ChangeNodeParameter;
+                        const nodeParameterDiff =
+                            nodesParameterDiff.get(nodeChange.nodeId) ?? new Map<string, string | undefined>();
+                        nodeParameterDiff.set(nodeChange.parameterId, nodeChange.to);
+                        nodesParameterDiff.set(nodeChange.nodeId, nodeParameterDiff);
+                    });
+                    // Does not change the actual elements
+                    changeNodeParametersInternal(nodesParameterDiff);
                     break;
             }
         });
@@ -255,15 +291,15 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
      * Functions that change the react-flow model state.
      **/
     // Add new elements to react-flow model
-    const addElementsInternal = (elementsToAdd: FlowElement[], els: FlowElement[]): Elements => {
+    const addElementsInternal = (elementsToAdd: Elements, els: Elements): Elements => {
         return [...els, ...elementsToAdd];
     };
     // Delete multiple elements and return updated elements array
-    const deleteElementsInternal = (elementsToRemove: FlowElement[], els: FlowElement[]): Elements => {
+    const deleteElementsInternal = (elementsToRemove: Elements, els: Elements): Elements => {
         return removeElements(elementsToRemove, els);
     };
     // Change the position of nodes
-    const changeNodePositionsInternal = (nodesToMove: Map<string, XYPosition>, els: FlowElement[]): Elements => {
+    const changeNodePositionsInternal = (nodesToMove: Map<string, XYPosition>, els: Elements): Elements => {
         return els.map((elem) => {
             if (utils.isNode(elem) && nodesToMove.has(elem.id)) {
                 const node = utils.asNode(elem)!!;
@@ -279,6 +315,15 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
             } else {
                 return elem;
             }
+        });
+    };
+    // Changes the node parameters
+    const changeNodeParametersInternal = (
+        nodeParametersToChange: Map<string, Map<string, string | undefined>>
+    ): void => {
+        nodeParametersToChange.forEach((parameterChanges, nodeId) => {
+            const parameterDiff = nodeParameterDiff.get(nodeId) ?? new Map();
+            nodeParameterDiff.set(nodeId, new Map([...parameterDiff, ...parameterChanges]));
         });
     };
     /**
@@ -341,6 +386,43 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
         });
     };
 
+    /** Converts this rule change to a single 'change node parameter' action if possible, else returns undefined. */
+    const asChangeNodeParameter = (ruleModelChanges: ChangeStackType | undefined): ChangeNodeParameter | undefined => {
+        return typeof ruleModelChanges === "object" &&
+            ruleModelChanges.operations.length === 1 &&
+            ruleModelChanges.operations[0].type === "Change node parameter"
+            ? (ruleModelChanges.operations[0] as ChangeNodeParameter)
+            : undefined;
+    };
+
+    /** Return the last rule parameter change if no other actions was done after it and it affected only a single parameter. */
+    const lastRuleParameterChange = (): ChangeNodeParameter | undefined => {
+        const lastChange = ruleUndoStack.pop();
+        return asChangeNodeParameter(lastChange);
+    };
+
+    const currentParameterValue = (nodeId: string, parameterId: string): string | undefined => {
+        const nodeDiff = nodeParameterDiff.get(nodeId);
+        if (nodeDiff && nodeDiff.has(parameterId)) {
+            return nodeDiff.get(parameterId);
+        } else {
+            const node = utils.nodeById(elements, nodeId);
+            return node?.data?.businessData.originalRuleOperatorNode.parameters[parameterId];
+        }
+    };
+
+    /** Changes a single node parameter to a new value. */
+    const changeNodeParameter = (nodeId: string, parameterId: string, newValue: string | undefined) => {
+        // Merge parameter changes done to the same node/parameter subsequently, so it becomes a single undo operation
+        const recentParameterChange = lastRuleParameterChange();
+        const from = recentParameterChange ? recentParameterChange.from : currentParameterValue(nodeId, parameterId);
+        // This does not change the actual elements, so we provide dummy elements
+        addAndExecuteRuleModelChangeInternal(
+            RuleModelChangesFactory.changeNodeParameter(nodeId, parameterId, from, newValue),
+            []
+        );
+    };
+
     /** Move a node to a new position. */
     const moveNode = (nodeId: string, newPosition: XYPosition) => {
         setElements((els) => {
@@ -383,11 +465,21 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
             const inputEdgeMap = new Map(inputEdges.map((e) => [e.id, e.source]));
             const inputs = inputHandleIds.map((handleId) => (handleId ? inputEdgeMap.get(handleId) : undefined));
             const originalNode = node.data?.businessData.originalRuleOperatorNode!!;
+            const parameterDiff = nodeParameterDiff.get(node.id);
             const ruleOperatorNode: IRuleOperatorNode = {
                 inputs,
                 label: originalNode.label, // TODO: Can the label change?
                 nodeId: node.id,
-                parameters: {}, // TODO: Handle parameters
+                parameters: parameterDiff
+                    ? Object.fromEntries(
+                          Object.entries(originalNode.parameters).map(([parameterId, parameterValue]) => {
+                              return [
+                                  parameterId,
+                                  parameterDiff.has(parameterId) ? parameterDiff.get(parameterId) : parameterValue,
+                              ];
+                          })
+                      )
+                    : originalNode.parameters,
                 pluginId: originalNode.pluginId,
                 pluginType: originalNode.pluginType,
                 portSpecification: originalNode.portSpecification,
@@ -405,9 +497,12 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
             elements.length === 0 &&
             reactFlowInstance
         ) {
+            const newNodeParameters = new Map();
+            setNodeParameterDiff(newNodeParameters);
             const operatorsNodes = ruleEditorContext.initialRuleOperatorNodes;
             // Create nodes
             const nodes = operatorsNodes.map((operatorNode) => {
+                newNodeParameters.set(operatorNode.nodeId, operatorNode.parameters);
                 return utils.createOperatorNode(operatorNode, reactFlowInstance, deleteNode, t);
             });
             // Create edges
@@ -445,6 +540,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
                     deleteNodes,
                     copyAndPasteNodes,
                     moveNode,
+                    changeNodeParameter,
                 },
             }}
         >
