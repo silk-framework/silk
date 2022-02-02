@@ -2,7 +2,7 @@ import React from "react";
 import { Edge, Elements, OnLoadParams, removeElements, useStoreActions } from "react-flow-renderer";
 import { RuleEditorModelContext } from "./contexts/RuleEditorModelContext";
 import { RuleEditorContext, RuleEditorContextProps } from "./contexts/RuleEditorContext";
-import utils from "./RuleEditor.utils";
+import utils from "./RuleEditorModel.utils";
 import { useTranslation } from "react-i18next";
 import { IRuleOperator, IRuleOperatorNode } from "./RuleEditor.typings";
 import {

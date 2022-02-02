@@ -62,7 +62,7 @@ function createOperatorNode(
             : Math.max(node.portSpecification.minInputPorts, usedInputs + 1);
 
     const handles: IHandleProps[] = [
-        ...ruleEditorUtils.createInputHandles(numberOfInputPorts),
+        ...createInputHandles(numberOfInputPorts),
         { type: SOURCE_HANDLE_TYPE, position: Position.Right },
     ];
 
@@ -177,7 +177,7 @@ const nodesById = (elements: Elements, nodeIds: string[]): RuleEditorNode[] => {
     return elements.filter((n) => isNode(n) && nodeIdSet.has(n.id)).map((n) => asNode(n)!!);
 };
 
-const ruleEditorUtils = {
+const ruleEditorModelUtils = {
     asEdge,
     asNode,
     createEdge,
@@ -193,4 +193,4 @@ const ruleEditorUtils = {
     nodesById,
 };
 
-export default ruleEditorUtils;
+export default ruleEditorModelUtils;
