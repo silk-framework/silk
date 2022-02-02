@@ -17,6 +17,7 @@ import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{AutoCompletionResult, ParameterAutoCompletion, PluginDescription, PluginObjectParameter, PluginRegistry}
 import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.serialization.json.MetaDataSerializers.FullTag
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, InjectedController, Result}
@@ -121,7 +122,8 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
             "taskId" -> JsString(task.id),
             "taskLabel" -> JsString(taskOpt.get.label()),
             PLUGIN_ID -> JsString(pd.id),
-            PLUGIN_LABEL -> JsString(pd.label)
+            PLUGIN_LABEL -> JsString(pd.label),
+            TAGS -> Json.toJson(task.tags().map(FullTag.fromTag))
           )
         }
         Some(JsObject(Seq(
