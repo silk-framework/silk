@@ -1,3 +1,5 @@
+import { Tags } from "@ducks/workspace/typings";
+
 export interface IRequestAutocompletePayload {
     pluginId: string;
     parameterId: string;
@@ -97,6 +99,7 @@ export interface IRelatedItem {
     type: string;
     itemLinks: IItemLink[];
     pluginLabel: string;
+    tags: Tags["tags"];
 }
 
 export interface IItemLink {

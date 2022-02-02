@@ -90,7 +90,7 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
                         </>
                     )}
                     <Spacing vertical size="tiny" />
-                    <ProjectTags projectId={relatedItem.id} query={textQuery} />
+                    <ProjectTags tags={relatedItem.tags} query={textQuery} />
                 </OverviewItemLine>
             </OverviewItemDescription>
             <OverviewItemActions>

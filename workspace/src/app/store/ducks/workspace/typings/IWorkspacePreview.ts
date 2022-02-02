@@ -1,3 +1,5 @@
+import { Tags } from ".";
+
 export type DATA_TYPES = "project" | "Dataset" | "transform" | "Linking" | "task";
 
 export interface ITaskItemLinks {
@@ -40,6 +42,11 @@ export interface ISearchResultsServer {
      * The label of the plugin.
      */
     pluginLabel?: string;
+
+    /**
+     * set tags for a project or task
+     */
+    tags?: Tags["tags"];
 }
 
 export interface IPreviewState {

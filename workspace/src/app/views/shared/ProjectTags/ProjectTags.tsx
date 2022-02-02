@@ -1,25 +1,18 @@
-import { requestProjectTags } from "@ducks/workspace/requests";
 import { Tags } from "@ducks/workspace/typings";
 import { Highlighter, Spacing, Tag } from "gui-elements";
 import React from "react";
 
 interface IProps {
-    projectId: string;
+    maxLength?: number;
+    tags?: Tags["tags"];
     query?: string;
-    minLength?: number;
 }
 
-const ProjectTags: React.FC<IProps> = ({ projectId, query = "", minLength = 4 }) => {
-    const [tags, setTags] = React.useState<Tags["tags"]>([]);
-    React.useEffect(() => {
-        requestProjectTags(projectId).then((res) => {
-            setTags(res.data?.tags ?? []);
-        });
-    }, []);
+const ProjectTags: React.FC<IProps> = ({ tags = [], maxLength = 4, query = "" }) => {
     const filteredTags = tags.filter((t) => t.label.includes(query));
     return (
         <>
-            {filteredTags.slice(0, minLength).map((t, i) => (
+            {filteredTags.slice(0, Math.min(tags.length, maxLength)).map((t, i) => (
                 <div key={i}>
                     <Tag emphasis="weak">
                         <Highlighter label={t.label} searchValue={query} />

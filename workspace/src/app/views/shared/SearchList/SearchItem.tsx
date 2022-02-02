@@ -196,7 +196,7 @@ export default function SearchItem({
                             </>
                         )}
                         <Spacing vertical size="tiny" />
-                        <ProjectTags projectId={item.projectId || item.id} query={searchValue} />
+                        <ProjectTags tags={item.tags} query={searchValue} />
                     </OverviewItemLine>
                 </OverviewItemDescription>
                 <OverviewItemActions>
