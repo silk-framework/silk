@@ -8,6 +8,7 @@ import { RuleEditorContext } from "../../contexts/RuleEditorContext";
 import { IParameterSpecification, IRuleOperator, IRuleOperatorNode } from "../../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 import utils from "../../RuleEditor.utils";
+import ruleEditorModelUtils from "../RuleEditorModel.utils";
 
 let modelContext: RuleEditorModelContextProps | undefined;
 const currentContext = () => modelContext as RuleEditorModelContextProps;
@@ -48,7 +49,7 @@ describe("Rule editor model", () => {
                     return [];
                 },
                 project(position: XYPosition): XYPosition {
-                    return undefined as any;
+                    return position;
                 },
                 setTransform(transform: FlowTransform): void {},
                 toObject(): FlowExportObject<any> {
@@ -140,23 +141,48 @@ describe("Rule editor model", () => {
         await waitFor(async () => {
             expect(currentContext().elements).toHaveLength(3);
         });
+        const position = { x: 5, y: 10 };
         act(() => {
-            currentContext().executeModelEditOperation.addNode(operator("pluginA"), { x: 5, y: 10 });
-            currentContext().executeModelEditOperation.addNode(operator("pluginA"), { x: 5, y: 10 });
+            currentContext().executeModelEditOperation.addNode(operator("pluginA"), position);
+            currentContext().executeModelEditOperation.addNode(operator("pluginA"), position);
         });
-        await waitFor(() => {
-            // 4 nodes, 1 edge
-            expect(currentContext().elements).toHaveLength(5);
-            expect(currentContext().canUndo).toBe(true);
-            expect(currentContext().canRedo).toBe(false);
-            currentContext().saveRule();
-            expect(ruleOperatorNodes.map((node) => node.nodeId)).toStrictEqual([
-                "pluginA",
-                "node B",
-                "pluginA_2",
-                "pluginA_3",
-            ]);
+        // 4 nodes, 1 edge
+        expect(currentContext().elements).toHaveLength(5);
+        expect(currentContext().canUndo).toBe(true);
+        expect(currentContext().canRedo).toBe(false);
+        currentContext().saveRule();
+        expect(ruleOperatorNodes.map((node) => node.nodeId)).toStrictEqual([
+            "pluginA",
+            "node B",
+            "pluginA_2",
+            "pluginA_3",
+        ]);
+        expect(
+            ruleEditorModelUtils.asNode(currentContext().elements.find((n) => n.id === "pluginA_2"))!!.position
+        ).toStrictEqual(position);
+        expect(ruleOperatorNodes[2].position).toStrictEqual(position);
+    });
+
+    it("should delete nodes", async () => {
+        await ruleEditorModel(
+            [
+                node({ nodeId: "nodeA" }),
+                node({ nodeId: "nodeB", inputs: ["nodeA"] }),
+                node({ nodeId: "nodeC", inputs: ["nodeA", "nodeB"] }),
+            ],
+            [operator("pluginA")]
+        );
+        await waitFor(async () => {
+            // 3 nodes, 3 edges
+            expect(currentContext().elements).toHaveLength(6);
         });
+        act(() => {
+            currentContext().executeModelEditOperation.deleteNode("nodeA");
+        });
+        // 1 node and 2 edges removed
+        expect(currentContext().elements).toHaveLength(3);
+        currentContext().saveRule();
+        expect(ruleOperatorNodes.map((node) => node.nodeId)).toStrictEqual(["nodeB", "nodeC"]);
     });
 });
 

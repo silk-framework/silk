@@ -485,6 +485,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
                 pluginId: originalNode.pluginId,
                 pluginType: originalNode.pluginType,
                 portSpecification: originalNode.portSpecification,
+                position: node.position,
             };
             return ruleOperatorNode;
         });
