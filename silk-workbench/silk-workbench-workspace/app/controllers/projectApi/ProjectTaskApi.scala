@@ -16,6 +16,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.serialization.json.MetaDataSerializers.FullTag
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.exceptions.IdentifierAlreadyExistsException
 import play.api.libs.json.{JsValue, Json}
@@ -123,7 +124,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
       val pd = PluginDescription(task)
       val itemType = ItemType.itemType(task)
       val itemLinks = ItemType.itemTypeLinks(itemType, projectId, task.id, Some(task.data))
-      RelatedItem(task.id, task.fullLabel, task.metaData.description, itemType.label, itemLinks, pd.label)
+      RelatedItem(task.id, task.fullLabel, task.metaData.description, itemType.label, itemLinks, pd.label, task.tags().map(FullTag.fromTag))
     }
     val filteredItems = filterRelatedItems(relatedItems, textQuery)
     val total = relatedItems.size

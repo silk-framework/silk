@@ -1,6 +1,7 @@
 package controllers.workspaceApi.projectTask
 
 import controllers.workspaceApi.search.ItemLink
+import org.silkframework.serialization.json.MetaDataSerializers.FullTag
 import play.api.libs.json.{Format, Json}
 
 /**
@@ -11,7 +12,8 @@ case class RelatedItem(id: String,
                        description: Option[String],
                        `type`: String,
                        itemLinks: Seq[ItemLink],
-                       pluginLabel: String)
+                       pluginLabel: String,
+                       tags: Set[FullTag])
 
 object RelatedItem {
   implicit val relatedItemFormat: Format[RelatedItem] = Json.format[RelatedItem]
