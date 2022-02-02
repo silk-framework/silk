@@ -10,6 +10,7 @@ import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers.{TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat}
+import org.silkframework.serialization.json.MetaDataSerializers.FullTag
 import org.silkframework.workbench.workspace.{WorkbenchAccessMonitor, WorkspaceItem, WorkspaceProject, WorkspaceTask}
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
@@ -32,6 +33,7 @@ object SearchApiModel {
   final val PROJECT_LABEL = "projectLabel"
   final val PLUGIN_ID = "pluginId"
   final val PLUGIN_LABEL = "pluginLabel"
+  final val TAGS = "tags"
   final val PARAMETERS = "parameters"
   // type values
   final val PROJECT_TYPE = "project"
@@ -441,12 +443,14 @@ object SearchApiModel {
       TypedTasks(project.name, project.config.fullLabel ,itemType, tasks)
     }
 
-    private def toJson(project: Project): JsObject = {
+    private def toJson(project: Project)
+                      (implicit userContext: UserContext): JsObject = {
       JsObject(
         Seq(
           TYPE -> JsString(PROJECT_TYPE),
           ID -> JsString(project.config.id),
-          LABEL -> JsString(label(project))
+          LABEL -> JsString(label(project)),
+          TAGS -> Json.toJson(project.tags().map(FullTag.fromTag))
         ) ++ project.config.metaData.description.toSeq.map { desc =>
           DESCRIPTION -> JsString(desc)
         }
@@ -456,7 +460,7 @@ object SearchApiModel {
     private val addParameters = addTaskParameters.getOrElse(false)
 
     private def toJson(task: ProjectTask[_ <: TaskSpec],
-                       typedTask: TypedTasks): JsObject = {
+                       typedTask: TypedTasks)(implicit userContext: UserContext): JsObject = {
       val pd = PluginDescription(task)
       val parameters = if(addParameters) {
         implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
@@ -474,7 +478,8 @@ object SearchApiModel {
           LABEL -> JsString(label(task)),
           DESCRIPTION -> JsString(""),
           PLUGIN_ID -> JsString(pd.id),
-          PLUGIN_LABEL -> JsString(pd.label)
+          PLUGIN_LABEL -> JsString(pd.label),
+          TAGS -> Json.toJson(task.tags().map(FullTag.fromTag))
         )
           ++ task.metaData.description.map(d => DESCRIPTION -> JsString(d))
           ++ parameters

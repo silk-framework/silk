@@ -233,7 +233,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     * Retrieves all tags for this task.
     */
   def tags()(implicit userContext: UserContext): Set[Tag] = {
-    metaData.tags.map(uri => project.tags.getTag(uri))
+    metaData.tags.map(uri => project.tagManager.getTag(uri))
   }
 }
 

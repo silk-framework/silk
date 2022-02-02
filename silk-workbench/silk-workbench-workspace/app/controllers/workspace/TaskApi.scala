@@ -514,7 +514,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
                                taskId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectId)
     val task = project.anyTask(taskId)
-    Ok(Json.toJson(MetaDataExpanded.fromMetaData(task.metaData, project.tags)))
+    Ok(Json.toJson(MetaDataExpanded.fromMetaData(task.metaData, project.tagManager)))
   }
 
   // Task meta data object as JSON

@@ -37,7 +37,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
 
   private implicit val logger = Logger.getLogger(classOf[Project].getName)
 
-  val tags = new TagManager(initialConfig.id, provider)
+  val tagManager = new TagManager(initialConfig.id, provider)
 
   val cacheResources: ResourceManager = provider.projectCache(initialConfig.id)
 
@@ -346,5 +346,12 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
    */
   def registerModule[T <: TaskSpec : ClassTag](validator: TaskValidator[T] = new DefaultTaskValidator[T]): Unit = synchronized {
     modules = modules :+ new Module[T](provider, this, validator)
+  }
+
+  /**
+    * Retrieves all tags for this project.
+    */
+  def tags()(implicit userContext: UserContext): Set[Tag] = {
+    config.metaData.tags.map(uri => tagManager.getTag(uri))
   }
 }

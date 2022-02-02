@@ -289,7 +289,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
                                  )
                                  projectId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = getProject(projectId)
-    Ok(Json.toJson(MetaDataExpanded.fromMetaData(project.config.metaData, project.tags)))
+    Ok(Json.toJson(MetaDataExpanded.fromMetaData(project.config.metaData, project.tagManager)))
   }
 
   /** Returns all project prefixes */
@@ -454,7 +454,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
                 filter: Option[String] = None
                ): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = getProject(projectId)
-    val tags = project.tags.allTags()
+    val tags = project.tagManager.allTags()
     val filteredTags = filter match {
       case Some(search) =>
         val lowerCaseSearch = search.toLowerCase
@@ -535,7 +535,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
                 )
                 tag: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = getProject(projectId)
-    project.tags.deleteTag(tag)
+    project.tagManager.deleteTag(tag)
     NoContent
   }
 
@@ -684,10 +684,10 @@ object ProjectApi {
           case Some(userUri) =>
             userUri
           case None =>
-            project.tags.generateTagUri()
+            project.tagManager.generateTagUri()
         }
         val newTag = Tag(tagUri, tag.label)
-        project.tags.putTag(newTag)
+        project.tagManager.putTag(newTag)
         FullTag.fromTag(newTag)
       }
     }

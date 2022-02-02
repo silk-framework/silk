@@ -168,8 +168,8 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     provider.putProject(updatedProjectConfig)
     removeProjectFromCache(projectId)
     val newProject = new Project(updatedProjectConfig, provider, repository.get(projectId))
-    for(tag <- diProject.tags.allTags()) {
-      newProject.tags.putTag(tag)
+    for(tag <- diProject.tagManager.allTags()) {
+      newProject.tagManager.putTag(tag)
     }
     addProjectToCache(newProject)
     log.info(s"Project meta data updated for '$projectId'.")
