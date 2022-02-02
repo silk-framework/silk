@@ -475,7 +475,9 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
                           Object.entries(originalNode.parameters).map(([parameterId, parameterValue]) => {
                               return [
                                   parameterId,
-                                  parameterDiff.has(parameterId) ? parameterDiff.get(parameterId) : parameterValue,
+                                  parameterDiff && parameterDiff.has(parameterId)
+                                      ? parameterDiff.get(parameterId)
+                                      : parameterValue,
                               ];
                           })
                       )
@@ -497,12 +499,10 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
             elements.length === 0 &&
             reactFlowInstance
         ) {
-            const newNodeParameters = new Map();
-            setNodeParameterDiff(newNodeParameters);
+            setNodeParameterDiff(new Map());
             const operatorsNodes = ruleEditorContext.initialRuleOperatorNodes;
             // Create nodes
             const nodes = operatorsNodes.map((operatorNode) => {
-                newNodeParameters.set(operatorNode.nodeId, operatorNode.parameters);
                 return utils.createOperatorNode(operatorNode, reactFlowInstance, deleteNode, t);
             });
             // Create edges
@@ -519,7 +519,12 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
             setRuleUndoStack([]);
             setRuleRedoStack([]);
         }
-    }, [ruleEditorContext.initialRuleOperatorNodes, ruleEditorContext.operatorList, elements, reactFlowInstance]);
+    }, [
+        ruleEditorContext.initialRuleOperatorNodes,
+        ruleEditorContext.operatorList,
+        elements.length,
+        reactFlowInstance,
+    ]);
 
     return (
         <RuleEditorModelContext.Provider
