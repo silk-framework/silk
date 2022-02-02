@@ -14,7 +14,7 @@
 
 package org.silkframework.workspace
 
-import org.silkframework.config.{MetaData, PlainTask, Prefixes, Task, TaskSpec}
+import org.silkframework.config.{MetaData, PlainTask, Prefixes, Tag, Task, TaskSpec}
 import org.silkframework.runtime.activity.{HasValue, Status, UserContext, ValueHolder}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
@@ -227,6 +227,13 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       metaDataFields = metaDataFields :+ "Description" -> description
     }
     metaDataFields
+  }
+
+  /**
+    * Retrieves all tags for this task.
+    */
+  def tags()(implicit userContext: UserContext): Set[Tag] = {
+    metaData.tags.map(uri => project.tags.getTag(uri))
   }
 }
 

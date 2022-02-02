@@ -45,7 +45,9 @@ class TagManager(project: Identifier, provider: WorkspaceProvider) {
 
   private def loadIfRequired()(implicit userContext: UserContext): Unit = {
     if(!loaded) {
-      provider.readTags(project)
+      for(tag <- provider.readTags(project)) {
+        tags += ((tag.uri, tag))
+      }
       loaded = true
     }
   }

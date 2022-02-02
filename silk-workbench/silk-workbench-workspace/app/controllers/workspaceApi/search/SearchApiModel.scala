@@ -138,14 +138,16 @@ object SearchApiModel {
     protected def matchesSearchTerm(lowerCaseSearchTerms: Seq[String],
                                     task: ProjectTask[_ <: TaskSpec],
                                     matchTaskProperties: Boolean,
-                                    matchProject: Boolean): Boolean = {
+                                    matchProject: Boolean)(implicit userContext: UserContext): Boolean = {
       val pluginLabel = PluginDescription(task).label
       val taskLabel = task.fullLabel
       val description = task.metaData.description.getOrElse("")
       val searchInProperties = if(matchTaskProperties) task.data.properties(task.project.config.prefixes).map(p => p._2).mkString(" ") else ""
       val searchInProject = if(matchProject) label(task.project) else ""
       val searchInItemType = if(task.data.isInstanceOf[DatasetSpec[_]]) "dataset" else ""
-      matchesSearchTerm(lowerCaseSearchTerms, taskLabel, description, searchInProperties, searchInProject, pluginLabel, searchInItemType)
+      val tagLabels = task.tags().map(_.label)
+      val searchInTerms = Seq(taskLabel, description, searchInProperties, searchInProject, pluginLabel, searchInItemType) ++ tagLabels
+      matchesSearchTerm(lowerCaseSearchTerms, searchInTerms: _*)
     }
 
     /** Match search terms against project. */
@@ -392,7 +394,7 @@ object SearchApiModel {
     }
 
     private def filterTasksByTextQuery(typedTasks: TypedTasks,
-                                       lowerCaseTerms: Seq[String]): TypedTasks = {
+                                       lowerCaseTerms: Seq[String])(implicit userContext: UserContext): TypedTasks = {
       typedTasks.copy(tasks = typedTasks.tasks.filter { task =>
           // Project is shown in search results when not restricting by project. Task properties are not shown.
         matchesSearchTerm(lowerCaseTerms, task, matchTaskProperties = false, matchProject = project.isEmpty) })
