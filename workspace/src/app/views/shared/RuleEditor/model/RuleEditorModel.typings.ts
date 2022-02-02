@@ -1,5 +1,5 @@
 import { Edge, Node } from "react-flow-renderer";
-import { IRuleNodeData, NodeContentPropsWithBusinessData } from "./RuleEditor.typings";
+import { IRuleNodeData, NodeContentPropsWithBusinessData } from "../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 
 export interface RuleModelChanges {

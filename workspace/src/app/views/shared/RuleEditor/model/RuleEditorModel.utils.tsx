@@ -1,9 +1,9 @@
 import React from "react";
 import { IHandleProps } from "gui-elements/src/extensions/react-flow/nodes/NodeDefault";
 import { ArrowHeadType, Edge, FlowElement, Node, OnLoadParams, Position } from "react-flow-renderer";
-import { rangeArray } from "../../../utils/basicUtils";
-import { IRuleNodeData, IRuleOperatorNode, NodeContentPropsWithBusinessData } from "./RuleEditor.typings";
-import { RuleNodeMenu } from "./ruleNode/RuleNodeMenu";
+import { rangeArray } from "../../../../utils/basicUtils";
+import { IRuleNodeData, IRuleOperatorNode, NodeContentPropsWithBusinessData } from "../RuleEditor.typings";
+import { RuleNodeMenu } from "../ruleNode/RuleNodeMenu";
 import { Tag, Highlighter, Spacing } from "gui-elements";
 import { RuleEditorNode } from "./RuleEditorModel.typings";
 import { Elements } from "react-flow-renderer/dist/types";

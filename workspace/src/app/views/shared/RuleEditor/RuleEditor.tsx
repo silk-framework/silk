@@ -1,4 +1,4 @@
-import { RuleEditorModel } from "./RuleEditorModel";
+import { RuleEditorModel } from "./model/RuleEditorModel";
 import React from "react";
 import { RuleEditorView } from "./RuleEditorView";
 import { RuleEditorContext } from "./contexts/RuleEditorContext";
