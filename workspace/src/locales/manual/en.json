@@ -299,7 +299,8 @@
             "description": "Description",
             "label": "Label",
             "searchField": "Enter search term",
-            "tag": "Tag"
+            "tag": "Tag",
+            "author": "Author"
         },
         "projectForm": {
             "importProjectButton": "Import existing project",

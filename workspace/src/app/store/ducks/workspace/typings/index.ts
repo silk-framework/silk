@@ -58,3 +58,10 @@ export interface IRecentlyViewedItem {
     pluginLabel?: string;
     itemLinks: IItemLink[];
 }
+
+export interface Tags {
+    tags: {
+        label: string;
+        uri: string;
+    }[];
+}

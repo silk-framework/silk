@@ -129,6 +129,7 @@ export interface IMetadata {
     type?: string;
     modified?: string;
     tags?: string[];
+    lastModifiedByUser?: string;
 }
 
 export interface IResourceListPayload {

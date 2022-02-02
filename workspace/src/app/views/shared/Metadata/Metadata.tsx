@@ -22,6 +22,7 @@ import {
     PropertyValuePair,
     TextArea,
     TextField,
+    Link,
 } from "gui-elements";
 import { Intent } from "gui-elements/blueprint/constants";
 import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/typings";
@@ -85,7 +86,7 @@ export function Metadata(props: IProps) {
         return removeDirtyState;
     }, []);
 
-    const { label, description } = data;
+    const { label, description, lastModifiedByUser } = data;
 
     useEffect(() => {
         if (projectId) {
@@ -334,6 +335,17 @@ export function Metadata(props: IProps) {
                                     renderPreviewAsMarkdown={true}
                                     allowedHtmlElementsInPreview={["a"]}
                                 />
+                            </PropertyValue>
+                        </PropertyValuePair>
+                    )}
+                    {!!lastModifiedByUser && (
+                        <PropertyValuePair hasSpacing hasDivider>
+                            {/** // Todo add german translation for author here  */}
+                            <PropertyName>{t("form.field.author", "Author")}</PropertyName>
+                            <PropertyValue>
+                                <Link href="/" onClick={() => {}}>
+                                    {lastModifiedByUser}
+                                </Link>
                             </PropertyValue>
                         </PropertyValuePair>
                     )}

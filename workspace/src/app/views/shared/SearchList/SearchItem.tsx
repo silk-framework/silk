@@ -31,6 +31,7 @@ import { useProjectTabsView } from "../projectTaskTabView/projectTabsViewHooks";
 import { wrapTooltip } from "../../../utils/uiUtils";
 import { Markdown } from "gui-elements/cmem";
 import highlightSearchWordsPluginFactory from "gui-elements/src/cmem/markdown/highlightSearchWords";
+import ProjectTags from "../ProjectTags/ProjectTags";
 
 interface IProps {
     item: ISearchResultsServer;
@@ -119,7 +120,6 @@ export default function SearchItem({
     };
 
     const projectOrDataset = item.type === "dataset" || item.type === "project";
-
     return (
         <Card isOnlyLayout>
             <OverviewItem hasSpacing onClick={onRowClick ? onRowClick : undefined} data-test-id={"search-item"}>
@@ -195,6 +195,8 @@ export default function SearchItem({
                                 </Tag>
                             </>
                         )}
+                        <Spacing vertical size="tiny" />
+                        <ProjectTags projectId={item.projectId || item.id} query={searchValue} />
                     </OverviewItemLine>
                 </OverviewItemDescription>
                 <OverviewItemActions>
