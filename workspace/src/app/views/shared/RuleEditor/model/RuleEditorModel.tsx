@@ -338,8 +338,8 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
         if (reactFlowInstance) {
             const ruleNode = ruleEditorContext.convertRuleOperatorToRuleNode(ruleOperator);
             ruleNode.position = position;
-            const newNode = utils.createNewOperatorNode(ruleNode, reactFlowInstance, deleteNode, t, elements);
             setElements((els) => {
+                const newNode = utils.createNewOperatorNode(ruleNode, reactFlowInstance, deleteNode, t, els);
                 return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(newNode), els);
             });
         }

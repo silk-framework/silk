@@ -6,6 +6,7 @@ import { IViewActions } from "../../plugins/PluginRegistry";
 import { IRuleOperator, IRuleOperatorNode } from "./RuleEditor.typings";
 import ErrorBoundary from "../../../ErrorBoundary";
 import { ReactFlowProvider } from "react-flow-renderer";
+import utils from "./RuleEditor.utils";
 
 export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     /** Project ID the task is in. */
@@ -106,22 +107,6 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
         }
     };
 
-    /** Default function to turn a rule operator into a rule node. */
-    const convertRuleOperatorToRuleNode = (ruleOperator: IRuleOperator): Omit<IRuleOperatorNode, "nodeId"> => {
-        return {
-            inputs: [],
-            label: ruleOperator.label,
-            parameters: Object.fromEntries(
-                Object.entries(ruleOperator.parameterSpecification).map(([paramId, paramSpec]) => {
-                    return [paramId, paramSpec.defaultValue];
-                })
-            ),
-            pluginId: ruleOperator.pluginId,
-            pluginType: ruleOperator.pluginType,
-            portSpecification: ruleOperator.portSpecification,
-        };
-    };
-
     return (
         <RuleEditorContext.Provider
             value={{
@@ -131,7 +116,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 operatorListLoading: operatorsLoading,
                 initialRuleOperatorNodes,
                 saveRule: saveRuleOperatorNodes,
-                convertRuleOperatorToRuleNode,
+                convertRuleOperatorToRuleNode: utils.defaults.convertRuleOperatorToRuleNode,
             }}
         >
             <RuleEditorModel>

@@ -1,21 +1,22 @@
 import React from "react";
 import { RuleEditorModel } from "../RuleEditorModel";
-import { cleanUpDOM, testWrapper, withMount } from "../../../../../../../test/integration/TestHelper";
+import { testWrapper, withMount } from "../../../../../../../test/integration/TestHelper";
 import { RuleEditorModelContext, RuleEditorModelContextProps } from "../../contexts/RuleEditorModelContext";
-import { FitViewParams, FlowExportObject, FlowTransform, OnLoadParams, ReactFlowProvider } from "react-flow-renderer";
-import { waitFor } from "@testing-library/react";
+import { Elements, FitViewParams, FlowExportObject, FlowTransform, ReactFlowProvider } from "react-flow-renderer";
+import { act, waitFor } from "@testing-library/react";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
 import { IParameterSpecification, IRuleOperator, IRuleOperatorNode } from "../../RuleEditor.typings";
-import { RuleEditorView } from "../../RuleEditorView";
 import { XYPosition } from "react-flow-renderer/dist/types";
+import utils from "../../RuleEditor.utils";
 
 let modelContext: RuleEditorModelContextProps | undefined;
+const currentContext = () => modelContext as RuleEditorModelContextProps;
 
 describe("Rule editor model", () => {
     let ruleOperatorNodes: IRuleOperatorNode[] = [];
-    const ruleEditorModel = (initialRuleNodes: IRuleOperatorNode[] = [], operatorList: IRuleOperator[] = []) => {
+    const ruleEditorModel = async (initialRuleNodes: IRuleOperatorNode[] = [], operatorList: IRuleOperator[] = []) => {
         modelContext = undefined;
-        return withMount(
+        const ruleModel = withMount(
             testWrapper(
                 <RuleEditorContext.Provider
                     value={{
@@ -28,11 +29,7 @@ describe("Rule editor model", () => {
                             ruleOperatorNodes = nodes;
                             return true;
                         },
-                        convertRuleOperatorToRuleNode: (
-                            ruleOperator: IRuleOperator
-                        ): Omit<IRuleOperatorNode, "nodeId"> => {
-                            return {} as any;
-                        },
+                        convertRuleOperatorToRuleNode: utils.defaults.convertRuleOperatorToRuleNode,
                     }}
                 >
                     <ReactFlowProvider>
@@ -43,6 +40,26 @@ describe("Rule editor model", () => {
                 </RuleEditorContext.Provider>
             )
         );
+        await waitFor(() => {
+            expect(modelContext).toBeTruthy();
+            modelContext!!.setReactFlowInstance({
+                fitView(fitViewOptions: FitViewParams | undefined, duration: number | undefined): void {},
+                getElements(): Elements {
+                    return [];
+                },
+                project(position: XYPosition): XYPosition {
+                    return undefined as any;
+                },
+                setTransform(transform: FlowTransform): void {},
+                toObject(): FlowExportObject<any> {
+                    return undefined as any;
+                },
+                zoomIn(): void {},
+                zoomOut(): void {},
+                zoomTo(zoomLevel: number): void {},
+            });
+        });
+        return ruleModel;
     };
 
     afterEach(() => {
@@ -96,47 +113,49 @@ describe("Rule editor model", () => {
         };
     };
 
-    const fetchModelContext = async (): Promise<RuleEditorModelContextProps> => {
-        return await waitFor(() => {
-            expect(modelContext).toBeTruthy();
-            modelContext!!.setReactFlowInstance({
-                fitView(fitViewOptions: FitViewParams | undefined, duration: number | undefined): void {},
-                getElements(): Elements {
-                    return [];
-                },
-                project(position: XYPosition): XYPosition {
-                    return undefined as any;
-                },
-                setTransform(transform: FlowTransform): void {},
-                toObject(): FlowExportObject<any> {
-                    return undefined as any;
-                },
-                zoomIn(): void {},
-                zoomOut(): void {},
-                zoomTo(zoomLevel: number): void {},
-            });
-            return modelContext as RuleEditorModelContextProps;
-        });
-    };
-
     it("should load the internal model", async () => {
-        ruleEditorModel();
-        const model = await fetchModelContext();
-        expect(model.canUndo).toBe(false);
-        expect(model.canRedo).toBe(false);
-        expect(model.elements).toHaveLength(0);
-        model.saveRule();
+        await ruleEditorModel();
+        expect(currentContext().canUndo).toBe(false);
+        expect(currentContext().canRedo).toBe(false);
+        expect(currentContext().elements).toHaveLength(0);
+        currentContext().saveRule();
         expect(ruleOperatorNodes).toHaveLength(0);
-        ruleEditorModel(
+        await ruleEditorModel(
             [node({ nodeId: "node A" }), node({ nodeId: "node B", inputs: ["node A"] })],
             [operator("pluginA")]
         );
         // 2 nodes and 1 edge
         await waitFor(async () => {
-            const nonEmptyModel = await fetchModelContext();
-            expect(nonEmptyModel.elements).toHaveLength(3);
-            await nonEmptyModel.saveRule();
+            expect(currentContext().elements).toHaveLength(3);
+            await currentContext().saveRule();
             expect(ruleOperatorNodes).toHaveLength(2);
+        });
+    });
+
+    it("should add new nodes", async () => {
+        await ruleEditorModel(
+            [node({ nodeId: "pluginA" }), node({ nodeId: "node B", inputs: ["pluginA"] })],
+            [operator("pluginA")]
+        );
+        await waitFor(async () => {
+            expect(currentContext().elements).toHaveLength(3);
+        });
+        act(() => {
+            currentContext().executeModelEditOperation.addNode(operator("pluginA"), { x: 5, y: 10 });
+            currentContext().executeModelEditOperation.addNode(operator("pluginA"), { x: 5, y: 10 });
+        });
+        await waitFor(() => {
+            // 4 nodes, 1 edge
+            expect(currentContext().elements).toHaveLength(5);
+            expect(currentContext().canUndo).toBe(true);
+            expect(currentContext().canRedo).toBe(false);
+            currentContext().saveRule();
+            expect(ruleOperatorNodes.map((node) => node.nodeId)).toStrictEqual([
+                "pluginA",
+                "node B",
+                "pluginA_2",
+                "pluginA_3",
+            ]);
         });
     });
 });
