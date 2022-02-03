@@ -25,6 +25,15 @@ object MetaDataSerializers {
     }
   }
 
+  @Schema(description = "Full user info that contains both the URI and the label.")
+  case class UserInfo(uri: String, label: String)
+
+  object UserInfo {
+    def fromUri(userUri: Uri): UserInfo = {
+      UserInfo(userUri, userUri.localName.getOrElse(userUri.uri))
+    }
+  }
+
   @Schema(description = "Plain meta data object")
   case class MetaDataPlain(label: Option[String],
                            description: Option[String] = None,
@@ -71,8 +80,8 @@ object MetaDataSerializers {
                               description: Option[String] = None,
                               modified: Option[Instant] = None,
                               created: Option[Instant] = None,
-                              createdByUser: Option[String] = None,
-                              lastModifiedByUser: Option[String] = None,
+                              createdByUser: Option[UserInfo] = None,
+                              lastModifiedByUser: Option[UserInfo] = None,
                               @ArraySchema(schema = new Schema(implementation = classOf[FullTag]))
                               tags: Set[FullTag] = Set.empty)
 
@@ -80,11 +89,12 @@ object MetaDataSerializers {
     def fromMetaData(md: MetaData, tags: TagManager)
                     (implicit userContext: UserContext): MetaDataExpanded = {
       val expandedTags = md.tags.map(uri => tags.getTag(uri)).map(FullTag.fromTag)
-      MetaDataExpanded(md.label, md.description, md.modified, md.created, md.createdByUser.map(_.uri), md.lastModifiedByUser.map(_.uri), expandedTags)
+      MetaDataExpanded(md.label, md.description, md.modified, md.created, md.createdByUser.map(UserInfo.fromUri), md.lastModifiedByUser.map(UserInfo.fromUri), expandedTags)
     }
   }
 
   implicit val tagFormat: Format[FullTag] = Json.format[FullTag]
+  implicit val userFormat: Format[UserInfo] = Json.format[UserInfo]
   implicit val metaDataFormat: Format[MetaDataPlain] = Json.format[MetaDataPlain]
   implicit val metaDataExpandedFormat: Format[MetaDataExpanded] = Json.format[MetaDataExpanded]
 
