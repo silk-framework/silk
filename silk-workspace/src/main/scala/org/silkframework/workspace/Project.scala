@@ -349,6 +349,11 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   }
 
   /**
+    * Retrieves all modules
+    */
+  def registeredModules: Seq[Module[_ <: TaskSpec]] = modules
+
+  /**
     * Retrieves all tags for this project.
     */
   def tags()(implicit userContext: UserContext): Set[Tag] = {

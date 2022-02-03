@@ -193,8 +193,9 @@ object SearchApiModel {
     // Generic facets
     final val createdBy: Facet = Facet("createdBy", "Created by", "The user who created the item.", FacetType.keyword)
     final val lastModifiedBy: Facet = Facet("lastModifiedBy", "Last modified by", "The user who last modified the item.", FacetType.keyword)
+    final val tags: Facet = Facet("tags", "Tags", "The user-defined tags.", FacetType.keyword)
 
-    val facetIds: Seq[String] = Seq(datasetType, fileResource, taskType, transformInputResource, workflowExecutionStatus, createdBy, lastModifiedBy).map(_.id)
+    val facetIds: Seq[String] = Seq(datasetType, fileResource, taskType, transformInputResource, workflowExecutionStatus, createdBy, lastModifiedBy, tags).map(_.id)
     assert(facetIds.distinct.size == facetIds.size, "Facet IDs must be unique!")
   }
 
@@ -404,7 +405,8 @@ object SearchApiModel {
 
     private def filterTasksByFacetSettings(typedTasks: TypedTasks,
                                            facetCollector: OverallFacetCollector,
-                                           facetSettings: Seq[FacetSetting]): TypedTasks = {
+                                           facetSettings: Seq[FacetSetting])
+                                          (implicit user: UserContext): TypedTasks = {
       itemType match {
         case Some(typ) if typedTasks.itemType == typ =>
           typedTasks.copy(tasks = typedTasks.tasks.filter { task => facetCollector.filterAndCollectByItemType(typ, task, facetSettings) })

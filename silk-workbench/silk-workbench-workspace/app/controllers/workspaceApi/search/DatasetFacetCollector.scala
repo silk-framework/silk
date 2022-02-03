@@ -1,9 +1,9 @@
 package controllers.workspaceApi.search
 
 import controllers.workspaceApi.search.SearchApiModel.{Facet, Facets}
-import org.silkframework.config.TaskSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.ResourceBasedDataset
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.ProjectTask
 
 import scala.collection.mutable
@@ -22,7 +22,8 @@ case class DatasetTypeFacetCollector() extends KeywordFacetCollector[GenericData
   private val datasetTypeLabel = new mutable.ListMap[String, String]()
 
   /** Collect facet values of a single facet. */
-  override def collect(datasetTask: ProjectTask[GenericDatasetSpec]): Unit = {
+  override def collect(datasetTask: ProjectTask[GenericDatasetSpec])
+                      (implicit user: UserContext): Unit = {
     val pluginSpec = datasetTask.plugin.pluginSpec
     val id = pluginSpec.id
     val label = pluginSpec.label
@@ -32,7 +33,8 @@ case class DatasetTypeFacetCollector() extends KeywordFacetCollector[GenericData
 
   override def appliesForFacet: Facet = Facets.datasetType
 
-  override def extractKeywordIds(datasetTask: ProjectTask[GenericDatasetSpec]): Set[String] = {
+  override def extractKeywordIds(datasetTask: ProjectTask[GenericDatasetSpec])
+                                (implicit user: UserContext): Set[String] = {
     val pluginSpec = datasetTask.plugin.pluginSpec
     Set(pluginSpec.id)
   }
@@ -43,10 +45,11 @@ case class DatasetTypeFacetCollector() extends KeywordFacetCollector[GenericData
 }
 
 /** File resources used by the datasets. */
-case class DatasetFileFacetCollector() extends NoLabelKeyboardFacetCollector[GenericDatasetSpec] {
+case class DatasetFileFacetCollector() extends NoLabelKeywordFacetCollector[GenericDatasetSpec] {
   override def appliesForFacet: Facet = Facets.fileResource
 
-  override def extractKeywordIds(datasetTask: ProjectTask[GenericDatasetSpec]): Set[String] = {
+  override def extractKeywordIds(datasetTask: ProjectTask[GenericDatasetSpec])
+                                (implicit user: UserContext): Set[String] = {
     val data = datasetTask.data.plugin
     data match {
       case dataset: ResourceBasedDataset =>

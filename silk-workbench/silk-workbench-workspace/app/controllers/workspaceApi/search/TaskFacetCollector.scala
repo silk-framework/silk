@@ -1,7 +1,8 @@
 package controllers.workspaceApi.search
 
 import controllers.workspaceApi.search.SearchApiModel.{Facet, Facets}
-import org.silkframework.config.{CustomTask, TaskSpec}
+import org.silkframework.config.CustomTask
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.ProjectTask
 
 import scala.collection.mutable
@@ -21,7 +22,8 @@ case class TaskTypeFacetCollector() extends KeywordFacetCollector[CustomTask] {
   private val taskTypeLabel = new mutable.ListMap[String, String]()
 
   /** Collect facet values of a single facet. */
-  override def collect(customTask: ProjectTask[CustomTask]): Unit = {
+  override def collect(customTask: ProjectTask[CustomTask])
+                      (implicit user: UserContext): Unit = {
     val pluginSpec = customTask.pluginSpec
     val id = pluginSpec.id
     val label = pluginSpec.label
@@ -31,7 +33,8 @@ case class TaskTypeFacetCollector() extends KeywordFacetCollector[CustomTask] {
 
   override def appliesForFacet: Facet = Facets.taskType
 
-  override def extractKeywordIds(customTask: ProjectTask[CustomTask]): Set[String] = {
+  override def extractKeywordIds(customTask: ProjectTask[CustomTask])
+                                (implicit user: UserContext): Set[String] = {
     val pluginSpec = customTask.pluginSpec
     Set(pluginSpec.id)
   }

@@ -5,8 +5,9 @@ import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.{LinkSpec, TransformSpec}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.activity.workflow.Workflow
-import org.silkframework.workspace.{Project, ProjectTask}
+import org.silkframework.workspace.{Module, Project, ProjectTask}
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Logger
@@ -25,7 +26,7 @@ case class ItemTypeFacetCollectors[T <: TaskSpec](itemTypeFacetCollectors: Seq[I
 
   def filterAndCollect(projectTask: ProjectTask[_ <: TaskSpec],
                        facetSettings: Seq[FacetSetting])
-                      (implicit classTag: ClassTag[T]): Boolean = {
+                      (implicit classTag: ClassTag[T], user: UserContext): Boolean = {
     ItemTypeFacetCollector.filterAndCollect[T](itemTypeFacetCollectors, facetSettings, projectTask)
   }
 }
@@ -53,7 +54,7 @@ object ItemTypeFacetCollector {
   def filterAndCollect[T <: TaskSpec](itemFacetCollectors: Seq[ItemTypeFacetCollector[T]],
                                       facetSettings: Seq[FacetSetting],
                                       projectTask: ProjectTask[_ <: TaskSpec])
-                                     (implicit classTag: ClassTag[T]): Boolean = {
+                                     (implicit classTag: ClassTag[T], user: UserContext): Boolean = {
     assert(itemFacetCollectors.nonEmpty, "Trying to collect facet values without facet collectors!")
     val facetCollectors = itemFacetCollectors.flatMap(_.facetCollectors)
     val facetCollectorMap: Map[String, FacetCollector[T]] = {
@@ -97,7 +98,7 @@ object ItemTypeFacetCollector {
   */
 trait FacetCollector[T <: TaskSpec] {
   /** Collect facet values of a single facet. */
-  def collect(projectTask: ProjectTask[T]): Unit
+  def collect(projectTask: ProjectTask[T])(implicit user: UserContext): Unit
 
   /** The facet results if there exists at least one value. */
   def facetValues: Option[Seq[FacetValue]]
@@ -111,7 +112,8 @@ trait FacetCollector[T <: TaskSpec] {
 
   /** Returns true if the task is filtered that is matched by the facet setting. */
   def filter(facetSetting: FacetSetting,
-             projectTask: ProjectTask[T]): Boolean
+             projectTask: ProjectTask[T])
+            (implicit user: UserContext): Boolean
 
   /** The facet this collector applies for. */
   def appliesForFacet: Facet
@@ -126,19 +128,22 @@ trait FacetCollector[T <: TaskSpec] {
   }
 
   /** Same as filter, but takes a generic project task. */
-  def convertAndFilter(facetSetting: FacetSetting, projectTask: ProjectTask[_ <: TaskSpec])(implicit classTag: ClassTag[T]): Boolean = {
+  def convertAndFilter(facetSetting: FacetSetting, projectTask: ProjectTask[_ <: TaskSpec])
+                      (implicit classTag: ClassTag[T], user: UserContext): Boolean = {
     filter(facetSetting, convertProjectTask(projectTask))
   }
 
   /** Same as collect, but takes a generic project task. */
-  def convertAndCollect(projectTask: ProjectTask[_ <: TaskSpec])(implicit classTag: ClassTag[T]): Unit = {
+  def convertAndCollect(projectTask: ProjectTask[_ <: TaskSpec])
+                       (implicit classTag: ClassTag[T], user: UserContext): Unit = {
     collect(convertProjectTask(projectTask))
   }
 }
 
 trait KeywordFacetCollector[T <: TaskSpec] extends FacetCollector[T] {
   /** Extracts the keywords for this facet from the given project task. */
-  def extractKeywordIds(projectTask: ProjectTask[T]): Set[String]
+  def extractKeywordIds(projectTask: ProjectTask[T])
+                       (implicit user: UserContext): Set[String]
 
   /** The collected keyword statistics: (id, label, count) */
   def keywordStats: Seq[(String, String, Int)]
@@ -154,7 +159,8 @@ trait KeywordFacetCollector[T <: TaskSpec] extends FacetCollector[T] {
   }
 
   override def filter(facetSetting: FacetSetting,
-                      projectTask: ProjectTask[T]): Boolean = {
+                      projectTask: ProjectTask[T])
+                     (implicit user: UserContext): Boolean = {
     facetSetting match {
       case KeywordFacetSetting(_, facetId, keywordIds) if facetId == appliesForFacet.id =>
         val keywords = extractKeywordIds(projectTask)
@@ -167,10 +173,11 @@ trait KeywordFacetCollector[T <: TaskSpec] extends FacetCollector[T] {
 }
 
 /** Trait that can be used for keyword facets where the keyword ID is the same as the keyword label. */
-trait NoLabelKeyboardFacetCollector[T <: TaskSpec] extends KeywordFacetCollector[T] {
+trait NoLabelKeywordFacetCollector[T <: TaskSpec] extends KeywordFacetCollector[T] {
   private val keywordNames = new mutable.ListMap[String, Int]()
 
-  override def collect(projectTask: ProjectTask[T]): Unit = {
+  override def collect(projectTask: ProjectTask[T])
+                      (implicit user: UserContext): Unit = {
     extractKeywordIds(projectTask) foreach { keywordName =>
       keywordNames.put(keywordName, keywordNames.getOrElseUpdate(keywordName, 0) + 1)
     }
@@ -179,6 +186,42 @@ trait NoLabelKeyboardFacetCollector[T <: TaskSpec] extends KeywordFacetCollector
   override def keywordStats: Seq[(String, String, Int)] = {
     keywordNames.toSeq map (rn => (rn._1, rn._1, rn._2))
   }
+}
+
+/**
+  * Trait that can be used for keyword facets that provide separate IDs and labels.
+  */
+trait IdAndLabelKeywordFacetCollector[T <: TaskSpec] extends KeywordFacetCollector[T] {
+
+  private val ids = new mutable.ListMap[String, Int]()
+  private val labels = new mutable.ListMap[String, String]()
+
+  /**
+    * Extracts all IDs and their corresponding labels from a task.
+    */
+  protected def extractIdAndLabel(projectTask: ProjectTask[T])
+                                 (implicit user: UserContext): Set[(String, String)]
+
+  /** Extracts the keywords for this facet from the given project task. */
+  override def extractKeywordIds(projectTask: ProjectTask[T])
+                                (implicit user: UserContext): Set[String] = {
+    extractIdAndLabel(projectTask).map(_._1)
+  }
+
+  /** Collect facet values of a single facet. */
+  override def collect(projectTask: ProjectTask[T])
+                      (implicit user: UserContext): Unit = {
+    for((id, label) <- extractIdAndLabel(projectTask)) {
+      ids.put(id, ids.getOrElseUpdate(id, 0) + 1)
+      labels.put(id, label)
+    }
+  }
+
+  /** The collected keyword statistics: (id, label, count) */
+  override def keywordStats: Seq[(String, String, Int)] = {
+    ids.toSeq.map(st => (st._1, labels(st._1), st._2))
+  }
+
 }
 
 /** Collects values for all facets of all types. */
@@ -197,19 +240,23 @@ case class OverallFacetCollector() {
 
   def filterAndCollectByItemType(itemType: ItemType,
                                  projectTask: ProjectTask[_ <: TaskSpec],
-                                 facetSettings: Seq[FacetSetting]): Boolean = {
+                                 facetSettings: Seq[FacetSetting])
+                                (implicit user: UserContext): Boolean = {
     itemTypeFacetCollectors(itemType).filterAndCollect(projectTask, facetSettings)
   }
 
   def filterAndCollectAllItems(projectTask: ProjectTask[_ <: TaskSpec],
-                               facetSettings: Seq[FacetSetting]): Boolean = {
+                               facetSettings: Seq[FacetSetting])
+                              (implicit user: UserContext): Boolean = {
     genericItemTypeFacetCollectors.filterAndCollect(projectTask, facetSettings)
   }
 
   def filterAndCollectProjects(project: Project,
-                               facetSettings: Seq[FacetSetting]): Boolean = {
+                               facetSettings: Seq[FacetSetting])
+                              (implicit user: UserContext): Boolean = {
     // Since projects are not TaskSpecs, we have to do an unclean workaround. Only OK because we know what the TaskSpecFacetCollector will do and its tested.
-    genericItemTypeFacetCollectors.filterAndCollect(new ProjectTask[TaskSpec](project.name, Workflow(Seq.empty, Seq.empty), project.config.metaData, null), facetSettings)
+    val dummyModule = project.registeredModules.head.asInstanceOf[Module[TaskSpec]]
+    genericItemTypeFacetCollectors.filterAndCollect(new ProjectTask[TaskSpec](project.name, Workflow(Seq.empty, Seq.empty), project.config.metaData, dummyModule), facetSettings)
   }
 
   def results: Iterable[FacetResult] = {
