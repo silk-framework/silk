@@ -300,7 +300,8 @@
             "label": "Label",
             "searchField": "Enter search term",
             "tag": "Tag",
-            "author": "Author"
+            "lastModifiedBy": "Last Modified By",
+            "createdBy": "Created By"
         },
         "projectForm": {
             "importProjectButton": "Import existing project",

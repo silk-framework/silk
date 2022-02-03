@@ -2,7 +2,7 @@ import React from "react";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import fetch from "../../../services/fetch";
 import { workspaceApi, legacyApiEndpoint } from "../../../utils/getApiEndpoint";
-import { MetadataExpandedResponse, Tag as TagType } from "./Metadatatypings";
+import { IMetadataExpanded, Tag as TagType } from "./Metadatatypings";
 import { ContentBlobToggler } from "gui-elements/cmem";
 import { Tag, TagList } from "gui-elements";
 
@@ -13,10 +13,10 @@ import { Tag, TagList } from "gui-elements";
  * @param taskId
  * @returns
  */
-const getAllExistingTags = async (
+const getExpandedMetaData = async (
     projectId?: string,
     taskId?: string
-): Promise<FetchResponse<MetadataExpandedResponse> | undefined> =>
+): Promise<FetchResponse<IMetadataExpanded> | undefined> =>
     projectId && taskId
         ? fetch({ url: legacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/metadataExpanded`) })
         : fetch({ url: workspaceApi(`/projects/${projectId}/metaDataExpanded`) });
@@ -72,7 +72,7 @@ const DisplayArtefactTags = (tags: Array<TagType>, t: (key: string, fallBack: st
 };
 
 const utils = {
-    getAllExistingTags,
+    getExpandedMetaData,
     DisplayArtefactTags,
     createNewTag,
 };

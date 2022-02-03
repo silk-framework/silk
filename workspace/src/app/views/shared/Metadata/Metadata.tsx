@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Prompt, useLocation } from "react-router";
+import qs from "qs";
 import { useTranslation } from "react-i18next";
 import { Markdown } from "gui-elements/cmem";
 import {
@@ -25,7 +26,7 @@ import {
     Link,
 } from "gui-elements";
 import { Intent } from "gui-elements/blueprint/constants";
-import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/typings";
+import { IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
 import { routerOp } from "@ducks/router";
 import { sharedOp } from "@ducks/shared";
@@ -34,7 +35,8 @@ import { StringPreviewContentBlobToggler } from "gui-elements/src/cmem/ContentBl
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import * as H from "history";
 import utils from "./MetadataUtils";
-import { Tag as TagType } from "./Metadatatypings";
+import { IMetadataExpanded, Tag as TagType } from "./Metadatatypings";
+import { SERVE_PATH } from "../../../constants/path";
 
 interface IProps {
     projectId?: string;
@@ -54,13 +56,12 @@ export function Metadata(props: IProps) {
     const taskId = props.taskId || _taskId;
 
     const [loading, setLoading] = useState(false);
-    const [data, setData] = useState({} as IMetadata);
+    const [data, setData] = useState({} as IMetadataExpanded);
     const [formEditData, setFormEditData] = useState<IMetadataUpdatePayload | undefined>(undefined);
     const [isEditing, setIsEditing] = useState(false);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
-    const [tags, setTags] = React.useState<Array<TagType>>([]);
     const [createdTags, setCreatedTags] = React.useState<Array<Partial<TagType>>>([]);
-    const [selectedTags, setSelectedTags] = React.useState<Array<TagType>>([...tags]);
+    const [selectedTags, setSelectedTags] = React.useState<Array<TagType>>([...(data.tags ?? [])]);
     const [t] = useTranslation();
 
     // Form errors
@@ -86,12 +87,12 @@ export function Metadata(props: IProps) {
         return removeDirtyState;
     }, []);
 
-    const { label, description, lastModifiedByUser } = data;
+    const { label, description, lastModifiedByUser, createdByUser } = data;
 
     useEffect(() => {
         if (projectId) {
-            getTaskMetadata(taskId, projectId);
-            utils.getAllExistingTags(projectId, taskId).then((res) => setTags(res?.data.tags ?? []));
+            //getTaskMetadata(taskId, projectId);
+            utils.getExpandedMetaData(projectId, taskId).then((res) => setData((res?.data as IMetadataExpanded) ?? {}));
         }
     }, [taskId, projectId]);
 
@@ -108,8 +109,9 @@ export function Metadata(props: IProps) {
         if (!isEditing) {
             let metaData = data;
             if (!metaData.label) {
-                metaData = await getTaskMetadata(taskId, projectId);
-                if (!metaData.label) {
+                //metaData = await getTaskMetadata(taskId, projectId);
+                const response = await utils.getExpandedMetaData(projectId, taskId);
+                if (!response?.data.label) {
                     return; // Do not toggle edit mode, request has failed
                 }
             }
@@ -120,18 +122,19 @@ export function Metadata(props: IProps) {
         setIsEditing(!isEditing);
     };
 
-    const getTaskMetadata = async (taskId?: string, projectId?: string) => {
-        try {
-            const result = await letLoading(() => {
-                return sharedOp.getTaskMetadataAsync(taskId, projectId);
-            });
-            setData(result);
-            return result;
-        } catch (error) {
-            registerError("Metadata-getTaskMetaData", "Fetching meta data has failed.", error);
-            return {};
-        }
-    };
+    /**  @deprecated  */
+    // const getTaskMetadata = async (taskId?: string, projectId?: string) => {
+    //     try {
+    //         const result = await letLoading(() => {
+    //             return sharedOp.getTaskMetadataAsync(taskId, projectId);
+    //         });
+    //         setData(result);
+    //         return result;
+    //     } catch (error) {
+    //         registerError("Metadata-getTaskMetaData", "Fetching meta data has failed.", error);
+    //         return {};
+    //     }
+    // };
 
     const onSubmit = async () => {
         if (!formEditData?.label) {
@@ -151,7 +154,7 @@ export function Metadata(props: IProps) {
         });
 
         try {
-            const result = await letLoading(async () => {
+            await letLoading(async () => {
                 const path = location.pathname;
                 //create new tags if exists
                 const createdTagsResponse = await utils.createNewTag(createdTags, projectId);
@@ -169,9 +172,8 @@ export function Metadata(props: IProps) {
                 dispatch(routerOp.updateLocationState(path, projectId as string, metadata));
                 return metadata;
             });
-
-            utils.getAllExistingTags(projectId, taskId).then((res) => setTags(res?.data.tags ?? []));
-            setData(result);
+            //update metadata with expanded data
+            utils.getExpandedMetaData(projectId, taskId).then((res) => setData((res?.data as IMetadataExpanded) ?? {}));
 
             toggleEdit();
         } catch (ex) {
@@ -247,6 +249,15 @@ export function Metadata(props: IProps) {
         });
     }, []);
 
+    const tagFacetUrl = (id: string, uri: string): string => {
+        const queryParams = {
+            f_ids: id,
+            types: "keyword",
+            f_keys: uri,
+        };
+        return `${SERVE_PATH}?${qs.stringify(queryParams)}`;
+    };
+
     const widgetContent = (
         <CardContent data-test-id={"metaDataWidget"}>
             {loading && <Loading description={t("Metadata.loading", "Loading summary data.")} />}
@@ -305,7 +316,7 @@ export function Metadata(props: IProps) {
                                     prePopulateWithItems
                                     equalityProp="uri"
                                     labelProp="label"
-                                    items={tags}
+                                    items={data.tags ?? []}
                                     onSelection={handleTagSelectionChange}
                                 />
                             </FieldItem>
@@ -341,18 +352,27 @@ export function Metadata(props: IProps) {
                     {!!lastModifiedByUser && (
                         <PropertyValuePair hasSpacing hasDivider>
                             {/** // Todo add german translation for author here  */}
-                            <PropertyName>{t("form.field.author", "Author")}</PropertyName>
+                            <PropertyName>{t("form.field.lastModifiedBy", "Last Modified By")}</PropertyName>
                             <PropertyValue>
-                                <Link href="/" onClick={() => {}}>
-                                    {lastModifiedByUser}
+                                <Link href={tagFacetUrl("lastModifiedBy", lastModifiedByUser.uri)}>
+                                    {lastModifiedByUser.label}
                                 </Link>
                             </PropertyValue>
                         </PropertyValuePair>
                     )}
-                    {!!tags.length && (
+                    {!!createdByUser && (
+                        <PropertyValuePair hasSpacing hasDivider>
+                            {/** // Todo add german translation for author here  */}
+                            <PropertyName>{t("form.field.createdBy", "Created By")}</PropertyName>
+                            <PropertyValue>
+                                <Link href={tagFacetUrl("createdBy", createdByUser.uri)}>{createdByUser.label}</Link>
+                            </PropertyValue>
+                        </PropertyValuePair>
+                    )}
+                    {!!data.tags?.length && (
                         <PropertyValuePair hasSpacing hasDivider>
                             <PropertyName>{t("form.field.tag", "Tag")}</PropertyName>
-                            <PropertyValue>{utils.DisplayArtefactTags(tags, t)}</PropertyValue>
+                            <PropertyValue>{utils.DisplayArtefactTags(data.tags, t)}</PropertyValue>
                         </PropertyValuePair>
                     )}
                 </PropertyValueList>
