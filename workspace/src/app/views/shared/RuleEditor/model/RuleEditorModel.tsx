@@ -339,7 +339,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
             const ruleNode = ruleEditorContext.convertRuleOperatorToRuleNode(ruleOperator);
             ruleNode.position = position;
             setElements((els) => {
-                const newNode = utils.createNewOperatorNode(ruleNode, reactFlowInstance, deleteNode, t, els);
+                const newNode = utils.createNewOperatorNode(ruleNode, reactFlowInstance, deleteNode, t);
                 return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(newNode), els);
             });
         }
@@ -369,20 +369,57 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
         });
     };
 
+    const addEdge = (sourceNodeId: string, targetNodeId: string, targetHandleId: string) => {
+        setElements((els) => {
+            const edge = utils.createEdge(sourceNodeId, targetNodeId, targetHandleId);
+            return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdge(edge), els);
+        });
+    };
+
+    /** Deletes a single edge. */
+    const deleteEdge = (edgeId: string) => {
+        setElements((els) => {
+            const edge = utils.edgeById(els, edgeId);
+            if (edge) {
+                return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.deleteEdge(edge), els);
+            } else {
+                return els;
+            }
+        });
+    };
+
     /** Copy and paste nodes with a given offset. */
     const copyAndPasteNodes = (nodeIds: string[], offset: XYPosition) => {
         setElements((els) => {
             const nodes = utils.nodesById(els, nodeIds);
-            const changePositionActions: ChangeNodePosition[] = nodes.map((node) => ({
-                type: "Change node position",
-                nodeId: node.id,
-                from: node.position,
-                to: {
-                    x: node.position.x + offset.x,
-                    y: node.position.y + offset.y,
-                },
-            }));
-            return addAndExecuteRuleModelChangeInternal({ operations: changePositionActions }, els);
+            const nodeIdMap = new Map<string, string>();
+            const newNodes: RuleEditorNode[] = nodes.map((node) => {
+                const newNodeId = utils.freshNodeId(
+                    node.data?.businessData.originalRuleOperatorNode.pluginId ?? "node_id"
+                );
+                nodeIdMap.set(node.id, newNodeId);
+                return {
+                    ...node,
+                    id: newNodeId,
+                    data: node.data ? { ...node.data } : undefined,
+                    position: { x: node.position.x + offset.x, y: node.position.y + offset.y },
+                };
+            });
+            const newEdges: Edge[] = [];
+            els.forEach((elem) => {
+                if (utils.isEdge(elem)) {
+                    const edge = utils.asEdge(elem)!!;
+                    if (nodeIdMap.has(edge.source) && nodeIdMap.has(edge.target)) {
+                        newEdges.push({
+                            ...edge,
+                            source: nodeIdMap.get(edge.source)!!,
+                            target: nodeIdMap.get(edge.target)!!,
+                        });
+                    }
+                }
+            });
+            const withNodes = addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNodes(newNodes), els);
+            return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdges(newEdges), withNodes);
         });
     };
 
@@ -517,6 +554,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
                 });
             });
             setElements([...nodes, ...edges]);
+            utils.initNodeBaseIds(nodes);
             setRuleUndoStack([]);
             setRuleRedoStack([]);
         }
@@ -547,6 +585,8 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
                     copyAndPasteNodes,
                     moveNode,
                     changeNodeParameter,
+                    addEdge,
+                    deleteEdge,
                 },
             }}
         >

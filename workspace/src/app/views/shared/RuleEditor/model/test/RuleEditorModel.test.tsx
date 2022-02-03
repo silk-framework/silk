@@ -8,14 +8,14 @@ import { RuleEditorContext } from "../../contexts/RuleEditorContext";
 import { IParameterSpecification, IRuleOperator, IRuleOperatorNode } from "../../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 import utils from "../../RuleEditor.utils";
-import ruleEditorModelUtils from "../RuleEditorModel.utils";
+import modelUtils from "../RuleEditorModel.utils";
 
 let modelContext: RuleEditorModelContextProps | undefined;
 const currentContext = () => modelContext as RuleEditorModelContextProps;
 const nodeById = (nodeId: string) => {
-    const node = currentContext().elements.find((elem) => ruleEditorModelUtils.isNode(elem) && elem.id === nodeId);
+    const node = currentContext().elements.find((elem) => modelUtils.isNode(elem) && elem.id === nodeId);
     expect(node).toBeTruthy();
-    return ruleEditorModelUtils.asNode(node)!!;
+    return modelUtils.asNode(node)!!;
 };
 
 describe("Rule editor model", () => {
@@ -27,7 +27,7 @@ describe("Rule editor model", () => {
                 <RuleEditorContext.Provider
                     value={{
                         editedItem: {},
-                        operatorList: [],
+                        operatorList: operatorList,
                         editedItemLoading: false,
                         operatorListLoading: false,
                         initialRuleOperatorNodes: initialRuleNodes,
@@ -77,6 +77,7 @@ describe("Rule editor model", () => {
         inputs?: string[];
         pluginId?: string;
     }
+    const nodeDefaultPosition = { x: 0, y: 0 };
     const node = ({ nodeId, inputs = [], pluginId = "testPlugin" }: NodeProps): IRuleOperatorNode => {
         return {
             inputs: inputs,
@@ -91,6 +92,7 @@ describe("Rule editor model", () => {
             portSpecification: {
                 minInputPorts: 1,
             },
+            position: nodeDefaultPosition,
         };
     };
 
@@ -162,9 +164,9 @@ describe("Rule editor model", () => {
             "pluginA_2",
             "pluginA_3",
         ]);
-        expect(
-            ruleEditorModelUtils.asNode(currentContext().elements.find((n) => n.id === "pluginA_2"))!!.position
-        ).toStrictEqual(position);
+        expect(modelUtils.asNode(currentContext().elements.find((n) => n.id === "pluginA_2"))!!.position).toStrictEqual(
+            position
+        );
         expect(ruleOperatorNodes[2].position).toStrictEqual(position);
     });
 
@@ -204,6 +206,77 @@ describe("Rule editor model", () => {
         expect(nodeById(nodeId).position).toStrictEqual(newPosition);
         currentContext().saveRule();
         expect(ruleOperatorNodes[0].position).toStrictEqual(newPosition);
+    });
+
+    it("should change node parameters", async () => {
+        await ruleEditorModel([node({ nodeId: "nodeA" })], [operator("pluginA")]);
+        currentContext().saveRule();
+        expect(ruleOperatorNodes[0].parameters).toStrictEqual({
+            "param A": "Value A",
+            "param B": "Value B",
+        });
+        act(() => {
+            currentContext().executeModelEditOperation.changeNodeParameter("nodeA", "param A", "new Value A");
+        });
+        currentContext().saveRule();
+        expect(ruleOperatorNodes[0].parameters).toStrictEqual({
+            "param A": "new Value A",
+            "param B": "Value B",
+        });
+    });
+
+    it("should delete multiple nodes", async () => {
+        await ruleEditorModel(
+            [
+                node({ nodeId: "nodeA" }),
+                node({ nodeId: "nodeB", inputs: ["nodeA"] }),
+                node({ nodeId: "nodeC", inputs: ["nodeA", "nodeB"] }),
+            ],
+            [operator("pluginA")]
+        );
+        act(() => {
+            currentContext().executeModelEditOperation.deleteNodes(["nodeA", "nodeC"]);
+        });
+        expect(currentContext().elements).toHaveLength(1);
+    });
+
+    it("should copy and paste multiple nodes", async () => {
+        await ruleEditorModel([
+            node({ nodeId: "nodeA" }),
+            node({ nodeId: "nodeB", inputs: ["nodeA"] }),
+            node({ nodeId: "nodeC", inputs: ["nodeA", "nodeB"] }),
+        ]);
+        act(() => {
+            currentContext().executeModelEditOperation.copyAndPasteNodes(["nodeB", "nodeC"], { x: 10, y: 10 });
+        });
+        // 2 nodes and 1 edge added
+        expect(currentContext().elements).toHaveLength(9);
+        currentContext().saveRule();
+        expect(new Set(ruleOperatorNodes.map((op) => op.nodeId)).size).toBe(ruleOperatorNodes.length);
+    });
+
+    it("should add an edge", async () => {
+        await ruleEditorModel([node({ nodeId: "nodeA" }), node({ nodeId: "nodeB" })]);
+        act(() => {
+            currentContext().executeModelEditOperation.addEdge("nodeA", "nodeB", "0");
+        });
+        expect(currentContext().elements).toHaveLength(3);
+    });
+
+    it("should delete an edge", async () => {
+        await ruleEditorModel([
+            node({ nodeId: "nodeA" }),
+            node({ nodeId: "nodeB", inputs: ["nodeA"] }),
+            node({ nodeId: "nodeC", inputs: ["nodeA", "nodeB"] }),
+        ]);
+        const edge = currentContext().elements.find(
+            (elem) => modelUtils.isEdge(elem) && modelUtils.asEdge(elem)!!.target === "nodeB"
+        );
+        const before = currentContext().elements.length;
+        act(() => {
+            currentContext().executeModelEditOperation.deleteEdge(edge!!.id);
+        });
+        expect(currentContext().elements).toHaveLength(before - 1);
     });
 });
 

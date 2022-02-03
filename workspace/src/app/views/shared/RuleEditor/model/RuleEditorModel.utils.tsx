@@ -33,11 +33,10 @@ function createNewOperatorNode(
     newNode: Omit<IRuleOperatorNode, "nodeId">,
     reactFlowInstance: OnLoadParams,
     handleDeleteNode: (nodeId: string) => any,
-    t: (string) => string,
-    elements: Elements
+    t: (string) => string
 ): RuleEditorNode {
     return createOperatorNode(
-        { ...newNode, nodeId: freshNodeId(elements, newNode.pluginId) },
+        { ...newNode, nodeId: freshNodeId(newNode.pluginId) },
         reactFlowInstance,
         handleDeleteNode,
         t
@@ -108,31 +107,39 @@ const createTags = (tags: string[], query?: string) => {
     );
 };
 
-/** Returns the highest suffix number of a react-flow node with the same base ID.
- * If a node with exactly the base ID exists it returns 0. */
-function largestBaseSuffixNumber(elements: Array<FlowElement>, baseId: string): number | undefined {
-    let highestSuffix: number | undefined = undefined;
+const nodeBaseIdCounter: Map<string, number | undefined> = new Map();
+
+/** Initializes the node base ID counter, so that freshNodeId works correctly. */
+const initNodeBaseIds = (elements: Elements): void => {
+    nodeBaseIdCounter.clear();
     elements.forEach((elem) => {
-        if (isNode(elem) && elem.id.startsWith(baseId)) {
-            const suffix = elem.id.substr(baseId.length);
-            if (suffix.length === 0) {
-                highestSuffix = 1;
+        if (isNode(elem)) {
+            const separatorIdx = elem.id.lastIndexOf("_");
+            const parseSuffix = (): number => parseInt(elem.id.substr(separatorIdx + 1));
+            if (separatorIdx > 0 && !isNaN(parseSuffix())) {
+                const suffix = parseSuffix();
+                const base = elem.id.substr(0, separatorIdx);
+                const currentSuffix = nodeBaseIdCounter.get(base) ?? 0;
+                if (suffix > currentSuffix) {
+                    nodeBaseIdCounter.set(base, suffix);
+                }
             } else {
-                // There is an underscore between the base ID and the number
-                const numberSuffix = parseInt(suffix.substr(1));
-                if (!isNaN(numberSuffix) && (highestSuffix === undefined || highestSuffix < numberSuffix)) {
-                    highestSuffix = numberSuffix;
+                // Only set if no other entry exists, since this must be already at least as high
+                if (!nodeBaseIdCounter.has(elem.id)) {
+                    nodeBaseIdCounter.set(elem.id, 1);
                 }
             }
         }
     });
-    return highestSuffix;
-}
+};
 
 /** Generates an unused node ID based on a base ID */
-const freshNodeId = (elements: Elements, baseId: string): string => {
-    const currentCount = largestBaseSuffixNumber(elements, baseId);
-    return currentCount !== undefined ? `${baseId}_${currentCount + 1}` : baseId;
+const freshNodeId = (baseId: string): string => {
+    const currentCount = nodeBaseIdCounter.get(baseId);
+    const newCount = (currentCount ?? 0) + 1;
+    nodeBaseIdCounter.set(baseId, newCount);
+    // Only add number suffix if base ID already exists
+    return currentCount !== undefined ? `${baseId}_${newCount}` : baseId;
 };
 
 // At the moment edge IDs are not important for us and can always be re-computed
@@ -157,7 +164,9 @@ const asNode = (element: FlowElement | undefined): RuleEditorNode | undefined =>
     return element && isNode(element) ? (element as Node<NodeContentPropsWithBusinessData<IRuleNodeData>>) : undefined;
 };
 const isEdge = (element: FlowElement & { source?: string }): boolean => !isNode(element);
-const asEdge = (element: FlowElement): Edge | undefined => (isEdge(element) ? (element as Edge) : undefined);
+const asEdge = (element: FlowElement | undefined): Edge | undefined => {
+    return element && isEdge(element) ? (element as Edge) : undefined;
+};
 
 /** Return inpt handles. */
 const inputHandles = (node: RuleEditorNode) => {
@@ -177,6 +186,10 @@ const nodesById = (elements: Elements, nodeIds: string[]): RuleEditorNode[] => {
     return elements.filter((n) => isNode(n) && nodeIdSet.has(n.id)).map((n) => asNode(n)!!);
 };
 
+const edgeById = (elements: Elements, edgeId: string): Edge | undefined => {
+    return asEdge(elements.find((e) => isEdge(e) && e.id === edgeId));
+};
+
 const ruleEditorModelUtils = {
     asEdge,
     asNode,
@@ -185,6 +198,8 @@ const ruleEditorModelUtils = {
     createInputHandles,
     createNewOperatorNode,
     createOperatorNode,
+    edgeById,
+    initNodeBaseIds,
     inputHandles,
     isNode,
     isEdge,
