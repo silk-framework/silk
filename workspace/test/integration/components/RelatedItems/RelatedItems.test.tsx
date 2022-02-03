@@ -21,26 +21,28 @@ import { waitFor } from "@testing-library/react";
 describe("Related items", () => {
     let hostPath = process.env.HOST;
     let history: History<LocationState> = null;
+    let wrapper: ReactWrapper<any, any>
+    const nrOverallItems = 11;
+    beforeEach(async () => {
+        console.log("before has started")
+        wrapper = loadRelatedItems();
+        console.log("items loaded")
+        await checkRelatedItems(nrOverallItems, wrapper);
+        console.log("Finished beforeEach")
+    }, 120000)
     afterEach(() => {
         mockAxios.reset();
     });
 
     it("should display related items according to the project ID and task ID from the URL", async () => {
-        const nrItems = 11;
-        const wrapper = loadRelatedItems();
-        await checkRelatedItems(nrItems, wrapper);
     });
 
     it("should display related items according to the project ID and task ID from the props", async () => {
-        const nrItems = 11;
         const wrapper = loadRelatedItems({ projectId: PROJECT_ID, taskId: TASK_ID }, `${SERVE_PATH}`);
-        await checkRelatedItems(nrItems, wrapper);
+        await checkRelatedItems(nrOverallItems, wrapper);
     });
 
     it("should reload the related items when changing the project or task", async () => {
-        const nrItems = 11;
-        const wrapper = loadRelatedItems();
-        await checkRelatedItems(nrItems, wrapper);
         const otherTask = "otherTask";
         history.push(workspacePath(`/projects/${PROJECT_ID}/task/${otherTask}`));
         await waitFor(() => {
@@ -60,7 +62,7 @@ describe("Related items", () => {
         props: { projectId?: string; taskId?: string } = {},
         currentUrl: string = `${SERVE_PATH}/projects/${PROJECT_ID}/task/${TASK_ID}`
     ) => {
-        history = createBrowserHistory();
+        history = createBrowserHistory<{}>();
         history.location.pathname = currentUrl;
 
         return withMount(testWrapper(<RelatedItems {...props} />, history));
@@ -76,7 +78,7 @@ describe("Related items", () => {
         // Wait for render
         await waitFor(() => {
             expect(wrapper.text()).toContain(`(${nrItems})`);
-        });
+        }, {timeout: 50000});
         // Check items that are displayed in the list
         const shownRelatedItems = findAll(wrapper, "li .eccgui-overviewitem__item");
         expect(shownRelatedItems).toHaveLength(DEFAULT_PAGE_SIZE);

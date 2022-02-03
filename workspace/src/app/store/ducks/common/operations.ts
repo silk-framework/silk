@@ -291,7 +291,7 @@ const changeLocale = (locale: string) => {
     };
 };
 
-export default {
+const commonOps = {
     changeLocale,
     fetchAvailableDTypesAsync,
     fetchArtefactsListAsync,
@@ -313,3 +313,5 @@ export default {
     resetArtefactModal,
     fetchExportTypesAsync,
 };
+
+export default commonOps;

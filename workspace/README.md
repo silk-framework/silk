@@ -6,7 +6,7 @@ and ejected, configured for DI.
 In the project directory, you can run:
 
 
-### `watch-di-dev`
+### `watch`
 
 Runs the app in watch development mode.<br>
 You will also see any lint errors in the console.

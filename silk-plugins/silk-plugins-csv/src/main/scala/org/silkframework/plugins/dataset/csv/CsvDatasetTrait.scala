@@ -55,5 +55,5 @@ trait CsvDatasetTrait {
   protected val csvSettings: CsvSettings = CsvSettings(separatorChar, arraySeparatorChar, quoteChar,
     maxCharsPerColumn = Some(maxCharsPerColumn), quoteEscapeChar = quoteEscapeChar, linesToSkip = linesToSkip, codec = codec)
 
-  def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly
+  def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly(supportsMultipleTables = false)
 }

@@ -14,7 +14,7 @@ let history = createBrowserHistory();
 export const getStore = () => store;
 export const getHistory = () => history;
 
-export default function (options: any = {}) {
+export default function configStore(options: any = {}) {
     const enhancers: any[] = [];
     const middleware = [
         ...getDefaultMiddleware({

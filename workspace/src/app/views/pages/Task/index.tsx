@@ -9,9 +9,10 @@ import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactManagementOptions";
 import NotFound from "../NotFound";
 import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
+import { ProjectTaskParams } from "../../shared/typings";
 
-export default function () {
-    const { taskId, projectId } = useParams();
+export default function TaskPage() {
+    const { taskId, projectId } = useParams<ProjectTaskParams>();
     const [notFound, setNotFound] = useState(false);
 
     const { pageHeader, updateActionsMenu } = usePageHeader({

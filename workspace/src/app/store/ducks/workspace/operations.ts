@@ -283,7 +283,7 @@ const toggleFacetOp = (facet: IFacetState, keywordId: string) => {
     };
 };
 
-export default {
+const workspaceOps = {
     fetchListAsync,
     applyFiltersOp,
     applySorterOp,
@@ -300,3 +300,5 @@ export default {
     resetFilters,
     updateNewPrefix,
 };
+
+export default workspaceOps;

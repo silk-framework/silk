@@ -34,4 +34,11 @@ trait HasMetaData {
     */
   def fullLabel(implicit prefixes: Prefixes = Prefixes.empty): String = label(Int.MaxValue)
 
+  /**
+    * Returns a string containing both the full label and the identifier, e.g., to be used for logging.
+    */
+  def labelAndId(implicit prefixes: Prefixes = Prefixes.empty): String = {
+    s"'${fullLabel()}' ($id)"
+  }
+
 }

@@ -222,6 +222,7 @@
             "copyClipboard": "Copy to clipboard"
         },
         "app": {
+            "build": "Workbench",
             "loading": "Loading page."
         },
         "dataTypes": {

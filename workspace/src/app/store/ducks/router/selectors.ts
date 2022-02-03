@@ -9,8 +9,10 @@ const routerSearchSelector = createSelector([locationSelector], (location) => lo
 
 const hashSelector = createSelector([locationSelector], (location) => location.hash);
 
-export default {
+const routerSelectors = {
     routerSearchSelector,
     pathnameSelector,
     hashSelector,
 };
+
+export default routerSelectors;
