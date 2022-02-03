@@ -1,9 +1,9 @@
-import {Button, FieldItem, Highlighter, MenuItem, SimpleDialog} from "@gui-elements/index";
+import {Button, FieldItem, Highlighter, MenuItem, SimpleDialog} from "gui-elements";
 import React, {useContext, useEffect, useState} from "react";
 import {IVocabularyInfo} from "./suggestion.typings";
 import {SuggestionListContext} from "./SuggestionContainer";
 import {MultiSelect} from "@blueprintjs/select";
-import {extractSearchWords, matchesAllWords} from "@gui-elements/src/components/Typography/Highlighter";
+import {extractSearchWords, matchesAllWords} from "gui-elements/src/components/Typography/Highlighter";
 
 interface IProps {
     // The available vocabularies to match against
