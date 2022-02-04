@@ -80,5 +80,5 @@ class TransformedDataSource(source: DataSource, inputSchema: EntitySchema, trans
     *
     * @return
     */
-  override def underlyingTask: Task[DatasetSpec[Dataset]] = source.underlyingTask
+  override lazy val underlyingTask: Task[DatasetSpec[Dataset]] = source.underlyingTask
 }

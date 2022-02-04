@@ -2,9 +2,6 @@ package org.silkframework.plugins.dataset.text
 
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, EmptyDataset}
-import org.silkframework.config.{PlainTask, Task}
-import org.silkframework.dataset.{DataSource, DatasetCharacteristics, Dataset, DatasetSpec, EmptyDataset}
-import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.entity.{Entity, EntitySchema}
 import org.silkframework.execution.EntityHolder
@@ -44,7 +41,7 @@ class TextFileSource(ds: TextFileDataset) extends DataSource {
       val text = ds.file.loadAsString(ds.codec)
       val entity = new Entity(
         uri = ds.uri,
-        vals = IndexedSeq(Seq(text)),
+        values = IndexedSeq(Seq(text)),
         entitySchema
       )
       GenericEntityTable(
@@ -57,5 +54,5 @@ class TextFileSource(ds: TextFileDataset) extends DataSource {
     }
   }
 
-  override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(ds.file.name), DatasetSpec(EmptyDataset))
+  override lazy val underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(Identifier.fromAllowed(ds.file.name), DatasetSpec(EmptyDataset))
 }

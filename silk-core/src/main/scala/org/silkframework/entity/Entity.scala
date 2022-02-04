@@ -28,14 +28,14 @@ import scala.xml.Node
 /**
   * An Entity can represent an instance of any given concept
   * @param uri         - an URI as identifier
-  * @param vals        - A list of values of the properties defined in the provided EntitySchema
+  * @param values        - A list of values of the properties defined in the provided EntitySchema
   * @param schema      - The EntitySchema defining the nature of this entity
   * @param metadata    - metadata object containing all available metadata information about this object
   *                    an Entity is marked as 'failed' if [[org.silkframework.entity.metadata.EntityMetadata.failure]] is set. It becomes sealed.
   */
 case class Entity(
     uri: Uri,
-    private val vals: IndexedSeq[Seq[String]],
+    values: IndexedSeq[Seq[String]],
     schema: EntitySchema,
     metadata: EntityMetadata[_] = EntityMetadataXml()
   ) extends Serializable {
@@ -76,11 +76,6 @@ case class Entity(
     * @return
     */
   def applyNewSchema(es: EntitySchema): Entity = copy(schema = es, projectValuesIfNewSchema = false)
-
-  /**
-    * The value-array containing as many values as properties in the schema
-    */
-  val values: IndexedSeq[Seq[String]] = vals.map(Entity.handleNullsInValueSeq)
 
   val failure: Option[GenericExecutionFailure] = {
     if(metadata.failure.metadata.isEmpty) {                                                    // if no failure has occurred yet
@@ -257,8 +252,6 @@ object Entity {
     })
   }
 
-  def handleNullsInValueSeq(valueSeq: Seq[String]): Seq[String] = if(valueSeq == null) Seq() else valueSeq.flatMap(x => Option(x))
-
   /**
     * Instantiates a new Entity and fails it with the given Throwable
     * NOTE: values are all set to empty.
@@ -288,7 +281,7 @@ object Entity {
       return null
     new Entity(
       uri = (node \ "@uri").text.trim,
-      vals = {
+      values = {
         for (valNode <- node \ "Values" \ "Val") yield {
           for (e <- valNode \ "e") yield e.text
         }
