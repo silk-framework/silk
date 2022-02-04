@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Prompt, useLocation } from "react-router";
-import qs from "qs";
 import { useTranslation } from "react-i18next";
 import { Markdown } from "gui-elements/cmem";
 import {
@@ -36,7 +35,6 @@ import useErrorHandler from "../../../hooks/useErrorHandler";
 import * as H from "history";
 import utils from "./MetadataUtils";
 import { IMetadataExpanded, Tag as TagType } from "./Metadatatypings";
-import { SERVE_PATH } from "../../../constants/path";
 
 interface IProps {
     projectId?: string;
@@ -249,15 +247,6 @@ export function Metadata(props: IProps) {
         });
     }, []);
 
-    const tagFacetUrl = (id: string, uri: string): string => {
-        const queryParams = {
-            f_ids: id,
-            types: "keyword",
-            f_keys: uri,
-        };
-        return `${SERVE_PATH}?${qs.stringify(queryParams)}`;
-    };
-
     const widgetContent = (
         <CardContent data-test-id={"metaDataWidget"}>
             {loading && <Loading description={t("Metadata.loading", "Loading summary data.")} />}
@@ -354,7 +343,7 @@ export function Metadata(props: IProps) {
                             {/** // Todo add german translation for author here  */}
                             <PropertyName>{t("form.field.lastModifiedBy", "Last Modified By")}</PropertyName>
                             <PropertyValue>
-                                <Link href={tagFacetUrl("lastModifiedBy", lastModifiedByUser.uri)}>
+                                <Link href={utils.generateFacetUrl("lastModifiedBy", lastModifiedByUser.uri)}>
                                     {lastModifiedByUser.label}
                                 </Link>
                             </PropertyValue>
@@ -365,7 +354,9 @@ export function Metadata(props: IProps) {
                             {/** // Todo add german translation for author here  */}
                             <PropertyName>{t("form.field.createdBy", "Created By")}</PropertyName>
                             <PropertyValue>
-                                <Link href={tagFacetUrl("createdBy", createdByUser.uri)}>{createdByUser.label}</Link>
+                                <Link href={utils.generateFacetUrl("createdBy", createdByUser.uri)}>
+                                    {createdByUser.label}
+                                </Link>
                             </PropertyValue>
                         </PropertyValuePair>
                     )}

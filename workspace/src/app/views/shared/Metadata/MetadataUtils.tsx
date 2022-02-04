@@ -1,10 +1,13 @@
 import React from "react";
+import qs from "qs";
+import { Tag, TagList, MenuItem } from "gui-elements";
+
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import fetch from "../../../services/fetch";
 import { workspaceApi, legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import { IMetadataExpanded, Tag as TagType } from "./Metadatatypings";
 import { ContentBlobToggler } from "gui-elements/cmem";
-import { Tag, TagList } from "gui-elements";
+import { SERVE_PATH } from "../../../constants/path";
 
 /**
  * if both the taskId and projectId are available then fetch the EXPANDED metadata for tasks
@@ -44,13 +47,13 @@ const DisplayArtefactTags = (tags: Array<TagType>, t: (key: string, fallBack: st
         return size === "full" ? (
             <TagList>
                 {tags.map((tag) => (
-                    <Tag>{tag.label}</Tag>
+                    <MenuItem key={tag.uri} href={generateFacetUrl("tags", tag.label)} text={<Tag>{tag.label}</Tag>} />
                 ))}
             </TagList>
         ) : (
             <TagList>
                 {tags.slice(0, minLength).map((tag) => (
-                    <Tag>{tag.label}</Tag>
+                    <MenuItem key={tag.uri} href={generateFacetUrl("tags", tag.label)} text={<Tag>{tag.label}</Tag>} />
                 ))}
             </TagList>
         );
@@ -71,10 +74,20 @@ const DisplayArtefactTags = (tags: Array<TagType>, t: (key: string, fallBack: st
     );
 };
 
+const generateFacetUrl = (id: string, uri: string): string => {
+    const queryParams = {
+        f_ids: id,
+        types: "keyword",
+        f_keys: uri,
+    };
+    return `${SERVE_PATH}?${qs.stringify(queryParams)}`;
+};
+
 const utils = {
     getExpandedMetaData,
     DisplayArtefactTags,
     createNewTag,
+    generateFacetUrl,
 };
 
 export default utils;
