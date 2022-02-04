@@ -2,7 +2,7 @@ import React from "react";
 import { Edge, Elements, OnLoadParams, removeElements, useStoreActions } from "react-flow-renderer";
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { RuleEditorContext, RuleEditorContextProps } from "../contexts/RuleEditorContext";
-import utils from "./RuleEditorModel.utils";
+import { ruleEditorModelUtilsFactory } from "./RuleEditorModel.utils";
 import { useTranslation } from "react-i18next";
 import { IRuleOperator, IRuleOperatorNode } from "../RuleEditor.typings";
 import {
@@ -39,14 +39,15 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
     const [elements, setElements] = React.useState<Elements>([]);
     /** Rule editor context. */
     const ruleEditorContext = React.useContext<RuleEditorContextProps>(RuleEditorContext);
-    /** The rule editor change history that will be used to UNDO changes. */
+    /** The rule editor change history that will be used to UNDO changes. The changes are in the order they have been executed. */
     const [ruleUndoStack, setRuleUndoStack] = React.useState<ChangeStackType[]>([]);
     /** If there are changes that can be undone. */
     const [canUndo, setCanUndo] = React.useState<boolean>(false);
-    /** Stores the REDO history. */
+    /** Stores the REDO history. The order is how the changes were executed by the corresponding UNDO operation. */
     const [ruleRedoStack, setRuleRedoStack] = React.useState<ChangeStackType[]>([]);
     /** If there are changes that can be redone, i.e. that have been previously undone. */
     const [canRedo, setCanRedo] = React.useState<boolean>(false);
+    const [utils] = React.useState(ruleEditorModelUtilsFactory());
     /** react-flow function to update a node position in the canvas. Just changing the position of the elements is not enough. */
     const updateNodePos = useStoreActions((actions) => actions.updateNodePos);
     /** Manages the parameters of rule nodes. This is done for performance reasons. Only stores diffs to the original value. */
@@ -103,13 +104,13 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
         if (changesToUndo.length > 0) {
             // Undo changes and create redo transaction
             startRedoChangeTransaction();
-            // Changes must be redone in the reversed order
-            const redoChanges = [...changesToUndo].reverse();
-            redoChanges.forEach((change) => addRedoRuleModelChange(invertModelChanges(change)));
+            // Changes must be undone in the reversed order
+            const reversedChanges = [...changesToUndo].reverse().map((change) => invertModelChanges(change));
+            reversedChanges.forEach((change) => addRedoRuleModelChange(change));
             // Execute it on the react-flow model
             setElements((els) => {
                 let currentElements = els;
-                changesToUndo.forEach((change) => {
+                reversedChanges.forEach((change) => {
                     currentElements = executeRuleModelChangeInternal(change, currentElements);
                 });
                 return currentElements;
@@ -128,12 +129,12 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
             // Redo changes and create Undo transaction
             startChangeTransaction();
             // Changes must be redone in the reversed order
-            const undoChanges = [...changesToRedo].reverse();
-            undoChanges.forEach((change) => addRuleModelChange(invertModelChanges(change)));
+            const invertedChanges = [...changesToRedo].reverse().map((change) => invertModelChanges(change));
+            invertedChanges.forEach((change) => addRuleModelChange(change));
             // Execute it on the react-flow model
             setElements((els) => {
                 let currentElements = els;
-                changesToRedo.forEach((change) => {
+                invertedChanges.forEach((change) => {
                     currentElements = executeRuleModelChangeInternal(change, currentElements);
                 });
                 return currentElements;
@@ -158,7 +159,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
             changesToUndo.push(op);
             op = changeStack.pop();
         }
-        return changesToUndo;
+        return changesToUndo.reverse();
     };
 
     /** Adds a change action to the REDO stack. */
@@ -345,12 +346,26 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
         }
     };
 
+    // Finds all edges that are connected to any of the given nodes.
+    const findEdgesOfNodes = (nodeIds: Set<string>, elements: Elements): Edge[] => {
+        return elements.filter((elem) => {
+            const edge = utils.asEdge(elem);
+            return edge && (nodeIds.has(edge.source) || nodeIds.has(edge.target));
+        }) as Edge[];
+    };
+
     /** Deletes a single rule node. */
     const deleteNode = (nodeId: string) => {
         setElements((els) => {
             const node = utils.asNode(els.find((n) => utils.isNode(n) && n.id === nodeId));
             if (node) {
-                return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.deleteNode(node), els);
+                // Need to record edge changes first
+                const edges = findEdgesOfNodes(new Set([node.id]), els);
+                const withoutEdges = addAndExecuteRuleModelChangeInternal(
+                    RuleModelChangesFactory.deleteEdges(edges),
+                    els
+                );
+                return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.deleteNode(node), withoutEdges);
             } else {
                 return els;
             }
@@ -362,7 +377,13 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
         setElements((els) => {
             const nodes = utils.nodesById(els, nodeIds);
             if (nodes.length > 0) {
-                return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.deleteNodes(nodes), els);
+                // Need to record edge changes first
+                const edges = findEdgesOfNodes(new Set(nodeIds), els);
+                const withoutEdges = addAndExecuteRuleModelChangeInternal(
+                    RuleModelChangesFactory.deleteEdges(edges),
+                    els
+                );
+                return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.deleteNodes(nodes), withoutEdges);
             } else {
                 return els;
             }
@@ -410,11 +431,12 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
                 if (utils.isEdge(elem)) {
                     const edge = utils.asEdge(elem)!!;
                     if (nodeIdMap.has(edge.source) && nodeIdMap.has(edge.target)) {
-                        newEdges.push({
-                            ...edge,
-                            source: nodeIdMap.get(edge.source)!!,
-                            target: nodeIdMap.get(edge.target)!!,
-                        });
+                        const newEdge = utils.createEdge(
+                            nodeIdMap.get(edge.source)!!,
+                            nodeIdMap.get(edge.target)!!,
+                            edge.targetHandle!!
+                        );
+                        newEdges.push(newEdge);
                     }
                 }
             });
