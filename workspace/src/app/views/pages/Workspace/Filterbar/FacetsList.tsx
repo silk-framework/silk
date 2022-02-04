@@ -21,7 +21,9 @@ export default function FacetsList() {
     useEffect(() => {
         const visiblesOnly = {} as any;
         facets.forEach((facet) => {
-            visiblesOnly[facet.id] = facet.values.slice(0, FACETS_PREVIEW_LIMIT);
+            visiblesOnly[facet.id] = [...facet.values]
+                .sort((a, b) => Number(isChecked(facet.id, b.id)) - Number(isChecked(facet.id, a.id)))
+                .slice(0, FACETS_PREVIEW_LIMIT);
         });
         setVisibleFacetsKeywords(visiblesOnly);
     }, [facets]);
