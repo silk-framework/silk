@@ -65,7 +65,7 @@ export interface IParameterSpecification {
     defaultValue: string;
 }
 
-type ParameterType = "int" | "string" | "multi-line string"; // TODO: Add other types that come from the backend
+type ParameterType = "int" | "string" | "multi-line string"; // FIXME: Add other types that come from the backend CMEM-3919
 
 interface NodePosition {
     x: number;

@@ -8,7 +8,7 @@ const extractOperatorNodeFromPathInput = (
 ): string => {
     result.push({
         nodeId: pathInput.id,
-        label: `${isTarget ? "Target path:" : "Source path:"} ${pathInput.path}`, // TODO: Label?
+        label: `${isTarget ? "Target path:" : "Source path:"} ${pathInput.path}`, // FIXME: Label? CMEM-3919
         pluginType: "PathInputOperator",
         pluginId: isTarget ? "target" : "source", // We use the plugin ID to denote if this is a source or target path input.
         inputs: [],
@@ -35,7 +35,7 @@ const extractOperatorNodeFromTransformInput = (
         inputs: inputs,
         pluginType: "TransformOperator",
         pluginId: transformInput.function,
-        label: transformInput.function, // TODO: label
+        label: transformInput.function, // FIXME: label CMEM-3919
         parameters: transformInput.parameters,
         portSpecification: {
             minInputPorts: 1,

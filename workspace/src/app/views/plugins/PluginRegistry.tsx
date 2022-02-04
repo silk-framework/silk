@@ -3,7 +3,6 @@
  **/
 import { LinkingRuleEditor } from "../taskViews/linking/LinkingRuleEditor";
 import React from "react";
-import { TransformRuleEditor } from "../taskViews/transform/TransformRuleEditor";
 
 // Generic actions and callbacks on views
 export interface IViewActions {

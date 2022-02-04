@@ -37,7 +37,7 @@ function createOperatorNode(
     t: (string) => string
 ): RuleEditorNode {
     const position = reactFlowInstance.project({
-        x: node.position?.x ?? 0, // TODO: Calculate position based on  algorithm when coordinates are missing CMEM-3922
+        x: node.position?.x ?? 0, // FIXME: Calculate position based on  algorithm when coordinates are missing CMEM-3922
         y: node.position?.y ?? 0,
     });
     const usedInputs = node.inputs.length;
@@ -56,7 +56,7 @@ function createOperatorNode(
         label: node.label,
         minimalShape: "none",
         handles,
-        iconName: node.icon, // findExistingIconName(createIconNameStack("TODO", node.pluginId)), // TODO: Calculate icons
+        iconName: node.icon, // findExistingIconName(createIconNameStack("FIXME", node.pluginId)), // FIXME: Calculate icons CMEM-3919
         businessData: {
             originalRuleOperatorNode: node,
             dynamicPorts: !node.portSpecification.maxInputPorts,
@@ -67,7 +67,7 @@ function createOperatorNode(
 
     return {
         id: node.nodeId,
-        type: "default", // TODO: Set node type here
+        type: "default", // FIXME: Set node type here CMEM-3919
         position,
         data,
     };

@@ -114,7 +114,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                         ruleOperatorNodes
                     ),
                     id: ruleOperatorNode.nodeId,
-                    indexing: false, // TODO: What to set it to?
+                    indexing: false, // FIXME: Should this be part of the config in the UI? CMEM-3919
                     parameters: Object.fromEntries(
                         Object.entries(ruleOperatorNode.parameters).map(([parameterKey, parameterValue]) => [
                             parameterKey,
@@ -139,7 +139,12 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                                     ruleOperatorNodes
                                 )!!
                         ),
-                    parameters: {}, // TODO: add parameters
+                    parameters: Object.fromEntries(
+                        Object.entries(ruleOperatorNode.parameters).map(([parameterKey, parameterValue]) => [
+                            parameterKey,
+                            parameterValue ?? "",
+                        ])
+                    ),
                     type: "Aggregation",
                     weight: parseInt(ruleOperatorNode.parameters["weight"]!!),
                 };
@@ -225,7 +230,12 @@ export const convertRuleOperatorNodeToValueInput = (
                         ruleOperatorNodes
                     )
                 ),
-            parameters: {}, // TODO: How to get parameters
+            parameters: Object.fromEntries(
+                Object.entries(ruleOperatorNode.parameters).map(([parameterKey, parameterValue]) => [
+                    parameterKey,
+                    parameterValue ?? "",
+                ])
+            ),
             type: "transformInput",
         };
         return transformOperator;
@@ -253,10 +263,10 @@ export const convertRuleOperator = (op: IPluginDetails): IRuleOperator => {
     return {
         pluginType: op.pluginType ?? "unknown",
         pluginId: op.pluginId,
-        label: op.pluginId, // TODO: What label?
+        label: op.pluginId, // FIXME: What label? CMEM-3919
         description: op.description,
         categories: op.categories,
-        icon: "artefact-task", // TODO: Which icons?
+        icon: "artefact-task", // FIXME: Which icons? CMEM-3919
         parameterSpecification: Object.fromEntries(
             Object.entries(op.properties).map(([parameterId, parameterSpec]) => {
                 const spec: IParameterSpecification = {
@@ -264,7 +274,7 @@ export const convertRuleOperator = (op: IPluginDetails): IRuleOperator => {
                     description: parameterSpec.description,
                     advanced: parameterSpec.advanced,
                     required: required(parameterId),
-                    type: "string", // TODO: Convert types from parameterSpec.parameterType, see InputMapper component
+                    type: "string", // FIXME: Convert types from parameterSpec.parameterType, see InputMapper component CMEM-3919
                     defaultValue: parameterSpec.value,
                 };
                 return [parameterId, spec];
@@ -304,7 +314,7 @@ const extractSimilarityOperatorNode = (
             : (operator as IAggregationOperator).aggregator;
         result.push({
             nodeId: operator.id,
-            label: pluginId, // TODO: Adapt label
+            label: pluginId, // FIXME: Adapt label CMEM-3919
             pluginType: isComparison ? "ComparisonOperator" : "AggregationOperator",
             pluginId,
             inputs: inputs,
@@ -313,7 +323,7 @@ const extractSimilarityOperatorNode = (
                 minInputPorts: isComparison ? 2 : 1,
                 maxInputPorts: isComparison ? 2 : undefined,
             },
-            tags: [operator.type, pluginId], // TODO: What tags?
+            tags: [operator.type, pluginId], // FIXME: What tags? CMEM-3919
         });
         return operator.id;
     }

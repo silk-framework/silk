@@ -310,7 +310,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
                     data: node.data ? { ...node.data } : undefined,
                     position: newPosition,
                 };
-                // TODO: Check if the following line is really needed
+                // FIXME: Check if the following line is really needed CMEM-4080
                 setTimeout(() => updateNodePos({ id: node.id, pos: newPosition }), 50);
                 return movedNode;
             } else {
@@ -527,7 +527,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
             const parameterDiff = nodeParameterDiff.get(node.id);
             const ruleOperatorNode: IRuleOperatorNode = {
                 inputs,
-                label: originalNode.label, // TODO: Can the label change?
+                label: originalNode.label, // FIXME: Can the label change? CMEM-3919
                 nodeId: node.id,
                 parameters: parameterDiff
                     ? Object.fromEntries(
