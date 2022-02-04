@@ -110,15 +110,6 @@ pluginRegistry.registerTaskView("linking", {
     },
 });
 
-// Register transform rule editor. TODO: Remove. This was just for debugging
-pluginRegistry.registerTaskView("transform", {
-    id: "transformEditor",
-    label: "Transform rule editor WIP",
-    render(projectId: string, taskId: string, viewActions: IViewActions | undefined): JSX.Element {
-        return <TransformRuleEditor projectId={projectId} transformTaskId={taskId} ruleId={"uri"} />;
-    },
-});
-
 export const SUPPORTED_PLUGINS = {
     DATA_PREVIEW: "di:dataPreview",
     DI_USER_MENU_ITEMS: "di:userMenuItems",
