@@ -5,7 +5,11 @@ export const requestInterceptor = (config: AxiosRequestConfig) => {
         ...config,
     };
 
-    if (config.headers["Content-Type"] === "application/x-www-form-urlencoded" && typeof config.data === "object") {
+    if (
+        config.headers &&
+        config.headers["Content-Type"] === "application/x-www-form-urlencoded" &&
+        typeof config.data === "object"
+    ) {
         const { data } = config;
 
         const serializedData: string[] = [];

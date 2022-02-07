@@ -6,7 +6,8 @@ import { IRuleNodeData, IRuleOperatorNode, NodeContentPropsWithBusinessData } fr
 import { RuleNodeMenu } from "../ruleNode/RuleNodeMenu";
 import { Tag, Highlighter, Spacing } from "gui-elements";
 import { RuleEditorNode } from "./RuleEditorModel.typings";
-import { Elements } from "react-flow-renderer/dist/types";
+import { Elements, XYPosition } from "react-flow-renderer/dist/types";
+import ELK, { ElkNode } from "elkjs";
 
 /** Constants */
 
@@ -197,11 +198,73 @@ const edgeById = (elements: Elements, edgeId: string): Edge | undefined => {
     return asEdge(elements.find((e) => isEdge(e) && e.id === edgeId));
 };
 
+/** Returns all nodes. */
+const elementNodes = (elements: Elements): RuleEditorNode[] => {
+    return elements.filter((elem) => isNode(elem)).map((node) => asNode(node)!!);
+};
+
+/** Returns all edges. */
+const elementEdges = (elements: Elements): Edge[] => {
+    return elements.filter((elem) => isEdge(elem)).map((edge) => asEdge(edge)!!);
+};
+
+const elk = new ELK();
+
+// Builds an ELK graph from the react-flow elements
+const buildElkGraph = (elements: Elements): ElkNode => {
+    const nodes = elementNodes(elements);
+    const edges = elementEdges(elements);
+    const constructElkNode = (node: RuleEditorNode): ElkNode => {
+        return {
+            id: node.id,
+            height: 100, // TODO: Set to something meaningful?
+            width: 300, // TODO: Set to something meaningful?
+        };
+    };
+    return {
+        id: " root node ",
+        children: nodes.map((node) => constructElkNode(node)),
+        edges: edges.map((edge, idx) => ({
+            id: `e${idx}`,
+            sources: [edge.source],
+            targets: [edge.target],
+            type: "DIRECTED",
+        })),
+    };
+};
+
+/** Layouts the nodes of the rule graph.
+ *
+ * Returns a map of the new node positions. */
+const autoLayout = async (elements: Elements): Promise<Map<string, XYPosition>> => {
+    const elkGraph = buildElkGraph(elements);
+    const layoutedGraph = await elk.layout(elkGraph, {
+        layoutOptions: {
+            "elk.algorithm": "layered",
+            "elk.edgeRouting": "POLYLINE", // for kind of symmetrical/centered tree
+            "elk.direction": "RIGHT",
+            "elk.padding": "[top=25,left=25,bottom=25,right=25]",
+            "elk.spacing.componentComponent": "25",
+            "elk.layered.spacing.nodeNodeBetweenLayers": "25",
+            "elk.layered.crossingMinimization.semiInteractive": "true", // For the  order of input nodes
+            "elk.layered.crossingMinimization.strategy": "INTERACTIVE",
+        },
+    });
+    const nodePositions = new Map<string, XYPosition>();
+    (layoutedGraph.children ?? []).forEach((layoutedElkNode) => {
+        if (layoutedElkNode.x != null && layoutedElkNode.y != null) {
+            nodePositions.set(layoutedElkNode.id, { x: layoutedElkNode.x, y: layoutedElkNode.y });
+        }
+    });
+    return nodePositions;
+};
+
 export const ruleEditorModelUtilsFactory = () => {
     const { createNewOperatorNode, initNodeBaseIds, freshNodeId } = initNodeBaseIdsFactory();
     return {
         asEdge,
         asNode,
+        autoLayout,
         createEdge: createEdgeFactory(),
         createInputHandle,
         createInputHandles,

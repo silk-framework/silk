@@ -551,6 +551,38 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
         return ruleEditorContext.saveRule(ruleOperatorNodes);
     };
 
+    const initModel = async () => {
+        setNodeParameterDiff(new Map());
+        const operatorsNodes = ruleEditorContext.initialRuleOperatorNodes;
+        // Create nodes
+        let needsLayout = false;
+        const nodes = operatorsNodes!!.map((operatorNode) => {
+            needsLayout = needsLayout || !operatorNode.position;
+            return utils.createOperatorNode(operatorNode, reactFlowInstance!!, deleteNode, t);
+        });
+        // Create edges
+        const edges: Edge[] = [];
+        operatorsNodes!!.forEach((node) => {
+            node.inputs.forEach((inputNodeId, idx) => {
+                if (inputNodeId) {
+                    // Edge IDs do not currently matter
+                    edges.push(utils.createEdge(inputNodeId, node.nodeId, `${idx}`));
+                }
+            });
+        });
+        const elems = [...nodes, ...edges];
+        if (needsLayout) {
+            const autoLayout = await utils.autoLayout(elems);
+            elems
+                .filter((elem) => utils.isNode(elem) && autoLayout.has(elem.id))
+                .forEach((node) => (utils.asNode(node)!!.position = autoLayout.get(node.id)!!));
+        }
+        setElements(elems);
+        utils.initNodeBaseIds(nodes);
+        setRuleUndoStack([]);
+        setRuleRedoStack([]);
+    };
+
     /** Convert initial operator nodes to react-flow model. */
     React.useEffect(() => {
         if (
@@ -559,26 +591,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
             elements.length === 0 &&
             reactFlowInstance
         ) {
-            setNodeParameterDiff(new Map());
-            const operatorsNodes = ruleEditorContext.initialRuleOperatorNodes;
-            // Create nodes
-            const nodes = operatorsNodes.map((operatorNode) => {
-                return utils.createOperatorNode(operatorNode, reactFlowInstance, deleteNode, t);
-            });
-            // Create edges
-            const edges: Edge[] = [];
-            operatorsNodes.forEach((node) => {
-                node.inputs.forEach((inputNodeId, idx) => {
-                    if (inputNodeId) {
-                        // Edge IDs do not currently matter
-                        edges.push(utils.createEdge(inputNodeId, node.nodeId, `${idx}`));
-                    }
-                });
-            });
-            setElements([...nodes, ...edges]);
-            utils.initNodeBaseIds(nodes);
-            setRuleUndoStack([]);
-            setRuleRedoStack([]);
+            initModel();
         }
     }, [
         ruleEditorContext.initialRuleOperatorNodes,
