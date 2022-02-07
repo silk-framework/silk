@@ -214,11 +214,20 @@ const elk = new ELK();
 const buildElkGraph = (elements: Elements): ElkNode => {
     const nodes = elementNodes(elements);
     const edges = elementEdges(elements);
+    const maxNodeIndex = new Map<string, number>();
+    edges.forEach((edge) => {
+        const currentIdx = maxNodeIndex.get(edge.source) ?? -1;
+        const edgeIdx = Number.parseInt(edge.targetHandle ?? "-1") + 1;
+        if (edgeIdx > currentIdx) {
+            maxNodeIndex.set(edge.source, edgeIdx);
+        }
+    });
     const constructElkNode = (node: RuleEditorNode): ElkNode => {
         return {
             id: node.id,
             height: 100, // TODO: Set to something meaningful?
             width: 300, // TODO: Set to something meaningful?
+            y: maxNodeIndex.get(node.id) ?? 0,
         };
     };
     return {
