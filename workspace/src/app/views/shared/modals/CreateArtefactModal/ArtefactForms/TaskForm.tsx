@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { IArtefactItemProperty, IPluginDetails, IPropertyAutocomplete } from "@ducks/common/typings";
-import { Intent } from "gui-elements/blueprint/constants";
 import { DATA_TYPES, INPUT_TYPES } from "../../../../../constants";
 import { FieldItem, Spacing, TextArea, TextField } from "gui-elements";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
@@ -233,7 +232,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                                 name={LABEL}
                                 value={label ?? ""}
                                 onChange={handleChange(LABEL)}
-                                intent={errors.label ? Intent.DANGER : Intent.NONE}
+                                hasStateDanger={errors.label ? true : false}
                                 onKeyDown={(e) => {
                                     if (e.keyCode === 13) {
                                         e.preventDefault();
