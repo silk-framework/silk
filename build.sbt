@@ -252,14 +252,26 @@ lazy val reactComponents = (project in file("silk-react-components"))
     // Silk React build pipeline
     //////////////////////////////////////////////////////////////////////////////
     /** Check that all necessary build tool for the JS pipeline are available */
-    checkJsBuildTools := {
-      ReactBuildHelper.checkReactBuildTool()
-    },
+    checkJsBuildTools := Def.taskDyn {
+      if(!buildReactExternally) {
+        Def.task { ReactBuildHelper.checkReactBuildTool() }
+      } else {
+        Def.task { }
+      }
+    }.value,
+    yarnInstall := Def.taskDyn {
+      checkJsBuildTools.value
+      if(!buildReactExternally) {
+        Def.task { ReactBuildHelper.yarnInstall(baseDirectory.value) }
+      } else {
+        Def.task { }
+      }
+    }.value,
     // Run when building silk react
     /** Build Silk React */
     buildSilkReact := {
       // Build React components
-      checkJsBuildTools.value // depend on check
+      yarnInstall.value // depend on check
       val distRoot = silkDistRoot.value
       if(!buildReactExternally) {
         val reactWatchConfig = WatchConfig(new File(baseDirectory.value, "src"), fileRegex = """\.(jsx|js|tsx|ts|scss|json)$""")
