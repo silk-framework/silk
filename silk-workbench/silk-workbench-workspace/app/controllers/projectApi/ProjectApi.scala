@@ -222,11 +222,12 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
                                schema = new Schema(implementation = classOf[String])
                              )
                              projectId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+    val project = workspace.project(projectId)
     validateJson[ItemMetaData] { newMetaData =>
       val cleanedNewMetaData = newMetaData
-      val oldProjectMetaData = workspace.project(projectId).config.metaData
+      val oldProjectMetaData = project.config.metaData
       val mergedMetaData = oldProjectMetaData.copy(label = Some(cleanedNewMetaData.label), description = cleanedNewMetaData.description)
-      val updatedMetaData = workspace.updateProjectMetaData(projectId, mergedMetaData.asUpdatedMetaData)
+      val updatedMetaData = project.updateMetaData(mergedMetaData.asUpdatedMetaData)
       Ok(JsonSerializers.toJson(updatedMetaData))
     }
   }

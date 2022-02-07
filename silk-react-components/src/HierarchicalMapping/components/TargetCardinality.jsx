@@ -5,9 +5,9 @@ import {
 } from '@eccenca/gui-elements';
 import {
     Radio,
-} from '@gui-elements/legacy-replacements';
+} from "gui-elements/legacy-replacements";
 import * as PropTypes from "prop-types";
-import {FieldItem} from "@gui-elements/index";
+import {FieldItem} from "gui-elements";
 
 /** Let's a user choose if a target property is single or multi-valued. Depending on the dataset type this will have different implications. */
 class TargetCardinality extends React.Component {

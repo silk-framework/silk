@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { MenuItem, FieldItem, Select, Button, Highlighter } from '@gui-elements/index';
+import { MenuItem, FieldItem, Select, Button, Highlighter } from "gui-elements";
 import { SuggestionListContext } from "./SuggestionContainer";
 import { IPrefix } from "./suggestion.typings";
 

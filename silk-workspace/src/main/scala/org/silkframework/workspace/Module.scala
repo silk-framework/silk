@@ -1,11 +1,11 @@
 package org.silkframework.workspace
 
-import java.util.logging.{Level, Logger}
 import org.silkframework.config.{MetaData, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.exceptions.TaskNotFoundException
 
+import java.util.logging.{Level, Logger}
 import scala.collection.immutable.TreeMap
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
@@ -44,7 +44,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     implicitly[ClassTag[TaskData]].runtimeClass.isAssignableFrom(implicitly[ClassTag[T]].runtimeClass)
   }
 
-  def taskType: Class[_] = {
+  val taskType: Class[_] = {
     implicitly[ClassTag[TaskData]].runtimeClass
   }
 
@@ -52,7 +52,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
    * Retrieves all tasks in this module.
    */
   def tasks(implicit userContext: UserContext): Seq[ProjectTask[TaskData]] = {
-    load()
+    assertLoaded()
     cachedTasks.values.toSeq
   }
 
@@ -63,18 +63,19 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
    */
   def task(name: Identifier)
           (implicit userContext: UserContext): ProjectTask[TaskData] = {
-    load()
+    assertLoaded()
     cachedTasks.getOrElse(name, throw TaskNotFoundException(project.name, name, taskType.getSimpleName))
   }
 
   def taskOption(name: Identifier)
                 (implicit userContext: UserContext): Option[ProjectTask[TaskData]] = {
-    load()
+    assertLoaded()
     cachedTasks.get(name)
   }
 
   def add(name: Identifier, taskData: TaskData, metaData: MetaData)
          (implicit userContext: UserContext) : ProjectTask[TaskData] = {
+    assertLoaded()
     val task = new ProjectTask(name, taskData, metaData, this)
     validator.validate(project, task)
     provider.putTask(project.name, task)
@@ -89,6 +90,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
    */
   def remove(taskId: Identifier)
             (implicit userContext: UserContext){
+    assertLoaded()
     // Cancel all activities
     for {
       task <- cachedTasks.get(taskId)
@@ -104,21 +106,19 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
 
   /**
     * Loads the tasks in this module.
-    * Will be triggered automatically the first time a task is requested.
-    * Can be triggered manually to control when the tasks are loaded.
+    * Has to be called initially.
     */
-  def load()
-                  (implicit userContext: UserContext): Unit = synchronized {
+  def load(tasks: Seq[LoadedTask[TaskData]])
+          (implicit userContext: UserContext): Unit = synchronized {
     if(cachedTasks == null) {
       try {
         logger.fine(s"Loading tasks of type ${taskType.getSimpleName}")
-        val tasks = provider.readTasksSafe[TaskData](project.name, project.resources)
         cachedTasks = TreeMap()(TaskOrdering) ++ {
           (for (taskTry <- tasks) yield {
-            taskTry match {
-              case Left(task) =>
+            taskTry.taskOrError match {
+              case Right(task) =>
                 Some((task.id, new ProjectTask(task.id, task.data, task.metaData, this)))
-              case Right(taskLoadingError) =>
+              case Left(taskLoadingError) =>
                 errors ::= taskLoadingError
                 None
             }
@@ -140,6 +140,12 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
   private def handleTaskExceptions(): Unit = {
     for (loadingError <- errors) {
       logger.log(Level.WARNING, s"Error loading tasks of type ${taskType.getName}", loadingError.throwable)
+    }
+  }
+
+  private def assertLoaded(): Unit = {
+    if(cachedTasks == null) {
+      throw new Exception("Tried to access tasks before Module has been loaded")
     }
   }
 

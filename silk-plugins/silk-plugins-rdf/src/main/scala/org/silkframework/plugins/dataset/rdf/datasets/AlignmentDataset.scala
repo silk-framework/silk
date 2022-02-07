@@ -36,5 +36,5 @@ case class AlignmentDataset(
     this.copy(file = writableResource)
   }
 
-  override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly
+  override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly()
 }

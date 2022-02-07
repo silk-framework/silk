@@ -37,7 +37,7 @@ case class CacheDataset(dir: String) extends Dataset {
 
   override def linkSink(implicit userContext: UserContext) = ???
 
-  override def characteristics: DatasetCharacteristics = DatasetCharacteristics()
+  override def characteristics: DatasetCharacteristics = DatasetCharacteristics(supportsMultipleTables = false)
 
   object CacheSource extends DataSource {
     override def retrieve(entityDesc: EntitySchema, limit: Option[Int])

@@ -12,7 +12,7 @@ export interface IHttpResponse<T> {
 export type HttpResponsePromise<T> = Promise<IHttpResponse<T>>
 
 /**
- * API for the DataIntegration REST API. This includes the pure REST calls returning the results as JSON without any
+ * API for the Silk REST API. This includes the pure REST calls returning the results as JSON without any
  * further business logic.
  */
 const silkApi = {

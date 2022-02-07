@@ -68,7 +68,7 @@ class XmlZipProjectMarshalingTest extends FlatSpec with Matchers {
     }
     val datasets = workspace.readTasks[GenericDatasetSpec](projectName, resources)
     val linkingTask = workspace.readTasks[LinkSpec](projectName, resources)
-    datasets.map(_.id.toString) should contain allOf("DBpedia", "linkedmdb")
-    linkingTask.map(_.id.toString) should contain("movies")
+    datasets.map(_.task.id.toString) should contain allOf("DBpedia", "linkedmdb")
+    linkingTask.map(_.task.id.toString) should contain("movies")
   }
 }

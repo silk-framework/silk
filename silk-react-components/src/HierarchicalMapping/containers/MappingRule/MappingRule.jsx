@@ -14,7 +14,7 @@ import PropTypes from 'prop-types';
 import MappingRuleRow from './MappingRuleRow';
 import NavigateButton from '../../elements/buttons/NavigateButton';
 import ExpandButton from '../../elements/buttons/ExpandButton';
-import {ContextMenu, MenuItem, Spinner} from "@gui-elements/index";
+import {ContextMenu, MenuItem, Spinner} from "gui-elements";
 
 export class MappingRule extends React.Component {
     // define property types

@@ -5,13 +5,15 @@ import org.silkframework.dataset.DatasetCharacteristics.SupportedPathExpressions
 /** Characteristics of a data source.
   *
   * @param supportedPathExpressions The characteristics of the supported path expressions.
+  * @param supportsMultipleTables If true, the dataset supports reading and writing multiple tables, which includes hierarchical datasets (XML, JSON, etc.).
+  *                               If false, the dataset only supports a single table (e.g., CSV).
   */
-case class DatasetCharacteristics(supportedPathExpressions: SupportedPathExpressions = SupportedPathExpressions())
+case class DatasetCharacteristics(supportedPathExpressions: SupportedPathExpressions = SupportedPathExpressions(), supportsMultipleTables: Boolean = true)
 
 object DatasetCharacteristics {
 
   /** Sources that only support plain attributes (i.e., forward paths of length 1 without any filters) */
-  def attributesOnly: DatasetCharacteristics = DatasetCharacteristics()
+  def attributesOnly(supportsMultipleTables: Boolean = false): DatasetCharacteristics = DatasetCharacteristics(supportsMultipleTables = supportsMultipleTables)
 
   /** The kind of path expressions supported by a data source.
     *

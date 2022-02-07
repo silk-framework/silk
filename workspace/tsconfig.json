@@ -1,0 +1,10 @@
+{
+    "extends": "../libs/gui-elements/tsconfig.json",
+    "compilerOptions": {
+        "baseUrl": "./src/app",
+        "paths": {
+            "@ducks/*": ["./store/ducks/*"]
+        }
+    },
+    "include": ["./src"]
+}

@@ -192,6 +192,15 @@ class CsvSourceTest extends FlatSpec with Matchers {
     top.valueOfPath(UntypedPath("vals2")).head shouldBe "val2"
   }
 
+  it should "encode manually provided properties, if necessary" in {
+    val source = noHeaders.copy(properties = "path with spaces,path+already%20encoded,path3").source
+    val entities: Seq[Entity] = getEntities(source)
+    val top = entities.head
+    top.schema.propertyNames shouldBe IndexedSeq("path+with+spaces", "path+already%20encoded", "path3")
+    top.valueOfPath(UntypedPath("path+with+spaces")).head shouldBe "val1"
+    top.valueOfPath(UntypedPath("path+already%20encoded")).head shouldBe "val2"
+  }
+
   it should "support #idx special forward path" in {
     val s = source
     val schema = EntitySchema("", typedPaths = IndexedSeq(UntypedPath("#idx").asStringTypedPath))
