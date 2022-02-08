@@ -552,13 +552,17 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
     };
 
     const initModel = async () => {
+        const handleDeleteNode = (nodeId: string) => {
+            startChangeTransaction();
+            deleteNode(nodeId);
+        };
         setNodeParameterDiff(new Map());
         const operatorsNodes = ruleEditorContext.initialRuleOperatorNodes;
         // Create nodes
         let needsLayout = false;
         const nodes = operatorsNodes!!.map((operatorNode) => {
             needsLayout = needsLayout || !operatorNode.position;
-            return utils.createOperatorNode(operatorNode, reactFlowInstance!!, deleteNode, t);
+            return utils.createOperatorNode(operatorNode, reactFlowInstance!!, handleDeleteNode, t);
         });
         // Create edges
         const edges: Edge[] = [];
