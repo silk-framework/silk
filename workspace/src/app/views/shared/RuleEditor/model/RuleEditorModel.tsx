@@ -40,11 +40,11 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
     /** Rule editor context. */
     const ruleEditorContext = React.useContext<RuleEditorContextProps>(RuleEditorContext);
     /** The rule editor change history that will be used to UNDO changes. The changes are in the order they have been executed. */
-    const [ruleUndoStack, setRuleUndoStack] = React.useState<ChangeStackType[]>([]);
+    const [ruleUndoStack] = React.useState<ChangeStackType[]>([]);
     /** If there are changes that can be undone. */
     const [canUndo, setCanUndo] = React.useState<boolean>(false);
     /** Stores the REDO history. The order is how the changes were executed by the corresponding UNDO operation. */
-    const [ruleRedoStack, setRuleRedoStack] = React.useState<ChangeStackType[]>([]);
+    const [ruleRedoStack] = React.useState<ChangeStackType[]>([]);
     /** If there are changes that can be redone, i.e. that have been previously undone. */
     const [canRedo, setCanRedo] = React.useState<boolean>(false);
     const [utils] = React.useState(ruleEditorModelUtilsFactory());
@@ -579,8 +579,8 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
         }
         setElements(elems);
         utils.initNodeBaseIds(nodes);
-        setRuleUndoStack([]);
-        setRuleRedoStack([]);
+        ruleUndoStack.splice(0);
+        ruleRedoStack.splice(0);
     };
 
     /** Convert initial operator nodes to react-flow model. */
