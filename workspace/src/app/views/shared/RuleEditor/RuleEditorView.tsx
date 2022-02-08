@@ -14,6 +14,8 @@ import ReactFlow, {
 import { RuleEditorOperatorSidebar } from "./RuleEditorOperatorSidebar";
 import React from "react";
 import { RuleEditorModelContext } from "./contexts/RuleEditorModelContext";
+import { Node } from "react-flow-renderer/dist/types";
+import { IRuleEditorViewDragState } from "./RuleEditorView.typings";
 
 //snap grid
 const snapGrid: [number, number] = [15, 15];
@@ -21,7 +23,21 @@ const snapGrid: [number, number] = [15, 15];
 export const RuleEditorView = () => {
     const reactFlowWrapper = React.useRef<any>(null);
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
+    const [dragState] = React.useState<IRuleEditorViewDragState>({});
     const modelContext = React.useContext(RuleEditorModelContext);
+
+    /** Handle moving a node. */
+    const handleNodeDragStart = (event: React.MouseEvent<Element, MouseEvent>, node: Node) => {
+        dragState.nodeDragStartPosition = node.position;
+    };
+    /** Handle moving a node. */
+    const handleNodeDragStop = (event: React.MouseEvent<Element, MouseEvent>, node: Node) => {
+        if (dragState.nodeDragStartPosition) {
+            modelContext.executeModelEditOperation.startChangeTransaction();
+            modelContext.executeModelEditOperation.moveNode(node.id, node.position);
+            dragState.nodeDragStartPosition = undefined;
+        }
+    };
 
     // Triggered after the react-flow instance has been loaded
     const onLoad = (_reactFlowInstance: OnLoadParams) => {
@@ -50,8 +66,8 @@ export const RuleEditorView = () => {
                         // onSelectionDragStop={handleSelectionDragStop}
                         // onElementsRemove={onElementsRemove}
                         // onConnect={onConnect}
-                        // onNodeDragStart={handleDragStart}
-                        // onNodeDragStop={handleNodeDragStop}
+                        onNodeDragStart={handleNodeDragStart}
+                        onNodeDragStop={handleNodeDragStop}
                         onLoad={onLoad}
                         // onDrop={onDrop}
                         // onDragOver={onDragOver}

@@ -1,5 +1,5 @@
 import React from "react";
-import { IconButton, Toolbar, ToolbarSection } from "gui-elements";
+import { IconButton, Spacing, Toolbar, ToolbarSection } from "gui-elements";
 import { RuleEditorModelContext } from "./contexts/RuleEditorModelContext";
 
 /** Toolbar of the rule editor. Contains global editor actions like save, redo/undo etc. */
@@ -22,6 +22,14 @@ export const RuleEditorToolbar = () => {
                     name="operation-redo"
                     text="Redo"
                     onClick={modelContext.redo}
+                />
+                <Spacing vertical hasDivider />
+                <IconButton
+                    data-test-id={"rule-editor-auto-layout-btn"}
+                    disabled={modelContext.elements.length === 0}
+                    name="operation-auto-graph-layout"
+                    text="Auto-layout"
+                    onClick={modelContext.executeModelEditOperation.autoLayout}
                 />
             </ToolbarSection>
         </Toolbar>

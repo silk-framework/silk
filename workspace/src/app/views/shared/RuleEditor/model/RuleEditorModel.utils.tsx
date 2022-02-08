@@ -280,6 +280,8 @@ export const ruleEditorModelUtilsFactory = () => {
         createNewOperatorNode,
         createOperatorNode,
         edgeById,
+        elementNodes,
+        elementEdges,
         initNodeBaseIds,
         inputHandles,
         isNode,

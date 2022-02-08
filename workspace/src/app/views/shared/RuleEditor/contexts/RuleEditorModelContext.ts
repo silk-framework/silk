@@ -36,14 +36,24 @@ export interface RuleEditorModelContextProps {
 export interface IModelActions {
     /** Starts a new change transaction. All actions after this will be handled as a single transaction, e.g. can be undone/redone as on operation. */
     startChangeTransaction: () => void;
+    /** Add a rule operator as new rule node. */
     addNode: (ruleOperator: IRuleOperator, position: XYPosition) => void;
+    /** Delete a rule node. */
     deleteNode: (nodeId: string) => void;
+    /** Delete multiple rules nodes at once. */
     deleteNodes: (nodeIds: string[]) => void;
+    /** Add an edge between two nodes. */
     addEdge: (sourceNodeId: string, targetNodeId: string, targetHandleId: string) => void;
+    /** Delete an edge. */
     deleteEdge: (edgeId: string) => void;
+    /** Copy and paste a selection of nodes. Move pasted selection by the defined offset. */
     copyAndPasteNodes: (nodeIds: string[], offset: XYPosition) => void;
+    /** Move a single node to a new position. */
     moveNode: (nodeId: string, newPosition: XYPosition) => void;
+    /** Change a single node parameter. */
     changeNodeParameter: (nodeId: string, parameterId: string, newValue: string | undefined) => void;
+    /** Automatically layout the rule nodes. */
+    autoLayout: () => void;
 }
 
 const NOP = () => {};
@@ -70,6 +80,7 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
         changeNodeParameter: NOP,
         addEdge: NOP,
         deleteEdge: NOP,
+        autoLayout: NOP,
     },
     undo: () => false,
     canUndo: false,

@@ -497,6 +497,39 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
         });
     };
 
+    /** Layout the rule nodes, since this must be async it cannot return the new elements directly in the setElements function. */
+    const autoLayoutInternal = async (elements: Elements) => {
+        const newLayout = await utils.autoLayout(elements);
+        const changeNodePositionOperations: ChangeNodePosition[] = [];
+        utils.elementNodes(elements).forEach((node) => {
+            const newPosition = newLayout.get(node.id);
+            if (newPosition && (newPosition.x !== node.position.x || newPosition.y !== node.position.y)) {
+                changeNodePositionOperations.push({
+                    type: "Change node position",
+                    nodeId: node.id,
+                    from: node.position,
+                    to: newPosition,
+                });
+            }
+        });
+        if (changeNodePositionOperations.length > 0) {
+            startChangeTransaction();
+            const changedElements = addAndExecuteRuleModelChangeInternal(
+                { operations: changeNodePositionOperations },
+                elements
+            );
+            setElements(changedElements);
+        }
+    };
+
+    /** Auto-layout the rule nodes. */
+    const autoLayout = () => {
+        setElements((elements) => {
+            autoLayoutInternal(elements);
+            return elements;
+        });
+    };
+
     /** Save the current rule. */
     const saveRule = () => {
         const nodes: RuleEditorNode[] = [];
@@ -626,6 +659,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
                     changeNodeParameter,
                     addEdge,
                     deleteEdge,
+                    autoLayout,
                 },
             }}
         >
