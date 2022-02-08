@@ -4,29 +4,22 @@
     "private": true,
     "license": "Apache-2.0",
     "//": [
-        "i18n-parser: Parse code files for usages of keys not existing in the current (manual) languages files. This will add a placeholder entry to the language files.",
-        "start: TODO",
-        "watch-di-dev: Watches source file changes and builds the development artefacts of the workspace UI incrementally.",
+        "watch: Watches source file changes and builds the development artefacts of the workspace UI incrementally.",
         "build-di-dev: Development build of the workspace UI.",
         "build-di-prod: Production build of the workspace UI.",
-        "build: TODO",
         "test: Interactive test execution with watch mode.",
         "test-ci: Test execution for the CI system that produces the result XML files.",
         "sync-trans: Synchronizes entries from the English (manual) language file to the German (manual) language file, i.e. add or delete entries to/from the German language file. This will modify the manually curated de.json file.",
         "i18n-parser: Parse code files for usages of keys not existing in the current (manual) languages files. This will add a placeholder entry to the language files."
     ],
     "scripts": {
-        "start": "node scripts/start.js",
-        "watch-di-dev": "node scripts/build-di.dev.js --watch",
         "watch": "node scripts/build-di.dev.js --watch",
         "build-di-dev": "node scripts/build-di.dev.js",
         "build-di-prod": "node --max_old_space_size=2048 scripts/build-di.prod.js",
-        "build": "node scripts/build.js",
         "test": "node scripts/test.js",
         "test-ci": "export CI=true && node scripts/test.js --coverage --reporters=\"default\" --reporters=\"jest-junit\" --no-colors",
         "sync-trans": "sync-i18n --files 'src/locales/manual/*.json' --primary en --languages de --space 4 -- --check",
-        "i18n-parser": "node scripts/i18next-scanner.js",
-        "compile": "tsc --build"
+        "i18n-parser": "node scripts/i18next-scanner.js"
     },
     "dependencies": {
         "@blueprintjs/core": "^3.49.1",

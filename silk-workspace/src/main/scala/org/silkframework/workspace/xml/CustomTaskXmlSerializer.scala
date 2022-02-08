@@ -14,14 +14,14 @@
 
 package org.silkframework.workspace.xml
 
-import java.io.OutputStreamWriter
-import java.util.logging.Logger
-
 import org.silkframework.config._
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.TaskLoadingError
+import org.silkframework.workspace.LoadedTask
+
+import java.io.OutputStreamWriter
+import java.util.logging.Logger
 
 /**
  * Holds custom tasks.
@@ -53,8 +53,8 @@ private class CustomTaskXmlSerializer extends XmlSerializer[CustomTask] {
     resources.delete(name.toString + "_cache.xml")
   }
 
-  override def loadTasksSafe(resources: ResourceLoader,
-                             projectResources: ResourceManager): Seq[Either[Task[CustomTask], TaskLoadingError]] = {
+  override def loadTasks(resources: ResourceLoader,
+                         projectResources: ResourceManager): Seq[LoadedTask[CustomTask]] = {
     val names = taskNames(resources)
     val tasks = for (name <- names) yield {
       loadTaskSafelyFromXML(name, Some(name.stripSuffix(".xml")), resources, projectResources)

@@ -1,5 +1,6 @@
 package org.silkframework.workspace
 
+import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.config.{Tag, Task, TaskSpec}
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
@@ -30,7 +31,12 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     */
   override def putProject(project: ProjectConfig)
                          (implicit userContext: UserContext): Unit = {
-    projects += ((project.id, new InMemoryProject(project.copy(projectResourceUriOpt = Some(project.resourceUriOrElseDefaultUri)))))
+    projects.get(project.id) match {
+      case Some(existingProject) =>
+        existingProject.config = project
+      case None =>
+        projects += ((project.id, new InMemoryProject(project.copy(projectResourceUriOpt = Some(project.resourceUriOrElseDefaultUri)))))
+    }
   }
 
   /**
@@ -61,22 +67,24 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     */
   override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T])
                                                 (implicit userContext: UserContext): Unit = {
-    projects(project).tasks += ((task.id, task))
+    projects(project).tasks += ((task.id, LoadedTask.success(task)))
   }
 
   /**
     * Reads all tasks of a specific type from a project.
     */
   override def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
-                                                  (implicit userContext: UserContext): Seq[Task[T]] = {
-    val taskClass = implicitly[ClassTag[T]].runtimeClass
-    projects(project).tasks.values.filter(task => taskClass.isAssignableFrom(task.data.getClass)).map(_.asInstanceOf[Task[T]]).toSeq
+                                                  (implicit user: UserContext): Seq[LoadedTask[T]] = {
+    val requestedClass = implicitly[ClassTag[T]].runtimeClass
+    projects(project).tasks.values.filter(task => requestedClass.isAssignableFrom(task.taskType)).map(_.asInstanceOf[LoadedTask[T]]).toSeq
   }
 
-  override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier,
-                                                       projectResources: ResourceManager)(implicit user: UserContext): Seq[Either[Task[T], TaskLoadingError]] = {
-    val taskClass = implicitly[ClassTag[T]].runtimeClass
-    projects(project).tasks.values.filter(task => taskClass.isAssignableFrom(task.data.getClass)).map(task => Left(task.asInstanceOf[Task[T]])).toSeq
+  /**
+    * Reads all tasks of all types from a project.
+    **/
+  override def readAllTasks(project: Identifier, projectResources: ResourceManager)
+                           (implicit user: UserContext): Seq[LoadedTask[_]] = {
+    projects(project).tasks.values.toSeq
   }
 
   /**
@@ -117,9 +125,9 @@ class InMemoryWorkspaceProvider() extends WorkspaceProvider {
     */
   override def refresh()(implicit userContext: UserContext): Unit = {}
 
-  protected class InMemoryProject(val config: ProjectConfig) {
+  protected class InMemoryProject(@volatile var config: ProjectConfig) {
 
-    var tasks: Map[Identifier, Task[_]] = Map.empty
+    var tasks: Map[Identifier, LoadedTask[_ <: TaskSpec]] = Map.empty
 
     var tags: Map[String, Tag] = Map.empty
 

@@ -1,13 +1,13 @@
 package org.silkframework.plugins.dataset.rdf.formatters
 
-import java.io._
-
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.{EntitySink, TripleSink, TypedProperty}
 import org.silkframework.entity.ValueType
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.{FileResource, WritableResource}
+import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.util.Uri
+
+import java.io._
 
 /**
  * An entity sink that writes formatted entity output to an output resource.
@@ -16,25 +16,14 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
 
   private var properties = Seq[TypedProperty]()
 
-  // We optimize cases in which the resource is a file resource
-  private val javaFile = resource match {
-    case f: FileResource => Some(f.file)
-    case _ => None
-  }
-
   private var writer: Writer = _
 
   override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
                         (implicit userContext: UserContext, prefixes: Prefixes){
     this.properties = properties
     if(writer == null) {
-      // If we got a java file, we write directly to it, otherwise we write to a temporary string
-      writer = javaFile match {
-        case Some(file) =>
-          file.getParentFile.mkdirs()
-          new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, true), "UTF-8"))
-        case None => new StringWriter()
-      }
+      val outputStream = resource.createOutputStream(append = true)
+      writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"))
       //Write header
       writer.write(formatter.header)
     }
@@ -60,14 +49,12 @@ class FormattedEntitySink(resource: WritableResource, formatter: EntityFormatter
 
   override def close()(implicit userContext: UserContext) {
     if (Option(writer).isDefined) {
-      writer.write(formatter.footer)
-      writer.close()
-      // In case we used a string writer, we still need to write the generated string.
-      writer match {
-        case stringWriter: StringWriter => resource.writeString(stringWriter.toString, append = true)
-        case _ =>
+      try {
+        writer.write(formatter.footer)
+      } finally {
+        writer.close()
+        writer = null
       }
-      writer = null
     }
   }
 

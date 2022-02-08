@@ -3,14 +3,12 @@ package org.silkframework.workspace.xml
 import org.silkframework.config._
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.ReadContext
-import org.silkframework.runtime.serialization.XmlSerialization.fromXml
+import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
+import org.silkframework.workspace.LoadedTask
 import org.silkframework.workspace.activity.workflow.Workflow
-import org.silkframework.runtime.serialization.XmlSerialization._
-import org.silkframework.workspace.TaskLoadingError
 
-import scala.util.Try
 import scala.xml.{Attribute, Null, Text, XML}
 
 private class WorkflowXmlSerializer extends XmlSerializer[Workflow] {
@@ -20,7 +18,7 @@ private class WorkflowXmlSerializer extends XmlSerializer[Workflow] {
   /**
    * Loads all tasks of this module.
    */
-  override def loadTasksSafe(resources: ResourceLoader, projectResources: ResourceManager): Seq[Either[Task[Workflow], TaskLoadingError]] = {
+  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Seq[LoadedTask[Workflow]] = {
     implicit val readContext = ReadContext(projectResources)
     val names = resources.list.filter(_.endsWith(".xml"))
     val tasks =

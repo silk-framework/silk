@@ -46,19 +46,16 @@ trait WorkspaceProvider {
   def projectCache(name: Identifier): ResourceManager
 
   /**
-   * Reads all tasks of a specific type from a project.
-    *
-    * Use readTasksSafe instead of this method.
-   */
+    * Reads all tasks of a specific type from a project.
+    **/
   def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
-                                         (implicit user: UserContext): Seq[Task[T]] = {
-    readTasksSafe[T](project, projectResources).map(t => t.left.getOrElse(throw t.right.get.throwable))
-  }
+                                         (implicit user: UserContext): Seq[LoadedTask[T]]
 
   /**
-    * Version of readTasks that returns a Seq[Try[Task[T]]]
+    * Reads all tasks of all types from a project.
     **/
-  def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)(implicit user: UserContext): Seq[Either[Task[T], TaskLoadingError]]
+  def readAllTasks(project: Identifier, projectResources: ResourceManager)
+                  (implicit user: UserContext): Seq[LoadedTask[_]]
 
   /**
    * Adds/Updates a task in a project.
@@ -135,6 +132,51 @@ trait WorkspaceProvider {
     val loadingErrors = externalLoadingErrors.getOrElse(projectId, Vector.empty)
     externalLoadingErrors.put(projectId, loadingErrors.filter(_.taskId != taskId))
   }
+}
+
+
+/**
+  * The result of loading a task.
+  * Holds either the loaded task or the loading error.
+  */
+case class LoadedTask[T <: TaskSpec : ClassTag](taskOrError: Either[TaskLoadingError, Task[T]]) {
+
+  /**
+    * The task type.
+    */
+  val taskType: Class[_] = implicitly[ClassTag[T]].runtimeClass
+
+  /**
+    * Retrieves the task if it could be loaded or throws an exception containing the tasks loading error.
+    */
+  def task: Task[T] = {
+    taskOrError.right.getOrElse(throw taskOrError.left.get.throwable)
+  }
+
+  /**
+    * Returns the task if it could be loaded or None otherwise.
+    */
+  def taskOption: Option[Task[T]] = {
+    taskOrError.toOption
+  }
+
+  /**
+    * Retrieves the loading error, if any.
+    */
+  def error: Option[TaskLoadingError] = taskOrError.swap.toOption
+
+}
+
+object LoadedTask {
+
+  def success[T <: TaskSpec : ClassTag](task: Task[T]): LoadedTask[T] = {
+    LoadedTask(Right(task))
+  }
+
+  def failed[T <: TaskSpec : ClassTag](error: TaskLoadingError): LoadedTask[T] = {
+    LoadedTask(Left(error))
+  }
+
 }
 
 /** Task loading error. */
