@@ -8,7 +8,7 @@ import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
 import org.silkframework.workspace.io.WorkspaceIO
-import org.silkframework.workspace.{ProjectConfig, TaskLoadingError, WorkspaceProvider}
+import org.silkframework.workspace.{LoadedTask, ProjectConfig, WorkspaceProvider}
 
 import java.util.logging.{Level, Logger}
 import scala.reflect.ClassTag
@@ -23,7 +23,7 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
   private val log = Logger.getLogger(classOf[XmlWorkspaceProvider].getName)
 
   @volatile
-  private var plugins = Map[Class[_], XmlSerializer[_]]()
+  private var plugins = Map[Class[_], XmlSerializer[_ <: TaskSpec]]()
 
   // Register all module types
   registerModule(new DatasetXmlSerializer())
@@ -97,9 +97,15 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
     resources.child(name)
   }
 
-  override def readTasks[T <: TaskSpec : ClassTag](project: Identifier, projectResources: ResourceManager)
-                                                  (implicit userContext: UserContext): Seq[Task[T]] = {
+  override def readTasks[T <: TaskSpec : ClassTag](project: Identifier,
+                                                   projectResources: ResourceManager)
+                                                  (implicit user: UserContext): Seq[LoadedTask[T]] = {
     plugin[T].loadTasks(resources.child(project).child(plugin[T].prefix), projectResources)
+  }
+
+  override def readAllTasks(project: Identifier, projectResources: ResourceManager)
+                           (implicit user: UserContext): Seq[LoadedTask[_]] = {
+    plugins.values.toSeq.flatMap(plugin => plugin.loadTasks(resources.child(project).child(plugin.prefix), projectResources).asInstanceOf[Seq[LoadedTask[_ <: TaskSpec]]])
   }
 
   override def putTask[T <: TaskSpec : ClassTag](project: Identifier, task: Task[T])
@@ -125,12 +131,6 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
   override def refresh()(implicit userContext: UserContext): Unit = {
     // No refresh needed, all tasks are read from the file system on every read. Nothing is cached
     // This is implemented to avoid warnings on project imports.
-  }
-
-  override def readTasksSafe[T <: TaskSpec : ClassTag](project: Identifier,
-                                                       projectResources: ResourceManager)
-                                                      (implicit user: UserContext): Seq[Either[Task[T], TaskLoadingError]] = {
-    plugin[T].loadTasksSafe(resources.child(project).child(plugin[T].prefix), projectResources)
   }
 
   /**

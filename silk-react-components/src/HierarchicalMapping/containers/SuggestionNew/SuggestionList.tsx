@@ -8,7 +8,7 @@ import {
     Spacing,
     Spinner,
     Table,
-} from '@gui-elements/index';
+} from "gui-elements";
 import {
     IAddedSuggestion,
     IPageSuggestion,

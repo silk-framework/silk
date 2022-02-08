@@ -19,7 +19,7 @@ class ProjectLoadingErrorIntegrationTest extends FlatSpec with SingleProjectWork
   override def workspaceProviderId: String = "inMemory"
 
   private def updateProjectMetaData(): Unit = {
-    WorkspaceFactory().workspace.updateProjectMetaData(projectId, MetaData(Some(projectLabel)))
+    WorkspaceFactory().workspace.project(projectId).updateMetaData(MetaData(Some(projectLabel)))
   }
 
   private lazy val tasksReportEndpoint = {

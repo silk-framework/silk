@@ -1,18 +1,16 @@
 package org.silkframework.workspace.xml
 
-import java.util.logging.Logger
-
 import org.silkframework.config._
-import org.silkframework.rule.{DatasetSelection, TransformRule, TransformSpec}
+import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
-import org.silkframework.workspace.TaskLoadingError
+import org.silkframework.workspace.LoadedTask
 
-import scala.util.Try
+import java.util.logging.Logger
 import scala.xml.{Attribute, Null, Text, XML}
 
 /**
@@ -40,14 +38,14 @@ private class TransformXmlSerializer extends XmlSerializer[TransformSpec] {
   /**
    * Loads all tasks of this module.
    */
-  override def loadTasksSafe(resources: ResourceLoader, projectResources: ResourceManager): Seq[Either[Task[TransformSpec], TaskLoadingError]] = {
+  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Seq[LoadedTask[TransformSpec]] = {
     val tasks =
       for(name <- resources.listChildren) yield
         loadTask(name, resources.child(name), projectResources)
     tasks
   }
 
-  private def loadTask(name: Identifier, taskResources: ResourceLoader, projectResources: ResourceManager): Either[Task[TransformSpec], TaskLoadingError] = {
+  private def loadTask(name: Identifier, taskResources: ResourceLoader, projectResources: ResourceManager): LoadedTask[TransformSpec] = {
     try {
       implicit val resources = projectResources
       implicit val readContext = ReadContext(resources)

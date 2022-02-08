@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useState} from "react";
 import CodeMirror from "codemirror";
-import {FieldItem, IconButton, Spinner, Label, ToolbarSection, Toolbar, Spacing} from "@gui-elements/index";
+import {FieldItem, IconButton, Spinner, ToolbarSection, Toolbar} from "gui-elements";
 import { Classes as BlueprintClassNames } from "@blueprintjs/core";
 
 //custom components

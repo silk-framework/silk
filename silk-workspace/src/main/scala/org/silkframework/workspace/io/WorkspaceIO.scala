@@ -1,7 +1,5 @@
 package org.silkframework.workspace.io
 
-import java.util.logging.Logger
-
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
@@ -12,8 +10,8 @@ import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.resources.ResourceRepository
 import org.silkframework.workspace.{ProjectConfig, WorkspaceProvider}
 
+import java.util.logging.Logger
 import scala.reflect.ClassTag
-import scala.util.{Failure, Success}
 
 /**
   * Transfers projects between workspaces.
@@ -73,11 +71,11 @@ object WorkspaceIO {
                                                   resources: ResourceManager,
                                                   projectName: Identifier)
                                                  (implicit userContext: UserContext): Unit = {
-    for(taskTry <- inputWorkspace.readTasksSafe[T](projectName, resources)) {
-      taskTry match {
-        case Left(task) =>
+    for(taskTry <- inputWorkspace.readTasks[T](projectName, resources)) {
+      taskTry.taskOrError match {
+        case Right(task) =>
           outputWorkspace.putTask(projectName, task)
-        case Right(taskLoadingError) =>
+        case Left(taskLoadingError) =>
           outputWorkspace.retainExternalTaskLoadingError(projectName, taskLoadingError)
           log.warning("Invalid task encountered while copying task between workspace providers. Error message: " + taskLoadingError.throwable.getMessage)
       }

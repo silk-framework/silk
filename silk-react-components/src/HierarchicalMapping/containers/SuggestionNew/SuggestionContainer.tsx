@@ -10,7 +10,7 @@ import {
     Notification,
     Spacing,
     TableContainer,
-} from "@gui-elements/index";
+} from "gui-elements";
 import SuggestionList from "./SuggestionList";
 import SuggestionHeader from "./SuggestionHeader";
 import {
@@ -29,7 +29,7 @@ import {
 import silkApi from "../../../api/silkRestApi";
 import VocabularyMatchingDialog from "./VocabularyMatchingDialog";
 import {IInitFrontend, useInitFrontend} from "../../../api/silkRestApi.hooks";
-import {extractSearchWords, matchesAllWords} from "@gui-elements/src/components/Typography/Highlighter";
+import {extractSearchWords, matchesAllWords} from "gui-elements/src/components/Typography/Highlighter";
 import ErrorView from "../../components/ErrorView";
 import _ from "lodash";
 

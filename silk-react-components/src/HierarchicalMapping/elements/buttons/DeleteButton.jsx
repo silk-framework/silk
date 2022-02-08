@@ -1,5 +1,5 @@
 import React from 'react';
-import { DisruptiveButton } from '@gui-elements/legacy-replacements';
+import { DisruptiveButton } from "gui-elements/legacy-replacements";
 
 const DeleteButton = ({ onDelete }) => {
     return (

@@ -4,7 +4,7 @@ import org.silkframework.config.{MetaData, Task, TaskSpec}
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.TaskLoadingError
+import org.silkframework.workspace.{LoadedTask, TaskLoadingError}
 
 import java.io.InputStream
 import scala.reflect.ClassTag
@@ -22,16 +22,9 @@ private abstract class XmlSerializer[TaskType <: TaskSpec : ClassTag] {
   def prefix: String
 
   /**
-    * Loads all tasks of this module.
-    */
-  def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Seq[Task[TaskType]] = {
-    loadTasksSafe(resources, projectResources).map(task => task.left.getOrElse(throw task.right.get.throwable))
-  }
-
-  /**
     * Loads all tasks of this module in a safe way. Invalid tasks can be handled separately this way.
     */
-  def loadTasksSafe(resources: ResourceLoader, projectResources: ResourceManager): Seq[Either[Task[TaskType], TaskLoadingError]]
+  def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Seq[LoadedTask[TaskType]]
 
   /**
     * Removes a specific task.
@@ -77,7 +70,7 @@ private abstract class XmlSerializer[TaskType <: TaskSpec : ClassTag] {
                                       alternativeTaskId: Option[String],
                                       resources: ResourceLoader,
                                       projectResources: ResourceManager)
-                                     (implicit xmlFormat: XmlFormat[TaskType]): Either[Task[TaskType], TaskLoadingError] = {
+                                     (implicit xmlFormat: XmlFormat[TaskType]): LoadedTask[TaskType] = {
     implicit val res: ResourceManager = projectResources
     implicit val readContext: ReadContext = ReadContext(projectResources)
     val resource = resources.get(resourceName)
@@ -89,7 +82,7 @@ private abstract class XmlSerializer[TaskType <: TaskSpec : ClassTag] {
                                       alternativeTaskId: Option[String],
                                       resources: ResourceLoader,
                                       projectResources: ResourceManager)
-                                     (implicit xmlFormat: XmlFormat[TaskType]): Either[Task[TaskType], TaskLoadingError] = {
+                                     (implicit xmlFormat: XmlFormat[TaskType]): LoadedTask[TaskType] = {
     implicit val res: ResourceManager = projectResources
     implicit val readContext: ReadContext = ReadContext(projectResources)
     loadTaskSafelyFromXML(extractTaskMetaData(taskXml), resourceName, alternativeTaskId)
@@ -99,23 +92,25 @@ private abstract class XmlSerializer[TaskType <: TaskSpec : ClassTag] {
                                       resourceName: String,
                                       alternativeTaskId: Option[String])
                                      (implicit xmlFormat: XmlFormat[TaskType],
-                                      readContext: ReadContext): Either[Task[TaskType], TaskLoadingError] = {
-    taskElemWithMetaData match {
-      case Success((metaData, elem)) =>
-        (elem \ "@id").headOption.map(_.text).orElse(alternativeTaskId) match {
-          case Some(taskId) =>
-            Try(XmlSerialization.fromXml[Task[TaskType]](elem)) match {
-              case Success(task) => Left(task)
-              case Failure(ex) =>
-                Right(TaskLoadingError(None, taskId, ex, label = metaData.flatMap(_.label), description = metaData.flatMap(_.description)))
-            }
-          case None =>
-            Right(TaskLoadingError(None, alternativeTaskId.getOrElse(s"No ID! Resource:$resourceName"),
-              new RuntimeException(s"Could not find 'id' attribute in XML from file $resourceName${alternativeTaskId.map(n => s" for task '$n'").getOrElse("")}.")))
-        }
+                                      readContext: ReadContext): LoadedTask[TaskType] = {
+    val taskOrError =
+      taskElemWithMetaData match {
+        case Success((metaData, elem)) =>
+          (elem \ "@id").headOption.map(_.text).orElse(alternativeTaskId) match {
+            case Some(taskId) =>
+              Try(XmlSerialization.fromXml[Task[TaskType]](elem)) match {
+                case Success(task) => Right(task)
+                case Failure(ex) =>
+                  Left(TaskLoadingError(None, taskId, ex, label = metaData.flatMap(_.label), description = metaData.flatMap(_.description)))
+              }
+            case None =>
+              Left(TaskLoadingError(None, alternativeTaskId.getOrElse(s"No ID! Resource:$resourceName"),
+                new RuntimeException(s"Could not find 'id' attribute in XML from file $resourceName${alternativeTaskId.map(n => s" for task '$n'").getOrElse("")}.")))
+          }
 
-      case Failure(ex) =>
-        Right(TaskLoadingError(None, alternativeTaskId.getOrElse(s"No ID! Resource:$resourceName"), ex))
-    }
+        case Failure(ex) =>
+          Left(TaskLoadingError(None, alternativeTaskId.getOrElse(s"No ID! Resource:$resourceName"), ex))
+      }
+    LoadedTask[TaskType](taskOrError)
   }
 }
