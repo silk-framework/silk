@@ -211,7 +211,7 @@ const elementEdges = (elements: Elements): Edge[] => {
 const elk = new ELK();
 
 // Builds an ELK graph from the react-flow elements
-const buildElkGraph = (elements: Elements): ElkNode => {
+const buildElkGraph = (elements: Elements, zoomFactor: number): ElkNode => {
     const nodes = elementNodes(elements);
     const edges = elementEdges(elements);
     const maxNodeIndex = new Map<string, number>();
@@ -222,11 +222,12 @@ const buildElkGraph = (elements: Elements): ElkNode => {
             maxNodeIndex.set(edge.source, edgeIdx);
         }
     });
+    const sizes = nodeSizes(zoomFactor);
     const constructElkNode = (node: RuleEditorNode): ElkNode => {
         return {
             id: node.id,
-            height: 100, // TODO: Set to something meaningful?
-            width: 300, // TODO: Set to something meaningful?
+            height: sizes.get(node.id)?.height ?? 100,
+            width: sizes.get(node.id)?.width ?? 250,
             y: maxNodeIndex.get(node.id) ?? 0,
         };
     };
@@ -242,19 +243,38 @@ const buildElkGraph = (elements: Elements): ElkNode => {
     };
 };
 
+type Size = { width: number; height: number };
+
+const reactFlowNodeClass = "react-flow__node";
+const reactFlowNodeId = "data-id";
+
+/** Get the actual sizes of the nodes in the DOM corrected by the zoom-factor. */
+const nodeSizes = (zoomFactor: number): Map<string, Size> => {
+    const htmlNodes = document.getElementsByClassName(reactFlowNodeClass);
+    const sizes = new Map<string, Size>();
+    for (let i = 0; i < htmlNodes.length; i++) {
+        const node = htmlNodes[i];
+        if (node && node.getAttribute(reactFlowNodeId)) {
+            const nodeId = node.getAttribute(reactFlowNodeId);
+            const { width, height } = node.getBoundingClientRect();
+            sizes.set(nodeId!!, { width: width / zoomFactor, height: height / zoomFactor });
+        }
+    }
+    return sizes;
+};
+
 /** Layouts the nodes of the rule graph.
  *
  * Returns a map of the new node positions. */
-const autoLayout = async (elements: Elements): Promise<Map<string, XYPosition>> => {
-    const elkGraph = buildElkGraph(elements);
+const autoLayout = async (elements: Elements, zoomFactor: number): Promise<Map<string, XYPosition>> => {
+    const elkGraph = buildElkGraph(elements, zoomFactor);
     const layoutedGraph = await elk.layout(elkGraph, {
         layoutOptions: {
             "elk.algorithm": "layered",
             "elk.edgeRouting": "POLYLINE", // for kind of symmetrical/centered tree
             "elk.direction": "RIGHT",
-            "elk.padding": "[top=25,left=25,bottom=25,right=25]",
-            "elk.spacing.componentComponent": "25",
-            "elk.layered.spacing.nodeNodeBetweenLayers": "25",
+            "elk.layered.spacing.nodeNodeBetweenLayers": "100",
+            "spacing.nodeNode": "40",
             "elk.layered.crossingMinimization.semiInteractive": "true", // For the  order of input nodes
             "elk.layered.crossingMinimization.strategy": "INTERACTIVE",
         },
