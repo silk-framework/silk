@@ -13,7 +13,7 @@ import ReactFlow, {
 } from "react-flow-renderer";
 import { RuleEditorOperatorSidebar } from "./RuleEditorOperatorSidebar";
 import React from "react";
-import { RuleEditorModelContext } from "./contexts/RuleEditorModelContext";
+import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { Node } from "react-flow-renderer/dist/types";
 import { IRuleEditorViewDragState } from "./RuleEditorView.typings";
 

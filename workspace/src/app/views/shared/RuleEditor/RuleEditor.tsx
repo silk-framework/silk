@@ -1,6 +1,6 @@
 import { RuleEditorModel } from "./model/RuleEditorModel";
 import React from "react";
-import { RuleEditorView } from "./RuleEditorView";
+import { RuleEditorView } from "./view/RuleEditorView";
 import { RuleEditorContext } from "./contexts/RuleEditorContext";
 import { IViewActions } from "../../plugins/PluginRegistry";
 import { IRuleOperator, IRuleOperatorNode } from "./RuleEditor.typings";

@@ -1,6 +1,6 @@
 import React from "react";
 import { IconButton, Spacing, Toolbar, ToolbarSection } from "gui-elements";
-import { RuleEditorModelContext } from "./contexts/RuleEditorModelContext";
+import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 
 /** Toolbar of the rule editor. Contains global editor actions like save, redo/undo etc. */
 export const RuleEditorToolbar = () => {
