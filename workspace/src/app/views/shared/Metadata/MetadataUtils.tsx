@@ -47,13 +47,13 @@ const DisplayArtefactTags = (tags: Array<TagType>, t: (key: string, fallBack: st
         return size === "full" ? (
             <TagList>
                 {tags.map((tag) => (
-                    <MenuItem key={tag.uri} href={generateFacetUrl("tags", tag.label)} text={<Tag>{tag.label}</Tag>} />
+                    <MenuItem key={tag.uri} href={generateFacetUrl("tags", tag.uri)} text={<Tag>{tag.label}</Tag>} />
                 ))}
             </TagList>
         ) : (
             <TagList>
                 {tags.slice(0, minLength).map((tag) => (
-                    <MenuItem key={tag.uri} href={generateFacetUrl("tags", tag.label)} text={<Tag>{tag.label}</Tag>} />
+                    <MenuItem key={tag.uri} href={generateFacetUrl("tags", tag.uri)} text={<Tag>{tag.label}</Tag>} />
                 ))}
             </TagList>
         );
