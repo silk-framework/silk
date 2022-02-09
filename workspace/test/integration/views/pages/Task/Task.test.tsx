@@ -38,7 +38,8 @@ describe("Task page", () => {
     const pluginId = "testPlugin";
     const pluginLabel = "Test Plugin";
     const taskDataUrl = legacyApiUrl(`/workspace/projects/${projectId}/tasks/${taskId}`);
-    const taskMetaDataUrl = legacyApiUrl(`/workspace/projects/${projectId}/tasks/${taskId}/metadata`);
+    // const taskMetaDataUrl = legacyApiUrl(`/workspace/projects/${projectId}/tasks/${taskId}/metadata`);
+    const taskMetaDataExpandedURL = legacyApiUrl(`/workspace/projects/${projectId}/tasks/${taskId}/metadataExpanded`);
     const pluginUrl = apiUrl(`/core/plugins/${pluginId}`);
 
     beforeAll(() => {
@@ -54,7 +55,7 @@ describe("Task page", () => {
     });
 
     it("should request meta data, related items and task config", async () => {
-        checkRequestMade(taskMetaDataUrl);
+        checkRequestMade(taskMetaDataExpandedURL);
         checkRequestMade(apiUrl(`/workspace/projects/${projectId}/tasks/${taskId}/relatedItems`));
         checkRequestMade(taskDataUrl, "GET", { withLabels: true });
         mockAxios.mockResponseFor(
@@ -123,7 +124,7 @@ describe("Task page", () => {
             label: taskLabel,
             description: taskDescription,
         };
-        mockAxios.mockResponseFor(taskMetaDataUrl, mockedAxiosResponse({ data: taskMetaData }));
+        mockAxios.mockResponseFor(taskMetaDataExpandedURL, mockedAxiosResponse({ data: taskMetaData }));
         await waitFor(() => {
             const metaData = findSingleElement(taskPageWrapper, byTestId("metaDataWidget"));
             expect(findAll(metaData, ".eccgui-propertyvalue__value").map((elem) => elem.text())).toStrictEqual([

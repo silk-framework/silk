@@ -78,7 +78,8 @@ describe("Project page", () => {
     });
 
     it("should request meta data", async () => {
-        checkRequestMade(apiUrl("/workspace/projects/" + testProjectId + "/metaData"));
+        // checkRequestMade(apiUrl("/workspace/projects/" + testProjectId + "/metaData"));
+        checkRequestMade(apiUrl("/workspace/projects/" + testProjectId + "/metaDataExpanded"));
     });
 
     xit("should get available resources for file widget", () => {
