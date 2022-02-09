@@ -492,11 +492,15 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
     val tag2 = Tag("urn:tag2", "Some Tag 2")
     workspaceProvider.putTag(PROJECT_NAME, tag1)
     workspaceProvider.putTag(PROJECT_NAME, tag2)
-    workspaceProvider.readTags(PROJECT_NAME) should contain theSameElementsAs Iterable(tag1, tag2)
+    refreshTest {
+      workspaceProvider.readTags(PROJECT_NAME) should contain theSameElementsAs Iterable(tag1, tag2)
+    }
 
     // Remove tag
     workspaceProvider.deleteTag(PROJECT_NAME, tag1.uri)
-    workspaceProvider.readTags(PROJECT_NAME) should contain theSameElementsAs Iterable(tag2)
+    refreshTest {
+      workspaceProvider.readTags(PROJECT_NAME) should contain theSameElementsAs Iterable(tag2)
+    }
   }
 
   /** Executes the block before and after project refresh */
