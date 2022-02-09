@@ -155,16 +155,25 @@ export function Metadata(props: IProps) {
             await letLoading(async () => {
                 const path = location.pathname;
                 //create new tags if exists
-                const createdTagsResponse = await utils.createNewTag(createdTags, projectId);
-                //defensive correction to ensure uris match
-                const metadataTags = selectedTags.map((tag) => {
-                    const newlyCreatedTagMatch = (createdTagsResponse?.data ?? []).find((t) => t.label === tag.label);
-                    if (newlyCreatedTagMatch) {
-                        return newlyCreatedTagMatch.uri;
-                    }
-                    return tag.uri;
-                });
-                formEditData.tags = metadataTags;
+                if (createdTags.length) {
+                    const createdTagsResponse = await utils.createNewTag(
+                        createdTags.map((t) => ({ label: t.label })),
+                        projectId
+                    );
+                    //defensive correction to ensure uris match
+                    const metadataTags = selectedTags.map((tag) => {
+                        const newlyCreatedTagMatch = (createdTagsResponse?.data ?? []).find(
+                            (t) => t.label === tag.label
+                        );
+                        if (newlyCreatedTagMatch) {
+                            return newlyCreatedTagMatch.uri;
+                        }
+                        return tag.uri;
+                    });
+                    formEditData.tags = metadataTags;
+                } else {
+                    formEditData.tags = selectedTags.map((tag) => tag.uri);
+                }
                 const metadata = await sharedOp.updateTaskMetadataAsync(formEditData!!, taskId, projectId);
                 removeDirtyState();
                 dispatch(routerOp.updateLocationState(path, projectId as string, metadata));
