@@ -143,6 +143,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
    */
   def config_=(project : ProjectConfig)(implicit userContext: UserContext) {
     provider.putProject(project)
+    logger.info(s"Project meta data updated for ${project.labelAndId()}.")
     cachedConfig = project
   }
 
@@ -159,12 +160,9 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   def updateMetaData(metaData: MetaData)
                     (implicit userContext: UserContext): MetaData = synchronized {
     val projectConfig = config
-    val oldMetaData = config.metaData
-    val mergedMetaData = oldMetaData.copy(label = metaData.label, description = metaData.description)
+    val mergedMetaData = config.metaData.copy(label = metaData.label, description = metaData.description, tags = metaData.tags)
     val updatedProjectConfig = projectConfig.copy(metaData = mergedMetaData.asUpdatedMetaData)
     config = updatedProjectConfig
-    provider.putProject(updatedProjectConfig)
-    logger.info(s"Project meta data updated for ${projectConfig.labelAndId()}.")
     updatedProjectConfig.metaData
   }
 
