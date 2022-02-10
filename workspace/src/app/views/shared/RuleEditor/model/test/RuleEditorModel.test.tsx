@@ -21,12 +21,21 @@ const nodeById = (nodeId: string) => {
 
 describe("Rule editor model", () => {
     let ruleOperatorNodes: IRuleOperatorNode[] = [];
-    const ruleEditorModel = async (initialRuleNodes: IRuleOperatorNode[] = [], operatorList: IRuleOperator[] = []) => {
+    const currentOperatorNodes = (): IRuleOperatorNode[] => {
+        currentContext().saveRule();
+        return JSON.parse(JSON.stringify(ruleOperatorNodes.sort((n1, n2) => (n1.nodeId < n2.nodeId ? 1 : -1))));
+    };
+    const ruleEditorModel = async (
+        initialRuleNodes: IRuleOperatorNode[] = [],
+        operatorList: IRuleOperator[] = [],
+        operatorSpec: Map<string, Map<string, IParameterSpecification>> = new Map()
+    ) => {
         modelContext = undefined;
         const ruleModel = withMount(
             testWrapper(
                 <RuleEditorContext.Provider
                     value={{
+                        projectId: "testProject",
                         editedItem: {},
                         operatorList: operatorList,
                         editedItemLoading: false,
@@ -37,6 +46,7 @@ describe("Rule editor model", () => {
                             return true;
                         },
                         convertRuleOperatorToRuleNode: utils.defaults.convertRuleOperatorToRuleNode,
+                        operatorSpec,
                     }}
                 >
                     <ReactFlowProvider>
@@ -103,7 +113,7 @@ describe("Rule editor model", () => {
             defaultValue: "",
             label: paramId,
             required: false,
-            type: "string",
+            type: "textField",
         };
     };
 
@@ -148,6 +158,7 @@ describe("Rule editor model", () => {
             expect(currentContext().elements).toHaveLength(3);
             await currentContext().saveRule();
             expect(ruleOperatorNodes).toHaveLength(2);
+            expect(ruleOperatorNodes[1].inputs).toStrictEqual(["node A"]);
         });
     });
 
@@ -289,41 +300,59 @@ describe("Rule editor model", () => {
 
     it("should change node parameters and undo & redo", async () => {
         await ruleEditorModel([node({ nodeId: "nodeA" })], [operator("pluginA")]);
-        const checkBeforeParameterChange = () => {
-            currentContext().saveRule();
-            expect(ruleOperatorNodes[0].parameters).toStrictEqual({
-                "param A": "Value A",
-                "param B": "Value B",
+        const checkParameters = (expectedParameterValues: string[] = ["Value A", "Value B"]) => {
+            expect(currentOperatorNodes()[0].parameters).toStrictEqual({
+                "param A": expectedParameterValues[0],
+                "param B": expectedParameterValues[1],
             });
         };
-        checkBeforeParameterChange();
+        checkParameters();
 
-        // Change parameter
+        // Change parameters
         act(() => {
-            currentContext().executeModelEditOperation.changeNodeParameter("nodeA", "param A", "new Value A");
+            currentContext().executeModelEditOperation.changeNodeParameter("nodeA", "param A", "A");
+            currentContext().executeModelEditOperation.changeNodeParameter("nodeA", "param A", "A2");
+            // Changing another parameter should trigger a new transaction
+            currentContext().executeModelEditOperation.changeNodeParameter("nodeA", "param B", "B");
+            currentContext().executeModelEditOperation.changeNodeParameter("nodeA", "param B", "B2");
+            // This should again trigger a new transaction
+            currentContext().executeModelEditOperation.moveNode("nodeA", { x: 1, y: 1 });
         });
-        const checkAfterParameterChange = () => {
-            checkAfterChange();
-            currentContext().saveRule();
-            expect(ruleOperatorNodes[0].parameters).toStrictEqual({
-                "param A": "new Value A",
-                "param B": "Value B",
-            });
-        };
-        checkAfterParameterChange();
+        act(() => {
+            // Need to run this in separate act, since moveNode runs async
+            currentContext().executeModelEditOperation.changeNodeParameter("nodeA", "param B", "B3");
+            currentContext().executeModelEditOperation.changeNodeParameter("nodeA", "param A", "A3");
+        });
+        checkParameters(["A3", "B3"]);
 
+        const expectedValueHistory = [
+            ["Value A", "Value B"],
+            ["A2", "Value B"],
+            ["A2", "B2"],
+            ["A2", "B3"],
+            ["A3", "B3"],
+        ];
         // UNDO
-        act(() => {
-            currentContext().undo();
-        });
-        checkAfterUndo();
-        checkBeforeParameterChange();
+        for (let i = expectedValueHistory.length - 1; i > 0; i--) {
+            expect(currentContext().canUndo);
+            checkParameters(expectedValueHistory[i]);
+            act(() => {
+                currentContext().undo();
+            });
+            checkAfterUndo(i > 1);
+            checkParameters(expectedValueHistory[i - 1]);
+        }
 
         // REDO
-        act(() => {
-            currentContext().redo();
-        });
-        checkAfterParameterChange();
+        for (let i = 0; i < expectedValueHistory.length - 1; i++) {
+            expect(currentContext().canRedo);
+            checkParameters(expectedValueHistory[i]);
+            act(() => {
+                currentContext().redo();
+            });
+            checkParameters(expectedValueHistory[i + 1]);
+        }
+        checkAfterChange();
     });
 
     it("should delete multiple nodes and undo & redo", async () => {
@@ -414,7 +443,11 @@ describe("Rule editor model", () => {
         const checkAfterAdd = () => {
             checkAfterChange();
             expect(currentContext().elements).toHaveLength(3);
+            const nodeB = currentOperatorNodes().find((node) => node.nodeId === "nodeB")!!;
+            expect(nodeB.inputs).toHaveLength(1);
+            expect(nodeB.inputs[0]).toEqual("nodeA");
         };
+        checkAfterAdd();
 
         // UNDO
         act(() => {
@@ -466,6 +499,96 @@ describe("Rule editor model", () => {
             currentContext().redo();
         });
         checkAfterDelete();
+    });
+
+    it("should undo and redo complex change chains", async () => {
+        const stateHistory: IRuleOperatorNode[][] = [];
+        const stateHistoryLabel: string[] = [];
+        const recordCurrentState = (stateLabel: string) => {
+            stateHistory.push(currentOperatorNodes());
+            stateHistoryLabel.push(stateLabel);
+        };
+        const recordedTransaction = async (
+            stateLabel: string,
+            changeAction: () => any,
+            additionalCheck: () => any | Promise<any> = () => {}
+        ) => {
+            act(() => {
+                currentContext().executeModelEditOperation.startChangeTransaction();
+                changeAction();
+            });
+            // Check that something has changed
+            expect(currentOperatorNodes()).not.toStrictEqual(stateHistory[stateHistory.length - 1]);
+            await additionalCheck();
+            recordCurrentState(stateLabel);
+        };
+        await ruleEditorModel([
+            node({ nodeId: "nodeA" }),
+            node({ nodeId: "nodeB", inputs: ["nodeA"] }),
+            node({ nodeId: "nodeC", inputs: ["nodeA", "nodeB"] }),
+        ]);
+        recordCurrentState("Initial state");
+        // Record every change and check that after undo and later redo the states match
+        await recordedTransaction("Add a node", () => {
+            currentContext().executeModelEditOperation.addNode(operator("pluginA"), { x: 1, y: 2 });
+        });
+        await recordedTransaction("Move node", () => {
+            currentContext().executeModelEditOperation.moveNode("nodeA", { x: 2, y: 3 });
+        });
+        await recordedTransaction("Add edge", () => {
+            currentContext().executeModelEditOperation.addEdge("nodeA", "pluginA", "0");
+        });
+        // FIXME: Wait for elkjs release 0.7.3 to fix an issue with undefined variables
+        // await recordedTransaction("Auto-layout",
+        //     () => {
+        //         currentContext().executeModelEditOperation.autoLayout();
+        //     },
+        //     async () => { // Auto-layout is async, so we need to wait for the change to take place.
+        //         await waitFor(() => {
+        //             expect(currentOperatorNodes()).not.toStrictEqual(stateHistory[stateHistory.length - 1])
+        //         })
+        //     }
+        // );
+        await recordedTransaction("Change node parameter", () => {
+            currentContext().executeModelEditOperation.changeNodeParameter("nodeA", "param A", "new param value");
+            currentContext().executeModelEditOperation.changeNodeParameter("nodeA", "param A", "new param value 2");
+            currentContext().executeModelEditOperation.changeNodeParameter("nodeA", "param A", "new param value 3");
+        });
+        await recordedTransaction("Copy and paste nodes", () => {
+            currentContext().executeModelEditOperation.copyAndPasteNodes(["nodeA", "nodeB"], { x: 10, y: 10 });
+        });
+        await recordedTransaction("Delete edge", () => {
+            currentContext().executeModelEditOperation.deleteEdge("1");
+        });
+        await recordedTransaction("Delete node", () => {
+            currentContext().executeModelEditOperation.deleteNode("nodeA");
+        });
+        await recordedTransaction("Delete nodes", () => {
+            currentContext().executeModelEditOperation.deleteNodes(["nodeB", "pluginA"]);
+        });
+        expect(currentOperatorNodes()).toHaveLength(3);
+        // Execute UNDO and REDO twice
+        for (let i = 0; i < 2; i++) {
+            console.log("Test UNDO");
+            for (let changeIdx = stateHistory.length - 1; changeIdx > 0; changeIdx--) {
+                expect(currentContext().canUndo).toBe(true);
+                act(() => {
+                    currentContext().undo();
+                });
+                console.log(`Undone change: ${stateHistoryLabel[changeIdx]} (${changeIdx}/${stateHistory.length - 1})`);
+                expect(currentOperatorNodes()).not.toStrictEqual(stateHistory[changeIdx]);
+                expect(currentOperatorNodes()).toStrictEqual(stateHistory[changeIdx - 1]);
+            }
+            console.log("Test REDO");
+            for (let changeIdx = 1; changeIdx < stateHistory.length; changeIdx++) {
+                expect(currentContext().canRedo).toBe(true);
+                act(() => {
+                    currentContext().redo();
+                });
+                console.log(`Redone change: ${stateHistoryLabel[changeIdx]} (${changeIdx}/${stateHistory.length - 1})`);
+                expect(currentOperatorNodes()).toStrictEqual(stateHistory[changeIdx]);
+            }
+        }
     });
 });
 

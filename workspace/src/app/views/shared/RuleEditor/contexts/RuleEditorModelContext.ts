@@ -50,8 +50,20 @@ export interface IModelActions {
     copyAndPasteNodes: (nodeIds: string[], offset: XYPosition) => void;
     /** Move a single node to a new position. */
     moveNode: (nodeId: string, newPosition: XYPosition) => void;
-    /** Change a single node parameter. */
-    changeNodeParameter: (nodeId: string, parameterId: string, newValue: string | undefined) => void;
+    /** Change a single node parameter.
+     *
+     * @param nodeId Node affected by parameter change.
+     * @param parameterId The parameter that is being changed.
+     * @param newValue The new value of the parameter.
+     * @param autoStartTransaction If this is true, new transactions are automatically started if the previous operation
+     *                             was not changing the exact same parameter. Default is true.
+     */
+    changeNodeParameter: (
+        nodeId: string,
+        parameterId: string,
+        newValue: string | undefined,
+        autoStartTransaction?: boolean
+    ) => void;
     /** Automatically layout the rule nodes. */
     autoLayout: () => void;
 }

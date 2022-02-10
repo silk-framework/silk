@@ -56,7 +56,7 @@ export interface IParameterSpecification {
     /** Parameter description. */
     description?: string;
     /** The type of the parameter. */
-    type: ParameterType;
+    type: RuleParameterType;
     /** If the parameter can be left empty or is required. */
     required: boolean;
     /** If this parameter should only be shown in advanced mode. */
@@ -65,7 +65,15 @@ export interface IParameterSpecification {
     defaultValue: string;
 }
 
-type ParameterType = "int" | "string" | "multi-line string"; // FIXME: Add other types that come from the backend CMEM-3919
+export type RuleParameterType =
+    | "boolean"
+    | "int"
+    | "float"
+    | "textField"
+    | "code"
+    | "password"
+    | "resource"
+    | "textArea";
 
 interface NodePosition {
     x: number;
@@ -87,5 +95,6 @@ export interface IRuleNodeData {
     dynamicPorts?: boolean;
     // The original rule operator node this node was created with.
     originalRuleOperatorNode: IRuleOperatorNode;
-    //
+    // Update switch to force content updates
+    updateSwitch?: boolean;
 }
