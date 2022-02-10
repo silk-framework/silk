@@ -274,7 +274,7 @@ export const convertRuleOperator = (op: IPluginDetails): IRuleOperator => {
                     description: parameterSpec.description,
                     advanced: parameterSpec.advanced,
                     required: required(parameterId),
-                    type: "string", // FIXME: Convert types from parameterSpec.parameterType, see InputMapper component CMEM-3919
+                    type: "textField", // FIXME: Convert types from parameterSpec.parameterType, see InputMapper component CMEM-3919
                     defaultValue: parameterSpec.value,
                 };
                 return [parameterId, spec];

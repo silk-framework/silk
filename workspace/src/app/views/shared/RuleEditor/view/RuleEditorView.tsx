@@ -137,6 +137,7 @@ export const RuleEditorView = () => {
                         connectionLineType={ConnectionLineType.Step}
                         className="eccapp-di__floweditor__graph"
                         snapGrid={snapGrid}
+                        snapToGrid={true}
                         zoomOnDoubleClick={false}
                     >
                         <MiniMap

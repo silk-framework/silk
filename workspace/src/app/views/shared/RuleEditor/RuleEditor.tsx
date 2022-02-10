@@ -3,7 +3,7 @@ import React from "react";
 import { RuleEditorView } from "./view/RuleEditorView";
 import { RuleEditorContext } from "./contexts/RuleEditorContext";
 import { IViewActions } from "../../plugins/PluginRegistry";
-import { IRuleOperator, IRuleOperatorNode } from "./RuleEditor.typings";
+import { IParameterSpecification, IRuleOperator, IRuleOperatorNode } from "./RuleEditor.typings";
 import ErrorBoundary from "../../../ErrorBoundary";
 import { ReactFlowProvider } from "react-flow-renderer";
 import utils from "./RuleEditor.utils";
@@ -53,6 +53,9 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     );
     // The list of available operators that can be added to the canvas
     const [operatorList, setOperatorList] = React.useState<IRuleOperator[] | undefined>(undefined);
+    const [operatorSpec, setOperatorSpec] = React.useState<
+        Map<string, Map<string, IParameterSpecification>> | undefined
+    >(undefined);
 
     // Fetch the task data
     React.useEffect(() => {
@@ -71,6 +74,10 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     React.useEffect(() => {
         if (operators) {
             const ops = operators.map((op) => convertRuleOperator(op));
+            const operatorSpec = new Map(
+                ops.map((op) => [op.pluginId, new Map(Object.entries(op.parameterSpecification))])
+            );
+            setOperatorSpec(operatorSpec);
             setOperatorList(ops);
         }
     }, [operators]);
@@ -110,6 +117,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     return (
         <RuleEditorContext.Provider
             value={{
+                projectId,
                 editedItem: taskData,
                 operatorList,
                 editedItemLoading: taskDataLoading,
@@ -117,6 +125,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 initialRuleOperatorNodes,
                 saveRule: saveRuleOperatorNodes,
                 convertRuleOperatorToRuleNode: utils.defaults.convertRuleOperatorToRuleNode,
+                operatorSpec,
             }}
         >
             <RuleEditorModel>

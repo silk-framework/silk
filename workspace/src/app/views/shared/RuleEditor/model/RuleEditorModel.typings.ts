@@ -6,7 +6,9 @@ export interface RuleModelChanges {
     operations: RuleModelChangeType[];
 }
 
-export type RuleEditorNode = Node<NodeContentPropsWithBusinessData<IRuleNodeData>>;
+export interface RuleEditorNode extends Node<NodeContentPropsWithBusinessData<IRuleNodeData>> {
+    data: NodeContentPropsWithBusinessData<IRuleNodeData>;
+}
 
 export type RuleModelChangeType =
     | AddNode

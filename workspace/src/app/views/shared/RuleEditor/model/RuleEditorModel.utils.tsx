@@ -1,13 +1,18 @@
 import React from "react";
 import { IHandleProps } from "gui-elements/src/extensions/react-flow/nodes/NodeDefault";
-import { ArrowHeadType, Edge, FlowElement, Node, OnLoadParams, Position } from "react-flow-renderer";
+import { ArrowHeadType, Edge, FlowElement, OnLoadParams, Position } from "react-flow-renderer";
 import { rangeArray } from "../../../../utils/basicUtils";
-import { IRuleNodeData, IRuleOperatorNode, NodeContentPropsWithBusinessData } from "../RuleEditor.typings";
+import {
+    IParameterSpecification,
+    IRuleNodeData,
+    IRuleOperatorNode,
+    NodeContentPropsWithBusinessData,
+} from "../RuleEditor.typings";
 import { RuleNodeMenu } from "../view/ruleNode/RuleNodeMenu";
-import { Tag, Highlighter, Spacing } from "gui-elements";
 import { RuleEditorNode } from "./RuleEditorModel.typings";
 import { Elements, XYPosition } from "react-flow-renderer/dist/types";
 import ELK, { ElkNode } from "elkjs";
+import { NodeContent } from "../view/ruleNode/NodeContent";
 
 /** Constants */
 
@@ -30,14 +35,27 @@ function createInputHandles(numberOfInputPorts: number) {
     return rangeArray(numberOfInputPorts).map((nr) => createInputHandle(nr));
 }
 
+/** The operations on a node. */
+export interface IOperatorNodeOperations {
+    handleDeleteNode: (nodeId: string) => any;
+    handleParameterChange: (nodeId: string, parameterId: string, value: string) => any;
+}
+
+/** Contains all additional items needed for creating an operator. */
+export interface IOperatorCreateContext {
+    operatorParameterSpecification: Map<string, IParameterSpecification>;
+    t: (string) => string;
+    reactFlowInstance: OnLoadParams;
+    currentValue: (nodeId: string, parameterId: string) => string | undefined;
+}
+
 /** Creates a new react-flow rule operator node. */
 function createOperatorNode(
     node: IRuleOperatorNode,
-    reactFlowInstance: OnLoadParams,
-    handleDeleteNode: (nodeId: string) => any,
-    t: (string) => string
+    nodeOperations: IOperatorNodeOperations,
+    operatorContext: IOperatorCreateContext
 ): RuleEditorNode {
-    const position = reactFlowInstance.project({
+    const position = operatorContext.reactFlowInstance.project({
         x: node.position?.x ?? 0,
         y: node.position?.y ?? 0,
     });
@@ -62,8 +80,22 @@ function createOperatorNode(
             originalRuleOperatorNode: node,
             dynamicPorts: !node.portSpecification.maxInputPorts,
         },
-        menuButtons: <RuleNodeMenu nodeId={node.nodeId} t={t} handleDeleteNode={handleDeleteNode} />,
-        content: node.tags ? createTags(node.tags) : null,
+        menuButtons: (
+            <RuleNodeMenu
+                nodeId={node.nodeId}
+                t={operatorContext.t}
+                handleDeleteNode={nodeOperations.handleDeleteNode}
+            />
+        ),
+        content: (
+            <NodeContent
+                nodeId={node.nodeId}
+                tags={node.tags}
+                operatorContext={operatorContext}
+                nodeOperations={nodeOperations}
+                nodeParameters={node.parameters}
+            />
+        ),
     };
 
     return {
@@ -73,26 +105,6 @@ function createOperatorNode(
         data,
     };
 }
-
-/** Adds highlighting to the text if query is non-empty. */
-const addHighlighting = (text: string, query?: string): string | JSX.Element => {
-    return query ? <Highlighter label={text} searchValue={query} /> : text;
-};
-
-const createTags = (tags: string[], query?: string) => {
-    return (
-        <>
-            {tags.map((tag, idx) => {
-                return (
-                    <>
-                        <Tag minimal={true}>{addHighlighting(tag, query)}</Tag>
-                        {idx < tags.length + 1 ? <Spacing vertical size="tiny" /> : null}
-                    </>
-                );
-            })}
-        </>
-    );
-};
 
 /**
  * Returns the createNewOperatorNode, initNodeBaseIds and freshNodeId functions.
@@ -133,15 +145,13 @@ const initNodeBaseIdsFactory = () => {
     };
     const createNewOperatorNode = (
         newNode: Omit<IRuleOperatorNode, "nodeId">,
-        reactFlowInstance: OnLoadParams,
-        handleDeleteNode: (nodeId: string) => any,
-        t: (string) => string
+        nodeOperations: IOperatorNodeOperations,
+        operatorContext: IOperatorCreateContext
     ): RuleEditorNode => {
         return createOperatorNode(
             { ...newNode, nodeId: freshNodeId(newNode.pluginId) },
-            reactFlowInstance,
-            handleDeleteNode,
-            t
+            nodeOperations,
+            operatorContext
         );
     };
     return { createNewOperatorNode, initNodeBaseIds, freshNodeId };
@@ -169,7 +179,7 @@ const createEdgeFactory = () => {
 // Helper methods for nodes and edges
 const isNode = (element: FlowElement & { source?: string }): boolean => !element.source;
 const asNode = (element: FlowElement | undefined): RuleEditorNode | undefined => {
-    return element && isNode(element) ? (element as Node<NodeContentPropsWithBusinessData<IRuleNodeData>>) : undefined;
+    return element && isNode(element) ? (element as RuleEditorNode) : undefined;
 };
 const isEdge = (element: FlowElement & { source?: string }): boolean => !isNode(element);
 const asEdge = (element: FlowElement | undefined): Edge | undefined => {
@@ -231,7 +241,7 @@ const buildElkGraph = (elements: Elements, zoomFactor: number): ElkNode => {
             y: maxNodeIndex.get(node.id) ?? 0,
         };
     };
-    return {
+    const elkGraph = {
         id: " root node ",
         children: nodes.map((node) => constructElkNode(node)),
         edges: edges.map((edge, idx) => ({
@@ -241,6 +251,7 @@ const buildElkGraph = (elements: Elements, zoomFactor: number): ElkNode => {
             type: "DIRECTED",
         })),
     };
+    return elkGraph;
 };
 
 type Size = { width: number; height: number };
