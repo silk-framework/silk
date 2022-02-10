@@ -35,6 +35,7 @@ import useErrorHandler from "../../../hooks/useErrorHandler";
 import * as H from "history";
 import utils from "./MetadataUtils";
 import { IMetadataExpanded, Tag as TagType } from "./Metadatatypings";
+import { debounce } from "../../../utils/debounce";
 
 interface IProps {
     projectId?: string;
@@ -54,7 +55,7 @@ export function Metadata(props: IProps) {
     const taskId = props.taskId || _taskId;
 
     const [loading, setLoading] = useState(false);
-    const [data, setData] = useState({} as IMetadataExpanded);
+    const [data, setData] = useState({ label: "", description: "" } as IMetadataExpanded);
     const [formEditData, setFormEditData] = useState<IMetadataUpdatePayload | undefined>(undefined);
     const [isEditing, setIsEditing] = useState(false);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
@@ -90,7 +91,9 @@ export function Metadata(props: IProps) {
     useEffect(() => {
         if (projectId) {
             //getTaskMetadata(taskId, projectId);
-            utils.getExpandedMetaData(projectId, taskId).then((res) => setData((res?.data as IMetadataExpanded) ?? {}));
+            utils
+                .getExpandedMetaData(projectId, taskId)
+                .then((res) => setData({ ...(res?.data as IMetadataExpanded) } ?? {}));
         }
     }, [taskId, projectId]);
 
@@ -105,22 +108,21 @@ export function Metadata(props: IProps) {
 
     const toggleEdit = async () => {
         if (!isEditing) {
-            let metaData = data;
-            if (!metaData.label) {
-                //metaData = await getTaskMetadata(taskId, projectId);
-                const response = await utils.getExpandedMetaData(projectId, taskId);
-                if (!response?.data.label) {
-                    return; // Do not toggle edit mode, request has failed
-                }
-            }
-            setFormEditData({ label: metaData.label, description: metaData.description });
+            // let metaData = data;
+            // if (!metaData.label) {
+            //     //metaData = await getTaskMetadata(taskId, projectId);
+            //     const response = await utils.getExpandedMetaData(projectId, taskId);
+            //     if (!response?.data.label) {
+            //         return; // Do not toggle edit mode, request has failed
+            //     }
+            // }
+            setFormEditData({ label: data.label ?? "", description: data.description ?? "" });
         } else {
             removeDirtyState();
         }
         setIsEditing(!isEditing);
     };
 
-    /**  @deprecated  */
     // const getTaskMetadata = async (taskId?: string, projectId?: string) => {
     //     try {
     //         const result = await letLoading(() => {
@@ -180,7 +182,9 @@ export function Metadata(props: IProps) {
                 return metadata;
             });
             //update metadata with expanded data
-            utils.getExpandedMetaData(projectId, taskId).then((res) => setData((res?.data as IMetadataExpanded) ?? {}));
+            utils
+                .getExpandedMetaData(projectId, taskId)
+                .then((res) => setData({ ...(res?.data as IMetadataExpanded) } ?? {}));
 
             toggleEdit();
         } catch (ex) {
@@ -256,6 +260,20 @@ export function Metadata(props: IProps) {
         });
     }, []);
 
+    const handleTagQueryChange = React.useCallback(
+        debounce(async (query) => {
+            if (projectId) {
+                utils.queryTags(projectId, query).then((res) => {
+                    setData((data) => ({
+                        ...data,
+                        tags: res?.data.tags,
+                    }));
+                });
+            }
+        }, 200),
+        []
+    );
+
     const widgetContent = (
         <CardContent data-test-id={"metaDataWidget"}>
             {loading && <Loading description={t("Metadata.loading", "Loading summary data.")} />}
@@ -315,6 +333,7 @@ export function Metadata(props: IProps) {
                                     labelProp="label"
                                     items={data.tags ?? []}
                                     onSelection={handleTagSelectionChange}
+                                    runOnQueryChange={handleTagQueryChange}
                                 />
                             </FieldItem>
                         </PropertyValue>

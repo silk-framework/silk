@@ -42,6 +42,14 @@ export const createNewTag = async (
         body: { tags },
     });
 
+export const queryTags = (
+    projectId: string,
+    filter?: string
+): Promise<FetchResponse<{ tags: Array<TagType> }> | undefined> =>
+    fetch({
+        url: workspaceApi(`/projects/${projectId}/tags${filter?.length ? `?filter=${filter}` : ""}`),
+    });
+
 const DisplayArtefactTags = (tags: Array<TagType>, t: (key: string, fallBack: string) => string, minLength = 3) => {
     const Tags = (size: "full" | "preview") => {
         return size === "full" ? (
@@ -88,6 +96,7 @@ const utils = {
     DisplayArtefactTags,
     createNewTag,
     generateFacetUrl,
+    queryTags,
 };
 
 export default utils;
