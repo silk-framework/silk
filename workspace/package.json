@@ -24,8 +24,6 @@
     "dependencies": {
         "@blueprintjs/core": "^3.49.1",
         "@blueprintjs/select": "^3.18.1",
-        "@carbon/icons": "10.44.0",
-        "@carbon/icons-react": "10.44.0",
         "@mavrin/remark-typograf": "^2.2.0",
         "@reduxjs/toolkit": "^1.4.0",
         "@uppy/core": "1.17.0",
@@ -33,9 +31,7 @@
         "@uppy/xhr-upload": "1.7.2",
         "axios": "^0.19.0",
         "bfj": "6.1.1",
-        "carbon-components": "10.44.0",
         "carbon-components-react": "7.44.1",
-        "carbon-icons": "7.0.7",
         "codemirror": "^5.52.2",
         "connected-react-router": "^6.5.2",
         "dexie": "^2.0.4",

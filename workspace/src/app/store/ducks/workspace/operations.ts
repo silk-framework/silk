@@ -93,10 +93,23 @@ const setupFiltersFromQs = (queryString: string) => {
             // Facets
             if (parsedQs.f_ids) {
                 const facetIds = parsedQs.f_ids;
-                if (!Array.isArray(facetIds)) {
-                    const fIds = facetIds.split(VALUE_DELIMITER);
-                    const fValues = parsedQs.f_keys.split(VALUE_DELIMITER);
-                    const fTypes = parsedQs.types.split(VALUE_DELIMITER);
+                if (Array.isArray(facetIds)) {
+                    facetIds.forEach((facetId, i) => {
+                        const facet: Partial<IFacetState> = {
+                            id: facetId,
+                            type: parsedQs.types ? parsedQs.types[i] : null,
+                        };
+                        batchQueue.push(
+                            applyFacet({
+                                facet,
+                                keywordIds: parsedQs.f_keys ? parsedQs.f_keys[i].split(ARRAY_DELIMITER) : [],
+                            })
+                        );
+                    });
+                } else {
+                    const fIds = facetIds.toString().split(VALUE_DELIMITER);
+                    const fValues = parsedQs.f_keys ? parsedQs.f_keys.toString().split(VALUE_DELIMITER) : [];
+                    const fTypes = parsedQs.types ? parsedQs.types.toString().split(VALUE_DELIMITER) : [];
                     fIds.forEach((fId, idx) => {
                         batchQueue.push(
                             applyFacet({
@@ -105,19 +118,6 @@ const setupFiltersFromQs = (queryString: string) => {
                                     type: fTypes[idx],
                                 },
                                 keywordIds: fValues[idx].split(ARRAY_DELIMITER),
-                            })
-                        );
-                    });
-                } else {
-                    facetIds.forEach((facetId, i) => {
-                        const facet: Partial<IFacetState> = {
-                            id: facetId,
-                            type: parsedQs.types[i],
-                        };
-                        batchQueue.push(
-                            applyFacet({
-                                facet,
-                                keywordIds: parsedQs.f_keys[i].split(ARRAY_DELIMITER),
                             })
                         );
                     });

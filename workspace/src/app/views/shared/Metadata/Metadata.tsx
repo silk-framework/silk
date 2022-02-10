@@ -24,7 +24,7 @@ import {
     TextField,
     Link,
 } from "gui-elements";
-import { Intent } from "gui-elements/blueprint/constants";
+// import { Intent } from "gui-elements/blueprint/constants";
 import { IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
 import { routerOp } from "@ducks/router";
@@ -281,7 +281,7 @@ export function Metadata(props: IProps) {
                                     id="label"
                                     onChange={onLabelChange}
                                     defaultValue={formEditData?.label}
-                                    intent={errors.form.label ? Intent.DANGER : Intent.NONE}
+                                    hasStateDanger={errors.form.label ? true : false}
                                 />
                             </FieldItem>
                         </PropertyValue>
@@ -297,7 +297,6 @@ export function Metadata(props: IProps) {
                                     id="description"
                                     onChange={onDescriptionChange}
                                     defaultValue={formEditData?.description}
-                                    fullWidth={true}
                                 />
                             </FieldItem>
                         </PropertyValue>
