@@ -7,13 +7,9 @@ import RuleEditor, { RuleOperatorFetchFnType } from "../../shared/RuleEditor/Rul
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
 import { putTransformRule, requestTransformRule } from "./transform.requests";
-import {
-    convertRuleOperator,
-    convertRuleOperatorNodeToValueInput,
-    convertToRuleOperatorNodeMap,
-} from "../linking/LinkingRuleEditor";
-import { IRuleOperatorNode } from "../../shared/RuleEditor/RuleEditor.typings";
 import { extractOperatorNodeFromValueInput, inputPathOperator } from "../shared/rules/rule.utils";
+import { IRuleOperatorNode } from "../../shared/RuleEditor/RuleEditor.typings";
+import ruleUtils from "../shared/rules/rule.utils";
 
 export interface TransformRuleEditorProps {
     /** Project ID the task is in. */
@@ -64,7 +60,7 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
     /** Save the rule. */
     const saveTransformRule = async (ruleOperatorNodes: IRuleOperatorNode[], originalRule: IComplexMappingRule) => {
         try {
-            const [operatorNodeMap, rootNodes] = convertToRuleOperatorNodeMap(ruleOperatorNodes);
+            const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes);
             if (rootNodes.length !== 1) {
                 throw Error(
                     `There must be exactly one root node, but ${
@@ -75,7 +71,7 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
             const rule: IComplexMappingRule = {
                 ...originalRule,
                 sourcePaths: [],
-                operator: convertRuleOperatorNodeToValueInput(rootNodes[0], operatorNodeMap),
+                operator: ruleUtils.convertRuleOperatorNodeToValueInput(rootNodes[0], operatorNodeMap),
             };
             await putTransformRule(projectId, transformTaskId, ruleId, rule);
             return true;
@@ -106,7 +102,7 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
             fetchRuleData={fetchTransformRule}
             fetchRuleOperators={fetchTransformRuleOperatorList}
             saveRule={saveTransformRule}
-            convertRuleOperator={convertRuleOperator}
+            convertRuleOperator={ruleUtils.convertRuleOperator}
             convertToRuleOperatorNodes={convertToRuleOperatorNodes}
             additionalRuleOperators={[
                 inputPathOperator(
