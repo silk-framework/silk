@@ -377,6 +377,43 @@
             "empty": "Your workspace is empty. In order to start, create a new project or import an existing project from an exported project file."
         }
     },
+    "RuleEditor": {
+        "node": {
+            "menu": {
+                "remove": {
+                    "label": "Remove"
+                }
+            }
+        }
+    },
+    "taskViews": {
+        "linkRulesEditor": {
+            "errors": {
+                "fetchTaskData": {
+                    "msg": "An error has occurred while fetching the linking task."
+                },
+                "fetchLinkingRuleOperatorDetails": {
+                    "msg": "An error has occurred while fetching the list of linking rule operators."
+                },
+                "saveLinkageRule": {
+                    "msg": "Could not save linking rule!"
+                }
+            }
+        },
+        "transformRulesEditor": {
+            "errors": {
+                "fetchTransformRule": {
+                    "msg": "An error has occurred while fetching the transform rule."
+                },
+                "fetchTransformRuleOperatorDetails": {
+                    "msg": "An error has occurred while fetching the list of transform rule operators."
+                },
+                "saveTransformRule": {
+                    "msg": "Could not save transform rule!"
+                }
+            }
+        }
+    },
     "widget": {
         "ConfigWidget": {
             "loading": "Loading configuration list.",

@@ -6,9 +6,9 @@ import { matchPath } from "react-router";
 import { getFullRoutePath } from "../../../utils/routerUtils";
 import { getHistory } from "../../configureStore";
 import {
-    IArtefactItem,
+    IPluginOverview,
     IAvailableDataType,
-    IDetailedArtefactItem,
+    IPluginDetails,
     IExportTypes,
     IInitFrontend,
     IProjectTaskUpdatePayload,
@@ -105,9 +105,9 @@ export const commonSlice = createSlice({
             state.artefactModal.updateExistingTask = undefined;
         },
 
-        selectArtefact: (state, action: PayloadAction<IArtefactItem | undefined>) => {
+        selectArtefact: (state, action: PayloadAction<IPluginOverview | undefined>) => {
             state.artefactModal.isOpen = true;
-            state.artefactModal.selectedArtefact = action.payload || ({} as IArtefactItem);
+            state.artefactModal.selectedArtefact = action.payload || ({} as IPluginOverview);
             state.artefactModal.updateExistingTask = undefined;
         },
 
@@ -116,7 +116,7 @@ export const commonSlice = createSlice({
             state.artefactModal.error = {};
         },
 
-        setArtefactsList: (state, action: PayloadAction<IArtefactItem[]>) => {
+        setArtefactsList: (state, action: PayloadAction<IPluginOverview[]>) => {
             // Calculate category counts
             const categories: Record<string, number> = {};
             categories["All"] = action.payload.length;
@@ -137,7 +137,7 @@ export const commonSlice = createSlice({
             state.artefactModal.isOpen = true;
         },
 
-        setCachedArtefactProperty: (state, action: PayloadAction<IDetailedArtefactItem>) => {
+        setCachedArtefactProperty: (state, action: PayloadAction<IPluginDetails>) => {
             const key = action.payload.pluginId;
             state.artefactModal.cachedArtefactProperties[key] = action.payload;
         },

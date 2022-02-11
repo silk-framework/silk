@@ -146,7 +146,7 @@ object ReactBuildHelper {
       .map(_.getParentFile)
       .orElse(findSilkRoot(reactBuildRoot)) match {
       case Some(realProjectRoot) =>
-        process(yarnCommand :: Nil, realProjectRoot, maxRetries = MAX_RETRIES_YARN_DEPENDENCY_RESOLUTION) // Install dependencies
+        process(yarnCommand :: "--frozen-lockfile" :: Nil, realProjectRoot, maxRetries = MAX_RETRIES_YARN_DEPENDENCY_RESOLUTION) // Install dependencies
       case None =>
         throw new RuntimeException(s"Directory '${reactBuildRoot.getAbsolutePath}' is neither inside the Silk repository nor" +
           s" nested in a directory containing a build config file '$silkBuildPropertiesFile'.")
