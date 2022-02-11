@@ -13,12 +13,19 @@ export const RuleNodeParameterForm = ({ nodeId, parameters }: RuleNodeParameters
     return (
         <div key={"ruleNodeParameters"}>
             {parameters.map((param) => {
+                const paramSpec = param.parameterSpecification;
+                const parameterDescription =
+                    paramSpec.description && paramSpec.description !== "No description"
+                        ? paramSpec.description
+                        : undefined;
                 return (
                     <FieldItem
                         key={param.parameterId}
                         labelAttributes={{
-                            text: param.parameterId, // TODO: real label
-                            info: "TODO",
+                            text: paramSpec.label,
+                            tooltip: parameterDescription, // TODO: CMEM-3919 Tooltip flickers
+                            info: paramSpec.required ? "required" : undefined,
+                            title: parameterDescription, // TODO CMEM-3919 Remove when tooltip works
                         }}
                         // TODO: validation and error state
                         // hasStateDanger={!!errorMessage("Label", errors.label)}

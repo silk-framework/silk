@@ -45,12 +45,12 @@ export const NodeContent = ({
             const paramSpec = operatorContext.operatorParameterSpecification.get(paramId)!!;
             return {
                 parameterId: paramId,
-                parameterType: paramSpec.type,
                 update: (value: string) => {
                     nodeOperations.handleParameterChange(nodeId, paramId, value);
                 },
                 initialValue: initialValue ?? paramSpec.defaultValue,
                 currentValue: () => operatorContext.currentValue(nodeId, paramId),
+                parameterSpecification: paramSpec,
             };
         });
     return rerender ? null : (

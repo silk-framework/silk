@@ -29,7 +29,7 @@ export const RuleParameterInput = (ruleParameter: RuleParameterInputProps) => {
         defaultValue: ruleParameter.currentValue() ?? ruleParameter.initialValue,
         onChange,
     };
-    switch (ruleParameter.parameterType) {
+    switch (ruleParameter.parameterSpecification.type) {
         case "textArea":
             return <TextArea {...inputAttributes} />;
         case "boolean":
