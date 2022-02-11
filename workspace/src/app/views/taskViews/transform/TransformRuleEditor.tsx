@@ -3,7 +3,7 @@ import useErrorHandler from "../../../hooks/useErrorHandler";
 import { IComplexMappingRule } from "./transform.types";
 import { useTranslation } from "react-i18next";
 import { IViewActions } from "../../plugins/PluginRegistry";
-import RuleEditor from "../../shared/RuleEditor/RuleEditor";
+import RuleEditor, { RuleOperatorFetchFnType } from "../../shared/RuleEditor/RuleEditor";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
 import { putTransformRule, requestTransformRule } from "./transform.requests";
@@ -90,9 +90,12 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
     };
 
     /** Converts the linking task rule to the internal representation. */
-    const convertToRuleOperatorNodes = (mappingRule: IComplexMappingRule): IRuleOperatorNode[] => {
+    const convertToRuleOperatorNodes = (
+        mappingRule: IComplexMappingRule,
+        ruleOperator: RuleOperatorFetchFnType
+    ): IRuleOperatorNode[] => {
         const operatorNodes: IRuleOperatorNode[] = [];
-        extractOperatorNodeFromValueInput(mappingRule.operator, operatorNodes, false);
+        extractOperatorNodeFromValueInput(mappingRule.operator, operatorNodes, false, ruleOperator);
         return operatorNodes;
     };
 

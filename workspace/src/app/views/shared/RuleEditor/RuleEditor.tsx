@@ -3,10 +3,20 @@ import React from "react";
 import { RuleEditorView } from "./view/RuleEditorView";
 import { RuleEditorContext } from "./contexts/RuleEditorContext";
 import { IViewActions } from "../../plugins/PluginRegistry";
-import { IParameterSpecification, IRuleOperator, IRuleOperatorNode } from "./RuleEditor.typings";
+import {
+    IParameterSpecification,
+    IRuleOperator,
+    IRuleOperatorNode,
+    RuleOperatorPluginType,
+} from "./RuleEditor.typings";
 import ErrorBoundary from "../../../ErrorBoundary";
 import { ReactFlowProvider } from "react-flow-renderer";
 import utils from "./RuleEditor.utils";
+
+export type RuleOperatorFetchFnType = (
+    pluginId: string,
+    pluginType?: RuleOperatorPluginType
+) => IRuleOperator | undefined;
 
 export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     /** Project ID the task is in. */
@@ -22,7 +32,7 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     /** Converts the custom format to the internal rule operator format. */
     convertRuleOperator: (op: OPERATOR_TYPE) => IRuleOperator;
     /** Converts the external rule representation into the internal rule representation. */
-    convertToRuleOperatorNodes: (ruleData: RULE_TYPE) => IRuleOperatorNode[];
+    convertToRuleOperatorNodes: (ruleData: RULE_TYPE, ruleOperator: RuleOperatorFetchFnType) => IRuleOperatorNode[];
     /** Generic actions and callbacks on views. */
     viewActions?: IViewActions;
 }
@@ -53,6 +63,9 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     );
     // The list of available operators that can be added to the canvas
     const [operatorList, setOperatorList] = React.useState<IRuleOperator[] | undefined>(undefined);
+    /* A map that connects pluginId to all operators with that ID. In theory there could be plugins with the same ID in different plugin types,
+       so we need to have an array. */
+    const [operatorMap, setOperatorMap] = React.useState<Map<string, IRuleOperator[]> | undefined>(undefined);
     const [operatorSpec, setOperatorSpec] = React.useState<
         Map<string, Map<string, IParameterSpecification>> | undefined
     >(undefined);
@@ -64,11 +77,21 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
 
     // Convert task data to internal model
     React.useEffect(() => {
-        if (taskData) {
-            const nodes = convertToRuleOperatorNodes(taskData);
+        if (taskData && operatorMap) {
+            const getOperatorNode = (pluginId: string, pluginType?: string) => {
+                const operatorPlugins = operatorMap.get(pluginId);
+                if (!operatorPlugins) {
+                    console.warn("No plugin operator with ID " + pluginId + " found!");
+                } else {
+                    return pluginType
+                        ? operatorPlugins.find((plugin) => plugin.pluginType === pluginType)
+                        : operatorPlugins[0];
+                }
+            };
+            const nodes = convertToRuleOperatorNodes(taskData, getOperatorNode);
             setInitialRuleOperatorNodes(nodes);
         }
-    }, [taskData]);
+    }, [taskData, operatorMap]);
 
     // Convert available operators
     React.useEffect(() => {
@@ -77,8 +100,15 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
             const operatorSpec = new Map(
                 ops.map((op) => [op.pluginId, new Map(Object.entries(op.parameterSpecification))])
             );
+
+            const operatorMap = new Map<string, IRuleOperator[]>();
+            ops.forEach((op) => operatorMap.set(op.pluginId, []));
+            ops.forEach((op) => {
+                operatorMap.get(op.pluginId)!!.push(op);
+            });
             setOperatorSpec(operatorSpec);
             setOperatorList(ops);
+            setOperatorMap(operatorMap);
         }
     }, [operators]);
 

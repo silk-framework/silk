@@ -1,5 +1,6 @@
 import { IPathInput, ITransformOperator, IValueInput } from "./rule.typings";
-import { IRuleOperatorNode } from "../../../shared/RuleEditor/RuleEditor.typings";
+import { IRuleOperator, IRuleOperatorNode } from "../../../shared/RuleEditor/RuleEditor.typings";
+import { RuleOperatorFetchFnType } from "../../../shared/RuleEditor/RuleEditor";
 
 const extractOperatorNodeFromPathInput = (
     pathInput: IPathInput,
@@ -8,7 +9,7 @@ const extractOperatorNodeFromPathInput = (
 ): string => {
     result.push({
         nodeId: pathInput.id,
-        label: `${isTarget ? "Target path:" : "Source path:"} ${pathInput.path}`, // FIXME: Label? CMEM-3919
+        label: isTarget ? "Target path" : "Source path",
         pluginType: "PathInputOperator",
         pluginId: isTarget ? "target" : "source", // We use the plugin ID to denote if this is a source or target path input.
         inputs: [],
@@ -19,7 +20,6 @@ const extractOperatorNodeFromPathInput = (
             minInputPorts: 0,
             maxInputPorts: 0,
         },
-        tags: [isTarget ? "target path" : "source path"],
     });
     return pathInput.id;
 };
@@ -27,20 +27,23 @@ const extractOperatorNodeFromPathInput = (
 const extractOperatorNodeFromTransformInput = (
     transformInput: ITransformOperator,
     result: IRuleOperatorNode[],
-    isTarget: boolean | undefined
+    isTarget: boolean | undefined,
+    ruleOperator: RuleOperatorFetchFnType
 ): string => {
-    const inputs = transformInput.inputs.map((input) => extractOperatorNodeFromValueInput(input, result, isTarget));
+    const inputs = transformInput.inputs.map((input) =>
+        extractOperatorNodeFromValueInput(input, result, isTarget, ruleOperator)
+    );
     result.push({
         nodeId: transformInput.id,
         inputs: inputs,
         pluginType: "TransformOperator",
         pluginId: transformInput.function,
-        label: transformInput.function, // FIXME: label CMEM-3919
+        label: ruleOperator(transformInput.function, "TransformOperator")?.label ?? transformInput.function,
         parameters: transformInput.parameters,
         portSpecification: {
             minInputPorts: 1,
         },
-        tags: ["transform", transformInput.function],
+        tags: ["Transform"],
     });
     return transformInput.id;
 };
@@ -54,13 +57,14 @@ const extractOperatorNodeFromTransformInput = (
 export const extractOperatorNodeFromValueInput = (
     operator: IValueInput | undefined,
     result: IRuleOperatorNode[],
-    isTarget: boolean | undefined
+    isTarget: boolean | undefined,
+    ruleOperator: (pluginId: string, pluginType?: string) => IRuleOperator | undefined
 ): string | undefined => {
     if (operator) {
         const nodeId =
             operator.type === "pathInput"
                 ? extractOperatorNodeFromPathInput(operator as IPathInput, result, isTarget)
-                : extractOperatorNodeFromTransformInput(operator as ITransformOperator, result, isTarget);
+                : extractOperatorNodeFromTransformInput(operator as ITransformOperator, result, isTarget, ruleOperator);
         return nodeId;
     }
 };

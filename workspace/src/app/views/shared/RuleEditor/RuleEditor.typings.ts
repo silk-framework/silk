@@ -3,9 +3,11 @@ import { RuleOperatorType } from "@ducks/shared/typings";
 
 export type PathInputOperator = "PathInputOperator";
 
+export type RuleOperatorPluginType = string | PathInputOperator | RuleOperatorType;
+
 interface IRuleOperatorBase {
     /** Plugin type. */
-    pluginType: string | PathInputOperator | RuleOperatorType;
+    pluginType: RuleOperatorPluginType;
     /** The operator plugin ID. Taken from the list of available operators. */
     pluginId: string;
     /** The label that will be displayed in the node header. */

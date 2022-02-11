@@ -1,13 +1,5 @@
 import React, { useState } from "react";
-import {
-    Edge,
-    Elements,
-    OnLoadParams,
-    removeElements,
-    useStoreActions,
-    useStoreState,
-    useUpdateNodeInternals,
-} from "react-flow-renderer";
+import { Edge, Elements, OnLoadParams, removeElements, useStoreActions, useStoreState } from "react-flow-renderer";
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { RuleEditorContext, RuleEditorContextProps } from "../contexts/RuleEditorContext";
 import { IOperatorCreateContext, IOperatorNodeOperations, ruleEditorModelUtilsFactory } from "./RuleEditorModel.utils";
@@ -65,8 +57,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [postInit, setPostInit] = useState(false);
     /** Manages the parameters of rule nodes. This is done for performance reasons. Only stores diffs to the original value. */
     const [nodeParameterDiff] = React.useState<Map<string, Map<string, string | undefined>>>(new Map());
-    /** Update the internals of a node. This needs to be called in some cases in order to update the appearance of a node. */
-    const updateNodeInternals = useUpdateNodeInternals();
 
     /** Convert initial operator nodes to react-flow model. */
     React.useEffect(() => {
@@ -704,7 +694,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             const parameterDiff = nodeParameterDiff.get(node.id);
             const ruleOperatorNode: IRuleOperatorNode = {
                 inputs,
-                label: originalNode.label, // FIXME: Can the label change? CMEM-3919
+                label: originalNode.label,
                 nodeId: node.id,
                 parameters: parameterDiff
                     ? Object.fromEntries(

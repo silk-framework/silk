@@ -9,10 +9,10 @@ import {
 } from "./linking.types";
 import { useTranslation } from "react-i18next";
 import { IViewActions } from "../../plugins/PluginRegistry";
-import RuleEditor from "../../shared/RuleEditor/RuleEditor";
+import RuleEditor, { RuleOperatorFetchFnType } from "../../shared/RuleEditor/RuleEditor";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
-import { IProjectTask } from "@ducks/shared/typings";
+import { IProjectTask, RuleOperatorType } from "@ducks/shared/typings";
 import { requestUpdateProjectTask } from "@ducks/workspace/requests";
 import {
     IParameterSpecification,
@@ -154,9 +154,12 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
     };
 
     /** Converts the linking task rule to the internal representation. */
-    const convertToRuleOperatorNodes = (linkingTask: IProjectTask<ILinkingTaskParameters>): IRuleOperatorNode[] => {
+    const convertToRuleOperatorNodes = (
+        linkingTask: IProjectTask<ILinkingTaskParameters>,
+        ruleOperator: RuleOperatorFetchFnType
+    ): IRuleOperatorNode[] => {
         const operatorNodes: IRuleOperatorNode[] = [];
-        extractSimilarityOperatorNode(linkingTask.data.parameters.rule.operator, operatorNodes);
+        extractSimilarityOperatorNode(linkingTask.data.parameters.rule.operator, operatorNodes, ruleOperator);
         return operatorNodes;
     };
 
@@ -263,7 +266,7 @@ export const convertRuleOperator = (op: IPluginDetails): IRuleOperator => {
     return {
         pluginType: op.pluginType ?? "unknown",
         pluginId: op.pluginId,
-        label: op.pluginId, // FIXME: What label? CMEM-3919
+        label: op.title,
         description: op.description,
         categories: op.categories,
         icon: "artefact-task", // FIXME: Which icons? CMEM-3919
@@ -298,24 +301,26 @@ const aggregatorInputs = (aggregator: IAggregationOperator): ISimilarityOperator
 
 const extractSimilarityOperatorNode = (
     operator: ISimilarityOperator | undefined,
-    result: IRuleOperatorNode[]
+    result: IRuleOperatorNode[],
+    ruleOperator: RuleOperatorFetchFnType
 ): string | undefined => {
     if (operator) {
         const isComparison = operator.type === "Comparison";
         const inputs = isComparison
             ? comparatorInputs(operator as IComparisonOperator).map((input, idx) =>
-                  extractOperatorNodeFromValueInput(input, result, idx > 0)
+                  extractOperatorNodeFromValueInput(input, result, idx > 0, ruleOperator)
               )
             : aggregatorInputs(operator as IAggregationOperator).map((input) =>
-                  extractSimilarityOperatorNode(input, result)
+                  extractSimilarityOperatorNode(input, result, ruleOperator)
               );
         const pluginId = isComparison
             ? (operator as IComparisonOperator).metric
             : (operator as IAggregationOperator).aggregator;
+        const pluginType: RuleOperatorType = isComparison ? "ComparisonOperator" : "AggregationOperator";
         result.push({
             nodeId: operator.id,
-            label: pluginId, // FIXME: Adapt label CMEM-3919
-            pluginType: isComparison ? "ComparisonOperator" : "AggregationOperator",
+            label: ruleOperator(pluginId, pluginType)?.label ?? pluginId,
+            pluginType,
             pluginId,
             inputs: inputs,
             parameters: operator.parameters,
@@ -323,7 +328,7 @@ const extractSimilarityOperatorNode = (
                 minInputPorts: isComparison ? 2 : 1,
                 maxInputPorts: isComparison ? 2 : undefined,
             },
-            tags: [operator.type, pluginId], // FIXME: What tags? CMEM-3919
+            tags: [operator.type],
         });
         return operator.id;
     }
