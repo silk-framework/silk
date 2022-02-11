@@ -35,6 +35,8 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     convertToRuleOperatorNodes: (ruleData: RULE_TYPE, ruleOperator: RuleOperatorFetchFnType) => IRuleOperatorNode[];
     /** Generic actions and callbacks on views. */
     viewActions?: IViewActions;
+    /** Additional rule operator plugins that are not returned via the fetchRuleOperators method. */
+    additionalRuleOperators?: IRuleOperator[];
 }
 
 /**
@@ -48,6 +50,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     convertRuleOperator,
     convertToRuleOperatorNodes,
     saveRule,
+    additionalRuleOperators,
 }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
     // The task that contains the rule, e.g. transform or linking task
     const [taskData, setTaskData] = React.useState<TASK_TYPE | undefined>(undefined);
@@ -96,7 +99,11 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     // Convert available operators
     React.useEffect(() => {
         if (operators) {
-            const ops = operators.map((op) => convertRuleOperator(op));
+            const ops: IRuleOperator[] = [];
+            (additionalRuleOperators ?? []).forEach((additionalOp) => {
+                ops.push(additionalOp);
+            });
+            operators.forEach((op) => ops.push(convertRuleOperator(op)));
             const operatorSpec = new Map(
                 ops.map((op) => [op.pluginId, new Map(Object.entries(op.parameterSpecification))])
             );

@@ -21,7 +21,7 @@ import {
     IRuleOperatorNode,
 } from "../../shared/RuleEditor/RuleEditor.typings";
 import { IPathInput, ITransformOperator, IValueInput } from "../shared/rules/rule.typings";
-import { extractOperatorNodeFromValueInput } from "../shared/rules/rule.utils";
+import { extractOperatorNodeFromValueInput, inputPathOperator } from "../shared/rules/rule.utils";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -173,6 +173,18 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
             convertRuleOperator={convertRuleOperator}
             viewActions={viewActions}
             convertToRuleOperatorNodes={convertToRuleOperatorNodes}
+            additionalRuleOperators={[
+                inputPathOperator(
+                    "sourcePathInput",
+                    "Source path",
+                    "The value path of the source input of the linking task."
+                ), // TODO: CMEM-3919: i18n
+                inputPathOperator(
+                    "targetPathInput",
+                    "Target path",
+                    "The value path of the target input of the linking task."
+                ),
+            ]}
         />
     );
 };

@@ -13,7 +13,7 @@ import {
     convertToRuleOperatorNodeMap,
 } from "../linking/LinkingRuleEditor";
 import { IRuleOperatorNode } from "../../shared/RuleEditor/RuleEditor.typings";
-import { extractOperatorNodeFromValueInput } from "../shared/rules/rule.utils";
+import { extractOperatorNodeFromValueInput, inputPathOperator } from "../shared/rules/rule.utils";
 
 export interface TransformRuleEditorProps {
     /** Project ID the task is in. */
@@ -108,6 +108,13 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
             saveRule={saveTransformRule}
             convertRuleOperator={convertRuleOperator}
             convertToRuleOperatorNodes={convertToRuleOperatorNodes}
+            additionalRuleOperators={[
+                inputPathOperator(
+                    "valuePathInput",
+                    "Value path",
+                    "The value path of the input source of the transformation task."
+                ), // TODO: CMEM-3919: Add i18n
+            ]}
         />
     );
 };

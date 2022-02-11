@@ -1,13 +1,13 @@
 import { NodeContentProps } from "gui-elements/src/extensions/react-flow/nodes/NodeDefault";
-import { RuleOperatorType } from "@ducks/shared/typings";
+import { PluginType, RuleOperatorType } from "@ducks/shared/typings";
 
 export type PathInputOperator = "PathInputOperator";
 
-export type RuleOperatorPluginType = string | PathInputOperator | RuleOperatorType;
+export type RuleOperatorPluginType = PathInputOperator | RuleOperatorType;
 
 interface IRuleOperatorBase {
     /** Plugin type. */
-    pluginType: RuleOperatorPluginType;
+    pluginType: RuleOperatorPluginType | PluginType | "unknown";
     /** The operator plugin ID. Taken from the list of available operators. */
     pluginId: string;
     /** The label that will be displayed in the node header. */
@@ -75,7 +75,8 @@ export type RuleParameterType =
     | "code"
     | "password"
     | "resource"
-    | "textArea";
+    | "textArea"
+    | "pathInput";
 
 interface NodePosition {
     x: number;

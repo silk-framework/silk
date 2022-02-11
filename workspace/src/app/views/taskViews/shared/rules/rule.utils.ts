@@ -11,7 +11,7 @@ const extractOperatorNodeFromPathInput = (
         nodeId: pathInput.id,
         label: isTarget ? "Target path" : "Source path",
         pluginType: "PathInputOperator",
-        pluginId: isTarget ? "target" : "source", // We use the plugin ID to denote if this is a source or target path input.
+        pluginId: isTarget ? "targetPathInput" : "sourcePathInput", // We use the plugin ID to denote if this is a source or target path input.
         inputs: [],
         parameters: {
             path: pathInput.path,
@@ -67,4 +67,30 @@ export const extractOperatorNodeFromValueInput = (
                 : extractOperatorNodeFromTransformInput(operator as ITransformOperator, result, isTarget, ruleOperator);
         return nodeId;
     }
+};
+
+/** Input path operator used in the transform and linking operators. */
+export const inputPathOperator = (pluginId: string, label: string, description: string): IRuleOperator => {
+    return {
+        pluginType: "PathInputOperator",
+        pluginId: pluginId,
+        portSpecification: {
+            minInputPorts: 0,
+            maxInputPorts: 0,
+        },
+        label: label,
+        parameterSpecification: {
+            path: {
+                label: "Path",
+                defaultValue: "",
+                type: "pathInput",
+                description: "The source input path as Silk path expression.",
+                advanced: false,
+                required: true,
+            },
+        },
+        categories: ["Input"],
+        icon: "", // TODO: CMEM-3919: Icon for path input
+        description: description,
+    };
 };
