@@ -12,7 +12,6 @@ import { requestUpdateProjectTask } from "@ducks/workspace/requests";
 import utils from "./LinkingRuleEditor.utils";
 import ruleUtils from "../shared/rules/rule.utils";
 import { IRuleOperatorNode } from "../../shared/RuleEditor/RuleEditor.typings";
-import { inputPathOperator } from "../shared/rules/rule.utils";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -83,6 +82,23 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
         }
     };
 
+    // TODO: CMEM-3919: Add i18n to parameter specs
+    const weightParameterSpec = ruleUtils.parameterSpecification({
+        label: "Weight",
+        description:
+            "The weight parameter can be used by the parent aggregation when combining " +
+            "its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average " +
+            "aggregation, quadraticMean and geometricMean.",
+        type: "int",
+    });
+
+    const thresholdParameterSpec = ruleUtils.parameterSpecification({
+        label: "Threshold",
+        description:
+            "The maximum distance. For normalized distance measures, the threshold should be between 0.0 and 1.0.",
+        type: "float",
+    });
+
     return (
         <RuleEditor<IProjectTask<ILinkingTaskParameters>, IPluginDetails>
             projectId={projectId}
@@ -94,17 +110,30 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
             viewActions={viewActions}
             convertToRuleOperatorNodes={utils.convertToRuleOperatorNodes}
             additionalRuleOperators={[
-                inputPathOperator(
+                ruleUtils.inputPathOperator(
                     "sourcePathInput",
                     "Source path",
                     "The value path of the source input of the linking task."
                 ), // TODO: CMEM-3919: i18n
-                inputPathOperator(
+                ruleUtils.inputPathOperator(
                     "targetPathInput",
                     "Target path",
                     "The value path of the target input of the linking task."
                 ),
             ]}
+            addAdditionParameterSpecifications={(pluginDetails) => {
+                switch (pluginDetails.pluginType) {
+                    case "ComparisonOperator":
+                        return [
+                            ["threshold", thresholdParameterSpec],
+                            ["weight", weightParameterSpec],
+                        ];
+                    case "AggregationOperator":
+                        return [["weight", weightParameterSpec]];
+                    default:
+                        return [];
+                }
+            }}
         />
     );
 };

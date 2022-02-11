@@ -7,7 +7,6 @@ import RuleEditor, { RuleOperatorFetchFnType } from "../../shared/RuleEditor/Rul
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
 import { putTransformRule, requestTransformRule } from "./transform.requests";
-import { extractOperatorNodeFromValueInput, inputPathOperator } from "../shared/rules/rule.utils";
 import { IRuleOperatorNode } from "../../shared/RuleEditor/RuleEditor.typings";
 import ruleUtils from "../shared/rules/rule.utils";
 
@@ -91,7 +90,7 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
         ruleOperator: RuleOperatorFetchFnType
     ): IRuleOperatorNode[] => {
         const operatorNodes: IRuleOperatorNode[] = [];
-        extractOperatorNodeFromValueInput(mappingRule.operator, operatorNodes, false, ruleOperator);
+        ruleUtils.extractOperatorNodeFromValueInput(mappingRule.operator, operatorNodes, false, ruleOperator);
         return operatorNodes;
     };
 
@@ -105,7 +104,7 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
             convertRuleOperator={ruleUtils.convertRuleOperator}
             convertToRuleOperatorNodes={convertToRuleOperatorNodes}
             additionalRuleOperators={[
-                inputPathOperator(
+                ruleUtils.inputPathOperator(
                     "valuePathInput",
                     "Value path",
                     "The value path of the input source of the transformation task."

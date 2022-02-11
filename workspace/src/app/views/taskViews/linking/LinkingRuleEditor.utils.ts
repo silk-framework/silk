@@ -11,7 +11,7 @@ import {
     ISimilarityOperator,
 } from "./linking.types";
 import { RuleOperatorFetchFnType } from "../../shared/RuleEditor/RuleEditor";
-import ruleUtils, { extractOperatorNodeFromValueInput } from "../shared/rules/rule.utils";
+import ruleUtils from "../shared/rules/rule.utils";
 import { IProjectTask, RuleOperatorType } from "@ducks/shared/typings";
 
 /**
@@ -39,7 +39,7 @@ const extractSimilarityOperatorNode = (
         const isComparison = operator.type === "Comparison";
         const inputs = isComparison
             ? comparatorInputs(operator as IComparisonOperator).map((input, idx) =>
-                  extractOperatorNodeFromValueInput(input, result, idx > 0, ruleOperator)
+                  ruleUtils.extractOperatorNodeFromValueInput(input, result, idx > 0, ruleOperator)
               )
             : aggregatorInputs(operator as IAggregationOperator).map((input) =>
                   extractSimilarityOperatorNode(input, result, ruleOperator)
@@ -48,13 +48,33 @@ const extractSimilarityOperatorNode = (
             ? (operator as IComparisonOperator).metric
             : (operator as IAggregationOperator).aggregator;
         const pluginType: RuleOperatorType = isComparison ? "ComparisonOperator" : "AggregationOperator";
+        const threshold = (comparison: IComparisonOperator): string => {
+            let t = comparison.threshold.toString();
+            if (t.length === 1) {
+                // Threshold should be recognized as a float value
+                t = comparison.threshold.toFixed(1);
+            }
+            return t;
+        };
+        const additionalParameters = isComparison
+            ? {
+                  threshold: threshold(operator as IComparisonOperator),
+                  weight: operator.weight.toString(),
+              }
+            : {
+                  weight: operator.weight.toString(),
+              };
+
         result.push({
             nodeId: operator.id,
             label: ruleOperator(pluginId, pluginType)?.label ?? pluginId,
             pluginType,
             pluginId,
             inputs: inputs,
-            parameters: operator.parameters,
+            parameters: {
+                ...operator.parameters,
+                ...additionalParameters,
+            }, // TODO CMEM-3919 Add weight and threshold
             portSpecification: {
                 minInputPorts: isComparison ? 2 : 1,
                 maxInputPorts: isComparison ? 2 : undefined,

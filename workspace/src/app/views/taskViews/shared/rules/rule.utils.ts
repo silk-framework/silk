@@ -62,7 +62,7 @@ const extractOperatorNodeFromTransformInput = (
  * @param result   The result array this operator should be added to.
  * @param isTarget Only important in the context of comparisons where we have to distinguish between source and target paths.
  */
-export const extractOperatorNodeFromValueInput = (
+const extractOperatorNodeFromValueInput = (
     operator: IValueInput | undefined,
     result: IRuleOperatorNode[],
     isTarget: boolean | undefined,
@@ -78,7 +78,7 @@ export const extractOperatorNodeFromValueInput = (
 };
 
 /** Input path operator used in the transform and linking operators. */
-export const inputPathOperator = (pluginId: string, label: string, description: string): IRuleOperator => {
+const inputPathOperator = (pluginId: string, label: string, description: string): IRuleOperator => {
     return {
         pluginType: "PathInputOperator",
         pluginId: pluginId,
@@ -88,14 +88,11 @@ export const inputPathOperator = (pluginId: string, label: string, description: 
         },
         label: label,
         parameterSpecification: {
-            path: {
+            path: parameterSpecification({
                 label: "Path",
-                defaultValue: "",
                 type: "pathInput",
                 description: "The source input path as Silk path expression.",
-                advanced: false,
-                required: true,
-            },
+            }),
         },
         categories: ["Input"],
         icon: "", // TODO: CMEM-3919: Icon for path input
@@ -103,18 +100,47 @@ export const inputPathOperator = (pluginId: string, label: string, description: 
     };
 };
 
-/** Converts plugin details from the backend to rule operators. */
-const convertRuleOperator = (op: IPluginDetails): IRuleOperator => {
-    const required = (parameterId: string) => op.required.includes(parameterId);
+type OptionalParameterAttributes = "defaultValue" | "type" | "advanced" | "required";
+/** Parameter specification convenience function. */
+const parameterSpecification = ({
+    label,
+    defaultValue = "",
+    type = "textField",
+    description,
+    advanced = false,
+    required = true,
+}: Omit<IParameterSpecification, OptionalParameterAttributes> &
+    Partial<Pick<IParameterSpecification, OptionalParameterAttributes>>): IParameterSpecification => {
     return {
-        pluginType: op.pluginType ?? "unknown",
-        pluginId: op.pluginId,
-        label: op.title,
-        description: op.description,
-        categories: op.categories,
+        label,
+        defaultValue,
+        type,
+        description,
+        advanced,
+        required,
+    };
+};
+
+/** Converts plugin details from the backend to rule operators.
+ *
+ * @param pluginDetails                      The details of the operator plugin.
+ * @param addAdditionParameterSpecifications Callback function to decide if additional parameters should be added to an operator.
+ */
+const convertRuleOperator = (
+    pluginDetails: IPluginDetails,
+    addAdditionParameterSpecifications: (pluginDetails: IPluginDetails) => [id: string, spec: IParameterSpecification][]
+): IRuleOperator => {
+    const required = (parameterId: string) => pluginDetails.required.includes(parameterId);
+    const additionalParamSpecs = addAdditionParameterSpecifications(pluginDetails);
+    return {
+        pluginType: pluginDetails.pluginType ?? "unknown",
+        pluginId: pluginDetails.pluginId,
+        label: pluginDetails.title,
+        description: pluginDetails.description,
+        categories: pluginDetails.categories,
         icon: "artefact-task", // FIXME: Which icons? CMEM-3919
-        parameterSpecification: Object.fromEntries(
-            Object.entries(op.properties).map(([parameterId, parameterSpec]) => {
+        parameterSpecification: Object.fromEntries([
+            ...Object.entries(pluginDetails.properties).map(([parameterId, parameterSpec]) => {
                 const spec: IParameterSpecification = {
                     label: parameterSpec.title,
                     description: parameterSpec.description,
@@ -124,9 +150,10 @@ const convertRuleOperator = (op: IPluginDetails): IRuleOperator => {
                     defaultValue: parameterSpec.value,
                 };
                 return [parameterId, spec];
-            })
-        ),
-        portSpecification: portSpecification(op),
+            }),
+            ...additionalParamSpecs,
+        ]),
+        portSpecification: portSpecification(pluginDetails),
     };
 };
 
@@ -217,8 +244,11 @@ const convertToRuleOperatorNodeMap = (
 const ruleUtils = {
     convertRuleOperator,
     convertRuleOperatorNodeToValueInput,
-    fetchRuleOperatorNode,
     convertToRuleOperatorNodeMap,
+    extractOperatorNodeFromValueInput,
+    fetchRuleOperatorNode,
+    inputPathOperator,
+    parameterSpecification,
 };
 
 export default ruleUtils;

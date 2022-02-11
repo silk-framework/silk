@@ -30,13 +30,20 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     /** Fetch available rule operators. */
     fetchRuleOperators: () => Promise<OPERATOR_TYPE[] | undefined> | OPERATOR_TYPE[] | undefined;
     /** Converts the custom format to the internal rule operator format. */
-    convertRuleOperator: (op: OPERATOR_TYPE) => IRuleOperator;
+    convertRuleOperator: (
+        op: OPERATOR_TYPE,
+        addAdditionParameterSpecifications: (
+            pluginDetails: OPERATOR_TYPE
+        ) => [id: string, spec: IParameterSpecification][]
+    ) => IRuleOperator;
     /** Converts the external rule representation into the internal rule representation. */
     convertToRuleOperatorNodes: (ruleData: RULE_TYPE, ruleOperator: RuleOperatorFetchFnType) => IRuleOperatorNode[];
     /** Generic actions and callbacks on views. */
     viewActions?: IViewActions;
     /** Additional rule operator plugins that are not returned via the fetchRuleOperators method. */
     additionalRuleOperators?: IRuleOperator[];
+    /** Function to add additional parameter (specifications) to a rule operator based on the original operator. */
+    addAdditionParameterSpecifications?: (operator: OPERATOR_TYPE) => [id: string, spec: IParameterSpecification][];
 }
 
 /**
@@ -51,6 +58,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     convertToRuleOperatorNodes,
     saveRule,
     additionalRuleOperators,
+    addAdditionParameterSpecifications,
 }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
     // The task that contains the rule, e.g. transform or linking task
     const [taskData, setTaskData] = React.useState<TASK_TYPE | undefined>(undefined);
@@ -103,7 +111,8 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
             (additionalRuleOperators ?? []).forEach((additionalOp) => {
                 ops.push(additionalOp);
             });
-            operators.forEach((op) => ops.push(convertRuleOperator(op)));
+            const addAdditionalParams = addAdditionParameterSpecifications ?? (() => []);
+            operators.forEach((op) => ops.push(convertRuleOperator(op, addAdditionalParams)));
             const operatorSpec = new Map(
                 ops.map((op) => [op.pluginId, new Map(Object.entries(op.parameterSpecification))])
             );
