@@ -90,6 +90,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
             "its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average " +
             "aggregation, quadraticMean and geometricMean.",
         type: "int",
+        advanced: true,
     });
 
     const thresholdParameterSpec = ruleUtils.parameterSpecification({

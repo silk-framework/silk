@@ -567,6 +567,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         newValue: string | undefined,
         autoStartTransaction: boolean = true
     ) => {
+        // TODO: Check why fields with non-empty initial values are not reset to initial values after undo (after undo, redo, undo they however are)
         // Merge parameter changes done to the same node/parameter subsequently, so it becomes a single undo operation
         const recentParameterChange = lastRuleParameterChange();
         const sameParameterChanged =
