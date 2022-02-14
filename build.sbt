@@ -26,7 +26,7 @@ val silkVersion = {
 val buildReactExternally = {
   val result = sys.env.getOrElse("BUILD_REACT_EXTERNALLY", "FALSE").toLowerCase == "true"
   if(result) {
-    println("React artifacts will not be built from sbt and must be build externally, e.g. via yarn. BUILD_REACT_EXTERNALLY is set to true. Unset or set to != true in order to build it from sbt again.")
+    println("React/JavaScript artifacts will not be built from sbt and must be build externally, e.g. via yarn. BUILD_REACT_EXTERNALLY is set to true. Unset or set to != true in order to build it from sbt again.")
   }
   result
 }
@@ -252,15 +252,28 @@ lazy val reactComponents = (project in file("silk-react-components"))
     // Silk React build pipeline
     //////////////////////////////////////////////////////////////////////////////
     /** Check that all necessary build tool for the JS pipeline are available */
-    checkJsBuildTools := {
-      ReactBuildHelper.checkReactBuildTool()
-    },
+    checkJsBuildTools := Def.taskDyn {
+      if(!buildReactExternally) {
+        Def.task { ReactBuildHelper.checkReactBuildTool() }
+      } else {
+        Def.task { }
+      }
+    }.value,
+    yarnInstall := Def.taskDyn {
+      checkJsBuildTools.value
+      if(!buildReactExternally) {
+        Def.task { ReactBuildHelper.yarnInstall(baseDirectory.value) }
+      } else {
+        Def.task { }
+      }
+    }.value,
     // Run when building silk react
     /** Build Silk React */
     buildSilkReact := {
       // Build React components
-      checkJsBuildTools.value // depend on check
+      yarnInstall.value // depend on check
       val distRoot = silkDistRoot.value
+      val workbenchRoot = silkWorkbenchRoot.value
       if(!buildReactExternally) {
         val reactWatchConfig = WatchConfig(new File(baseDirectory.value, "src"), fileRegex = """\.(jsx|js|tsx|ts|scss|json)$""")
 
@@ -268,17 +281,17 @@ lazy val reactComponents = (project in file("silk-react-components"))
         if (Watcher.staleTargetFiles(reactWatchConfig, Seq(distFile("main.js"), distFile("style.css")))) {
           ReactBuildHelper.buildReactComponentsAndCopy(baseDirectory.value, distRoot, "Silk")
         }
-      }
-      // Transpile pure JavaScript files
-      val silkReactWorkbenchRoot = new File(baseDirectory.value, "silk-workbench")
-      val changedJsFiles = Watcher.filesChanged(WatchConfig(silkReactWorkbenchRoot, fileRegex = """\.js$"""))
-      val workbenchRoot = silkWorkbenchRoot.value
-      if(changedJsFiles.nonEmpty) {
-        // Transpile JavaScript files to ES5
-        for(file <- changedJsFiles) {
-          val relativePath = silkReactWorkbenchRoot.toURI().relativize(file.toURI()).getPath()
-          val targetFile = new File(workbenchRoot, relativePath)
-          ReactBuildHelper.transpileJavaScript(baseDirectory.value, file, targetFile)
+        // Transpile pure JavaScript files
+        val silkReactWorkbenchRoot = new File(baseDirectory.value, "silk-workbench")
+        val changedJsFiles = Watcher.filesChanged(WatchConfig(silkReactWorkbenchRoot, fileRegex = """\.js$"""))
+
+        if(changedJsFiles.nonEmpty) {
+          // Transpile JavaScript files to ES5
+          for(file <- changedJsFiles) {
+            val relativePath = silkReactWorkbenchRoot.toURI().relativize(file.toURI()).getPath()
+            val targetFile = new File(workbenchRoot, relativePath)
+            ReactBuildHelper.transpileJavaScript(baseDirectory.value, file, targetFile)
+          }
         }
       }
     },

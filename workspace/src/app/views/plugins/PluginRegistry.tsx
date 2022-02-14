@@ -1,6 +1,8 @@
 /** A view / UI of a project task.
  * Each task can have multiple views.
  **/
+import { LinkingRuleEditor } from "../taskViews/linking/LinkingRuleEditor";
+import React from "react";
 
 // Generic actions and callbacks on views
 export interface IViewActions {
@@ -97,6 +99,15 @@ class PluginRegistry {
 }
 
 export const pluginRegistry = new PluginRegistry();
+
+// Register linking rule editor
+pluginRegistry.registerTaskView("linking", {
+    id: "linkingEditor",
+    label: "Linking editor WIP",
+    render(projectId: string, taskId: string, viewActions: IViewActions | undefined): JSX.Element {
+        return <LinkingRuleEditor projectId={projectId} linkingTaskId={taskId} />;
+    },
+});
 
 export const SUPPORTED_PLUGINS = {
     DATA_PREVIEW: "di:dataPreview",
