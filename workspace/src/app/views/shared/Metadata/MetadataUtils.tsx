@@ -50,7 +50,7 @@ export const queryTags = (
         url: workspaceApi(`/projects/${projectId}/tags${filter?.length ? `?filter=${filter}` : ""}`),
     });
 
-const DisplayArtefactTags = (tags: Array<TagType>, t: (key: string, fallBack: string) => string, minLength = 3) => {
+const DisplayArtefactTags = (tags: Array<TagType>, t: (key: string, fallBack: string) => string, minLength = 6) => {
     const Tags = (size: "full" | "preview") => {
         return size === "full" ? (
             <TagList>
