@@ -223,6 +223,41 @@ object SearchApiModel {
                         itemType: ItemType,
                         tasks: Seq[ProjectTask[_ <: TaskSpec]])
 
+  object TypedTasks {
+
+    //TODO move those functions and the match functions from the SearchRequest into a separate class?
+
+    /** Fetches tasks. If the item type is defined, it will only fetch tasks of a specific type. */
+    def fetchTasks(project: Project, itemType: Option[ItemType])
+                          (implicit userContext: UserContext): Seq[TypedTasks] = {
+      itemType match {
+        case Some(t) =>
+          Seq(fetchTasksOfType(project, t))
+        case None =>
+          val result = new ArrayBuffer[TypedTasks]()
+          for (it <- ItemType.ordered.filter(_ != ItemType.project)) {
+            result.append(fetchTasksOfType(project, it))
+          }
+          result
+      }
+    }
+
+    /** Fetch tasks of a specific type. */
+    private def fetchTasksOfType(project: Project, itemType: ItemType)
+                                (implicit userContext: UserContext): TypedTasks = {
+      val tasks = itemType match {
+        case ItemType.dataset => project.tasks[DatasetSpec[Dataset]]
+        case ItemType.linking => project.tasks[LinkSpec]
+        case ItemType.transform => project.tasks[TransformSpec]
+        case ItemType.workflow => project.tasks[Workflow]
+        case ItemType.task => project.tasks[CustomTask]
+        case ItemType.project => Seq.empty
+        case ItemType.global => Seq.empty
+      }
+      TypedTasks(project.name, project.config.fullLabel ,itemType, tasks)
+    }
+  }
+
   /** A search request that supports types and facets. */
   case class FacetedSearchRequest(@Schema(
                                     description = "If defined, only artifacts from that project are fetched.",
@@ -262,13 +297,15 @@ object SearchApiModel {
                                   @Schema(
                                     description = "Optional sort parameter allows for sorting the result list by a specific artifact property, e.g. label, creation date, update date.",
                                     required = false,
-                                    nullable = true
+                                    nullable = true,
+                                    allowableValues = Array("label")
                                   )
                                   sortBy: Option[SortBy.Value] = None,
                                   @Schema(
                                     description = "If defined, only artifacts from that project are fetched.",
                                     required = false,
-                                    nullable = true
+                                    nullable = true,
+                                    allowableValues = Array("ASC", "DESC")
                                   )
                                   sortOrder: Option[SortOrder.Value] = None,
                                   @ArraySchema(
@@ -295,7 +332,7 @@ object SearchApiModel {
     def apply()(implicit userContext: UserContext,
                 accessMonitor: WorkbenchAccessMonitor): JsValue = {
       val ps: Seq[Project] = projects
-      var tasks: Seq[TypedTasks] = ps.flatMap(fetchTasks)
+      var tasks: Seq[TypedTasks] = ps.flatMap(TypedTasks.fetchTasks(_, itemType))
       var selectedProjects: Seq[Project] = if(project.isEmpty && (itemType.contains(ItemType.project) || itemType.isEmpty)) ps else Seq()
 
       for(term <- textQuery if term.trim.nonEmpty) {
@@ -413,36 +450,6 @@ object SearchApiModel {
         case _ =>
           typedTasks.copy(tasks = typedTasks.tasks.filter { task => facetCollector.filterAndCollectAllItems(task, facetSettings)})
       }
-    }
-
-    /** Fetches the tasks. If the item type is defined, it will only fetch tasks of a specific type. */
-    private def fetchTasks(project: Project)
-                          (implicit userContext: UserContext): Seq[TypedTasks] = {
-      itemType match {
-        case Some(t) =>
-          Seq(fetchTasksOfType(project, t))
-        case None =>
-          val result = new ArrayBuffer[TypedTasks]()
-          for (it <- ItemType.ordered.filter(_ != ItemType.project)) {
-            result.append(fetchTasksOfType(project, it))
-          }
-          result
-      }
-    }
-
-    /** Fetch tasks of a specific type. */
-    def fetchTasksOfType(project: Project,
-                         itemType: ItemType)
-                        (implicit userContext: UserContext): TypedTasks = {
-      val tasks = itemType match {
-        case ItemType.dataset => project.tasks[DatasetSpec[Dataset]]
-        case ItemType.linking => project.tasks[LinkSpec]
-        case ItemType.transform => project.tasks[TransformSpec]
-        case ItemType.workflow => project.tasks[Workflow]
-        case ItemType.task => project.tasks[CustomTask]
-        case ItemType.project => Seq.empty
-      }
-      TypedTasks(project.name, project.config.fullLabel ,itemType, tasks)
     }
 
     private def toJson(project: Project)

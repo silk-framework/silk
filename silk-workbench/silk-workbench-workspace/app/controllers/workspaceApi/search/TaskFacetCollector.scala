@@ -10,14 +10,14 @@ import scala.collection.mutable
 /**
   * Facet value collector of the 'Task'/CustomTask type.
   */
-case class TaskFacetCollector() extends ItemTypeFacetCollector[CustomTask] {
-  override val facetCollectors: Seq[FacetCollector[CustomTask]] = Seq(
+case class TaskFacetCollector() extends ItemTypeFacetCollector[ProjectTask[CustomTask]] {
+  override val facetCollectors: Seq[FacetCollector[ProjectTask[CustomTask]]] = Seq(
     TaskTypeFacetCollector()
   )
 }
 
 /** Collects values for the task type facet. */
-case class TaskTypeFacetCollector() extends KeywordFacetCollector[CustomTask] {
+case class TaskTypeFacetCollector() extends KeywordFacetCollector[ProjectTask[CustomTask]] {
   private val taskTypes = new mutable.ListMap[String, Int]()
   private val taskTypeLabel = new mutable.ListMap[String, String]()
 

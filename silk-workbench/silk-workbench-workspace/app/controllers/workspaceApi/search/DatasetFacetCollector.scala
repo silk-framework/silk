@@ -9,15 +9,15 @@ import org.silkframework.workspace.ProjectTask
 import scala.collection.mutable
 
 /** Collects facet data of dataset tasks. */
-case class DatasetFacetCollector() extends ItemTypeFacetCollector[GenericDatasetSpec] {
-  override val facetCollectors: Seq[FacetCollector[GenericDatasetSpec]] = Seq(
+case class DatasetFacetCollector() extends ItemTypeFacetCollector[ProjectTask[GenericDatasetSpec]] {
+  override val facetCollectors: Seq[FacetCollector[ProjectTask[GenericDatasetSpec]]] = Seq(
     DatasetTypeFacetCollector(),
     DatasetFileFacetCollector()
   )
 }
 
 /** Collects values for the dataset type facet. */
-case class DatasetTypeFacetCollector() extends KeywordFacetCollector[GenericDatasetSpec] {
+case class DatasetTypeFacetCollector() extends KeywordFacetCollector[ProjectTask[GenericDatasetSpec]] {
   private val datasetTypes = new mutable.ListMap[String, Int]()
   private val datasetTypeLabel = new mutable.ListMap[String, String]()
 
@@ -45,7 +45,7 @@ case class DatasetTypeFacetCollector() extends KeywordFacetCollector[GenericData
 }
 
 /** File resources used by the datasets. */
-case class DatasetFileFacetCollector() extends NoLabelKeywordFacetCollector[GenericDatasetSpec] {
+case class DatasetFileFacetCollector() extends NoLabelKeywordFacetCollector[ProjectTask[GenericDatasetSpec]] {
   override def appliesForFacet: Facet = Facets.fileResource
 
   override def extractKeywordIds(datasetTask: ProjectTask[GenericDatasetSpec])

@@ -9,16 +9,17 @@ import org.silkframework.workspace.ProjectTask
 /**
   * Generic facets
   */
-case class TaskSpecFacetCollector[T <: TaskSpec]() extends ItemTypeFacetCollector[T] {
-  override val facetCollectors: Seq[FacetCollector[T]] = Seq(
-    CreatedByFacetCollector[T](),
-    LastModifiedByFacetCollector[T](),
-    TaskTagCollector[T]()
+// TODO use HasMetaData type instead so it can be used with other classes?
+case class TaskSpecFacetCollector() extends ItemTypeFacetCollector[ProjectTask[_ <: TaskSpec]] {
+  override val facetCollectors: Seq[FacetCollector[ProjectTask[_ <: TaskSpec]]] = Seq(
+    CreatedByFacetCollector(),
+    LastModifiedByFacetCollector(),
+    TaskTagCollector()
   )
 }
 
 /** Collects values for the "Created by" facet. */
-case class CreatedByFacetCollector[T <: TaskSpec]() extends UserFacetCollector[T] {
+case class CreatedByFacetCollector() extends UserFacetCollector {
 
   override def appliesForFacet: Facet = Facets.createdBy
 
@@ -26,7 +27,7 @@ case class CreatedByFacetCollector[T <: TaskSpec]() extends UserFacetCollector[T
 }
 
 /** Collects values for the "Last modified by" facet. */
-case class LastModifiedByFacetCollector[T <: TaskSpec]() extends UserFacetCollector[T] {
+case class LastModifiedByFacetCollector() extends UserFacetCollector {
 
   override def appliesForFacet: Facet = Facets.lastModifiedBy
 
@@ -34,11 +35,11 @@ case class LastModifiedByFacetCollector[T <: TaskSpec]() extends UserFacetCollec
 }
 
 /** User facet trait */
-trait UserFacetCollector[T <: TaskSpec] extends IdAndLabelKeywordFacetCollector[T] {
+trait UserFacetCollector extends IdAndLabelKeywordFacetCollector[ProjectTask[_ <: TaskSpec]] {
 
   protected def userUri(metaData: MetaData): Option[Uri]
 
-  override protected def extractIdAndLabel(projectTask: ProjectTask[T])
+  override protected def extractIdAndLabel(projectTask: ProjectTask[_ <: TaskSpec])
                                           (implicit user: UserContext): Set[(String, String)] = {
     val metaData = projectTask.metaData
     val uriAndLabel = userUri(metaData) match {
@@ -51,12 +52,12 @@ trait UserFacetCollector[T <: TaskSpec] extends IdAndLabelKeywordFacetCollector[
 }
 
 /** Collects values for the "tags" facet. */
-case class TaskTagCollector[T <: TaskSpec]() extends IdAndLabelKeywordFacetCollector[T] {
+case class TaskTagCollector() extends IdAndLabelKeywordFacetCollector[ProjectTask[_ <: TaskSpec]] {
 
   /** The facet this collector applies for. */
   override def appliesForFacet: Facet = Facets.tags
 
-  override protected def extractIdAndLabel(projectTask: ProjectTask[T])
+  override protected def extractIdAndLabel(projectTask: ProjectTask[_ <: TaskSpec])
                                           (implicit user: UserContext): Set[(String, String)] = {
     projectTask.tags().map(tag => (tag.uri, tag.label))
   }

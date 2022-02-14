@@ -9,14 +9,14 @@ import org.silkframework.workspace.ProjectTask
 /**
   * Facet collector for the Transformation task.
   */
-case class TransformFacetCollector() extends ItemTypeFacetCollector[TransformSpec] {
-  override val facetCollectors: Seq[FacetCollector[TransformSpec]] = Seq(
+case class TransformFacetCollector() extends ItemTypeFacetCollector[ProjectTask[TransformSpec]] {
+  override val facetCollectors: Seq[FacetCollector[ProjectTask[TransformSpec]]] = Seq(
     TransformInputResourceFacetCollector()
   )
 }
 
 /** Collect file resources from input datasets. */
-case class TransformInputResourceFacetCollector() extends NoLabelKeywordFacetCollector[TransformSpec] {
+case class TransformInputResourceFacetCollector() extends NoLabelKeywordFacetCollector[ProjectTask[TransformSpec]] {
   private val fileFacetCollector = DatasetFileFacetCollector()
 
   override def extractKeywordIds(projectTask: ProjectTask[TransformSpec])
