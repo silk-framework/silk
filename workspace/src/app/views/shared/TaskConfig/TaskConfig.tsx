@@ -7,7 +7,7 @@ import { requestArtefactProperties } from "@ducks/common/requests";
 import { Loading } from "../Loading/Loading";
 import { TaskConfigPreview } from "./TaskConfigPreview";
 import { IProjectTask } from "@ducks/shared/typings";
-import { IPluginDetails } from "@ducks/common/typings";
+import { IDetailedArtefactItem } from "@ducks/common/typings";
 import { commonSlice } from "@ducks/common/commonSlice";
 import { useTranslation } from "react-i18next";
 import useErrorHandler from "../../../hooks/useErrorHandler";
@@ -19,7 +19,7 @@ interface IProps {
 
 export interface ITaskSchemaAndData {
     taskData: IProjectTask;
-    taskDescription: IPluginDetails;
+    taskDescription: IDetailedArtefactItem;
 }
 
 /**
@@ -51,7 +51,7 @@ export function TaskConfig(props: IProps) {
         setLoading(true);
         try {
             // Config dialog is always opened with fresh data
-            const taskData = (await requestTaskData(props.projectId, props.taskId, true)).data;
+            const taskData = await requestTaskData(props.projectId, props.taskId, true);
             const taskPluginDetails = await artefactProperties(taskData.data.type);
             dispatch(
                 commonOp.updateProjectTask({
@@ -73,8 +73,8 @@ export function TaskConfig(props: IProps) {
         setLoading(true);
         try {
             // Fetch data for preview of config
-            const taskData = (await requestTaskData(props.projectId, props.taskId, true)).data;
-            if (taskData.data.type) {
+            const taskData = await requestTaskData(props.projectId, props.taskId, true);
+            if (taskData?.data?.type) {
                 const taskDescription = await artefactProperties(taskData.data.type);
                 setLabelledTaskData({ taskData, taskDescription });
             }

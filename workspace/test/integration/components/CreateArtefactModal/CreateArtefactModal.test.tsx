@@ -32,7 +32,7 @@ import {
 import { CreateArtefactModal } from "../../../../src/app/views/shared/modals/CreateArtefactModal/CreateArtefactModal";
 import { cleanup, waitFor } from "@testing-library/react";
 import {
-    IPluginDetails,
+    IDetailedArtefactItem,
     IOverviewArtefactItemList,
     IProjectTaskUpdatePayload,
 } from "../../../../src/app/store/ducks/common/typings";
@@ -151,7 +151,7 @@ describe("Task creation widget", () => {
         },
     };
 
-    const mockPluginDescription: IPluginDetails = {
+    const mockPluginDescription: IDetailedArtefactItem = {
         title: "Plugin A",
         description: "This is plugin A",
         type: "object",

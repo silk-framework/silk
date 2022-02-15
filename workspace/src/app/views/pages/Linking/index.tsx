@@ -38,10 +38,7 @@ export default function LinkingPage() {
                 <Section>
                     <Metadata />
                     <Spacing />
-                    <ProjectTaskTabView
-                        taskViewConfig={{ pluginId: "linking", projectId: projectId, taskId: taskId }}
-                        iFrameName={"detail-page-iframe"}
-                    />
+                    <ProjectTaskTabView iFrameName={"detail-page-iframe"} />
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>

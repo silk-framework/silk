@@ -114,7 +114,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                             {dmModuleLinks ? (
                                 dmModuleLinks.map((link) => (
                                     <MenuItem
-                                        icon={link.icon ? [link.icon] : undefined}
+                                        icon={link.icon}
                                         text={t("navigation.side.dm." + link.path, link.defaultLabel)}
                                         htmlTitle={t("navigation.side.dm." + link.path + "Tooltip")}
                                         href={dmBaseUrl + "/" + link.path}

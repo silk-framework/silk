@@ -23,7 +23,6 @@ const getClientEnvironment = require("./env");
 const ModuleNotFoundPlugin = require("react-dev-utils/ModuleNotFoundPlugin");
 const ForkTsCheckerWebpackPlugin = require("react-dev-utils/ForkTsCheckerWebpackPlugin");
 const typescriptFormatter = require("react-dev-utils/typescriptFormatter");
-const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
 // Some apps do not need the benefits of saving a web request, so not inlining the chunk
 // makes for a smoother build process.
@@ -183,11 +182,9 @@ module.exports = function (webpackEnv, isWatch) {
                 // This is only used in production mode
                 new TerserPlugin({
                     terserOptions: {
-                        ie8: false,
-                        parallel: true,
                         parse: {
                             // we want terser to parse ecma 8 code. However, we don't want it
-                            // to apply any minification steps that turns valid ecma 5 code
+                            // to apply any minfication steps that turns valid ecma 5 code
                             // into invalid ecma 5 code. This is why the 'compress' and 'output'
                             // sections only apply transformations that are ecma 5 safe
                             // https://github.com/facebook/create-react-app/pull/4234
@@ -201,7 +198,11 @@ module.exports = function (webpackEnv, isWatch) {
                             // Pending further investigation:
                             // https://github.com/mishoo/UglifyJS2/issues/2011
                             comparisons: false,
-                            inline: true,
+                            // Disabled because of an issue with Terser breaking valid code:
+                            // https://github.com/facebook/create-react-app/issues/5250
+                            // Pending futher investigation:
+                            // https://github.com/terser-js/terser/issues/120
+                            inline: 2,
                         },
                         mangle: {
                             safari10: true,
@@ -332,7 +333,9 @@ module.exports = function (webpackEnv, isWatch) {
                             loader: require.resolve("babel-loader"),
                             options: {
                                 customize: require.resolve("babel-preset-react-app/webpack-overrides"),
-                                presets: [["react-app", { flow: false, typescript: true }]],
+                                presets: [
+                                    ["react-app", {"flow": false, "typescript": true}],
+                                ],
                                 plugins: [
                                     [
                                         require.resolve("babel-plugin-named-asset-import"),
@@ -522,12 +525,13 @@ module.exports = function (webpackEnv, isWatch) {
             // See https://github.com/facebook/create-react-app/issues/186
             isEnvDevelopment && new WatchMissingNodeModulesPlugin(paths.appNodeModules),
 
-            new MiniCssExtractPlugin({
-                // Options similar to the same options in webpackOptions.output
-                // both options are optional
-                filename: "assets/css/[name].[contenthash:8].css",
-                chunkFilename: "assets/css/[name].[contenthash:8].chunk.css",
-            }),
+
+                new MiniCssExtractPlugin({
+                    // Options similar to the same options in webpackOptions.output
+                    // both options are optional
+                    filename: "assets/css/[name].[contenthash:8].css",
+                    chunkFilename: "assets/css/[name].[contenthash:8].chunk.css",
+                }),
             // Generate an asset manifest file with the following content:
             // - "files" key: Mapping of all asset filenames to their corresponding
             //   output file so that tools can pick it up without having to parse
@@ -596,9 +600,6 @@ module.exports = function (webpackEnv, isWatch) {
                     silent: isEnvProduction,
                     formatter: isEnvProduction ? typescriptFormatter : undefined,
                 }),
-            // isEnvProduction && new BundleAnalyzerPlugin({
-            //     generateStatsFile: true
-            // })
         ].filter(Boolean),
         // Some libraries import Node modules but don't use them in the browser.
         // Tell Webpack to provide empty mocks for them so importing them works.

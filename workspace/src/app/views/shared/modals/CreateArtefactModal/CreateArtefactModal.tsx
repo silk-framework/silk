@@ -26,7 +26,7 @@ import {
 } from "gui-elements";
 import { createMultiWordRegex, extractSearchWords } from "gui-elements/src/components/Typography/Highlighter";
 import { commonOp, commonSel } from "@ducks/common";
-import { IPluginOverview, IArtefactModal, IPluginDetails } from "@ducks/common/typings";
+import { IArtefactItem, IArtefactModal, IDetailedArtefactItem } from "@ducks/common/typings";
 import Loading from "../../Loading";
 import { ProjectForm } from "./ArtefactForms/ProjectForm";
 import { TaskForm } from "./ArtefactForms/TaskForm";
@@ -38,7 +38,7 @@ import { useTranslation } from "react-i18next";
 import { TaskType } from "@ducks/shared/typings";
 import { ProjectImportModal } from "../ProjectImportModal";
 import ItemDepiction from "../../../shared/ItemDepiction";
-import { ErrorBoundary } from "carbon-components-react";
+import { ErrorBoundary } from "carbon-components-react/lib/components/ErrorBoundary";
 import ProjectSelection from "./ArtefactForms/ProjectSelection";
 import { workspaceSel } from "@ducks/workspace";
 import { requestSearchList } from "@ducks/workspace/requests";
@@ -79,7 +79,7 @@ export function CreateArtefactModal() {
 
     // The artefact that is selected from the artefact selection list. This can be pre-selected via the Redux state.
     // A successive 'Add' action will open the creation dialog for this artefact.
-    const [toBeAdded, setToBeAdded] = useState<IPluginOverview | undefined>(selectedArtefact);
+    const [toBeAdded, setToBeAdded] = useState<IArtefactItem | undefined>(selectedArtefact);
     const [lastSelectedClick, setLastSelectedClick] = useState<number>(0);
     const [isProjectImport, setIsProjectImport] = useState<boolean>(false);
     const DOUBLE_CLICK_LIMIT_MS = 500;
@@ -176,7 +176,7 @@ export function CreateArtefactModal() {
     };
 
     // Handles that an artefact is selected (highlighted) in the artefact selection list (not added, yet    )
-    const handleArtefactSelect = (artefact: IPluginOverview) => {
+    const handleArtefactSelect = (artefact: IArtefactItem) => {
         if (
             toBeAddedKey === artefact.key &&
             lastSelectedClick &&
@@ -209,7 +209,7 @@ export function CreateArtefactModal() {
         if (artefactId === "project") {
             return "Project";
         } else {
-            return (cachedArtefactProperties[artefactId] as IPluginDetails).taskType;
+            return (cachedArtefactProperties[artefactId] as IDetailedArtefactItem).taskType;
         }
     };
 
@@ -452,8 +452,8 @@ export function CreateArtefactModal() {
     // Rank title matches higher
     if (searchValue.trim() !== "") {
         const regex = createMultiWordRegex(extractSearchWords(searchValue), false);
-        const titleMatches: IPluginOverview[] = [];
-        const nonTitleMatches: IPluginOverview[] = [];
+        const titleMatches: IArtefactItem[] = [];
+        const nonTitleMatches: IArtefactItem[] = [];
         artefactListWithProject.forEach((artefactItem) => {
             if (artefactItem.title && regex.test(artefactItem.title)) {
                 titleMatches.push(artefactItem);

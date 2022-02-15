@@ -8,13 +8,13 @@ import {
     Notification,
 } from "gui-elements";
 import React from "react";
-import { IArtefactItemProperty, IPluginDetails } from "@ducks/common/typings";
+import { IArtefactItemProperty, IDetailedArtefactItem } from "@ducks/common/typings";
 import { useTranslation } from "react-i18next";
 import { INPUT_TYPES } from "../../../constants";
 
 interface IProps {
     taskData: IProjectTask;
-    taskDescription: IPluginDetails;
+    taskDescription: IDetailedArtefactItem;
 }
 
 /**

@@ -112,7 +112,7 @@ export function SearchList() {
 
     const EmptyContainer = emptyListWithoutFilters ? (
         <EmptyList
-            depiction={<Icon name={["artefact-" + appliedFilters.itemType]} large />}
+            depiction={<Icon name={"artefact-" + appliedFilters.itemType} large />}
             textInfo={
                 <p>
                     {t("common.messages.noItems", {

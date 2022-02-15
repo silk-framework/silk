@@ -11,8 +11,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
-import org.silkframework.rule.input.{TransformInput, Transformer}
-import org.silkframework.rule.similarity.{Aggregator, DistanceMeasure}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.plugin.{PluginDescription, PluginList, PluginRegistry}
 import org.silkframework.runtime.serialization.WriteContext
@@ -81,7 +79,7 @@ class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedControlle
       "linking"
     ) flatMap (pl => PluginRegistry.pluginDescriptionsById(pl, Some(Seq(classOf[TaskSpec]))))
     val singlePluginsList = PluginList(ListMap("singleTasks" -> singlePlugins), addMarkdownDocumentation, overviewOnly = true)
-    pluginResult(addMarkdownDocumentation, pluginTypes, Some(singlePluginsList), textQuery, category, overviewOnly = true)
+    pluginResult(addMarkdownDocumentation, pluginTypes, singlePluginsList, textQuery, category)
   }
 
   /** Return plugin description of a single plugin. */
@@ -172,70 +170,6 @@ class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedControlle
     Ok(JsArray(usages))
   }
 
-  /** Rule (operator) plugins. */
-  @Operation(
-    summary = "Rule operator plugins",
-    description = "A list of plugins that can be used in rule editors. Contains meta data of the plugin, i.e. title, description and categories and parameter information.",
-    responses = Array(
-      new ApiResponse(
-        responseCode = "200",
-        description = "Success",
-        content = Array(new Content(
-          mediaType = "application/json",
-          examples = Array(new ExampleObject(PluginApiDoc.operatorPluginsExampleJson))
-        ))
-      )
-    ))
-  def ruleOperatorPlugins(@Parameter(
-                            name = "addMarkdownDocumentation",
-                            description = "Add markdown documentation to the result.",
-                            required = false,
-                            in = ParameterIn.QUERY,
-                            schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
-                          )
-                          addMarkdownDocumentation: Boolean,
-                          @Parameter(
-                            name = "textQuery",
-                            description = "An optional (multi word) text query to filter the list of plugins.",
-                            required = false,
-                            in = ParameterIn.QUERY,
-                            schema = new Schema(implementation = classOf[String], example = "csv")
-                          )
-                          textQuery: Option[String],
-                          @Parameter(
-                            name = "category",
-                            description = "An optional category. This will only return plugins from the same category.",
-                            required = false,
-                            in = ParameterIn.QUERY,
-                            schema = new Schema(implementation = classOf[String], example = "file")
-                          )
-                          category: Option[String],
-                          @Parameter(
-                            name = "overviewOnly",
-                            description = "If false the whole plugin specification will be returned, else only the high-level meta data is returned, e.g. label and category.",
-                            required = false,
-                            in = ParameterIn.QUERY,
-                            schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
-                          )
-                          overviewOnly: Option[Boolean],
-                          @Parameter(
-                            name = "inputOperatorsOnly",
-                            description = "If set to true then only input rule operators will be returned, i.e. transformation operators.",
-                            required = false,
-                            in = ParameterIn.QUERY,
-                            schema = new Schema(implementation = classOf[Boolean]))
-                          inputOperatorsOnly: Option[Boolean]): Action[AnyContent] = Action { implicit request =>
-    val inputOperatorBase = Seq(
-      "org.silkframework.rule.input.Transformer"
-    )
-    val linkingOperatorsBase = Seq(
-      "org.silkframework.rule.similarity.Aggregator",
-      "org.silkframework.rule.similarity.DistanceMeasure"
-    )
-    val pluginTypes = if(inputOperatorsOnly.getOrElse(false)) inputOperatorBase else inputOperatorBase ++ linkingOperatorsBase
-    pluginResult(addMarkdownDocumentation, pluginTypes, None, textQuery, category, overviewOnly = overviewOnly.getOrElse(false))
-  }
-
   private def result(pretty: Boolean, resultJson: JsValue): Result = {
     if (pretty) {
       Ok(Json.prettyPrint(resultJson)).as(JSON)
@@ -246,10 +180,9 @@ class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedControlle
 
   private def pluginResult(addMarkdownDocumentation: Boolean,
                            pluginTypes: Seq[String],
-                           singlePluginList: Option[PluginList],
+                           singlePluginList: PluginList,
                            textQuery: Option[String],
-                           category: Option[String],
-                           overviewOnly: Boolean)
+                           category: Option[String])
                           (implicit request: Request[AnyContent]): Result = {
     def filter(pluginDescription: PluginDescription[_]): Boolean = {
       val matchesCategory = category.forall(c => pluginDescription.categories.contains(c))
@@ -261,26 +194,21 @@ class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedControlle
       matchesCategory && matchesTextQuery
     }
 
-    val pluginList = PluginList.load(pluginTypes, addMarkdownDocumentation, overviewOnly = overviewOnly)
-    val allPlugins = pluginList.pluginsByType ++ singlePluginList.map(_.pluginsByType).getOrElse(ListMap.empty)
+    val pluginList = PluginList.load(pluginTypes, addMarkdownDocumentation, overviewOnly = true)
+    val allPlugins = pluginList.pluginsByType ++ singlePluginList.pluginsByType
     val filteredPlugins = allPlugins map { case (key, pds) =>
       val filteredPDs = pds.filter(pd => filter(pd))
       (key, filteredPDs)
     }
     implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
     val pluginListJson = JsonSerializers.toJson(pluginList.copy(pluginsByType = filteredPlugins))
-    val pluginJsonWithTaskAndPluginType = pluginListJson.as[JsObject].fields.map { case (pluginId, pluginJson) =>
-      val withTaskType = pluginCache.taskType(pluginId) match {
-        case Some(taskType) => pluginJson.as[JsObject] + (JsonSerializers.TASKTYPE -> JsString(taskType))
-        case None => pluginJson
+    val pluginJsonWithTaskType = pluginListJson.as[JsObject].fields.map { case (pluginId, pluginJson) =>
+      pluginCache.taskType(pluginId) match {
+        case Some(taskType) => (pluginId, pluginJson.as[JsObject] + (JsonSerializers.TASKTYPE -> JsString(taskType)))
+        case None => (pluginId, pluginJson)
       }
-      val withPluginType = pluginCache.pluginType(pluginId) match {
-        case Some(pluginType) => withTaskType.as[JsObject] + (JsonSerializers.PLUGIN_TYPE -> JsString(pluginType))
-        case None => withTaskType
-      }
-      (pluginId, withPluginType)
     }
-    Ok(JsObject(pluginJsonWithTaskAndPluginType))
+    Ok(JsObject(pluginJsonWithTaskType))
   }
 }
 
@@ -295,44 +223,19 @@ class PluginApiCache @Inject()() {
         .toMap
   }
 
-  private lazy val pluginTypeMapById: Map[String, String] = {
-    PluginRegistry.allPlugins
-      .filter(pd => Seq(classOf[TaskSpec], classOf[Dataset], classOf[Transformer], classOf[Aggregator], classOf[DistanceMeasure])
-        .exists(_.isAssignableFrom(pd.pluginClass)))
-      .flatMap(pd => pluginTypeByClass(pd.pluginClass).map(pluginType => (pd.id.toString, pluginType)))
-      .toMap
-  }
-
   def taskType(pluginId: String): Option[String] = {
     itemTypeMapById.get(pluginId)
   }
 
-  def pluginType(pluginId: String): Option[String] = {
-    pluginTypeMapById.get(pluginId)
-  }
-
-  private val taskTypes = Seq(
-    JsonSerializers.TASK_TYPE_DATASET -> classOf[Dataset],
-    JsonSerializers.TASK_TYPE_DATASET -> classOf[DatasetSpec[_ <: Dataset]],
-    JsonSerializers.TASK_TYPE_CUSTOM_TASK -> classOf[CustomTask],
-    JsonSerializers.TASK_TYPE_WORKFLOW -> classOf[Workflow],
-    JsonSerializers.TASK_TYPE_TRANSFORM -> classOf[TransformSpec],
-    JsonSerializers.TASK_TYPE_LINKING -> classOf[LinkSpec]
-  )
-
-  private val ruleOperatorTypes = Seq(
-    JsonSerializers.TRANSFORM_OPERATOR -> classOf[Transformer],
-    JsonSerializers.AGGREGATION_OPERATOR -> classOf[Aggregator],
-    JsonSerializers.COMPARISON_OPERATOR -> classOf[DistanceMeasure]
-  )
-
-  private val allPluginTypes = taskTypes ++ ruleOperatorTypes
-
-  def pluginTypeByClass(pluginClass: Class[_]): Option[String] = {
-    allPluginTypes.find(_._2.isAssignableFrom(pluginClass)).map(_._1)
-  }
-
   def taskTypeByClass(pluginClass: Class[_]): Option[String] = {
+    val taskTypes = Seq(
+      JsonSerializers.TASK_TYPE_DATASET -> classOf[Dataset],
+      JsonSerializers.TASK_TYPE_DATASET -> classOf[DatasetSpec[_ <: Dataset]],
+      JsonSerializers.TASK_TYPE_CUSTOM_TASK -> classOf[CustomTask],
+      JsonSerializers.TASK_TYPE_WORKFLOW -> classOf[Workflow],
+      JsonSerializers.TASK_TYPE_TRANSFORM -> classOf[TransformSpec],
+      JsonSerializers.TASK_TYPE_LINKING -> classOf[LinkSpec]
+    )
     taskTypes.find(_._2.isAssignableFrom(pluginClass)).map(_._1)
   }
 }

@@ -1,10 +1,9 @@
 import React from "react";
 import { Button, ContextMenu, IconButton, MenuItem, OverflowText } from "gui-elements";
-import { ValidIconName } from "gui-elements/src/components/Icon/canonicalIconNames";
 
 interface IActionBasicProps {
     text: string;
-    icon?: ValidIconName;
+    icon?: string;
     affirmative?: boolean;
     disruptive?: boolean;
     disabled?: boolean;

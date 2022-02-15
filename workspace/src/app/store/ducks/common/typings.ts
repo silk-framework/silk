@@ -1,4 +1,4 @@
-import { IMetadata, PluginType, TaskType } from "@ducks/shared/typings";
+import { IMetadata, TaskType } from "@ducks/shared/typings";
 
 export interface IAvailableDataTypes {
     [key: string]: IAvailableDataType;
@@ -60,7 +60,7 @@ export interface IOverviewArtefactItem {
 }
 
 /** The full task plugin description, including detailed schema. */
-export interface IPluginDetails {
+export interface IDetailedArtefactItem {
     title: string;
     description: string;
     taskType: TaskType;
@@ -71,12 +71,11 @@ export interface IPluginDetails {
     };
     required: string[];
     pluginId: string;
-    pluginType?: PluginType;
     markdownDocumentation?: string;
 }
 
 /** Overview version of an item description. */
-export interface IPluginOverview {
+export interface IArtefactItem {
     key: string;
     taskType?: string;
     title?: string;
@@ -89,7 +88,7 @@ export interface IPluginOverview {
 export interface IProjectTaskUpdatePayload {
     projectId: string;
     taskId: string;
-    taskPluginDetails: IPluginDetails;
+    taskPluginDetails: IDetailedArtefactItem;
     metaData: IMetadata;
     currentParameterValues: {
         [key: string]: string | object;
@@ -111,7 +110,7 @@ export interface IArtefactModal {
     loading: boolean;
 
     // The list of item types that can be selected.
-    artefactsList: IPluginOverview[];
+    artefactsList: IArtefactItem[];
 
     categories: {
         label: string;
@@ -119,11 +118,11 @@ export interface IArtefactModal {
     }[];
 
     // The selected item type
-    selectedArtefact?: IPluginOverview;
+    selectedArtefact?: IArtefactItem;
 
     // cached plugin descriptions
     cachedArtefactProperties: {
-        [key: string]: IPluginDetails;
+        [key: string]: IDetailedArtefactItem;
     };
 
     // The selected item category

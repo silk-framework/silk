@@ -1,8 +1,11 @@
-import { legacyApiEndpoint, projectApi, workspaceApi } from "../../../utils/getApiEndpoint";
+import {
+    legacyApiEndpoint,
+    projectApi,
+    workspaceApi,
+} from "../../../utils/getApiEndpoint";
 import fetch from "../../../services/fetch";
 import qs from "qs";
 import {
-    IArbitraryPluginParameters,
     IAutocompleteDefaultResponse,
     IDatasetTypePayload,
     IItemLink,
@@ -56,20 +59,21 @@ export const requestTaskMetadata = async (
  * @param itemId    The task ID
  * @param withLabel If true, then the returned JSON will contain optional labels in addition to the actual values, for presentation purposes.
  */
-export const requestTaskData = async <TASK_PARAMETERS = IArbitraryPluginParameters>(
+export const requestTaskData = async (
     projectId: string,
     itemId: string,
     withLabel: boolean = false
-): Promise<FetchResponse<IProjectTask<TASK_PARAMETERS>>> => {
+): Promise<IProjectTask> => {
     const queryParams: any = {};
     if (withLabel) {
         queryParams.withLabels = true;
     }
 
-    return fetch({
+    const { data } = await fetch({
         url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}`),
         body: queryParams,
     });
+    return data;
 };
 
 /**

@@ -38,10 +38,7 @@ export default function TransformPage() {
                 <Section>
                     <Metadata />
                     <Spacing />
-                    <ProjectTaskTabView
-                        taskViewConfig={{ pluginId: "transform", projectId: projectId, taskId: taskId }}
-                        iFrameName={"detail-page-iframe"}
-                    />
+                    <ProjectTaskTabView iFrameName={"detail-page-iframe"} />
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>

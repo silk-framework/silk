@@ -19,45 +19,6 @@ object PluginApiDoc {
       }
     """
 
-  final val operatorPluginsExampleJson =
-    """
-{
-  ...
-  "concat": {
-    "categories": [
-        "Combine"
-    ],
-    "description": "Concatenates strings from multiple inputs.",
-    "pluginId": "concat",
-    "pluginType": "TransformOperator",
-    "properties": {
-        "glue": {
-            "advanced": false,
-            "description": "Separator to be inserted between two concatenated strings.",
-            "parameterType": "string",
-            "title": "Glue",
-            "type": "string",
-            "value": "",
-            "visibleInDialog": true
-        },
-        "missingValuesAsEmptyStrings": {
-            "advanced": false,
-            "description": "Handle missing values as empty strings.",
-            "parameterType": "boolean",
-            "title": "Missing values as empty strings",
-            "type": "string",
-            "value": "false",
-            "visibleInDialog": true
-        }
-    },
-    "required": [],
-    "title": "Concatenate",
-    "type": "object"
-  }
-  ...
-}
-    """
-
   final val pluginDescriptionExampleJson =
     """
       {

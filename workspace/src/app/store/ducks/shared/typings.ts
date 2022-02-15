@@ -40,17 +40,8 @@ export const TaskTypes: ITaskTypes = {
 
 export type TaskType = "Dataset" | "Linking" | "Transform" | "Workflow" | "CustomTask";
 
-export type RuleOperatorType = "AggregationOperator" | "TransformOperator" | "ComparisonOperator";
-
-export type PluginType = TaskType | RuleOperatorType;
-
-export interface IArbitraryPluginParameters {
-    // If requested with withLabels option, then the values will be reified like this: {label: string, value: string | object}
-    [key: string]: string | object;
-}
-
 /** The data of a project task from the generic /tasks endpoint. */
-export interface IProjectTask<PLUGIN_PARAMETERS = IArbitraryPluginParameters> {
+export interface IProjectTask {
     // Meta data of the project task
     metadata: IMetadata;
     // The task type that must be send to the backend, e.g. on POST PUT requests for task creation.
@@ -63,8 +54,10 @@ export interface IProjectTask<PLUGIN_PARAMETERS = IArbitraryPluginParameters> {
         // The plugin ID
         type: string;
         // current parameter values
-        parameters: PLUGIN_PARAMETERS;
-        // Optional task type, e.g. Dataset, Transform etc.
+        parameters: {
+            // If requested with withLabels option, then the values will be reified like this: {label: string, value: string | object}
+            [key: string]: string | object;
+        };
         taskType?: TaskType;
     };
 }

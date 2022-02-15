@@ -154,17 +154,7 @@ sealed trait ContainerTransformRule extends TransformRule {
 /**
   * Base trait for all rule that generate a value and do not have any child rules.
   */
-sealed trait ValueTransformRule extends TransformRule {
-  /** A complex mapping representation of the value transform rule. */
-  def asComplexMapping: ComplexMapping = {
-    ComplexMapping(
-      id = id,
-      operator = operator,
-      target = target,
-      metaData = metaData
-    )
-  }
-}
+sealed trait ValueTransformRule extends TransformRule
 
 /**
   * The root mapping rule.

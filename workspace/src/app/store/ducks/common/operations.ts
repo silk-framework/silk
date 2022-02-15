@@ -8,7 +8,7 @@ import {
     requestInitFrontend,
     requestSearchConfig,
 } from "@ducks/common/requests";
-import { IPluginOverview } from "@ducks/common/typings";
+import { IArtefactItem } from "@ducks/common/typings";
 import { commonOp, commonSel } from "@ducks/common/index";
 import { requestCreateProject, requestCreateTask, requestUpdateProjectTask } from "@ducks/workspace/requests";
 import { routerOp } from "@ducks/router";
@@ -124,7 +124,7 @@ const resetArtefactsList = () => {
     };
 };
 
-const getArtefactPropertiesAsync = (artefact: IPluginOverview) => {
+const getArtefactPropertiesAsync = (artefact: IArtefactItem) => {
     return async (dispatch, getState) => {
         const { cachedArtefactProperties } = commonSel.artefactModalSelector(getState());
         dispatch(selectArtefact(artefact));
@@ -274,15 +274,13 @@ const fetchCreateProjectAsync = (formData: { label: string; description?: string
     };
 };
 
-const resetArtefactModal =
-    (shouldClose: boolean = false) =>
-    (dispatch) => {
-        dispatch(selectArtefact(undefined));
-        dispatch(setModalError({}));
-        if (shouldClose) {
-            dispatch(closeArtefactModal());
-        }
-    };
+const resetArtefactModal = (shouldClose: boolean = false) => (dispatch) => {
+    dispatch(selectArtefact(undefined));
+    dispatch(setModalError({}));
+    if (shouldClose) {
+        dispatch(closeArtefactModal());
+    }
+};
 
 const changeLocale = (locale: string) => {
     return async (dispatch) => {

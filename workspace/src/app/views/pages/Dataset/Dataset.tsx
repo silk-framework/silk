@@ -39,8 +39,8 @@ export function Dataset() {
         setMainViewLoading(true);
         try {
             const projectTask = await requestTaskData(projectId, taskId, true);
-            if (projectTask.data.data.type) {
-                setTaskData(projectTask.data);
+            if (projectTask?.data?.type) {
+                setTaskData(projectTask);
             }
         } catch (ex) {
             registerError("Dataset-fetchDatasetTaskData", "Error fetching dataset information.", ex);

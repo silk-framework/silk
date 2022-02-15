@@ -38,23 +38,16 @@ object JsonSerializers {
   final val TYPE = "type"
   final val DATA = "data"
   final val GENERIC_INFO = "genericInfo"
-  final val PARAMETERS = "parameters"
-  final val URI = "uri"
-  final val METADATA = "metadata"
-  final val OPERATOR = "operator"
-  // Task types
   final val TASKTYPE = "taskType"
   final val TASK_TYPE_DATASET = "Dataset"
   final val TASK_TYPE_CUSTOM_TASK = "CustomTask"
   final val TASK_TYPE_TRANSFORM = "Transform"
   final val TASK_TYPE_LINKING = "Linking"
   final val TASK_TYPE_WORKFLOW = "Workflow"
-  // Plugin types
-  final val PLUGIN_TYPE = "pluginType"
-  final val AGGREGATION_OPERATOR = "AggregationOperator"
-  final val TRANSFORM_OPERATOR = "TransformOperator"
-  final val COMPARISON_OPERATOR = "ComparisonOperator"
-
+  final val PARAMETERS = "parameters"
+  final val URI = "uri"
+  final val METADATA = "metadata"
+  final val OPERATOR = "operator"
 
   implicit object StringJsonFormat extends JsonFormat[String] {
     /**
@@ -624,14 +617,23 @@ object JsonSerializers {
         case "object" =>
           fromJson[ObjectMapping](jsValue)
         case "complex" =>
-          readAndConvertComplexTransformRule(jsValue)
+          readTransformRule(jsValue)
       }
     }
 
-    private def readAndConvertComplexTransformRule(jsValue: JsValue)
+    private def readTransformRule(jsValue: JsValue)
                                  (implicit readContext: ReadContext)= {
-      val complex = ComplexMappingJsonFormat.read(jsValue)
-      // Simplify to other value mapping rule if possible
+      val mappingTarget = (jsValue \ "mappingTarget").
+          toOption.
+          map(fromJson[MappingTarget])
+      val mappingName = mappingTarget.flatMap(_.propertyUri.localName).getOrElse("ValueMapping")
+      val id = identifier(jsValue, mappingName)
+      val complex = ComplexMapping(
+        id = id,
+        operator = fromJson[Input]((jsValue \ OPERATOR).get),
+        target = mappingTarget,
+        metaData(jsValue)
+      )
       TransformRule.simplify(complex)(readContext.prefixes)
     }
 
@@ -652,50 +654,22 @@ object JsonSerializers {
           toJson(d)
         case o: ObjectMapping =>
           toJson(o)
-        case valueTransformRule: ValueTransformRule =>
-          writeTransformRule(valueTransformRule)
+        case _ =>
+          writeTransformRule(rule)
       }
     }
 
-    private def writeTransformRule(valueTransformRule: ValueTransformRule)
-                                  (implicit writeContext: WriteContext[JsValue]): JsValue = {
-      ComplexMappingJsonFormat.writeValueTransformRuleAsComplexRule(valueTransformRule)
-    }
-  }
-
-  implicit object ComplexMappingJsonFormat extends JsonFormat[ComplexMapping] {
-    override def read(jsValue: JsValue)
-                     (implicit readContext: ReadContext): ComplexMapping = {
-      val mappingTarget = (jsValue \ "mappingTarget").
-        toOption.
-        map(fromJson[MappingTarget])
-      val mappingName = mappingTarget.flatMap(_.propertyUri.localName).getOrElse("ValueMapping")
-      val id = identifier(jsValue, mappingName)
-      ComplexMapping(
-        id = id,
-        operator = fromJson[Input]((jsValue \ OPERATOR).get),
-        target = mappingTarget,
-        metaData(jsValue)
-      )
-    }
-
-    def writeValueTransformRuleAsComplexRule(valueTransformRule: ValueTransformRule)
-                                            (implicit writeContext: WriteContext[JsValue]): JsValue = {
+    private def writeTransformRule(rule: TransformRule)(implicit writeContext: WriteContext[JsValue]) = {
       JsObject(
         Seq(
           TYPE -> JsString("complex"),
-          ID -> JsString(valueTransformRule.id),
-          OPERATOR -> toJson(valueTransformRule.operator),
-          "sourcePaths" -> JsArray(valueTransformRule.sourcePaths.map(_.toUntypedPath.serialize()(writeContext.prefixes)).map(JsString)),
-          METADATA -> toJson(valueTransformRule.metaData)
+          ID -> JsString(rule.id),
+          OPERATOR -> toJson(rule.operator),
+          "sourcePaths" -> JsArray(rule.sourcePaths.map(_.toUntypedPath.serialize()(writeContext.prefixes)).map(JsString)),
+          METADATA -> toJson(rule.metaData)
         ) ++
-          valueTransformRule.target.map("mappingTarget" -> toJson(_))
+            rule.target.map("mappingTarget" -> toJson(_))
       )
-    }
-
-    override def write(complexMapping: ComplexMapping)
-                      (implicit writeContext: WriteContext[JsValue]): JsValue = {
-      writeValueTransformRuleAsComplexRule(complexMapping)
     }
   }
 
