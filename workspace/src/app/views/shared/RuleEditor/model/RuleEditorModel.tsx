@@ -550,12 +550,16 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         return ruleUndoStack[ruleUndoStack.length - 1] === TRANSACTION_BOUNDARY;
     };
 
-    const currentParameterValue = (nodeId: string, parameterId: string): string | undefined => {
+    const currentParameterValue = (
+        nodeId: string,
+        parameterId: string,
+        elems: Elements = elements
+    ): string | undefined => {
         const nodeDiff = nodeParameterDiff.get(nodeId);
         if (nodeDiff && nodeDiff.has(parameterId)) {
             return nodeDiff.get(parameterId);
         } else {
-            const node = utils.nodeById(elements, nodeId);
+            const node = utils.nodeById(elems, nodeId);
             return node?.data?.businessData.originalRuleOperatorNode.parameters[parameterId];
         }
     };
@@ -581,12 +585,28 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         if (autoStartTransaction && !lastChangeIsTransactionStart() && !sameParameterChanged) {
             startChangeTransaction();
         }
-        const from = sameParameterChanged ? recentParameterChange!!.from : currentParameterValue(nodeId, parameterId);
-        // This does not change the actual elements, so we provide dummy elements
-        addAndExecuteRuleModelChangeInternal(
-            RuleModelChangesFactory.changeNodeParameter(nodeId, parameterId, from, newValue),
-            []
-        );
+        if (sameParameterChanged) {
+            // This does not change the actual elements, so we provide dummy elements
+            addAndExecuteRuleModelChangeInternal(
+                RuleModelChangesFactory.changeNodeParameter(
+                    nodeId,
+                    parameterId,
+                    recentParameterChange!!.from,
+                    newValue
+                ),
+                []
+            );
+        } else {
+            // Need to look at current elements to fetch initial value
+            setElements((elems) => {
+                const from = currentParameterValue(nodeId, parameterId, elems);
+                addAndExecuteRuleModelChangeInternal(
+                    RuleModelChangesFactory.changeNodeParameter(nodeId, parameterId, from, newValue),
+                    []
+                );
+                return elems;
+            });
+        }
     };
 
     /** Move a node to a new position. */
