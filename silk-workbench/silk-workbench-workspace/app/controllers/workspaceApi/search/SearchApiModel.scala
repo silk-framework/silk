@@ -55,7 +55,7 @@ object SearchApiModel {
   }
   lazy implicit val facetedSearchRequestReader: Reads[FacetedSearchRequest] = Json.reads[FacetedSearchRequest]
   lazy implicit val keywordFacetValueReads: Format[KeywordFacetValue] = Json.format[KeywordFacetValue]
-  lazy implicit val facetResultWrites: Writes[FacetResult] = new Writes[FacetResult] {
+  lazy implicit val facetResultWrites: Format[FacetResult] = new Format[FacetResult] {
     override def writes(facetResult: FacetResult): JsValue = {
       assert(FacetType.facetTypeSet.contains(facetResult.`type`), s"Facet type '${facetResult.`type`}' is not a valid facet type.")
       val facetValues: Seq[JsValue] = FacetType.withName(facetResult.`type`) match {
@@ -69,6 +69,21 @@ object SearchApiModel {
         DESCRIPTION -> JsString(facetResult.description),
         TYPE -> JsString(facetResult.`type`),
         VALUES -> JsArray(facetValues)
+      ))
+    }
+    override def reads(json: JsValue): JsResult[FacetResult] = {
+      val facetType = (json \ SearchApiModel.TYPE).get.as[String]
+      assert(FacetType.facetTypeSet.contains(facetType), "Facet type invalid!")
+      val facetValues = FacetType.withName(facetType) match {
+        case FacetType.keyword =>
+          (json \ SearchApiModel.VALUES).as[JsArray].value.map(keywordFacetValueReads.reads(_).get)
+      }
+      JsSuccess(FacetResult(
+        id = (json \ SearchApiModel.ID).as[String],
+        label = (json \ SearchApiModel.LABEL).as[String],
+        description = (json \ SearchApiModel.DESCRIPTION).as[String],
+        `type` = facetType,
+        values = facetValues
       ))
     }
   }
@@ -201,7 +216,7 @@ object SearchApiModel {
 
   /** The property of the search item to sort by and the label to display in the UI. */
   case class SortableProperty(id: String, label: String)
-  lazy implicit val sortablePropertyWrites: Writes[SortableProperty] = Json.writes[SortableProperty]
+  lazy implicit val sortablePropertyWrites: Format[SortableProperty] = Json.format[SortableProperty]
 
   /** The result of a faceted search. */
   @Schema(description = "The result list as well as the list of potential facets for the currently selected task type.")
@@ -213,7 +228,7 @@ object SearchApiModel {
                                  @ArraySchema(schema = new Schema(implementation = classOf[FacetResult]))
                                  facets: Seq[FacetResult])
 
-  lazy implicit val facetedSearchResult: Writes[FacetedSearchResult] = Json.writes[FacetedSearchResult]
+  lazy implicit val facetedSearchResult: Format[FacetedSearchResult] = Json.format[FacetedSearchResult]
 
   type ProjectOrTask = Either[(ProjectTask[_ <: TaskSpec], TypedTasks), Project]
 

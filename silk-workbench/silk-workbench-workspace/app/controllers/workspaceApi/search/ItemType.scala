@@ -13,6 +13,7 @@ import play.api.libs.json._
 sealed abstract class ItemType(val id: String, val label: String)
 
 object ItemType {
+  case object global extends ItemType("global", "Global")
   case object project extends ItemType(PROJECT_TYPE, "Project")
   case object dataset extends ItemType("dataset", "Dataset")
   case object transform extends ItemType("transform", "Transform")
@@ -20,7 +21,7 @@ object ItemType {
   case object workflow extends ItemType("workflow", "Workflow")
   case object task extends ItemType("task", "Task")
 
-  val ordered: Seq[ItemType] = Seq(project, workflow, dataset, transform, linking, task)
+  val ordered: Seq[ItemType] = Seq(global, project, workflow, dataset, transform, linking, task)
   val idToItemType: Map[String, ItemType] = ordered.map(it => (it.id, it)).toMap
 
   private def context: String = WorkbenchConfig.applicationContext
