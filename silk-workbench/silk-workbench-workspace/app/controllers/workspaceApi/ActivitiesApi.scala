@@ -3,8 +3,8 @@ package controllers.workspaceApi
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.workspaceApi.doc.ActivitiesApiDoc
-import controllers.workspaceApi.search.ActivitySearchRequest
 import controllers.workspaceApi.search.SearchApiModel.FacetedSearchResult
+import controllers.workspaceApi.search.activity.ActivitySearchRequest
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody

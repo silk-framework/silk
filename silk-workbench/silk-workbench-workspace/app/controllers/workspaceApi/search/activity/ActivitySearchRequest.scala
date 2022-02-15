@@ -1,7 +1,8 @@
-package controllers.workspaceApi.search
+package controllers.workspaceApi.search.activity
 
-import controllers.workspaceApi.search.ActivitySearchRequest.ActivityResult
-import controllers.workspaceApi.search.SearchApiModel.{Facet, FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult, SearchRequestTrait, SortBy, SortOrder, SortableProperty, TypedTasks}
+import controllers.workspaceApi.search.SearchApiModel.{FacetSetting, FacetedSearchRequest, FacetedSearchResult, SearchRequestTrait, SortBy, SortOrder, SortableProperty, TypedTasks}
+import controllers.workspaceApi.search._
+import controllers.workspaceApi.search.activity.ActivitySearchRequest.ActivityResult
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
@@ -173,41 +174,3 @@ object ActivitySearchRequest {
 
 }
 
-object ActivityFacets {
-  final val status: Facet = Facet("status", "Status", "The activity status.", FacetType.keyword)
-
-  val facetIds: Seq[String] = Seq(status).map(_.id)
-  assert(facetIds.distinct.size == facetIds.size, "Facet IDs must be unique!")
-}
-
-case class ActivityStatusCollector() extends NoLabelKeywordFacetCollector[WorkspaceActivity[_]] {
-
-  override def appliesForFacet: SearchApiModel.Facet = ActivityFacets.status
-
-  override def extractKeywordIds(activity: WorkspaceActivity[_])
-                                (implicit user: UserContext): Set[String] = {
-    Set(activity.status().name)
-  }
-
-}
-
-case class ActivityFacetCollector() extends ItemTypeFacetCollector[WorkspaceActivity[_]] {
-  override val facetCollectors: Seq[FacetCollector[WorkspaceActivity[_]]] = Seq(
-    ActivityStatusCollector(),
-  )
-}
-
-case class OverallActivityFacetCollector() {
-
-  private val facetCollectors = ItemTypeFacetCollectors(Seq(ActivityFacetCollector()))
-
-  def filterAndCollect(activity: WorkspaceActivity[_],
-                       facetSettings: Seq[FacetSetting])
-                      (implicit user: UserContext): Boolean = {
-    facetCollectors.filterAndCollect(activity, facetSettings)
-  }
-
-  def results: Iterable[FacetResult] = {
-    facetCollectors.result
-  }
-}

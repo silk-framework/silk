@@ -4,8 +4,7 @@ import controllers.workspaceApi.search.SearchApiModel.{Facet, FacetSetting, Keyw
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.workspace.activity.workflow.Workflow
-import org.silkframework.workspace.{Module, Project, ProjectTask}
+import org.silkframework.workspace.{Project, ProjectTask}
 
 import java.util.concurrent.ConcurrentHashMap
 import java.util.logging.Logger
@@ -32,7 +31,13 @@ case class ItemTypeFacetCollectors[T](itemTypeFacetCollectors: Seq[ItemTypeFacet
 /**
   * Collects facets and their values for the respective project task type.
   */
-trait ItemTypeFacetCollector[T] {
+abstract class ItemTypeFacetCollector[T: ClassTag] {
+
+  /**
+    * The type of items that this facet collector supports, e.g., ProjectTask[TransformSpec]
+    */
+  def itemType: Class[_] = implicitly[ClassTag[T]].runtimeClass
+
   /** The collectors for each facet */
   val facetCollectors: Seq[FacetCollector[T]]
 
@@ -115,16 +120,6 @@ trait FacetCollector[T] {
 
   /** The facet this collector applies for. */
   def appliesForFacet: Facet
-
-  /** Conversion and check function */
-  // TODO move this to another place
-//  private def convertProjectTask(projectTask: ProjectTask[_ <: TaskSpec])(implicit classTag: ClassTag[T]): ProjectTask[T] = {
-//    if (classTag.runtimeClass.isAssignableFrom(projectTask.data.getClass)) {
-//      projectTask.asInstanceOf[ProjectTask[T]]
-//    } else {
-//      throw new IllegalArgumentException(s"Task '${projectTask.label()}' has not correct type for facet collector ${this.getClass.getSimpleName}.")
-//    }
-//  }
 
   /** Same as filter, but takes a generic project task. */
   def convertAndFilter(facetSetting: FacetSetting, projectTask: T)
@@ -226,14 +221,13 @@ trait IdAndLabelKeywordFacetCollector[T] extends KeywordFacetCollector[T] {
 /** Collects values for all facets of all types. */
 case class OverallFacetCollector() {
   // Item type specific facet collectors
-  // TODO remove asInstanceOf
-  private val itemTypeFacetCollectors = ListMap[ItemType, ItemTypeFacetCollectors[ProjectTask[TaskSpec]]](
+  private val itemTypeFacetCollectors = ListMap[ItemType, ItemTypeFacetCollectors[AnyRef]](
     ItemType.project -> ItemTypeFacetCollectors(Seq()), // This is never used, but still listed for completeness
-    ItemType.dataset -> ItemTypeFacetCollectors(Seq(DatasetFacetCollector().asInstanceOf[ItemTypeFacetCollector[ProjectTask[TaskSpec]]], MetaDataFacetCollector().asInstanceOf[ItemTypeFacetCollector[ProjectTask[TaskSpec]]])),
-    ItemType.transform -> ItemTypeFacetCollectors(Seq(TransformFacetCollector().asInstanceOf[ItemTypeFacetCollector[ProjectTask[TaskSpec]]], MetaDataFacetCollector().asInstanceOf[ItemTypeFacetCollector[ProjectTask[TaskSpec]]])),
-    ItemType.linking -> ItemTypeFacetCollectors(Seq(MetaDataFacetCollector().asInstanceOf[ItemTypeFacetCollector[ProjectTask[TaskSpec]]])),
-    ItemType.workflow -> ItemTypeFacetCollectors(Seq(WorkflowFacetCollector().asInstanceOf[ItemTypeFacetCollector[ProjectTask[TaskSpec]]], MetaDataFacetCollector().asInstanceOf[ItemTypeFacetCollector[ProjectTask[TaskSpec]]])),
-    ItemType.task -> ItemTypeFacetCollectors(Seq(TaskFacetCollector().asInstanceOf[ItemTypeFacetCollector[ProjectTask[TaskSpec]]], MetaDataFacetCollector().asInstanceOf[ItemTypeFacetCollector[ProjectTask[TaskSpec]]]))
+    ItemType.dataset -> facetCollectors(DatasetFacetCollector(), MetaDataFacetCollector()),
+    ItemType.transform -> facetCollectors(TransformFacetCollector(), MetaDataFacetCollector()),
+    ItemType.linking -> facetCollectors(MetaDataFacetCollector()),
+    ItemType.workflow -> facetCollectors(WorkflowFacetCollector(), MetaDataFacetCollector()),
+    ItemType.task -> facetCollectors(TaskFacetCollector(), MetaDataFacetCollector())
   )
   // Generic item type collectors
   private val genericItemTypeFacetCollectors = ItemTypeFacetCollectors(Seq(MetaDataFacetCollector()))
@@ -242,9 +236,7 @@ case class OverallFacetCollector() {
                                  projectTask: ProjectTask[_ <: TaskSpec],
                                  facetSettings: Seq[FacetSetting])
                                 (implicit user: UserContext): Boolean = {
-    // TODO check asInstanceOf conversion and add a guard for invalid conversions?
-    //itemTypeFacetCollectors(itemType).filterAndCollect(projectTask, facetSettings)
-    false
+    itemTypeFacetCollectors(itemType).filterAndCollect(projectTask, facetSettings)
   }
 
   def filterAndCollectAllItems(projectTask: ProjectTask[_ <: TaskSpec],
@@ -256,9 +248,7 @@ case class OverallFacetCollector() {
   def filterAndCollectProjects(project: Project,
                                facetSettings: Seq[FacetSetting])
                               (implicit user: UserContext): Boolean = {
-    // Since projects are not TaskSpecs, we have to do an unclean workaround. Only OK because we know what the TaskSpecFacetCollector will do and its tested.
-    val dummyModule = project.registeredModules.head.asInstanceOf[Module[TaskSpec]]
-    genericItemTypeFacetCollectors.filterAndCollect(new ProjectTask[TaskSpec](project.id, Workflow(Seq.empty, Seq.empty), project.config.metaData, dummyModule), facetSettings)
+    genericItemTypeFacetCollectors.filterAndCollect(project, facetSettings)
   }
 
   def results: Iterable[FacetResult] = {
@@ -266,6 +256,14 @@ case class OverallFacetCollector() {
         result <- collector.result) yield {
       result
     }
+  }
+
+  /**
+    * Creates a generic ItemTypeFacetCollector from a list of facet collectors.
+    * The caller is responsible that the provided collectors support the correct types.
+    */
+  private def facetCollectors(collectors: ItemTypeFacetCollector[_]*): ItemTypeFacetCollectors[AnyRef] = {
+    ItemTypeFacetCollectors(collectors.map(_.asInstanceOf[ItemTypeFacetCollector[AnyRef]]))
   }
 }
 
