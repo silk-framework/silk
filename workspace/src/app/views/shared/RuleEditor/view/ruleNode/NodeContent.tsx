@@ -3,7 +3,7 @@ import { RuleNodeParameterForm } from "./RuleNodeParameterForm";
 import React from "react";
 import { RuleOperatorNodeParameters } from "../../RuleEditor.typings";
 import { IOperatorCreateContext, IOperatorNodeOperations } from "../../model/RuleEditorModel.utils";
-import { Highlighter, Spacing, Tag } from "gui-elements";
+import utils from "./ruleNode.utils";
 
 interface NodeContentProps {
     nodeId: string;
@@ -56,29 +56,7 @@ export const NodeContent = ({
     return rerender ? null : (
         <>
             {parameters.length ? <RuleNodeParameterForm key={"form"} nodeId={nodeId} parameters={parameters} /> : null}
-            {tags ? createTags(tags) : null}
-        </>
-    );
-};
-
-/** Adds highlighting to the text if query is non-empty. */
-const addHighlighting = (text: string, query?: string): string | JSX.Element => {
-    return query ? <Highlighter label={text} searchValue={query} /> : text;
-};
-
-const createTags = (tags: string[], query?: string) => {
-    return (
-        <>
-            {tags.map((tag, idx) => {
-                return (
-                    <>
-                        <Tag key={tag} minimal={true}>
-                            {addHighlighting(tag, query)}
-                        </Tag>
-                        {idx < tags.length + 1 ? <Spacing key={`spacing-${tag}`} vertical size="tiny" /> : null}
-                    </>
-                );
-            })}
+            {tags ? utils.createOperatorTags(tags) : null}
         </>
     );
 };

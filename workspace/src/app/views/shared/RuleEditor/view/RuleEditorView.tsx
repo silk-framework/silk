@@ -11,7 +11,7 @@ import ReactFlow, {
     Controls,
     OnLoadParams,
 } from "react-flow-renderer";
-import { RuleEditorOperatorSidebar } from "./RuleEditorOperatorSidebar";
+import { RuleEditorOperatorSidebar } from "./sidebar/RuleEditorOperatorSidebar";
 import React from "react";
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { Node } from "react-flow-renderer/dist/types";
