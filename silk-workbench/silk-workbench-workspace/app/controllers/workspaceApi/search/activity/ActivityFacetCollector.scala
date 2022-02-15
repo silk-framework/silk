@@ -1,5 +1,6 @@
 package controllers.workspaceApi.search.activity
 
+import controllers.workspaceApi.search.SearchApiModel.Facets
 import controllers.workspaceApi.search.{FacetCollector, IdAndLabelKeywordFacetCollector, ItemTypeFacetCollector, NoLabelKeywordFacetCollector, SearchApiModel}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.activity.WorkspaceActivity
@@ -16,7 +17,7 @@ case class ActivityFacetCollector() extends ItemTypeFacetCollector[WorkspaceActi
 
 case class ActivityStatusCollector() extends NoLabelKeywordFacetCollector[WorkspaceActivity[_]] {
 
-  override def appliesForFacet: SearchApiModel.Facet = ActivityFacets.status
+  override def appliesForFacet: SearchApiModel.Facet = Facets.activityStatus
 
   override def extractKeywordIds(activity: WorkspaceActivity[_])
                                 (implicit user: UserContext): Set[String] = {
@@ -27,7 +28,7 @@ case class ActivityStatusCollector() extends NoLabelKeywordFacetCollector[Worksp
 
 case class ActivityTypeCollector() extends IdAndLabelKeywordFacetCollector[WorkspaceActivity[_]] {
 
-  override def appliesForFacet: SearchApiModel.Facet = ActivityFacets.activityType
+  override def appliesForFacet: SearchApiModel.Facet = Facets.activityType
 
   override protected def extractIdAndLabel(projectTask: WorkspaceActivity[_])
                                           (implicit user: UserContext): Set[(String, String)] = {

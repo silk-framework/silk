@@ -1,0 +1,82 @@
+package controllers.workspaceApi
+
+import controllers.workspaceApi.search.SearchApiModel.{FacetSetting, FacetType, FacetedSearchResult, Facets, KeywordFacetSetting, SortableProperty}
+import controllers.workspaceApi.search._
+import controllers.workspaceApi.search.activity.ActivitySearchRequest
+import controllers.workspaceApi.search.activity.ActivitySearchRequest.ActivityResult
+import helper.IntegrationTestTrait
+import org.scalatest.{FlatSpec, MustMatchers}
+import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
+import org.silkframework.rule.TransformSpec
+import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
+import play.api.libs.json._
+import testWorkspace.Routes
+
+class ActivitySearchApiIntegrationTest extends FlatSpec
+    with SingleProjectWorkspaceProviderTestTrait
+    with IntegrationTestTrait
+    with MustMatchers {
+
+  behavior of "Search API"
+
+  override def workspaceProviderId: String = "inMemory"
+
+  override def projectPathInClasspath: String = "diProjects/facetSearchWorkspaceProject.zip"
+
+  override def routes: Option[Class[Routes]] = Some(classOf[testWorkspace.Routes])
+
+  implicit val keywordFacetSettingWrites: Writes[KeywordFacetSetting] = Json.writes[KeywordFacetSetting]
+  implicit val facetSettingReader: Writes[FacetSetting] = Json.writes[FacetSetting]
+  implicit val activitySearchRequestReader: Writes[ActivitySearchRequest] = Json.writes[ActivitySearchRequest]
+
+  private val transformName = "transformA"
+
+  it should "return all activities for an unrestricted search" in {
+    val response = facetedSearchRequest(ActivitySearchRequest(limit = Some(100)))
+
+    val cacheCounts = response.results.groupBy(_.id).mapValues(_.size)
+    cacheCounts must contain ("GlobalVocabularyCache" -> 1)
+    cacheCounts must contain ("TypesCache" -> project.tasks[GenericDatasetSpec].size)
+    cacheCounts must contain ("ExecuteTransform" -> project.tasks[TransformSpec].size)
+
+    response.results.find(_.id == "ExecuteTransform").get mustBe ActivityResult("ExecuteTransform", "Execute transform", Some(project.id), Some(transformName))
+  }
+
+  it should "return all activities of a given parent type" in {
+    val globalResponse = facetedSearchRequest(ActivitySearchRequest(itemType = Some(ItemType.global)))
+    globalResponse.results.map(_.id) must contain theSameElementsAs Seq("GlobalUriPatternCache", "GlobalVocabularyCache")
+
+    val transformResponse = facetedSearchRequest(ActivitySearchRequest(itemType = Some(ItemType.transform)))
+    transformResponse.results.map(_.id) must contain theSameElementsAs Seq("ExecuteTransform", "VocabularyCache", "TransformPathsCache")
+  }
+
+  it should "allowing retrieving all cache activities" in {
+    val response = facetedSearchRequest(
+      ActivitySearchRequest(
+        itemType = Some(ItemType.transform),
+        facets = Some(Seq(KeywordFacetSetting(FacetType.keyword, Facets.activityType.id, Set("cache")))
+    )))
+    response.results.map(_.id) must contain theSameElementsAs Seq("VocabularyCache", "TransformPathsCache")
+  }
+
+  it should "allowing filtering by text search" in {
+    val response = facetedSearchRequest(
+      ActivitySearchRequest(
+        itemType = Some(ItemType.transform),
+        textQuery = Some("vocabulary"),
+        facets = Some(Seq(KeywordFacetSetting(FacetType.keyword, Facets.activityType.id, Set("cache")))
+        )))
+    response.results.map(_.id) must contain theSameElementsAs Seq("VocabularyCache")
+  }
+
+  private def facetedSearchRequest(facetedSearchRequest: ActivitySearchRequest): ParsedSearchResult = {
+    val request = client.url(baseUrl + controllers.workspaceApi.routes.ActivitiesApi.activitySearch().url)
+    val response = request.post(Json.toJson(facetedSearchRequest))
+    val json = checkResponse(response).json
+    val result = Json.fromJson[FacetedSearchResult](json).get
+    val parsedResults = result.results.map(Json.fromJson[ActivityResult](_).get)
+    ParsedSearchResult(result.total, parsedResults, result.sortByProperties, result.facets)
+  }
+
+  case class ParsedSearchResult(total: Int, results: Seq[ActivityResult], sortByProperties: Seq[SortableProperty], facets: Seq[FacetResult])
+}

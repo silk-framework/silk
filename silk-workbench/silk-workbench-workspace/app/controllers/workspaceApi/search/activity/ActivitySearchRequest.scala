@@ -77,18 +77,19 @@ case class ActivitySearchRequest(@Schema(
   /** Execute search request and return result list. */
   def apply()(implicit userContext: UserContext,
               accessMonitor: WorkbenchAccessMonitor): FacetedSearchResult = {
+    // Retrieve selected projects and tasks
     val ps: Seq[Project] = projects
-    var tasks: Seq[TypedTasks] = ps.flatMap(TypedTasks.fetchTasks(_, itemType))
-    var selectedProjects: Seq[Project] = if(project.isEmpty && (itemType.contains(ItemType.project) || itemType.isEmpty)) ps else Seq()
-
-    for(term <- textQuery if term.trim.nonEmpty) {
-      val lowerCaseTerm = extractSearchTerms(term)
-      tasks = tasks.map(typedTasks => filterTasksByTextQuery(typedTasks, lowerCaseTerm))
-      selectedProjects = if(itemType.contains(ItemType.project) || itemType.isEmpty) selectedProjects.filter(p => matchesSearchTerm(lowerCaseTerm, p)) else Seq()
-    }
+    val tasks: Seq[TypedTasks] = ps.flatMap(TypedTasks.fetchTasks(_, itemType))
+    val selectedProjects: Seq[Project] = if(project.isEmpty && (itemType.contains(ItemType.project) || itemType.isEmpty)) ps else Seq()
 
     // Retrieve all activities for the selected projects and tasks
     var activities = retrieveActivities(selectedProjects, tasks)
+
+    // Filter activities by search terms
+    for(term <- textQuery if term.trim.nonEmpty) {
+      val lowerCaseTerm = extractSearchTerms(term)
+      activities = filterActivities(activities, lowerCaseTerm)
+    }
 
     // Filter activities by facets
     val facetCollectors = ItemTypeFacetCollectors(Seq(ActivityFacetCollector()))
@@ -132,12 +133,13 @@ case class ActivitySearchRequest(@Schema(
     }
   }
 
-  private def filterTasksByTextQuery(typedTasks: TypedTasks,
-                                     lowerCaseTerms: Seq[String])
-                                    (implicit userContext: UserContext): TypedTasks = {
-    typedTasks.copy(tasks = typedTasks.tasks.filter { task =>
-      // Project is shown in search results when not restricting by project. Task properties are not shown.
-      matchesSearchTerm(lowerCaseTerms, task, matchTaskProperties = false, matchProject = project.isEmpty) })
+  private def filterActivities(activities: Seq[WorkspaceActivity[_]], lowerCaseTerms: Seq[String]): Seq[WorkspaceActivity[_]] = {
+    activities.filter(filterActivity(_, lowerCaseTerms))
+  }
+
+  private def filterActivity(activity: WorkspaceActivity[_], lowerCaseTerms: Seq[String]): Boolean = {
+    val taskLabel = activity.taskOption.map(_.fullLabel).getOrElse("")
+    matchesSearchTerm(lowerCaseTerms, activity.label, taskLabel)
   }
 
   // Sort results according to request

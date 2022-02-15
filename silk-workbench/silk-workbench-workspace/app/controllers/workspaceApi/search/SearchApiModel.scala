@@ -209,8 +209,13 @@ object SearchApiModel {
     final val createdBy: Facet = Facet("createdBy", "Created by", "The user who created the item.", FacetType.keyword)
     final val lastModifiedBy: Facet = Facet("lastModifiedBy", "Last modified by", "The user who last modified the item.", FacetType.keyword)
     final val tags: Facet = Facet("tags", "Tags", "The user-defined tags.", FacetType.keyword)
+    // Activity facets
+    final val activityStatus: Facet = Facet("status", "Status", "The activity status.", FacetType.keyword)
+    final val activityType: Facet = Facet("activityType", "Activity type", "Activity type (either cache or non-cache activity).", FacetType.keyword)
+    final val activityStartedBy: Facet = Facet("startedBy", "Started by", "The user that started the activity", FacetType.keyword)
 
-    val facetIds: Seq[String] = Seq(datasetType, fileResource, taskType, transformInputResource, workflowExecutionStatus, createdBy, lastModifiedBy, tags).map(_.id)
+    val facetIds: Seq[String] = Seq(datasetType, fileResource, taskType, transformInputResource, workflowExecutionStatus,
+      createdBy, lastModifiedBy, tags, activityStatus, activityType, activityStartedBy).map(_.id)
     assert(facetIds.distinct.size == facetIds.size, "Facet IDs must be unique!")
   }
 
