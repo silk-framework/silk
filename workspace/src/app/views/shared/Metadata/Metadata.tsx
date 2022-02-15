@@ -24,7 +24,6 @@ import {
     TextField,
     Link,
 } from "gui-elements";
-// import { Intent } from "gui-elements/blueprint/constants";
 import { IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
 import { routerOp } from "@ducks/router";
