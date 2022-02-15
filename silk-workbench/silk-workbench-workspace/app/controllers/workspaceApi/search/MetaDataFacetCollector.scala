@@ -1,20 +1,18 @@
 package controllers.workspaceApi.search
 
 import controllers.workspaceApi.search.SearchApiModel.{Facet, Facets}
-import org.silkframework.config.{MetaData, TaskSpec}
+import org.silkframework.config.{HasMetaData, MetaData}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
-import org.silkframework.workspace.ProjectTask
 
 /**
   * Generic facets
   */
-// TODO use HasMetaData type instead so it can be used with other classes?
-case class TaskSpecFacetCollector() extends ItemTypeFacetCollector[ProjectTask[_ <: TaskSpec]] {
-  override val facetCollectors: Seq[FacetCollector[ProjectTask[_ <: TaskSpec]]] = Seq(
+case class MetaDataFacetCollector() extends ItemTypeFacetCollector[HasMetaData] {
+  override val facetCollectors: Seq[FacetCollector[HasMetaData]] = Seq(
     CreatedByFacetCollector(),
     LastModifiedByFacetCollector(),
-    TaskTagCollector()
+    TagFacetCollector()
   )
 }
 
@@ -35,11 +33,11 @@ case class LastModifiedByFacetCollector() extends UserFacetCollector {
 }
 
 /** User facet trait */
-trait UserFacetCollector extends IdAndLabelKeywordFacetCollector[ProjectTask[_ <: TaskSpec]] {
+trait UserFacetCollector extends IdAndLabelKeywordFacetCollector[HasMetaData] {
 
   protected def userUri(metaData: MetaData): Option[Uri]
 
-  override protected def extractIdAndLabel(projectTask: ProjectTask[_ <: TaskSpec])
+  override protected def extractIdAndLabel(projectTask: HasMetaData)
                                           (implicit user: UserContext): Set[(String, String)] = {
     val metaData = projectTask.metaData
     val uriAndLabel = userUri(metaData) match {
@@ -52,12 +50,12 @@ trait UserFacetCollector extends IdAndLabelKeywordFacetCollector[ProjectTask[_ <
 }
 
 /** Collects values for the "tags" facet. */
-case class TaskTagCollector() extends IdAndLabelKeywordFacetCollector[ProjectTask[_ <: TaskSpec]] {
+case class TagFacetCollector() extends IdAndLabelKeywordFacetCollector[HasMetaData] {
 
   /** The facet this collector applies for. */
   override def appliesForFacet: Facet = Facets.tags
 
-  override protected def extractIdAndLabel(projectTask: ProjectTask[_ <: TaskSpec])
+  override protected def extractIdAndLabel(projectTask: HasMetaData)
                                           (implicit user: UserContext): Set[(String, String)] = {
     projectTask.tags().map(tag => (tag.uri, tag.label))
   }

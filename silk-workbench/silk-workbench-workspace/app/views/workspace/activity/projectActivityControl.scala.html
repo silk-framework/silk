@@ -6,7 +6,7 @@
 @(activity: ProjectActivity[_ <: HasValue], showButtons: Boolean = false, insideIFrame: Boolean = false)(implicit request: RequestHeader)
 
 @activityControl(
-  project = activity.project.name,
+  project = activity.project.id,
   task = None,
   activity = activity,
   showProgressBar = true,

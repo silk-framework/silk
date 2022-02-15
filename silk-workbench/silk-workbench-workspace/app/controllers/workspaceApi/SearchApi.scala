@@ -107,7 +107,7 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
     val w = workspace
     val accessedItems = accessMonitor.getAccessItems.reverse
     val projects = accessedItems.map(_.projectId).distinct.flatMap(projectId => w.findProject(projectId))
-    val availableProjects = projects.map(p => (p.name.toString, p)).toMap
+    val availableProjects = projects.map(p => (p.id.toString, p)).toMap
     val availableItems = accessedItems.filter(item => availableProjects.contains(item.projectId))
     val items = availableItems flatMap { item =>
       val project = availableProjects(item.projectId)
@@ -132,8 +132,8 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
           "itemType" -> JsString(itemType.id),
           "itemLinks" -> Json.toJson(ItemType.itemTypeLinks(
             itemType,
-            project.name,
-            taskOpt.map(_.id.toString).getOrElse(project.name.toString),
+            project.id,
+            taskOpt.map(_.id.toString).getOrElse(project.id.toString),
             taskOpt.map(_.data)
           ))
         ) ++ taskData.toSeq.flatten))

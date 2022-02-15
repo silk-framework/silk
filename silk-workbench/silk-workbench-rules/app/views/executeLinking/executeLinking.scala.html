@@ -18,7 +18,7 @@
       @taskActivityControl(context.task.activity[ExecuteLinking], showButtons = true)
     </li>
     <li>
-      <a class="mdl-button mdl-js-button mdl-button--icon" href="@TaskApi.downloadOutput(context.project.name, context.task.id).url" target="_download">
+      <a class="mdl-button mdl-js-button mdl-button--icon" href="@TaskApi.downloadOutput(context.project.id, context.task.id).url" target="_download">
         <i class="material-icons">file_download</i>
       </a>
     </li>

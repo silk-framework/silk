@@ -22,11 +22,11 @@
 
   <script type="text/javascript">
     var inEditorEnv = true;
-    var projectName = '@context.project.name';
+    var projectName = '@context.project.id';
     var taskName = '@context.task.id';
     var ruleIndex = '/@rule.id.toString';
     var editorUrl = baseUrl + '/transform/' + projectName + '/' + taskName + '/editor';
-    var apiUrl = '@config.baseUrl/transform/tasks/@context.project.name/@context.task.id';
+    var apiUrl = '@config.baseUrl/transform/tasks/@context.project.id/@context.task.id';
     var serializationFunction = serializeTransformRule;
   </script>
 

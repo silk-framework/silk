@@ -52,7 +52,7 @@ trait WorkflowExecutorGeneratingProvenance extends Activity[WorkflowExecutionRep
           case Some(lastResult) =>
             val report = WorkflowExecutionReportWithProvenance.fromActivityExecutionReport(lastResult)
             context.value.update(report)
-            ExecutionReportManager().addReport(ReportIdentifier.create(workflowTask.project.name, workflowTask.id), lastResult)
+            ExecutionReportManager().addReport(ReportIdentifier.create(workflowTask.project.id, workflowTask.id), lastResult)
             val persistProvenanceService = PluginRegistry.createFromConfig[PersistWorkflowProvenance]("provenance.persistWorkflowProvenancePlugin")
             persistProvenanceService.persistWorkflowProvenance(workflowTask, lastResult)
           case None =>

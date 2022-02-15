@@ -7,14 +7,14 @@
 @(project: Project)(implicit userContext: UserContext)
 
 @widgets.pluginDialog(project,
-                      name = project.name,
+                      name = project.id,
                       plugins = PluginRegistry.availablePlugins[ProjectExecutor],
                       currentObj = None,
                       resources = Nil) {
 
   <script type="text/javascript">
     function submit(pluginId, name, parameters) {
-      $.post('@routes.WorkspaceApi.executeProject(project.name)');
+      $.post('@routes.WorkspaceApi.executeProject(project.id)');
       closeDialog();
     }
   </script>

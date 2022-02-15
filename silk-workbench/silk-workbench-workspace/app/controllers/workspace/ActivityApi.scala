@@ -637,8 +637,8 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     val projectOpt = strToOption(projectId).map(getProject)
     val taskOpt = strToOption(taskId).map(id => anyTask(projectId, id))
     val errorReport = ErrorReportItem(
-      projectId = projectOpt.map(_.name),
-      projectLabel = projectOpt.filter(p => p.config.metaData.label.nonEmpty && p.name.toString != p.config.metaData.label.get).flatMap(_.config.metaData.label),
+      projectId = projectOpt.map(_.id),
+      projectLabel = projectOpt.filter(p => p.config.metaData.label.nonEmpty && p.id.toString != p.config.metaData.label.get).flatMap(_.config.metaData.label),
       taskId = taskOpt.map(_.id),
       taskLabel = taskOpt.map(t => t.metaData.formattedLabel(t.id, Int.MaxValue)),
       taskDescription = taskOpt.flatMap(_.metaData.description),
@@ -647,7 +647,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
       errorMessage = Option(cause.getMessage),
       stackTrace = Some(Stacktrace.fromException(cause))
     )
-    val projectPart = projectOpt.map(p => s" ${if(taskOpt.isDefined) "in" else "of"} project '${p.config.metaData.formattedLabel(p.name, Int.MaxValue)}'").getOrElse("")
+    val projectPart = projectOpt.map(p => s" ${if(taskOpt.isDefined) "in" else "of"} project '${p.config.metaData.formattedLabel(p.id, Int.MaxValue)}'").getOrElse("")
     val taskPart = taskOpt.map(t => s" of task '${t.metaData.formattedLabel(t.id, Int.MaxValue)}'").getOrElse("")
     val markdownHeader = s"""# Activity execution error report
                             |

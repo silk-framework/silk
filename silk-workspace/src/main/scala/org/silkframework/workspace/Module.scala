@@ -64,7 +64,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
   def task(name: Identifier)
           (implicit userContext: UserContext): ProjectTask[TaskData] = {
     assertLoaded()
-    cachedTasks.getOrElse(name, throw TaskNotFoundException(project.name, name, taskType.getSimpleName))
+    cachedTasks.getOrElse(name, throw TaskNotFoundException(project.id, name, taskType.getSimpleName))
   }
 
   def taskOption(name: Identifier)
@@ -78,10 +78,10 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     assertLoaded()
     val task = new ProjectTask(name, taskData, metaData, this)
     validator.validate(project, task)
-    provider.putTask(project.name, task)
+    provider.putTask(project.id, task)
     task.startActivities()
     cachedTasks += ((name, task))
-    logger.info(s"Added task '$name' to project ${project.name}. " + userContext.logInfo)
+    logger.info(s"Added task '$name' to project ${project.id}. " + userContext.logInfo)
     task
   }
 
@@ -99,9 +99,9 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
       activity.control.cancel()
     }
     // Delete task
-    provider.deleteTask(project.name, taskId)
+    provider.deleteTask(project.id, taskId)
     cachedTasks -= taskId
-    logger.info(s"Removed task '$taskId' from project ${project.name}." + userContext.logInfo)
+    logger.info(s"Removed task '$taskId' from project ${project.id}." + userContext.logInfo)
   }
 
   /**

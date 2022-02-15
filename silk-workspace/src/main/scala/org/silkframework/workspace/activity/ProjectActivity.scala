@@ -15,6 +15,6 @@ class ProjectActivity[ActivityType <: HasValue : ClassTag](val project: Project,
   override def factory: ProjectActivityFactory[ActivityType] = defaultFactory
 
   override protected def createInstance(config: Map[String, String]): ActivityControl[ActivityType#ValueType] = {
-    Activity(defaultFactory(project), projectAndTaskId = Some(ProjectAndTaskIds(project.name, None)))
+    Activity(defaultFactory(project), projectAndTaskId = Some(ProjectAndTaskIds(project.id, None)))
   }
 }

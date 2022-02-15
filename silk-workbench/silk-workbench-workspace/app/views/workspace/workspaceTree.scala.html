@@ -123,17 +123,17 @@
 }
 
 @project(project: Project) = {
-  <li id="project:@project.name" data-jstree='{"icon":"@Assets.at(projectIcon(project))"}' title="@project.loadingErrors.mkString(", ")" >
-    @project.config.metaData.formattedLabel(project.name, maxLength = 100)
-    @button("Prefixes", "Edit prefixes", "wrench-screwdriver.png", s"editPrefixes('${project.name}')")
-    @button("Resources", "Manage resources", "wrench.png", s"editResources('${project.name}')")
-    @button("Link Spec", "Import link specification", "document--plus.png", s"importLinkSpec('${project.name}')")
-    @button("Export", "Export project", "document-export.png", s"exportProject('${project.name}')")
+  <li id="project:@project.id" data-jstree='{"icon":"@Assets.at(projectIcon(project))"}' title="@project.loadingErrors.mkString(", ")" >
+    @project.config.metaData.formattedLabel(project.id, maxLength = 100)
+    @button("Prefixes", "Edit prefixes", "wrench-screwdriver.png", s"editPrefixes('${project.id}')")
+    @button("Resources", "Manage resources", "wrench.png", s"editResources('${project.id}')")
+    @button("Link Spec", "Import link specification", "document--plus.png", s"importLinkSpec('${project.id}')")
+    @button("Export", "Export project", "document-export.png", s"exportProject('${project.id}')")
     @if(PluginRegistry.availablePlugins[ProjectExecutor].nonEmpty) {
-      @button("Execute", "Execute project", "document-export.png", s"executeProject('${project.name}')")
+      @button("Execute", "Execute project", "document-export.png", s"executeProject('${project.id}')")
     }
-    @button("Clone", "Clone project", "clone.png", s"cloneProject('${project.name}')")
-    @button("Remove", "Remove project", "cross.png", s"deleteProjectConfirm('${project.name}')")
+    @button("Clone", "Clone project", "clone.png", s"cloneProject('${project.id}')")
+    @button("Remove", "Remove project", "cross.png", s"deleteProjectConfirm('${project.id}')")
     <ul>
       @for((taskType, taskActions) <- WorkbenchPlugins.byType(project)) {
         @taskTypeNode(project, taskType, taskActions)
@@ -150,9 +150,9 @@
 }
 
 @taskTypeNode(project: Project, taskType: TaskType, taskActions: Seq[TaskActions]) = {
-  <li id="tasktype:@{project.name}:@taskType.typeName.filter(_.isLetter)" data-jstree='{"icon":"@taskType.folderIcon"}' >
+  <li id="tasktype:@{project.id}:@taskType.typeName.filter(_.isLetter)" data-jstree='{"icon":"@taskType.folderIcon"}' >
     @{taskType.typeName}s
-    @for(path <- taskType.createDialog(project.name)) {
+    @for(path <- taskType.createDialog(project.id)) {
       @button("Add", "Add " + taskType.typeName, "plus.png", s"workspaceDialog('$path')")
     }
     <ul>
@@ -164,7 +164,7 @@
 }
 
 @task(project: Project, taskType: TaskType, actions: TaskActions) = {
-  <li id="task:@{project.name}:@actions.task.id" data-jstree='{"icon":"@taskType.icon"}'>
+  <li id="task:@{project.id}:@actions.task.id" data-jstree='{"icon":"@taskType.icon"}'>
     @actions.task.label()
     @for(path <- actions.propertiesDialog) {
       @button("Properties", "Edit task properties", "wrench.png", s"workspaceDialog('$path')")
@@ -172,8 +172,8 @@
     @for(path <- actions.openPath(None, None)) {
       @button("Open", "Open task", "document--pencil.png", s"window.location = '${config.baseUrl}/$path'", config.baseUrl + "/" + path)
     }
-    @button("Clone", "Clone task", "clone.png", s"cloneTask('${project.name}', '${actions.task.id}')")
-    @button("Remove", "Remove task", "cross.png", s"deleteTaskConfirm('${project.name}', '${actions.task.id}')")
+    @button("Clone", "Clone task", "clone.png", s"cloneTask('${project.id}', '${actions.task.id}')")
+    @button("Remove", "Remove task", "cross.png", s"deleteTaskConfirm('${project.id}', '${actions.task.id}')")
     <ul>
       @for((key, value) <- actions.task.metaDataFields ++ actions.task.data.properties(project.config.prefixes) if !value.isEmpty) {
         <li data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}'>

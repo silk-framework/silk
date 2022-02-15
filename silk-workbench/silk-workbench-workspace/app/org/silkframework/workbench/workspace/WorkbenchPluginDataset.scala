@@ -44,7 +44,7 @@ object WorkbenchPluginDataset {
 
   case class DatasetTaskActions(task: ProjectTask[_ <: TaskSpec]) extends TaskActions {
 
-    private val project = task.project.name
+    private val project = task.project.id
 
     private val taskId = task.id
 

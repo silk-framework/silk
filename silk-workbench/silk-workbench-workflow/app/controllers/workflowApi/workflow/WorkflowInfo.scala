@@ -33,8 +33,8 @@ object WorkflowInfo {
     WorkflowInfo(
       workflow.id,
       workflow.fullLabel,
-      project.name,
-      project.config.metaData.formattedLabel(project.name, Int.MaxValue),
+      project.id,
+      project.config.metaData.formattedLabel(project.id, Int.MaxValue),
       variableDatasets.dataSources,
       variableDatasets.sinks
     )

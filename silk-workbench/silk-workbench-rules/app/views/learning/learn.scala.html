@@ -23,12 +23,12 @@
   <script type="text/javascript">
     function back() {
       //TODO stop current task
-      window.location = "@config.baseUrl/linking/@context.project.name/@context.task.id/learnStart"
+      window.location = "@config.baseUrl/linking/@context.project.id/@context.task.id/learnStart"
     }
 
     function next() {
       //TODO stop current task
-      window.location = "@config.baseUrl/linking/@context.project.name/@context.task.id/learn/population"
+      window.location = "@config.baseUrl/linking/@context.project.id/@context.task.id/learn/population"
     }
   </script>
 }
@@ -55,7 +55,7 @@
   <div class="wrapper">
     @autoReload(
       context = context,
-      contentPath = Learning.rule(context.project.name, context.task.id).url,
+      contentPath = Learning.rule(context.project.id, context.task.id).url,
       activityId = LearningFactory.pluginId
     )
   </div>

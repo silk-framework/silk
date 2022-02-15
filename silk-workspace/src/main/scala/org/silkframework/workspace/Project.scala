@@ -60,7 +60,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     registerModule[CustomTask]()
 
     // Load tasks
-    val tasks = provider.readAllTasks(name, resources)
+    val tasks = provider.readAllTasks(id, resources)
     for(module <- modules) {
       val moduleTasks = tasks.filter(task => module.taskType.isAssignableFrom(task.taskType)).asInstanceOf[Seq[LoadedTask[TaskSpec]]]
       module.asInstanceOf[Module[TaskSpec]].load(moduleTasks)
@@ -85,7 +85,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   /**
     * The name of this project.
     */
-  override def name: Identifier = cachedConfig.id
+  override def id: Identifier = cachedConfig.id
 
   /**
     * Retrieves all errors that occurred during loading this project.
@@ -129,7 +129,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     */
   def activity(activityName: String): ProjectActivity[_ <: HasValue] = {
     projectActivities.find(_.name == activityName)
-      .getOrElse(throw NotFoundException(s"Project '$name' does not contain an activity named '$activityName'. " +
+      .getOrElse(throw NotFoundException(s"Project '$id' does not contain an activity named '$activityName'. " +
         s"Available activities: ${activities.map(_.name).mkString(", ")}"))
   }
 
@@ -230,7 +230,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   def addTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: MetaData = MetaData.empty)
                                        (implicit userContext: UserContext): ProjectTask[T] = synchronized {
     if(allTasks.exists(_.id == name)) {
-      throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
+      throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.id}' with this name.")
     }
     val task = module[T].add(name, taskData, metaData.asNewMetaData)
     provider.removeExternalTaskLoadingError(config.id, name)
@@ -246,7 +246,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   def addAnyTask(name: Identifier, taskData: TaskSpec, metaData: MetaData = MetaData.empty)
                 (implicit userContext: UserContext): ProjectTask[TaskSpec] = synchronized {
     if(allTasks.exists(_.id == name)) {
-      throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.name}' with this name.")
+      throw IdentifierAlreadyExistsException(s"Task name '$name' is not unique as there is already a task in project '${this.id}' with this name.")
     }
     modules.find(_.taskType.isAssignableFrom(taskData.getClass)) match {
       case Some(module) => module.asInstanceOf[Module[TaskSpec]].add(name, taskData, metaData.asNewMetaData)
@@ -375,7 +375,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   /**
     * Retrieves all tags for this project.
     */
-  def tags()(implicit userContext: UserContext): Set[Tag] = {
+  override def tags()(implicit userContext: UserContext): Set[Tag] = {
     config.metaData.tags.map(uri => tagManager.getTag(uri))
   }
 }

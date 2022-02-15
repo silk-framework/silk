@@ -138,7 +138,7 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
                    schema = new Schema(implementation = classOf[String])
                  )
                  project: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    if (WorkspaceFactory().workspace.projects.exists(_.name.toString == project)) {
+    if (WorkspaceFactory().workspace.projects.exists(_.id.toString == project)) {
       ErrorResult(CONFLICT, "Conflict", s"Project with name '$project' already exists. Creation failed.")
     } else {
       val projectConfig = ProjectConfig(project, metaData = MetaData(Some(project)).asNewMetaData)

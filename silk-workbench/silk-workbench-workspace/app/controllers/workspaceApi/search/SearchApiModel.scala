@@ -269,7 +269,7 @@ object SearchApiModel {
         case ItemType.project => Seq.empty
         case ItemType.global => Seq.empty
       }
-      TypedTasks(project.name, project.config.fullLabel ,itemType, tasks)
+      TypedTasks(project.id, project.config.fullLabel ,itemType, tasks)
     }
   }
 
@@ -423,9 +423,9 @@ object SearchApiModel {
                                  (implicit accessMonitor: WorkbenchAccessMonitor): WorkspaceItem = {
       projectOrTask match {
         case Right(project) =>
-          WorkspaceProject(project.name)
+          WorkspaceProject(project.id)
         case Left((projectTask, _)) =>
-          WorkspaceTask(projectTask.project.name, projectTask.id)
+          WorkspaceTask(projectTask.project.id, projectTask.id)
       }
     }
 
@@ -586,7 +586,7 @@ object SearchApiModel {
 
     private def writeTask(task: ProjectTask[_ <: TaskSpec])
                          (implicit userContext: UserContext): JsValue = {
-      taskFormat(userContext).write(task)(WriteContext[JsValue](prefixes = task.project.config.prefixes, projectId = Some(task.project.name)))
+      taskFormat(userContext).write(task)(WriteContext[JsValue](prefixes = task.project.config.prefixes, projectId = Some(task.project.id)))
     }
   }
 }

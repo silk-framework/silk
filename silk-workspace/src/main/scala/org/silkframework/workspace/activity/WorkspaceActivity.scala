@@ -178,7 +178,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     } else {
       val newControl = createControl(config)
       if(instances.size >= WorkspaceActivity.MAX_CONTROLS_PER_ACTIVITY) {
-        val activityDescription = projectOpt.map(p => s"In project ${p.name} activity '$name'").getOrElse(s"In workspace activity '$name'")
+        val activityDescription = projectOpt.map(p => s"In project ${p.id} activity '$name'").getOrElse(s"In workspace activity '$name'")
         log.warning(s"$activityDescription: Dropping an activity control instance because the control " +
             s"instance queue is full (max. ${WorkspaceActivity.MAX_CONTROLS_PER_ACTIVITY}. Dropped instance ID: ${instances.head._1}")
         instances = instances.drop(1)

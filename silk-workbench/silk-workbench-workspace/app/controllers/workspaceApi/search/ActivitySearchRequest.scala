@@ -1,12 +1,13 @@
 package controllers.workspaceApi.search
 
-import controllers.workspaceApi.search.SearchApiModel.{Facet, FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult, ID, LABEL, SearchRequestTrait, SortBy, SortOrder, SortableProperty, TypedTasks}
+import controllers.workspaceApi.search.ActivitySearchRequest.ActivityResult
+import controllers.workspaceApi.search.SearchApiModel.{Facet, FacetSetting, FacetType, FacetedSearchRequest, FacetedSearchResult, SearchRequestTrait, SortBy, SortOrder, SortableProperty, TypedTasks}
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.{Project, WorkspaceFactory}
-import play.api.libs.json.{JsNull, JsObject, JsString, Json, Reads}
+import play.api.libs.json.{Json, OFormat, Reads}
 
 case class ActivitySearchRequest(@Schema(
                                    description = "If defined, only artifacts from that project are fetched.",
@@ -85,25 +86,12 @@ case class ActivitySearchRequest(@Schema(
       selectedProjects = if(itemType.contains(ItemType.project) || itemType.isEmpty) selectedProjects.filter(p => matchesSearchTerm(lowerCaseTerm, p)) else Seq()
     }
 
-    def globalActivities = WorkspaceFactory().workspace.activities
-    def projectActivities = selectedProjects.flatMap(_.activities)
-    def taskActivities = tasks.flatMap(_.tasks).flatMap(_.activities.asInstanceOf[Seq[WorkspaceActivity[_]]])
+    // Retrieve all activities for the selected projects and tasks
+    var activities = retrieveActivities(selectedProjects, tasks)
 
-    var activities = itemType match {
-      case None =>
-        globalActivities ++ projectActivities ++ taskActivities
-      case Some(ItemType.global) =>
-        globalActivities
-      case Some(ItemType.project) =>
-        projectActivities
-      case _ =>
-        taskActivities
-    }
-
-    // facets are collected after filtering, so only non empty facets are displayed with correct counts
+    // Filter activities by facets
     val facetCollectors = ItemTypeFacetCollectors(Seq(ActivityFacetCollector()))
     val facetSettings = facets.getOrElse(Seq.empty)
-
     activities = activities.filter(activity => facetCollectors.filterAndCollect(activity, facetSettings))
 
     val sorted = sort(activities)
@@ -114,7 +102,7 @@ case class ActivitySearchRequest(@Schema(
         sorted.drop(workingOffset)
       }
 
-    val resultWindowJson = resultWindow.map(toJson)
+    val resultWindowJson = resultWindow.map(a => Json.toJsObject(ActivityResult(a)))
     val facetResults = facetCollectors.result
 
     FacetedSearchResult(
@@ -123,6 +111,24 @@ case class ActivitySearchRequest(@Schema(
       sortByProperties = Seq(SortableProperty("label", "Label")),
       facets = facetResults
     )
+  }
+
+  private def retrieveActivities(projects: Seq[Project], tasks: Seq[TypedTasks])
+                                (implicit userContext: UserContext) : Seq[WorkspaceActivity[_]] = {
+    def globalActivities: Seq[WorkspaceActivity[_]] = WorkspaceFactory().workspace.activities
+    def projectActivities: Seq[WorkspaceActivity[_]] = projects.flatMap(_.activities)
+    def taskActivities: Seq[WorkspaceActivity[_]] = tasks.flatMap(_.tasks).flatMap(_.activities.asInstanceOf[Seq[WorkspaceActivity[_]]])
+
+    itemType match {
+      case None =>
+        globalActivities ++ projectActivities ++ taskActivities
+      case Some(ItemType.global) =>
+        globalActivities
+      case Some(ItemType.project) =>
+        projectActivities
+      case _ =>
+        taskActivities
+    }
   }
 
   private def filterTasksByTextQuery(typedTasks: TypedTasks,
@@ -141,29 +147,28 @@ case class ActivitySearchRequest(@Schema(
     activities
   }
 
-
-  private def toJson(activity: WorkspaceActivity[_])
-                    (implicit userContext: UserContext): JsObject = {
-    JsObject(
-      Seq(
-        ID -> JsString(activity.name),
-        LABEL -> JsString(activity.label),
-        "project" -> activity.projectOpt.map(_.name.toString).map(JsString(_)).getOrElse(JsNull),
-        "task" -> activity.taskOption.map(_.id.toString).map(JsString(_)).getOrElse(JsNull)
-      )
-    )
-  }
-
 }
 
 object ActivitySearchRequest {
 
-  case class ActivityResult()
+  @Schema(description = "Search result describing an activity.")
+  case class ActivityResult(id: String,
+                            label: String,
+                            project: Option[String],
+                            task: Option[String])
 
   object ActivityResult {
-
+    def apply(activity: WorkspaceActivity[_]): ActivityResult = {
+      ActivityResult(
+        id = activity.name,
+        label = activity.label,
+        project = activity.projectOpt.map(_.id.toString),
+        task = activity.taskOption.map(_.id.toString)
+      )
+    }
   }
 
+  implicit val activityResultFormat: OFormat[ActivityResult] = Json.format[ActivityResult]
   implicit val activitySearchRequestReader: Reads[ActivitySearchRequest] = Json.reads[ActivitySearchRequest]
 
 }

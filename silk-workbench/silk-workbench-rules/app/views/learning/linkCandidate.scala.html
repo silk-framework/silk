@@ -50,20 +50,20 @@
 <script type="text/javascript">
 
   function confirm() {
-    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.name, context.task.id).url', '@LinkCandidateDecision.positive');
+    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.id, context.task.id).url', '@LinkCandidateDecision.positive');
   }
 
   function decline() {
-    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.name, context.task.id).url', '@LinkCandidateDecision.negative');
+    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.id, context.task.id).url', '@LinkCandidateDecision.negative');
   }
 
   function pass() {
-    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.name, context.task.id).url', '@LinkCandidateDecision.pass');
+    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.id, context.task.id).url', '@LinkCandidateDecision.pass');
   }
 
   function done() {
     const inlineView = (window.location !== window.parent.location) ? "true" : "false"
-    window.location = "@routes.Learning.population(context.project.name, context.task.id).url?inlineView=" + inlineView
+    window.location = "@routes.Learning.population(context.project.id, context.task.id).url?inlineView=" + inlineView
   }
 
   function nextLinkCandidate(url, decision) {

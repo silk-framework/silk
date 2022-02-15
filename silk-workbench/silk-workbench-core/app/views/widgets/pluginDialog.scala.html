@@ -79,7 +79,7 @@
               searchTerm = "";
           }
           // Get list of all resources
-          $.getJSON('@config.baseUrl/workspace/projects/@project.name/resources')
+          $.getJSON('@config.baseUrl/workspace/projects/@project.id/resources')
             .done(function(json) {
               // Convert list of resources to autocompletion values
               var filteredData = json.filter(function(res) { return res.name.toLowerCase().includes(searchTerm) } );
@@ -244,7 +244,7 @@
 }
 
 @createSparqlEndpointDatasetField(pluginId: String, param: Parameter)(implicit userContext: UserContext) = {
-  @widgets.sparqlDatasetSelect(project.name, param.label, param.description, pluginId + "_" + param.name, if(value(pluginId, param) == "") None else Some(value(pluginId, param)))
+  @widgets.sparqlDatasetSelect(project.id, param.label, param.description, pluginId + "_" + param.name, if(value(pluginId, param) == "") None else Some(value(pluginId, param)))
 }
 
 @createEnumerationField(pluginId: String, param: Parameter, enumerationValues: Seq[String], displayNames: Seq[String]) = {

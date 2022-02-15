@@ -39,15 +39,15 @@
 
         // Submit data source
         @if(createDialog) {
-          postTask('@project.name', json, callbacks);
+          postTask('@project.id', json, callbacks);
         } else {
-          putTask('@project.name', name, json, callbacks);
+          putTask('@project.id', name, json, callbacks);
         }
       }
 
       function autoConfigure(pluginId, name, parameters) {
         var queryString = $.param(parameters);
-        var path = '@config.baseUrl/workspace/dialogs/editDatasetAutoConfigured/@project.name/' + name + '/' + pluginId + '?' + queryString;
+        var path = '@config.baseUrl/workspace/dialogs/editDatasetAutoConfigured/@project.id/' + name + '/' + pluginId + '?' + queryString;
         closeDialog();
         showDialog(path);
       }
