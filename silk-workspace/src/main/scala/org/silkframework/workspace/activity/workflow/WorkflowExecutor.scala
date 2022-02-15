@@ -70,9 +70,9 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     * @param workflowRunContext Workflow Context
     */
   protected def updateProgress(operation: String, task: Task[_ >: TaskSpec])(implicit workflowRunContext: WorkflowRunContext): Unit = {
-    val taskLabel = task.label(maxLength = math.max(10, 40 - operation.length))
+    val taskLabel = task.fullLabel
     val progress = (workflowRunContext.alreadyExecuted.size.toDouble + 1) / (workflowNodes.size + 1)
-    workflowRunContext.activityContext.status.update(s"$operation $taskLabel", progress)
+    workflowRunContext.activityContext.status.update(s"$operation '$taskLabel'", progress)
   }
 
   /** Return error if VariableDataset is used in output and input */

@@ -1,14 +1,14 @@
 package org.silkframework.plugins.dataset.rdf.formatters
 
 import org.silkframework.config.Prefixes
-
-import java.io._
-import java.util.logging.Logger
 import org.silkframework.dataset.LinkSink
 import org.silkframework.dataset.rdf.LinkFormatter
 import org.silkframework.entity.Link
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.{FileResource, WritableResource}
+import org.silkframework.runtime.resource.WritableResource
+
+import java.io._
+import java.util.logging.Logger
 
 /**
  * A link sink that writes formatted links to an output stream of a resource.
@@ -16,12 +16,6 @@ import org.silkframework.runtime.resource.{FileResource, WritableResource}
 class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) extends LinkSink {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
-
-  // We optimize cases in which the resource is a file resource
-  private val javaFile = resource match {
-    case f: FileResource => Some(f.file)
-    case _ => None
-  }
 
   private var formattedLinkWriter: Option[Writer] = None
 
@@ -35,14 +29,8 @@ class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) e
   }
 
   override def init()(implicit userContext: UserContext, prefixes: Prefixes): Unit = {
-    // If we got a java file, we write directly to it, otherwise we write to a temporary string
-    formattedLinkWriter = javaFile match {
-      case Some(file) =>
-        file.getParentFile.mkdirs()
-        Some(new OutputStreamWriter(new BufferedOutputStream(new FileOutputStream(file, true)), "UTF-8"))
-      case None =>
-        Some(new StringWriter())
-    }
+    val outputStream = resource.createOutputStream(append = true)
+    formattedLinkWriter = Some(new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8")))
     //Write header
     write(formatter.header)
   }
@@ -54,9 +42,6 @@ class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) e
 
   override def close()(implicit userContext: UserContext): Unit = {
     formattedLinkWriter match {
-      case Some(writer: StringWriter) =>
-        write(formatter.footer)
-        resource.writeString(writer.toString, append = true)
       case Some(writer: Writer) =>
         try {
           write(formatter.footer)
@@ -67,7 +52,7 @@ class FormattedLinkSink (resource: WritableResource, formatter: LinkFormatter) e
         log.warning("Closing link sink that is already closed")
         // Nothing to be done
     }
-    formattedLinkWriter = null
+    formattedLinkWriter = None
   }
 
   /**
