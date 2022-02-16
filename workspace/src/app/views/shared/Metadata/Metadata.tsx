@@ -24,7 +24,6 @@ import {
     TextField,
     Link,
 } from "gui-elements";
-// import { Intent } from "gui-elements/blueprint/constants";
 import { IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
 import { routerOp } from "@ducks/router";
@@ -274,6 +273,10 @@ export function Metadata(props: IProps) {
         []
     );
 
+    const goToPage = (path: string) => {
+        dispatch(routerOp.goToPage(path));
+    };
+
     const widgetContent = (
         <CardContent data-test-id={"metaDataWidget"}>
             {loading && <Loading description={t("Metadata.loading", "Loading summary data.")} />}
@@ -365,34 +368,30 @@ export function Metadata(props: IProps) {
                             </PropertyValue>
                         </PropertyValuePair>
                     )}
-                    {!!lastModifiedByUser && (
-                        <PropertyValuePair hasSpacing hasDivider>
-                            {/** // Todo add german translation for author here  */}
-                            <PropertyName>{t("form.field.lastModifiedBy", "Last Modified By")}</PropertyName>
-                            <PropertyValue>
-                                <Link href={utils.generateFacetUrl("lastModifiedBy", lastModifiedByUser.uri)}>
-                                    {lastModifiedByUser.label}
-                                </Link>
-                            </PropertyValue>
-                        </PropertyValuePair>
-                    )}
-                    {!!createdByUser && (
-                        <PropertyValuePair hasSpacing hasDivider>
-                            {/** // Todo add german translation for author here  */}
-                            <PropertyName>{t("form.field.createdBy", "Created By")}</PropertyName>
-                            <PropertyValue>
-                                <Link href={utils.generateFacetUrl("createdBy", createdByUser.uri)}>
-                                    {createdByUser.label}
-                                </Link>
-                            </PropertyValue>
-                        </PropertyValuePair>
-                    )}
                     {!!data.tags?.length && (
                         <PropertyValuePair hasSpacing hasDivider>
                             <PropertyName>{t("form.field.tag", "Tag")}</PropertyName>
-                            <PropertyValue>{utils.DisplayArtefactTags(data.tags, t)}</PropertyValue>
+                            <PropertyValue>{utils.DisplayArtefactTags(data.tags, t, goToPage)}</PropertyValue>
                         </PropertyValuePair>
                     )}
+                    <PropertyValuePair hasSpacing hasDivider>
+                        {/** // Todo add german translation for author here  */}
+                        <PropertyName>{t("form.field.lastModifiedBy", "Last Modified By")}</PropertyName>
+                        <PropertyValue>
+                            <Link href={utils.generateFacetUrl("lastModifiedBy", lastModifiedByUser?.uri ?? "")}>
+                                {lastModifiedByUser?.label ?? "Unknown"}
+                            </Link>
+                        </PropertyValue>
+                    </PropertyValuePair>
+                    <PropertyValuePair hasSpacing hasDivider>
+                        {/** // Todo add german translation for author here  */}
+                        <PropertyName>{t("form.field.createdBy", "Created By")}</PropertyName>
+                        <PropertyValue>
+                            <Link href={utils.generateFacetUrl("createdBy", createdByUser?.uri ?? "")}>
+                                {createdByUser?.label ?? "Unknown"}
+                            </Link>
+                        </PropertyValue>
+                    </PropertyValuePair>
                 </PropertyValueList>
             )}
         </CardContent>

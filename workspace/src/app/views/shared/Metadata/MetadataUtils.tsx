@@ -1,6 +1,6 @@
 import React from "react";
 import qs from "qs";
-import { Tag, TagList, MenuItem } from "gui-elements";
+import { Tag, TagList } from "gui-elements";
 
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import fetch from "../../../services/fetch";
@@ -50,18 +50,27 @@ export const queryTags = (
         url: workspaceApi(`/projects/${projectId}/tags${filter?.length ? `?filter=${filter}` : ""}`),
     });
 
-const DisplayArtefactTags = (tags: Array<TagType>, t: (key: string, fallBack: string) => string, minLength = 3) => {
+const DisplayArtefactTags = (
+    tags: Array<TagType>,
+    t: (key: string, fallBack: string) => string,
+    goToPage: (path: string) => void,
+    minLength = 6
+) => {
     const Tags = (size: "full" | "preview") => {
         return size === "full" ? (
             <TagList>
                 {tags.map((tag) => (
-                    <MenuItem key={tag.uri} href={generateFacetUrl("tags", tag.uri)} text={<Tag>{tag.label}</Tag>} />
+                    <Tag key={tag.uri} interactive onClick={() => goToPage(generateFacetUrl("tags", tag.uri))}>
+                        {tag.label}
+                    </Tag>
                 ))}
             </TagList>
         ) : (
             <TagList>
                 {tags.slice(0, minLength).map((tag) => (
-                    <MenuItem key={tag.uri} href={generateFacetUrl("tags", tag.uri)} text={<Tag>{tag.label}</Tag>} />
+                    <Tag key={tag.uri} onClick={() => goToPage(generateFacetUrl("tags", tag.uri))}>
+                        {tag.label}
+                    </Tag>
                 ))}
             </TagList>
         );
