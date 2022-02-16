@@ -1,18 +1,18 @@
 import React from "react";
-import { IHandleProps } from "gui-elements/src/extensions/react-flow/nodes/NodeDefault";
-import { ArrowHeadType, Edge, FlowElement, OnLoadParams, Position } from "react-flow-renderer";
-import { rangeArray } from "../../../../utils/basicUtils";
+import {IHandleProps} from "gui-elements/src/extensions/react-flow/nodes/NodeDefault";
+import {ArrowHeadType, Edge, FlowElement, OnLoadParams, Position} from "react-flow-renderer";
+import {rangeArray} from "../../../../utils/basicUtils";
 import {
     IParameterSpecification,
     IRuleNodeData,
     IRuleOperatorNode,
-    NodeContentPropsWithBusinessData,
+    NodeContentPropsWithBusinessData, RuleOperatorNodeParameters,
 } from "../RuleEditor.typings";
-import { RuleNodeMenu } from "../view/ruleNode/RuleNodeMenu";
-import { RuleEditorNode } from "./RuleEditorModel.typings";
-import { Elements, XYPosition } from "react-flow-renderer/dist/types";
-import ELK, { ElkNode } from "elkjs";
-import { NodeContent } from "../view/ruleNode/NodeContent";
+import {RuleNodeMenu} from "../view/ruleNode/RuleNodeMenu";
+import {RuleEditorNode} from "./RuleEditorModel.typings";
+import {Elements, XYPosition} from "react-flow-renderer/dist/types";
+import ELK, {ElkNode} from "elkjs";
+import {NodeContent} from "../view/ruleNode/NodeContent";
 
 /** Constants */
 
@@ -47,6 +47,7 @@ export interface IOperatorCreateContext {
     t: (string) => string;
     reactFlowInstance: OnLoadParams;
     currentValue: (nodeId: string, parameterId: string) => string | undefined;
+    initParameters: (nodeId: string, parameters: RuleOperatorNodeParameters) => any;
 }
 
 /** Creates a new react-flow rule operator node. */
@@ -55,6 +56,7 @@ function createOperatorNode(
     nodeOperations: IOperatorNodeOperations,
     operatorContext: IOperatorCreateContext
 ): RuleEditorNode {
+    operatorContext.initParameters(node.nodeId, node.parameters)
     const position = operatorContext.reactFlowInstance.project({
         x: node.position?.x ?? 0,
         y: node.position?.y ?? 0,
@@ -67,7 +69,7 @@ function createOperatorNode(
 
     const handles: IHandleProps[] = [
         ...createInputHandles(numberOfInputPorts),
-        { type: SOURCE_HANDLE_TYPE, position: Position.Right },
+        { type: "source", position: Position.Right },
     ];
 
     const data: NodeContentPropsWithBusinessData<IRuleNodeData> = {

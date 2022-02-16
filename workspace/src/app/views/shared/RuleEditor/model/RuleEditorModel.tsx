@@ -4,7 +4,12 @@ import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { RuleEditorContext, RuleEditorContextProps } from "../contexts/RuleEditorContext";
 import { IOperatorCreateContext, IOperatorNodeOperations, ruleEditorModelUtilsFactory } from "./RuleEditorModel.utils";
 import { useTranslation } from "react-i18next";
-import { IParameterSpecification, IRuleOperator, IRuleOperatorNode } from "../RuleEditor.typings";
+import {
+    IParameterSpecification,
+    IRuleOperator,
+    IRuleOperatorNode,
+    RuleOperatorNodeParameters
+} from "../RuleEditor.typings";
 import {
     AddEdge,
     AddNode,
@@ -56,7 +61,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     /** If post-initializations have been executed. */
     const [postInit, setPostInit] = useState(false);
     /** Manages the parameters of rule nodes. This is done for performance reasons. Only stores diffs to the original value. */
-    const [nodeParameterDiff] = React.useState<Map<string, Map<string, string | undefined>>>(new Map());
+    const [nodeParameters] = React.useState<Map<string, Map<string, string | undefined>>>(new Map());
 
     /** Convert initial operator nodes to react-flow model. */
     React.useEffect(() => {
@@ -338,7 +343,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                                                 )}
                                                 nodeParameters={{
                                                     ...op.parameters,
-                                                    ...Object.fromEntries(nodeParameterDiff.get(elem.id)!!.entries()),
+                                                    ...Object.fromEntries(nodeParameters.get(elem.id)!!.entries()),
                                                 }}
                                                 updateSwitch={!businessData.updateSwitch}
                                             />
@@ -400,10 +405,16 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         nodeParametersToChange: Map<string, Map<string, string | undefined>>
     ): void => {
         nodeParametersToChange.forEach((parameterChanges, nodeId) => {
-            const parameterDiff = nodeParameterDiff.get(nodeId) ?? new Map();
-            nodeParameterDiff.set(nodeId, new Map([...parameterDiff, ...parameterChanges]));
+            const parameterDiff = nodeParameters.get(nodeId) ?? new Map();
+            nodeParameters.set(nodeId, new Map([...parameterDiff, ...parameterChanges]));
         });
     };
+
+    /** Should be called every time a node is created. */
+    const initNodeParametersInternal = (nodeId: string, parameters: RuleOperatorNodeParameters) => {
+        const parameterMap = new Map(Object.entries(parameters));
+        nodeParameters.set(nodeId, parameterMap);
+    }
 
     /**
      * Public interface model change functions.
@@ -552,15 +563,14 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     const currentParameterValue = (
         nodeId: string,
-        parameterId: string,
-        elems: Elements = elements
+        parameterId: string
     ): string | undefined => {
-        const nodeDiff = nodeParameterDiff.get(nodeId);
-        if (nodeDiff && nodeDiff.has(parameterId)) {
+        const nodeDiff = nodeParameters.get(nodeId);
+        if (nodeDiff) {
             return nodeDiff.get(parameterId);
         } else {
-            const node = utils.nodeById(elems, nodeId);
-            return node?.data?.businessData.originalRuleOperatorNode.parameters[parameterId];
+            // Node parameters must be initialized at this point
+            console.warn("No parameters for node " + nodeId + " exist!")
         }
     };
 
@@ -571,7 +581,13 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         newValue: string | undefined,
         autoStartTransaction: boolean = true
     ) => {
-        // TODO: Check why fields with non-empty initial values are not reset to initial values after undo (after undo, redo, undo they however are)
+        const changeValue = (from: string | undefined, to: string | undefined) => {
+            // This does not change the actual elements, so we provide dummy elements
+            addAndExecuteRuleModelChangeInternal(
+                RuleModelChangesFactory.changeNodeParameter(nodeId, parameterId, from, to),
+                []
+            );
+        }
         // Merge parameter changes done to the same node/parameter subsequently, so it becomes a single undo operation
         const recentParameterChange = lastRuleParameterChange();
         const sameParameterChanged =
@@ -586,26 +602,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             startChangeTransaction();
         }
         if (sameParameterChanged) {
-            // This does not change the actual elements, so we provide dummy elements
-            addAndExecuteRuleModelChangeInternal(
-                RuleModelChangesFactory.changeNodeParameter(
-                    nodeId,
-                    parameterId,
-                    recentParameterChange!!.from,
-                    newValue
-                ),
-                []
-            );
+            changeValue(recentParameterChange!!.from, newValue)
         } else {
-            // Need to look at current elements to fetch initial value
-            setElements((elems) => {
-                const from = currentParameterValue(nodeId, parameterId, elems);
-                addAndExecuteRuleModelChangeInternal(
-                    RuleModelChangesFactory.changeNodeParameter(nodeId, parameterId, from, newValue),
-                    []
-                );
-                return elems;
-            });
+            changeValue(currentParameterValue(nodeId, parameterId), newValue)
         }
     };
 
@@ -665,6 +664,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         t,
         reactFlowInstance,
         currentValue: currentParameterValue,
+        initParameters: initNodeParametersInternal
     });
 
     /** Auto-layout the rule nodes.
@@ -712,7 +712,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 }
             }
             const originalNode = node.data?.businessData.originalRuleOperatorNode!!;
-            const parameterDiff = nodeParameterDiff.get(node.id);
+            const parameterDiff = nodeParameters.get(node.id);
             const ruleOperatorNode: IRuleOperatorNode = {
                 inputs,
                 label: originalNode.label,
@@ -744,7 +744,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             startChangeTransaction();
             deleteNode(nodeId);
         };
-        nodeParameterDiff.clear();
+        nodeParameters.clear();
         const operatorsNodes = ruleEditorContext.initialRuleOperatorNodes;
         // Create nodes
         let needsLayout = false;
