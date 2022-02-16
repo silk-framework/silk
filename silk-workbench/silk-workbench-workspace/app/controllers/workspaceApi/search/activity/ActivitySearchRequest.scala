@@ -11,13 +11,13 @@ import org.silkframework.workspace.{Project, WorkspaceFactory}
 import play.api.libs.json.{Json, OFormat, Reads}
 
 case class ActivitySearchRequest(@Schema(
-                                   description = "If defined, only artifacts from that project are fetched.",
+                                   description = "If defined, only activities from that project are fetched.",
                                    required = false,
                                    nullable = true
                                  )
                                  project: Option[String] = None,
                                  @Schema(
-                                   description = "If defined, only artifacts of this type are fetched.",
+                                   description = "If defined, only activities of this parent type are fetched.",
                                    required = false,
                                    nullable = true,
                                    implementation = classOf[String], // The ItemType JSON reader expects a single string instead of the whole object
@@ -25,7 +25,7 @@ case class ActivitySearchRequest(@Schema(
                                  )
                                  itemType: Option[ItemType] = None,
                                  @Schema(
-                                   description = "Conjunctive multi word query. The single words can be scattered over different artifact properties, e.g. one in label and one in description.",
+                                   description = "Conjunctive multi word query. The single words can be scattered over different artifact properties.",
                                    required = false,
                                    nullable = true
                                  )
@@ -46,7 +46,7 @@ case class ActivitySearchRequest(@Schema(
                                  )
                                  limit: Option[Int] = None,
                                  @Schema(
-                                   description = "Optional sort parameter allows for sorting the result list by a specific artifact property, e.g. label, creation date, update date.",
+                                   description = "Optional sort parameter allows for sorting the result list by a specific artifact property, e.g. label, update date or running time.",
                                    required = false,
                                    nullable = true,
                                    defaultValue = "label",
@@ -54,7 +54,7 @@ case class ActivitySearchRequest(@Schema(
                                  )
                                  sortBy: Option[ActivitySortBy.Value] = None,
                                  @Schema(
-                                   description = "If defined, only artifacts from that project are fetched.",
+                                   description = "The order of the retrieved results.",
                                    required = false,
                                    nullable = true,
                                    defaultValue = "ASC",
