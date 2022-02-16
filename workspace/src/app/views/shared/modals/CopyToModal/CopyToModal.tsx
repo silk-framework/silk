@@ -24,7 +24,7 @@ import { useTranslation } from "react-i18next";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { requestCopyProject, requestCopyTask, requestSearchList } from "@ducks/workspace/requests";
 import ItemDepiction from "../../ItemDepiction";
-import {ErrorResponse, FetchError} from "../../../../services/fetch/responseInterceptor";
+import { ErrorResponse, FetchError } from "../../../../services/fetch/responseInterceptor";
 
 //custom styles
 require("./CopyToModal.scss");
@@ -183,7 +183,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                     key="copy"
                     affirmative
                     onClick={handleCopyingAction}
-                    disabled={buttonDisabled}
+                    disabled={buttonDisabled ? true : false}
                     data-test-id={"copy-modal-button"}
                 >
                     {t("common.action.copy")}
