@@ -47,6 +47,9 @@ object ItemType {
         ItemLink("Task details page", s"$detailsPageBase/${ItemType.task.id}/$itemId")
       case ItemType.project =>
         ItemLink("Project details page", s"$context/${workspaceProjectPath(itemId)}")
+      case _ =>
+        throw new IllegalArgumentException(s"Unsupported item type: $itemType")
+
     }
   }
 

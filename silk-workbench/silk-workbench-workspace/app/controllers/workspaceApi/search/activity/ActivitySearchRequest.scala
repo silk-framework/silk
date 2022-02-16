@@ -1,8 +1,8 @@
 package controllers.workspaceApi.search.activity
 
-import controllers.workspaceApi.search.SearchApiModel.{FacetSetting, FacetedSearchRequest, FacetedSearchResult, SearchRequestTrait, SortBy, SortOrder, SortableProperty, TypedTasks}
+import controllers.workspaceApi.search.SearchApiModel.{FacetSetting, FacetedSearchRequest, FacetedSearchResult, SearchRequestTrait, SortOrder, SortableProperty, TypedTasks}
 import controllers.workspaceApi.search._
-import controllers.workspaceApi.search.activity.ActivitySearchRequest.ActivityResult
+import controllers.workspaceApi.search.activity.ActivitySearchRequest.{ActivityResult, ActivitySortBy}
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
@@ -49,13 +49,15 @@ case class ActivitySearchRequest(@Schema(
                                    description = "Optional sort parameter allows for sorting the result list by a specific artifact property, e.g. label, creation date, update date.",
                                    required = false,
                                    nullable = true,
-                                   allowableValues = Array("label")
+                                   defaultValue = "label",
+                                   allowableValues = Array("label", "recentlyUpdated", "runningTime")
                                  )
-                                 sortBy: Option[SortBy.Value] = None,
+                                 sortBy: Option[ActivitySortBy.Value] = None,
                                  @Schema(
                                    description = "If defined, only artifacts from that project are fetched.",
                                    required = false,
                                    nullable = true,
+                                   defaultValue = "ASC",
                                    allowableValues = Array("ASC", "DESC")
                                  )
                                  sortOrder: Option[SortOrder.Value] = None,
@@ -73,6 +75,8 @@ case class ActivitySearchRequest(@Schema(
 
   /** The limit used for paging. */
   def workingLimit: Int = limit.getOrElse(FacetedSearchRequest.DEFAULT_LIMIT)
+
+  def workingSortBy: ActivitySortBy.Value = sortBy.getOrElse(ActivitySortBy.label)
 
   /** Execute search request and return result list. */
   def apply()(implicit userContext: UserContext,
@@ -146,13 +150,45 @@ case class ActivitySearchRequest(@Schema(
   private def sort(activities: Seq[WorkspaceActivity[_]])
                   (implicit accessMonitor: WorkbenchAccessMonitor,
                    userContext: UserContext): Seq[WorkspaceActivity[_]] = {
-    // TODO
-    activities
+    val sortedActivities = workingSortBy match {
+      case ActivitySortBy.label =>
+        activities.sortBy { activity =>
+          activity.taskOption.orElse(activity.projectOpt).map(_.fullLabel).getOrElse("")
+        }
+      case ActivitySortBy.recentlyUpdated =>
+        activities.sortBy { activity =>
+          -activity.status().timestamp
+        }
+      case ActivitySortBy.runningTime =>
+        activities.sortBy { activity =>
+          activity.startTime match {
+            case Some(startTime) =>
+              val status = activity.status()
+              if(status.isRunning) {
+                System.currentTimeMillis() - startTime.toEpochMilli
+              } else {
+                status.timestamp - startTime.toEpochMilli
+              }
+            case None =>
+              0L
+          }
+        }
+    }
+
+    if(sortOrder.contains(SortOrder.DESC)) {
+      sortedActivities.reverse
+    } else {
+      sortedActivities
+    }
   }
 
 }
 
 object ActivitySearchRequest {
+
+  object ActivitySortBy extends Enumeration {
+    val label, recentlyUpdated, runningTime = Value
+  }
 
   @Schema(description = "Search result describing an activity.")
   case class ActivityResult(id: String,
@@ -172,6 +208,7 @@ object ActivitySearchRequest {
   }
 
   implicit val activityResultFormat: OFormat[ActivityResult] = Json.format[ActivityResult]
+  implicit val activitySortByFormat: Reads[ActivitySortBy.Value] = Reads.enumNameReads(ActivitySortBy)
   implicit val activitySearchRequestReader: Reads[ActivitySearchRequest] = Json.reads[ActivitySearchRequest]
 
 }

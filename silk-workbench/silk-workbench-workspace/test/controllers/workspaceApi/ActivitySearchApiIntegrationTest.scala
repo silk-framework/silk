@@ -1,14 +1,15 @@
 package controllers.workspaceApi
 
-import controllers.workspaceApi.search.SearchApiModel.{FacetSetting, FacetType, FacetedSearchResult, Facets, KeywordFacetSetting, SortableProperty}
+import controllers.workspaceApi.search.SearchApiModel.{FacetSetting, FacetType, FacetedSearchResult, Facets, KeywordFacetSetting, SortOrder, SortableProperty}
 import controllers.workspaceApi.search._
 import controllers.workspaceApi.search.activity.ActivitySearchRequest
-import controllers.workspaceApi.search.activity.ActivitySearchRequest.ActivityResult
+import controllers.workspaceApi.search.activity.ActivitySearchRequest.{ActivityResult, ActivitySortBy}
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.TransformSpec
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
+import org.silkframework.workspace.activity.dataset.TypesCache
 import play.api.libs.json._
 import testWorkspace.Routes
 
@@ -65,8 +66,42 @@ class ActivitySearchApiIntegrationTest extends FlatSpec
         itemType = Some(ItemType.transform),
         textQuery = Some("vocabulary"),
         facets = Some(Seq(KeywordFacetSetting(FacetType.keyword, Facets.activityType.id, Set("cache")))
-        )))
+      )))
     response.results.map(_.id) must contain theSameElementsAs Seq("VocabularyCache")
+  }
+
+  it should "allowing sorting by parent label" in {
+    // Per default, results should be sorted by the parent label
+    val responseAsc = facetedSearchRequest(
+      ActivitySearchRequest(
+        itemType = Some(ItemType.dataset)
+      ))
+    responseAsc.results.map(_.task.get) must contain theSameElementsInOrderAs Seq("csvA", "csvB", "csvC", "jsonXYZ", "output", "xmlA1", "xmlA2")
+
+    // Explicitly sort by label, descending
+    val responseDesc = facetedSearchRequest(
+      ActivitySearchRequest(
+        itemType = Some(ItemType.dataset),
+        sortBy = Some(ActivitySortBy.label),
+        sortOrder = Some(SortOrder.DESC)
+      ))
+    responseDesc.results.map(_.task.get) must contain theSameElementsInOrderAs Seq("xmlA2", "xmlA1", "output", "jsonXYZ", "csvC", "csvB", "csvA")
+  }
+
+  it should "allowing sorting by recent updates" in {
+    // Start two caches after another so they got a defined update order
+    project.task[GenericDatasetSpec]("xmlA1").activity[TypesCache].startBlocking()
+    project.task[GenericDatasetSpec]("xmlA2").activity[TypesCache].startBlocking()
+
+    // Most recently updated activities should be returned first
+    val response = facetedSearchRequest(
+      ActivitySearchRequest(
+        itemType = Some(ItemType.dataset),
+        textQuery = Some("xMl"),
+        sortBy = Some(ActivitySortBy.recentlyUpdated),
+        sortOrder = Some(SortOrder.ASC)
+      ))
+    response.results.map(_.task.get) must contain theSameElementsInOrderAs Seq("xmlA2", "xmlA1")
   }
 
   private def facetedSearchRequest(facetedSearchRequest: ActivitySearchRequest): ParsedSearchResult = {

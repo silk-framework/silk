@@ -245,8 +245,6 @@ object SearchApiModel {
 
   object TypedTasks {
 
-    //TODO move those functions and the match functions from the SearchRequest into a separate class?
-
     /** Fetches tasks. If the item type is defined, it will only fetch tasks of a specific type. */
     def fetchTasks(project: Project, itemType: Option[ItemType])
                           (implicit userContext: UserContext): Seq[TypedTasks] = {
