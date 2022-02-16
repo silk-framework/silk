@@ -20,6 +20,7 @@ import { IRuleEditorViewDragState } from "./RuleEditorView.typings";
 //snap grid
 const snapGrid: [number, number] = [15, 15];
 
+/** The main view of the rule editor, integrating toolbar, sidebar and main rule canvas. */
 export const RuleEditorView = () => {
     const reactFlowWrapper = React.useRef<any>(null);
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
@@ -47,7 +48,6 @@ export const RuleEditorView = () => {
 
     // Add new node when operator is dropped
     const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
-        console.log("Dropping node");
         e.preventDefault();
         const reactFlowBounds = reactFlowWrapper.current?.getBoundingClientRect();
         const pluginData = e.dataTransfer.getData("text/plain");

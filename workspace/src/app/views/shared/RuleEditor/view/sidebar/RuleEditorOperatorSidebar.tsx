@@ -6,6 +6,7 @@ import { RuleOperatorList } from "./RuleOperatorList";
 import { IRuleOperator } from "../../RuleEditor.typings";
 import { extractSearchWords, matchesAllWords } from "gui-elements/src/components/Typography/Highlighter";
 import { SidebarSearchField } from "./SidebarSearchField";
+import { partitionArray, sortLexically } from "../../../../../utils/basicUtils";
 
 /** Contains the list of operators that can be dragged and dropped onto the editor canvas and supports filtering. */
 export const RuleEditorOperatorSidebar = () => {
@@ -18,15 +19,11 @@ export const RuleEditorOperatorSidebar = () => {
     // Filter operator list when active query or filters change
     React.useEffect(() => {
         if (editorContext.operatorList) {
-            const textToSearchIn = (ruleOperator: IRuleOperator): string => {
-                return `${ruleOperator.label} ${ruleOperator.description ?? ""} ${(ruleOperator.categories ?? []).join(
-                    " "
-                )}`.toLowerCase();
-            };
-            const filtered = editorContext.operatorList.filter((op) => {
-                return matchesAllWords(textToSearchIn(op), searchWords);
-            });
-            setFilteredOperators(filtered);
+            if (searchWords.length > 0) {
+                setFilteredOperators(filterAndSortOperators(editorContext.operatorList, searchWords));
+            } else {
+                setFilteredOperators(editorContext.operatorList);
+            }
         }
     }, [textQuery, editorContext.operatorList]);
 
@@ -47,4 +44,24 @@ export const RuleEditorOperatorSidebar = () => {
             </GridRow>
         </Grid>
     );
+};
+
+// Filter the operators by search query and sort them
+const filterAndSortOperators = (operators: IRuleOperator[], searchWords: string[]): IRuleOperator[] => {
+    const textToSearchIn = (ruleOperator: IRuleOperator): string => {
+        return `${ruleOperator.label} ${ruleOperator.description ?? ""} ${(ruleOperator.categories ?? []).join(
+            " "
+        )}`.toLowerCase();
+    };
+    const filtered = operators.filter((op) => {
+        return matchesAllWords(textToSearchIn(op), searchWords);
+    });
+    const { matches, nonMatches } = partitionArray(
+        filtered,
+        (op) => !!searchWords.find((w) => op.label.toLowerCase().includes(w))
+    );
+    // Sort label and other matches independently
+    const byLabel = (op: IRuleOperator) => op.label;
+    const sorted = [...sortLexically(matches, byLabel), ...sortLexically(nonMatches, byLabel)];
+    return sorted;
 };
