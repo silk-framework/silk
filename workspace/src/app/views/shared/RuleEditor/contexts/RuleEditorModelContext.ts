@@ -38,6 +38,8 @@ export interface IModelActions {
     startChangeTransaction: () => void;
     /** Add a rule operator as new rule node. */
     addNode: (ruleOperator: IRuleOperator, position: XYPosition) => void;
+    /** Add node by plugin type and ID. */
+    addNodeByPlugin: (pluginType: string, pluginId: string, position: XYPosition) => void;
     /** Delete a rule node. */
     deleteNode: (nodeId: string) => void;
     /** Delete multiple rules nodes at once. */
@@ -93,6 +95,7 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
         addEdge: NOP,
         deleteEdge: NOP,
         autoLayout: NOP,
+        addNodeByPlugin: NOP,
     },
     undo: () => false,
     canUndo: false,

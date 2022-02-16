@@ -8,7 +8,7 @@ import {
     IParameterSpecification,
     IRuleOperator,
     IRuleOperatorNode,
-    RuleOperatorNodeParameters
+    RuleOperatorNodeParameters,
 } from "../RuleEditor.typings";
 import {
     AddEdge,
@@ -414,7 +414,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const initNodeParametersInternal = (nodeId: string, parameters: RuleOperatorNodeParameters) => {
         const parameterMap = new Map(Object.entries(parameters));
         nodeParameters.set(nodeId, parameterMap);
-    }
+    };
 
     /**
      * Public interface model change functions.
@@ -440,6 +440,17 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 );
                 return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(newNode), els);
             });
+        }
+    };
+
+    const addNodeByPlugin = (pluginType: string, pluginId: string, position: XYPosition) => {
+        const op = (ruleEditorContext.operatorList ?? []).find(
+            (op) => op.pluginType === pluginType && op.pluginId === pluginId
+        );
+        if (op) {
+            addNode(op, position);
+        } else {
+            console.warn(`Operator with plugin type '${pluginType}' and plugin ID '${pluginId}' does not exist!`);
         }
     };
 
@@ -561,16 +572,13 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         return ruleUndoStack[ruleUndoStack.length - 1] === TRANSACTION_BOUNDARY;
     };
 
-    const currentParameterValue = (
-        nodeId: string,
-        parameterId: string
-    ): string | undefined => {
+    const currentParameterValue = (nodeId: string, parameterId: string): string | undefined => {
         const nodeDiff = nodeParameters.get(nodeId);
         if (nodeDiff) {
             return nodeDiff.get(parameterId);
         } else {
             // Node parameters must be initialized at this point
-            console.warn("No parameters for node " + nodeId + " exist!")
+            console.warn("No parameters for node " + nodeId + " exist!");
         }
     };
 
@@ -587,7 +595,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 RuleModelChangesFactory.changeNodeParameter(nodeId, parameterId, from, to),
                 []
             );
-        }
+        };
         // Merge parameter changes done to the same node/parameter subsequently, so it becomes a single undo operation
         const recentParameterChange = lastRuleParameterChange();
         const sameParameterChanged =
@@ -602,9 +610,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             startChangeTransaction();
         }
         if (sameParameterChanged) {
-            changeValue(recentParameterChange!!.from, newValue)
+            changeValue(recentParameterChange!!.from, newValue);
         } else {
-            changeValue(currentParameterValue(nodeId, parameterId), newValue)
+            changeValue(currentParameterValue(nodeId, parameterId), newValue);
         }
     };
 
@@ -664,7 +672,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         t,
         reactFlowInstance,
         currentValue: currentParameterValue,
-        initParameters: initNodeParametersInternal
+        initParameters: initNodeParametersInternal,
     });
 
     /** Auto-layout the rule nodes.
@@ -796,6 +804,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 executeModelEditOperation: {
                     startChangeTransaction,
                     addNode,
+                    addNodeByPlugin,
                     deleteNode,
                     deleteNodes,
                     copyAndPasteNodes,

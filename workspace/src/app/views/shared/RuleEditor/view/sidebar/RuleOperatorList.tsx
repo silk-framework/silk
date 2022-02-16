@@ -19,13 +19,20 @@ export const RuleOperatorList = ({ ruleOperatorList, textQuery }: RuleOperatorLi
     const [currentlyCycledTaskId, setCurrentlyCycledTaskId] = React.useState<string | undefined>(undefined);
     const [taskCycleIndex, setTaskCycleIndex] = React.useState<number>(0);
     const totalMatches = 0; // TODO
-    console.log(ruleOperatorList.length);
+
     const resetCycleTask = () => {
         // TODO
     };
     const cycleThroughTaskNodes = (operatorId: string) => {
         // TODO
     };
+
+    /* Add operator plugin data to drag event. */
+    const onDragStartByPluginId = (pluginType: string, pluginId: string) => (e: React.DragEvent<HTMLDivElement>) => {
+        const pluginData = JSON.stringify({ pluginType, pluginId });
+        e.dataTransfer.setData("text/plain", pluginData);
+    };
+
     return (
         <div>
             {ruleOperatorList.map((ruleOperator) => {
@@ -36,9 +43,7 @@ export const RuleOperatorList = ({ ruleOperatorList, textQuery }: RuleOperatorLi
                         data-test-id={"ruleEditor-sidebar-draggable-operator"}
                         key={ruleOperator.pluginId}
                         draggable={true}
-                        onDragStart={(event: React.DragEvent<HTMLDivElement>) => {
-                            // return onDragStart(event, ruleOperator); TODO
-                        }}
+                        onDragStart={onDragStartByPluginId(ruleOperator.pluginType, ruleOperator.pluginId)}
                     >
                         <Card
                             data-test-id={"ruleEditor-sidebar-draggable-operator-" + ruleOperator.pluginId}
