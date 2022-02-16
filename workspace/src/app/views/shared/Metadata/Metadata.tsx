@@ -23,6 +23,8 @@ import {
     TextArea,
     TextField,
     Link,
+    OverviewItem,
+    OverviewItemLine,
 } from "gui-elements";
 import { IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
@@ -85,7 +87,7 @@ export function Metadata(props: IProps) {
         return removeDirtyState;
     }, []);
 
-    const { label, description, lastModifiedByUser, createdByUser } = data;
+    const { label, description, lastModifiedByUser, createdByUser, created, modified } = data;
 
     useEffect(() => {
         if (projectId) {
@@ -375,22 +377,30 @@ export function Metadata(props: IProps) {
                         </PropertyValuePair>
                     )}
                     <PropertyValuePair hasSpacing hasDivider>
-                        {/** // Todo add german translation for author here  */}
-                        <PropertyName>{t("form.field.lastModifiedBy", "Last Modified By")}</PropertyName>
-                        <PropertyValue>
-                            <Link href={utils.generateFacetUrl("lastModifiedBy", lastModifiedByUser?.uri ?? "")}>
-                                {lastModifiedByUser?.label ?? "Unknown"}
-                            </Link>
-                        </PropertyValue>
-                    </PropertyValuePair>
-                    <PropertyValuePair hasSpacing hasDivider>
-                        {/** // Todo add german translation for author here  */}
-                        <PropertyName>{t("form.field.createdBy", "Created By")}</PropertyName>
-                        <PropertyValue>
-                            <Link href={utils.generateFacetUrl("createdBy", createdByUser?.uri ?? "")}>
-                                {createdByUser?.label ?? "Unknown"}
-                            </Link>
-                        </PropertyValue>
+                        <OverviewItem hasSpacing>
+                            <OverviewItemLine>
+                                {/** // Todo add german translation for author here  */}
+                                <PropertyName>{t("form.field.createdBy", "Created By")}</PropertyName>
+                                <PropertyValue>
+                                    <Link href={utils.generateFacetUrl("createdBy", createdByUser?.uri ?? "")}>
+                                        {createdByUser?.label ?? "Unknown"}
+                                    </Link>
+                                    <span>{!!createdByUser && `  on ${new Date(created).toLocaleString()}`}</span>
+                                </PropertyValue>
+                            </OverviewItemLine>
+                            <OverviewItemLine>
+                                {/** // Todo add german translation for author here  */}
+                                <PropertyName>{t("form.field.lastModifiedBy", "Last Modified By")}</PropertyName>
+                                <PropertyValue>
+                                    <Link
+                                        href={utils.generateFacetUrl("lastModifiedBy", lastModifiedByUser?.uri ?? "")}
+                                    >
+                                        {lastModifiedByUser?.label ?? "Unknown"}
+                                    </Link>
+                                    <span>{!!lastModifiedByUser && `  on ${new Date(modified).toLocaleString()}`}</span>
+                                </PropertyValue>
+                            </OverviewItemLine>
+                        </OverviewItem>
                     </PropertyValuePair>
                 </PropertyValueList>
             )}
