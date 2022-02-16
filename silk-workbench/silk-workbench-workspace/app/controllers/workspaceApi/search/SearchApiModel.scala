@@ -255,7 +255,7 @@ object SearchApiModel {
           Seq(fetchTasksOfType(project, t))
         case None =>
           val result = new ArrayBuffer[TypedTasks]()
-          for (it <- ItemType.ordered.filter(_ != ItemType.project)) {
+          for (it <- ItemType.taskTypes) {
             result.append(fetchTasksOfType(project, it))
           }
           result

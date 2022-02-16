@@ -21,8 +21,10 @@ object ItemType {
   case object workflow extends ItemType("workflow", "Workflow")
   case object task extends ItemType("task", "Task")
 
-  val ordered: Seq[ItemType] = Seq(global, project, workflow, dataset, transform, linking, task)
-  val idToItemType: Map[String, ItemType] = ordered.map(it => (it.id, it)).toMap
+  val taskTypes: Seq[ItemType] = Seq(workflow, dataset, transform, linking, task)
+  val all: Seq[ItemType] = Seq(global, project) ++ taskTypes
+
+  val idToItemType: Map[String, ItemType] = all.map(it => (it.id, it)).toMap
 
   private def context: String = WorkbenchConfig.applicationContext
 
@@ -99,7 +101,7 @@ object ItemType {
       json match {
         case JsString(value) =>ItemType.idToItemType.get(value) match {
           case Some(itemType) => JsSuccess(itemType)
-          case None => throw BadUserInputException(s"Invalid value for itemType. Got '$value'. Value values: " + ItemType.ordered.map(_.id).mkString(", "))
+          case None => throw BadUserInputException(s"Invalid value for itemType. Got '$value'. Value values: " + ItemType.all.map(_.id).mkString(", "))
         }
         case _ => throw BadUserInputException("Invalid value for itemType. String value expected.")
       }

@@ -260,9 +260,9 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
                 projectId: Option[String]): Action[AnyContent] = UserContextAction { implicit userContext =>
     val returnItemTypes = projectId match {
       case Some(_) =>
-        ItemType.ordered.filterNot(_ == ItemType.project)
+        ItemType.taskTypes
       case None =>
-        ItemType.ordered
+        ItemType.project +: ItemType.taskTypes
     }
     val results = returnItemTypes.map(itemTypeJson)
     val result = JsObject(Seq(
