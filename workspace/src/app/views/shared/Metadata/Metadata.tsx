@@ -273,6 +273,10 @@ export function Metadata(props: IProps) {
         []
     );
 
+    const goToPage = (path: string) => {
+        dispatch(routerOp.goToPage(path));
+    };
+
     const widgetContent = (
         <CardContent data-test-id={"metaDataWidget"}>
             {loading && <Loading description={t("Metadata.loading", "Loading summary data.")} />}
@@ -364,6 +368,12 @@ export function Metadata(props: IProps) {
                             </PropertyValue>
                         </PropertyValuePair>
                     )}
+                    {!!data.tags?.length && (
+                        <PropertyValuePair hasSpacing hasDivider>
+                            <PropertyName>{t("form.field.tag", "Tag")}</PropertyName>
+                            <PropertyValue>{utils.DisplayArtefactTags(data.tags, t, goToPage)}</PropertyValue>
+                        </PropertyValuePair>
+                    )}
                     <PropertyValuePair hasSpacing hasDivider>
                         {/** // Todo add german translation for author here  */}
                         <PropertyName>{t("form.field.lastModifiedBy", "Last Modified By")}</PropertyName>
@@ -382,12 +392,6 @@ export function Metadata(props: IProps) {
                             </Link>
                         </PropertyValue>
                     </PropertyValuePair>
-                    {!!data.tags?.length && (
-                        <PropertyValuePair hasSpacing hasDivider>
-                            <PropertyName>{t("form.field.tag", "Tag")}</PropertyName>
-                            <PropertyValue>{utils.DisplayArtefactTags(data.tags, t)}</PropertyValue>
-                        </PropertyValuePair>
-                    )}
                 </PropertyValueList>
             )}
         </CardContent>

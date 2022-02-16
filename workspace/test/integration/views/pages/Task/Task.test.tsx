@@ -35,6 +35,8 @@ describe("Task page", () => {
     const taskId = "taskId";
     const taskLabel = "A task";
     const taskDescription = "This is a task";
+    const createdBy = "Unknown";
+    const lastModifiedBy = "Unknown";
     const pluginId = "testPlugin";
     const pluginLabel = "Test Plugin";
     const taskDataUrl = legacyApiUrl(`/workspace/projects/${projectId}/tasks/${taskId}`);
@@ -130,6 +132,8 @@ describe("Task page", () => {
             expect(findAll(metaData, ".eccgui-propertyvalue__value").map((elem) => elem.text())).toStrictEqual([
                 taskLabel,
                 taskDescription,
+                createdBy,
+                lastModifiedBy,
             ]);
         });
     });
