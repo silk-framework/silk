@@ -12,6 +12,9 @@ class PluginRegistryTest extends FlatSpec with MustMatchers {
     PluginRegistry.pluginDescription(classOf[TestPlugin]) mustBe None
     PluginRegistry.registerPlugin(classOf[TestPlugin])
     PluginRegistry.pluginDescription(classOf[TestPlugin]) mustBe ('defined)
+
+    PluginRegistry.unregisterPlugin(classOf[TestPlugin])
+    PluginRegistry.pluginDescription(classOf[TestPlugin]) mustBe None
   }
 
   it should "fail registering classes with invisible parameters having no default value" in {

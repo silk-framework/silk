@@ -263,6 +263,33 @@ object PluginRegistry {
     log.fine(s"Loaded plugin " + pluginDesc.id)
   }
 
+  /**
+    * Removes a plugin from the registry.
+    */
+  def unregisterPlugin(pluginDesc: PluginDescription[_]): Unit = {
+    for  { superType <- getSuperTypes(pluginDesc.pluginClass)
+           pluginType <- pluginTypes.get(superType.getName)} {
+      pluginType.unregister(pluginDesc.id)
+    }
+    plugins -= pluginDesc.pluginClass.getName
+
+    // Remove plugin from pluginsById
+    val existingPluginsForId = pluginsById.getOrElse(pluginDesc.id.toString, Seq.empty)
+    val updatedPluginsForId = existingPluginsForId.filter(_.pluginClass.getName != pluginDesc.pluginClass.getName)
+    if(updatedPluginsForId.nonEmpty) {
+      pluginsById += ((pluginDesc.id.toString, updatedPluginsForId))
+    } else {
+      pluginsById -= pluginDesc.id.toString
+    }
+  }
+
+  /**
+    * Removes a plugin from the registry.
+    */
+  def unregisterPlugin(implementingClass: Class[_]): Unit = {
+    unregisterPlugin(PluginDescription.create(implementingClass))
+  }
+
   private def getSuperTypes(clazz: Class[_]): Set[Class[_]] = {
     val superTypes = clazz.getInterfaces ++ Option(clazz.getSuperclass)
     val nonStdTypes = superTypes.filterNot(c => c.getName.startsWith("java") || c.getName.startsWith("scala"))
@@ -304,6 +331,13 @@ object PluginRegistry {
      */
     def register(pluginDesc: PluginDescription[_]): Unit = {
       plugins += ((pluginDesc.id, pluginDesc))
+    }
+
+    /**
+      * Removes a plugin from the registry.
+      */
+    def unregister(pluginId: Identifier): Unit = {
+      plugins -= pluginId
     }
 
     /**
