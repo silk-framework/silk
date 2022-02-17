@@ -267,7 +267,7 @@ export function Metadata(props: IProps) {
                 utils.queryTags(projectId, query).then((res) => {
                     setData((data) => ({
                         ...data,
-                        tags: res?.data.tags,
+                        tags: res?.data.tags ?? [],
                     }));
                 });
             }
