@@ -38,7 +38,7 @@ import { useTranslation } from "react-i18next";
 import { TaskType } from "@ducks/shared/typings";
 import { ProjectImportModal } from "../ProjectImportModal";
 import ItemDepiction from "../../../shared/ItemDepiction";
-import { ErrorBoundary } from "carbon-components-react/lib/components/ErrorBoundary";
+import { ErrorBoundary } from "carbon-components-react";
 import ProjectSelection from "./ArtefactForms/ProjectSelection";
 import { workspaceSel } from "@ducks/workspace";
 import { requestSearchList } from "@ducks/workspace/requests";

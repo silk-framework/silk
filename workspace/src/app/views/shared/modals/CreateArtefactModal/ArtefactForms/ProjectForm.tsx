@@ -1,7 +1,6 @@
 import React from "react";
 import { FieldItem, TextField, TextArea } from "gui-elements";
 import { errorMessage } from "./ParameterWidget";
-import { Intent } from "gui-elements/blueprint/constants";
 import { useTranslation } from "react-i18next";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
 import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentifierInput";
@@ -52,7 +51,7 @@ export function ProjectForm({ form }: IProps) {
                     id={LABEL}
                     placeholder={t("form.projectForm.projectTitle", "Project title")}
                     name={LABEL}
-                    intent={errors.label ? Intent.DANGER : Intent.NONE}
+                    hasStateDanger={errors.label ? true : false}
                     onChange={onValueChange(LABEL)}
                 />
             </FieldItem>
