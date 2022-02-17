@@ -69,6 +69,8 @@ export const RuleEditorView = () => {
     // Start dragging an existing edge
     const onEdgeUpdateStart = React.useCallback((event, edge) => {
         edgeUpdateState.duringEdgeUpdate = true;
+        edgeUpdateState.edgeDeleted = false;
+        edgeUpdateState.transactionStarted = false;
         edgeUpdateState.originalEdgeId = edge.id;
         setTimeout(() => {
             // Delete the original edge, since we will start a new edge.
