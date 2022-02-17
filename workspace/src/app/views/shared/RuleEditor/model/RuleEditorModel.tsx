@@ -58,6 +58,14 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [nodeParameterDiff, setNodeParameterDiff] = React.useState<Map<string, Map<string, string | undefined>>>(
         new Map()
     );
+    /** To make changes done in setState callbacks pure, we have to add them as state and execute their side-effects in a useEffect callback. */
+    /** The change ID that is increased for every change action. */
+    const [changeState] = React.useState({ id: 0 });
+    /** The changes that should be added to the change history. */
+    const [changes, setChanges] = React.useState<{ id: number; modelChanges: RuleModelChanges[] }>({
+        id: 0,
+        modelChanges: [],
+    });
 
     /** Convert initial operator nodes to react-flow model. */
     React.useEffect(() => {
@@ -76,6 +84,13 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         reactFlowInstance,
     ]);
 
+    // Add the changes to the change history, i.e. undo stack
+    React.useEffect(() => {
+        changes.modelChanges.forEach((change) => {
+            addRuleModelChange(change);
+        });
+    }, [changes.id]);
+
     React.useEffect(() => {
         if (elements.length > 0 && !postInit) {
             setTimeout(() => {
@@ -85,6 +100,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             setPostInit(true);
         }
     }, [ruleEditorContext.editedItem, postInit, elements]);
+
+    // Used to give changes a unique ID
+    const incAndGetChangeId = () => {
+        changeState.id = changeState.id + 1;
+        return changeState.id;
+    };
 
     /**
      * UNDO/REDO handling.
@@ -151,6 +172,19 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             setCanUndo(false);
         }
         return changesToUndo.length > 0;
+    };
+
+    /** Change elements function that collects the changes and sets them to be added in a useEffect. */
+    const changeElementsWithLog = (
+        elementsChangesWithChangeId: (elements: Elements, changes: RuleModelChanges[]) => Elements
+    ) => {
+        const changeId = incAndGetChangeId();
+        setElements((els) => {
+            const changes: RuleModelChanges[] = [];
+            const result = elementsChangesWithChangeId(els, changes);
+            setChanges({ id: changeId, modelChanges: changes });
+            return result;
+        });
     };
 
     /** Redo the last change-transaction. */
@@ -310,12 +344,13 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         return changedElements;
     };
 
-    /** Adds a rule model change action to the undo stack and executes the change on the model. */
+    /** Adds a rule model change action to the given rule model changes array and executes the change on the model. */
     const addAndExecuteRuleModelChangeInternal = (
         ruleModelChange: RuleModelChanges,
-        currentElements: Elements
+        currentElements: Elements,
+        changes: RuleModelChanges[]
     ): Elements => {
-        addRuleModelChange(ruleModelChange);
+        changes.push(ruleModelChange);
         return executeRuleModelChangeInternal(ruleModelChange, currentElements);
     };
 
@@ -370,9 +405,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         if (reactFlowInstance) {
             const ruleNode = ruleEditorContext.convertRuleOperatorToRuleNode(ruleOperator);
             ruleNode.position = position;
-            setElements((els) => {
+            changeElementsWithLog((els, changes) => {
                 const newNode = utils.createNewOperatorNode(ruleNode, reactFlowInstance, deleteNode, t);
-                return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(newNode), els);
+                return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(newNode), els, changes);
             });
         }
     };
@@ -387,16 +422,21 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     /** Deletes a single rule node. */
     const deleteNode = (nodeId: string) => {
-        setElements((els) => {
+        changeElementsWithLog((els, changes) => {
             const node = utils.asNode(els.find((n) => utils.isNode(n) && n.id === nodeId));
             if (node) {
                 // Need to record edge changes first
                 const edges = findEdgesOfNodes(new Set([node.id]), els);
                 const withoutEdges = addAndExecuteRuleModelChangeInternal(
                     RuleModelChangesFactory.deleteEdges(edges),
-                    els
+                    els,
+                    changes
                 );
-                return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.deleteNode(node), withoutEdges);
+                return addAndExecuteRuleModelChangeInternal(
+                    RuleModelChangesFactory.deleteNode(node),
+                    withoutEdges,
+                    changes
+                );
             } else {
                 return els;
             }
@@ -405,16 +445,21 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     /** Delete multiple nodes, e.g. from a selection. */
     const deleteNodes = (nodeIds: string[]) => {
-        setElements((els) => {
+        changeElementsWithLog((els, changes) => {
             const nodes = utils.nodesById(els, nodeIds);
             if (nodes.length > 0) {
                 // Need to record edge changes first
                 const edges = findEdgesOfNodes(new Set(nodeIds), els);
                 const withoutEdges = addAndExecuteRuleModelChangeInternal(
                     RuleModelChangesFactory.deleteEdges(edges),
-                    els
+                    els,
+                    changes
                 );
-                return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.deleteNodes(nodes), withoutEdges);
+                return addAndExecuteRuleModelChangeInternal(
+                    RuleModelChangesFactory.deleteNodes(nodes),
+                    withoutEdges,
+                    changes
+                );
             } else {
                 return els;
             }
@@ -422,18 +467,18 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     };
 
     const addEdge = (sourceNodeId: string, targetNodeId: string, targetHandleId: string) => {
-        setElements((els) => {
+        changeElementsWithLog((els, changes) => {
             const edge = utils.createEdge(sourceNodeId, targetNodeId, targetHandleId);
-            return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdge(edge), els);
+            return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdge(edge), els, changes);
         });
     };
 
     /** Deletes a single edge. */
     const deleteEdge = (edgeId: string) => {
-        setElements((els) => {
+        changeElementsWithLog((els, changes) => {
             const edge = utils.edgeById(els, edgeId);
             if (edge) {
-                return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.deleteEdge(edge), els);
+                return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.deleteEdge(edge), els, changes);
             } else {
                 return els;
             }
@@ -442,7 +487,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     /** Copy and paste nodes with a given offset. */
     const copyAndPasteNodes = (nodeIds: string[], offset: XYPosition) => {
-        setElements((els) => {
+        changeElementsWithLog((els, changes) => {
             const nodes = utils.nodesById(els, nodeIds);
             const nodeIdMap = new Map<string, string>();
             const newNodes: RuleEditorNode[] = nodes.map((node) => {
@@ -471,8 +516,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     }
                 }
             });
-            const withNodes = addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNodes(newNodes), els);
-            return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdges(newEdges), withNodes);
+            const withNodes = addAndExecuteRuleModelChangeInternal(
+                RuleModelChangesFactory.addNodes(newNodes),
+                els,
+                changes
+            );
+            return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdges(newEdges), withNodes, changes);
         });
     };
 
@@ -506,21 +555,21 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         // Merge parameter changes done to the same node/parameter subsequently, so it becomes a single undo operation
         const recentParameterChange = lastRuleParameterChange();
         const from = recentParameterChange ? recentParameterChange.from : currentParameterValue(nodeId, parameterId);
-        // This does not change the actual elements, so we provide dummy elements
-        addAndExecuteRuleModelChangeInternal(
-            RuleModelChangesFactory.changeNodeParameter(nodeId, parameterId, from, newValue),
-            []
-        );
+        const nodeParameterChange = RuleModelChangesFactory.changeNodeParameter(nodeId, parameterId, from, newValue);
+        addRuleModelChange(nodeParameterChange);
+        // This does not change the actual elements, so the elements do not matter
+        executeRuleModelChangeInternal(nodeParameterChange, []);
     };
 
     /** Move a node to a new position. */
     const moveNode = (nodeId: string, newPosition: XYPosition) => {
-        setElements((els) => {
+        changeElementsWithLog((els, changes) => {
             const node = utils.nodeById(els, nodeId);
             if (node) {
                 return addAndExecuteRuleModelChangeInternal(
                     RuleModelChangesFactory.changeNodePosition(nodeId, node.position, newPosition),
-                    els
+                    els,
+                    changes
                 );
             } else {
                 return els;
@@ -529,7 +578,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     };
 
     /** Layout the rule nodes, since this must be async it cannot return the new elements directly in the setElements function. */
-    const autoLayoutInternal = async (elements: Elements, addChangeHistory: boolean): Promise<Elements> => {
+    const autoLayoutInternal = async (elements: Elements, changes?: RuleModelChanges[]): Promise<Elements> => {
         const newLayout = await utils.autoLayout(elements, zoom);
         const changeNodePositionOperations: ChangeNodePosition[] = [];
         utils.elementNodes(elements).forEach((node) => {
@@ -546,8 +595,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         if (changeNodePositionOperations.length > 0) {
             startChangeTransaction();
             const changeNodePositions = { operations: changeNodePositionOperations };
-            return addChangeHistory
-                ? addAndExecuteRuleModelChangeInternal(changeNodePositions, elements)
+            return changes
+                ? addAndExecuteRuleModelChangeInternal(changeNodePositions, elements, changes)
                 : executeRuleModelChangeInternal(changeNodePositions, elements);
         } else {
             return elements;
@@ -559,8 +608,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
      * @param noHistory If the change should be tracked or not.
      */
     const autoLayout = (noHistory: boolean = false) => {
-        setElements((elements) => {
-            autoLayoutInternal(elements, noHistory);
+        changeElementsWithLog((elements, changes) => {
+            autoLayoutInternal(elements, noHistory ? undefined : changes);
             return elements;
         });
     };
@@ -644,7 +693,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
         let elems = [...nodes, ...edges];
         if (needsLayout) {
-            elems = await autoLayoutInternal(elems, false);
+            elems = await autoLayoutInternal(elems, undefined);
         }
         setElements(elems);
         utils.initNodeBaseIds(nodes);
