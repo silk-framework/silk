@@ -8,7 +8,7 @@ import {
     IParameterSpecification,
     IRuleOperator,
     IRuleOperatorNode,
-    RuleOperatorNodeParameters
+    RuleOperatorNodeParameters,
 } from "../RuleEditor.typings";
 import {
     AddEdge,
@@ -414,7 +414,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const initNodeParametersInternal = (nodeId: string, parameters: RuleOperatorNodeParameters) => {
         const parameterMap = new Map(Object.entries(parameters));
         nodeParameters.set(nodeId, parameterMap);
-    }
+    };
 
     /**
      * Public interface model change functions.
@@ -561,16 +561,13 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         return ruleUndoStack[ruleUndoStack.length - 1] === TRANSACTION_BOUNDARY;
     };
 
-    const currentParameterValue = (
-        nodeId: string,
-        parameterId: string
-    ): string | undefined => {
+    const currentParameterValue = (nodeId: string, parameterId: string): string | undefined => {
         const nodeDiff = nodeParameters.get(nodeId);
         if (nodeDiff) {
             return nodeDiff.get(parameterId);
         } else {
             // Node parameters must be initialized at this point
-            console.warn("No parameters for node " + nodeId + " exist!")
+            console.warn("No parameters for node " + nodeId + " exist!");
         }
     };
 
@@ -587,7 +584,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 RuleModelChangesFactory.changeNodeParameter(nodeId, parameterId, from, to),
                 []
             );
-        }
+        };
         // Merge parameter changes done to the same node/parameter subsequently, so it becomes a single undo operation
         const recentParameterChange = lastRuleParameterChange();
         const sameParameterChanged =
@@ -602,9 +599,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             startChangeTransaction();
         }
         if (sameParameterChanged) {
-            changeValue(recentParameterChange!!.from, newValue)
+            changeValue(recentParameterChange!!.from, newValue);
         } else {
-            changeValue(currentParameterValue(nodeId, parameterId), newValue)
+            changeValue(currentParameterValue(nodeId, parameterId), newValue);
         }
     };
 
@@ -664,7 +661,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         t,
         reactFlowInstance,
         currentValue: currentParameterValue,
-        initParameters: initNodeParametersInternal
+        initParameters: initNodeParametersInternal,
     });
 
     /** Auto-layout the rule nodes.
@@ -707,7 +704,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             const portSpec = node.data.businessData.originalRuleOperatorNode.portSpecification;
             // Remove undefined input ports above last defined input if spec allows it
             if (!portSpec.maxInputPorts) {
-                while (inputs.length > portSpec.minInputPorts - 1 && inputs[inputs.length - 1] == null) {
+                while (inputs.length > Math.max(portSpec.minInputPorts - 1, 0) && inputs[inputs.length - 1] == null) {
                     inputs.pop();
                 }
             }
@@ -805,6 +802,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     deleteEdge,
                     autoLayout,
                 },
+                unsavedChanges: canUndo,
             }}
         >
             {children}

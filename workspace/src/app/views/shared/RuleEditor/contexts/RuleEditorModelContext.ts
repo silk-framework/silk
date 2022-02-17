@@ -21,6 +21,8 @@ export interface RuleEditorModelContextProps {
     setReactFlowInstance: (instance: OnLoadParams) => any;
     /** Save the current rule. */
     saveRule: () => Promise<boolean> | boolean;
+    /** If there are unsaved changes. */
+    unsavedChanges: boolean;
     /** Executes an operation that will change the model. */
     executeModelEditOperation: IModelActions;
     /** Undo last changes. Return true if changes have been undone. */
@@ -82,6 +84,7 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     saveRule: () => {
         return false;
     },
+    unsavedChanges: false,
     executeModelEditOperation: {
         startChangeTransaction: NOP,
         deleteNode: NOP,

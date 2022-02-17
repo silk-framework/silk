@@ -64,10 +64,12 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
             await requestUpdateProjectTask(projectId, linkingTaskId, {
                 data: {
                     parameters: {
-                        rule:
-                            rootNodes.length === 1
-                                ? utils.convertRuleOperatorNodeToSimilarityOperator(rootNodes[0], operatorNodeMap)
-                                : undefined,
+                        rule: {
+                            operator:
+                                rootNodes.length === 1
+                                    ? utils.convertRuleOperatorNodeToSimilarityOperator(rootNodes[0], operatorNodeMap)
+                                    : undefined,
+                        },
                     },
                 },
             });

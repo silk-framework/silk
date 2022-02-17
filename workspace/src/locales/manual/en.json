@@ -384,6 +384,9 @@
                     "label": "Remove"
                 }
             }
+        },
+        "toolbar": {
+            "autoLayout": "Auto-layout"
         }
     },
     "taskViews": {

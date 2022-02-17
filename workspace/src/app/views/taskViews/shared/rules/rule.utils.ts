@@ -228,16 +228,14 @@ const fetchRuleOperatorNode = (
 const convertToRuleOperatorNodeMap = (
     ruleOperatorNodes: IRuleOperatorNode[]
 ): [Map<string, IRuleOperatorNode>, IRuleOperatorNode[]] => {
-    const hasParent: { [key: string]: boolean } = {};
+    const hasParent = new Set<string>();
     const nodeMap = new Map<string, IRuleOperatorNode>(
         ruleOperatorNodes.map((node) => {
-            node.inputs.filter((i) => i != null).forEach((i) => (hasParent[i!!] = true));
+            node.inputs.filter((i) => i != null).forEach((i) => hasParent.add(i!!));
             return [node.nodeId, node];
         })
     );
-    const rootNodes = Object.entries(hasParent)
-        .filter(([nodeId, hasParent]) => hasParent)
-        .map(([nodeId]) => nodeMap.get(nodeId)!!);
+    const rootNodes = ruleOperatorNodes.filter((node) => !hasParent.has(node.nodeId));
     return [nodeMap, rootNodes];
 };
 

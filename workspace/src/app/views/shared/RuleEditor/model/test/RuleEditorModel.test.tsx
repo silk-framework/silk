@@ -87,9 +87,15 @@ describe("Rule editor model", () => {
         nodeId: string;
         inputs?: string[];
         pluginId?: string;
+        minInputPorts?: number;
     }
     const nodeDefaultPosition = { x: 0, y: 0 };
-    const node = ({ nodeId, inputs = [], pluginId = "testPlugin" }: NodeProps): IRuleOperatorNode => {
+    const node = ({
+        nodeId,
+        inputs = [],
+        pluginId = "testPlugin",
+        minInputPorts = 1,
+    }: NodeProps): IRuleOperatorNode => {
         return {
             inputs: inputs,
             label: nodeId,
@@ -99,9 +105,9 @@ describe("Rule editor model", () => {
                 "param B": "Value B",
             },
             pluginId: pluginId,
-            pluginType: "TestPlugin",
+            pluginType: "unknown",
             portSpecification: {
-                minInputPorts: 1,
+                minInputPorts: minInputPorts,
             },
             position: nodeDefaultPosition,
         };
@@ -117,7 +123,7 @@ describe("Rule editor model", () => {
         };
     };
 
-    const operator = (pluginId: string): IRuleOperator => {
+    const operator = (pluginId: string, minInputPorts: number = 1): IRuleOperator => {
         return {
             label: pluginId,
             parameterSpecification: {
@@ -125,9 +131,9 @@ describe("Rule editor model", () => {
                 "param B": parameterSpecification("param B"),
             },
             pluginId: pluginId,
-            pluginType: "TestPlugin",
+            pluginType: "unknown",
             portSpecification: {
-                minInputPorts: 1,
+                minInputPorts: minInputPorts,
             },
         };
     };
@@ -150,8 +156,8 @@ describe("Rule editor model", () => {
         currentContext().saveRule();
         expect(ruleOperatorNodes).toHaveLength(0);
         await ruleEditorModel(
-            [node({ nodeId: "node A" }), node({ nodeId: "node B", inputs: ["node A"] })],
-            [operator("pluginA")]
+            [node({ nodeId: "node A", minInputPorts: 0 }), node({ nodeId: "node B", inputs: ["node A"] })],
+            [operator("pluginA", 0)]
         );
         // 2 nodes and 1 edge
         await waitFor(async () => {
