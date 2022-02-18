@@ -5,6 +5,11 @@ export interface IRuleEditorViewDragState {
     nodeDragStartPosition?: XYPosition | undefined;
 }
 
+export interface IRuleEditorViewSelectionDragState {
+    // The positions of the dragged nodes
+    selectionStartPositions: Map<string, XYPosition>;
+}
+
 export interface IRuleEditorViewConnectState {
     // If there is an active connect operation going on, i.e. the user is currently creating a new connection
     connectOperationActive: boolean;

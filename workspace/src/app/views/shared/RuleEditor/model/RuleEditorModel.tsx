@@ -69,6 +69,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [nodeParameterDiff] = React.useState<Map<string, Map<string, string | undefined>>>(new Map());
     /** Update the internals of a node. This needs to be called in some cases in order to update the appearance of a node. */
     const updateNodeInternals = useUpdateNodeInternals();
+    const resetSelectedElements = useStoreActions((a) => a.resetSelectedElements);
 
     /** Convert initial operator nodes to react-flow model. */
     React.useEffect(() => {
@@ -165,6 +166,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 });
                 return currentElements;
             });
+            resetSelectedElements();
         }
         if (ruleUndoStack.length === 0 || !ruleUndoStack.find((change) => change !== "Transaction boundary")) {
             // If stack is empty or only transaction markers exist

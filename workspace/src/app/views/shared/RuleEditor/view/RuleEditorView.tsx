@@ -15,8 +15,12 @@ import ReactFlow, {
 import { RuleEditorOperatorSidebar } from "./RuleEditorOperatorSidebar";
 import React, { MouseEvent as ReactMouseEvent } from "react";
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
-import { Connection, Node, OnConnectStartParams } from "react-flow-renderer/dist/types";
-import { IRuleEditorViewConnectState, IRuleEditorViewDragState } from "./RuleEditorView.typings";
+import { Connection, Node, OnConnectStartParams, XYPosition } from "react-flow-renderer/dist/types";
+import {
+    IRuleEditorViewConnectState,
+    IRuleEditorViewDragState,
+    IRuleEditorViewSelectionDragState,
+} from "./RuleEditorView.typings";
 
 //snap grid
 const snapGrid: [number, number] = [15, 15];
@@ -26,6 +30,10 @@ export const RuleEditorView = () => {
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
     // Stores state during a node drag action
     const [dragState] = React.useState<IRuleEditorViewDragState>({});
+    // Stores state during a selection drag action, i.e. moving a selection of nodes
+    const [selectionDragState] = React.useState<IRuleEditorViewSelectionDragState>({
+        selectionStartPositions: new Map(),
+    });
     const modelContext = React.useContext(RuleEditorModelContext);
     // Stores state during a connection operation
     const [connectState] = React.useState<IRuleEditorViewConnectState>({
@@ -157,6 +165,27 @@ export const RuleEditorView = () => {
         }
     }, []);
 
+    /** Selection related actions. */
+    // Drag a selection, i.e. move it to another position
+    const handleSelectionDragStart = React.useCallback((event: ReactMouseEvent, nodes: Node[]) => {
+        const nodePositionMap = new Map<string, XYPosition>();
+        nodes.forEach((node) => nodePositionMap.set(node.id, node.position));
+        selectionDragState.selectionStartPositions = nodePositionMap;
+    }, []);
+
+    const handleSelectionDragStop = React.useCallback((event: ReactMouseEvent, nodes: Node[]) => {
+        if (nodes.length > 0) {
+            const newPosition = nodes[0].position;
+            const oldPosition = selectionDragState.selectionStartPositions.get(nodes[0].id);
+            if (oldPosition && (newPosition.x !== oldPosition.x || newPosition.y !== oldPosition.y)) {
+                modelContext.executeModelEditOperation.startChangeTransaction();
+                nodes.forEach((node) => {
+                    modelContext.executeModelEditOperation.moveNode(node.id, node.position);
+                });
+            }
+        }
+    }, []);
+
     // Triggered after the react-flow instance has been loaded
     const onLoad = (_reactFlowInstance: OnLoadParams) => {
         setReactFlowInstance(_reactFlowInstance);
@@ -180,8 +209,8 @@ export const RuleEditorView = () => {
                         ref={reactFlowWrapper}
                         elements={modelContext.elements}
                         // onElementClick={onElementClick}
-                        // onSelectionDragStart={handleSelectionDragStart}
-                        // onSelectionDragStop={handleSelectionDragStop}
+                        onSelectionDragStart={handleSelectionDragStart}
+                        onSelectionDragStop={handleSelectionDragStop}
                         // onElementsRemove={onElementsRemove}
                         onConnectStart={onConnectStart}
                         onConnect={onConnect}
