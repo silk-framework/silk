@@ -389,7 +389,6 @@ export function Metadata(props: IProps) {
                                 </PropertyValue>
                             </OverviewItemLine>
                             <OverviewItemLine>
-                                {/** // Todo add german translation for author here  */}
                                 <PropertyName>{t("form.field.lastModifiedBy", "Last Modified By")}</PropertyName>
                                 <PropertyValue>
                                     <Link
