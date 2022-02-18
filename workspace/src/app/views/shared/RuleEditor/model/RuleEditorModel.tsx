@@ -166,7 +166,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 return currentElements;
             });
         }
-        if (ruleUndoStack.length === 0) {
+        if (ruleUndoStack.length === 0 || !ruleUndoStack.find((change) => change !== "Transaction boundary")) {
+            // If stack is empty or only transaction markers exist
             setCanUndo(false);
         }
         return changesToUndo.length > 0;
@@ -506,17 +507,42 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const addEdge = (
         sourceNodeId: string,
         targetNodeId: string,
-        targetHandleId: string,
+        targetHandleId: string | undefined,
         previousTargetHandle?: string
     ) => {
         changeElementsInternal((els) => {
             let currentElements = els;
+            let toTargetHandleId: string | undefined = targetHandleId;
+            if (!targetHandleId) {
+                // If the target handle is not defined, connect to the first empty handle
+                const node = utils.nodeById(els, targetNodeId);
+                if (!node) {
+                    return currentElements;
+                }
+                const inputHandles = (node!!.data.handles ?? []).filter(
+                    (handle) => handle.type === "target" && !handle.category
+                );
+                const existingConnections = utils.findEdges({ elements: currentElements, target: targetNodeId });
+                const occupiedHandles = new Set<string | null | undefined>(
+                    existingConnections.map((edge) => edge.targetHandle)
+                );
+                const freeHandle = inputHandles.find((handle) => handle.id && !occupiedHandles.has(handle.id));
+                if (freeHandle) {
+                    // Connect to free handle
+                    toTargetHandleId = freeHandle.id;
+                } else {
+                    // No free handle exists, do nothing
+                    return currentElements;
+                }
+            }
             // Remove existing edges to the same target port and from the same source node
-            const existingEdgesToSameNodeHandle = utils.findEdges({
-                elements: currentElements,
-                target: targetNodeId,
-                targetHandle: targetHandleId,
-            });
+            const existingEdgesToSameNodeHandle = targetHandleId
+                ? utils.findEdges({
+                      elements: currentElements,
+                      target: targetNodeId,
+                      targetHandle: targetHandleId,
+                  })
+                : [];
             const existingEdgesFromSameSource = utils
                 .findEdges({
                     elements: currentElements,
@@ -540,7 +566,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     currentElements
                 );
             }
-            const edge = utils.createEdge(sourceNodeId, targetNodeId, targetHandleId);
+            const edge = utils.createEdge(sourceNodeId, targetNodeId, toTargetHandleId!!);
             return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdge(edge), currentElements);
         });
     };

@@ -13,10 +13,10 @@ import ReactFlow, {
     OnLoadParams,
 } from "react-flow-renderer";
 import { RuleEditorOperatorSidebar } from "./RuleEditorOperatorSidebar";
-import React from "react";
+import React, { MouseEvent as ReactMouseEvent } from "react";
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
-import { Connection, Node } from "react-flow-renderer/dist/types";
-import { IRuleEditorViewDragState } from "./RuleEditorView.typings";
+import { Connection, Node, OnConnectStartParams } from "react-flow-renderer/dist/types";
+import { IRuleEditorViewConnectState, IRuleEditorViewDragState } from "./RuleEditorView.typings";
 
 //snap grid
 const snapGrid: [number, number] = [15, 15];
@@ -24,8 +24,14 @@ const snapGrid: [number, number] = [15, 15];
 export const RuleEditorView = () => {
     const reactFlowWrapper = React.useRef<any>(null);
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
+    // Stores state during a node drag action
     const [dragState] = React.useState<IRuleEditorViewDragState>({});
     const modelContext = React.useContext(RuleEditorModelContext);
+    // Stores state during a connection operation
+    const [connectState] = React.useState<IRuleEditorViewConnectState>({
+        edgeConnected: false,
+        connectOperationActive: false,
+    });
     // Tracks the state during an edge update operation, i.e. if it's still during an edge update and
     const [edgeUpdateState] = React.useState<{
         duringEdgeUpdate: boolean;
@@ -96,6 +102,15 @@ export const RuleEditorView = () => {
         edgeUpdateState.duringEdgeUpdate = false;
     }, []);
 
+    /** Connection logic, i.e. connecting new edges. */
+    const onConnectStart = React.useCallback((e: ReactMouseEvent, params: OnConnectStartParams) => {
+        e.preventDefault();
+        connectState.edgeConnected = false;
+        connectState.overNode = undefined;
+        connectState.connectOperationActive = true;
+        connectState.connectParams = params;
+    }, []);
+
     // Triggered when drawing a new connection between nodes
     const onConnect = React.useCallback((newConnection: Connection) => {
         if (
@@ -104,11 +119,41 @@ export const RuleEditorView = () => {
             newConnection.targetHandle &&
             newConnection.source !== newConnection.target
         ) {
+            connectState.edgeConnected = true;
+            modelContext.executeModelEditOperation.startChangeTransaction();
             modelContext.executeModelEditOperation.addEdge(
                 newConnection.source,
                 newConnection.target,
                 newConnection.targetHandle
             );
+        }
+    }, []);
+
+    // Connect edge to first empty port when edge was over a node and not connected to a port
+    const onConnectEnd = React.useCallback((event: MouseEvent) => {
+        event.preventDefault();
+        connectState.connectOperationActive = false;
+        if (!connectState.edgeConnected && connectState.overNode && connectState.connectParams?.nodeId) {
+            modelContext.executeModelEditOperation.startChangeTransaction();
+            modelContext.executeModelEditOperation.addEdge(
+                connectState.connectParams.nodeId,
+                connectState.overNode,
+                undefined
+            );
+        }
+    }, []);
+
+    const onNodeMouseEnter = React.useCallback((event: ReactMouseEvent, node: Node) => {
+        // Track if we are over a node during a connect operation in order to connect to the first empty port of a node
+        if (connectState.connectOperationActive) {
+            event.preventDefault();
+            connectState.overNode = node.id;
+        }
+    }, []);
+
+    const onNodeMouseLeave = React.useCallback(() => {
+        if (connectState.connectOperationActive) {
+            connectState.overNode = undefined;
         }
     }, []);
 
@@ -138,9 +183,13 @@ export const RuleEditorView = () => {
                         // onSelectionDragStart={handleSelectionDragStart}
                         // onSelectionDragStop={handleSelectionDragStop}
                         // onElementsRemove={onElementsRemove}
+                        onConnectStart={onConnectStart}
                         onConnect={onConnect}
+                        onConnectEnd={onConnectEnd}
                         onNodeDragStart={handleNodeDragStart}
                         onNodeDragStop={handleNodeDragStop}
+                        onNodeMouseEnter={onNodeMouseEnter}
+                        onNodeMouseLeave={onNodeMouseLeave}
                         onLoad={onLoad}
                         // onDrop={onDrop}
                         // onDragOver={onDragOver}

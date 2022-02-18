@@ -46,7 +46,8 @@ export interface IModelActions {
     addEdge: (
         sourceNodeId: string,
         targetNodeId: string,
-        targetHandleId: string,
+        // If target handle is undefined, connect to the first free handle
+        targetHandleId: string | undefined,
         previousTargetHandle?: string
     ) => void;
     /** Delete an edge. */

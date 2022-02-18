@@ -5,7 +5,12 @@ import { RuleEditorModelContext, RuleEditorModelContextProps } from "../../conte
 import { Elements, FitViewParams, FlowExportObject, FlowTransform, ReactFlowProvider } from "react-flow-renderer";
 import { act, waitFor } from "@testing-library/react";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
-import { IParameterSpecification, IRuleOperator, IRuleOperatorNode } from "../../RuleEditor.typings";
+import {
+    IParameterSpecification,
+    IPortSpecification,
+    IRuleOperator,
+    IRuleOperatorNode,
+} from "../../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 import utils from "../../RuleEditor.utils";
 import { ruleEditorModelUtilsFactory } from "../RuleEditorModel.utils";
@@ -86,11 +91,17 @@ describe("Rule editor model", () => {
 
     interface NodeProps {
         nodeId: string;
-        inputs?: string[];
+        inputs?: (string | undefined)[];
         pluginId?: string;
+        portSpecification?: IPortSpecification;
     }
     const nodeDefaultPosition = { x: 0, y: 0 };
-    const node = ({ nodeId, inputs = [], pluginId = "testPlugin" }: NodeProps): IRuleOperatorNode => {
+    const node = ({
+        nodeId,
+        inputs = [],
+        pluginId = "testPlugin",
+        portSpecification = { minInputPorts: 1 },
+    }: NodeProps): IRuleOperatorNode => {
         return {
             inputs: inputs,
             label: nodeId,
@@ -101,9 +112,7 @@ describe("Rule editor model", () => {
             },
             pluginId: pluginId,
             pluginType: "TestPlugin",
-            portSpecification: {
-                minInputPorts: 1,
-            },
+            portSpecification: portSpecification,
             position: nodeDefaultPosition,
         };
     };
@@ -601,7 +610,7 @@ describe("Rule editor model", () => {
         }
     });
 
-    const nodeHasInputs = (nodeId: string, inputs: string[]) => {
+    const nodeHasInputs = (nodeId: string, inputs: (string | null)[]) => {
         expect(currentOperatorNodes().find((op) => op.nodeId === nodeId)?.inputs).toStrictEqual(inputs);
     };
 
@@ -648,6 +657,39 @@ describe("Rule editor model", () => {
         const checkAfterEdit = () => {
             nodeHasInputs("nodeC", ["nodeB", "nodeA"]);
             expect(currentContext().elements).toHaveLength(5);
+        };
+
+        checkUndoAndRedo(checkBeforeEdit, checkAfterEdit);
+    });
+
+    it("should connect to the first free handle of a node when no handle is specified", async () => {
+        await ruleEditorModel([
+            node({ nodeId: "nodeA" }),
+            node({ nodeId: "nodeB" }),
+            node({ nodeId: "nodeC" }),
+            node({ nodeId: "nodeD" }),
+            node({
+                nodeId: "nodeE",
+                inputs: [undefined, "nodeA"],
+                portSpecification: {
+                    minInputPorts: 3,
+                    maxInputPorts: 3,
+                },
+            }),
+        ]);
+        const checkBeforeEdit = () => {
+            nodeHasInputs("nodeE", [null, "nodeA", null]);
+            expect(currentContext().elements).toHaveLength(6);
+        };
+        checkBeforeEdit();
+        act(() => {
+            currentContext().executeModelEditOperation.addEdge("nodeB", "nodeE", undefined);
+            currentContext().executeModelEditOperation.addEdge("nodeC", "nodeE", undefined);
+            currentContext().executeModelEditOperation.addEdge("nodeD", "nodeE", undefined);
+        });
+        const checkAfterEdit = () => {
+            nodeHasInputs("nodeE", ["nodeB", "nodeA", "nodeC"]);
+            expect(currentContext().elements).toHaveLength(8);
         };
 
         checkUndoAndRedo(checkBeforeEdit, checkAfterEdit);
