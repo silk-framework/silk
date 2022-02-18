@@ -130,8 +130,7 @@ export interface IMetadata {
     description?: string;
     relations?: IRelations;
     type?: string;
-    modified: string;
-    created: string;
+    modified?: string;
 }
 
 export interface IResourceListPayload {
