@@ -22,6 +22,7 @@ import {
     IRuleEditorViewSelectionDragState,
 } from "./RuleEditorView.typings";
 import { ruleEditorModelUtilsFactory } from "../model/RuleEditorModel.utils";
+import { EdgeMenu } from "./ruleEdge/EdgeMenu";
 
 //snap grid
 const snapGrid: [number, number] = [15, 15];
@@ -49,6 +50,8 @@ export const RuleEditorView = () => {
         originalEdgeId: string | undefined;
         transactionStarted: boolean;
     }>({ duringEdgeUpdate: false, edgeDeleted: false, originalEdgeId: undefined, transactionStarted: false });
+    // Edge menu that is shown when an edge is clicked
+    const [edgeMenu, setEdgeMenu] = React.useState<JSX.Element | null>(null);
 
     /** Handle moving a node. */
     const handleNodeDragStart = (event: React.MouseEvent<Element, MouseEvent>, node: Node) => {
@@ -199,6 +202,23 @@ export const RuleEditorView = () => {
         }
     }, []);
 
+    // Edge menu
+    // Fired when clicked on any elements, e.g. edge or node. Used to show the edge menu.
+    const onElementClick = React.useCallback((event: ReactMouseEvent, element: Node | Edge) => {
+        if (modelUtils.isEdge(element)) {
+            setEdgeMenu(
+                <EdgeMenu
+                    position={{ x: event.clientX, y: event.clientY }}
+                    onClose={() => setEdgeMenu(null)}
+                    removeEdge={() => {
+                        modelContext.executeModelEditOperation.startChangeTransaction();
+                        modelContext.executeModelEditOperation.deleteEdge(element.id);
+                    }}
+                />
+            );
+        }
+    }, []);
+
     // Triggered after the react-flow instance has been loaded
     const onLoad = (_reactFlowInstance: OnLoadParams) => {
         setReactFlowInstance(_reactFlowInstance);
@@ -221,7 +241,7 @@ export const RuleEditorView = () => {
                         data-test-id={"workflow-react-flow-canvas"}
                         ref={reactFlowWrapper}
                         elements={modelContext.elements}
-                        // onElementClick={onElementClick}
+                        onElementClick={onElementClick}
                         onSelectionDragStart={handleSelectionDragStart}
                         onSelectionDragStop={handleSelectionDragStop}
                         onElementsRemove={onElementsRemove}
@@ -243,7 +263,6 @@ export const RuleEditorView = () => {
                         nodeTypes={nodeTypes}
                         edgeTypes={edgeTypes}
                         connectionLineType={ConnectionLineType.Step}
-                        className="eccapp-di__floweditor__graph"
                         snapGrid={snapGrid}
                         snapToGrid={true}
                         zoomOnDoubleClick={false}
@@ -260,7 +279,7 @@ export const RuleEditorView = () => {
                         />
                         <Background variant={BackgroundVariant.Lines} gap={16} />
                     </ReactFlow>
-                    {/*{edgeTools}*/}
+                    {edgeMenu}
                 </GridColumn>
             </GridRow>
         </Grid>
