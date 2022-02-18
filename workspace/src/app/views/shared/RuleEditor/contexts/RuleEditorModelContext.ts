@@ -52,6 +52,8 @@ export interface IModelActions {
     ) => void;
     /** Delete an edge. */
     deleteEdge: (edgeId: string) => void;
+    /** Delete multiple edges */
+    deleteEdges: (edgeIds: string[]) => void;
     /** Copy and paste a selection of nodes. Move pasted selection by the defined offset. */
     copyAndPasteNodes: (nodeIds: string[], offset: XYPosition) => void;
     /** Move a single node to a new position. */
@@ -99,6 +101,7 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
         addEdge: NOP,
         deleteEdge: NOP,
         autoLayout: NOP,
+        deleteEdges: NOP,
     },
     undo: () => false,
     canUndo: false,

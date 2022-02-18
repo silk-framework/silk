@@ -208,6 +208,11 @@ const edgeById = (elements: Elements, edgeId: string): Edge | undefined => {
     return asEdge(elements.find((e) => isEdge(e) && e.id === edgeId));
 };
 
+const edgesById = (elements: Elements, edgeIds: string[]): Edge[] => {
+    const edgeIdSet = new Set(edgeIds);
+    return elements.filter((elem) => isEdge(elem) && edgeIdSet.has(asEdge(elem)!!.id)).map((elem) => asEdge(elem)!!);
+};
+
 /** Returns all nodes. */
 const elementNodes = (elements: Elements): RuleEditorNode[] => {
     return elements.filter((elem) => isNode(elem)).map((node) => asNode(node)!!);
@@ -334,6 +339,7 @@ export const ruleEditorModelUtilsFactory = () => {
         createNewOperatorNode,
         createOperatorNode,
         edgeById,
+        edgesById,
         elementNodes,
         elementEdges,
         findEdges,

@@ -585,6 +585,18 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
+    /** Delete multiple edges. */
+    const deleteEdges = (edgeIds: string[]) => {
+        changeElementsInternal((els) => {
+            const edges = utils.edgesById(els, edgeIds);
+            if (edges.length > 0) {
+                return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.deleteEdges(edges), els);
+            } else {
+                return els;
+            }
+        });
+    };
+
     /** Copy and paste nodes with a given offset. */
     const copyAndPasteNodes = (nodeIds: string[], offset: XYPosition) => {
         changeElementsInternal((els) => {
@@ -873,6 +885,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     addEdge,
                     deleteEdge,
                     autoLayout,
+                    deleteEdges,
                 },
             }}
         >

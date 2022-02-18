@@ -15,15 +15,17 @@ import ReactFlow, {
 import { RuleEditorOperatorSidebar } from "./RuleEditorOperatorSidebar";
 import React, { MouseEvent as ReactMouseEvent } from "react";
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
-import { Connection, Node, OnConnectStartParams, XYPosition } from "react-flow-renderer/dist/types";
+import { Connection, Elements, Node, OnConnectStartParams, XYPosition } from "react-flow-renderer/dist/types";
 import {
     IRuleEditorViewConnectState,
     IRuleEditorViewDragState,
     IRuleEditorViewSelectionDragState,
 } from "./RuleEditorView.typings";
+import { ruleEditorModelUtilsFactory } from "../model/RuleEditorModel.utils";
 
 //snap grid
 const snapGrid: [number, number] = [15, 15];
+const modelUtils = ruleEditorModelUtilsFactory();
 
 export const RuleEditorView = () => {
     const reactFlowWrapper = React.useRef<any>(null);
@@ -186,6 +188,17 @@ export const RuleEditorView = () => {
         }
     }, []);
 
+    // Handles deletion of multiple elements, both nodes and edges
+    const onElementsRemove = React.useCallback((elementsToRemove: Elements) => {
+        if (elementsToRemove.length > 0) {
+            modelContext.executeModelEditOperation.startChangeTransaction();
+            const edgeIds = modelUtils.elementEdges(elementsToRemove).map((e) => e.id);
+            const nodesIds = modelUtils.elementNodes(elementsToRemove).map((n) => n.id);
+            edgeIds.length > 0 && modelContext.executeModelEditOperation.deleteEdges(edgeIds);
+            nodesIds.length > 0 && modelContext.executeModelEditOperation.deleteNodes(nodesIds);
+        }
+    }, []);
+
     // Triggered after the react-flow instance has been loaded
     const onLoad = (_reactFlowInstance: OnLoadParams) => {
         setReactFlowInstance(_reactFlowInstance);
@@ -211,7 +224,7 @@ export const RuleEditorView = () => {
                         // onElementClick={onElementClick}
                         onSelectionDragStart={handleSelectionDragStart}
                         onSelectionDragStop={handleSelectionDragStop}
-                        // onElementsRemove={onElementsRemove}
+                        onElementsRemove={onElementsRemove}
                         onConnectStart={onConnectStart}
                         onConnect={onConnect}
                         onConnectEnd={onConnectEnd}
