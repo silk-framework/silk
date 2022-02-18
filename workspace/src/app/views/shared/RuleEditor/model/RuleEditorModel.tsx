@@ -495,7 +495,20 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
-    const addEdge = (sourceNodeId: string, targetNodeId: string, targetHandleId: string) => {
+    /** Add a new edge.
+     *
+     * @param sourceNodeId Connect from this node...
+     * @param targetNodeId ...to this node.
+     * @param targetHandleId The input port of the target node.
+     * @param previousTargetHandle If this is a swap operation this is the previously used handle. If an existing edge was connected
+     *                             to the target handle, it will be swapped  to the previous handle.
+     */
+    const addEdge = (
+        sourceNodeId: string,
+        targetNodeId: string,
+        targetHandleId: string,
+        previousTargetHandle?: string
+    ) => {
         changeElementsInternal((els) => {
             let currentElements = els;
             // Remove existing edges to the same target port and from the same source node
@@ -514,6 +527,16 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             if (existingEdges.length > 0) {
                 currentElements = addAndExecuteRuleModelChangeInternal(
                     RuleModelChangesFactory.deleteEdges(existingEdges),
+                    currentElements
+                );
+            }
+            // Swap existing edge if it was connected to the same target handle
+            if (existingEdgesToSameNodeHandle.length > 0 && previousTargetHandle) {
+                currentElements = addAndExecuteRuleModelChangeInternal(
+                    RuleModelChangesFactory.addEdge({
+                        ...existingEdgesToSameNodeHandle[0],
+                        targetHandle: previousTargetHandle,
+                    }),
                     currentElements
                 );
             }

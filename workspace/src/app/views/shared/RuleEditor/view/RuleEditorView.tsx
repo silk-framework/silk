@@ -85,7 +85,8 @@ export const RuleEditorView = () => {
             modelContext.executeModelEditOperation.addEdge(
                 newConnection.source,
                 newConnection.target,
-                newConnection.targetHandle
+                newConnection.targetHandle,
+                oldEdge.targetHandle && oldEdge.target === newConnection.target ? oldEdge.targetHandle : undefined
             );
         }
     }, []);

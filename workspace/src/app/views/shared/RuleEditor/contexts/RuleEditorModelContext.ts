@@ -43,7 +43,12 @@ export interface IModelActions {
     /** Delete multiple rules nodes at once. */
     deleteNodes: (nodeIds: string[]) => void;
     /** Add an edge between two nodes. */
-    addEdge: (sourceNodeId: string, targetNodeId: string, targetHandleId: string) => void;
+    addEdge: (
+        sourceNodeId: string,
+        targetNodeId: string,
+        targetHandleId: string,
+        previousTargetHandle?: string
+    ) => void;
     /** Delete an edge. */
     deleteEdge: (edgeId: string) => void;
     /** Copy and paste a selection of nodes. Move pasted selection by the defined offset. */
