@@ -274,6 +274,29 @@ const nodeSizes = (zoomFactor: number): Map<string, Size> => {
     return sizes;
 };
 
+interface FindEdgeParameters {
+    elements: Elements;
+    source?: string;
+    target?: string;
+    targetHandle?: string;
+}
+/** Finds all edges matching the given parameters. */
+const findEdges = ({ elements, source, target, targetHandle }: FindEdgeParameters): Edge[] => {
+    const matchingEdges = elements.filter((elem) => {
+        if (isEdge(elem)) {
+            const edge = asEdge(elem)!!;
+            return (
+                (!source || edge.source === source) &&
+                (!target || edge.target === target) &&
+                (!targetHandle || edge.targetHandle === targetHandle)
+            );
+        } else {
+            return false;
+        }
+    });
+    return matchingEdges as Edge[];
+};
+
 /** Layouts the nodes of the rule graph.
  *
  * Returns a map of the new node positions. */
@@ -313,6 +336,7 @@ export const ruleEditorModelUtilsFactory = () => {
         edgeById,
         elementNodes,
         elementEdges,
+        findEdges,
         initNodeBaseIds,
         inputHandles,
         isNode,

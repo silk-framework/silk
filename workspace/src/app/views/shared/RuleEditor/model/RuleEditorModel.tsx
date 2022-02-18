@@ -497,8 +497,28 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     const addEdge = (sourceNodeId: string, targetNodeId: string, targetHandleId: string) => {
         changeElementsInternal((els) => {
+            let currentElements = els;
+            // Remove existing edges to the same target port and from the same source node
+            const existingEdgesToSameNodeHandle = utils.findEdges({
+                elements: currentElements,
+                target: targetNodeId,
+                targetHandle: targetHandleId,
+            });
+            const existingEdgesFromSameSource = utils
+                .findEdges({
+                    elements: currentElements,
+                    source: sourceNodeId,
+                })
+                .filter((edge) => !existingEdgesToSameNodeHandle.find((otherEdge) => edge.id === otherEdge.id));
+            const existingEdges = [...existingEdgesToSameNodeHandle, ...existingEdgesFromSameSource];
+            if (existingEdges.length > 0) {
+                currentElements = addAndExecuteRuleModelChangeInternal(
+                    RuleModelChangesFactory.deleteEdges(existingEdges),
+                    currentElements
+                );
+            }
             const edge = utils.createEdge(sourceNodeId, targetNodeId, targetHandleId);
-            return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdge(edge), els);
+            return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdge(edge), currentElements);
         });
     };
 

@@ -95,6 +95,22 @@ export const RuleEditorView = () => {
         edgeUpdateState.duringEdgeUpdate = false;
     }, []);
 
+    // Triggered when drawing a new connection between nodes
+    const onConnect = React.useCallback((newConnection: Connection) => {
+        if (
+            newConnection.source &&
+            newConnection.target &&
+            newConnection.targetHandle &&
+            newConnection.source !== newConnection.target
+        ) {
+            modelContext.executeModelEditOperation.addEdge(
+                newConnection.source,
+                newConnection.target,
+                newConnection.targetHandle
+            );
+        }
+    }, []);
+
     // Triggered after the react-flow instance has been loaded
     const onLoad = (_reactFlowInstance: OnLoadParams) => {
         setReactFlowInstance(_reactFlowInstance);
@@ -121,7 +137,7 @@ export const RuleEditorView = () => {
                         // onSelectionDragStart={handleSelectionDragStart}
                         // onSelectionDragStop={handleSelectionDragStop}
                         // onElementsRemove={onElementsRemove}
-                        // onConnect={onConnect}
+                        onConnect={onConnect}
                         onNodeDragStart={handleNodeDragStart}
                         onNodeDragStop={handleNodeDragStop}
                         onLoad={onLoad}

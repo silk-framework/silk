@@ -525,7 +525,7 @@ describe("Rule editor model", () => {
         await ruleEditorModel([
             node({ nodeId: "nodeA" }),
             node({ nodeId: "nodeB", inputs: ["nodeA"] }),
-            node({ nodeId: "nodeC", inputs: ["nodeA", "nodeB"] }),
+            node({ nodeId: "nodeC", inputs: ["nodeB"] }),
         ]);
         recordCurrentState("Initial state");
         // Record every change and check that after undo and later redo the states match
@@ -536,7 +536,7 @@ describe("Rule editor model", () => {
             currentContext().executeModelEditOperation.moveNode("nodeA", { x: 2, y: 3 });
         });
         await recordedTransaction("Add edge", () => {
-            currentContext().executeModelEditOperation.addEdge("nodeA", "pluginA", "0");
+            currentContext().executeModelEditOperation.addEdge("pluginA", "nodeA", "0");
         });
         // FIXME: Wait for elkjs release 0.7.3 to fix an issue with undefined variables
         // await recordedTransaction("Auto-layout",
@@ -589,6 +589,46 @@ describe("Rule editor model", () => {
                 expect(currentOperatorNodes()).toStrictEqual(stateHistory[changeIdx]);
             }
         }
+    });
+
+    it("should remove an existing edge when a new edge is connected to the same port", async () => {
+        await ruleEditorModel([
+            node({ nodeId: "nodeA" }),
+            node({ nodeId: "nodeB" }),
+            node({ nodeId: "nodeC", inputs: ["nodeA"] }),
+            node({ nodeId: "nodeD", inputs: ["nodeB"] }),
+        ]);
+        const nodeHasInput = (nodeId: string, inputs: string[]) => {
+            expect(currentOperatorNodes().find((op) => op.nodeId === nodeId)?.inputs).toStrictEqual(inputs);
+        };
+        const beforeEditCheck = () => {
+            nodeHasInput("nodeC", ["nodeA"]);
+            nodeHasInput("nodeD", ["nodeB"]);
+            expect(currentContext().elements).toHaveLength(6);
+        };
+        beforeEditCheck();
+        act(() => {
+            currentContext().executeModelEditOperation.addEdge("nodeB", "nodeC", "0");
+        });
+        const afterEditCheck = () => {
+            nodeHasInput("nodeC", ["nodeB"]);
+            nodeHasInput("nodeD", []);
+            expect(currentContext().elements).toHaveLength(5);
+        };
+        afterEditCheck();
+
+        // UNDO
+        act(() => {
+            currentContext().undo();
+        });
+        checkAfterUndo();
+        beforeEditCheck();
+
+        // REDO
+        act(() => {
+            currentContext().redo();
+        });
+        afterEditCheck();
     });
 });
 
