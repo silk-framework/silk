@@ -37,6 +37,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
     /** The nodes and edges of the rule editor. */
     const [elements, setElements] = React.useState<Elements>([]);
+    const [current] = React.useState<{ elements: Elements }>({ elements: [] });
+    current.elements = elements;
     /** Rule editor context. */
     const ruleEditorContext = React.useContext<RuleEditorContextProps>(RuleEditorContext);
     /** The rule editor change history that will be used to UNDO changes. The changes are in the order they have been executed. */
@@ -85,6 +87,13 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             setPostInit(true);
         }
     }, [ruleEditorContext.editedItem, postInit, elements]);
+
+    /** Elements should only be changed via this function when needing the current elements. */
+    const changeElementsInternal = (changeFn: (elements: Elements) => Elements) => {
+        const changedElements = changeFn(current.elements);
+        current.elements = changedElements;
+        setElements(changedElements);
+    };
 
     /**
      * UNDO/REDO handling.
@@ -139,7 +148,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             const reversedChanges = [...changesToUndo].reverse().map((change) => invertModelChanges(change));
             reversedChanges.forEach((change) => addRedoRuleModelChange(change));
             // Execute it on the react-flow model
-            setElements((els) => {
+            changeElementsInternal((els) => {
                 let currentElements = els;
                 reversedChanges.forEach((change) => {
                     currentElements = executeRuleModelChangeInternal(change, currentElements);
@@ -163,7 +172,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             const invertedChanges = [...changesToRedo].reverse().map((change) => invertModelChanges(change));
             invertedChanges.forEach((change) => addRuleModelChange(change));
             // Execute it on the react-flow model
-            setElements((els) => {
+            changeElementsInternal((els) => {
                 let currentElements = els;
                 invertedChanges.forEach((change) => {
                     currentElements = executeRuleModelChangeInternal(change, currentElements);
@@ -370,7 +379,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         if (reactFlowInstance) {
             const ruleNode = ruleEditorContext.convertRuleOperatorToRuleNode(ruleOperator);
             ruleNode.position = position;
-            setElements((els) => {
+            changeElementsInternal((els) => {
                 const newNode = utils.createNewOperatorNode(ruleNode, reactFlowInstance, deleteNode, t);
                 return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(newNode), els);
             });
@@ -387,7 +396,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     /** Deletes a single rule node. */
     const deleteNode = (nodeId: string) => {
-        setElements((els) => {
+        changeElementsInternal((els) => {
             const node = utils.asNode(els.find((n) => utils.isNode(n) && n.id === nodeId));
             if (node) {
                 // Need to record edge changes first
@@ -405,7 +414,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     /** Delete multiple nodes, e.g. from a selection. */
     const deleteNodes = (nodeIds: string[]) => {
-        setElements((els) => {
+        changeElementsInternal((els) => {
             const nodes = utils.nodesById(els, nodeIds);
             if (nodes.length > 0) {
                 // Need to record edge changes first
@@ -422,7 +431,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     };
 
     const addEdge = (sourceNodeId: string, targetNodeId: string, targetHandleId: string) => {
-        setElements((els) => {
+        changeElementsInternal((els) => {
             const edge = utils.createEdge(sourceNodeId, targetNodeId, targetHandleId);
             return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdge(edge), els);
         });
@@ -430,7 +439,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     /** Deletes a single edge. */
     const deleteEdge = (edgeId: string) => {
-        setElements((els) => {
+        changeElementsInternal((els) => {
             const edge = utils.edgeById(els, edgeId);
             if (edge) {
                 return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.deleteEdge(edge), els);
@@ -442,7 +451,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     /** Copy and paste nodes with a given offset. */
     const copyAndPasteNodes = (nodeIds: string[], offset: XYPosition) => {
-        setElements((els) => {
+        changeElementsInternal((els) => {
             const nodes = utils.nodesById(els, nodeIds);
             const nodeIdMap = new Map<string, string>();
             const newNodes: RuleEditorNode[] = nodes.map((node) => {
@@ -515,7 +524,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     /** Move a node to a new position. */
     const moveNode = (nodeId: string, newPosition: XYPosition) => {
-        setElements((els) => {
+        changeElementsInternal((els) => {
             const node = utils.nodeById(els, nodeId);
             if (node) {
                 return addAndExecuteRuleModelChangeInternal(
@@ -559,7 +568,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
      * @param noHistory If the change should be tracked or not.
      */
     const autoLayout = (noHistory: boolean = false) => {
-        setElements((elements) => {
+        changeElementsInternal((elements) => {
             autoLayoutInternal(elements, noHistory);
             return elements;
         });
