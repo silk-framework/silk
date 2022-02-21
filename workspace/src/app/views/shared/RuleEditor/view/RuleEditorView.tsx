@@ -23,6 +23,7 @@ import {
 } from "./RuleEditorView.typings";
 import { ruleEditorModelUtilsFactory } from "../model/RuleEditorModel.utils";
 import { EdgeMenu } from "./ruleEdge/EdgeMenu";
+import { SelectionMenu } from "./ruleNode/SelectionMenu";
 
 //snap grid
 const snapGrid: [number, number] = [15, 15];
@@ -50,8 +51,8 @@ export const RuleEditorView = () => {
         originalEdgeId: string | undefined;
         transactionStarted: boolean;
     }>({ duringEdgeUpdate: false, edgeDeleted: false, originalEdgeId: undefined, transactionStarted: false });
-    // Edge menu that is shown when an edge is clicked
-    const [edgeMenu, setEdgeMenu] = React.useState<JSX.Element | null>(null);
+    // Context menu that is shown on specific user actions
+    const [contextMenu, setContextMenu] = React.useState<JSX.Element | null>(null);
 
     /** Handle moving a node. */
     const handleNodeDragStart = (event: React.MouseEvent<Element, MouseEvent>, node: Node) => {
@@ -118,6 +119,7 @@ export const RuleEditorView = () => {
     /** Connection logic, i.e. connecting new edges. */
     const onConnectStart = React.useCallback((e: ReactMouseEvent, params: OnConnectStartParams) => {
         e.preventDefault();
+        e.stopPropagation();
         connectState.edgeConnected = false;
         connectState.overNode = undefined;
         connectState.connectOperationActive = true;
@@ -145,6 +147,7 @@ export const RuleEditorView = () => {
     // Connect edge to first empty port when edge was over a node and not connected to a port
     const onConnectEnd = React.useCallback((event: MouseEvent) => {
         event.preventDefault();
+        event.stopPropagation();
         connectState.connectOperationActive = false;
         if (!connectState.edgeConnected && connectState.overNode && connectState.connectParams?.nodeId) {
             modelContext.executeModelEditOperation.startChangeTransaction();
@@ -160,6 +163,7 @@ export const RuleEditorView = () => {
         // Track if we are over a node during a connect operation in order to connect to the first empty port of a node
         if (connectState.connectOperationActive) {
             event.preventDefault();
+            event.stopPropagation();
             connectState.overNode = node.id;
         }
     }, []);
@@ -206,10 +210,10 @@ export const RuleEditorView = () => {
     // Fired when clicked on any elements, e.g. edge or node. Used to show the edge menu.
     const onElementClick = React.useCallback((event: ReactMouseEvent, element: Node | Edge) => {
         if (modelUtils.isEdge(element)) {
-            setEdgeMenu(
+            setContextMenu(
                 <EdgeMenu
                     position={{ x: event.clientX, y: event.clientY }}
-                    onClose={() => setEdgeMenu(null)}
+                    onClose={() => setContextMenu(null)}
                     removeEdge={() => {
                         modelContext.executeModelEditOperation.startChangeTransaction();
                         modelContext.executeModelEditOperation.deleteEdge(element.id);
@@ -218,6 +222,22 @@ export const RuleEditorView = () => {
             );
         }
     }, []);
+
+    // Selection menu
+    const onSelectionContextMenu = (event: ReactMouseEvent, nodes: Node[]) => {
+        event.preventDefault();
+        event.stopPropagation();
+        setContextMenu(
+            <SelectionMenu
+                position={{ x: event.clientX, y: event.clientY }}
+                onClose={() => setContextMenu(null)}
+                removeSelection={() => {
+                    modelContext.executeModelEditOperation.startChangeTransaction();
+                    modelContext.executeModelEditOperation.deleteNodes(nodes.map((n) => n.id));
+                }}
+            />
+        );
+    };
 
     // Triggered after the react-flow instance has been loaded
     const onLoad = (_reactFlowInstance: OnLoadParams) => {
@@ -252,6 +272,7 @@ export const RuleEditorView = () => {
                         onNodeDragStop={handleNodeDragStop}
                         onNodeMouseEnter={onNodeMouseEnter}
                         onNodeMouseLeave={onNodeMouseLeave}
+                        onSelectionContextMenu={onSelectionContextMenu}
                         onLoad={onLoad}
                         // onDrop={onDrop}
                         // onDragOver={onDragOver}
@@ -279,7 +300,7 @@ export const RuleEditorView = () => {
                         />
                         <Background variant={BackgroundVariant.Lines} gap={16} />
                     </ReactFlow>
-                    {edgeMenu}
+                    {contextMenu}
                 </GridColumn>
             </GridRow>
         </Grid>

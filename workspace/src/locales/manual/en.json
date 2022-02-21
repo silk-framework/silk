@@ -392,6 +392,14 @@
                     "label": "Remove"
                 }
             }
+        },
+        "selection": {
+            "menu": {
+                "delete": {
+                    "label": "Remove selected nodes",
+                    "tooltip": "Removes all selected nodes and connected edges. Alternatively you can delete (multiple) selected rule elements by pressing the [←] (backspace) key on the keyboard."
+                }
+            }
         }
     },
     "taskViews": {
