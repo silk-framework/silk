@@ -70,6 +70,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     /** Update the internals of a node. This needs to be called in some cases in order to update the appearance of a node. */
     const updateNodeInternals = useUpdateNodeInternals();
     const resetSelectedElements = useStoreActions((a) => a.resetSelectedElements);
+    const setSelectedElements = useStoreActions((a) => a.setSelectedElements);
 
     /** Convert initial operator nodes to react-flow model. */
     React.useEffect(() => {
@@ -629,6 +630,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 }
             });
             const withNodes = addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNodes(newNodes), els);
+            resetSelectedElements();
+            setTimeout(() => {
+                setSelectedElements([...newNodes, ...newEdges]);
+            }, 100);
             return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdges(newEdges), withNodes);
         });
     };
@@ -699,6 +704,26 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     RuleModelChangesFactory.changeNodePosition(nodeId, node.position, newPosition),
                     els
                 );
+            } else {
+                return els;
+            }
+        });
+    };
+
+    /** Moves multiple node sby a given offset. */
+    const moveNodes = (nodeIds: string[], offset: XYPosition) => {
+        changeElementsInternal((els) => {
+            const nodes = utils.nodesById(els, nodeIds);
+            if (nodes.length > 0) {
+                const changes: ChangeNodePosition[] = nodes.map((node) => {
+                    return {
+                        type: "Change node position",
+                        nodeId: node.id,
+                        from: node.position,
+                        to: { x: node.position.x + offset.x, y: node.position.y + offset.y },
+                    };
+                });
+                return addAndExecuteRuleModelChangeInternal({ operations: changes }, els);
             } else {
                 return els;
             }
@@ -886,6 +911,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     deleteEdge,
                     autoLayout,
                     deleteEdges,
+                    moveNodes,
                 },
             }}
         >

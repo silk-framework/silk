@@ -53,16 +53,36 @@ export const RuleEditorView = () => {
     }>({ duringEdgeUpdate: false, edgeDeleted: false, originalEdgeId: undefined, transactionStarted: false });
     // Context menu that is shown on specific user actions
     const [contextMenu, setContextMenu] = React.useState<JSX.Element | null>(null);
+    // At the moment react-flow's selection logic is buggy in some places, e.g. https://github.com/wbkd/react-flow/issues/1314
+    // Until fixed, we will track selections ourselves and use them where bugs exist.
+    const [selectionState] = React.useState<{ elements: Elements | null }>({ elements: null });
+
+    /** Selection helper methods. */
+    const selectedNodeIds = (): string[] => {
+        const selectedNodes = modelUtils.elementNodes(selectionState.elements ?? []);
+        return selectedNodes.map((n) => n.id);
+    };
 
     /** Handle moving a node. */
     const handleNodeDragStart = (event: React.MouseEvent<Element, MouseEvent>, node: Node) => {
         dragState.nodeDragStartPosition = node.position;
     };
+    const calcOffset = (oldPosition: XYPosition, newPosition: XYPosition) => ({
+        x: newPosition.x - oldPosition.x,
+        y: newPosition.y - oldPosition.y,
+    });
     /** Handle moving a node. */
     const handleNodeDragStop = (event: React.MouseEvent<Element, MouseEvent>, node: Node) => {
         if (dragState.nodeDragStartPosition) {
             modelContext.executeModelEditOperation.startChangeTransaction();
-            modelContext.executeModelEditOperation.moveNode(node.id, node.position);
+            const selectedNodes = selectedNodeIds();
+            const offset = calcOffset(dragState.nodeDragStartPosition, node.position);
+            if (selectedNodes.length > 0) {
+                // We are actually moving a selection, not a single node
+                modelContext.executeModelEditOperation.moveNodes(selectedNodes, offset);
+            } else {
+                modelContext.executeModelEditOperation.moveNode(node.id, node.position);
+            }
             dragState.nodeDragStartPosition = undefined;
         }
     };
@@ -187,10 +207,9 @@ export const RuleEditorView = () => {
             const newPosition = nodes[0].position;
             const oldPosition = selectionDragState.selectionStartPositions.get(nodes[0].id);
             if (oldPosition && (newPosition.x !== oldPosition.x || newPosition.y !== oldPosition.y)) {
+                const offset = { x: newPosition.x - oldPosition.x, y: newPosition.y - oldPosition.y };
                 modelContext.executeModelEditOperation.startChangeTransaction();
-                nodes.forEach((node) => {
-                    modelContext.executeModelEditOperation.moveNode(node.id, node.position);
-                });
+                modelContext.executeModelEditOperation.moveNodes(selectedNodeIds(), offset);
             }
         }
     }, []);
@@ -206,37 +225,63 @@ export const RuleEditorView = () => {
         }
     }, []);
 
-    // Edge menu
+    /** Edge menu */
+    const onEdgeContextMenu = (event: ReactMouseEvent, edge: Edge) => {
+        event.preventDefault();
+        showEdgeMenu(event, edge.id);
+    };
+
+    const showEdgeMenu = (event: ReactMouseEvent, edgeId: string) => {
+        setContextMenu(
+            <EdgeMenu
+                position={{ x: event.clientX, y: event.clientY }}
+                onClose={() => setContextMenu(null)}
+                removeEdge={() => {
+                    modelContext.executeModelEditOperation.startChangeTransaction();
+                    modelContext.executeModelEditOperation.deleteEdge(edgeId);
+                }}
+            />
+        );
+    };
+
     // Fired when clicked on any elements, e.g. edge or node. Used to show the edge menu.
     const onElementClick = React.useCallback((event: ReactMouseEvent, element: Node | Edge) => {
         if (modelUtils.isEdge(element)) {
-            setContextMenu(
-                <EdgeMenu
-                    position={{ x: event.clientX, y: event.clientY }}
-                    onClose={() => setContextMenu(null)}
-                    removeEdge={() => {
-                        modelContext.executeModelEditOperation.startChangeTransaction();
-                        modelContext.executeModelEditOperation.deleteEdge(element.id);
-                    }}
-                />
-            );
+            showEdgeMenu(event, element.id);
         }
     }, []);
 
-    // Selection menu
-    const onSelectionContextMenu = (event: ReactMouseEvent, nodes: Node[]) => {
+    /** Selection menu */
+    const onSelectionContextMenu = (event: ReactMouseEvent) => {
+        // Sometimes react-flow does not provide the correct selected nodes, use tracked selection
+        const nodeIds = selectedNodeIds();
         event.preventDefault();
-        event.stopPropagation();
         setContextMenu(
             <SelectionMenu
                 position={{ x: event.clientX, y: event.clientY }}
                 onClose={() => setContextMenu(null)}
                 removeSelection={() => {
                     modelContext.executeModelEditOperation.startChangeTransaction();
-                    modelContext.executeModelEditOperation.deleteNodes(nodes.map((n) => n.id));
+                    modelContext.executeModelEditOperation.deleteNodes(nodeIds);
+                }}
+                cloneSelection={() => {
+                    modelContext.executeModelEditOperation.copyAndPasteNodes(nodeIds, { x: 100, y: 100 });
                 }}
             />
         );
+    };
+
+    const onNodeContextMenu = (event: ReactMouseEvent, node: Node) => {
+        const selectedNodes = selectedNodeIds();
+        if (selectedNodes.includes(node.id)) {
+            // Open selection context menu when opening context menu on selected node
+            onSelectionContextMenu(event);
+        }
+    };
+
+    // Track current selection
+    const onSelectionChange = (elements: Elements | null) => {
+        selectionState.elements = elements;
     };
 
     // Triggered after the react-flow instance has been loaded
@@ -264,6 +309,7 @@ export const RuleEditorView = () => {
                         onElementClick={onElementClick}
                         onSelectionDragStart={handleSelectionDragStart}
                         onSelectionDragStop={handleSelectionDragStop}
+                        onEdgeContextMenu={onEdgeContextMenu}
                         onElementsRemove={onElementsRemove}
                         onConnectStart={onConnectStart}
                         onConnect={onConnect}
@@ -272,7 +318,9 @@ export const RuleEditorView = () => {
                         onNodeDragStop={handleNodeDragStop}
                         onNodeMouseEnter={onNodeMouseEnter}
                         onNodeMouseLeave={onNodeMouseLeave}
+                        onNodeContextMenu={onNodeContextMenu}
                         onSelectionContextMenu={onSelectionContextMenu}
+                        onSelectionChange={onSelectionChange}
                         onLoad={onLoad}
                         // onDrop={onDrop}
                         // onDragOver={onDragOver}
@@ -287,6 +335,7 @@ export const RuleEditorView = () => {
                         snapGrid={snapGrid}
                         snapToGrid={true}
                         zoomOnDoubleClick={false}
+                        multiSelectionKeyCode={18} // ALT
                     >
                         <MiniMap
                             flowInstance={reactFlowInstance}

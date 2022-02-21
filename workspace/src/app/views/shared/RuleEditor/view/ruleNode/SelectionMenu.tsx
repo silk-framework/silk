@@ -11,10 +11,12 @@ interface SelectionMenuProps {
     onClose: () => any;
     /** Callback to remove edge. */
     removeSelection: () => any;
+    /** Clone selection. */
+    cloneSelection: () => any;
 }
 
 /** Rule edge menu. */
-export const SelectionMenu = ({ position, onClose, removeSelection }: SelectionMenuProps) => {
+export const SelectionMenu = ({ position, onClose, removeSelection, cloneSelection }: SelectionMenuProps) => {
     const [t] = useTranslation();
     return (
         // TODO CMEM-4080: Use a generic "tools" component or rename EdgeTools
@@ -36,6 +38,24 @@ export const SelectionMenu = ({ position, onClose, removeSelection }: SelectionM
                 }}
             >
                 {t("RuleEditor.selection.menu.delete.label")}
+            </Button>
+            <Button
+                minimal
+                icon="item-clone"
+                data-test-id={"selection-menu-clone-btn"}
+                tooltip={t("RuleEditor.selection.menu.clone.tooltip")}
+                tooltipProperties={{
+                    autoFocus: false,
+                    enforceFocus: false,
+                    openOnTargetFocus: false,
+                }}
+                small
+                onClick={() => {
+                    onClose();
+                    cloneSelection();
+                }}
+            >
+                {t("RuleEditor.selection.menu.clone.label")}
             </Button>
         </EdgeTools>
     );

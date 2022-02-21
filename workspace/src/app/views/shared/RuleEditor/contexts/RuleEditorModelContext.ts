@@ -58,6 +58,8 @@ export interface IModelActions {
     copyAndPasteNodes: (nodeIds: string[], offset: XYPosition) => void;
     /** Move a single node to a new position. */
     moveNode: (nodeId: string, newPosition: XYPosition) => void;
+    /** Moves nodes by a specific offset. */
+    moveNodes: (nodeIds: string[], offset: XYPosition) => void;
     /** Change a single node parameter.
      *
      * @param nodeId Node affected by parameter change.
@@ -97,6 +99,7 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
         addNode: NOP,
         copyAndPasteNodes: NOP,
         moveNode: NOP,
+        moveNodes: NOP,
         changeNodeParameter: NOP,
         addEdge: NOP,
         deleteEdge: NOP,
