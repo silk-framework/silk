@@ -17,7 +17,10 @@ export const RuleNodeMenu = ({ nodeId, t, handleDeleteNode }: NodeMenuProps) => 
                     data-test-id="rule-node-delete-btn"
                     key="delete"
                     icon={"item-remove"}
-                    onClick={() => handleDeleteNode(nodeId)}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        handleDeleteNode(nodeId);
+                    }}
                     text={t("RuleEditor.node.menu.remove.label", "Remove")}
                     intent="danger"
                 />

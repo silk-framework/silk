@@ -31,7 +31,7 @@
         "@uppy/core": "1.17.0",
         "@uppy/react": "1.11.6",
         "@uppy/xhr-upload": "1.7.2",
-        "axios": "^0.19.0",
+        "axios": "^0.25.0",
         "bfj": "6.1.1",
         "carbon-components": "10.44.0",
         "carbon-components-react": "7.44.1",
@@ -39,6 +39,7 @@
         "codemirror": "^5.52.2",
         "connected-react-router": "^6.5.2",
         "dexie": "^2.0.4",
+        "elkjs": "^0.7.1",
         "gui-elements": "0.0.1",
         "history": "^4.7.2",
         "i18next": "^19.4.3",
@@ -254,6 +255,7 @@
         "webpack-cli": "^3.3.12",
         "webpack-dev-server": "^4.6.0",
         "webpack-manifest-plugin": "^2.2.0",
+        "web-worker": "^1.2.0",
         "workbox-webpack-plugin": "^4.3.1"
     },
     "resolutions": {

@@ -1,5 +1,5 @@
-import React from "react";
-import { Edge, Elements, OnLoadParams, removeElements, useStoreActions } from "react-flow-renderer";
+import React, { useState } from "react";
+import { Edge, Elements, OnLoadParams, removeElements, useStoreActions, useStoreState } from "react-flow-renderer";
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { RuleEditorContext, RuleEditorContextProps } from "../contexts/RuleEditorContext";
 import { ruleEditorModelUtilsFactory } from "./RuleEditorModel.utils";
@@ -30,7 +30,7 @@ type ChangeStackType = RuleModelChanges | "Transaction boundary";
 
 /** The actual rule model, i.e. the model that is displayed in the editor.
  *  All rule model changes must happen here. */
-export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEditorModelProps) => {
+export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const { t } = useTranslation();
     /** If set, then the model cannot be modified. */
     const [isReadOnly, setIsReadOnly] = React.useState<boolean>(false);
@@ -40,20 +40,51 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
     /** Rule editor context. */
     const ruleEditorContext = React.useContext<RuleEditorContextProps>(RuleEditorContext);
     /** The rule editor change history that will be used to UNDO changes. The changes are in the order they have been executed. */
-    const [ruleUndoStack, setRuleUndoStack] = React.useState<ChangeStackType[]>([]);
+    const [ruleUndoStack] = React.useState<ChangeStackType[]>([]);
     /** If there are changes that can be undone. */
     const [canUndo, setCanUndo] = React.useState<boolean>(false);
     /** Stores the REDO history. The order is how the changes were executed by the corresponding UNDO operation. */
-    const [ruleRedoStack, setRuleRedoStack] = React.useState<ChangeStackType[]>([]);
+    const [ruleRedoStack] = React.useState<ChangeStackType[]>([]);
     /** If there are changes that can be redone, i.e. that have been previously undone. */
     const [canRedo, setCanRedo] = React.useState<boolean>(false);
     const [utils] = React.useState(ruleEditorModelUtilsFactory());
     /** react-flow function to update a node position in the canvas. Just changing the position of the elements is not enough. */
     const updateNodePos = useStoreActions((actions) => actions.updateNodePos);
+    /** The current zoom factor. */
+    const [, , zoom] = useStoreState((state) => state.transform);
+    /** If post-initializations have been executed. */
+    const [postInit, setPostInit] = useState(false);
     /** Manages the parameters of rule nodes. This is done for performance reasons. Only stores diffs to the original value. */
     const [nodeParameterDiff, setNodeParameterDiff] = React.useState<Map<string, Map<string, string | undefined>>>(
         new Map()
     );
+
+    /** Convert initial operator nodes to react-flow model. */
+    React.useEffect(() => {
+        if (
+            ruleEditorContext.initialRuleOperatorNodes &&
+            ruleEditorContext.operatorList &&
+            elements.length === 0 &&
+            reactFlowInstance
+        ) {
+            initModel();
+        }
+    }, [
+        ruleEditorContext.initialRuleOperatorNodes,
+        ruleEditorContext.operatorList,
+        elements.length,
+        reactFlowInstance,
+    ]);
+
+    React.useEffect(() => {
+        if (elements.length > 0 && !postInit) {
+            setTimeout(() => {
+                reactFlowInstance?.fitView();
+                reactFlowInstance?.zoomTo(0.75);
+            }, 1);
+            setPostInit(true);
+        }
+    }, [ruleEditorContext.editedItem, postInit, elements]);
 
     /**
      * UNDO/REDO handling.
@@ -497,6 +528,43 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
         });
     };
 
+    /** Layout the rule nodes, since this must be async it cannot return the new elements directly in the setElements function. */
+    const autoLayoutInternal = async (elements: Elements, addChangeHistory: boolean): Promise<Elements> => {
+        const newLayout = await utils.autoLayout(elements, zoom);
+        const changeNodePositionOperations: ChangeNodePosition[] = [];
+        utils.elementNodes(elements).forEach((node) => {
+            const newPosition = newLayout.get(node.id);
+            if (newPosition && (newPosition.x !== node.position.x || newPosition.y !== node.position.y)) {
+                changeNodePositionOperations.push({
+                    type: "Change node position",
+                    nodeId: node.id,
+                    from: node.position,
+                    to: newPosition,
+                });
+            }
+        });
+        if (changeNodePositionOperations.length > 0) {
+            startChangeTransaction();
+            const changeNodePositions = { operations: changeNodePositionOperations };
+            return addChangeHistory
+                ? addAndExecuteRuleModelChangeInternal(changeNodePositions, elements)
+                : executeRuleModelChangeInternal(changeNodePositions, elements);
+        } else {
+            return elements;
+        }
+    };
+
+    /** Auto-layout the rule nodes.
+     *
+     * @param noHistory If the change should be tracked or not.
+     */
+    const autoLayout = (noHistory: boolean = false) => {
+        setElements((elements) => {
+            autoLayoutInternal(elements, noHistory);
+            return elements;
+        });
+    };
+
     /** Save the current rule. */
     const saveRule = () => {
         const nodes: RuleEditorNode[] = [];
@@ -551,41 +619,39 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
         return ruleEditorContext.saveRule(ruleOperatorNodes);
     };
 
-    /** Convert initial operator nodes to react-flow model. */
-    React.useEffect(() => {
-        if (
-            ruleEditorContext.initialRuleOperatorNodes &&
-            ruleEditorContext.operatorList &&
-            elements.length === 0 &&
-            reactFlowInstance
-        ) {
-            setNodeParameterDiff(new Map());
-            const operatorsNodes = ruleEditorContext.initialRuleOperatorNodes;
-            // Create nodes
-            const nodes = operatorsNodes.map((operatorNode) => {
-                return utils.createOperatorNode(operatorNode, reactFlowInstance, deleteNode, t);
+    const initModel = async () => {
+        const handleDeleteNode = (nodeId: string) => {
+            startChangeTransaction();
+            deleteNode(nodeId);
+        };
+        setNodeParameterDiff(new Map());
+        const operatorsNodes = ruleEditorContext.initialRuleOperatorNodes;
+        // Create nodes
+        let needsLayout = false;
+        const nodes = operatorsNodes!!.map((operatorNode) => {
+            needsLayout = needsLayout || !operatorNode.position;
+            return utils.createOperatorNode(operatorNode, reactFlowInstance!!, handleDeleteNode, t);
+        });
+        // Create edges
+        const edges: Edge[] = [];
+        operatorsNodes!!.forEach((node) => {
+            node.inputs.forEach((inputNodeId, idx) => {
+                if (inputNodeId) {
+                    // Edge IDs do not currently matter
+                    edges.push(utils.createEdge(inputNodeId, node.nodeId, `${idx}`));
+                }
             });
-            // Create edges
-            const edges: Edge[] = [];
-            operatorsNodes.forEach((node) => {
-                node.inputs.forEach((inputNodeId, idx) => {
-                    if (inputNodeId) {
-                        // Edge IDs do not currently matter
-                        edges.push(utils.createEdge(inputNodeId, node.nodeId, `${idx}`));
-                    }
-                });
-            });
-            setElements([...nodes, ...edges]);
-            utils.initNodeBaseIds(nodes);
-            setRuleUndoStack([]);
-            setRuleRedoStack([]);
+        });
+        let elems = [...nodes, ...edges];
+        if (needsLayout) {
+            elems = await autoLayoutInternal(elems, false);
         }
-    }, [
-        ruleEditorContext.initialRuleOperatorNodes,
-        ruleEditorContext.operatorList,
-        elements.length,
-        reactFlowInstance,
-    ]);
+        setElements(elems);
+        utils.initNodeBaseIds(nodes);
+        ruleUndoStack.splice(0);
+        ruleRedoStack.splice(0);
+        setPostInit(false);
+    };
 
     return (
         <RuleEditorModelContext.Provider
@@ -609,6 +675,7 @@ export const RuleEditorModel = <ITEM_TYPE extends object>({ children }: RuleEdit
                     changeNodeParameter,
                     addEdge,
                     deleteEdge,
+                    autoLayout,
                 },
             }}
         >

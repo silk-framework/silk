@@ -3,10 +3,11 @@ import { IHandleProps } from "gui-elements/src/extensions/react-flow/nodes/NodeD
 import { ArrowHeadType, Edge, FlowElement, Node, OnLoadParams, Position } from "react-flow-renderer";
 import { rangeArray } from "../../../../utils/basicUtils";
 import { IRuleNodeData, IRuleOperatorNode, NodeContentPropsWithBusinessData } from "../RuleEditor.typings";
-import { RuleNodeMenu } from "../ruleNode/RuleNodeMenu";
+import { RuleNodeMenu } from "../view/ruleNode/RuleNodeMenu";
 import { Tag, Highlighter, Spacing } from "gui-elements";
 import { RuleEditorNode } from "./RuleEditorModel.typings";
-import { Elements } from "react-flow-renderer/dist/types";
+import { Elements, XYPosition } from "react-flow-renderer/dist/types";
+import ELK, { ElkNode } from "elkjs";
 
 /** Constants */
 
@@ -37,7 +38,7 @@ function createOperatorNode(
     t: (string) => string
 ): RuleEditorNode {
     const position = reactFlowInstance.project({
-        x: node.position?.x ?? 0, // FIXME: Calculate position based on  algorithm when coordinates are missing CMEM-3922
+        x: node.position?.x ?? 0,
         y: node.position?.y ?? 0,
     });
     const usedInputs = node.inputs.length;
@@ -197,17 +198,110 @@ const edgeById = (elements: Elements, edgeId: string): Edge | undefined => {
     return asEdge(elements.find((e) => isEdge(e) && e.id === edgeId));
 };
 
+/** Returns all nodes. */
+const elementNodes = (elements: Elements): RuleEditorNode[] => {
+    return elements.filter((elem) => isNode(elem)).map((node) => asNode(node)!!);
+};
+
+/** Returns all edges. */
+const elementEdges = (elements: Elements): Edge[] => {
+    return elements.filter((elem) => isEdge(elem)).map((edge) => asEdge(edge)!!);
+};
+
+const elk = new ELK();
+
+// Builds an ELK graph from the react-flow elements
+const buildElkGraph = (elements: Elements, zoomFactor: number): ElkNode => {
+    const nodes = elementNodes(elements);
+    const edges = elementEdges(elements);
+    const maxNodeIndex = new Map<string, number>();
+    edges.forEach((edge) => {
+        const currentIdx = maxNodeIndex.get(edge.source) ?? -1;
+        const edgeIdx = Number.parseInt(edge.targetHandle ?? "-1") + 1;
+        if (edgeIdx > currentIdx) {
+            maxNodeIndex.set(edge.source, edgeIdx);
+        }
+    });
+    const sizes = nodeSizes(zoomFactor);
+    const constructElkNode = (node: RuleEditorNode): ElkNode => {
+        return {
+            id: node.id,
+            height: sizes.get(node.id)?.height ?? 100,
+            width: sizes.get(node.id)?.width ?? 250,
+            y: maxNodeIndex.get(node.id) ?? 0,
+        };
+    };
+    return {
+        id: " root node ",
+        children: nodes.map((node) => constructElkNode(node)),
+        edges: edges.map((edge, idx) => ({
+            id: `e${idx}`,
+            sources: [edge.source],
+            targets: [edge.target],
+            type: "DIRECTED",
+        })),
+    };
+};
+
+type Size = { width: number; height: number };
+
+const reactFlowNodeClass = "react-flow__node";
+const reactFlowNodeId = "data-id";
+
+/** Get the actual sizes of the nodes in the DOM corrected by the zoom-factor. */
+const nodeSizes = (zoomFactor: number): Map<string, Size> => {
+    const htmlNodes = document.getElementsByClassName(reactFlowNodeClass);
+    const sizes = new Map<string, Size>();
+    for (let i = 0; i < htmlNodes.length; i++) {
+        const node = htmlNodes[i];
+        if (node && node.getAttribute(reactFlowNodeId)) {
+            const nodeId = node.getAttribute(reactFlowNodeId);
+            const { width, height } = node.getBoundingClientRect();
+            sizes.set(nodeId!!, { width: width / zoomFactor, height: height / zoomFactor });
+        }
+    }
+    return sizes;
+};
+
+/** Layouts the nodes of the rule graph.
+ *
+ * Returns a map of the new node positions. */
+const autoLayout = async (elements: Elements, zoomFactor: number): Promise<Map<string, XYPosition>> => {
+    const elkGraph = buildElkGraph(elements, zoomFactor);
+    const layoutedGraph = await elk.layout(elkGraph, {
+        layoutOptions: {
+            "elk.algorithm": "layered",
+            "elk.edgeRouting": "POLYLINE", // for kind of symmetrical/centered tree
+            "elk.direction": "RIGHT",
+            "elk.layered.spacing.nodeNodeBetweenLayers": "100",
+            "spacing.nodeNode": "40",
+            "elk.layered.crossingMinimization.semiInteractive": "true", // For the  order of input nodes
+            "elk.layered.crossingMinimization.strategy": "INTERACTIVE",
+        },
+    });
+    const nodePositions = new Map<string, XYPosition>();
+    (layoutedGraph.children ?? []).forEach((layoutedElkNode) => {
+        if (layoutedElkNode.x != null && layoutedElkNode.y != null) {
+            nodePositions.set(layoutedElkNode.id, { x: layoutedElkNode.x, y: layoutedElkNode.y });
+        }
+    });
+    return nodePositions;
+};
+
 export const ruleEditorModelUtilsFactory = () => {
     const { createNewOperatorNode, initNodeBaseIds, freshNodeId } = initNodeBaseIdsFactory();
     return {
         asEdge,
         asNode,
+        autoLayout,
         createEdge: createEdgeFactory(),
         createInputHandle,
         createInputHandles,
         createNewOperatorNode,
         createOperatorNode,
         edgeById,
+        elementNodes,
+        elementEdges,
         initNodeBaseIds,
         inputHandles,
         isNode,
