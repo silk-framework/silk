@@ -89,7 +89,7 @@ describe("Dropdown Component", () => {
         expect(activeListItems.length).toBe(1)
     })
 
-    it.skip("should respond to click on each item and pass the clicked item to autosuggestion", () =>  {
+    it("should respond to click on each item and pass the clicked item to autosuggestion", () =>  {
         const mockOnItemSelection = jest.fn((item) => {})
         props = {
             ...props,
