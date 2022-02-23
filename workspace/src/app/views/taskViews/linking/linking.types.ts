@@ -1,5 +1,5 @@
 import { IInputSource } from "../shared/task.typings";
-import { IOperatorNode, IOperatorNodeParameters, IValueInput } from "../shared/rules/rule.typings";
+import { IOperatorNode, IOperatorNodeParameters, IValueInput, RuleLayout } from "../shared/rules/rule.typings";
 
 /** A linking rule. */
 export interface ILinkingRule {
@@ -13,6 +13,8 @@ export interface ILinkingRule {
     };
     /** The property URI of the link, e.g. owl:sameAs. */
     linkType: string;
+    /** Layout information of the link rule operators. */
+    layout: RuleLayout;
 }
 
 export interface ISimilarityOperator extends IOperatorNode {

@@ -11,7 +11,7 @@ import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transform
 import org.silkframework.rule.similarity._
 import org.silkframework.rule.util.UriPatternParser
 import org.silkframework.rule.vocab.{GenericInfo, Vocabulary, VocabularyClass, VocabularyProperty}
-import org.silkframework.rule.{MappingTarget, TransformRule, _}
+import org.silkframework.rule.{MappingTarget, TransformRule, ValueTransformRuleWithLayout, _}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
 import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
@@ -54,6 +54,8 @@ object JsonSerializers {
   final val AGGREGATION_OPERATOR = "AggregationOperator"
   final val TRANSFORM_OPERATOR = "TransformOperator"
   final val COMPARISON_OPERATOR = "ComparisonOperator"
+  // Rule tasks
+  final val LAYOUT = "layout"
 
 
   implicit object StringJsonFormat extends JsonFormat[String] {
@@ -475,6 +477,22 @@ object JsonSerializers {
     }
   }
 
+  /** Rule layout */
+  implicit object RuleLayoutJsonFormat extends JsonFormat[RuleLayout] {
+    final val NODE_POSITIONS = "nodePositions"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): RuleLayout = {
+      val nodePositions = JsonHelpers.fromJsonValidated[Map[String, (Int, Int)]](mustBeDefined(value, NODE_POSITIONS))
+      RuleLayout(nodePositions)
+    }
+
+    override def write(value: RuleLayout)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        NODE_POSITIONS -> Json.toJson(value.nodePositions)
+      )
+    }
+  }
+
   /**
     * Complex URI Mapping
     */
@@ -487,7 +505,8 @@ object JsonSerializers {
       ComplexUriMapping(
         id = identifier(value, "uri"),
         operator = fromJson[Input]((value \ OPERATOR).get),
-        metaData(value)
+        metaData(value),
+        layout = optionalValue(value, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout())
       )
     }
 
@@ -500,7 +519,8 @@ object JsonSerializers {
           TYPE -> JsString("complexUri"),
           ID -> JsString(rule.id),
           OPERATOR -> toJson(rule.operator),
-          METADATA -> toJson(rule.metaData)
+          METADATA -> toJson(rule.metaData),
+          LAYOUT -> toJson(rule.layout)
         )
       )
     }
@@ -675,7 +695,8 @@ object JsonSerializers {
         id = id,
         operator = fromJson[Input]((jsValue \ OPERATOR).get),
         target = mappingTarget,
-        metaData(jsValue)
+        metaData(jsValue),
+        layout = optionalValue(jsValue, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout())
       )
     }
 
@@ -690,7 +711,17 @@ object JsonSerializers {
           METADATA -> toJson(valueTransformRule.metaData)
         ) ++
           valueTransformRule.target.map("mappingTarget" -> toJson(_))
+          ++ layout(valueTransformRule)
       )
+    }
+
+    private def layout(valueTransformRule: ValueTransformRule): Seq[(String, JsValue)] = {
+      valueTransformRule match {
+        case withLayout: ValueTransformRuleWithLayout =>
+          Seq(LAYOUT -> toJson(withLayout.layout))
+        case _ =>
+          Seq.empty
+      }
     }
 
     override def write(complexMapping: ComplexMapping)
@@ -935,7 +966,8 @@ object JsonSerializers {
       LinkageRule(
         operator = optionalValue(value, OPERATOR).map(fromJson[SimilarityOperator]),
         filter = fromJson[LinkFilter](mustBeDefined(value, FILTER)),
-        linkType = fromJson[Uri](mustBeDefined(value, LINKTYPE))
+        linkType = fromJson[Uri](mustBeDefined(value, LINKTYPE)),
+        layout = optionalValue(value, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout())
       )
     }
 
@@ -943,7 +975,8 @@ object JsonSerializers {
       Json.obj(
         OPERATOR -> value.operator.map(toJson(_)),
         FILTER -> toJson(value.filter),
-        LINKTYPE -> toJson(value.linkType)
+        LINKTYPE -> toJson(value.linkType),
+        LAYOUT -> toJson(value.layout)
       )
     }
   }
