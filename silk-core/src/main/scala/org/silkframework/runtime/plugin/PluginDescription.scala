@@ -28,6 +28,24 @@ import scala.io.Source
 import scala.language.existentials
 import scala.util.control.NonFatal
 
+trait PluginDescription[+T] {
+
+  val id: Identifier
+  val categories: Seq[String]
+  val label: String
+  val description: String
+  val documentation: String
+  val parameters: Seq[Parameter]
+
+  def pluginClass: Class[_ <: T]
+
+  def apply(parameterValues: Map[String, String] = Map.empty, ignoreNonExistingParameters: Boolean = true)
+           (implicit prefixes: Prefixes, resources: ResourceManager = EmptyResourceManager()): T
+
+  def parameterValues(plugin: AnyRef)(implicit prefixes: Prefixes): Map[String, String]
+
+}
+
 /**
   * Describes a plugin.
   *
@@ -40,8 +58,8 @@ import scala.util.control.NonFatal
   * @param constructor The constructor for creating a new instance of this plugin.
   * @tparam T The class that implements this plugin.
   */
-class PluginDescription[+T](val id: Identifier, val categories: Seq[String], val label: String, val description: String,
-                            val documentation: String, val parameters: Seq[Parameter], constructor: Constructor[T]) {
+class ClassPluginDescription[+T](val id: Identifier, val categories: Seq[String], val label: String, val description: String,
+                                 val documentation: String, val parameters: Seq[Parameter], constructor: Constructor[T]) extends PluginDescription[T] {
 
   /**
     * The plugin class.
@@ -151,7 +169,7 @@ object PluginDescription {
   }
 
   private def createFromAnnotation[T](pluginClass: Class[T], annotation: Plugin) = {
-    new PluginDescription(
+    new ClassPluginDescription(
       id = annotation.id,
       label = annotation.label,
       categories = annotation.categories,
@@ -163,7 +181,7 @@ object PluginDescription {
   }
 
   private def createFromClass[T](pluginClass: Class[T]) = {
-    new PluginDescription(
+    new ClassPluginDescription(
       id = Identifier.fromAllowed(pluginClass.getSimpleName),
       label = pluginClass.getSimpleName,
       categories = Seq(PluginCategories.uncategorized),

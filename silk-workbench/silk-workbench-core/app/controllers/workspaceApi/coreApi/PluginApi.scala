@@ -46,12 +46,12 @@ class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedControlle
       )
     ))
   def taskPlugins(@Parameter(
-                    name = "addMarkdownDocumentation",
-                    description = "Add markdown documentation to the result.",
-                    required = false,
-                    in = ParameterIn.QUERY,
-                    schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
-                  )
+    name = "addMarkdownDocumentation",
+    description = "Add markdown documentation to the result.",
+    required = false,
+    in = ParameterIn.QUERY,
+    schema = new Schema(implementation = classOf[Boolean], defaultValue = "false")
+  )
                   addMarkdownDocumentation: Boolean,
                   @Parameter(
                     name = "textQuery",
