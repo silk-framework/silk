@@ -50,8 +50,12 @@ export interface IModelActions {
         targetHandleId: string | undefined,
         previousTargetHandle?: string
     ) => void;
-    /** Delete an edge. */
-    deleteEdge: (edgeId: string) => void;
+    /** Delete an edge.
+     *
+     * @param edgeId        The ID of the edge that should be deleted.
+     * @param updateHandles If the handles of the target node should be updated after this operation.
+     */
+    deleteEdge: (edgeId: string, updateHandles?: boolean) => void;
     /** Delete multiple edges */
     deleteEdges: (edgeIds: string[]) => void;
     /** Copy and paste a selection of nodes. Move pasted selection by the defined offset. */

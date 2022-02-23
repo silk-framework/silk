@@ -14,9 +14,12 @@ import {
 import { XYPosition } from "react-flow-renderer/dist/types";
 import utils from "../../RuleEditor.utils";
 import { ruleEditorModelUtilsFactory } from "../RuleEditorModel.utils";
+import { RuleEditorNode } from "../RuleEditorModel.typings";
+import { rangeArray } from "../../../../../utils/basicUtils";
 
 let modelContext: RuleEditorModelContextProps | undefined;
 const currentContext = () => modelContext as RuleEditorModelContextProps;
+const execute = () => currentContext().executeModelEditOperation;
 const modelUtils = ruleEditorModelUtilsFactory();
 const nodeById = (nodeId: string) => {
     const node = currentContext().elements.find((elem) => modelUtils.isNode(elem) && elem.id === nodeId);
@@ -26,9 +29,14 @@ const nodeById = (nodeId: string) => {
 
 describe("Rule editor model", () => {
     let ruleOperatorNodes: IRuleOperatorNode[] = [];
+    // Get a deep copy of the current operator nodes sorted by node ID
     const currentOperatorNodes = (): IRuleOperatorNode[] => {
         currentContext().saveRule();
-        return JSON.parse(JSON.stringify(ruleOperatorNodes.sort((n1, n2) => (n1.nodeId < n2.nodeId ? 1 : -1))));
+        return JSON.parse(JSON.stringify(ruleOperatorNodes.sort((n1, n2) => (n1.nodeId < n2.nodeId ? -1 : 1))));
+    };
+    // Fetch the current react-flow nodes
+    const currentReactFlowNodes = (): RuleEditorNode[] => {
+        return modelUtils.elementNodes(currentContext().elements).sort((n1, n2) => (n1.id < n2.id ? -1 : 1));
     };
 
     const ruleEditorModel = async (
@@ -94,6 +102,7 @@ describe("Rule editor model", () => {
         inputs?: (string | undefined)[];
         pluginId?: string;
         portSpecification?: IPortSpecification;
+        position?: XYPosition;
     }
     const nodeDefaultPosition = { x: 0, y: 0 };
     const node = ({
@@ -101,19 +110,20 @@ describe("Rule editor model", () => {
         inputs = [],
         pluginId = "testPlugin",
         portSpecification = { minInputPorts: 1 },
+        position = nodeDefaultPosition,
     }: NodeProps): IRuleOperatorNode => {
         return {
-            inputs: inputs,
+            inputs,
             label: nodeId,
-            nodeId: nodeId,
+            nodeId,
             parameters: {
                 "param A": "Value A",
                 "param B": "Value B",
             },
-            pluginId: pluginId,
+            pluginId,
             pluginType: "TestPlugin",
-            portSpecification: portSpecification,
-            position: nodeDefaultPosition,
+            portSpecification,
+            position,
         };
     };
 
@@ -328,6 +338,43 @@ describe("Rule editor model", () => {
         checkAfterMove();
     });
 
+    it("should move multiple nodes by an offset", async () => {
+        await ruleEditorModel(
+            [
+                node({ nodeId: "nodeA", position: { x: 1, y: 2 } }),
+                node({ nodeId: "nodeB", inputs: ["nodeA"], position: { x: 2, y: 3 } }),
+                node({ nodeId: "nodeC", position: { x: 3, y: 4 } }),
+            ],
+            [operator("pluginA")]
+        );
+        const checkPositions = (data: [string, number, number][]) => {
+            expect(currentOperatorNodes().map((n) => ({ pos: n.position, id: n.nodeId }))).toStrictEqual(
+                data.map((d) => ({ id: `node${d[0]}`, pos: { x: d[1], y: d[2] } }))
+            );
+        };
+        const beforeUpdateCheck = () => {
+            checkPositions([
+                ["A", 1, 2],
+                ["B", 2, 3],
+                ["C", 3, 4],
+            ]);
+        };
+        beforeUpdateCheck();
+        act(() => {
+            currentContext().executeModelEditOperation.moveNodes(["nodeA", "nodeC"], { x: 5, y: 10 });
+        });
+        const afterUpdateCheck = () => {
+            checkPositions([
+                ["A", 6, 12],
+                ["B", 2, 3],
+                ["C", 8, 14],
+            ]);
+        };
+        afterUpdateCheck();
+
+        checkUndoAndRedo(beforeUpdateCheck, afterUpdateCheck);
+    });
+
     it("should change node parameters and undo & redo", async () => {
         await ruleEditorModel([node({ nodeId: "nodeA" })], [operator("pluginA")]);
         const checkParameters = (expectedParameterValues: string[] = ["Value A", "Value B"]) => {
@@ -444,19 +491,7 @@ describe("Rule editor model", () => {
             expect(new Set(ruleOperatorNodes.map((op) => op.nodeId)).size).toBe(ruleOperatorNodes.length);
         };
         checkAfterCopyAndPaste();
-
-        // UNDO
-        act(() => {
-            currentContext().undo();
-        });
-        checkAfterUndo();
-        checkBeforeCopyAndPaste();
-
-        // REDO
-        act(() => {
-            currentContext().redo();
-        });
-        checkAfterCopyAndPaste();
+        checkUndoAndRedo(checkBeforeCopyAndPaste, checkAfterCopyAndPaste);
     });
 
     it("should add an edge and undo & redo", async () => {
@@ -693,6 +728,58 @@ describe("Rule editor model", () => {
         };
 
         checkUndoAndRedo(checkBeforeEdit, checkAfterEdit);
+    });
+
+    it("should increase and decrease input ports for nodes with potentially unlimited input ports (and only for those)", async () => {
+        const nrOfDummyNodes = 10;
+        const dummyNodes = rangeArray(nrOfDummyNodes).map((idx) => node({ nodeId: "inputNode" + (idx + 1) }));
+        const inputHandlesForDummyNodes = dummyNodes.map(() => 1);
+        await ruleEditorModel([
+            // Each node can only have one output edge, so we need a lot of dummy nodes
+            ...dummyNodes,
+            node({ nodeId: "nodeA" }),
+            node({ nodeId: "nodeA2", portSpecification: { minInputPorts: 0, maxInputPorts: 0 } }),
+            node({ nodeId: "nodeB" }),
+            node({ nodeId: "nodeC", inputs: ["inputNode1", "inputNode2"] }),
+            node({
+                nodeId: "nodeD",
+                inputs: ["inputNode3", "inputNode4"],
+                portSpecification: { minInputPorts: 2, maxInputPorts: 3 },
+            }),
+            node({ nodeId: "nodeE", inputs: ["inputNode5", "inputNode6"] }),
+            node({ nodeId: "nodeF", inputs: ["inputNode7", "inputNode8"] }),
+        ]);
+        const checkNrOfInputs = (inputs: number[]) => {
+            expect(currentReactFlowNodes().map((n) => modelUtils.inputHandles(n).length)).toStrictEqual(inputs);
+        };
+        const checkBeforeChange = () => {
+            checkNrOfInputs([...inputHandlesForDummyNodes, 1, 0, 1, 3, 3, 3, 3]);
+        };
+        checkBeforeChange();
+        act(() => {
+            execute().addEdge("nodeA", "nodeB", undefined);
+            execute().addEdge("nodeA2", "nodeB", undefined);
+            execute().addEdge("inputNode9", "nodeC", undefined);
+            // Should not change since the max. number of ports is fixed
+            execute().addEdge("inputNode10", "nodeD", undefined);
+            // This should not change the number of inputs, since the last connection is left unchanged.
+            execute().deleteEdges(
+                modelUtils
+                    .findEdges({ elements: currentContext().elements, source: "inputNode5", target: "nodeE" })
+                    .map((e) => e.id)
+            );
+            // This should reduce the number of inputs, since the last connection was removed.
+            execute().deleteEdges(
+                modelUtils
+                    .findEdges({ elements: currentContext().elements, source: "inputNode8", target: "nodeF" })
+                    .map((e) => e.id)
+            );
+        });
+        const checkAfterChange = () => {
+            checkNrOfInputs([...inputHandlesForDummyNodes, 1, 0, 3, 4, 3, 3, 2]);
+        };
+        checkAfterChange();
+        checkUndoAndRedo(checkBeforeChange, checkAfterChange);
     });
 });
 

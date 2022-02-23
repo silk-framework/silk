@@ -102,7 +102,7 @@ export const RuleEditorView = () => {
             !edgeUpdateState.edgeDeleted
         ) {
             startEdgeUpdateTransaction();
-            modelContext.executeModelEditOperation.deleteEdge(originalEdgeId);
+            modelContext.executeModelEditOperation.deleteEdge(originalEdgeId, false);
             edgeUpdateState.edgeDeleted = true;
         }
     };

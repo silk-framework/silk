@@ -30,7 +30,7 @@ function createInputHandle(handleId: number): IHandleProps {
     };
 }
 
-/** Creates a number of new input handles numbered through by index. */
+/** Creates a number of new input handles numbered through by index, i.e. starting with 0. */
 function createInputHandles(numberOfInputPorts: number) {
     return rangeArray(numberOfInputPorts).map((nr) => createInputHandle(nr));
 }
@@ -78,7 +78,7 @@ function createOperatorNode(
         iconName: node.icon, // findExistingIconName(createIconNameStack("FIXME", node.pluginId)), // FIXME: Calculate icons CMEM-3919
         businessData: {
             originalRuleOperatorNode: node,
-            dynamicPorts: !node.portSpecification.maxInputPorts,
+            dynamicPorts: node.portSpecification.maxInputPorts == null,
         },
         menuButtons: (
             <RuleNodeMenu
@@ -186,11 +186,18 @@ const asEdge = (element: FlowElement | undefined): Edge | undefined => {
     return element && isEdge(element) ? (element as Edge) : undefined;
 };
 
-/** Return inpt handles. */
+/** Return input handles. */
 const inputHandles = (node: RuleEditorNode) => {
     const handles = node.data?.handles ?? [];
     const inputHandles = handles.filter((h) => h.type === "target" && !h.category);
     return inputHandles;
+};
+
+/** Return all other handles than the normal input handles. */
+const nonInputHandles = (node: RuleEditorNode) => {
+    const handles = node.data?.handles ?? [];
+    const nonInputHandles = handles.filter((h) => h.type !== "target" || h.category);
+    return nonInputHandles;
 };
 
 /** Find the rule node by ID. */
@@ -345,6 +352,7 @@ export const ruleEditorModelUtilsFactory = () => {
         findEdges,
         initNodeBaseIds,
         inputHandles,
+        nonInputHandles,
         isNode,
         isEdge,
         freshNodeId,
