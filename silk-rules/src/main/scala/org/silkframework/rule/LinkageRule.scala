@@ -27,7 +27,8 @@ import scala.xml.Node
  */
 case class LinkageRule(operator: Option[SimilarityOperator] = None,
                        filter: LinkFilter = LinkFilter(),
-                       linkType: Uri = Uri.fromString("http://www.w3.org/2002/07/owl#sameAs")) extends PluginObjectParameterNoSchema {
+                       linkType: Uri = Uri.fromString("http://www.w3.org/2002/07/owl#sameAs"),
+                       layout: RuleLayout = RuleLayout()) extends PluginObjectParameterNoSchema {
 
   // Make sure that all operators use unique identifiers
   operator.foreach(_.validateIds())
@@ -89,7 +90,8 @@ object LinkageRule {
       LinkageRule(
         operator = (node \ "_").find(_.label != "Filter").map(fromXml[SimilarityOperator]),
         filter = (node \ "Filter").headOption.map(LinkFilter.fromXML).getOrElse(LinkFilter()),
-        linkType = if(link.isEmpty) "http://www.w3.org/2002/07/owl#sameAs" else Uri.parse(link, readContext.prefixes)
+        linkType = if(link.isEmpty) "http://www.w3.org/2002/07/owl#sameAs" else Uri.parse(link, readContext.prefixes),
+        layout = (node \ "RuleLayout").headOption.map(rl => XmlSerialization.fromXml[RuleLayout](rl)).getOrElse(RuleLayout())
       )
     }
 
@@ -97,6 +99,7 @@ object LinkageRule {
       <LinkageRule linkType={value.linkType.serialize(writeContext.prefixes)}>
         {value.operator.toList.map(toXml[SimilarityOperator])}
         {value.filter.toXML}
+        {XmlSerialization.toXml(value.layout)}
       </LinkageRule>
     }
   }

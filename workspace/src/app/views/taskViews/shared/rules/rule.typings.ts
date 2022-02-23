@@ -32,3 +32,10 @@ export interface ITransformOperator extends IValueInput {
 export interface IOperatorNodeParameters {
     [key: string]: string;
 }
+
+/** Rule layout information. */
+export interface RuleLayout {
+    nodePositions: {
+        [key: string]: [number, number];
+    };
+}

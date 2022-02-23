@@ -1,6 +1,6 @@
 import { IInputSource } from "../shared/task.typings";
 import { IMetadata } from "@ducks/shared/typings";
-import { IValueInput } from "../shared/rules/rule.typings";
+import { IValueInput, RuleLayout } from "../shared/rules/rule.typings";
 
 /** Parameters of a transform task. */
 export interface ITransformRule {
@@ -26,6 +26,8 @@ export interface IComplexMappingRule extends ITransformRule {
     sourcePaths: string[];
     /** The rule operator tree. */
     operator: IValueInput;
+    /** Rule operator layout information. */
+    layout: RuleLayout;
 }
 
 export interface IComplexUriRule extends ITransformRule {
