@@ -5,13 +5,21 @@ import { RuleEditorModelContext, RuleEditorModelContextProps } from "../../conte
 import { Elements, FitViewParams, FlowExportObject, FlowTransform, ReactFlowProvider } from "react-flow-renderer";
 import { act, waitFor } from "@testing-library/react";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
-import { IParameterSpecification, IRuleOperator, IRuleOperatorNode } from "../../RuleEditor.typings";
+import {
+    IParameterSpecification,
+    IPortSpecification,
+    IRuleOperator,
+    IRuleOperatorNode,
+} from "../../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 import utils from "../../RuleEditor.utils";
 import { ruleEditorModelUtilsFactory } from "../RuleEditorModel.utils";
+import { RuleEditorNode } from "../RuleEditorModel.typings";
+import { rangeArray } from "../../../../../utils/basicUtils";
 
 let modelContext: RuleEditorModelContextProps | undefined;
 const currentContext = () => modelContext as RuleEditorModelContextProps;
+const execute = () => currentContext().executeModelEditOperation;
 const modelUtils = ruleEditorModelUtilsFactory();
 const nodeById = (nodeId: string) => {
     const node = currentContext().elements.find((elem) => modelUtils.isNode(elem) && elem.id === nodeId);
@@ -21,10 +29,16 @@ const nodeById = (nodeId: string) => {
 
 describe("Rule editor model", () => {
     let ruleOperatorNodes: IRuleOperatorNode[] = [];
+    // Get a deep copy of the current operator nodes sorted by node ID
     const currentOperatorNodes = (): IRuleOperatorNode[] => {
         currentContext().saveRule();
-        return JSON.parse(JSON.stringify(ruleOperatorNodes.sort((n1, n2) => (n1.nodeId < n2.nodeId ? 1 : -1))));
+        return JSON.parse(JSON.stringify(ruleOperatorNodes.sort((n1, n2) => (n1.nodeId < n2.nodeId ? -1 : 1))));
     };
+    // Fetch the current react-flow nodes
+    const currentReactFlowNodes = (): RuleEditorNode[] => {
+        return modelUtils.elementNodes(currentContext().elements).sort((n1, n2) => (n1.id < n2.id ? -1 : 1));
+    };
+
     const ruleEditorModel = async (
         initialRuleNodes: IRuleOperatorNode[] = [],
         operatorList: IRuleOperator[] = [],
@@ -85,31 +99,31 @@ describe("Rule editor model", () => {
 
     interface NodeProps {
         nodeId: string;
-        inputs?: string[];
+        inputs?: (string | undefined)[];
         pluginId?: string;
-        minInputPorts?: number;
+        portSpecification?: IPortSpecification;
+        position?: XYPosition;
     }
     const nodeDefaultPosition = { x: 0, y: 0 };
     const node = ({
         nodeId,
         inputs = [],
         pluginId = "testPlugin",
-        minInputPorts = 1,
+        portSpecification = { minInputPorts: 1 },
+        position = nodeDefaultPosition,
     }: NodeProps): IRuleOperatorNode => {
         return {
-            inputs: inputs,
+            inputs,
             label: nodeId,
-            nodeId: nodeId,
+            nodeId,
             parameters: {
                 "param A": "Value A",
                 "param B": "Value B",
             },
-            pluginId: pluginId,
+            pluginId,
             pluginType: "unknown",
-            portSpecification: {
-                minInputPorts: minInputPorts,
-            },
-            position: nodeDefaultPosition,
+            portSpecification,
+            position,
         };
     };
 
@@ -148,6 +162,26 @@ describe("Rule editor model", () => {
         expect(currentContext().canUndo).toBe(true);
     };
 
+    // Test UNDO and REDO behavior
+    const checkUndoAndRedo = (beforeEditCheck: () => any, afterEditCheck: () => any) => {
+        afterEditCheck();
+        // Check UNDO and REDO twice in a row
+        for (let i = 0; i < 2; i++) {
+            // UNDO
+            act(() => {
+                currentContext().undo();
+            });
+            checkAfterUndo();
+            beforeEditCheck();
+
+            // REDO
+            act(() => {
+                currentContext().redo();
+            });
+            afterEditCheck();
+        }
+    };
+
     it("should load the internal model", async () => {
         await ruleEditorModel();
         expect(currentContext().canUndo).toBe(false);
@@ -156,7 +190,7 @@ describe("Rule editor model", () => {
         currentContext().saveRule();
         expect(ruleOperatorNodes).toHaveLength(0);
         await ruleEditorModel(
-            [node({ nodeId: "node A", minInputPorts: 0 }), node({ nodeId: "node B", inputs: ["node A"] })],
+            [node({ nodeId: "node A", portSpecification: {minInputPorts: 0} }), node({ nodeId: "node B", inputs: ["node A"] })],
             [operator("pluginA", 0)]
         );
         // 2 nodes and 1 edge
@@ -304,6 +338,43 @@ describe("Rule editor model", () => {
         checkAfterMove();
     });
 
+    it("should move multiple nodes by an offset", async () => {
+        await ruleEditorModel(
+            [
+                node({ nodeId: "nodeA", position: { x: 1, y: 2 } }),
+                node({ nodeId: "nodeB", inputs: ["nodeA"], position: { x: 2, y: 3 } }),
+                node({ nodeId: "nodeC", position: { x: 3, y: 4 } }),
+            ],
+            [operator("pluginA")]
+        );
+        const checkPositions = (data: [string, number, number][]) => {
+            expect(currentOperatorNodes().map((n) => ({ pos: n.position, id: n.nodeId }))).toStrictEqual(
+                data.map((d) => ({ id: `node${d[0]}`, pos: { x: d[1], y: d[2] } }))
+            );
+        };
+        const beforeUpdateCheck = () => {
+            checkPositions([
+                ["A", 1, 2],
+                ["B", 2, 3],
+                ["C", 3, 4],
+            ]);
+        };
+        beforeUpdateCheck();
+        act(() => {
+            currentContext().executeModelEditOperation.moveNodes(["nodeA", "nodeC"], { x: 5, y: 10 });
+        });
+        const afterUpdateCheck = () => {
+            checkPositions([
+                ["A", 6, 12],
+                ["B", 2, 3],
+                ["C", 8, 14],
+            ]);
+        };
+        afterUpdateCheck();
+
+        checkUndoAndRedo(beforeUpdateCheck, afterUpdateCheck);
+    });
+
     it("should change node parameters and undo & redo", async () => {
         await ruleEditorModel([node({ nodeId: "nodeA" })], [operator("pluginA")]);
         const checkParameters = (expectedParameterValues: string[] = ["Value A", "Value B"]) => {
@@ -420,19 +491,7 @@ describe("Rule editor model", () => {
             expect(new Set(ruleOperatorNodes.map((op) => op.nodeId)).size).toBe(ruleOperatorNodes.length);
         };
         checkAfterCopyAndPaste();
-
-        // UNDO
-        act(() => {
-            currentContext().undo();
-        });
-        checkAfterUndo();
-        checkBeforeCopyAndPaste();
-
-        // REDO
-        act(() => {
-            currentContext().redo();
-        });
-        checkAfterCopyAndPaste();
+        checkUndoAndRedo(checkBeforeCopyAndPaste, checkAfterCopyAndPaste);
     });
 
     it("should add an edge and undo & redo", async () => {
@@ -493,18 +552,7 @@ describe("Rule editor model", () => {
         };
         checkAfterDelete();
 
-        // UNDO
-        act(() => {
-            currentContext().undo();
-        });
-        checkAfterUndo();
-        checkBeforeDelete();
-
-        // REDO
-        act(() => {
-            currentContext().redo();
-        });
-        checkAfterDelete();
+        checkUndoAndRedo(checkBeforeDelete, checkAfterDelete);
     });
 
     it("should undo and redo complex change chains", async () => {
@@ -531,7 +579,7 @@ describe("Rule editor model", () => {
         await ruleEditorModel([
             node({ nodeId: "nodeA" }),
             node({ nodeId: "nodeB", inputs: ["nodeA"] }),
-            node({ nodeId: "nodeC", inputs: ["nodeA", "nodeB"] }),
+            node({ nodeId: "nodeC", inputs: ["nodeB"] }),
         ]);
         recordCurrentState("Initial state");
         // Record every change and check that after undo and later redo the states match
@@ -542,7 +590,7 @@ describe("Rule editor model", () => {
             currentContext().executeModelEditOperation.moveNode("nodeA", { x: 2, y: 3 });
         });
         await recordedTransaction("Add edge", () => {
-            currentContext().executeModelEditOperation.addEdge("nodeA", "pluginA", "0");
+            currentContext().executeModelEditOperation.addEdge("pluginA", "nodeA", "0");
         });
         // FIXME: Wait for elkjs release 0.7.3 to fix an issue with undefined variables
         // await recordedTransaction("Auto-layout",
@@ -595,6 +643,143 @@ describe("Rule editor model", () => {
                 expect(currentOperatorNodes()).toStrictEqual(stateHistory[changeIdx]);
             }
         }
+    });
+
+    const nodeHasInputs = (nodeId: string, inputs: (string | null)[]) => {
+        expect(currentOperatorNodes().find((op) => op.nodeId === nodeId)?.inputs).toStrictEqual(inputs);
+    };
+
+    it("should remove an existing edge when a new edge is connected to the same port", async () => {
+        await ruleEditorModel([
+            node({ nodeId: "nodeA" }),
+            node({ nodeId: "nodeB" }),
+            node({ nodeId: "nodeC", inputs: ["nodeA"] }),
+            node({ nodeId: "nodeD", inputs: ["nodeB"] }),
+        ]);
+        const beforeEditCheck = () => {
+            nodeHasInputs("nodeC", ["nodeA"]);
+            nodeHasInputs("nodeD", ["nodeB"]);
+            expect(currentContext().elements).toHaveLength(6);
+        };
+        beforeEditCheck();
+        act(() => {
+            currentContext().executeModelEditOperation.addEdge("nodeB", "nodeC", "0");
+        });
+        const afterEditCheck = () => {
+            nodeHasInputs("nodeC", ["nodeB"]);
+            nodeHasInputs("nodeD", []);
+            expect(currentContext().elements).toHaveLength(5);
+        };
+        afterEditCheck();
+        checkUndoAndRedo(beforeEditCheck, afterEditCheck);
+    });
+
+    it("should swap edges when changing an existing edge to another handle on the same node", async () => {
+        await ruleEditorModel([
+            node({ nodeId: "nodeA" }),
+            node({ nodeId: "nodeB" }),
+            node({ nodeId: "nodeC", inputs: ["nodeA", "nodeB"] }),
+        ]);
+        const checkBeforeEdit = () => {
+            nodeHasInputs("nodeC", ["nodeA", "nodeB"]);
+            expect(currentContext().elements).toHaveLength(5);
+        };
+        checkBeforeEdit();
+        act(() => {
+            currentContext().executeModelEditOperation.deleteEdge("1");
+            currentContext().executeModelEditOperation.addEdge("nodeA", "nodeC", "1", "0");
+        });
+        const checkAfterEdit = () => {
+            nodeHasInputs("nodeC", ["nodeB", "nodeA"]);
+            expect(currentContext().elements).toHaveLength(5);
+        };
+
+        checkUndoAndRedo(checkBeforeEdit, checkAfterEdit);
+    });
+
+    it("should connect to the first free handle of a node when no handle is specified", async () => {
+        await ruleEditorModel([
+            node({ nodeId: "nodeA" }),
+            node({ nodeId: "nodeB" }),
+            node({ nodeId: "nodeC" }),
+            node({ nodeId: "nodeD" }),
+            node({
+                nodeId: "nodeE",
+                inputs: [undefined, "nodeA"],
+                portSpecification: {
+                    minInputPorts: 3,
+                    maxInputPorts: 3,
+                },
+            }),
+        ]);
+        const checkBeforeEdit = () => {
+            nodeHasInputs("nodeE", [null, "nodeA", null]);
+            expect(currentContext().elements).toHaveLength(6);
+        };
+        checkBeforeEdit();
+        act(() => {
+            currentContext().executeModelEditOperation.addEdge("nodeB", "nodeE", undefined);
+            currentContext().executeModelEditOperation.addEdge("nodeC", "nodeE", undefined);
+            currentContext().executeModelEditOperation.addEdge("nodeD", "nodeE", undefined);
+        });
+        const checkAfterEdit = () => {
+            nodeHasInputs("nodeE", ["nodeB", "nodeA", "nodeC"]);
+            expect(currentContext().elements).toHaveLength(8);
+        };
+
+        checkUndoAndRedo(checkBeforeEdit, checkAfterEdit);
+    });
+
+    it("should increase and decrease input ports for nodes with potentially unlimited input ports (and only for those)", async () => {
+        const nrOfDummyNodes = 10;
+        const dummyNodes = rangeArray(nrOfDummyNodes).map((idx) => node({ nodeId: "inputNode" + (idx + 1) }));
+        const inputHandlesForDummyNodes = dummyNodes.map(() => 1);
+        await ruleEditorModel([
+            // Each node can only have one output edge, so we need a lot of dummy nodes
+            ...dummyNodes,
+            node({ nodeId: "nodeA" }),
+            node({ nodeId: "nodeA2", portSpecification: { minInputPorts: 0, maxInputPorts: 0 } }),
+            node({ nodeId: "nodeB" }),
+            node({ nodeId: "nodeC", inputs: ["inputNode1", "inputNode2"] }),
+            node({
+                nodeId: "nodeD",
+                inputs: ["inputNode3", "inputNode4"],
+                portSpecification: { minInputPorts: 2, maxInputPorts: 3 },
+            }),
+            node({ nodeId: "nodeE", inputs: ["inputNode5", "inputNode6"] }),
+            node({ nodeId: "nodeF", inputs: ["inputNode7", "inputNode8"] }),
+        ]);
+        const checkNrOfInputs = (inputs: number[]) => {
+            expect(currentReactFlowNodes().map((n) => modelUtils.inputHandles(n).length)).toStrictEqual(inputs);
+        };
+        const checkBeforeChange = () => {
+            checkNrOfInputs([...inputHandlesForDummyNodes, 1, 0, 1, 3, 3, 3, 3]);
+        };
+        checkBeforeChange();
+        act(() => {
+            execute().addEdge("nodeA", "nodeB", undefined);
+            execute().addEdge("nodeA2", "nodeB", undefined);
+            execute().addEdge("inputNode9", "nodeC", undefined);
+            // Should not change since the max. number of ports is fixed
+            execute().addEdge("inputNode10", "nodeD", undefined);
+            // This should not change the number of inputs, since the last connection is left unchanged.
+            execute().deleteEdges(
+                modelUtils
+                    .findEdges({ elements: currentContext().elements, source: "inputNode5", target: "nodeE" })
+                    .map((e) => e.id)
+            );
+            // This should reduce the number of inputs, since the last connection was removed.
+            execute().deleteEdges(
+                modelUtils
+                    .findEdges({ elements: currentContext().elements, source: "inputNode8", target: "nodeF" })
+                    .map((e) => e.id)
+            );
+        });
+        const checkAfterChange = () => {
+            checkNrOfInputs([...inputHandlesForDummyNodes, 1, 0, 3, 4, 3, 3, 2]);
+        };
+        checkAfterChange();
+        checkUndoAndRedo(checkBeforeChange, checkAfterChange);
     });
 });
 

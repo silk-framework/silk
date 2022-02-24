@@ -25,3 +25,24 @@ export const sortLexically = <T>(
     const comparison = asc ? (a, b) => (a < b ? 1 : -1) : (a, b) => (a > b ? 1 : -1);
     return (inPlace ? inputArray : [...inputArray]).sort((a, b) => comparison(transform(a), transform(b)));
 };
+
+/** Sets the new value based on the picker function. */
+export const setConditionalMap = <KeyType, ValueType>(
+    map: Map<KeyType, ValueType>,
+    key: KeyType,
+    newValue: ValueType,
+    valuePicker: (newValue: ValueType, oldValue?: ValueType) => ValueType
+): ValueType => {
+    const valueToSet = valuePicker(newValue, map.get(key));
+    map.set(key, valueToSet);
+    return valueToSet;
+};
+
+/** Picks the larger number. */
+export const maxNumberValuePicker = (newValue: number, oldValue?: number): number => {
+    if (oldValue) {
+        return newValue > oldValue ? newValue : oldValue;
+    } else {
+        return newValue;
+    }
+};

@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { Edge, Elements, OnLoadParams, removeElements, useStoreActions, useStoreState } from "react-flow-renderer";
+import {
+    Edge,
+    Elements,
+    OnLoadParams,
+    removeElements,
+    useStoreActions,
+    useStoreState,
+    useUpdateNodeInternals,
+} from "react-flow-renderer";
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { RuleEditorContext, RuleEditorContextProps } from "../contexts/RuleEditorContext";
 import { IOperatorCreateContext, IOperatorNodeOperations, ruleEditorModelUtilsFactory } from "./RuleEditorModel.utils";
@@ -15,6 +23,7 @@ import {
     AddNode,
     ChangeNodeParameter,
     ChangeNodePosition,
+    ChangeNumberOfInputHandles,
     DeleteEdge,
     DeleteNode,
     RuleEditorNode,
@@ -24,6 +33,7 @@ import {
 } from "./RuleEditorModel.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 import { NodeContent } from "../view/ruleNode/NodeContent";
+import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basicUtils";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
@@ -35,7 +45,8 @@ const TRANSACTION_BOUNDARY = "Transaction boundary";
 type ChangeStackType = RuleModelChanges | "Transaction boundary";
 
 /** The actual rule model, i.e. the model that is displayed in the editor.
- *  All rule model changes must happen here. */
+ *  All rule model changes must happen here.
+ *  It contains the main (core) rule editor logic. */
 export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const { t } = useTranslation();
     /** If set, then the model cannot be modified. */
@@ -43,6 +54,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
     /** The nodes and edges of the rule editor. */
     const [elements, setElements] = React.useState<Elements>([]);
+    /** Track the current elements, since the API methods changing the elements when run subsequently will otherwise work with the same elements.
+     * Use the function changeElementsInternal to modify the elements instead of directly changing them. */
+    const [current] = React.useState<{ elements: Elements }>({ elements: [] });
+    current.elements = elements;
     /** Rule editor context. */
     const ruleEditorContext = React.useContext<RuleEditorContextProps>(RuleEditorContext);
     /** The rule editor change history that will be used to UNDO changes. The changes are in the order they have been executed. */
@@ -62,6 +77,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [postInit, setPostInit] = useState(false);
     /** Manages the parameters of rule nodes. This is done for performance reasons. Only stores diffs to the original value. */
     const [nodeParameters] = React.useState<Map<string, Map<string, string | undefined>>>(new Map());
+    /** Update the internals of a node. This needs to be called in some cases in order to update the appearance of a node. */
+    const updateNodeInternals = useUpdateNodeInternals();
+    const resetSelectedElements = useStoreActions((a) => a.resetSelectedElements);
+    const setSelectedElements = useStoreActions((a) => a.setSelectedElements);
+
 
     /** Convert initial operator nodes to react-flow model. */
     React.useEffect(() => {
@@ -90,6 +110,76 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             setPostInit(true);
         }
     }, [ruleEditorContext.editedItem, postInit, elements]);
+
+    /** Elements should only be changed via this function when needing the current elements.
+     *
+     * @param changeFn      The function that changes the elements.
+     * @param fixNodeInputs Either false for not doing anything or an array of node IDs that should be checked if they need
+     *                      a change of input handles.
+     */
+    const changeElementsInternal = (changeFn: (elements: Elements) => Elements, fixNodeInputs: boolean = false) => {
+        current.elements = changeFn(current.elements);
+        if (fixNodeInputs) {
+            current.elements = fixNodeInputPortsInternal(current.elements);
+        }
+        setElements(current.elements);
+    };
+
+    /** Checks if there is the right amount of input handles per node and adjusts them if needed. */
+    const fixNodeInputPortsInternal = (elements: Elements): Elements => {
+        const maxOccupiedHandle = new Map<string, number>();
+        // Compute the larges handle index per node
+        utils.elementEdges(elements).forEach((edge) => {
+            const targetHandle = Number.parseInt(edge.targetHandle ?? "");
+            if (!Number.isNaN(targetHandle)) {
+                setConditionalMap(maxOccupiedHandle, edge.target, targetHandle, maxNumberValuePicker);
+            }
+        });
+        const handleChangeOperations: ChangeNumberOfInputHandles[] = [];
+        const changedElements = elements.map((elem) => {
+            if (utils.isNode(elem)) {
+                const node = utils.asNode(elem)!!;
+                const dynamicPorts = node.data.businessData.dynamicPorts ?? false;
+                const currentInputHandles = utils.inputHandles(node);
+                const maxOccupiedHandleId = maxOccupiedHandle.get(node.id) ?? -1;
+                // Only need to adjust nodes with dynamic input ports that have too many or not enough handles
+                if (
+                    dynamicPorts &&
+                    (currentInputHandles.length > maxOccupiedHandleId + 2 ||
+                        currentInputHandles.length <= maxOccupiedHandleId + 1)
+                ) {
+                    const newNumberOfHandles = maxOccupiedHandleId + 2;
+                    handleChangeOperations.push({
+                        type: "Change number of input handles",
+                        nodeId: node.id,
+                        from: currentInputHandles.length,
+                        to: newNumberOfHandles,
+                    });
+                    const nodeWithNewHandles: RuleEditorNode = {
+                        ...node,
+                        data: {
+                            ...node.data,
+                            handles: [...utils.nonInputHandles(node), ...utils.createInputHandles(newNumberOfHandles)],
+                        },
+                    };
+                    // This need to be done every time the handles of a node have been changed, else the UI does not show the current state
+                    setTimeout(() => {
+                        updateNodeInternals(node.id);
+                    }, 1);
+                    return nodeWithNewHandles;
+                } else {
+                    return node;
+                }
+            } else {
+                return elem;
+            }
+        });
+        // Add handle change actions to change stack
+        if (handleChangeOperations.length > 0) {
+            addRuleModelChange({ operations: handleChangeOperations }, false);
+        }
+        return changedElements;
+    };
 
     /**
      * UNDO/REDO handling.
@@ -131,6 +221,13 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 return { type: "Delete edge", edge: undoOp.edge };
             case "Delete edge":
                 return { type: "Add edge", edge: undoOp.edge };
+            case "Change number of input handles":
+                return {
+                    type: "Change number of input handles",
+                    nodeId: undoOp.nodeId,
+                    from: undoOp.to,
+                    to: undoOp.from,
+                };
         }
     };
 
@@ -144,15 +241,17 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             const reversedChanges = [...changesToUndo].reverse().map((change) => invertModelChanges(change));
             reversedChanges.forEach((change) => addRedoRuleModelChange(change));
             // Execute it on the react-flow model
-            setElements((els) => {
+            changeElementsInternal((els) => {
                 let currentElements = els;
                 reversedChanges.forEach((change) => {
                     currentElements = executeRuleModelChangeInternal(change, currentElements, true);
                 });
                 return currentElements;
             });
+            resetSelectedElements();
         }
-        if (ruleUndoStack.length === 0) {
+        if (ruleUndoStack.length === 0 || !ruleUndoStack.find((change) => change !== "Transaction boundary")) {
+            // If stack is empty or only transaction markers exist
             setCanUndo(false);
         }
         return changesToUndo.length > 0;
@@ -168,7 +267,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             const invertedChanges = [...changesToRedo].reverse().map((change) => invertModelChanges(change));
             invertedChanges.forEach((change) => addRuleModelChange(change, false));
             // Execute it on the react-flow model
-            setElements((els) => {
+            changeElementsInternal((els) => {
                 let currentElements = els;
                 invertedChanges.forEach((change) => {
                     currentElements = executeRuleModelChangeInternal(change, currentElements, true);
@@ -309,6 +408,35 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         changedElements
                     );
                     break;
+                case "Change number of input handles":
+                    const nodesInputHandlesDiff: Map<string, number> = new Map();
+                    groupedChange.forEach((change) => {
+                        const inputHandlesChange = change as ChangeNumberOfInputHandles;
+                        nodesInputHandlesDiff.set(inputHandlesChange.nodeId, inputHandlesChange.to);
+                    });
+                    changedElements = changedElements.map((elem) => {
+                        if (utils.isNode(elem) && nodesInputHandlesDiff.has(elem.id)) {
+                            const node = utils.asNode(elem)!!;
+                            const withoutNormalInputHandles = utils.nonInputHandles(node);
+                            // This need to be done every time the handles of a node have been changed, else the UI does not show the current state
+                            setTimeout(() => {
+                                updateNodeInternals(node.id);
+                            }, 1);
+                            return {
+                                ...node,
+                                data: {
+                                    ...node.data,
+                                    handles: [
+                                        ...withoutNormalInputHandles,
+                                        ...utils.createInputHandles(nodesInputHandlesDiff.get(node.id)!!),
+                                    ],
+                                },
+                            };
+                        } else {
+                            return elem;
+                        }
+                    });
+                    break;
                 case "Change node parameter":
                     const nodesParameterDiff: Map<string, Map<string, string | undefined>> = new Map();
                     groupedChange.forEach((change) => {
@@ -428,7 +556,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         if (reactFlowInstance && ruleEditorContext.operatorSpec) {
             const ruleNode = ruleEditorContext.convertRuleOperatorToRuleNode(ruleOperator);
             ruleNode.position = position;
-            setElements((els) => {
+            changeElementsInternal((els) => {
                 const newNode = utils.createNewOperatorNode(
                     ruleNode,
                     operatorNodeOperationsInternal,
@@ -464,7 +592,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     /** Deletes a single rule node. */
     const deleteNode = (nodeId: string) => {
-        setElements((els) => {
+        changeElementsInternal((els) => {
             const node = utils.asNode(els.find((n) => utils.isNode(n) && n.id === nodeId));
             if (node) {
                 // Need to record edge changes first
@@ -477,12 +605,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             } else {
                 return els;
             }
-        });
+        }, true);
     };
 
     /** Delete multiple nodes, e.g. from a selection. */
     const deleteNodes = (nodeIds: string[]) => {
-        setElements((els) => {
+        changeElementsInternal((els) => {
             const nodes = utils.nodesById(els, nodeIds);
             if (nodes.length > 0) {
                 // Need to record edge changes first
@@ -495,31 +623,111 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             } else {
                 return els;
             }
-        });
+        }, true);
     };
 
-    const addEdge = (sourceNodeId: string, targetNodeId: string, targetHandleId: string) => {
-        setElements((els) => {
-            const edge = utils.createEdge(sourceNodeId, targetNodeId, targetHandleId);
-            return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdge(edge), els);
-        });
+    /** Add a new edge.
+     *
+     * @param sourceNodeId Connect from this node...
+     * @param targetNodeId ...to this node.
+     * @param targetHandleId The input port of the target node.
+     * @param previousTargetHandle If this is a swap operation this is the previously used handle. If an existing edge was connected
+     *                             to the target handle, it will be swapped  to the previous handle.
+     */
+    const addEdge = (
+        sourceNodeId: string,
+        targetNodeId: string,
+        targetHandleId: string | undefined,
+        previousTargetHandle?: string
+    ) => {
+        changeElementsInternal((els) => {
+            let currentElements = els;
+            let toTargetHandleId: string | undefined = targetHandleId;
+            if (!targetHandleId) {
+                // If the target handle is not defined, connect to the first empty handle
+                const node = utils.nodeById(els, targetNodeId);
+                if (!node) {
+                    return currentElements;
+                }
+                const inputHandles = (node!!.data.handles ?? []).filter(
+                    (handle) => handle.type === "target" && !handle.category
+                );
+                const existingConnections = utils.findEdges({ elements: currentElements, target: targetNodeId });
+                const occupiedHandles = new Set<string | null | undefined>(
+                    existingConnections.map((edge) => edge.targetHandle)
+                );
+                const freeHandle = inputHandles.find((handle) => handle.id && !occupiedHandles.has(handle.id));
+                if (freeHandle) {
+                    // Connect to free handle
+                    toTargetHandleId = freeHandle.id;
+                } else {
+                    // No free handle exists, do nothing
+                    return currentElements;
+                }
+            }
+            // Remove existing edges to the same target port and from the same source node
+            const existingEdgesToSameNodeHandle = targetHandleId
+                ? utils.findEdges({
+                      elements: currentElements,
+                      target: targetNodeId,
+                      targetHandle: targetHandleId,
+                  })
+                : [];
+            const existingEdgesFromSameSource = utils
+                .findEdges({
+                    elements: currentElements,
+                    source: sourceNodeId,
+                })
+                .filter((edge) => !existingEdgesToSameNodeHandle.find((otherEdge) => edge.id === otherEdge.id));
+            const existingEdges = [...existingEdgesToSameNodeHandle, ...existingEdgesFromSameSource];
+            if (existingEdges.length > 0) {
+                currentElements = addAndExecuteRuleModelChangeInternal(
+                    RuleModelChangesFactory.deleteEdges(existingEdges),
+                    currentElements
+                );
+            }
+            // Swap existing edge if it was connected to the same target handle
+            if (existingEdgesToSameNodeHandle.length > 0 && previousTargetHandle) {
+                currentElements = addAndExecuteRuleModelChangeInternal(
+                    RuleModelChangesFactory.addEdge({
+                        ...existingEdgesToSameNodeHandle[0],
+                        targetHandle: previousTargetHandle,
+                    }),
+                    currentElements
+                );
+            }
+            const edge = utils.createEdge(sourceNodeId, targetNodeId, toTargetHandleId!!);
+            return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdge(edge), currentElements);
+        }, true);
     };
 
     /** Deletes a single edge. */
-    const deleteEdge = (edgeId: string) => {
-        setElements((els) => {
+    const deleteEdge = (edgeId: string, updateHandles?: boolean) => {
+        changeElementsInternal((els) => {
             const edge = utils.edgeById(els, edgeId);
             if (edge) {
                 return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.deleteEdge(edge), els);
             } else {
                 return els;
             }
-        });
+        }, updateHandles ?? true);
+    };
+
+    /** Delete multiple edges. */
+    const deleteEdges = (edgeIds: string[]) => {
+        changeElementsInternal((els) => {
+            const edges = utils.edgesById(els, edgeIds);
+            if (edges.length > 0) {
+                return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.deleteEdges(edges), els);
+            } else {
+                return els;
+            }
+        }, true);
     };
 
     /** Copy and paste nodes with a given offset. */
     const copyAndPasteNodes = (nodeIds: string[], offset: XYPosition) => {
-        setElements((els) => {
+        changeElementsInternal((els) => {
             const nodes = utils.nodesById(els, nodeIds);
             const nodeIdMap = new Map<string, string>();
             const newNodes: RuleEditorNode[] = nodes.map((node) => {
@@ -549,6 +757,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 }
             });
             const withNodes = addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNodes(newNodes), els);
+            resetSelectedElements();
+            setTimeout(() => {
+                setSelectedElements([...newNodes, ...newEdges]);
+            }, 100);
             return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdges(newEdges), withNodes);
         });
     };
@@ -618,13 +830,33 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     /** Move a node to a new position. */
     const moveNode = (nodeId: string, newPosition: XYPosition) => {
-        setElements((els) => {
+        changeElementsInternal((els) => {
             const node = utils.nodeById(els, nodeId);
             if (node) {
                 return addAndExecuteRuleModelChangeInternal(
                     RuleModelChangesFactory.changeNodePosition(nodeId, node.position, newPosition),
                     els
                 );
+            } else {
+                return els;
+            }
+        });
+    };
+
+    /** Moves multiple node sby a given offset. */
+    const moveNodes = (nodeIds: string[], offset: XYPosition) => {
+        changeElementsInternal((els) => {
+            const nodes = utils.nodesById(els, nodeIds);
+            if (nodes.length > 0) {
+                const changes: ChangeNodePosition[] = nodes.map((node) => {
+                    return {
+                        type: "Change node position",
+                        nodeId: node.id,
+                        from: node.position,
+                        to: { x: node.position.x + offset.x, y: node.position.y + offset.y },
+                    };
+                });
+                return addAndExecuteRuleModelChangeInternal({ operations: changes }, els);
             } else {
                 return els;
             }
@@ -680,7 +912,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
      * @param noHistory If the change should be tracked or not.
      */
     const autoLayout = (noHistory: boolean = false) => {
-        setElements((elements) => {
+        changeElementsInternal((elements) => {
             autoLayoutInternal(elements, noHistory);
             return elements;
         });
@@ -813,6 +1045,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     addEdge,
                     deleteEdge,
                     autoLayout,
+                    deleteEdges,
+                    moveNodes,
                 },
                 unsavedChanges: canUndo,
             }}

@@ -47,13 +47,27 @@ export interface IModelActions {
     /** Delete multiple rules nodes at once. */
     deleteNodes: (nodeIds: string[]) => void;
     /** Add an edge between two nodes. */
-    addEdge: (sourceNodeId: string, targetNodeId: string, targetHandleId: string) => void;
-    /** Delete an edge. */
-    deleteEdge: (edgeId: string) => void;
+    addEdge: (
+        sourceNodeId: string,
+        targetNodeId: string,
+        // If target handle is undefined, connect to the first free handle
+        targetHandleId: string | undefined,
+        previousTargetHandle?: string
+    ) => void;
+    /** Delete an edge.
+     *
+     * @param edgeId        The ID of the edge that should be deleted.
+     * @param updateHandles If the handles of the target node should be updated after this operation.
+     */
+    deleteEdge: (edgeId: string, updateHandles?: boolean) => void;
+    /** Delete multiple edges */
+    deleteEdges: (edgeIds: string[]) => void;
     /** Copy and paste a selection of nodes. Move pasted selection by the defined offset. */
     copyAndPasteNodes: (nodeIds: string[], offset: XYPosition) => void;
     /** Move a single node to a new position. */
     moveNode: (nodeId: string, newPosition: XYPosition) => void;
+    /** Moves nodes by a specific offset. */
+    moveNodes: (nodeIds: string[], offset: XYPosition) => void;
     /** Change a single node parameter.
      *
      * @param nodeId Node affected by parameter change.
@@ -94,11 +108,13 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
         addNode: NOP,
         copyAndPasteNodes: NOP,
         moveNode: NOP,
+        moveNodes: NOP,
         changeNodeParameter: NOP,
         addEdge: NOP,
         deleteEdge: NOP,
         autoLayout: NOP,
         addNodeByPlugin: NOP,
+        deleteEdges: NOP,
     },
     undo: () => false,
     canUndo: false,

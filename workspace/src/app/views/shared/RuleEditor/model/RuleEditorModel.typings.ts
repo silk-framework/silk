@@ -16,7 +16,8 @@ export type RuleModelChangeType =
     | AddEdge
     | DeleteEdge
     | ChangeNodePosition
-    | ChangeNodeParameter;
+    | ChangeNodeParameter
+    | ChangeNumberOfInputHandles;
 
 export interface AddNode {
     type: "Add node";
@@ -51,6 +52,13 @@ export interface ChangeNodeParameter {
     parameterId: string;
     from: string | undefined;
     to: string | undefined;
+}
+
+export interface ChangeNumberOfInputHandles {
+    type: "Change number of input handles";
+    nodeId: string;
+    from: number;
+    to: number;
 }
 
 // Create rule model changes action from basic change operation

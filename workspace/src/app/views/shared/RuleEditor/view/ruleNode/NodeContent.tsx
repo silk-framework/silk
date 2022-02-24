@@ -1,8 +1,8 @@
-import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
-import { RuleNodeParameterForm } from "./RuleNodeParameterForm";
+import {IRuleNodeParameter} from "./RuleNodeParameter.typings";
+import {RuleNodeParameterForm} from "./RuleNodeParameterForm";
 import React from "react";
-import { RuleOperatorNodeParameters } from "../../RuleEditor.typings";
-import { IOperatorCreateContext, IOperatorNodeOperations } from "../../model/RuleEditorModel.utils";
+import {RuleOperatorNodeParameters} from "../../RuleEditor.typings";
+import {IOperatorCreateContext, IOperatorNodeOperations} from "../../model/RuleEditorModel.utils";
 import utils from "./ruleNode.utils";
 
 interface NodeContentProps {
@@ -45,6 +45,7 @@ export const NodeContent = ({
             const paramSpec = operatorContext.operatorParameterSpecification.get(paramId)!!;
             return {
                 parameterId: paramId,
+                parameterType: paramSpec.type,
                 update: (value: string) => {
                     nodeOperations.handleParameterChange(nodeId, paramId, value);
                 },

@@ -378,6 +378,14 @@
         }
     },
     "RuleEditor": {
+        "edge": {
+            "menu": {
+                "delete": {
+                    "label": "Remove edge",
+                    "tooltip": "Removes the edge. Alternatively you can delete (multiple) selected rule elements by pressing the [←] (backspace) key on the keyboard."
+                }
+            }
+        },
         "node": {
             "menu": {
                 "remove": {
@@ -388,6 +396,18 @@
         "toolbar": {
             "autoLayout": "Auto-layout",
             "save": "Save"
+        },
+        "selection": {
+            "menu": {
+                "delete": {
+                    "label": "Remove selected nodes",
+                    "tooltip": "Removes all selected nodes and connected edges. Alternatively you can delete (multiple) selected rule elements by pressing the [←] (backspace) key on the keyboard."
+                },
+                "clone": {
+                    "label": "Clone selected nodes",
+                    "tooltip": "Clones all selected nodes and inter-connections and inserts them as new selection."
+                }
+            }
         },
         "sidebar": {
             "cancelCycling": "Cancel cycling",

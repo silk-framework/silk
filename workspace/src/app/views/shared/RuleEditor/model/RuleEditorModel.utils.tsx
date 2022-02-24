@@ -1,18 +1,19 @@
 import React from "react";
-import {IHandleProps} from "gui-elements/src/extensions/react-flow/nodes/NodeDefault";
-import {ArrowHeadType, Edge, FlowElement, OnLoadParams, Position} from "react-flow-renderer";
-import {rangeArray} from "../../../../utils/basicUtils";
+import { IHandleProps } from "gui-elements/src/extensions/react-flow/nodes/NodeDefault";
+import { ArrowHeadType, Edge, FlowElement, OnLoadParams, Position } from "react-flow-renderer";
+import { rangeArray } from "../../../../utils/basicUtils";
 import {
     IParameterSpecification,
     IRuleNodeData,
     IRuleOperatorNode,
-    NodeContentPropsWithBusinessData, RuleOperatorNodeParameters,
+    NodeContentPropsWithBusinessData,
+    RuleOperatorNodeParameters,
 } from "../RuleEditor.typings";
-import {RuleNodeMenu} from "../view/ruleNode/RuleNodeMenu";
-import {RuleEditorNode} from "./RuleEditorModel.typings";
-import {Elements, XYPosition} from "react-flow-renderer/dist/types";
-import ELK, {ElkNode} from "elkjs";
-import {NodeContent} from "../view/ruleNode/NodeContent";
+import { RuleNodeMenu } from "../view/ruleNode/RuleNodeMenu";
+import { RuleEditorNode } from "./RuleEditorModel.typings";
+import { Elements, XYPosition } from "react-flow-renderer/dist/types";
+import ELK, { ElkNode } from "elkjs";
+import { NodeContent } from "../view/ruleNode/NodeContent";
 
 /** Constants */
 
@@ -30,7 +31,7 @@ function createInputHandle(handleId: number): IHandleProps {
     };
 }
 
-/** Creates a number of new input handles numbered through by index. */
+/** Creates a number of new input handles numbered through by index, i.e. starting with 0. */
 function createInputHandles(numberOfInputPorts: number) {
     return rangeArray(numberOfInputPorts).map((nr) => createInputHandle(nr));
 }
@@ -80,7 +81,7 @@ function createOperatorNode(
         iconName: node.icon, // findExistingIconName(createIconNameStack("FIXME", node.pluginId)), // FIXME: Calculate icons CMEM-3919
         businessData: {
             originalRuleOperatorNode: node,
-            dynamicPorts: !node.portSpecification.maxInputPorts,
+            dynamicPorts: node.portSpecification.maxInputPorts == null,
         },
         menuButtons: (
             <RuleNodeMenu
@@ -188,11 +189,18 @@ const asEdge = (element: FlowElement | undefined): Edge | undefined => {
     return element && isEdge(element) ? (element as Edge) : undefined;
 };
 
-/** Return inpt handles. */
+/** Return input handles. */
 const inputHandles = (node: RuleEditorNode) => {
     const handles = node.data?.handles ?? [];
     const inputHandles = handles.filter((h) => h.type === "target" && !h.category);
     return inputHandles;
+};
+
+/** Return all other handles than the normal input handles. */
+const nonInputHandles = (node: RuleEditorNode) => {
+    const handles = node.data?.handles ?? [];
+    const nonInputHandles = handles.filter((h) => h.type !== "target" || h.category);
+    return nonInputHandles;
 };
 
 /** Find the rule node by ID. */
@@ -208,6 +216,11 @@ const nodesById = (elements: Elements, nodeIds: string[]): RuleEditorNode[] => {
 
 const edgeById = (elements: Elements, edgeId: string): Edge | undefined => {
     return asEdge(elements.find((e) => isEdge(e) && e.id === edgeId));
+};
+
+const edgesById = (elements: Elements, edgeIds: string[]): Edge[] => {
+    const edgeIdSet = new Set(edgeIds);
+    return elements.filter((elem) => isEdge(elem) && edgeIdSet.has(asEdge(elem)!!.id)).map((elem) => asEdge(elem)!!);
 };
 
 /** Returns all nodes. */
@@ -276,6 +289,29 @@ const nodeSizes = (zoomFactor: number): Map<string, Size> => {
     return sizes;
 };
 
+interface FindEdgeParameters {
+    elements: Elements;
+    source?: string;
+    target?: string;
+    targetHandle?: string;
+}
+/** Finds all edges matching the given parameters. */
+const findEdges = ({ elements, source, target, targetHandle }: FindEdgeParameters): Edge[] => {
+    const matchingEdges = elements.filter((elem) => {
+        if (isEdge(elem)) {
+            const edge = asEdge(elem)!!;
+            return (
+                (!source || edge.source === source) &&
+                (!target || edge.target === target) &&
+                (!targetHandle || edge.targetHandle === targetHandle)
+            );
+        } else {
+            return false;
+        }
+    });
+    return matchingEdges as Edge[];
+};
+
 /** Layouts the nodes of the rule graph.
  *
  * Returns a map of the new node positions. */
@@ -313,10 +349,13 @@ export const ruleEditorModelUtilsFactory = () => {
         createNewOperatorNode,
         createOperatorNode,
         edgeById,
+        edgesById,
         elementNodes,
         elementEdges,
+        findEdges,
         initNodeBaseIds,
         inputHandles,
+        nonInputHandles,
         isNode,
         isEdge,
         freshNodeId,

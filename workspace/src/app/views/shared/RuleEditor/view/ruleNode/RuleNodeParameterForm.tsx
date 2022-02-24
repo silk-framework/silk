@@ -27,7 +27,7 @@ export const RuleNodeParameterForm = ({ nodeId, parameters }: RuleNodeParameters
                             info: paramSpec.required ? "required" : undefined,
                             title: parameterDescription, // TODO CMEM-3919 Remove when tooltip works
                         }}
-                        // TODO: validation and error state
+                        // TODO: CMEM-3919 validation and error state
                         // hasStateDanger={!!errorMessage("Label", errors.label)}
                         // messageText={errorMessage("Label", errors.label)}
                     >
