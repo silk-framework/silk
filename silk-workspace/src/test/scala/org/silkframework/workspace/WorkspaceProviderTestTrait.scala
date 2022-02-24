@@ -8,8 +8,10 @@ import org.silkframework.dataset.{DatasetSpec, MockDataset}
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.entity.{EntitySchema, Restriction}
 import org.silkframework.rule._
-import org.silkframework.rule.input.PathInput
+import org.silkframework.rule.input.{PathInput, TransformInput}
 import org.silkframework.rule.plugins.distance.characterbased.QGramsMetric
+import org.silkframework.rule.plugins.transformer.combine.ConcatTransformer
+import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.rule.similarity.Comparison
 import org.silkframework.runtime.activity.{SimpleUserContext, UserContext}
 import org.silkframework.runtime.plugin.PluginRegistry
@@ -65,7 +67,10 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
               PathInput("foafName2", UntypedPath("http://xmlns.com/foaf/0.1/name")) :: Nil
         )
       ),
-      linkType = "http://www.w3.org/2002/07/owl#sameAs"
+      linkType = "http://www.w3.org/2002/07/owl#sameAs",
+      layout = RuleLayout(
+        nodePositions = Map("compareNames" -> (1, 2))
+      )
     )
 
   val metaData =
@@ -104,11 +109,33 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
             RootMappingRule(
               id = "root",
               rules =
-                MappingRules(DirectMapping(
-                  id = TRANSFORM_ID,
-                  sourcePath = UntypedPath("prop1"),
-                  metaData = MetaData(Some("Direct Rule Label"), Some("Direct Rule Description"))
-                )),
+                MappingRules(
+                  DirectMapping(
+                    id = TRANSFORM_ID,
+                    sourcePath = UntypedPath("prop1"),
+                    metaData = MetaData(Some("Direct Rule Label"), Some("Direct Rule Description"))
+                  ),
+                  ComplexMapping(
+                    id = "complexId",
+                    operator = TransformInput("lower", transformer = LowerCaseTransformer(),
+                      inputs = Seq(
+                        TransformInput("concat", transformer = ConcatTransformer(),
+                          inputs = Seq(
+                            PathInput("path", UntypedPath.parse("path"))
+                          )
+                        )
+                      )
+                    ),
+                    target = Some(MappingTarget(Uri("urn:complex:target"))),
+                    layout = RuleLayout(
+                      nodePositions = Map(
+                        "lower" -> (0, 1),
+                        "concat" -> (3, 4),
+                        "path" -> (5, 6)
+                      )
+                    )
+                  )
+                ),
               metaData = MetaData(Some("Root Rule Label"), Some("Root Rule Description")))
         ),
       metaData = metaData
