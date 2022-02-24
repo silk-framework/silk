@@ -386,7 +386,8 @@
             }
         },
         "toolbar": {
-            "autoLayout": "Auto-layout"
+            "autoLayout": "Auto-layout",
+            "save": "Save"
         }
     },
     "taskViews": {
