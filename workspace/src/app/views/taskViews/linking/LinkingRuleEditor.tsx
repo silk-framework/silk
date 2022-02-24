@@ -69,8 +69,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                                 rootNodes.length === 1
                                     ? utils.convertRuleOperatorNodeToSimilarityOperator(rootNodes[0], operatorNodeMap)
                                     : undefined,
+                            layout: ruleUtils.ruleLayout(ruleOperatorNodes),
                         },
-                        layout: ruleUtils.ruleLayout(ruleOperatorNodes),
                     },
                 },
             });

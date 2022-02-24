@@ -566,7 +566,6 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
           "layout":{"nodePositions":{}}
         }
       """
-
     }
   }
 

@@ -244,7 +244,7 @@ const ruleLayout = (nodes: IRuleOperatorNode[]): RuleLayout => {
     const nodePositions: { [key: string]: [number, number] } = {};
     nodes.forEach((node) => {
         if (node.position) {
-            nodePositions[node.nodeId] = [node.position.x, node.position.y];
+            nodePositions[node.nodeId] = [Math.round(node.position.x), Math.round(node.position.y)];
         }
     });
     return {

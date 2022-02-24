@@ -36,6 +36,6 @@ export interface IOperatorNodeParameters {
 /** Rule layout information. */
 export interface RuleLayout {
     nodePositions: {
-        [key: string]: [number, number];
+        [nodeId: string]: [number, number];
     };
 }
