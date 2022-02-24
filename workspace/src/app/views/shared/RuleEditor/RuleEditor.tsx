@@ -106,7 +106,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
 
     // Convert available operators
     React.useEffect(() => {
-        if (operators) {
+        if (operators.length > 0) {
             const ops: IRuleOperator[] = [];
             (additionalRuleOperators ?? []).forEach((additionalOp) => {
                 ops.push(additionalOp);

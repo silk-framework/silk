@@ -443,6 +443,17 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         }
     };
 
+    const addNodeByPlugin = (pluginType: string, pluginId: string, position: XYPosition) => {
+        const op = (ruleEditorContext.operatorList ?? []).find(
+            (op) => op.pluginType === pluginType && op.pluginId === pluginId
+        );
+        if (op) {
+            addNode(op, position);
+        } else {
+            console.warn(`Operator with plugin type '${pluginType}' and plugin ID '${pluginId}' does not exist!`);
+        }
+    };
+
     // Finds all edges that are connected to any of the given nodes.
     const findEdgesOfNodes = (nodeIds: Set<string>, elements: Elements): Edge[] => {
         return elements.filter((elem) => {
@@ -793,6 +804,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 executeModelEditOperation: {
                     startChangeTransaction,
                     addNode,
+                    addNodeByPlugin,
                     deleteNode,
                     deleteNodes,
                     copyAndPasteNodes,

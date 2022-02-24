@@ -1,4 +1,4 @@
-import { Grid, GridRow, GridColumn, Divider } from "gui-elements";
+import { Divider, Grid, GridColumn, GridRow } from "gui-elements";
 import { MiniMap } from "gui-elements/src/extensions/react-flow/minimap/MiniMap";
 import { edgeTypes } from "gui-elements/src/extensions/react-flow/edges/edgeTypes";
 import { nodeTypes } from "gui-elements/src/extensions/react-flow/nodes/nodeTypes";
@@ -11,7 +11,7 @@ import ReactFlow, {
     Controls,
     OnLoadParams,
 } from "react-flow-renderer";
-import { RuleEditorOperatorSidebar } from "./RuleEditorOperatorSidebar";
+import { RuleEditorOperatorSidebar } from "./sidebar/RuleEditorOperatorSidebar";
 import React from "react";
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { Node } from "react-flow-renderer/dist/types";
@@ -20,6 +20,7 @@ import { IRuleEditorViewDragState } from "./RuleEditorView.typings";
 //snap grid
 const snapGrid: [number, number] = [15, 15];
 
+/** The main view of the rule editor, integrating toolbar, sidebar and main rule canvas. */
 export const RuleEditorView = () => {
     const reactFlowWrapper = React.useRef<any>(null);
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
@@ -44,6 +45,41 @@ export const RuleEditorView = () => {
         setReactFlowInstance(_reactFlowInstance);
         modelContext.setReactFlowInstance(_reactFlowInstance);
     };
+
+    // Add new node when operator is dropped
+    const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        const reactFlowBounds = reactFlowWrapper.current?.getBoundingClientRect();
+        const pluginData = e.dataTransfer.getData("text/plain");
+        if (pluginData) {
+            try {
+                const { pluginType, pluginId } = JSON.parse(pluginData);
+                if (pluginType && pluginId) {
+                    // Position on react-flow canvas
+                    const reactFlowPosition = {
+                        x: e.clientX - reactFlowBounds.left - 20,
+                        y: e.clientY - reactFlowBounds.top - 20,
+                    };
+                    modelContext.executeModelEditOperation.startChangeTransaction();
+                    modelContext.executeModelEditOperation.addNodeByPlugin(pluginType, pluginId, reactFlowPosition);
+                } else {
+                    console.warn(
+                        "The drag event did not contain the necessary parameters, pluginType and pluginId. Received: " +
+                            pluginData
+                    );
+                }
+            } catch (e) {
+                console.warn("Could not parse drag event data. Received: " + pluginData);
+            }
+        } else {
+            console.warn("No data in drag event. Cannot create new node!");
+        }
+    };
+
+    const onDragOver = (event) => {
+        event.preventDefault();
+    };
+
     return (
         <Grid verticalStretchable={true}>
             <GridRow>
@@ -69,8 +105,8 @@ export const RuleEditorView = () => {
                         onNodeDragStart={handleNodeDragStart}
                         onNodeDragStop={handleNodeDragStop}
                         onLoad={onLoad}
-                        // onDrop={onDrop}
-                        // onDragOver={onDragOver}
+                        onDrop={onDrop}
+                        onDragOver={onDragOver}
                         // nodeTypes={nodeTypes}
                         // edgeTypes={edgeTypes}
                         // onEdgeUpdateStart={onEdgeUpdateStart}

@@ -388,6 +388,12 @@
         "toolbar": {
             "autoLayout": "Auto-layout",
             "save": "Save"
+        },
+        "sidebar": {
+            "cancelCycling": "Cancel cycling",
+            "cycleTooltip": "Cycle through {{totalMatches}} current usages of this operator",
+            "searchInput": "Search for operators and paths...",
+            "searchTooltip": "Search for rule operators and input paths."
         }
     },
     "taskViews": {
