@@ -15,7 +15,7 @@ import org.silkframework.config.TaskSpec
 import org.silkframework.dataset.Dataset
 import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{AutoCompletionResult, ParameterAutoCompletion, PluginDescription, PluginObjectParameter, PluginRegistry}
+import org.silkframework.runtime.plugin.{AutoCompletionResult, ClassPluginDescription, ParameterAutoCompletion, PluginDescription, PluginObjectParameter, PluginRegistry}
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import play.api.libs.json._
@@ -116,7 +116,7 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
       } else {
         val itemType = if(taskOpt.isEmpty) ItemType.project else ItemType.itemType(taskOpt.get.data)
         val taskData = for (task <- taskOpt) yield {
-          val pd = PluginDescription(task)
+          val pd = ClassPluginDescription(task)
           Seq(
             "taskId" -> JsString(task.id),
             "taskLabel" -> JsString(taskOpt.get.label()),

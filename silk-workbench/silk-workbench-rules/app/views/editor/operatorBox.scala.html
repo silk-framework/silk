@@ -1,7 +1,7 @@
 @import controllers.rules.routes.Assets
 @import views.editor.GenerateId
 @import org.silkframework.workspace.Project
-@import org.silkframework.runtime.plugin.Parameter
+@import org.silkframework.runtime.plugin.PluginParameter
 @import org.silkframework.runtime.plugin.StringParameterType._
 @import org.silkframework.workspace.WorkspaceFactory
 @import org.silkframework.runtime.activity.UserContext
@@ -46,7 +46,7 @@
 @**
 * Creates a new field for a plugin parameter
 *@
-@parameter(param: Parameter, value: String) = @{
+@parameter(param: PluginParameter, value: String) = @{
   param.parameterType match {
     case UriType =>
       stringParameter(param, project.config.prefixes.shorten(value))
@@ -70,7 +70,7 @@
   }
 }
 
-@multilineParameter(param: Parameter, value: String) = {
+@multilineParameter(param: PluginParameter, value: String) = {
 @* broken: widgets.multilineParameter(GenerateId(id, display), value, label = param.label, tooltip = param.description, additionalInputElementsClass = "param_value") *@
   <div class="mdl-textfield mdl-textfield--floating-label mdl-defer" data-mdl-defer="js-textfield">
     <textarea class="mdl-textfield__input param_value" type="text" id="@{GenerateId(id, display)}_param_input_@{param.name}" name="@{param.name}">@value</textarea>
@@ -83,7 +83,7 @@
   </div>
 }
 
-@stringParameter(param: Parameter, value: String) = {
+@stringParameter(param: PluginParameter, value: String) = {
   <div class="mdl-textfield mdl-textfield--floating-label mdl-defer" data-mdl-defer="js-textfield">
     <input class="mdl-textfield__input param_value" type="text" id="@{GenerateId(id, display)}_param_input_@{param.name}" name="@{param.name}" value="@value"/>
     <label class="mdl-textfield__label" for="@{GenerateId(id, display)}_param_input_@{param.name}">@param.label</label>
@@ -95,7 +95,7 @@
   </div>
 }
 
-@enumParameter(param: Parameter, enumerationValues: Seq[String], displayNames: Seq[String], value: String) = {
+@enumParameter(param: PluginParameter, enumerationValues: Seq[String], displayNames: Seq[String], value: String) = {
   <div class="mdl-selectfield mdl-selectfield--floating-label mdl-defer"  data-mdl-defer="js-selectfield">
     <select class="mdl-selectfield__select param_value" id="@{GenerateId(id, display)}_param_input_@{param.name}" name="@{param.name}" >
       @for((enumerationValue, displayName) <- enumerationValues.zip(displayNames)) {

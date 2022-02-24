@@ -15,7 +15,7 @@
 package org.silkframework.runtime.plugin
 
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
+import org.silkframework.runtime.resource.ResourceManager
 
 import scala.reflect.ClassTag
 

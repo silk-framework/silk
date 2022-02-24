@@ -1,13 +1,11 @@
 package org.silkframework.rule.test
 
-import java.util.logging.Logger
-
 import org.silkframework.config.Prefixes
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{PluginDescription, TransformExampleValue}
+import org.silkframework.runtime.plugin.{ClassPluginDescription, TransformExampleValue}
 import org.silkframework.test.PluginTest
-import org.silkframework.util.StringUtils.DoubleLiteral
 
+import java.util.logging.Logger
 import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
@@ -26,7 +24,7 @@ abstract class TransformerTest[T <: Transformer : ClassTag] extends PluginTest {
   }
 
   /** The plugin description of the transformation to be tested. */
-  private lazy val pluginDesc = PluginDescription(pluginClass)
+  private lazy val pluginDesc = ClassPluginDescription(pluginClass)
 
   /** All available transform tests. */
   private lazy val transformTests: Seq[TransformTest] = {

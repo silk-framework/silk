@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.plugin.PluginDescription
+import org.silkframework.runtime.plugin.ClassPluginDescription
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.util.Identifier
@@ -120,7 +120,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
     val relatedTasks = (task.data.referencedTasks.toSeq ++ task.findDependentTasks(recursive = false).toSeq ++ task.findRelatedTasksInsideWorkflows.toSeq).distinct.
         flatMap(id => project.anyTaskOption(id))
     val relatedItems = relatedTasks map { task =>
-      val pd = PluginDescription(task)
+      val pd = ClassPluginDescription(task)
       val itemType = ItemType.itemType(task)
       val itemLinks = ItemType.itemTypeLinks(itemType, projectId, task.id, Some(task.data))
       RelatedItem(task.id, task.fullLabel, task.metaData.description, itemType.label, itemLinks, pd.label)

@@ -16,7 +16,6 @@ package org.silkframework.runtime.plugin
 
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.resource.ResourceManager
-import org.silkframework.runtime.validation.ValidationException
 
 /**
  * Plugin interface.
@@ -26,7 +25,7 @@ trait AnyPlugin {
   /**
    * The description for this plugin.
    */
-  @transient lazy val pluginSpec: PluginDescription[AnyPlugin] = PluginDescription(getClass)
+  @transient lazy val pluginSpec: PluginDescription[AnyPlugin] = ClassPluginDescription(getClass)
 
   /**
    * The parameters for this plugin as Map.

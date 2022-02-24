@@ -180,9 +180,16 @@ case class ExtendedTypesafeConfig(typesafeConfig: TypesafeConfig) {
   def getLongOrElse(key: String, fallbackValue: Long): Long = {
     getTypedValueOrElse(key, "Long", fallbackValue, (key: String) => typesafeConfig.getLong(key))
   }
+
+  /** Fetch the Long value of the given key, or the fallback value if it does not exist. This still throws an
+    * exception if the config value is not an Long. */
+  def getStringOrElse(key: String, fallbackValue: String): String = {
+    getTypedValueOrElse(key, "String", fallbackValue, (key: String) => typesafeConfig.getString(key))
+  }
 }
 
 object ExtendedTypesafeConfig {
+  implicit def extendTypesafeConfig(typesafeConfig: TypesafeConfig): ExtendedTypesafeConfig = ExtendedTypesafeConfig(typesafeConfig)
   implicit def extendedToTypesafeConfig(extendedTypesafeConfig: ExtendedTypesafeConfig): TypesafeConfig = extendedTypesafeConfig.typesafeConfig
 }
 

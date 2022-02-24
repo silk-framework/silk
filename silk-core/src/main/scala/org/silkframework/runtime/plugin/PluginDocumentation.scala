@@ -85,5 +85,5 @@ object PluginDocumentation {
 }
 
 case class PluginParameterDisplay(headers: Seq[String],
-                                  generateValues: Parameter => Seq[String],
+                                  generateValues: PluginParameter => Seq[String],
                                   maxCharsInColumns: Seq[Int])

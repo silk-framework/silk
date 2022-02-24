@@ -6,7 +6,7 @@ import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginDescription
+import org.silkframework.runtime.plugin.ClassPluginDescription
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.JsonSerializers.{TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat}
@@ -139,7 +139,7 @@ object SearchApiModel {
                                     task: ProjectTask[_ <: TaskSpec],
                                     matchTaskProperties: Boolean,
                                     matchProject: Boolean): Boolean = {
-      val pluginLabel = PluginDescription(task).label
+      val pluginLabel = ClassPluginDescription(task).label
       val taskLabel = task.fullLabel
       val description = task.metaData.description.getOrElse("")
       val searchInProperties = if(matchTaskProperties) task.data.properties(task.project.config.prefixes).map(p => p._2).mkString(" ") else ""
@@ -455,7 +455,7 @@ object SearchApiModel {
 
     private def toJson(task: ProjectTask[_ <: TaskSpec],
                        typedTask: TypedTasks): JsObject = {
-      val pd = PluginDescription(task)
+      val pd = ClassPluginDescription(task)
       val parameters = if(addParameters) {
         implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
         val jsonValue = TaskSpecJsonFormat.write(task.data)

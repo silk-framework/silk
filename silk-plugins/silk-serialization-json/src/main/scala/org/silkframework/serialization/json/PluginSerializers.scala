@@ -1,7 +1,7 @@
 package org.silkframework.serialization.json
 
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.plugin.{Parameter, PluginDescription, PluginList, PluginObjectParameterTypeTrait}
+import org.silkframework.runtime.plugin.{ClassPluginDescription, PluginDescription, PluginList, PluginObjectParameterTypeTrait, PluginParameter}
 import org.silkframework.runtime.serialization.{Serialization, WriteContext}
 import play.api.libs.json._
 
@@ -42,14 +42,14 @@ object PluginSerializers {
       JsObject(metaData ++ tt ++ details ++ markdownDocumentation)
     }
 
-    private def serializeParams(params: Seq[Parameter])
+    private def serializeParams(params: Seq[PluginParameter])
                                (implicit writeContext: WriteContext[JsValue]): Seq[(String, JsValue)] = {
       for(param <- params) yield {
         param.name -> serializeParam(param)
       }
     }
 
-    private def serializeParam(param: Parameter)
+    private def serializeParam(param: PluginParameter)
                               (implicit writeContext: WriteContext[JsValue]): JsValue = {
       val defaultValue: JsValue = (param.parameterType, param.defaultValue) match {
         case (objectType: PluginObjectParameterTypeTrait, Some(v)) =>
@@ -65,7 +65,7 @@ object PluginSerializers {
 
       val (parameters, requiredList): (Option[JsObject], Option[Seq[String]]) = param.parameterType match {
         case objectType: PluginObjectParameterTypeTrait if param.visibleInDialog =>
-          val pluginDescription = PluginDescription(objectType.pluginObjectParameterClass)
+          val pluginDescription = ClassPluginDescription(objectType.pluginObjectParameterClass)
           val parameters = JsObject(pluginDescription.parameters.map(p => p.name -> serializeParam(p)))
           val requiredParameters = pluginDescription.parameters.filterNot(_.defaultValue.isDefined).map(_.name)
           (Some(parameters), Some(requiredParameters))
