@@ -92,6 +92,8 @@ const convertToRuleOperatorNodes = (
 ): IRuleOperatorNode[] => {
     const operatorNodes: IRuleOperatorNode[] = [];
     extractSimilarityOperatorNode(linkingTask.data.parameters.rule.operator, operatorNodes, ruleOperator);
+    const nodePositions = linkingTask.data.parameters.rule.layout;
+    operatorNodes.forEach((node) => (node.position = nodePositions[node.nodeId]));
     return operatorNodes;
 };
 

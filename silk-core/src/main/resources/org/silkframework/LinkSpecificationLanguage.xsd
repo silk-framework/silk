@@ -128,13 +128,38 @@
     <xs:element name="LinkageRule">
         <xs:complexType>
             <xs:sequence>
-                <xs:choice minOccurs="0" maxOccurs="1">
+                <xs:choice minOccurs="0">
                     <xs:element ref="Aggregate"/>
                     <xs:element ref="Compare"/>
                 </xs:choice>
                 <xs:element ref="Filter" minOccurs="0"/>
+                <xs:element ref="RuleLayout" minOccurs="0"/>
             </xs:sequence>
             <xs:attribute name="linkType" type="xs:string" use="optional"/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="RuleLayout">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="NodePositions"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="NodePositions">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element ref="NodePos" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="NodePos">
+        <xs:complexType>
+            <xs:attribute name="id" type="xs:string" />
+            <xs:attribute name="x" type="xs:string" />
+            <xs:attribute name="y" type="xs:string" />
         </xs:complexType>
     </xs:element>
 

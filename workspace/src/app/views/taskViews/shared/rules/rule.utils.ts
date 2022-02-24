@@ -1,4 +1,4 @@
-import { IPathInput, ITransformOperator, IValueInput } from "./rule.typings";
+import { IPathInput, ITransformOperator, IValueInput, RuleLayout } from "./rule.typings";
 import {
     IParameterSpecification,
     IPortSpecification,
@@ -239,6 +239,19 @@ const convertToRuleOperatorNodeMap = (
     return [nodeMap, rootNodes];
 };
 
+/** Extract rule layout from rule operator nodes. */
+const ruleLayout = (nodes: IRuleOperatorNode[]): RuleLayout => {
+    const nodePositions: { [key: string]: [number, number] } = {};
+    nodes.forEach((node) => {
+        if (node.position) {
+            nodePositions[node.nodeId] = [node.position.x, node.position.y];
+        }
+    });
+    return {
+        nodePositions: nodePositions,
+    };
+};
+
 const ruleUtils = {
     convertRuleOperator,
     convertRuleOperatorNodeToValueInput,
@@ -247,6 +260,7 @@ const ruleUtils = {
     fetchRuleOperatorNode,
     inputPathOperator,
     parameterSpecification,
+    ruleLayout,
 };
 
 export default ruleUtils;

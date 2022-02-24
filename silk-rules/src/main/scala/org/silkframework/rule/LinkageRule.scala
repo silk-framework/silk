@@ -88,7 +88,7 @@ object LinkageRule {
 
       val link = (node \ "@linkType").text.trim
       LinkageRule(
-        operator = (node \ "_").find(_.label != "Filter").map(fromXml[SimilarityOperator]),
+        operator = (node \ "_").find(child => child.label != "Filter" && child.label != "RuleLayout").map(fromXml[SimilarityOperator]),
         filter = (node \ "Filter").headOption.map(LinkFilter.fromXML).getOrElse(LinkFilter()),
         linkType = if(link.isEmpty) "http://www.w3.org/2002/07/owl#sameAs" else Uri.parse(link, readContext.prefixes),
         layout = (node \ "RuleLayout").headOption.map(rl => XmlSerialization.fromXml[RuleLayout](rl)).getOrElse(RuleLayout())

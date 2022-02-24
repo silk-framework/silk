@@ -71,6 +71,7 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
                 ...originalRule,
                 sourcePaths: [],
                 operator: ruleUtils.convertRuleOperatorNodeToValueInput(rootNodes[0], operatorNodeMap),
+                layout: ruleUtils.ruleLayout(ruleOperatorNodes),
             };
             await putTransformRule(projectId, transformTaskId, ruleId, rule);
             return true;
@@ -91,6 +92,8 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
     ): IRuleOperatorNode[] => {
         const operatorNodes: IRuleOperatorNode[] = [];
         ruleUtils.extractOperatorNodeFromValueInput(mappingRule.operator, operatorNodes, false, ruleOperator);
+        const nodePositions = mappingRule.layout;
+        operatorNodes.forEach((node) => (node.position = nodePositions[node.nodeId]));
         return operatorNodes;
     };
 
