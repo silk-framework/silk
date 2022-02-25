@@ -25,6 +25,8 @@ import {
     Link,
     OverviewItem,
     OverviewItemLine,
+    Spacing,
+    OverviewItemList,
 } from "gui-elements";
 import { IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
@@ -376,31 +378,34 @@ export function Metadata(props: IProps) {
                             <PropertyValue>{utils.DisplayArtefactTags(data.tags, t, goToPage)}</PropertyValue>
                         </PropertyValuePair>
                     )}
-                    <PropertyValuePair hasSpacing hasDivider>
-                        <OverviewItem hasSpacing>
+                    <OverviewItemList hasSpacing columns={2}>
+                        <OverviewItem>
                             <OverviewItemLine>
-                                {/** // Todo add german translation for author here  */}
-                                <PropertyName>{t("form.field.createdBy", "Created By")}</PropertyName>
-                                <PropertyValue>
+                                <Label text={t("form.field.createdBy", "Created By")} />
+                                <Spacing size="tiny" />
+                                <span>
                                     <Link href={utils.generateFacetUrl("createdBy", createdByUser?.uri ?? "")}>
-                                        {createdByUser?.label ?? "Unknown"}
+                                        {createdByUser?.label ?? "unknown"}
                                     </Link>
                                     <span>{!!createdByUser && `  on ${new Date(created).toLocaleString()}`}</span>
-                                </PropertyValue>
+                                </span>
                             </OverviewItemLine>
+                        </OverviewItem>
+                        <OverviewItem>
                             <OverviewItemLine>
-                                <PropertyName>{t("form.field.lastModifiedBy", "Last Modified By")}</PropertyName>
-                                <PropertyValue>
+                                <Label text={t("form.field.lastModifiedBy", "Last Modified By")} />
+                                <Spacing size="tiny" />
+                                <span>
                                     <Link
                                         href={utils.generateFacetUrl("lastModifiedBy", lastModifiedByUser?.uri ?? "")}
                                     >
-                                        {lastModifiedByUser?.label ?? "Unknown"}
+                                        {lastModifiedByUser?.label ?? "unknown"}
                                     </Link>
                                     <span>{!!lastModifiedByUser && `  on ${new Date(modified).toLocaleString()}`}</span>
-                                </PropertyValue>
+                                </span>
                             </OverviewItemLine>
                         </OverviewItem>
-                    </PropertyValuePair>
+                    </OverviewItemList>
                 </PropertyValueList>
             )}
         </CardContent>
