@@ -24,6 +24,11 @@ export const RuleNodeParameterForm = ({ nodeId, parameters }: RuleNodeParameters
                         labelAttributes={{
                             text: paramSpec.label,
                             tooltip: parameterDescription, // TODO: CMEM-3919 Tooltip flickers
+                            tooltipProperties: {
+                                tooltipProps: {
+                                    position: "top-right",
+                                },
+                            },
                             info: paramSpec.required ? "required" : undefined,
                             title: parameterDescription, // TODO CMEM-3919 Remove when tooltip works
                         }}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
     Edge,
     Elements,
@@ -73,8 +73,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const updateNodePos = useStoreActions((actions) => actions.updateNodePos);
     /** The current zoom factor. */
     const [, , zoom] = useStoreState((state) => state.transform);
-    /** If post-initializations have been executed. */
-    const [postInit, setPostInit] = useState(false);
     /** Manages the parameters of rule nodes. This is done for performance reasons. Only stores diffs to the original value. */
     const [nodeParameters] = React.useState<Map<string, Map<string, string | undefined>>>(new Map());
     /** Update the internals of a node. This needs to be called in some cases in order to update the appearance of a node. */
@@ -82,34 +80,24 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const resetSelectedElements = useStoreActions((a) => a.resetSelectedElements);
     const setSelectedElements = useStoreActions((a) => a.setSelectedElements);
 
-
     /** Convert initial operator nodes to react-flow model. */
     React.useEffect(() => {
         if (
             ruleEditorContext.initialRuleOperatorNodes &&
             ruleEditorContext.operatorSpec &&
             ruleEditorContext.operatorList &&
-            elements.length === 0 &&
+            ruleEditorContext.editedItem &&
             reactFlowInstance
         ) {
             initModel();
         }
     }, [
         ruleEditorContext.initialRuleOperatorNodes,
+        ruleEditorContext.operatorSpec,
         ruleEditorContext.operatorList,
-        elements.length,
+        ruleEditorContext.editedItem,
         reactFlowInstance,
     ]);
-
-    React.useEffect(() => {
-        if (elements.length > 0 && !postInit) {
-            setTimeout(() => {
-                reactFlowInstance?.fitView();
-                reactFlowInstance?.zoomTo(0.75);
-            }, 1);
-            setPostInit(true);
-        }
-    }, [ruleEditorContext.editedItem, postInit, elements]);
 
     /** Elements should only be changed via this function when needing the current elements.
      *
@@ -1018,7 +1006,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         utils.initNodeBaseIds(nodes);
         ruleUndoStack.splice(0);
         ruleRedoStack.splice(0);
-        setPostInit(false);
+        // Center and then zoom not too far out
+        setTimeout(() => {
+            reactFlowInstance?.fitView();
+            reactFlowInstance?.zoomTo(0.75);
+        }, 1);
     };
 
     return (

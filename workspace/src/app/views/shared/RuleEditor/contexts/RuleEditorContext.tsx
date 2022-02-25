@@ -15,9 +15,11 @@ export interface RuleEditorContextProps {
     editedItem?: object;
     /** The operators that can be dragged and dropped onto the rule editor. */
     operatorList?: IRuleOperator[];
+    /** The operator parameter specification of each operator plugin. */
     operatorSpec?: Map<string, Map<string, IParameterSpecification>>;
     /** Loading states. */
     editedItemLoading: boolean;
+    /** If the operator list is still loading. */
     operatorListLoading: boolean;
     /** The initial rule nodes, e.g. when loading an existing rule. */
     initialRuleOperatorNodes?: IRuleOperatorNode[];

@@ -334,12 +334,12 @@ export const RuleEditorView = () => {
                 </GridColumn>
             </GridRow>
             <GridRow verticalStretched={true}>
-                <GridColumn small className="eccapp-di__floweditor__sidebar">
+                <GridColumn small>
                     <RuleEditorOperatorSidebar />
                 </GridColumn>
                 <GridColumn full>
                     <ReactFlow
-                        data-test-id={"workflow-react-flow-canvas"}
+                        data-test-id={"ruleEditor-react-flow-canvas"}
                         ref={reactFlowWrapper}
                         elements={modelContext.elements}
                         onElementClick={onElementClick}
