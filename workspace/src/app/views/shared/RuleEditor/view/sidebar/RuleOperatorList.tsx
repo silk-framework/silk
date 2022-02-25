@@ -78,12 +78,14 @@ export const RuleOperatorList = ({ ruleOperatorList, textQuery }: RuleOperatorLi
 
     const itemId = (ruleOperator: IRuleOperator) => `${ruleOperator.pluginType}_${ruleOperator.pluginId}`;
 
-    return (
+    return ruleOperatorList.length ? (
         <List<IRuleOperator>
             items={ruleOperatorList}
             itemId={itemId}
             itemRenderer={itemRenderer}
             limitOptions={{ initialMax: 20, stepSize: 20 }}
         />
+    ) : (
+        <div>{t("RuleEditor.sidebar.emptyList")}</div>
     );
 };

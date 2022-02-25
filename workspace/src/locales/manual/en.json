@@ -412,6 +412,7 @@
         "sidebar": {
             "cancelCycling": "Cancel cycling",
             "cycleTooltip": "Cycle through {{totalMatches}} current usages of this operator",
+            "emptyList": "No operator found.",
             "searchInput": "Search for operators and paths...",
             "searchTooltip": "Search for rule operators and input paths."
         }
