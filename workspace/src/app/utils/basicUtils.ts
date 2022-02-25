@@ -22,7 +22,7 @@ export const sortLexically = <T>(
     inPlace: boolean = true
 ) => {
     const transform = (elem: T) => (caseInsensitive ? by(elem).toLowerCase() : by(elem));
-    const comparison = asc ? (a, b) => (a < b ? 1 : -1) : (a, b) => (a > b ? 1 : -1);
+    const comparison = asc ? (a, b) => (a < b ? -1 : 1) : (a, b) => (a > b ? 1 : -1);
     return (inPlace ? inputArray : [...inputArray]).sort((a, b) => comparison(transform(a), transform(b)));
 };
 
