@@ -125,6 +125,8 @@ describe("Task page", () => {
         const taskMetaData: IMetadata = {
             label: taskLabel,
             description: taskDescription,
+            modified: new Date(),
+            created: new Date(),
         };
         mockAxios.mockResponseFor(taskMetaDataExpandedURL, mockedAxiosResponse({ data: taskMetaData }));
         await waitFor(() => {
@@ -132,8 +134,7 @@ describe("Task page", () => {
             expect(findAll(metaData, ".eccgui-propertyvalue__value").map((elem) => elem.text())).toStrictEqual([
                 taskLabel,
                 taskDescription,
-                createdBy,
-                lastModifiedBy,
+                "Created By unknown , < 1 minute ago.Last Modified By unknown , < 1 minute ago",
             ]);
         });
     });
