@@ -291,7 +291,8 @@
             "required": "required",
             "sortOptions": "Sort options",
             "summary": "Summary",
-            "copied": "Copied"
+            "copied": "Copied",
+            "ago": " ago"
         }
     },
     "form": {
@@ -299,9 +300,9 @@
             "description": "Description",
             "label": "Label",
             "searchField": "Enter search term",
-            "tag": "Tag",
-            "lastModifiedBy": "Last Modified By",
-            "createdBy": "Created By"
+            "tags": "Tags",
+            "lastModifiedBy": "Last Modified By <author>{{author}}</author> <timestamp>{{timestamp}}</timestamp>",
+            "createdBy": "Created By <author>{{author}}</author> <timestamp>{{timestamp}}</timestamp>"
         },
         "projectForm": {
             "importProjectButton": "Import existing project",

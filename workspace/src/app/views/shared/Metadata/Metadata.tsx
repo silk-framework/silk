@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Prompt, useLocation } from "react-router";
-import { useTranslation } from "react-i18next";
-import { Markdown } from "gui-elements/cmem";
+import { useTranslation, Trans } from "react-i18next";
+import { ElapsedDateTimeDisplay, Markdown, TimeUnits } from "gui-elements/cmem";
 import {
     Button,
     Card,
@@ -20,13 +20,10 @@ import {
     PropertyValue,
     PropertyValueList,
     PropertyValuePair,
+    Link,
     TextArea,
     TextField,
-    Link,
-    OverviewItem,
-    OverviewItemLine,
     Spacing,
-    OverviewItemList,
 } from "gui-elements";
 import { IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
@@ -281,6 +278,9 @@ export function Metadata(props: IProps) {
         dispatch(routerOp.goToPage(path));
     };
 
+    // For the elapsed time component, showing when a cache was last updated
+    const translateUnits = (unit: TimeUnits) => t("common.units." + unit, unit);
+
     const widgetContent = (
         <CardContent data-test-id={"metaDataWidget"}>
             {loading && <Loading description={t("Metadata.loading", "Loading summary data.")} />}
@@ -329,7 +329,7 @@ export function Metadata(props: IProps) {
                     <PropertyValuePair hasSpacing key="tags">
                         {/** // Todo add german translation for tags here  */}
                         <PropertyName>
-                            <Label text={t("form.field.tag", "Tag")} />
+                            <Label text={t("form.field.tags", "Tags")} />
                         </PropertyName>
                         <PropertyValue>
                             <FieldItem>
@@ -374,38 +374,69 @@ export function Metadata(props: IProps) {
                     )}
                     {!!data.tags?.length && (
                         <PropertyValuePair hasSpacing hasDivider>
-                            <PropertyName>{t("form.field.tag", "Tag")}</PropertyName>
+                            <PropertyName>{t("form.field.tags", "Tags")}</PropertyName>
                             <PropertyValue>{utils.DisplayArtefactTags(data.tags, t, goToPage)}</PropertyValue>
                         </PropertyValuePair>
                     )}
-                    <OverviewItemList hasSpacing columns={2}>
-                        <OverviewItem>
-                            <OverviewItemLine>
-                                <Label text={t("form.field.createdBy", "Created By")} />
-                                <Spacing size="tiny" />
-                                <PropertyValue>
-                                    <Link href={utils.generateFacetUrl("createdBy", createdByUser?.uri ?? "")}>
-                                        {createdByUser?.label ?? "unknown"}
-                                    </Link>
-                                    <span>{!!createdByUser && `  on ${new Date(created).toLocaleString()}`}</span>
-                                </PropertyValue>
-                            </OverviewItemLine>
-                        </OverviewItem>
-                        <OverviewItem>
-                            <OverviewItemLine>
-                                <Label text={t("form.field.lastModifiedBy", "Last Modified By")} />
-                                <Spacing size="tiny" />
-                                <PropertyValue>
-                                    <Link
-                                        href={utils.generateFacetUrl("lastModifiedBy", lastModifiedByUser?.uri ?? "")}
-                                    >
-                                        {lastModifiedByUser?.label ?? "unknown"}
-                                    </Link>
-                                    <span>{!!lastModifiedByUser && `  on ${new Date(modified).toLocaleString()}`}</span>
-                                </PropertyValue>
-                            </OverviewItemLine>
-                        </OverviewItem>
-                    </OverviewItemList>
+                    <PropertyValuePair>
+                        <PropertyName></PropertyName>
+                        <PropertyValue>
+                            <Trans
+                                i18nKey={"form.field.createdBy"}
+                                t={t}
+                                values={{
+                                    timestamp: created ? new Date(created).toLocaleString() : "",
+                                    author: createdByUser?.label ?? "unknown",
+                                }}
+                                components={{
+                                    author: (
+                                        <Link
+                                            href={utils.generateFacetUrl("createdBy", createdByUser?.uri ?? "")}
+                                        ></Link>
+                                    ),
+                                    timestamp: created ? (
+                                        <ElapsedDateTimeDisplay
+                                            data-test-id={"metadata-creation-age"}
+                                            prefix={", "}
+                                            suffix={t("common.words.ago")}
+                                            dateTime={created}
+                                            translateUnits={translateUnits}
+                                        />
+                                    ) : (
+                                        <span />
+                                    ),
+                                }}
+                            />
+                            .
+                            <Spacing size="medium" vertical />
+                            <Trans
+                                i18nKey={"form.field.lastModifiedBy"}
+                                t={t}
+                                values={{
+                                    timestamp: modified ? new Date(modified).toLocaleString() : "",
+                                    author: lastModifiedByUser?.label ?? "unknown",
+                                }}
+                                components={{
+                                    author: (
+                                        <Link
+                                            href={utils.generateFacetUrl("createdBy", lastModifiedByUser?.uri ?? "")}
+                                        ></Link>
+                                    ),
+                                    timestamp: modified ? (
+                                        <ElapsedDateTimeDisplay
+                                            data-test-id={"metadata-creation-age"}
+                                            prefix={", "}
+                                            suffix={t("common.words.ago")}
+                                            dateTime={modified}
+                                            translateUnits={translateUnits}
+                                        />
+                                    ) : (
+                                        <span />
+                                    ),
+                                }}
+                            />
+                        </PropertyValue>
+                    </PropertyValuePair>
                 </PropertyValueList>
             )}
         </CardContent>
