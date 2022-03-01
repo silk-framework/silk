@@ -382,11 +382,11 @@ export function Metadata(props: IProps) {
                         <PropertyName></PropertyName>
                         <PropertyValue>
                             <Trans
-                                i18nKey={"form.field.createdBy"}
+                                i18nKey={"Metadata.createdBy"}
                                 t={t}
                                 values={{
                                     timestamp: created ? new Date(created).toLocaleString() : "",
-                                    author: createdByUser?.label ?? "unknown",
+                                    author: createdByUser?.label ?? t("Metadata.unknownuser", "unknown user"),
                                 }}
                                 components={{
                                     author: (
@@ -397,24 +397,23 @@ export function Metadata(props: IProps) {
                                     timestamp: created ? (
                                         <ElapsedDateTimeDisplay
                                             data-test-id={"metadata-creation-age"}
-                                            prefix={", "}
-                                            suffix={t("common.words.ago")}
+                                            suffix={t("Metadata.suffixAgo")}
+                                            prefix={t("Metadata.prefixAgo")}
                                             dateTime={created}
                                             translateUnits={translateUnits}
                                         />
                                     ) : (
-                                        <span />
+                                        <></>
                                     ),
                                 }}
                             />
-                            .
-                            <Spacing size="medium" vertical />
+                            {" "}
                             <Trans
-                                i18nKey={"form.field.lastModifiedBy"}
+                                i18nKey={"Metadata.lastModifiedBy"}
                                 t={t}
                                 values={{
                                     timestamp: modified ? new Date(modified).toLocaleString() : "",
-                                    author: lastModifiedByUser?.label ?? "unknown",
+                                    author: lastModifiedByUser?.label ?? t("Metadata.unknownuser", "unknown user"),
                                 }}
                                 components={{
                                     author: (
@@ -425,13 +424,13 @@ export function Metadata(props: IProps) {
                                     timestamp: modified ? (
                                         <ElapsedDateTimeDisplay
                                             data-test-id={"metadata-creation-age"}
-                                            prefix={", "}
-                                            suffix={t("common.words.ago")}
+                                            suffix={t("Metadata.suffixAgo")}
+                                            prefix={t("Metadata.prefixAgo")}
                                             dateTime={modified}
                                             translateUnits={translateUnits}
                                         />
                                     ) : (
-                                        <span />
+                                        <></>
                                     ),
                                 }}
                             />
