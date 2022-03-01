@@ -44,6 +44,12 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     additionalRuleOperators?: IRuleOperator[];
     /** Function to add additional parameter (specifications) to a rule operator based on the original operator. */
     addAdditionParameterSpecifications?: (operator: OPERATOR_TYPE) => [id: string, spec: IParameterSpecification][];
+    /** Specifies the allowed connections. Only connections that return true are allowed. */
+    validateConnection: (
+        fromRuleOperatorNode: IRuleOperatorNode,
+        toRuleOperatorNode: IRuleOperatorNode,
+        targetPortIdx: number
+    ) => boolean;
 }
 
 /**
@@ -59,6 +65,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     saveRule,
     additionalRuleOperators,
     addAdditionParameterSpecifications,
+    validateConnection,
 }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
     // The task that contains the rule, e.g. transform or linking task
     const [taskData, setTaskData] = React.useState<TASK_TYPE | undefined>(undefined);
@@ -172,6 +179,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 saveRule: saveRuleOperatorNodes,
                 convertRuleOperatorToRuleNode: utils.defaults.convertRuleOperatorToRuleNode,
                 operatorSpec,
+                validateConnection,
             }}
         >
             <RuleEditorModel>

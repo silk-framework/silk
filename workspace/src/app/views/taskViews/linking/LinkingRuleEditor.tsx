@@ -140,6 +140,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                         return [];
                 }
             }}
+            validateConnection={ruleUtils.validateConnection}
         />
     );
 };

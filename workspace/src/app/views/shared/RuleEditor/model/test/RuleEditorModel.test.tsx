@@ -42,7 +42,12 @@ describe("Rule editor model", () => {
     const ruleEditorModel = async (
         initialRuleNodes: IRuleOperatorNode[] = [],
         operatorList: IRuleOperator[] = [],
-        operatorSpec: Map<string, Map<string, IParameterSpecification>> = new Map()
+        operatorSpec: Map<string, Map<string, IParameterSpecification>> = new Map(),
+        validateConnection: (
+            fromRuleOperatorNode: IRuleOperatorNode,
+            toRuleOperatorNode: IRuleOperatorNode,
+            targetPortIdx: number
+        ) => boolean = () => true
     ) => {
         modelContext = undefined;
         const ruleModel = withMount(
@@ -61,6 +66,7 @@ describe("Rule editor model", () => {
                         },
                         convertRuleOperatorToRuleNode: utils.defaults.convertRuleOperatorToRuleNode,
                         operatorSpec,
+                        validateConnection,
                     }}
                 >
                     <ReactFlowProvider>

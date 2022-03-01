@@ -27,6 +27,12 @@ export interface RuleEditorContextProps {
     saveRule: (ruleOperatorNodes: IRuleOperatorNode[]) => Promise<boolean> | boolean;
     /** Converts a rule operator to a rule node. */
     convertRuleOperatorToRuleNode: (ruleOperator: IRuleOperator) => Omit<IRuleOperatorNode, "nodeId">;
+    /** Validate a connection. Specifies which connections are allowed between nodes. */
+    validateConnection: (
+        fromRuleOperatorNode: IRuleOperatorNode,
+        toRuleOperatorNode: IRuleOperatorNode,
+        targetPortIdx: number
+    ) => boolean;
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
@@ -40,4 +46,5 @@ export const RuleEditorContext = React.createContext<RuleEditorContextProps>({
     convertRuleOperatorToRuleNode: () => {
         throw Error("convertRuleOperatorToRuleNode is not implemented!");
     },
+    validateConnection: () => true,
 });

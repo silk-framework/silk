@@ -113,6 +113,7 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
                     "The value path of the input source of the transformation task."
                 ), // TODO: CMEM-3919: Add i18n
             ]}
+            validateConnection={ruleUtils.validateConnection}
         />
     );
 };

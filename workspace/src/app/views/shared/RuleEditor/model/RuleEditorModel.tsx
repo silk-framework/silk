@@ -31,7 +31,7 @@ import {
     RuleModelChangesFactory,
     RuleModelChangeType,
 } from "./RuleEditorModel.typings";
-import { XYPosition } from "react-flow-renderer/dist/types";
+import { Connection, XYPosition } from "react-flow-renderer/dist/types";
 import { NodeContent } from "../view/ruleNode/NodeContent";
 import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basicUtils";
 
@@ -79,6 +79,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const updateNodeInternals = useUpdateNodeInternals();
     const resetSelectedElements = useStoreActions((a) => a.resetSelectedElements);
     const setSelectedElements = useStoreActions((a) => a.setSelectedElements);
+    /** Map from node ID to (original) rule operator node. Used for validating connections. */
+    const [nodeMap] = React.useState<Map<string, IRuleOperatorNode>>(new Map());
 
     /** Convert initial operator nodes to react-flow model. */
     React.useEffect(() => {
@@ -98,6 +100,27 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         ruleEditorContext.editedItem,
         reactFlowInstance,
     ]);
+
+    /** Validates a connection before its creation. */
+    const isValidConnection = (connection: Connection) => {
+        if (connection.source && connection.target && connection.targetHandle) {
+            return isValidEdge(connection.source, connection.target, connection.targetHandle);
+        } else {
+            return true;
+        }
+    };
+
+    const isValidEdge = (sourceNodeId: string, targetNodeId: string, targetHandleId: string) => {
+        if (sourceNodeId === targetNodeId) {
+            return false;
+        }
+        const sourceNode = nodeMap.get(sourceNodeId);
+        const targetNode = nodeMap.get(targetNodeId);
+        const targetInputIdx = Number.parseInt(targetHandleId);
+        return sourceNode && targetNode && Number.isInteger(targetInputIdx)
+            ? ruleEditorContext.validateConnection(sourceNode, targetNode, targetInputIdx)
+            : true;
+    };
 
     /** Elements should only be changed via this function when needing the current elements.
      *
@@ -554,6 +577,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         ruleEditorContext.operatorSpec!!
                     )
                 );
+                nodeMap.set(newNode.id, { ...ruleNode, nodeId: newNode.id });
                 return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(newNode), els);
             });
         }
@@ -628,6 +652,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         targetHandleId: string | undefined,
         previousTargetHandle?: string
     ) => {
+        if (targetHandleId && !isValidEdge(sourceNodeId, targetNodeId, targetHandleId)) {
+            return;
+        }
         changeElementsInternal((els) => {
             let currentElements = els;
             let toTargetHandleId: string | undefined = targetHandleId;
@@ -644,7 +671,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 const occupiedHandles = new Set<string | null | undefined>(
                     existingConnections.map((edge) => edge.targetHandle)
                 );
-                const freeHandle = inputHandles.find((handle) => handle.id && !occupiedHandles.has(handle.id));
+                const freeHandle = inputHandles.find(
+                    (handle) =>
+                        handle.id &&
+                        !occupiedHandles.has(handle.id) &&
+                        isValidEdge(sourceNodeId, targetNodeId, handle.id)
+                );
                 if (freeHandle) {
                     // Connect to free handle
                     toTargetHandleId = freeHandle.id;
@@ -905,6 +937,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         reactFlowInstance,
         currentValue: currentParameterValue,
         initParameters: initNodeParametersInternal,
+        isValidConnection,
     });
 
     /** Auto-layout the rule nodes.
@@ -984,6 +1017,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             startChangeTransaction();
             deleteNode(nodeId);
         };
+        nodeMap.clear();
         nodeParameters.clear();
         const operatorsNodes = ruleEditorContext.initialRuleOperatorNodes;
         // Create nodes
@@ -1000,6 +1034,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 )
             );
         });
+        operatorsNodes!!.forEach((opNode) => nodeMap.set(opNode.nodeId, opNode));
         // Create edges
         const edges: Edge[] = [];
         operatorsNodes!!.forEach((node) => {

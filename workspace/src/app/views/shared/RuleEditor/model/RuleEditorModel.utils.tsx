@@ -11,7 +11,7 @@ import {
 } from "../RuleEditor.typings";
 import { RuleNodeMenu } from "../view/ruleNode/RuleNodeMenu";
 import { RuleEditorNode } from "./RuleEditorModel.typings";
-import { Elements, XYPosition } from "react-flow-renderer/dist/types";
+import { Connection, Elements, XYPosition } from "react-flow-renderer/dist/types";
 import ELK, { ElkNode } from "elkjs";
 import { NodeContent } from "../view/ruleNode/NodeContent";
 
@@ -44,11 +44,18 @@ export interface IOperatorNodeOperations {
 
 /** Contains all additional items needed for creating an operator. */
 export interface IOperatorCreateContext {
+    // Operator specification map
     operatorParameterSpecification: Map<string, IParameterSpecification>;
+    // Translation function
     t: (string) => string;
+    // react-flow instance
     reactFlowInstance: OnLoadParams;
+    // Fetches the current value of a node parameter
     currentValue: (nodeId: string, parameterId: string) => string | undefined;
+    // Initialize node parameters
     initParameters: (nodeId: string, parameters: RuleOperatorNodeParameters) => any;
+    // Returns true if this is a valid connection
+    isValidConnection: (connection: Connection) => boolean;
 }
 
 /** Creates a new react-flow rule operator node. */
@@ -57,7 +64,7 @@ function createOperatorNode(
     nodeOperations: IOperatorNodeOperations,
     operatorContext: IOperatorCreateContext
 ): RuleEditorNode {
-    operatorContext.initParameters(node.nodeId, node.parameters)
+    operatorContext.initParameters(node.nodeId, node.parameters);
     const position = operatorContext.reactFlowInstance.project({
         x: node.position?.x ?? 0,
         y: node.position?.y ?? 0,
@@ -70,7 +77,7 @@ function createOperatorNode(
 
     const handles: IHandleProps[] = [
         ...createInputHandles(numberOfInputPorts),
-        { type: "source", position: Position.Right },
+        { type: "source", position: Position.Right, isValidConnection: operatorContext.isValidConnection },
     ];
 
     const data: NodeContentPropsWithBusinessData<IRuleNodeData> = {

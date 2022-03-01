@@ -268,6 +268,39 @@ const ruleLayout = (nodes: IRuleOperatorNode[]): RuleLayout => {
     };
 };
 
+/** Specifies the allowed connections. Only connections that return true are allowed. */
+const validateConnection = (
+    fromRuleOperatorNode: IRuleOperatorNode,
+    toRuleOperatorNode: IRuleOperatorNode,
+    targetPortIdx: number
+): boolean => {
+    switch (fromRuleOperatorNode.pluginType) {
+        case "PathInputOperator":
+            // Target must be either a comparison or a transform operator
+            if (toRuleOperatorNode.pluginType === "ComparisonOperator") {
+                return (
+                    (fromRuleOperatorNode.pluginId === "targetPathInput" && targetPortIdx === 1) ||
+                    (fromRuleOperatorNode.pluginId === "sourcePathInput" && targetPortIdx === 0)
+                );
+            } else if (toRuleOperatorNode.pluginType === "TransformOperator") {
+                return true;
+            } else {
+                return false;
+            }
+        case "ComparisonOperator":
+            return toRuleOperatorNode.pluginType === "AggregationOperator";
+        case "AggregationOperator":
+            return toRuleOperatorNode.pluginType === "AggregationOperator";
+        case "TransformOperator":
+            return (
+                toRuleOperatorNode.pluginType === "ComparisonOperator" ||
+                toRuleOperatorNode.pluginType === "TransformOperator"
+            );
+        default:
+            return true;
+    }
+};
+
 const ruleUtils = {
     convertRuleOperator,
     convertRuleOperatorNodeToValueInput,
@@ -277,6 +310,7 @@ const ruleUtils = {
     inputPathOperator,
     parameterSpecification,
     ruleLayout,
+    validateConnection,
 };
 
 export default ruleUtils;
