@@ -24,12 +24,15 @@ object PluginRegistry {
   private val log = Logger.getLogger(getClass.getName)
   
   /** Map from plugin base types to an instance holding all plugins of that type.  */
+  @volatile
   private var pluginTypes = Map[String, PluginType]()
 
   /** Map holding all plugins by their class name */
+  @volatile
   private var plugins = Map[String, PluginDescription[_]]()
 
   /** Map holding all plugins by their ID. */
+  @volatile
   private var pluginsById = Map[String, Seq[PluginDescription[_]]]()
 
   // Register all plugins at instantiation of this singleton object.
@@ -307,6 +310,7 @@ object PluginRegistry {
   private class PluginType {
 
     /** Map from plugin id to plugin description */
+    @volatile
     private var plugins = ListMap[String, PluginDescription[_]]()
 
     def availablePlugins: Seq[PluginDescription[_]] = plugins.values.toSeq
