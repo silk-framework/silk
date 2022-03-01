@@ -48,9 +48,9 @@ export const RuleEditorCanvas = () => {
     const [edgeUpdateState] = React.useState<{
         duringEdgeUpdate: boolean;
         edgeDeleted: boolean;
-        originalEdgeId: string | undefined;
+        originalEdge: Edge | undefined;
         transactionStarted: boolean;
-    }>({ duringEdgeUpdate: false, edgeDeleted: false, originalEdgeId: undefined, transactionStarted: false });
+    }>({ duringEdgeUpdate: false, edgeDeleted: false, originalEdge: undefined, transactionStarted: false });
     // Context menu that is shown on specific user actions
     const [contextMenu, setContextMenu] = React.useState<JSX.Element | null>(null);
     // At the moment react-flow's selection logic is buggy in some places, e.g. https://github.com/wbkd/react-flow/issues/1314
@@ -98,7 +98,7 @@ export const RuleEditorCanvas = () => {
         // Don't delete the original edge when the edge was not dragged, i.e. time between click and release was too small
         if (
             edgeUpdateState.duringEdgeUpdate &&
-            edgeUpdateState.originalEdgeId === originalEdgeId &&
+            edgeUpdateState.originalEdge?.id === originalEdgeId &&
             !edgeUpdateState.edgeDeleted
         ) {
             startEdgeUpdateTransaction();
@@ -107,11 +107,11 @@ export const RuleEditorCanvas = () => {
         }
     };
     // Start dragging an existing edge
-    const onEdgeUpdateStart = React.useCallback((event, edge) => {
+    const onEdgeUpdateStart = React.useCallback((event: ReactMouseEvent, edge: Edge) => {
         edgeUpdateState.duringEdgeUpdate = true;
         edgeUpdateState.edgeDeleted = false;
         edgeUpdateState.transactionStarted = false;
-        edgeUpdateState.originalEdgeId = edge.id;
+        edgeUpdateState.originalEdge = edge;
         setTimeout(() => {
             // Delete the original edge, since we will start a new edge.
             deleteOriginalEdgeDuringEdgeUpdate(edge.id);
@@ -134,6 +134,7 @@ export const RuleEditorCanvas = () => {
     // End of an edge update independent from if the edge was connected to a new port or not
     const onEdgeUpdateEnd = React.useCallback((event, edge) => {
         edgeUpdateState.duringEdgeUpdate = false;
+        edgeUpdateState.originalEdge?.target && modelContext.executeModelEditOperation.fixNodeInputs();
     }, []);
 
     /** Connection logic, i.e. connecting new edges. */

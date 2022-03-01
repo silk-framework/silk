@@ -84,6 +84,9 @@ export interface IModelActions {
     ) => void;
     /** Automatically layout the rule nodes. */
     autoLayout: () => void;
+    /** Checks all nodes if their input ports need to be adapted, i.e. their number decreased or increased. Usually this is not needed and all operations are handling it themselves.
+     * E.g. the deleteEdge function has the option to not fix affected nodes after deleting an edge. */
+    fixNodeInputs: () => void;
 }
 
 const NOP = () => {};
@@ -115,6 +118,7 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
         autoLayout: NOP,
         addNodeByPlugin: NOP,
         deleteEdges: NOP,
+        fixNodeInputs: NOP,
     },
     undo: () => false,
     canUndo: false,

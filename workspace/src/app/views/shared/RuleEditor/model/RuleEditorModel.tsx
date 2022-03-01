@@ -851,6 +851,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
+    const fixNodeInputs = () => {
+        changeElementsInternal((els) => {
+            return els;
+        }, true);
+    };
+
     /** Layout the rule nodes, since this must be async it cannot return the new elements directly in the setElements function. */
     const autoLayoutInternal = async (elements: Elements, addChangeHistory: boolean): Promise<Elements> => {
         const newLayout = await utils.autoLayout(elements, zoom);
@@ -1045,6 +1051,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     autoLayout,
                     deleteEdges,
                     moveNodes,
+                    fixNodeInputs,
                 },
                 unsavedChanges: canUndo,
             }}
