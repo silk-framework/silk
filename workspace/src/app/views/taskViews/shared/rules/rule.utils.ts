@@ -252,7 +252,55 @@ const convertToRuleOperatorNodeMap = (
         })
     );
     const rootNodes = ruleOperatorNodes.filter((node) => !hasParent.has(node.nodeId));
+    if (rootNodes.length > 1) {
+        throw Error(
+            `More than one root node found, but at most one is allowed! Root nodes: ${rootNodes
+                .map((n) => n.label)
+                .join(", ")}`
+        );
+    } else if (rootNodes.length === 0 && nodeMap.size > 0) {
+        throw Error(`Rule tree cannot be saved, because it contains cycles!`);
+    } else if (rootNodes.length === 1) {
+        const cycle = findCycles(rootNodes[0], nodeMap);
+        if (cycle) {
+            throw Error(
+                "Illegal cycle found in rule. Path from root node to cycled node: " +
+                    cycle.map((n) => n.label).join(", ")
+            );
+        }
+    }
     return [nodeMap, rootNodes];
+};
+
+/** Returns the first cycle found if any exist. */
+const findCycles = (
+    rootNode: IRuleOperatorNode,
+    nodeMap: Map<string, IRuleOperatorNode>
+): IRuleOperatorNode[] | undefined => {
+    const visitedNodes = new Set<string>();
+    const iterate = (operatorNode: IRuleOperatorNode): IRuleOperatorNode[] | undefined => {
+        if (visitedNodes.has(operatorNode.nodeId)) {
+            return [operatorNode];
+        } else {
+            visitedNodes.add(operatorNode.nodeId);
+            operatorNode.inputs.forEach((child) => {
+                if (child && nodeMap.has(child)) {
+                    const result = iterate(nodeMap.get(child)!!);
+                    if (result) {
+                        result.push(operatorNode);
+                        return result;
+                    }
+                }
+            });
+        }
+    };
+    const result = iterate(rootNode);
+    if (visitedNodes.size !== nodeMap.size) {
+        throw Error(
+            `Root node '${rootNode.label}' is not connected to all nodes! There are overall ${nodeMap.size} nodes, but only ${visitedNodes.size} are part of the rule tree spanned by '${rootNode.label}'.`
+        );
+    }
+    return result ? result.reverse() : undefined;
 };
 
 /** Extract rule layout from rule operator nodes. */

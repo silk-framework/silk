@@ -58,9 +58,14 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
     const saveLinkageRule = async (ruleOperatorNodes: IRuleOperatorNode[]) => {
         try {
             const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes);
-            if (rootNodes.length > 1) {
-                throw Error(`More than one root node found! Root nodes: ${rootNodes.map((n) => n.label).join(", ")}`);
+            if (
+                rootNodes.length === 1 &&
+                rootNodes[0].pluginType !== "ComparisonOperator" &&
+                rootNodes[0].pluginType !== "AggregationOperator"
+            ) {
+                throw Error("Rule tree root must either be an aggregation or comparison!");
             }
+
             await requestUpdateProjectTask(projectId, linkingTaskId, {
                 data: {
                     parameters: {

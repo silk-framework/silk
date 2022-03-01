@@ -94,7 +94,7 @@ const convertToRuleOperatorNodes = (
     extractSimilarityOperatorNode(linkingTask.data.parameters.rule.operator, operatorNodes, ruleOperator);
     const nodePositions = linkingTask.data.parameters.rule.layout.nodePositions;
     operatorNodes.forEach((node) => {
-        const [x, y] = nodePositions[node.nodeId];
+        const [x, y] = nodePositions[node.nodeId] ?? [null, null];
         node.position = x !== null ? { x, y } : undefined;
     });
     return operatorNodes;
