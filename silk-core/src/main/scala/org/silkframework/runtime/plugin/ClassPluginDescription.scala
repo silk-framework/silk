@@ -72,13 +72,6 @@ class ClassPluginDescription[+T](val id: Identifier, val categories: Seq[String]
     }
   }
 
-  /**
-   * Retrieves the parameters values of a given plugin instance.
-   */
-  def parameterValues(plugin: AnyRef)(implicit prefixes: Prefixes): Map[String, String] = {
-    parameters.map(param => (param.name, param.stringValue(plugin))).toMap
-  }
-
   override def toString = label
 
   private def parseParameters(parameterValues: Map[String, String])(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Seq[AnyRef] = {
