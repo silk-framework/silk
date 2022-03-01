@@ -56,12 +56,28 @@ const filterAndSortOperators = (operators: IRuleOperator[], searchWords: string[
     const filtered = operators.filter((op) => {
         return matchesAllWords(textToSearchIn(op), searchWords);
     });
+    const matchCount = new Map<IRuleOperator, number>();
     const { matches, nonMatches } = partitionArray(
         filtered,
         (op) => !!searchWords.find((w) => op.label.toLowerCase().includes(w))
     );
+    matches.forEach((match) => {
+        const label = match.label.toLowerCase();
+        const labelMatchCount = searchWords.filter((word) => label.includes(word)).length;
+        matchCount.set(match, labelMatchCount);
+    });
     // Sort label and other matches independently
+    const sortedLabelMatches = matches.sort((matchA, matchB) => {
+        const matchCountA = matchCount.get(matchA) ?? 0;
+        const matchCountB = matchCount.get(matchB) ?? 0;
+        if (matchCountA > matchCountB) {
+            return -1;
+        } else if (matchCountB > matchCountA) {
+            return 1;
+        } else {
+            return matchA.label.toLowerCase() < matchB.label.toLowerCase() ? -1 : 1;
+        }
+    });
     const byLabel = (op: IRuleOperator) => op.label;
-    const sorted = [...sortLexically(matches, byLabel), ...sortLexically(nonMatches, byLabel)];
-    return sorted;
+    return [...sortedLabelMatches, ...sortLexically(nonMatches, byLabel)];
 };

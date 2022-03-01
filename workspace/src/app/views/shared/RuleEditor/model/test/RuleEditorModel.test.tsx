@@ -149,6 +149,7 @@ describe("Rule editor model", () => {
             portSpecification: {
                 minInputPorts: minInputPorts,
             },
+            tags: [],
         };
     };
 
@@ -190,7 +191,10 @@ describe("Rule editor model", () => {
         currentContext().saveRule();
         expect(ruleOperatorNodes).toHaveLength(0);
         await ruleEditorModel(
-            [node({ nodeId: "node A", portSpecification: {minInputPorts: 0} }), node({ nodeId: "node B", inputs: ["node A"] })],
+            [
+                node({ nodeId: "node A", portSpecification: { minInputPorts: 0 } }),
+                node({ nodeId: "node B", inputs: ["node A"] }),
+            ],
             [operator("pluginA", 0)]
         );
         // 2 nodes and 1 edge

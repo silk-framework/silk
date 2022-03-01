@@ -866,15 +866,21 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 });
             }
         });
-        if (changeNodePositionOperations.length > 0) {
-            startChangeTransaction();
-            const changeNodePositions = { operations: changeNodePositionOperations };
-            return addChangeHistory
-                ? addAndExecuteRuleModelChangeInternal(changeNodePositions, elements)
-                : executeRuleModelChangeInternal(changeNodePositions, elements);
-        } else {
-            return elements;
-        }
+        return new Promise((resolve) => {
+            if (changeNodePositionOperations.length > 0) {
+                startChangeTransaction();
+                const changeNodePositions = { operations: changeNodePositionOperations };
+                changeElementsInternal((elems) => {
+                    const newElements = addChangeHistory
+                        ? addAndExecuteRuleModelChangeInternal(changeNodePositions, elements)
+                        : executeRuleModelChangeInternal(changeNodePositions, elements);
+                    resolve(newElements);
+                    return newElements;
+                });
+            } else {
+                resolve(elements);
+            }
+        });
     };
 
     const operatorNodeOperationsInternal: IOperatorNodeOperations = {

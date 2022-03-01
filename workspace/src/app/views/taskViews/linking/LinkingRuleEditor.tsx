@@ -94,6 +94,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
             "aggregation, quadraticMean and geometricMean.",
         type: "int",
         advanced: true,
+        defaultValue: "1",
     });
 
     const thresholdParameterSpec = ruleUtils.parameterSpecification({
@@ -101,6 +102,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
         description:
             "The maximum distance. For normalized distance measures, the threshold should be between 0.0 and 1.0.",
         type: "float",
+        defaultValue: "0.0",
     });
 
     return (
