@@ -51,7 +51,7 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                 </OverviewItemLine>
             )}
             <OverviewItemLine>
-                {utils.createOperatorTags([ruleOperator.pluginType, ...(ruleOperator.categories ?? [])], textQuery)}
+                {utils.createOperatorTags([...ruleOperator.tags, ...(ruleOperator.categories ?? [])], textQuery)}
             </OverviewItemLine>
         </OverviewItemDescription>
     );

@@ -26,11 +26,10 @@ export const RuleNodeParameterForm = ({ nodeId, parameters }: RuleNodeParameters
                             tooltip: parameterDescription, // TODO: CMEM-3919 Tooltip flickers
                             tooltipProperties: {
                                 tooltipProps: {
-                                    position: "top-right",
+                                    placement: "top-right", // TODO: CMEM-3919: This does not work
                                 },
                             },
                             info: paramSpec.required ? "required" : undefined,
-                            title: parameterDescription, // TODO CMEM-3919 Remove when tooltip works
                         }}
                         // TODO: CMEM-3919 validation and error state
                         // hasStateDanger={!!errorMessage("Label", errors.label)}

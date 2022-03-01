@@ -49,9 +49,9 @@ export const RuleEditorOperatorSidebar = () => {
 // Filter the operators by search query and sort them
 const filterAndSortOperators = (operators: IRuleOperator[], searchWords: string[]): IRuleOperator[] => {
     const textToSearchIn = (ruleOperator: IRuleOperator): string => {
-        return `${ruleOperator.label} ${ruleOperator.description ?? ""} ${(ruleOperator.categories ?? []).join(
-            " "
-        )}`.toLowerCase();
+        return `${ruleOperator.label} ${(ruleOperator.tags ?? []).join(" ")} ${ruleOperator.description ?? ""} ${(
+            ruleOperator.categories ?? []
+        ).join(" ")}`.toLowerCase();
     };
     const filtered = operators.filter((op) => {
         return matchesAllWords(textToSearchIn(op), searchWords);

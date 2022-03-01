@@ -36,6 +36,8 @@ export interface IRuleOperator extends IRuleOperatorBase {
     parameterSpecification: {
         [parameterKey: string]: IParameterSpecification;
     };
+    /** Tags that will be displayed in the node operator. */
+    tags: string[];
 }
 
 /** A single node in the rule operator tree. This is displayed in the editor canvas. */

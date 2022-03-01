@@ -97,6 +97,7 @@ const inputPathOperator = (pluginId: string, label: string, description: string)
         categories: ["Input"],
         icon: "", // TODO: CMEM-3919: Icon for path input
         description: description,
+        tags: [],
     };
 };
 
@@ -154,7 +155,22 @@ const convertRuleOperator = (
             ...additionalParamSpecs,
         ]),
         portSpecification: portSpecification(pluginDetails),
+        tags: pluginTags(pluginDetails),
     };
+};
+
+/** Tags for a rule operator based on its plugin specification. */
+const pluginTags = (pluginDetails: IPluginDetails): string[] => {
+    switch (pluginDetails.pluginType) {
+        case "TransformOperator":
+            return ["Transform"]; // TODO: Discuss: CMEM-3919: i18n?
+        case "ComparisonOperator":
+            return ["Comparison"];
+        case "AggregationOperator":
+            return ["Aggregation"];
+        default:
+            return [];
+    }
 };
 
 const portSpecification = (op: IPluginDetails): IPortSpecification => {
