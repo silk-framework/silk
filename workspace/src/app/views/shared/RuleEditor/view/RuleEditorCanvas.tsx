@@ -266,6 +266,7 @@ export const RuleEditorCanvas = () => {
                     modelContext.executeModelEditOperation.deleteNodes(nodeIds);
                 }}
                 cloneSelection={() => {
+                    modelContext.executeModelEditOperation.startChangeTransaction();
                     modelContext.executeModelEditOperation.copyAndPasteNodes(nodeIds, { x: 100, y: 100 });
                 }}
             />

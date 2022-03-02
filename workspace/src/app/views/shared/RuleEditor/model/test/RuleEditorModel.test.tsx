@@ -169,23 +169,33 @@ describe("Rule editor model", () => {
         expect(currentContext().canUndo).toBe(true);
     };
 
-    // Test UNDO and REDO behavior
-    const checkUndoAndRedo = (beforeEditCheck: () => any, afterEditCheck: () => any) => {
-        afterEditCheck();
+    /** Test UNDO and REDO behavior. The last check is always the current state. Each check before tests the states
+     *  going back in time with every UNDO. Same checks are repeated going forwards with REDO.
+     **/
+    const checkUndoAndRedo = (...checks: (() => any)[]) => {
+        if (checks.length === 0) {
+            return;
+        }
+        // Check current state
+        checks[checks.length - 1]();
         // Check UNDO and REDO twice in a row
         for (let i = 0; i < 2; i++) {
-            // UNDO
-            act(() => {
-                currentContext().undo();
-            });
-            checkAfterUndo();
-            beforeEditCheck();
+            // UNDO until we are at the first check state
+            for (let i = checks.length - 2; i >= 0; i--) {
+                act(() => {
+                    currentContext().undo();
+                });
+                checks[i]();
+                checkAfterUndo(i > 0);
+            }
 
             // REDO
-            act(() => {
-                currentContext().redo();
-            });
-            afterEditCheck();
+            for (let i = 1; i < checks.length; i++) {
+                act(() => {
+                    currentContext().redo();
+                });
+                checks[i]();
+            }
         }
     };
 
@@ -252,18 +262,7 @@ describe("Rule editor model", () => {
         };
         checkAfterAddedNodes();
 
-        // UNDO
-        act(() => {
-            currentContext().undo();
-        });
-        checkAfterUndo();
-        checkBeforeAdd();
-
-        // REDO
-        act(() => {
-            currentContext().redo();
-        });
-        checkAfterAddedNodes();
+        checkUndoAndRedo(checkBeforeAdd, checkAfterAddedNodes);
     });
 
     it("should delete nodes and undo & redo", async () => {
@@ -294,18 +293,7 @@ describe("Rule editor model", () => {
         };
         checkAfterDelete();
 
-        // UNDO
-        act(() => {
-            currentContext().undo();
-        });
-        checkAfterUndo();
-        checkBeforeDelete();
-
-        // REDO
-        act(() => {
-            currentContext().redo();
-        });
-        checkAfterDelete();
+        checkUndoAndRedo(checkBeforeDelete, checkAfterDelete);
     });
 
     it("should move a node and undo & redo", async () => {
@@ -464,18 +452,7 @@ describe("Rule editor model", () => {
         };
         checkAfterDelete();
 
-        // UNDO
-        act(() => {
-            currentContext().undo();
-        });
-        checkAfterUndo();
-        checkBeforeDelete();
-
-        // REDO
-        act(() => {
-            currentContext().redo();
-        });
-        checkAfterDelete();
+        checkUndoAndRedo(checkBeforeDelete, checkAfterDelete);
     });
 
     it("should copy and paste multiple nodes and undo & redo", async () => {
@@ -489,19 +466,29 @@ describe("Rule editor model", () => {
         };
         checkBeforeCopyAndPaste();
 
-        // Copy and paste
+        // Copy and paste first time
         act(() => {
             currentContext().executeModelEditOperation.copyAndPasteNodes(["nodeB", "nodeC"], { x: 10, y: 10 });
         });
         const checkAfterCopyAndPaste = () => {
-            checkAfterChange();
             // 2 nodes and 1 edge added
             expect(currentContext().elements).toHaveLength(9);
-            currentContext().saveRule();
-            expect(new Set(ruleOperatorNodes.map((op) => op.nodeId)).size).toBe(ruleOperatorNodes.length);
+            expect(new Set(currentOperatorNodes().map((op) => op.nodeId)).size).toBe(ruleOperatorNodes.length);
         };
         checkAfterCopyAndPaste();
-        checkUndoAndRedo(checkBeforeCopyAndPaste, checkAfterCopyAndPaste);
+        // Copy and paste second time
+        act(() => {
+            currentContext().executeModelEditOperation.startChangeTransaction();
+            currentContext().executeModelEditOperation.copyAndPasteNodes(["nodeB", "nodeC"], { x: 20, y: 20 });
+        });
+        const checkAfterCopyAndPaste2nd = () => {
+            checkAfterChange();
+            // 2 nodes and 1 edge added
+            expect(currentContext().elements).toHaveLength(12);
+            expect(new Set(currentOperatorNodes().map((op) => op.nodeId)).size).toBe(ruleOperatorNodes.length);
+        };
+        checkAfterCopyAndPaste2nd();
+        checkUndoAndRedo(checkBeforeCopyAndPaste, checkAfterCopyAndPaste, checkAfterCopyAndPaste2nd);
     });
 
     it("should add an edge and undo & redo", async () => {
@@ -524,18 +511,7 @@ describe("Rule editor model", () => {
         };
         checkAfterAdd();
 
-        // UNDO
-        act(() => {
-            currentContext().undo();
-        });
-        checkAfterUndo();
-        checkBeforeAdd();
-
-        // REDO
-        act(() => {
-            currentContext().redo();
-        });
-        checkAfterAdd();
+        checkUndoAndRedo(checkBeforeAdd, checkAfterAdd);
     });
 
     it("should delete an edge and undo & redo", async () => {
