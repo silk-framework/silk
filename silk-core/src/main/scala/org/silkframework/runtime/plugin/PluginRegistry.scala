@@ -35,6 +35,9 @@ object PluginRegistry {
   @volatile
   private var pluginsById = Map[String, Seq[PluginDescription[_]]]()
 
+  @volatile
+  private var timestamp: Long = System.currentTimeMillis()
+
   // Register all plugins at instantiation of this singleton object.
   Config.pluginFolder() match {
     case Some(folder) =>
@@ -42,6 +45,11 @@ object PluginRegistry {
     case None =>
       registerFromClasspath()
   }
+
+  /**
+    * Timestamp of the last update to the registry.
+    */
+  def lastUpdateTimestamp: Long = timestamp
 
   def allPlugins: Traversable[PluginDescription[_]] = {
     pluginsById.values.flatten
@@ -254,6 +262,7 @@ object PluginRegistry {
       }
       plugins += ((pluginDesc.pluginClass.getName, pluginDesc))
       pluginsById += ((pluginDesc.id.toString, pluginDesc :: (pluginsById.getOrElse(pluginDesc.id, Seq()).toList)))
+      timestamp = System.currentTimeMillis()
     }
   }
 
@@ -284,6 +293,8 @@ object PluginRegistry {
     } else {
       pluginsById -= pluginDesc.id.toString
     }
+
+    timestamp = System.currentTimeMillis()
   }
 
   /**

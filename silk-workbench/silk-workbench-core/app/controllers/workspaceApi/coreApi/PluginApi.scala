@@ -29,7 +29,7 @@ import scala.collection.mutable
   * Workspace task plugin related endpoints.
   */
 @Tag(name = "Plugins", description = "Provides information about all installed plugins.")
-class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedController with UserContextActions {
+class PluginApi @Inject()() extends InjectedController with UserContextActions {
 
   /** All plugins that can be created in the workspace. */
   @Operation(
@@ -124,7 +124,7 @@ class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedControlle
       case Some(pluginDesc) =>
         implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
         val resultJson = PluginListJsonFormat.serializePlugin(pluginDesc, addMarkdownDocumentation, overviewOnly = false,
-          taskType = pluginCache.taskTypeByClass(pluginDesc.pluginClass))
+          taskType = PluginApiCache.taskTypeByClass(pluginDesc.pluginClass))
         result(pretty, resultJson)
       case None =>
         NotFound
@@ -203,7 +203,7 @@ class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedControlle
     implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
     val pluginListJson = JsonSerializers.toJson(pluginList.copy(pluginsByType = filteredPlugins))
     val pluginJsonWithTaskType = pluginListJson.as[JsObject].fields.map { case (pluginId, pluginJson) =>
-      pluginCache.taskType(pluginId) match {
+      PluginApiCache.taskType(pluginId) match {
         case Some(taskType) => (pluginId, pluginJson.as[JsObject] + (JsonSerializers.TASKTYPE -> JsString(taskType)))
         case None => (pluginId, pluginJson)
       }
@@ -213,17 +213,16 @@ class PluginApi @Inject()(pluginCache: PluginApiCache) extends InjectedControlle
 }
 
 
+object PluginApiCache {
 
-@javax.inject.Singleton
-class PluginApiCache @Inject()() {
-  private lazy val itemTypeMapById: Map[String, String] = {
-    PluginRegistry.allPlugins
-        .filter(pd => classOf[TaskSpec].isAssignableFrom(pd.pluginClass) || classOf[Dataset].isAssignableFrom(pd.pluginClass))
-        .flatMap(pd => taskTypeByClass(pd.pluginClass).map(taskType => (pd.id.toString, taskType)))
-        .toMap
-  }
+  @volatile
+  private var pluginRegistryTimestamp = Long.MinValue
+
+  @volatile
+  private var itemTypeMapById: Map[String, String] = Map.empty
 
   def taskType(pluginId: String): Option[String] = {
+    updateCache()
     itemTypeMapById.get(pluginId)
   }
 
@@ -237,5 +236,17 @@ class PluginApiCache @Inject()() {
       JsonSerializers.TASK_TYPE_LINKING -> classOf[LinkSpec]
     )
     taskTypes.find(_._2.isAssignableFrom(pluginClass)).map(_._1)
+  }
+
+  private def updateCache(): Unit = {
+    if(PluginRegistry.lastUpdateTimestamp > pluginRegistryTimestamp) {
+      pluginRegistryTimestamp = PluginRegistry.lastUpdateTimestamp
+      itemTypeMapById = {
+        PluginRegistry.allPlugins
+          .filter(pd => classOf[TaskSpec].isAssignableFrom(pd.pluginClass) || classOf[Dataset].isAssignableFrom(pd.pluginClass))
+          .flatMap(pd => taskTypeByClass(pd.pluginClass).map(taskType => (pd.id.toString, taskType)))
+          .toMap
+      }
+    }
   }
 }
