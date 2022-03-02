@@ -59,7 +59,7 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
     /** Save the rule. */
     const saveTransformRule = async (ruleOperatorNodes: IRuleOperatorNode[], originalRule: IComplexMappingRule) => {
         try {
-            const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes);
+            const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
             if (rootNodes.length !== 1) {
                 throw Error(
                     `There must be exactly one root node, but ${

@@ -57,7 +57,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
     /** Save the rule. */
     const saveLinkageRule = async (ruleOperatorNodes: IRuleOperatorNode[]) => {
         try {
-            const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes);
+            const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
             if (
                 rootNodes.length === 1 &&
                 rootNodes[0].pluginType !== "ComparisonOperator" &&
@@ -146,6 +146,12 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                 }
             }}
             validateConnection={ruleUtils.validateConnection}
+            tabs={[
+                ruleUtils.sidebarTabs.all,
+                ruleUtils.sidebarTabs.comparison,
+                ruleUtils.sidebarTabs.transform,
+                ruleUtils.sidebarTabs.aggregation,
+            ]}
         />
     );
 };

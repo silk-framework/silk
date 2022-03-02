@@ -1,5 +1,11 @@
 import React from "react";
-import { IParameterSpecification, IRuleOperator, IRuleOperatorNode } from "../RuleEditor.typings";
+import {
+    IParameterSpecification,
+    IRuleOperator,
+    IRuleOperatorNode,
+    IRuleSidebarExternalTabConfig,
+    IRuleSideBarFilterTabConfig,
+} from "../RuleEditor.typings";
 
 /**
  * The rule editor context that contains objects and methods related to the original objects that are being edited and
@@ -33,6 +39,8 @@ export interface RuleEditorContextProps {
         toRuleOperatorNode: IRuleOperatorNode,
         targetPortIdx: number
     ) => boolean;
+    /** Tabs that allow to show different rule operators or only a subset. The first tab will always be selected first. */
+    tabs?: (IRuleSideBarFilterTabConfig | IRuleSidebarExternalTabConfig)[];
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */

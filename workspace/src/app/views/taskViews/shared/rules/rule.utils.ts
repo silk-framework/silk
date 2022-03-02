@@ -4,6 +4,8 @@ import {
     IPortSpecification,
     IRuleOperator,
     IRuleOperatorNode,
+    IRuleSidebarExternalTabConfig,
+    IRuleSideBarFilterTabConfig,
 } from "../../../shared/RuleEditor/RuleEditor.typings";
 import { RuleOperatorFetchFnType } from "../../../shared/RuleEditor/RuleEditor";
 import { IPluginDetails } from "@ducks/common/typings";
@@ -350,6 +352,34 @@ const validateConnection = (
     }
 };
 
+type TabIdType = "all" | "transform" | "comparison" | "aggregation";
+
+const sortAlphabetically = (ruleOpA: IRuleOperator, ruleOpB: IRuleOperator) =>
+    ruleOpA.label.toLowerCase() < ruleOpB.label.toLowerCase() ? -1 : 1;
+
+const sidebarTabs: Record<TabIdType, IRuleSideBarFilterTabConfig | IRuleSidebarExternalTabConfig> = {
+    all: {
+        id: "all",
+        label: "All", // TODO: i18n and icon
+        filterAndSort: (ops) => ops,
+    },
+    transform: {
+        id: "transform",
+        label: "Transform",
+        filterAndSort: (ops) => ops.filter((op) => op.pluginType === "TransformOperator").sort(sortAlphabetically),
+    },
+    comparison: {
+        id: "comparison",
+        label: "Comparison",
+        filterAndSort: (ops) => ops.filter((op) => op.pluginType === "ComparisonOperator").sort(sortAlphabetically),
+    },
+    aggregation: {
+        id: "aggregation",
+        label: "Aggregation",
+        filterAndSort: (ops) => ops.filter((op) => op.pluginType === "AggregationOperator").sort(sortAlphabetically),
+    },
+};
+
 const ruleUtils = {
     convertRuleOperator,
     convertRuleOperatorNodeToValueInput,
@@ -360,6 +390,7 @@ const ruleUtils = {
     parameterSpecification,
     ruleLayout,
     validateConnection,
+    sidebarTabs,
 };
 
 export default ruleUtils;

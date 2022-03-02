@@ -1,5 +1,6 @@
 import { NodeContentProps } from "gui-elements/src/extensions/react-flow/nodes/NodeDefault";
 import { PluginType, RuleOperatorType } from "@ducks/shared/typings";
+import { ValidIconName } from "gui-elements/src/components/Icon/canonicalIconNames";
 
 export type PathInputOperator = "PathInputOperator";
 
@@ -102,4 +103,31 @@ export interface IRuleNodeData {
     originalRuleOperatorNode: IRuleOperatorNode;
     // Update switch to force content updates
     updateSwitch?: boolean;
+}
+
+/** Sidebar tabs */
+interface IRuleSideBarTabBaseConfig {
+    // Unique ID of the tab
+    id: string;
+    // Optional icon that is displayed left to the label
+    icon?: ValidIconName;
+    // The tab label
+    label?: string;
+}
+
+/** Filters (and sorts) the operator rule list and shows it in the tab. */
+export interface IRuleSideBarFilterTabConfig extends IRuleSideBarTabBaseConfig {
+    filterAndSort: (ruleOperators: IRuleOperator[]) => IRuleOperator[];
+}
+
+/** Allow to fetch a completely custom rule operator list. Usually used if a new request needs to be made. */
+export interface IRuleSidebarExternalTabConfig<ListItem = any> extends IRuleSideBarTabBaseConfig {
+    /** Fetches an array of items that can be transformed into rule operators. */
+    fetchOperators: () => ListItem[];
+    /** Converts an operator into a rule operator. Only list items are converted that will currently be shown. */
+    convertToOperator: (listItem: ListItem) => IRuleOperator;
+    /** If the text query changes then the following filter function will be used. Else each item will be converted and the normal filter function is used.
+     * This is just an optimization, if we deal with a lot of elements, e.g. an array of strings, and don't want to convert them first.
+     **/
+    customTextFilter?: (listItem: ListItem) => boolean;
 }
