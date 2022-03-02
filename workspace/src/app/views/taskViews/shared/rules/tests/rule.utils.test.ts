@@ -16,7 +16,8 @@ describe("Rule utils", () => {
             ...node,
         };
     };
-    const rootNodes = (operatorNodes: IRuleOperatorNode[]) => utils.convertToRuleOperatorNodeMap(operatorNodes)[1];
+    const rootNodes = (operatorNodes: IRuleOperatorNode[]) =>
+        utils.convertToRuleOperatorNodeMap(operatorNodes, false)[1];
     const rootNodeIds = (operatorNodes: IRuleOperatorNode[]) => rootNodes(operatorNodes).map((op) => op.nodeId);
     it("should convert rule operators to node map and extract root nodes", () => {
         expect(rootNodes([])).toHaveLength(0);

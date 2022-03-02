@@ -242,7 +242,8 @@ const fetchRuleOperatorNode = (
 
 /** Converts the editor rule operator nodes to a map from ID to node and also returns all root nodes, i.e. nodes without parent. */
 const convertToRuleOperatorNodeMap = (
-    ruleOperatorNodes: IRuleOperatorNode[]
+    ruleOperatorNodes: IRuleOperatorNode[],
+    validate: boolean
 ): [Map<string, IRuleOperatorNode>, IRuleOperatorNode[]] => {
     const hasParent = new Set<string>();
     const nodeMap = new Map<string, IRuleOperatorNode>(
@@ -252,15 +253,15 @@ const convertToRuleOperatorNodeMap = (
         })
     );
     const rootNodes = ruleOperatorNodes.filter((node) => !hasParent.has(node.nodeId));
-    if (rootNodes.length > 1) {
+    if (validate && rootNodes.length > 1) {
         throw Error(
             `More than one root node found, but at most one is allowed! Root nodes: ${rootNodes
                 .map((n) => n.label)
                 .join(", ")}`
         );
-    } else if (rootNodes.length === 0 && nodeMap.size > 0) {
+    } else if (validate && rootNodes.length === 0 && nodeMap.size > 0) {
         throw Error(`Rule tree cannot be saved, because it contains cycles!`);
-    } else if (rootNodes.length === 1) {
+    } else if (validate && rootNodes.length === 1) {
         const cycle = findCycles(rootNodes[0], nodeMap);
         if (cycle) {
             throw Error(
