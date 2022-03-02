@@ -23,6 +23,7 @@ import {
     Link,
     TextArea,
     TextField,
+    HtmlContentBlock,
 } from "gui-elements";
 import { IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
@@ -392,75 +393,76 @@ export function Metadata(props: IProps) {
                         </PropertyValuePair>
                     )}
                     <PropertyValuePair>
-                        <PropertyName></PropertyName>
                         <PropertyValue>
-                            <Trans
-                                i18nKey={"Metadata.createdBy"}
-                                t={t}
-                                values={{
-                                    timestamp: created ? t("Metadata.dateFormat", "{{year}}/{{month}}/{{day}}", getDateData(created)) : "",
-                                    author: createdByUser?.label ?? t("Metadata.unknownuser", "unknown user"),
-                                }}
-                                components={{
-                                    author: (
-                                        <Link
-                                            href={utils.generateFacetUrl("createdBy", createdByUser?.uri ?? "")}
-                                        ></Link>
-                                    ),
-                                    timestamp: created ? (
-                                        (getDeltaInDays(created) < 7) ? (
-                                            <ElapsedDateTimeDisplay
-                                            data-test-id={"metadata-creation-age"}
-                                            suffix={t("Metadata.suffixAgo")}
-                                            prefix={t("Metadata.prefixAgo")}
-                                            dateTime={created}
-                                            translateUnits={translateUnits}
-                                            />
+                            <HtmlContentBlock small>
+                                <Trans
+                                    i18nKey={"Metadata.createdBy"}
+                                    t={t}
+                                    values={{
+                                        timestamp: created ? t("Metadata.dateFormat", "{{year}}/{{month}}/{{day}}", getDateData(created)) : "",
+                                        author: createdByUser?.label ?? t("Metadata.unknownuser", "unknown user"),
+                                    }}
+                                    components={{
+                                        author: (
+                                            <Link
+                                                href={utils.generateFacetUrl("createdBy", createdByUser?.uri ?? "")}
+                                            ></Link>
+                                        ),
+                                        timestamp: created ? (
+                                            (getDeltaInDays(created) < 7) ? (
+                                                <ElapsedDateTimeDisplay
+                                                data-test-id={"metadata-creation-age"}
+                                                suffix={t("Metadata.suffixAgo")}
+                                                prefix={t("Metadata.prefixAgo")}
+                                                dateTime={created}
+                                                translateUnits={translateUnits}
+                                                />
+                                            ) : (
+                                                <span title={new Date(created).toString()} />
+                                            )
                                         ) : (
-                                            <span title={new Date(created).toString()} />
-                                        )
-                                    ) : (
-                                        <></>
-                                    ),
-                                }}
-                            />
-                            {
-                                (modified !== created) && (
-                                    <>
-                                        {" "}
-                                        <Trans
-                                            i18nKey={"Metadata.lastModifiedBy"}
-                                            t={t}
-                                            values={{
-                                                timestamp: modified ? t("Metadata.dateFormat", "{{year}}/{{month}}/{{day}}", getDateData(created)) : "",
-                                                author: lastModifiedByUser?.label ?? t("Metadata.unknownuser", "unknown user"),
-                                            }}
-                                            components={{
-                                                author: (
-                                                    <Link
-                                                        href={utils.generateFacetUrl("createdBy", lastModifiedByUser?.uri ?? "")}
-                                                    ></Link>
-                                                ),
-                                                timestamp: modified? (
-                                                    (getDeltaInDays(modified) < 7) ? (
-                                                        <ElapsedDateTimeDisplay
-                                                        data-test-id={"metadata-creation-age"}
-                                                        suffix={t("Metadata.suffixAgo")}
-                                                        prefix={t("Metadata.prefixAgo")}
-                                                        dateTime={modified}
-                                                        translateUnits={translateUnits}
-                                                        />
+                                            <></>
+                                        ),
+                                    }}
+                                />
+                                {
+                                    (modified !== created) && (
+                                        <>
+                                            {" "}
+                                            <Trans
+                                                i18nKey={"Metadata.lastModifiedBy"}
+                                                t={t}
+                                                values={{
+                                                    timestamp: modified ? t("Metadata.dateFormat", "{{year}}/{{month}}/{{day}}", getDateData(created)) : "",
+                                                    author: lastModifiedByUser?.label ?? t("Metadata.unknownuser", "unknown user"),
+                                                }}
+                                                components={{
+                                                    author: (
+                                                        <Link
+                                                            href={utils.generateFacetUrl("createdBy", lastModifiedByUser?.uri ?? "")}
+                                                        ></Link>
+                                                    ),
+                                                    timestamp: modified? (
+                                                        (getDeltaInDays(modified) < 7) ? (
+                                                            <ElapsedDateTimeDisplay
+                                                            data-test-id={"metadata-creation-age"}
+                                                            suffix={t("Metadata.suffixAgo")}
+                                                            prefix={t("Metadata.prefixAgo")}
+                                                            dateTime={modified}
+                                                            translateUnits={translateUnits}
+                                                            />
+                                                        ) : (
+                                                            <span title={new Date(modified).toString()} />
+                                                        )
                                                     ) : (
-                                                        <span title={new Date(modified).toString()} />
-                                                    )
-                                                ) : (
-                                                    <></>
-                                                ),
-                                            }}
-                                        />
-                                    </>
-                                )
-                            }
+                                                        <></>
+                                                    ),
+                                                }}
+                                            />
+                                        </>
+                                    )
+                                }
+                            </HtmlContentBlock>
                         </PropertyValue>
                     </PropertyValuePair>
                 </PropertyValueList>
