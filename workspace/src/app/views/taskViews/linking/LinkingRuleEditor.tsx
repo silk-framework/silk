@@ -11,6 +11,7 @@ import { IProjectTask } from "@ducks/shared/typings";
 import { requestUpdateProjectTask } from "@ducks/workspace/requests";
 import utils from "./LinkingRuleEditor.utils";
 import ruleUtils from "../shared/rules/rule.utils";
+import linkingRuleRequests from "./LinkingRuleEditor.requests";
 import { IRuleOperatorNode } from "../../shared/RuleEditor/RuleEditor.typings";
 
 export interface LinkingRuleEditorProps {
@@ -110,6 +111,20 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
         defaultValue: "0.0",
     });
 
+    const sourcePathInput = (
+        label: string = "Source path",
+        description: string | undefined = "The value path of the source input of the linking task.",
+        defaultValue: string = "",
+        categories?: string[]
+    ) => ruleUtils.inputPathOperator("sourcePathInput", label, description, defaultValue, categories);
+
+    const targetPathInput = (
+        label: string = "Target path",
+        description: string | undefined = "The value path of the target input of the linking task.",
+        defaultValue: string = "",
+        categories?: string[]
+    ) => ruleUtils.inputPathOperator("targetPathInput", label, description, defaultValue, categories);
+
     return (
         <RuleEditor<IProjectTask<ILinkingTaskParameters>, IPluginDetails>
             projectId={projectId}
@@ -120,18 +135,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
             convertRuleOperator={ruleUtils.convertRuleOperator}
             viewActions={viewActions}
             convertToRuleOperatorNodes={utils.convertToRuleOperatorNodes}
-            additionalRuleOperators={[
-                ruleUtils.inputPathOperator(
-                    "sourcePathInput",
-                    "Source path",
-                    "The value path of the source input of the linking task."
-                ), // TODO: CMEM-3919: i18n
-                ruleUtils.inputPathOperator(
-                    "targetPathInput",
-                    "Target path",
-                    "The value path of the target input of the linking task."
-                ),
-            ]}
+            additionalRuleOperators={[sourcePathInput(), targetPathInput()]}
             addAdditionParameterSpecifications={(pluginDetails) => {
                 switch (pluginDetails.pluginType) {
                     case "ComparisonOperator":
@@ -148,6 +152,46 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
             validateConnection={ruleUtils.validateConnection}
             tabs={[
                 ruleUtils.sidebarTabs.all,
+                {
+                    id: "sourcePaths",
+                    label: "Source paths",
+                    fetchOperators: async () => {
+                        try {
+                            return (
+                                await linkingRuleRequests.fetchLinkingCachedPaths(projectId, linkingTaskId, "source")
+                            ).data;
+                        } catch (ex) {
+                            registerError(
+                                "linking-rule-editor-fetch-source-paths",
+                                t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
+                                ex
+                            );
+                        }
+                    },
+                    convertToOperator: (path: string) => {
+                        return sourcePathInput(path, "", path, []);
+                    },
+                },
+                {
+                    id: "targetPaths",
+                    label: "Target paths",
+                    fetchOperators: async () => {
+                        try {
+                            return (
+                                await linkingRuleRequests.fetchLinkingCachedPaths(projectId, linkingTaskId, "target")
+                            ).data;
+                        } catch (ex) {
+                            registerError(
+                                "linking-rule-editor-fetch-source-paths",
+                                t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
+                                ex
+                            );
+                        }
+                    },
+                    convertToOperator: (path: string) => {
+                        return targetPathInput(path, "", path, []);
+                    },
+                },
                 ruleUtils.sidebarTabs.comparison,
                 ruleUtils.sidebarTabs.transform,
                 ruleUtils.sidebarTabs.aggregation,

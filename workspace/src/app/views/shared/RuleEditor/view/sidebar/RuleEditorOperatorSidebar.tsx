@@ -8,16 +8,27 @@ import { extractSearchWords, matchesAllWords } from "gui-elements/src/components
 import { SidebarSearchField } from "./SidebarSearchField";
 import { partitionArray, sortLexically } from "../../../../../utils/basicUtils";
 import { TabProps } from "gui-elements/src/components/Tabs/Tabs";
+import useErrorHandler from "../../../../../hooks/useErrorHandler";
+import { useTranslation } from "react-i18next";
 
 /** Contains the list of operators that can be dragged and dropped onto the editor canvas and supports filtering. */
 export const RuleEditorOperatorSidebar = () => {
     const editorContext = React.useContext(RuleEditorContext);
+    const [t] = useTranslation();
+    const { registerError } = useErrorHandler();
     const [filteredOperators, setFilteredOperators] = React.useState<IRuleOperator[]>([]);
     // The query that was input in the search field. This won't get immediately active.
     const [textQuery, setTextQuery] = React.useState<string>("");
-    const [activeTabId, setActiveTabId] = React.useState<string | undefined>(undefined);
-    const [operatorList, setOperatorList] = React.useState<IRuleOperator[] | undefined>();
     const searchWords = extractSearchWords(textQuery);
+    const [operatorList, setOperatorList] = React.useState<IRuleOperator[] | undefined>();
+    /** Tab handling. */
+    // The currently active tab
+    const [activeTabId, setActiveTabId] = React.useState<string | undefined>(undefined);
+    // Operators that are loaded externally, i.e. when the tab is configured via IRuleSidebarExternalTabConfig
+    const activeTab: IRuleSidebarExternalTabConfig | IRuleSideBarFilterTabConfig | undefined = (
+        editorContext.tabs ?? []
+    ).find((tab) => tab.id === activeTabId);
+    const [externalOperatorListLoading, setExternalOperatorListLoading] = React.useState(false);
 
     // Filter operator list when active query or filters change
     React.useEffect(() => {
@@ -43,13 +54,14 @@ export const RuleEditorOperatorSidebar = () => {
     React.useEffect(() => {
         if (editorContext.operatorList) {
             if (editorContext.tabs && activeTabId) {
-                const tabConfig = editorContext.tabs.find((tab) => tab.id === activeTabId);
+                const tabConfig = activeTab;
                 if (tabConfig) {
                     if ((tabConfig as IRuleSideBarFilterTabConfig).filterAndSort) {
                         const filterTabConfig = tabConfig as IRuleSideBarFilterTabConfig;
                         setOperatorList(filterTabConfig.filterAndSort(editorContext.operatorList));
                     } else {
                         const customTabConfig = tabConfig as IRuleSidebarExternalTabConfig;
+                        loadExternalOperators(customTabConfig);
                     }
                 }
             } else {
@@ -59,6 +71,23 @@ export const RuleEditorOperatorSidebar = () => {
             setTextQuery("");
         }
     }, [editorContext.operatorList, activeTabId]);
+
+    // Load external operators
+    const loadExternalOperators = async (config: IRuleSidebarExternalTabConfig) => {
+        setExternalOperatorListLoading(true);
+        try {
+            const externalOperators = await config.fetchOperators();
+            setOperatorList((externalOperators ?? []).map((externalOp) => config.convertToOperator(externalOp)));
+        } catch (ex) {
+            registerError(
+                "RuleEditorOperatorSidebar.loadExternalOperators",
+                t("taskViews.ruleEditor.errors.loadExternalOperators", { tabName: config.label }),
+                ex
+            );
+        } finally {
+            setExternalOperatorListLoading(false);
+        }
+    };
 
     const tabs: TabProps[] = (editorContext.tabs ?? []).map((tab) => ({
         id: tab.id,
@@ -92,11 +121,15 @@ export const RuleEditorOperatorSidebar = () => {
                     <Spacing size={"small"} />
                 </GridColumn>
             </GridRow>
-            <GridRow verticalStretched={true}>
-                <GridColumn full style={{ paddingTop: "3px" }}>
-                    <RuleOperatorList ruleOperatorList={filteredOperators} textQuery={textQuery} />
-                </GridColumn>
-            </GridRow>
+            {externalOperatorListLoading ? (
+                <Loading />
+            ) : (
+                <GridRow verticalStretched={true}>
+                    <GridColumn full style={{ paddingTop: "3px" }}>
+                        <RuleOperatorList ruleOperatorList={filteredOperators} textQuery={textQuery} />
+                    </GridColumn>
+                </GridRow>
+            )}
         </Grid>
     );
 };

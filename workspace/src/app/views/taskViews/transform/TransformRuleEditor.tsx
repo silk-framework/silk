@@ -114,6 +114,7 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
                 ), // TODO: CMEM-3919: Add i18n
             ]}
             validateConnection={ruleUtils.validateConnection}
+            tabs={[ruleUtils.sidebarTabs.all, ruleUtils.sidebarTabs.transform]}
         />
     );
 };

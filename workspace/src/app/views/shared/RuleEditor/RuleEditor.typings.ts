@@ -123,7 +123,7 @@ export interface IRuleSideBarFilterTabConfig extends IRuleSideBarTabBaseConfig {
 /** Allow to fetch a completely custom rule operator list. Usually used if a new request needs to be made. */
 export interface IRuleSidebarExternalTabConfig<ListItem = any> extends IRuleSideBarTabBaseConfig {
     /** Fetches an array of items that can be transformed into rule operators. */
-    fetchOperators: () => ListItem[];
+    fetchOperators: () => ListItem[] | undefined | Promise<ListItem[] | undefined>;
     /** Converts an operator into a rule operator. Only list items are converted that will currently be shown. */
     convertToOperator: (listItem: ListItem) => IRuleOperator;
     /** If the text query changes then the following filter function will be used. Else each item will be converted and the normal filter function is used.

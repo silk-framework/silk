@@ -426,9 +426,17 @@
                 "fetchLinkingRuleOperatorDetails": {
                     "msg": "An error has occurred while fetching the list of linking rule operators."
                 },
+                "fetchLinkingPaths": {
+                    "msg": "Could not fetch source paths for linking task."
+                },
                 "saveLinkageRule": {
                     "msg": "Could not save linking rule!"
                 }
+            }
+        },
+        "ruleEditor": {
+            "errors": {
+                "loadExternalOperators": "Could not load operator list for tab '{{tabName}}'!"
             }
         },
         "transformRulesEditor": {

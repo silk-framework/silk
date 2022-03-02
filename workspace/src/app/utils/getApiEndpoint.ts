@@ -60,3 +60,7 @@ export const legacyApiEndpoint = (query: string) => {
 export const legacyTransformEndpoint = (subPath: string) => {
     return rootPath("/transform") + prependSlash(subPath);
 };
+
+export const legacyLinkingEndpoint = (subPath: string) => {
+    return rootPath("/linking") + prependSlash(subPath);
+};

@@ -26,7 +26,7 @@ import org.silkframework.util.Identifier._
 import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
 import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
-import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
+import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, AnyContentAsXml, InjectedController}
@@ -476,6 +476,26 @@ class LinkingTaskApi @Inject() () extends InjectedController with UserContextAct
     referenceEntitiesCache.reset()
     referenceEntitiesCache.start()
     Ok
+  }
+
+  /** Fetches the linking path cache value.  TODO: Add swagger annotation when finalized
+    *
+    * @param target If the target paths should be fetches, else the source paths are fetched.
+    */
+  def getLinkingPathCacheValue(projectId: String, linkingTaskId: String, target: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val (_, linkingTask) = getProjectAndTask[LinkSpec](projectId, linkingTaskId)
+    val linkingPathsCache = linkingTask.activity[LinkingPathsCache]
+    linkingPathsCache.value.get match {
+      case Some(value) =>
+        val paths = if(target) {
+          value.target
+        } else {
+          value.source
+        }
+        Ok(Json.toJson(paths.propertyNames))
+      case None =>
+        throw NotFoundException("No cached value available.")
+    }
   }
 
   def writeReferenceLinks(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>

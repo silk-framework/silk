@@ -80,7 +80,13 @@ const extractOperatorNodeFromValueInput = (
 };
 
 /** Input path operator used in the transform and linking operators. */
-const inputPathOperator = (pluginId: string, label: string, description: string): IRuleOperator => {
+const inputPathOperator = (
+    pluginId: string,
+    label: string,
+    description?: string,
+    defaultValue?: string,
+    categories?: string[]
+): IRuleOperator => {
     return {
         pluginType: "PathInputOperator",
         pluginId: pluginId,
@@ -94,9 +100,10 @@ const inputPathOperator = (pluginId: string, label: string, description: string)
                 label: "Path",
                 type: "pathInput",
                 description: "The source input path as Silk path expression.",
+                defaultValue,
             }),
         },
-        categories: ["Input"],
+        categories: categories ?? ["Input"],
         icon: "", // TODO: CMEM-3919: Icon for path input
         description: description,
         tags: [],
