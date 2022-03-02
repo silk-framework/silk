@@ -14,8 +14,7 @@
 
 package org.silkframework.runtime.plugin
 
-import org.silkframework.config.{Prefixes, Task, TaskSpec}
-import org.silkframework.dataset.DatasetSpec
+import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager, ResourceNotFoundException}
@@ -115,14 +114,6 @@ class ClassPluginDescription[+T](val id: Identifier, val categories: Seq[String]
  */
 object ClassPluginDescription {
 
-  /** Returns a plugin description for a given task. */
-  def apply(task: Task[_ <: TaskSpec]): PluginDescription[_] = {
-    val pluginClass = task.data match {
-      case DatasetSpec(plugin, _) => plugin.getClass
-      case plugin: TaskSpec => plugin.getClass
-    }
-    apply(pluginClass)
-  }
   /**
     * Returns a plugin description for a given class.
     * If available, returns an already registered plugin description.

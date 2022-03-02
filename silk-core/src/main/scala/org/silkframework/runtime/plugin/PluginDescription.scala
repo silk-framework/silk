@@ -1,6 +1,7 @@
 package org.silkframework.runtime.plugin
 
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{Prefixes, Task, TaskSpec}
+import org.silkframework.dataset.DatasetSpec
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.util.Identifier
 
@@ -48,6 +49,19 @@ trait PluginDescription[+T] {
     */
   def parameterValues(plugin: AnyRef)(implicit prefixes: Prefixes): Map[String, String] = {
     parameters.map(param => (param.name, param.stringValue(plugin))).toMap
+  }
+
+}
+
+object PluginDescription {
+
+  /** Returns a plugin description for a given task. */
+  def forTask(task: Task[_ <: TaskSpec]): PluginDescription[_] = {
+    task.data match {
+      case plugin: AnyPlugin => plugin.pluginSpec
+      case DatasetSpec(plugin, _) => plugin.pluginSpec
+      case plugin: TaskSpec => ClassPluginDescription(plugin.getClass)
+    }
   }
 
 }

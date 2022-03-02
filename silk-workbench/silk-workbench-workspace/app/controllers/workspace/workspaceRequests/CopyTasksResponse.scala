@@ -4,7 +4,7 @@ import config.WorkbenchLinks
 import controllers.workspaceApi.search.ItemType
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.config.TaskSpec
-import org.silkframework.runtime.plugin.ClassPluginDescription
+import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.workspace.ProjectTask
 import play.api.libs.json.{Json, OFormat}
 
@@ -48,7 +48,7 @@ object TaskToBeCopied {
 
   def fromTask(task: ProjectTask[_ <: TaskSpec], overwrittenTask: Option[ProjectTask[_ <: TaskSpec]]): TaskToBeCopied = {
     TaskToBeCopied(
-      pluginId = ClassPluginDescription(task).id,
+      pluginId = PluginDescription.forTask(task).id,
       taskType = ItemType.itemType(task).label,
       id = task.id,
       label = task.label(),
