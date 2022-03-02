@@ -406,33 +406,39 @@ export function Metadata(props: IProps) {
                                     ),
                                 }}
                             />
-                            {" "}
-                            <Trans
-                                i18nKey={"Metadata.lastModifiedBy"}
-                                t={t}
-                                values={{
-                                    timestamp: modified ? new Date(modified).toLocaleString() : "",
-                                    author: lastModifiedByUser?.label ?? t("Metadata.unknownuser", "unknown user"),
-                                }}
-                                components={{
-                                    author: (
-                                        <Link
-                                            href={utils.generateFacetUrl("createdBy", lastModifiedByUser?.uri ?? "")}
-                                        ></Link>
-                                    ),
-                                    timestamp: modified ? (
-                                        <ElapsedDateTimeDisplay
-                                            data-test-id={"metadata-creation-age"}
-                                            suffix={t("Metadata.suffixAgo")}
-                                            prefix={t("Metadata.prefixAgo")}
-                                            dateTime={modified}
-                                            translateUnits={translateUnits}
+                            {
+                                (modified !== created) && (
+                                    <>
+                                        {" "}
+                                        <Trans
+                                            i18nKey={"Metadata.lastModifiedBy"}
+                                            t={t}
+                                            values={{
+                                                timestamp: modified ? new Date(modified).toLocaleString() : "",
+                                                author: lastModifiedByUser?.label ?? t("Metadata.unknownuser", "unknown user"),
+                                            }}
+                                            components={{
+                                                author: (
+                                                    <Link
+                                                        href={utils.generateFacetUrl("createdBy", lastModifiedByUser?.uri ?? "")}
+                                                    ></Link>
+                                                ),
+                                                timestamp: modified ? (
+                                                    <ElapsedDateTimeDisplay
+                                                        data-test-id={"metadata-creation-age"}
+                                                        suffix={t("Metadata.suffixAgo")}
+                                                        prefix={t("Metadata.prefixAgo")}
+                                                        dateTime={modified}
+                                                        translateUnits={translateUnits}
+                                                    />
+                                                ) : (
+                                                    <></>
+                                                ),
+                                            }}
                                         />
-                                    ) : (
-                                        <></>
-                                    ),
-                                }}
-                            />
+                                    </>
+                                )
+                            }
                         </PropertyValue>
                     </PropertyValuePair>
                 </PropertyValueList>
