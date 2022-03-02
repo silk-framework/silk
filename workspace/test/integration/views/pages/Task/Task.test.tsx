@@ -134,7 +134,7 @@ describe("Task page", () => {
             expect(findAll(metaData, ".eccgui-propertyvalue__value").map((elem) => elem.text())).toStrictEqual([
                 taskLabel,
                 taskDescription,
-                "Created By unknown , < 1 minute ago.Last Modified By unknown , < 1 minute ago",
+                "Created < 1 minute ago by unknown user. Last modified < 1 minute ago by unknown user.",
             ]);
         });
     });
