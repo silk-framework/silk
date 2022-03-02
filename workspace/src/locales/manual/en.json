@@ -140,7 +140,8 @@
         "createdBy": "Created <timestamp>{{timestamp}}</timestamp> by <author>{{author}}</author>.",
         "unknownuser": "unknown user",
         "prefixAgo": "",
-        "suffixAgo": " ago"
+        "suffixAgo": " ago",
+        "dateFormat": "{{year}}/{{month}}/{{day}}"
     },
     "OverwriteModal": {
         "overwriteFile": "File '{{fileName}}' already exists. Do you want to overwrite it?"

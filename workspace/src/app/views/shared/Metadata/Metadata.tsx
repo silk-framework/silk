@@ -277,8 +277,22 @@ export function Metadata(props: IProps) {
         dispatch(routerOp.goToPage(path));
     };
 
-    // For the elapsed time component, showing when a cache was last updated
     const translateUnits = (unit: TimeUnits) => t("common.units." + unit, unit);
+
+    const getDeltaInDays = (dateTime: number | string) => {
+        const now = Date.now();
+        const then = new Date(dateTime).getTime();
+        return (now - then) / 1000 / 60 / 60 / 24;
+    }
+
+    const getDateData = (dateTime: number | string) => {
+        const then = new Date(dateTime);
+        return {
+            year: then.getFullYear(),
+            month: ('0' + (then.getMonth()+1)).slice(-2),
+            day: ('0' + then.getDate()).slice(-2)
+        }
+    }
 
     const widgetContent = (
         <CardContent data-test-id={"metaDataWidget"}>
@@ -384,7 +398,7 @@ export function Metadata(props: IProps) {
                                 i18nKey={"Metadata.createdBy"}
                                 t={t}
                                 values={{
-                                    timestamp: created ? new Date(created).toLocaleString() : "",
+                                    timestamp: created ? t("Metadata.dateFormat", "{{year}}/{{month}}/{{day}}", getDateData(created)) : "",
                                     author: createdByUser?.label ?? t("Metadata.unknownuser", "unknown user"),
                                 }}
                                 components={{
@@ -394,13 +408,17 @@ export function Metadata(props: IProps) {
                                         ></Link>
                                     ),
                                     timestamp: created ? (
-                                        <ElapsedDateTimeDisplay
+                                        (getDeltaInDays(created) < 7) ? (
+                                            <ElapsedDateTimeDisplay
                                             data-test-id={"metadata-creation-age"}
                                             suffix={t("Metadata.suffixAgo")}
                                             prefix={t("Metadata.prefixAgo")}
                                             dateTime={created}
                                             translateUnits={translateUnits}
-                                        />
+                                            />
+                                        ) : (
+                                            <span title={new Date(created).toString()} />
+                                        )
                                     ) : (
                                         <></>
                                     ),
@@ -414,7 +432,7 @@ export function Metadata(props: IProps) {
                                             i18nKey={"Metadata.lastModifiedBy"}
                                             t={t}
                                             values={{
-                                                timestamp: modified ? new Date(modified).toLocaleString() : "",
+                                                timestamp: modified ? t("Metadata.dateFormat", "{{year}}/{{month}}/{{day}}", getDateData(created)) : "",
                                                 author: lastModifiedByUser?.label ?? t("Metadata.unknownuser", "unknown user"),
                                             }}
                                             components={{
@@ -423,14 +441,18 @@ export function Metadata(props: IProps) {
                                                         href={utils.generateFacetUrl("createdBy", lastModifiedByUser?.uri ?? "")}
                                                     ></Link>
                                                 ),
-                                                timestamp: modified ? (
-                                                    <ElapsedDateTimeDisplay
+                                                timestamp: modified? (
+                                                    (getDeltaInDays(modified) < 7) ? (
+                                                        <ElapsedDateTimeDisplay
                                                         data-test-id={"metadata-creation-age"}
                                                         suffix={t("Metadata.suffixAgo")}
                                                         prefix={t("Metadata.prefixAgo")}
                                                         dateTime={modified}
                                                         translateUnits={translateUnits}
-                                                    />
+                                                        />
+                                                    ) : (
+                                                        <span title={new Date(modified).toString()} />
+                                                    )
                                                 ) : (
                                                     <></>
                                                 ),
