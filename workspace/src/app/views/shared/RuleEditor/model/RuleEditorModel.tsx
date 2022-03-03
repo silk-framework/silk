@@ -563,10 +563,15 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
      **/
 
     /** Add a new node from the rule operators list. */
-    const addNode = (ruleOperator: IRuleOperator, position: XYPosition) => {
+    const addNode = (
+        ruleOperator: IRuleOperator,
+        position: XYPosition,
+        overwriteParameterValues?: RuleOperatorNodeParameters
+    ) => {
         if (reactFlowInstance && ruleEditorContext.operatorSpec) {
             const ruleNode = ruleEditorContext.convertRuleOperatorToRuleNode(ruleOperator);
             ruleNode.position = position;
+            ruleNode.parameters = { ...ruleNode.parameters, ...overwriteParameterValues };
             changeElementsInternal((els) => {
                 const newNode = utils.createNewOperatorNode(
                     ruleNode,
@@ -583,12 +588,24 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         }
     };
 
-    const addNodeByPlugin = (pluginType: string, pluginId: string, position: XYPosition) => {
+    /** Create a new rule editor node of a specific operator plugin
+     *
+     * @param pluginType Type of the plugin
+     * @param pluginId   ID of the plugin
+     * @param position   Position on the canvas.
+     * @param overwriteParameterValues If initial parameters should be overwritten by different values.
+     */
+    const addNodeByPlugin = (
+        pluginType: string,
+        pluginId: string,
+        position: XYPosition,
+        overwriteParameterValues?: RuleOperatorNodeParameters
+    ) => {
         const op = (ruleEditorContext.operatorList ?? []).find(
             (op) => op.pluginType === pluginType && op.pluginId === pluginId
         );
         if (op) {
-            addNode(op, position);
+            addNode(op, position, overwriteParameterValues);
         } else {
             console.warn(`Operator with plugin type '${pluginType}' and plugin ID '${pluginId}' does not exist!`);
         }

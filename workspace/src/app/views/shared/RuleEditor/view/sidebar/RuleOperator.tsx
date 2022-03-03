@@ -1,13 +1,13 @@
 import { wrapTooltip } from "../../../../../utils/uiUtils";
 import React from "react";
-import { IRuleOperator } from "../../RuleEditor.typings";
 import Highlighter, { createMultiWordRegex } from "gui-elements/src/components/Typography/Highlighter";
 import { Icon, OverflowText, OverviewItemDescription, OverviewItemLine, Spacing } from "gui-elements";
 import utils from "../ruleNode/ruleNode.utils";
+import { SidebarRuleOperatorBase } from "./RuleEditorOperatorSidebar.typings";
 
 interface RuleOperatorProps {
     // The rule operator that should be rendered
-    ruleOperator: IRuleOperator;
+    ruleOperator: SidebarRuleOperatorBase;
     // The original text query
     textQuery: string;
     // Multi-word search query

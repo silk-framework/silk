@@ -2,8 +2,12 @@ import React from "react";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
 import { Grid, GridColumn, GridRow, Icon, Spacing, Tabs } from "gui-elements";
 import Loading from "../../../Loading";
-import { RuleOperatorList } from "./RuleOperatorList";
-import { IRuleOperator, IRuleSidebarExternalTabConfig, IRuleSideBarFilterTabConfig } from "../../RuleEditor.typings";
+import { IPreConfiguredOperators, RuleOperatorList } from "./RuleOperatorList";
+import {
+    IRuleOperator,
+    IRuleSidebarPreConfiguredOperatorsTabConfig,
+    IRuleSideBarFilterTabConfig,
+} from "../../RuleEditor.typings";
 import { extractSearchWords, matchesAllWords } from "gui-elements/src/components/Typography/Highlighter";
 import { SidebarSearchField } from "./SidebarSearchField";
 import { partitionArray, sortLexically } from "../../../../../utils/basicUtils";
@@ -24,22 +28,47 @@ export const RuleEditorOperatorSidebar = () => {
     /** Tab handling. */
     // The currently active tab
     const [activeTabId, setActiveTabId] = React.useState<string | undefined>(undefined);
-    // Operators that are loaded externally, i.e. when the tab is configured via IRuleSidebarExternalTabConfig
-    const activeTab: IRuleSidebarExternalTabConfig | IRuleSideBarFilterTabConfig | undefined = (
+    const activeTab: IRuleSidebarPreConfiguredOperatorsTabConfig | IRuleSideBarFilterTabConfig | undefined = (
         editorContext.tabs ?? []
     ).find((tab) => tab.id === activeTabId);
     const [externalOperatorListLoading, setExternalOperatorListLoading] = React.useState(false);
+    const [preConfiguredOperators, setPreconfiguredOperators] = React.useState<
+        | (IPreConfiguredOperators<any> & {
+              itemSearchText: (listItem: any) => string;
+              itemLabel: (listItem: any) => string;
+          })
+        | undefined
+    >(undefined);
+    const [filteredPreConfiguredOperators, setFilteredPreConfiguredOperators] = React.useState<
+        IPreConfiguredOperators<any> | undefined
+    >(undefined);
 
     // Filter operator list when active query or filters change
     React.useEffect(() => {
-        if (operatorList) {
+        if (preConfiguredOperators && !operatorList) {
             if (searchWords.length > 0) {
-                setFilteredOperators(filterAndSortOperators(operatorList, searchWords));
+                const filteredOps = filterAndSortOperators(
+                    preConfiguredOperators.originalOperators,
+                    preConfiguredOperators.itemSearchText,
+                    preConfiguredOperators.itemLabel,
+                    searchWords
+                );
+                setFilteredPreConfiguredOperators({ ...preConfiguredOperators, originalOperators: filteredOps });
+            } else {
+                setFilteredPreConfiguredOperators(preConfiguredOperators);
+            }
+            setFilteredOperators([]);
+        } else if (operatorList && !preConfiguredOperators) {
+            if (searchWords.length > 0) {
+                setFilteredOperators(
+                    filterAndSortOperators(operatorList, ruleOperatorSearchText, (op) => op.label, searchWords)
+                );
             } else {
                 setFilteredOperators(operatorList);
             }
+            setFilteredPreConfiguredOperators(undefined);
         }
-    }, [textQuery, operatorList]);
+    }, [textQuery, operatorList, preConfiguredOperators]);
 
     // Set active tab initially
     React.useEffect(() => {
@@ -59,8 +88,9 @@ export const RuleEditorOperatorSidebar = () => {
                     if ((tabConfig as IRuleSideBarFilterTabConfig).filterAndSort) {
                         const filterTabConfig = tabConfig as IRuleSideBarFilterTabConfig;
                         setOperatorList(filterTabConfig.filterAndSort(editorContext.operatorList));
+                        setPreconfiguredOperators(undefined);
                     } else {
-                        const customTabConfig = tabConfig as IRuleSidebarExternalTabConfig;
+                        const customTabConfig = tabConfig as IRuleSidebarPreConfiguredOperatorsTabConfig;
                         loadExternalOperators(customTabConfig);
                     }
                 }
@@ -73,11 +103,21 @@ export const RuleEditorOperatorSidebar = () => {
     }, [editorContext.operatorList, activeTabId]);
 
     // Load external operators
-    const loadExternalOperators = async (config: IRuleSidebarExternalTabConfig) => {
+    const loadExternalOperators = async (config: IRuleSidebarPreConfiguredOperatorsTabConfig) => {
         setExternalOperatorListLoading(true);
         try {
-            const externalOperators = await config.fetchOperators();
-            setOperatorList((externalOperators ?? []).map((externalOp) => config.convertToOperator(externalOp)));
+            const originalOperators = await config.fetchOperators();
+            setPreconfiguredOperators({
+                originalOperators: originalOperators ?? [],
+                isOriginalOperator: config.isOriginalOperator,
+                toPreConfiguredRuleOperator: config.convertToOperator,
+                // At the moment we don't mix pre-configured and "empty" operators, so the position does not matter.
+                position: "top",
+                itemSearchText: config.itemSearchText,
+                itemLabel: config.itemLabel,
+                itemId: config.itemLabel,
+            });
+            setOperatorList(undefined);
         } catch (ex) {
             registerError(
                 "RuleEditorOperatorSidebar.loadExternalOperators",
@@ -126,7 +166,11 @@ export const RuleEditorOperatorSidebar = () => {
             ) : (
                 <GridRow verticalStretched={true}>
                     <GridColumn full style={{ paddingTop: "3px" }}>
-                        <RuleOperatorList ruleOperatorList={filteredOperators} textQuery={textQuery} />
+                        <RuleOperatorList
+                            ruleOperatorList={filteredOperators}
+                            textQuery={textQuery}
+                            preConfiguredOperators={filteredPreConfiguredOperators}
+                        />
                     </GridColumn>
                 </GridRow>
             )}
@@ -134,23 +178,29 @@ export const RuleEditorOperatorSidebar = () => {
     );
 };
 
+const ruleOperatorSearchText = (ruleOperator: IRuleOperator): string => {
+    return `${ruleOperator.label} ${(ruleOperator.tags ?? []).join(" ")} ${ruleOperator.description ?? ""} ${(
+        ruleOperator.categories ?? []
+    ).join(" ")}`.toLowerCase();
+};
+
 // Filter the operators by search query and sort them
-const filterAndSortOperators = (operators: IRuleOperator[], searchWords: string[]): IRuleOperator[] => {
-    const textToSearchIn = (ruleOperator: IRuleOperator): string => {
-        return `${ruleOperator.label} ${(ruleOperator.tags ?? []).join(" ")} ${ruleOperator.description ?? ""} ${(
-            ruleOperator.categories ?? []
-        ).join(" ")}`.toLowerCase();
-    };
+function filterAndSortOperators<T>(
+    operators: T[],
+    searchText: (T) => string,
+    labelText: (T) => string,
+    searchWords: string[]
+): T[] {
     const filtered = operators.filter((op) => {
-        return matchesAllWords(textToSearchIn(op), searchWords);
+        return matchesAllWords(searchText(op), searchWords);
     });
-    const matchCount = new Map<IRuleOperator, number>();
+    const matchCount = new Map<T, number>();
     const { matches, nonMatches } = partitionArray(
         filtered,
-        (op) => !!searchWords.find((w) => op.label.toLowerCase().includes(w))
+        (op) => !!searchWords.find((w) => labelText(op).toLowerCase().includes(w))
     );
     matches.forEach((match) => {
-        const label = match.label.toLowerCase();
+        const label = labelText(match).toLowerCase();
         const labelMatchCount = searchWords.filter((word) => label.includes(word)).length;
         matchCount.set(match, labelMatchCount);
     });
@@ -163,9 +213,9 @@ const filterAndSortOperators = (operators: IRuleOperator[], searchWords: string[
         } else if (matchCountB > matchCountA) {
             return 1;
         } else {
-            return matchA.label.toLowerCase() < matchB.label.toLowerCase() ? -1 : 1;
+            return labelText(matchA).toLowerCase() < labelText(matchB).toLowerCase() ? -1 : 1;
         }
     });
-    const byLabel = (op: IRuleOperator) => op.label;
+    const byLabel = (op: T) => labelText(op);
     return [...sortedLabelMatches, ...sortLexically(nonMatches, byLabel)];
-};
+}

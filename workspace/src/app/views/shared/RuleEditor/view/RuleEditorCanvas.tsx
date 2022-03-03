@@ -299,7 +299,7 @@ export const RuleEditorCanvas = () => {
         const pluginData = e.dataTransfer.getData("text/plain");
         if (pluginData) {
             try {
-                const { pluginType, pluginId } = JSON.parse(pluginData);
+                const { pluginType, pluginId, parameterValues } = JSON.parse(pluginData);
                 if (pluginType && pluginId) {
                     // Position on react-flow canvas
                     const reactFlowPosition = {
@@ -307,7 +307,12 @@ export const RuleEditorCanvas = () => {
                         y: e.clientY - reactFlowBounds.top - 20,
                     };
                     modelContext.executeModelEditOperation.startChangeTransaction();
-                    modelContext.executeModelEditOperation.addNodeByPlugin(pluginType, pluginId, reactFlowPosition);
+                    modelContext.executeModelEditOperation.addNodeByPlugin(
+                        pluginType,
+                        pluginId,
+                        reactFlowPosition,
+                        parameterValues
+                    );
                 } else {
                     console.warn(
                         "The drag event did not contain the necessary parameters, pluginType and pluginId. Received: " +

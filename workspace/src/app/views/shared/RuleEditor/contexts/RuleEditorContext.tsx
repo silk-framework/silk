@@ -3,7 +3,7 @@ import {
     IParameterSpecification,
     IRuleOperator,
     IRuleOperatorNode,
-    IRuleSidebarExternalTabConfig,
+    IRuleSidebarPreConfiguredOperatorsTabConfig,
     IRuleSideBarFilterTabConfig,
 } from "../RuleEditor.typings";
 
@@ -40,7 +40,7 @@ export interface RuleEditorContextProps {
         targetPortIdx: number
     ) => boolean;
     /** Tabs that allow to show different rule operators or only a subset. The first tab will always be selected first. */
-    tabs?: (IRuleSideBarFilterTabConfig | IRuleSidebarExternalTabConfig)[];
+    tabs?: (IRuleSideBarFilterTabConfig | IRuleSidebarPreConfiguredOperatorsTabConfig)[];
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */

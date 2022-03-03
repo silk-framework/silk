@@ -2,7 +2,11 @@
  * Convert to backend model:
  */
 
-import { IRuleOperatorNode } from "../../shared/RuleEditor/RuleEditor.typings";
+import {
+    IRuleOperator,
+    IRuleOperatorNode,
+    IRuleSidebarPreConfiguredOperatorsTabConfig,
+} from "../../shared/RuleEditor/RuleEditor.typings";
 import { IValueInput } from "../shared/rules/rule.typings";
 import {
     IAggregationOperator,
@@ -13,6 +17,8 @@ import {
 import { RuleOperatorFetchFnType } from "../../shared/RuleEditor/RuleEditor";
 import ruleUtils from "../shared/rules/rule.utils";
 import { IProjectTask, RuleOperatorType } from "@ducks/shared/typings";
+import linkingRuleRequests from "./LinkingRuleEditor.requests";
+import { IPreConfiguredRuleOperator } from "../../shared/RuleEditor/view/sidebar/RuleEditorOperatorSidebar.typings";
 
 /**
  * Convert to editor model:
@@ -161,9 +167,49 @@ const convertRuleOperatorNodeToSimilarityOperator = (
     }
 };
 
+/** Input path tab configuration. */
+const inputPathTab = (
+    projectId: string,
+    linkingTaskId: string,
+    baseOperator: IRuleOperator,
+    sourceOrTarget: "source" | "target",
+    errorHandler: (err) => any
+): IRuleSidebarPreConfiguredOperatorsTabConfig => {
+    return {
+        id: `${sourceOrTarget}Paths`,
+        label: sourceOrTarget === "source" ? "Source paths" : "Target paths",
+        fetchOperators: async () => {
+            try {
+                return (await linkingRuleRequests.fetchLinkingCachedPaths(projectId, linkingTaskId, sourceOrTarget))
+                    .data;
+            } catch (ex) {
+                errorHandler(ex);
+            }
+        },
+        convertToOperator: (path: string): IPreConfiguredRuleOperator => {
+            const { pluginId, pluginType, icon } = baseOperator;
+            return {
+                pluginId,
+                pluginType,
+                icon,
+                label: path,
+                categories: [sourceOrTarget === "source" ? "Source path" : "Target path"],
+                parameterOverwrites: {
+                    path,
+                },
+                tags: [],
+            };
+        },
+        isOriginalOperator: (listItem) => typeof listItem === "string",
+        itemSearchText: (listItem: string) => listItem,
+        itemLabel: (listItem: string) => listItem,
+    };
+};
+
 const linkingRuleUtils = {
     convertRuleOperatorNodeToSimilarityOperator,
     convertToRuleOperatorNodes,
+    inputPathTab,
 };
 
 export default linkingRuleUtils;

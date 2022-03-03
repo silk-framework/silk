@@ -1,6 +1,7 @@
 import { NodeContentProps } from "gui-elements/src/extensions/react-flow/nodes/NodeDefault";
 import { PluginType, RuleOperatorType } from "@ducks/shared/typings";
 import { ValidIconName } from "gui-elements/src/components/Icon/canonicalIconNames";
+import { IPreConfiguredRuleOperator } from "./view/sidebar/RuleEditorOperatorSidebar.typings";
 
 export type PathInputOperator = "PathInputOperator";
 
@@ -120,14 +121,18 @@ export interface IRuleSideBarFilterTabConfig extends IRuleSideBarTabBaseConfig {
     filterAndSort: (ruleOperators: IRuleOperator[]) => IRuleOperator[];
 }
 
-/** Allow to fetch a completely custom rule operator list. Usually used if a new request needs to be made. */
-export interface IRuleSidebarExternalTabConfig<ListItem = any> extends IRuleSideBarTabBaseConfig {
+/** Allow to fetch and list pre-configured operators in a tab. This is used to have e.g. pre-configured path operators. */
+export interface IRuleSidebarPreConfiguredOperatorsTabConfig<ListItem = any> extends IRuleSideBarTabBaseConfig {
     /** Fetches an array of items that can be transformed into rule operators. */
     fetchOperators: () => ListItem[] | undefined | Promise<ListItem[] | undefined>;
     /** Converts an operator into a rule operator. Only list items are converted that will currently be shown. */
-    convertToOperator: (listItem: ListItem) => IRuleOperator;
-    /** If the text query changes then the following filter function will be used. Else each item will be converted and the normal filter function is used.
-     * This is just an optimization, if we deal with a lot of elements, e.g. an array of strings, and don't want to convert them first.
+    convertToOperator: (listItem: ListItem) => IPreConfiguredRuleOperator;
+    /** Returns if the given item is a ListItem, else it is a IRuleOperator. */
+    isOriginalOperator: (item: ListItem | IRuleOperator) => boolean;
+    /** If the text query changes then the following search text of the ListItem is used.
+     * This is an optimization, if we deal with a lot of elements, e.g. an array of strings, and don't want to convert them first into rule operators.
      **/
-    customTextFilter?: (listItem: ListItem) => boolean;
+    itemSearchText: (listItem: ListItem) => string;
+    /** Returns the label of the item. Also an optimization to not convert to IPreConfiguredRuleOperator first. */
+    itemLabel: (listItem: ListItem) => string;
 }

@@ -7,7 +7,7 @@ import {
     IParameterSpecification,
     IRuleOperator,
     IRuleOperatorNode,
-    IRuleSidebarExternalTabConfig,
+    IRuleSidebarPreConfiguredOperatorsTabConfig,
     IRuleSideBarFilterTabConfig,
     RuleOperatorPluginType,
 } from "./RuleEditor.typings";
@@ -53,7 +53,7 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
         targetPortIdx: number
     ) => boolean;
     /** Tabs that allow to show different rule operators or only a subset. */
-    tabs?: (IRuleSideBarFilterTabConfig | IRuleSidebarExternalTabConfig)[];
+    tabs?: (IRuleSideBarFilterTabConfig | IRuleSidebarPreConfiguredOperatorsTabConfig)[];
 }
 
 /**

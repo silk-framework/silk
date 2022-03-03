@@ -1,6 +1,6 @@
 import { Elements, OnLoadParams } from "react-flow-renderer";
 import React from "react";
-import { IRuleOperator } from "../RuleEditor.typings";
+import { IRuleOperator, RuleOperatorNodeParameters } from "../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 
 /**
@@ -41,7 +41,12 @@ export interface IModelActions {
     /** Add a rule operator as new rule node. */
     addNode: (ruleOperator: IRuleOperator, position: XYPosition) => void;
     /** Add node by plugin type and ID. */
-    addNodeByPlugin: (pluginType: string, pluginId: string, position: XYPosition) => void;
+    addNodeByPlugin: (
+        pluginType: string,
+        pluginId: string,
+        position: XYPosition,
+        overwriteParameterValues?: RuleOperatorNodeParameters
+    ) => void;
     /** Delete a rule node. */
     deleteNode: (nodeId: string) => void;
     /** Delete multiple rules nodes at once. */
