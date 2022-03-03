@@ -210,6 +210,6 @@ object WorkspaceActivity {
     * The maximum number of instances that are held in memory for each activity type.
     * If more instances are created, the oldest ones are removed.
     */
-  val MAX_CONTROLS_PER_ACTIVITY: Int = 10
+  val MAX_CONTROLS_PER_ACTIVITY: Int = 20
 
 }
