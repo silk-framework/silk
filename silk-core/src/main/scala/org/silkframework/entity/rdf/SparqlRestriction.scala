@@ -66,7 +66,7 @@ object SparqlRestriction {
     }
 
     //Check if a prefix is missing
-    val missingPrefixes = new Regex("[\\s\\{\\}][^<\\s\\{\\}\"]+:").findAllIn(restrictionsFull)
+    val missingPrefixes = new Regex("(?<!\")([\\s\\{\\}]|^)([\\w]+:)[\\w]+(?:\\b)(?!\")").findAllIn(restrictionsFull)
     if (missingPrefixes.nonEmpty) {
       throw new IllegalArgumentException("The following prefixes are not defined: " + missingPrefixes.mkString(","))
     }
