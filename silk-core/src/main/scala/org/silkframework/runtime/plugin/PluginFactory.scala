@@ -22,7 +22,7 @@ import scala.reflect.ClassTag
 /**
  * Companion objects may inherit from this class to offer convenience methods for instantiating plugins.
  */
-class PluginFactory[T: ClassTag] {
+class PluginFactory[T <: AnyPlugin: ClassTag] {
 
   /**
    * Creates a new instance of a specific plugin.
@@ -35,7 +35,7 @@ class PluginFactory[T: ClassTag] {
    * Retrieves the parameters of a plugin instance e.g. to serialize it.
    */
   def unapply(t: T)(implicit prefixes: Prefixes = Prefixes.empty): Option[(PluginDescription[_], Map[String, String])] = {
-    Some(PluginRegistry.reflect(t.asInstanceOf[AnyRef]))
+    Some(t.pluginSpec, t.parameters)
   }
 
   /**
