@@ -43,10 +43,8 @@ object CustomTask extends PluginFactory[CustomTask] {
     }
 
     def write(value: CustomTask)(implicit writeContext: WriteContext[Node]): Node = {
-      val (pluginType, params) = PluginRegistry.reflect(value)(Prefixes.empty)
-
-      <CustomTask type={pluginType.id.toString}>{
-        {XmlSerialization.serializeParameter(params)}
+      <CustomTask type={value.pluginSpec.id.toString}>{
+        {XmlSerialization.serializeParameter(value.parameters)}
       }</CustomTask>
     }
   }
