@@ -164,7 +164,7 @@ export function Metadata(props: IProps) {
                 <CardTitle>
                     <h2>{t("common.words.summary", "Summary")}</h2>
                 </CardTitle>
-                {!loading && !isEditing && !props.readOnly && (
+                {!loading && !isEditing && !props.readOnly ? (
                     <CardOptions>
                         <IconButton
                             data-test-id="meta-data-edit-btn"
@@ -173,7 +173,7 @@ export function Metadata(props: IProps) {
                             onClick={toggleEdit}
                         />
                     </CardOptions>
-                )}
+                ) : null}
             </CardHeader>
             <Divider />
         </>
