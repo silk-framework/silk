@@ -341,7 +341,9 @@
                 "datasets": "Datasets",
                 "datasetsTooltip": "Shows the list of all datasets across all build projects.",
                 "projects": "Projects",
-                "projectsTooltip": "Shows the list of all data-integration build projects."
+                "projectsTooltip": "Shows the list of all data-integration build projects.",
+                "activities": "Activities",
+                "activitiesTooltip": "Shows the list of all data-integration build activities"
             },
             "diBrowseTooltip": "Used to manage data-integration projects to build a knowledge graph from existing datasources",
             "dm": {
@@ -364,6 +366,9 @@
     "pages": {
         "dataset": {
             "title": "Data preview"
+        },
+        "activities": {
+            "title": "Activities"
         },
         "notFound": {
             "backLink": "Go to homepage",

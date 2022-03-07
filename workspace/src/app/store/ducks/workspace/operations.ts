@@ -16,7 +16,8 @@ import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/widgets/warning.thunk";
 import { fetchResourcesListAsync } from "@ducks/workspace/widgets/file.thunk";
 import { commonSel } from "@ducks/common";
-import { ISearchListRequest, requestSearchList } from "@ducks/workspace/requests";
+import { ISearchListRequest, ISearchListResponse, requestSearchList } from "@ducks/workspace/requests";
+import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 
 const {
     updateResultTotal,
@@ -153,7 +154,7 @@ const setupFiltersFromQs = (queryString: string) => {
  * Fetch the search results
  * by provided filters
  */
-const fetchListAsync = () => {
+const fetchListAsync = (fetcher?: (payload: ISearchListRequest) => Promise<FetchResponse<ISearchListResponse>>) => {
     return async (dispatch, getState) => {
         dispatch(fetchList());
 
@@ -194,7 +195,9 @@ const fetchListAsync = () => {
         body.facets = appliedFacets.map((facet) => facet);
 
         try {
-            const { total, facets, results, sortByProperties } = await requestSearchList(body);
+            const { total, facets, results, sortByProperties } = fetcher
+                ? (await fetcher(body))?.data
+                : await requestSearchList(body);
             batch(() => {
                 // Apply results
                 dispatch(fetchListSuccess(results));

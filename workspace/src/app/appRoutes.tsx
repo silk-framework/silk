@@ -9,6 +9,7 @@ const TransformPage = lazy(() => import("./views/pages/Transform"));
 const LinkingPage = lazy(() => import("./views/pages/Linking"));
 const TaskPage = lazy(() => import("./views/pages/Task"));
 const NotFoundPage = lazy(() => import("./views/pages/NotFound"));
+const Activities = lazy(() => import("./views/pages/Activities"));
 
 interface IRouteProps extends RouteProps {
     path: string;
@@ -48,6 +49,11 @@ const appRoutes: IRouteProps[] = [
     {
         path: "/projects/:projectId/task/:taskId",
         component: TaskPage,
+        exact: true,
+    },
+    {
+        path: "/activities",
+        component: Activities,
         exact: true,
     },
     {

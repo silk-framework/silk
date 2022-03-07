@@ -150,10 +150,18 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                     <MenuItem
                         icon="artefact-dataset"
                         text={t("navigation.side.di.datasets", "Datasets")}
-                        htmlTitle={t("navigation.side.di.datasetsTooltip")}
+                        htmlTitle={t("navigation.side.di.activitiesTooltip")}
                         onClick={() => handleNavigate("dataset")}
                         href={location.pathname + searchURL("dataset")}
                         active={location.pathname === SERVE_PATH && locationParams.get("itemType") === "dataset"}
+                    />
+                    <MenuItem
+                        icon="application-activities"
+                        text={t("navigation.side.di.activities", "Activities")}
+                        htmlTitle={t("navigation.side.di.datasetsTooltip")}
+                        onClick={() => dispatch(routerOp.goToPage(""))}
+                        href={location.pathname + "/activities?page=1&limit=10"}
+                        active={location.pathname.includes("activities")}
                     />
                 </Menu>
             </ApplicationSidebarNavigation>
