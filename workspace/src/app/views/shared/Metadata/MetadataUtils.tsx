@@ -11,7 +11,7 @@ import { SERVE_PATH } from "../../../constants/path";
 
 /**
  * if both the taskId and projectId are available then fetch the EXPANDED metadata for tasks
- * else fetch the EXPANDED metadata for project.
+ * else fetch the EXPANDED metadata for project
  * @param projectId
  * @param taskId
  * @returns
