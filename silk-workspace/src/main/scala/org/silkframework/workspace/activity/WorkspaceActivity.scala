@@ -2,8 +2,7 @@ package org.silkframework.workspace.activity
 
 import java.time.Instant
 import java.util.logging.Logger
-
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{Prefixes, TaskSpec}
 import org.silkframework.runtime.activity.{ObservableMirror, _}
 import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.util.{Identifier, IdentifierGenerator}
@@ -50,7 +49,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   /**
     * The task this activity belongs to, if any.
     */
-  def taskOption: Option[ProjectTask[_]]
+  def taskOption: Option[ProjectTask[_ <: TaskSpec]]
 
   /**
     * The factory that is used to create new activity controls.

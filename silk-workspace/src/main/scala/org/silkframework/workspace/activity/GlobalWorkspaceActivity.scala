@@ -1,5 +1,6 @@
 package org.silkframework.workspace.activity
 
+import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity.{Activity, ActivityControl, HasValue}
 import org.silkframework.workspace.{Project, ProjectTask}
 
@@ -12,7 +13,7 @@ class GlobalWorkspaceActivity[ActivityType <: HasValue : ClassTag](factory: Glob
     extends WorkspaceActivity[ActivityType] {
   override def projectOpt: Option[Project] = None
 
-  override def taskOption: Option[ProjectTask[_]] = None
+  override def taskOption: Option[ProjectTask[_ <: TaskSpec]] = None
 
   override def factory: GlobalWorkspaceActivityFactory[_] = factory
 

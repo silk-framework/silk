@@ -194,7 +194,11 @@ object ActivitySearchRequest {
   case class ActivityResult(id: String,
                             label: String,
                             project: Option[String],
-                            task: Option[String])
+                            projectLabel: Option[String],
+                            task: Option[String],
+                            taskLabel: Option[String],
+                            parentType: String,
+                            isCacheActivity: Boolean)
 
   object ActivityResult {
     def apply(activity: WorkspaceActivity[_]): ActivityResult = {
@@ -202,8 +206,24 @@ object ActivitySearchRequest {
         id = activity.name,
         label = activity.label,
         project = activity.projectOpt.map(_.id.toString),
-        task = activity.taskOption.map(_.id.toString)
+        projectLabel = activity.projectOpt.map(_.fullLabel),
+        task = activity.taskOption.map(_.id.toString),
+        taskLabel = activity.taskOption.map(_.fullLabel),
+        parentType = itemType(activity).id,
+        isCacheActivity = activity.isCacheActivity
       )
+    }
+
+    @inline
+    private def itemType(activity: WorkspaceActivity[_]): ItemType = {
+      activity.taskOption match {
+        case Some(task) =>
+          ItemType.itemType(task.data)
+        case None if activity.projectOpt.isDefined  =>
+          ItemType.project
+        case _ =>
+          ItemType.global
+      }
     }
   }
 
