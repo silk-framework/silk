@@ -31,6 +31,7 @@ class ActivitySearchApiIntegrationTest extends FlatSpec
   implicit val activitySearchRequestReader: Writes[ActivitySearchRequest] = Json.writes[ActivitySearchRequest]
 
   private val transformName = "transformA"
+  private val transformLabel = "transform A"
 
   it should "return all activities for an unrestricted search" in {
     val response = facetedSearchRequest(ActivitySearchRequest(limit = Some(100)))
@@ -40,7 +41,9 @@ class ActivitySearchApiIntegrationTest extends FlatSpec
     cacheCounts must contain ("TypesCache" -> project.tasks[GenericDatasetSpec].size)
     cacheCounts must contain ("ExecuteTransform" -> project.tasks[TransformSpec].size)
 
-    response.results.find(_.id == "ExecuteTransform").get mustBe ActivityResult("ExecuteTransform", "Execute transform", Some(project.id), Some(transformName))
+    response.results.find(_.id == "ExecuteTransform").get mustBe
+      ActivityResult("ExecuteTransform", "Execute transform", Some(project.id), Some(project.fullLabel),
+        Some(transformName), Some(transformLabel), ItemType.transform.id, isCacheActivity = false)
   }
 
   it should "return all activities of a given parent type" in {
