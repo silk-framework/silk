@@ -154,7 +154,10 @@ const setupFiltersFromQs = (queryString: string) => {
  * Fetch the search results
  * by provided filters
  */
-const fetchListAsync = (fetcher?: (payload: ISearchListRequest) => Promise<FetchResponse<ISearchListResponse>>) => {
+const fetchListAsync = (
+    fetcher?: (payload: ISearchListRequest) => Promise<FetchResponse<ISearchListResponse>>,
+    customDefaultLimit?: number
+) => {
     return async (dispatch, getState) => {
         dispatch(fetchList());
 
@@ -171,7 +174,7 @@ const fetchListAsync = (fetcher?: (payload: ISearchListRequest) => Promise<Fetch
         const projectId = commonSel.currentProjectIdSelector(state);
 
         const body: ISearchListRequest = {
-            limit,
+            limit: customDefaultLimit || limit,
             offset,
         };
 

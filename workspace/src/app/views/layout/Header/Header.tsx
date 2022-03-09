@@ -160,7 +160,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         text={t("navigation.side.di.activities", "Activities")}
                         htmlTitle={t("navigation.side.di.datasetsTooltip")}
                         onClick={() => dispatch(routerOp.goToPage(""))}
-                        href={location.pathname + "/activities?page=1&limit=10"}
+                        href={location.pathname + "/activities?page=1&limit=25"}
                         active={location.pathname.includes("activities")}
                     />
                 </Menu>

@@ -24,7 +24,7 @@ interface IActivity extends ISearchResultsServer {
 
 const ActivityList = () => {
     const dispatch = useDispatch();
-    const pageSizes = [10, 25, 50, 100];
+    const pageSizes = [25, 50, 100];
     const { registerError } = useErrorHandler();
 
     const data = useSelector(workspaceSel.resultsSelector);

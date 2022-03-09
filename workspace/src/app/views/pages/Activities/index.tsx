@@ -63,7 +63,7 @@ const Activities = () => {
         // Setup the filters from query string
         dispatch(workspaceOp.setupFiltersFromQs(qs));
         // Fetch the list of projects
-        dispatch(workspaceOp.fetchListAsync(utils.searchActivities));
+        dispatch(workspaceOp.fetchListAsync(utils.searchActivities, 25));
     }, [qs]);
 
     /** need websocket connection to get updates on activities */
