@@ -109,7 +109,7 @@ const Activities = () => {
                     <Grid>
                         <GridRow>
                             <GridColumn small>
-                                <Filterbar />
+                                <Filterbar extraItemTypeModifiers={[{ id: "global", label: "Global" }]} />
                             </GridColumn>
                             <GridColumn full>
                                 {error.detail ? (

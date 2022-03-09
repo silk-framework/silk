@@ -5,8 +5,13 @@ import { commonSel } from "@ducks/common";
 import { RadioButton, Spacing, TitleSubsection } from "gui-elements";
 import FacetsList from "./FacetsList";
 import { useTranslation } from "react-i18next";
+import { IAvailableDataTypeOption } from "@ducks/common/typings";
 
-export function Filterbar() {
+interface IFilterBarProps {
+    extraItemTypeModifiers?: IAvailableDataTypeOption[];
+}
+
+export function Filterbar({ extraItemTypeModifiers = [] }: IFilterBarProps) {
     const dispatch = useDispatch();
     const [t] = useTranslation();
 
@@ -42,7 +47,8 @@ export function Filterbar() {
                                 value={""}
                             />
                         </li>
-                        {typeModifier.options.map((opt) => (
+
+                        {[...typeModifier.options, ...extraItemTypeModifiers].map((opt) => (
                             <li key={opt.id}>
                                 <RadioButton
                                     data-test-id={"item-type-radio-button-" + opt.id}
