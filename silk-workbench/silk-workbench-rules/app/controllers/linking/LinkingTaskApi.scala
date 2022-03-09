@@ -10,15 +10,18 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.config.{MetaData, PlainTask, Prefixes}
+import org.silkframework.config.{MetaData, PlainTask, Prefixes, TaskSpec}
+import org.silkframework.dataset.Dataset
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.{Entity, FullLink, MinimalLink, Restriction}
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
+import org.silkframework.plugins.path.{PathMetaDataPlugin, StandardMetaDataPlugin}
 import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.execution.{GenerateLinks => GenerateLinksActivity}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, UserContext}
+import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlSerialization}
 import org.silkframework.runtime.validation._
 import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
@@ -478,21 +481,50 @@ class LinkingTaskApi @Inject() () extends InjectedController with UserContextAct
     Ok
   }
 
+  // All path meta data plugins
+  private lazy val pathMetaDataPlugins: Map[Class[_], PathMetaDataPlugin[_]] = {
+    val pathMetaDataPlugins = PluginRegistry.availablePlugins[PathMetaDataPlugin[_]]
+    pathMetaDataPlugins.map(plugin => {
+      val pathMetaDataPlugin = plugin.apply()(Prefixes.empty)
+      (pathMetaDataPlugin.sourcePluginClass, pathMetaDataPlugin)
+    }).toMap
+  }
+  private def datasetPathMetaDataPlugin(datasetTask: ProjectTask[GenericDatasetSpec]): Option[PathMetaDataPlugin[Dataset]] = {
+    pathMetaDataPlugins.get(datasetTask.data.plugin.getClass).map(_.asInstanceOf[PathMetaDataPlugin[Dataset]])
+  }
+  private val standardMetaDataPlugin = StandardMetaDataPlugin()
+
   /** Fetches the linking path cache value.  TODO: Add swagger annotation when finalized
     *
     * @param target If the target paths should be fetches, else the source paths are fetched.
     */
-  def getLinkingPathCacheValue(projectId: String, linkingTaskId: String, target: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val (_, linkingTask) = getProjectAndTask[LinkSpec](projectId, linkingTaskId)
+  def getLinkingPathCacheValue(projectId: String,
+                               linkingTaskId: String,
+                               target: Boolean,
+                               withMetaData: Boolean,
+                               langPref: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val (project, linkingTask) = getProjectAndTask[LinkSpec](projectId, linkingTaskId)
     val linkingPathsCache = linkingTask.activity[LinkingPathsCache]
     linkingPathsCache.value.get match {
       case Some(value) =>
-        val paths = if(target) {
-          value.target
+        val (sourceTaskId, sourceEntitySchema) = if(target) {
+          (linkingTask.data.target.inputId, value.target)
         } else {
-          value.source
+          (linkingTask.data.source.inputId, value.source)
         }
-        Ok(Json.toJson(paths.propertyNames))
+        // For now we only support dataset plugins
+        def dataset: Option[ProjectTask[GenericDatasetSpec]] = project.taskOption[GenericDatasetSpec](sourceTaskId)
+        if(withMetaData) {
+          val pathsWithMetaData = dataset.flatMap(d => datasetPathMetaDataPlugin(d)) match {
+            case Some(pathMetaDataPlugin) =>
+              pathMetaDataPlugin.fetchMetaData(dataset.get.data.plugin, sourceEntitySchema.typedPaths, langPref)
+            case None =>
+              standardMetaDataPlugin.fetchMetaData(standardMetaDataPlugin, sourceEntitySchema.typedPaths, langPref)
+          }
+          Ok(Json.toJson(pathsWithMetaData.toSeq))
+        } else {
+          Ok(Json.toJson(sourceEntitySchema.propertyNames))
+        }
       case None =>
         throw NotFoundException("No cached value available.")
     }

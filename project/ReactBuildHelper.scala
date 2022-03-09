@@ -59,7 +59,7 @@ object ReactBuildHelper {
     missing foreach { m =>
       println(s"Command line tool $m is missing for building JavaScript artifacts!")
     }
-    assert(missing.isEmpty, "Required command line tools are missing")
+    assert(missing.isEmpty, "Following required command line tools are missing: yarn")
   }
 
   /**

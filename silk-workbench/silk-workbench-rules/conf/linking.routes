@@ -51,8 +51,8 @@ PUT           /tasks/:project/:task/referenceLink                               
 DELETE        /tasks/:project/:task/referenceLink                                   controllers.linking.LinkingTaskApi.deleteReferenceLink(project: String, task: String, source: String, target: String)
 
 POST          /tasks/:project/:task/reloadCache                                     controllers.linking.LinkingTaskApi.reloadLinkingCache(project: String, task: String)
-GET           /tasks/:project/:task/pathCacheValue/source                           controllers.linking.LinkingTaskApi.getLinkingPathCacheValue(project: String, task: String, target: Boolean = false)
-GET           /tasks/:project/:task/pathCacheValue/target                           controllers.linking.LinkingTaskApi.getLinkingPathCacheValue(project: String, task: String, target: Boolean = true)
+GET           /tasks/:project/:task/pathCacheValue/source                           controllers.linking.LinkingTaskApi.getLinkingPathCacheValue(project: String, task: String, target: Boolean = false, withMetaData: Boolean ?= false, langPref: String ?= "en")
+GET           /tasks/:project/:task/pathCacheValue/target                           controllers.linking.LinkingTaskApi.getLinkingPathCacheValue(project: String, task: String, target: Boolean = true, withMetaData: Boolean ?= false, langPref: String ?= "en")
 PUT           /tasks/:project/:task/writeReferenceLinks                             controllers.linking.LinkingTaskApi.writeReferenceLinks(project: String, task: String)
 PUT           /tasks/:project/:task/learningTask                                    controllers.linking.LinkingTaskApi.learningActivity(project: String, task: String)
 PUT           /tasks/:project/:task/activeLearningTask                              controllers.linking.LinkingTaskApi.activeLearningActivity(project: String, task: String)

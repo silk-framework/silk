@@ -14,11 +14,14 @@ import { partitionArray, sortLexically } from "../../../../../utils/basicUtils";
 import { TabProps } from "gui-elements/src/components/Tabs/Tabs";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
+import { commonSel } from "@ducks/common";
 
 /** Contains the list of operators that can be dragged and dropped onto the editor canvas and supports filtering. */
 export const RuleEditorOperatorSidebar = () => {
     const editorContext = React.useContext(RuleEditorContext);
     const [t] = useTranslation();
+    const prefLang = useSelector(commonSel.localeSelector);
     const { registerError } = useErrorHandler();
     const [filteredOperators, setFilteredOperators] = React.useState<IRuleOperator[]>([]);
     // The query that was input in the search field. This won't get immediately active.
@@ -106,7 +109,7 @@ export const RuleEditorOperatorSidebar = () => {
     const loadExternalOperators = async (config: IRuleSidebarPreConfiguredOperatorsTabConfig) => {
         setExternalOperatorListLoading(true);
         try {
-            const originalOperators = await config.fetchOperators();
+            const originalOperators = await config.fetchOperators(prefLang);
             setPreconfiguredOperators({
                 originalOperators: originalOperators ?? [],
                 isOriginalOperator: config.isOriginalOperator,

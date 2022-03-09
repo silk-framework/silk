@@ -7,7 +7,7 @@ import {
     IRuleOperatorNode,
     IRuleSidebarPreConfiguredOperatorsTabConfig,
 } from "../../shared/RuleEditor/RuleEditor.typings";
-import { IValueInput } from "../shared/rules/rule.typings";
+import { IValueInput, PathWithMetaData } from "../shared/rules/rule.typings";
 import {
     IAggregationOperator,
     IComparisonOperator,
@@ -175,35 +175,45 @@ const inputPathTab = (
     sourceOrTarget: "source" | "target",
     errorHandler: (err) => any
 ): IRuleSidebarPreConfiguredOperatorsTabConfig => {
-    return {
+    const inputPathTabConfig: IRuleSidebarPreConfiguredOperatorsTabConfig<PathWithMetaData> = {
         id: `${sourceOrTarget}Paths`,
         label: sourceOrTarget === "source" ? "Source paths" : "Target paths",
-        fetchOperators: async () => {
+        fetchOperators: async (langPref: string) => {
             try {
-                return (await linkingRuleRequests.fetchLinkingCachedPaths(projectId, linkingTaskId, sourceOrTarget))
-                    .data;
+                return (
+                    await linkingRuleRequests.fetchLinkingCachedPaths(
+                        projectId,
+                        linkingTaskId,
+                        sourceOrTarget,
+                        true,
+                        langPref
+                    )
+                ).data as PathWithMetaData[];
             } catch (ex) {
                 errorHandler(ex);
             }
         },
-        convertToOperator: (path: string): IPreConfiguredRuleOperator => {
+        convertToOperator: (path: PathWithMetaData): IPreConfiguredRuleOperator => {
             const { pluginId, pluginType, icon } = baseOperator;
             return {
                 pluginId,
                 pluginType,
                 icon,
-                label: path,
+                label: path.label ?? path.value,
+                description: path.label ? path.value : undefined,
                 categories: [sourceOrTarget === "source" ? "Source path" : "Target path"],
                 parameterOverwrites: {
-                    path,
+                    path: path.value,
                 },
-                tags: [],
+                tags: [path.valueType],
             };
         },
-        isOriginalOperator: (listItem) => typeof listItem === "string",
-        itemSearchText: (listItem: string) => listItem,
-        itemLabel: (listItem: string) => listItem,
+        isOriginalOperator: (listItem) => (listItem as PathWithMetaData).valueType != null,
+        itemSearchText: (listItem: PathWithMetaData) =>
+            listItem.label ? `${listItem.label} ${listItem.value}` : listItem.value,
+        itemLabel: (listItem: PathWithMetaData) => listItem.label ?? listItem.value,
     };
+    return inputPathTabConfig;
 };
 
 const linkingRuleUtils = {

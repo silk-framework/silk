@@ -39,3 +39,13 @@ export interface RuleLayout {
         [nodeId: string]: [number, number];
     };
 }
+
+/** A data source path with meta data. */
+export interface PathWithMetaData {
+    /** The actual value of the path, i.e. Silk path expression. */
+    value: string;
+    /** An optional human-readable label. */
+    label?: string;
+    /** A human-readable type of the value of the path. */
+    valueType: string;
+}

@@ -11,6 +11,8 @@ const availableDTypesSelector = createSelector([commonSelector], (common) => com
 
 const currentProjectIdSelector = createSelector([commonSelector], (common) => common.currentProjectId);
 
+const localeSelector = createSelector([commonSelector], (common) => common.locale);
+
 const currentTaskIdSelector = createSelector([commonSelector], (common) => common.currentTaskId);
 
 const initialSettingsSelector = createSelector([commonSelector], (common) => common.initialSettings);
@@ -26,6 +28,7 @@ const commonSelectors = {
     currentTaskIdSelector,
     currentProjectIdSelector,
     exportTypesSelector,
+    localeSelector,
 };
 
 export default commonSelectors;
