@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityAction, IActivityStatus, SilkActivityControl } from "gui-elements/cmem";
+import { ActivityAction, IActivityStatus, Markdown, SilkActivityControl } from "gui-elements/cmem";
 import { Card } from "gui-elements";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
@@ -11,6 +11,8 @@ import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import { connectWebSocket } from "../../../services/websocketUtils";
 import { activityActionCreator } from "../../../views/shared/TaskActivityOverview/taskActivityOverviewRequests";
 import { ISearchResultsServer } from "@ducks/workspace/typings";
+import { activityErrorReportFactory } from "../../../views/shared/TaskActivityOverview/taskActivityUtils";
+import useErrorHandler from "../../../hooks/useErrorHandler";
 
 interface IActivity extends ISearchResultsServer {
     isCacheActivity: boolean;
@@ -23,6 +25,8 @@ interface IActivity extends ISearchResultsServer {
 const ActivityList = () => {
     const dispatch = useDispatch();
     const pageSizes = [10, 25, 50, 100];
+    const { registerError } = useErrorHandler();
+
     const data = useSelector(workspaceSel.resultsSelector);
     const pagination = useSelector(workspaceSel.paginationSelector);
     // const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
@@ -82,6 +86,25 @@ const ActivityList = () => {
         return mainAction(action);
     };
 
+    // Returns a function that fetches the error report for a particular activity
+    const fetchErrorReportFactory = (activity: IActivity) => {
+        console.log("error report...", activity.project, activity.task);
+        return activityErrorReportFactory(activity.id, activity.project, activity.task, (ex) => {
+            registerError(
+                `taskActivityOverview-fetchErrorReport`,
+                t("widget.TaskActivityOverview.errorMessages.errorReport.fetchReport"),
+                ex
+            );
+        });
+    };
+
+    // Query string for an activity related backend request
+    const queryString = (activity: IActivity): string => {
+        const projectParameter = activity.project ? `&project=${activity.project}` : "";
+        const taskParameter = activity.task ? `&task=${activity.task}` : "";
+        return `?activity=${activity.id}${projectParameter}${taskParameter}`;
+    };
+
     React.useEffect(() => {
         return registerForUpdates();
     }, []);
@@ -108,6 +131,23 @@ const ActivityList = () => {
                                 showStopAction
                                 executeActivityAction={(action: ActivityAction) =>
                                     executeAction(activity.id, action, activity.project, activity.task)
+                                }
+                                failureReportAction={{
+                                    title: "", // The title is already repeated in the markdown
+                                    allowDownload: true,
+                                    closeButtonValue: t("common.action.close"),
+                                    downloadButtonValue: t("common.action.download"),
+                                    renderMarkdown: true,
+                                    renderReport: (markdown) => <Markdown children={markdown as string} />,
+                                    fetchErrorReport: fetchErrorReportFactory(activity),
+                                }}
+                                viewValueAction={
+                                    activity.isCacheActivity
+                                        ? {
+                                              tooltip: t("widget.TaskActivityOverview.activityControl.viewCachedData"),
+                                              action: legacyApiEndpoint("/activities/value") + queryString(activity),
+                                          }
+                                        : undefined
                                 }
                                 translate={translateActions}
                             />
