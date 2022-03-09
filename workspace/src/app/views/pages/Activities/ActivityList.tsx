@@ -10,6 +10,15 @@ import Pagination from "../../shared/Pagination";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import { connectWebSocket } from "../../../services/websocketUtils";
 import { activityActionCreator } from "../../../views/shared/TaskActivityOverview/taskActivityOverviewRequests";
+import { ISearchResultsServer } from "@ducks/workspace/typings";
+
+interface IActivity extends ISearchResultsServer {
+    isCacheActivity: boolean;
+    parentType: string;
+    project: string;
+    task: string;
+    taskLabel: string;
+}
 
 const ActivityList = () => {
     const dispatch = useDispatch();
@@ -87,16 +96,16 @@ const ActivityList = () => {
                 hasSpacing
                 emptyContainer={<></>}
             >
-                {data.map((activity: any, index) => {
+                {data.map((activity: IActivity, index) => {
                     return (
                         <Card isOnlyLayout key={index}>
                             <SilkActivityControl
                                 label={activity.label}
                                 registerForUpdates={createRegisterForUpdatesFn(activity.id)}
                                 unregisterFromUpdates={createUnregisterFromUpdateFn(activity.id)}
-                                showStartAction
+                                showReloadAction={activity.isCacheActivity}
+                                showStartAction={!activity.isCacheActivity}
                                 showStopAction
-                                showReloadAction
                                 executeActivityAction={(action: ActivityAction) =>
                                     executeAction(activity.id, action, activity.project, activity.task)
                                 }
