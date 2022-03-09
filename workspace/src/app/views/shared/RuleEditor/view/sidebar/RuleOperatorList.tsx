@@ -59,7 +59,6 @@ export function RuleOperatorList<T>({ ruleOperatorList, textQuery, preConfigured
         return (
             <div
                 data-test-id={"ruleEditor-sidebar-draggable-operator"}
-                key={ruleOperator.pluginId}
                 draggable={true}
                 onDragStart={onDragStartByPluginId(
                     ruleOperator.pluginType,

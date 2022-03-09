@@ -210,8 +210,9 @@ const inputPathTab = (
         },
         isOriginalOperator: (listItem) => (listItem as PathWithMetaData).valueType != null,
         itemSearchText: (listItem: PathWithMetaData) =>
-            listItem.label ? `${listItem.label} ${listItem.value}` : listItem.value,
+            `${listItem.label ?? ""} ${listItem.value} ${listItem.valueType}`.toLowerCase(),
         itemLabel: (listItem: PathWithMetaData) => listItem.label ?? listItem.value,
+        itemId: (listItem: PathWithMetaData) => listItem.value,
     };
     return inputPathTabConfig;
 };

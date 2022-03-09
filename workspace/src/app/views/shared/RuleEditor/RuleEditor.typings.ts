@@ -135,4 +135,6 @@ export interface IRuleSidebarPreConfiguredOperatorsTabConfig<ListItem = any> ext
     itemSearchText: (listItem: ListItem) => string;
     /** Returns the label of the item. Also an optimization to not convert to IPreConfiguredRuleOperator first. */
     itemLabel: (listItem: ListItem) => string;
+    /** Unique ID for each list item. */
+    itemId: (listItem: ListItem) => string;
 }

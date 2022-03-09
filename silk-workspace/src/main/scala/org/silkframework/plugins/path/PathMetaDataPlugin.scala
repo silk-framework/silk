@@ -1,5 +1,6 @@
 package org.silkframework.plugins.path
 
+import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.runtime.activity.UserContext
 import play.api.libs.json.{Format, Json}
@@ -19,7 +20,7 @@ trait PathMetaDataPlugin[T] {
   def fetchMetaData(sourcePlugin: T,
                     paths: Traversable[TypedPath],
                     preferredLanguage: String)
-                   (implicit userContext: UserContext): Traversable[PathMetaData]
+                   (implicit userContext: UserContext, prefixes: Prefixes): Traversable[PathMetaData]
 }
 
 /** The path meta data.

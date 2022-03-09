@@ -1,4 +1,5 @@
 package org.silkframework.plugins.path
+import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.runtime.activity.UserContext
 
@@ -17,7 +18,7 @@ case class StandardMetaDataPlugin() extends PathMetaDataPlugin[StandardMetaDataP
   override def fetchMetaData(sourcePlugin: StandardMetaDataPlugin,
                              paths: Traversable[TypedPath],
                              preferredLanguage: String)
-                            (implicit userContext: UserContext): Traversable[PathMetaData] = {
-    paths.map(p => PathMetaData(p.normalizedSerialization, None, p.valueType.label))
+                            (implicit userContext: UserContext, prefixes: Prefixes): Traversable[PathMetaData] = {
+    paths.map(p => PathMetaData(p.serialize(), None, p.valueType.label))
   }
 }

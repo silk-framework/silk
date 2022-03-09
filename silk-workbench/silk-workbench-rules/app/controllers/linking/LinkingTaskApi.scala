@@ -504,6 +504,7 @@ class LinkingTaskApi @Inject() () extends InjectedController with UserContextAct
                                withMetaData: Boolean,
                                langPref: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val (project, linkingTask) = getProjectAndTask[LinkSpec](projectId, linkingTaskId)
+    implicit val prefixes: Prefixes = project.config.prefixes
     val linkingPathsCache = linkingTask.activity[LinkingPathsCache]
     linkingPathsCache.value.get match {
       case Some(value) =>
@@ -523,7 +524,7 @@ class LinkingTaskApi @Inject() () extends InjectedController with UserContextAct
           }
           Ok(Json.toJson(pathsWithMetaData.toSeq))
         } else {
-          Ok(Json.toJson(sourceEntitySchema.propertyNames))
+          Ok(Json.toJson(sourceEntitySchema.typedPaths.map(_.serialize())))
         }
       case None =>
         throw NotFoundException("No cached value available.")

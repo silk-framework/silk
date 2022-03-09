@@ -34,7 +34,9 @@ export const RuleEditorOperatorSidebar = () => {
     const activeTab: IRuleSidebarPreConfiguredOperatorsTabConfig | IRuleSideBarFilterTabConfig | undefined = (
         editorContext.tabs ?? []
     ).find((tab) => tab.id === activeTabId);
-    const [externalOperatorListLoading, setExternalOperatorListLoading] = React.useState(false);
+    /** Pre-configured operators */
+    const [preConfiguredOperatorListLoading, setPreConfiguredOperatorListLoading] = React.useState(false);
+    //
     const [preConfiguredOperators, setPreconfiguredOperators] = React.useState<
         | (IPreConfiguredOperators<any> & {
               itemSearchText: (listItem: any) => string;
@@ -107,7 +109,7 @@ export const RuleEditorOperatorSidebar = () => {
 
     // Load external operators
     const loadExternalOperators = async (config: IRuleSidebarPreConfiguredOperatorsTabConfig) => {
-        setExternalOperatorListLoading(true);
+        setPreConfiguredOperatorListLoading(true);
         try {
             const originalOperators = await config.fetchOperators(prefLang);
             setPreconfiguredOperators({
@@ -118,7 +120,7 @@ export const RuleEditorOperatorSidebar = () => {
                 position: "top",
                 itemSearchText: config.itemSearchText,
                 itemLabel: config.itemLabel,
-                itemId: config.itemLabel,
+                itemId: config.itemId,
             });
             setOperatorList(undefined);
         } catch (ex) {
@@ -128,7 +130,7 @@ export const RuleEditorOperatorSidebar = () => {
                 ex
             );
         } finally {
-            setExternalOperatorListLoading(false);
+            setPreConfiguredOperatorListLoading(false);
         }
     };
 
@@ -164,7 +166,7 @@ export const RuleEditorOperatorSidebar = () => {
                     <Spacing size={"small"} />
                 </GridColumn>
             </GridRow>
-            {externalOperatorListLoading ? (
+            {preConfiguredOperatorListLoading ? (
                 <Loading />
             ) : (
                 <GridRow verticalStretched={true}>
