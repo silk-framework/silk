@@ -32,6 +32,7 @@ export const RuleNodeParameterForm = ({ nodeId, parameters }: RuleNodeParameters
                             info: paramSpec.required ? "required" : undefined,
                         }}
                         // TODO: CMEM-3919 validation and error state
+                        messageText={"La la"}
                         // hasStateDanger={!!errorMessage("Label", errors.label)}
                         // messageText={errorMessage("Label", errors.label)}
                     >

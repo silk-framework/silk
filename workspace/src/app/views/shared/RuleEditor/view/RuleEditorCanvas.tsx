@@ -185,6 +185,7 @@ export const RuleEditorCanvas = () => {
         }
     }, []);
 
+    // Iterate over the input handles of a node
     const iterateInputHandles = (
         ruleEditorNode: RuleEditorNode,
         handleAction: (handle: HandleProps, handleDom: Element) => void
@@ -202,25 +203,78 @@ export const RuleEditorCanvas = () => {
             });
     };
 
+    // Iterate over the output handles of a node
+    const iterateOutputHandles = (
+        ruleEditorNode: RuleEditorNode,
+        handleAction: (handle: HandleProps, handleDom: Element) => void
+    ) => {
+        const handles = modelUtils.outputHandles(ruleEditorNode);
+        const ruleDomNode = document.querySelector(`#ruleEditor-react-flow-canvas div[data-id="${ruleEditorNode.id}"]`);
+        ruleDomNode &&
+            handles.forEach((handle) => {
+                const handleDom = ruleDomNode.querySelector(`div[data-handlepos = "right"]`);
+                if (handleDom) {
+                    handleAction(handle, handleDom);
+                }
+            });
+    };
+
+    const VALID_HANDLE = "valid-handle";
+    const INVALID_HANDLE = "invalid-handle";
+
+    /** Connection validation. */
+    const resetEdgeValidation = (element: Element) => {
+        element.classList.remove(VALID_HANDLE, INVALID_HANDLE);
+    };
+    const setValidEdge = (element: Element) => {
+        resetEdgeValidation(element);
+        element.classList.add(VALID_HANDLE);
+    };
+    const setInvalidEdge = (element: Element) => {
+        resetEdgeValidation(element);
+        element.classList.add(INVALID_HANDLE);
+    };
     // Signal to the user which of the rule editor nodes handles are valid or invalid
     const enableNodeInputValidation = (ruleEditorNode: RuleEditorNode) => {
-        iterateInputHandles(ruleEditorNode, (handle, handleDom) => {
-            if (connectState.connectParams?.nodeId && handle.id) {
-                if (modelContext.isValidEdge(connectState.connectParams.nodeId, ruleEditorNode.id, handle.id)) {
-                    // TODO: Use custom logic/styles here, since these only trigger when hovering over the handles
-                    handleDom.classList.add();
-                } else {
-                    handleDom.classList.add();
-                }
+        const connectParams = connectState.connectParams;
+        if (connectParams && connectParams.nodeId) {
+            if (connectParams.handleType === "target") {
+                iterateOutputHandles(ruleEditorNode, (handle, handleDom) => {
+                    if (connectParams.handleId) {
+                        if (modelContext.isValidEdge(ruleEditorNode.id, connectParams.nodeId, connectParams.handleId)) {
+                            setValidEdge(handleDom);
+                        } else {
+                            setInvalidEdge(handleDom);
+                        }
+                    }
+                });
+                iterateInputHandles(ruleEditorNode, (handle, handleDom) => {
+                    setInvalidEdge(handleDom);
+                });
+            } else if (connectParams.handleType === "source") {
+                iterateOutputHandles(ruleEditorNode, (handle, handleDom) => {
+                    setInvalidEdge(handleDom);
+                });
+                iterateInputHandles(ruleEditorNode, (handle, handleDom) => {
+                    if (handle.id) {
+                        if (modelContext.isValidEdge(connectParams.nodeId, ruleEditorNode.id, handle.id)) {
+                            setValidEdge(handleDom);
+                        } else {
+                            setInvalidEdge(handleDom);
+                        }
+                    }
+                });
             }
-        });
+        }
     };
 
     // Reset the handle validation
     const disableNodeInputValidation = (ruleEditorNode: RuleEditorNode) => {
         iterateInputHandles(ruleEditorNode, (handle, handleDom) => {
-            // TODO: Remove custom validation classes
-            handleDom.classList.remove();
+            resetEdgeValidation(handleDom);
+        });
+        iterateOutputHandles(ruleEditorNode, (handle, handleDom) => {
+            resetEdgeValidation(handleDom);
         });
     };
 

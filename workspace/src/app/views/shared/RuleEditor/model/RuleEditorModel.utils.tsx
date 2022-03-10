@@ -23,17 +23,18 @@ export const SOURCE_HANDLE_TYPE = "source";
 export const TARGET_HANDLE_TYPE = "target";
 
 /** Creates a new input handle. Handle IDs need to be numbers that are unique for the same node. */
-function createInputHandle(handleId: number): IHandleProps {
+function createInputHandle(handleId: number, operatorContext?: IOperatorCreateContext): IHandleProps {
     return {
         id: `${handleId}`,
         type: TARGET_HANDLE_TYPE,
         position: Position.Left,
+        isValidConnection: operatorContext?.isValidConnection,
     };
 }
 
 /** Creates a number of new input handles numbered through by index, i.e. starting with 0. */
-function createInputHandles(numberOfInputPorts: number) {
-    return rangeArray(numberOfInputPorts).map((nr) => createInputHandle(nr));
+function createInputHandles(numberOfInputPorts: number, operatorContext?: IOperatorCreateContext) {
+    return rangeArray(numberOfInputPorts).map((nr) => createInputHandle(nr, operatorContext));
 }
 
 /** The operations on a node. */
@@ -76,8 +77,8 @@ function createOperatorNode(
             : Math.max(node.portSpecification.minInputPorts, usedInputs + 1);
 
     const handles: IHandleProps[] = [
-        ...createInputHandles(numberOfInputPorts),
-        { type: "source", position: Position.Right, isValidConnection: operatorContext.isValidConnection },
+        ...createInputHandles(numberOfInputPorts, operatorContext),
+        { type: SOURCE_HANDLE_TYPE, position: Position.Right, isValidConnection: operatorContext.isValidConnection },
     ];
 
     const data: NodeContentPropsWithBusinessData<IRuleNodeData> = {
@@ -199,14 +200,19 @@ const asEdge = (element: FlowElement | undefined): Edge | undefined => {
 /** Return input handles. */
 const inputHandles = (node: RuleEditorNode) => {
     const handles = node.data?.handles ?? [];
-    const inputHandles = handles.filter((h) => h.type === "target" && !h.category);
-    return inputHandles;
+    return handles.filter((h) => h.type === TARGET_HANDLE_TYPE && !h.category);
+};
+
+/** Return input handles. */
+const outputHandles = (node: RuleEditorNode) => {
+    const handles = node.data?.handles ?? [];
+    return handles.filter((h) => h.type === SOURCE_HANDLE_TYPE);
 };
 
 /** Return all other handles than the normal input handles. */
 const nonInputHandles = (node: RuleEditorNode) => {
     const handles = node.data?.handles ?? [];
-    const nonInputHandles = handles.filter((h) => h.type !== "target" || h.category);
+    const nonInputHandles = handles.filter((h) => h.type !== TARGET_HANDLE_TYPE || h.category);
     return nonInputHandles;
 };
 
@@ -362,6 +368,7 @@ export const ruleEditorModelUtilsFactory = () => {
         findEdges,
         initNodeBaseIds,
         inputHandles,
+        outputHandles,
         nonInputHandles,
         isNode,
         isEdge,

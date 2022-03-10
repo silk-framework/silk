@@ -13,6 +13,7 @@ const convertRuleOperatorToRuleNode = (ruleOperator: IRuleOperator): Omit<IRuleO
         pluginId: ruleOperator.pluginId,
         pluginType: ruleOperator.pluginType,
         portSpecification: ruleOperator.portSpecification,
+        tags: ruleOperator.tags,
     };
 };
 
