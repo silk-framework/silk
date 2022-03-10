@@ -31,7 +31,14 @@ export const RuleParameterInput = (ruleParameter: RuleParameterInputProps) => {
     };
     switch (ruleParameter.parameterSpecification.type) {
         case "textArea":
-            return <TextArea {...inputAttributes} />;
+            return (
+                <TextArea
+                    {...inputAttributes}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                        onChange(e.target.value);
+                    }}
+                />
+            );
         case "boolean":
             return <Switch {...inputAttributes} />;
         case "code":
