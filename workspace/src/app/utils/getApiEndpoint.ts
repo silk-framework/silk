@@ -56,3 +56,7 @@ export const prependSlash = (relativePath: string): string => {
 export const legacyApiEndpoint = (query: string) => {
     return rootPath("/workspace") + prependSlash(query);
 };
+
+export const legacyTransformEndpoint = (subPath: string) => {
+    return rootPath("/transform") + prependSlash(subPath);
+};
