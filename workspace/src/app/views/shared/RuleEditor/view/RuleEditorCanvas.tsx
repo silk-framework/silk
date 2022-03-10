@@ -11,13 +11,15 @@ import React, { MouseEvent as ReactMouseEvent } from "react";
 import { Connection, Elements, Node, OnConnectStartParams, XYPosition } from "react-flow-renderer/dist/types";
 import { SelectionMenu } from "./ruleNode/SelectionMenu";
 import {
+    IRuleEditorViewBaseEdgeConnectionState,
     IRuleEditorViewConnectState,
     IRuleEditorViewDragState,
+    IRuleEditorViewEdgeUpdateState,
     IRuleEditorViewSelectionDragState,
 } from "./RuleEditorView.typings";
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { EdgeMenu } from "./ruleEdge/EdgeMenu";
-import { ruleEditorModelUtilsFactory } from "../model/RuleEditorModel.utils";
+import { ruleEditorModelUtilsFactory, SOURCE_HANDLE_TYPE, TARGET_HANDLE_TYPE } from "../model/RuleEditorModel.utils";
 import { MiniMap } from "gui-elements/src/extensions/react-flow/minimap/MiniMap";
 import { edgeTypes } from "gui-elements/src/extensions/react-flow/edges/edgeTypes";
 import { nodeTypes } from "gui-elements/src/extensions/react-flow/nodes/nodeTypes";
@@ -41,18 +43,22 @@ export const RuleEditorCanvas = () => {
         selectionStartPositions: new Map(),
     });
     const modelContext = React.useContext(RuleEditorModelContext);
-    // Stores state during a connection operation
+    // Stores the state when any edge connection operation is active, i.e. creating a new or updating an existing edge
+    const [edgeConnectState] = React.useState<IRuleEditorViewBaseEdgeConnectionState>({
+        edgeConnectOperationActive: false,
+    });
+    // Stores state during a connection operation, i.e. creating a new connection
     const [connectState] = React.useState<IRuleEditorViewConnectState>({
         edgeConnected: false,
         connectOperationActive: false,
     });
     // Tracks the state during an edge update operation, i.e. if it's still during an edge update and
-    const [edgeUpdateState] = React.useState<{
-        duringEdgeUpdate: boolean;
-        edgeDeleted: boolean;
-        originalEdge: Edge | undefined;
-        transactionStarted: boolean;
-    }>({ duringEdgeUpdate: false, edgeDeleted: false, originalEdge: undefined, transactionStarted: false });
+    const [edgeUpdateState] = React.useState<IRuleEditorViewEdgeUpdateState>({
+        duringEdgeUpdate: false,
+        edgeDeleted: false,
+        originalEdge: undefined,
+        transactionStarted: false,
+    });
     // Context menu that is shown on specific user actions
     const [contextMenu, setContextMenu] = React.useState<JSX.Element | null>(null);
     // At the moment react-flow's selection logic is buggy in some places, e.g. https://github.com/wbkd/react-flow/issues/1314
@@ -90,6 +96,13 @@ export const RuleEditorCanvas = () => {
     };
 
     /** Handle changing edge connections */
+    const resetEdgeConnectState = () => {
+        edgeConnectState.edgeConnectOperationActive = false;
+        edgeConnectState.sourceNodeId = undefined;
+        edgeConnectState.targetNodeId = undefined;
+        edgeConnectState.targetHandleId = undefined;
+        edgeConnectState.overNode = undefined;
+    };
     const startEdgeUpdateTransaction = () => {
         if (!edgeUpdateState.transactionStarted) {
             modelContext.executeModelEditOperation.startChangeTransaction();
@@ -114,6 +127,13 @@ export const RuleEditorCanvas = () => {
         edgeUpdateState.edgeDeleted = false;
         edgeUpdateState.transactionStarted = false;
         edgeUpdateState.originalEdge = edge;
+        // FIXME: This is currently not possible since we do not know which side of the edge is being updated
+        // see also: https://github.com/wbkd/react-flow/discussions/1961
+        // initEdgeConnectState(
+        //     isSourceHandle ? undefined : edge.source,
+        //     isSourceHandle ? edge.target : undefined,
+        //     isSourceHandle ? undefined : (edge.targetHandle ?? undefined)
+        // )
         setTimeout(() => {
             // Delete the original edge, since we will start a new edge.
             deleteOriginalEdgeDuringEdgeUpdate(edge.id);
@@ -131,22 +151,40 @@ export const RuleEditorCanvas = () => {
                 oldEdge.targetHandle && oldEdge.target === newConnection.target ? oldEdge.targetHandle : undefined
             );
         }
+        resetEdgeConnectState();
     }, []);
 
     // End of an edge update independent from if the edge was connected to a new port or not
     const onEdgeUpdateEnd = React.useCallback((event, edge) => {
         edgeUpdateState.duringEdgeUpdate = false;
+        resetEdgeConnectState();
         edgeUpdateState.originalEdge?.target && modelContext.executeModelEditOperation.fixNodeInputs();
     }, []);
+
+    const initEdgeConnectState = (
+        sourceNodeId: string | undefined,
+        targetNodeId: string | undefined,
+        targetHandleId: string | undefined
+    ) => {
+        edgeConnectState.edgeConnectOperationActive = true;
+        edgeConnectState.sourceNodeId = sourceNodeId;
+        edgeConnectState.targetNodeId = targetNodeId;
+        edgeConnectState.targetHandleId = targetHandleId;
+        edgeConnectState.overNode = undefined;
+    };
 
     /** Connection logic, i.e. connecting new edges. */
     const onConnectStart = React.useCallback((e: ReactMouseEvent, params: OnConnectStartParams) => {
         e.preventDefault();
         e.stopPropagation();
         connectState.edgeConnected = false;
-        connectState.overNode = undefined;
         connectState.connectOperationActive = true;
         connectState.connectParams = params;
+        initEdgeConnectState(
+            params.handleType === SOURCE_HANDLE_TYPE && params.nodeId ? params.nodeId : undefined,
+            params.handleType === TARGET_HANDLE_TYPE && params.nodeId ? params.nodeId : undefined,
+            params.handleId && params.handleType === TARGET_HANDLE_TYPE ? params.handleId : undefined
+        );
     }, []);
 
     // Triggered when drawing a new connection between nodes
@@ -172,14 +210,15 @@ export const RuleEditorCanvas = () => {
         event.preventDefault();
         event.stopPropagation();
         connectState.connectOperationActive = false;
-        if (connectState.overNode) {
-            disableNodeInputValidation(modelUtils.asNode(connectState.overNode)!!);
+        resetEdgeConnectState();
+        if (edgeConnectState.overNode) {
+            disableNodeInputValidation(modelUtils.asNode(edgeConnectState.overNode)!!);
         }
-        if (!connectState.edgeConnected && connectState.overNode && connectState.connectParams?.nodeId) {
+        if (!connectState.edgeConnected && edgeConnectState.overNode && connectState.connectParams?.nodeId) {
             modelContext.executeModelEditOperation.startChangeTransaction();
             modelContext.executeModelEditOperation.addEdge(
                 connectState.connectParams.nodeId,
-                connectState.overNode.id,
+                edgeConnectState.overNode.id,
                 undefined
             );
         }
@@ -236,12 +275,17 @@ export const RuleEditorCanvas = () => {
     };
     // Signal to the user which of the rule editor nodes handles are valid or invalid
     const enableNodeInputValidation = (ruleEditorNode: RuleEditorNode) => {
-        const connectParams = connectState.connectParams;
-        if (connectParams && connectParams.nodeId) {
-            if (connectParams.handleType === "target") {
+        if (edgeConnectState.sourceNodeId || edgeConnectState.targetNodeId) {
+            if (edgeConnectState.targetNodeId) {
                 iterateOutputHandles(ruleEditorNode, (handle, handleDom) => {
-                    if (connectParams.handleId) {
-                        if (modelContext.isValidEdge(ruleEditorNode.id, connectParams.nodeId, connectParams.handleId)) {
+                    if (edgeConnectState.targetHandleId) {
+                        if (
+                            modelContext.isValidEdge(
+                                ruleEditorNode.id,
+                                edgeConnectState.targetNodeId,
+                                edgeConnectState.targetHandleId
+                            )
+                        ) {
                             setValidEdge(handleDom);
                         } else {
                             setInvalidEdge(handleDom);
@@ -251,13 +295,13 @@ export const RuleEditorCanvas = () => {
                 iterateInputHandles(ruleEditorNode, (handle, handleDom) => {
                     setInvalidEdge(handleDom);
                 });
-            } else if (connectParams.handleType === "source") {
+            } else if (edgeConnectState.sourceNodeId) {
                 iterateOutputHandles(ruleEditorNode, (handle, handleDom) => {
                     setInvalidEdge(handleDom);
                 });
                 iterateInputHandles(ruleEditorNode, (handle, handleDom) => {
                     if (handle.id) {
-                        if (modelContext.isValidEdge(connectParams.nodeId, ruleEditorNode.id, handle.id)) {
+                        if (modelContext.isValidEdge(edgeConnectState.sourceNodeId, ruleEditorNode.id, handle.id)) {
                             setValidEdge(handleDom);
                         } else {
                             setInvalidEdge(handleDom);
@@ -280,19 +324,19 @@ export const RuleEditorCanvas = () => {
 
     const onNodeMouseEnter = React.useCallback((event: ReactMouseEvent, node: Node) => {
         // Track if we are over a node during a connect operation in order to connect to the first empty port of a node
-        if (connectState.connectOperationActive) {
-            enableNodeInputValidation(modelUtils.asNode(node)!!);
-            event.preventDefault();
-            event.stopPropagation();
-            connectState.overNode = node;
+        if (edgeConnectState.edgeConnectOperationActive || connectState.connectOperationActive) {
+            if (edgeConnectState.edgeConnectOperationActive) {
+                enableNodeInputValidation(modelUtils.asNode(node)!!);
+            }
+            if (connectState.connectOperationActive) {
+                edgeConnectState.overNode = node;
+            }
         }
     }, []);
 
     const onNodeMouseLeave = React.useCallback((event: ReactMouseEvent, node: Node) => {
-        if (connectState.connectOperationActive) {
-            disableNodeInputValidation(modelUtils.asNode(node)!!);
-            connectState.overNode = undefined;
-        }
+        disableNodeInputValidation(modelUtils.asNode(node)!!);
+        edgeConnectState.overNode = undefined;
     }, []);
 
     /** Selection related actions. */
