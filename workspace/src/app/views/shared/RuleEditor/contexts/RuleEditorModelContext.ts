@@ -33,6 +33,8 @@ export interface RuleEditorModelContextProps {
     redo: () => boolean;
     /** If there are changes that can be redone. */
     canRedo: boolean;
+    /** Returns true if this is a valid edge, false otherwise. */
+    isValidEdge: (sourceNodeId: string, targetNodeId: string, targetHandleId: string) => boolean;
 }
 
 export interface IModelActions {
@@ -129,4 +131,5 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     canUndo: false,
     redo: () => false,
     canRedo: false,
+    isValidEdge: () => true,
 });

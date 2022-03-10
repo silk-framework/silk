@@ -4,6 +4,7 @@ import ReactFlow, {
     ConnectionLineType,
     Controls,
     Edge,
+    HandleProps,
     OnLoadParams,
 } from "react-flow-renderer";
 import React, { MouseEvent as ReactMouseEvent } from "react";
@@ -22,6 +23,7 @@ import { edgeTypes } from "gui-elements/src/extensions/react-flow/edges/edgeType
 import { nodeTypes } from "gui-elements/src/extensions/react-flow/nodes/nodeTypes";
 import { minimapNodeClassName, minimapNodeColor } from "gui-elements/src/extensions/react-flow/minimap/utils";
 import { GridColumn } from "gui-elements";
+import { RuleEditorNode } from "../model/RuleEditorModel.typings";
 
 //snap grid
 const snapGrid: [number, number] = [15, 15];
@@ -170,27 +172,71 @@ export const RuleEditorCanvas = () => {
         event.preventDefault();
         event.stopPropagation();
         connectState.connectOperationActive = false;
+        if (connectState.overNode) {
+            disableNodeInputValidation(modelUtils.asNode(connectState.overNode)!!);
+        }
         if (!connectState.edgeConnected && connectState.overNode && connectState.connectParams?.nodeId) {
             modelContext.executeModelEditOperation.startChangeTransaction();
             modelContext.executeModelEditOperation.addEdge(
                 connectState.connectParams.nodeId,
-                connectState.overNode,
+                connectState.overNode.id,
                 undefined
             );
         }
     }, []);
 
+    const iterateInputHandles = (
+        ruleEditorNode: RuleEditorNode,
+        handleAction: (handle: HandleProps, handleDom: Element) => void
+    ) => {
+        const handles = modelUtils.inputHandles(ruleEditorNode);
+        const ruleDomNode = document.querySelector(`#ruleEditor-react-flow-canvas div[data-id="${ruleEditorNode.id}"]`);
+        ruleDomNode &&
+            handles.forEach((handle) => {
+                const handleDom = ruleDomNode.querySelector(
+                    `div[data-handlepos = "left"][data-handleid="${handle.id}"]`
+                );
+                if (handleDom) {
+                    handleAction(handle, handleDom);
+                }
+            });
+    };
+
+    // Signal to the user which of the rule editor nodes handles are valid or invalid
+    const enableNodeInputValidation = (ruleEditorNode: RuleEditorNode) => {
+        iterateInputHandles(ruleEditorNode, (handle, handleDom) => {
+            if (connectState.connectParams?.nodeId && handle.id) {
+                if (modelContext.isValidEdge(connectState.connectParams.nodeId, ruleEditorNode.id, handle.id)) {
+                    // TODO: Use custom logic/styles here, since these only trigger when hovering over the handles
+                    handleDom.classList.add();
+                } else {
+                    handleDom.classList.add();
+                }
+            }
+        });
+    };
+
+    // Reset the handle validation
+    const disableNodeInputValidation = (ruleEditorNode: RuleEditorNode) => {
+        iterateInputHandles(ruleEditorNode, (handle, handleDom) => {
+            // TODO: Remove custom validation classes
+            handleDom.classList.remove();
+        });
+    };
+
     const onNodeMouseEnter = React.useCallback((event: ReactMouseEvent, node: Node) => {
         // Track if we are over a node during a connect operation in order to connect to the first empty port of a node
         if (connectState.connectOperationActive) {
+            enableNodeInputValidation(modelUtils.asNode(node)!!);
             event.preventDefault();
             event.stopPropagation();
-            connectState.overNode = node.id;
+            connectState.overNode = node;
         }
     }, []);
 
-    const onNodeMouseLeave = React.useCallback(() => {
+    const onNodeMouseLeave = React.useCallback((event: ReactMouseEvent, node: Node) => {
         if (connectState.connectOperationActive) {
+            disableNodeInputValidation(modelUtils.asNode(node)!!);
             connectState.overNode = undefined;
         }
     }, []);
@@ -334,6 +380,7 @@ export const RuleEditorCanvas = () => {
     return (
         <GridColumn full>
             <ReactFlow
+                id={"ruleEditor-react-flow-canvas"}
                 data-test-id={"ruleEditor-react-flow-canvas"}
                 ref={reactFlowWrapper}
                 elements={modelContext.elements}

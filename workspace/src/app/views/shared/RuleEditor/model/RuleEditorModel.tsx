@@ -1106,6 +1106,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     fixNodeInputs,
                 },
                 unsavedChanges: canUndo,
+                isValidEdge,
             }}
         >
             {children}
