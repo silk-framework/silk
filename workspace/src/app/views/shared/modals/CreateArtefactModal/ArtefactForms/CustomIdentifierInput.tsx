@@ -1,7 +1,6 @@
 import React from "react";
 import { FieldItem, TextField } from "gui-elements";
 import { errorMessage } from "./ParameterWidget";
-import { Intent } from "gui-elements/blueprint/constants";
 import { debounce } from "../../../../../utils/debounce";
 import { requestProjectIdValidation, requestTaskIdValidation } from "@ducks/common/requests";
 import useCopyButton from "../../../../../hooks/useCopyButton";
@@ -81,7 +80,7 @@ const CustomIdentifierInput = ({ form, onValueChange, taskId, projectId }: IProp
                 id={IDENTIFIER}
                 name={IDENTIFIER}
                 onChange={onValueChange(IDENTIFIER)}
-                intent={errors.id ? Intent.DANGER : Intent.NONE}
+                hasStateDanger={errors.id ? true : false}
                 onKeyDown={(e) => {
                     if (e.keyCode === 13) {
                         e.preventDefault();

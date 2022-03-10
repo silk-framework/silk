@@ -2,3 +2,5 @@ GET        /taskPlugins               controllers.workspaceApi.coreApi.PluginApi
 GET        /ruleOperatorPlugins       controllers.workspaceApi.coreApi.PluginApi.ruleOperatorPlugins(addMarkdownDocumentation: Boolean ?= false, textQuery: Option[String] ?= None, category: Option[String] ?= None, overviewOnly: Option[Boolean] ?= None, inputOperatorsOnly: Option[Boolean] ?= None)
 GET        /plugins/:pluginId         controllers.workspaceApi.coreApi.PluginApi.plugin(pluginId: String, addMarkdownDocumentation: Boolean ?= false, pretty: Boolean ?= false)
 GET        /usages/plugins/:pluginId  controllers.workspaceApi.coreApi.PluginApi.pluginUsages(pluginId: String)
+
+GET        /system/threadDump         controllers.workspaceApi.coreApi.SystemApi.threadDump()
