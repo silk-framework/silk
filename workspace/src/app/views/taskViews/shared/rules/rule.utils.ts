@@ -7,6 +7,7 @@ import {
     IRuleSidebarPreConfiguredOperatorsTabConfig,
     IRuleSideBarFilterTabConfig,
     RuleParameterType,
+    IParameterValidationResult,
 } from "../../../shared/RuleEditor/RuleEditor.typings";
 import { RuleOperatorFetchFnType } from "../../../shared/RuleEditor/RuleEditor";
 import { IPluginDetails } from "@ducks/common/typings";
@@ -81,7 +82,12 @@ const extractOperatorNodeFromValueInput = (
 };
 
 /** Input path operator used in the transform and linking operators. */
-const inputPathOperator = (pluginId: string, label: string, description?: string): IRuleOperator => {
+const inputPathOperator = (
+    pluginId: string,
+    label: string,
+    description?: string,
+    customValidation?: (value: string) => IParameterValidationResult
+): IRuleOperator => {
     return {
         pluginType: "PathInputOperator",
         pluginId: pluginId,
@@ -96,6 +102,7 @@ const inputPathOperator = (pluginId: string, label: string, description?: string
                 type: "pathInput",
                 description: "The source input path as Silk path expression.",
                 defaultValue: "",
+                customValidation,
             }),
         },
         categories: ["Input"],
@@ -114,6 +121,7 @@ const parameterSpecification = ({
     description,
     advanced = false,
     required = true,
+    customValidation,
 }: Omit<IParameterSpecification, OptionalParameterAttributes> &
     Partial<Pick<IParameterSpecification, OptionalParameterAttributes>>): IParameterSpecification => {
     return {
@@ -123,6 +131,7 @@ const parameterSpecification = ({
         description,
         advanced,
         required,
+        customValidation,
     };
 };
 

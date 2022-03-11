@@ -12,6 +12,10 @@ import { requestUpdateProjectTask } from "@ducks/workspace/requests";
 import utils from "./LinkingRuleEditor.utils";
 import ruleUtils from "../shared/rules/rule.utils";
 import { IRuleOperatorNode } from "../../shared/RuleEditor/RuleEditor.typings";
+import { useSelector } from "react-redux";
+import { commonSel } from "@ducks/common";
+import linkingRuleRequests from "./LinkingRuleEditor.requests";
+import { PathWithMetaData } from "../shared/rules/rule.typings";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -27,6 +31,38 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
     // The linking task parameters
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
+    const prefLang = useSelector(commonSel.localeSelector);
+    // Label for source paths
+    const [sourcePathLabels] = React.useState<Map<string, string>>(new Map());
+    const [targetPathLabels] = React.useState<Map<string, string>>(new Map());
+    React.useEffect(() => {
+        fetchLabels("source");
+        fetchLabels("target");
+    }, [projectId, linkingTaskId, prefLang]);
+
+    /** Fetches the labels of either the source or target data source and sets them in the corresponding label map. */
+    const fetchLabels = async (sourceOrTarget: "source" | "target") => {
+        const paths = await linkingRuleRequests.fetchLinkingCachedPaths(
+            projectId,
+            linkingTaskId,
+            sourceOrTarget,
+            true,
+            prefLang
+        );
+        let labelMap = sourcePathLabels;
+        if (sourceOrTarget === "source") {
+            sourcePathLabels.clear();
+        } else {
+            targetPathLabels.clear();
+            labelMap = targetPathLabels;
+        }
+        paths.data.forEach((path) => {
+            if ((path as PathWithMetaData)?.label) {
+                const pathWithMetaData = path as PathWithMetaData;
+                labelMap.set(pathWithMetaData.value, pathWithMetaData.label!!);
+            }
+        });
+    };
     /** Fetches the parameters of the linking task */
     const fetchTaskData = async (projectId: string, taskId: string) => {
         try {
@@ -114,14 +150,28 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
         ruleUtils.inputPathOperator(
             "sourcePathInput",
             "Source path",
-            "The value path of the source input of the linking task."
+            "The value path of the source input of the linking task.",
+            // FIXME: At the moment we use the validation to show a path label if it exists as message
+            (value: string) => {
+                return {
+                    valid: true,
+                    message: sourcePathLabels.get(value),
+                };
+            }
         );
 
     const targetPathInput = () =>
         ruleUtils.inputPathOperator(
             "targetPathInput",
             "Target path",
-            "The value path of the target input of the linking task."
+            "The value path of the target input of the linking task.",
+            // FIXME: At the moment we use the validation to show a path label if it exists as message
+            (value: string) => {
+                return {
+                    valid: true,
+                    message: targetPathLabels.get(value),
+                };
+            }
         );
 
     return (
