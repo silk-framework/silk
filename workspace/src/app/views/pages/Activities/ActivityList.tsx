@@ -129,6 +129,14 @@ const ActivityList = () => {
         );
     };
 
+    const handleRouteToItemPage = (activity: IActivity, link: string) => {
+        const labels = { projectLabel: activity.projectLabel, itemType: activity.parentType } as any;
+        if (activity.task) {
+            labels.taskLabel = activity.label;
+        }
+        dispatch(routerOp.goToPage(link, labels));
+    };
+
     React.useEffect(() => {
         return registerForUpdates();
     }, []);
@@ -145,15 +153,16 @@ const ActivityList = () => {
             >
                 {data.map((activity: IActivity, index) => {
                     const link = `/workbench/projects/${activity.project}${
-                        activity.task ? `/tasks/${activity.task}` : ""
+                        activity.task ? `/task/${activity.task}` : ""
                     }`;
+
                     const label = () => (
                         <>
                             {activity.label} of
                             <Spacing vertical size="tiny" />
                             <ResourceLink
                                 url={link}
-                                handlerResourcePageLoader={() => dispatch(routerOp.goToPage(link))}
+                                handlerResourcePageLoader={() => handleRouteToItemPage(activity, link)}
                             >
                                 <OverflowText>
                                     <Highlighter

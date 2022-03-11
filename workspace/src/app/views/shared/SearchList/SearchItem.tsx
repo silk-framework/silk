@@ -66,7 +66,7 @@ export default function SearchItem({
     const dispatch = useDispatch();
     const exportTypes = useSelector(commonSel.exportTypesSelector);
     const [t] = useTranslation();
-    const itemLinks = item.itemLinks ?? [];
+    const itemLinks = item.itemLinks ?? [{ path: "", label: "" }];
     // Remove detailsPath
     const menuItemLinks = itemLinks.slice(1);
     const { projectTabView, toggleIFrameLink } = useProjectTabsView(menuItemLinks);
