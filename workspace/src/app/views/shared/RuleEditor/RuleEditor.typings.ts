@@ -69,6 +69,14 @@ export interface IParameterSpecification {
     advanced: boolean;
     /** The default value for the parameter. */
     defaultValue: string;
+    /** Custom validation function for this parameter. */
+    customValidation?: (value: string | undefined) => IParameterValidationResult;
+}
+
+export interface IParameterValidationResult {
+    valid: boolean;
+    message?: string;
+    intent?: "primary" | "success" | "warning" | "danger";
 }
 
 export type RuleParameterType =

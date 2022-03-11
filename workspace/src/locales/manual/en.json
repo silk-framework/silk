@@ -307,7 +307,8 @@
             "title": "Title"
         },
         "validations": {
-            "integer": "must be an integer number",
+            "float": "must be a valid floating point number",
+            "integer": "must be a valid integer number",
             "isRequired": "{{field}} is required",
             "parameter": "Parameter validation failed. Please fix the issues first."
         }

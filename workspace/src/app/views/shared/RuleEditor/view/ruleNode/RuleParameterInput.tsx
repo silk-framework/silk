@@ -11,23 +11,27 @@ import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
 
-interface RuleParameterInputProps extends IRuleNodeParameter {
-    /** The ID of the node. */
+interface RuleParameterInputProps {
+    ruleParameter: IRuleNodeParameter;
+    /** The ID of the node the parameter is part of. */
     nodeId: string;
+    /** If there should be error highlighting of the input component. */
+    hasValidationError: boolean;
 }
 
 /** An input widget for a parameter value. */
-export const RuleParameterInput = (ruleParameter: RuleParameterInputProps) => {
+export const RuleParameterInput = ({ ruleParameter, nodeId, hasValidationError }: RuleParameterInputProps) => {
     const onChange = ruleParameter.update;
     const ruleEditorContext = React.useContext(RuleEditorContext);
     const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
     const [t] = useTranslation();
-    const uniqueId = `${ruleParameter.nodeId} ${ruleParameter.parameterId}`;
+    const uniqueId = `${nodeId} ${ruleParameter.parameterId}`;
     const inputAttributes = {
         id: uniqueId,
         name: uniqueId,
         defaultValue: ruleParameter.currentValue() ?? ruleParameter.initialValue,
         onChange,
+        intent: hasValidationError ? Intent.DANGER : undefined,
     };
     switch (ruleParameter.parameterSpecification.type) {
         case "textArea":

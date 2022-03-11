@@ -278,7 +278,7 @@ export const RuleEditorCanvas = () => {
         if (edgeConnectState.sourceNodeId || edgeConnectState.targetNodeId) {
             if (edgeConnectState.targetNodeId) {
                 iterateOutputHandles(ruleEditorNode, (handle, handleDom) => {
-                    if (edgeConnectState.targetHandleId) {
+                    if (edgeConnectState.targetNodeId && edgeConnectState.targetHandleId) {
                         if (
                             modelContext.isValidEdge(
                                 ruleEditorNode.id,
@@ -300,7 +300,7 @@ export const RuleEditorCanvas = () => {
                     setInvalidEdge(handleDom);
                 });
                 iterateInputHandles(ruleEditorNode, (handle, handleDom) => {
-                    if (handle.id) {
+                    if (edgeConnectState.sourceNodeId && handle.id) {
                         if (modelContext.isValidEdge(edgeConnectState.sourceNodeId, ruleEditorNode.id, handle.id)) {
                             setValidEdge(handleDom);
                         } else {

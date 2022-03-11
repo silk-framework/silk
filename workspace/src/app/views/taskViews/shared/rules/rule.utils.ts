@@ -6,6 +6,7 @@ import {
     IRuleOperatorNode,
     IRuleSidebarPreConfiguredOperatorsTabConfig,
     IRuleSideBarFilterTabConfig,
+    RuleParameterType,
 } from "../../../shared/RuleEditor/RuleEditor.typings";
 import { RuleOperatorFetchFnType } from "../../../shared/RuleEditor/RuleEditor";
 import { IPluginDetails } from "@ducks/common/typings";
@@ -150,7 +151,7 @@ const convertRuleOperator = (
                     description: parameterSpec.description,
                     advanced: parameterSpec.advanced,
                     required: required(parameterId),
-                    type: "textField", // FIXME: Convert types from parameterSpec.parameterType, see InputMapper component CMEM-3919
+                    type: convertPluginParameterType(parameterSpec.parameterType),
                     defaultValue: parameterSpec.value,
                 };
                 return [parameterId, spec];
@@ -160,6 +161,41 @@ const convertRuleOperator = (
         portSpecification: portSpecification(pluginDetails),
         tags: pluginTags(pluginDetails),
     };
+};
+
+// Converts the parameter type of the plugin to any of the supported types of the parameter UI component
+const convertPluginParameterType = (pluginParameterType: string): RuleParameterType => {
+    switch (pluginParameterType) {
+        case "multiline string":
+            return "textArea";
+        case "int":
+        case "Long":
+        case "option[int]":
+            return "int";
+        case "boolean":
+            return "boolean";
+        case "stringmap": // TODO: CMEM-3873 Investigate how common this type is
+            return "textArea";
+        case "double":
+            return "float";
+        case "traversable[string]": // TODO: CMEM-3873: Have some kind of list component here?
+            return "textArea";
+        case "restriction":
+            return "code";
+        case "password":
+            return "password";
+        case "duration":
+        case "char": // TODO: CMEM-3873: We could further restrict its target type
+        case "uri": // TODO: CMEM-3873: We could handle URIs with a special target type
+        case "option[identifier]": // TODO: CMEM-3873: We could check identifiers
+        case "identifier":
+        case "enumeration": // TODO: CMEM-3873: Add auto-completion
+        case "resource": // TODO: CMEM-3873: Add auto-completion
+        case "project": // TODO: CMEM-3873: Add auto-completion
+        case "task": // TODO: CMEM-3873: Add auto-completion
+        default:
+            return "textField";
+    }
 };
 
 /** Tags for a rule operator based on its plugin specification. */

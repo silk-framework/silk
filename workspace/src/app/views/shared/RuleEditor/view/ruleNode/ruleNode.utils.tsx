@@ -1,5 +1,6 @@
 import { Highlighter, Spacing, Tag } from "gui-elements";
 import React from "react";
+import { IParameterSpecification, IParameterValidationResult } from "../../RuleEditor.typings";
 
 /** Adds highlighting to the text if query is non-empty. */
 const addHighlighting = (text: string, query?: string): string | JSX.Element => {
@@ -24,8 +25,43 @@ const createOperatorTags = (tags: string[], query?: string) => {
     );
 };
 
+const invalidValueResult = (message: string): IParameterValidationResult => ({
+    valid: false,
+    message,
+    intent: "danger",
+});
+/** Validates a value of a specific parameter type. */
+const validateValue = (
+    value: string | undefined,
+    parameterSpec: IParameterSpecification,
+    translate: (key: string, additionalParameters?: object) => string
+): IParameterValidationResult => {
+    if (value == null) {
+        if (parameterSpec.required) {
+            return invalidValueResult(translate("form.validations.isRequired", { field: parameterSpec.label }));
+        } else {
+            return { valid: true };
+        }
+    }
+    switch (parameterSpec.type) {
+        case "int":
+            const int = Number(value);
+            return Number.isNaN(int) || !Number.isInteger(int)
+                ? invalidValueResult(translate("form.validations.integer"))
+                : { valid: true };
+        case "float":
+            const float = Number(value);
+            return Number.isNaN(float) ? invalidValueResult(translate("form.validations.float")) : { valid: true };
+        default:
+            return {
+                valid: true,
+            };
+    }
+};
+
 const ruleNodeUtils = {
     createOperatorTags,
+    validateValue,
 };
 
 export default ruleNodeUtils;

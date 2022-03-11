@@ -11,6 +11,7 @@ export interface IRuleEditorViewSelectionDragState {
     selectionStartPositions: Map<string, XYPosition>;
 }
 
+/** State that is maintained during any kind of connection based action, e.g. creating a new edge or updating an existing one. */
 export interface IRuleEditorViewBaseEdgeConnectionState {
     edgeConnectOperationActive: boolean;
     // Set when the edge is drawn from a source handle
@@ -23,6 +24,7 @@ export interface IRuleEditorViewBaseEdgeConnectionState {
     overNode?: Node;
 }
 
+/** State that is maintained during creation of a new edge. */
 export interface IRuleEditorViewConnectState {
     // If there is an active connect operation going on, i.e. the user is currently creating a new connection
     connectOperationActive: boolean;
@@ -32,6 +34,7 @@ export interface IRuleEditorViewConnectState {
     connectParams?: OnConnectStartParams;
 }
 
+/** State that is maintained during the update of an existing edge. */
 export interface IRuleEditorViewEdgeUpdateState {
     // Are we during an edge update
     duringEdgeUpdate: boolean;
