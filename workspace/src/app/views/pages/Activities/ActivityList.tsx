@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityAction, IActivityStatus, Markdown, SilkActivityControl } from "gui-elements/cmem";
-import { Card } from "gui-elements";
+import { Card, Tag, Highlighter, Spacing, OverflowText } from "gui-elements";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import Datalist from "../../../views/shared/Datalist";
@@ -13,6 +13,8 @@ import { activityActionCreator } from "../../../views/shared/TaskActivityOvervie
 import { ISearchResultsServer } from "@ducks/workspace/typings";
 import { activityErrorReportFactory } from "../../../views/shared/TaskActivityOverview/taskActivityUtils";
 import useErrorHandler from "../../../hooks/useErrorHandler";
+import { ResourceLink } from "../../shared/ResourceLink/ResourceLink";
+import { routerOp } from "@ducks/router";
 
 interface IActivity extends ISearchResultsServer {
     isCacheActivity: boolean;
@@ -39,6 +41,8 @@ const ActivityList = () => {
     // Contains the callback function from a specific activity control that needs to be called every time the status changes, so only the affected activity is re-rendered.
     const [activityUpdateCallback] = React.useState<Map<string, (status: IActivityStatus) => any>>(new Map());
     // Contains the memoized activity control execution functions for each activity
+
+    const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
 
     const [t] = useTranslation();
 
@@ -105,6 +109,26 @@ const ActivityList = () => {
         return `?activity=${activity.id}${projectParameter}${taskParameter}`;
     };
 
+    const ActivityTags = ({ activity }: any) => {
+        return (
+            <>
+                {activity.projectLabel && (
+                    <>
+                        <Tag>
+                            <Highlighter label={activity.projectLabel} searchValue={textQuery} />
+                        </Tag>
+                        {activity.parentType && <Spacing vertical size="tiny" />}
+                    </>
+                )}
+                {activity.parentType && (
+                    <Tag>
+                        <Highlighter label={activity.parentType} searchValue={textQuery} />
+                    </Tag>
+                )}
+            </>
+        );
+    };
+
     React.useEffect(() => {
         return registerForUpdates();
     }, []);
@@ -120,10 +144,31 @@ const ActivityList = () => {
                 emptyContainer={<></>}
             >
                 {data.map((activity: IActivity, index) => {
+                    const link = `/workbench/projects/${activity.project}${
+                        activity.task ? `/tasks/${activity.task}` : ""
+                    }`;
+                    const label = () => (
+                        <>
+                            {activity.label} of
+                            <Spacing vertical size="tiny" />
+                            <ResourceLink
+                                url={link}
+                                handlerResourcePageLoader={() => dispatch(routerOp.goToPage(link))}
+                            >
+                                <OverflowText>
+                                    <Highlighter
+                                        label={activity.task ? activity.taskLabel : activity.projectLabel}
+                                        searchValue={textQuery}
+                                    />
+                                </OverflowText>
+                            </ResourceLink>
+                        </>
+                    );
                     return (
                         <Card isOnlyLayout key={index}>
                             <SilkActivityControl
-                                label={activity.label}
+                                label={label()}
+                                tags={<ActivityTags activity={activity} />}
                                 registerForUpdates={createRegisterForUpdatesFn(activity.id)}
                                 unregisterFromUpdates={createUnregisterFromUpdateFn(activity.id)}
                                 showReloadAction={activity.isCacheActivity}
