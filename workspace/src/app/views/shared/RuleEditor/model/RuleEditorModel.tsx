@@ -27,6 +27,7 @@ import {
     DeleteEdge,
     DeleteNode,
     RuleEditorNode,
+    RuleEditorNodeParameterValue,
     RuleModelChanges,
     RuleModelChangesFactory,
     RuleModelChangeType,
@@ -74,7 +75,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     /** The current zoom factor. */
     const [, , zoom] = useStoreState((state) => state.transform);
     /** Manages the parameters of rule nodes. This is done for performance reasons. Only stores diffs to the original value. */
-    const [nodeParameters] = React.useState<Map<string, Map<string, string | undefined>>>(new Map());
+    const [nodeParameters] = React.useState<Map<string, Map<string, RuleEditorNodeParameterValue>>>(new Map());
     /** Update the internals of a node. This needs to be called in some cases in order to update the appearance of a node. */
     const updateNodeInternals = useUpdateNodeInternals();
     const resetSelectedElements = useStoreActions((a) => a.resetSelectedElements);
@@ -449,11 +450,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     });
                     break;
                 case "Change node parameter":
-                    const nodesParameterDiff: Map<string, Map<string, string | undefined>> = new Map();
+                    const nodesParameterDiff: Map<string, Map<string, RuleEditorNodeParameterValue>> = new Map();
                     groupedChange.forEach((change) => {
                         const nodeChange = change as ChangeNodeParameter;
                         const nodeParameterDiff =
-                            nodesParameterDiff.get(nodeChange.nodeId) ?? new Map<string, string | undefined>();
+                            nodesParameterDiff.get(nodeChange.nodeId) ??
+                            new Map<string, RuleEditorNodeParameterValue>();
                         nodeParameterDiff.set(nodeChange.parameterId, nodeChange.to);
                         nodesParameterDiff.set(nodeChange.nodeId, nodeParameterDiff);
                     });
@@ -541,7 +543,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     };
     // Changes the node parameters
     const changeNodeParametersInternal = (
-        nodeParametersToChange: Map<string, Map<string, string | undefined>>
+        nodeParametersToChange: Map<string, Map<string, RuleEditorNodeParameterValue>>
     ): void => {
         nodeParametersToChange.forEach((parameterChanges, nodeId) => {
             const parameterDiff = nodeParameters.get(nodeId) ?? new Map();
@@ -821,7 +823,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         return ruleUndoStack[ruleUndoStack.length - 1] === TRANSACTION_BOUNDARY;
     };
 
-    const currentParameterValue = (nodeId: string, parameterId: string): string | undefined => {
+    const currentParameterValue = (nodeId: string, parameterId: string): RuleEditorNodeParameterValue => {
         const nodeDiff = nodeParameters.get(nodeId);
         if (nodeDiff) {
             return nodeDiff.get(parameterId);
@@ -838,7 +840,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         newValue: string | undefined,
         autoStartTransaction: boolean = true
     ) => {
-        const changeValue = (from: string | undefined, to: string | undefined) => {
+        const changeValue = (from: RuleEditorNodeParameterValue, to: RuleEditorNodeParameterValue) => {
             // This does not change the actual elements, so we provide dummy elements
             addAndExecuteRuleModelChangeInternal(
                 RuleModelChangesFactory.changeNodeParameter(nodeId, parameterId, from, to),

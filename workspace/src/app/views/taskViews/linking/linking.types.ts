@@ -58,6 +58,8 @@ export interface IResourceLink {
     target: string;
 }
 
+export interface LinkSpec {}
+
 /** Parameters of a linking task. */
 export interface ILinkingTaskParameters {
     /** First input source of the linking task. */

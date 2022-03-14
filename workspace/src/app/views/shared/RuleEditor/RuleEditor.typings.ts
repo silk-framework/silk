@@ -2,6 +2,8 @@ import { NodeContentProps } from "gui-elements/src/extensions/react-flow/nodes/N
 import { PluginType, RuleOperatorType } from "@ducks/shared/typings";
 import { ValidIconName } from "gui-elements/src/components/Icon/canonicalIconNames";
 import { IPreConfiguredRuleOperator } from "./view/sidebar/RuleEditorOperatorSidebar.typings";
+import { IOperatorNodeParameterValueWithLabel } from "../../taskViews/shared/rules/rule.typings";
+import { RuleEditorNodeParameterValue } from "./model/RuleEditorModel.typings";
 
 export type PathInputOperator = "PathInputOperator";
 
@@ -70,7 +72,7 @@ export interface IParameterSpecification {
     /** The default value for the parameter. */
     defaultValue: string;
     /** Custom validation function for this parameter. */
-    customValidation?: (value: string | undefined) => IParameterValidationResult;
+    customValidation?: (value: RuleEditorNodeParameterValue) => IParameterValidationResult;
 }
 
 export interface IParameterValidationResult {
@@ -96,7 +98,7 @@ interface NodePosition {
 }
 
 export interface RuleOperatorNodeParameters {
-    [parameterKey: string]: string | undefined;
+    [parameterKey: string]: RuleEditorNodeParameterValue;
 }
 
 /** Rule editor node with required business data. For convenience. */

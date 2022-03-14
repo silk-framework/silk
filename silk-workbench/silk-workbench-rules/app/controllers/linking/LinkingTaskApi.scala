@@ -1,7 +1,9 @@
 package controllers.linking
 
 import controllers.core.UserContextActions
+import controllers.core.util.ControllerUtilsTrait
 import controllers.linking.doc.LinkingTaskApiDoc
+import controllers.linking.linkingTask.LinkingTaskApiUtils
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils
 import io.swagger.v3.oas.annotations.enums.ParameterIn
@@ -10,10 +12,11 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.config.{MetaData, PlainTask, Prefixes, TaskSpec}
+import org.silkframework.config.{MetaData, PlainTask, Prefixes}
 import org.silkframework.dataset.Dataset
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.entity.{Entity, FullLink, MinimalLink, Restriction}
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity.{Entity, EntitySchema, FullLink, MinimalLink, Restriction}
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.plugins.path.{PathMetaDataPlugin, StandardMetaDataPlugin}
@@ -28,6 +31,7 @@ import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
 import org.silkframework.util.Identifier._
 import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
+import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
@@ -36,17 +40,51 @@ import play.api.mvc.{Action, AnyContent, AnyContentAsXml, InjectedController}
 
 import java.util.logging.{Level, Logger}
 import javax.inject.Inject
+import scala.collection.mutable
 
 @Tag(name = "Linking", description = "Linking specific operations, such as evaluating rules and managing reference links.")
-class LinkingTaskApi @Inject() () extends InjectedController with UserContextActions {
+class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   private val log = Logger.getLogger(getClass.getName)
 
-  def getLinkingTask(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project: Project = WorkspaceFactory().workspace.project(projectName)
-    val task = project.task[LinkSpec](taskName)
-    val xml = XmlSerialization.toXml(task.data)
-    Ok(xml)
+  /** Fetches a linking task. */
+  def getLinkingTask(projectName: String,
+                     taskName: String,
+                     withLabels: Boolean,
+                     langPref: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val (project, task) = getProjectAndTask[LinkSpec](projectName, taskName)
+    accessMonitor.saveProjectTaskAccess(project.config.id, task.id)
+    if(withLabels) {
+      val linkSpec = task.data
+      val DPair(sourcePaths, targetPaths) = linkSpec.entityDescriptions.map(es => es.typedPaths)
+      val sourcePathLabels = pathLabels(task.project, linkSpec.source.inputId, sourcePaths, langPref)
+      val targetPathLabels = pathLabels(task.project, linkSpec.target.inputId, targetPaths, langPref)
+      Ok(LinkingTaskApiUtils.getLinkSpecWithRuleNodeParameterValueLabels(task, sourcePathLabels, targetPathLabels))
+    } else {
+      SerializationUtils.serializeCompileTime[LinkSpec](task.data, Some(project))
+    }
+  }
+
+  private def pathLabels(project: Project,
+                         dataSourceTaskId: String,
+                         typedPaths: Seq[TypedPath],
+                         langPref: String)
+                        (implicit userContext: UserContext): Map[String, String] = {
+    implicit val prefixes: Prefixes = project.config.prefixes
+    val result = new mutable.HashMap[String, String]()
+    def dataset: Option[ProjectTask[GenericDatasetSpec]] = project.taskOption[GenericDatasetSpec](dataSourceTaskId)
+    dataset.flatMap(d => datasetPathMetaDataPlugin(d)).foreach { pathMetaDataPlugin =>
+      val pathsMetaData = pathMetaDataPlugin.fetchMetaData(dataset.get.data.plugin, typedPaths, langPref)
+      pathsMetaData
+        .foreach(pmd =>
+          pmd.label.foreach { label =>
+            result.put(pmd.value, label)
+            result.put(UntypedPath.parse(pmd.value).serialize()(Prefixes.empty), label)
+          }
+        )
+
+    }
+    result.toMap
   }
 
   def pushLinkingTask(project: String, task: String, createOnly: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
@@ -505,17 +543,16 @@ class LinkingTaskApi @Inject() () extends InjectedController with UserContextAct
                                langPref: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val (project, linkingTask) = getProjectAndTask[LinkSpec](projectId, linkingTaskId)
     implicit val prefixes: Prefixes = project.config.prefixes
-    val linkingPathsCache = linkingTask.activity[LinkingPathsCache]
-    linkingPathsCache.value.get match {
+    linkingPathCacheValues(linkingTask) match {
       case Some(value) =>
         val (sourceTaskId, sourceEntitySchema) = if(target) {
           (linkingTask.data.target.inputId, value.target)
         } else {
           (linkingTask.data.source.inputId, value.source)
         }
-        // For now we only support dataset plugins
-        def dataset: Option[ProjectTask[GenericDatasetSpec]] = project.taskOption[GenericDatasetSpec](sourceTaskId)
         if(withMetaData) {
+          // For now we only support dataset plugins
+          def dataset: Option[ProjectTask[GenericDatasetSpec]] = project.taskOption[GenericDatasetSpec](sourceTaskId)
           val pathsWithMetaData = dataset.flatMap(d => datasetPathMetaDataPlugin(d)) match {
             case Some(pathMetaDataPlugin) =>
               pathMetaDataPlugin.fetchMetaData(dataset.get.data.plugin, sourceEntitySchema.typedPaths, langPref)
@@ -529,6 +566,11 @@ class LinkingTaskApi @Inject() () extends InjectedController with UserContextAct
       case None =>
         throw NotFoundException("No cached value available.")
     }
+  }
+
+  private def linkingPathCacheValues(linkingTask: ProjectTask[LinkSpec]): Option[DPair[EntitySchema]] = {
+    val linkingPathsCache = linkingTask.activity[LinkingPathsCache]
+    linkingPathsCache.value.get
   }
 
   def writeReferenceLinks(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>

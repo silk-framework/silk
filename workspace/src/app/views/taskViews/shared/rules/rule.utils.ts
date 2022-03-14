@@ -11,6 +11,10 @@ import {
 } from "../../../shared/RuleEditor/RuleEditor.typings";
 import { RuleOperatorFetchFnType } from "../../../shared/RuleEditor/RuleEditor";
 import { IPluginDetails } from "@ducks/common/typings";
+import {
+    RuleEditorNodeParameterValue,
+    ruleEditorNodeParameterValue,
+} from "../../../shared/RuleEditor/model/RuleEditorModel.typings";
 
 /** Extracts the operator node from a path input. */
 const extractOperatorNodeFromPathInput = (
@@ -86,7 +90,7 @@ const inputPathOperator = (
     pluginId: string,
     label: string,
     description?: string,
-    customValidation?: (value: string) => IParameterValidationResult
+    customValidation?: (value: RuleEditorNodeParameterValue) => IParameterValidationResult
 ): IRuleOperator => {
     return {
         pluginType: "PathInputOperator",
@@ -259,7 +263,7 @@ const convertRuleOperatorNodeToValueInput = (
     } else if (ruleOperatorNode.pluginType === "PathInputOperator") {
         const pathInput: IPathInput = {
             id: ruleOperatorNode.nodeId,
-            path: ruleOperatorNode.parameters["path"] ?? "",
+            path: ruleEditorNodeParameterValue(ruleOperatorNode.parameters["path"]) ?? "",
             type: "pathInput",
         };
         return pathInput;

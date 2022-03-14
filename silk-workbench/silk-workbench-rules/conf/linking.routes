@@ -36,7 +36,7 @@ GET           /:project/:task/activeLearn/resetDialog                           
 POST          /:project/:task/activeLearn/reset                                             controllers.linking.Learning.resetActiveLearning(project: String, task: String)
 
 # API
-GET           /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.getLinkingTask(project: String, task: String)
+GET           /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.getLinkingTask(project: String, task: String, withLabels: Boolean ?= false, langPref: String ?= "en")
 POST          /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.pushLinkingTask(project: String, task: String, createOnly: Boolean = true)
 PUT           /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.pushLinkingTask(project: String, task: String, createOnly: Boolean = false)
 DELETE        /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.deleteLinkingTask(project: String, task: String)

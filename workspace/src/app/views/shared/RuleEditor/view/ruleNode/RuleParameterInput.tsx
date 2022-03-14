@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
+import { ruleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
 
 interface RuleParameterInputProps {
     ruleParameter: IRuleNodeParameter;
@@ -29,7 +30,7 @@ export const RuleParameterInput = ({ ruleParameter, nodeId, hasValidationError }
     const inputAttributes = {
         id: uniqueId,
         name: uniqueId,
-        defaultValue: ruleParameter.currentValue() ?? ruleParameter.initialValue,
+        defaultValue: ruleEditorNodeParameterValue(ruleParameter.currentValue() ?? ruleParameter.initialValue),
         onChange,
         intent: hasValidationError ? Intent.DANGER : undefined,
     };

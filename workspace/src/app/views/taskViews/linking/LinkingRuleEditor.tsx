@@ -1,5 +1,4 @@
 import React from "react";
-import { requestTaskData } from "@ducks/shared/requests";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { ILinkingTaskParameters } from "./linking.types";
 import { useTranslation } from "react-i18next";
@@ -7,15 +6,19 @@ import { IViewActions } from "../../plugins/PluginRegistry";
 import RuleEditor from "../../shared/RuleEditor/RuleEditor";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
-import { IProjectTask } from "@ducks/shared/typings";
 import { requestUpdateProjectTask } from "@ducks/workspace/requests";
 import utils from "./LinkingRuleEditor.utils";
 import ruleUtils from "../shared/rules/rule.utils";
 import { IRuleOperatorNode } from "../../shared/RuleEditor/RuleEditor.typings";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import linkingRuleRequests from "./LinkingRuleEditor.requests";
+import linkingRuleRequests, { fetchLinkSpec } from "./LinkingRuleEditor.requests";
 import { PathWithMetaData } from "../shared/rules/rule.typings";
+import { TaskPlugin } from "@ducks/shared/typings";
+import {
+    ruleEditorNodeParameterValue,
+    RuleEditorNodeParameterValue,
+} from "../../shared/RuleEditor/model/RuleEditorModel.typings";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -66,8 +69,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
     /** Fetches the parameters of the linking task */
     const fetchTaskData = async (projectId: string, taskId: string) => {
         try {
-            const taskData = (await requestTaskData<ILinkingTaskParameters>(projectId, taskId)).data;
-            return taskData as IProjectTask<ILinkingTaskParameters>;
+            const taskData = (await fetchLinkSpec(projectId, taskId, true, prefLang)).data;
+            return taskData;
         } catch (err) {
             registerError(
                 "LinkingRuleEditor_fetchLinkingTask",
@@ -151,11 +154,12 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
             "sourcePathInput",
             "Source path",
             "The value path of the source input of the linking task.",
-            // FIXME: At the moment we use the validation to show a path label if it exists as message
-            (value: string) => {
+            // FIXME: At the moment we use the validation to show a path label if it exists as message. When we have full label support in auto-completion this is probably not needed anymore.
+            (value: RuleEditorNodeParameterValue) => {
+                const parameterValue = ruleEditorNodeParameterValue(value);
                 return {
                     valid: true,
-                    message: sourcePathLabels.get(value),
+                    message: parameterValue ? sourcePathLabels.get(parameterValue) : undefined,
                 };
             }
         );
@@ -175,7 +179,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
         );
 
     return (
-        <RuleEditor<IProjectTask<ILinkingTaskParameters>, IPluginDetails>
+        <RuleEditor<TaskPlugin<ILinkingTaskParameters>, IPluginDetails>
             projectId={projectId}
             taskId={linkingTaskId}
             fetchRuleData={fetchTaskData}

@@ -59,14 +59,17 @@ export interface IProjectTask<PLUGIN_PARAMETERS = IArbitraryPluginParameters> {
     // item ID
     id: string;
     // The actual content
-    data: {
-        // The plugin ID
-        type: string;
-        // current parameter values
-        parameters: PLUGIN_PARAMETERS;
-        // Optional task type, e.g. Dataset, Transform etc.
-        taskType?: TaskType;
-    };
+    data: TaskPlugin<PLUGIN_PARAMETERS>;
+}
+
+/** Task plugin. */
+export interface TaskPlugin<PLUGIN_PARAMETERS = IArbitraryPluginParameters> {
+    // The plugin ID
+    type: string;
+    // current parameter values
+    parameters: PLUGIN_PARAMETERS;
+    // Optional task type, e.g. Dataset, Transform etc.
+    taskType?: TaskType;
 }
 
 export interface ITaskMetadataResponse {

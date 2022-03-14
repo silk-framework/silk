@@ -1,6 +1,7 @@
 import { Highlighter, Spacing, Tag } from "gui-elements";
 import React from "react";
 import { IParameterSpecification, IParameterValidationResult } from "../../RuleEditor.typings";
+import { ruleEditorNodeParameterValue, RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
 
 /** Adds highlighting to the text if query is non-empty. */
 const addHighlighting = (text: string, query?: string): string | JSX.Element => {
@@ -32,10 +33,11 @@ const invalidValueResult = (message: string): IParameterValidationResult => ({
 });
 /** Validates a value of a specific parameter type. */
 const validateValue = (
-    value: string | undefined,
+    parameterValue: RuleEditorNodeParameterValue,
     parameterSpec: IParameterSpecification,
     translate: (key: string, additionalParameters?: object) => string
 ): IParameterValidationResult => {
+    const value = ruleEditorNodeParameterValue(parameterValue);
     if (value == null) {
         if (parameterSpec.required) {
             return invalidValueResult(translate("form.validations.isRequired", { field: parameterSpec.label }));

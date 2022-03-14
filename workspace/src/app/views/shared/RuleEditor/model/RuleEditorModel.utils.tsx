@@ -10,7 +10,7 @@ import {
     RuleOperatorNodeParameters,
 } from "../RuleEditor.typings";
 import { RuleNodeMenu } from "../view/ruleNode/RuleNodeMenu";
-import { RuleEditorNode } from "./RuleEditorModel.typings";
+import { RuleEditorNode, RuleEditorNodeParameterValue } from "./RuleEditorModel.typings";
 import { Connection, Elements, XYPosition } from "react-flow-renderer/dist/types";
 import ELK, { ElkNode } from "elkjs";
 import { NodeContent } from "../view/ruleNode/NodeContent";
@@ -52,7 +52,7 @@ export interface IOperatorCreateContext {
     // react-flow instance
     reactFlowInstance: OnLoadParams;
     // Fetches the current value of a node parameter
-    currentValue: (nodeId: string, parameterId: string) => string | undefined;
+    currentValue: (nodeId: string, parameterId: string) => RuleEditorNodeParameterValue;
     // Initialize node parameters
     initParameters: (nodeId: string, parameters: RuleOperatorNodeParameters) => any;
     // Returns true if this is a valid connection

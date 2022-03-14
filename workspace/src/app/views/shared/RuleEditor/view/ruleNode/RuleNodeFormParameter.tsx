@@ -5,6 +5,8 @@ import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
 import ruleNodeUtils from "./ruleNode.utils";
 import { IParameterValidationResult } from "../../RuleEditor.typings";
 import { useTranslation } from "react-i18next";
+import { RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
+import { IOperatorNodeParameterValueWithLabel } from "../../../../taskViews/shared/rules/rule.typings";
 
 interface RuleNodeFormParameterProps {
     nodeId: string;
@@ -22,13 +24,18 @@ export const RuleNodeFormParameter = ({ nodeId, parameter }: RuleNodeFormParamet
     }, []);
 
     // Validate an updated value
-    const validate = (value: string | undefined) => {
+    const validate = (value: RuleEditorNodeParameterValue) => {
         const timeout = window.setTimeout(() => {
+            let validationResult: IParameterValidationResult = { valid: true };
             if (parameter.parameterSpecification.customValidation) {
-                setValidationResult(parameter.parameterSpecification.customValidation(value));
+                validationResult = parameter.parameterSpecification.customValidation(value);
             } else {
-                setValidationResult(ruleNodeUtils.validateValue(value, parameter.parameterSpecification, t));
+                validationResult = ruleNodeUtils.validateValue(value, parameter.parameterSpecification, t);
             }
+            if ((value as IOperatorNodeParameterValueWithLabel).label && validationResult.valid) {
+                validationResult.message = (value as IOperatorNodeParameterValueWithLabel).label;
+            }
+            setValidationResult(validationResult);
         }, 200);
         validationState.timeoutId != null && window.clearTimeout(validationState.timeoutId);
         validationState.timeoutId = timeout;

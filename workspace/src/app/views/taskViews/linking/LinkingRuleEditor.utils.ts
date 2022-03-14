@@ -16,9 +16,10 @@ import {
 } from "./linking.types";
 import { RuleOperatorFetchFnType } from "../../shared/RuleEditor/RuleEditor";
 import ruleUtils from "../shared/rules/rule.utils";
-import { IProjectTask, RuleOperatorType } from "@ducks/shared/typings";
+import { RuleOperatorType, TaskPlugin } from "@ducks/shared/typings";
 import linkingRuleRequests from "./LinkingRuleEditor.requests";
 import { IPreConfiguredRuleOperator } from "../../shared/RuleEditor/view/sidebar/RuleEditorOperatorSidebar.typings";
+import { ruleEditorNodeParameterValue } from "../../shared/RuleEditor/model/RuleEditorModel.typings";
 
 /**
  * Convert to editor model:
@@ -93,12 +94,13 @@ const extractSimilarityOperatorNode = (
 
 /** Converts the linking task rule to the internal representation. */
 const convertToRuleOperatorNodes = (
-    linkingTask: IProjectTask<ILinkingTaskParameters>,
+    linkSpec: TaskPlugin<ILinkingTaskParameters>,
     ruleOperator: RuleOperatorFetchFnType
 ): IRuleOperatorNode[] => {
+    const rule = linkSpec.parameters.rule;
     const operatorNodes: IRuleOperatorNode[] = [];
-    extractSimilarityOperatorNode(linkingTask.data.parameters.rule.operator, operatorNodes, ruleOperator);
-    const nodePositions = linkingTask.data.parameters.rule.layout.nodePositions;
+    extractSimilarityOperatorNode(rule.operator, operatorNodes, ruleOperator);
+    const nodePositions = rule.layout.nodePositions;
     operatorNodes.forEach((node) => {
         const [x, y] = nodePositions[node.nodeId] ?? [null, null];
         node.position = x !== null ? { x, y } : undefined;
@@ -136,8 +138,8 @@ const convertRuleOperatorNodeToSimilarityOperator = (
                     ])
                 ),
                 type: "Comparison",
-                threshold: parseFloat(ruleOperatorNode.parameters["threshold"]!!),
-                weight: parseInt(ruleOperatorNode.parameters["weight"]!!),
+                threshold: parseFloat(ruleEditorNodeParameterValue(ruleOperatorNode.parameters["threshold"])!!),
+                weight: parseInt(ruleEditorNodeParameterValue(ruleOperatorNode.parameters["weight"])!!),
             };
             return comparison;
         } else {
@@ -160,7 +162,7 @@ const convertRuleOperatorNodeToSimilarityOperator = (
                     ])
                 ),
                 type: "Aggregation",
-                weight: parseInt(ruleOperatorNode.parameters["weight"]!!),
+                weight: parseInt(ruleEditorNodeParameterValue(ruleOperatorNode.parameters["weight"])!!),
             };
             return aggregation;
         }

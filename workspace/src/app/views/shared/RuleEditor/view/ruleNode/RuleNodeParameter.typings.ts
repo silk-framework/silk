@@ -1,4 +1,5 @@
 import { IParameterSpecification } from "../../RuleEditor.typings";
+import { RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
 
 export interface IRuleNodeParameter {
     /** The ID of the parameter. */
@@ -6,9 +7,9 @@ export interface IRuleNodeParameter {
     /** The update function for the value. */
     update: (value: string) => void;
     /** Fetches the current value for this parameter. */
-    currentValue: () => string | undefined;
+    currentValue: () => RuleEditorNodeParameterValue;
     /** The initial value of the parameter. */
-    initialValue?: string;
+    initialValue?: RuleEditorNodeParameterValue;
     /** The parameter specification. */
     parameterSpecification: IParameterSpecification;
 }

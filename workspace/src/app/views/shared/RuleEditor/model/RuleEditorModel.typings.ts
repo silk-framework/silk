@@ -1,6 +1,7 @@
 import { Edge, Node } from "react-flow-renderer";
 import { IRuleNodeData, NodeContentPropsWithBusinessData } from "../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
+import { IOperatorNodeParameterValueWithLabel } from "../../../taskViews/shared/rules/rule.typings";
 
 export interface RuleModelChanges {
     operations: RuleModelChangeType[];
@@ -9,6 +10,11 @@ export interface RuleModelChanges {
 export interface RuleEditorNode extends Node<NodeContentPropsWithBusinessData<IRuleNodeData>> {
     data: NodeContentPropsWithBusinessData<IRuleNodeData>;
 }
+
+export type RuleEditorNodeParameterValue = IOperatorNodeParameterValueWithLabel | string | undefined;
+export const ruleEditorNodeParameterValue = (value: RuleEditorNodeParameterValue): string | undefined => {
+    return typeof value === "string" ? value : value?.value;
+};
 
 export type RuleModelChangeType =
     | AddNode
@@ -50,8 +56,8 @@ export interface ChangeNodeParameter {
     type: "Change node parameter";
     nodeId: string;
     parameterId: string;
-    from: string | undefined;
-    to: string | undefined;
+    from: RuleEditorNodeParameterValue;
+    to: RuleEditorNodeParameterValue;
 }
 
 export interface ChangeNumberOfInputHandles {
@@ -107,8 +113,8 @@ export const RuleModelChangesFactory = {
     changeNodeParameter: (
         nodeId: string,
         parameterId: string,
-        from: string | undefined,
-        to: string | undefined
+        from: RuleEditorNodeParameterValue,
+        to: RuleEditorNodeParameterValue
     ): RuleModelChanges => {
         return toRuleModelChanges({ type: "Change node parameter", nodeId, parameterId, from, to });
     },
