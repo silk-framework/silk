@@ -1,4 +1,6 @@
-export function getItemLinkIcons(label: string): string | undefined {
+import { ValidIconName } from "gui-elements/src/components/Icon/canonicalIconNames";
+
+export function getItemLinkIcons(label: string): ValidIconName | undefined {
     switch (label) {
         case "Mapping editor":
             return "application-mapping";
