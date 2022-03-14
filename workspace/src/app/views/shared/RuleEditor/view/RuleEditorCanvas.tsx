@@ -210,7 +210,6 @@ export const RuleEditorCanvas = () => {
         event.preventDefault();
         event.stopPropagation();
         connectState.connectOperationActive = false;
-        resetEdgeConnectState();
         if (edgeConnectState.overNode) {
             disableNodeInputValidation(modelUtils.asNode(edgeConnectState.overNode)!!);
         }
@@ -222,6 +221,7 @@ export const RuleEditorCanvas = () => {
                 undefined
             );
         }
+        resetEdgeConnectState();
     }, []);
 
     // Iterate over the input handles of a node
@@ -324,13 +324,9 @@ export const RuleEditorCanvas = () => {
 
     const onNodeMouseEnter = React.useCallback((event: ReactMouseEvent, node: Node) => {
         // Track if we are over a node during a connect operation in order to connect to the first empty port of a node
-        if (edgeConnectState.edgeConnectOperationActive || connectState.connectOperationActive) {
-            if (edgeConnectState.edgeConnectOperationActive) {
-                enableNodeInputValidation(modelUtils.asNode(node)!!);
-            }
-            if (connectState.connectOperationActive) {
-                edgeConnectState.overNode = node;
-            }
+        if (edgeConnectState.edgeConnectOperationActive) {
+            enableNodeInputValidation(modelUtils.asNode(node)!!);
+            edgeConnectState.overNode = node;
         }
     }, []);
 
