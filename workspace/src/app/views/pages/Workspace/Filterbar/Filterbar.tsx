@@ -48,7 +48,7 @@ export function Filterbar({ extraItemTypeModifiers = [] }: IFilterBarProps) {
                             />
                         </li>
 
-                        {[...typeModifier.options, ...extraItemTypeModifiers].map((opt) => (
+                        {[...extraItemTypeModifiers, ...typeModifier.options].map((opt) => (
                             <li key={opt.id}>
                                 <RadioButton
                                     data-test-id={"item-type-radio-button-" + opt.id}

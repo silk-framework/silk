@@ -66,10 +66,6 @@ const Activities = () => {
         dispatch(workspaceOp.fetchListAsync(utils.searchActivities, 25));
     }, [qs]);
 
-    /** need websocket connection to get updates on activities */
-    /** handle filtering using facets */
-    /** handle pagination */
-
     /** handle sorting */
     const handleSort = (sortBy: string) => {
         dispatch(workspaceOp.applySorterOp(sortBy));
