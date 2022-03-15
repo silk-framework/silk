@@ -35,7 +35,7 @@ const ActivityInfoWidget = () => {
                         href={`${SERVE_PATH}/${projectPath}`}
                         data-test-id={"open-project-activities-btn"}
                         name="item-viewdetails"
-                        text={t("widget.ActivityInfoWidget.edit", "View project activities")}
+                        text={t("widget.ActivityInfoWidget.view", "View project activities")}
                     />
                     <Spacing vertical size="small" />
                 </OverviewItemActions>
