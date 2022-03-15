@@ -25,10 +25,13 @@ import { commonOp, commonSel } from "@ducks/common";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { routerSel } from "@ducks/router";
 import ActivityList from "./ActivityList";
+import { useLocation } from "react-router";
 
 const Activities = () => {
     const dispatch = useDispatch();
     const { registerError } = useErrorHandler();
+    const location = useLocation();
+    const locationParams = new URLSearchParams(location.search?.substring(1));
     const error = useSelector(workspaceSel.errorSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const qs = useSelector(routerSel.routerSearchSelector);
@@ -62,6 +65,7 @@ const Activities = () => {
 
         // Setup the filters from query string
         dispatch(workspaceOp.setupFiltersFromQs(qs));
+        dispatch(commonOp.setProjectId((projectId || locationParams.get("project")) ?? ""));
         // Fetch the list of projects
         dispatch(workspaceOp.fetchListAsync(utils.searchActivities, 25));
     }, [qs]);

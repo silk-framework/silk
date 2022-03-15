@@ -386,6 +386,10 @@
         }
     },
     "widget": {
+        "ActivityInfoWidget": {
+            "title": "Activities",
+            "view": "View project activities"
+        },
         "ConfigWidget": {
             "loading": "Loading configuration list.",
             "loadingPrefix": "Loading prefix configuration.",
