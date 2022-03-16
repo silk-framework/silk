@@ -1,6 +1,6 @@
 import { Elements, OnLoadParams } from "react-flow-renderer";
 import React from "react";
-import { IRuleOperator, RuleOperatorNodeParameters } from "../RuleEditor.typings";
+import { IRuleOperator, IRuleOperatorNode, RuleOperatorNodeParameters } from "../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 
 /**
@@ -35,6 +35,8 @@ export interface RuleEditorModelContextProps {
     canRedo: boolean;
     /** Returns true if this is a valid edge, false otherwise. */
     isValidEdge: (sourceNodeId: string, targetNodeId: string, targetHandleId: string) => boolean;
+    /** Get the current rule as IRuleOperatorNode objects. */
+    ruleOperatorNodes: () => IRuleOperatorNode[];
 }
 
 export interface IModelActions {
@@ -132,4 +134,5 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     redo: () => false,
     canRedo: false,
     isValidEdge: () => true,
+    ruleOperatorNodes: () => [],
 });

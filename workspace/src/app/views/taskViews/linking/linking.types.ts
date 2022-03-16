@@ -1,5 +1,5 @@
 import { IInputSource } from "../shared/task.typings";
-import { IOperatorNode, IOperatorNodeParameters, IValueInput, RuleLayout } from "../shared/rules/rule.typings";
+import { IEntity, IOperatorNode, IOperatorNodeParameters, IValueInput, RuleLayout } from "../shared/rules/rule.typings";
 
 /** A linking rule. */
 export interface ILinkingRule {
@@ -80,4 +80,58 @@ export interface ILinkingTaskParameters {
     linkLimit: number;
     /** Execution timeout of the matching phase in seconds. */
     matchingExecutionTimeout: number;
+}
+
+/** Link evaluation */
+
+/** The result when evaluating a linkage rule against the reference links. */
+export interface IEvaluatedReferenceLinks {
+    negative: IEntityLink[];
+    positive: IEntityLink[];
+}
+
+export interface IEntityLink {
+    /** The source entity URI. */
+    source: string;
+    /** The target entity URI. */
+    target: string;
+    /** The confidence regarding to the linkage rule. Range: -1.0 to 1.0 */
+    confidence?: number;
+    ruleValues?: IEvaluationNode;
+    entities?: {
+        source: IEntity;
+        target: IEntity;
+    };
+}
+
+/** The evaluation scores and values in the aggregator/comparator tree. */
+export interface IEvaluationNode {
+    /** The ID of the operator. */
+    operatorId: string;
+    /** Optional score. This is only set on aggregation or comparison nodes, but there it is still optional. */
+    score?: number;
+}
+
+/** Evaluation result of an aggregation operator. */
+export interface AggregationConfidence extends IEvaluationNode {
+    /** The (score producing) children of the aggregation operator. */
+    children: IEvaluationNode[];
+}
+
+/** Evaluation result of a comparison operator. */
+export interface ComparisonConfidence extends IEvaluationNode {
+    /** Source input value tree. */
+    sourceValue: IEvaluationValue;
+    /** Target input value tree. */
+    targetValue: IEvaluationValue;
+}
+
+/** Values produced by a specific value generating operator, i.e. path input or transform operator. */
+export interface IEvaluationValue extends IEvaluationNode {
+    /** The generated values of this operator. */
+    values: string[];
+    /** Optional validation error. */
+    error?: string;
+    /** In case of transform operators, they can have value inputs. */
+    children?: IEvaluationValue[];
 }

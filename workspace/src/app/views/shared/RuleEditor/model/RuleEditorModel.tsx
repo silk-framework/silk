@@ -35,6 +35,7 @@ import {
 import { Connection, XYPosition } from "react-flow-renderer/dist/types";
 import { NodeContent } from "../view/ruleNode/NodeContent";
 import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basicUtils";
+import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
@@ -82,6 +83,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const setSelectedElements = useStoreActions((a) => a.setSelectedElements);
     /** Map from node ID to (original) rule operator node. Used for validating connections. */
     const [nodeMap] = React.useState<Map<string, IRuleOperatorNode>>(new Map());
+    const ruleEvaluationContext: RuleEditorEvaluationContextProps =
+        React.useContext<RuleEditorEvaluationContextProps>(RuleEditorEvaluationContext);
 
     /** Convert initial operator nodes to react-flow model. */
     React.useEffect(() => {
@@ -957,6 +960,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         currentValue: currentParameterValue,
         initParameters: initNodeParametersInternal,
         isValidConnection,
+        ruleEvaluationContext,
     });
 
     /** Auto-layout the rule nodes.
@@ -970,8 +974,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
-    /** Save the current rule. */
-    const saveRule = () => {
+    /** Returns the current rule as IRuleOperatorNode objects. */
+    const ruleOperatorNodes = (): IRuleOperatorNode[] => {
         const nodes: RuleEditorNode[] = [];
         const nodeInputEdges: Map<string, Edge[]> = new Map();
         const inputEdgesByNodeId = (nodeId: string): Edge[] => {
@@ -991,7 +995,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 inputEdgesByNodeId(edge.target).push(edge);
             }
         });
-        const ruleOperatorNodes = nodes.map((node) => {
+        return nodes.map((node) => {
             const inputHandleIds = utils.inputHandles(node).map((h) => h.id!!);
             const inputEdges = nodeInputEdges.get(node.id) ?? [];
             const inputEdgeMap = new Map(inputEdges.map((e) => [e.targetHandle, e.source]));
@@ -1028,7 +1032,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             };
             return ruleOperatorNode;
         });
-        return ruleEditorContext.saveRule(ruleOperatorNodes);
+    };
+
+    /** Save the current rule. */
+    const saveRule = () => {
+        return ruleEditorContext.saveRule(ruleOperatorNodes());
     };
 
     const initModel = async () => {
@@ -1109,6 +1117,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 },
                 unsavedChanges: canUndo,
                 isValidEdge,
+                ruleOperatorNodes,
             }}
         >
             {children}

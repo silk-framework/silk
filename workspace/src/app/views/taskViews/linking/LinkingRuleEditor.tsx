@@ -19,6 +19,7 @@ import {
     ruleEditorNodeParameterValue,
     RuleEditorNodeParameterValue,
 } from "../../shared/RuleEditor/model/RuleEditorModel.typings";
+import { LinkingRuleEvaluation } from "./evaluation/LinkingRuleEvaluation";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -28,6 +29,8 @@ export interface LinkingRuleEditorProps {
     /** Generic actions and callbacks on views. */
     viewActions?: IViewActions;
 }
+
+const NUMBER_OF_LINKS_TO_SHOW = 5;
 
 /** Editor for creating and changing linking rule operator trees. */
 export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: LinkingRuleEditorProps) => {
@@ -96,23 +99,13 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
     /** Save the rule. */
     const saveLinkageRule = async (ruleOperatorNodes: IRuleOperatorNode[]) => {
         try {
-            const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
-            if (
-                rootNodes.length === 1 &&
-                rootNodes[0].pluginType !== "ComparisonOperator" &&
-                rootNodes[0].pluginType !== "AggregationOperator"
-            ) {
-                throw Error("Rule tree root must either be an aggregation or comparison!");
-            }
+            const ruleTree = utils.constructLinkageRuleTree(ruleOperatorNodes);
 
             await requestUpdateProjectTask(projectId, linkingTaskId, {
                 data: {
                     parameters: {
                         rule: {
-                            operator:
-                                rootNodes.length === 1
-                                    ? utils.convertRuleOperatorNodeToSimilarityOperator(rootNodes[0], operatorNodeMap)
-                                    : undefined,
+                            operator: ruleTree,
                             layout: ruleUtils.ruleLayout(ruleOperatorNodes),
                         },
                     },
@@ -179,50 +172,56 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
         );
 
     return (
-        <RuleEditor<TaskPlugin<ILinkingTaskParameters>, IPluginDetails>
+        <LinkingRuleEvaluation
             projectId={projectId}
-            taskId={linkingTaskId}
-            fetchRuleData={fetchTaskData}
-            fetchRuleOperators={fetchLinkingRuleOperatorDetails}
-            saveRule={saveLinkageRule}
-            convertRuleOperator={ruleUtils.convertRuleOperator}
-            viewActions={viewActions}
-            convertToRuleOperatorNodes={utils.convertToRuleOperatorNodes}
-            additionalRuleOperators={[sourcePathInput(), targetPathInput()]}
-            addAdditionParameterSpecifications={(pluginDetails) => {
-                switch (pluginDetails.pluginType) {
-                    case "ComparisonOperator":
-                        return [
-                            ["threshold", thresholdParameterSpec],
-                            ["weight", weightParameterSpec],
-                        ];
-                    case "AggregationOperator":
-                        return [["weight", weightParameterSpec]];
-                    default:
-                        return [];
-                }
-            }}
-            validateConnection={ruleUtils.validateConnection}
-            tabs={[
-                ruleUtils.sidebarTabs.all,
-                utils.inputPathTab(projectId, linkingTaskId, sourcePathInput(), "source", (ex) =>
-                    registerError(
-                        "linking-rule-editor-fetch-source-paths",
-                        t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
-                        ex
-                    )
-                ),
-                utils.inputPathTab(projectId, linkingTaskId, targetPathInput(), "target", (ex) =>
-                    registerError(
-                        "linking-rule-editor-fetch-source-paths",
-                        t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
-                        ex
-                    )
-                ),
-                ruleUtils.sidebarTabs.comparison,
-                ruleUtils.sidebarTabs.transform,
-                ruleUtils.sidebarTabs.aggregation,
-            ]}
-        />
+            linkingTaskId={linkingTaskId}
+            numberOfLinkToShow={NUMBER_OF_LINKS_TO_SHOW}
+        >
+            <RuleEditor<TaskPlugin<ILinkingTaskParameters>, IPluginDetails>
+                projectId={projectId}
+                taskId={linkingTaskId}
+                fetchRuleData={fetchTaskData}
+                fetchRuleOperators={fetchLinkingRuleOperatorDetails}
+                saveRule={saveLinkageRule}
+                convertRuleOperator={ruleUtils.convertRuleOperator}
+                viewActions={viewActions}
+                convertToRuleOperatorNodes={utils.convertToRuleOperatorNodes}
+                additionalRuleOperators={[sourcePathInput(), targetPathInput()]}
+                addAdditionParameterSpecifications={(pluginDetails) => {
+                    switch (pluginDetails.pluginType) {
+                        case "ComparisonOperator":
+                            return [
+                                ["threshold", thresholdParameterSpec],
+                                ["weight", weightParameterSpec],
+                            ];
+                        case "AggregationOperator":
+                            return [["weight", weightParameterSpec]];
+                        default:
+                            return [];
+                    }
+                }}
+                validateConnection={ruleUtils.validateConnection}
+                tabs={[
+                    ruleUtils.sidebarTabs.all,
+                    utils.inputPathTab(projectId, linkingTaskId, sourcePathInput(), "source", (ex) =>
+                        registerError(
+                            "linking-rule-editor-fetch-source-paths",
+                            t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
+                            ex
+                        )
+                    ),
+                    utils.inputPathTab(projectId, linkingTaskId, targetPathInput(), "target", (ex) =>
+                        registerError(
+                            "linking-rule-editor-fetch-source-paths",
+                            t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
+                            ex
+                        )
+                    ),
+                    ruleUtils.sidebarTabs.comparison,
+                    ruleUtils.sidebarTabs.transform,
+                    ruleUtils.sidebarTabs.aggregation,
+                ]}
+            />
+        </LinkingRuleEvaluation>
     );
 };

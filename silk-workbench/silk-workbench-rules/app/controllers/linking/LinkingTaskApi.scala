@@ -20,7 +20,7 @@ import org.silkframework.entity.{Entity, EntitySchema, FullLink, MinimalLink, Re
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.plugins.path.{PathMetaDataPlugin, StandardMetaDataPlugin}
-import org.silkframework.rule.evaluation.ReferenceLinks
+import org.silkframework.rule.evaluation.{ReferenceEntities, ReferenceLinks}
 import org.silkframework.rule.execution.{GenerateLinks => GenerateLinksActivity}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, UserContext}
@@ -614,6 +614,31 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     getProjectAndTask[LinkSpec](projectName, taskName)
   }
 
+  private def updateAndGetReferenceEntityCacheValue(task: ProjectTask[LinkSpec],
+                                                    refreshCache: Boolean)
+                                                   (implicit userContext: UserContext): ReferenceEntities = {
+    // Make sure that the reference entities cache is up-to-date
+    val referenceEntitiesCache = task.activity[ReferenceEntitiesCache].control
+    if(referenceEntitiesCache.status().isRunning) {
+      referenceEntitiesCache.waitUntilFinished()
+    }
+    if(refreshCache) {
+      referenceEntitiesCache.startBlocking()
+    }
+    referenceEntitiesCache.value()
+  }
+
+  private def serializeLinks(entities: Traversable[DPair[Entity]],
+                             linkageRule: LinkageRule): JsValue = {
+    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+    JsArray(
+      for(entities <- entities.toSeq) yield {
+        val link = new FullLink(entities.source.uri, entities.target.uri, linkageRule(entities), entities)
+        new LinkJsonFormat(Some(linkageRule)).write(link)
+      }
+    )
+  }
+
   @Operation(
     summary = "Evaluate on reference links",
     description = "Evaluates the current linking rule on all reference links.",
@@ -653,32 +678,68 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val rule = task.data.rule
-    implicit val writeContext = WriteContext[JsValue]()
 
-    // Make sure that the reference entities cache is up-to-date
-    val referenceEntitiesCache = task.activity[ReferenceEntitiesCache].control
-    if(referenceEntitiesCache.status().isRunning) {
-      referenceEntitiesCache.waitUntilFinished()
-    }
-    referenceEntitiesCache.startBlocking()
-    val referenceEntities = referenceEntitiesCache.value()
-
-    def serializeLinks(entities: Traversable[DPair[Entity]]): JsValue = {
-      JsArray(
-        for(entities <- entities.toSeq) yield {
-          val link = new FullLink(entities.source.uri, entities.target.uri, rule(entities), entities)
-          new LinkJsonFormat(Some(rule)).write(link)
-        }
-      )
-    }
+    val referenceEntities = updateAndGetReferenceEntityCacheValue(task, refreshCache = true)
 
     val result =
       Json.obj(
-        "positive" -> serializeLinks(referenceEntities.positiveEntities),
-        "negative" -> serializeLinks(referenceEntities.negativeEntities)
+        "positive" -> serializeLinks(referenceEntities.positiveEntities, rule),
+        "negative" -> serializeLinks(referenceEntities.negativeEntities, rule)
       )
 
     Ok(result)
+  }
+
+  @Operation(
+    summary = "Evaluate linkage rule against reference links",
+    description = "Evaluates a linkage rule send with the requests on all reference links of the linking task.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(LinkingTaskApiDoc.referenceLinksEvaluatedExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or task has not been found."
+      )
+    )
+  )
+  def referenceLinksEvaluateLinkageRule(@Parameter(name = "project", in = ParameterIn.PATH, description = "The project identifier", required = true,
+                                          schema = new Schema(implementation = classOf[String])
+                                        )
+                                        projectName: String,
+                                        @Parameter(name = "linkingTaskId", in = ParameterIn.PATH, description = "The task identifier", required = true,
+                                          schema = new Schema(implementation = classOf[String])
+                                        )
+                                        linkingTaskId: String,
+                                        @Parameter(name = "linkLimit", in = ParameterIn.QUERY, description = "The max. number of unique links that should be returned for each link categorty, i.e. psitive, negative.", required = false,
+                                          schema = new Schema(implementation = classOf[Int], defaultValue = "1000")
+                                        )
+                                        linkLimit: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    implicit val (project, task) = getProjectAndTask[LinkSpec](projectName, linkingTaskId)
+    implicit val readContext: ReadContext = ReadContext(prefixes = project.config.prefixes, resources = project.resources)
+    implicit val prefixes: Prefixes = project.config.prefixes
+
+    SerializationUtils.deserializeCompileTime[LinkageRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { linkageRule =>
+      val referenceEntities = updateAndGetReferenceEntityCacheValue(task, refreshCache = false)
+      def serialize(links: Traversable[DPair[Entity]]): JsValue = {
+        serializeLinks(links.take(linkLimit), linkageRule)
+      }
+
+      val result =
+        Json.obj(
+          "positive" -> serialize(referenceEntities.positiveEntities),
+          "negative" -> serialize(referenceEntities.negativeEntities)
+        )
+
+      Ok(result)
+    }
   }
 
   @Operation(

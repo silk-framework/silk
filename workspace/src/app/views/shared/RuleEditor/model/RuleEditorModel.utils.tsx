@@ -14,6 +14,7 @@ import { RuleEditorNode, RuleEditorNodeParameterValue } from "./RuleEditorModel.
 import { Connection, Elements, XYPosition } from "react-flow-renderer/dist/types";
 import ELK, { ElkNode } from "elkjs";
 import { NodeContent } from "../view/ruleNode/NodeContent";
+import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 
 /** Constants */
 
@@ -57,6 +58,8 @@ export interface IOperatorCreateContext {
     initParameters: (nodeId: string, parameters: RuleOperatorNodeParameters) => any;
     // Returns true if this is a valid connection
     isValidConnection: (connection: Connection) => boolean;
+    // Rule evaluation context
+    ruleEvaluationContext: RuleEditorEvaluationContextProps;
 }
 
 /** Creates a new react-flow rule operator node. */
@@ -107,6 +110,9 @@ function createOperatorNode(
                 nodeParameters={node.parameters}
             />
         ),
+        contentExtension: operatorContext.ruleEvaluationContext.supportsEvaluation
+            ? operatorContext.ruleEvaluationContext.createRuleEditorEvaluationComponent(node.nodeId)
+            : undefined,
     };
 
     return {

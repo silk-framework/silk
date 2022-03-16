@@ -1,13 +1,13 @@
 import { IPathInput, ITransformOperator, IValueInput, RuleLayout } from "./rule.typings";
 import {
     IParameterSpecification,
+    IParameterValidationResult,
     IPortSpecification,
     IRuleOperator,
     IRuleOperatorNode,
-    IRuleSidebarPreConfiguredOperatorsTabConfig,
     IRuleSideBarFilterTabConfig,
+    IRuleSidebarPreConfiguredOperatorsTabConfig,
     RuleParameterType,
-    IParameterValidationResult,
 } from "../../../shared/RuleEditor/RuleEditor.typings";
 import { RuleOperatorFetchFnType } from "../../../shared/RuleEditor/RuleEditor";
 import { IPluginDetails } from "@ducks/common/typings";

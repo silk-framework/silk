@@ -2,10 +2,15 @@ import React from "react";
 import { Button, IconButton, Spacing, Toolbar, ToolbarSection } from "gui-elements";
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { useTranslation } from "react-i18next";
+import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
+import { RuleEditorContext } from "../contexts/RuleEditorContext";
 
 /** Toolbar of the rule editor. Contains global editor actions like save, redo/undo etc. */
 export const RuleEditorToolbar = () => {
+    const ruleEditor = React.useContext(RuleEditorContext);
     const modelContext = React.useContext(RuleEditorModelContext);
+    const ruleEvaluationContext: RuleEditorEvaluationContextProps =
+        React.useContext<RuleEditorEvaluationContextProps>(RuleEditorEvaluationContext);
     const [savingWorkflow, setSavingWorkflow] = React.useState(false);
     const [t] = useTranslation();
 
@@ -41,7 +46,22 @@ export const RuleEditorToolbar = () => {
                     text={t("RuleEditor.toolbar.autoLayout")}
                     onClick={modelContext.executeModelEditOperation.autoLayout}
                 />
-                <Spacing vertical />
+                <Spacing vertical hasDivider />
+                {ruleEvaluationContext.supportsEvaluation && (
+                    <IconButton
+                        data-test-id={"rule-editor-start-evaluation-btn"}
+                        disabled={ruleEvaluationContext.evaluationRunning}
+                        name="item-start"
+                        text={t("RuleEditor.toolbar.startEvaluation")}
+                        onClick={() =>
+                            ruleEvaluationContext.startEvaluation(
+                                modelContext.ruleOperatorNodes(),
+                                ruleEditor.editedItem
+                            )
+                        }
+                        loading={ruleEvaluationContext.evaluationRunning}
+                    />
+                )}
             </ToolbarSection>
             <ToolbarSection canGrow>
                 <Spacing vertical />

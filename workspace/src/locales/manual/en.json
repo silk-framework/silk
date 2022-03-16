@@ -396,7 +396,8 @@
         },
         "toolbar": {
             "autoLayout": "Auto-layout",
-            "save": "Save"
+            "save": "Save",
+            "startEvaluation": "Start evaluation"
         },
         "selection": {
             "menu": {
@@ -432,6 +433,9 @@
                 },
                 "saveLinkageRule": {
                     "msg": "Could not save linking rule!"
+                },
+                "startEvaluation": {
+                    "msg": "Could not fetch evaluation results."
                 }
             }
         },

@@ -55,3 +55,22 @@ export interface PathWithMetaData {
     /** A human-readable type of the value of the path. */
     valueType: string;
 }
+
+/** An entity. The basic item that is being processed and produced by most tasks. */
+export interface IEntity {
+    uri: string;
+    values: string[][];
+    schema?: IEntitySchema;
+}
+
+/** The entity schema of an entity. */
+export interface IEntitySchema {
+    /** The type (URI) of this entity. */
+    typeUri: string;
+    /** The paths of the entity as normalized strings. */
+    paths: string[];
+    /** The filter expression for this entity. */
+    filter: string;
+    /** The sub path leading to this entity, e.g. if the entity is inside a nested data structure (JSON, XML etc.). */
+    subPath: string;
+}
