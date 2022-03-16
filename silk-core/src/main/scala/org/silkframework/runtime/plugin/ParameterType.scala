@@ -20,7 +20,7 @@ import scala.util.{Failure, Success, Try}
 /** Represents a plugin parameter type and provides serialization. */
 sealed abstract class ParameterType[T: ClassTag] {
   /**
-    * User-readable name of this type.
+    * Identifying name of this type.
     */
   def name: String
 
@@ -147,7 +147,7 @@ abstract class PluginStringParameterType[T <: PluginStringParameter : ClassTag] 
   *
   * @tparam T The underlying type of this datatype, e.g., Int
   */
-sealed abstract class StringParameterType[T: ClassTag] extends ParameterType[T] {
+abstract class StringParameterType[T: ClassTag] extends ParameterType[T] {
   /**
     * Parses a value from its string representation.
     *
