@@ -35,8 +35,8 @@ describe("Task page", () => {
     const taskId = "taskId";
     const taskLabel = "A task";
     const taskDescription = "This is a task";
-    const createdBy = "Unknown";
-    const lastModifiedBy = "Unknown";
+    const createdBy = "unknown";
+    const lastModifiedBy = "unknown";
     const pluginId = "testPlugin";
     const pluginLabel = "Test Plugin";
     const taskDataUrl = legacyApiUrl(`/workspace/projects/${projectId}/tasks/${taskId}`);
@@ -125,6 +125,8 @@ describe("Task page", () => {
         const taskMetaData: IMetadata = {
             label: taskLabel,
             description: taskDescription,
+            modified: new Date(),
+            created: new Date(),
         };
         mockAxios.mockResponseFor(taskMetaDataExpandedURL, mockedAxiosResponse({ data: taskMetaData }));
         await waitFor(() => {
@@ -132,8 +134,7 @@ describe("Task page", () => {
             expect(findAll(metaData, ".eccgui-propertyvalue__value").map((elem) => elem.text())).toStrictEqual([
                 taskLabel,
                 taskDescription,
-                createdBy,
-                lastModifiedBy,
+                "Created < 1 minute ago by unknown user. Last modified < 1 minute ago by unknown user.",
             ]);
         });
     });

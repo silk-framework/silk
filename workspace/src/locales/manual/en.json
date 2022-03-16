@@ -135,7 +135,13 @@
     "Metadata": {
         "loading": "Loading summary data.",
         "updateFailed": "Updating meta data has failed",
-        "unsavedMetaDataWarning": "There are unsaved changes that will be lost. Do you still want to proceed?"
+        "unsavedMetaDataWarning": "There are unsaved changes that will be lost. Do you still want to proceed?",
+        "lastModifiedBy": "Last modified <timestamp>{{timestamp}}</timestamp> by <author>{{author}}</author>.",
+        "createdBy": "Created <timestamp>{{timestamp}}</timestamp> by <author>{{author}}</author>.",
+        "unknownuser": "unknown user",
+        "prefixAgo": "",
+        "suffixAgo": " ago",
+        "dateFormat": "{{year}}/{{month}}/{{day}}"
     },
     "OverwriteModal": {
         "overwriteFile": "File '{{fileName}}' already exists. Do you want to overwrite it?"
@@ -299,9 +305,7 @@
             "description": "Description",
             "label": "Label",
             "searchField": "Enter search term",
-            "tag": "Tag",
-            "lastModifiedBy": "Last Modified By",
-            "createdBy": "Created By"
+            "tags": "Tags"
         },
         "projectForm": {
             "importProjectButton": "Import existing project",

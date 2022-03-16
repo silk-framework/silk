@@ -123,13 +123,15 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     module.validator.validate(project, PlainTask(id, newData, newMetaData.getOrElse(metaData)))
     // Update data
     dataValueHolder.update(newData)
+    val oldMedataData = metaDataValueHolder()
     for(md <- newMetaData) {
       metaDataValueHolder.update(md)
     }
 
-    // Update modified timestamp if not already set in new meta data object
+    // Update created and modified timestamps if not already set in new meta data object
     metaDataValueHolder.update(
       metaDataValueHolder().copy(
+        created = newMetaData.flatMap(_.created).orElse(oldMedataData.created),
         modified = Some(newMetaData.flatMap(_.modified).getOrElse(Instant.now))
       )
     )

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Prompt, useLocation } from "react-router";
-import { useTranslation } from "react-i18next";
-import { Markdown } from "gui-elements/cmem";
+import { useTranslation, Trans } from "react-i18next";
+import { ElapsedDateTimeDisplay, Markdown, TimeUnits } from "gui-elements/cmem";
 import {
     Button,
     Card,
@@ -20,9 +20,10 @@ import {
     PropertyValue,
     PropertyValueList,
     PropertyValuePair,
+    Link,
     TextArea,
     TextField,
-    Link,
+    HtmlContentBlock,
 } from "gui-elements";
 import { IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
@@ -85,7 +86,7 @@ export function Metadata(props: IProps) {
         return removeDirtyState;
     }, []);
 
-    const { label, description, lastModifiedByUser, createdByUser } = data;
+    const { label, description, lastModifiedByUser, createdByUser, created, modified } = data;
 
     useEffect(() => {
         if (projectId) {
@@ -197,7 +198,7 @@ export function Metadata(props: IProps) {
                 <CardTitle>
                     <h2>{t("common.words.summary", "Summary")}</h2>
                 </CardTitle>
-                {!loading && !isEditing && !props.readOnly && (
+                {!loading && !isEditing && !props.readOnly ? (
                     <CardOptions>
                         <IconButton
                             data-test-id="meta-data-edit-btn"
@@ -206,7 +207,7 @@ export function Metadata(props: IProps) {
                             onClick={toggleEdit}
                         />
                     </CardOptions>
-                )}
+                ) : null}
             </CardHeader>
             <Divider />
         </>
@@ -265,7 +266,7 @@ export function Metadata(props: IProps) {
                 utils.queryTags(projectId, query).then((res) => {
                     setData((data) => ({
                         ...data,
-                        tags: res?.data.tags,
+                        tags: res?.data.tags ?? [],
                     }));
                 });
             }
@@ -276,6 +277,23 @@ export function Metadata(props: IProps) {
     const goToPage = (path: string) => {
         dispatch(routerOp.goToPage(path));
     };
+
+    const translateUnits = (unit: TimeUnits) => t("common.units." + unit, unit);
+
+    const getDeltaInDays = (dateTime: number | string) => {
+        const now = Date.now();
+        const then = new Date(dateTime).getTime();
+        return (now - then) / 1000 / 60 / 60 / 24;
+    }
+
+    const getDateData = (dateTime: number | string) => {
+        const then = new Date(dateTime);
+        return {
+            year: then.getFullYear(),
+            month: ('0' + (then.getMonth()+1)).slice(-2),
+            day: ('0' + then.getDate()).slice(-2)
+        }
+    }
 
     const widgetContent = (
         <CardContent data-test-id={"metaDataWidget"}>
@@ -325,7 +343,7 @@ export function Metadata(props: IProps) {
                     <PropertyValuePair hasSpacing key="tags">
                         {/** // Todo add german translation for tags here  */}
                         <PropertyName>
-                            <Label text={t("form.field.tag", "Tag")} />
+                            <Label text={t("form.field.tags", "Tags")} />
                         </PropertyName>
                         <PropertyValue>
                             <FieldItem>
@@ -370,26 +388,81 @@ export function Metadata(props: IProps) {
                     )}
                     {!!data.tags?.length && (
                         <PropertyValuePair hasSpacing hasDivider>
-                            <PropertyName>{t("form.field.tag", "Tag")}</PropertyName>
+                            <PropertyName>{t("form.field.tags", "Tags")}</PropertyName>
                             <PropertyValue>{utils.DisplayArtefactTags(data.tags, t, goToPage)}</PropertyValue>
                         </PropertyValuePair>
                     )}
-                    <PropertyValuePair hasSpacing hasDivider>
-                        {/** // Todo add german translation for author here  */}
-                        <PropertyName>{t("form.field.lastModifiedBy", "Last Modified By")}</PropertyName>
+                    <PropertyValuePair>
                         <PropertyValue>
-                            <Link href={utils.generateFacetUrl("lastModifiedBy", lastModifiedByUser?.uri ?? "")}>
-                                {lastModifiedByUser?.label ?? "Unknown"}
-                            </Link>
-                        </PropertyValue>
-                    </PropertyValuePair>
-                    <PropertyValuePair hasSpacing hasDivider>
-                        {/** // Todo add german translation for author here  */}
-                        <PropertyName>{t("form.field.createdBy", "Created By")}</PropertyName>
-                        <PropertyValue>
-                            <Link href={utils.generateFacetUrl("createdBy", createdByUser?.uri ?? "")}>
-                                {createdByUser?.label ?? "Unknown"}
-                            </Link>
+                            <HtmlContentBlock small>
+                                <Trans
+                                    i18nKey={"Metadata.createdBy"}
+                                    t={t}
+                                    values={{
+                                        timestamp: created ? t("Metadata.dateFormat", "{{year}}/{{month}}/{{day}}", getDateData(created)) : "",
+                                        author: createdByUser?.label ?? t("Metadata.unknownuser", "unknown user"),
+                                    }}
+                                    components={{
+                                        author: (
+                                            <Link
+                                                href={utils.generateFacetUrl("createdBy", createdByUser?.uri ?? "")}
+                                            ></Link>
+                                        ),
+                                        timestamp: created ? (
+                                            (getDeltaInDays(created) < 7) ? (
+                                                <ElapsedDateTimeDisplay
+                                                data-test-id={"metadata-creation-age"}
+                                                suffix={t("Metadata.suffixAgo")}
+                                                prefix={t("Metadata.prefixAgo")}
+                                                dateTime={created}
+                                                translateUnits={translateUnits}
+                                                />
+                                            ) : (
+                                                <span title={new Date(created).toString()} />
+                                            )
+                                        ) : (
+                                            <></>
+                                        ),
+                                    }}
+                                />
+                                {
+                                    (modified !== created) && (
+                                        <>
+                                            {" "}
+                                            <Trans
+                                                i18nKey={"Metadata.lastModifiedBy"}
+                                                t={t}
+                                                values={{
+                                                    timestamp: modified ? t("Metadata.dateFormat", "{{year}}/{{month}}/{{day}}", getDateData(created)) : "",
+                                                    author: lastModifiedByUser?.label ?? t("Metadata.unknownuser", "unknown user"),
+                                                }}
+                                                components={{
+                                                    author: (
+                                                        <Link
+                                                            href={utils.generateFacetUrl("createdBy", lastModifiedByUser?.uri ?? "")}
+                                                        ></Link>
+                                                    ),
+                                                    timestamp: modified? (
+                                                        (getDeltaInDays(modified) < 7) ? (
+                                                            <ElapsedDateTimeDisplay
+                                                            data-test-id={"metadata-creation-age"}
+                                                            suffix={t("Metadata.suffixAgo")}
+                                                            prefix={t("Metadata.prefixAgo")}
+                                                            dateTime={modified}
+                                                            translateUnits={translateUnits}
+                                                            />
+                                                        ) : (
+                                                            <span title={new Date(modified).toString()} />
+                                                        )
+                                                    ) : (
+                                                        <></>
+                                                    ),
+                                                }}
+                                            />
+                                        </>
+                                    )
+                                }
+                            </HtmlContentBlock>
                         </PropertyValue>
                     </PropertyValuePair>
                 </PropertyValueList>

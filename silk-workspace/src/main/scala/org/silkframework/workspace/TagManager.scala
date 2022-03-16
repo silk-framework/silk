@@ -4,7 +4,7 @@ import org.silkframework.config.{Tag, TagReference}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Identifier
 
-import java.util.UUID
+import java.net.URLEncoder
 import scala.collection.mutable
 
 class TagManager(project: Identifier, provider: WorkspaceProvider) {
@@ -37,10 +37,11 @@ class TagManager(project: Identifier, provider: WorkspaceProvider) {
   }
 
   /**
-    * Generates a new unique tag URI.
+    * Generates a tag URI.
+    * Tags with the same label will receive the same URI.
     */
-  def generateTagUri(): String = {
-    TagManager.defaultUriPrefix + UUID.randomUUID()
+  def generateTagUri(label: String): String = {
+    TagManager.defaultUriPrefix + URLEncoder.encode(label, "UTF8")
   }
 
   private def loadIfRequired()(implicit userContext: UserContext): Unit = {

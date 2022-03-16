@@ -4,8 +4,19 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFo
 
 import scala.xml.Node
 
+/**
+  * A tag.
+  *
+  * @param uri The URI of this tag.
+  * @param label The default label for this tag. Future versions will introduce language-specific labels in addition.
+  */
 case class Tag(uri: String, label: String)
 
+/**
+  * A reference to a tag.
+  *
+  * @param uri The URI of the referenced tag.
+  */
 case class TagReference(uri: String)
 
 object Tag {

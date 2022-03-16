@@ -6,7 +6,9 @@ export interface Tag {
 }
 
 export interface IMetadataExpanded extends IMetadata {
-    tags?: Array<Tag>;
+    tags: Array<Tag>;
     lastModifiedByUser?: Tag;
     createdByUser?: Tag;
+    modified: string;
+    created: string;
 }
