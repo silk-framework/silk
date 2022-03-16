@@ -13,13 +13,14 @@ import { useDispatch, useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { routerOp } from "@ducks/router";
 import { SERVE_PATH } from "../../../constants/path";
+import { workspaceOp } from "@ducks/workspace";
 
 const ActivityInfoWidget = () => {
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const dispatch = useDispatch();
     const [t] = useTranslation();
 
-    const projectPath = `activities?project=${projectId}&itemType=project&page=1&limit=25`;
+    const projectPath = `activities?project=${projectId}&page=1&limit=25`;
     return (
         <Card>
             <OverviewItem hasSpacing>
@@ -31,7 +32,14 @@ const ActivityInfoWidget = () => {
                 </OverviewItemDescription>
                 <OverviewItemActions>
                     <IconButton
-                        onClick={() => dispatch(routerOp.goToPage(projectPath))}
+                        onClick={() => {
+                            dispatch(routerOp.goToPage("activities"));
+                            dispatch(
+                                workspaceOp.applyFiltersOp({
+                                    project: projectId,
+                                })
+                            );
+                        }}
                         href={`${SERVE_PATH}/${projectPath}`}
                         data-test-id={"open-project-activities-btn"}
                         name="item-viewdetails"
