@@ -288,11 +288,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
                                   parameterValues: collection.Map[String, JsValue])
                                  (implicit userContext: UserContext): JsObject = {
     try {
-      val pluginClass = task.data match {
-        case ds: GenericDatasetSpec => ds.plugin.getClass
-        case o: TaskSpec => o.getClass
-      }
-      val pluginDescription = ClassPluginDescription(pluginClass)
+      val pluginDescription = PluginDescription.forTask(task)
       JsObject(addLabelsToValues(projectName, parameterValues, pluginDescription))
     } catch {
       case NonFatal(ex) =>
