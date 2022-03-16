@@ -82,12 +82,11 @@ case class ActivitySearchRequest(@Schema(
   def apply()(implicit userContext: UserContext,
               accessMonitor: WorkbenchAccessMonitor): FacetedSearchResult = {
     // Retrieve selected projects and tasks
-    val ps: Seq[Project] = projects
-    val tasks: Seq[TypedTasks] = ps.flatMap(TypedTasks.fetchTasks(_, itemType))
-    val selectedProjects: Seq[Project] = if(project.isEmpty && (itemType.contains(ItemType.project) || itemType.isEmpty)) ps else Seq()
+    val selectedProjects: Seq[Project] = projects
+    val tasks: Seq[TypedTasks] = selectedProjects.flatMap(TypedTasks.fetchTasks(_, itemType))
 
     // Retrieve all activities for the selected projects and tasks
-    var activities = retrieveActivities(selectedProjects, tasks)
+    var activities = retrieveActivities(selectedProjects, tasks, includeGlobal = project.isEmpty)
 
     // Filter activities by search terms
     for(term <- textQuery if term.trim.nonEmpty) {
@@ -119,9 +118,9 @@ case class ActivitySearchRequest(@Schema(
     )
   }
 
-  private def retrieveActivities(projects: Seq[Project], tasks: Seq[TypedTasks])
+  private def retrieveActivities(projects: Seq[Project], tasks: Seq[TypedTasks], includeGlobal: Boolean)
                                 (implicit userContext: UserContext) : Seq[WorkspaceActivity[_]] = {
-    def globalActivities: Seq[WorkspaceActivity[_]] = WorkspaceFactory().workspace.activities
+    def globalActivities: Seq[WorkspaceActivity[_]] = if(includeGlobal) WorkspaceFactory().workspace.activities else Seq.empty
     def projectActivities: Seq[WorkspaceActivity[_]] = projects.flatMap(_.activities)
     def taskActivities: Seq[WorkspaceActivity[_]] = tasks.flatMap(_.tasks).flatMap(_.activities.asInstanceOf[Seq[WorkspaceActivity[_]]])
 
