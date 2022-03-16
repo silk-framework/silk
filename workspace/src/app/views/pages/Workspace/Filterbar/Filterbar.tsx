@@ -25,11 +25,13 @@ export function Filterbar({ extraItemTypeModifiers = [] }: IFilterBarProps) {
 
     const handleFilterSelect = (field: string, val: string) => {
         let value = val !== appliedFilters[field] ? val : "";
-        dispatch(
-            workspaceOp.applyFiltersOp({
-                [field]: value,
-            })
-        );
+        const filterOptions = {
+            [field]: value,
+        };
+        if (projectTypeQuery) {
+            filterOptions.project = projectTypeQuery;
+        }
+        dispatch(workspaceOp.applyFiltersOp(filterOptions));
     };
 
     return (
