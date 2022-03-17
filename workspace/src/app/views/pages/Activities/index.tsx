@@ -77,7 +77,7 @@ const Activities = () => {
 
     /** handle search */
     const handleSearch = (textQuery: string) => {
-        dispatch(workspaceOp.applyFiltersOp({ textQuery, limit: 25 }));
+        dispatch(workspaceOp.applyFiltersOp({ textQuery, limit: 25, project: projectId }));
     };
 
     return error.status === 404 ? (
