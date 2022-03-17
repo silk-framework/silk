@@ -27,7 +27,9 @@ const ActivityInfoWidget = () => {
                 <OverviewItemDescription>
                     <OverviewItemLine>
                         <Spacing vertical size="small" />
-                        <h2>{t("widget.ActivityInfoWidget.title", "Activities")} </h2>
+                        <strong>
+                            <h2>{t("widget.ActivityInfoWidget.title", "Activities")} </h2>
+                        </strong>
                     </OverviewItemLine>
                 </OverviewItemDescription>
                 <OverviewItemActions>
