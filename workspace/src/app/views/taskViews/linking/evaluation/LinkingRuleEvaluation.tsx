@@ -46,7 +46,7 @@ export const LinkingRuleEvaluation = ({
     const [evaluationResultMap] = React.useState<Map<string, string[][]>>(new Map());
     const [evaluationResultEntities] = React.useState<[string, string][]>([]);
     const [evaluatesQuickly, setEvaluatesQuickly] = React.useState(false);
-    const [nodeUpdateCallbacks] = React.useState(new Map<string, (evaluationValues: string[][]) => any>());
+    const [nodeUpdateCallbacks] = React.useState(new Map<string, (evaluationValues: string[][] | undefined) => any>());
     const { registerError } = useErrorHandler();
     const [t] = useTranslation();
 
@@ -70,6 +70,18 @@ export const LinkingRuleEvaluation = ({
             updateCallback(evaluationValues);
         });
     }, [evaluationResult]);
+
+    const toggleEvaluationResults = (show: boolean) => {
+        if (show) {
+            nodeUpdateCallbacks.forEach((updateCallback, ruleOperatorId) => {
+                updateCallback(evaluationResultMap.get(ruleOperatorId));
+            });
+        } else {
+            nodeUpdateCallbacks.forEach((updateCallback, ruleOperatorId) => {
+                updateCallback(undefined);
+            });
+        }
+    };
 
     const clearEntities = () => evaluationResultEntities.splice(0, evaluationResultEntities.length);
 
@@ -167,6 +179,7 @@ export const LinkingRuleEvaluation = ({
                 startEvaluation,
                 createRuleEditorEvaluationComponent,
                 evaluationRunning,
+                toggleEvaluationResults,
             }}
         >
             {children}

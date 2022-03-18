@@ -397,7 +397,8 @@
         "toolbar": {
             "autoLayout": "Auto-layout",
             "save": "Save",
-            "startEvaluation": "Start evaluation"
+            "startEvaluation": "Start evaluation",
+            "showEvaluation": "Show evaluation"
         },
         "selection": {
             "menu": {

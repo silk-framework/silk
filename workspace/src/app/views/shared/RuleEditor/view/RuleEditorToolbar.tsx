@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, IconButton, Spacing, Toolbar, ToolbarSection } from "gui-elements";
+import { Button, IconButton, Spacing, Switch, Toolbar, ToolbarSection } from "gui-elements";
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { useTranslation } from "react-i18next";
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
@@ -12,6 +12,7 @@ export const RuleEditorToolbar = () => {
     const ruleEvaluationContext: RuleEditorEvaluationContextProps =
         React.useContext<RuleEditorEvaluationContextProps>(RuleEditorEvaluationContext);
     const [savingWorkflow, setSavingWorkflow] = React.useState(false);
+    const [evaluationShown, setEvaluationShown] = React.useState(false);
     const [t] = useTranslation();
 
     const saveLinkingRule = async (e) => {
@@ -19,6 +20,16 @@ export const RuleEditorToolbar = () => {
         setSavingWorkflow(true);
         await modelContext.saveRule();
         setSavingWorkflow(false);
+    };
+
+    const startEvaluation = () => {
+        ruleEvaluationContext.startEvaluation(modelContext.ruleOperatorNodes(), ruleEditor.editedItem);
+        toggleEvaluation(true);
+    };
+
+    const toggleEvaluation = (show: boolean) => {
+        ruleEvaluationContext.toggleEvaluationResults(show);
+        setEvaluationShown(show);
     };
 
     return (
@@ -53,14 +64,20 @@ export const RuleEditorToolbar = () => {
                         disabled={ruleEvaluationContext.evaluationRunning}
                         name="item-start"
                         text={t("RuleEditor.toolbar.startEvaluation")}
-                        onClick={() =>
-                            ruleEvaluationContext.startEvaluation(
-                                modelContext.ruleOperatorNodes(),
-                                ruleEditor.editedItem
-                            )
-                        }
+                        onClick={startEvaluation}
                         loading={ruleEvaluationContext.evaluationRunning}
                     />
+                )}
+                {ruleEvaluationContext.supportsEvaluation && (
+                    <>
+                        <Spacing vertical hasDivider />
+                        <Switch
+                            data-test-id={"rule-editor-evaluation-toggle"}
+                            label={t("RuleEditor.toolbar.showEvaluation")}
+                            checked={evaluationShown}
+                            onClick={() => toggleEvaluation(!evaluationShown)}
+                        />
+                    </>
                 )}
             </ToolbarSection>
             <ToolbarSection canGrow>

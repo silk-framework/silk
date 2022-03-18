@@ -13,6 +13,9 @@ export interface RuleEditorEvaluationContextProps {
 
     /** If the evaluation is currently running. */
     evaluationRunning: boolean;
+
+    /** Show or hide all evaluation results. */
+    toggleEvaluationResults: (show: boolean) => any;
 }
 
 const NOP = () => {};
@@ -23,4 +26,5 @@ export const RuleEditorEvaluationContext = React.createContext<RuleEditorEvaluat
     startEvaluation: NOP,
     createRuleEditorEvaluationComponent: (nodeId) => <div>{`${nodeId}`}</div>,
     evaluationRunning: false,
+    toggleEvaluationResults: NOP,
 });
