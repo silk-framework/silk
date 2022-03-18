@@ -29,6 +29,8 @@ export interface LinkingRuleEditorProps {
     viewActions?: IViewActions;
 }
 
+const HIDE_GREY_LISTED_OPERATORS_QUERY_PARAMETER = "hideGreyListedParameters";
+
 /** Editor for creating and changing linking rule operator trees. */
 export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: LinkingRuleEditorProps) => {
     // The linking task parameters
@@ -38,6 +40,11 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
     // Label for source paths
     const [sourcePathLabels] = React.useState<Map<string, string>>(new Map());
     const [targetPathLabels] = React.useState<Map<string, string>>(new Map());
+    const hideGreyListedParameters =
+        (
+            new URLSearchParams(window.location.search).get(HIDE_GREY_LISTED_OPERATORS_QUERY_PARAMETER) ?? ""
+        ).toLowerCase() === "true";
+
     React.useEffect(() => {
         fetchLabels("source");
         fetchLabels("target");
@@ -82,8 +89,11 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
     /** Fetches the list of operators that can be used in a linking task. */
     const fetchLinkingRuleOperatorDetails = async () => {
         try {
-            const response = (await requestRuleOperatorPluginDetails(false)).data;
-            return Object.values(response);
+            let operatorPlugins = Object.values((await requestRuleOperatorPluginDetails(false)).data);
+            if (hideGreyListedParameters) {
+                operatorPlugins = operatorPlugins.filter((pd) => !pd.categories.includes("Excel"));
+            }
+            return operatorPlugins;
         } catch (err) {
             registerError(
                 "LinkingRuleEditor_fetchLinkingRuleOperatorDetails",
