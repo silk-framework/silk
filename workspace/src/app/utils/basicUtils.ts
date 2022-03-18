@@ -46,3 +46,9 @@ export const maxNumberValuePicker = (newValue: number, oldValue?: number): numbe
         return newValue;
     }
 };
+
+/** Get the URL query parameter value. */
+export const queryParameterValue = (key: string): string[] => {
+    const params = new URLSearchParams(window.location.search);
+    return params.getAll(key);
+};

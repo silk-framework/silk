@@ -1,6 +1,8 @@
 import { OverflowText, Spacing, Tag } from "gui-elements";
 import React from "react";
 import { CLASSPREFIX as eccgui } from "gui-elements/src/configuration/constants";
+import { useTranslation } from "react-i18next";
+import { Link } from "carbon-components-react";
 
 const highlightedContainerClass = `${eccgui}-container--highlighted`;
 
@@ -12,6 +14,8 @@ interface LinkRuleNodeEvaluationProps {
         evaluationUpdate: (evaluationValues: string[][] | undefined) => any
     ) => void;
     unregister: () => void;
+    /** A URL to link to when there is no result found. */
+    referenceLinksUrl?: string;
 }
 
 /** Show linking evaluation results for a specific node. */
@@ -19,8 +23,10 @@ export const LinkRuleNodeEvaluation = ({
     ruleOperatorId,
     registerForEvaluationResults,
     unregister,
+    referenceLinksUrl,
 }: LinkRuleNodeEvaluationProps) => {
     const [evaluationResult, setEvaluationResult] = React.useState<string[][] | undefined>([]);
+    const [t] = useTranslation();
 
     React.useEffect(() => {
         registerForEvaluationResults(ruleOperatorId, setEvaluationResult);
@@ -60,8 +66,12 @@ export const LinkRuleNodeEvaluation = ({
                         </div>
                     );
                 })
+            ) : referenceLinksUrl ? (
+                <div>
+                    <Link href={referenceLinksUrl}>{t("RuleEditor.evaluation.noResults")}</Link>
+                </div>
             ) : (
-                <div>No evaluation example found</div>
+                <div>{t("RuleEditor.evaluation.noResults")}</div>
             )}
             <Spacing size={"tiny"} />
         </div>

@@ -387,6 +387,9 @@
                 }
             }
         },
+        "evaluation": {
+            "noResults": "No linking results available. Please add reference links."
+        },
         "node": {
             "menu": {
                 "remove": {

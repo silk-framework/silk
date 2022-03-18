@@ -18,6 +18,7 @@ import { evaluateLinkingRule, evaluateLinkingRuleAgainstReferenceEntities } from
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { LinkRuleNodeEvaluation } from "./LinkRuleNodeEvaluation";
+import { queryParameterValue } from "../../../../utils/basicUtils";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<TaskPlugin<ILinkingTaskParameters>, IPluginDetails>>;
 
@@ -31,6 +32,8 @@ interface LinkingRuleEvaluationProps {
 }
 
 type EvaluatedEntityLink = IEntityLink & { type: "positive" | "negative" | "unlabelled" };
+
+const REFERENCE_LINK_URL_PARAMETER = "referenceLinksUrl";
 
 /** Linking rule evaluation component.
  * Shows (inline) evaluation of the currently shown linking rule.
@@ -47,6 +50,7 @@ export const LinkingRuleEvaluation = ({
     const [evaluationResultEntities] = React.useState<[string, string][]>([]);
     const [evaluatesQuickly, setEvaluatesQuickly] = React.useState(false);
     const [nodeUpdateCallbacks] = React.useState(new Map<string, (evaluationValues: string[][] | undefined) => any>());
+    const [referenceLinksUrl, setReferenceLinksUrl] = React.useState<string | undefined>(undefined);
     const { registerError } = useErrorHandler();
     const [t] = useTranslation();
 
@@ -55,6 +59,7 @@ export const LinkingRuleEvaluation = ({
         clearEntities();
         evaluationResultMap.clear();
         nodeUpdateCallbacks.clear();
+        setReferenceLinksUrl(queryParameterValue(REFERENCE_LINK_URL_PARAMETER)[0]);
     }, [projectId, linkingTaskId]);
 
     React.useEffect(() => {
@@ -169,6 +174,7 @@ export const LinkingRuleEvaluation = ({
                 ruleOperatorId={ruleOperatorId}
                 registerForEvaluationResults={registerForEvaluationResults}
                 unregister={() => nodeUpdateCallbacks.delete(ruleOperatorId)}
+                referenceLinksUrl={referenceLinksUrl}
             />
         );
     };
