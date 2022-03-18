@@ -43,17 +43,38 @@ export const LinkingRuleEvaluation = ({
 }: LinkingRuleEvaluationProps) => {
     const [evaluationRunning, setEvaluationRunning] = React.useState<boolean>(false);
     const [evaluationResult, setEvaluationResult] = React.useState<EvaluatedEntityLink[]>([]);
+    const [evaluationResultMap] = React.useState<Map<string, string[][]>>(new Map());
+    const [evaluationResultEntities] = React.useState<[string, string][]>([]);
     const [evaluatesQuickly, setEvaluatesQuickly] = React.useState(false);
     const [nodeUpdateCallbacks] = React.useState(new Map<string, (evaluationValues: string[][]) => any>());
     const { registerError } = useErrorHandler();
     const [t] = useTranslation();
 
     React.useEffect(() => {
+        setEvaluationResult([]);
+        clearEntities();
+        evaluationResultMap.clear();
         nodeUpdateCallbacks.clear();
     }, [projectId, linkingTaskId]);
 
+    React.useEffect(() => {
+        clearEntities();
+        evaluationResult.forEach((link) => evaluationResultEntities.push([link.source, link.target]));
+        const valueMaps = evaluationResult.map((link) => linkToValueMap(link));
+        nodeUpdateCallbacks.forEach((updateCallback, operatorId) => {
+            const evaluationValues = valueMaps.map((valueMap) => {
+                const operatorLinkEvaluationValues = valueMap.get(operatorId) ?? [];
+                return operatorLinkEvaluationValues;
+            });
+            evaluationResultMap.set(operatorId, evaluationValues);
+            updateCallback(evaluationValues);
+        });
+    }, [evaluationResult]);
+
+    const clearEntities = () => evaluationResultEntities.splice(0, evaluationResultEntities.length);
+
     /** Turns an evaluation tree into a map operatorId => evaluation value */
-    const linkToValueMap = (link: EvaluatedEntityLink) => {
+    const linkToValueMap = (link: EvaluatedEntityLink): Map<string, string[]> => {
         const valueMap = new Map<string, string[]>();
         const traverseEvaluationValueTree = (node: IEvaluationValue) => {
             valueMap.set(node.operatorId, node.values);
@@ -72,17 +93,6 @@ export const LinkingRuleEvaluation = ({
         link.ruleValues && traverseEvaluationTree(link.ruleValues);
         return valueMap;
     };
-
-    React.useEffect(() => {
-        const valueMaps = evaluationResult.map((link) => linkToValueMap(link));
-        nodeUpdateCallbacks.forEach((updateCallback, operatorId) => {
-            const evaluationValues = valueMaps.map((valueMap) => {
-                const operatorLinkEvaluationValues = valueMap.get(operatorId) ?? [];
-                return operatorLinkEvaluationValues;
-            });
-            updateCallback(evaluationValues);
-        });
-    }, [evaluationResult]);
 
     /** Start an evaluation of the linkage rule. */
     const startEvaluation = async (ruleOperatorNodes: IRuleOperatorNode[], originalTask: any) => {
@@ -134,9 +144,10 @@ export const LinkingRuleEvaluation = ({
     /** Called by a rule operator node to register for evaluation updates. */
     const registerForEvaluationResults = (
         ruleOperatorId: string,
-        evaluationUpdate: (evaluationValues: string[][]) => void
+        evaluationUpdate: (evaluationValues: string[][] | undefined) => void
     ) => {
         nodeUpdateCallbacks.set(ruleOperatorId, evaluationUpdate);
+        evaluationUpdate(evaluationResultMap.get(ruleOperatorId));
     };
 
     /** Factory method used by the rule editor to create an evaluation element. */

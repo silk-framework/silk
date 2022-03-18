@@ -98,6 +98,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             initModel();
         }
     }, [
+        ruleEditorContext.projectId,
         ruleEditorContext.initialRuleOperatorNodes,
         ruleEditorContext.operatorSpec,
         ruleEditorContext.operatorList,
