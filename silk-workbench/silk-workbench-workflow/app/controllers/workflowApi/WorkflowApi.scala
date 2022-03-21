@@ -16,13 +16,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.CustomTask
-import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.runtime.validation.{NotFoundException, RequestException}
 import org.silkframework.workbench.workflow.WorkflowWithPayloadExecutor
 import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.http.HttpEntity
 import play.api.libs.json.Json
 import play.api.mvc._
 
+import java.net.HttpURLConnection
 import javax.inject.Inject
 
 @Tag(name = "Workflows", description = "Workflow specific operations, such as execution of workflows with payloads.")
@@ -360,8 +361,12 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
         description = "If the workflow was successful, but contains no variable output dataset."
       ),
       new ApiResponse(
-        responseCode = "400",
-        description = "If the workflow has not completed successfully at this point."
+        responseCode = "404",
+        description = "If the workflow is still running and did not produce a result yet."
+      ),
+      new ApiResponse(
+        responseCode = "500",
+        description = "If the workflow has not completed successfully."
       )
     )
   )
@@ -394,9 +399,9 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
     // Make sure that the activity has been successful
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor].instance(instanceId)
     if(activity.status().isRunning) {
-      throw BadUserInputException("Workflow is still running.")
+      throw NotFoundException("Workflow is still running.")
     } else if(activity.status().failed) {
-      throw BadUserInputException("Workflow failed.", activity.status().exception)
+      throw WorkflowFailedException("Cannot retrieve workflow result, because execution failed.", activity.status().exception)
     }
 
     // Return output
@@ -540,5 +545,13 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       byNodeId = Map.empty
     )
     Ok(Json.toJson(workflowNodesPortConfig))
+  }
+
+  case class WorkflowFailedException(msg: String, ex: Option[Throwable] = None) extends RequestException(msg, ex) {
+
+    override val errorTitle: String = "Workflow failed"
+
+    override val httpErrorCode: Option[Int] = Some(HttpURLConnection.HTTP_INTERNAL_ERROR)
+
   }
 }
