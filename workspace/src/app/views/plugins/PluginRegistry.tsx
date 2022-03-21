@@ -8,6 +8,9 @@ import React from "react";
 export interface IViewActions {
     // A callback that is executed every time the project task is saved from the view.
     onSave?: () => any;
+    /** If true then the task view is integrated into another view and not on the task details page. Things like the
+     * error notifications need to be inside the editor then. */
+    integratedView?: boolean;
 }
 
 /** A project task view that is meant to be displayed for a specific project task.
@@ -105,7 +108,7 @@ pluginRegistry.registerTaskView("linking", {
     id: "linkingEditor",
     label: "Linking editor WIP",
     render(projectId: string, taskId: string, viewActions: IViewActions | undefined): JSX.Element {
-        return <LinkingRuleEditor projectId={projectId} linkingTaskId={taskId} />;
+        return <LinkingRuleEditor projectId={projectId} linkingTaskId={taskId} viewActions={viewActions} />;
     },
 });
 

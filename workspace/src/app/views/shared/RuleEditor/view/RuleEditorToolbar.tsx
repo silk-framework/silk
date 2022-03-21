@@ -2,10 +2,13 @@ import React from "react";
 import { Button, IconButton, Spacing, Toolbar, ToolbarSection } from "gui-elements";
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { useTranslation } from "react-i18next";
+import { NotificationsMenu } from "../../ApplicationNotifications/NotificationsMenu";
+import { RuleEditorContext } from "../contexts/RuleEditorContext";
 
 /** Toolbar of the rule editor. Contains global editor actions like save, redo/undo etc. */
 export const RuleEditorToolbar = () => {
     const modelContext = React.useContext(RuleEditorModelContext);
+    const ruleEditorContext = React.useContext(RuleEditorContext);
     const [savingWorkflow, setSavingWorkflow] = React.useState(false);
     const [t] = useTranslation();
 
@@ -47,6 +50,7 @@ export const RuleEditorToolbar = () => {
                 <Spacing vertical />
             </ToolbarSection>
             <ToolbarSection>
+                {ruleEditorContext.viewActions?.integratedView && <NotificationsMenu />}
                 <Button
                     data-test-id="ruleEditor-save-button"
                     affirmative={true}

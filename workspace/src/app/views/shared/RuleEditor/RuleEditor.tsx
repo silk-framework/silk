@@ -71,6 +71,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     addAdditionParameterSpecifications,
     validateConnection,
     tabs,
+    viewActions,
 }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
     // The task that contains the rule, e.g. transform or linking task
     const [taskData, setTaskData] = React.useState<TASK_TYPE | undefined>(undefined);
@@ -186,6 +187,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 operatorSpec,
                 validateConnection,
                 tabs,
+                viewActions,
             }}
         >
             <RuleEditorModel>

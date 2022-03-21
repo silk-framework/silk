@@ -6,6 +6,7 @@ import {
     IRuleSidebarPreConfiguredOperatorsTabConfig,
     IRuleSideBarFilterTabConfig,
 } from "../RuleEditor.typings";
+import { IViewActions } from "../../../plugins/PluginRegistry";
 
 /**
  * The rule editor context that contains objects and methods related to the original objects that are being edited and
@@ -41,6 +42,8 @@ export interface RuleEditorContextProps {
     ) => boolean;
     /** Tabs that allow to show different rule operators or only a subset. The first tab will always be selected first. */
     tabs?: (IRuleSideBarFilterTabConfig | IRuleSidebarPreConfiguredOperatorsTabConfig)[];
+    /** Task view actions. */
+    viewActions?: IViewActions;
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
