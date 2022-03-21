@@ -6,6 +6,7 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, _}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.InMemoryResourceManager
+import org.silkframework.runtime.validation.ValidationException
 
 import scala.xml.{Node, PrettyPrinter, XML}
 
@@ -111,7 +112,7 @@ class XmlSinkTest extends FlatSpec with Matchers {
       entityTables = Seq(entities),
       expected =
         <Root xmlns="urn:schema:">
-          <Element xmlns:ns1="http://example1.org/" ns1:id="101" xmlns:ns0="http://example2.org/" ns0:id="102" />
+          <Element xmlns:ns0="http://example1.org/" ns0:id="101" xmlns:ns1="http://example2.org/" ns1:id="102" />
         </Root>
     )
   }
@@ -123,19 +124,19 @@ class XmlSinkTest extends FlatSpec with Matchers {
         typedPaths =
           IndexedSeq(
             TypedPath(UntypedPath("http://example1.org/id"), ValueType.STRING, isAttribute = true),
+            TypedPath(UntypedPath("#text"), ValueType.STRING, isAttribute = false),
             TypedPath(UntypedPath("http://example2.org/id"), ValueType.STRING, isAttribute = true),
-            TypedPath(UntypedPath("#text"), ValueType.STRING, isAttribute = false)
           )
       )
 
-    val entities = Seq(Entity("someUri", IndexedSeq(Seq("101"), Seq("102"), Seq("Value")), schema))
+    val entities = Seq(Entity("someUri", IndexedSeq(Seq("101"), Seq("Value"), Seq("102")), schema))
 
     test(
       template = "<Root><?Element?></Root>",
       entityTables = Seq(entities),
       expected =
-        <Root xmlns="urn:schema:">
-          <Element xmlns:ns1="http://example1.org/" ns1:id="101" xmlns:ns0="http://example2.org/" ns0:id="102">Value</Element>
+        <Root>
+          <Element xmlns:ns0="http://example1.org/" ns0:id="101" xmlns:ns1="http://example2.org/" ns1:id="102">Value</Element>
         </Root>
     )
   }
@@ -204,7 +205,7 @@ class XmlSinkTest extends FlatSpec with Matchers {
       template = "<Persons><?Person?></Persons>",
       entityTables = Seq(persons, names),
       expected =
-        <Persons xmlns="urn:schema:">
+        <Persons>
           <Person id="001">
             <Name>
               <FirstName>John</FirstName>
@@ -276,13 +277,34 @@ class XmlSinkTest extends FlatSpec with Matchers {
     )
   }
 
+  it should "not allow writing multiple elements if the output template does not allow it" in {
+    val schema =
+      EntitySchema(
+        typeUri = "",
+        typedPaths =
+          IndexedSeq(
+            TypedPath(UntypedPath("Value"), ValueType.STRING, isAttribute = false),
+          )
+      )
+
+    val entities = Seq(Entity("e1", IndexedSeq(Seq("1")), schema), Entity("e2", IndexedSeq(Seq("1")), schema))
+
+    an[ValidationException] should be thrownBy {
+      test(
+        template = "<?Entity?>",
+        entityTables = Seq(entities),
+        expected = <shouldNotGenerateAnyXml/>
+      )
+    }
+  }
+
   private def test(template: String, entityTables: Seq[Seq[Entity]], expected: Node): Unit = {
     implicit val userContext: UserContext = UserContext.Empty
     implicit val prefixes: Prefixes = Prefixes.empty
     // Create in-memory XML sink
     val resourceMgr = InMemoryResourceManager()
     val resource = resourceMgr.get("test.xml")
-    val sink = new XmlSink(resource, template)
+    val sink = new XmlSink(resource, XmlOutputTemplate.parse(template))
 
     // Write entity tables
     for(entityTable <- entityTables) {

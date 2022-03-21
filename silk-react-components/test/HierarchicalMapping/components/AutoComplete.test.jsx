@@ -1,7 +1,7 @@
 import React from "react";
 import { shallow } from 'enzyme';
 import AutoComplete from '../../../src/HierarchicalMapping/components/AutoComplete';
-import {AutoCompleteField} from "../../../src/libs/gui-elements";
+import {AutoCompleteField} from "gui-elements";
 
 const props = {
     input: 'text',

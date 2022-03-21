@@ -1,4 +1,5 @@
-import sbt._
+import sbt.{File, taskKey, _}
+
 import java.io._
 
 //////////////////////////////////////////////////////////////////////////////
@@ -30,10 +31,10 @@ val buildReactExternally = {
   result
 }
 
-val compileParameters: Seq[String] = if(System.getProperty("java.version").split("\\.").head.toInt > 8) {
-  Seq("--release", "8", "-Xlint")
+val compilerParams: (Seq[String], Seq[String]) = if(System.getProperty("java.version").split("\\.").head.toInt > 8) {
+  (Seq("--release", "8", "-Xlint"), Seq("-release", "8"))
 } else {
-  Seq("-source", "1.8", "-target", "1.8", "-Xlint")
+  (Seq("-source", "1.8", "-target", "1.8", "-Xlint"), Seq.empty)
 }
 
 (Global / concurrentRestrictions) += Tags.limit(Tags.Test, 1)
@@ -89,7 +90,8 @@ lazy val commonSettings = Seq(
       val oldStrategy = (assembly / assemblyMergeStrategy).value
       oldStrategy(other)
   },
-  javacOptions ++= compileParameters
+  scalacOptions ++= compilerParams._2,
+  javacOptions ++= compilerParams._1,
 )
 
 //////////////////////////////////////////////////////////////////////////////
@@ -108,7 +110,8 @@ lazy val core = (project in file("silk-core"))
     libraryDependencies += "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1",
     libraryDependencies += "commons-io" % "commons-io" % "2.4",
     libraryDependencies += "org.lz4" % "lz4-java" % "1.4.0",
-    libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1"
+    libraryDependencies += "javax.xml.bind" % "jaxb-api" % "2.3.1",
+    libraryDependencies += "xalan" % "xalan" % "2.7.2"
   )
 
 lazy val rules = (project in file("silk-rules"))
@@ -159,7 +162,7 @@ lazy val pluginsCsv = (project in file("silk-plugins/silk-plugins-csv"))
   )
 
 lazy val pluginsXml = (project in file("silk-plugins/silk-plugins-xml"))
-  .dependsOn(core, workspace % "compile -> compile;test -> test", pluginsRdf % "test->compile")
+  .dependsOn(core, workspace % "compile -> compile;test -> test", pluginsRdf % "test->compile", persistentCaching)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Plugins XML",
@@ -263,7 +266,7 @@ lazy val reactComponents = (project in file("silk-react-components"))
 
         def distFile(name: String): File = new File(baseDirectory.value, "dist/" + name)
         if (Watcher.staleTargetFiles(reactWatchConfig, Seq(distFile("main.js"), distFile("style.css")))) {
-          ReactBuildHelper.buildReactComponents(baseDirectory.value, distRoot, "Silk")
+          ReactBuildHelper.buildReactComponentsAndCopy(baseDirectory.value, distRoot, "Silk")
         }
       }
       // Transpile pure JavaScript files
@@ -299,6 +302,88 @@ lazy val reactComponents = (project in file("silk-react-components"))
   )
 
 //////////////////////////////////////////////////////////////////////////////
+// Silk React Workbench
+//////////////////////////////////////////////////////////////////////////////
+
+val buildDiReact = taskKey[Unit]("Builds Workbench React module")
+val yarnInstall = taskKey[Unit]("Runs yarn install.")
+val generateLanguageFiles = taskKey[Unit]("Generate i18n language files.")
+
+lazy val reactUI = (project in file("workspace"))
+  .settings(commonSettings: _*)
+  .settings(
+    name := "Workspace React UI",
+    //////////////////////////////////////////////////////////////////////////////
+    // React UI pipeline
+    //////////////////////////////////////////////////////////////////////////////
+    /** Check that all necessary build tool for the JS pipeline are available */
+    checkJsBuildTools := Def.taskDyn {
+      if(!buildReactExternally) {
+        Def.task { ReactBuildHelper.checkReactBuildTool() }
+      } else {
+        Def.task { }
+      }
+    }.value,
+    yarnInstall := Def.taskDyn {
+      checkJsBuildTools.value
+      if(!buildReactExternally) {
+        Def.task { ReactBuildHelper.yarnInstall(baseDirectory.value) }
+      } else {
+        Def.task { }
+      }
+    }.value,
+    generateLanguageFiles := Def.taskDyn {
+      yarnInstall.value
+      if(!buildReactExternally) {
+        Def.task[Unit] {
+          val reactWatchConfig = WatchConfig(new File(baseDirectory.value, "src/locales/manual"), fileRegex = """\.json$""")
+          if(Watcher.staleTargetFiles(reactWatchConfig, Seq(new File(baseDirectory.value, "src/locales/generated/en.json")))) {
+            ReactBuildHelper.log.info("Generating i18n language files in 'src/locales/generated'...")
+            ReactBuildHelper.process(Seq(ReactBuildHelper.yarnCommand, "i18n-parser"), baseDirectory.value)
+          }
+        }
+      } else {
+        Def.task { }
+      }
+    }.value,
+    /** Build DataIntegration React */
+    buildDiReact := {
+      generateLanguageFiles.value
+      if(!buildReactExternally) {
+        // TODO: Add additional source directories
+        val reactWatchConfig = WatchConfig(new File(baseDirectory.value, "src"), fileRegex = """\.(tsx|ts|scss|json)$""")
+        def distFile(name: String): File = {
+          val buildConfig = ReactBuildHelper.buildConfig(baseDirectory.value)
+          val distDirectoryRelative = if(buildConfig.containsKey("appDIBuild")) {
+            buildConfig.getProperty("appDIBuild")
+          } else {
+            "../silk-workbench/public"
+          }
+          val distDirectory = new File(baseDirectory.value, distDirectoryRelative)
+          new File(distDirectory, name)
+        }
+        if (Watcher.staleTargetFiles(reactWatchConfig, Seq(distFile("index.html")))) {
+          ReactBuildHelper.buildReactComponents(baseDirectory.value, "Workbench")
+        }
+      }
+    },
+    (Compile / compile) := ((Compile / compile) dependsOn buildDiReact).value,
+    watchSources ++= { // Watch all files under the workspace/src directory for changes
+      if(buildReactExternally) {
+        Seq.empty // Do not watch sources if the workspace is built externally
+      } else {
+        val paths = for(path <- Path.allSubpaths(baseDirectory.value / "src")) yield {
+          path._1
+        }
+        paths.toSeq ++ Seq(
+          new File(baseDirectory.value, "src/locales/manual/en.json"),
+          new File(baseDirectory.value, "src/locales/generated/en.json")
+        )
+      }
+    }
+  )
+
+//////////////////////////////////////////////////////////////////////////////
 // Workbench
 //////////////////////////////////////////////////////////////////////////////
 
@@ -316,8 +401,8 @@ lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
 
 lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-workspace"))
   .enablePlugins(PlayScala)
-  .dependsOn(workbenchCore % "compile->compile;test->test", pluginsRdf, pluginsCsv % "test->compile", pluginsXml % "test->compile")
-  .aggregate(workbenchCore)
+  .dependsOn(workbenchCore % "compile->compile;test->test", pluginsRdf, pluginsCsv % "test->compile", pluginsXml % "test->compile", reactUI)
+  .aggregate(workbenchCore, reactUI)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workbench Workspace",

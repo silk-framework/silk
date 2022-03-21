@@ -133,9 +133,6 @@ module.exports = {
             ".json"
         ].map((ext) => `.${ext}`),
         mainFields: ['es5', 'browser', 'module', 'main'],
-        alias: {
-            "@gui-elements": resolveApp('src/libs/gui-elements'),
-        },
         plugins: [
             // Adds support for installing with Plug'n'Play, leading to faster installs and adding
             // guards against forgotten dependencies and such.
@@ -169,7 +166,7 @@ module.exports = {
             // // The preset includes JSX, Flow, TypeScript, and some ESnext features.
             {
                 test: /\.(js|mjs|jsx|ts|tsx)$/,
-                include: resolveApp('src'),
+                include: [resolveApp('src'), resolveApp('../libs/gui-elements')],
                 exclude: /(node_modules|bower_components)/,
                 loader: require.resolve("babel-loader"),
                 options: {

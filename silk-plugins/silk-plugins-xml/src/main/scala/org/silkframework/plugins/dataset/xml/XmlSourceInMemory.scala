@@ -44,11 +44,7 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
                        (implicit userContext: UserContext, prefixes: Prefixes): EntityHolder = {
     logger.log(Level.FINE, "Retrieving data from XML.")
 
-    val nodes = loadXmlNodes(entitySchema.typeUri.uri)
-    val subTypeEntities = if(entitySchema.subPath.operators.nonEmpty) {
-      nodes.flatMap(_.evaluatePath(entitySchema.subPath))
-    } else { nodes }
-    val entities = new Entities(subTypeEntities, entitySchema)
+    val entities = new Entities(entitySchema)
 
     val limitedEntities =
       limit match {
@@ -87,13 +83,21 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
     }
   }
 
-  private class Entities(xml: Seq[XmlTraverser], entityDesc: EntitySchema) extends Traversable[Entity] {
+  private class Entities(entitySchema: EntitySchema) extends Traversable[Entity] {
     def foreach[U](f: Entity => U) {
+      // Load xml
+      logger.fine("Loading XML")
+      val nodes = loadXmlNodes(entitySchema.typeUri.uri)
+      val xml = if(entitySchema.subPath.operators.nonEmpty) {
+        nodes.flatMap(_.evaluatePath(entitySchema.subPath))
+      } else { nodes }
+
       // Enumerate entities
+      logger.fine("Reading XML")
       for ((traverser, index) <- xml.zipWithIndex) {
         val uri = traverser.generateUri(uriPattern)
-        val values = for (typedPath <- entityDesc.typedPaths) yield traverser.evaluatePathAsString(typedPath, uriPattern)
-        f(Entity(uri, values, entityDesc))
+        val values = for (typedPath <- entitySchema.typedPaths) yield traverser.evaluatePathAsString(typedPath, uriPattern)
+        f(Entity(uri, values, entitySchema))
       }
     }
   }

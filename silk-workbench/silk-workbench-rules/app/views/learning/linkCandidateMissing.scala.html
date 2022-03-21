@@ -1,0 +1,25 @@
+@import org.silkframework.util.DPair
+@import org.silkframework.entity.Link
+@import models.linking.LinkCandidateDecision
+@import controllers.linking.routes
+@import models.learning.PathValue
+@import models.learning.PathValues
+@import org.silkframework.rule.LinkSpec
+@import org.silkframework.workbench.Context
+@import config.WorkbenchConfig
+
+@(context: Context[LinkSpec])
+
+<div id="link-candidate-buttons" class="button-set" style="text-align: center; margin-bottom: 20px;">
+  <button id="doneButton" class="mdl-button mdl-js-button mdl-button--raised" onclick="done()" title="Show generated linkage rules." >Done</button>
+  <div style="margin-top: 20px;">No link candidate available. Press done or restart.</div>
+</div>
+
+<script type="text/javascript">
+
+  function done() {
+    const inlineView = (window.location !== window.parent.location) ? "true" : "false"
+    window.location = "@routes.Learning.population(context.project.name, context.task.id).url?inlineView=" + inlineView
+  }
+
+</script>

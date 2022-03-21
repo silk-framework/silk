@@ -1,10 +1,8 @@
 package org.silkframework.plugins.dataset.csv
 
-import java.net.URLEncoder
-
-import org.silkframework.config.Prefixes
 import org.silkframework.util.Uri
 
+import java.net.URLEncoder
 import scala.collection.immutable
 import scala.util.matching.Regex
 

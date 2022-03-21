@@ -1,14 +1,9 @@
 package org.silkframework.plugins.dataset.csv
 
-import java.io.{BufferedReader, InputStreamReader}
-import java.net.URLEncoder
-import java.nio.charset.MalformedInputException
-import java.util.logging.{Level, Logger}
-import java.util.regex.Pattern
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
-import org.silkframework.entity.paths.UntypedPath.{IDX_PATH_IDX, IDX_PATH_MISSING}
 import org.silkframework.entity._
+import org.silkframework.entity.paths.UntypedPath.{IDX_PATH_IDX, IDX_PATH_MISSING}
 import org.silkframework.entity.paths.{ForwardOperator, TypedPath, UntypedPath}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
@@ -16,7 +11,13 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.util.{Identifier, Uri}
 
+import java.io.{BufferedReader, InputStreamReader}
+import java.net.{URI, URLEncoder}
+import java.nio.charset.MalformedInputException
+import java.util.logging.{Level, Logger}
+import java.util.regex.Pattern
 import scala.io.Codec
+import scala.util.Try
 import scala.util.control.NonFatal
 
 class CsvSource(file: Resource,
@@ -42,8 +43,16 @@ class CsvSource(file: Resource,
   final val linesForDetection = 100
 
   val propertyList: IndexedSeq[String] = {
-    if (!properties.trim.isEmpty) {
-      CsvSourceHelper.parse(properties).toIndexedSeq
+    if (properties.trim.nonEmpty) {
+      // Parse the properties parameter and split it into valid properties
+      for(property <- CsvSourceHelper.parse(properties).toIndexedSeq) yield {
+        // Encode properties that are not already (relative or absolute) URIs
+        if(Try{new URI(property)}.isSuccess) {
+          property
+        } else {
+          URLEncoder.encode(property, "UTF-8")
+        }
+      }
     } else {
       try {
         CsvSourceHelper.convertHeaderFields(firstLine)

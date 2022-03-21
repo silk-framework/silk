@@ -1,7 +1,9 @@
 package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.dataset.DataSource
-import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryResourceManager}
+import org.silkframework.entity.EntitySchema
+import org.silkframework.runtime.resource.{ClasspathResourceLoader, InMemoryResourceManager, ResourceTooLargeException}
+import org.silkframework.util.ConfigTestTrait
 
 class XmlSourceStreamingTest extends XmlSourceTestBase {
 
@@ -43,6 +45,15 @@ class XmlSourceStreamingTest extends XmlSourceTestBase {
   it should "not allow the #text forward path in object paths" in {
     intercept[AssertionError] {
       XmlDoc("persons.xml") atPath "Person[#text = \"test\"]" valuesAt "Name"
+    }
+  }
+
+  it should "not load entities into memory that are too big" in {
+    val source = xmlSource("persons.xml", "", "Person")
+    ConfigTestTrait.withConfig(
+      "org.silkframework.runtime.resource.Resource.maxInMemorySize" -> Some("48b")
+    ) {
+      an[ResourceTooLargeException] should be thrownBy source.retrieve(EntitySchema("", IndexedSeq())).entities.toArray
     }
   }
 

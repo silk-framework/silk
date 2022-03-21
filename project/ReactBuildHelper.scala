@@ -1,8 +1,10 @@
 import org.apache.commons.io.FileUtils
 
-import java.io.File
+import java.io.{File, FileInputStream}
+import java.util.Properties
 import java.util.logging.Logger
 import java.util.regex.Pattern
+import scala.annotation.tailrec
 import scala.sys.process.{BasicIO, Process, ProcessLogger}
 
 object ReactBuildHelper {
@@ -18,6 +20,30 @@ object ReactBuildHelper {
       process("where.exe" :: "yarnpkg.cmd" :: Nil).trim
     case _ =>
       "yarnpkg"
+  }
+
+  // Config file for the Silk UI build that extends the default build
+  val silkBuildPropertiesFile = "silk-ui-build.properties"
+
+  @tailrec
+  def searchConfigFileRecursively(currentDir: File): Option[File] = {
+    val potentialConfigFile = new File(currentDir, silkBuildPropertiesFile)
+    if(potentialConfigFile.exists() && potentialConfigFile.isFile && potentialConfigFile.canRead) {
+      log.info(s"Found '$silkBuildPropertiesFile' in directory '${currentDir.getAbsolutePath}'.")
+      Some(potentialConfigFile)
+    } else if(potentialConfigFile.getParentFile != null) {
+      searchConfigFileRecursively(currentDir.getParentFile)
+    } else {
+      None
+    }
+  }
+
+  /** Fetch build properties if they exist. */
+  def buildConfig(reactBuildRoot: File): Properties = {
+    // Look for build configuration recursively
+    val properties = new Properties()
+    searchConfigFileRecursively(reactBuildRoot).foreach(f => properties.load(new FileInputStream(f)))
+    properties
   }
 
   /**
@@ -42,16 +68,14 @@ object ReactBuildHelper {
     * @param reactBuildRoot          The root directory of the React build, i.e. where the package.json is located etc.
     * @param targetArtifactDirectory The directory where the built artifacts are copied to. This directory is deleted
     *                                prior to copying the files.
+    * @param project                 The name of the project to build, for logging and documentation.
     */
-  def buildReactComponents(reactBuildRoot: File, targetArtifactDirectory: File, project: String): Unit = BasicIO.synchronized {
+  def buildReactComponentsAndCopy(reactBuildRoot: File, targetArtifactDirectory: File, project: String): Unit = BasicIO.synchronized {
     val buildEnv = sys.env.getOrElse("BUILD_ENV", "development")
     val productionBuild = buildEnv == "production"
     val buildTask = if (productionBuild) "webpack-build" else "webpack-dev-build"
     log.info(s"Building $project React components for $buildEnv, running task $buildTask...")
-
-    process(yarnCommand :: Nil, reactBuildRoot, maxRetries = MAX_RETRIES_YARN_DEPENDENCY_RESOLUTION) // Install dependencies
-    // Run build via gulp task, this has been the old way of building it
-    //          Process("yarn" :: "run" :: "deploy" :: Nil, reactBuildRoot).!! // Build main artifact
+    yarnInstall(reactBuildRoot)
 
     // Run build via webpack only, uncomment source map copy instruction when using this
     process(yarnCommand :: buildTask :: Nil, reactBuildRoot) // Build main artifact
@@ -68,10 +92,68 @@ object ReactBuildHelper {
       FileUtils.copyFileToDirectory(file, targetArtifactDirectory)
     }
     FileUtils.copyDirectoryToDirectory(new File(reactBuildRoot, "dist/fonts"), targetArtifactDirectory)
-    log.info(s"Finished building $project React components.")
+    log.info(s"Finished building '$project' React components.")
   }
 
-  def process(command: Seq[String], workingDir: File, maxRetries: Int = 0): String = {
+  /**
+    * Builds React components.
+    *
+    * @param reactBuildRoot          The root directory of the React build, i.e. where the package.json is located etc.
+    * @param project                 The name of the project to build, for logging and documentation.
+    */
+  def buildReactComponents(reactBuildRoot: File, project: String): Unit = BasicIO.synchronized {
+    val buildEnv = sys.env.getOrElse("BUILD_ENV", "development")
+    val productionBuild = buildEnv == "production"
+    val buildTask = if (productionBuild) "build-di-prod" else "build-di-dev"
+    log.info(s"Building $project React UI for $buildEnv, running task $buildTask...")
+    yarnInstall(reactBuildRoot)
+
+    process(yarnCommand :: buildTask :: Nil, reactBuildRoot) // Build main artifact
+
+    log.info(s"Finished building '$project' React UI.")
+  }
+
+  @tailrec
+  private def findSilkRoot(currentDir: File): Option[File] = {
+    if (isSilkRoot(currentDir)) {
+      Some(currentDir)
+    } else {
+      if (currentDir.getParentFile != null) {
+        findSilkRoot(currentDir.getParentFile)
+      } else {
+        None
+      }
+    }
+  }
+
+  private def isSilkRoot(dir: File): Boolean = {
+    val packageJson = new File(dir, "package.json")
+    if(packageJson.exists() && packageJson.isFile && packageJson.canRead) {
+      val source = scala.io.Source.fromFile(packageJson)
+      val packageJsonContent = source.getLines().mkString("")
+      source.close()
+      packageJsonContent.matches(".*\"name\"\\s*:\\s*\"silk\"\\s*,.*")
+    } else {
+      false
+    }
+  }
+
+  /** Install dependencies and setup yarn workspaces. */
+  def yarnInstall(reactBuildRoot: File): Unit = BasicIO.synchronized {
+    log.info("Setting up yarn workspaces environment...")
+    // Either bootstrap in Silk or in the directory the build config file has been found
+    searchConfigFileRecursively(reactBuildRoot)
+      .map(_.getParentFile)
+      .orElse(findSilkRoot(reactBuildRoot)) match {
+      case Some(realProjectRoot) =>
+        process(yarnCommand :: Nil, realProjectRoot, maxRetries = MAX_RETRIES_YARN_DEPENDENCY_RESOLUTION) // Install dependencies
+      case None =>
+        throw new RuntimeException(s"Directory '${reactBuildRoot.getAbsolutePath}' is neither inside the Silk repository nor" +
+          s" nested in a directory containing a build config file '$silkBuildPropertiesFile'.")
+    }
+  }
+
+  def process(command: Seq[String], workingDir: File, maxRetries: Int = 0): String = BasicIO.synchronized {
     var tries = 0
     while(tries <= maxRetries) {
       val (out, err) = (new StringBuffer(), new StringBuffer())

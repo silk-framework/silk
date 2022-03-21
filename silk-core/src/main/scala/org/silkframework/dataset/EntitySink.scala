@@ -37,7 +37,7 @@ trait EntitySink extends DataSink {
    * @param values The list of values of the entity. For each property that has been provided
    *               when opening this writer, it must contain a set of values.
    */
-  def writeEntity(subject: String, values: Seq[Seq[String]])
+  def writeEntity(subject: String, values: IndexedSeq[Seq[String]])
                  (implicit userContext: UserContext): Unit
 
   /**

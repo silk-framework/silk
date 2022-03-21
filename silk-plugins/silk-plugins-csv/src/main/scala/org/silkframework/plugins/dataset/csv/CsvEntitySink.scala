@@ -9,7 +9,7 @@ import org.silkframework.runtime.resource.WritableResource
  */
 class CsvEntitySink(file: WritableResource, settings: CsvSettings) extends CsvSink(file, settings) with EntitySink {
 
-  override def writeEntity(subject: String, values: Seq[Seq[String]])
+  override def writeEntity(subject: String, values: IndexedSeq[Seq[String]])
                           (implicit userContext: UserContext){
     write(values.map(_.mkString(settings.arraySeparator.getOrElse(' ').toString)))
   }

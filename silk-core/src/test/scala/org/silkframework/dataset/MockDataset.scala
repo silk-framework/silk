@@ -26,7 +26,7 @@ case class MockDataset(@Param(label = "person name", value = "The full name of a
 
   override def entitySink(implicit userContext: UserContext): EntitySink = DummyEntitySink(writeEntityFn, clearFn)
 
-  override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly
+  override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly()
 }
 
 case class DummyDataSource(retrieveFn: (EntitySchema, Option[Int]) => Traversable[Entity],
@@ -72,7 +72,7 @@ case class DummyEntitySink(writeEntityFn: (String, Seq[Seq[String]]) => Unit,
   override def openTable(typeUri: Uri, properties: Seq[TypedProperty], singleEntity: Boolean = false)
                         (implicit userContext: UserContext, prefixes: Prefixes): Unit = {}
 
-  override def writeEntity(subject: String, values: Seq[Seq[String]])
+  override def writeEntity(subject: String, values: IndexedSeq[Seq[String]])
                           (implicit userContext: UserContext): Unit = {
     writeEntityFn(subject, values)
   }

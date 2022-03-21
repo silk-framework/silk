@@ -24,7 +24,7 @@ object EmptyDataset extends Dataset with Serializable {
    * Returns a dummy entity sink.
    */
   override def entitySink(implicit userContext: UserContext): EntitySink = new EntitySink {
-    override def writeEntity(subject: String, values: Seq[Seq[String]])
+    override def writeEntity(subject: String, values: IndexedSeq[Seq[String]])
                             (implicit userContext: UserContext): Unit = {}
 
     /**
@@ -70,5 +70,5 @@ object EmptyDataset extends Dataset with Serializable {
     override def clear()(implicit userContext: UserContext): Unit = {}
   }
 
-  override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly
+  override def characteristics: DatasetCharacteristics = DatasetCharacteristics.attributesOnly()
 }

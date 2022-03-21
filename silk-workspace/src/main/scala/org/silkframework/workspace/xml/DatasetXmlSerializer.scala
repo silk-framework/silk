@@ -14,8 +14,6 @@
 
 package org.silkframework.workspace.xml
 
-import java.util.logging.Logger
-
 import org.silkframework.config.Task
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec}
@@ -23,9 +21,9 @@ import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Identifier
 import org.silkframework.util.XMLUtils._
-import org.silkframework.workspace.TaskLoadingError
+import org.silkframework.workspace.LoadedTask
 
-import scala.util.Try
+import java.util.logging.Logger
 
 /**
  * The source module which encapsulates all data sources.
@@ -42,7 +40,7 @@ private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec[Dataset]] {
 
   private def loadTask(resourceName: String,
                        resources: ResourceLoader,
-                       projectResources: ResourceManager): Either[Task[DatasetSpec[Dataset]], TaskLoadingError] = {
+                       projectResources: ResourceManager): LoadedTask[DatasetSpec[Dataset]] = {
     // Load the data set
     implicit val res: ResourceManager = projectResources
     implicit val readContext: ReadContext = ReadContext(projectResources)
@@ -64,7 +62,7 @@ private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec[Dataset]] {
     resources.delete(name.toString + "_cache.xml")
   }
 
-  override def loadTasksSafe(resources: ResourceLoader, projectResources: ResourceManager): Seq[Either[Task[GenericDatasetSpec], TaskLoadingError]] = {
+  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Seq[LoadedTask[GenericDatasetSpec]] = {
     // Read dataset tasks
     val names = taskNames(resources)
     var tasks = for (name <- names) yield {

@@ -8,10 +8,10 @@ import {
     OverviewItem,
     OverviewItemDescription,
     OverviewItemLine,
-} from '@gui-elements/index';
+} from "gui-elements";
 import { ITargetWithSelected } from "../suggestion.typings";
 import { SuggestionListContext } from "../SuggestionContainer";
-import {extractSearchWords, matchesAllWords} from "@gui-elements/src/components/Typography/Highlighter";
+import {extractSearchWords, matchesAllWords} from "gui-elements/src/components/Typography/Highlighter";
 
 // Select<T> is a generic component to work with your data types.
 // In TypeScript, you must first obtain a non-generic reference:
