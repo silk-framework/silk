@@ -20,6 +20,8 @@ import org.silkframework.util.{Identifier, Uri}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
 import org.silkframework.workspace.resources.InMemoryResourceRepository
 
+import scala.collection.immutable.ListSet
+
 trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSugar {
 
   val PROJECT_NAME = "ProjectName"
@@ -494,6 +496,19 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
     workspaceProvider.putTag(PROJECT_NAME, tag2)
     refreshTest {
       workspaceProvider.readTags(PROJECT_NAME) should contain theSameElementsAs Iterable(tag1, tag2)
+    }
+
+    // Add tags to a new task
+    val taskWithTag = customTask.copy(
+      metaData =
+        MetaData(
+          label = Some("Task Label"),
+          tags = ListSet("urn:tag1", "urn:tag2")
+        )
+    )
+    workspaceProvider.putTask(PROJECT_NAME, taskWithTag)
+    refreshTest {
+      workspaceProvider.readTasks[CustomTask](PROJECT_NAME, projectResources).headOption.map(_.task) shouldBe Some(taskWithTag)
     }
 
     // Remove tag
