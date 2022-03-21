@@ -362,7 +362,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
         ItemType.dataset.id -> WorkflowNodePortConfig(1, None),
         ItemType.workflow.id -> WorkflowNodePortConfig(1, None),
         ItemType.linking.id -> WorkflowNodePortConfig(2),
-        ItemType.transform.id -> WorkflowNodePortConfig(1, None)
+        ItemType.transform.id -> WorkflowNodePortConfig(1)
       ),
       byTaskId = customTaskPortConfigs.toMap,
       // FIXME CMEM-3457: Add workflow node specific port config and use this in the UI
