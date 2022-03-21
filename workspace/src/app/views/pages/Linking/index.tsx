@@ -13,7 +13,7 @@ import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActi
 import { ProjectTaskParams } from "../../shared/typings";
 
 export default function LinkingPage() {
-    const { taskId, projectId } = useParams<ProjectTaskParams>();
+    const { projectId, taskId } = useParams<ProjectTaskParams>();
     const [notFound, setNotFound] = useState(false);
 
     const { pageHeader, updateActionsMenu } = usePageHeader({

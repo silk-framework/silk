@@ -8,7 +8,7 @@ import ErrorBoundary from "./app/ErrorBoundary";
 import registerGlobalListeners from "./global";
 import App from "./app/App";
 import configs from "./configs";
-import appRoutes from "./app/appRoutes";
+import appRoutes, { IRouteProps } from "./app/appRoutes";
 import { createPlugin } from "./app/services/pluginApi";
 import configureStore from "./app/store/configureStore";
 
@@ -17,7 +17,7 @@ import "./language";
 
 const bootstrapPlugins = (plugins) => plugins.map((plugin) => createPlugin(plugin));
 
-const bootstrapApp = (routes, externalRoutes) => {
+const bootstrapApp = (routes: IRouteProps[], externalRoutes) => {
     const store = configureStore(configs.dev);
     ReactDOM.render(
         <ErrorBoundary>

@@ -7,7 +7,8 @@ import { RuleEditorCanvas } from "./RuleEditorCanvas";
 /** The main view of the rule editor, integrating toolbar, sidebar and main rule canvas. */
 export const RuleEditorView = () => {
     return (
-        <Grid verticalStretchable={true}>
+        // TODO: CMEM-3873 Use component to use available height and background as in the tab views?
+        <Grid verticalStretchable={true} useAbsoluteSpace={true} style={{ backgroundColor: "white" }}>
             <GridRow>
                 <GridColumn full>
                     <RuleEditorToolbar />
