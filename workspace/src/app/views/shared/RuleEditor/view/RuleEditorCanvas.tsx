@@ -373,6 +373,9 @@ export const RuleEditorCanvas = () => {
     };
 
     const showEdgeMenu = (event: ReactMouseEvent, edgeId: string) => {
+        if (modelContext.isReadOnly()) {
+            return;
+        }
         setContextMenu(
             <EdgeMenu
                 position={{ x: event.clientX, y: event.clientY }}
@@ -387,6 +390,9 @@ export const RuleEditorCanvas = () => {
 
     // Fired when clicked on any elements, e.g. edge or node. Used to show the edge menu.
     const onElementClick = React.useCallback((event: ReactMouseEvent, element: Node | Edge) => {
+        if (modelContext.isReadOnly()) {
+            return;
+        }
         if (modelUtils.isEdge(element)) {
             showEdgeMenu(event, element.id);
         }
@@ -394,6 +400,9 @@ export const RuleEditorCanvas = () => {
 
     /** Selection menu */
     const onSelectionContextMenu = (event: ReactMouseEvent) => {
+        if (modelContext.isReadOnly()) {
+            return;
+        }
         // Sometimes react-flow does not provide the correct selected nodes, use tracked selection
         const nodeIds = selectedNodeIds();
         event.preventDefault();
@@ -516,8 +525,10 @@ export const RuleEditorCanvas = () => {
                     enableNavigation={true}
                 />
                 <Controls
-                    showInteractive={modelContext.isReadOnly}
-                    onInteractiveChange={(isInteractive) => modelContext.setIsReadOnly(!isInteractive)}
+                    showInteractive={!!modelContext.setIsReadOnly}
+                    onInteractiveChange={(isInteractive) =>
+                        modelContext.setIsReadOnly && modelContext.setIsReadOnly(!isInteractive)
+                    }
                 />
                 <Background variant={BackgroundVariant.Lines} gap={16} />
             </ReactFlow>

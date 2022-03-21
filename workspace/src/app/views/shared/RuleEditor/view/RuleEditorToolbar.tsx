@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, IconButton, Spacing, Toolbar, ToolbarSection } from "gui-elements";
+import { Button, Icon, IconButton, Spacing, Toolbar, ToolbarSection } from "gui-elements";
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { useTranslation } from "react-i18next";
 import { NotificationsMenu } from "../../ApplicationNotifications/NotificationsMenu";
@@ -24,14 +24,14 @@ export const RuleEditorToolbar = () => {
             <ToolbarSection>
                 <IconButton
                     data-test-id={"rule-editor-undo-btn"}
-                    disabled={!modelContext.canUndo}
+                    disabled={modelContext.isReadOnly() || !modelContext.canUndo}
                     name="operation-undo"
                     text="Undo"
                     onClick={modelContext.undo}
                 />
                 <IconButton
                     data-test-id={"rule-editor-redo-btn"}
-                    disabled={!modelContext.canRedo}
+                    disabled={modelContext.isReadOnly() || !modelContext.canRedo}
                     name="operation-redo"
                     text="Redo"
                     onClick={modelContext.redo}
@@ -39,7 +39,7 @@ export const RuleEditorToolbar = () => {
                 <Spacing vertical hasDivider />
                 <IconButton
                     data-test-id={"rule-editor-auto-layout-btn"}
-                    disabled={modelContext.elements.length === 0}
+                    disabled={modelContext.isReadOnly() || modelContext.elements.length === 0}
                     name="operation-auto-graph-layout"
                     text={t("RuleEditor.toolbar.autoLayout")}
                     onClick={modelContext.executeModelEditOperation.autoLayout}
@@ -53,14 +53,16 @@ export const RuleEditorToolbar = () => {
                 {ruleEditorContext.viewActions?.integratedView && <NotificationsMenu />}
                 <Button
                     data-test-id="ruleEditor-save-button"
-                    affirmative={true}
-                    tooltip={t("RuleEditor.toolbar.save")}
+                    affirmative={!modelContext.isReadOnly()}
+                    tooltip={
+                        modelContext.isReadOnly() ? t("RuleEditor.toolbar.readOnly") : t("RuleEditor.toolbar.save")
+                    }
                     tooltipProperties={{ hoverCloseDelay: 0 }}
                     onClick={saveLinkingRule}
-                    disabled={!modelContext.unsavedChanges}
+                    disabled={modelContext.isReadOnly() || !modelContext.unsavedChanges}
                     loading={savingWorkflow}
                 >
-                    {t("common.action.save", "Save")}
+                    {modelContext.isReadOnly() ? <Icon name={"write-protected"} /> : t("common.action.save", "Save")}
                 </Button>
             </ToolbarSection>
         </Toolbar>

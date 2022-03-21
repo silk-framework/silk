@@ -396,6 +396,7 @@
         },
         "toolbar": {
             "autoLayout": "Auto-layout",
+            "readOnly": "Read-only mode is enabled. No saving possible.",
             "save": "Save"
         },
         "selection": {

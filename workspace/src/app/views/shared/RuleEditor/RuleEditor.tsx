@@ -7,8 +7,8 @@ import {
     IParameterSpecification,
     IRuleOperator,
     IRuleOperatorNode,
-    IRuleSidebarPreConfiguredOperatorsTabConfig,
     IRuleSideBarFilterTabConfig,
+    IRuleSidebarPreConfiguredOperatorsTabConfig,
     RuleOperatorPluginType,
 } from "./RuleEditor.typings";
 import ErrorBoundary from "../../../ErrorBoundary";
@@ -56,6 +56,7 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     tabs?: (IRuleSideBarFilterTabConfig | IRuleSidebarPreConfiguredOperatorsTabConfig)[];
 }
 
+const READ_ONLY_QUERY_PARAMETER = "readOnly";
 /**
  * Generic rule editor that can be used to build tree-line rule operator graphs.
  */
@@ -93,6 +94,8 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     const [operatorSpec, setOperatorSpec] = React.useState<
         Map<string, Map<string, IParameterSpecification>> | undefined
     >(undefined);
+    const readOnlyMode =
+        (new URLSearchParams(window.location.search).get(READ_ONLY_QUERY_PARAMETER) ?? "").toLowerCase() === "true";
 
     // Fetch the task data
     React.useEffect(() => {
@@ -188,6 +191,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 validateConnection,
                 tabs,
                 viewActions,
+                readOnlyMode,
             }}
         >
             <RuleEditorModel>

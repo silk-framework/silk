@@ -51,7 +51,7 @@ type ChangeStackType = RuleModelChanges | "Transaction boundary";
 export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const { t } = useTranslation();
     /** If set, then the model cannot be modified. */
-    const [isReadOnly, setIsReadOnly] = React.useState<boolean>(false);
+    const [readOnlyState] = React.useState<{ enabled: boolean }>({ enabled: false });
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
     /** The nodes and edges of the rule editor. */
     const [elements, setElements] = React.useState<Elements>([]);
@@ -80,8 +80,15 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const updateNodeInternals = useUpdateNodeInternals();
     const resetSelectedElements = useStoreActions((a) => a.resetSelectedElements);
     const setSelectedElements = useStoreActions((a) => a.setSelectedElements);
+    const setInteractive = useStoreActions((a) => a.setInteractive);
     /** Map from node ID to (original) rule operator node. Used for validating connections. */
     const [nodeMap] = React.useState<Map<string, IRuleOperatorNode>>(new Map());
+    const [readOnly, _setIsReadOnly] = React.useState(false);
+
+    const setIsReadOnly = (enabled: boolean) => {
+        readOnlyState.enabled = enabled;
+        _setIsReadOnly(enabled);
+    };
 
     /** Convert initial operator nodes to react-flow model. */
     React.useEffect(() => {
@@ -101,6 +108,13 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         ruleEditorContext.editedItem,
         reactFlowInstance,
     ]);
+
+    React.useEffect(() => {
+        if (ruleEditorContext.readOnlyMode) {
+            setIsReadOnly(true);
+            setInteractive(false);
+        }
+    }, [ruleEditorContext.readOnlyMode]);
 
     /** Validates a connection before its creation. */
     const isValidConnection = (connection: Connection) => {
@@ -317,6 +331,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     /** Adds a change action to the history / UNDO stack. */
     const addRuleModelChange = (ruleModelChange: RuleModelChanges, resetRedoStack: boolean) => {
+        if (readOnlyState.enabled) {
+            return;
+        }
         // Clear redo stack, starting a new "branch", former redo operations might have become invalid
         addOrMergeRuleModelChange(ruleModelChange);
         if (resetRedoStack) {
@@ -381,6 +398,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         currentElements: Elements,
         isUndoOrRedo: boolean = false
     ): Elements => {
+        if (readOnlyState.enabled) {
+            return currentElements;
+        }
         const groupedChanges = groupedRuleModelChanges(ruleModelChange);
         let changedElements = currentElements;
         groupedChanges.forEach((groupedChange) => {
@@ -1083,8 +1103,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         <RuleEditorModelContext.Provider
             value={{
                 elements,
-                isReadOnly,
-                setIsReadOnly,
+                isReadOnly: () => readOnlyState.enabled,
+                readOnly,
+                setIsReadOnly: ruleEditorContext.readOnlyMode ? undefined : setIsReadOnly,
                 setReactFlowInstance,
                 saveRule,
                 undo,

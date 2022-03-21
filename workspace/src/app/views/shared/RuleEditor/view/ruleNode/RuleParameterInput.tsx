@@ -11,6 +11,7 @@ import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
 import { ruleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
+import { RuleEditorModelContext } from "../../contexts/RuleEditorModelContext";
 
 interface RuleParameterInputProps {
     ruleParameter: IRuleNodeParameter;
@@ -24,6 +25,7 @@ interface RuleParameterInputProps {
 export const RuleParameterInput = ({ ruleParameter, nodeId, hasValidationError }: RuleParameterInputProps) => {
     const onChange = ruleParameter.update;
     const ruleEditorContext = React.useContext(RuleEditorContext);
+    const modelContext = React.useContext(RuleEditorModelContext);
     const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
     const [t] = useTranslation();
     const uniqueId = `${nodeId} ${ruleParameter.parameterId}`;
@@ -33,6 +35,7 @@ export const RuleParameterInput = ({ ruleParameter, nodeId, hasValidationError }
         defaultValue: ruleEditorNodeParameterValue(ruleParameter.currentValue() ?? ruleParameter.initialValue),
         onChange,
         intent: hasValidationError ? Intent.DANGER : undefined,
+        disabled: ruleEditorContext.readOnlyMode || modelContext.readOnly,
     };
     switch (ruleParameter.parameterSpecification.type) {
         case "textArea":

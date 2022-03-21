@@ -17,7 +17,7 @@ interface IRuleOperatorBase {
     /** The label that will be displayed in the node header. */
     label: string;
     /** Icon that should be displayed for the operator. */
-    icon?: string;
+    icon?: ValidIconName;
     /** Specification of input ports of the operator node. */
     portSpecification: IPortSpecification;
 }

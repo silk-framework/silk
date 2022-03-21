@@ -110,7 +110,7 @@ const inputPathOperator = (
             }),
         },
         categories: ["Input"],
-        icon: "", // TODO: CMEM-3919: Icon for path input
+        icon: undefined, // TODO: CMEM-3919: Icon for path input
         description: description,
         tags: [],
     };

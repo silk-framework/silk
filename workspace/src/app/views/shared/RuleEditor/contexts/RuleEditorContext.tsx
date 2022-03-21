@@ -44,6 +44,8 @@ export interface RuleEditorContextProps {
     tabs?: (IRuleSideBarFilterTabConfig | IRuleSidebarPreConfiguredOperatorsTabConfig)[];
     /** Task view actions. */
     viewActions?: IViewActions;
+    /** If set to true the editor will be in read-only mode and cannot be set into edit mode. */
+    readOnlyMode?: boolean;
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */

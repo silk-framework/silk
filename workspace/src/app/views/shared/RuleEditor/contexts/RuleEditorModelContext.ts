@@ -14,9 +14,11 @@ export interface RuleEditorModelContextProps {
     /** The rule nodes and edges. */
     elements: Elements;
     /** If the model is set to read-only. */
-    isReadOnly: boolean;
-    /** Sets the read-only mode of the model. */
-    setIsReadOnly: (readOnly: boolean) => any;
+    isReadOnly(): boolean;
+    /** Same as above. Should be used where state change is pushed into the component. */
+    readOnly: boolean;
+    /** Sets the read-only mode of the model. If the function is not defined, read-only mode cannot be changed. */
+    setIsReadOnly?: (readOnly: boolean) => any;
     /** Callback to set the react-flow instance needed for the model. */
     setReactFlowInstance: (instance: OnLoadParams) => any;
     /** Save the current rule. */
@@ -103,9 +105,8 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     /** The nodes and edges of the rules graph. */
     elements: [],
     /** Set to true if the model is in read-only mode. */
-    isReadOnly: false,
-    /** Allows setting the model to read-only mode. */
-    setIsReadOnly: NOP,
+    isReadOnly: () => false,
+    readOnly: false,
     setReactFlowInstance: NOP,
     saveRule: () => {
         return false;
