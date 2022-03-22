@@ -32,7 +32,7 @@ val buildReactExternally = {
 }
 
 val compilerParams: (Seq[String], Seq[String]) = if(System.getProperty("java.version").split("\\.").head.toInt > 8) {
-  (Seq("--release", "8", "-Xlint"), Seq("-release", "8"))
+  (Seq("--release", "11", "-Xlint"), Seq("-release", "11"))
 } else {
   (Seq("-source", "1.8", "-target", "1.8", "-Xlint"), Seq.empty)
 }
