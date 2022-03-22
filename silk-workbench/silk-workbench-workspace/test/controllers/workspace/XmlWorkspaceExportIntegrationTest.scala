@@ -21,7 +21,9 @@ class XmlWorkspaceExportIntegrationTest extends FlatSpec with ExportIntegrationT
       "singleProject/dataset/miniCsv.xml",
       "singleProject/dataset/internalDataset.xml",
       "singleProject/resources/miniResource.csv",
-      "singleProject/config.xml"))
+      "singleProject/tags.xml",
+      "singleProject/config.xml"
+    ))
   }
 
   it should "export workspace with broken workspace provider" in {
@@ -37,6 +39,7 @@ class XmlWorkspaceExportIntegrationTest extends FlatSpec with ExportIntegrationT
       "singleProject/dataset/miniCsv.xml",
       "singleProject/dataset/internalDataset.xml",
       "singleProject/resources/miniResource.csv",
+      "singleProject/tags.xml",
       "singleProject/config.xml"
     ))
   }
