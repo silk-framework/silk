@@ -2,6 +2,8 @@ package controllers.workflowApi
 
 import controllers.workflowApi.variableWorkflow.VariableWorkflowRequestUtils
 import controllers.workflowApi.workflow.WorkflowInfo
+import controllers.workspace.ActivityClient
+import controllers.workspace.activityApi.StartActivityResponse
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.serialization.json.JsonHelpers
@@ -40,7 +42,7 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
 
   private def targetProp(nr: Int) = s"targetProp$nr"
 
-  override def routes: Option[Class[_ <: Router]] = Some(classOf[workflowApi.Routes])
+  override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkflowApi.Routes])
 
   override def projectPathInClasspath: String = "Simplevariableworkflowproject.zip"
 
@@ -173,6 +175,20 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
     )
   }
 
+  it should "execute a workflow asynchronously" in {
+    val startResponse = executeVariableWorkflowAsync(outputOnlyWorkflow, "xml")
+
+    // Wait for completion
+    val activityClient = new ActivityClient(baseUrl, projectId, outputOnlyWorkflow)
+    activityClient.waitForActivity(startResponse.activityId, Some(startResponse.instanceId))
+
+    // Retrieve result
+    val response = checkResponseExactStatusCode(getVariableWorkflowResult(outputOnlyWorkflow, startResponse.instanceId, APPLICATION_XML))
+    checkForCorrectReturnType(APPLICATION_XML, response.body, noValues = false)
+    checkForValues(1, Seq("csv value 1"), response.body)
+    checkForValues(2, Seq("csv value 2"), response.body)
+  }
+
   // Checks if all input values exist in the workflow output
   private def checkForValues(targetPropNr: Int, values: Seq[String], body: String): Unit = {
     for (value <- values) {
@@ -244,5 +260,30 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
       }
       request.get()
     }
+  }
+
+  private def executeVariableWorkflowAsync(workflowId: String,
+                                           datasetType: String,
+                                           parameters: Map[String, Seq[String]] = Map.empty,
+                                           contentOpt: Option[(String, String)] = None): StartActivityResponse = {
+    val path =  controllers.workflowApi.routes.WorkflowApi.executeVariableWorkflowAsync(projectId, workflowId).url
+    val request = client.url(s"$baseUrl$path")
+                        .withQueryStringParameters((VariableWorkflowRequestUtils.QUERY_PARAM_OUTPUT_TYPE -> datasetType))
+    val response =
+      contentOpt match {
+        case Some(content) =>
+          request.withHttpHeaders(CONTENT_TYPE -> content._2).post(content._1)
+        case None =>
+          request.post(parameters)
+      }
+    JsonHelpers.fromJsonValidated[StartActivityResponse](checkResponse(response).json)
+  }
+
+  private def getVariableWorkflowResult(workflowId: String,
+                                        instanceId: String,
+                                        acceptMimeType: String = "application/xml"): Future[WSResponse] = {
+    val path =  controllers.workflowApi.routes.WorkflowApi.variableWorkflowAsyncResult(projectId, workflowId, instanceId).url
+    val request = client.url(s"$baseUrl$path").withHttpHeaders(ACCEPT -> acceptMimeType)
+    request.get()
   }
 }
