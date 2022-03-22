@@ -58,6 +58,6 @@ case class TaskTagCollector[T <: TaskSpec]() extends IdAndLabelKeywordFacetColle
 
   override protected def extractIdAndLabel(projectTask: ProjectTask[T])
                                           (implicit user: UserContext): Set[(String, String)] = {
-    projectTask.tags().map(tag => (tag.uri, tag.label))
+    projectTask.tags().map(tag => (tag.uri.toString, tag.label))
   }
 }
