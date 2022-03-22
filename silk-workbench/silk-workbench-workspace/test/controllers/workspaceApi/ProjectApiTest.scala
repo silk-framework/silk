@@ -14,6 +14,8 @@ import play.api.libs.json.{JsResult, Json}
 import play.api.libs.ws.WSResponse
 import play.api.routing.Router
 
+import scala.collection.immutable.ListSet
+
 class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers with ProjectApiClient {
   behavior of "Project API"
 
@@ -101,7 +103,7 @@ class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatcher
 
     // Update metadata
     val currentMetaData = getMetaData(projectId)
-    val updatedMetaData = currentMetaData.copy(tags = Some(Set(tag1.uri)))
+    val updatedMetaData = currentMetaData.copy(tags = Some(ListSet(tag1.uri)))
     updateMetaData(projectId, updatedMetaData)
 
     // Make sure that the tag has been added

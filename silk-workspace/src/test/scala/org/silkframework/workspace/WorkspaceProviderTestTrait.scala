@@ -498,12 +498,20 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
       workspaceProvider.readTags(PROJECT_NAME) should contain theSameElementsAs Iterable(tag1, tag2)
     }
 
+    // Add tags to project
+    val project = getProject(PROJECT_NAME).get
+    val metaDataWithTags = project.metaData.copy(tags = ListSet("urn:tag1", "urn:tag2"))
+    workspaceProvider.putProject(project.copy(metaData = metaDataWithTags))
+    refreshTest {
+      workspaceProvider.readProject(PROJECT_NAME).get.metaData shouldBe metaDataWithTags
+    }
+
     // Add tags to a new task
     val taskWithTag = customTask.copy(
       metaData =
         MetaData(
           label = Some("Task Label"),
-          tags = ListSet("urn:tag1", "urn:tag2")
+          tags = ListSet("urn:tag2", "urn:tag1")
         )
     )
     workspaceProvider.putTask(PROJECT_NAME, taskWithTag)

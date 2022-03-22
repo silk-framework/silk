@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.config.MetaData
 import org.silkframework.util.Uri
 import play.api.libs.json.{Format, Json}
+import scala.collection.immutable.ListSet
 
 /**
   * REST request and response classes.
@@ -18,8 +19,8 @@ object ProjectApiRestPayloads {
     */
   case class ItemMetaData(label: String, description: Option[String] = None,
                           @ArraySchema(schema = new Schema(implementation = classOf[String], required = false, nullable = true))
-                          tags: Option[Set[String]] = None) {
-    def asMetaData: MetaData = MetaData(Some(label), description, tags = tags.getOrElse(Set.empty).map(new Uri(_)))
+                          tags: Option[ListSet[String]] = None) {
+    def asMetaData: MetaData = MetaData(Some(label), description, tags = tags.getOrElse(ListSet.empty).map(new Uri(_)))
   }
 
   object ItemMetaData {
