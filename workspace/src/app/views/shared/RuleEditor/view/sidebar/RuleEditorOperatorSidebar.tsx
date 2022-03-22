@@ -5,8 +5,8 @@ import Loading from "../../../Loading";
 import { IPreConfiguredOperators, RuleOperatorList } from "./RuleOperatorList";
 import {
     IRuleOperator,
-    IRuleSidebarPreConfiguredOperatorsTabConfig,
     IRuleSideBarFilterTabConfig,
+    IRuleSidebarPreConfiguredOperatorsTabConfig,
 } from "../../RuleEditor.typings";
 import { extractSearchWords, matchesAllWords } from "gui-elements/src/components/Typography/Highlighter";
 import { SidebarSearchField } from "./SidebarSearchField";
@@ -16,6 +16,7 @@ import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
+import { ISuggestionWithReplacementInfo } from "gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 /** Contains the list of operators that can be dragged and dropped onto the editor canvas and supports filtering. */
 export const RuleEditorOperatorSidebar = () => {
@@ -28,6 +29,7 @@ export const RuleEditorOperatorSidebar = () => {
     const [textQuery, setTextQuery] = React.useState<string>("");
     const searchWords = extractSearchWords(textQuery);
     const [operatorList, setOperatorList] = React.useState<IRuleOperator[] | undefined>();
+    const [operatorCategories] = React.useState<ISuggestionWithReplacementInfo[]>([]);
     /** Tab handling. */
     // The currently active tab
     const [activeTabId, setActiveTabId] = React.useState<string | undefined>(undefined);
@@ -84,6 +86,17 @@ export const RuleEditorOperatorSidebar = () => {
         }
     }, [editorContext.tabs]);
 
+    const extractOperatorCategories = (operatorList: IRuleOperator[]) => {
+        const categories = new Set<string>();
+        if (operatorList) {
+            operatorList.forEach((op) => (op.categories ?? []).forEach((cat) => categories.add(cat)));
+        }
+        const categoryArray = [...categories.values()];
+        sortLexically(categoryArray, (elem) => elem);
+        operatorCategories.splice(0, operatorCategories.length);
+        operatorCategories.push(...categoryArray.map((c) => ({ value: c, query: "", from: 0, length: 0 })));
+    };
+
     // Handle tab changes
     React.useEffect(() => {
         if (editorContext.operatorList) {
@@ -92,7 +105,9 @@ export const RuleEditorOperatorSidebar = () => {
                 if (tabConfig) {
                     if ((tabConfig as IRuleSideBarFilterTabConfig).filterAndSort) {
                         const filterTabConfig = tabConfig as IRuleSideBarFilterTabConfig;
-                        setOperatorList(filterTabConfig.filterAndSort(editorContext.operatorList));
+                        const filteredOperators = filterTabConfig.filterAndSort(editorContext.operatorList);
+                        setOperatorList(filteredOperators);
+                        extractOperatorCategories(filteredOperators);
                         setPreconfiguredOperators(undefined);
                     } else {
                         const customTabConfig = tabConfig as IRuleSidebarPreConfiguredOperatorsTabConfig;
@@ -101,6 +116,7 @@ export const RuleEditorOperatorSidebar = () => {
                 }
             } else {
                 setOperatorList(editorContext.operatorList);
+                extractOperatorCategories(editorContext.operatorList);
             }
             // Reset text query on tab change
             setTextQuery("");
@@ -123,6 +139,7 @@ export const RuleEditorOperatorSidebar = () => {
                 itemId: config.itemId,
             });
             setOperatorList(undefined);
+            operatorCategories.splice(0, operatorCategories.length);
         } catch (ex) {
             registerError(
                 "RuleEditorOperatorSidebar.loadExternalOperators",
@@ -139,6 +156,8 @@ export const RuleEditorOperatorSidebar = () => {
         titlePrefix: tab.icon ? <Icon name={tab.icon} /> : undefined,
         title: tab.label,
     }));
+
+    const fetchCategories = () => operatorCategories;
 
     return editorContext.operatorListLoading ? (
         <Loading />
@@ -162,7 +181,7 @@ export const RuleEditorOperatorSidebar = () => {
             ) : null}
             <GridRow>
                 <GridColumn full style={{ paddingTop: "3px" }}>
-                    <SidebarSearchField onQueryChange={setTextQuery} />
+                    <SidebarSearchField onQueryChange={setTextQuery} searchSuggestions={fetchCategories} />
                     <Spacing size={"small"} />
                 </GridColumn>
             </GridRow>
