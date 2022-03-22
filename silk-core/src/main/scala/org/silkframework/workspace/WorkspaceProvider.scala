@@ -81,6 +81,16 @@ trait WorkspaceProvider {
             (implicit userContext: UserContext): Unit
 
   /**
+    * Adds a set of new tags.
+    */
+  def putTags(project: Identifier, tags: Iterable[Tag])
+             (implicit userContext: UserContext): Unit = {
+    for(tag <- tags) {
+      putTag(project, tag)
+    }
+  }
+
+  /**
     * Remove a tag.
     */
   def deleteTag(project: Identifier, tagUri: String)

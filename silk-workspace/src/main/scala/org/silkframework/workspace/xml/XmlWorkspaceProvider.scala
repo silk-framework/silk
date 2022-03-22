@@ -145,6 +145,16 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
   }
 
   /**
+    * Adds a set of new tags.
+    */
+  override def putTags(project: Identifier, tags: Iterable[Tag])
+                      (implicit userContext: UserContext): Unit = {
+    val newTagUris = tags.map(_.uri).toSet
+    val newTags = readTags(project).filterNot(t => newTagUris.contains(t.uri)) ++ tags
+    updateTags(project, newTags)
+  }
+
+  /**
     * Remove a tag.
     */
   override def deleteTag(project: Identifier, tagUri: String)

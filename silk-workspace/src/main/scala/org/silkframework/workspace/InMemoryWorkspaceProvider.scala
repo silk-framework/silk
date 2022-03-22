@@ -1,6 +1,5 @@
 package org.silkframework.workspace
 
-import org.silkframework.config.{Task, TaskSpec}
 import org.silkframework.config.{Tag, Task, TaskSpec}
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
