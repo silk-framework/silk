@@ -1,6 +1,6 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Card, CardActions, CardContent, CardTitle, RadioGroup, ScrollingHOC, Spinner,} from '@eccenca/gui-elements';
-import {Button, FieldItem, Notification, Spacing, TextField} from "gui-elements";
+import {AutoSuggestion, Button, FieldItem, Notification, Spacing, TextField} from "gui-elements";
 import {
     AffirmativeButton,
     DismissiveButton,
@@ -15,7 +15,8 @@ import {
     checkValuePathValidity,
     createMappingAsync,
     fetchUriPatternAutoCompletions,
-    fetchValuePathSuggestions, updateVocabularyCacheEntry,
+    fetchValuePathSuggestions,
+    updateVocabularyCacheEntry,
     useApiDetails
 } from '../../../store';
 import {convertToUri} from '../../../utils/convertToUri';
@@ -28,7 +29,6 @@ import {wasTouched} from '../../../utils/wasTouched';
 import {newValueIsIRI} from '../../../utils/newValueIsIRI';
 import TargetCardinality from "../../../components/TargetCardinality";
 import MultiAutoComplete from "../../../components/MultiAutoComplete";
-import AutoSuggestion from "../../../components/AutoSuggestion/AutoSuggestion";
 import silkApi from "../../../../api/silkRestApi";
 import {IUriPattern} from "../../../../api/types";
 import {UriPatternSelectionModal} from "./UriPatternSelectionModal";
