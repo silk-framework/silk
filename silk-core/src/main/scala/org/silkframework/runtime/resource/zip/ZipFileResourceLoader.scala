@@ -3,7 +3,6 @@ package org.silkframework.runtime.resource.zip
 import java.io.{File, InputStream}
 import java.time.Instant
 import java.util.zip.{ZipEntry, ZipFile}
-
 import scala.collection.JavaConverters._
 import org.silkframework.runtime.resource.{Resource, ResourceLoader, ResourceNotFoundException}
 
@@ -38,11 +37,13 @@ case class ZipFileResourceLoader(zip: ZipFile, basePath: String) extends Resourc
     */
   override def get(name: String, mustExist: Boolean): Resource = {
     val zipEntry = zip.getEntry(fullPath(name))
-    if(zipEntry == null) {
-      // If the zip entry is not found, we fail fast even if mustExist is false.
+    if(zipEntry != null) {
+      ZipEntryResource(zipEntry)
+    } else if(mustExist) {
       throw new ResourceNotFoundException(s"No resource $name found in zip file at path $basePath.")
+    } else {
+      MissingResource(name)
     }
-    ZipEntryResource(zipEntry)
   }
 
   override def child(name: String): ResourceLoader = ZipFileResourceLoader(zip, fullPath(name))
@@ -111,6 +112,19 @@ case class ZipFileResourceLoader(zip: ZipFile, basePath: String) extends Resourc
       zip.getInputStream(zipEntry)
     }
 
+  }
+
+  /**
+    * Returned if the user requests a non-existing resource, but mustExist is false.
+    */
+  case class MissingResource(name: String) extends Resource {
+    override def path: String = name
+    override def exists: Boolean = false
+    override def size: Option[Long] = None
+    override def modificationTime: Option[Instant] = None
+    override def inputStream: InputStream = {
+      throw new ResourceNotFoundException(s"No resource $name found in zip file at path $basePath.")
+    }
   }
 }
 
