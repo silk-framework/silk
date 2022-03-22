@@ -159,7 +159,7 @@ class XmlWorkspaceProvider(val resources: ResourceManager) extends WorkspaceProv
     */
   override def deleteTag(project: Identifier, tagUri: String)
                         (implicit userContext: UserContext): Unit = {
-    val tags = readTags(project).filterNot(_.uri == tagUri)
+    val tags = readTags(project).filterNot(_.uri.toString == tagUri)
     updateTags(project, tags)
   }
 
