@@ -2,11 +2,12 @@ package org.silkframework.plugins.dataset.xml
 
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset.DatasetSpec
-import org.silkframework.entity.EntitySchema
-import org.silkframework.execution.{ExecutionReport, ExecutorOutput, ExecutorRegistry, TaskException}
 import org.silkframework.execution.local.{LocalEntities, LocalExecution, LocalExecutor}
+import org.silkframework.execution.{ExecutionReport, ExecutorOutput, ExecutorRegistry, TaskException}
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
 import org.silkframework.runtime.resource.InMemoryResourceManager
+
+import java.nio.charset.StandardCharsets
 
 /**
   * Only considers the first input and checks for the property path defined in the [[XmlParserTask]] specification.
@@ -41,7 +42,7 @@ case class LocalXmlParserTaskExecutor() extends LocalExecutor[XmlParserTask] {
             values(pathIndex).headOption match {
               case Some(xmlValue) =>
                 val resource = InMemoryResourceManager().get("temp")
-                resource.writeBytes(xmlValue.getBytes)
+                resource.writeBytes(xmlValue.getBytes(StandardCharsets.UTF_8))
                 val dataset = XmlDataset(resource, spec.basePath, entity.uri.toString + spec.uriSuffixPattern, streaming = false)
                 ExecutorRegistry.execute(PlainTask(task.id, DatasetSpec(dataset)),
                   Seq.empty, output, LocalExecution(useLocalInternalDatasets = false))
