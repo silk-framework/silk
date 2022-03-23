@@ -24,8 +24,8 @@ abstract class PerProjectResourceRepositoryTest extends ResourceRepositoryTest {
     resourceA.exists mustBe true
     resourceB.exists mustBe true
 
-    resourceA.loadAsString mustBe "A"
-    resourceB.loadAsString mustBe "B"
+    resourceA.loadAsString() mustBe "A"
+    resourceB.loadAsString() mustBe "B"
 
     AManager.delete(resourceName)
     resourceA.exists mustBe false

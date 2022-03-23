@@ -148,7 +148,7 @@ object WorkflowOutput {
           val resource = resourceManager.get(resourceId, mustExist = true)
           JsObject(Seq(
             "sinkId" -> JsString(sinkId),
-            "textContent" -> JsString(resource.loadAsString)
+            "textContent" -> JsString(resource.loadAsString())
           ))
         }
       )
@@ -170,7 +170,7 @@ object WorkflowOutput {
       <WorkflowResults>
         {for ((sinkId, resourceId) <- sink2ResourceMap if resourceManager.exists(resourceId)) yield {
         val resource = resourceManager.get(resourceId, mustExist = true)
-        <Result sinkId={sinkId}>{resource.loadAsString}</Result>
+        <Result sinkId={sinkId}>{resource.loadAsString()}</Result>
       }}
       </WorkflowResults>
     }

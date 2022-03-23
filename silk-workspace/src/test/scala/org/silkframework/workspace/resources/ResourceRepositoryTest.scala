@@ -24,7 +24,7 @@ abstract class ResourceRepositoryTest extends FlatSpec with MustMatchers  {
     testResource.exists mustBe true
     project.list mustBe Seq("resource")
     testResource.name mustBe "resource"
-    testResource.loadAsString mustBe testContent
+    testResource.loadAsString() mustBe testContent
     testResource.delete()
     testResource.exists mustBe false
   }
@@ -39,7 +39,7 @@ abstract class ResourceRepositoryTest extends FlatSpec with MustMatchers  {
 
     // Retrieve the resource manager again and do some navigation
     val testResourceRead = project.child("child1").parent.get.child("child1").child("child2").get("resource")
-    testResourceRead.loadAsString mustBe testContent
+    testResourceRead.loadAsString() mustBe testContent
     testResource.delete()
     testResource.exists mustBe false
   }

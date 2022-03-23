@@ -16,7 +16,7 @@ class NTriplesQuadFormatter() extends QuadFormatter {
       RDFDataMgr.writeQuads(sos, Iterator(RdfFormatUtil.quadToJenaQuad(quad)).asJava)
     else
       RDFDataMgr.writeTriples(sos, Iterator(RdfFormatUtil.quadToJenaQuad(quad).asTriple()).asJava)
-    sos.toString.dropRight(1)
+    sos.toString("UTF-8").dropRight(1)
   }
 
   override def formatQuad(quad: Quad): String = format(quad)

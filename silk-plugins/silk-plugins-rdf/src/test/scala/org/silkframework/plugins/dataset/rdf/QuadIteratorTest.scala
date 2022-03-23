@@ -28,7 +28,9 @@ class QuadIteratorTest extends FlatSpec with Matchers with MockitoSugar {
     // the serialized graph (via QuadIterator) should be isomorphic to the origin graph
     model.isEmpty shouldBe false
     oldModel.isEmpty shouldBe false
-    oldModel.isIsomorphicWith(model) shouldBe true
+    if(!oldModel.isIsomorphicWith(model)) {
+      fail(model + " is not isomorphic with " + oldModel)
+    }
 
     // adding some edge cases
     oldModel.add(      new StatementImpl(
@@ -46,7 +48,9 @@ class QuadIteratorTest extends FlatSpec with Matchers with MockitoSugar {
     model.read(new StringReader(newSerialization), null, "N-Quads")
 
     // the twice serialized graph should be isomorphic to the origin graph
-    oldModel.isIsomorphicWith(model) shouldBe true
+    if(!oldModel.isIsomorphicWith(model)) {
+      fail(model + " is not isomorphic with " + oldModel)
+    }
   }
 
   private def serialize(quadIterator: QuadIterator): String = {

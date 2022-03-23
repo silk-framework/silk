@@ -117,7 +117,7 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
       checkResponseExactStatusCode(
         executeVariableWorkflow(inputOnlyWorkflow, inputParams, usePost, APPLICATION_XML), NO_CONTENT)
       val outputCsvResource = project.resources.get(outputCsv)
-      outputCsvResource.loadAsString.split("[\\r\\n]+") mustBe Seq("targetProp1,targetProp2", "input value A,XYZ")
+      outputCsvResource.loadAsString().split("[\\r\\n]+") mustBe Seq("targetProp1,targetProp2", "input value A,XYZ")
       outputCsvResource.delete()
     }
   }

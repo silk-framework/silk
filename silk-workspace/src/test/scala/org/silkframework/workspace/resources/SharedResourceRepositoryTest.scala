@@ -13,8 +13,8 @@ abstract class SharedResourceRepositoryTest extends ResourceRepositoryTest {
 
     resourceA.writeString("A")
 
-    resourceA.loadAsString mustBe "A"
-    resourceB.loadAsString mustBe "A"
+    resourceA.loadAsString() mustBe "A"
+    resourceB.loadAsString() mustBe "A"
     resourceA.exists mustBe true
     resourceB.exists mustBe true
 

@@ -42,7 +42,7 @@ class LocalWorkflowExecutorTest extends FlatSpec with Matchers with SingleProjec
     transformReport.ruleResults("city").errorCount shouldBe 0
 
     // Check if output has been written correctly
-    project.resources.get("output.csv").loadLines shouldBe
+    project.resources.get("output.csv").loadLines() shouldBe
       Seq(
         "name,age,city",
         "Max Mustermann,40,Berlin",
@@ -50,7 +50,7 @@ class LocalWorkflowExecutorTest extends FlatSpec with Matchers with SingleProjec
       )
 
     // Check if error output has been written correctly
-    project.resources.get("errorOutput.csv").loadLines shouldBe
+    project.resources.get("errorOutput.csv").loadLines() shouldBe
       Seq(
         "name,age,city,error",
         "Max Weber,,Leipzig,Value 'unknown' is not a valid Int"

@@ -11,7 +11,7 @@ class Workbench @Inject() (assets: Assets, workspaceReact: WorkspaceReact) exten
 
 
   def index: Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    val welcome = Html(WorkbenchConfig.get.welcome.loadAsString)
+    val welcome = Html(WorkbenchConfig.get.welcome.loadAsString())
     Ok(views.html.start(welcome))
   }
 

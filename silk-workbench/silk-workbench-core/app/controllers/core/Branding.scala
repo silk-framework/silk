@@ -19,7 +19,7 @@ class Branding @Inject() () extends InjectedController {
   }
 
   def aboutDialog = Action {
-    val aboutHtml = Html(WorkbenchConfig.get.about.loadAsString)
+    val aboutHtml = Html(WorkbenchConfig.get.about.loadAsString())
     Ok(views.html.aboutDialog(aboutHtml))
   }
 

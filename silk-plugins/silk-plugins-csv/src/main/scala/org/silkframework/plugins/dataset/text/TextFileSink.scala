@@ -41,7 +41,7 @@ class TextFileSink(ds: TextFileDataset) extends EntitySink with LinkSink {
   }
 
   override def clear()(implicit userContext: UserContext): Unit = {
-    ds.file.writeString("")(ds.codec)
+    ds.file.writeString("", codec = ds.codec)
   }
 
   override def close()(implicit userContext: UserContext): Unit = {

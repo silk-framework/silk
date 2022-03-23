@@ -22,16 +22,16 @@ class FallbackResourceManagerTest extends FlatSpec with MustMatchers {
     val resourceManager = FallbackResourceManager(pr, fb, writeIntoFallbackLoader = false)
     pr.get(RESOURCE).writeString(CONTENT_PRIM)
     fb.get(RESOURCE).writeString(CONTENT_FB)
-    resourceManager.get(RESOURCE, mustExist = true).loadAsString mustBe CONTENT_PRIM
-    resourceManager.get(RESOURCE, mustExist = false).loadAsString mustBe CONTENT_PRIM
+    resourceManager.get(RESOURCE, mustExist = true).loadAsString() mustBe CONTENT_PRIM
+    resourceManager.get(RESOURCE, mustExist = false).loadAsString() mustBe CONTENT_PRIM
   }
 
   it should "read from the fallback manager if resource exists only there" in {
     val (pr, fb) = getResourceManagers
     val resourceManager = FallbackResourceManager(pr, fb, writeIntoFallbackLoader = false)
     fb.get(RESOURCE).writeString(CONTENT_FB)
-    resourceManager.get(RESOURCE, mustExist = true).loadAsString mustBe CONTENT_FB
-    resourceManager.get(RESOURCE, mustExist = false).loadAsString mustBe CONTENT_FB
+    resourceManager.get(RESOURCE, mustExist = true).loadAsString() mustBe CONTENT_FB
+    resourceManager.get(RESOURCE, mustExist = false).loadAsString() mustBe CONTENT_FB
   }
 
   it should "write to the primary manager even if resource exists in fallback manager" in {
@@ -39,8 +39,8 @@ class FallbackResourceManagerTest extends FlatSpec with MustMatchers {
     val resourceManager = FallbackResourceManager(pr, fb, writeIntoFallbackLoader = false)
     fb.get(RESOURCE).writeString(GARBAGE)
     resourceManager.get(RESOURCE, mustExist = false).writeString(CONTENT_PRIM)
-    pr.get(RESOURCE).loadAsString mustBe CONTENT_PRIM
-    fb.get(RESOURCE).loadAsString mustBe GARBAGE
+    pr.get(RESOURCE).loadAsString() mustBe CONTENT_PRIM
+    fb.get(RESOURCE).loadAsString() mustBe GARBAGE
     // Delete and write with mustExists = true
     pr.get(RESOURCE).delete()
     fb.get(RESOURCE).delete()
@@ -54,8 +54,8 @@ class FallbackResourceManagerTest extends FlatSpec with MustMatchers {
       val (pr, fb) = getResourceManagers
       val resourceManager = FallbackResourceManager(pr, fb, writeIntoFallbackLoader = writeIntoFallback)
       resourceManager.get(RESOURCE, mustExist = false).writeString(CONTENT_PRIM)
-      pr.get(RESOURCE).loadAsString mustBe CONTENT_PRIM
-      fb.get(RESOURCE).loadAsString mustBe ""
+      pr.get(RESOURCE).loadAsString() mustBe CONTENT_PRIM
+      fb.get(RESOURCE).loadAsString() mustBe ""
     }
   }
 
@@ -64,7 +64,7 @@ class FallbackResourceManagerTest extends FlatSpec with MustMatchers {
     val resourceManager = FallbackResourceManager(pr, fb, writeIntoFallbackLoader = true)
     fb.get(RESOURCE).writeString(GARBAGE)
     resourceManager.get(RESOURCE, mustExist = false).writeString(CONTENT_PRIM)
-    pr.get(RESOURCE).loadAsString mustBe ""
-    fb.get(RESOURCE).loadAsString mustBe CONTENT_PRIM
+    pr.get(RESOURCE).loadAsString() mustBe ""
+    fb.get(RESOURCE).loadAsString() mustBe CONTENT_PRIM
   }
 }
