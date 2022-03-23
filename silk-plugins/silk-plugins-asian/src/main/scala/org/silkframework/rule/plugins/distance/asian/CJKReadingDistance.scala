@@ -15,12 +15,11 @@
 package org.silkframework.rule.plugins.distance.asian
 
 import java.util.{ArrayList, Collections}
-
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 import scala.collection.JavaConverters._
-import scala.io.Source
+import scala.io.{Codec, Source}
 
 @Plugin(
   id = "cjkReadingDistance",
@@ -46,7 +45,7 @@ case class CJKReadingDistance(minChar: Char = '0', maxChar: Char = 'z') extends 
     var level = lo_str.length() - sh_str.length()
     var src = makeStringToArray(lo_str.replaceAllLiterally(" ", ""))
     var tgt = makeStringToArray(sh_str.replaceAllLiterally(" ", ""))
-    val text = Source.fromInputStream(getClass.getResourceAsStream("/org/silkframework/plugins/distance/asian/unihanProperties.tsv"))
+    val text = Source.fromInputStream(getClass.getResourceAsStream("/org/silkframework/plugins/distance/asian/unihanProperties.tsv"))(Codec.UTF8)
     val m = for (line <- text.getLines()) yield {
       val splitLine = line.split("\t")
       val key = splitLine.head

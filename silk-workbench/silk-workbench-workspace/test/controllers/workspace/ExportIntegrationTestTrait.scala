@@ -11,7 +11,7 @@ import org.silkframework.workspace._
 import java.io.{ByteArrayInputStream, InputStream}
 import java.util.UUID
 import java.util.zip.ZipInputStream
-import scala.io.Source
+import scala.io.{Codec, Source}
 import scala.reflect.ClassTag
 
 
@@ -49,7 +49,7 @@ trait ExportIntegrationTestTrait
     var result = ""
     while(nextEntry != null && result.isEmpty) {
       if(nextEntry.getName == file) {
-        result = Source.fromInputStream(zip).mkString
+        result = Source.fromInputStream(zip)(Codec.UTF8).mkString
       }
       nextEntry = zip.getNextEntry
     }

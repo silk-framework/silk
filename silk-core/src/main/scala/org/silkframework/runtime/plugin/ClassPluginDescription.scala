@@ -23,7 +23,7 @@ import org.silkframework.util.StringUtils._
 import org.silkframework.workspace.WorkspaceReadTrait
 
 import java.lang.reflect.{Constructor, InvocationTargetException, Type}
-import scala.io.Source
+import scala.io.{Codec, Source}
 import scala.language.existentials
 import scala.util.control.NonFatal
 
@@ -168,7 +168,7 @@ object ClassPluginDescription {
       if (inputStream == null) {
         throw new ResourceNotFoundException(s"The documentation file for plugin $pluginClass has not been found at '$classpath'.")
       }
-      val source = Source.fromInputStream(inputStream)
+      val source = Source.fromInputStream(inputStream)(Codec.UTF8)
       try {
         source.getLines.mkString("\n")
       } finally {
