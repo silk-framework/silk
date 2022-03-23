@@ -21,7 +21,7 @@ import org.silkframework.runtime.plugin.annotations.{AggregatorExample, Aggregat
 
 @Plugin(
   id = "average",
-  categories = Array("All", PluginCategories.recommended),
+  categories = Array(PluginCategories.recommended),
   label = "Average",
   description = "Computes the weighted average."
 )

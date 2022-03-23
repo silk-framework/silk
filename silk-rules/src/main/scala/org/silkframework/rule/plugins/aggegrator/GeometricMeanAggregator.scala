@@ -25,7 +25,7 @@ import scala.math._
  */
 @Plugin(
   id = "geometricMean",
-  categories = Array("All"),
+  categories = Array(),
   label = "Geometric mean",
   description = "Compute the (weighted) geometric mean."
 )

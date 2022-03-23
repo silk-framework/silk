@@ -6,7 +6,7 @@ import org.silkframework.runtime.plugin.annotations.{AggregatorExample, Aggregat
 
 @Plugin(
   id = "scale",
-  categories = Array("All"),
+  categories = Array(),
   label = "Scale",
   description = "Scales the result of the first input. All other inputs are ignored."
 )

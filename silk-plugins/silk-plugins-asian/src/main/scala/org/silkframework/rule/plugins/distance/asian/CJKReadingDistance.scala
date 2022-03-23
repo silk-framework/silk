@@ -24,7 +24,7 @@ import scala.io.Source
 
 @Plugin(
   id = "cjkReadingDistance",
-  categories = Array("Asian"),
+  categories = Array("Language"),
   label = "CJK reading distance",
   description = "CJK Reading Distance."
 )
