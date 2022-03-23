@@ -13,6 +13,7 @@ import { CreateNewFile } from "./cases/CreateNewFile";
 import i18next from "../../../../language";
 import { requestIfResourceExists } from "@ducks/workspace/requests";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
+import { withTranslation } from "react-i18next";
 import XHR from "@uppy/xhr-upload";
 
 interface IUploaderInstance {
@@ -88,6 +89,8 @@ export interface IUploaderOptions {
 
     /** The max. file upload size in bytes. */
     maxFileUploadSizeBytes?: number;
+
+    t(key: string, options?: object | string): string;
 }
 
 interface IState {
@@ -119,7 +122,7 @@ const noop = () => {
  * with advanced = true, provides full FileUploader with 2 extra options
  * otherwise provides simple drag and drop uploader
  */
-export class FileSelectionMenu extends React.Component<IUploaderOptions, IState> {
+class FileSelectionMenu extends React.Component<IUploaderOptions, IState> {
     private uppy = Uppy({
         // @ts-ignore
         logger: Uppy.debugLogger,
@@ -286,6 +289,14 @@ export class FileSelectionMenu extends React.Component<IUploaderOptions, IState>
                                 <SelectFileFromExisting
                                     autocomplete={advanced.autocomplete}
                                     onChange={this.handleFileNameChange}
+                                    labelAttributes={{
+                                        text: this.props.t(
+                                            "FileUploader.selectFromProject",
+                                            "Select file from projects"
+                                        ),
+                                        info: this.props.t("common.words.required"),
+                                        htmlFor: "autocompleteInput",
+                                    }}
                                 />
                             )}
                             {selectedFileMenu === "NEW" && (
@@ -312,3 +323,5 @@ export class FileSelectionMenu extends React.Component<IUploaderOptions, IState>
         );
     }
 }
+
+export default withTranslation()(FileSelectionMenu);

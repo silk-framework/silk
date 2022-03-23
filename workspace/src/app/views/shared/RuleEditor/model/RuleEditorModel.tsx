@@ -965,6 +965,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         handleParameterChange: changeNodeParameter,
     };
 
+    const nodePluginId = (nodeId: string) => nodeMap.get(nodeId)?.pluginId;
+
     // Context for creating new nodes
     const operatorNodeCreateContextInternal = (
         operatorPluginId: string,
@@ -977,6 +979,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         currentValue: currentParameterValue,
         initParameters: initNodeParametersInternal,
         isValidConnection,
+        nodePluginId,
     });
 
     /** Auto-layout the rule nodes.

@@ -4,6 +4,7 @@ import { ValidIconName } from "gui-elements/src/components/Icon/canonicalIconNam
 import { IPreConfiguredRuleOperator } from "./view/sidebar/RuleEditorOperatorSidebar.typings";
 import { IOperatorNodeParameterValueWithLabel } from "../../taskViews/shared/rules/rule.typings";
 import { RuleEditorNodeParameterValue } from "./model/RuleEditorModel.typings";
+import { IPropertyAutocomplete } from "@ducks/common/typings";
 
 export type PathInputOperator = "PathInputOperator";
 
@@ -71,6 +72,8 @@ export interface IParameterSpecification {
     advanced: boolean;
     /** The default value for the parameter. */
     defaultValue: string;
+    /** Auto-completion config. */
+    autoCompletion?: IPropertyAutocomplete;
     /** Custom validation function for this parameter. */
     customValidation?: (value: RuleEditorNodeParameterValue) => IParameterValidationResult;
 }

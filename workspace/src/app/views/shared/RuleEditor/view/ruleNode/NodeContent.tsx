@@ -4,6 +4,7 @@ import React from "react";
 import { RuleOperatorNodeParameters } from "../../RuleEditor.typings";
 import { IOperatorCreateContext, IOperatorNodeOperations } from "../../model/RuleEditorModel.utils";
 import utils from "./ruleNode.utils";
+import { IOperatorNodeParameterValueWithLabel } from "../../../../taskViews/shared/rules/rule.typings";
 
 interface NodeContentProps {
     nodeId: string;
@@ -53,9 +54,25 @@ export const NodeContent = ({
                 parameterSpecification: paramSpec,
             };
         });
+    const dependentValue = (paramId: string): string | undefined => {
+        const value = operatorContext.currentValue(nodeId, paramId);
+        if ((value as IOperatorNodeParameterValueWithLabel).value != null) {
+            return (value as IOperatorNodeParameterValueWithLabel).value;
+        } else {
+            return value as string | undefined;
+        }
+    };
     return rerender ? null : (
         <>
-            {parameters.length ? <RuleNodeParameterForm key={"form"} nodeId={nodeId} parameters={parameters} /> : null}
+            {parameters.length ? (
+                <RuleNodeParameterForm
+                    key={"form"}
+                    nodeId={nodeId}
+                    pluginId={operatorContext.nodePluginId(nodeId) ?? "unknown"}
+                    parameters={parameters}
+                    dependentValue={dependentValue}
+                />
+            ) : null}
             {tags ? utils.createOperatorTags(tags) : null}
         </>
     );

@@ -64,7 +64,7 @@ export const SidebarSearchField = ({ onQueryChange, searchSuggestions }: Sidebar
                 options={suggestions}
                 isOpen={hasFocus && suggestions.length > 0}
                 onItemSelectionChange={(item) => {
-                    setTextQuery(item.value);
+                    setTextQuery(item.value + " ");
                 }}
             />
         </>

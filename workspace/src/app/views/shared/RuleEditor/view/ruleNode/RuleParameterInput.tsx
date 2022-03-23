@@ -2,41 +2,66 @@ import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
 import React from "react";
 import { Switch, TextArea, TextField } from "gui-elements";
 import { CodeEditor } from "../../../QueryEditor/CodeEditor";
-import { FileSelectionMenu } from "../../../FileUploader/FileSelectionMenu";
 import { requestResourcesList } from "@ducks/shared/requests";
-import { AppToaster } from "../../../../../services/toaster";
 import { Intent } from "@blueprintjs/core";
 import { useTranslation } from "react-i18next";
-import { useSelector } from "react-redux";
-import { commonSel } from "@ducks/common";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
 import { ruleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
 import { RuleEditorModelContext } from "../../contexts/RuleEditorModelContext";
+import useErrorHandler from "../../../../../hooks/useErrorHandler";
+import { SelectFileFromExisting } from "../../../FileUploader/cases/SelectFileFromExisting";
+import { ParameterAutoCompletion } from "../../../modals/CreateArtefactModal/ArtefactForms/ParameterAutoCompletion";
 
 interface RuleParameterInputProps {
+    /** ID of the plugin this parameter is part of. */
+    pluginId: string;
+    /** The parameter config. */
     ruleParameter: IRuleNodeParameter;
     /** The ID of the node the parameter is part of. */
     nodeId: string;
     /** If there should be error highlighting of the input component. */
     hasValidationError: boolean;
+    /** Requests values of parameters this parameter might depend on for auto-completion. */
+    dependentValue: (paramId: string) => string | undefined;
 }
 
 /** An input widget for a parameter value. */
-export const RuleParameterInput = ({ ruleParameter, nodeId, hasValidationError }: RuleParameterInputProps) => {
+export const RuleParameterInput = ({
+    pluginId,
+    ruleParameter,
+    nodeId,
+    hasValidationError,
+    dependentValue,
+}: RuleParameterInputProps) => {
     const onChange = ruleParameter.update;
     const ruleEditorContext = React.useContext(RuleEditorContext);
     const modelContext = React.useContext(RuleEditorModelContext);
-    const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
+    const { registerError } = useErrorHandler();
     const [t] = useTranslation();
     const uniqueId = `${nodeId} ${ruleParameter.parameterId}`;
+    const defaultValue = ruleEditorNodeParameterValue(ruleParameter.currentValue() ?? ruleParameter.initialValue);
     const inputAttributes = {
         id: uniqueId,
         name: uniqueId,
-        defaultValue: ruleEditorNodeParameterValue(ruleParameter.currentValue() ?? ruleParameter.initialValue),
+        defaultValue: defaultValue,
         onChange,
         intent: hasValidationError ? Intent.DANGER : undefined,
         disabled: ruleEditorContext.readOnlyMode || modelContext.readOnly,
     };
+
+    const handleFileSearch = async (input: string) => {
+        try {
+            return (
+                await requestResourcesList(ruleEditorContext.projectId, {
+                    searchText: input,
+                })
+            ).data;
+        } catch (e) {
+            registerError("RuleParameterInput.handleFileSearch", "Could not fetch project resource files!", e);
+            return [];
+        }
+    };
+
     switch (ruleParameter.parameterSpecification.type) {
         case "textArea":
             return (
@@ -63,40 +88,14 @@ export const RuleParameterInput = ({ ruleParameter, nodeId, hasValidationError }
             );
         case "resource":
             const resourceNameFn = (item) => item.name;
-            const handleFileSearch = async (input: string) => {
-                try {
-                    return (
-                        await requestResourcesList(ruleEditorContext.projectId, {
-                            searchText: input,
-                        })
-                    ).data;
-                } catch (e) {
-                    AppToaster.show({
-                        message: e.detail,
-                        intent: Intent.DANGER,
-                        timeout: 0,
-                    });
-                    return [];
-                }
-            };
             return (
-                <FileSelectionMenu
-                    projectId={ruleEditorContext.projectId}
-                    advanced={{
-                        autocomplete: {
-                            onSearch: handleFileSearch,
-                            itemRenderer: resourceNameFn,
-                            itemValueRenderer: resourceNameFn,
-                            itemValueSelector: resourceNameFn,
-                            noResultText: t("common.messages.noResults", "No results."),
-                        },
-                    }}
-                    allowMultiple={false}
-                    maxFileUploadSizeBytes={maxFileUploadSize}
-                    onUploadSuccess={(file) => {
-                        if (file) {
-                            onChange(file.name);
-                        }
+                <SelectFileFromExisting
+                    autocomplete={{
+                        onSearch: handleFileSearch,
+                        itemRenderer: resourceNameFn,
+                        itemValueRenderer: resourceNameFn,
+                        itemValueSelector: resourceNameFn,
+                        noResultText: t("common.messages.noResults", "No results."),
                     }}
                     {...inputAttributes}
                 />
@@ -105,13 +104,30 @@ export const RuleParameterInput = ({ ruleParameter, nodeId, hasValidationError }
         case "float":
         case "textField":
         default:
-            return (
-                <TextField
-                    {...inputAttributes}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        onChange(e.target.value);
-                    }}
-                />
-            );
+            if (ruleParameter.parameterSpecification.autoCompletion) {
+                return (
+                    <ParameterAutoCompletion
+                        projectId={ruleEditorContext.projectId}
+                        paramId={ruleParameter.parameterId}
+                        pluginId={pluginId}
+                        onChange={inputAttributes.onChange}
+                        initialValue={defaultValue ? { value: defaultValue } : undefined}
+                        autoCompletion={ruleParameter.parameterSpecification.autoCompletion}
+                        intent={hasValidationError ? Intent.DANGER : Intent.NONE}
+                        formParamId={uniqueId}
+                        dependentValue={dependentValue}
+                        required={ruleParameter.parameterSpecification.required}
+                    />
+                );
+            } else {
+                return (
+                    <TextField
+                        {...inputAttributes}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                            onChange(e.target.value);
+                        }}
+                    />
+                );
+            }
     }
 };

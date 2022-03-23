@@ -57,6 +57,8 @@ export interface IOperatorCreateContext {
     initParameters: (nodeId: string, parameters: RuleOperatorNodeParameters) => any;
     // Returns true if this is a valid connection
     isValidConnection: (connection: Connection) => boolean;
+    // The plugin ID of a node
+    nodePluginId: (nodeId: string) => string | undefined;
 }
 
 /** Creates a new react-flow rule operator node. */

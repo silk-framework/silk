@@ -10,11 +10,14 @@ import { IOperatorNodeParameterValueWithLabel } from "../../../../taskViews/shar
 
 interface RuleNodeFormParameterProps {
     nodeId: string;
+    pluginId: string;
     parameter: IRuleNodeParameter;
+    /** Requests values of parameters this parameter might depend on for auto-completion. */
+    dependentValue: (paramId: string) => string | undefined;
 }
 
 /** A single form parameter, i.e. label, validation and input component. */
-export const RuleNodeFormParameter = ({ nodeId, parameter }: RuleNodeFormParameterProps) => {
+export const RuleNodeFormParameter = ({ nodeId, pluginId, parameter, dependentValue }: RuleNodeFormParameterProps) => {
     const [t] = useTranslation();
     const [validationResult, setValidationResult] = React.useState<IParameterValidationResult>({ valid: true });
     const [validationState] = React.useState<{ timeoutId: number | undefined }>({ timeoutId: undefined });
@@ -68,9 +71,11 @@ export const RuleNodeFormParameter = ({ nodeId, parameter }: RuleNodeFormParamet
             hasStateWarning={validationResult.intent === "warning"}
         >
             <RuleParameterInput
+                pluginId={pluginId}
                 ruleParameter={{ ...parameter, update: updateWithValidation }}
                 nodeId={nodeId}
                 hasValidationError={!validationResult.valid}
+                dependentValue={dependentValue}
             />
         </FieldItem>
     );

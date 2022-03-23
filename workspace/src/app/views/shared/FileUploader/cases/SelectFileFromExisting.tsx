@@ -20,13 +20,19 @@ interface IProps {
      * Default value
      */
     defaultValue?: string;
+
+    labelAttributes?: {
+        text: string;
+        info: string;
+        htmlFor: string;
+    };
 }
 
 /**
  * The widget for "select from existing" option
  * @constructor
  */
-export function SelectFileFromExisting({ autocomplete, onChange, defaultValue }: IProps) {
+export function SelectFileFromExisting({ autocomplete, onChange, defaultValue, labelAttributes }: IProps) {
     const selectedValueState = useState(defaultValue);
     const setSelectedValue = selectedValueState[1];
     const [error, setError] = useState(false);
@@ -38,23 +44,28 @@ export function SelectFileFromExisting({ autocomplete, onChange, defaultValue }:
 
         onChange(value);
     };
-    const itemStringValue = (item: IProjectResource) => item.name;
 
-    return (
-        <FieldItem
-            labelAttributes={{
-                text: t("FileUploader.selectFromProject", "Select file from projects"),
-                info: t("common.words.required"),
-                htmlFor: "autocompleteInput",
-            }}
-            messageText={error ? t("FileUploader.fileNotSpecified") : ""}
-        >
-            <AutoCompleteField<IProjectResource, string>
-                {...autocomplete}
-                onChange={handleChange}
-                itemValueSelector={itemStringValue}
-                itemValueRenderer={itemStringValue}
-            />
+    return labelAttributes ? (
+        <FieldItem labelAttributes={labelAttributes} messageText={error ? t("FileUploader.fileNotSpecified") : ""}>
+            <AutoComplete autocomplete={autocomplete} handleChange={handleChange} />
         </FieldItem>
+    ) : (
+        <AutoComplete autocomplete={autocomplete} handleChange={handleChange} />
     );
 }
+
+const itemStringValue = (item: IProjectResource) => item.name;
+
+interface AutoCompleteProps {
+    autocomplete: IAutoCompleteFieldProps<IProjectResource, string>;
+    handleChange: (value: string) => void;
+}
+
+const AutoComplete = ({ autocomplete, handleChange }: AutoCompleteProps) => (
+    <AutoCompleteField<IProjectResource, string>
+        {...autocomplete}
+        onChange={handleChange}
+        itemValueSelector={itemStringValue}
+        itemValueRenderer={itemStringValue}
+    />
+);

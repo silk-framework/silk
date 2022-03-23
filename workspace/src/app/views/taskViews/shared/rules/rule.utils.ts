@@ -165,6 +165,7 @@ const convertRuleOperator = (
                     advanced: parameterSpec.advanced,
                     required: required(parameterId),
                     type: convertPluginParameterType(parameterSpec.parameterType),
+                    autoCompletion: parameterSpec.autoCompletion,
                     defaultValue: parameterSpec.value,
                 };
                 return [parameterId, spec];
@@ -197,13 +198,14 @@ const convertPluginParameterType = (pluginParameterType: string): RuleParameterT
             return "code";
         case "password":
             return "password";
+        case "resource":
+            return "resource";
         case "duration":
         case "char": // TODO: CMEM-3873: We could further restrict its target type
         case "uri": // TODO: CMEM-3873: We could handle URIs with a special target type
         case "option[identifier]": // TODO: CMEM-3873: We could check identifiers
         case "identifier":
         case "enumeration": // TODO: CMEM-3873: Add auto-completion
-        case "resource": // TODO: CMEM-3873: Add auto-completion
         case "project": // TODO: CMEM-3873: Add auto-completion
         case "task": // TODO: CMEM-3873: Add auto-completion
         default:

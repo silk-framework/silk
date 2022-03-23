@@ -1,23 +1,14 @@
 import React from "react";
 import { Markdown, StringPreviewContentBlobToggler } from "gui-elements/cmem";
-import { sharedOp } from "@ducks/shared";
-import { IArtefactItemProperty, IPropertyAutocomplete, ITaskParameter } from "@ducks/common/typings";
-import {
-    AutoCompleteField,
-    FieldItem,
-    FieldSet,
-    Label,
-    TitleSubsection,
-    WhiteSpaceContainer,
-} from "gui-elements";
+import { IArtefactItemProperty, ITaskParameter } from "@ducks/common/typings";
+import { FieldItem, FieldSet, Label, TitleSubsection, WhiteSpaceContainer } from "gui-elements";
 import { Intent } from "gui-elements/blueprint/constants";
 import { InputMapper } from "./InputMapper";
-import { AppToaster } from "../../../../../services/toaster";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
 import { INPUT_TYPES } from "../../../../../constants";
 import { useTranslation } from "react-i18next";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
-import { createNewItemRendererFactory } from "gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
+import { ParameterAutoCompletion } from "./ParameterAutoCompletion";
 
 const MAXLENGTH_TOOLTIP = 32;
 const MAXLENGTH_SIMPLEHELP = 192;
@@ -99,42 +90,9 @@ export const ParameterWidget = (props: IProps) => {
     const { title, description, autoCompletion } = propertyDetails;
     const [t] = useTranslation();
 
-    const selectDependentValues = (autoCompletion: IPropertyAutocomplete): string[] => {
-        return autoCompletion.autoCompletionDependsOnParameters.flatMap((paramId) => {
-            const prefixedParamId =
-                formParamId.substring(0, formParamId.length - taskParameter.paramId.length) + paramId;
-            if (dependentValues[prefixedParamId]) {
-                return [dependentValues[prefixedParamId]];
-            } else {
-                return [];
-            }
-        });
-    };
-
-    const handleAutoCompleteInput = async (input: string, autoCompletion: IPropertyAutocomplete) => {
-        try {
-            const autoCompleteResponse = await sharedOp.getAutocompleteResultsAsync({
-                pluginId: pluginId,
-                parameterId: taskParameter.paramId,
-                projectId,
-                dependsOnParameterValues: selectDependentValues(autoCompletion),
-                textQuery: input,
-                limit: 100, // The auto-completion is only showing the first n values TODO: Make auto-completion list scrollable?
-            });
-            return autoCompleteResponse.data;
-        } catch (e) {
-            if (e.isHttpError && e.httpStatus !== 400) {
-                // For now hide 400 errors from user, since they are not helpful.
-                AppToaster.show({
-                    message: e.errorResponse.detail,
-                    intent: Intent.DANGER,
-                    timeout: 0,
-                });
-            } else {
-                console.warn(e);
-            }
-            return [];
-        }
+    const dependentValue = (paramId: string) => {
+        const prefixedParamId = formParamId.substring(0, formParamId.length - taskParameter.paramId.length) + paramId;
+        return dependentValues[prefixedParamId];
     };
 
     let propertyHelperText: JSX.Element | undefined = undefined;
@@ -236,47 +194,21 @@ export const ParameterWidget = (props: IProps) => {
                 messageText={errorMessage(title, errors)}
             >
                 {autoCompletion ? (
-                    <AutoCompleteField<IAutocompleteDefaultResponse, string>
-                        onSearch={(input: string) => handleAutoCompleteInput(input, autoCompletion)}
+                    <ParameterAutoCompletion
+                        projectId={projectId}
+                        paramId={taskParameter.paramId}
+                        pluginId={pluginId}
                         onChange={changeHandlers[formParamId]}
                         initialValue={
                             initialValues[formParamId]
                                 ? initialValues[formParamId]
                                 : { value: defaultValueAsJs(propertyDetails) }
                         }
-                        disabled={
-                            selectDependentValues(autoCompletion).length <
-                            autoCompletion.autoCompletionDependsOnParameters.length
-                        }
-                        inputProps={{
-                            name: formParamId,
-                            id: formParamId,
-                            intent: errors ? Intent.DANGER : Intent.NONE,
-                        }}
-                        reset={
-                            !required
-                                ? {
-                                      resetValue: "",
-                                      resettableValue: (v) => !!v.value,
-                                      resetButtonText: t("common.action.resetSelection", "Reset selection"),
-                                  }
-                                : undefined
-                        }
-                        itemRenderer={displayAutoCompleteLabel}
-                        itemValueRenderer={autoCompleteLabel}
-                        itemValueSelector={(item) => item.value}
-                        createNewItem={
-                            autoCompletion.allowOnlyAutoCompletedValues
-                                ? undefined
-                                : {
-                                      itemFromQuery: (query) => ({ value: query }),
-                                      itemRenderer: createNewItemRendererFactory(
-                                          (query) => t("ParameterWidget.AutoComplete.createNewItem", { query }),
-                                          "item-add-artefact"
-                                      ),
-                                  }
-                        }
-                        noResultText={t("common.messages.noResults")}
+                        autoCompletion={autoCompletion}
+                        intent={errors ? Intent.DANGER : Intent.NONE}
+                        formParamId={formParamId}
+                        dependentValue={dependentValue}
+                        required={required}
                     />
                 ) : (
                     <InputMapper
