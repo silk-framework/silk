@@ -7,7 +7,6 @@ import { InputMapper } from "./InputMapper";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
 import { INPUT_TYPES } from "../../../../../constants";
 import { useTranslation } from "react-i18next";
-import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import { ParameterAutoCompletion } from "./ParameterAutoCompletion";
 
 const MAXLENGTH_TOOLTIP = 32;
@@ -54,21 +53,6 @@ export const errorMessage = (title: string, errors: any) => {
         return errors.message;
     } else {
         return "";
-    }
-};
-
-// Label of auto-completion results
-const autoCompleteLabel = (item: IAutocompleteDefaultResponse) => {
-    const label = item.label || item.value;
-    return label;
-};
-
-const displayAutoCompleteLabel = (item: IAutocompleteDefaultResponse) => {
-    const label = autoCompleteLabel(item);
-    if (label === "") {
-        return "\u00A0";
-    } else {
-        return label;
     }
 };
 

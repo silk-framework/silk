@@ -54,6 +54,8 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     ) => boolean;
     /** Tabs that allow to show different rule operators or only a subset. */
     tabs?: (IRuleSideBarFilterTabConfig | IRuleSidebarPreConfiguredOperatorsTabConfig)[];
+    /** Additional components that will be placed in the tool bar left to the save button. */
+    additionalToolBarComponents?: () => JSX.Element | JSX.Element[];
 }
 
 const READ_ONLY_QUERY_PARAMETER = "readOnly";
@@ -73,6 +75,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     validateConnection,
     tabs,
     viewActions,
+    additionalToolBarComponents,
 }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
     // The task that contains the rule, e.g. transform or linking task
     const [taskData, setTaskData] = React.useState<TASK_TYPE | undefined>(undefined);
@@ -192,6 +195,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 tabs,
                 viewActions,
                 readOnlyMode,
+                additionalToolBarComponents,
             }}
         >
             <RuleEditorModel>

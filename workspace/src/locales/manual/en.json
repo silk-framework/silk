@@ -434,6 +434,10 @@
                 "saveLinkageRule": {
                     "msg": "Could not save linking rule!"
                 }
+            },
+            "cacheWidgets": {
+                "pathsCache": "Paths cache",
+                "evaluationCache": "Evaluation cache"
             }
         },
         "ruleEditor": {

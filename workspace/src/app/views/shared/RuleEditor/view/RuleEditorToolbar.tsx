@@ -49,6 +49,7 @@ export const RuleEditorToolbar = () => {
             <ToolbarSection canGrow>
                 <Spacing vertical />
             </ToolbarSection>
+            {ruleEditorContext.additionalToolBarComponents ? ruleEditorContext.additionalToolBarComponents() : null}
             <ToolbarSection>
                 {ruleEditorContext.viewActions?.integratedView && <NotificationsMenu />}
                 <Button

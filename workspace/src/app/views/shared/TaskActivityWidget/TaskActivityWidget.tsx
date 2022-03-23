@@ -6,6 +6,7 @@ import {
     SilkActivityControl,
     IActivityControlLayoutProps,
     Markdown,
+    TimeUnits,
 } from "gui-elements/cmem";
 import { DIErrorTypes } from "@ducks/error/typings";
 import useErrorHandler from "../../../hooks/useErrorHandler";
@@ -29,6 +30,8 @@ interface IProps {
         // key is typed as string but should be ActivityAction, which is not allowed for index signature parameter types
         [key: string]: (mainAction: () => Promise<void>) => Promise<void>;
     };
+    /** If the activity is a cache activity the presentation will be different, e.g. reload button shown etc. */
+    isCacheActivity?: boolean;
 }
 
 /** Task activity widget to show the activity status and start / stop task activities. */
@@ -39,6 +42,7 @@ export const TaskActivityWidget = ({
     label = "",
     layoutConfig,
     activityActionPreAction = {},
+    isCacheActivity = false,
 }: IProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
@@ -97,6 +101,8 @@ export const TaskActivityWidget = ({
         }
     };
     const translate = useCallback((key: string) => t("widget.TaskActivityOverview.activityControl." + key), [t]);
+    // For the elapsed time component, showing when a cache was last updated
+    const translateUnits = (unit: TimeUnits) => t("common.units." + unit, unit);
 
     // TODO: Fix size issues with activity control and tooltip
     return (
@@ -116,10 +122,20 @@ export const TaskActivityWidget = ({
                 renderReport: (markdown) => <Markdown children={markdown as string} />,
                 fetchErrorReport: activityErrorReport,
             }}
-            showStartAction={true}
+            showStartAction={!isCacheActivity}
             showStopAction={true}
-            showReloadAction={false}
+            showReloadAction={isCacheActivity}
             layoutConfig={layoutConfig}
+            elapsedTimeOfLastStart={
+                isCacheActivity
+                    ? {
+                          translate: translateUnits,
+                          prefix: ` (${t("widget.TaskActivityOverview.cacheGroup.cacheAgePrefixIndividual")}`,
+                          suffix: `${t("widget.TaskActivityOverview.cacheGroup.cacheAgeSuffix")})`,
+                      }
+                    : undefined
+            }
+            hideMessageOnStatus={isCacheActivity ? (concreteStatus) => concreteStatus === "Successful" : undefined}
         />
     );
 };

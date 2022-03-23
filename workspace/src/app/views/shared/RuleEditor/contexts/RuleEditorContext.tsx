@@ -46,6 +46,8 @@ export interface RuleEditorContextProps {
     viewActions?: IViewActions;
     /** If set to true the editor will be in read-only mode and cannot be set into edit mode. */
     readOnlyMode?: boolean;
+    /** Additional components that will be placed in the tool bar left to the save button. */
+    additionalToolBarComponents?: () => JSX.Element | JSX.Element[];
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */

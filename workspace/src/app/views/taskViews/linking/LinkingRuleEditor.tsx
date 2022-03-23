@@ -19,6 +19,8 @@ import {
     ruleEditorNodeParameterValue,
     RuleEditorNodeParameterValue,
 } from "../../shared/RuleEditor/model/RuleEditorModel.typings";
+import { Spacing, ToolbarSection } from "gui-elements";
+import { TaskActivityWidget } from "../../shared/TaskActivityWidget/TaskActivityWidget";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -232,6 +234,34 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                 ruleUtils.sidebarTabs.comparison,
                 ruleUtils.sidebarTabs.transform,
                 ruleUtils.sidebarTabs.aggregation,
+            ]}
+            additionalToolBarComponents={() => [
+                <ToolbarSection canShrink>
+                    <div style={{ maxWidth: "100%" }}>
+                        <TaskActivityWidget
+                            label={t("taskViews.linkRulesEditor.cacheWidgets.evaluationCache")}
+                            projectId={projectId}
+                            taskId={linkingTaskId}
+                            activityName={"ReferenceEntitiesCache"}
+                            layoutConfig={{ small: true, border: true, canShrink: true, visualization: "spinner" }}
+                            isCacheActivity={true}
+                        />
+                    </div>
+                </ToolbarSection>,
+                <Spacing vertical={true} size={"small"} />,
+                <ToolbarSection canShrink>
+                    <div style={{ maxWidth: "100%" }}>
+                        <TaskActivityWidget
+                            label={t("taskViews.linkRulesEditor.cacheWidgets.pathsCache")}
+                            projectId={projectId}
+                            taskId={linkingTaskId}
+                            activityName={"LinkingPathsCache"}
+                            layoutConfig={{ small: true, border: true, canShrink: true, visualization: "spinner" }}
+                            isCacheActivity={true}
+                        />
+                    </div>
+                </ToolbarSection>,
+                <Spacing vertical={true} hasDivider={true} />,
             ]}
         />
     );
