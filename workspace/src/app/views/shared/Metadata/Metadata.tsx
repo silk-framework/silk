@@ -433,7 +433,7 @@ export function Metadata(props: IProps) {
                                                 i18nKey={"Metadata.lastModifiedBy"}
                                                 t={t}
                                                 values={{
-                                                    timestamp: modified ? t("Metadata.dateFormat", "{{year}}/{{month}}/{{day}}", getDateData(created)) : "",
+                                                    timestamp: modified ? t("Metadata.dateFormat", "{{year}}/{{month}}/{{day}}", getDateData(modified)) : "",
                                                     author: lastModifiedByUser?.label ?? t("Metadata.unknownuser", "unknown user"),
                                                 }}
                                                 components={{
