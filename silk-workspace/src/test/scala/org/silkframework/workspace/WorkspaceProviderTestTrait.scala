@@ -506,6 +506,13 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
       workspaceProvider.readProject(PROJECT_NAME).get.metaData shouldBe metaDataWithTags
     }
 
+    // Modify tags on project
+    val metaDataWithTags2 = project.metaData.copy(tags = ListSet("urn:tag1"))
+    workspaceProvider.putProject(project.copy(metaData = metaDataWithTags2))
+    refreshTest {
+      workspaceProvider.readProject(PROJECT_NAME).get.metaData shouldBe metaDataWithTags2
+    }
+
     // Add tags to a new task
     val taskWithTag = customTask.copy(
       metaData =
