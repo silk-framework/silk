@@ -16,7 +16,7 @@ import java.io._
 class CsvWriter(resource: WritableResource, properties: Seq[TypedProperty], settings: CsvSettings) {
 
   // The underlying Java IO Writer
-  private val writer: Writer = new OutputStreamWriter(resource.createOutputStream())
+  private val writer: Writer = new OutputStreamWriter(resource.createOutputStream(), settings.codec.charSet)
 
   // The Univocity CSV Writer
   private val csvWriter = createCsvWriter()
