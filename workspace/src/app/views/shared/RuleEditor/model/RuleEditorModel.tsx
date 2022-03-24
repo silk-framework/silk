@@ -7,6 +7,7 @@ import {
     useStoreActions,
     useStoreState,
     useUpdateNodeInternals,
+    useZoomPanHelper,
 } from "react-flow-renderer";
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { RuleEditorContext, RuleEditorContextProps } from "../contexts/RuleEditorContext";
@@ -35,6 +36,7 @@ import {
 import { Connection, XYPosition } from "react-flow-renderer/dist/types";
 import { NodeContent } from "../view/ruleNode/NodeContent";
 import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basicUtils";
+import { HighlightingState } from "gui-elements/src/extensions/react-flow/nodes/NodeDefault";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
@@ -84,6 +86,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     /** Map from node ID to (original) rule operator node. Used for validating connections. */
     const [nodeMap] = React.useState<Map<string, IRuleOperatorNode>>(new Map());
     const [readOnly, _setIsReadOnly] = React.useState(false);
+    /** react-flow related functions */
+    const { setCenter } = useZoomPanHelper();
 
     const setIsReadOnly = (enabled: boolean) => {
         readOnlyState.enabled = enabled;
@@ -922,6 +926,63 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
+    /**
+     * centers a rule node in canvas
+     */
+    const centerNodeInCanvas = (node: RuleEditorNode) => {
+        const instanceState = reactFlowInstance?.toObject();
+        const x = node.position.x + 100;
+        const y = node.position.y + 50;
+        setCenter(x, y, instanceState?.zoom ?? 1);
+    };
+
+    /** Center the node by ID. */
+    const centerNode = (nodeId: string): boolean => {
+        const node = utils.nodeById(current.elements, nodeId);
+        if (node) {
+            centerNodeInCanvas(node);
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    /**
+     * Adds highlighting for all matching nodes in the canvas and optionally removed existing highlighting.
+     */
+    const highlightNodes = (
+        nodeIds: string[],
+        highlightState: HighlightingState,
+        removeExistingHighlighting: boolean
+    ) => {
+        const currentHighlighting = (node: RuleEditorNode): HighlightingState[] =>
+            typeof node.data.highlightedState === "string"
+                ? [node.data.highlightedState]
+                : node.data.highlightedState ?? [];
+        const nodeIdSet = new Set(nodeIds);
+        changeElementsInternal((elements) =>
+            elements.map((el) => {
+                if (utils.isNode(el)) {
+                    const node = utils.asNode(el)!!;
+                    if (nodeIdSet.has(node.id)) {
+                        node.data = {
+                            ...node.data,
+                            highlightedState: removeExistingHighlighting
+                                ? [highlightState]
+                                : [...currentHighlighting(node), highlightState],
+                        };
+                    } else if (removeExistingHighlighting) {
+                        node.data = {
+                            ...node.data,
+                            highlightedState: undefined,
+                        };
+                    }
+                }
+                return el;
+            })
+        );
+    };
+
     const fixNodeInputs = () => {
         changeElementsInternal((els) => {
             return els;
@@ -994,7 +1055,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     };
 
     /** Save the current rule. */
-    const saveRule = () => {
+    const saveRule = async () => {
         const nodes: RuleEditorNode[] = [];
         const nodeInputEdges: Map<string, Edge[]> = new Map();
         const inputEdgesByNodeId = (nodeId: string): Edge[] => {
@@ -1051,7 +1112,20 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             };
             return ruleOperatorNode;
         });
-        return ruleEditorContext.saveRule(ruleOperatorNodes);
+        const saveResult = await ruleEditorContext.saveRule(ruleOperatorNodes);
+        if (!saveResult.success && (saveResult.nodeErrors ?? []).length > 0) {
+            const firstNodeError = saveResult.nodeErrors!![0];
+            const node = utils.nodeById(elements, firstNodeError.nodeId);
+            if (node) {
+                centerNodeInCanvas(node);
+                highlightNodes(
+                    saveResult.nodeErrors!!.map((err) => err.nodeId),
+                    "danger",
+                    true
+                );
+            }
+        }
+        return saveResult.success;
     };
 
     const initModel = async () => {
@@ -1133,6 +1207,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 },
                 unsavedChanges: canUndo,
                 isValidEdge,
+                centerNode,
             }}
         >
             {children}

@@ -1,13 +1,14 @@
 import { IPathInput, ITransformOperator, IValueInput, RuleLayout } from "./rule.typings";
 import {
     IParameterSpecification,
+    IParameterValidationResult,
     IPortSpecification,
     IRuleOperator,
     IRuleOperatorNode,
-    IRuleSidebarPreConfiguredOperatorsTabConfig,
     IRuleSideBarFilterTabConfig,
+    IRuleSidebarPreConfiguredOperatorsTabConfig,
     RuleParameterType,
-    IParameterValidationResult,
+    RuleValidationError,
 } from "../../../shared/RuleEditor/RuleEditor.typings";
 import { RuleOperatorFetchFnType } from "../../../shared/RuleEditor/RuleEditor";
 import { IPluginDetails } from "@ducks/common/typings";
@@ -308,19 +309,24 @@ const convertToRuleOperatorNodeMap = (
     );
     const rootNodes = ruleOperatorNodes.filter((node) => !hasParent.has(node.nodeId));
     if (validate && rootNodes.length > 1) {
-        throw Error(
+        throw new RuleValidationError(
             `More than one root node found, but at most one is allowed! Root nodes: ${rootNodes
                 .map((n) => n.label)
-                .join(", ")}`
+                .join(", ")}`,
+            rootNodes.map((node) => ({
+                nodeId: node.nodeId,
+                message: `Rule operator '${node.label}' is not the only root node.`,
+            }))
         );
     } else if (validate && rootNodes.length === 0 && nodeMap.size > 0) {
         throw Error(`Rule tree cannot be saved, because it contains cycles!`);
     } else if (validate && rootNodes.length === 1) {
         const cycle = findCycles(rootNodes[0], nodeMap);
         if (cycle) {
-            throw Error(
+            throw new RuleValidationError(
                 "Illegal cycle found in rule. Path from root node to cycled node: " +
-                    cycle.map((n) => n.label).join(", ")
+                    cycle.map((n) => n.label).join(", "),
+                cycle
             );
         }
     }
@@ -351,8 +357,9 @@ const findCycles = (
     };
     const result = iterate(rootNode);
     if (visitedNodes.size !== nodeMap.size) {
-        throw Error(
-            `Root node '${rootNode.label}' is not connected to all nodes! There are overall ${nodeMap.size} nodes, but only ${visitedNodes.size} are part of the rule tree spanned by '${rootNode.label}'.`
+        throw new RuleValidationError(
+            `Root node '${rootNode.label}' is not connected to all nodes! There are overall ${nodeMap.size} nodes, but only ${visitedNodes.size} are part of the rule tree spanned by '${rootNode.label}'.`,
+            [rootNode]
         );
     }
     return result ? result.reverse() : undefined;

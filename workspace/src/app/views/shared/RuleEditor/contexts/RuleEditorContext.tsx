@@ -5,6 +5,7 @@ import {
     IRuleOperatorNode,
     IRuleSidebarPreConfiguredOperatorsTabConfig,
     IRuleSideBarFilterTabConfig,
+    RuleSaveResult,
 } from "../RuleEditor.typings";
 import { IViewActions } from "../../../plugins/PluginRegistry";
 
@@ -31,7 +32,7 @@ export interface RuleEditorContextProps {
     /** The initial rule nodes, e.g. when loading an existing rule. */
     initialRuleOperatorNodes?: IRuleOperatorNode[];
     /** Save the rule. */
-    saveRule: (ruleOperatorNodes: IRuleOperatorNode[]) => Promise<boolean> | boolean;
+    saveRule: (ruleOperatorNodes: IRuleOperatorNode[]) => Promise<RuleSaveResult> | RuleSaveResult;
     /** Converts a rule operator to a rule node. */
     convertRuleOperatorToRuleNode: (ruleOperator: IRuleOperator) => Omit<IRuleOperatorNode, "nodeId">;
     /** Validate a connection. Specifies which connections are allowed between nodes. */
@@ -48,6 +49,8 @@ export interface RuleEditorContextProps {
     readOnlyMode?: boolean;
     /** Additional components that will be placed in the tool bar left to the save button. */
     additionalToolBarComponents?: () => JSX.Element | JSX.Element[];
+    /** The last save result. */
+    lastSaveResult?: RuleSaveResult;
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */

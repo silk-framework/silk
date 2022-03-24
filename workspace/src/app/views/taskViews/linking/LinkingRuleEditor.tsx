@@ -9,7 +9,7 @@ import { IPluginDetails } from "@ducks/common/typings";
 import { requestUpdateProjectTask } from "@ducks/workspace/requests";
 import utils from "./LinkingRuleEditor.utils";
 import ruleUtils from "../shared/rules/rule.utils";
-import { IRuleOperatorNode } from "../../shared/RuleEditor/RuleEditor.typings";
+import { IRuleOperatorNode, RuleSaveResult, RuleValidationError } from "../../shared/RuleEditor/RuleEditor.typings";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import linkingRuleRequests, { fetchLinkSpec } from "./LinkingRuleEditor.requests";
@@ -106,7 +106,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
     };
 
     /** Save the rule. */
-    const saveLinkageRule = async (ruleOperatorNodes: IRuleOperatorNode[]) => {
+    const saveLinkageRule = async (ruleOperatorNodes: IRuleOperatorNode[]): Promise<RuleSaveResult> => {
         try {
             const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
             if (
@@ -114,7 +114,13 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                 rootNodes[0].pluginType !== "ComparisonOperator" &&
                 rootNodes[0].pluginType !== "AggregationOperator"
             ) {
-                throw Error("Rule tree root must either be an aggregation or comparison!");
+                throw new RuleValidationError(
+                    "Rule tree root must either be an aggregation or comparison!",
+                    rootNodes.map((node) => ({
+                        nodeId: node.nodeId,
+                        message: `Root node '${node.label}' is a '${node.pluginType}', but must be either a comparison or aggregation.`,
+                    }))
+                );
             }
 
             await requestUpdateProjectTask(projectId, linkingTaskId, {
@@ -130,14 +136,20 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                     },
                 },
             });
-            return true;
+            return {
+                success: true,
+            };
         } catch (err) {
-            registerError(
-                "LinkingRuleEditor_saveLinkageRule",
-                t("taskViews.linkRulesEditor.errors.saveLinkageRule.msg"),
-                err
-            );
-            return false;
+            if ((err as RuleValidationError).isRuleValidationError) {
+                return err;
+            } else {
+                return {
+                    success: false,
+                    errorMessage: `${t("taskViews.linkRulesEditor.errors.saveLinkageRule.msg")}${
+                        err.message ? ": " + err.message : ""
+                    }`,
+                };
+            }
         }
     };
 

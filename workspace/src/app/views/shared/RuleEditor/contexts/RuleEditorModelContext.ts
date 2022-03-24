@@ -37,6 +37,9 @@ export interface RuleEditorModelContextProps {
     canRedo: boolean;
     /** Returns true if this is a valid edge, false otherwise. */
     isValidEdge: (sourceNodeId: string, targetNodeId: string, targetHandleId: string) => boolean;
+    /** Center the node having the given ID.
+     * Returns true if the node has been found and centered, else false. */
+    centerNode: (nodeId: string) => boolean;
 }
 
 export interface IModelActions {
@@ -133,4 +136,5 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     redo: () => false,
     canRedo: false,
     isValidEdge: () => true,
+    centerNode: () => true,
 });

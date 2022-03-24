@@ -10,6 +10,7 @@ import {
     IRuleSideBarFilterTabConfig,
     IRuleSidebarPreConfiguredOperatorsTabConfig,
     RuleOperatorPluginType,
+    RuleSaveResult,
 } from "./RuleEditor.typings";
 import ErrorBoundary from "../../../ErrorBoundary";
 import { ReactFlowProvider } from "react-flow-renderer";
@@ -28,7 +29,10 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     /** Function to fetch the actual task data to initialize the editor. */
     fetchRuleData: (projectId: string, taskId: string) => Promise<RULE_TYPE | undefined> | RULE_TYPE | undefined;
     /** Save rule. If true is returned saving was successful, else it failed. */
-    saveRule: (ruleOperatorNodes: IRuleOperatorNode[], originalRuleData: RULE_TYPE) => Promise<boolean> | boolean;
+    saveRule: (
+        ruleOperatorNodes: IRuleOperatorNode[],
+        originalRuleData: RULE_TYPE
+    ) => Promise<RuleSaveResult> | RuleSaveResult;
     /** Fetch available rule operators. */
     fetchRuleOperators: () => Promise<OPERATOR_TYPE[] | undefined> | OPERATOR_TYPE[] | undefined;
     /** Converts the custom format to the internal rule operator format. */
@@ -99,6 +103,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     >(undefined);
     const readOnlyMode =
         (new URLSearchParams(window.location.search).get(READ_ONLY_QUERY_PARAMETER) ?? "").toLowerCase() === "true";
+    const [lastSaveResult, setLastSaveResult] = React.useState<RuleSaveResult | undefined>(undefined);
 
     // Fetch the task data
     React.useEffect(() => {
@@ -156,12 +161,20 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
         }
     };
 
-    const saveRuleOperatorNodes = async (ruleNodeOperators: IRuleOperatorNode[]) => {
+    const saveRuleOperatorNodes = async (ruleNodeOperators: IRuleOperatorNode[]): Promise<RuleSaveResult> => {
         if (taskData) {
-            return saveRule(ruleNodeOperators, taskData);
+            const result = await saveRule(ruleNodeOperators, taskData);
+            setLastSaveResult(result);
+            return result;
         } else {
-            console.error("No task data loaded, cannot save!");
-            return false;
+            const error = {
+                success: false,
+                errorMessage: "No task data loaded, cannot save!",
+                nodeErrors: [],
+            };
+            setLastSaveResult(error);
+            // unlikely to ever happen
+            return error;
         }
     };
 
@@ -196,6 +209,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 viewActions,
                 readOnlyMode,
                 additionalToolBarComponents,
+                lastSaveResult: lastSaveResult,
             }}
         >
             <RuleEditorModel>

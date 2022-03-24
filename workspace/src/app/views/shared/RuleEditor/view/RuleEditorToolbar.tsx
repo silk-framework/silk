@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Icon, IconButton, Spacing, Toolbar, ToolbarSection } from "gui-elements";
+import { Button, ContextMenu, Icon, IconButton, Spacing, Toolbar, ToolbarSection, Notification } from "gui-elements";
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { useTranslation } from "react-i18next";
 import { NotificationsMenu } from "../../ApplicationNotifications/NotificationsMenu";
@@ -52,6 +52,46 @@ export const RuleEditorToolbar = () => {
             {ruleEditorContext.additionalToolBarComponents ? ruleEditorContext.additionalToolBarComponents() : null}
             <ToolbarSection>
                 {ruleEditorContext.viewActions?.integratedView && <NotificationsMenu />}
+                {ruleEditorContext.lastSaveResult?.success === false ? (
+                    <>
+                        <Spacing vertical size="tiny" />
+                        <ContextMenu
+                            data-test-id={"ruleEditorToolbar-saveError-Btn"}
+                            togglerElement="application-warning"
+                            togglerText={ruleEditorContext.lastSaveResult!!.errorMessage}
+                            fullWidth
+                            // Errors are always shown initially
+                            defaultIsOpen={true}
+                        >
+                            <Notification danger={true} key={"errorMessage"} iconName="state-warning">
+                                <p>{ruleEditorContext.lastSaveResult!!.errorMessage}</p>
+                            </Notification>
+                            {(ruleEditorContext.lastSaveResult.nodeErrors ?? [])
+                                .filter((nodeError) => nodeError.message)
+                                .map((nodeError) => (
+                                    <div key={nodeError.nodeId}>
+                                        <Spacing size={"tiny"} />
+                                        <Notification
+                                            warning={true}
+                                            iconName="state-warning"
+                                            actions={
+                                                <IconButton
+                                                    data-test-id={"RuleEditorToolbar-nodeError-btn"}
+                                                    name="item-viewdetails"
+                                                    text={t("RuleEditor.toolbar.saveError.nodeError.tooltip")}
+                                                    onClick={() => {
+                                                        modelContext.centerNode(nodeError.nodeId);
+                                                    }}
+                                                />
+                                            }
+                                        >
+                                            <p>{nodeError.message}</p>
+                                        </Notification>
+                                    </div>
+                                ))}
+                        </ContextMenu>
+                    </>
+                ) : null}
                 <Button
                     data-test-id="ruleEditor-save-button"
                     affirmative={!modelContext.isReadOnly()}

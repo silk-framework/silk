@@ -7,7 +7,7 @@ import RuleEditor, { RuleOperatorFetchFnType } from "../../shared/RuleEditor/Rul
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
 import { putTransformRule, requestTransformRule } from "./transform.requests";
-import { IRuleOperatorNode } from "../../shared/RuleEditor/RuleEditor.typings";
+import { IRuleOperatorNode, RuleSaveResult } from "../../shared/RuleEditor/RuleEditor.typings";
 import ruleUtils from "../shared/rules/rule.utils";
 
 export interface TransformRuleEditorProps {
@@ -57,15 +57,22 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
     };
 
     /** Save the rule. */
-    const saveTransformRule = async (ruleOperatorNodes: IRuleOperatorNode[], originalRule: IComplexMappingRule) => {
+    const saveTransformRule = async (
+        ruleOperatorNodes: IRuleOperatorNode[],
+        originalRule: IComplexMappingRule
+    ): Promise<RuleSaveResult> => {
         try {
             const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
             if (rootNodes.length !== 1) {
-                throw Error(
-                    `There must be exactly one root node, but ${
+                return {
+                    success: false,
+                    errorMessage: `There must be exactly one root node, but ${
                         rootNodes.length
-                    } have been found! Root nodes: ${rootNodes.map((n) => n.label).join(", ")}`
-                );
+                    } have been found! Root nodes: ${rootNodes.map((n) => n.label).join(", ")}`,
+                    nodeErrors: rootNodes.map((rootNode) => ({
+                        nodeId: rootNode.nodeId,
+                    })),
+                };
             }
             const rule: IComplexMappingRule = {
                 ...originalRule,
@@ -74,14 +81,19 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
                 layout: ruleUtils.ruleLayout(ruleOperatorNodes),
             };
             await putTransformRule(projectId, transformTaskId, ruleId, rule);
-            return true;
+            return {
+                success: true,
+            };
         } catch (err) {
             registerError(
                 "TransformRuleEditor_saveTransformRule",
                 t("taskViews.transformRulesEditor.errors.saveTransformRule.msg"),
                 err
             );
-            return false;
+            return {
+                success: false,
+                errorMessage: t("taskViews.transformRulesEditor.errors.saveTransformRule.msg"),
+            };
         }
     };
 

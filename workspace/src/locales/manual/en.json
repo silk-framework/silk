@@ -394,11 +394,6 @@
                 }
             }
         },
-        "toolbar": {
-            "autoLayout": "Auto-layout",
-            "readOnly": "Read-only mode is enabled. No saving possible.",
-            "save": "Save"
-        },
         "selection": {
             "menu": {
                 "delete": {
@@ -417,6 +412,16 @@
             "emptyList": "No operator found.",
             "searchInput": "Search for operators and paths...",
             "searchTooltip": "Search for rule operators and input paths."
+        },
+        "toolbar": {
+            "autoLayout": "Auto-layout",
+            "readOnly": "Read-only mode is enabled. No saving possible.",
+            "save": "Save",
+            "saveError": {
+                "nodeError": {
+                    "tooltip": "Center rule node"
+                }
+            }
         }
     },
     "taskViews": {

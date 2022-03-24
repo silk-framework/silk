@@ -2,7 +2,6 @@ import { NodeContentProps } from "gui-elements/src/extensions/react-flow/nodes/N
 import { PluginType, RuleOperatorType } from "@ducks/shared/typings";
 import { ValidIconName } from "gui-elements/src/components/Icon/canonicalIconNames";
 import { IPreConfiguredRuleOperator } from "./view/sidebar/RuleEditorOperatorSidebar.typings";
-import { IOperatorNodeParameterValueWithLabel } from "../../taskViews/shared/rules/rule.typings";
 import { RuleEditorNodeParameterValue } from "./model/RuleEditorModel.typings";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 
@@ -150,4 +149,45 @@ export interface IRuleSidebarPreConfiguredOperatorsTabConfig<ListItem = any> ext
     itemLabel: (listItem: ListItem) => string;
     /** Unique ID for each list item. */
     itemId: (listItem: ListItem) => string;
+}
+
+/** Result from saving a rule. */
+export interface RuleSaveResult {
+    /** If saving was successful. */
+    success: boolean;
+    /** General error messages like network error etc. */
+    errorMessage?: string;
+    /** Node specific errors. */
+    nodeErrors?: RuleSaveNodeError[];
+}
+
+/** Just to signal that only errors are returned from a function. */
+export class RuleValidationError implements RuleSaveResult, Error {
+    public isRuleValidationError: boolean = true;
+    public success: boolean = false;
+    public errorMessage: string;
+    public nodeErrors: RuleSaveNodeError[];
+
+    constructor(errorMessage: string, nodeErrors?: RuleSaveNodeError[]) {
+        this.errorMessage = errorMessage;
+        this.nodeErrors = (nodeErrors ?? []).map((nodeError) => {
+            const { nodeId, message } = nodeError;
+            return { nodeId, message };
+        });
+    }
+
+    get message(): string {
+        return this.errorMessage;
+    }
+    get name(): string {
+        return "Rule validation error";
+    }
+}
+
+/** Node specific error. */
+interface RuleSaveNodeError {
+    /** ID of node */
+    nodeId: string;
+    /** Optional error message. Else the node will only be highlighted. */
+    message?: string;
 }
