@@ -52,5 +52,5 @@ class NTriplesQuadFormatter() extends QuadFormatter {
   /**
     * The pertaining html media type
     */
-  override def associatedMediaType: String = Lang.NQUADS.getContentType.getContentType
+  override def associatedMediaType: String = Lang.NQUADS.getContentType.getContentTypeStr
 }
