@@ -6,13 +6,17 @@ import { IViewActions } from "../../plugins/PluginRegistry";
 import RuleEditor from "../../shared/RuleEditor/RuleEditor";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
-import { requestUpdateProjectTask } from "@ducks/workspace/requests";
 import utils from "./LinkingRuleEditor.utils";
 import ruleUtils from "../shared/rules/rule.utils";
-import { IRuleOperatorNode, RuleSaveResult, RuleValidationError } from "../../shared/RuleEditor/RuleEditor.typings";
+import {
+    IRuleOperatorNode,
+    RuleSaveNodeError,
+    RuleSaveResult,
+    RuleValidationError,
+} from "../../shared/RuleEditor/RuleEditor.typings";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import linkingRuleRequests, { fetchLinkSpec } from "./LinkingRuleEditor.requests";
+import linkingRuleRequests, { fetchLinkSpec, updateLinkageRule } from "./LinkingRuleEditor.requests";
 import { PathWithMetaData } from "../shared/rules/rule.typings";
 import { TaskPlugin } from "@ducks/shared/typings";
 import {
@@ -21,6 +25,7 @@ import {
 } from "../../shared/RuleEditor/model/RuleEditorModel.typings";
 import { Spacing, ToolbarSection } from "gui-elements";
 import { TaskActivityWidget } from "../../shared/TaskActivityWidget/TaskActivityWidget";
+import { FetchError } from "../../../services/fetch/responseInterceptor";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -106,7 +111,10 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
     };
 
     /** Save the rule. */
-    const saveLinkageRule = async (ruleOperatorNodes: IRuleOperatorNode[]): Promise<RuleSaveResult> => {
+    const saveLinkageRule = async (
+        ruleOperatorNodes: IRuleOperatorNode[],
+        previousTask: TaskPlugin<ILinkingTaskParameters>
+    ): Promise<RuleSaveResult> => {
         try {
             const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
             if (
@@ -123,18 +131,13 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                 );
             }
 
-            await requestUpdateProjectTask(projectId, linkingTaskId, {
-                data: {
-                    parameters: {
-                        rule: {
-                            operator:
-                                rootNodes.length === 1
-                                    ? utils.convertRuleOperatorNodeToSimilarityOperator(rootNodes[0], operatorNodeMap)
-                                    : undefined,
-                            layout: ruleUtils.ruleLayout(ruleOperatorNodes),
-                        },
-                    },
-                },
+            await updateLinkageRule(projectId, linkingTaskId, {
+                ...previousTask.parameters.rule,
+                operator:
+                    rootNodes.length === 1
+                        ? utils.convertRuleOperatorNodeToSimilarityOperator(rootNodes[0], operatorNodeMap)
+                        : undefined,
+                layout: ruleUtils.ruleLayout(ruleOperatorNodes),
             });
             return {
                 success: true,
@@ -143,12 +146,24 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
             if ((err as RuleValidationError).isRuleValidationError) {
                 return err;
             } else {
-                return {
-                    success: false,
-                    errorMessage: `${t("taskViews.linkRulesEditor.errors.saveLinkageRule.msg")}${
-                        err.message ? ": " + err.message : ""
-                    }`,
-                };
+                if (err.isHttpError && err.httpStatus === 400 && Array.isArray((err as FetchError).body?.issues)) {
+                    const fetchError = err as FetchError;
+                    const nodeErrors: RuleSaveNodeError[] = fetchError.body.issues.map((issue) => ({
+                        nodeId: issue.id,
+                        message: issue.message,
+                    }));
+                    return new RuleValidationError(
+                        t("taskViews.linkRulesEditor.errors.saveLinkageRule.msg"),
+                        nodeErrors
+                    );
+                } else {
+                    return {
+                        success: false,
+                        errorMessage: `${t("taskViews.linkRulesEditor.errors.saveLinkageRule.msg")}${
+                            err.message ? ": " + err.message : ""
+                        }`,
+                    };
+                }
             }
         }
     };

@@ -6,6 +6,7 @@ import {
     IRuleOperator,
     IRuleOperatorNode,
     IRuleSidebarPreConfiguredOperatorsTabConfig,
+    RuleValidationError,
 } from "../../shared/RuleEditor/RuleEditor.typings";
 import { IValueInput, PathWithMetaData } from "../shared/rules/rule.typings";
 import {
@@ -115,8 +116,9 @@ const convertRuleOperatorNodeToSimilarityOperator = (
     if (ruleOperatorNode) {
         if (ruleOperatorNode.pluginType === "ComparisonOperator") {
             if (ruleOperatorNode.inputs.length !== 2 || !ruleOperatorNode.inputs.every((input) => input != null)) {
-                throw Error(
-                    `Comparison operator '${ruleOperatorNode.label}' must have 2 inputs, but is missing at least 1!`
+                throw new RuleValidationError(
+                    `Comparison operator '${ruleOperatorNode.label}' must have 2 inputs, but is missing at least 1 input!`,
+                    [ruleOperatorNode]
                 );
             }
             const comparison: IComparisonOperator = {

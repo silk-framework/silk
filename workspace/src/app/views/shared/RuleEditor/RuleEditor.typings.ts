@@ -185,7 +185,7 @@ export class RuleValidationError implements RuleSaveResult, Error {
 }
 
 /** Node specific error. */
-interface RuleSaveNodeError {
+export interface RuleSaveNodeError {
     /** ID of node */
     nodeId: string;
     /** Optional error message. Else the node will only be highlighted. */

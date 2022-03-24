@@ -105,6 +105,15 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
         (new URLSearchParams(window.location.search).get(READ_ONLY_QUERY_PARAMETER) ?? "").toLowerCase() === "true";
     const [lastSaveResult, setLastSaveResult] = React.useState<RuleSaveResult | undefined>(undefined);
 
+    /** This should be used instead of calling setLastSaveResult directly. */
+    const updateLastSaveResult = (saveResult: RuleSaveResult | undefined) => {
+        // This makes sure that the notifications are shown again
+        setLastSaveResult(undefined);
+        if (saveResult !== undefined) {
+            setLastSaveResult(saveResult);
+        }
+    };
+
     // Fetch the task data
     React.useEffect(() => {
         fetchData();
@@ -164,7 +173,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     const saveRuleOperatorNodes = async (ruleNodeOperators: IRuleOperatorNode[]): Promise<RuleSaveResult> => {
         if (taskData) {
             const result = await saveRule(ruleNodeOperators, taskData);
-            setLastSaveResult(result);
+            updateLastSaveResult(result);
             return result;
         } else {
             const error = {
@@ -172,7 +181,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 errorMessage: "No task data loaded, cannot save!",
                 nodeErrors: [],
             };
-            setLastSaveResult(error);
+            updateLastSaveResult(error);
             // unlikely to ever happen
             return error;
         }

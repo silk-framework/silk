@@ -2,7 +2,7 @@ import fetch from "../../../services/fetch";
 import { legacyLinkingEndpoint } from "../../../utils/getApiEndpoint";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { PathWithMetaData } from "../shared/rules/rule.typings";
-import { ILinkingTaskParameters } from "./linking.types";
+import { ILinkingRule, ILinkingTaskParameters } from "./linking.types";
 import { TaskPlugin } from "@ducks/shared/typings";
 
 /** Fetches the cached paths from the linking paths cache.*/
@@ -35,6 +35,19 @@ export const fetchLinkSpec = (
             withLabels,
             langPref,
         },
+    });
+};
+
+/** Update the linking rule of a linking task. */
+export const updateLinkageRule = (
+    projectId: string,
+    linkingTaskId: string,
+    linkingRule: ILinkingRule
+): Promise<FetchResponse<void>> => {
+    return fetch({
+        url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/rule`),
+        method: "PUT",
+        body: linkingRule,
     });
 };
 

@@ -983,6 +983,21 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         );
     };
 
+    const clearHighlighting = () => {
+        changeElementsInternal((elements) =>
+            elements.map((el) => {
+                if (utils.isNode(el)) {
+                    const node = utils.asNode(el)!!;
+                    node.data = {
+                        ...node.data,
+                        highlightedState: undefined,
+                    };
+                }
+                return el;
+            })
+        );
+    };
+
     const fixNodeInputs = () => {
         changeElementsInternal((els) => {
             return els;
@@ -1113,7 +1128,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             return ruleOperatorNode;
         });
         const saveResult = await ruleEditorContext.saveRule(ruleOperatorNodes);
-        if (!saveResult.success && (saveResult.nodeErrors ?? []).length > 0) {
+        if (saveResult.success) {
+            clearHighlighting();
+        } else if ((saveResult.nodeErrors ?? []).length > 0) {
             const firstNodeError = saveResult.nodeErrors!![0];
             const node = utils.nodeById(elements, firstNodeError.nodeId);
             if (node) {

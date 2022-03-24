@@ -25,8 +25,10 @@ import org.silkframework.rule.execution.{GenerateLinks => GenerateLinksActivity}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, UserContext}
 import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlSerialization}
 import org.silkframework.runtime.validation._
+import org.silkframework.serialization.json.JsonSerialization
 import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
 import org.silkframework.util.Identifier._
 import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
@@ -36,9 +38,10 @@ import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsArray, JsValue, Json}
-import play.api.mvc.{Action, AnyContent, AnyContentAsXml, InjectedController}
+import play.api.mvc.{Action, AnyContent, AnyContentAsXml, InjectedController, Request}
+import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonFormat
 
-import java.util.logging.{Level, Logger}
+import java.util.logging.{Level, LogRecord, Logger}
 import javax.inject.Inject
 import scala.collection.mutable
 
@@ -137,34 +140,49 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
   def putRule(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    implicit val prefixes = project.config.prefixes
-    implicit val resources = project.resources
-    implicit val readContext = ReadContext(resources, prefixes)
+    implicit val prefixes: Prefixes = project.config.prefixes
+    implicit val resources: ResourceManager = project.resources
+    implicit val readContext: ReadContext = ReadContext(resources, prefixes)
 
-    request.body.asXml match {
-      case Some(xml) =>
-        try {
-          //Collect warnings while parsing linkage rule
-          val warnings = CollectLogs(Level.WARNING, classOf[LinkageRule].getPackage.getName) {
-            //Load linkage rule
-            val updatedRule = XmlSerialization.fromXml[LinkageRule](xml.head)
-            //Update linking task
-            val updatedLinkSpec = task.data.copy(rule = updatedRule)
-            project.updateTask(taskName, updatedLinkSpec)
-          }
-          // Return warnings
-          ErrorResult.validation(OK, "Linkage rule committed successfully", issues = warnings.map(log => ValidationWarning(log.getMessage)))
-        } catch {
-          case ex: ValidationException =>
-            log.log(Level.INFO, "Invalid linkage rule")
-            ErrorResult.validation(BAD_REQUEST, "Invalid linkage rule", issues = ex.errors)
-          case ex: Exception =>
-            log.log(Level.INFO, "Failed to commit linkage rule", ex)
-            ErrorResult.validation(INTERNAL_SERVER_ERROR, "Failed to commit linkage rule", issues = ValidationError("Error in back end: " + ex.getMessage) :: Nil)
-        }
-      case None =>
-        ErrorResult(BadUserInputException("Expecting text/xml request body"))
+    try {
+      val (updatedRule, warnings) = linkageRule(request)
+      //Update linking task
+      val updatedLinkSpec = task.data.copy(rule = updatedRule)
+      project.updateTask(taskName, updatedLinkSpec)
+      // Return warnings
+      ErrorResult.validation(OK, "Linkage rule committed successfully", issues = warnings.map(log => ValidationWarning(log.getMessage)))
+    } catch {
+      case ex: BadUserInputException =>
+        throw ex
+      case ex: ValidationException =>
+        log.log(Level.INFO, "Invalid linkage rule")
+        ErrorResult.validation(BAD_REQUEST, "Invalid linkage rule", issues = ex.errors)
+      case ex: Exception =>
+        log.log(Level.INFO, "Failed to commit linkage rule", ex)
+        ErrorResult.validation(INTERNAL_SERVER_ERROR, "Failed to commit linkage rule", issues = ValidationError("Error in back end: " + ex.getMessage) :: Nil)
     }
+  }
+
+  private def linkageRule(request: Request[AnyContent])
+                         (implicit readContext: ReadContext,
+                          prefixes: Prefixes,
+                          resources: ResourceManager): (LinkageRule, Seq[LogRecord]) = {
+    var linkageRule: LinkageRule = null
+    //Collect warnings while parsing linkage rule
+    val warnings = CollectLogs(Level.WARNING, classOf[LinkageRule].getPackage.getName) {
+      request.body.asXml match {
+        case Some(xml) =>
+          linkageRule = XmlSerialization.fromXml[LinkageRule](xml.head)
+        case None =>
+          request.body.asJson match {
+            case Some(json) =>
+              linkageRule = JsonSerialization.fromJson[LinkageRule](json)
+            case None =>
+              throw BadUserInputException("Expecting text/xml or application/json request body")
+          }
+      }
+    }
+    (linkageRule, warnings)
   }
 
   def getLinkSpec(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
