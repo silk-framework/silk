@@ -132,7 +132,9 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     metaDataValueHolder.update(
       metaDataValueHolder().copy(
         created = newMetaData.flatMap(_.created).orElse(oldMedataData.created),
-        modified = Some(newMetaData.flatMap(_.modified).getOrElse(Instant.now))
+        createdByUser = newMetaData.flatMap(_.createdByUser).orElse(oldMedataData.createdByUser),
+        modified = Some(newMetaData.flatMap(_.modified).getOrElse(Instant.now)),
+        lastModifiedByUser = newMetaData.flatMap(_.lastModifiedByUser).orElse(userContext.user.map(_.uri)),
       )
     )
     persistTask
