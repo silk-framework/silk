@@ -1,11 +1,10 @@
 package org.silkframework.config
 
-import java.time.Instant
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Uri
 
-import scala.collection.immutable.ListSet
+import java.time.Instant
 import scala.xml._
 
 /**
@@ -17,7 +16,7 @@ case class MetaData(label: Option[String],
                     created: Option[Instant] = None,
                     createdByUser: Option[Uri] = None,
                     lastModifiedByUser: Option[Uri] = None,
-                    tags: ListSet[Uri] = ListSet.empty) {
+                    tags: Set[Uri] = Set.empty) {
 
   /**
     * Returns the label if defined or a default string if the label is empty. Truncates the label to maxLength characters.
@@ -124,7 +123,7 @@ object MetaData {
         created = (node \ "Created").headOption.map(node => Instant.parse(node.text)),
         createdByUser = (node \ "CreatedByUser").headOption.map(node => node.text),
         lastModifiedByUser = (node \ "LastModifiedByUser").headOption.map(node => node.text),
-        tags = ListSet((node \ "Tags" \ "Tag").map(node => Uri(node.text)): _*)
+        tags = (node \ "Tags" \ "Tag").map(node => Uri(node.text)).toSet
       )
     }
 

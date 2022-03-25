@@ -20,7 +20,6 @@ import org.silkframework.util.{Identifier, Uri}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
 import org.silkframework.workspace.resources.InMemoryResourceRepository
 
-import scala.collection.immutable.ListSet
 
 trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSugar {
 
@@ -500,14 +499,14 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
 
     // Add tags to project
     val project = getProject(PROJECT_NAME).get
-    val metaDataWithTags = project.metaData.copy(tags = ListSet("urn:tag1", "urn:tag2"))
+    val metaDataWithTags = project.metaData.copy(tags = Set("urn:tag1", "urn:tag2"))
     workspaceProvider.putProject(project.copy(metaData = metaDataWithTags))
     refreshTest {
       workspaceProvider.readProject(PROJECT_NAME).get.metaData shouldBe metaDataWithTags
     }
 
     // Modify tags on project
-    val metaDataWithTags2 = project.metaData.copy(tags = ListSet("urn:tag1"))
+    val metaDataWithTags2 = project.metaData.copy(tags = Set("urn:tag1"))
     workspaceProvider.putProject(project.copy(metaData = metaDataWithTags2))
     refreshTest {
       workspaceProvider.readProject(PROJECT_NAME).get.metaData shouldBe metaDataWithTags2
@@ -518,7 +517,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
       metaData =
         MetaData(
           label = Some("Task Label"),
-          tags = ListSet("urn:tag2", "urn:tag1")
+          tags = Set("urn:tag2", "urn:tag1")
         )
     )
     workspaceProvider.putTask(PROJECT_NAME, taskWithTag)

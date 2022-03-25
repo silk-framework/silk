@@ -9,7 +9,6 @@ import org.silkframework.workspace.TagManager
 import play.api.libs.json.{Format, Json}
 
 import java.time.Instant
-import scala.collection.immutable.ListSet
 
 /**
   * JSON serializers for meta data objects.
@@ -43,7 +42,7 @@ object MetaDataSerializers {
                            createdByUser: Option[String] = None,
                            lastModifiedByUser: Option[String] = None,
                            @ArraySchema(schema = new Schema(implementation = classOf[String], required = false, nullable = true))
-                           tags: Option[ListSet[String]] = None) {
+                           tags: Option[Set[String]] = None) {
     def toMetaData: MetaData = {
       MetaDataPlain.toMetaData(this)
     }
@@ -71,7 +70,7 @@ object MetaDataSerializers {
         created = md.created,
         createdByUser = md.createdByUser.map(new Uri(_)),
         lastModifiedByUser = md.lastModifiedByUser.map(new Uri(_)),
-        tags = md.tags.getOrElse(ListSet.empty).map(new Uri(_))
+        tags = md.tags.getOrElse(Set.empty).map(new Uri(_))
       )
     }
   }
