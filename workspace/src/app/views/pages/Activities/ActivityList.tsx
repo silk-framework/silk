@@ -92,7 +92,6 @@ const ActivityList = () => {
 
     // Returns a function that fetches the error report for a particular activity
     const fetchErrorReportFactory = (activity: IActivity) => {
-        console.log("error report...", activity.project, activity.task);
         return activityErrorReportFactory(activity.id, activity.project, activity.task, (ex) => {
             registerError(
                 `taskActivityOverview-fetchErrorReport`,
@@ -158,7 +157,7 @@ const ActivityList = () => {
 
                     const label = () => (
                         <>
-                            {activity.label} of
+                            {activity.label} {activity.parentType !== "global" ? "of" : ""}
                             <Spacing vertical size="tiny" />
                             <ResourceLink
                                 url={link}
