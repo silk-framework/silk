@@ -1,10 +1,11 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityAction, IActivityStatus, Markdown, SilkActivityControl } from "gui-elements/cmem";
-import { Card, Tag, Highlighter, Spacing, OverflowText } from "gui-elements";
+import { Card, Tag, Highlighter, Spacing, OverflowText, Notification, Icon, Button } from "gui-elements";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import Datalist from "../../../views/shared/Datalist";
+import EmptyList from "../../../views/shared/SearchList/EmptyList";
 import AppliedFacets from "../Workspace/AppliedFacets";
 import Pagination from "../../shared/Pagination";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
@@ -31,6 +32,8 @@ const ActivityList = () => {
 
     const data = useSelector(workspaceSel.resultsSelector);
     const pagination = useSelector(workspaceSel.paginationSelector);
+    const appliedFacets = useSelector(workspaceSel.appliedFacetsSelector);
+
     // const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
     const isLoading = useSelector(workspaceSel.isLoadingSelector);
     // const appliedFacets = useSelector(workspaceSel.appliedFacetsSelector);
@@ -52,6 +55,7 @@ const ActivityList = () => {
         (key: string) => t("widget.TaskActivityOverview.activityControl." + key),
         [t]
     );
+    const emptyListWithoutFilters: boolean = isEmpty && !textQuery && !appliedFacets.length;
 
     const updateActivityStatus = (status: IActivityStatus) => {
         activityStatusMap.set(status.activity, status);
@@ -140,6 +144,17 @@ const ActivityList = () => {
         return registerForUpdates();
     }, []);
 
+    const EmptyContainer = emptyListWithoutFilters ? (
+        <EmptyList
+            depiction={<Icon name={["artefact-uncategorized"]} large />}
+            textInfo={<p>{t("pages.activities.noActivities")}</p>}
+            textCallout={null}
+            actionButtons={[]}
+        />
+    ) : (
+        <Notification>{t("pages.activities.noActivities", { items: "items" })}</Notification>
+    );
+
     return (
         <>
             <AppliedFacets />
@@ -148,7 +163,7 @@ const ActivityList = () => {
                 isEmpty={isEmpty}
                 isLoading={isLoading}
                 hasSpacing
-                emptyContainer={<></>}
+                emptyContainer={EmptyContainer}
             >
                 {data.map((activity: IActivity, index) => {
                     const link = `/workbench/projects/${activity.project}${

@@ -372,7 +372,8 @@
             "title": "Data preview"
         },
         "activities": {
-            "title": "Activities"
+            "title": "Activities",
+            "noActivities": "No Activities found"
         },
         "notFound": {
             "backLink": "Go to homepage",
