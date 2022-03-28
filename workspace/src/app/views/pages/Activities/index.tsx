@@ -14,6 +14,8 @@ import {
     WorkspaceSide,
     Notification,
     Button,
+    Link,
+    BreadcrumbItem,
 } from "gui-elements";
 import SearchBar from "../../shared/SearchBar";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
@@ -26,6 +28,7 @@ import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { routerSel } from "@ducks/router";
 import ActivityList from "./ActivityList";
 import { useLocation } from "react-router";
+import { SERVE_PATH } from "../../../constants/path";
 
 const Activities = () => {
     const dispatch = useDispatch();
@@ -33,18 +36,33 @@ const Activities = () => {
     const location = useLocation();
     const locationParams = new URLSearchParams(location.search?.substring(1));
     const error = useSelector(workspaceSel.errorSelector);
-    const projectId = useSelector(commonSel.currentProjectIdSelector);
+    const projectId = useSelector(commonSel.currentProjectIdSelector) || locationParams.get("project");
     const qs = useSelector(routerSel.routerSearchSelector);
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
     const sorters = useSelector(workspaceSel.sortersSelector);
 
     const [t] = useTranslation();
-    const { pageHeader } = usePageHeader({
-        autogenerateBreadcrumbs: true,
-        autogeneratePageTitle: true,
+    const { pageHeader, updateBreadcrumbs } = usePageHeader({
         alternateDepiction: "application-activities",
         pageTitle: "Activity overview",
     });
+    
+    React.useEffect(() => {
+        if (projectId)
+            utils.getProjectInfo(projectId).then((res) => {
+                updateBreadcrumbs([
+                    {
+                        text: (
+                            <BreadcrumbItem
+                                text={res.data.label}
+                                current={true}
+                                href={`${SERVE_PATH}/projects/${projectId}`}
+                            />
+                        ),
+                    },
+                ]);
+            });
+    }, [projectId]);
 
     React.useEffect(() => {
         if (error.detail) {
@@ -56,7 +74,7 @@ const Activities = () => {
      * Get available Datatypes
      */
     React.useEffect(() => {
-        dispatch(commonOp.fetchAvailableDTypesAsync(projectId));
+        dispatch(commonOp.fetchAvailableDTypesAsync(projectId as string));
     }, []);
 
     React.useEffect(() => {
