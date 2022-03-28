@@ -56,25 +56,21 @@ const DisplayArtefactTags = (
     goToPage: (path: string) => void,
     minLength = 6
 ) => {
-    const Tags = (size: "full" | "preview") => {
-        return size === "full" ? (
-            <TagList>
-                {tags.map((tag) => (
-                    <Tag key={tag.uri} interactive onClick={() => goToPage(generateFacetUrl("tags", tag.uri))}>
-                        {tag.label}
-                    </Tag>
-                ))}
-            </TagList>
-        ) : (
-            <TagList>
-                {tags.slice(0, minLength).map((tag) => (
-                    <Tag key={tag.uri} onClick={() => goToPage(generateFacetUrl("tags", tag.uri))}>
-                        {tag.label}
-                    </Tag>
-                ))}
-            </TagList>
-        );
-    };
+    const Tags = (size: "full" | "preview") => (
+        <TagList>
+            {tags.slice(0, size === "full" ? tags.length : minLength).map((tag) => (
+                <Tag
+                    key={tag.uri}
+                    emphasis="stronger"
+                    interactive
+                    onClick={() => goToPage(generateFacetUrl("tags", tag.uri))}
+                >
+                    {tag.label}
+                </Tag>
+            ))}
+        </TagList>
+    );
+
     return (
         <>
             {tags.length <= minLength ? (
