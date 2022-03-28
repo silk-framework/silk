@@ -17,6 +17,7 @@ import {
     IParameterSpecification,
     IRuleOperator,
     IRuleOperatorNode,
+    RuleEditorValidationNode,
     RuleOperatorNodeParameters,
 } from "../RuleEditor.typings";
 import {
@@ -46,6 +47,13 @@ export interface RuleEditorModelProps {
 // Object to denote transaction boundaries between change operations
 const TRANSACTION_BOUNDARY = "Transaction boundary";
 type ChangeStackType = RuleModelChanges | "Transaction boundary";
+
+/** Used for internal use. Allows to traverse the rule tree efficiently. */
+interface RuleTreeNode {
+    inputs: (string | undefined)[];
+    output: string | undefined;
+    node: IRuleOperatorNode;
+}
 
 /** The actual rule model, i.e. the model that is displayed in the editor.
  *  All rule model changes must happen here.
@@ -84,7 +92,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const setSelectedElements = useStoreActions((a) => a.setSelectedElements);
     const setInteractive = useStoreActions((a) => a.setInteractive);
     /** Map from node ID to (original) rule operator node. Used for validating connections. */
-    const [nodeMap] = React.useState<Map<string, IRuleOperatorNode>>(new Map());
+    const [nodeMap] = React.useState<Map<string, RuleTreeNode>>(new Map());
     const [readOnly, _setIsReadOnly] = React.useState(false);
     /** react-flow related functions */
     const { setCenter } = useZoomPanHelper();
@@ -130,6 +138,22 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     };
 
     const isValidEdge = (sourceNodeId: string, targetNodeId: string, targetHandleId: string) => {
+        // Convert rule tree nodes to a real (lazy) tree structure for validation convenience
+        const convertNode = (ruleTreeNode: RuleTreeNode): RuleEditorValidationNode => {
+            return {
+                node: ruleTreeNode.node,
+                inputs: () => {
+                    return ruleTreeNode.inputs.map((input) => {
+                        return input && nodeMap.has(input) ? convertNode(nodeMap.get(input)!!) : undefined;
+                    });
+                },
+                output: () => {
+                    return ruleTreeNode.output && nodeMap.has(ruleTreeNode.output)
+                        ? convertNode(nodeMap.get(ruleTreeNode.output)!!)
+                        : undefined;
+                },
+            };
+        };
         if (sourceNodeId === targetNodeId) {
             return false;
         }
@@ -137,7 +161,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         const targetNode = nodeMap.get(targetNodeId);
         const targetInputIdx = Number.parseInt(targetHandleId);
         return sourceNode && targetNode && Number.isInteger(targetInputIdx)
-            ? ruleEditorContext.validateConnection(sourceNode, targetNode, targetInputIdx)
+            ? ruleEditorContext.validateConnection(convertNode(sourceNode), convertNode(targetNode), targetInputIdx)
             : true;
     };
 
@@ -535,15 +559,56 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         return executeRuleModelChangeInternal(ruleModelChange, currentElements);
     };
 
+    const addEdgesToNodeMapInternal = (elementsToAdd: Elements) => {
+        elementsToAdd.forEach((elem) => {
+            if (utils.isEdge(elem)) {
+                const edge = utils.asEdge(elem)!!;
+                const targetIdx = Number.parseInt(edge.targetHandle ?? "");
+                if (
+                    Number.isInteger(targetIdx) &&
+                    targetIdx >= 0 &&
+                    nodeMap.has(edge.source) &&
+                    nodeMap.has(edge.target)
+                ) {
+                    nodeMap.get(edge.source)!!.output = edge.target;
+                    const inputArray = nodeMap.get(edge.target)!!.inputs;
+                    inputArray[targetIdx] = edge.source;
+                }
+            }
+        });
+    };
+
+    const deleteEdgesFromNodeMapInternal = (elementsToDelete: Elements) => {
+        elementsToDelete.forEach((elem) => {
+            if (utils.isEdge(elem)) {
+                const edge = utils.asEdge(elem)!!;
+                const targetIdx = Number.parseInt(edge.targetHandle ?? "");
+                if (
+                    Number.isInteger(targetIdx) &&
+                    targetIdx >= 0 &&
+                    nodeMap.has(edge.source) &&
+                    nodeMap.has(edge.target)
+                ) {
+                    nodeMap.get(edge.source)!!.output = undefined;
+                    const inputArray = nodeMap.get(edge.target)!!.inputs;
+                    inputArray[targetIdx] = undefined;
+                    utils.adaptInputArray(inputArray);
+                }
+            }
+        });
+    };
+
     /**
      * Functions that change the react-flow model state.
      **/
     // Add new elements to react-flow model
     const addElementsInternal = (elementsToAdd: Elements, els: Elements): Elements => {
+        addEdgesToNodeMapInternal(elementsToAdd);
         return [...els, ...elementsToAdd];
     };
     // Delete multiple elements and return updated elements array
     const deleteElementsInternal = (elementsToRemove: Elements, els: Elements): Elements => {
+        deleteEdgesFromNodeMapInternal(elementsToRemove);
         return removeElements(elementsToRemove, els);
     };
     // Change the position of nodes
@@ -608,7 +673,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         ruleEditorContext.operatorSpec!!
                     )
                 );
-                nodeMap.set(newNode.id, { ...ruleNode, nodeId: newNode.id });
+                nodeMap.set(newNode.id, {
+                    node: { ...ruleNode, nodeId: newNode.id },
+                    inputs: [],
+                    output: undefined,
+                });
                 return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(newNode), els);
             });
         }
@@ -1041,7 +1110,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         handleParameterChange: changeNodeParameter,
     };
 
-    const nodePluginId = (nodeId: string) => nodeMap.get(nodeId)?.pluginId;
+    const nodePluginId = (nodeId: string) => nodeMap.get(nodeId)?.node.pluginId;
 
     // Context for creating new nodes
     const operatorNodeCreateContextInternal = (
@@ -1167,17 +1236,28 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 )
             );
         });
-        operatorsNodes!!.forEach((opNode) => nodeMap.set(opNode.nodeId, opNode));
         // Create edges
         const edges: Edge[] = [];
+        // Mapping from source to target node. Each source node can only have on connection to a target node.
+        const targetNode = new Map<string, string>();
         operatorsNodes!!.forEach((node) => {
             node.inputs.forEach((inputNodeId, idx) => {
                 if (inputNodeId) {
                     // Edge IDs do not currently matter
                     edges.push(utils.createEdge(inputNodeId, node.nodeId, `${idx}`));
+                    targetNode.set(inputNodeId, node.nodeId);
                 }
             });
         });
+
+        // Set helper data-structures for fast access to operator data
+        operatorsNodes!!.forEach((opNode) =>
+            nodeMap.set(opNode.nodeId, {
+                node: opNode,
+                inputs: opNode.inputs,
+                output: targetNode.get(opNode.nodeId),
+            })
+        );
         let elems: Elements = [...nodes, ...edges];
         if (needsLayout) {
             elems = await autoLayoutInternal(elems, false);

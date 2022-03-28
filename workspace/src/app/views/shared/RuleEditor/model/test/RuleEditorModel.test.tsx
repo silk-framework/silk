@@ -10,6 +10,8 @@ import {
     IPortSpecification,
     IRuleOperator,
     IRuleOperatorNode,
+    RuleEditorValidationNode,
+    RuleSaveResult,
 } from "../../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 import utils from "../../RuleEditor.utils";
@@ -44,8 +46,8 @@ describe("Rule editor model", () => {
         operatorList: IRuleOperator[] = [],
         operatorSpec: Map<string, Map<string, IParameterSpecification>> = new Map(),
         validateConnection: (
-            fromRuleOperatorNode: IRuleOperatorNode,
-            toRuleOperatorNode: IRuleOperatorNode,
+            fromRuleOperatorNode: RuleEditorValidationNode,
+            toRuleOperatorNode: RuleEditorValidationNode,
             targetPortIdx: number
         ) => boolean = () => true
     ) => {
@@ -60,9 +62,9 @@ describe("Rule editor model", () => {
                         editedItemLoading: false,
                         operatorListLoading: false,
                         initialRuleOperatorNodes: initialRuleNodes,
-                        saveRule: (nodes: IRuleOperatorNode[]): boolean => {
+                        saveRule: (nodes: IRuleOperatorNode[]): RuleSaveResult => {
                             ruleOperatorNodes = nodes;
-                            return true;
+                            return { success: true };
                         },
                         convertRuleOperatorToRuleNode: utils.defaults.convertRuleOperatorToRuleNode,
                         operatorSpec,

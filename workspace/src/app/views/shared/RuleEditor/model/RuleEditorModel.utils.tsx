@@ -352,9 +352,22 @@ const autoLayout = async (elements: Elements, zoomFactor: number): Promise<Map<s
     return nodePositions;
 };
 
+/** Removes trailing undefined inputs from the array inline. */
+const adaptInputArray = (inputArray: (string | undefined)[]) => {
+    if (inputArray.length > 0 && inputArray[inputArray.length - 1] == null) {
+        // Need to adapt array
+        let idx = inputArray.length - 1;
+        while (idx > 0 && inputArray[idx - 1] == null) {
+            idx -= 1;
+        }
+        inputArray.splice(idx, inputArray.length - idx);
+    }
+};
+
 export const ruleEditorModelUtilsFactory = () => {
     const { createNewOperatorNode, initNodeBaseIds, freshNodeId } = initNodeBaseIdsFactory();
     return {
+        adaptInputArray,
         asEdge,
         asNode,
         autoLayout,

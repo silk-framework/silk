@@ -9,6 +9,7 @@ import {
     IRuleOperatorNode,
     IRuleSideBarFilterTabConfig,
     IRuleSidebarPreConfiguredOperatorsTabConfig,
+    RuleEditorValidationNode,
     RuleOperatorPluginType,
     RuleSaveResult,
 } from "./RuleEditor.typings";
@@ -52,8 +53,8 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     addAdditionParameterSpecifications?: (operator: OPERATOR_TYPE) => [id: string, spec: IParameterSpecification][];
     /** Specifies the allowed connections. Only connections that return true are allowed. */
     validateConnection: (
-        fromRuleOperatorNode: IRuleOperatorNode,
-        toRuleOperatorNode: IRuleOperatorNode,
+        fromRuleOperatorNode: RuleEditorValidationNode,
+        toRuleOperatorNode: RuleEditorValidationNode,
         targetPortIdx: number
     ) => boolean;
     /** Tabs that allow to show different rule operators or only a subset. */

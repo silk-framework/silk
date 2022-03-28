@@ -191,3 +191,10 @@ export interface RuleSaveNodeError {
     /** Optional error message. Else the node will only be highlighted. */
     message?: string;
 }
+
+/** Data-structure use for validation. */
+export interface RuleEditorValidationNode {
+    node: IRuleOperatorNode;
+    inputs: () => (RuleEditorValidationNode | undefined)[];
+    output: () => RuleEditorValidationNode | undefined;
+}

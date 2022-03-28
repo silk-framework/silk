@@ -17,23 +17,18 @@ import {
     findAll,
     findSingleElement,
     legacyApiUrl,
-    logPageHtml,
-    logRequests,
-    logWrapperHtml,
     mockAxiosResponse,
     mockedAxiosError,
     mockedAxiosResponse,
-    pageHtml,
-    pressKey,
     RecursivePartial,
     testWrapper,
     withMount,
 } from "../../TestHelper";
 import { CreateArtefactModal } from "../../../../src/app/views/shared/modals/CreateArtefactModal/CreateArtefactModal";
-import { cleanup, waitFor } from "@testing-library/react";
+import { waitFor } from "@testing-library/react";
 import {
-    IPluginDetails,
     IOverviewArtefactItemList,
+    IPluginDetails,
     IProjectTaskUpdatePayload,
 } from "../../../../src/app/store/ducks/common/typings";
 import { atomicParamDescription, mockAutoCompleteResponse, objectParamDescription } from "./CreateArtefactModalHelper";
@@ -88,7 +83,9 @@ describe("Task creation widget", () => {
             mockedAxiosResponse({ data: mockArtefactListResponse })
         );
         if (!existingTask) {
-            await waitFor(() => expect(selectionItems(wrapper.wrapper)).toHaveLength(3));
+            await waitFor(() => {
+                expect(selectionItems(wrapper.wrapper)).toHaveLength(3);
+            });
         }
         return wrapper;
     };
@@ -99,9 +96,7 @@ describe("Task creation widget", () => {
         });
     };
 
-    const selectionItems: (dialogWrapper: ReactWrapper<any, any>) => ReactWrapper[] = (
-        dialogWrapper: ReactWrapper<any, any>
-    ) => {
+    const selectionItems = (dialogWrapper: ReactWrapper<any, any>): ReactWrapper[] => {
         return findAll(dialogWrapper, ".eccgui-overviewitem__list .eccgui-overviewitem__item");
     };
 

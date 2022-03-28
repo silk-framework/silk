@@ -32,17 +32,17 @@ export interface IPreConfiguredOperators<T> {
 export function RuleOperatorList<T>({ ruleOperatorList, textQuery, preConfiguredOperators }: RuleOperatorListProps<T>) {
     const { t } = useTranslation();
     const searchWords = extractSearchWords(textQuery, true);
-    const [currentlyCycledTaskId, setCurrentlyCycledTaskId] = React.useState<string | undefined>(undefined);
-    const [taskCycleIndex, setTaskCycleIndex] = React.useState<number>(0);
-    const totalMatches = 0; // TODO
+    const [currentlyCycledTaskId] = React.useState<string | undefined>(undefined);
+    const [taskCycleIndex] = React.useState<number>(0);
+    const totalMatches = 0; // FIXME: Node cycle logic
 
     const overAllRuleList = mergeOperators(ruleOperatorList, preConfiguredOperators);
 
     const resetCycleTask = () => {
-        // TODO
+        // FIXME: Node cycle logic
     };
     const cycleThroughTaskNodes = (operatorId: string) => {
-        // TODO
+        // FIXME: Node cycle logic
     };
 
     /** Add operator plugin data to drag event. For pre-configured operators also serialize the parameter values. */

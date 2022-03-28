@@ -6,6 +6,7 @@ import {
     IRuleSidebarPreConfiguredOperatorsTabConfig,
     IRuleSideBarFilterTabConfig,
     RuleSaveResult,
+    RuleEditorValidationNode,
 } from "../RuleEditor.typings";
 import { IViewActions } from "../../../plugins/PluginRegistry";
 
@@ -37,8 +38,8 @@ export interface RuleEditorContextProps {
     convertRuleOperatorToRuleNode: (ruleOperator: IRuleOperator) => Omit<IRuleOperatorNode, "nodeId">;
     /** Validate a connection. Specifies which connections are allowed between nodes. */
     validateConnection: (
-        fromRuleOperatorNode: IRuleOperatorNode,
-        toRuleOperatorNode: IRuleOperatorNode,
+        fromRuleOperatorNode: RuleEditorValidationNode,
+        toRuleOperatorNode: RuleEditorValidationNode,
         targetPortIdx: number
     ) => boolean;
     /** Tabs that allow to show different rule operators or only a subset. The first tab will always be selected first. */
