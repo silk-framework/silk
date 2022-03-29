@@ -523,8 +523,6 @@ export const RuleEditorCanvas = () => {
                 onLoad={onLoad}
                 onDrop={onDrop}
                 onDragOver={onDragOver}
-                // nodeTypes={nodeTypes}
-                // edgeTypes={edgeTypes}
                 onEdgeUpdateStart={onEdgeUpdateStart}
                 onEdgeUpdateEnd={onEdgeUpdateEnd}
                 onEdgeUpdate={onEdgeUpdate}

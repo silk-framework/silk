@@ -79,7 +79,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [ruleRedoStack] = React.useState<ChangeStackType[]>([]);
     /** If there are changes that can be redone, i.e. that have been previously undone. */
     const [canRedo, setCanRedo] = React.useState<boolean>(false);
-    const [utils] = React.useState(ruleEditorModelUtilsFactory());
     /** react-flow function to update a node position in the canvas. Just changing the position of the elements is not enough. */
     const updateNodePos = useStoreActions((actions) => actions.updateNodePos);
     /** The current zoom factor. */
@@ -94,8 +93,25 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     /** Map from node ID to (original) rule operator node. Used for validating connections. */
     const [nodeMap] = React.useState<Map<string, RuleTreeNode>>(new Map());
     const [readOnly, _setIsReadOnly] = React.useState(false);
+    const [utils] = React.useState(ruleEditorModelUtilsFactory(() => (nodeMap ? "edge" : "default")));
     /** react-flow related functions */
     const { setCenter } = useZoomPanHelper();
+
+    const edgeType = (ruleOperatorNode?: IRuleOperatorNode) => {
+        if (ruleOperatorNode) {
+            switch (ruleOperatorNode.pluginType) {
+                case "PathInputOperator":
+                case "TransformOperator":
+                    return "value";
+                case "ComparisonOperator":
+                case "AggregationOperator":
+                    return "score";
+                default:
+                    return "step";
+            }
+        }
+        return "step";
+    };
 
     const setIsReadOnly = (enabled: boolean) => {
         readOnlyState.enabled = enabled;
@@ -828,7 +844,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     currentElements
                 );
             }
-            const edge = utils.createEdge(sourceNodeId, targetNodeId, toTargetHandleId!!);
+            const edge = utils.createEdge(
+                sourceNodeId,
+                targetNodeId,
+                toTargetHandleId!!,
+                edgeType(nodeMap.get(sourceNodeId)?.node)
+            );
             return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdge(edge), currentElements);
         }, true);
     };
@@ -882,7 +903,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         const newEdge = utils.createEdge(
                             nodeIdMap.get(edge.source)!!,
                             nodeIdMap.get(edge.target)!!,
-                            edge.targetHandle!!
+                            edge.targetHandle!!,
+                            edgeType(nodeMap.get(edge.source)?.node)
                         );
                         newEdges.push(newEdge);
                     }
@@ -1236,6 +1258,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 )
             );
         });
+        // Init node map for edgeType, set inputs and output further below
+        operatorsNodes!!.forEach((opNode) =>
+            nodeMap.set(opNode.nodeId, { node: opNode, inputs: [], output: undefined })
+        );
         // Create edges
         const edges: Edge[] = [];
         // Mapping from source to target node. Each source node can only have on connection to a target node.
@@ -1244,7 +1270,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             node.inputs.forEach((inputNodeId, idx) => {
                 if (inputNodeId) {
                     // Edge IDs do not currently matter
-                    edges.push(utils.createEdge(inputNodeId, node.nodeId, `${idx}`));
+                    edges.push(
+                        utils.createEdge(inputNodeId, node.nodeId, `${idx}`, edgeType(nodeMap.get(inputNodeId)?.node))
+                    );
                     targetNode.set(inputNodeId, node.nodeId);
                 }
             });

@@ -192,13 +192,18 @@ const createEdgeFactory = () => {
     let edgeCounter = 0;
 
     /** Creates a new edge. */
-    return function createEdge(sourceNodeId: string, targetNodeId: string, targetHandleId: string) {
+    return function createEdge(
+        sourceNodeId: string,
+        targetNodeId: string,
+        targetHandleId: string,
+        edgeType: string
+    ): Edge {
         edgeCounter += 1;
         return {
             id: `${edgeCounter}`,
             source: sourceNodeId,
             target: targetNodeId,
-            type: "step",
+            type: edgeType,
             targetHandle: targetHandleId,
             arrowHeadType: ArrowHeadType.ArrowClosed,
         };
@@ -380,7 +385,9 @@ const adaptInputArray = (inputArray: (string | undefined)[]) => {
     }
 };
 
-export const ruleEditorModelUtilsFactory = () => {
+export const ruleEditorModelUtilsFactory = (
+    edgeType: (sourceNodeId: string, targetNode: string) => string = () => "step"
+) => {
     const { createNewOperatorNode, initNodeBaseIds, freshNodeId } = initNodeBaseIdsFactory();
     return {
         adaptInputArray,
