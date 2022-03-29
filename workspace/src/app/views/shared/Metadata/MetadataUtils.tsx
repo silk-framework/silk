@@ -59,7 +59,13 @@ const DisplayArtefactTags = (
     const Tags = (size: "full" | "preview") => (
         <TagList>
             {tags
-                .sort((a, b) => a.label.charCodeAt(0) - b.label.charCodeAt(0))
+                .sort((a, b) =>
+                    a.label.toLowerCase() > b.label.toLowerCase()
+                        ? -1
+                        : a.label.toLowerCase() < b.label.toLowerCase()
+                        ? 1
+                        : 0
+                )
                 .slice(0, size === "full" ? tags.length : minLength)
                 .map((tag) => (
                     <Tag
