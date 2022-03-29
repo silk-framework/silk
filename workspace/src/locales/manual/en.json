@@ -402,7 +402,7 @@
                 },
                 "clone": {
                     "label": "Clone selected nodes",
-                    "tooltip": "Clones all selected nodes and inter-connections and inserts them as new selection."
+                    "tooltip": "Clones all selected nodes and inter-connections and inserts them as new selection. Following key combination also triggers this action: CTRL/CMD + d"
                 }
             }
         },

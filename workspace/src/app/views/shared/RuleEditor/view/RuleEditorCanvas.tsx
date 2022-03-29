@@ -1,4 +1,4 @@
-import ReactFlow, {
+import {
     Background,
     BackgroundVariant,
     ConnectionLineType,
@@ -7,6 +7,7 @@ import ReactFlow, {
     HandleProps,
     OnLoadParams,
 } from "react-flow-renderer";
+import { ReactFlow } from "gui-elements/src/cmem";
 import React, { MouseEvent as ReactMouseEvent } from "react";
 import { Connection, Elements, Node, OnConnectStartParams, XYPosition } from "react-flow-renderer/dist/types";
 import { SelectionMenu } from "./ruleNode/SelectionMenu";
@@ -501,6 +502,7 @@ export const RuleEditorCanvas = () => {
             <ReactFlow
                 id={"ruleEditor-react-flow-canvas"}
                 data-test-id={"ruleEditor-react-flow-canvas"}
+                configuration={"linking"}
                 ref={reactFlowWrapper}
                 elements={modelContext.elements}
                 onElementClick={onElementClick}

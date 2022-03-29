@@ -8,6 +8,7 @@ import {
     IRuleOperatorNode,
     NodeContentPropsWithBusinessData,
     RuleOperatorNodeParameters,
+    RuleOperatorPluginType,
 } from "../RuleEditor.typings";
 import { RuleNodeMenu } from "../view/ruleNode/RuleNodeMenu";
 import { RuleEditorNode, RuleEditorNodeParameterValue } from "./RuleEditorModel.typings";
@@ -113,11 +114,26 @@ function createOperatorNode(
 
     return {
         id: node.nodeId,
-        type: "default", // FIXME: Set node type here CMEM-3919
+        type: nodeType(node.pluginType, node.pluginId),
         position,
         data,
     };
 }
+
+const nodeType = (pluginType: RuleOperatorPluginType | string, pluginId: string) => {
+    switch (pluginType) {
+        case "AggregationOperator":
+            return "aggregator";
+        case "ComparisonOperator":
+            return "comparator";
+        case "TransformOperator":
+            return "transformation";
+        case "PathInputOperator":
+            return pluginId === "targetPathInput" ? "targetpath" : "sourcepath";
+        default:
+            return "default";
+    }
+};
 
 /**
  * Returns the createNewOperatorNode, initNodeBaseIds and freshNodeId functions.
