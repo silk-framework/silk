@@ -4,6 +4,7 @@ import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { useTranslation } from "react-i18next";
 import { NotificationsMenu } from "../../ApplicationNotifications/NotificationsMenu";
 import { RuleEditorContext } from "../contexts/RuleEditorContext";
+import useHotKey from "../../HotKeyHandler/HotKeyHandler";
 
 /** Toolbar of the rule editor. Contains global editor actions like save, redo/undo etc. */
 export const RuleEditorToolbar = () => {
@@ -11,6 +12,20 @@ export const RuleEditorToolbar = () => {
     const ruleEditorContext = React.useContext(RuleEditorContext);
     const [savingWorkflow, setSavingWorkflow] = React.useState(false);
     const [t] = useTranslation();
+    useHotKey({
+        hotkey: "mod+z",
+        handler: (e) => {
+            e.preventDefault && e.preventDefault();
+            modelContext.undo();
+        },
+    });
+    useHotKey({
+        hotkey: "mod+shift+z",
+        handler: (e) => {
+            e.preventDefault && e.preventDefault();
+            modelContext.redo();
+        },
+    });
 
     const saveLinkingRule = async (e) => {
         e.preventDefault();

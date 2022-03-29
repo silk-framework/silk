@@ -26,6 +26,7 @@ import { nodeTypes } from "gui-elements/src/extensions/react-flow/nodes/nodeType
 import { minimapNodeClassName, minimapNodeColor } from "gui-elements/src/extensions/react-flow/minimap/utils";
 import { GridColumn } from "gui-elements";
 import { RuleEditorNode } from "../model/RuleEditorModel.typings";
+import useHotKey from "../../HotKeyHandler/HotKeyHandler";
 
 //snap grid
 const snapGrid: [number, number] = [15, 15];
@@ -64,6 +65,22 @@ export const RuleEditorCanvas = () => {
     // At the moment react-flow's selection logic is buggy in some places, e.g. https://github.com/wbkd/react-flow/issues/1314
     // Until fixed, we will track selections ourselves and use them where bugs exist.
     const [selectionState] = React.useState<{ elements: Elements | null }>({ elements: null });
+
+    /** Clones the given nodes with a small offset. */
+    const cloneNodes = (nodeIds: string[]) => {
+        modelContext.executeModelEditOperation.startChangeTransaction();
+        modelContext.executeModelEditOperation.copyAndPasteNodes(nodeIds, { x: 100, y: 100 });
+    };
+    useHotKey({
+        hotkey: "mod+d",
+        handler: (e) => {
+            e.preventDefault && e.preventDefault();
+            const nodeIds = selectedNodeIds();
+            if (nodeIds.length > 0) {
+                cloneNodes(nodeIds);
+            }
+        },
+    });
 
     /** Selection helper methods. */
     const selectedNodeIds = (): string[] => {
@@ -415,8 +432,7 @@ export const RuleEditorCanvas = () => {
                     modelContext.executeModelEditOperation.deleteNodes(nodeIds);
                 }}
                 cloneSelection={() => {
-                    modelContext.executeModelEditOperation.startChangeTransaction();
-                    modelContext.executeModelEditOperation.copyAndPasteNodes(nodeIds, { x: 100, y: 100 });
+                    cloneNodes(nodeIds);
                 }}
             />
         );
