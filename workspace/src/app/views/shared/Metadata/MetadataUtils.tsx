@@ -58,16 +58,19 @@ const DisplayArtefactTags = (
 ) => {
     const Tags = (size: "full" | "preview") => (
         <TagList>
-            {tags.slice(0, size === "full" ? tags.length : minLength).map((tag) => (
-                <Tag
-                    key={tag.uri}
-                    emphasis="stronger"
-                    interactive
-                    onClick={() => goToPage(generateFacetUrl("tags", tag.uri))}
-                >
-                    {tag.label}
-                </Tag>
-            ))}
+            {tags
+                .sort((a, b) => a.label.charCodeAt(0) - b.label.charCodeAt(0))
+                .slice(0, size === "full" ? tags.length : minLength)
+                .map((tag) => (
+                    <Tag
+                        key={tag.uri}
+                        emphasis="stronger"
+                        interactive
+                        onClick={() => goToPage(generateFacetUrl("tags", tag.uri))}
+                    >
+                        {tag.label}
+                    </Tag>
+                ))}
         </TagList>
     );
 
