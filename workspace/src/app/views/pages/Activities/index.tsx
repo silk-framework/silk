@@ -14,7 +14,6 @@ import {
     WorkspaceSide,
     Notification,
     Button,
-    Link,
     BreadcrumbItem,
 } from "gui-elements";
 import SearchBar from "../../shared/SearchBar";
@@ -46,7 +45,7 @@ const Activities = () => {
         alternateDepiction: "application-activities",
         pageTitle: "Activity overview",
     });
-    
+
     React.useEffect(() => {
         if (projectId)
             utils.getProjectInfo(projectId).then((res) => {

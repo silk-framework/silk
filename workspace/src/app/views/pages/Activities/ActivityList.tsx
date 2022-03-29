@@ -34,9 +34,7 @@ const ActivityList = () => {
     const pagination = useSelector(workspaceSel.paginationSelector);
     const appliedFacets = useSelector(workspaceSel.appliedFacetsSelector);
 
-    // const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
     const isLoading = useSelector(workspaceSel.isLoadingSelector);
-    // const appliedFacets = useSelector(workspaceSel.appliedFacetsSelector);
 
     // Stores the current status for each activity
     const [activityStatusMap] = React.useState<Map<string, IActivityStatus>>(new Map());
@@ -170,7 +168,7 @@ const ActivityList = () => {
                         activity.task ? `/task/${activity.task}` : ""
                     }`;
 
-                    const label = () => (
+                    const ActivityLabel = () => (
                         <>
                             {activity.label} {activity.parentType !== "global" ? "of" : ""}
                             <Spacing vertical size="tiny" />
@@ -190,7 +188,7 @@ const ActivityList = () => {
                     return (
                         <Card isOnlyLayout key={index}>
                             <SilkActivityControl
-                                label={label()}
+                                label={<ActivityLabel />}
                                 tags={<ActivityTags activity={activity} />}
                                 registerForUpdates={createRegisterForUpdatesFn(activity.id)}
                                 unregisterFromUpdates={createUnregisterFromUpdateFn(activity.id)}
