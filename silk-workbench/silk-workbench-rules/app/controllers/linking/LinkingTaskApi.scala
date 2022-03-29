@@ -3,6 +3,7 @@ package controllers.linking
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.linking.doc.LinkingTaskApiDoc
+import controllers.linking.evaluation.LinkageRuleEvaluationResult
 import controllers.linking.linkingTask.LinkingTaskApiUtils
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils
@@ -20,7 +21,7 @@ import org.silkframework.entity.{Entity, EntitySchema, FullLink, MinimalLink, Re
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.plugins.path.{PathMetaDataPlugin, StandardMetaDataPlugin}
-import org.silkframework.rule.evaluation.{ReferenceEntities, ReferenceLinks}
+import org.silkframework.rule.evaluation.{LinkageRuleEvaluator, ReferenceEntities, ReferenceLinks}
 import org.silkframework.rule.execution.{GenerateLinks => GenerateLinksActivity}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, UserContext}
@@ -679,15 +680,24 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     val task = project.task[LinkSpec](taskName)
     val rule = task.data.rule
 
-    val referenceEntities = updateAndGetReferenceEntityCacheValue(task, refreshCache = true)
+    val referenceEntityCacheValue = updateAndGetReferenceEntityCacheValue(task, refreshCache = true)
+    val evaluationResult: LinkageRuleEvaluationResult = referenceLinkEvaluationScore(task, referenceEntityCacheValue)
 
     val result =
       Json.obj(
-        "positive" -> serializeLinks(referenceEntities.positiveEntities, rule),
-        "negative" -> serializeLinks(referenceEntities.negativeEntities, rule)
+        "positive" -> serializeLinks(referenceEntityCacheValue.positiveEntities, rule),
+        "negative" -> serializeLinks(referenceEntityCacheValue.negativeEntities, rule),
+        "evaluationScore" -> Json.toJson(evaluationResult)
       )
 
     Ok(result)
+  }
+
+  private def referenceLinkEvaluationScore(task: ProjectTask[LinkSpec], referenceEntityCacheValue: ReferenceEntities) = {
+    val score = LinkageRuleEvaluator(task.data.rule, referenceEntityCacheValue)
+    val evaluationResult = LinkageRuleEvaluationResult(score.truePositives, score.trueNegatives, score.falsePositives, score.falseNegatives,
+      f"${score.fMeasure}%.2f", f"${score.precision}%.2f", f"${score.recall}%.2f")
+    evaluationResult
   }
 
   @Operation(
@@ -727,15 +737,17 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     implicit val prefixes: Prefixes = project.config.prefixes
 
     SerializationUtils.deserializeCompileTime[LinkageRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { linkageRule =>
-      val referenceEntities = updateAndGetReferenceEntityCacheValue(task, refreshCache = false)
+      val referenceEntityCacheValue = updateAndGetReferenceEntityCacheValue(task, refreshCache = false)
       def serialize(links: Traversable[DPair[Entity]]): JsValue = {
         serializeLinks(links.take(linkLimit), linkageRule)
       }
+      val evaluationResult: LinkageRuleEvaluationResult = referenceLinkEvaluationScore(task, referenceEntityCacheValue)
 
       val result =
         Json.obj(
-          "positive" -> serialize(referenceEntities.positiveEntities),
-          "negative" -> serialize(referenceEntities.negativeEntities)
+          "positive" -> serialize(referenceEntityCacheValue.positiveEntities),
+          "negative" -> serialize(referenceEntityCacheValue.negativeEntities),
+          "evaluationScore" -> Json.toJson(evaluationResult)
         )
 
       Ok(result)

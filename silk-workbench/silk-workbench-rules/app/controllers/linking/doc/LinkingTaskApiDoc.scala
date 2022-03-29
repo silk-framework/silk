@@ -47,7 +47,16 @@ object LinkingTaskApiDoc {
           }
         ],
         "negative": [
-        ]
+        ],
+        "evaluationScore": {
+          "fMeasure": "0.33",
+          "precision": "0.88",
+          "recall": "0.20",
+          "falseNegatives": 88,
+          "falsePositives": 3,
+          "trueNegatives": 98,
+          "truePositives": 22
+        }
       }
     """
 

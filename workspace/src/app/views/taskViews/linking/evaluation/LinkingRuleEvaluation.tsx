@@ -8,6 +8,7 @@ import {
     AggregationConfidence,
     ComparisonConfidence,
     IEntityLink,
+    IEvaluatedReferenceLinksScore,
     IEvaluationNode,
     IEvaluationValue,
     ILinkingTaskParameters,
@@ -48,6 +49,7 @@ export const LinkingRuleEvaluation = ({
     const [evaluationResult, setEvaluationResult] = React.useState<EvaluatedEntityLink[]>([]);
     const [evaluationResultMap] = React.useState<Map<string, string[][]>>(new Map());
     const [evaluationResultEntities] = React.useState<[string, string][]>([]);
+    const [evaluationScore, setEvaluationScore] = React.useState<IEvaluatedReferenceLinksScore | undefined>(undefined);
     const [evaluatesQuickly, setEvaluatesQuickly] = React.useState(false);
     const [nodeUpdateCallbacks] = React.useState(new Map<string, (evaluationValues: string[][] | undefined) => any>());
     const [referenceLinksUrl, setReferenceLinksUrl] = React.useState<string | undefined>(undefined);
@@ -133,8 +135,11 @@ export const LinkingRuleEvaluation = ({
                 const links = (await evaluateLinkingRule(projectId, linkingTaskId, newLinkageRule, numberOfLinkToShow))
                     .data;
                 setEvaluationResult(links.slice(0, numberOfLinkToShow).map((l) => ({ ...l, type: "unlabelled" })));
+                setEvaluationScore(undefined);
             } else {
+                // Fast reference links evaluation available
                 setEvaluatesQuickly(true);
+                setEvaluationScore(result.evaluationScore);
                 const negativeLinks: EvaluatedEntityLink[] = result.negative
                     .slice(0, Math.max(Math.floor(numberOfLinkToShow / 2), numberOfLinkToShow - result.positive.length))
                     .map((l) => ({ ...l, type: "negative" }));
@@ -182,10 +187,12 @@ export const LinkingRuleEvaluation = ({
         <RuleEditorEvaluationContext.Provider
             value={{
                 supportsEvaluation: true,
+                supportsQuickEvaluation: evaluatesQuickly,
                 startEvaluation,
                 createRuleEditorEvaluationComponent,
                 evaluationRunning,
                 toggleEvaluationResults,
+                evaluationScore,
             }}
         >
             {children}

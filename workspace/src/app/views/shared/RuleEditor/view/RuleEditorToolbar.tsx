@@ -4,6 +4,7 @@ import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { useTranslation } from "react-i18next";
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 import { RuleEditorContext } from "../contexts/RuleEditorContext";
+import { EvaluationScore } from "./evaluation/EvaluationScore";
 
 /** Toolbar of the rule editor. Contains global editor actions like save, redo/undo etc. */
 export const RuleEditorToolbar = () => {
@@ -83,6 +84,12 @@ export const RuleEditorToolbar = () => {
             <ToolbarSection canGrow>
                 <Spacing vertical />
             </ToolbarSection>
+            {ruleEvaluationContext.evaluationScore ? (
+                <ToolbarSection>
+                    <EvaluationScore score={ruleEvaluationContext.evaluationScore} />
+                    <Spacing vertical hasDivider />
+                </ToolbarSection>
+            ) : null}
             <ToolbarSection>
                 <Button
                     data-test-id="ruleEditor-save-button"

@@ -88,6 +88,19 @@ export interface ILinkingTaskParameters {
 export interface IEvaluatedReferenceLinks {
     negative: IEntityLink[];
     positive: IEntityLink[];
+    evaluationScore: IEvaluatedReferenceLinksScore;
+}
+
+/** The metrics of a rule evaluation over the reference elements. */
+export interface IEvaluatedReferenceLinksScore {
+    /** F1 measure */
+    fMeasure: string;
+    precision: string;
+    recall: string;
+    falseNegatives: number;
+    falsePositives: number;
+    trueNegatives: number;
+    truePositives: number;
 }
 
 export interface IEntityLink {

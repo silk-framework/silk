@@ -31,7 +31,7 @@ describe("Rule utils", () => {
         ).toStrictEqual(["C", "D"]);
         const ruleNodes = [ruleNode("A"), ruleNode("B"), ruleNode("C", { inputs: ["A", "B"] })];
         expect(rootNodeIds(ruleNodes)).toStrictEqual(["C"]);
-        const [nodeMap, roots] = utils.convertToRuleOperatorNodeMap(ruleNodes);
+        const [nodeMap, roots] = utils.convertToRuleOperatorNodeMap(ruleNodes, true);
         expect(nodeMap.size).toBe(3);
         expect(nodeMap.get("A")).toBe(ruleNodes[0]);
         expect(roots[0]).toBe(ruleNodes[2]);
