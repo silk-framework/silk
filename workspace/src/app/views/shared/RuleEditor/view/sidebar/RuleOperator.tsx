@@ -4,6 +4,8 @@ import Highlighter, { createMultiWordRegex } from "gui-elements/src/components/T
 import { Icon, OverflowText, OverviewItemDescription, OverviewItemLine, Spacing } from "gui-elements";
 import utils from "../ruleNode/ruleNode.utils";
 import { SidebarRuleOperatorBase } from "./RuleEditorOperatorSidebar.typings";
+import Color from "color";
+import colors from "gui-elements/src/cmem/react-flow/configuration/_colors-linking.module.scss";
 
 interface RuleOperatorProps {
     // The rule operator that should be rendered
@@ -51,10 +53,27 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                 </OverviewItemLine>
             )}
             <OverviewItemLine>
-                {utils.createOperatorTags([...ruleOperator.tags, ...(ruleOperator.categories ?? [])], textQuery)}
+                {utils.createOperatorTags(
+                    [...ruleOperator.tags, ...(ruleOperator.categories ?? [])],
+                    textQuery,
+                    tagColor
+                )}
             </OverviewItemLine>
         </OverviewItemDescription>
     );
+};
+
+const tagColor = (tag: string): Color | string | undefined => {
+    switch (tag) {
+        case "Transform":
+            return colors.transformationNode;
+        case "Input":
+            return colors.valueEdge;
+        case "Comparison":
+            return colors.comparatorNode;
+        case "Aggregation":
+            return colors.aggregatorNode;
+    }
 };
 
 // Returns the text starting around the first matching word from the query. This is used to show the first matching snippet of a longer text.

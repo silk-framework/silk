@@ -2,6 +2,7 @@ import { Highlighter, Spacing, Tag } from "gui-elements";
 import React from "react";
 import { IParameterSpecification, IParameterValidationResult } from "../../RuleEditor.typings";
 import { ruleEditorNodeParameterValue, RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
+import Color from "color";
 
 /** Adds highlighting to the text if query is non-empty. */
 const addHighlighting = (text: string, query?: string): string | JSX.Element => {
@@ -9,13 +10,13 @@ const addHighlighting = (text: string, query?: string): string | JSX.Element => 
 };
 
 /** Creates the tags for an operator (node). */
-const createOperatorTags = (tags: string[], query?: string) => {
+const createOperatorTags = (tags: string[], query?: string, color?: (tag: string) => Color | string | undefined) => {
     return (
         <>
             {tags.map((tag, idx) => {
                 return (
                     <>
-                        <Tag key={tag} minimal={true}>
+                        <Tag key={tag} minimal={true} backgroundColor={color ? color(tag) : undefined}>
                             {addHighlighting(tag, query)}
                         </Tag>
                         {idx < tags.length + 1 ? <Spacing key={`spacing-${tag}`} vertical size="tiny" /> : null}
