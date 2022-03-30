@@ -392,6 +392,11 @@
                 "remove": {
                     "label": "Remove"
                 }
+            },
+            "executionButtons": {
+                "edit": {
+                    "tooltip": "Open edit dialog"
+                }
             }
         },
         "selection": {

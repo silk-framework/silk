@@ -19,7 +19,13 @@ interface RuleNodeFormParameterProps {
 }
 
 /** A single form parameter, i.e. label, validation and input component. */
-export const RuleNodeFormParameter = ({ nodeId, pluginId, parameter, dependentValue }: RuleNodeFormParameterProps) => {
+export const RuleNodeFormParameter = ({
+    nodeId,
+    pluginId,
+    parameter,
+    dependentValue,
+    large,
+}: RuleNodeFormParameterProps) => {
     const [t] = useTranslation();
     const [validationResult, setValidationResult] = React.useState<IParameterValidationResult>({ valid: true });
     const [validationState] = React.useState<{ timeoutId: number | undefined }>({ timeoutId: undefined });
@@ -78,6 +84,7 @@ export const RuleNodeFormParameter = ({ nodeId, pluginId, parameter, dependentVa
                 nodeId={nodeId}
                 hasValidationError={!validationResult.valid}
                 dependentValue={dependentValue}
+                large={large}
             />
         </FieldItem>
     );

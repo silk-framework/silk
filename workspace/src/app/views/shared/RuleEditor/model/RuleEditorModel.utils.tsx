@@ -102,26 +102,30 @@ function createOperatorNode(
                 handleDeleteNode={nodeOperations.handleDeleteNode}
             />
         ),
-        executionButtons: (adjustedContentProps, setAdjustedContentProps) => {
-            return (
-                <IconButton
-                    name={"item-info"}
-                    onClick={() => {
-                        setAdjustedContentProps({
-                            showEditModal: true,
-                            onCloseEditModal: () =>
-                                setAdjustedContentProps((adjustedProps) => {
-                                    // Remove adjusted props again
-                                    const { showEditModal, onCloseEditModal, ...otherProps } = adjustedProps;
-                                    return {
-                                        ...otherProps,
-                                    };
-                                }),
-                        });
-                    }}
-                />
-            );
-        },
+        executionButtons:
+            Object.keys(node.parameters).length > 0
+                ? (adjustedContentProps, setAdjustedContentProps) => {
+                      return (
+                          <IconButton
+                              name={"item-edit"}
+                              onClick={() => {
+                                  setAdjustedContentProps({
+                                      showEditModal: true,
+                                      onCloseEditModal: () =>
+                                          setAdjustedContentProps((adjustedProps) => {
+                                              // Remove adjusted props again
+                                              const { showEditModal, onCloseEditModal, ...otherProps } = adjustedProps;
+                                              return {
+                                                  ...otherProps,
+                                              };
+                                          }),
+                                  });
+                              }}
+                              tooltip={operatorContext.t("RuleEditor.node.executionButtons.edit.tooltip")}
+                          />
+                      );
+                  }
+                : undefined,
         content: (adjustedProps: Partial<RuleNodeContentProps>) => (
             <NodeContent
                 nodeId={node.nodeId}

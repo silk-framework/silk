@@ -1,5 +1,5 @@
 import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
-import React from "react";
+import React, { MouseEvent } from "react";
 import { Switch, TextArea, TextField } from "gui-elements";
 import { CodeEditor } from "../../../QueryEditor/CodeEditor";
 import { requestResourcesList } from "@ducks/shared/requests";
@@ -23,6 +23,8 @@ interface RuleParameterInputProps {
     hasValidationError: boolean;
     /** Requests values of parameters this parameter might depend on for auto-completion. */
     dependentValue: (paramId: string) => string | undefined;
+    /** If the form parameter will be rendered in a large area. The used input components might differ. */
+    large: boolean;
 }
 
 /** An input widget for a parameter value. */
@@ -32,6 +34,7 @@ export const RuleParameterInput = ({
     nodeId,
     hasValidationError,
     dependentValue,
+    large,
 }: RuleParameterInputProps) => {
     const onChange = ruleParameter.update;
     const ruleEditorContext = React.useContext(RuleEditorContext);
@@ -64,14 +67,35 @@ export const RuleParameterInput = ({
 
     switch (ruleParameter.parameterSpecification.type) {
         case "textArea":
-            return (
-                <TextArea
-                    {...inputAttributes}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                        onChange(e.target.value);
-                    }}
-                />
-            );
+            if (large) {
+                // FIXME: CodeEditor looks buggy in the modal
+                // return <CodeEditor {...inputAttributes} />;
+                return (
+                    <TextArea
+                        {...inputAttributes}
+                        fill={true}
+                        large={true}
+                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                            onChange(e.target.value);
+                        }}
+                        rows={10}
+                    />
+                );
+            } else {
+                return (
+                    <TextArea
+                        {...inputAttributes}
+                        fill={false}
+                        small={true}
+                        growVertically={false}
+                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                            onChange(e.target.value);
+                        }}
+                        rows={2}
+                        {...preventEventsFromBubblingToReactFlow}
+                    />
+                );
+            }
         case "boolean":
             return <Switch {...inputAttributes} />;
         case "code":
@@ -84,6 +108,7 @@ export const RuleParameterInput = ({
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                         onChange(e.target.value);
                     }}
+                    {...preventEventsFromBubblingToReactFlow}
                 />
             );
         case "resource":
@@ -126,8 +151,15 @@ export const RuleParameterInput = ({
                         onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                             onChange(e.target.value);
                         }}
+                        {...preventEventsFromBubblingToReactFlow}
                     />
                 );
             }
     }
+};
+
+const preventEventsFromBubblingToReactFlow = {
+    onMouseDown: (event: MouseEvent<any>) => event.stopPropagation(),
+    onMouseUp: (event: MouseEvent<any>) => event.stopPropagation(),
+    onContextMenu: (event: MouseEvent<any>) => event.stopPropagation(),
 };

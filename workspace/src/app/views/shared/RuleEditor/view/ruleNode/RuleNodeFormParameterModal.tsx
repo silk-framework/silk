@@ -29,6 +29,16 @@ export const RuleNodeFormParameterModal = ({
                     {t("common.action.close")}
                 </Button>,
             ]}
+            wrapperDivProps={{
+                // Prevent react-flow from getting these events
+                onContextMenu: (event) => event.stopPropagation(),
+                onDrag: (event) => event.stopPropagation(),
+                onDragStart: (event) => event.stopPropagation(),
+                onDragEnd: (event) => event.stopPropagation(),
+                onMouseDown: (event) => event.stopPropagation(),
+                onMouseUp: (event) => event.stopPropagation(),
+                onClick: (event) => event.stopPropagation(),
+            }}
         >
             <RuleNodeParameterForm {...ruleNodeParameterProps} large={true} />
         </SimpleDialog>
