@@ -22,8 +22,8 @@ import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { EdgeMenu } from "./ruleEdge/EdgeMenu";
 import { ruleEditorModelUtilsFactory, SOURCE_HANDLE_TYPE, TARGET_HANDLE_TYPE } from "../model/RuleEditorModel.utils";
 import { MiniMap } from "gui-elements/src/extensions/react-flow/minimap/MiniMap";
-import { edgeTypes } from "gui-elements/src/extensions/react-flow/edges/edgeTypes";
-import { nodeTypes } from "gui-elements/src/extensions/react-flow/nodes/nodeTypes";
+//import { edgeTypes } from "gui-elements/src/extensions/react-flow/edges/edgeTypes";
+//import { nodeTypes } from "gui-elements/src/extensions/react-flow/nodes/nodeTypes";
 import { minimapNodeClassName, minimapNodeColor } from "gui-elements/src/extensions/react-flow/minimap/utils";
 import { GridColumn } from "gui-elements";
 import { RuleEditorNode } from "../model/RuleEditorModel.typings";
@@ -526,8 +526,8 @@ export const RuleEditorCanvas = () => {
                 onEdgeUpdateStart={onEdgeUpdateStart}
                 onEdgeUpdateEnd={onEdgeUpdateEnd}
                 onEdgeUpdate={onEdgeUpdate}
-                nodeTypes={nodeTypes}
-                edgeTypes={edgeTypes}
+                //nodeTypes={nodeTypes}
+                //edgeTypes={edgeTypes}
                 connectionLineType={ConnectionLineType.Step}
                 snapGrid={snapGrid}
                 snapToGrid={true}
