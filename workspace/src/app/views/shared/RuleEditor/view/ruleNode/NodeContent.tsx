@@ -5,26 +5,35 @@ import { RuleOperatorNodeParameters } from "../../RuleEditor.typings";
 import { IOperatorCreateContext, IOperatorNodeOperations } from "../../model/RuleEditorModel.utils";
 import utils from "./ruleNode.utils";
 import { IOperatorNodeParameterValueWithLabel } from "../../../../taskViews/shared/rules/rule.typings";
+import { RuleNodeFormParameterModal } from "./RuleNodeFormParameterModal";
 
-interface NodeContentProps {
+export interface RuleNodeContentProps {
     nodeId: string;
+    nodeLabel: string;
     tags?: string[];
     operatorContext: IOperatorCreateContext;
     nodeOperations: IOperatorNodeOperations;
     nodeParameters: RuleOperatorNodeParameters;
     /** Force an update of the content from the outside. */
     updateSwitch?: boolean;
+    /** If the rule node form edit modal should be shown. */
+    showEditModal: boolean;
+    /** Must be called when the edit modal gets closed. */
+    onCloseEditModal?: () => any;
 }
 
 /** The content of a rule node. */
 export const NodeContent = ({
     nodeId,
+    nodeLabel,
     tags,
     operatorContext,
     nodeOperations,
     nodeParameters,
     updateSwitch,
-}: NodeContentProps) => {
+    showEditModal,
+    onCloseEditModal = () => {},
+}: RuleNodeContentProps) => {
     const [rerender, setRerender] = React.useState(false);
 
     /** Forced re-render logic. */
@@ -71,9 +80,24 @@ export const NodeContent = ({
                     pluginId={operatorContext.nodePluginId(nodeId) ?? "unknown"}
                     parameters={parameters}
                     dependentValue={dependentValue}
+                    large={false}
                 />
             ) : null}
             {tags ? utils.createOperatorTags(tags) : null}
+            {showEditModal ? (
+                <RuleNodeFormParameterModal
+                    key={"form"}
+                    title={nodeLabel}
+                    nodeId={nodeId}
+                    pluginId={operatorContext.nodePluginId(nodeId) ?? "unknown"}
+                    parameters={parameters}
+                    dependentValue={dependentValue}
+                    onClose={() => {
+                        setRerender(true);
+                        onCloseEditModal();
+                    }}
+                />
+            ) : null}
         </>
     );
 };

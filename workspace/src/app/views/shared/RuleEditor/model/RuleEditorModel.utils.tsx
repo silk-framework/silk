@@ -14,7 +14,8 @@ import { RuleNodeMenu } from "../view/ruleNode/RuleNodeMenu";
 import { RuleEditorNode, RuleEditorNodeParameterValue } from "./RuleEditorModel.typings";
 import { Connection, Elements, XYPosition } from "react-flow-renderer/dist/types";
 import ELK, { ElkNode } from "elkjs";
-import { NodeContent } from "../view/ruleNode/NodeContent";
+import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
+import { IconButton } from "gui-elements";
 
 /** Constants */
 
@@ -101,13 +102,36 @@ function createOperatorNode(
                 handleDeleteNode={nodeOperations.handleDeleteNode}
             />
         ),
-        content: (
+        executionButtons: (adjustedContentProps, setAdjustedContentProps) => {
+            return (
+                <IconButton
+                    name={"item-info"}
+                    onClick={() => {
+                        setAdjustedContentProps({
+                            showEditModal: true,
+                            onCloseEditModal: () =>
+                                setAdjustedContentProps((adjustedProps) => {
+                                    // Remove adjusted props again
+                                    const { showEditModal, onCloseEditModal, ...otherProps } = adjustedProps;
+                                    return {
+                                        ...otherProps,
+                                    };
+                                }),
+                        });
+                    }}
+                />
+            );
+        },
+        content: (adjustedProps: Partial<RuleNodeContentProps>) => (
             <NodeContent
                 nodeId={node.nodeId}
+                nodeLabel={node.label}
                 tags={node.tags}
                 operatorContext={operatorContext}
                 nodeOperations={nodeOperations}
                 nodeParameters={node.parameters}
+                showEditModal={false}
+                {...adjustedProps}
             />
         ),
     };

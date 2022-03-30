@@ -4,6 +4,7 @@ import { ValidIconName } from "gui-elements/src/components/Icon/canonicalIconNam
 import { IPreConfiguredRuleOperator } from "./view/sidebar/RuleEditorOperatorSidebar.typings";
 import { RuleEditorNodeParameterValue } from "./model/RuleEditorModel.typings";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
+import { RuleNodeContentProps } from "./view/ruleNode/NodeContent";
 
 export type PathInputOperator = "PathInputOperator";
 
@@ -104,7 +105,7 @@ export interface RuleOperatorNodeParameters {
 }
 
 /** Rule editor node with required business data. For convenience. */
-export interface NodeContentPropsWithBusinessData<T> extends NodeContentProps<T> {
+export interface NodeContentPropsWithBusinessData<T> extends NodeContentProps<T, RuleNodeContentProps> {
     businessData: T;
 }
 

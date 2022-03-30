@@ -14,6 +14,8 @@ interface RuleNodeFormParameterProps {
     parameter: IRuleNodeParameter;
     /** Requests values of parameters this parameter might depend on for auto-completion. */
     dependentValue: (paramId: string) => string | undefined;
+    /** If the form parameter will be rendered in a large area. The used input components might differ. */
+    large: boolean;
 }
 
 /** A single form parameter, i.e. label, validation and input component. */

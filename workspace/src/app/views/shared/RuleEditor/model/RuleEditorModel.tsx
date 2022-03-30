@@ -35,7 +35,7 @@ import {
     RuleModelChangeType,
 } from "./RuleEditorModel.typings";
 import { Connection, XYPosition } from "react-flow-renderer/dist/types";
-import { NodeContent } from "../view/ruleNode/NodeContent";
+import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
 import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basicUtils";
 import { HighlightingState } from "gui-elements/src/extensions/react-flow/nodes/NodeDefault";
 
@@ -536,10 +536,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                                     data: {
                                         ...currentRuleNode.data,
                                         businessData: { ...businessData, updateSwitch: !businessData.updateSwitch },
-                                        content: (
+                                        content: (adjustedProps: Partial<RuleNodeContentProps>) => (
                                             <NodeContent
                                                 nodeOperations={operatorNodeOperationsInternal}
                                                 nodeId={currentRuleNode.id}
+                                                nodeLabel={currentRuleNode.data.label}
                                                 tags={op.tags}
                                                 operatorContext={operatorNodeCreateContextInternal(
                                                     op.pluginId,
@@ -551,6 +552,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                                                     ...Object.fromEntries(nodeParameters.get(elem.id)!!.entries()),
                                                 }}
                                                 updateSwitch={!businessData.updateSwitch}
+                                                showEditModal={false}
+                                                {...adjustedProps}
                                             />
                                         ),
                                     },
