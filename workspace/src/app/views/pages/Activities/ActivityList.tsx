@@ -55,9 +55,14 @@ const ActivityList = () => {
     );
     const emptyListWithoutFilters: boolean = isEmpty && !textQuery && !appliedFacets.length;
 
+    // Used for keys in activity->value maps
+    const activityKey = (activity: string, projectId?: string, taskId?: string): string =>
+        `${activity}|${projectId ?? ""}|${taskId ?? ""}`;
+
     const updateActivityStatus = (status: IActivityStatus) => {
-        activityStatusMap.set(status.activity, status);
-        activityUpdateCallback.get(status.activity)?.(status);
+        const key = activityKey(status.activity, status.project, status.task);
+        activityStatusMap.set(key, status);
+        activityUpdateCallback.get(key)?.(status);
     };
 
     const handlePaginationOnChange = (n: number, pageSize: number) => {
@@ -185,13 +190,15 @@ const ActivityList = () => {
                             </ResourceLink>
                         </>
                     );
+
+                    const key = activityKey(activity.id, activity.project, activity.task);
                     return (
                         <Card isOnlyLayout key={index}>
                             <SilkActivityControl
                                 label={<ActivityLabel />}
                                 tags={<ActivityTags activity={activity} />}
-                                registerForUpdates={createRegisterForUpdatesFn(activity.id)}
-                                unregisterFromUpdates={createUnregisterFromUpdateFn(activity.id)}
+                                registerForUpdates={createRegisterForUpdatesFn(key)}
+                                unregisterFromUpdates={createUnregisterFromUpdateFn(key)}
                                 showReloadAction={activity.isCacheActivity}
                                 showStartAction={!activity.isCacheActivity}
                                 showStopAction
