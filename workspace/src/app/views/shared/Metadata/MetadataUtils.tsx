@@ -61,19 +61,14 @@ const DisplayArtefactTags = (
             {tags
                 .sort((a, b) =>
                     a.label.toLowerCase() > b.label.toLowerCase()
-                        ? -1
-                        : a.label.toLowerCase() < b.label.toLowerCase()
                         ? 1
+                        : a.label.toLowerCase() < b.label.toLowerCase()
+                        ? -1
                         : 0
                 )
                 .slice(0, size === "full" ? tags.length : minLength)
                 .map((tag) => (
-                    <Tag
-                        key={tag.uri}
-                        emphasis="stronger"
-                        interactive
-                        onClick={() => goToPage(generateFacetUrl("tags", tag.uri))}
-                    >
+                    <Tag key={tag.uri} onClick={() => goToPage(generateFacetUrl("tags", tag.uri))}>
                         {tag.label}
                     </Tag>
                 ))}
