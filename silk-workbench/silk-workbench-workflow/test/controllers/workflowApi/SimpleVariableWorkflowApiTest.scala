@@ -123,7 +123,7 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
   }
 
   it should "take the dataset content directly as POST payload" in {
-    val inputValue = "some test value"
+    val inputValue = "some test value ä€"
     for(payload <- Seq(
       (s"""{"$sourceProperty1":"$inputValue"}""", APPLICATION_JSON),
       (s"""[{"$sourceProperty1":"$inputValue"}]""", APPLICATION_JSON),
