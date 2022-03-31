@@ -74,11 +74,18 @@ lazy val commonSettings = Seq(
   // Testing
   libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.9" % "test",
   libraryDependencies += "net.codingwell" %% "scala-guice" % "4.2.11" % "test",
-  libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.3",
+  libraryDependencies += "ch.qos.logback" % "logback-classic" % "1.2.11",
   libraryDependencies += "org.mockito" % "mockito-all" % "1.9.5" % "test",
   libraryDependencies += "com.google.inject" % "guice" % "4.0" % "test",
   libraryDependencies += "javax.inject" % "javax.inject" % "1",
   (Test / testOptions) += Tests.Argument(TestFrameworks.ScalaTest, "-u", "target/test-reports", scalaTestOptions),
+
+  // We need to overwrite the versions of the Jackson modules. We might be able to remove this after a Play upgrade
+  dependencyOverrides += "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.12.6" % "test",
+  dependencyOverrides += "com.fasterxml.jackson.core" % "jackson-databind" % "2.12.6" % "test",
+  // We need to make sure that no newer versions of slf4j are used because logback 1.2.x only supports slf4j up to 1.7.x
+  // Can be removed as soon as there are newer stable versions of logback
+  dependencyOverrides += "org.slf4j" % "slf4j-api" % "1.7.36",
 
   // The assembly plugin cannot resolve multiple dependencies to commons logging
   (assembly / assemblyMergeStrategy) := {
@@ -137,7 +144,7 @@ lazy val workspace = (project in file("silk-workspace"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workspace",
-    libraryDependencies += "com.typesafe.play" %% "play-ws" % "2.8.8"
+    libraryDependencies += ws
   )
 
 /////////////////////////////////////////////// ///////////////////////////////
@@ -175,7 +182,7 @@ lazy val pluginsJson = (project in file("silk-plugins/silk-plugins-json"))
   .settings(
     name := "Silk Plugins JSON",
     libraryDependencies += "com.fasterxml.jackson.core" % "jackson-core" % "2.12.1",
-    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.8.1"
+    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.8.2"
   )
 
 // pluginsSpatialTemporal has been removed as it uses dependencies from external unreliable repositories
@@ -205,7 +212,7 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Serialization JSON",
-    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.8.1",
+    libraryDependencies += "com.typesafe.play" %% "play-json" % "2.8.2",
     libraryDependencies += "io.swagger.core.v3" % "swagger-annotations" % "2.1.11"
   )
 
