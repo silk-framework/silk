@@ -16,6 +16,7 @@ interface LinkRuleNodeEvaluationProps {
     unregister: () => void;
     /** A URL to link to when there is no result found. */
     referenceLinksUrl?: string;
+    numberOfLinksToShow: number;
 }
 
 /** Show linking evaluation results for a specific node. */
@@ -24,6 +25,7 @@ export const LinkRuleNodeEvaluation = ({
     registerForEvaluationResults,
     unregister,
     referenceLinksUrl,
+    numberOfLinksToShow,
 }: LinkRuleNodeEvaluationProps) => {
     const [evaluationResult, setEvaluationResult] = React.useState<string[][] | undefined>([]);
     const [t] = useTranslation();
@@ -73,6 +75,13 @@ export const LinkRuleNodeEvaluation = ({
             ) : (
                 <div>{t("RuleEditor.evaluation.noResults")}</div>
             )}
+            {evaluationResult.length < numberOfLinksToShow ? (
+                <div>
+                    <Spacing hasDivider={true} />
+                    <Spacing size={"tiny"} vertical={true} />
+                    <Link href={referenceLinksUrl}>{t("RuleEditor.evaluation.addMoreResults")}</Link>
+                </div>
+            ) : null}
             <Spacing size={"tiny"} />
         </div>
     ) : null;

@@ -388,6 +388,7 @@
             }
         },
         "evaluation": {
+            "addMoreResults": "Add more reference links",
             "noResults": "No linking results available. Please add reference links."
         },
         "node": {

@@ -4,22 +4,15 @@ import React, { ReactElement } from "react";
 import { IRuleOperatorNode } from "../../../shared/RuleEditor/RuleEditor.typings";
 import { RuleEditorProps } from "../../../shared/RuleEditor/RuleEditor";
 import { TaskPlugin } from "@ducks/shared/typings";
-import {
-    AggregationConfidence,
-    ComparisonConfidence,
-    IEntityLink,
-    IEvaluatedReferenceLinksScore,
-    IEvaluationNode,
-    IEvaluationValue,
-    ILinkingTaskParameters,
-} from "../linking.types";
+import { IEntityLink, IEvaluatedReferenceLinksScore, ILinkingTaskParameters } from "../linking.types";
 import { IPluginDetails } from "@ducks/common/typings";
-import utils from "../LinkingRuleEditor.utils";
+import editorUtils from "../LinkingRuleEditor.utils";
 import { evaluateLinkingRule, evaluateLinkingRuleAgainstReferenceEntities } from "../LinkingRuleEditor.requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { LinkRuleNodeEvaluation } from "./LinkRuleNodeEvaluation";
 import { queryParameterValue } from "../../../../utils/basicUtils";
+import utils from "./LinkingRuleEvaluation.utils";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<TaskPlugin<ILinkingTaskParameters>, IPluginDetails>>;
 
@@ -32,7 +25,7 @@ interface LinkingRuleEvaluationProps {
     children: EvaluationChildType;
 }
 
-type EvaluatedEntityLink = IEntityLink & { type: "positive" | "negative" | "unlabelled" };
+export type EvaluatedEntityLink = IEntityLink & { type: "positive" | "negative" | "unlabelled" };
 
 const REFERENCE_LINK_URL_PARAMETER = "referenceLinksUrl";
 
@@ -68,11 +61,10 @@ export const LinkingRuleEvaluation = ({
     React.useEffect(() => {
         clearEntities();
         evaluationResult.forEach((link) => evaluationResultEntities.push([link.source, link.target]));
-        const valueMaps = evaluationResult.map((link) => linkToValueMap(link));
+        const valueMaps = evaluationResult.map((link) => utils.linkToValueMap(link));
         nodeUpdateCallbacks.forEach((updateCallback, operatorId) => {
             const evaluationValues = valueMaps.map((valueMap) => {
-                const operatorLinkEvaluationValues = valueMap.get(operatorId) ?? [];
-                return operatorLinkEvaluationValues;
+                return valueMap.get(operatorId) ?? [];
             });
             evaluationResultMap.set(operatorId, evaluationValues);
             updateCallback(evaluationValues);
@@ -94,28 +86,6 @@ export const LinkingRuleEvaluation = ({
 
     const clearEntities = () => evaluationResultEntities.splice(0, evaluationResultEntities.length);
 
-    /** Turns an evaluation tree into a map operatorId => evaluation value */
-    const linkToValueMap = (link: EvaluatedEntityLink): Map<string, string[]> => {
-        const valueMap = new Map<string, string[]>();
-        const traverseEvaluationValueTree = (node: IEvaluationValue) => {
-            valueMap.set(node.operatorId, node.values);
-            node.children && node.children.forEach((c) => traverseEvaluationValueTree(c));
-        };
-        const traverseEvaluationTree = (node: IEvaluationNode) => {
-            if ((node as AggregationConfidence).children) {
-                valueMap.set(node.operatorId, [`Score: ${node.score ?? ""}`]);
-                (node as AggregationConfidence).children.forEach((n) => traverseEvaluationTree(n));
-            } else {
-                const comparison = node as ComparisonConfidence;
-                valueMap.set(comparison.operatorId, [`Score: ${node.score ?? ""}`]);
-                traverseEvaluationValueTree(comparison.sourceValue);
-                traverseEvaluationValueTree(comparison.targetValue);
-            }
-        };
-        link.ruleValues && traverseEvaluationTree(link.ruleValues);
-        return valueMap;
-    };
-
     /** Start an evaluation of the linkage rule. */
     const startEvaluation = async (
         ruleOperatorNodes: IRuleOperatorNode[],
@@ -124,7 +94,7 @@ export const LinkingRuleEvaluation = ({
     ) => {
         setEvaluationRunning(true);
         try {
-            const ruleTree = utils.constructLinkageRuleTree(ruleOperatorNodes);
+            const ruleTree = editorUtils.constructLinkageRuleTree(ruleOperatorNodes);
             const linkSpec = originalTask as TaskPlugin<ILinkingTaskParameters>;
             const linkageRule = linkSpec.parameters.rule;
             const newLinkageRule = { ...linkageRule, operator: ruleTree };
@@ -187,6 +157,7 @@ export const LinkingRuleEvaluation = ({
                 registerForEvaluationResults={registerForEvaluationResults}
                 unregister={() => nodeUpdateCallbacks.delete(ruleOperatorId)}
                 referenceLinksUrl={referenceLinksUrl}
+                numberOfLinksToShow={numberOfLinkToShow}
             />
         );
     };
