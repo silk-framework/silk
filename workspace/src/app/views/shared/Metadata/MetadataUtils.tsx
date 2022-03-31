@@ -58,14 +58,7 @@ const DisplayArtefactTags = (
 ) => {
     const Tags = (size: "full" | "preview") => (
         <TagList>
-            {tags
-                .sort((a, b) =>
-                    a.label.toLowerCase() > b.label.toLowerCase()
-                        ? 1
-                        : a.label.toLowerCase() < b.label.toLowerCase()
-                        ? -1
-                        : 0
-                )
+            {sortTags(tags)
                 .slice(0, size === "full" ? tags.length : minLength)
                 .map((tag) => (
                     <Tag key={tag.uri} onClick={() => goToPage(generateFacetUrl("tags", tag.uri))}>
@@ -91,6 +84,12 @@ const DisplayArtefactTags = (
     );
 };
 
+//Todo move to utils file after refactor or upgrade
+const sortTags = (tags: TagType[]) =>
+    tags.sort((a, b) =>
+        a.label.toLowerCase() > b.label.toLowerCase() ? 1 : a.label.toLowerCase() < b.label.toLowerCase() ? -1 : 0
+    );
+
 const generateFacetUrl = (id: string, uri: string): string => {
     const queryParams = {
         f_ids: id,
@@ -106,6 +105,7 @@ const utils = {
     createNewTag,
     generateFacetUrl,
     queryTags,
+    sortTags,
 };
 
 export default utils;
