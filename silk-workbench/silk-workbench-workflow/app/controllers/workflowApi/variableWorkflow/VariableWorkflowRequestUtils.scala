@@ -9,7 +9,7 @@ import org.silkframework.workspace.activity.workflow.Workflow
 import play.api.libs.json._
 import play.api.mvc.{AnyContentAsEmpty, AnyContentAsFormUrlEncoded, AnyContentAsJson, AnyContentAsRaw, AnyContentAsXml, Request}
 
-import scala.io.Source
+import scala.io.{Codec, Source}
 
 /**
   * Helps to handle variable workflow requests.
@@ -165,9 +165,13 @@ object VariableWorkflowRequestUtils {
               s"If you need to input an 'empty entity', use an empty JSON object or XML element instead as request payload.")
         }
       case AnyContentAsRaw(rawBuffer) if mediaType.exists(mt => validMediaTypes.contains(mt)) =>
-        val source = Source.fromFile(rawBuffer.asFile)
-        val content = source.mkString
-        source.close()
+        val source = Source.fromFile(rawBuffer.asFile)(Codec.UTF8)
+        val content =
+          try {
+            source.mkString
+          } finally {
+            source.close()
+          }
         JsString(content)
       case _ =>
         throwUnsupportedMediaType(request.contentType.getOrElse("-none-"))
