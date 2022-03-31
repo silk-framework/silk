@@ -116,6 +116,7 @@ export const RuleEditorToolbar = () => {
                     tooltipProperties={{ hoverCloseDelay: 0 }}
                     onClick={saveLinkingRule}
                     disabled={modelContext.isReadOnly() || !modelContext.unsavedChanges}
+                    href={(modelContext.isReadOnly() || !modelContext.unsavedChanges) ? "#" : undefined}
                     loading={savingWorkflow}
                 >
                     {modelContext.isReadOnly() ? <Icon name={"write-protected"} /> : t("common.action.save", "Save")}
