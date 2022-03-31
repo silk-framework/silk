@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
     Edge,
     Elements,
@@ -58,7 +58,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [elements, setElements] = React.useState<Elements>([]);
     /** Track the current elements, since the API methods changing the elements when run subsequently will otherwise work with the same elements.
      * Use the function changeElementsInternal to modify the elements instead of directly changing them. */
-    const [current] = React.useState<{ elements: Elements }>({ elements: [] });
+    const [current] = React.useState<{ elements: Elements; evaluateQuickly: boolean }>({
+        elements: [],
+        evaluateQuickly: false,
+    });
     current.elements = elements;
     /** Rule editor context. */
     const ruleEditorContext = React.useContext<RuleEditorContextProps>(RuleEditorContext);
@@ -83,8 +86,13 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const setSelectedElements = useStoreActions((a) => a.setSelectedElements);
     /** Map from node ID to (original) rule operator node. Used for validating connections. */
     const [nodeMap] = React.useState<Map<string, IRuleOperatorNode>>(new Map());
+    const [evaluationCounter, setEvaluationCounter] = React.useState(0);
     const ruleEvaluationContext: RuleEditorEvaluationContextProps =
         React.useContext<RuleEditorEvaluationContextProps>(RuleEditorEvaluationContext);
+    current.evaluateQuickly =
+        ruleEvaluationContext.supportsEvaluation &&
+        ruleEvaluationContext.supportsQuickEvaluation &&
+        ruleEvaluationContext.evaluationResultsShown;
 
     /** Convert initial operator nodes to react-flow model. */
     React.useEffect(() => {
@@ -125,6 +133,25 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         return sourceNode && targetNode && Number.isInteger(targetInputIdx)
             ? ruleEditorContext.validateConnection(sourceNode, targetNode, targetInputIdx)
             : true;
+    };
+
+    // Start
+    useEffect(() => {
+        if (current.evaluateQuickly) {
+            const timeout = setTimeout(
+                () => ruleEvaluationContext.startEvaluation(ruleOperatorNodes(), ruleEditorContext.editedItem, true),
+                1000
+            );
+            return () => clearTimeout(timeout);
+        }
+    }, [evaluationCounter]);
+
+    // Sets the quick evaluation flag to signal that a new quick evaluation should be triggered.
+    const triggerQuickEvaluation = () => {
+        // Only trigger if it currently makes sense
+        if (current.evaluateQuickly) {
+            setEvaluationCounter((c) => c + 1);
+        }
     };
 
     /** Elements should only be changed via this function when needing the current elements.
@@ -400,18 +427,21 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         groupedChange.map((change) => (change as AddEdge).edge),
                         changedElements
                     );
+                    triggerQuickEvaluation();
                     break;
                 case "Delete node":
                     changedElements = deleteElementsInternal(
                         groupedChange.map((change) => (change as DeleteNode).node),
                         changedElements
                     );
+                    triggerQuickEvaluation();
                     break;
                 case "Delete edge":
                     changedElements = deleteElementsInternal(
                         groupedChange.map((change) => (change as DeleteEdge).edge),
                         changedElements
                     );
+                    triggerQuickEvaluation();
                     break;
                 case "Change node position":
                     changedElements = changeNodePositionsInternal(
@@ -500,6 +530,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                             }
                         });
                     }
+                    triggerQuickEvaluation();
                     break;
             }
         });
@@ -988,7 +1019,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 return newArray;
             }
         };
-        elements.forEach((elem) => {
+        current.elements.forEach((elem) => {
             if (utils.isNode(elem)) {
                 nodes.push(utils.asNode(elem)!!);
             } else {

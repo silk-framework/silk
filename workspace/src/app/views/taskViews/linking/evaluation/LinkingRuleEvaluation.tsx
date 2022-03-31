@@ -53,6 +53,7 @@ export const LinkingRuleEvaluation = ({
     const [evaluatesQuickly, setEvaluatesQuickly] = React.useState(false);
     const [nodeUpdateCallbacks] = React.useState(new Map<string, (evaluationValues: string[][] | undefined) => any>());
     const [referenceLinksUrl, setReferenceLinksUrl] = React.useState<string | undefined>(undefined);
+    const [evaluationResultsShown, setEvaluationResultsShown] = React.useState<boolean>(false);
     const { registerError } = useErrorHandler();
     const [t] = useTranslation();
 
@@ -88,6 +89,7 @@ export const LinkingRuleEvaluation = ({
                 updateCallback(undefined);
             });
         }
+        setEvaluationResultsShown(show);
     };
 
     const clearEntities = () => evaluationResultEntities.splice(0, evaluationResultEntities.length);
@@ -115,7 +117,11 @@ export const LinkingRuleEvaluation = ({
     };
 
     /** Start an evaluation of the linkage rule. */
-    const startEvaluation = async (ruleOperatorNodes: IRuleOperatorNode[], originalTask: any) => {
+    const startEvaluation = async (
+        ruleOperatorNodes: IRuleOperatorNode[],
+        originalTask: any,
+        quickEvaluationOnly: boolean = false
+    ) => {
         setEvaluationRunning(true);
         try {
             const ruleTree = utils.constructLinkageRuleTree(ruleOperatorNodes);
@@ -130,7 +136,7 @@ export const LinkingRuleEvaluation = ({
                     numberOfLinkToShow
                 )
             ).data;
-            if (result.positive.length === 0 && result.negative.length === 0) {
+            if (result.positive.length === 0 && result.negative.length === 0 && !quickEvaluationOnly) {
                 // Fallback to slower linking evaluation
                 setEvaluatesQuickly(false);
                 const links = (await evaluateLinkingRule(projectId, linkingTaskId, newLinkageRule, numberOfLinkToShow))
@@ -194,6 +200,7 @@ export const LinkingRuleEvaluation = ({
                 evaluationRunning,
                 toggleEvaluationResults,
                 evaluationScore,
+                evaluationResultsShown,
             }}
         >
             {children}

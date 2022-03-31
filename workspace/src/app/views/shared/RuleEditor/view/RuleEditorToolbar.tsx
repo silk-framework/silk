@@ -24,7 +24,7 @@ export const RuleEditorToolbar = () => {
     };
 
     const startEvaluation = () => {
-        ruleEvaluationContext.startEvaluation(modelContext.ruleOperatorNodes(), ruleEditor.editedItem);
+        ruleEvaluationContext.startEvaluation(modelContext.ruleOperatorNodes(), ruleEditor.editedItem, false);
         toggleEvaluation(true);
     };
 

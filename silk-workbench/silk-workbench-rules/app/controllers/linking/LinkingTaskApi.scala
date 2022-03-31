@@ -681,7 +681,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     val rule = task.data.rule
 
     val referenceEntityCacheValue = updateAndGetReferenceEntityCacheValue(task, refreshCache = true)
-    val evaluationResult: LinkageRuleEvaluationResult = referenceLinkEvaluationScore(task, referenceEntityCacheValue)
+    val evaluationResult: LinkageRuleEvaluationResult = referenceLinkEvaluationScore(task.data.rule, referenceEntityCacheValue)
 
     val result =
       Json.obj(
@@ -693,8 +693,8 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     Ok(result)
   }
 
-  private def referenceLinkEvaluationScore(task: ProjectTask[LinkSpec], referenceEntityCacheValue: ReferenceEntities) = {
-    val score = LinkageRuleEvaluator(task.data.rule, referenceEntityCacheValue)
+  private def referenceLinkEvaluationScore(linkageRule: LinkageRule, referenceEntityCacheValue: ReferenceEntities): LinkageRuleEvaluationResult = {
+    val score = LinkageRuleEvaluator(linkageRule, referenceEntityCacheValue)
     val evaluationResult = LinkageRuleEvaluationResult(score.truePositives, score.trueNegatives, score.falsePositives, score.falseNegatives,
       f"${score.fMeasure}%.2f", f"${score.precision}%.2f", f"${score.recall}%.2f")
     evaluationResult
@@ -741,7 +741,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
       def serialize(links: Traversable[DPair[Entity]]): JsValue = {
         serializeLinks(links.take(linkLimit), linkageRule)
       }
-      val evaluationResult: LinkageRuleEvaluationResult = referenceLinkEvaluationScore(task, referenceEntityCacheValue)
+      val evaluationResult: LinkageRuleEvaluationResult = referenceLinkEvaluationScore(linkageRule, referenceEntityCacheValue)
 
       val result =
         Json.obj(
