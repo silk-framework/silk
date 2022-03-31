@@ -19,9 +19,87 @@ import { DIErrorFormat, DIErrorTypes } from "@ducks/error/typings";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 
 export function NotificationsMenu() {
+    const [displayNotifications, setDisplayNotifications] = useState<boolean>(false);
+    const [displayLastNotification, setDisplayLastNotification] = useState<boolean>(false);
+
+    const notificationQueue = useNotificationsQueue();
+
+    useEffect(() => {
+        if (notificationQueue.displayLastNotification) {
+            setDisplayLastNotification(true);
+            const timeout: number = window.setTimeout(async () => {
+                setDisplayLastNotification(false);
+            }, 6000);
+            return () => {
+                clearTimeout(timeout);
+            };
+        } else {
+            setDisplayLastNotification(false);
+            setDisplayNotifications(false);
+        }
+    }, [notificationQueue.displayLastNotification]);
+
+    const toggleNotifications = () => {
+        setDisplayLastNotification(false);
+        setDisplayNotifications(!displayNotifications);
+    };
+
+    const notificationIndicatorButton = (
+        <ApplicationToolbarAction
+            aria-label="Open notifications menu"
+            isActive={false}
+            onClick={() => {
+                toggleNotifications();
+            }}
+        >
+            <Icon name="application-warning" description="Notification menu icon" large />
+        </ApplicationToolbarAction>
+    );
+
+    const notificationIndicator =
+        displayLastNotification && notificationQueue.lastNotification ? (
+            <ContextOverlay
+                isOpen={true}
+                minimal={true}
+                position="bottom-right"
+                autoFocus={false}
+                enforceFocus={false}
+                openOnTargetFocus={false}
+                content={notificationQueue.lastNotification}
+                target={notificationIndicatorButton}
+            />
+        ) : (
+            notificationIndicatorButton
+        );
+
+    return notificationQueue.queueLength > 0 ? (
+        <>
+            {!displayNotifications && notificationIndicator}
+            {displayNotifications && (
+                <ApplicationToolbarAction
+                    aria-label="Close notifications menu"
+                    isActive={true}
+                    onClick={() => {
+                        toggleNotifications();
+                    }}
+                >
+                    <Icon name="navigation-close" description="Close icon" large />
+                </ApplicationToolbarAction>
+            )}
+            {displayNotifications && (
+                <ApplicationToolbarPanel aria-label="Notification menu" expanded={true} style={{ width: "40rem" }}>
+                    {notificationQueue.notifications}
+                </ApplicationToolbarPanel>
+            )}
+        </>
+    ) : (
+        <></>
+    );
+}
+
+export function useNotificationsQueue() {
     // condition: first message in array is handled as latest message, otherwise reverse it first
     const { clearErrors } = useErrorHandler();
-    const [displayNotifications, setDisplayNotifications] = useState<boolean>(false);
     const [displayLastNotification, setDisplayLastNotification] = useState<boolean>(false);
     const { errors } = useSelector(errorSelector);
     //first message is the latest entry based on the timestamp
@@ -38,7 +116,6 @@ export function NotificationsMenu() {
             };
         } else {
             setDisplayLastNotification(false);
-            setDisplayNotifications(false);
         }
     }, [messages.length > 0 ? messages[0] : undefined]);
 
@@ -48,13 +125,7 @@ export function NotificationsMenu() {
             clearErrors([error.id]);
         } else {
             clearErrors();
-            setDisplayNotifications(false);
         }
-    };
-
-    const toggleNotifications = () => {
-        setDisplayLastNotification(false);
-        setDisplayNotifications(!displayNotifications);
     };
 
     const parseErrorCauseMsg = (cause?: DIErrorTypes | null): string | undefined => {
@@ -63,40 +134,17 @@ export function NotificationsMenu() {
             : cause?.message;
     };
 
-    const notificationIndicatorButton = (
-        <ApplicationToolbarAction
-            aria-label="Open notifications menu"
-            isActive={false}
-            onClick={() => {
-                toggleNotifications();
-            }}
-        >
-            <Icon name="application-warning" description="Notification menu icon" large />
-        </ApplicationToolbarAction>
-    );
-
-    const notificationIndicator =
+    const lastNotification =
         displayLastNotification && messages.length > 0 ? (
-            <ContextOverlay
-                isOpen={true}
-                minimal={true}
-                position="bottom-right"
-                autoFocus={false}
-                enforceFocus={false}
-                openOnTargetFocus={false}
-                content={
-                    <Notification
-                        danger={!messages[0].alternativeIntent}
-                        warning={messages[0].alternativeIntent === "warning"}
-                        onDismiss={() => setDisplayLastNotification(false)}
-                    >
-                        {messages[0].message}
-                    </Notification>
-                }
-                target={notificationIndicatorButton}
-            />
+            <Notification
+                danger={!messages[0].alternativeIntent}
+                warning={messages[0].alternativeIntent === "warning"}
+                onDismiss={() => setDisplayLastNotification(false)}
+            >
+                {messages[0].message}
+            </Notification>
         ) : (
-            notificationIndicatorButton
+            null
         );
 
     const now = new Date();
@@ -112,58 +160,47 @@ export function NotificationsMenu() {
         }
     };
 
-    return messages.length > 0 ? (
+    const notifications = messages.length > 0 ? (
         <>
-            {!displayNotifications && notificationIndicator}
-            {displayNotifications && (
-                <ApplicationToolbarAction
-                    aria-label="Close notifications menu"
-                    isActive={true}
-                    onClick={() => {
-                        toggleNotifications();
-                    }}
-                >
-                    <Icon name="navigation-close" description="Close icon" large />
-                </ApplicationToolbarAction>
-            )}
-            {displayNotifications && (
-                <ApplicationToolbarPanel aria-label="Notification menu" expanded={true} style={{ width: "40rem" }}>
-                    <Button text="Clear all messages" onClick={() => removeMessages()} />
-                    <Divider addSpacing="medium" />
-                    {messages.map((item, id) => {
-                        const errorDetails = parseErrorCauseMsg(item.cause);
-                        return (
-                            <div key={"message" + id}>
-                                <Notification
-                                    danger={!item.alternativeIntent}
-                                    warning={item.alternativeIntent === "warning"}
-                                    fullWidth
-                                    onDismiss={() => removeMessages(item)}
-                                >
-                                    {`${item.message} (${formatDuration(now.getTime() - item.timestamp)} ago)`}
-                                    <Spacing size="small" />
-                                    {errorDetails ? (
-                                        <Accordion>
-                                            <AccordionItem
-                                                label={<TitleSubsection>More details</TitleSubsection>}
-                                                elevated
-                                                condensed
-                                                open={false}
-                                            >
-                                                {errorDetails}
-                                            </AccordionItem>
-                                        </Accordion>
-                                    ) : null}
-                                </Notification>
-
-                                <Spacing size="small" />
-                            </div>
-                        );
-                    })}
-                </ApplicationToolbarPanel>
-            )}
+            <Button text="Clear all messages" onClick={() => removeMessages()} />
+            <Divider addSpacing="medium" />
+            {messages.map((item, id) => {
+                const errorDetails = parseErrorCauseMsg(item.cause);
+                return (
+                    <div key={"message" + id}>
+                        <Notification
+                            danger={!item.alternativeIntent}
+                            warning={item.alternativeIntent === "warning"}
+                            fullWidth
+                            onDismiss={() => removeMessages(item)}
+                        >
+                            {`${item.message} (${formatDuration(now.getTime() - item.timestamp)} ago)`}
+                            <Spacing size="small" />
+                            {errorDetails ? (
+                                <Accordion>
+                                    <AccordionItem
+                                        label={<TitleSubsection>More details</TitleSubsection>}
+                                        elevated
+                                        condensed
+                                        open={false}
+                                    >
+                                        {errorDetails}
+                                    </AccordionItem>
+                                </Accordion>
+                            ) : null}
+                        </Notification>
+                        <Spacing size="small" />
+                    </div>
+                );
+            })}
         </>
     ) : (
         <></>
     );
+    return {
+        displayLastNotification,
+        lastNotification,
+        notifications,
+        queueLength: messages.length,
+    } as const;
 }
