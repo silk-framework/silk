@@ -34,7 +34,20 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                     <OverflowText>
                         <Highlighter label={itemLabel} searchValue={textQuery} />
                     </OverflowText>
-                    {ruleOperator.description && <Icon name="item-info" small tooltipText={ruleOperator.description} />}
+                    {ruleOperator.description && (
+                        <>
+                            <Spacing vertical={true} size={"tiny"} />
+                            <Icon
+                                name="item-info"
+                                small
+                                tooltipText={ruleOperator.description}
+                                tooltipProperties={{
+                                    position: "right",
+                                    boundary: "window",
+                                }}
+                            />
+                        </>
+                    )}
                 </OverviewItemLine>,
                 "bottom-right",
                 "medium"
