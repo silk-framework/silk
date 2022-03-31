@@ -102,6 +102,7 @@ export const LinkingRuleEvaluation = ({
         const traverseEvaluationTree = (node: IEvaluationNode) => {
             if ((node as AggregationConfidence).children) {
                 valueMap.set(node.operatorId, [`Score: ${node.score ?? ""}`]);
+                (node as AggregationConfidence).children.forEach((n) => traverseEvaluationTree(n));
             } else {
                 const comparison = node as ComparisonConfidence;
                 valueMap.set(comparison.operatorId, [`Score: ${node.score ?? ""}`]);
