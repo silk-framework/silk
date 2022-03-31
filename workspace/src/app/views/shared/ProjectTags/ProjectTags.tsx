@@ -13,7 +13,7 @@ const ProjectTags: React.FC<IProps> = ({ tags = [], maxLength = 4, query = "" })
     const filteredTags = metadataUtils.sortTags(tags.filter((t) => t.label.includes(query)));
     return (
         <>
-            {filteredTags.slice(0, Math.min(tags.length, maxLength)).map((t, i) => (
+            {filteredTags.map((t, i) => (
                 <div key={i}>
                     <Tag emphasis="weaker">
                         <Highlighter label={t.label} searchValue={query} />
