@@ -89,10 +89,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [evaluationCounter, setEvaluationCounter] = React.useState(0);
     const ruleEvaluationContext: RuleEditorEvaluationContextProps =
         React.useContext<RuleEditorEvaluationContextProps>(RuleEditorEvaluationContext);
-    current.evaluateQuickly =
-        ruleEvaluationContext.supportsEvaluation &&
-        ruleEvaluationContext.supportsQuickEvaluation &&
-        ruleEvaluationContext.evaluationResultsShown;
+    const [evaluateQuickly, setEvaluateQuickly] = React.useState(false);
 
     /** Convert initial operator nodes to react-flow model. */
     React.useEffect(() => {
@@ -137,14 +134,27 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     // Start
     useEffect(() => {
-        if (current.evaluateQuickly) {
+        if (evaluateQuickly) {
             const timeout = setTimeout(
                 () => ruleEvaluationContext.startEvaluation(ruleOperatorNodes(), ruleEditorContext.editedItem, true),
                 1000
             );
             return () => clearTimeout(timeout);
         }
-    }, [evaluationCounter]);
+    }, [evaluationCounter, evaluateQuickly]);
+
+    /** Inline rule evaluation */
+    React.useEffect(() => {
+        current.evaluateQuickly =
+            ruleEvaluationContext.supportsEvaluation &&
+            ruleEvaluationContext.supportsQuickEvaluation &&
+            ruleEvaluationContext.evaluationResultsShown;
+        setEvaluateQuickly(current.evaluateQuickly);
+    }, [
+        ruleEvaluationContext.supportsEvaluation,
+        ruleEvaluationContext.supportsQuickEvaluation,
+        ruleEvaluationContext.evaluationResultsShown,
+    ]);
 
     // Sets the quick evaluation flag to signal that a new quick evaluation should be triggered.
     const triggerQuickEvaluation = () => {
