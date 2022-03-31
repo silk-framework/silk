@@ -1,14 +1,23 @@
 import { IEvaluatedReferenceLinksScore } from "../../../../taskViews/linking/linking.types";
 import React from "react";
-import { OverviewItem, OverviewItemDescription, OverviewItemLine, ProgressBar, Spacing, Tooltip } from "gui-elements";
+import {
+    OverviewItem,
+    OverviewItemDescription,
+    OverviewItemLine,
+    ProgressBar,
+    Spacing,
+    Spinner,
+    Tooltip,
+} from "gui-elements";
 import { Markdown } from "gui-elements/cmem";
 
 interface EvaluationScoreProps {
     score: IEvaluatedReferenceLinksScore;
+    loading: boolean;
 }
 
 /** Displays the evaluation score for a rule. */
-export const EvaluationScore = ({ score }: EvaluationScoreProps) => {
+export const EvaluationScore = ({ score, loading }: EvaluationScoreProps) => {
     const allEvaluatedTrue = score.truePositives + score.falsePositives;
     const allTrue = score.truePositives + score.falseNegatives;
     const fMeasure = Number.parseFloat(score.fMeasure);
@@ -20,7 +29,7 @@ export const EvaluationScore = ({ score }: EvaluationScoreProps) => {
             <OverviewItemDescription>
                 <OverviewItemLine>
                     <Tooltip content={"F1-measure: combination of precision and recall. " + range}>
-                        <div>F-measure: {score.fMeasure}</div>
+                        <div>F-measure: {loading ? <Spinner size={"tiny"} position={"inline"} /> : score.fMeasure}</div>
                     </Tooltip>
                 </OverviewItemLine>
                 <OverviewItemLine>
@@ -28,11 +37,15 @@ export const EvaluationScore = ({ score }: EvaluationScoreProps) => {
                         content={<Markdown allowHtml={true}>{precisionText + recallText}</Markdown>}
                         size={"large"}
                     >
-                        <div>
-                            PR: {score.precision}
-                            <Spacing vertical hasDivider />
-                            {score.recall}
-                        </div>
+                        {loading ? (
+                            "PR: loading..."
+                        ) : (
+                            <div>
+                                PR: {score.precision}
+                                <Spacing vertical hasDivider />
+                                {score.recall}
+                            </div>
+                        )}
                     </Tooltip>
                 </OverviewItemLine>
                 <OverviewItemLine>

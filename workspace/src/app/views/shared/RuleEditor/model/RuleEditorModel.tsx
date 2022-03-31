@@ -137,7 +137,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         if (evaluateQuickly) {
             const timeout = setTimeout(
                 () => ruleEvaluationContext.startEvaluation(ruleOperatorNodes(), ruleEditorContext.editedItem, true),
-                1000
+                500
             );
             return () => clearTimeout(timeout);
         }

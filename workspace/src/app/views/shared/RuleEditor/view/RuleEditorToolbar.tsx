@@ -86,7 +86,10 @@ export const RuleEditorToolbar = () => {
             </ToolbarSection>
             {ruleEvaluationContext.evaluationScore ? (
                 <ToolbarSection>
-                    <EvaluationScore score={ruleEvaluationContext.evaluationScore} />
+                    <EvaluationScore
+                        score={ruleEvaluationContext.evaluationScore}
+                        loading={ruleEvaluationContext.evaluationRunning}
+                    />
                     <Spacing vertical hasDivider />
                 </ToolbarSection>
             ) : null}
