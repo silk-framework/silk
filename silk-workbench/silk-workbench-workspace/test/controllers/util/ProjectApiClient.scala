@@ -20,8 +20,8 @@ trait ProjectApiClient extends ApiClient {
     getRequest[MetaDataExpanded](ProjectApi.getProjectMetaDataExpanded(projectId))
   }
 
-  def retrieveTags(projectId: Identifier): ProjectTagsResponse = {
-    getRequest[ProjectTagsResponse](ProjectApi.fetchTags(projectId))
+  def retrieveTags(projectId: Identifier, filter: Option[String] = None): ProjectTagsResponse = {
+    getRequest[ProjectTagsResponse](ProjectApi.fetchTags(projectId, filter))
   }
 
   def createTags(projectId: Identifier, addTagRequest: CreateTagsRequest): Iterable[FullTag] = {

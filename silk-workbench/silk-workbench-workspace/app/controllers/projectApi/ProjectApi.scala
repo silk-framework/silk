@@ -458,10 +458,25 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
     val tags = project.tagManager.allTags()
     val filteredTags = filter match {
       case Some(search) =>
+        // Find matching tags
         val lowerCaseSearch = search.toLowerCase
-        tags.filter(_.label.toLowerCase.contains(lowerCaseSearch))
+        val matchingTags = tags.filter(_.label.toLowerCase.contains(lowerCaseSearch))
+        // Sort tags
+        val ordering: Ordering[Tag] = (x: Tag, y: Tag) => {
+          val xPrefixMatch = x.label.toLowerCase.startsWith(lowerCaseSearch)
+          val yPrefixMatch = y.label.toLowerCase.startsWith(lowerCaseSearch)
+          if (xPrefixMatch && !yPrefixMatch) {
+            -1
+          } else if (!xPrefixMatch && yPrefixMatch) {
+            1
+          } else {
+            x.label.compareToIgnoreCase(y.label)
+          }
+        }
+        val rankedTags = matchingTags.toSeq.sorted(ordering)
+        rankedTags
       case None =>
-        tags
+        tags.toSeq.sortBy(_.label.toLowerCase)
     }
     Ok(Json.toJson(ProjectTagsResponse.fromTags(filteredTags)))
   }
@@ -660,11 +675,11 @@ object ProjectApi {
 
   @Schema(description = "Lists all user-defined tags.")
   case class ProjectTagsResponse(@ArraySchema(schema = new Schema(implementation = classOf[FullTag]))
-                                 tags: Iterable[FullTag])
+                                 tags: Seq[FullTag])
 
   object ProjectTagsResponse {
 
-    def fromTags(tags: Iterable[Tag]): ProjectTagsResponse = {
+    def fromTags(tags: Seq[Tag]): ProjectTagsResponse = {
       ProjectTagsResponse(tags.map(FullTag.fromTag))
     }
 

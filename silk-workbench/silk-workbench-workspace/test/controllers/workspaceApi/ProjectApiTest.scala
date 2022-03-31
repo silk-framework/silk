@@ -109,6 +109,29 @@ class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatcher
     getMetaDataExpanded(projectId).tags must contain theSameElementsAs Set(tag1)
   }
 
+  it should "support searching tags" in {
+    val projectId = "tagsProject2"
+    createProject(projectId)
+
+    val newTags = Seq(
+      CreateTag(None, "tag 1"),
+      CreateTag(None, "x tag"),
+      CreateTag(None, "tag a"),
+      CreateTag(None, "a tag"),
+      CreateTag(None, "tag X")
+    )
+    createTags(projectId, CreateTagsRequest(newTags))
+
+    retrieveTags(projectId).tags.map(_.label) must contain theSameElementsInOrderAs
+      Seq("a tag", "tag 1", "tag a", "tag X", "x tag")
+
+    retrieveTags(projectId, Some("x")).tags.map(_.label) must contain theSameElementsInOrderAs
+      Seq("x tag", "tag X")
+
+    retrieveTags(projectId, Some("a")).tags.map(_.label) must contain theSameElementsInOrderAs
+      Seq("a tag", "tag 1", "tag a", "tag X", "x tag")
+  }
+
   private def fetchPrefixes: JsResult[Map[String, String]] = {
     val responseJson = checkResponse(client.url(s"$baseUrl${projectPrefixesUrl(prefixProjectId)}").get()).json
     Json.fromJson[Map[String, String]](responseJson)
