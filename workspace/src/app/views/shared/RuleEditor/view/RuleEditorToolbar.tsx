@@ -1,9 +1,9 @@
 import React from "react";
-import { Button, ContextOverlay, Icon, IconButton, Spacing, Toolbar, ToolbarSection, Notification } from "gui-elements";
+import { Button, Icon, IconButton, Spacing, Toolbar, ToolbarSection } from "gui-elements";
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { useTranslation } from "react-i18next";
-import { NotificationsMenu } from "../../ApplicationNotifications/NotificationsMenu";
 import { RuleEditorContext } from "../contexts/RuleEditorContext";
+import { RuleEditorNotifications } from "./RuleEditorNotifications";
 import useHotKey from "../../HotKeyHandler/HotKeyHandler";
 
 /** Toolbar of the rule editor. Contains global editor actions like save, redo/undo etc. */
@@ -80,50 +80,19 @@ export const RuleEditorToolbar = () => {
                 >
                     {modelContext.isReadOnly() ? <Icon name={"write-protected"} /> : t("common.action.save", "Save")}
                 </Button>
-                {ruleEditorContext.lastSaveResult?.success === false ? (
-                    <>
-                        <Spacing vertical size="tiny" />
-                        <ContextOverlay
-                            data-test-id={"ruleEditorToolbar-saveError-Btn"}
-                            // Errors are always shown initially
-                            defaultIsOpen={true}
-                            target="window"
-                            placement="bottom"
-                        >
-                            <Icon name="application-warning" tooltipText={ruleEditorContext.lastSaveResult!!.errorMessage} />
-                            <div style={{maxWidth: "39vw", padding: "0.5rem"}}>
-                                <Notification danger={true} key={"errorMessage"} iconName="state-warning">
-                                    <p>{ruleEditorContext.lastSaveResult!!.errorMessage}</p>
-                                </Notification>
-                                {(ruleEditorContext.lastSaveResult.nodeErrors ?? [])
-                                    .filter((nodeError) => nodeError.message)
-                                    .map((nodeError) => (
-                                        <div key={nodeError.nodeId}>
-                                            <Spacing size={"tiny"} />
-                                            <Notification
-                                                warning={true}
-                                                iconName="state-warning"
-                                                actions={
-                                                    <IconButton
-                                                        data-test-id={"RuleEditorToolbar-nodeError-btn"}
-                                                        name="item-viewdetails"
-                                                        text={t("RuleEditor.toolbar.saveError.nodeError.tooltip")}
-                                                        onClick={() => {
-                                                            modelContext.centerNode(nodeError.nodeId);
-                                                        }}
-                                                    />
-                                                }
-                                            >
-                                                <p>{nodeError.message}</p>
-                                            </Notification>
-                                        </div>
-                                    ))}
-                                </div>
-                        </ContextOverlay>
-                        <Spacing vertical size="tiny" />
-                    </>
-                ) : null}
-                {ruleEditorContext.viewActions?.integratedView && <NotificationsMenu />}
+                <RuleEditorNotifications
+                    integratedView={ruleEditorContext.viewActions?.integratedView}
+                    queueEditorNotifications={
+                        ruleEditorContext.lastSaveResult?.errorMessage ? [
+                            ruleEditorContext.lastSaveResult?.errorMessage
+                        ] : [] as string[]
+                    }
+                    queueNodeNotifications={
+                        (ruleEditorContext.lastSaveResult?.nodeErrors ?? [])
+                        .filter((nodeError) => nodeError.message)
+                    }
+                    nodeJumpToHandler={modelContext.centerNode}
+                />
             </ToolbarSection>
         </Toolbar>
     );

@@ -72,7 +72,7 @@ export function NotificationsMenu() {
             notificationIndicatorButton
         );
 
-    return notificationQueue.queueLength > 0 ? (
+    return notificationQueue.messages.length > 0 ? (
         <>
             {!displayNotifications && notificationIndicator}
             {displayNotifications && (
@@ -88,6 +88,7 @@ export function NotificationsMenu() {
             )}
             {displayNotifications && (
                 <ApplicationToolbarPanel aria-label="Notification menu" expanded={true} style={{ width: "40rem" }}>
+                    {notificationQueue.clearAllButton}
                     {notificationQueue.notifications}
                 </ApplicationToolbarPanel>
             )}
@@ -160,47 +161,48 @@ export function useNotificationsQueue() {
         }
     };
 
-    const notifications = messages.length > 0 ? (
+    const clearAllButton = (
         <>
             <Button text="Clear all messages" onClick={() => removeMessages()} />
             <Divider addSpacing="medium" />
-            {messages.map((item, id) => {
-                const errorDetails = parseErrorCauseMsg(item.cause);
-                return (
-                    <div key={"message" + id}>
-                        <Notification
-                            danger={!item.alternativeIntent}
-                            warning={item.alternativeIntent === "warning"}
-                            fullWidth
-                            onDismiss={() => removeMessages(item)}
-                        >
-                            {`${item.message} (${formatDuration(now.getTime() - item.timestamp)} ago)`}
-                            <Spacing size="small" />
-                            {errorDetails ? (
-                                <Accordion>
-                                    <AccordionItem
-                                        label={<TitleSubsection>More details</TitleSubsection>}
-                                        elevated
-                                        condensed
-                                        open={false}
-                                    >
-                                        {errorDetails}
-                                    </AccordionItem>
-                                </Accordion>
-                            ) : null}
-                        </Notification>
-                        <Spacing size="small" />
-                    </div>
-                );
-            })}
         </>
-    ) : (
-        <></>
     );
+
+    const notifications = messages.map((item, id) => {
+        const errorDetails = parseErrorCauseMsg(item.cause);
+        return (
+            <div key={"message" + id}>
+                <Notification
+                    danger={!item.alternativeIntent}
+                    warning={item.alternativeIntent === "warning"}
+                    fullWidth
+                    onDismiss={() => removeMessages(item)}
+                >
+                    {`${item.message} (${formatDuration(now.getTime() - item.timestamp)} ago)`}
+                    <Spacing size="small" />
+                    {errorDetails ? (
+                        <Accordion>
+                            <AccordionItem
+                                label={<TitleSubsection>More details</TitleSubsection>}
+                                elevated
+                                condensed
+                                open={false}
+                            >
+                                {errorDetails}
+                            </AccordionItem>
+                        </Accordion>
+                    ) : null}
+                </Notification>
+                <Spacing size="small" />
+            </div>
+        );
+    });
+
     return {
         displayLastNotification,
         lastNotification,
         notifications,
-        queueLength: messages.length,
+        clearAllButton,
+        messages,
     } as const;
 }
