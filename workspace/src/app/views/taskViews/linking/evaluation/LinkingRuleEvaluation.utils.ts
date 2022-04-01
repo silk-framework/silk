@@ -19,7 +19,7 @@ const linkToValueMap = (link: EvaluatedEntityLink): Map<string, string[]> => {
             traverseEvaluationValueTree(comparison.targetValue);
         }
     };
-    link.ruleValues && traverseEvaluationTree(link.ruleValues);
+    link.ruleValues && (link.ruleValues as IEvaluationNode).operatorId && traverseEvaluationTree(link.ruleValues as IEvaluationNode);
     return valueMap;
 };
 

@@ -60,15 +60,19 @@ export const LinkingRuleEvaluation = ({
 
     React.useEffect(() => {
         clearEntities();
-        evaluationResult.forEach((link) => evaluationResultEntities.push([link.source, link.target]));
-        const valueMaps = evaluationResult.map((link) => utils.linkToValueMap(link));
-        nodeUpdateCallbacks.forEach((updateCallback, operatorId) => {
-            const evaluationValues = valueMaps.map((valueMap) => {
-                return valueMap.get(operatorId) ?? [];
+        try {
+            evaluationResult.forEach((link) => evaluationResultEntities.push([link.source, link.target]));
+            const valueMaps = evaluationResult.map((link) => utils.linkToValueMap(link));
+            nodeUpdateCallbacks.forEach((updateCallback, operatorId) => {
+                const evaluationValues = valueMaps.map((valueMap) => {
+                    return valueMap.get(operatorId) ?? [];
+                });
+                evaluationResultMap.set(operatorId, evaluationValues);
+                updateCallback(evaluationValues);
             });
-            evaluationResultMap.set(operatorId, evaluationValues);
-            updateCallback(evaluationValues);
-        });
+        } catch(ex) {
+            console.warn("Unexpected error has occurred while processing the evaluation result.", ex)
+        }
     }, [evaluationResult]);
 
     const toggleEvaluationResults = (show: boolean) => {

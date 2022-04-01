@@ -110,7 +110,8 @@ export interface IEntityLink {
     target: string;
     /** The confidence regarding to the linkage rule. Range: -1.0 to 1.0 */
     confidence?: number;
-    ruleValues?: IEvaluationNode;
+    /** The rule evaluation tree. For empty rules it is just a score. */
+    ruleValues?: IEvaluationNode | {score: number};
     entities?: {
         source: IEntity;
         target: IEntity;
