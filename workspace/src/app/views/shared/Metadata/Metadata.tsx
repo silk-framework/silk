@@ -116,7 +116,7 @@ export function Metadata(props: IProps) {
             //         return; // Do not toggle edit mode, request has failed
             //     }
             // }
-            setFormEditData({ label: data.label ?? "", description: data.description ?? "" });
+            setFormEditData({ label: data.label ?? "", description: data.description ?? "", });
         } else {
             removeDirtyState();
         }
@@ -260,19 +260,12 @@ export function Metadata(props: IProps) {
         });
     }, []);
 
-    const handleTagQueryChange = React.useCallback(
-        debounce(async (query) => {
-            if (projectId) {
-                utils.queryTags(projectId, query).then((res) => {
-                    setData((data) => ({
-                        ...data,
-                        tags: res?.data.tags ?? [],
-                    }));
-                });
-            }
-        }, 200),
-        []
-    );
+    const handleTagQueryChange = React.useCallback(async (query: string) => {
+        if (projectId) {
+            const res = await utils.queryTags(projectId, query);
+            return res?.data.tags ?? [];
+        }
+    }, []);
 
     const goToPage = (path: string) => {
         dispatch(routerOp.goToPage(path));
