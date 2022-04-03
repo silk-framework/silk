@@ -334,7 +334,6 @@ export function Metadata(props: IProps) {
                         </PropertyValue>
                     </PropertyValuePair>
                     <PropertyValuePair hasSpacing key="tags">
-                        {/** // Todo add german translation for tags here  */}
                         <PropertyName>
                             <Label text={t("form.field.tags", "Tags")} />
                         </PropertyName>
