@@ -21,7 +21,7 @@ case class ActivityStatusCollector() extends NoLabelKeywordFacetCollector[Worksp
 
   override def extractKeywordIds(activity: WorkspaceActivity[_])
                                 (implicit user: UserContext): Set[String] = {
-    Set(activity.status().name)
+    Set(activity.status().concreteStatus)
   }
 
 }
