@@ -49,6 +49,8 @@ private class ActivityExecution[T](activity: Activity[T],
 
   override def startTime: Option[Instant] = startTimestamp
 
+  override def startedBy: UserContext = startedByUser
+
   override def start()(implicit user: UserContext): Unit = {
     initStatus(user)
     // Execute activity

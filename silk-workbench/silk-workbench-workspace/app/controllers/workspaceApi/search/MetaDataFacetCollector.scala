@@ -3,6 +3,7 @@ package controllers.workspaceApi.search
 import controllers.workspaceApi.search.SearchApiModel.{Facet, Facets}
 import org.silkframework.config.{HasMetaData, MetaData}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.users.User
 import org.silkframework.util.Uri
 
 /**
@@ -41,7 +42,7 @@ trait UserFacetCollector extends IdAndLabelKeywordFacetCollector[HasMetaData] {
                                           (implicit user: UserContext): Set[(String, String)] = {
     val metaData = projectTask.metaData
     val uriAndLabel = userUri(metaData) match {
-      case Some(userUri) => (userUri.uri, Uri(userUri).localName.getOrElse(userUri.uri))
+      case Some(userUri) => (userUri.uri, User.labelFromUri(userUri))
       case None => ("", "Unknown user")
     }
     Set(uriAndLabel)

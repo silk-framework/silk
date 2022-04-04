@@ -118,6 +118,11 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   final def startTime: Option[Instant] = control.startTime
 
   /**
+    * The user that started the activity. Refers to the empty user until the activity has been started the first time.
+    */
+  final def startedBy: UserContext = control.startedBy
+
+  /**
     * True, if there is always exactly one instance of this activity.
     */
   final def isSingleton: Boolean = factory.isSingleton
