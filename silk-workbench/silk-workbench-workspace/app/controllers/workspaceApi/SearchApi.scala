@@ -116,17 +116,22 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
         None
       } else {
         val itemType = if(taskOpt.isEmpty) ItemType.project else ItemType.itemType(taskOpt.get.data)
-        val taskData = for (task <- taskOpt) yield {
-          val pd = PluginDescription(task)
-          Seq(
-            "taskId" -> JsString(task.id),
-            "taskLabel" -> JsString(taskOpt.get.label()),
-            PLUGIN_ID -> JsString(pd.id),
-            PLUGIN_LABEL -> JsString(pd.label),
-            TAGS -> Json.toJson(task.tags().map(FullTag.fromTag))
-          )
+        val additionalData = taskOpt match {
+          case Some(task) =>
+            val pd = PluginDescription(task)
+            Json.obj(
+              "taskId" -> JsString(task.id),
+              "taskLabel" -> JsString(taskOpt.get.label()),
+              PLUGIN_ID -> JsString(pd.id),
+              PLUGIN_LABEL -> JsString(pd.label),
+              TAGS -> Json.toJson(task.tags().map(FullTag.fromTag))
+            )
+          case None =>
+            Json.obj(
+              TAGS -> Json.toJson(project.tags().map(FullTag.fromTag))
+            )
         }
-        Some(JsObject(Seq(
+        Some(Json.obj(
           "projectId" -> JsString(item.projectId),
           "projectLabel" -> JsString(project.config.label()),
           "itemType" -> JsString(itemType.id),
@@ -136,7 +141,7 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
             taskOpt.map(_.id.toString).getOrElse(project.name.toString),
             taskOpt.map(_.data)
           ))
-        ) ++ taskData.toSeq.flatten))
+        ) ++ additionalData)
       }
     }
     Ok(JsArray(items))
