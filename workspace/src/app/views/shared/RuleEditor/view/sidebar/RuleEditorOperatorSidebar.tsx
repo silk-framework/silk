@@ -78,6 +78,7 @@ export const RuleEditorOperatorSidebar = () => {
                     )
                 );
             } else {
+                // Rank "Recommended" operators to the top by default in unfiltered list
                 const { matches: recommended, nonMatches: others } = partitionArray<IRuleOperator>(operatorList, (op) =>
                     (op.categories ?? []).includes("Recommended")
                 );

@@ -1222,9 +1222,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             return ruleOperatorNode;
         });
         const saveResult = await ruleEditorContext.saveRule(ruleOperatorNodes);
-        if (saveResult.success) {
-            clearHighlighting();
-        } else if ((saveResult.nodeErrors ?? []).length > 0) {
+        if ((saveResult.nodeErrors ?? []).length > 0) {
             const firstNodeError = saveResult.nodeErrors!![0];
             const node = utils.nodeById(elements, firstNodeError.nodeId);
             if (node) {
@@ -1235,6 +1233,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     true
                 );
             }
+        } else {
+            clearHighlighting();
         }
         return saveResult.success;
     };
