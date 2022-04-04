@@ -6,7 +6,10 @@ export const rangeArray = (nrItems: number): number[] => {
 };
 
 /** Partitions an array into matching elements and non-matching elements for a specific predicate. */
-export const partitionArray = <T>(inputArray: T[], predicate: (T) => boolean): { matches: T[]; nonMatches: T[] } => {
+export const partitionArray = <T>(
+    inputArray: T[],
+    predicate: (item: T) => boolean
+): { matches: T[]; nonMatches: T[] } => {
     const matches: T[] = [];
     const nonMatches: T[] = [];
     inputArray.forEach((elem: T) => (predicate(elem) ? matches.push(elem) : nonMatches.push(elem)));

@@ -78,7 +78,10 @@ export const RuleEditorOperatorSidebar = () => {
                     )
                 );
             } else {
-                setFilteredOperators(operatorList);
+                const { matches: recommended, nonMatches: others } = partitionArray<IRuleOperator>(operatorList, (op) =>
+                    (op.categories ?? []).includes("Recommended")
+                );
+                setFilteredOperators([...recommended, ...others]);
             }
             setFilteredPreConfiguredOperators(undefined);
         }

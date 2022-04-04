@@ -111,7 +111,7 @@ const inputPathOperator = (
                 customValidation,
             }),
         },
-        categories: ["Input"],
+        categories: ["Input", "Recommended"],
         icon: undefined, // TODO: CMEM-3919: Icon for path input
         description: description,
         tags: [],
