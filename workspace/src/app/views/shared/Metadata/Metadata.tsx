@@ -35,7 +35,6 @@ import useErrorHandler from "../../../hooks/useErrorHandler";
 import * as H from "history";
 import utils from "./MetadataUtils";
 import { IMetadataExpanded, Tag as TagType } from "./Metadatatypings";
-import { debounce } from "../../../utils/debounce";
 
 interface IProps {
     projectId?: string;
@@ -116,7 +115,7 @@ export function Metadata(props: IProps) {
             //         return; // Do not toggle edit mode, request has failed
             //     }
             // }
-            setFormEditData({ label: data.label ?? "", description: data.description ?? "", });
+            setFormEditData({ label: data.label ?? "", description: data.description ?? "" });
         } else {
             removeDirtyState();
         }
@@ -277,16 +276,16 @@ export function Metadata(props: IProps) {
         const now = Date.now();
         const then = new Date(dateTime).getTime();
         return (now - then) / 1000 / 60 / 60 / 24;
-    }
+    };
 
     const getDateData = (dateTime: number | string) => {
         const then = new Date(dateTime);
         return {
             year: then.getFullYear(),
-            month: ('0' + (then.getMonth()+1)).slice(-2),
-            day: ('0' + then.getDate()).slice(-2)
-        }
-    }
+            month: ("0" + (then.getMonth() + 1)).slice(-2),
+            day: ("0" + then.getDate()).slice(-2),
+        };
+    };
 
     const widgetContent = (
         <CardContent data-test-id={"metaDataWidget"}>
@@ -391,7 +390,13 @@ export function Metadata(props: IProps) {
                                     i18nKey={"Metadata.createdBy"}
                                     t={t}
                                     values={{
-                                        timestamp: created ? t("Metadata.dateFormat", "{{year}}/{{month}}/{{day}}", getDateData(created)) : "",
+                                        timestamp: created
+                                            ? t(
+                                                  "Metadata.dateFormat",
+                                                  "{{year}}/{{month}}/{{day}}",
+                                                  getDateData(created)
+                                              )
+                                            : "",
                                         author: createdByUser?.label ?? t("Metadata.unknownuser", "unknown user"),
                                     }}
                                     components={{
@@ -401,13 +406,13 @@ export function Metadata(props: IProps) {
                                             ></Link>
                                         ),
                                         timestamp: created ? (
-                                            (getDeltaInDays(created) < 7) ? (
+                                            getDeltaInDays(created) < 7 ? (
                                                 <ElapsedDateTimeDisplay
-                                                data-test-id={"metadata-creation-age"}
-                                                suffix={t("Metadata.suffixAgo")}
-                                                prefix={t("Metadata.prefixAgo")}
-                                                dateTime={created}
-                                                translateUnits={translateUnits}
+                                                    data-test-id={"metadata-creation-age"}
+                                                    suffix={t("Metadata.suffixAgo")}
+                                                    prefix={t("Metadata.prefixAgo")}
+                                                    dateTime={created}
+                                                    translateUnits={translateUnits}
                                                 />
                                             ) : (
                                                 <span title={new Date(created).toString()} />
@@ -417,43 +422,52 @@ export function Metadata(props: IProps) {
                                         ),
                                     }}
                                 />
-                                {
-                                    (modified !== created) && (
-                                        <>
-                                            {" "}
-                                            <Trans
-                                                i18nKey={"Metadata.lastModifiedBy"}
-                                                t={t}
-                                                values={{
-                                                    timestamp: modified ? t("Metadata.dateFormat", "{{year}}/{{month}}/{{day}}", getDateData(modified)) : "",
-                                                    author: lastModifiedByUser?.label ?? t("Metadata.unknownuser", "unknown user"),
-                                                }}
-                                                components={{
-                                                    author: (
-                                                        <Link
-                                                            href={utils.generateFacetUrl("createdBy", lastModifiedByUser?.uri ?? "")}
-                                                        ></Link>
-                                                    ),
-                                                    timestamp: modified? (
-                                                        (getDeltaInDays(modified) < 7) ? (
-                                                            <ElapsedDateTimeDisplay
+                                {modified !== created && (
+                                    <>
+                                        {" "}
+                                        <Trans
+                                            i18nKey={"Metadata.lastModifiedBy"}
+                                            t={t}
+                                            values={{
+                                                timestamp: modified
+                                                    ? t(
+                                                          "Metadata.dateFormat",
+                                                          "{{year}}/{{month}}/{{day}}",
+                                                          getDateData(modified)
+                                                      )
+                                                    : "",
+                                                author:
+                                                    lastModifiedByUser?.label ??
+                                                    t("Metadata.unknownuser", "unknown user"),
+                                            }}
+                                            components={{
+                                                author: (
+                                                    <Link
+                                                        href={utils.generateFacetUrl(
+                                                            "createdBy",
+                                                            lastModifiedByUser?.uri ?? ""
+                                                        )}
+                                                    ></Link>
+                                                ),
+                                                timestamp: modified ? (
+                                                    getDeltaInDays(modified) < 7 ? (
+                                                        <ElapsedDateTimeDisplay
                                                             data-test-id={"metadata-creation-age"}
                                                             suffix={t("Metadata.suffixAgo")}
                                                             prefix={t("Metadata.prefixAgo")}
                                                             dateTime={modified}
                                                             translateUnits={translateUnits}
-                                                            />
-                                                        ) : (
-                                                            <span title={new Date(modified).toString()} />
-                                                        )
+                                                        />
                                                     ) : (
-                                                        <></>
-                                                    ),
-                                                }}
-                                            />
-                                        </>
-                                    )
-                                }
+                                                        <span title={new Date(modified).toString()} />
+                                                    )
+                                                ) : (
+                                                    <></>
+                                                ),
+                                            }}
+                                        />
+                                    </>
+                                )}
                             </HtmlContentBlock>
                         </PropertyValue>
                     </PropertyValuePair>

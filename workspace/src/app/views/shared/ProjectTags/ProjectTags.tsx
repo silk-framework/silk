@@ -9,11 +9,10 @@ interface IProps {
     query?: string;
 }
 
-const ProjectTags: React.FC<IProps> = ({ tags = [], maxLength = 4, query = "" }) => {
-    const filteredTags = metadataUtils.sortTags(tags.filter((t) => t.label.includes(query)));
+const ProjectTags: React.FC<IProps> = ({ tags = [], query = "" }) => {
     return (
         <>
-            {filteredTags.map((t, i) => (
+            {metadataUtils.sortTags(tags.slice()).map((t, i) => (
                 <div key={i}>
                     <Tag emphasis="weaker">
                         <Highlighter label={t.label} searchValue={query} />
