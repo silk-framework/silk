@@ -58,6 +58,7 @@ export const RuleEditorOperatorSidebar = () => {
                     preConfiguredOperators.originalOperators,
                     preConfiguredOperators.itemSearchText,
                     preConfiguredOperators.itemLabel,
+                    () => [],
                     searchWords
                 );
                 setFilteredPreConfiguredOperators({ ...preConfiguredOperators, originalOperators: filteredOps });
@@ -68,7 +69,13 @@ export const RuleEditorOperatorSidebar = () => {
         } else if (operatorList && !preConfiguredOperators) {
             if (searchWords.length > 0) {
                 setFilteredOperators(
-                    filterAndSortOperators(operatorList, ruleOperatorSearchText, (op) => op.label, searchWords)
+                    filterAndSortOperators<IRuleOperator>(
+                        operatorList,
+                        ruleOperatorSearchText,
+                        (op) => op.label,
+                        (op) => op.categories ?? [],
+                        searchWords
+                    )
                 );
             } else {
                 setFilteredOperators(operatorList);
@@ -208,28 +215,40 @@ const ruleOperatorSearchText = (ruleOperator: IRuleOperator): string => {
     ).join(" ")}`.toLowerCase();
 };
 
-// Filter the operators by search query and sort them
+/** Filter the operators by search query and sort them
+ *
+ * @param operators The operators to sort
+ * @param searchText The search text to find matches in.
+ * @param labelText Returns the label of the operator. Label-matches are ranked to the top.
+ * @param categories Returns the categories of the operator. Exact category matches are ranked below label matches.
+ * @param searchWords The search words of the user query.
+ */
 function filterAndSortOperators<T>(
     operators: T[],
-    searchText: (T) => string,
-    labelText: (T) => string,
+    searchText: (op: T) => string,
+    labelText: (op: T) => string,
+    categories: (op: T) => string[],
     searchWords: string[]
 ): T[] {
-    const filtered = operators.filter((op) => {
+    const filteredOperators = operators.filter((op) => {
         return matchesAllWords(searchText(op), searchWords);
     });
     const matchCount = new Map<T, number>();
-    const { matches, nonMatches } = partitionArray(
-        filtered,
+    const { matches: labelMatches, nonMatches: nonLabelMatches } = partitionArray(
+        filteredOperators,
         (op) => !!searchWords.find((w) => labelText(op).toLowerCase().includes(w))
     );
-    matches.forEach((match) => {
+    const { matches: categoryMatches, nonMatches: nonCategoryMatches } = partitionArray(
+        nonLabelMatches,
+        (op) => !!searchWords.find((w) => categories(op).findIndex((v) => v.toLowerCase() === w) > -1)
+    );
+    labelMatches.forEach((match) => {
         const label = labelText(match).toLowerCase();
         const labelMatchCount = searchWords.filter((word) => label.includes(word)).length;
         matchCount.set(match, labelMatchCount);
     });
     // Sort label and other matches independently
-    const sortedLabelMatches = matches.sort((matchA, matchB) => {
+    const sortedLabelMatches = labelMatches.sort((matchA, matchB) => {
         const matchCountA = matchCount.get(matchA) ?? 0;
         const matchCountB = matchCount.get(matchB) ?? 0;
         if (matchCountA > matchCountB) {
@@ -241,5 +260,9 @@ function filterAndSortOperators<T>(
         }
     });
     const byLabel = (op: T) => labelText(op);
-    return [...sortedLabelMatches, ...sortLexically(nonMatches, byLabel)];
+    return [
+        ...sortedLabelMatches,
+        ...sortLexically(categoryMatches, byLabel),
+        ...sortLexically(nonCategoryMatches, byLabel),
+    ];
 }
