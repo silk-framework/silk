@@ -19,7 +19,7 @@ export default function useHotKey({ hotkey, handler }: IProps) {
                 Mousetrap.unbind(hotkey);
             };
         }
-    }, [hotkey]);
+    }, [hotkey, handler]);
 }
 
 /** Triggers the function that is registered for this hotkey. */
