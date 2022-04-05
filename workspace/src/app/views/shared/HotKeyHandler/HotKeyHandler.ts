@@ -5,21 +5,23 @@ interface IProps {
     hotkey?: string;
     // The event handler for the hot key combination. Return false if the event should not bubble up.
     handler: (e: any) => void;
+    // If the hot key should be active. If not set, the hot key will be active.
+    enabled?: boolean;
 }
 const Mousetrap = require("mousetrap");
 
 /**
  * Adds hotkey handling to a component.
  */
-export default function useHotKey({ hotkey, handler }: IProps) {
+export default function useHotKey({ hotkey, handler, enabled }: IProps) {
     useEffect(() => {
-        if (hotkey && typeof hotkey === "string") {
+        if (hotkey && enabled) {
             Mousetrap.bind(hotkey, handler);
             return () => {
                 Mousetrap.unbind(hotkey);
             };
         }
-    }, [hotkey, handler]);
+    }, [hotkey, handler, enabled]);
 }
 
 /** Triggers the function that is registered for this hotkey. */

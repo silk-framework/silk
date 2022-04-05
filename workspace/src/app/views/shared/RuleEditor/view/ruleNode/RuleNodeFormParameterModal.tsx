@@ -1,7 +1,8 @@
 import { Button, SimpleDialog } from "gui-elements";
-import React from "react";
+import React, { useEffect } from "react";
 import { RuleNodeParameterForm, RuleNodeParametersProps } from "./RuleNodeParameterForm";
 import { useTranslation } from "react-i18next";
+import { RuleEditorUiContext } from "../../contexts/RuleEditorUiContext";
 
 interface RuleNodeFormParameterModalProps extends Omit<RuleNodeParametersProps, "large"> {
     onClose: () => any;
@@ -16,6 +17,12 @@ export const RuleNodeFormParameterModal = ({
     ...ruleNodeParameterProps
 }: RuleNodeFormParameterModalProps) => {
     const [t] = useTranslation();
+    const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
+    useEffect(() => {
+        ruleEditorUiContext.setModalShown(true);
+        return () => ruleEditorUiContext.setModalShown(false);
+    });
+
     return (
         <SimpleDialog
             data-test-id={"rule-node-parameter-form-modal"}

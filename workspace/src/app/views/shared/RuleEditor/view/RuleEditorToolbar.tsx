@@ -5,19 +5,23 @@ import { useTranslation } from "react-i18next";
 import { RuleEditorContext } from "../contexts/RuleEditorContext";
 import { RuleEditorNotifications } from "./RuleEditorNotifications";
 import useHotKey from "../../HotKeyHandler/HotKeyHandler";
+import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
 
 /** Toolbar of the rule editor. Contains global editor actions like save, redo/undo etc. */
 export const RuleEditorToolbar = () => {
     const modelContext = React.useContext(RuleEditorModelContext);
     const ruleEditorContext = React.useContext(RuleEditorContext);
+    const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
     const [savingWorkflow, setSavingWorkflow] = React.useState(false);
     const [t] = useTranslation();
+
     useHotKey({
         hotkey: "mod+z",
         handler: (e) => {
             e.preventDefault && e.preventDefault();
             modelContext.undo();
         },
+        enabled: !ruleEditorUiContext.modalShown,
     });
     useHotKey({
         hotkey: "mod+shift+z",
@@ -25,6 +29,7 @@ export const RuleEditorToolbar = () => {
             e.preventDefault && e.preventDefault();
             modelContext.redo();
         },
+        enabled: !ruleEditorUiContext.modalShown,
     });
 
     const saveLinkingRule = async (e) => {
@@ -75,7 +80,7 @@ export const RuleEditorToolbar = () => {
                     tooltipProperties={{ hoverCloseDelay: 0 }}
                     onClick={saveLinkingRule}
                     disabled={modelContext.isReadOnly() || !modelContext.unsavedChanges}
-                    href={(modelContext.isReadOnly() || !modelContext.unsavedChanges) ? "#" : undefined}
+                    href={modelContext.isReadOnly() || !modelContext.unsavedChanges ? "#" : undefined}
                     loading={savingWorkflow}
                 >
                     {modelContext.isReadOnly() ? <Icon name={"write-protected"} /> : t("common.action.save", "Save")}
@@ -83,14 +88,13 @@ export const RuleEditorToolbar = () => {
                 <RuleEditorNotifications
                     integratedView={ruleEditorContext.viewActions?.integratedView}
                     queueEditorNotifications={
-                        ruleEditorContext.lastSaveResult?.errorMessage ? [
-                            ruleEditorContext.lastSaveResult?.errorMessage
-                        ] : [] as string[]
+                        ruleEditorContext.lastSaveResult?.errorMessage
+                            ? [ruleEditorContext.lastSaveResult?.errorMessage]
+                            : ([] as string[])
                     }
-                    queueNodeNotifications={
-                        (ruleEditorContext.lastSaveResult?.nodeErrors ?? [])
-                        .filter((nodeError) => nodeError.message)
-                    }
+                    queueNodeNotifications={(ruleEditorContext.lastSaveResult?.nodeErrors ?? []).filter(
+                        (nodeError) => nodeError.message
+                    )}
                     nodeJumpToHandler={modelContext.centerNode}
                 />
             </ToolbarSection>

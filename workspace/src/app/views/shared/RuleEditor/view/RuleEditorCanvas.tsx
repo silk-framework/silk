@@ -26,6 +26,7 @@ import { minimapNodeClassName, minimapNodeColor } from "gui-elements/src/extensi
 import { GridColumn } from "gui-elements";
 import { RuleEditorNode } from "../model/RuleEditorModel.typings";
 import useHotKey from "../../HotKeyHandler/HotKeyHandler";
+import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
 
 //snap grid
 const snapGrid: [number, number] = [15, 15];
@@ -43,6 +44,7 @@ export const RuleEditorCanvas = () => {
         selectionStartPositions: new Map(),
     });
     const modelContext = React.useContext(RuleEditorModelContext);
+    const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
     // Stores the state when any edge connection operation is active, i.e. creating a new or updating an existing edge
     const [edgeConnectState] = React.useState<IRuleEditorViewBaseEdgeConnectionState>({
         edgeConnectOperationActive: false,
@@ -79,6 +81,7 @@ export const RuleEditorCanvas = () => {
                 cloneNodes(nodeIds);
             }
         },
+        enabled: !ruleEditorUiContext.modalShown,
     });
 
     /** Selection helper methods. */
