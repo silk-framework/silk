@@ -75,7 +75,7 @@ export const LinkRuleNodeEvaluation = ({
             ) : (
                 <div>{t("RuleEditor.evaluation.noResults")}</div>
             )}
-            {evaluationResult.length < numberOfLinksToShow ? (
+            {evaluationResult.length < numberOfLinksToShow && evaluationResult.length && referenceLinksUrl ? (
                 <div>
                     <Spacing hasDivider={true} />
                     <Spacing size={"tiny"} vertical={true} />

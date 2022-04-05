@@ -1250,15 +1250,15 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 nodeId: node.id,
                 parameters: parameterDiff
                     ? Object.fromEntries(
-                        Object.entries(originalNode.parameters).map(([parameterId, parameterValue]) => {
-                            return [
-                                parameterId,
-                                parameterDiff && parameterDiff.has(parameterId)
-                                    ? parameterDiff.get(parameterId)
-                                    : parameterValue,
-                            ];
-                        })
-                    )
+                          Object.entries(originalNode.parameters).map(([parameterId, parameterValue]) => {
+                              return [
+                                  parameterId,
+                                  parameterDiff && parameterDiff.has(parameterId)
+                                      ? parameterDiff.get(parameterId)
+                                      : parameterValue,
+                              ];
+                          })
+                      )
                     : originalNode.parameters,
                 pluginId: originalNode.pluginId,
                 pluginType: originalNode.pluginType,
@@ -1267,10 +1267,15 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             };
             return ruleOperatorNode;
         });
-    }
+    };
 
     const saveRule = async () => {
         const saveResult = await ruleEditorContext.saveRule(ruleOperatorNodes());
+        if (saveResult.success) {
+            // Reset UNDO state
+            ruleUndoStack.splice(0);
+            setCanUndo(false);
+        }
         if ((saveResult.nodeErrors ?? []).length > 0) {
             const firstNodeError = saveResult.nodeErrors!![0];
             const node = utils.nodeById(elements, firstNodeError.nodeId);
