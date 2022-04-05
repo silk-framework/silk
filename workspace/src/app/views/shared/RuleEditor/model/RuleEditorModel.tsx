@@ -907,7 +907,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                             nodeIdMap.get(edge.source)!!,
                             nodeIdMap.get(edge.target)!!,
                             edge.targetHandle!!,
-                            edgeType(nodeMap.get(edge.source)?.node)
+                            edge.type ?? "step"
                         );
                         newEdges.push(newEdge);
                     }
