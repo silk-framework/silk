@@ -4,7 +4,13 @@ import React, { ReactElement } from "react";
 import { IRuleOperatorNode } from "../../../shared/RuleEditor/RuleEditor.typings";
 import { RuleEditorProps } from "../../../shared/RuleEditor/RuleEditor";
 import { TaskPlugin } from "@ducks/shared/typings";
-import { IEntityLink, IEvaluatedReferenceLinksScore, ILinkingTaskParameters } from "../linking.types";
+import {
+    IEntityLink,
+    IEvaluatedReferenceLinks,
+    IEvaluatedReferenceLinksScore,
+    ILinkingRule,
+    ILinkingTaskParameters,
+} from "../linking.types";
 import { IPluginDetails } from "@ducks/common/typings";
 import editorUtils from "../LinkingRuleEditor.utils";
 import { evaluateLinkingRule, evaluateLinkingRuleAgainstReferenceEntities } from "../LinkingRuleEditor.requests";
@@ -70,8 +76,8 @@ export const LinkingRuleEvaluation = ({
                 evaluationResultMap.set(operatorId, evaluationValues);
                 updateCallback(evaluationValues);
             });
-        } catch(ex) {
-            console.warn("Unexpected error has occurred while processing the evaluation result.", ex)
+        } catch (ex) {
+            console.warn("Unexpected error has occurred while processing the evaluation result.", ex);
         }
     }, [evaluationResult]);
 
@@ -90,6 +96,32 @@ export const LinkingRuleEvaluation = ({
 
     const clearEntities = () => evaluationResultEntities.splice(0, evaluationResultEntities.length);
 
+    const fetchReferenceLinksEvaluation: (
+        linkageRule: ILinkingRule
+    ) => Promise<IEvaluatedReferenceLinks | undefined> = async (linkageRule: ILinkingRule) => {
+        try {
+            const result = await evaluateLinkingRuleAgainstReferenceEntities(
+                projectId,
+                linkingTaskId,
+                linkageRule,
+                numberOfLinkToShow
+            );
+            return result.data;
+        } catch (ex) {
+            if (ex.isFetchError) {
+                registerError(
+                    "LinkingRuleEvaluation.fetchReferenceLinksEvaluation",
+                    t(
+                        "Could not fetch evaluation results for reference links. Need to fallback to executing linking evaluation."
+                    ),
+                    ex
+                );
+            } else {
+                throw ex;
+            }
+        }
+    };
+
     /** Start an evaluation of the linkage rule. */
     const startEvaluation = async (
         ruleOperatorNodes: IRuleOperatorNode[],
@@ -102,22 +134,15 @@ export const LinkingRuleEvaluation = ({
             const linkSpec = originalTask as TaskPlugin<ILinkingTaskParameters>;
             const linkageRule = linkSpec.parameters.rule;
             const newLinkageRule = { ...linkageRule, operator: ruleTree };
-            const result = (
-                await evaluateLinkingRuleAgainstReferenceEntities(
-                    projectId,
-                    linkingTaskId,
-                    newLinkageRule,
-                    numberOfLinkToShow
-                )
-            ).data;
-            if (result.positive.length === 0 && result.negative.length === 0 && !quickEvaluationOnly) {
+            const result = await fetchReferenceLinksEvaluation(newLinkageRule);
+            if (!quickEvaluationOnly && (!result || (result.positive.length === 0 && result.negative.length === 0))) {
                 // Fallback to slower linking evaluation
-                setEvaluatesQuickly(false);
+                setEvaluatesQuickly((previous) => !result);
                 const links = (await evaluateLinkingRule(projectId, linkingTaskId, newLinkageRule, numberOfLinkToShow))
                     .data;
                 setEvaluationResult(links.slice(0, numberOfLinkToShow).map((l) => ({ ...l, type: "unlabelled" })));
                 setEvaluationScore(undefined);
-            } else {
+            } else if (result) {
                 // Fast reference links evaluation available
                 setEvaluatesQuickly(true);
                 setEvaluationScore(result.evaluationScore);
@@ -128,6 +153,9 @@ export const LinkingRuleEvaluation = ({
                     .slice(0, Math.max(Math.ceil(numberOfLinkToShow / 2), numberOfLinkToShow - result.negative.length))
                     .map((l) => ({ ...l, type: "positive" }));
                 setEvaluationResult([...positiveLinks, ...negativeLinks]);
+            } else {
+                setEvaluationScore(undefined);
+                setEvaluationResult([]);
             }
         } catch (ex) {
             if (ex.isFetchError) {
