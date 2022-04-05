@@ -124,7 +124,7 @@ export const RuleEditorToolbar = () => {
                 <Spacing vertical />
             </ToolbarSection>
             {ruleEditorContext.additionalToolBarComponents ? ruleEditorContext.additionalToolBarComponents() : null}
-            {ruleEvaluationContext.evaluationScore ? (
+            {ruleEvaluationContext.evaluationResultsShown ? (
                 <ToolbarSection>
                     <EvaluationScore
                         score={ruleEvaluationContext.evaluationScore}

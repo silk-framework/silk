@@ -111,9 +111,7 @@ export const LinkingRuleEvaluation = ({
             if (ex.isFetchError) {
                 registerError(
                     "LinkingRuleEvaluation.fetchReferenceLinksEvaluation",
-                    t(
-                        "Could not fetch evaluation results for reference links. Need to fallback to executing linking evaluation."
-                    ),
+                    "Could not fetch evaluation results for reference links. Need to fallback to executing linking evaluation.",
                     ex
                 );
             } else {
