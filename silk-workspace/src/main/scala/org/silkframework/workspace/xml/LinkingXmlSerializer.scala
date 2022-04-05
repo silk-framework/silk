@@ -64,9 +64,11 @@ private class LinkingXmlSerializer extends XmlSerializer[LinkSpec] {
     implicit val prefixes = Prefixes.empty
 
     // Write resources
+    val linkSpecXml = toXml(data)
     val taskResources = resources.child(data.id)
-    taskResources.get("linkSpec.xml").write(){ os => toXml(data).write(os) }
-    taskResources.get("alignment.xml").write(){ os => data.referenceLinks.toXML.write(os) }
+    val referenceLinksXml = data.referenceLinks.toXML
+    taskResources.get("linkSpec.xml").write(){ os => linkSpecXml.write(os) }
+    taskResources.get("alignment.xml").write(){ os => referenceLinksXml.write(os) }
   }
 
   override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Seq[LoadedTask[LinkSpec]] = {
