@@ -119,28 +119,11 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
         previousTask: TaskPlugin<ILinkingTaskParameters>
     ): Promise<RuleSaveResult> => {
         try {
-            const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
-            const ruleTree = utils.constructLinkageRuleTree(ruleOperatorNodes); // TODO: ???
-            if (
-                rootNodes.length === 1 &&
-                rootNodes[0].pluginType !== "ComparisonOperator" &&
-                rootNodes[0].pluginType !== "AggregationOperator"
-            ) {
-                throw new RuleValidationError(
-                    "Rule tree root must either be an aggregation or comparison!",
-                    rootNodes.map((node) => ({
-                        nodeId: node.nodeId,
-                        message: `Root node '${node.label}' is a '${node.pluginType}', but must be either a comparison or aggregation.`,
-                    }))
-                );
-            }
+            const ruleTree = utils.constructLinkageRuleTree(ruleOperatorNodes);
 
             await updateLinkageRule(projectId, linkingTaskId, {
                 ...previousTask.parameters.rule,
-                operator:
-                    rootNodes.length === 1
-                        ? utils.convertRuleOperatorNodeToSimilarityOperator(rootNodes[0], operatorNodeMap)
-                        : undefined,
+                operator: ruleTree,
                 layout: ruleUtils.ruleLayout(ruleOperatorNodes),
             });
             return {

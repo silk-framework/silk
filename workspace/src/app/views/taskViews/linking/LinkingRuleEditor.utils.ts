@@ -229,7 +229,13 @@ export const constructLinkageRuleTree = (ruleOperatorNodes: IRuleOperatorNode[])
         rootNodes[0].pluginType !== "ComparisonOperator" &&
         rootNodes[0].pluginType !== "AggregationOperator"
     ) {
-        throw Error("Rule tree root must either be an aggregation or comparison!");
+        throw new RuleValidationError(
+            "Rule tree root must either be an aggregation or comparison!",
+            rootNodes.map((node) => ({
+                nodeId: node.nodeId,
+                message: `Root node '${node.label}' is a '${node.pluginType}', but must be either a comparison or aggregation.`,
+            }))
+        );
     }
 
     return rootNodes.length === 1

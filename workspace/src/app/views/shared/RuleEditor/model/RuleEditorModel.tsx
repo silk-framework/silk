@@ -1158,7 +1158,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 });
             }
         });
-        return new Promise((resolve) => {
+        return new Promise<Elements>((resolve) => {
             if (changeNodePositionOperations.length > 0) {
                 startChangeTransaction();
                 const changeNodePositions = { operations: changeNodePositionOperations };
@@ -1210,7 +1210,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     };
 
     /** Save the current rule. */
-    const saveRule = async () => {
+    const ruleOperatorNodes = (): IRuleOperatorNode[] => {
         const nodes: RuleEditorNode[] = [];
         const nodeInputEdges: Map<string, Edge[]> = new Map();
         const inputEdgesByNodeId = (nodeId: string): Edge[] => {
@@ -1230,7 +1230,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 inputEdgesByNodeId(edge.target).push(edge);
             }
         });
-        const ruleOperatorNodes = nodes.map((node) => {
+        return nodes.map((node) => {
             const inputHandleIds = utils.inputHandles(node).map((h) => h.id!!);
             const inputEdges = nodeInputEdges.get(node.id) ?? [];
             const inputEdgeMap = new Map(inputEdges.map((e) => [e.targetHandle, e.source]));
@@ -1250,15 +1250,15 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 nodeId: node.id,
                 parameters: parameterDiff
                     ? Object.fromEntries(
-                          Object.entries(originalNode.parameters).map(([parameterId, parameterValue]) => {
-                              return [
-                                  parameterId,
-                                  parameterDiff && parameterDiff.has(parameterId)
-                                      ? parameterDiff.get(parameterId)
-                                      : parameterValue,
-                              ];
-                          })
-                      )
+                        Object.entries(originalNode.parameters).map(([parameterId, parameterValue]) => {
+                            return [
+                                parameterId,
+                                parameterDiff && parameterDiff.has(parameterId)
+                                    ? parameterDiff.get(parameterId)
+                                    : parameterValue,
+                            ];
+                        })
+                    )
                     : originalNode.parameters,
                 pluginId: originalNode.pluginId,
                 pluginType: originalNode.pluginType,
@@ -1267,7 +1267,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             };
             return ruleOperatorNode;
         });
-        const saveResult = await ruleEditorContext.saveRule(ruleOperatorNodes);
+    }
+
+    const saveRule = async () => {
+        const saveResult = await ruleEditorContext.saveRule(ruleOperatorNodes());
         if ((saveResult.nodeErrors ?? []).length > 0) {
             const firstNodeError = saveResult.nodeErrors!![0];
             const node = utils.nodeById(elements, firstNodeError.nodeId);
