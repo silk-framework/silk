@@ -221,10 +221,27 @@ const inputPathTab = (
     return inputPathTabConfig;
 };
 
+/** Constructs the rule tree of a linkage rule. This is data structure that is send to the backend. */
+export const constructLinkageRuleTree = (ruleOperatorNodes: IRuleOperatorNode[]): ISimilarityOperator | undefined => {
+    const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
+    if (
+        rootNodes.length === 1 &&
+        rootNodes[0].pluginType !== "ComparisonOperator" &&
+        rootNodes[0].pluginType !== "AggregationOperator"
+    ) {
+        throw Error("Rule tree root must either be an aggregation or comparison!");
+    }
+
+    return rootNodes.length === 1
+        ? convertRuleOperatorNodeToSimilarityOperator(rootNodes[0], operatorNodeMap)
+        : undefined;
+};
+
 const linkingRuleUtils = {
     convertRuleOperatorNodeToSimilarityOperator,
     convertToRuleOperatorNodes,
     inputPathTab,
+    constructLinkageRuleTree,
 };
 
 export default linkingRuleUtils;

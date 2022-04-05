@@ -26,6 +26,7 @@ import {
 import { Spacing, ToolbarSection } from "gui-elements";
 import { TaskActivityWidget } from "../../shared/TaskActivityWidget/TaskActivityWidget";
 import { FetchError } from "../../../services/fetch/responseInterceptor";
+import { LinkingRuleEvaluation } from "./evaluation/LinkingRuleEvaluation";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -37,6 +38,8 @@ export interface LinkingRuleEditorProps {
 }
 
 const HIDE_GREY_LISTED_OPERATORS_QUERY_PARAMETER = "hideGreyListedParameters";
+
+const NUMBER_OF_LINKS_TO_SHOW = 5;
 
 /** Editor for creating and changing linking rule operator trees. */
 export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: LinkingRuleEditorProps) => {
@@ -117,6 +120,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
     ): Promise<RuleSaveResult> => {
         try {
             const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
+            const ruleTree = utils.constructLinkageRuleTree(ruleOperatorNodes); // TODO: ???
             if (
                 rootNodes.length === 1 &&
                 rootNodes[0].pluginType !== "ComparisonOperator" &&
@@ -218,78 +222,84 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
         );
 
     return (
-        <RuleEditor<TaskPlugin<ILinkingTaskParameters>, IPluginDetails>
+        <LinkingRuleEvaluation
             projectId={projectId}
-            taskId={linkingTaskId}
-            fetchRuleData={fetchTaskData}
-            fetchRuleOperators={fetchLinkingRuleOperatorDetails}
-            saveRule={saveLinkageRule}
-            convertRuleOperator={ruleUtils.convertRuleOperator}
-            viewActions={viewActions}
-            convertToRuleOperatorNodes={utils.convertToRuleOperatorNodes}
-            additionalRuleOperators={[sourcePathInput(), targetPathInput()]}
-            addAdditionParameterSpecifications={(pluginDetails) => {
-                switch (pluginDetails.pluginType) {
-                    case "ComparisonOperator":
-                        return [
-                            ["threshold", thresholdParameterSpec],
-                            ["weight", weightParameterSpec],
-                        ];
-                    case "AggregationOperator":
-                        return [["weight", weightParameterSpec]];
-                    default:
-                        return [];
-                }
-            }}
-            validateConnection={ruleUtils.validateConnection}
-            tabs={[
-                ruleUtils.sidebarTabs.all,
-                utils.inputPathTab(projectId, linkingTaskId, sourcePathInput(), "source", (ex) =>
-                    registerError(
-                        "linking-rule-editor-fetch-source-paths",
-                        t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
-                        ex
-                    )
-                ),
-                utils.inputPathTab(projectId, linkingTaskId, targetPathInput(), "target", (ex) =>
-                    registerError(
-                        "linking-rule-editor-fetch-source-paths",
-                        t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
-                        ex
-                    )
-                ),
-                ruleUtils.sidebarTabs.comparison,
-                ruleUtils.sidebarTabs.transform,
-                ruleUtils.sidebarTabs.aggregation,
-            ]}
-            additionalToolBarComponents={() => [
-                <ToolbarSection canShrink>
-                    <div style={{ maxWidth: "100%" }}>
-                        <TaskActivityWidget
-                            label={t("taskViews.linkRulesEditor.cacheWidgets.evaluationCache")}
-                            projectId={projectId}
-                            taskId={linkingTaskId}
-                            activityName={"ReferenceEntitiesCache"}
-                            layoutConfig={{ small: true, border: true, canShrink: true, visualization: "spinner" }}
-                            isCacheActivity={true}
-                        />
-                    </div>
-                </ToolbarSection>,
-                <Spacing vertical={true} size={"small"} />,
-                <ToolbarSection canShrink>
-                    <div style={{ maxWidth: "100%" }}>
-                        <TaskActivityWidget
-                            label={t("taskViews.linkRulesEditor.cacheWidgets.pathsCache")}
-                            projectId={projectId}
-                            taskId={linkingTaskId}
-                            activityName={"LinkingPathsCache"}
-                            layoutConfig={{ small: true, border: true, canShrink: true, visualization: "spinner" }}
-                            isCacheActivity={true}
-                        />
-                    </div>
-                </ToolbarSection>,
-                <Spacing vertical={true} hasDivider={true} />,
-            ]}
-        />
+            linkingTaskId={linkingTaskId}
+            numberOfLinkToShow={NUMBER_OF_LINKS_TO_SHOW}
+        >
+            <RuleEditor<TaskPlugin<ILinkingTaskParameters>, IPluginDetails>
+                projectId={projectId}
+                taskId={linkingTaskId}
+                fetchRuleData={fetchTaskData}
+                fetchRuleOperators={fetchLinkingRuleOperatorDetails}
+                saveRule={saveLinkageRule}
+                convertRuleOperator={ruleUtils.convertRuleOperator}
+                viewActions={viewActions}
+                convertToRuleOperatorNodes={utils.convertToRuleOperatorNodes}
+                additionalRuleOperators={[sourcePathInput(), targetPathInput()]}
+                addAdditionParameterSpecifications={(pluginDetails) => {
+                    switch (pluginDetails.pluginType) {
+                        case "ComparisonOperator":
+                            return [
+                                ["threshold", thresholdParameterSpec],
+                                ["weight", weightParameterSpec],
+                            ];
+                        case "AggregationOperator":
+                            return [["weight", weightParameterSpec]];
+                        default:
+                            return [];
+                    }
+                }}
+                validateConnection={ruleUtils.validateConnection}
+                tabs={[
+                    ruleUtils.sidebarTabs.all,
+                    utils.inputPathTab(projectId, linkingTaskId, sourcePathInput(), "source", (ex) =>
+                        registerError(
+                            "linking-rule-editor-fetch-source-paths",
+                            t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
+                            ex
+                        )
+                    ),
+                    utils.inputPathTab(projectId, linkingTaskId, targetPathInput(), "target", (ex) =>
+                        registerError(
+                            "linking-rule-editor-fetch-source-paths",
+                            t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
+                            ex
+                        )
+                    ),
+                    ruleUtils.sidebarTabs.comparison,
+                    ruleUtils.sidebarTabs.transform,
+                    ruleUtils.sidebarTabs.aggregation,
+                ]}
+                additionalToolBarComponents={() => [
+                    <ToolbarSection canShrink>
+                        <div style={{ maxWidth: "100%" }}>
+                            <TaskActivityWidget
+                                label={t("taskViews.linkRulesEditor.cacheWidgets.evaluationCache")}
+                                projectId={projectId}
+                                taskId={linkingTaskId}
+                                activityName={"ReferenceEntitiesCache"}
+                                layoutConfig={{ small: true, border: true, canShrink: true, visualization: "spinner" }}
+                                isCacheActivity={true}
+                            />
+                        </div>
+                    </ToolbarSection>,
+                    <Spacing vertical={true} size={"small"} />,
+                    <ToolbarSection canShrink>
+                        <div style={{ maxWidth: "100%" }}>
+                            <TaskActivityWidget
+                                label={t("taskViews.linkRulesEditor.cacheWidgets.pathsCache")}
+                                projectId={projectId}
+                                taskId={linkingTaskId}
+                                activityName={"LinkingPathsCache"}
+                                layoutConfig={{ small: true, border: true, canShrink: true, visualization: "spinner" }}
+                                isCacheActivity={true}
+                            />
+                        </div>
+                    </ToolbarSection>,
+                    <Spacing vertical={true} hasDivider={true} />,
+                ]}
+            />
+        </LinkingRuleEvaluation>
     );
 };

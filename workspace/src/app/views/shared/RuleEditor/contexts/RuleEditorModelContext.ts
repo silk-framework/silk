@@ -1,6 +1,6 @@
 import { Elements, OnLoadParams } from "react-flow-renderer";
 import React from "react";
-import { IRuleOperator, RuleOperatorNodeParameters } from "../RuleEditor.typings";
+import { IRuleOperator, IRuleOperatorNode, RuleOperatorNodeParameters } from "../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 
 /**
@@ -40,6 +40,8 @@ export interface RuleEditorModelContextProps {
     /** Center the node having the given ID.
      * Returns true if the node has been found and centered, else false. */
     centerNode: (nodeId: string) => boolean;
+    /** Get the current rule as IRuleOperatorNode objects. */
+    ruleOperatorNodes: () => IRuleOperatorNode[];
 }
 
 export interface IModelActions {
@@ -137,4 +139,5 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     canRedo: false,
     isValidEdge: () => true,
     centerNode: () => true,
+    ruleOperatorNodes: () => [],
 });

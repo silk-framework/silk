@@ -2,7 +2,7 @@ import fetch from "../../../services/fetch";
 import { legacyLinkingEndpoint } from "../../../utils/getApiEndpoint";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { PathWithMetaData } from "../shared/rules/rule.typings";
-import { ILinkingRule, ILinkingTaskParameters } from "./linking.types";
+import { IEntityLink, IEvaluatedReferenceLinks, ILinkingRule, ILinkingTaskParameters } from "./linking.types";
 import { TaskPlugin } from "@ducks/shared/typings";
 
 /** Fetches the cached paths from the linking paths cache.*/
@@ -50,6 +50,46 @@ export const updateLinkageRule = (
         body: linkingRule,
     });
 };
+
+/** Get a an evaluation of the linkage rule against the reference links. */
+export const evaluateLinkingRuleAgainstReferenceEntities = (
+    projectId: string,
+    linkingTaskId: string,
+    linkingRule: ILinkingRule,
+    linkLimit: number = 100
+): Promise<FetchResponse<IEvaluatedReferenceLinks>> => {
+    return fetch({
+        url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/referenceLinksEvaluated`),
+        method: "POST",
+        body: linkingRule,
+        query: {
+            linkLimit,
+        },
+    });
+};
+
+/** Fetch evaluated links for the given linkage rule. */
+export const evaluateLinkingRule = (
+    projectId: string,
+    linkingTaskId: string,
+    linkingRule: ILinkingRule,
+    linkLimit: number = 100,
+    timeoutInMs: number = 30000
+): Promise<FetchResponse<IEntityLink[]>> => {
+    return fetch({
+        url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/evaluateLinkageRule`),
+        method: "POST",
+        body: linkingRule,
+        query: {
+            linkLimit,
+            timeoutInMs,
+        },
+    });
+};
+
+/**
+ * linkLimit: Int ?= 1000, timeoutInMs: Int ?= 30000, includeReferenceLinks: Boolean ?= false
+ */
 
 const linkingRuleEditorRequests = {
     fetchLinkingCachedPaths,

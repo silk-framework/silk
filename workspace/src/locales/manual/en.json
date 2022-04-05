@@ -387,6 +387,10 @@
                 }
             }
         },
+        "evaluation": {
+            "addMoreResults": "Add more reference links",
+            "noResults": "No linking results available. Please add reference links."
+        },
         "node": {
             "menu": {
                 "remove": {
@@ -426,7 +430,9 @@
                 "nodeError": {
                     "tooltip": "Center rule node"
                 }
-            }
+            },
+            "startEvaluation": "Start evaluation",
+            "showEvaluation": "Show evaluation"
         }
     },
     "taskViews": {
@@ -443,6 +449,9 @@
                 },
                 "saveLinkageRule": {
                     "msg": "Could not save linking rule!"
+                },
+                "startEvaluation": {
+                    "msg": "Could not fetch evaluation results."
                 }
             },
             "cacheWidgets": {

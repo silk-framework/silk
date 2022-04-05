@@ -16,6 +16,7 @@ import { Connection, Elements, XYPosition } from "react-flow-renderer/dist/types
 import ELK, { ElkNode } from "elkjs";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
 import { IconButton } from "gui-elements";
+import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 
 /** Constants */
 
@@ -61,6 +62,8 @@ export interface IOperatorCreateContext {
     isValidConnection: (connection: Connection) => boolean;
     // The plugin ID of a node
     nodePluginId: (nodeId: string) => string | undefined;
+    // Rule evaluation context
+    ruleEvaluationContext: RuleEditorEvaluationContextProps;
 }
 
 /** Creates a new react-flow rule operator node. */
@@ -138,6 +141,9 @@ function createOperatorNode(
                 {...adjustedProps}
             />
         ),
+        contentExtension: operatorContext.ruleEvaluationContext.supportsEvaluation
+            ? operatorContext.ruleEvaluationContext.createRuleEditorEvaluationComponent(node.nodeId)
+            : undefined,
     };
 
     return {

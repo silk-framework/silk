@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
     Edge,
     Elements,
@@ -38,6 +38,7 @@ import { Connection, XYPosition } from "react-flow-renderer/dist/types";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
 import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basicUtils";
 import { HighlightingState } from "gui-elements/src/extensions/react-flow/nodes/NodeDefault";
+import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
@@ -67,7 +68,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [elements, setElements] = React.useState<Elements>([]);
     /** Track the current elements, since the API methods changing the elements when run subsequently will otherwise work with the same elements.
      * Use the function changeElementsInternal to modify the elements instead of directly changing them. */
-    const [current] = React.useState<{ elements: Elements }>({ elements: [] });
+    const [current] = React.useState<{ elements: Elements; evaluateQuickly: boolean }>({
+        elements: [],
+        evaluateQuickly: false,
+    });
     current.elements = elements;
     /** Rule editor context. */
     const ruleEditorContext = React.useContext<RuleEditorContextProps>(RuleEditorContext);
@@ -92,6 +96,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const setInteractive = useStoreActions((a) => a.setInteractive);
     /** Map from node ID to (original) rule operator node. Used for validating connections. */
     const [nodeMap] = React.useState<Map<string, RuleTreeNode>>(new Map());
+    const [evaluationCounter, setEvaluationCounter] = React.useState(0);
+    const ruleEvaluationContext: RuleEditorEvaluationContextProps =
+        React.useContext<RuleEditorEvaluationContextProps>(RuleEditorEvaluationContext);
+    const [evaluateQuickly, setEvaluateQuickly] = React.useState(false);
     const [readOnly, _setIsReadOnly] = React.useState(false);
     const [utils] = React.useState(ruleEditorModelUtilsFactory(() => (nodeMap ? "edge" : "default")));
     /** react-flow related functions */
@@ -130,6 +138,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             initModel();
         }
     }, [
+        ruleEditorContext.projectId,
         ruleEditorContext.initialRuleOperatorNodes,
         ruleEditorContext.operatorSpec,
         ruleEditorContext.operatorList,
@@ -179,6 +188,38 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         return sourceNode && targetNode && Number.isInteger(targetInputIdx)
             ? ruleEditorContext.validateConnection(convertNode(sourceNode), convertNode(targetNode), targetInputIdx)
             : true;
+    };
+
+    // Start
+    useEffect(() => {
+        if (evaluateQuickly) {
+            const timeout = setTimeout(
+                () => ruleEvaluationContext.startEvaluation(ruleOperatorNodes(), ruleEditorContext.editedItem, true),
+                500
+            );
+            return () => clearTimeout(timeout);
+        }
+    }, [evaluationCounter, evaluateQuickly]);
+
+    /** Inline rule evaluation */
+    React.useEffect(() => {
+        current.evaluateQuickly =
+            ruleEvaluationContext.supportsEvaluation &&
+            ruleEvaluationContext.supportsQuickEvaluation &&
+            ruleEvaluationContext.evaluationResultsShown;
+        setEvaluateQuickly(current.evaluateQuickly);
+    }, [
+        ruleEvaluationContext.supportsEvaluation,
+        ruleEvaluationContext.supportsQuickEvaluation,
+        ruleEvaluationContext.evaluationResultsShown,
+    ]);
+
+    // Sets the quick evaluation flag to signal that a new quick evaluation should be triggered.
+    const triggerQuickEvaluation = () => {
+        // Only trigger if it currently makes sense
+        if (current.evaluateQuickly) {
+            setEvaluationCounter((c) => c + 1);
+        }
     };
 
     /** Elements should only be changed via this function when needing the current elements.
@@ -460,18 +501,21 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         groupedChange.map((change) => (change as AddEdge).edge),
                         changedElements
                     );
+                    triggerQuickEvaluation();
                     break;
                 case "Delete node":
                     changedElements = deleteElementsInternal(
                         groupedChange.map((change) => (change as DeleteNode).node),
                         changedElements
                     );
+                    triggerQuickEvaluation();
                     break;
                 case "Delete edge":
                     changedElements = deleteElementsInternal(
                         groupedChange.map((change) => (change as DeleteEdge).edge),
                         changedElements
                     );
+                    triggerQuickEvaluation();
                     break;
                 case "Change node position":
                     changedElements = changeNodePositionsInternal(
@@ -563,6 +607,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                             }
                         });
                     }
+                    triggerQuickEvaluation();
                     break;
             }
         });
@@ -1150,6 +1195,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         initParameters: initNodeParametersInternal,
         isValidConnection,
         nodePluginId,
+        ruleEvaluationContext,
     });
 
     /** Auto-layout the rule nodes.
@@ -1176,7 +1222,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 return newArray;
             }
         };
-        elements.forEach((elem) => {
+        current.elements.forEach((elem) => {
             if (utils.isNode(elem)) {
                 nodes.push(utils.asNode(elem)!!);
             } else {
@@ -1336,6 +1382,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 unsavedChanges: canUndo,
                 isValidEdge,
                 centerNode,
+                ruleOperatorNodes,
             }}
         >
             {children}

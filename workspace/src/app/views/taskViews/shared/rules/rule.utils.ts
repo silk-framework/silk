@@ -8,8 +8,11 @@ import {
     IRuleSideBarFilterTabConfig,
     IRuleSidebarPreConfiguredOperatorsTabConfig,
     RuleEditorValidationNode,
+    IRuleSideBarFilterTabConfig,
+    IRuleSidebarPreConfiguredOperatorsTabConfig,
     RuleParameterType,
-    RuleValidationError,
+    IParameterValidationResult,
+    RuleValidationError
 } from "../../../shared/RuleEditor/RuleEditor.typings";
 import { RuleOperatorFetchFnType } from "../../../shared/RuleEditor/RuleEditor";
 import { IPluginDetails } from "@ducks/common/typings";
