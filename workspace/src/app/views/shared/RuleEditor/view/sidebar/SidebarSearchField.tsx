@@ -5,17 +5,23 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 
 interface SidebarSearchFieldProps {
+    activeTabId?: string;
+
     onQueryChange: (textQuery) => any;
 
     searchSuggestions?: () => ISuggestionWithReplacementInfo[];
 }
 
 /** The search input of the rule editor sidebar. */
-export const SidebarSearchField = ({ onQueryChange, searchSuggestions }: SidebarSearchFieldProps) => {
+export const SidebarSearchField = ({ onQueryChange, searchSuggestions, activeTabId }: SidebarSearchFieldProps) => {
     const [textQuery, setTextQuery] = React.useState<string>("");
     const [suggestions, setSuggestions] = React.useState<ISuggestionWithReplacementInfo[]>([]);
     const [hasFocus, setHasFocus] = React.useState(false);
     const [t] = useTranslation();
+
+    React.useEffect(() => {
+        setTextQuery("");
+    }, [activeTabId]);
 
     React.useEffect(() => {
         const timeout: number = window.setTimeout(() => {

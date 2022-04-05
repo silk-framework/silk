@@ -27,7 +27,6 @@ export const RuleEditorOperatorSidebar = () => {
     const [filteredOperators, setFilteredOperators] = React.useState<IRuleOperator[]>([]);
     // The query that was input in the search field. This won't get immediately active.
     const [textQuery, setTextQuery] = React.useState<string>("");
-    const searchWords = extractSearchWords(textQuery);
     const [operatorList, setOperatorList] = React.useState<IRuleOperator[] | undefined>();
     const [operatorCategories] = React.useState<ISuggestionWithReplacementInfo[]>([]);
     /** Tab handling. */
@@ -38,7 +37,6 @@ export const RuleEditorOperatorSidebar = () => {
     ).find((tab) => tab.id === activeTabId);
     /** Pre-configured operators */
     const [preConfiguredOperatorListLoading, setPreConfiguredOperatorListLoading] = React.useState(false);
-    //
     const [preConfiguredOperators, setPreconfiguredOperators] = React.useState<
         | (IPreConfiguredOperators<any> & {
               itemSearchText: (listItem: any) => string;
@@ -52,6 +50,7 @@ export const RuleEditorOperatorSidebar = () => {
 
     // Filter operator list when active query or filters change
     React.useEffect(() => {
+        const searchWords = extractSearchWords(textQuery);
         if (preConfiguredOperators && !operatorList) {
             if (searchWords.length > 0) {
                 const filteredOps = filterAndSortOperators(
@@ -192,7 +191,11 @@ export const RuleEditorOperatorSidebar = () => {
             ) : null}
             <GridRow>
                 <GridColumn full style={{ paddingTop: "3px" }}>
-                    <SidebarSearchField onQueryChange={setTextQuery} searchSuggestions={fetchCategories} />
+                    <SidebarSearchField
+                        activeTabId={activeTabId}
+                        onQueryChange={setTextQuery}
+                        searchSuggestions={fetchCategories}
+                    />
                     <Spacing size={"small"} />
                 </GridColumn>
             </GridRow>
