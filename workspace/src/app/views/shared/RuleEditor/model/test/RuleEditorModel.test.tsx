@@ -30,11 +30,15 @@ const nodeById = (nodeId: string) => {
 };
 
 describe("Rule editor model", () => {
-    let ruleOperatorNodes: IRuleOperatorNode[] = [];
     // Get a deep copy of the current operator nodes sorted by node ID
     const currentOperatorNodes = (): IRuleOperatorNode[] => {
-        currentContext().saveRule();
-        return JSON.parse(JSON.stringify(ruleOperatorNodes.sort((n1, n2) => (n1.nodeId < n2.nodeId ? -1 : 1))));
+        return JSON.parse(
+            JSON.stringify(
+                currentContext()
+                    .ruleOperatorNodes()
+                    .sort((n1, n2) => (n1.nodeId < n2.nodeId ? -1 : 1))
+            )
+        );
     };
     // Fetch the current react-flow nodes
     const currentReactFlowNodes = (): RuleEditorNode[] => {
@@ -62,8 +66,7 @@ describe("Rule editor model", () => {
                         editedItemLoading: false,
                         operatorListLoading: false,
                         initialRuleOperatorNodes: initialRuleNodes,
-                        saveRule: (nodes: IRuleOperatorNode[]): RuleSaveResult => {
-                            ruleOperatorNodes = nodes;
+                        saveRule: (): RuleSaveResult => {
                             return { success: true };
                         },
                         convertRuleOperatorToRuleNode: utils.defaults.convertRuleOperatorToRuleNode,
@@ -206,8 +209,7 @@ describe("Rule editor model", () => {
         expect(currentContext().canUndo).toBe(false);
         expect(currentContext().canRedo).toBe(false);
         expect(currentContext().elements).toHaveLength(0);
-        currentContext().saveRule();
-        expect(ruleOperatorNodes).toHaveLength(0);
+        expect(currentContext().ruleOperatorNodes()).toHaveLength(0);
         await ruleEditorModel(
             [
                 node({ nodeId: "node A", portSpecification: { minInputPorts: 0 } }),
@@ -218,9 +220,8 @@ describe("Rule editor model", () => {
         // 2 nodes and 1 edge
         await waitFor(async () => {
             expect(currentContext().elements).toHaveLength(3);
-            await currentContext().saveRule();
-            expect(ruleOperatorNodes).toHaveLength(2);
-            expect(ruleOperatorNodes[1].inputs).toStrictEqual(["node A"]);
+            expect(currentContext().ruleOperatorNodes()).toHaveLength(2);
+            expect(currentContext().ruleOperatorNodes()[1].inputs).toStrictEqual(["node A"]);
         });
     });
 
@@ -250,17 +251,15 @@ describe("Rule editor model", () => {
             // 4 nodes, 1 edge
             expect(currentContext().elements).toHaveLength(5);
             checkAfterChange();
-            currentContext().saveRule();
-            expect(ruleOperatorNodes.map((node) => node.nodeId)).toStrictEqual([
-                "pluginA",
-                "node B",
-                "pluginA_2",
-                "pluginA_3",
-            ]);
+            expect(
+                currentContext()
+                    .ruleOperatorNodes()
+                    .map((node) => node.nodeId)
+            ).toStrictEqual(["pluginA", "node B", "pluginA_2", "pluginA_3"]);
             expect(
                 modelUtils.asNode(currentContext().elements.find((n) => n.id === "pluginA_2"))!!.position
             ).toStrictEqual(position);
-            expect(ruleOperatorNodes[2].position).toStrictEqual(position);
+            expect(currentContext().ruleOperatorNodes()[2].position).toStrictEqual(position);
         };
         checkAfterAddedNodes();
 
@@ -290,8 +289,11 @@ describe("Rule editor model", () => {
             checkAfterChange();
             // 1 node and 2 edges removed
             expect(currentContext().elements).toHaveLength(3);
-            currentContext().saveRule();
-            expect(ruleOperatorNodes.map((node) => node.nodeId)).toStrictEqual(["nodeB", "nodeC"]);
+            expect(
+                currentContext()
+                    .ruleOperatorNodes()
+                    .map((node) => node.nodeId)
+            ).toStrictEqual(["nodeB", "nodeC"]);
         };
         checkAfterDelete();
 
@@ -319,8 +321,7 @@ describe("Rule editor model", () => {
         const checkAfterMove = () => {
             checkAfterChange();
             expect(nodeById(nodeId).position).toStrictEqual(newPosition);
-            currentContext().saveRule();
-            expect(ruleOperatorNodes[0].position).toStrictEqual(newPosition);
+            expect(currentContext().ruleOperatorNodes()[0].position).toStrictEqual(newPosition);
         };
         checkAfterMove();
 
@@ -475,7 +476,9 @@ describe("Rule editor model", () => {
         const checkAfterCopyAndPaste = () => {
             // 2 nodes and 1 edge added
             expect(currentContext().elements).toHaveLength(9);
-            expect(new Set(currentOperatorNodes().map((op) => op.nodeId)).size).toBe(ruleOperatorNodes.length);
+            expect(new Set(currentOperatorNodes().map((op) => op.nodeId)).size).toBe(
+                currentContext().ruleOperatorNodes().length
+            );
         };
         checkAfterCopyAndPaste();
         // Copy and paste second time
@@ -487,7 +490,9 @@ describe("Rule editor model", () => {
             checkAfterChange();
             // 2 nodes and 1 edge added
             expect(currentContext().elements).toHaveLength(12);
-            expect(new Set(currentOperatorNodes().map((op) => op.nodeId)).size).toBe(ruleOperatorNodes.length);
+            expect(new Set(currentOperatorNodes().map((op) => op.nodeId)).size).toBe(
+                currentContext().ruleOperatorNodes().length
+            );
         };
         checkAfterCopyAndPaste2nd();
         checkUndoAndRedo(checkBeforeCopyAndPaste, checkAfterCopyAndPaste, checkAfterCopyAndPaste2nd);
