@@ -44,7 +44,7 @@ export const EvaluationScore = ({ score, loading, referenceLinksUrl }: Evaluatio
         const precisionText = `<h3>Precision: ${score.precision}</h3><p>How precise the rule is, i.e. the ratio of correctly evaluated positive items (${score.truePositives}) vs. all positively evaluated items (${allEvaluatedTrue}). ${range}</p>`;
         const recallText = `<h3>Recall: ${score.recall}</h3><p>Specifies how many of all the positive items are categorized correctly, i.e the ratio of correctly evaluated positive items (${score.truePositives}) vs all existing positive items (${allTrue}). ${range}</p>`;
         return (
-            <OverviewItem>
+            <OverviewItem densityHigh={true}>
                 <OverviewItemDescription>
                     <OverviewItemLine>
                         <Tooltip content={"F1-measure: combination of precision and recall. " + range}>
@@ -82,7 +82,7 @@ export const EvaluationScore = ({ score, loading, referenceLinksUrl }: Evaluatio
         );
     } else {
         return (
-            <OverviewItem>
+            <OverviewItem densityHigh={true}>
                 <OverviewItemDescription>
                     <OverviewItemLine small={true}>{t("RuleEditor.evaluation.scoreWidget.noResult")}</OverviewItemLine>
                     <OverviewItemLine>
