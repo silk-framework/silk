@@ -8,6 +8,7 @@ import useHotKey from "../../HotKeyHandler/HotKeyHandler";
 import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 import { EvaluationScore } from "./evaluation/EvaluationScore";
+import { Prompt } from "react-router";
 
 /** Toolbar of the rule editor. Contains global editor actions like save, redo/undo etc. */
 export const RuleEditorToolbar = () => {
@@ -38,6 +39,15 @@ export const RuleEditorToolbar = () => {
         enabled: !ruleEditorUiContext.modalShown,
     });
 
+    // Warn of unsaved changes
+    React.useEffect(() => {
+        if (modelContext.unsavedChanges) {
+            window.onbeforeunload = () => true;
+        } else {
+            window.onbeforeunload = null;
+        }
+    }, [modelContext.unsavedChanges]);
+
     const saveLinkingRule = async (e) => {
         e.preventDefault();
         setSavingWorkflow(true);
@@ -55,8 +65,15 @@ export const RuleEditorToolbar = () => {
         setEvaluationShown(show);
     };
 
+    // Show 'unsaved changes' prompt when navigating away via React routing
+    const routingPrompt = (/*location: H.Location, action: H.Action*/): string | boolean => {
+        // At the moment it will complain on any kind of routing change
+        return modelContext.unsavedChanges ? (t("taskViews.ruleEditor.warnings.unsavedChanges") as string) : true;
+    };
+
     return (
         <Toolbar data-test-id={"workflow-editor-header"} noWrap>
+            <Prompt when={modelContext.unsavedChanges} message={routingPrompt} />
             <ToolbarSection>
                 <IconButton
                     data-test-id={"rule-editor-undo-btn"}

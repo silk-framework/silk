@@ -462,6 +462,9 @@
         "ruleEditor": {
             "errors": {
                 "loadExternalOperators": "Could not load operator list for tab '{{tabName}}'!"
+            },
+            "warnings": {
+                "unsavedChanges": "There are unsaved changes. Do you still want to close the rule editor?"
             }
         },
         "transformRulesEditor": {
