@@ -86,7 +86,7 @@ export const NodeContent = ({
             {tags ? utils.createOperatorTags(tags) : null}
             {showEditModal ? (
                 <RuleNodeFormParameterModal
-                    key={"form"}
+                    key={"formParameterModel"}
                     title={nodeLabel}
                     nodeId={nodeId}
                     pluginId={operatorContext.nodePluginId(nodeId) ?? "unknown"}

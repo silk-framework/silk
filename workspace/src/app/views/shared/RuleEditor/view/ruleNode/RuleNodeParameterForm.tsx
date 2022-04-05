@@ -26,6 +26,7 @@ export const RuleNodeParameterForm = ({
             {parameters.map((param) => {
                 return (
                     <RuleNodeFormParameter
+                        key={param.parameterId}
                         nodeId={nodeId}
                         parameter={param}
                         dependentValue={dependentValue}

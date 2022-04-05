@@ -255,7 +255,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                     ruleUtils.sidebarTabs.aggregation,
                 ]}
                 additionalToolBarComponents={() => [
-                    <ToolbarSection canShrink>
+                    <ToolbarSection canShrink key={"evaluation-activity"}>
                         <div style={{ maxWidth: "100%" }}>
                             <TaskActivityWidget
                                 label={t("taskViews.linkRulesEditor.cacheWidgets.evaluationCache")}
@@ -267,8 +267,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                             />
                         </div>
                     </ToolbarSection>,
-                    <Spacing vertical={true} size={"small"} />,
-                    <ToolbarSection canShrink>
+                    <Spacing key={"spacing1"} vertical={true} size={"small"} />,
+                    <ToolbarSection canShrink key={"pathsActivity"}>
                         <div style={{ maxWidth: "100%" }}>
                             <TaskActivityWidget
                                 label={t("taskViews.linkRulesEditor.cacheWidgets.pathsCache")}
@@ -280,7 +280,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                             />
                         </div>
                     </ToolbarSection>,
-                    <Spacing vertical={true} hasDivider={true} />,
+                    <Spacing key={"spacing2"} vertical={true} hasDivider={true} />,
                 ]}
             />
         </LinkingRuleEvaluation>

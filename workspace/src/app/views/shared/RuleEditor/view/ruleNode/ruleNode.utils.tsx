@@ -10,21 +10,22 @@ const addHighlighting = (text: string, query?: string): string | JSX.Element => 
 };
 
 /** Creates the tags for an operator (node). */
-const createOperatorTags = (tags: string[], query?: string, color?: (tag: string) => Color | string | undefined) => {
-    return (
-        <>
-            {tags.map((tag, idx) => {
-                return (
-                    <>
-                        <Tag key={tag} minimal={true} backgroundColor={color ? color(tag) : undefined}>
-                            {addHighlighting(tag, query)}
-                        </Tag>
-                        {idx < tags.length + 1 ? <Spacing key={`spacing-${tag}`} vertical size="tiny" /> : null}
-                    </>
-                );
-            })}
-        </>
-    );
+const createOperatorTags = (
+    tags: string[],
+    query?: string,
+    color?: (tag: string) => Color | string | undefined
+): JSX.Element[] => {
+    const returnArray: JSX.Element[] = [];
+    tags.forEach((tag, idx) => {
+        returnArray.push(
+            <Tag key={tag} minimal={true} backgroundColor={color ? color(tag) : undefined}>
+                {addHighlighting(tag, query)}
+            </Tag>
+        );
+
+        idx < tags.length + 1 && returnArray.push(<Spacing key={`spacing-${tag}`} vertical size="tiny" />);
+    });
+    return returnArray;
 };
 
 const invalidValueResult = (message: string): IParameterValidationResult => ({

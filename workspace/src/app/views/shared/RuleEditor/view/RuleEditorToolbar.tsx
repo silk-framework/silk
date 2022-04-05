@@ -135,6 +135,7 @@ export const RuleEditorToolbar = () => {
             ) : null}
             <ToolbarSection>
                 <Button
+                    key={"save-button"}
                     data-test-id="ruleEditor-save-button"
                     affirmative={!modelContext.isReadOnly()}
                     tooltip={
@@ -149,6 +150,7 @@ export const RuleEditorToolbar = () => {
                     {modelContext.isReadOnly() ? <Icon name={"write-protected"} /> : t("common.action.save", "Save")}
                 </Button>
                 <RuleEditorNotifications
+                    key={"notifications"}
                     integratedView={ruleEditorContext.viewActions?.integratedView}
                     queueEditorNotifications={
                         ruleEditorContext.lastSaveResult?.errorMessage
