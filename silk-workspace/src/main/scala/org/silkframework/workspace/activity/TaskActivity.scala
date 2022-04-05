@@ -1,13 +1,12 @@
 package org.silkframework.workspace.activity
 
-import java.lang.reflect.{ParameterizedType, Type, TypeVariable}
-
 import org.silkframework.config.{Prefixes, TaskSpec}
 import org.silkframework.runtime.activity._
-import org.silkframework.runtime.plugin.PluginDescription
+import org.silkframework.runtime.plugin.ClassPluginDescription
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.workspace.{Project, ProjectTask}
 
+import java.lang.reflect.{ParameterizedType, Type, TypeVariable}
 import scala.reflect.ClassTag
 import scala.runtime.BoxedUnit
 
@@ -36,7 +35,7 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
     implicit val prefixes: Prefixes = project.config.prefixes
     implicit val resources: ResourceManager = project.resources
     Activity(
-      PluginDescription(defaultFactory.getClass)(config, ignoreNonExistingParameters = false).apply(task),
+      ClassPluginDescription(defaultFactory.getClass)(config, ignoreNonExistingParameters = false).apply(task),
       projectAndTaskId = Some(ProjectAndTaskIds(project.name, taskOption.map(_.id)))
     )
   }

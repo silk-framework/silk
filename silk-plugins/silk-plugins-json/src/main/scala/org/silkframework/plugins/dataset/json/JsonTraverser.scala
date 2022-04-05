@@ -199,7 +199,7 @@ case class JsonTraverser(taskId: Identifier, parentOpt: Option[ParentTraverser],
 
 object JsonTraverser {
   def apply(taskId: Identifier, resource: Resource): JsonTraverser = {
-    JsonTraverser(taskId, None, Json.parse(resource.loadAsString))
+    JsonTraverser(taskId, None, Json.parse(resource.loadAsString()))
   }
 
   def apply(taskId: Identifier, jsValue: JsValue): JsonTraverser = {

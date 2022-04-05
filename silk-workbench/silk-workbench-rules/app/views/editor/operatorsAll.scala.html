@@ -12,12 +12,12 @@ project: Project)(implicit userContext: UserContext)
     <div class="operator-index">
       @plugin.label
     </div>
-    <div id="search_@{opType}_@{plugin.categories.head}_@{plugin.id}" class="draggable @name.toLowerCase">
+    <div id="search_@{opType}_@{plugin.categories.headOption.getOrElse("")}_@{plugin.id}" class="draggable @name.toLowerCase">
       <small>@plugin.label</small>
       <p class="non-breaking-label">@plugin.label</p>
       @operatorExpanded(plugin)
     </div>
-    <div class="mdl-defer mdl-tooltip--right" data-mdl-defer="tooltip" for="search_@{opType}_@{plugin.categories.head}_@{plugin.id}">
+    <div class="mdl-defer mdl-tooltip--right" data-mdl-defer="tooltip" for="search_@{opType}_@{plugin.categories.headOption.getOrElse("")}_@{plugin.id}">
       @plugin.description
     </div>
   </div>

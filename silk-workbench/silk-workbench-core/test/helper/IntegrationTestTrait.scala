@@ -1,7 +1,5 @@
 package helper
 
-import java.io._
-import java.net.URLDecoder
 import org.scalatest.TestSuite
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import org.silkframework.config.{PlainTask, Prefixes, Task}
@@ -25,7 +23,7 @@ import java.net.URLDecoder
 import scala.collection.immutable.SortedMap
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import scala.io.Source
+import scala.io.{Codec, Source}
 import scala.xml.{Elem, XML}
 
 /**
@@ -483,7 +481,7 @@ trait IntegrationTestTrait extends TaskApiClient
     checkResponse(response)
   }
 
-  def resourceAsSource(resourceClassPath: String): Source = Source.createBufferedSource(getClass.getClassLoader.getResourceAsStream(resourceClassPath))
+  def resourceAsSource(resourceClassPath: String): Source = Source.createBufferedSource(getClass.getClassLoader.getResourceAsStream(resourceClassPath))(Codec.UTF8)
 
   def reloadVocabularyCache(project: Project, transformTaskId: String)
                            (implicit userContext: UserContext): Unit = {

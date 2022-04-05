@@ -1,6 +1,6 @@
 package org.silkframework.dataset.rdf
 
-import java.io.{File, FileWriter}
+import java.io.{File, FileOutputStream, OutputStreamWriter, Writer}
 
 /**
   * Formats the content of an iterator.
@@ -29,10 +29,10 @@ object IteratorFormatter {
     * @param file - the file to write to
     */
   def saveToFile[T](file: File, iterator: ClosableIterator[T], formatter: ElementFormatter[T]): Unit ={
-    var writer: FileWriter = null
+    var writer: Writer = null
     try {
       file.createNewFile()
-      writer = new FileWriter(file)
+      writer = new OutputStreamWriter(new FileOutputStream(file), "UTF8")
       writer.append(formatter.header)
       while (iterator.hasNext) {
         writer.append(formatter.formatElement(iterator.next()))

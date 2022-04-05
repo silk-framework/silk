@@ -12,8 +12,7 @@ trait CustomTask extends TaskSpec with AnyPlugin {
 
   /** Retrieves a list of properties as key-value pairs for this task to be displayed to the user. */
   override def properties(implicit prefixes: Prefixes): Seq[(String, String)] = {
-    val (pluginType, params) = PluginRegistry.reflect(this)
-    ("Type", pluginType.label) +: params.toSeq
+    ("Type", pluginSpec.label) +: parameters.toSeq
   }
 
   override def withProperties(updatedProperties: Map[String, String])(implicit prefixes: Prefixes, resourceManager: ResourceManager): CustomTask = {
@@ -43,10 +42,8 @@ object CustomTask extends PluginFactory[CustomTask] {
     }
 
     def write(value: CustomTask)(implicit writeContext: WriteContext[Node]): Node = {
-      val (pluginType, params) = PluginRegistry.reflect(value)(Prefixes.empty)
-
-      <CustomTask type={pluginType.id.toString}>{
-        {XmlSerialization.serializeParameter(params)}
+      <CustomTask type={value.pluginSpec.id.toString}>{
+        {XmlSerialization.serializeParameter(value.parameters)}
       }</CustomTask>
     }
   }

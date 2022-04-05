@@ -120,7 +120,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
     val relatedTasks = (task.data.referencedTasks.toSeq ++ task.findDependentTasks(recursive = false).toSeq ++ task.findRelatedTasksInsideWorkflows.toSeq).distinct.
         flatMap(id => project.anyTaskOption(id))
     val relatedItems = relatedTasks map { task =>
-      val pd = PluginDescription(task)
+      val pd = PluginDescription.forTask(task)
       val itemType = ItemType.itemType(task)
       val itemLinks = ItemType.itemTypeLinks(itemType, projectId, task.id, Some(task.data))
       RelatedItem(task.id, task.fullLabel, task.metaData.description, itemType.label, itemLinks, pd.label)

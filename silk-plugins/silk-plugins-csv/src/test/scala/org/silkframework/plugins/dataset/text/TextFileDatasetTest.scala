@@ -30,7 +30,7 @@ class TextFileDatasetTest extends FlatSpec with Matchers {
     sink.closeTable()
     sink.close()
 
-    resource.loadAsString.trim shouldBe testValue
+    resource.loadAsString().trim shouldBe testValue
   }
 
   it should "read plain text files" in {

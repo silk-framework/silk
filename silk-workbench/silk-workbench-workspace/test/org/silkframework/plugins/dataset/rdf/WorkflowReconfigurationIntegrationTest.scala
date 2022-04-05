@@ -2,7 +2,6 @@ package org.silkframework.plugins.dataset.rdf
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow}
 
 class WorkflowReconfigurationIntegrationTest extends FlatSpec with MustMatchers with SingleProjectWorkspaceProviderTestTrait {
   behavior of "Workflow reconfiguration"
@@ -23,7 +22,7 @@ class WorkflowReconfigurationIntegrationTest extends FlatSpec with MustMatchers 
 
   it should "re-configure tasks in a workflow execution" in {
     executeWorkflow(workflowId)
-    project.resources.get(outputFile).loadAsString.split("[\r\n]+") mustBe Seq(
+    project.resources.get(outputFile).loadAsString().split("[\r\n]+") mustBe Seq(
       "name|id",
       "Max Noe|2"
     )

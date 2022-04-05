@@ -81,7 +81,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
     provider.putTask(project.name, task)
     task.startActivities()
     cachedTasks += ((name, task))
-    logger.info(s"Added task '$name' to project ${project.name}. " + userContext.logInfo)
+    logger.info(s"Added task '$name' to project ${project.name}." + userContext.logInfo)
     task
   }
 

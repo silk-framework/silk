@@ -1,10 +1,13 @@
 {
-  "summary": [],
+  "label": "simple Workflow",
+  "operation": null,
+  "operationDesc": "nodes executed",
   "task": {
+    "id": "simpleWorkflow",
     "metadata": {
-      "created": "2020-11-23T15:25:53.751Z",
+      "label": "",
       "modified": "2020-11-23T15:26:12.932Z",
-      "label": ""
+      "created": "2020-11-23T15:25:53.751Z"
     },
     "taskType": "Workflow",
     "data": {
@@ -38,7 +41,8 @@
               "transform"
             ],
             "id": "DBpedia",
-            "outputPriority": null
+            "outputPriority": null,
+            "configInputs": []
           },
           {
             "posX": 631,
@@ -49,25 +53,30 @@
             ],
             "outputs": [],
             "id": "output",
-            "outputPriority": null
+            "outputPriority": null,
+            "configInputs": []
           }
         ]
       }
-    },
-    "project": "movies",
-    "id": "simpleWorkflow"
+    }
   },
+  "summary": [],
   "warnings": [
     "Some tasks generated warnings."
   ],
-  "label": "simpleWorkflow",
-  "taskReports": {
-    "DBpedia": {
+  "error": null,
+  "isDone": false,
+  "entityCount": 3,
+  "taskReports": [
+    {
       "label": "DBpedia",
+      "operation": null,
+      "operationDesc": "entities processed",
       "task": {
+        "id": "DBpedia",
         "metadata": {
-          "modified": "2020-11-23T15:53:12.685Z",
-          "label": ""
+          "label": "",
+          "modified": "2020-11-23T15:53:12.685Z"
         },
         "taskType": "Dataset",
         "data": {
@@ -76,35 +85,30 @@
           "parameters": {
             "zipFileRegex": ".*",
             "format": "N-TRIPLE",
-            "maxReadSize": "10",
             "file": "source.nt",
             "graph": "",
             "entityList": ""
           }
-        },
-        "project": "movies",
-        "id": "DBpedia"
+        }
       },
       "summary": [],
-      "warnings": []
+      "warnings": [],
+      "error": null,
+      "isDone": true,
+      "entityCount": 0,
+      "nodeId": "DBpedia",
+      "timestamp": 1648030827997
     },
-    "transform": {
-      "summary": [
-        {
-          "key": "number of entities",
-          "value": "199"
-        },
-        {
-          "key": "number of errors",
-          "value": "192"
-        }
-      ],
-      "globalErrors": [],
+    {
+      "label": "transform",
+      "operation": null,
+      "operationDesc": "entities generated",
       "task": {
+        "id": "transform",
         "metadata": {
-          "created": "2020-11-23T14:00:15.539Z",
+          "label": "transform",
           "modified": "2020-11-23T15:52:56.513Z",
-          "label": "transform"
+          "created": "2020-11-23T14:00:15.539Z"
         },
         "taskType": "Transform",
         "data": {
@@ -157,23 +161,43 @@
                   }
                 ]
               },
+              "mappingTarget": {
+                "uri": "",
+                "valueType": {
+                  "nodeType": "UriValueType"
+                },
+                "isBackwardProperty": false,
+                "isAttribute": false
+              },
               "metadata": {
                 "label": "Root Mapping"
               }
             },
             "output": "",
             "errorOutput": "",
-            "targetVocabularies": ""
+            "targetVocabularies": "",
+            "abortIfErrorsOccur": "false"
           }
-        },
-        "project": "movies",
-        "id": "transform"
+        }
       },
+      "summary": [
+        {
+          "key": "Number of entities",
+          "value": "199"
+        },
+        {
+          "key": "Number of errors",
+          "value": "192"
+        }
+      ],
       "warnings": [
         "Validation issues occurred on 192 entities."
       ],
+      "error": null,
+      "isDone": false,
+      "entityCount": 199,
+      "entityCounter": 199,
       "entityErrorCounter": 192,
-      "label": "transform",
       "ruleResults": {
         "runtime": {
           "errorCount": 0,
@@ -275,15 +299,20 @@
           ]
         }
       },
-      "entityCounter": 199
+      "globalErrors": [],
+      "nodeId": "transform",
+      "timestamp": 1648030828044
     },
-    "output": {
+    {
       "label": "output",
+      "operation": null,
+      "operationDesc": "entities processed",
       "task": {
+        "id": "output",
         "metadata": {
-          "created": "2020-11-23T14:00:43.886Z",
+          "label": "output",
           "modified": "2020-11-23T14:00:43.886Z",
-          "label": "output"
+          "created": "2020-11-23T14:00:43.886Z"
         },
         "taskType": "Dataset",
         "data": {
@@ -304,12 +333,15 @@
             "linesToSkip": "0",
             "maxCharsPerColumn": "128000"
           }
-        },
-        "project": "movies",
-        "id": "output"
+        }
       },
       "summary": [],
-      "warnings": []
+      "warnings": [],
+      "error": null,
+      "isDone": true,
+      "entityCount": 0,
+      "nodeId": "output",
+      "timestamp": 1648030828047
     }
-  }
+  ]
 }

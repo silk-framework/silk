@@ -4,7 +4,7 @@ import java.util.logging.Logger
 
 import org.silkframework.config.Prefixes
 import org.silkframework.rule.similarity.DistanceMeasure
-import org.silkframework.runtime.plugin.{DistanceMeasureExampleValue, PluginDescription}
+import org.silkframework.runtime.plugin.{DistanceMeasureExampleValue, ClassPluginDescription}
 import org.silkframework.test.PluginTest
 
 import scala.reflect.ClassTag
@@ -31,7 +31,7 @@ abstract class DistanceMeasureTest[T <: DistanceMeasure : ClassTag] extends Plug
   }
 
   /** The plugin description of the distance measure to be tested. */
-  private lazy val pluginDesc = PluginDescription(pluginClass)
+  private lazy val pluginDesc = ClassPluginDescription(pluginClass)
 
   /** All available distance measure tests. */
   private lazy val distanceMeasureTests: Seq[DistanceMeasureTest] = {

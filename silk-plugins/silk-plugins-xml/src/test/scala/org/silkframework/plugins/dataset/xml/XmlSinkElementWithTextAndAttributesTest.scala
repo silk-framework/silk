@@ -3,7 +3,6 @@ package org.silkframework.plugins.dataset.xml
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.ExecuteTransform
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 
 import scala.xml.{Elem, Utility, XML}
@@ -28,7 +27,7 @@ class XmlSinkElementWithTextAndAttributesTest extends FlatSpec with MustMatchers
 
   it should "run the workflow and generate the correct result" in {
     project.task[TransformSpec](TRANSFORM).activity[ExecuteTransform].control.startBlocking()
-    val result = project.resources.get(OUTPUT_RESOURCE).loadAsString
+    val result = project.resources.get(OUTPUT_RESOURCE).loadAsString()
     Utility.trim(XML.loadString(result)) mustBe Utility.trim(expectedOutput)
   }
 

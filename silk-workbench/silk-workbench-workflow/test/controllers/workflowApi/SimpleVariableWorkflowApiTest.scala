@@ -119,13 +119,13 @@ class SimpleVariableWorkflowApiTest extends FlatSpec
       checkResponseExactStatusCode(
         executeVariableWorkflow(inputOnlyWorkflow, inputParams, usePost, APPLICATION_XML), NO_CONTENT)
       val outputCsvResource = project.resources.get(outputCsv)
-      outputCsvResource.loadAsString.split("[\\r\\n]+") mustBe Seq("targetProp1,targetProp2", "input value A,XYZ")
+      outputCsvResource.loadAsString().split("[\\r\\n]+") mustBe Seq("targetProp1,targetProp2", "input value A,XYZ")
       outputCsvResource.delete()
     }
   }
 
   it should "take the dataset content directly as POST payload" in {
-    val inputValue = "some test value"
+    val inputValue = "some test value ä€"
     for(payload <- Seq(
       (s"""{"$sourceProperty1":"$inputValue"}""", APPLICATION_JSON),
       (s"""[{"$sourceProperty1":"$inputValue"}]""", APPLICATION_JSON),

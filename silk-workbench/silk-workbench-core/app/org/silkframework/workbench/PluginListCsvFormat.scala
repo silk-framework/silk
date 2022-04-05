@@ -1,6 +1,6 @@
 package org.silkframework.workbench
 
-import org.silkframework.runtime.plugin.{Parameter, PluginList}
+import org.silkframework.runtime.plugin.{PluginParameter, PluginList}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 
 case class PluginListCsvFormat() extends CsvFormat[PluginList] {
@@ -38,7 +38,7 @@ case class PluginListCsvFormat() extends CsvFormat[PluginList] {
     sb.toString()
   }
 
-  private def serializeParameter(param: Parameter): String = {
+  private def serializeParameter(param: PluginParameter): String = {
     val sb = new StringBuilder()
     sb ++= param.label
     sb ++= ": "

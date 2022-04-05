@@ -32,7 +32,7 @@ val buildReactExternally = {
 }
 
 val compilerParams: (Seq[String], Seq[String]) = if(System.getProperty("java.version").split("\\.").head.toInt > 8) {
-  (Seq("--release", "8", "-Xlint"), Seq("-release", "8"))
+  (Seq("--release", "11", "-Xlint"), Seq("-release", "11"))
 } else {
   (Seq("-source", "1.8", "-target", "1.8", "-Xlint"), Seq.empty)
 }
@@ -57,7 +57,7 @@ lazy val commonSettings = Seq(
     }
   },
   // Building
-  scalaVersion := "2.12.14",
+  scalaVersion := "2.12.15",
   publishTo := {
     val artifactory = "https://artifactory.eccenca.com/"
     // Assumes that version strings for releases, e.g. v3.0.0 or v3.0.0-rc3, do not have a postfix of length 5 or longer.

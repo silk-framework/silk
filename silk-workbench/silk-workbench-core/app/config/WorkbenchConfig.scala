@@ -11,7 +11,7 @@ import play.api.mvc.RequestHeader
 import play.api.{Configuration, Environment, Mode}
 import play.twirl.api.Html
 
-import scala.io.Source
+import scala.io.{Codec, Source}
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -92,7 +92,7 @@ object WorkbenchConfig {
 
     private def calculateHtml(): Html = {
       val context = WorkbenchConfig.applicationContext
-      val source = Source.fromInputStream(getClassLoaderResource("public/index.html"))
+      val source = Source.fromInputStream(getClassLoaderResource("public/index.html"))(Codec.UTF8)
       val htmlString = source.getLines().mkString("\n")
       source.close()
       val html = injectConfigProperties(context, htmlString)

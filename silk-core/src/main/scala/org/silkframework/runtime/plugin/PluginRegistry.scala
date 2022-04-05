@@ -24,13 +24,19 @@ object PluginRegistry {
   private val log = Logger.getLogger(getClass.getName)
   
   /** Map from plugin base types to an instance holding all plugins of that type.  */
+  @volatile
   private var pluginTypes = Map[String, PluginType]()
 
   /** Map holding all plugins by their class name */
+  @volatile
   private var plugins = Map[String, PluginDescription[_]]()
 
   /** Map holding all plugins by their ID. */
+  @volatile
   private var pluginsById = Map[String, Seq[PluginDescription[_]]]()
+
+  @volatile
+  private var timestamp: Long = System.currentTimeMillis()
 
   // Register all plugins at instantiation of this singleton object.
   Config.pluginFolder() match {
@@ -40,17 +46,22 @@ object PluginRegistry {
       registerFromClasspath()
   }
 
+  /**
+    * Timestamp of the last update to the registry.
+    */
+  def lastUpdateTimestamp: Long = timestamp
+
   def allPlugins: Traversable[PluginDescription[_]] = {
     pluginsById.values.flatten
   }
 
   // Returns an error message string if the object type is invalid.
   def checkInvalidObjectPluginParameterType(parameterType: Class[_],
-                                            usageInParams: Seq[Parameter]): Option[String] = {
+                                            usageInParams: Seq[PluginParameter]): Option[String] = {
     var errorMessage = ""
     val needsCheck = usageInParams.exists(_.visibleInDialog)
     if(needsCheck) {
-      for (param <- PluginDescription(parameterType).parameters if errorMessage.isEmpty && needsCheck) {
+      for (param <- ClassPluginDescription(parameterType).parameters if errorMessage.isEmpty && needsCheck) {
         if (param.parameterType.isInstanceOf[PluginObjectParameterTypeTrait]) {
           errorMessage = s"Found multiple nestings in object plugin parameter. Parameter '${param.label}' of parameter class " +
               s"'${parameterType.getSimpleName}' is itself a nested object parameter."
@@ -117,7 +128,7 @@ object PluginRegistry {
    * Given a plugin instance, extracts its plugin description and parameters.
    */
   def reflect(pluginInstance: AnyRef)(implicit prefixes: Prefixes): (PluginDescription[_], Map[String, String]) = {
-    val desc = PluginDescription(pluginInstance.getClass)
+    val desc = ClassPluginDescription(pluginInstance.getClass)
     val parameters =
       for(param <- desc.parameters if param(pluginInstance) != null) yield
         (param.name, param.stringValue(pluginInstance))
@@ -251,6 +262,7 @@ object PluginRegistry {
       }
       plugins += ((pluginDesc.pluginClass.getName, pluginDesc))
       pluginsById += ((pluginDesc.id.toString, pluginDesc :: (pluginsById.getOrElse(pluginDesc.id, Seq()).toList)))
+      timestamp = System.currentTimeMillis()
     }
   }
 
@@ -258,9 +270,38 @@ object PluginRegistry {
    * Registers a single plugin.
    */
   def registerPlugin(implementingClass: Class[_]): Unit = {
-    val pluginDesc = PluginDescription.create(implementingClass)
+    val pluginDesc = ClassPluginDescription.create(implementingClass)
     registerPlugin(pluginDesc)
     log.fine(s"Loaded plugin " + pluginDesc.id)
+  }
+
+  /**
+    * Removes a plugin from the registry.
+    */
+  def unregisterPlugin(pluginDesc: PluginDescription[_]): Unit = {
+    for  { superType <- getSuperTypes(pluginDesc.pluginClass)
+           pluginType <- pluginTypes.get(superType.getName)} {
+      pluginType.unregister(pluginDesc.id)
+    }
+    plugins -= pluginDesc.pluginClass.getName
+
+    // Remove plugin from pluginsById
+    val existingPluginsForId = pluginsById.getOrElse(pluginDesc.id.toString, Seq.empty)
+    val updatedPluginsForId = existingPluginsForId.filter(_.pluginClass.getName != pluginDesc.pluginClass.getName)
+    if(updatedPluginsForId.nonEmpty) {
+      pluginsById += ((pluginDesc.id.toString, updatedPluginsForId))
+    } else {
+      pluginsById -= pluginDesc.id.toString
+    }
+
+    timestamp = System.currentTimeMillis()
+  }
+
+  /**
+    * Removes a plugin from the registry.
+    */
+  def unregisterPlugin(implementingClass: Class[_]): Unit = {
+    unregisterPlugin(ClassPluginDescription.create(implementingClass))
   }
 
   private def getSuperTypes(clazz: Class[_]): Set[Class[_]] = {
@@ -280,6 +321,7 @@ object PluginRegistry {
   private class PluginType {
 
     /** Map from plugin id to plugin description */
+    @volatile
     private var plugins = ListMap[String, PluginDescription[_]]()
 
     def availablePlugins: Seq[PluginDescription[_]] = plugins.values.toSeq
@@ -304,6 +346,13 @@ object PluginRegistry {
      */
     def register(pluginDesc: PluginDescription[_]): Unit = {
       plugins += ((pluginDesc.id, pluginDesc))
+    }
+
+    /**
+      * Removes a plugin from the registry.
+      */
+    def unregister(pluginId: Identifier): Unit = {
+      plugins -= pluginId
     }
 
     /**
@@ -367,6 +416,6 @@ object PluginRegistry {
   */
 private object PluginDescriptionFactory extends (Class[_] => PluginDescription[_]) {
   override def apply(v1: Class[_]): PluginDescription[_] = {
-    PluginDescription.create(v1)
+    ClassPluginDescription.create(v1)
   }
 }

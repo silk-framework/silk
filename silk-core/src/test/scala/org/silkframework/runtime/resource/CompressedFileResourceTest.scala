@@ -18,7 +18,7 @@ class CompressedFileResourceTest extends WritableResourceTestBase {
     resource.delete()
     resource.size mustBe Some(0)
     resource.exists mustBe false
-    resource.loadAsString mustBe ""
+    resource.loadAsString() mustBe ""
   }
 
   override def freshResource(): WritableResource = {

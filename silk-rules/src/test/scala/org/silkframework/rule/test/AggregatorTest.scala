@@ -2,7 +2,7 @@ package org.silkframework.rule.test
 
 import org.silkframework.config.Prefixes
 import org.silkframework.rule.similarity.{Aggregator, WeightedSimilarityScore}
-import org.silkframework.runtime.plugin.{AggregatorExampleValue, PluginDescription}
+import org.silkframework.runtime.plugin.{AggregatorExampleValue, ClassPluginDescription}
 import org.silkframework.test.PluginTest
 
 import scala.reflect.ClassTag
@@ -26,7 +26,7 @@ abstract class AggregatorTest[T <: Aggregator : ClassTag] extends PluginTest {
   }
 
   /** The plugin description of the aggregator to be tested. */
-  private lazy val pluginDesc = PluginDescription(pluginClass)
+  private lazy val pluginDesc = ClassPluginDescription(pluginClass)
 
   /** All available aggregator tests. */
   private lazy val aggregatorTests: Seq[AggregatorTest] = {

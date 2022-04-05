@@ -139,7 +139,7 @@ object SearchApiModel {
                                     task: ProjectTask[_ <: TaskSpec],
                                     matchTaskProperties: Boolean,
                                     matchProject: Boolean): Boolean = {
-      val pluginLabel = PluginDescription(task).label
+      val pluginLabel = PluginDescription.forTask(task).label
       val taskLabel = task.fullLabel
       val description = task.metaData.description.getOrElse("")
       val searchInProperties = if(matchTaskProperties) task.data.properties(task.project.config.prefixes).map(p => p._2).mkString(" ") else ""
@@ -455,7 +455,7 @@ object SearchApiModel {
 
     private def toJson(task: ProjectTask[_ <: TaskSpec],
                        typedTask: TypedTasks): JsObject = {
-      val pd = PluginDescription(task)
+      val pd = PluginDescription.forTask(task)
       val parameters = if(addParameters) {
         implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
         val jsonValue = TaskSpecJsonFormat.write(task.data)

@@ -13,9 +13,9 @@ class ResourceTest extends FlatSpec with MustMatchers {
     val smallResource = new TestResource("small".getBytes, size = Some(10))
     val largeResource = new TestResource("large".getBytes, size = Some(1000000000))
 
-    smallResource.loadAsString mustBe "small"
+    smallResource.loadAsString() mustBe "small"
     intercept[IOException] {
-      largeResource.loadAsString
+      largeResource.loadAsString()
     }
     intercept[IOException] {
       largeResource.loadAsBytes

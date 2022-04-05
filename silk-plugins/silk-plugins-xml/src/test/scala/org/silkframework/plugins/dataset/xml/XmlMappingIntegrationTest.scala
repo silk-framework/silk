@@ -15,7 +15,7 @@ case class XmlMappingIntegrationTest() extends FlatSpec with SingleProjectWorksp
 
   it should "generate default URIs for attributes as object and allow access to attribute value via #text path" in {
     project.task[TransformSpec](transformId).activity("ExecuteTransform").control.startBlocking()
-    val nTriplesContent = project.resources.get("output.nt").loadLines
+    val nTriplesContent = project.resources.get("output.nt").loadLines()
     nTriplesContent.size mustBe 3
     nTriplesContent.head must (include ("attr_count") and include ("attribute"))
     nTriplesContent(1) must (include ("attr_count") and include ("attribute") and include ("<http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <urn:type:Type>"))

@@ -72,7 +72,7 @@ trait WritableResource extends Resource {
   /**
     * Writes a string.
     */
-  def writeString(content: String, append: Boolean = false)(implicit codec: Codec = Codec.UTF8): Unit = {
+  def writeString(content: String, append: Boolean = false, codec: Codec = Codec.UTF8): Unit = {
     write(append) { os =>
       os.write(content.getBytes(codec.charSet))
     }

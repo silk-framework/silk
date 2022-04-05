@@ -8,7 +8,7 @@ import org.silkframework.plugins.dataset.rdf.tasks.SparqlSelectCustomTask
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.plugin.{AutoCompletionResult, PluginDescription, PluginParameterAutoCompletionProvider, PluginRegistry}
+import org.silkframework.runtime.plugin.{AutoCompletionResult, ClassPluginDescription, PluginParameterAutoCompletionProvider, PluginRegistry}
 import org.silkframework.serialization.json.{PluginParameterJsonPayload, PluginSerializers}
 import org.silkframework.workspace.WorkspaceReadTrait
 import play.api.libs.json.{JsObject, JsValue, Json}
@@ -60,8 +60,8 @@ class PluginApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers
   }
 
   it should "return all plugins of a specific category" in {
-    val transformPd = PluginDescription(classOf[TransformSpec])
-    val sparqlSelectPd = PluginDescription(classOf[SparqlSelectCustomTask])
+    val transformPd = ClassPluginDescription(classOf[TransformSpec])
+    val sparqlSelectPd = ClassPluginDescription(classOf[SparqlSelectCustomTask])
     val categoryOnlyInTransform = transformPd.categories.diff(sparqlSelectPd.categories)
     categoryOnlyInTransform must not be empty
     val jsonResult = checkResponse(client.url(s"$baseUrl/api/core/taskPlugins?category=${categoryOnlyInTransform.head}").get()).json

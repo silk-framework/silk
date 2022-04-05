@@ -1,5 +1,6 @@
 package org.silkframework.runtime.plugin
 
+import org.silkframework.config.Prefixes
 import org.silkframework.util.Table
 
 import scala.reflect.ClassTag
@@ -65,11 +66,12 @@ object PluginDocumentation {
     sb ++= plugin.documentation + "\n\n"
   }
 
-  def formatDefaultValue(value: Option[AnyRef]): String = {
-    value match {
+  def formatDefaultValue(parameter: PluginParameter): String = {
+    val paramType = parameter.parameterType.asInstanceOf[ParameterType[AnyRef]]
+    parameter.defaultValue match {
       case Some(v) if v == null => "*null*"
       case Some(v) if v == "" => "*empty string*"
-      case Some(v) => v.toString
+      case Some(v) => paramType.toString(v)(Prefixes.empty)
       case None => "*no default*"
     }
   }
@@ -85,5 +87,5 @@ object PluginDocumentation {
 }
 
 case class PluginParameterDisplay(headers: Seq[String],
-                                  generateValues: Parameter => Seq[String],
+                                  generateValues: PluginParameter => Seq[String],
                                   maxCharsInColumns: Seq[Int])
