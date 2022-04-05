@@ -121,19 +121,17 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
             (implicit userContext: UserContext): Unit = synchronized {
     // Validate
     module.validator.validate(project, PlainTask(id, newData, newMetaData.getOrElse(metaData)))
-    // Update data
-    dataValueHolder.update(newData)
-    for(md <- newMetaData) {
-      metaDataValueHolder.update(md)
-    }
-
+    // Adapt meta data before saving
     // Update modified timestamp if not already set in new meta data object
-    metaDataValueHolder.update(
-      metaDataValueHolder().copy(
-        modified = Some(newMetaData.flatMap(_.modified).getOrElse(Instant.now))
-      )
+    val metaDataToPersist = newMetaData.getOrElse(metaDataValueHolder()).copy(
+      modified = Some(newMetaData.flatMap(_.modified).getOrElse(Instant.now))
     )
-    persistTask
+    // First persist task
+    persistTask(PlainTask.fromTask(ProjectTask.this).copy(data = newData, metaData = metaDataToPersist))
+    // Update (in-memory) data
+    dataValueHolder.update(newData)
+    metaDataValueHolder.update(metaDataToPersist)
+
     log.info(s"Updated task '$id' of project ${project.name}." + userContext.logInfo)
   }
 
@@ -203,9 +201,9 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     relatedWorkflowItems.toSet
   }
 
-  private def persistTask(implicit userContext: UserContext): Unit = {
+  private def persistTask(task: Task[TaskType])(implicit userContext: UserContext): Unit = {
     // Write task
-    module.provider.putTask(project.name, ProjectTask.this)
+    module.provider.putTask(project.name, task)
     // Restart each activity, don't wait for completion.
     for (activity <- taskActivities if shouldAutoRun(activity)) {
       activity.control.restart()
