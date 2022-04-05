@@ -202,6 +202,7 @@ export const LinkingRuleEvaluation = ({
                 toggleEvaluationResults,
                 evaluationScore,
                 evaluationResultsShown,
+                referenceLinksUrl,
             }}
         >
             {children}

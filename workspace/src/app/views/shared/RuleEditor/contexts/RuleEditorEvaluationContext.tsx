@@ -31,6 +31,9 @@ export interface RuleEditorEvaluationContextProps {
 
     /** The evaluation score. */
     evaluationScore?: IEvaluatedReferenceLinksScore;
+
+    /** Link to external reference links UI. */
+    referenceLinksUrl?: string;
 }
 
 const NOP = () => {};

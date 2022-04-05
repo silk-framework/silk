@@ -391,7 +391,8 @@
             "addMoreResults": "Add more reference links",
             "noResults": "No linking results available. Please add reference links.",
             "scoreWidget": {
-                "noResult": "No evaluation result"
+                "noResult": "No evaluation result",
+                "referenceLinks": "Open reference links UI in new tab"
             }
         },
         "node": {

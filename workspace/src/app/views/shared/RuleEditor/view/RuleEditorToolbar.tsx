@@ -129,6 +129,7 @@ export const RuleEditorToolbar = () => {
                     <EvaluationScore
                         score={ruleEvaluationContext.evaluationScore}
                         loading={ruleEvaluationContext.evaluationRunning}
+                        referenceLinksUrl={ruleEvaluationContext.referenceLinksUrl}
                     />
                     <Spacing vertical hasDivider />
                 </ToolbarSection>

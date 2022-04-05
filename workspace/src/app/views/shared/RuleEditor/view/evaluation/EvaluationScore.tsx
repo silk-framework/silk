@@ -1,7 +1,9 @@
 import { IEvaluatedReferenceLinksScore } from "../../../../taskViews/linking/linking.types";
 import React from "react";
 import {
+    IconButton,
     OverviewItem,
+    OverviewItemActions,
     OverviewItemDescription,
     OverviewItemLine,
     ProgressBar,
@@ -15,11 +17,25 @@ import { useTranslation } from "react-i18next";
 interface EvaluationScoreProps {
     score: IEvaluatedReferenceLinksScore | undefined;
     loading: boolean;
+    referenceLinksUrl?: string;
 }
 
 /** Displays the evaluation score for a rule. */
-export const EvaluationScore = ({ score, loading }: EvaluationScoreProps) => {
+export const EvaluationScore = ({ score, loading, referenceLinksUrl }: EvaluationScoreProps) => {
     const [t] = useTranslation();
+
+    const Menu = () => {
+        return referenceLinksUrl ? (
+            <IconButton
+                data-test-id={"open-reference-links-ui"}
+                name="item-edit"
+                text={t("RuleEditor.evaluation.scoreWidget.referenceLinks")}
+                href={referenceLinksUrl}
+                target="_blank"
+            />
+        ) : null;
+    };
+
     if (score) {
         const allEvaluatedTrue = score.truePositives + score.falsePositives;
         const allTrue = score.truePositives + score.falseNegatives;
@@ -57,6 +73,11 @@ export const EvaluationScore = ({ score, loading }: EvaluationScoreProps) => {
                         <ProgressBar intent={"primary"} animate={false} stripes={false} value={fMeasure} />
                     </OverviewItemLine>
                 </OverviewItemDescription>
+                {referenceLinksUrl ? (
+                    <OverviewItemActions>
+                        <Menu />
+                    </OverviewItemActions>
+                ) : null}
             </OverviewItem>
         );
     } else {
@@ -68,6 +89,11 @@ export const EvaluationScore = ({ score, loading }: EvaluationScoreProps) => {
                         <ProgressBar animate={false} stripes={false} value={0} />
                     </OverviewItemLine>
                 </OverviewItemDescription>
+                {referenceLinksUrl ? (
+                    <OverviewItemActions>
+                        <Menu />
+                    </OverviewItemActions>
+                ) : null}
             </OverviewItem>
         );
     }
