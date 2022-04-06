@@ -72,8 +72,9 @@ abstract class HierarchicalSink extends EntitySink {
                           (implicit userContext: UserContext): Unit = {
     if(properties.size == 1) {
       rootEntities.putEntity(subjectURI, values)
+    } else {
+      cache.putEntity(CachedEntity(subjectURI, values, properties.size - 1))
     }
-    cache.putEntity(CachedEntity(subjectURI, values, properties.size - 1))
   }
 
   override def closeTable()(implicit userContext: UserContext): Unit = {
