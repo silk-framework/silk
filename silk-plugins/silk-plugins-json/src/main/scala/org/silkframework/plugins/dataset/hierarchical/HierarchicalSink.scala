@@ -94,6 +94,7 @@ abstract class HierarchicalSink extends EntitySink {
       }
     } finally {
       cache.close()
+      rootEntities.close()
     }
   }
 
