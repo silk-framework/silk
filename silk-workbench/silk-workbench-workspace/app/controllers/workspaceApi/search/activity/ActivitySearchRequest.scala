@@ -146,7 +146,7 @@ case class ActivitySearchRequest(@Schema(
     val taskLabel = activity.taskOption.map(_.fullLabel).getOrElse("")
     // We do search in the project if no project is preselected
     // Additionally, we do always search in the project label of project activities.
-    val searchInProject = project.isEmpty || activity.taskOption.isEmpty && activity.projectOpt.isDefined
+    val searchInProject = project.isEmpty || (activity.taskOption.isEmpty && activity.projectOpt.isDefined)
     val projectLabel = if(searchInProject) activity.projectOpt.map(_.fullLabel).getOrElse("") else ""
     matchesSearchTerm(lowerCaseTerms, activity.label, taskLabel, projectLabel)
   }
