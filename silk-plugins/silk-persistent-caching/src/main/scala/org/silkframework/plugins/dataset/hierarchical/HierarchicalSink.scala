@@ -74,9 +74,12 @@ abstract class HierarchicalSink extends EntitySink {
   override def writeEntity(subjectURI: String, values: IndexedSeq[Seq[String]])
                           (implicit userContext: UserContext): Unit = {
     if(tables.size == 1) {
+      // We are writing a root entity
       rootEntities.putEntity(subjectURI, values)
+    } else {
+      // We are writing a nested entity
+      cache.putEntity(CachedEntity(subjectURI, values, tables.size - 1))
     }
-    cache.putEntity(CachedEntity(subjectURI, values, tables.size - 1))
   }
 
   override def closeTable()(implicit userContext: UserContext): Unit = {
