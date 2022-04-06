@@ -18,7 +18,7 @@ import org.silkframework.rule.similarity.DistanceMeasure
 import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
-  id = "constant",
+  id = "constantDistance",
   categories = Array("Equality"),
   label = "Constant",
   description = "Always returns a constant similarity value."

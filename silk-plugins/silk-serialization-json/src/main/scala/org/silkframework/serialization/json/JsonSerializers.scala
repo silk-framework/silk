@@ -13,6 +13,7 @@ import org.silkframework.rule.util.UriPatternParser
 import org.silkframework.rule.vocab.{GenericInfo, Vocabulary, VocabularyClass, VocabularyProperty}
 import org.silkframework.rule.{MappingTarget, TransformRule, ValueTransformRuleWithLayout, _}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginBackwardCompatibility
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
 import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
 import org.silkframework.serialization.json.EntitySerializers.EntitySchemaJsonFormat
@@ -244,7 +245,8 @@ object JsonSerializers {
       implicit val prefixes = readContext.prefixes
       implicit val resourceManager = readContext.resources
       try {
-        val transformer = Transformer(stringValue(value, FUNCTION), readParameters(value))
+        val transformerPluginId = stringValue(value, FUNCTION)
+        val transformer = Transformer(PluginBackwardCompatibility.transformerIdMapping.getOrElse(transformerPluginId, transformerPluginId), readParameters(value))
         TransformInput(id, transformer, inputs.toList)
       } catch {
         case ex: Exception => throw new ValidationException(ex.getMessage, id, "Transformation")
@@ -848,7 +850,8 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): Comparison = {
       implicit val prefixes = readContext.prefixes
       implicit val resourceManager = readContext.resources
-      val metric = DistanceMeasure(stringValue(value, METRIC), readParameters(value))
+      val metricPluginId = stringValue(value, METRIC)
+      val metric = DistanceMeasure(PluginBackwardCompatibility.distanceMeasureIdMapping.getOrElse(metricPluginId, metricPluginId), readParameters(value))
 
       Comparison(
         id = identifier(value, "comparison"),

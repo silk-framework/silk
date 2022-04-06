@@ -243,7 +243,7 @@ object PluginRegistry {
     */
   def registerPlugin(pluginDesc: PluginDescription[_]): Unit = {
     checkPluginDescription(pluginDesc)
-    if(!Config.blacklistedPlugins().contains(pluginDesc.id)) {
+    if(!Config.blacklistedPlugins().contains(pluginDesc.id) && !plugins.contains(pluginDesc.pluginClass.getName)) {
       for (superType <- getSuperTypes(pluginDesc.pluginClass)) {
         val pluginType = pluginTypes.getOrElse(superType.getName, new PluginType)
         pluginTypes += ((superType.getName, pluginType))

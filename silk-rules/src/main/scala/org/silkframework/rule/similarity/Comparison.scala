@@ -17,6 +17,7 @@ package org.silkframework.rule.similarity
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.Operator
 import org.silkframework.rule.input.Input
+import org.silkframework.runtime.plugin.PluginBackwardCompatibility
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{DPair, Identifier}
@@ -105,7 +106,8 @@ object Comparison {
         val threshold = (node \ "@threshold").headOption.map(_.text.toDouble).getOrElse(0.0)
         val weightStr = (node \ "@weight").text
         val indexingStr = (node \ "@indexing").text
-        val metric = DistanceMeasure((node \ "@metric").text, Operator.readParams(node))
+        val metricPluginId = (node \ "@metric").text
+        val metric = DistanceMeasure(PluginBackwardCompatibility.distanceMeasureIdMapping.getOrElse(metricPluginId, metricPluginId), Operator.readParams(node))
 
         Comparison(
           id = id,

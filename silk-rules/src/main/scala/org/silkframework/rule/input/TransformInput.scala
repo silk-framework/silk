@@ -16,6 +16,7 @@ package org.silkframework.rule.input
 
 import org.silkframework.entity.Entity
 import org.silkframework.rule.Operator
+import org.silkframework.runtime.plugin.PluginBackwardCompatibility
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
@@ -64,10 +65,11 @@ object TransformInput {
       implicit val resourceManager = readContext.resources
 
       try {
-        val transformer = Transformer((node \ "@function").text, Operator.readParams(node))
+        val transformerPluginId = (node \ "@function").text
+        val transformer = Transformer(PluginBackwardCompatibility.transformerIdMapping.getOrElse(transformerPluginId, transformerPluginId), Operator.readParams(node))
         TransformInput(id, transformer, inputs.toList)
       } catch {
-        case ex: Exception => throw new ValidationException(ex.getMessage, id, "Tranformation")
+        case ex: Exception => throw new ValidationException(ex.getMessage, id, "Transformation")
       }
     }
 

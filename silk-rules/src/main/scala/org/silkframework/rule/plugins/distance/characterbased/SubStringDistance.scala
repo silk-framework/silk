@@ -4,18 +4,10 @@ import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
-/**
- * Created by IntelliJ IDEA.
- * User: andreas
- * Date: 3/19/12
- * Time: 2:56 PM
- * To change this template use File | Settings | File Templates.
- */
-
 @Plugin(
-  id = "substring",
+  id = "substringDistance",
   categories = Array("Characterbased"),
-  label = "SubString",
+  label = "Substring comparison",
   description = "Return 0 to 1 for strong similarity to weak similarity. Based on the paper: Stoilos, Giorgos, Giorgos Stamou, and Stefanos Kollias. \"A string metric for ontology alignment.\" The Semantic Web-ISWC 2005. Springer Berlin Heidelberg, 2005. 624-637."
 )
 case class SubStringDistance(@Param("The minimum length of a possible substring match.")
