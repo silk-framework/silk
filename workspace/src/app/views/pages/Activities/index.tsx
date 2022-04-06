@@ -22,20 +22,18 @@ import NotFound from "../NotFound";
 import Filterbar from "../Workspace/Filterbar";
 import utils from "./ActivitiesUtils";
 import useErrorHandler from "../../../hooks/useErrorHandler";
-import { commonOp, commonSel } from "@ducks/common";
+import { commonOp } from "@ducks/common";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { routerSel } from "@ducks/router";
 import ActivityList from "./ActivityList";
-import { useLocation } from "react-router";
+import { useParams } from "react-router";
 import { SERVE_PATH } from "../../../constants/path";
+import { ProjectTaskParams } from "views/shared/typings";
 
 const Activities = () => {
     const dispatch = useDispatch();
     const { registerError } = useErrorHandler();
-    const location = useLocation();
-    const locationParams = new URLSearchParams(location.search?.substring(1));
     const error = useSelector(workspaceSel.errorSelector);
-    const projectId = useSelector(commonSel.currentProjectIdSelector) || locationParams.get("project");
     const qs = useSelector(routerSel.routerSearchSelector);
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
     const sorters = useSelector(workspaceSel.sortersSelector);
@@ -45,6 +43,8 @@ const Activities = () => {
         alternateDepiction: "application-activities",
         pageTitle: "Activity overview",
     });
+
+    const { projectId } = useParams<Partial<ProjectTaskParams>>();
 
     React.useEffect(() => {
         if (projectId)
@@ -82,7 +82,7 @@ const Activities = () => {
 
         // Setup the filters from query string
         dispatch(workspaceOp.setupFiltersFromQs(qs));
-        dispatch(commonOp.setProjectId((projectId || locationParams.get("project")) ?? ""));
+        projectId && dispatch(commonOp.setProjectId(projectId));
         // Fetch the list of projects
         dispatch(workspaceOp.fetchListAsync(utils.searchActivities, 25));
     }, [qs]);
@@ -126,7 +126,10 @@ const Activities = () => {
                     <Grid>
                         <GridRow>
                             <GridColumn small>
-                                <Filterbar extraItemTypeModifiers={[{ id: "global", label: "Global" }]} />
+                                <Filterbar
+                                    extraItemTypeModifiers={[{ id: "global", label: "Global" }]}
+                                    projectId={projectId}
+                                />
                             </GridColumn>
                             <GridColumn full>
                                 {error.detail ? (

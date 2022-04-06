@@ -16,6 +16,7 @@ import { activityErrorReportFactory } from "../../../views/shared/TaskActivityOv
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { ResourceLink } from "../../shared/ResourceLink/ResourceLink";
 import { routerOp } from "@ducks/router";
+import { batch } from "react-redux";
 
 interface IActivity extends ISearchResultsServer {
     isCacheActivity: boolean;
@@ -66,8 +67,10 @@ const ActivityList = () => {
     };
 
     const handlePaginationOnChange = (n: number, pageSize: number) => {
-        dispatch(workspaceOp.changePageOp(n));
-        dispatch(workspaceOp.changeLimitOp(pageSize));
+        batch(() => {
+            dispatch(workspaceOp.changeLimitOp(pageSize));
+            dispatch(workspaceOp.changePageOp(n));
+        });
     };
 
     // Register for activity status updates in backend
@@ -135,14 +138,6 @@ const ActivityList = () => {
         );
     };
 
-    const handleRouteToItemPage = (activity: IActivity, link: string) => {
-        const labels = { projectLabel: activity.projectLabel, itemType: activity.parentType } as any;
-        if (activity.task) {
-            labels.taskLabel = activity.label;
-        }
-        dispatch(routerOp.goToPage(link, labels));
-    };
-
     React.useEffect(() => {
         return registerForUpdates();
     }, []);
@@ -170,16 +165,17 @@ const ActivityList = () => {
             >
                 {data.map((activity: IActivity, index) => {
                     const link = `/workbench/projects/${activity.project}${
-                        activity.task ? `/task/${activity.task}` : ""
+                        activity.task ? `/${activity.parentType}/${activity.task}` : ""
                     }`;
 
                     const ActivityLabel = () => (
                         <>
-                            {activity.label} {activity.parentType !== "global" ? "of" : ""}
+                            <Highlighter label={activity.label} searchValue={textQuery} />
+                            {activity.parentType !== "global" ? "of" : ""}
                             <Spacing vertical size="tiny" />
                             <ResourceLink
                                 url={link}
-                                handlerResourcePageLoader={() => handleRouteToItemPage(activity, link)}
+                                handlerResourcePageLoader={() => dispatch(routerOp.goToPage(link))}
                             >
                                 <OverflowText>
                                     <Highlighter

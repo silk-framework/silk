@@ -50,10 +50,11 @@ const updateQueryString = () => {
         const { applied: appliedSorters } = workspaceSel.sortersSelector(state);
         const appliedFacets = workspaceSel.appliedFacetsSelector(state);
         const { current, limit } = workspaceSel.paginationSelector(state);
-
+        const projectId = commonSel.currentProjectIdSelector(state);
         const queryParams = {
             ...appliedFilters,
             ...appliedSorters,
+            project: projectId ?? "",
             page: current,
             limit: limit,
             f_ids: appliedFacets.map((o) => o.facetId),

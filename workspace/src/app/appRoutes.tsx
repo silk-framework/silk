@@ -52,6 +52,11 @@ const appRoutes: IRouteProps[] = [
         exact: true,
     },
     {
+        path: "/projects/:projectId/activities",
+        component: Activities,
+        exact: true,
+    },
+    {
         path: "/activities",
         component: Activities,
         exact: true,

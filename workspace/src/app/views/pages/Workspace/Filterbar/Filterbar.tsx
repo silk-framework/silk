@@ -10,16 +10,17 @@ import { useLocation } from "react-router";
 
 interface IFilterBarProps {
     extraItemTypeModifiers?: IAvailableDataTypeOption[];
+    projectId?: string;
 }
 
-export function Filterbar({ extraItemTypeModifiers = [] }: IFilterBarProps) {
+export function Filterbar({ extraItemTypeModifiers = [], projectId }: IFilterBarProps) {
     const dispatch = useDispatch();
     const [t] = useTranslation();
 
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
     const modifiers = useSelector(commonSel.availableDTypesSelector);
     const location = useLocation();
-    const projectTypeQuery = new URLSearchParams(location.search?.substring(1)).get("project");
+    const locationParams = new URLSearchParams(location.search?.substring(1));
 
     const typeModifier = modifiers.type;
 
@@ -27,9 +28,11 @@ export function Filterbar({ extraItemTypeModifiers = [] }: IFilterBarProps) {
         let value = val !== appliedFilters[field] ? val : "";
         const filterOptions = {
             [field]: value,
+            limit: locationParams.get("limit") ?? "10",
+            current: locationParams.get("page") ?? "1",
         };
-        if (projectTypeQuery) {
-            filterOptions.project = projectTypeQuery;
+        if (projectId) {
+            filterOptions.project = projectId;
         }
         dispatch(workspaceOp.applyFiltersOp(filterOptions));
     };
@@ -54,9 +57,7 @@ export function Filterbar({ extraItemTypeModifiers = [] }: IFilterBarProps) {
                         </li>
 
                         {[...extraItemTypeModifiers, ...typeModifier.options]
-                            .filter(
-                                (mod) => !(!!projectTypeQuery && (mod.label === "Project" || mod.label === "Global"))
-                            )
+                            .filter((mod) => !(!!projectId && (mod.label === "Project" || mod.label === "Global")))
                             .map((opt) => (
                                 <li key={opt.id}>
                                     <RadioButton
