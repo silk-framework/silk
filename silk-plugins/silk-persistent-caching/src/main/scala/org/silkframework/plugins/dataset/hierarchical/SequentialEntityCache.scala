@@ -9,7 +9,7 @@ private case class SequentialEntityCache() {
 
   private val rootEntityFile = File.createTempFile("sequential-entities", "")
 
-  private val objectStream = new ObjectOutputStream(new FileOutputStream(rootEntityFile))
+  private val objectStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(rootEntityFile)))
 
   private var isClosed: Boolean = false
 
@@ -19,7 +19,13 @@ private case class SequentialEntityCache() {
   def putEntity(uri: String, values: IndexedSeq[Seq[String]]): Unit = {
     objectStream.writeBoolean(true) // signal that another entity is following
     objectStream.writeUTF(uri)
-    objectStream.writeObject(values)
+    objectStream.writeInt(values.size)
+    for(value <- values) {
+      objectStream.writeInt(value.size)
+      for(v <- value) {
+        objectStream.writeUTF(v)
+      }
+    }
   }
 
   /**
@@ -31,17 +37,21 @@ private case class SequentialEntityCache() {
     objectStream.writeBoolean(false) // signal end of stream
     objectStream.close()
 
-    val inputStream = new ObjectInputStream(new FileInputStream(rootEntityFile))
+    val inputStream = new DataInputStream(new BufferedInputStream(new FileInputStream(rootEntityFile)))
     try {
       while (inputStream.readBoolean()) {
         val uri = inputStream.readUTF()
-        val values = inputStream.readObject().asInstanceOf[IndexedSeq[Seq[String]]]
+        val values = IndexedSeq.fill(inputStream.readInt())(Seq.fill(inputStream.readInt())(inputStream.readUTF()))
         f(CachedEntity(uri, values, 0))
       }
     } finally {
       inputStream.close()
       rootEntityFile.delete()
     }
+  }
+
+  def close(): Unit = {
+    rootEntityFile.delete()
   }
 
 }
