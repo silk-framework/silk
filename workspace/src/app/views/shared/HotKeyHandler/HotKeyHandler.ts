@@ -13,7 +13,7 @@ const Mousetrap = require("mousetrap");
 /**
  * Adds hotkey handling to a component.
  */
-export default function useHotKey({ hotkey, handler, enabled }: IProps) {
+export default function useHotKey({ hotkey, handler, enabled = true }: IProps) {
     useEffect(() => {
         if (hotkey && enabled) {
             Mousetrap.bind(hotkey, handler);
