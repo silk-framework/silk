@@ -531,6 +531,7 @@ export const RuleEditorCanvas = () => {
                 snapGrid={snapGrid}
                 snapToGrid={true}
                 zoomOnDoubleClick={false}
+                maxZoom={1.25}
                 multiSelectionKeyCode={18} // ALT
             >
                 <MiniMap

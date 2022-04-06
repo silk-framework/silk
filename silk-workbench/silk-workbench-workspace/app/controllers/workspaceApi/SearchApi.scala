@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.silkframework.config.TaskSpec
 import org.silkframework.dataset.Dataset
 import org.silkframework.rule.input.Transformer
+import org.silkframework.rule.similarity.{Aggregator, DistanceMeasure}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{AutoCompletionResult, ParameterAutoCompletion, PluginDescription, PluginObjectParameter, PluginRegistry}
 import org.silkframework.runtime.validation.BadUserInputException
@@ -181,7 +182,14 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
       PluginRegistry.pluginDescriptionsById(
         request.pluginId,
         // Plugin ID collisions exist, we need to filter the types of plugins.
-        assignableTo = Some(Seq(classOf[TaskSpec], classOf[PluginObjectParameter], classOf[Transformer], classOf[Dataset]))
+        assignableTo = Some(Seq(
+          classOf[TaskSpec],
+          classOf[PluginObjectParameter],
+          classOf[Dataset],
+          classOf[Transformer],
+          classOf[DistanceMeasure],
+          classOf[Aggregator]
+        ))
       ).headOption match {
         case Some(pluginDescription) =>
           parameterAutoCompletion(request, pluginDescription)
