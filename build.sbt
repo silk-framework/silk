@@ -359,7 +359,16 @@ lazy val reactUI = (project in file("workspace"))
       if(!buildReactExternally) {
         // TODO: Add additional source directories
         val reactWatchConfig = WatchConfig(new File(baseDirectory.value, "src"), fileRegex = """\.(tsx|ts|scss|json)$""")
-        def distFile(name: String): File = new File(baseDirectory.value, "../../public/" + name)
+        def distFile(name: String): File = {
+          val buildConfig = ReactBuildHelper.buildConfig(baseDirectory.value)
+          val distDirectoryRelative = if(buildConfig.containsKey("appDIBuild")) {
+            buildConfig.getProperty("appDIBuild")
+          } else {
+            "../silk-workbench/public"
+          }
+          val distDirectory = new File(baseDirectory.value, distDirectoryRelative)
+          new File(distDirectory, name)
+        }
         if (Watcher.staleTargetFiles(reactWatchConfig, Seq(distFile("index.html")))) {
           ReactBuildHelper.buildReactComponents(baseDirectory.value, "Workbench")
         }

@@ -1,5 +1,5 @@
 import java.io.File
-
+import java.util.logging.Logger
 import scala.collection.mutable
 import scala.collection.mutable.HashMap
 import scala.util.matching.Regex
@@ -7,6 +7,7 @@ import scala.util.matching.Regex
 /** Watches files for being modified */
 object Watcher {
   private val watches = new HashMap[WatchConfig, WatchData]()
+  private val log = Logger.getLogger(this.getClass.getCanonicalName)
 
   /** Checks if files have changed since last check and updates watch data
     * @return The files that are not registered yet or have been modified, since the last check. */
@@ -42,11 +43,16 @@ object Watcher {
       false // No source data or target data, safer to return false
     } else {
       if(targetFiles.exists(!_.exists())) {
+        log.info("Missing target file(s) detected: " + targetFiles.filter(!_.exists()).map(_.getCanonicalPath).mkString(", "))
         true // One of the target files does not exist, generate
       } else {
         val maxSourceModificationTime = sourceModificationTimes.max
         val minTargetModificationTime = targetFiles.map(_.lastModified()).min
-        minTargetModificationTime < maxSourceModificationTime
+        val staleFileDetected = minTargetModificationTime < maxSourceModificationTime
+        if(staleFileDetected) {
+          log.info("Stale source files detected.")
+        }
+        staleFileDetected
       }
     }
   }

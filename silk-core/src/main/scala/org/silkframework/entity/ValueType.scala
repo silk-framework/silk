@@ -2,7 +2,7 @@ package org.silkframework.entity
 
 
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.ValueType.XSD
+import org.silkframework.entity.ValueType.{GEO, XSD}
 import org.silkframework.runtime.plugin.AnyPlugin
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
@@ -82,7 +82,12 @@ object ValueType {
   final val TIME: TimeValueType = TimeValueType()
   final val DURATION: DurationValueType = DurationValueType()
 
+  // Geo
+  final val WKT: WktLiteralType = WktLiteralType()
+
+  // Namespaces
   final val XSD = "http://www.w3.org/2001/XMLSchema#"
+  final val GEO = "http://www.opengis.net/ont/geosparql#"
   final lazy val xmlDatatypeFactory = DatatypeFactory.newInstance()
 
   /** All [[ValueType]] classes/singletons */
@@ -113,6 +118,7 @@ object ValueType {
     Right(DATE_TIME),
     Right(TIME),
     Right(DURATION),
+    Right(WKT),
     Right(AnyDateValueType()),
     Right(AnyDateTimeValueType())
   )
@@ -717,4 +723,27 @@ case class DurationValueType() extends ValueType with Serializable {
 
   /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
   override def ordering: Ordering[String] = Ordering.by((str: String) => ValueType.xmlDatatypeFactory.newDuration(str))(ValueType.DurationOrdering)
+}
+
+@Plugin(
+  id = "WktValueType",
+  label = "Geometry (WKT literal)",
+  description = "Well-known text (WKT) representation of geometry. At the moment, values are not validated."
+)
+@ValueTypeAnnotation(
+  validValues = Array("POINT (30 10)", "POLYGON ((30 10, 40 40, 20 40, 10 20, 30 10))"),
+  invalidValues = Array()
+)
+case class WktLiteralType() extends ValueType with Serializable {
+
+  // At the moment, we do not validate WKT literals
+  override def validate(lexicalString: String): Boolean = {
+    true
+  }
+
+  /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */
+  override def uri: Option[String] = Some(GEO + "wktLiteral")
+
+  /** Optional provisioning of an [[Ordering]] associated with the portrayed type */
+  override def ordering: Ordering[String] = ValueType.DefaultOrdering
 }
