@@ -136,13 +136,19 @@ case class ActivitySearchRequest(@Schema(
     }
   }
 
-  private def filterActivities(activities: Seq[WorkspaceActivity[_]], lowerCaseTerms: Seq[String]): Seq[WorkspaceActivity[_]] = {
+  private def filterActivities(activities: Seq[WorkspaceActivity[_]], lowerCaseTerms: Seq[String])
+                              (implicit userContext: UserContext): Seq[WorkspaceActivity[_]] = {
     activities.filter(filterActivity(_, lowerCaseTerms))
   }
 
-  private def filterActivity(activity: WorkspaceActivity[_], lowerCaseTerms: Seq[String]): Boolean = {
+  private def filterActivity(activity: WorkspaceActivity[_], lowerCaseTerms: Seq[String])
+                            (implicit userContext: UserContext): Boolean = {
     val taskLabel = activity.taskOption.map(_.fullLabel).getOrElse("")
-    matchesSearchTerm(lowerCaseTerms, activity.label, taskLabel)
+    // We do search in the project if no project is preselected
+    // Additionally, we do always search in the project label of project activities.
+    val searchInProject = project.isEmpty || activity.taskOption.isEmpty && activity.projectOpt.isDefined
+    val projectLabel = if(searchInProject) activity.projectOpt.map(_.fullLabel).getOrElse("") else ""
+    matchesSearchTerm(lowerCaseTerms, activity.label, taskLabel, projectLabel)
   }
 
   // Sort results according to request

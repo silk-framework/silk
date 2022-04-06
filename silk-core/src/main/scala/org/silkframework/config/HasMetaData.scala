@@ -42,6 +42,9 @@ trait HasMetaData {
     s"'${fullLabel()}' ($id)"
   }
 
+  /**
+    * Retrieves the full tags from the meta data.
+    */
   def tags()(implicit userContext: UserContext): Set[Tag] = Set.empty
 
 }
