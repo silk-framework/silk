@@ -170,12 +170,12 @@ case class ActivitySearchRequest(@Schema(
             case Some(startTime) =>
               val status = activity.status()
               if(status.isRunning) {
-                System.currentTimeMillis() - startTime.toEpochMilli
+                startTime.toEpochMilli - System.currentTimeMillis()
               } else {
-                status.timestamp - startTime.toEpochMilli
+                startTime.toEpochMilli - status.timestamp
               }
             case None =>
-              0L
+              1L // Activity has never been executed -> Sort to the end
           }
         }
       case None => // Sort by recently viewed parent
