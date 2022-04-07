@@ -13,7 +13,7 @@ import {
 import { RuleNodeMenu } from "../view/ruleNode/RuleNodeMenu";
 import { RuleEditorNode, RuleEditorNodeParameterValue } from "./RuleEditorModel.typings";
 import { Connection, Elements, XYPosition } from "react-flow-renderer/dist/types";
-import ELK, { ElkNode } from "elkjs";
+import dagre from "dagre";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
 import { IconButton } from "gui-elements";
 import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
@@ -303,10 +303,17 @@ const elementEdges = (elements: Elements): Edge[] => {
     return elements.filter((elem) => isEdge(elem)).map((edge) => asEdge(edge)!!);
 };
 
-const elk = new ELK();
-
-// Builds an ELK graph from the react-flow elements
-const buildElkGraph = (elements: Elements, zoomFactor: number): ElkNode => {
+// Layouts the nodes and returns a map with the new coordinates for the nodes
+const layoutGraph = (elements: Elements, zoomFactor: number): Map<string, XYPosition> => {
+    const g = new dagre.graphlib.Graph();
+    // Init defaults
+    g.setGraph({});
+    g.setDefaultEdgeLabel(function () {
+        return {};
+    });
+    g.graph().rankDir = "LR";
+    g.graph().nodesep = 100;
+    g.graph().ranksep = 150;
     const nodes = elementNodes(elements);
     const edges = elementEdges(elements);
     const maxNodeIndex = new Map<string, number>();
@@ -318,25 +325,26 @@ const buildElkGraph = (elements: Elements, zoomFactor: number): ElkNode => {
         }
     });
     const sizes = nodeSizes(zoomFactor);
-    const constructElkNode = (node: RuleEditorNode): ElkNode => {
-        return {
-            id: node.id,
+    const addNode = (node: RuleEditorNode) => {
+        g.setNode(node.id, {
+            label: node.id,
             height: sizes.get(node.id)?.height ?? 100,
             width: sizes.get(node.id)?.width ?? 250,
-            y: maxNodeIndex.get(node.id) ?? 0,
-        };
+        });
     };
-    const elkGraph = {
-        id: " root node ",
-        children: nodes.map((node) => constructElkNode(node)),
-        edges: edges.map((edge, idx) => ({
-            id: `e${idx}`,
-            sources: [edge.source],
-            targets: [edge.target],
-            type: "DIRECTED",
-        })),
-    };
-    return elkGraph;
+    // Add all nodes to the dagre graph
+    nodes.forEach((node) => addNode(node));
+    // Add edges to the dagre graph
+    edges.forEach((edge, idx) => {
+        g.setEdge(edge.source, edge.target);
+    });
+    dagre.layout(g);
+    const nodeMap = new Map<string, XYPosition>();
+    g.nodes().forEach((nodeId) => {
+        const node = g.node(nodeId);
+        nodeMap.set(nodeId, { x: node.x, y: node.y });
+    });
+    return nodeMap;
 };
 
 type Size = { width: number; height: number };
@@ -385,26 +393,39 @@ const findEdges = ({ elements, source, target, targetHandle }: FindEdgeParameter
 /** Layouts the nodes of the rule graph.
  *
  * Returns a map of the new node positions. */
-const autoLayout = async (elements: Elements, zoomFactor: number): Promise<Map<string, XYPosition>> => {
-    const elkGraph = buildElkGraph(elements, zoomFactor);
-    const layoutedGraph = await elk.layout(elkGraph, {
-        layoutOptions: {
-            "elk.algorithm": "layered",
-            "elk.edgeRouting": "POLYLINE", // for kind of symmetrical/centered tree
-            "elk.direction": "RIGHT",
-            "elk.layered.spacing.nodeNodeBetweenLayers": "100",
-            "spacing.nodeNode": "40",
-            "elk.layered.crossingMinimization.semiInteractive": "true", // For the  order of input nodes
-            "elk.layered.crossingMinimization.strategy": "INTERACTIVE",
-        },
+const autoLayout = (elements: Elements, zoomFactor: number): Map<string, XYPosition> => {
+    const nodes = elementNodes(elements);
+    const center = graphCenter(nodes.filter((n) => n.position).map((n) => n.position));
+    const newPositions = layoutGraph(elements, zoomFactor);
+    // Adapt positions so the graph is not rendered somewhere else, keep the original center
+    const newCenter = graphCenter([...newPositions.values()]);
+    if (center.x !== newCenter.x || center.y !== newCenter.y) {
+        const xOffset = newCenter.x - center.x;
+        const yOffset = newCenter.y - center.y;
+        [...newPositions.keys()].forEach((nodeId) => {
+            const nodePosition = newPositions.get(nodeId)!!;
+            newPositions.set(nodeId, { x: nodePosition.x - xOffset, y: nodePosition.y - yOffset });
+        });
+    }
+    return newPositions;
+};
+
+/** Returns the weighted center of the nodes.
+ */
+const graphCenter = (nodePositions: XYPosition[]): XYPosition => {
+    if (nodePositions.length === 0) {
+        return { x: 0, y: 0 };
+    }
+    let xSum = 0;
+    let ySum = 0;
+    nodePositions.forEach((pos) => {
+        xSum += pos.x;
+        ySum += pos.y;
     });
-    const nodePositions = new Map<string, XYPosition>();
-    (layoutedGraph.children ?? []).forEach((layoutedElkNode) => {
-        if (layoutedElkNode.x != null && layoutedElkNode.y != null) {
-            nodePositions.set(layoutedElkNode.id, { x: layoutedElkNode.x, y: layoutedElkNode.y });
-        }
-    });
-    return nodePositions;
+    return {
+        x: Math.floor(xSum / nodePositions.length),
+        y: Math.floor(ySum / nodePositions.length),
+    };
 };
 
 /** Removes trailing undefined inputs from the array inline. */

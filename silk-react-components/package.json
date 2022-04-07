@@ -46,8 +46,7 @@
     "mark.js": "^8.11.1",
     "mdl-selectfield": "1.0.3",
     "react-app-polyfill": "^1.0.6",
-    "react-beautiful-dnd": "^13.0.0",
-    "react-flow-renderer": "^9.6.7"
+    "react-beautiful-dnd": "^13.0.0"
   },
   "devDependencies": {
     "@babel/plugin-transform-react-jsx": "^7.3.0",
