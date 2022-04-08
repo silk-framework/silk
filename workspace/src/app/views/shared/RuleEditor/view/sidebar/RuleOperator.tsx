@@ -79,13 +79,17 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
 const tagColor = (tag: string): Color | string | undefined => {
     switch (tag) {
         case "Transform":
-            return colors.transformationNode;
+            return colors.transformationNodeBright;
         case "Input":
             return colors.valueEdge;
         case "Comparison":
-            return colors.comparatorNode;
+            return colors.comparatorNodeBright;
         case "Aggregation":
-            return colors.aggregatorNode;
+            return colors.aggregatorNodeBright;
+        case "Source path":
+            return colors.sourcepathNodeBright;
+        case "Target path":
+            return colors.targetpathNodeBright;
     }
 };
 

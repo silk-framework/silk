@@ -9,7 +9,7 @@ import {
     IRuleSidebarPreConfiguredOperatorsTabConfig,
     RuleEditorValidationNode,
     RuleParameterType,
-    RuleValidationError
+    RuleValidationError,
 } from "../../../shared/RuleEditor/RuleEditor.typings";
 import { RuleOperatorFetchFnType } from "../../../shared/RuleEditor/RuleEditor";
 import { IPluginDetails } from "@ducks/common/typings";
@@ -514,22 +514,26 @@ const sortAlphabetically = (ruleOpA: IRuleOperator, ruleOpB: IRuleOperator) =>
 const sidebarTabs: Record<TabIdType, IRuleSideBarFilterTabConfig | IRuleSidebarPreConfiguredOperatorsTabConfig> = {
     all: {
         id: "all",
-        label: "All", // TODO: i18n and icon
+        label: "All", // TODO: i18n
+        // set no icon for "All"
         filterAndSort: (ops) => ops,
     },
     transform: {
         id: "transform",
         label: "Transform",
+        icon: "operation-transform",
         filterAndSort: (ops) => ops.filter((op) => op.pluginType === "TransformOperator").sort(sortAlphabetically),
     },
     comparison: {
         id: "comparison",
         label: "Comparison",
+        icon: "operation-comparison",
         filterAndSort: (ops) => ops.filter((op) => op.pluginType === "ComparisonOperator").sort(sortAlphabetically),
     },
     aggregation: {
         id: "aggregation",
         label: "Aggregation",
+        icon: "operation-aggregation",
         filterAndSort: (ops) => ops.filter((op) => op.pluginType === "AggregationOperator").sort(sortAlphabetically),
     },
 };
