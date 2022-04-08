@@ -171,7 +171,7 @@ const ActivityList = () => {
                     const ActivityLabel = () => (
                         <>
                             <Highlighter label={activity.label} searchValue={textQuery} />
-                            {activity.parentType !== "global" ? "of" : ""}
+                            {activity.parentType !== "global" ? "  of" : ""}
                             <Spacing vertical size="tiny" />
                             <ResourceLink
                                 url={link}

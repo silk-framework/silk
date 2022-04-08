@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { batch, useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import {
@@ -159,8 +159,18 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         icon="application-activities"
                         text={t("navigation.side.di.activities", "Activities")}
                         htmlTitle={t("navigation.side.di.datasetsTooltip")}
-                        onClick={() => dispatch(routerOp.goToPage(""))}
-                        href={location.pathname + "/activities?page=1&limit=25"}
+                        onClick={() => {
+                            batch(() => {
+                                dispatch(routerOp.goToPage(""));
+                                dispatch(
+                                    workspaceOp.applyFiltersOp({
+                                        limit: 1,
+                                        current: 1,
+                                    })
+                                );
+                            });
+                        }}
+                        href={SERVE_PATH + "/activities?page=1&limit=25"}
                         active={location.pathname.includes("activities")}
                     />
                 </Menu>

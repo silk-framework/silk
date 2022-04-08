@@ -15,6 +15,10 @@ import {
     Notification,
     Button,
     BreadcrumbItem,
+    IconButton,
+    OverviewItem,
+    OverviewItemLine,
+    Spacing,
 } from "gui-elements";
 import SearchBar from "../../shared/SearchBar";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
@@ -26,13 +30,14 @@ import { commonOp } from "@ducks/common";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { routerSel } from "@ducks/router";
 import ActivityList from "./ActivityList";
-import { useParams } from "react-router";
+import { useHistory, useParams } from "react-router";
 import { SERVE_PATH } from "../../../constants/path";
 import { ProjectTaskParams } from "views/shared/typings";
 
 const Activities = () => {
     const dispatch = useDispatch();
     const { registerError } = useErrorHandler();
+    const history = useHistory();
     const error = useSelector(workspaceSel.errorSelector);
     const qs = useSelector(routerSel.routerSearchSelector);
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
@@ -102,6 +107,7 @@ const Activities = () => {
     ) : (
         <WorkspaceContent>
             {pageHeader}
+
             <WorkspaceMain>
                 <Section>
                     <SectionHeader>
@@ -111,13 +117,24 @@ const Activities = () => {
                                     <TitleMainsection>{t("pages.activities.title", "Activities")}</TitleMainsection>
                                 </GridColumn>
                                 <GridColumn full>
-                                    <SearchBar
-                                        focusOnCreation={true}
-                                        textQuery={textQuery}
-                                        sorters={sorters}
-                                        onSort={handleSort}
-                                        onSearch={handleSearch}
-                                    />
+                                    <OverviewItem hasSpacing>
+                                        <OverviewItemLine>
+                                            <div style={{ width: "100%" }}>
+                                                <SearchBar
+                                                    focusOnCreation={true}
+                                                    textQuery={textQuery}
+                                                    sorters={sorters}
+                                                    onSort={handleSort}
+                                                    onSearch={handleSearch}
+                                                />
+                                            </div>
+                                            <IconButton
+                                                name="item-reload"
+                                                tooltip="Reload activities"
+                                                onClick={() => history.go(0)}
+                                            />
+                                        </OverviewItemLine>
+                                    </OverviewItem>
                                 </GridColumn>
                             </GridRow>
                         </Grid>

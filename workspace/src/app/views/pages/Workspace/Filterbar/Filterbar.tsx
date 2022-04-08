@@ -28,12 +28,9 @@ export function Filterbar({ extraItemTypeModifiers = [], projectId }: IFilterBar
         let value = val !== appliedFilters[field] ? val : "";
         const filterOptions = {
             [field]: value,
-            limit: locationParams.get("limit") ?? "10",
-            current: locationParams.get("page") ?? "1",
+            limit: locationParams.get("limit"),
+            current: locationParams.get("page"),
         };
-        if (projectId) {
-            filterOptions.project = projectId;
-        }
         dispatch(workspaceOp.applyFiltersOp(filterOptions));
     };
 
