@@ -47,23 +47,33 @@ export function SelectFileFromExisting({ autocomplete, onChange, defaultValue, l
 
     return labelAttributes ? (
         <FieldItem labelAttributes={labelAttributes} messageText={error ? t("FileUploader.fileNotSpecified") : ""}>
-            <AutoComplete autocomplete={autocomplete} handleChange={handleChange} />
+            <ProjectResourceAutoComplete
+                autocomplete={autocomplete}
+                handleChange={handleChange}
+                initialValue={defaultValue}
+            />
         </FieldItem>
     ) : (
-        <AutoComplete autocomplete={autocomplete} handleChange={handleChange} />
+        <ProjectResourceAutoComplete
+            autocomplete={autocomplete}
+            handleChange={handleChange}
+            initialValue={defaultValue}
+        />
     );
 }
 
 const itemStringValue = (item: IProjectResource) => item.name;
 
 interface AutoCompleteProps {
+    initialValue?: string;
     autocomplete: IAutoCompleteFieldProps<IProjectResource, string>;
     handleChange: (value: string) => void;
 }
 
-const AutoComplete = ({ autocomplete, handleChange }: AutoCompleteProps) => (
+const ProjectResourceAutoComplete = ({ autocomplete, handleChange, initialValue }: AutoCompleteProps) => (
     <AutoCompleteField<IProjectResource, string>
         {...autocomplete}
+        initialValue={initialValue ? { name: initialValue, modified: "2000-01-01", size: 1 } : undefined}
         onChange={handleChange}
         itemValueSelector={itemStringValue}
         itemValueRenderer={itemStringValue}

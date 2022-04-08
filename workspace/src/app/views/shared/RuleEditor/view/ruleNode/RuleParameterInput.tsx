@@ -97,7 +97,13 @@ export const RuleParameterInput = ({
                 );
             }
         case "boolean":
-            return <Switch {...inputAttributes} />;
+            return (
+                <Switch
+                    {...inputAttributes}
+                    onChange={(value: boolean) => inputAttributes.onChange(`${value}`)}
+                    defaultChecked={inputAttributes.defaultValue === "true"}
+                />
+            );
         case "code":
             return <CodeEditor {...inputAttributes} />;
         case "password":

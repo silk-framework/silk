@@ -64,6 +64,8 @@ export interface IOperatorCreateContext {
     nodePluginId: (nodeId: string) => string | undefined;
     // Rule evaluation context
     ruleEvaluationContext: RuleEditorEvaluationContextProps;
+    // Updates several node parameters in a single transaction
+    updateNodeParameters: (nodeId: string, parameterValues: Map<string, string>) => any;
 }
 
 /** Creates a new react-flow rule operator node. */
@@ -312,8 +314,8 @@ const layoutGraph = (elements: Elements, zoomFactor: number): Map<string, XYPosi
         return {};
     });
     g.graph().rankDir = "LR";
-    g.graph().nodesep = 100;
-    g.graph().ranksep = 150;
+    g.graph().nodesep = 80;
+    g.graph().ranksep = 120;
     const nodes = elementNodes(elements);
     const edges = elementEdges(elements);
     const maxNodeIndex = new Map<string, number>();

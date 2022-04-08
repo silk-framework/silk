@@ -996,6 +996,26 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         }
     };
 
+    /** Change multiple node parameters in one transaction */
+    const changeNodeParametersSingleTransaction = (nodeId: string, parameterValues: Map<string, string>) => {
+        startChangeTransaction();
+        const nodeParameterValues = nodeParameters.get(nodeId);
+        if (nodeParameterValues) {
+            const actions: RuleModelChanges = {
+                operations: [...parameterValues.entries()].map(([paramId, value]) => {
+                    return {
+                        type: "Change node parameter",
+                        nodeId,
+                        parameterId: paramId,
+                        from: nodeParameterValues.get(paramId),
+                        to: value,
+                    };
+                }),
+            };
+            addAndExecuteRuleModelChangeInternal(actions, []);
+        }
+    };
+
     /** Changes a single node parameter to a new value. */
     const changeNodeParameter = (
         nodeId: string,
@@ -1145,7 +1165,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     /** Layout the rule nodes, since this must be async it cannot return the new elements directly in the setElements function. */
     const autoLayoutInternal = async (elements: Elements, addChangeHistory: boolean): Promise<Elements> => {
-        const newLayout = await utils.autoLayout(elements, zoom);
+        const newLayout = utils.autoLayout(elements, zoom);
         const changeNodePositionOperations: ChangeNodePosition[] = [];
         utils.elementNodes(elements).forEach((node) => {
             const newPosition = newLayout.get(node.id);
@@ -1196,6 +1216,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         isValidConnection,
         nodePluginId,
         ruleEvaluationContext,
+        updateNodeParameters: changeNodeParametersSingleTransaction,
     });
 
     /** Auto-layout the rule nodes.

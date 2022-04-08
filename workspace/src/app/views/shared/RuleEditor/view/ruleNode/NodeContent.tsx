@@ -62,6 +62,20 @@ export const NodeContent = ({
                 currentValue: () => operatorContext.currentValue(nodeId, paramId),
                 parameterSpecification: paramSpec,
             };
+        })
+        // Required parameters to the top, advanced to the bottom, sort alphabetically
+        .sort((paramA, paramB) => {
+            return paramA.parameterSpecification.required !== paramB.parameterSpecification.required
+                ? paramA.parameterSpecification.required
+                    ? -1
+                    : 1
+                : paramA.parameterSpecification.advanced !== paramB.parameterSpecification.advanced
+                ? paramA.parameterSpecification.advanced
+                    ? 1
+                    : -1
+                : paramA.parameterSpecification.label.toLowerCase() < paramB.parameterSpecification.label.toLowerCase()
+                ? -1
+                : 1;
         });
     const dependentValue = (paramId: string): string | undefined => {
         const value = operatorContext.currentValue(nodeId, paramId);
@@ -96,6 +110,7 @@ export const NodeContent = ({
                         setRerender(true);
                         onCloseEditModal();
                     }}
+                    updateNodeParameters={operatorContext.updateNodeParameters}
                 />
             ) : null}
         </>
