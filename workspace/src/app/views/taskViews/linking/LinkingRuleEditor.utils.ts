@@ -181,6 +181,7 @@ const inputPathTab = (
 ): IRuleSidebarPreConfiguredOperatorsTabConfig => {
     const inputPathTabConfig: IRuleSidebarPreConfiguredOperatorsTabConfig<PathWithMetaData> = {
         id: `${sourceOrTarget}Paths`,
+        icon: sourceOrTarget === "source" ? "data-sourcepath" : "data-targetpath",
         label: sourceOrTarget === "source" ? "Source paths" : "Target paths",
         fetchOperators: async (langPref: string) => {
             try {

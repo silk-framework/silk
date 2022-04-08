@@ -1,6 +1,6 @@
 import React from "react";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
-import { Grid, GridColumn, GridRow, Icon, Spacing, Tabs } from "gui-elements";
+import { Grid, GridColumn, GridRow, Icon, Spacing, Tabs, TabTitle } from "gui-elements";
 import Loading from "../../../Loading";
 import { IPreConfiguredOperators, RuleOperatorList } from "./RuleOperatorList";
 import {
@@ -11,7 +11,7 @@ import {
 import { extractSearchWords, matchesAllWords } from "gui-elements/src/components/Typography/Highlighter";
 import { SidebarSearchField } from "./SidebarSearchField";
 import { partitionArray, sortLexically } from "../../../../../utils/basicUtils";
-import { TabProps } from "gui-elements/src/components/Tabs/Tabs";
+import { TabProps } from "gui-elements/src/components/Tabs/Tab";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
@@ -163,8 +163,13 @@ export const RuleEditorOperatorSidebar = () => {
 
     const tabs: TabProps[] = (editorContext.tabs ?? []).map((tab) => ({
         id: tab.id,
-        titlePrefix: tab.icon ? <Icon name={tab.icon} /> : undefined,
-        title: tab.label,
+        dontShrink: tab.icon ? true : false,
+        title: (
+            <TabTitle
+                text={tab.icon ? null : tab.label}
+                titlePrefix={tab.icon ? <Icon name={tab.icon} /> : undefined}
+                tooltip={tab.icon ? tab.label : undefined}
+            />),
     }));
 
     const fetchCategories = () => operatorCategories;
@@ -180,8 +185,8 @@ export const RuleEditorOperatorSidebar = () => {
                             <Tabs
                                 id={"rule-editor-sidebar-tabs"}
                                 tabs={tabs}
-                                activeTab={activeTabId}
-                                onTabClick={(tabId: string) => {
+                                selectedTabId={activeTabId}
+                                onChange={(tabId: string) => {
                                     setActiveTabId(tabId);
                                 }}
                             />
