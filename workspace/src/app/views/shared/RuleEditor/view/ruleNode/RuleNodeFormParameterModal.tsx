@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { RuleNodeParameterForm, RuleNodeParametersProps } from "./RuleNodeParameterForm";
 import { useTranslation } from "react-i18next";
 import { RuleEditorUiContext } from "../../contexts/RuleEditorUiContext";
+import { ruleEditorNodeParameterValue, RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
 
 type InheritedRuleNodeParameterProps = Omit<RuleNodeParametersProps, "large">;
 
@@ -11,7 +12,7 @@ interface RuleNodeFormParameterModalProps extends InheritedRuleNodeParameterProp
     /** Title of the modal */
     title: string;
     /** Updates several node parameters in a single transaction */
-    updateNodeParameters: (nodeId: string, parameterValues: Map<string, string>) => any;
+    updateNodeParameters: (nodeId: string, parameterValues: Map<string, RuleEditorNodeParameterValue>) => any;
 }
 
 /** Modal to edit rule node parameters. */
@@ -24,8 +25,8 @@ export const RuleNodeFormParameterModal = ({
     const [t] = useTranslation();
     const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
     // The diff to the original values
-    const [initialValues] = React.useState(new Map<string, string | undefined>());
-    const [parameterDiff] = React.useState(new Map<string, string>());
+    const [initialValues] = React.useState(new Map<string, RuleEditorNodeParameterValue | undefined>());
+    const [parameterDiff] = React.useState(new Map<string, RuleEditorNodeParameterValue>());
     // Are there changes, yet
     const [dirty, setDirty] = React.useState(false);
 
@@ -54,15 +55,16 @@ export const RuleNodeFormParameterModal = ({
         ...ruleNodeParameterProps,
         parameters: ruleNodeParameterProps.parameters.map((param) => ({
             ...param,
-            update: (value) => {
+            update: (newValue) => {
+                const value = ruleEditorNodeParameterValue(newValue);
                 // Set to dirty on first change
                 if (parameterDiff.size === 0) {
                     setDirty(true);
                 }
-                if (initialValues.get(param.parameterId) === value) {
+                if (value == null || ruleEditorNodeParameterValue(initialValues.get(param.parameterId)) === value) {
                     parameterDiff.delete(param.parameterId);
                 } else {
-                    parameterDiff.set(param.parameterId, value);
+                    parameterDiff.set(param.parameterId, newValue);
                 }
                 // If everything is changed back, unset dirty flag again
                 if (parameterDiff.size === 0) {

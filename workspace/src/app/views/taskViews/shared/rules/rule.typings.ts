@@ -31,7 +31,7 @@ export interface ITransformOperator extends IValueInput {
 /** Labelled value. In order to show human-readable versions of values, e.g. in auto-completion. */
 export interface IOperatorNodeParameterValueWithLabel {
     value: string;
-    label: string;
+    label?: string;
 }
 
 /** Parameters of a rule operator. */

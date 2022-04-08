@@ -43,7 +43,7 @@ function createInputHandles(numberOfInputPorts: number, operatorContext?: IOpera
 /** The operations on a node. */
 export interface IOperatorNodeOperations {
     handleDeleteNode: (nodeId: string) => any;
-    handleParameterChange: (nodeId: string, parameterId: string, value: string) => any;
+    handleParameterChange: (nodeId: string, parameterId: string, value: RuleEditorNodeParameterValue) => any;
 }
 
 /** Contains all additional items needed for creating an operator. */
@@ -65,7 +65,7 @@ export interface IOperatorCreateContext {
     // Rule evaluation context
     ruleEvaluationContext: RuleEditorEvaluationContextProps;
     // Updates several node parameters in a single transaction
-    updateNodeParameters: (nodeId: string, parameterValues: Map<string, string>) => any;
+    updateNodeParameters: (nodeId: string, parameterValues: Map<string, RuleEditorNodeParameterValue>) => any;
 }
 
 /** Creates a new react-flow rule operator node. */

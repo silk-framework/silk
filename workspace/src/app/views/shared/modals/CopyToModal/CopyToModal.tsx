@@ -214,6 +214,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                     }}
                     itemValueRenderer={(item) => item.label}
                     itemValueSelector={(item: any) => item.id}
+                    itemValueString={(item) => item.id}
                     itemRenderer={(item) => item.label}
                     noResultText={t("common.messages.noItems", {
                         items: t("common.dataTypes.project"),

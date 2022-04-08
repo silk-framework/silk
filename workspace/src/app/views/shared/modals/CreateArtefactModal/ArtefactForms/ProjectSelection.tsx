@@ -76,7 +76,7 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
                     text: t("CreateModal.projectContext.selectProjectLabel", "Select project"),
                 }}
             >
-                <AutoCompleteField
+                <AutoCompleteField<ISearchResultsServer, ISearchResultsServer | null>
                     autoFocus={!!selectedProject}
                     onSearch={getWorkspaceProjects}
                     onChange={(item) => {
@@ -98,6 +98,7 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
                     itemValueRenderer={(item) => item.label}
                     itemValueSelector={(item: ISearchResultsServer) => item}
                     itemRenderer={(item) => item.label}
+                    itemValueString={(item) => item.id}
                     reset={{
                         resettableValue: () => true,
                         resetValue: null,

@@ -6,6 +6,7 @@ import { IOperatorCreateContext, IOperatorNodeOperations } from "../../model/Rul
 import utils from "./ruleNode.utils";
 import { IOperatorNodeParameterValueWithLabel } from "../../../../taskViews/shared/rules/rule.typings";
 import { RuleNodeFormParameterModal } from "./RuleNodeFormParameterModal";
+import { RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
 
 export interface RuleNodeContentProps {
     nodeId: string;
@@ -55,7 +56,7 @@ export const NodeContent = ({
             const paramSpec = operatorContext.operatorParameterSpecification.get(paramId)!!;
             return {
                 parameterId: paramId,
-                update: (value: string) => {
+                update: (value: RuleEditorNodeParameterValue) => {
                     nodeOperations.handleParameterChange(nodeId, paramId, value);
                 },
                 initialValue: initialValue ?? paramSpec.defaultValue,

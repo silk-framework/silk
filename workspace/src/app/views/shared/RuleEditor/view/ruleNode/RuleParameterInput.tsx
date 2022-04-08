@@ -11,6 +11,8 @@ import { RuleEditorModelContext } from "../../contexts/RuleEditorModelContext";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { SelectFileFromExisting } from "../../../FileUploader/cases/SelectFileFromExisting";
 import { ParameterAutoCompletion } from "../../../modals/CreateArtefactModal/ArtefactForms/ParameterAutoCompletion";
+import { IOperatorNodeParameterValueWithLabel } from "../../../../taskViews/shared/rules/rule.typings";
+import { IProjectResource } from "@ducks/shared/typings";
 
 interface RuleParameterInputProps {
     /** ID of the plugin this parameter is part of. */
@@ -42,7 +44,8 @@ export const RuleParameterInput = ({
     const { registerError } = useErrorHandler();
     const [t] = useTranslation();
     const uniqueId = `${nodeId} ${ruleParameter.parameterId}`;
-    const defaultValue = ruleEditorNodeParameterValue(ruleParameter.currentValue() ?? ruleParameter.initialValue);
+    const defaultValueWithLabel = ruleParameter.currentValue() ?? ruleParameter.initialValue;
+    const defaultValue = ruleEditorNodeParameterValue(defaultValueWithLabel);
     const inputAttributes = {
         id: uniqueId,
         name: uniqueId,
@@ -118,7 +121,7 @@ export const RuleParameterInput = ({
                 />
             );
         case "resource":
-            const resourceNameFn = (item) => item.name;
+            const resourceNameFn = (item: IProjectResource) => item.name;
             return (
                 <SelectFileFromExisting
                     autocomplete={{
@@ -126,6 +129,7 @@ export const RuleParameterInput = ({
                         itemRenderer: resourceNameFn,
                         itemValueRenderer: resourceNameFn,
                         itemValueSelector: resourceNameFn,
+                        itemValueString: resourceNameFn,
                         noResultText: t("common.messages.noResults", "No results."),
                     }}
                     {...inputAttributes}
@@ -142,7 +146,14 @@ export const RuleParameterInput = ({
                         paramId={ruleParameter.parameterId}
                         pluginId={pluginId}
                         onChange={inputAttributes.onChange}
-                        initialValue={defaultValue ? { value: defaultValue } : undefined}
+                        initialValue={
+                            defaultValue
+                                ? {
+                                      value: defaultValue,
+                                      label: (defaultValueWithLabel as IOperatorNodeParameterValueWithLabel)?.label,
+                                  }
+                                : undefined
+                        }
                         autoCompletion={ruleParameter.parameterSpecification.autoCompletion}
                         intent={hasValidationError ? Intent.DANGER : Intent.NONE}
                         formParamId={uniqueId}

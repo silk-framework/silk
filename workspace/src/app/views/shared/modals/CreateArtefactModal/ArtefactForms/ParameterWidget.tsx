@@ -182,7 +182,7 @@ export const ParameterWidget = (props: IProps) => {
                         projectId={projectId}
                         paramId={taskParameter.paramId}
                         pluginId={pluginId}
-                        onChange={changeHandlers[formParamId]}
+                        onChange={(value) => changeHandlers[formParamId](value.value)}
                         initialValue={
                             initialValues[formParamId]
                                 ? initialValues[formParamId]

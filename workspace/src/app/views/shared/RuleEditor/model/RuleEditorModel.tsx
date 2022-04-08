@@ -1020,7 +1020,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const changeNodeParameter = (
         nodeId: string,
         parameterId: string,
-        newValue: string | undefined,
+        newValue: RuleEditorNodeParameterValue,
         autoStartTransaction: boolean = true
     ) => {
         const changeValue = (from: RuleEditorNodeParameterValue, to: RuleEditorNodeParameterValue) => {

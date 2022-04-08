@@ -24,7 +24,7 @@ interface ParameterAutoCompletionProps {
     dependentValue: (paramId: string) => string | undefined;
     /** If a value is required. If true, a reset won't be possible. */
     required: boolean;
-    onChange: (value: string) => any;
+    onChange: (value: IAutocompleteDefaultResponse) => any;
     intent: Intent;
 }
 
@@ -80,8 +80,11 @@ export const ParameterAutoCompletion = ({
         }
     };
 
+    const itemValue = (value: IAutocompleteDefaultResponse | string) =>
+        typeof value === "string" ? value : value.value;
+
     return (
-        <AutoCompleteField<IAutocompleteDefaultResponse, string>
+        <AutoCompleteField<IAutocompleteDefaultResponse | string, IAutocompleteDefaultResponse>
             onSearch={(input: string) => handleAutoCompleteInput(input, autoCompletion)}
             onChange={onChange}
             initialValue={initialValue}
@@ -96,15 +99,16 @@ export const ParameterAutoCompletion = ({
             reset={
                 !required
                     ? {
-                          resetValue: "",
-                          resettableValue: (v) => !!v.value,
+                          resetValue: { value: "" },
+                          resettableValue: (v) => !!itemValue(v),
                           resetButtonText: t("common.action.resetSelection", "Reset selection"),
                       }
                     : undefined
             }
             itemRenderer={displayAutoCompleteLabel}
             itemValueRenderer={autoCompleteLabel}
-            itemValueSelector={(item) => item.value}
+            itemValueSelector={(item) => (typeof item === "string" ? { value: item } : item)}
+            itemValueString={(item) => itemValue(item)}
             createNewItem={
                 autoCompletion.allowOnlyAutoCompletedValues
                     ? undefined
