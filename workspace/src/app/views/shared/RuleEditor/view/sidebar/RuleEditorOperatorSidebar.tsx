@@ -12,6 +12,7 @@ import { extractSearchWords, matchesAllWords } from "gui-elements/src/components
 import { SidebarSearchField } from "./SidebarSearchField";
 import { partitionArray, sortLexically } from "../../../../../utils/basicUtils";
 import { TabProps } from "gui-elements/src/components/Tabs/Tab";
+import { colors as tabColors } from "gui-elements/src/cmem/react-flow/configuration/linking";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
@@ -161,15 +162,31 @@ export const RuleEditorOperatorSidebar = () => {
         }
     };
 
+    const getTabColor = (id: string) : string | undefined => {
+        switch(id) {
+            case "sourcePaths":
+                return tabColors.sourcepathNodeBright;
+            case "targetPaths":
+                return tabColors.targetpathNodeBright;
+            case "comparison":
+                return tabColors.comparatorNodeBright;
+            case "transform":
+                return tabColors.transformationNodeBright;
+            case "aggregation":
+                return tabColors.aggregatorNodeBright;
+            default:
+                return undefined;
+        }
+    }
     const tabs: TabProps[] = (editorContext.tabs ?? []).map((tab) => ({
         id: tab.id,
+        title: (<TabTitle
+            text={tab.icon ? null : tab.label}
+            titlePrefix={tab.icon ? <Icon name={tab.icon} /> : undefined}
+            tooltip={tab.icon ? tab.label : undefined}
+        />),
         dontShrink: tab.icon ? true : false,
-        title: (
-            <TabTitle
-                text={tab.icon ? null : tab.label}
-                titlePrefix={tab.icon ? <Icon name={tab.icon} /> : undefined}
-                tooltip={tab.icon ? tab.label : undefined}
-            />),
+        backgroundColor: getTabColor(tab.id),
     }));
 
     const fetchCategories = () => operatorCategories;
