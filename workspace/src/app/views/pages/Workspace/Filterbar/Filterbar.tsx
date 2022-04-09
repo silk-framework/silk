@@ -71,7 +71,7 @@ export function Filterbar({ extraItemTypeModifiers = [], projectId }: IFilterBar
                             ))}
                     </ul>
                     <Spacing />
-                    <FacetsList />
+                    <FacetsList projectId={projectId} />
                 </>
             )}
         </nav>

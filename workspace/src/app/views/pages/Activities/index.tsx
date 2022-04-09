@@ -14,11 +14,9 @@ import {
     WorkspaceSide,
     Notification,
     Button,
-    BreadcrumbItem,
     IconButton,
     OverviewItem,
     OverviewItemLine,
-    Spacing,
 } from "gui-elements";
 import SearchBar from "../../shared/SearchBar";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
@@ -34,6 +32,17 @@ import { useHistory, useParams } from "react-router";
 import { SERVE_PATH } from "../../../constants/path";
 import { ProjectTaskParams } from "views/shared/typings";
 
+const breadcrumbs = [
+    {
+        text: "Build",
+        href: SERVE_PATH,
+    },
+    {
+        text: "Activity Overview",
+        current: true,
+    },
+];
+
 const Activities = () => {
     const dispatch = useDispatch();
     const { registerError } = useErrorHandler();
@@ -44,9 +53,10 @@ const Activities = () => {
     const sorters = useSelector(workspaceSel.sortersSelector);
 
     const [t] = useTranslation();
-    const { pageHeader, updateBreadcrumbs } = usePageHeader({
+    const { pageHeader, updatePageHeader } = usePageHeader({
         alternateDepiction: "application-activities",
-        pageTitle: "Activity overview",
+        pageTitle: "Activity Overview",
+        breadcrumbs,
     });
 
     const { projectId } = useParams<Partial<ProjectTaskParams>>();
@@ -54,17 +64,17 @@ const Activities = () => {
     React.useEffect(() => {
         if (projectId)
             utils.getProjectInfo(projectId).then((res) => {
-                updateBreadcrumbs([
-                    {
-                        text: (
-                            <BreadcrumbItem
-                                text={res.data.label}
-                                current={true}
-                                href={`${SERVE_PATH}/projects/${projectId}`}
-                            />
-                        ),
-                    },
-                ]);
+                updatePageHeader({
+                    breadcrumbs: [
+                        breadcrumbs[0],
+                        {
+                            text: res.data.label,
+                            href: `${SERVE_PATH}/projects/${projectId}`,
+                        },
+                        breadcrumbs[1],
+                    ],
+                    pageTitle: res.data.label,
+                });
             });
     }, [projectId]);
 

@@ -50,7 +50,6 @@ const updateQueryString = () => {
         const { applied: appliedSorters } = workspaceSel.sortersSelector(state);
         const appliedFacets = workspaceSel.appliedFacetsSelector(state);
         const { current, limit } = workspaceSel.paginationSelector(state);
-        console.log("CURRENT", current, "LIMIT", limit);
         const queryParams = {
             ...appliedFilters,
             ...appliedSorters,
@@ -305,6 +304,7 @@ const workspaceOps = {
     fetchResourcesListAsync,
     resetFilters,
     updateNewPrefix,
+    applyFilters,
 };
 
 export default workspaceOps;

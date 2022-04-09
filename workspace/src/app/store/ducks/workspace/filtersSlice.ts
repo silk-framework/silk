@@ -31,7 +31,6 @@ export const filtersSlice = createSlice({
             });
 
             state.appliedFacets = [];
-            console.log("PREV_DISPATCH", limit, current);
             state.pagination = initialPaginationState({ limit, current });
         },
 

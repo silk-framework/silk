@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { IFacetState } from "@ducks/workspace/typings";
-import { useDispatch, useSelector } from "react-redux";
+import { batch, useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import FacetItem from "./FacetItem";
 import { Button, HelperClasses, Icon, Spacing, TitleSubsection } from "gui-elements";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 
-export default function FacetsList() {
+export default function FacetsList({ projectId }: { projectId?: string }) {
     const dispatch = useDispatch();
     const [t] = useTranslation();
 
     const facets = useSelector(workspaceSel.facetsSelector);
     const appliedFacets = useSelector(workspaceSel.appliedFacetsSelector);
     const location = useLocation();
-    const projectTypeQuery = new URLSearchParams(location.search?.substring(1)).get("project");
+    const locationParams = new URLSearchParams(location.search?.substring(1));
 
     const [visibleFacetsKeywords, setVisibleFacetsKeywords] = useState({});
     const [toggledFacets, setToggledFacets] = useState<string[]>([]);
@@ -40,10 +40,17 @@ export default function FacetsList() {
     };
 
     const handleSetFacet = (facet: IFacetState, value: string) => {
-        if (projectTypeQuery) {
-            dispatch(workspaceOp.applyFiltersOp({ project: projectTypeQuery }));
+        const filterOptions: { [key: string]: string | number } = {
+            limit: locationParams.get("limit")!,
+            current: locationParams.get("page")!,
+        };
+        if (projectId) {
+            filterOptions.project = projectId;
         }
-        dispatch(workspaceOp.toggleFacetOp(facet, value));
+        batch(() => {
+            dispatch(workspaceOp.toggleFacetOp(facet, value));
+            dispatch(workspaceOp.applyFilters(filterOptions));
+        });
     };
 
     const toggleShowMore = (facet: IFacetState) => {

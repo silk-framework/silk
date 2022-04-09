@@ -61,13 +61,19 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
         dispatch(commonOp.setSelectedArtefactDType(appliedFilters.itemType));
     };
 
-    const handleNavigate = (page: string) => {
-        dispatch(routerOp.goToPage(""));
-        dispatch(
-            workspaceOp.applyFiltersOp({
-                itemType: page,
-            })
-        );
+    const handleNavigate = (page?: string, limit = 10) => {
+        const filterOptions: { [key: string]: string | number } = {
+            limit,
+            current: 1,
+        };
+
+        if (page) {
+            filterOptions.itemType = page;
+        }
+        batch(() => {
+            dispatch(routerOp.goToPage(""));
+            dispatch(workspaceOp.applyFiltersOp(filterOptions));
+        });
     };
 
     const searchURL = (page: string) => `?itemType=${page}&page=1&limit=10`;
@@ -159,17 +165,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         icon="application-activities"
                         text={t("navigation.side.di.activities", "Activities")}
                         htmlTitle={t("navigation.side.di.datasetsTooltip")}
-                        onClick={() => {
-                            batch(() => {
-                                dispatch(routerOp.goToPage(""));
-                                dispatch(
-                                    workspaceOp.applyFiltersOp({
-                                        limit: 1,
-                                        current: 1,
-                                    })
-                                );
-                            });
-                        }}
+                        onClick={() => handleNavigate("", 25)}
                         href={SERVE_PATH + "/activities?page=1&limit=25"}
                         active={location.pathname.includes("activities")}
                     />

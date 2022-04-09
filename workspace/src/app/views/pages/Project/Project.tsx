@@ -32,7 +32,7 @@ import WarningWidget from "./WarningWidget";
 import FileWidget from "./FileWidget";
 import NotFound from "../NotFound";
 import { diErrorMessage } from "@ducks/error/typings";
-import ActivityInfoWidget from './ActivityInfoWidget';
+import ActivityInfoWidget from "./ActivityInfoWidget";
 
 const Project = () => {
     const dispatch = useDispatch();
@@ -157,7 +157,7 @@ const Project = () => {
                     <Spacing />
                     <WarningWidget />
                     <Spacing />
-                    <ActivityInfoWidget/>
+                    <ActivityInfoWidget />
                 </Section>
             </WorkspaceSide>
         </WorkspaceContent>
