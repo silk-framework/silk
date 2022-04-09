@@ -28,7 +28,7 @@ interface IActivity extends ISearchResultsServer {
 
 const ActivityList = () => {
     const dispatch = useDispatch();
-    const pageSizes = [25, 50, 100];
+    const pageSizes = [10, 25, 50, 100];
     const { registerError } = useErrorHandler();
 
     const data = useSelector(workspaceSel.resultsSelector);
@@ -225,7 +225,11 @@ const ActivityList = () => {
                 })}
             </Datalist>
             {!isEmpty ? (
-                <Pagination pagination={pagination} pageSizes={pageSizes} onChangeSelect={handlePaginationOnChange} />
+                <Pagination
+                    pagination={{ ...pagination, current: 25 }}
+                    pageSizes={pageSizes}
+                    onChangeSelect={handlePaginationOnChange}
+                />
             ) : null}
         </>
     );

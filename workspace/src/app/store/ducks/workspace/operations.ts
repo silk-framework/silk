@@ -305,6 +305,7 @@ const workspaceOps = {
     resetFilters,
     updateNewPrefix,
     applyFilters,
+    changeProjectsLimit,
 };
 
 export default workspaceOps;

@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import React from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { batch, useDispatch, useSelector } from "react-redux";
 import {
     WorkspaceContent,
     WorkspaceMain,
@@ -92,14 +92,18 @@ const Activities = () => {
     }, []);
 
     React.useEffect(() => {
-        // Reset the filters, due to redirecting
-        dispatch(workspaceOp.resetFilters());
+        batch(() => {
+            // Reset the filters, due to redirecting
+            // dispatch(workspaceOp.resetFilters());
 
-        // Setup the filters from query string
-        dispatch(workspaceOp.setupFiltersFromQs(qs));
-        projectId && dispatch(commonOp.setProjectId(projectId));
-        // Fetch the list of projects
-        dispatch(workspaceOp.fetchListAsync(utils.searchActivities, 25));
+            dispatch(workspaceOp.changeProjectsLimit(25));
+
+            // Setup the filters from query string
+            dispatch(workspaceOp.setupFiltersFromQs(qs));
+            projectId && dispatch(commonOp.setProjectId(projectId));
+            // Fetch the list of projects
+            dispatch(workspaceOp.fetchListAsync(utils.searchActivities));
+        });
     }, [qs]);
 
     /** handle sorting */

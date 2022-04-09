@@ -47,10 +47,7 @@ export default function FacetsList({ projectId }: { projectId?: string }) {
         if (projectId) {
             filterOptions.project = projectId;
         }
-        batch(() => {
-            dispatch(workspaceOp.toggleFacetOp(facet, value));
-            dispatch(workspaceOp.applyFilters(filterOptions));
-        });
+        dispatch(workspaceOp.toggleFacetOp(facet, value));
     };
 
     const toggleShowMore = (facet: IFacetState) => {
