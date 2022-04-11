@@ -26,10 +26,10 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
   private val jsonOps = Seq("/", "\\", "[")
 
   private val RDF_NS = "https://ns.eccenca.com/source"
-  private val allPersonRdfPaths = Seq("rdf:type", s"<$RDF_NS/address>", s"<$RDF_NS/age>", s"<$RDF_NS/name>", specialPaths.LANG, specialPaths.TEXT)
-  private val allForwardRdfPaths = Seq("rdf:type", "<https://ns.eccenca.com/source/address>", "<https://ns.eccenca.com/source/age>",
-    "<https://ns.eccenca.com/source/city>", "<https://ns.eccenca.com/source/country>", "<https://ns.eccenca.com/source/name>", specialPaths.LANG, specialPaths.TEXT)
-  private val allBackwardRdfPaths = Seq("\\rdf:type", "\\<https://ns.eccenca.com/source/address>")
+  private val allPersonRdfPaths = Seq(s"<$RDF_NS/address>", s"<$RDF_NS/age>", s"<$RDF_NS/name>", "rdf:type", specialPaths.LANG, specialPaths.TEXT)
+  private val allForwardRdfPaths = Seq("<https://ns.eccenca.com/source/address>", "<https://ns.eccenca.com/source/age>",
+    "<https://ns.eccenca.com/source/city>", "<https://ns.eccenca.com/source/country>", "<https://ns.eccenca.com/source/name>", "rdf:type", specialPaths.LANG, specialPaths.TEXT)
+  private val allBackwardRdfPaths = Seq("\\<https://ns.eccenca.com/source/address>", "\\rdf:type")
   // Full serialization of paths
   private def fullPaths(paths: Seq[String]) = paths.map(p => if(p.startsWith("\\")) p else "/" + p)
   private val rdfOps: Seq[String] = jsonOps ++ Seq("[@lang = 'en']")
