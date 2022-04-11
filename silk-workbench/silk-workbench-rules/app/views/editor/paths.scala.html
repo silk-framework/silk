@@ -109,6 +109,6 @@
   @pathBox(pathType.toLowerCase + "Path", pathType == "Source", path, 0, 0, false, project)
 }
 
-@pathId(pathType: String, path: String) = {path_@{pathType.toLowerCase}_@{Identifier.fromAllowed(path).toString}}
+@pathId(pathType: String, path: String) = {path_@{pathType.toLowerCase}_@{Identifier.fromAllowed(path, Some("empty")).toString}}
 
 
