@@ -217,7 +217,7 @@ const inputPathTab = (
                 description: path.label ? path.value : undefined,
                 categories: [sourceOrTarget === "source" ? "Source path" : "Target path"],
                 parameterOverwrites: {
-                    path: path.value,
+                    path: path.label ? { value: path.value, label: path.label } : path.value,
                 },
                 tags: [path.valueType],
             };

@@ -128,11 +128,11 @@ const inputPathOperator = (
     pluginId: string,
     label: string,
     description?: string,
-    customValidation?: (value: RuleEditorNodeParameterValue) => IParameterValidationResult,
     customAutoCompletionRequest?: (
         textQuery: string,
         limit: number
-    ) => IAutocompleteDefaultResponse[] | Promise<IAutocompleteDefaultResponse[]>
+    ) => IAutocompleteDefaultResponse[] | Promise<IAutocompleteDefaultResponse[]>,
+    customValidation?: (value: RuleEditorNodeParameterValue) => IParameterValidationResult
 ): IRuleOperator => {
     return {
         pluginType: "PathInputOperator",

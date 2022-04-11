@@ -6,7 +6,6 @@ import ruleNodeUtils from "./ruleNode.utils";
 import { IParameterValidationResult } from "../../RuleEditor.typings";
 import { useTranslation } from "react-i18next";
 import { RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
-import { IOperatorNodeParameterValueWithLabel } from "../../../../taskViews/shared/rules/rule.typings";
 
 interface RuleNodeFormParameterProps {
     nodeId: string;
@@ -42,9 +41,6 @@ export const RuleNodeFormParameter = ({
                 validationResult = parameter.parameterSpecification.customValidation(value);
             } else {
                 validationResult = ruleNodeUtils.validateValue(value, parameter.parameterSpecification, t);
-            }
-            if ((value as IOperatorNodeParameterValueWithLabel).label && validationResult.valid) {
-                validationResult.message = (value as IOperatorNodeParameterValueWithLabel).label;
             }
             setValidationResult(validationResult);
         }, 200);

@@ -23,10 +23,6 @@ import linkingRuleRequests, {
 } from "./LinkingRuleEditor.requests";
 import { PathWithMetaData } from "../shared/rules/rule.typings";
 import { IAutocompleteDefaultResponse, TaskPlugin } from "@ducks/shared/typings";
-import {
-    ruleEditorNodeParameterValue,
-    RuleEditorNodeParameterValue,
-} from "../../shared/RuleEditor/model/RuleEditorModel.typings";
 import { Spacing, ToolbarSection } from "gui-elements";
 import { TaskActivityWidget } from "../../shared/TaskActivityWidget/TaskActivityWidget";
 import { FetchError } from "../../../services/fetch/responseInterceptor";
@@ -201,14 +197,6 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
             "sourcePathInput",
             "Source path",
             "The value path of the source input of the linking task.",
-            // FIXME: At the moment we use the validation to show a path label if it exists as message. When we have full label support in auto-completion this is probably not needed anymore.
-            (value: RuleEditorNodeParameterValue) => {
-                const parameterValue = ruleEditorNodeParameterValue(value);
-                return {
-                    valid: true,
-                    message: parameterValue ? sourcePathLabels.get(parameterValue) : undefined,
-                };
-            },
             inputPathAutoCompletion("source")
         );
 
@@ -217,13 +205,6 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
             "targetPathInput",
             "Target path",
             "The value path of the target input of the linking task.",
-            // FIXME: At the moment we use the validation to show a path label if it exists as message
-            (value: string) => {
-                return {
-                    valid: true,
-                    message: targetPathLabels.get(value),
-                };
-            },
             inputPathAutoCompletion("target")
         );
 
