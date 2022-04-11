@@ -88,15 +88,16 @@ const Activities = () => {
      * Get available Datatypes
      */
     React.useEffect(() => {
-        dispatch(commonOp.fetchAvailableDTypesAsync(projectId as string));
+        batch(() => {
+            dispatch(workspaceOp.changeProjectsLimit(25));
+            dispatch(commonOp.fetchAvailableDTypesAsync(projectId as string));
+        });
     }, []);
 
     React.useEffect(() => {
         batch(() => {
             // Reset the filters, due to redirecting
-            // dispatch(workspaceOp.resetFilters());
-
-            dispatch(workspaceOp.changeProjectsLimit(25));
+            dispatch(workspaceOp.resetFilters());
 
             // Setup the filters from query string
             dispatch(workspaceOp.setupFiltersFromQs(qs));
@@ -135,7 +136,7 @@ const Activities = () => {
                                         <OverviewItemLine>
                                             <div style={{ width: "100%" }}>
                                                 <SearchBar
-                                                    focusOnCreation={true}
+                                                    focusOnCreation
                                                     textQuery={textQuery}
                                                     sorters={sorters}
                                                     onSort={handleSort}

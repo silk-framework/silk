@@ -225,11 +225,7 @@ const ActivityList = () => {
                 })}
             </Datalist>
             {!isEmpty ? (
-                <Pagination
-                    pagination={{ ...pagination, current: 25 }}
-                    pageSizes={pageSizes}
-                    onChangeSelect={handlePaginationOnChange}
-                />
+                <Pagination pagination={pagination} pageSizes={pageSizes} onChangeSelect={handlePaginationOnChange} />
             ) : null}
         </>
     );
