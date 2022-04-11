@@ -23,7 +23,7 @@ import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
 import org.silkframework.serialization.json.JsonHelpers
 import org.silkframework.workspace.activity.transform.{TransformPathsCache, VocabularyCacheValue}
-import org.silkframework.workspace.{ProjectTask, WorkspaceFactory}
+import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
 
@@ -94,7 +94,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                     schema = new Schema(implementation = classOf[Int], defaultValue = "30")
                   )
                   maxResults: Int): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
+    implicit val project: Project = WorkspaceFactory().workspace.project(projectName)
     implicit val prefixes: Prefixes = project.config.prefixes
     val task = project.task[TransformSpec](taskName)
     var completions = Completions()
@@ -190,7 +190,8 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                                             autoCompletionRequest: PartialSourcePathAutoCompletionRequest,
                                             sourcePath: List[PathOperator])
                                            (implicit userContext: UserContext): AutoSuggestAutoCompletionResponse = {
-    implicit val prefixes: Prefixes = transformTask.project.config.prefixes
+    implicit val project: Project = transformTask.project
+    implicit val prefixes: Prefixes = project.config.prefixes
     val isRdfInput = TransformUtils.isRdfInput(transformTask)
     val pathToReplace = PartialSourcePathAutocompletionHelper.pathToReplace(autoCompletionRequest, isRdfInput)
     val dataSourceCharacteristicsOpt = TransformUtils.datasetCharacteristics(transformTask)

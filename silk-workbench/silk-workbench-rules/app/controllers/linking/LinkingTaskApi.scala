@@ -539,13 +539,8 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
   }
 
   // All path meta data plugins
-  private lazy val pathMetaDataPlugins: Map[Class[_], PathMetaDataPlugin[_]] = {
-    val pathMetaDataPlugins = PluginRegistry.availablePlugins[PathMetaDataPlugin[_]]
-    pathMetaDataPlugins.map(plugin => {
-      val pathMetaDataPlugin = plugin.apply()(Prefixes.empty)
-      (pathMetaDataPlugin.sourcePluginClass, pathMetaDataPlugin)
-    }).toMap
-  }
+  private lazy val pathMetaDataPlugins: Map[Class[_], PathMetaDataPlugin[_]] = LinkingTaskApiUtils.pathMetaDataPlugins
+
   private def datasetPathMetaDataPlugin(datasetTask: ProjectTask[GenericDatasetSpec]): Option[PathMetaDataPlugin[Dataset]] = {
     pathMetaDataPlugins.get(datasetTask.data.plugin.getClass).map(_.asInstanceOf[PathMetaDataPlugin[Dataset]])
   }

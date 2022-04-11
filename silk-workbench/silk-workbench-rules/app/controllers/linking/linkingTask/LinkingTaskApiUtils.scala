@@ -1,6 +1,8 @@
 package controllers.linking.linkingTask
 
 import controllers.workspace.taskApi.TaskApiUtils
+import org.silkframework.config.Prefixes
+import org.silkframework.plugins.path.PathMetaDataPlugin
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.input.Transformer
 import org.silkframework.rule.similarity.{Aggregator, DistanceMeasure}
@@ -133,5 +135,14 @@ object LinkingTaskApiUtils {
       case None =>
         operatorJson
     }
+  }
+
+  /** Path meta data plugins that augment input paths with meta data. */
+  def pathMetaDataPlugins: Map[Class[_], PathMetaDataPlugin[_]] = {
+    val pathMetaDataPlugins = PluginRegistry.availablePlugins[PathMetaDataPlugin[_]]
+    pathMetaDataPlugins.map(plugin => {
+      val pathMetaDataPlugin = plugin.apply()(Prefixes.empty)
+      (pathMetaDataPlugin.sourcePluginClass, pathMetaDataPlugin)
+    }).toMap
   }
 }

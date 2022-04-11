@@ -68,4 +68,4 @@ POST          /tasks/:project/:task/activeLearning/iterate                      
 GET           /tasks/:project/:task/activeLearning/bestRule                         controllers.linking.ActiveLearningApi.bestRule(project: String, task: String)
 
 # Auto-completion API
-GET           /tasks/:project/:task/completions/inputPaths                          controllers.linking.LinkingAutoCompletionApi.linkingInputPaths(project: String, task: String, target: Boolean, term ?= "", maxResults: Int ?= 30)
+GET           /tasks/:project/:task/completions/inputPaths                          controllers.linking.LinkingAutoCompletionApi.linkingInputPaths(project: String, task: String, target: Boolean, term ?= "", maxResults: Int ?= 30, langPref: String ?= "en")
