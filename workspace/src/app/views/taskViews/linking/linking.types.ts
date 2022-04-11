@@ -58,28 +58,31 @@ export interface IResourceLink {
     target: string;
 }
 
-export interface LinkSpec {}
+export type OptionallyLabelledParameter<ACTUAL_TYPE> = ACTUAL_TYPE | LabelledParameterValue<ACTUAL_TYPE>;
+export type LabelledParameterValue<ACTUAL_TYPE> = { value: ACTUAL_TYPE; label?: string };
 
-/** Parameters of a linking task. */
+/** Parameters of a linking task.
+ * Either all or zero parameters have the value/label structure.
+ */
 export interface ILinkingTaskParameters {
     /** First input source of the linking task. */
-    source: IInputSource;
+    source: OptionallyLabelledParameter<IInputSource>;
     /** Second input source of the linking task. */
-    target: IInputSource;
+    target: OptionallyLabelledParameter<IInputSource>;
     /** The linking rule. */
-    rule: ILinkingRule;
+    rule: OptionallyLabelledParameter<ILinkingRule>;
     /** ID of the output task*/
-    output: string;
+    output: OptionallyLabelledParameter<string>;
     /** Positive, negative and unlabeled reference links between resources. Linking rules are evaluated against positive and negative reference links. */
-    referenceLinks: {
+    referenceLinks: OptionallyLabelledParameter<{
         positive: IResourceLink;
         negative: IResourceLink;
         unlabeled: IResourceLink;
-    };
+    }>;
     /** The max. number of overall links that will be generated. */
-    linkLimit: number;
+    linkLimit: OptionallyLabelledParameter<number>;
     /** Execution timeout of the matching phase in seconds. */
-    matchingExecutionTimeout: number;
+    matchingExecutionTimeout: OptionallyLabelledParameter<number>;
 }
 
 /** Link evaluation */
@@ -111,7 +114,7 @@ export interface IEntityLink {
     /** The confidence regarding to the linkage rule. Range: -1.0 to 1.0 */
     confidence?: number;
     /** The rule evaluation tree. For empty rules it is just a score. */
-    ruleValues?: IEvaluationNode | {score: number};
+    ruleValues?: IEvaluationNode | { score: number };
     entities?: {
         source: IEntity;
         target: IEntity;

@@ -17,6 +17,7 @@ import {
     RuleEditorNodeParameterValue,
     ruleEditorNodeParameterValue,
 } from "../../../shared/RuleEditor/model/RuleEditorModel.typings";
+import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 
 /** Extracts the operator node from a path input. */
 const extractOperatorNodeFromPathInput = (
@@ -87,12 +88,22 @@ const extractOperatorNodeFromValueInput = (
     }
 };
 
+const customInputPathRenderer = (autoCompleteResponse: IAutocompleteDefaultResponse): JSX.Element | string => {
+    return autoCompleteResponse.label
+        ? `${autoCompleteResponse.label} (${autoCompleteResponse.value})`
+        : autoCompleteResponse.value;
+};
+
 /** Input path operator used in the transform and linking operators. */
 const inputPathOperator = (
     pluginId: string,
     label: string,
     description?: string,
-    customValidation?: (value: RuleEditorNodeParameterValue) => IParameterValidationResult
+    customValidation?: (value: RuleEditorNodeParameterValue) => IParameterValidationResult,
+    customAutoCompletionRequest?: (
+        textQuery: string,
+        limit: number
+    ) => IAutocompleteDefaultResponse[] | Promise<IAutocompleteDefaultResponse[]>
 ): IRuleOperator => {
     return {
         pluginType: "PathInputOperator",
@@ -109,6 +120,15 @@ const inputPathOperator = (
                 description: "The source input path as Silk path expression.",
                 defaultValue: "",
                 customValidation,
+                autoCompletion: customAutoCompletionRequest
+                    ? {
+                          allowOnlyAutoCompletedValues: false,
+                          autoCompleteValueWithLabels: true,
+                          autoCompletionDependsOnParameters: [],
+                          customAutoCompletionRequest,
+                          customItemRenderer: customInputPathRenderer,
+                      }
+                    : undefined,
             }),
         },
         categories: ["Input", "Recommended"],
@@ -128,6 +148,7 @@ const parameterSpecification = ({
     advanced = false,
     required = true,
     customValidation,
+    autoCompletion,
 }: Omit<IParameterSpecification, OptionalParameterAttributes> &
     Partial<Pick<IParameterSpecification, OptionalParameterAttributes>>): IParameterSpecification => {
     return {
@@ -138,6 +159,7 @@ const parameterSpecification = ({
         advanced,
         required,
         customValidation,
+        autoCompletion,
     };
 };
 

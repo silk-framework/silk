@@ -1,4 +1,4 @@
-import { IMetadata, PluginType, TaskType } from "@ducks/shared/typings";
+import { IAutocompleteDefaultResponse, IMetadata, PluginType, TaskType } from "@ducks/shared/typings";
 
 export interface IAvailableDataTypes {
     [key: string]: IAvailableDataType;
@@ -15,10 +15,24 @@ export interface IAvailableDataType {
     options: IAvailableDataTypeOption[];
 }
 
+/** Extensions to the auto-completion config on the frontend side. */
+interface AutoCompletionFrontendExtensions {
+    /** Optional function if the auto-completion results are not coming from the standard plugin parameter auto-completion endpoint. */
+    customAutoCompletionRequest?: (
+        textQuery: string,
+        limit: number
+    ) => IAutocompleteDefaultResponse[] | Promise<IAutocompleteDefaultResponse[]>;
+    /** Custom item renderer. By default the item label is displayed. */
+    customItemRenderer?: (autoCompleteResponse: IAutocompleteDefaultResponse) => string | JSX.Element;
+}
+
 /** Properties for parameter auto-completion. */
-export interface IPropertyAutocomplete {
+export interface IPropertyAutocomplete extends AutoCompletionFrontendExtensions {
+    /** If the parameter only allows values coming from the auto-completion, i.e. no custom values are allowed. */
     allowOnlyAutoCompletedValues: boolean;
+    /** If there are optional labels connected to the values that will be requested. */
     autoCompleteValueWithLabels: boolean;
+    /** The parameter IDs on the same level that this parameter's auto-completion depends on, e.g. project resource auto-completion depends on the project parameter. */
     autoCompletionDependsOnParameters: string[];
 }
 

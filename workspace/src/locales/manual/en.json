@@ -451,6 +451,9 @@
                 "fetchLinkingPaths": {
                     "msg": "Could not fetch source paths for linking task."
                 },
+                "inputPathAutoCompletion": {
+                    "msg": "Could not fetch path auto-completions."
+                },
                 "saveLinkageRule": {
                     "msg": "Could not save linking rule!"
                 },

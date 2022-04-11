@@ -66,3 +66,6 @@ POST          /tasks/:project/:linkingTaskName/evaluateLinkageRule              
 # Active Learning API
 POST          /tasks/:project/:task/activeLearning/iterate                          controllers.linking.ActiveLearningApi.iterate(project: String, task: String, decision: String, linkSource: String, linkTarget: String, synchronous: Boolean ?= false)
 GET           /tasks/:project/:task/activeLearning/bestRule                         controllers.linking.ActiveLearningApi.bestRule(project: String, task: String)
+
+# Auto-completion API
+GET           /tasks/:project/:task/completions/inputPaths                          controllers.linking.LinkingAutoCompletionApi.linkingInputPaths(project: String, task: String, target: Boolean, term ?= "", maxResults: Int ?= 30)

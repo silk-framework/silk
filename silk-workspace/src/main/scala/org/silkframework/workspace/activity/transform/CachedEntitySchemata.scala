@@ -1,14 +1,11 @@
 package org.silkframework.workspace.activity.transform
 
-import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.dataset.rdf.RdfDataset
 import org.silkframework.entity.EntitySchema
-import org.silkframework.entity.paths.{PathOperator, TypedPath}
-import org.silkframework.rule.TransformSpec
+import org.silkframework.entity.paths.TypedPath
+import org.silkframework.rule.DatasetSelection
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Identifier
-import org.silkframework.workspace.ProjectTask
 
 import scala.xml.Node
 
@@ -33,10 +30,10 @@ case class CachedEntitySchemata(configuredSchema: EntitySchema,
     * @param preferUntypedSchema If the untyped schema from the path cache should be returned if available and appropriate.
     * @return
     */
-  def fetchCachedPaths(task: ProjectTask[TransformSpec],
+  def fetchCachedPaths(datasetSelection: DatasetSelection,
                        preferUntypedSchema: Boolean)
                       (implicit userContext: UserContext): IndexedSeq[TypedPath] = {
-    if(task.selection.typeUri.uri.nonEmpty && preferUntypedSchema && untypedSchema.isDefined) {
+    if(datasetSelection.typeUri.uri.nonEmpty && preferUntypedSchema && untypedSchema.isDefined) {
       untypedSchema.get.typedPaths
     } else {
       configuredSchema.typedPaths

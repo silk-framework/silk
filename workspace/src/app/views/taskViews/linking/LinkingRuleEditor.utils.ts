@@ -14,6 +14,8 @@ import {
     IComparisonOperator,
     ILinkingTaskParameters,
     ISimilarityOperator,
+    LabelledParameterValue,
+    OptionallyLabelledParameter,
 } from "./linking.types";
 import { RuleOperatorFetchFnType } from "../../shared/RuleEditor/RuleEditor";
 import ruleUtils from "../shared/rules/rule.utils";
@@ -93,12 +95,19 @@ const extractSimilarityOperatorNode = (
     }
 };
 
+/** Get the value of an optionally labelled parameter value. */
+function optionallyLabelledParameterToValue<T>(optionallyLabelledValue: OptionallyLabelledParameter<T>): T {
+    return (optionallyLabelledValue as LabelledParameterValue<T>).value
+        ? (optionallyLabelledValue as LabelledParameterValue<T>).value
+        : (optionallyLabelledValue as T);
+}
+
 /** Converts the linking task rule to the internal representation. */
 const convertToRuleOperatorNodes = (
     linkSpec: TaskPlugin<ILinkingTaskParameters>,
     ruleOperator: RuleOperatorFetchFnType
 ): IRuleOperatorNode[] => {
-    const rule = linkSpec.parameters.rule;
+    const rule = optionallyLabelledParameterToValue(linkSpec.parameters.rule);
     const operatorNodes: IRuleOperatorNode[] = [];
     extractSimilarityOperatorNode(rule.operator, operatorNodes, ruleOperator);
     const nodePositions = rule.layout.nodePositions;
@@ -249,6 +258,7 @@ const linkingRuleUtils = {
     convertToRuleOperatorNodes,
     inputPathTab,
     constructLinkageRuleTree,
+    optionallyLabelledParameterToValue,
 };
 
 export default linkingRuleUtils;

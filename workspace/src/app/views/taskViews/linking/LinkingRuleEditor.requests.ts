@@ -3,7 +3,7 @@ import { legacyLinkingEndpoint } from "../../../utils/getApiEndpoint";
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { PathWithMetaData } from "../shared/rules/rule.typings";
 import { IEntityLink, IEvaluatedReferenceLinks, ILinkingRule, ILinkingTaskParameters } from "./linking.types";
-import { TaskPlugin } from "@ducks/shared/typings";
+import { IAutocompleteDefaultResponse, TaskPlugin } from "@ducks/shared/typings";
 
 /** Fetches the cached paths from the linking paths cache.*/
 export const fetchLinkingCachedPaths = (
@@ -83,6 +83,31 @@ export const evaluateLinkingRule = (
         query: {
             linkLimit,
             timeoutInMs,
+        },
+    });
+};
+
+/** Fetches auto-completion results for the linking task input paths.
+ *
+ * @param projectId
+ * @param linkingTaskId
+ * @param inputType     Fetches paths either from the source or target input data source.
+ * @param searchQuery   The multi-word search query
+ * @param limit         The max number of results to return.
+ */
+export const autoCompleteLinkingInputPaths = (
+    projectId: string,
+    linkingTaskId: string,
+    inputType: "source" | "target",
+    searchQuery: string,
+    limit: number
+): Promise<FetchResponse<IAutocompleteDefaultResponse[]>> => {
+    return fetch({
+        url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/completions/inputPaths`),
+        query: {
+            term: searchQuery,
+            maxResults: limit,
+            target: inputType === "target",
         },
     });
 };

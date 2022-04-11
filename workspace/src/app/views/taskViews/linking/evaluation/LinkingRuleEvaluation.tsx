@@ -130,7 +130,7 @@ export const LinkingRuleEvaluation = ({
         try {
             const ruleTree = editorUtils.constructLinkageRuleTree(ruleOperatorNodes);
             const linkSpec = originalTask as TaskPlugin<ILinkingTaskParameters>;
-            const linkageRule = linkSpec.parameters.rule;
+            const linkageRule = editorUtils.optionallyLabelledParameterToValue(linkSpec.parameters.rule);
             const newLinkageRule = { ...linkageRule, operator: ruleTree };
             const result = await fetchReferenceLinksEvaluation(newLinkageRule);
             if (!quickEvaluationOnly && (!result || (result.positive.length === 0 && result.negative.length === 0))) {

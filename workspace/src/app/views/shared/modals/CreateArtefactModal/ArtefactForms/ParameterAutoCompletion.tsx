@@ -55,16 +55,22 @@ export const ParameterAutoCompletion = ({
     };
 
     const handleAutoCompleteInput = async (input: string, autoCompletion: IPropertyAutocomplete) => {
+        // The auto-completion is only showing the first 100 values TODO: Make auto-completion list scrollable?
+        const limit = 100;
         try {
-            const autoCompleteResponse = await sharedOp.getAutocompleteResultsAsync({
-                pluginId: pluginId,
-                parameterId: paramId,
-                projectId,
-                dependsOnParameterValues: selectDependentValues(autoCompletion),
-                textQuery: input,
-                limit: 100, // The auto-completion is only showing the first n values TODO: Make auto-completion list scrollable?
-            });
-            return autoCompleteResponse.data;
+            if (autoCompletion.customAutoCompletionRequest) {
+                return autoCompletion.customAutoCompletionRequest(input, limit);
+            } else {
+                const autoCompleteResponse = await sharedOp.getAutocompleteResultsAsync({
+                    pluginId: pluginId,
+                    parameterId: paramId,
+                    projectId,
+                    dependsOnParameterValues: selectDependentValues(autoCompletion),
+                    textQuery: input,
+                    limit: limit,
+                });
+                return autoCompleteResponse.data;
+            }
         } catch (e) {
             if (e.isHttpError && e.httpStatus !== 400) {
                 // For now hide 400 errors from user, since they are not helpful.
@@ -105,7 +111,7 @@ export const ParameterAutoCompletion = ({
                       }
                     : undefined
             }
-            itemRenderer={displayAutoCompleteLabel}
+            itemRenderer={autoCompletion.customItemRenderer ?? displayAutoCompleteLabel}
             itemValueRenderer={autoCompleteLabel}
             itemValueSelector={(item) => (typeof item === "string" ? { value: item } : item)}
             itemValueString={(item) => itemValue(item)}

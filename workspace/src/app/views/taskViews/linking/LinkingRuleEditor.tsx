@@ -1,6 +1,6 @@
 import React from "react";
 import useErrorHandler from "../../../hooks/useErrorHandler";
-import { ILinkingTaskParameters } from "./linking.types";
+import { ILinkingRule, ILinkingTaskParameters } from "./linking.types";
 import { useTranslation } from "react-i18next";
 import { IViewActions } from "../../plugins/PluginRegistry";
 import RuleEditor from "../../shared/RuleEditor/RuleEditor";
@@ -16,9 +16,13 @@ import {
 } from "../../shared/RuleEditor/RuleEditor.typings";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import linkingRuleRequests, { fetchLinkSpec, updateLinkageRule } from "./LinkingRuleEditor.requests";
+import linkingRuleRequests, {
+    autoCompleteLinkingInputPaths,
+    fetchLinkSpec,
+    updateLinkageRule,
+} from "./LinkingRuleEditor.requests";
 import { PathWithMetaData } from "../shared/rules/rule.typings";
-import { TaskPlugin } from "@ducks/shared/typings";
+import { IAutocompleteDefaultResponse, TaskPlugin } from "@ducks/shared/typings";
 import {
     ruleEditorNodeParameterValue,
     RuleEditorNodeParameterValue,
@@ -96,6 +100,23 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
             );
         }
     };
+
+    const inputPathAutoCompletion =
+        (inputType: "source" | "target") =>
+        async (term: string, limit: number): Promise<IAutocompleteDefaultResponse[]> => {
+            try {
+                const response = await autoCompleteLinkingInputPaths(projectId, linkingTaskId, inputType, term, limit);
+                return response.data;
+            } catch (err) {
+                registerError(
+                    "LinkingRuleEditor_inputPathAutoCompletion",
+                    t("taskViews.linkRulesEditor.errors.inputPathAutoCompletion.msg"),
+                    err
+                );
+                return [];
+            }
+        };
+
     /** Fetches the list of operators that can be used in a linking task. */
     const fetchLinkingRuleOperatorDetails = async () => {
         try {
@@ -120,9 +141,9 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
     ): Promise<RuleSaveResult> => {
         try {
             const ruleTree = utils.constructLinkageRuleTree(ruleOperatorNodes);
-
+            const originalRule: ILinkingRule = utils.optionallyLabelledParameterToValue(previousTask.parameters.rule);
             await updateLinkageRule(projectId, linkingTaskId, {
-                ...previousTask.parameters.rule,
+                ...originalRule,
                 operator: ruleTree,
                 layout: ruleUtils.ruleLayout(ruleOperatorNodes),
             });
@@ -187,7 +208,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                     valid: true,
                     message: parameterValue ? sourcePathLabels.get(parameterValue) : undefined,
                 };
-            }
+            },
+            inputPathAutoCompletion("source")
         );
 
     const targetPathInput = () =>
@@ -201,7 +223,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                     valid: true,
                     message: targetPathLabels.get(value),
                 };
-            }
+            },
+            inputPathAutoCompletion("target")
         );
 
     return (
