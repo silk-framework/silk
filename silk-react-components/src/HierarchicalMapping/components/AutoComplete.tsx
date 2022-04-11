@@ -177,6 +177,7 @@ const AutoComplete = ({ entity, ruleId, className, placeholder, creatable, onCha
                 onChange={onChange}
                 initialValue={typeof value === "string" ? {value} : value}
                 itemValueSelector={item => item.value}
+                itemValueString={item => item.value}
                 onSearch={options ? onSearchOptionFactory(options) : onSearchFactory(ruleId, entity)}
                 itemRenderer={itemRenderer}
                 itemValueRenderer={itemLabel(itemDisplayLabel)}
