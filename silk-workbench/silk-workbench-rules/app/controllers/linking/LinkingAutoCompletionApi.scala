@@ -103,7 +103,7 @@ class LinkingAutoCompletionApi @Inject() () extends InjectedController with User
     val allPaths = AutoCompletionApiUtils.pathsCacheCompletions(datasetSelection, cachedEntitySchemata, preferUntypedSchema = false,
       pathsMetaDataFactory(datasetSelection, langPref))
     // Return filtered result
-    val filteredPaths = allPaths.filterAndSort(term, maxResults, sortEmptyTermResult = false)
+    val filteredPaths = allPaths.filterAndSort(term, maxResults, multiWordFilter = true)
     Ok(filteredPaths.toJson)
   }
 
