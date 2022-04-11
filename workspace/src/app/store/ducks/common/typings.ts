@@ -1,4 +1,5 @@
 import { IAutocompleteDefaultResponse, IMetadata, PluginType, TaskType } from "@ducks/shared/typings";
+import { IRenderModifiers } from "gui-elements/src/components/AutocompleteField/AutoCompleteField";
 
 export interface IAvailableDataTypes {
     [key: string]: IAvailableDataType;
@@ -23,7 +24,12 @@ interface AutoCompletionFrontendExtensions {
         limit: number
     ) => IAutocompleteDefaultResponse[] | Promise<IAutocompleteDefaultResponse[]>;
     /** Custom item renderer. By default the item label is displayed. */
-    customItemRenderer?: (autoCompleteResponse: IAutocompleteDefaultResponse) => string | JSX.Element;
+    customItemRenderer?: (
+        autoCompleteResponse: IAutocompleteDefaultResponse,
+        query: string,
+        modifiers: IRenderModifiers,
+        handleSelectClick: () => any
+    ) => string | JSX.Element;
 }
 
 /** Properties for parameter auto-completion. */

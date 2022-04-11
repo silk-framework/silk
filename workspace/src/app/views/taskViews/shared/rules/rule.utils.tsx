@@ -18,6 +18,10 @@ import {
     ruleEditorNodeParameterValue,
 } from "../../../shared/RuleEditor/model/RuleEditorModel.typings";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
+import React from "react";
+import { Highlighter, OverflowText, OverviewItem, OverviewItemDescription, OverviewItemLine } from "gui-elements";
+import { IRenderModifiers } from "gui-elements/src/components/AutocompleteField/AutoCompleteField";
+import { CLASSPREFIX as eccguiprefix } from "gui-elements/src/configuration/constants";
 
 /** Extracts the operator node from a path input. */
 const extractOperatorNodeFromPathInput = (
@@ -88,10 +92,35 @@ const extractOperatorNodeFromValueInput = (
     }
 };
 
-const customInputPathRenderer = (autoCompleteResponse: IAutocompleteDefaultResponse): JSX.Element | string => {
-    return autoCompleteResponse.label
-        ? `${autoCompleteResponse.label} (${autoCompleteResponse.value})`
-        : autoCompleteResponse.value;
+const customInputPathRenderer = (
+    autoCompleteResponse: IAutocompleteDefaultResponse,
+    query: string,
+    modifiers: IRenderModifiers,
+    handleSelectClick: () => any
+): JSX.Element | string => {
+    return autoCompleteResponse.label ? (
+        <OverviewItem
+            key={autoCompleteResponse.value}
+            onClick={handleSelectClick}
+            hasSpacing={true}
+            className={modifiers.active ? `${eccguiprefix}-overviewitem__item--active` : ""}
+        >
+            <OverviewItemDescription style={{ maxWidth: "50vw" }}>
+                <OverviewItemLine>
+                    <OverflowText inline={true} style={{ width: "100vw" }}>
+                        <Highlighter label={autoCompleteResponse.label} searchValue={query} />
+                    </OverflowText>
+                </OverviewItemLine>
+                <OverviewItemLine small={true}>
+                    <OverflowText inline={true} style={{ width: "100vw" }}>
+                        <Highlighter label={autoCompleteResponse.value} searchValue={query} />
+                    </OverflowText>
+                </OverviewItemLine>
+            </OverviewItemDescription>
+        </OverviewItem>
+    ) : (
+        autoCompleteResponse.value
+    );
 };
 
 /** Input path operator used in the transform and linking operators. */
