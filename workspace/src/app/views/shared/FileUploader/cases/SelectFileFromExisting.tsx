@@ -77,5 +77,6 @@ const ProjectResourceAutoComplete = ({ autocomplete, handleChange, initialValue 
         onChange={handleChange}
         itemValueSelector={itemStringValue}
         itemValueRenderer={itemStringValue}
+        itemValueString={itemStringValue}
     />
 );
