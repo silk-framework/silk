@@ -29,7 +29,7 @@ import org.silkframework.runtime.resource.ClasspathResourceLoader
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.util.Identifier
 
-import scala.io.Source
+import scala.io.{Codec, Source}
 import scala.xml.XML
 
 /**
@@ -91,7 +91,7 @@ object GenerateLinksTest {
 
     lazy val referenceLinks: Set[Link] = {
       val stream = resourceLoader.get(referenceLinksFile).inputStream
-      ReferenceLinksReader.readNTriples(Source.fromInputStream(stream)).positive
+      ReferenceLinksReader.readNTriples(Source.fromInputStream(stream)(Codec.UTF8)).positive
     }
   }
 

@@ -17,7 +17,7 @@ class WorkflowApiTest extends FlatSpec with SingleProjectWorkspaceProviderTestTr
 
   override def projectPathInClasspath: String = "2dc191ef-d583-4eb8-a8ed-f2a3fb94bd8f_WorkflowAPItestproject.zip"
 
-  override def routes: Option[Class[_ <: Router]] = Some(classOf[workflowApi.Routes])
+  override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkflowApi.Routes])
 
   override def workspaceProviderId: String = "inMemory"
 

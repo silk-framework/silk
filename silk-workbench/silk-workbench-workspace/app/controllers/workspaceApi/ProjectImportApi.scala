@@ -34,7 +34,7 @@ import javax.inject.Inject
 import scala.collection.mutable
 import scala.concurrent.duration.{Duration, DurationInt}
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, Future}
-import scala.io.Source
+import scala.io.{Codec, Source}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 import scala.xml.{XML => ScalaXML}
@@ -258,7 +258,7 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
   private def handleUnexpectedError(projectImport: ProjectImport, ex: Exception): ProjectImportDetails = {
     log.log(Level.INFO, s"Failed to import project $projectImport", ex)
     val projectImportError = try {
-      val lineIterator = Source.fromInputStream(projectImport.projectFileResource.inputStream).getLines()
+      val lineIterator = Source.fromInputStream(projectImport.projectFileResource.inputStream)(Codec.UTF8).getLines()
       if (lineIterator.hasNext && lineIterator.next().startsWith("@prefix")) {
         // FIXME: Support RDF project import
         ProjectImportApi.errorProjectImportDetails("RDF project import not supported!")

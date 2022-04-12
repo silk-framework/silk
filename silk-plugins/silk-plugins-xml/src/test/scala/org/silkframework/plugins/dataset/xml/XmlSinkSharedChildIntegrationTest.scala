@@ -3,7 +3,6 @@ package org.silkframework.plugins.dataset.xml
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.ExecuteTransform
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
 
 import scala.xml.{Utility, XML}
@@ -45,7 +44,7 @@ class XmlSinkSharedChildIntegrationTest extends FlatSpec with MustMatchers with 
 
   it should "Attach shared source child resources to both target elements" in {
     project.task[TransformSpec](TRANSFORM_TASK).activity[ExecuteTransform].control.startBlocking()
-    val xml = project.resources.get(OUTPUT_XML_RESOURCE).loadAsString
+    val xml = project.resources.get(OUTPUT_XML_RESOURCE).loadAsString()
     Utility.trim(XML.loadString(xml)) mustBe Utility.trim(expectedXML)
   }
 }

@@ -87,7 +87,7 @@ class ResourceCacheTest extends FlatSpec with Matchers {
 
   class TestResourceCache(resource: Resource, updateTimeout: Long) extends ResourceCache[String](resource, updateTimeout) {
     override protected def load(): String = {
-      resource.loadAsString
+      resource.loadAsString()
     }
   }
 

@@ -27,7 +27,7 @@ class ZipInputStreamResourceManagerTest extends FlatSpec with MustMatchers {
     val zipIn = ZipFileResourceLoader(new ZipFile(zipFile.file))
     pseudoFiles.foreach(file =>{
       val resource = zipIn.get(file._1)
-      resource.loadLines.head mustBe file._2
+      resource.loadLines().head mustBe file._2
     })
     zipFile.delete()
   }
@@ -42,7 +42,7 @@ class ZipInputStreamResourceManagerTest extends FlatSpec with MustMatchers {
     val readManager = ZipFileResourceLoader(zipFile.file, "")
     val child1 = readManager.child("someDir")
     val child2 = child1.child("another")
-    child2.get("test.txt").loadLines.head mustBe "some tests"
+    child2.get("test.txt").loadLines().head mustBe "some tests"
     readManager.listChildren mustBe List("someDir")
     readManager.child("someDir").basePath mustBe child1.basePath
     readManager.child("someDir").list mustBe child1.list

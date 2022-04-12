@@ -1,10 +1,10 @@
 @import org.silkframework.dataset.DatasetPluginAutoConfigurable
 @import org.silkframework.runtime.plugin.StringParameterType._
-@import org.silkframework.runtime.plugin.{AnyPlugin, Parameter, StringParameterType, PluginDescription}
+@import org.silkframework.runtime.plugin.{AnyPlugin, PluginParameter, StringParameterType, PluginDescription}
 @import org.silkframework.workspace.Project
 @import org.silkframework.runtime.activity.UserContext
-
 @import org.silkframework.runtime.plugin.PluginCategories
+
 @(project: Project,
   name: String,
   plugins: Seq[PluginDescription[_]],
@@ -215,7 +215,7 @@
 @**
  * Creates a new field for a plugin parameter
  *@
-@createField(pluginId: String, param: Parameter) = @{
+@createField(pluginId: String, param: PluginParameter) = @{
   param.parameterType match {
     case StringParameterType.ResourceType | StringParameterType.WritableResourceType => createResourceField(pluginId, param)
     case enum @ StringParameterType.EnumerationType(_) => createEnumerationField(pluginId, param, enum.enumerationValues, enum.displayNames)
@@ -227,7 +227,7 @@
   }
 }
 
-@createTextField(pluginId: String, param: Parameter, inputType: String = "text") = {
+@createTextField(pluginId: String, param: PluginParameter, inputType: String = "text") = {
   <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
     <input class="mdl-textfield__input" type="@inputType" id="@(pluginId)_@(param.name)" name="@(pluginId)_@(param.name)" value="@value(pluginId, param)"/>
     <label class="mdl-textfield__label" for="@(pluginId)_@(param.name)">@param.label</label>
@@ -239,15 +239,15 @@
  </div>
 }
 
-@createMultilineTextField(pluginId: String, param: Parameter) = {
+@createMultilineTextField(pluginId: String, param: PluginParameter) = {
   @widgets.multilineParameter(s"${pluginId}_${param.name}", value(pluginId, param), label = param.label, tooltip = param.description, additionalInputElementsClass = "plugin-dialog-multi-line-textfield")
 }
 
-@createSparqlEndpointDatasetField(pluginId: String, param: Parameter)(implicit userContext: UserContext) = {
+@createSparqlEndpointDatasetField(pluginId: String, param: PluginParameter)(implicit userContext: UserContext) = {
   @widgets.sparqlDatasetSelect(project.name, param.label, param.description, pluginId + "_" + param.name, if(value(pluginId, param) == "") None else Some(value(pluginId, param)))
 }
 
-@createEnumerationField(pluginId: String, param: Parameter, enumerationValues: Seq[String], displayNames: Seq[String]) = {
+@createEnumerationField(pluginId: String, param: PluginParameter, enumerationValues: Seq[String], displayNames: Seq[String]) = {
   <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
     <select class="mdl-selectfield__select" id="@(pluginId)_@(param.name)" name="@(pluginId)_@(param.name)" >
     @for((enumerationValue, displayName) <- enumerationValues.zip(displayNames)) {
@@ -263,7 +263,7 @@
   </div>
 }
 
-@createResourceField(pluginId: String, param: Parameter) = {
+@createResourceField(pluginId: String, param: PluginParameter) = {
   <div class="mdl-selectfield mdl-js-selectfield mdl-selectfield--floating-label">
     <input class="mdl-selectfield__select input-resource" id="@(pluginId)_@(param.name)" name="@(pluginId)_@(param.name)" value="@value(pluginId, param)" />
     <label class="mdl-selectfield__label" for="@(pluginId)_@(param.name)">@param.label</label>
@@ -278,7 +278,7 @@
 @**
  * Retrieves the value of a specific parameter
  *@
-@value(pluginId: String, param: Parameter) = @{
+@value(pluginId: String, param: PluginParameter) = @{
   // Retrieve parameter value as Object
   val paramObj =
     currentObj match {

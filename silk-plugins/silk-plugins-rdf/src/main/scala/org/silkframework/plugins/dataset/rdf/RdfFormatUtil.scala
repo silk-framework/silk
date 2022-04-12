@@ -1,15 +1,13 @@
 package org.silkframework.plugins.dataset.rdf
 
-import org.apache.jena.graph.{Node, NodeFactory}
+import org.apache.jena.graph.{Node, NodeFactory, Triple => JenaTriple}
 import org.apache.jena.rdf.model.{AnonId, ModelFactory, Statement}
 import org.apache.jena.riot.adapters.RDFWriterFactoryRIOT
-import org.apache.jena.vocabulary.XSD
 import org.apache.jena.sparql.core.{Quad => JenaQuad}
-import org.apache.jena.graph.{Triple => JenaTriple}
+import org.apache.jena.vocabulary.XSD
 import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
 import org.silkframework.rule.util.JenaSerializationUtil
-import org.silkframework.util.{StringUtils, Uri}
 
 /** Utility methods for serializing to RDF */
 object RdfFormatUtil {

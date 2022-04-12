@@ -1,14 +1,12 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
-import java.io.{IOException, InputStream}
-import java.util.logging.{Level, Logger}
-
-import javax.xml.stream.XMLInputFactory
 import org.apache.jena.query.{QueryFactory, Syntax}
 import org.apache.jena.riot.ResultSetMgr
 import org.apache.jena.riot.resultset.ResultSetLang
 import org.silkframework.dataset.rdf._
 
+import java.io.{IOException, InputStream}
+import java.util.logging.{Level, Logger}
 import scala.collection.immutable.SortedMap
 import scala.util.Try
 import scala.util.matching.Regex
@@ -133,7 +131,7 @@ object PagingSparqlTraversable {
     }
 
     def outputResults[U](inputStream: InputStream, f: SortedMap[String, RdfNode] => U): Int = {
-      val resultSet = ResultSetMgr.read(inputStream, ResultSetLang.SPARQLResultSetXML)
+      val resultSet = ResultSetMgr.read(inputStream, ResultSetLang.RS_XML)
       JenaResultsReader.read(resultSet, f)
     }
   }

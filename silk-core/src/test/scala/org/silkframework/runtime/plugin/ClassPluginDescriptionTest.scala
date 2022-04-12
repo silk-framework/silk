@@ -3,12 +3,12 @@ package org.silkframework.runtime.plugin
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.config.Prefixes
 
-class PluginDescriptionTest extends FlatSpec with MustMatchers {
+class ClassPluginDescriptionTest extends FlatSpec with MustMatchers {
 
   behavior of "PluginDescription"
 
   private implicit val prefixes: Prefixes = Prefixes.empty
-  private val pluginDesc = PluginDescription(classOf[TestPlugin])
+  private val pluginDesc = ClassPluginDescription(classOf[TestPlugin])
 
   it should "create plugin instances with provided parameter values" in {
     val plugin = pluginDesc(Map("param1"-> "overridden default value", "param2" -> "123"))

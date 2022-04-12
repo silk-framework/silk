@@ -5,7 +5,7 @@ import java.util.logging.Logger
 
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.{ObservableMirror, _}
-import org.silkframework.runtime.plugin.PluginDescription
+import org.silkframework.runtime.plugin.ClassPluginDescription
 import org.silkframework.util.{Identifier, IdentifierGenerator}
 import org.silkframework.workspace.{Project, ProjectTask}
 
@@ -154,7 +154,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   /**
     * The default configuration of this activity type.
     */
-  final def defaultConfig: Map[String, String] = PluginDescription(factory.getClass).parameterValues(factory)(Prefixes.empty)
+  final def defaultConfig: Map[String, String] = ClassPluginDescription(factory.getClass).parameterValues(factory)(Prefixes.empty)
 
   @deprecated("should send configuration when calling start", "4.5.0")
   final def update(config: Map[String, String]): Unit = {
@@ -210,6 +210,6 @@ object WorkspaceActivity {
     * The maximum number of instances that are held in memory for each activity type.
     * If more instances are created, the oldest ones are removed.
     */
-  val MAX_CONTROLS_PER_ACTIVITY: Int = 10
+  val MAX_CONTROLS_PER_ACTIVITY: Int = 20
 
 }

@@ -1,5 +1,5 @@
 @import controllers.workspace.routes
-@import org.silkframework.runtime.plugin.{AnyPlugin, PluginDescription}
+@import org.silkframework.runtime.plugin.{AnyPlugin, ClassPluginDescription}
 @import org.silkframework.workspace.activity.ProjectActivity
 @import org.silkframework.runtime.activity.HasValue
 @import scala.language.existentials
@@ -10,7 +10,7 @@
 @widgets.pluginDialog(
     activity.project,
     name = activity.name,
-    plugins = PluginDescription(activity.factory.getClass) :: Nil,
+    plugins = ClassPluginDescription(activity.factory.getClass) :: Nil,
     currentObj = Some(activity.factory.asInstanceOf[AnyPlugin]),
     resources = Nil) {
 

@@ -12,7 +12,7 @@ import org.silkframework.runtime.resource.Resource
 )
 case class RemoveStopwords(stopwordList: Resource, separator: String = "[\\s-]+") extends SimpleTransformer {
 
-  val stopwords = stopwordList.loadAsString.split("\n").toSet
+  val stopwords = stopwordList.loadAsString().split("\n").toSet
 
   val regex = separator.r
 

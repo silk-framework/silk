@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.rdf.sparql
 
 import org.apache.jena.fuseki.FusekiException
-import org.apache.jena.fuseki.embedded.FusekiServer
+import org.apache.jena.fuseki.main.FusekiServer
 import org.apache.jena.fuseki.server.{DataService, Operation}
 import org.apache.jena.query.Dataset
 
@@ -20,15 +20,16 @@ object FusekiHelper {
     var fusekiServerPort = startPort
 
     val ds = dataset.asDatasetGraph()
-    val dataService = new DataService(ds)
     // All services on the same endpoint instead different ones for query and update
-    dataService.addEndpoint(Operation.Quads_RW, "")
-    dataService.addEndpoint(Operation.Query, "")
-    dataService.addEndpoint(Operation.Update, "")
+    val dataService = DataService.newBuilder(ds)
+      .addEndpoint(Operation.GSP_RW, "")
+      .addEndpoint(Operation.Query, "")
+      .addEndpoint(Operation.Update, "")
+      .build()
     while (fusekiServer.isEmpty) {
       try {
         val server = FusekiServer.create.add("/ds", ds)
-            .setPort(fusekiServerPort)
+            .port(fusekiServerPort)
             .add("/data", dataService)
             .build
         server.start()

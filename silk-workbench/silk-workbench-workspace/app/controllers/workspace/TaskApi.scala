@@ -16,7 +16,7 @@ import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.ResourceBasedDataset
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ParameterAutoCompletion, PluginDescription, PluginObjectParameterTypeTrait}
+import org.silkframework.runtime.plugin.{ClassPluginDescription, ParameterAutoCompletion, PluginDescription, PluginObjectParameterTypeTrait}
 import org.silkframework.runtime.resource.{FileResource, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException

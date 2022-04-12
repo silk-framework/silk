@@ -67,7 +67,7 @@ trait Resource {
   /**
    * Loads this resource into a string.
    */
-  def loadAsString(implicit codec: Codec): String = {
+  def loadAsString(codec: Codec = Codec.UTF8): String = {
     checkSizeForInMemory()
     val source = Source.fromInputStream(inputStream)(codec)
     try {
@@ -80,7 +80,7 @@ trait Resource {
   /**
     * Loads all lines of this resource into a sequence.
     */
-  def loadLines(implicit codec: Codec): Seq[String] = {
+  def loadLines(codec: Codec = Codec.UTF8): Seq[String] = {
     checkSizeForInMemory()
     val source = Source.fromInputStream(inputStream)(codec)
     try {

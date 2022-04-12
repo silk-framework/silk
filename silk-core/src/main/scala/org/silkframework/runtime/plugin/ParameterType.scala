@@ -1,12 +1,5 @@
 package org.silkframework.runtime.plugin
 
-import java.lang.reflect.{ParameterizedType, Type}
-import java.net.{URLDecoder, URLEncoder}
-import java.security.spec.InvalidKeySpecException
-import java.time.Duration
-import java.util.logging.{Level, Logger}
-
-import javax.crypto.SecretKey
 import org.silkframework.config.{DefaultConfig, Prefixes, ProjectReference, TaskReference}
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.entity.Restriction
@@ -14,6 +7,12 @@ import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, Resou
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{AesCrypto, Identifier, Uri}
 
+import java.lang.reflect.{ParameterizedType, Type}
+import java.net.{URLDecoder, URLEncoder}
+import java.security.spec.InvalidKeySpecException
+import java.time.Duration
+import java.util.logging.{Level, Logger}
+import javax.crypto.SecretKey
 import scala.language.existentials
 import scala.reflect.ClassTag
 import scala.util.{Failure, Success, Try}
@@ -21,7 +20,7 @@ import scala.util.{Failure, Success, Try}
 /** Represents a plugin parameter type and provides serialization. */
 sealed abstract class ParameterType[T: ClassTag] {
   /**
-    * User-readable name of this type.
+    * Identifying name of this type.
     */
   def name: String
 
@@ -148,7 +147,7 @@ abstract class PluginStringParameterType[T <: PluginStringParameter : ClassTag] 
   *
   * @tparam T The underlying type of this datatype, e.g., Int
   */
-sealed abstract class StringParameterType[T: ClassTag] extends ParameterType[T] {
+abstract class StringParameterType[T: ClassTag] extends ParameterType[T] {
   /**
     * Parses a value from its string representation.
     *
@@ -203,6 +202,10 @@ object StringParameterType {
       case _ =>
         allStaticTypes.find(_.hasType(dataType))
     }
+  }
+
+  def forName(name: String): StringParameterType[_] = {
+    allStaticTypes.find(_.name == name).getOrElse(throw new IllegalArgumentException(s"No parameter type found with name '$name'."))
   }
 
   object StringType extends StringParameterType[String] {

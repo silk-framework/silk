@@ -192,7 +192,7 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
         content = Array(
           new Content(
             mediaType = "application/json",
-            examples = Array(new ExampleObject("{ \"activityId\": \"BackgroundActivityID\" }"))
+            schema = new Schema(implementation = classOf[StartActivityResponse])
           )
         )
       ),

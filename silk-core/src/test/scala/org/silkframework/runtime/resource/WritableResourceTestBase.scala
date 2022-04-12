@@ -16,15 +16,15 @@ trait WritableResourceTestBase extends FlatSpec with MustMatchers {
       overallString += stringToWrite
       resource.writeString(stringToWrite, append = true)
     }
-    val roundTrip = resource.loadAsString
+    val roundTrip = resource.loadAsString()
     roundTrip mustBe overallString
   }
 
   it should "overwrite the current value if append is false" in {
     val resource = freshResource()
     resource.writeString("Test")
-    resource.loadAsString mustBe "Test"
+    resource.loadAsString() mustBe "Test"
     resource.writeString("Overwrite")
-    resource.loadAsString mustBe "Overwrite"
+    resource.loadAsString() mustBe "Overwrite"
   }
 }

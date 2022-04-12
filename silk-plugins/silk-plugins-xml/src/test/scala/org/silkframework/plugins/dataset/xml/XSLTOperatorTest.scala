@@ -3,7 +3,6 @@ package org.silkframework.plugins.dataset.xml
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow}
 
 import scala.xml.{Elem, Utility, XML}
 
@@ -29,7 +28,7 @@ class XSLTOperatorTest extends FlatSpec with MustMatchers with SingleProjectWork
   it should "run the XSLT workflow and generate the correct result" in {
     implicit val userContext: UserContext = UserContext.Empty
     executeWorkflow(WORKFLOW)
-    val result = project.resources.get(OUTPUT_RESOURCE).loadAsString
+    val result = project.resources.get(OUTPUT_RESOURCE).loadAsString()
     Utility.trim(XML.loadString(result)) mustBe Utility.trim(expectedOutput)
   }
 

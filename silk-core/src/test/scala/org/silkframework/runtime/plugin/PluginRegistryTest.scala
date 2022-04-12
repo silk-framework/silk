@@ -21,8 +21,8 @@ class PluginRegistryTest extends FlatSpec with MustMatchers {
   }
 
   it should "check object plugin parameters for validity" in {
-    val visibleParameter = Parameter("p", StringType, "p", advanced = false, visibleInDialog = true, autoCompletion = None)
-    val invisibleParameter = Parameter("p", StringType, "p", advanced = false, visibleInDialog = false, autoCompletion = None)
+    val visibleParameter = ClassPluginParameter("p", StringType, "p", advanced = false, visibleInDialog = true, autoCompletion = None)
+    val invisibleParameter = ClassPluginParameter("p", StringType, "p", advanced = false, visibleInDialog = false, autoCompletion = None)
     // Check nesting
     PluginRegistry.checkInvalidObjectPluginParameterType(classOf[TestObjectParameter], Seq(visibleParameter)) mustBe defined
     PluginRegistry.checkInvalidObjectPluginParameterType(classOf[TestObjectParameterInner], Seq(visibleParameter)) mustBe empty

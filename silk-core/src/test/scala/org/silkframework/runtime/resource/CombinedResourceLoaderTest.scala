@@ -22,8 +22,8 @@ class CombinedResourceLoaderTest extends FlatSpec with Matchers {
   it should "load resources as provided in the constructor" in {
     loader.list shouldBe List("test1")
     loader.listChildren shouldBe List("child")
-    loader.get("test1").loadAsString shouldBe "contents 1"
-    loader.child("child").get("test2").loadAsString shouldBe "contents 2"
+    loader.get("test1").loadAsString() shouldBe "contents 1"
+    loader.child("child").get("test2").loadAsString() shouldBe "contents 2"
   }
 
   private class TestResource(val name: String, contents: String) extends Resource {

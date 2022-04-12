@@ -165,7 +165,7 @@ case class RdfFileDataset(
     /**
       * The dataset task underlying the Datset this source belongs to
       */
-    override def underlyingTask: Task[DatasetSpec[Dataset]] = {
+    override lazy val underlyingTask: Task[DatasetSpec[Dataset]] = {
       PlainTask(Identifier.fromAllowed(file.name), DatasetSpec(EmptyDataset))
     } //FIXME CMEM 1352 replace with actual task
 

@@ -2,7 +2,6 @@ package org.silkframework.plugins.dataset.rdf
 
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.workspace.SingleProjectWorkspaceProviderTestTrait
-import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGeneratingProvenance, Workflow}
 
 /**
   * Execute a workflow using the SPARQL Update task and check the result.
@@ -32,7 +31,7 @@ class SparqlUpdateTaskIntegrationTest extends FlatSpec with MustMatchers with Si
       3. feed SPARQL select result into SPARQL Update that generates new properties
       4. Transform RDF to CSV using the new properties
        */
-      project.resources.getInPath(outputResourceName).loadLines mustBe Seq("generated") ++ // CSV Header
+      project.resources.getInPath(outputResourceName).loadLines() mustBe Seq("generated") ++ // CSV Header
           Seq("Abbigail Lesch", "Abbigail Ziemann", "Abigale Purdy", "Ronny Wiegand", "Rosalia Lueilwitz",
             "Rosalyn Wisozk", "Rosamond Rath", "Willy Rath"
           ).map(resultFn)

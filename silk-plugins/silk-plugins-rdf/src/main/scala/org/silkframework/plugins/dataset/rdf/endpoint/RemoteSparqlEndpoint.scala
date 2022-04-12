@@ -16,7 +16,6 @@ package org.silkframework.plugins.dataset.rdf.endpoint
 
 import java.io.{IOException, InputStream, OutputStreamWriter}
 import java.net._
-
 import javax.xml.bind.DatatypeConverter
 import org.apache.jena.rdf.model.ModelFactory
 import org.apache.jena.riot.RDFLanguages
@@ -28,7 +27,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.HttpURLConnectionUtils._
 
-import scala.io.Source
+import scala.io.{Codec, Source}
 
 /**
  * Executes queries on a remote SPARQL endpoint.
@@ -66,7 +65,7 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
       case ex: IOException =>
         val errorStream = httpConnection.getErrorStream
         if (errorStream != null) {
-          val errorMessage = Source.fromInputStream(errorStream).getLines.mkString("\n")
+          val errorMessage = Source.fromInputStream(errorStream)(Codec.UTF8).getLines.mkString("\n")
           throw new IOException(errorMessage, ex)
         } else {
           throw ex
@@ -89,7 +88,7 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
     //Open connection
     val httpConnection = new URL(queryUrl).openConnection.asInstanceOf[HttpURLConnection]
     setConnectionTimeouts(httpConnection)
-    httpConnection.setRequestProperty("ACCEPT", RDFLanguages.NTRIPLES.getContentType.getContentType)
+    httpConnection.setRequestProperty("ACCEPT", RDFLanguages.NTRIPLES.getContentType.getContentTypeStr)
     //Set authentication
     for ((user, password) <- sparqlParams.login) {
       httpConnection.setRequestProperty("Authorization", "Basic " + DatatypeConverter.printBase64Binary((user + ":" + password).getBytes))
@@ -111,7 +110,7 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
       case ex: IOException =>
         val errorStream = httpConnection.getErrorStream
         if (errorStream != null) {
-          val errorMessage = Source.fromInputStream(errorStream).getLines.mkString("\n")
+          val errorMessage = Source.fromInputStream(errorStream)(Codec.UTF8).getLines.mkString("\n")
           throw new IOException(errorMessage, ex)
         } else {
           throw ex

@@ -3,7 +3,6 @@ package org.silkframework.rule.execution.local
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset.{DataSource, Dataset, DatasetSpec, EmptyDataset}
 import org.silkframework.entity.EntitySchema
-import org.silkframework.dataset.{DataSource, DatasetCharacteristics, Dataset, DatasetSpec, EmptyDataset}
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.execution.local._
 import org.silkframework.execution.{EntityHolder, ExecutionReport, Executor, ExecutorOutput}
@@ -78,7 +77,7 @@ class LocalLinkSpecExecutor extends Executor[LinkSpec, LocalExecution] {
       *
       * @return
       */
-    override def underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(table.task.id, DatasetSpec(EmptyDataset))   //FIXME CMEM-1352 replace with table.task???
+    override lazy val underlyingTask: Task[DatasetSpec[Dataset]] = PlainTask(table.task.id, DatasetSpec(EmptyDataset))   //FIXME CMEM-1352 replace with table.task???
   }
 
   private def updateSelection(linkSpec: LinkSpec, source: LocalEntities, target: LocalEntities): LinkSpec = {

@@ -90,8 +90,8 @@ trait WorkspaceProvider {
     * Retains a task loading error that was caught from an external system, e.g. when copying tasks between workspaces (project import),
     * the loading error is also copied and can be displayed to the user.
     */
-  private[workspace] def retainExternalTaskLoadingError(projectId: String,
-                                                        loadingError: TaskLoadingError): Unit = synchronized {
+  def retainExternalTaskLoadingError(projectId: String,
+                                     loadingError: TaskLoadingError): Unit = synchronized {
     val loadingErrors = externalLoadingErrors.getOrElse(projectId, Vector.empty)
     val loadingErrorsWithoutTaskId = loadingErrors.filter(_.taskId != loadingError.taskId)
     externalLoadingErrors.put(projectId, loadingErrorsWithoutTaskId :+ loadingError)

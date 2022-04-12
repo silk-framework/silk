@@ -1,5 +1,5 @@
 @import controllers.workspace.routes
-@import org.silkframework.runtime.plugin.{AnyPlugin, PluginDescription}
+@import org.silkframework.runtime.plugin.{AnyPlugin, ClassPluginDescription}
 @import org.silkframework.workspace.activity.TaskActivity
 @import org.silkframework.runtime.activity.UserContext
 
@@ -12,7 +12,7 @@
     name = activity.name,
     title = "Start activity",
     submitLabel = "start",
-    plugins = PluginDescription(activity.factory.getClass) :: Nil,
+    plugins = ClassPluginDescription(activity.factory.getClass) :: Nil,
     currentObj = Some(activity.factory.asInstanceOf[AnyPlugin]),
     resources = Nil) {
 

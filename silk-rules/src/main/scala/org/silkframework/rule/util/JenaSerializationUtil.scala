@@ -1,11 +1,11 @@
 package org.silkframework.rule.util
 
-import java.io.ByteArrayOutputStream
-
-import scala.collection.JavaConverters._
-import org.apache.jena.riot.RDFDataMgr
 import org.apache.jena.graph.{Node, NodeFactory, Triple => JenaTriple}
-import org.silkframework.dataset.rdf.RdfNode
+import org.apache.jena.riot.RDFDataMgr
+
+import java.io.ByteArrayOutputStream
+import scala.collection.JavaConverters._
+
 /**
   * Some helper methods to serialize Jena objects to strings.
   */
@@ -22,7 +22,7 @@ object JenaSerializationUtil {
     val output = new ByteArrayOutputStream()
     val triple = new JenaTriple(NodeFactory.createURI(subject), NodeFactory.createURI(property), node)
     RDFDataMgr.writeTriples(output, Iterator(triple).asJava)
-    output.toString()
+    output.toString("UTF-8")
   }
 
   def serializeSingleNode(node: Node): String = {
@@ -31,6 +31,6 @@ object JenaSerializationUtil {
     val output = new ByteArrayOutputStream()
     val triple = new JenaTriple(NodeFactory.createURI("a"), NodeFactory.createURI("b"), node)
     RDFDataMgr.writeTriples(output, Iterator(triple).asJava)
-    output.toString().drop(subjectPropertyLength).dropRight(spaceDotNewLineLength)
+    output.toString("UTF-8").drop(subjectPropertyLength).dropRight(spaceDotNewLineLength)
   }
 }
