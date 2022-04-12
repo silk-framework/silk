@@ -35,7 +35,7 @@ import scala.util.Try
 import scala.util.control.NonFatal
 
 @Tag(name = "Project tasks")
-class parametersWithLabelTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
+class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   implicit private lazy val executionContext: ExecutionContext = controllerComponents.executionContext
   private val log: Logger = Logger.getLogger(this.getClass.getCanonicalName)

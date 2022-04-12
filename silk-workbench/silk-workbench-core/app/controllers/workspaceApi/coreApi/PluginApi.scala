@@ -270,11 +270,11 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
     implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
     val pluginListJson = JsonSerializers.toJson(pluginList.copy(pluginsByType = filteredPlugins))
     val pluginJsonWithTaskAndPluginType = pluginListJson.as[JsObject].fields.map { case (pluginId, pluginJson) =>
-      val withTaskType = pluginCache.taskType(pluginId) match {
+      val withTaskType = PluginApiCache.taskType(pluginId) match {
         case Some(taskType) => pluginJson.as[JsObject] + (JsonSerializers.TASKTYPE -> JsString(taskType))
         case None => pluginJson
       }
-      val withPluginType = pluginCache.pluginType(pluginId) match {
+      val withPluginType = PluginApiCache.pluginType(pluginId) match {
         case Some(pluginType) => withTaskType.as[JsObject] + (JsonSerializers.PLUGIN_TYPE -> JsString(pluginType))
         case None => withTaskType
       }
