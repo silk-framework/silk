@@ -16,7 +16,7 @@ export type ErrorHandlerRegisterFuncType = (
     errorId: string,
     errorMessage: string,
     cause: DIErrorTypes | null
-) => JSX.Element;
+) => JSX.Element | null;
 
 interface ErrorHandlerDict {
     registerError: ErrorHandlerRegisterFuncType;
@@ -64,6 +64,10 @@ const useErrorHandler = (): ErrorHandlerDict => {
                 })
             );
             return <Notification message={tempUnavailableMessage} info />;
+        } else if (isNotFoundError(cause)) {
+            // Do not log 404 errors at all. These are usually due to page 404. Only log to console.
+            console.warn("Received 404 error.", cause);
+            return null;
         } else {
             dispatch(registerNewError({ newError: error }));
             return <Notification message={errorMessage} warning />;
@@ -75,6 +79,14 @@ const useErrorHandler = (): ErrorHandlerDict => {
             !!error &&
             (((error as FetchError).isFetchError && (error as FetchError).httpStatus === 503) ||
                 (error as ErrorResponse).status === 503)
+        );
+    };
+
+    const isNotFoundError = (error?: DIErrorTypes | null): boolean => {
+        return (
+            !!error &&
+            (((error as FetchError).isFetchError && (error as FetchError).httpStatus === 404) ||
+                (error as ErrorResponse).status === 404)
         );
     };
 
