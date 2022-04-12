@@ -7,7 +7,7 @@ import {
     ISearchResultsServer,
     ISorterListItemState,
     ITaskLink,
-    Tags,
+    KeywordProps,
 } from "@ducks/workspace/typings";
 import fetch from "../../../services/fetch";
 import { legacyApiEndpoint, workspaceApi } from "../../../utils/getApiEndpoint";
@@ -315,7 +315,7 @@ export const recentlyViewedItems = async (): Promise<FetchResponse<IRecentlyView
 };
 
 //get all tags for a project
-export const requestProjectTags = async (projectId: string): Promise<FetchResponse<Tags>> =>
+export const requestProjectTags = async (projectId: string): Promise<FetchResponse<{ tags: KeywordProps }>> =>
     fetch({
         url: workspaceApi(`/projects/${projectId}/tags`),
     });

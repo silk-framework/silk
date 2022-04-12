@@ -34,7 +34,8 @@ import { StringPreviewContentBlobToggler } from "gui-elements/src/cmem/ContentBl
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import * as H from "history";
 import utils from "./MetadataUtils";
-import { IMetadataExpanded, Tag as TagType } from "./Metadatatypings";
+import { IMetadataExpanded } from "./Metadatatypings";
+import { KeywordProp, KeywordProps } from "@ducks/workspace/typings";
 
 interface IProps {
     projectId?: string;
@@ -58,8 +59,8 @@ export function Metadata(props: IProps) {
     const [formEditData, setFormEditData] = useState<IMetadataUpdatePayload | undefined>(undefined);
     const [isEditing, setIsEditing] = useState(false);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
-    const [createdTags, setCreatedTags] = React.useState<Array<Partial<TagType>>>([]);
-    const [selectedTags, setSelectedTags] = React.useState<Array<TagType>>([...(data.tags ?? [])]);
+    const [createdTags, setCreatedTags] = React.useState<Partial<KeywordProp>[]>([]);
+    const [selectedTags, setSelectedTags] = React.useState<KeywordProps>([...(data.tags ?? [])]);
     const [t] = useTranslation();
 
     // Form errors
@@ -89,7 +90,6 @@ export function Metadata(props: IProps) {
 
     useEffect(() => {
         if (projectId) {
-            //getTaskMetadata(taskId, projectId);
             utils
                 .getExpandedMetaData(projectId, taskId)
                 .then((res) => setData({ ...(res?.data as IMetadataExpanded) } ?? {}));
@@ -107,33 +107,12 @@ export function Metadata(props: IProps) {
 
     const toggleEdit = async () => {
         if (!isEditing) {
-            // let metaData = data;
-            // if (!metaData.label) {
-            //     //metaData = await getTaskMetadata(taskId, projectId);
-            //     const response = await utils.getExpandedMetaData(projectId, taskId);
-            //     if (!response?.data.label) {
-            //         return; // Do not toggle edit mode, request has failed
-            //     }
-            // }
             setFormEditData({ label: data.label ?? "", description: data.description ?? "" });
         } else {
             removeDirtyState();
         }
         setIsEditing(!isEditing);
     };
-
-    // const getTaskMetadata = async (taskId?: string, projectId?: string) => {
-    //     try {
-    //         const result = await letLoading(() => {
-    //             return sharedOp.getTaskMetadataAsync(taskId, projectId);
-    //         });
-    //         setData(result);
-    //         return result;
-    //     } catch (error) {
-    //         registerError("Metadata-getTaskMetaData", "Fetching meta data has failed.", error);
-    //         return {};
-    //     }
-    // };
 
     const onSubmit = async () => {
         if (!formEditData?.label) {
@@ -338,9 +317,10 @@ export function Metadata(props: IProps) {
                         </PropertyName>
                         <PropertyValue>
                             <FieldItem>
-                                <MultiSelect<TagType>
+                                <MultiSelect<KeywordProp>
                                     canCreateNewItem
                                     prePopulateWithItems
+                                    openOnKeyDown
                                     equalityProp="uri"
                                     labelProp="label"
                                     items={data.tags ?? []}

@@ -1,4 +1,4 @@
-import { Tags } from "@ducks/workspace/typings";
+import { KeywordProps } from "@ducks/workspace/typings";
 
 export interface IRequestAutocompletePayload {
     pluginId: string;
@@ -99,7 +99,7 @@ export interface IRelatedItem {
     type: string;
     itemLinks: IItemLink[];
     pluginLabel: string;
-    tags: Tags["tags"];
+    tags: KeywordProps;
 }
 
 export interface IItemLink {

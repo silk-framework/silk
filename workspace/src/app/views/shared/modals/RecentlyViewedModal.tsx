@@ -157,7 +157,7 @@ export function RecentlyViewedModal() {
                                 </Tag>
                             </>
                         )}
-                        <Spacing vertical size="tiny" />
+                        {item.tags?.length ? <Spacing vertical size="tiny" /> : null}
                         <ProjectTags tags={item.tags} query={query} />
                     </OverviewItemLine>
                 </OverviewItemDescription>

@@ -57,12 +57,11 @@ export interface IRecentlyViewedItem {
     pluginId?: string;
     pluginLabel?: string;
     itemLinks: IItemLink[];
-    tags?: Tags["tags"];
+    tags?: KeywordProps;
 }
 
-export interface Tags {
-    tags: {
-        label: string;
-        uri: string;
-    }[];
-}
+export type KeywordProp = {
+    label: string;
+    uri: string;
+};
+export type KeywordProps = Array<KeywordProp>;

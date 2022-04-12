@@ -40,7 +40,6 @@ describe("Task page", () => {
     const pluginId = "testPlugin";
     const pluginLabel = "Test Plugin";
     const taskDataUrl = legacyApiUrl(`/workspace/projects/${projectId}/tasks/${taskId}`);
-    // const taskMetaDataUrl = legacyApiUrl(`/workspace/projects/${projectId}/tasks/${taskId}/metadata`);
     const taskMetaDataExpandedURL = legacyApiUrl(`/workspace/projects/${projectId}/tasks/${taskId}/metadataExpanded`);
     const pluginUrl = apiUrl(`/core/plugins/${pluginId}`);
 
