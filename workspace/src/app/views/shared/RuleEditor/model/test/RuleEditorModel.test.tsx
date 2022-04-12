@@ -11,6 +11,7 @@ import {
     IRuleOperator,
     IRuleOperatorNode,
     RuleEditorValidationNode,
+    RuleOperatorNodeParameters,
     RuleSaveResult,
 } from "../../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
@@ -117,23 +118,26 @@ describe("Rule editor model", () => {
         pluginId?: string;
         portSpecification?: IPortSpecification;
         position?: XYPosition;
+        parameters?: RuleOperatorNodeParameters;
     }
     const nodeDefaultPosition = { x: 0, y: 0 };
+    const defaultParameters = {
+        "param A": "Value A",
+        "param B": "Value B",
+    };
     const node = ({
         nodeId,
         inputs = [],
         pluginId = "testPlugin",
         portSpecification = { minInputPorts: 1 },
         position = nodeDefaultPosition,
+        parameters = defaultParameters,
     }: NodeProps): IRuleOperatorNode => {
         return {
             inputs,
             label: nodeId,
             nodeId,
-            parameters: {
-                "param A": "Value A",
-                "param B": "Value B",
-            },
+            parameters,
             pluginId,
             pluginType: "unknown",
             portSpecification,
@@ -462,6 +466,34 @@ describe("Rule editor model", () => {
             checkParameters(expectedValueHistory[i + 1]);
         }
         checkAfterChange();
+    });
+
+    it("should save rule parameters correctly", async () => {
+        await ruleEditorModel(
+            [
+                node({
+                    nodeId: "nodeA",
+                    parameters: {
+                        "param A": "just a string",
+                        "param B": {
+                            label: "with label",
+                            value: "0",
+                        },
+                    },
+                }),
+            ],
+            [operator("pluginA")]
+        );
+        act(() => {
+            // Need to run this in separate act, since moveNode runs async
+            currentContext().executeModelEditOperation.changeNodeParameter("nodeA", "param A", "still a string");
+        });
+        currentContext().saveRule();
+        expect(savedRuleOperatorNodes).toHaveLength(1);
+        expect(savedRuleOperatorNodes[0].parameters).toStrictEqual({
+            "param A": "still a string",
+            "param B": "0",
+        });
     });
 
     it("should delete multiple nodes and undo & redo", async () => {

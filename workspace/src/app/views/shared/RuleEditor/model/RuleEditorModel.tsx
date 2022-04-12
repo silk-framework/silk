@@ -1225,7 +1225,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         autoLayoutInternal(current.elements, true);
     };
 
-    /** Save the current rule. */
+    /** Convert to rule operator nodes. Only this representation should be handed outside of this component. */
     const ruleOperatorNodes = (): IRuleOperatorNode[] => {
         const nodes: RuleEditorNode[] = [];
         const nodeInputEdges: Map<string, Edge[]> = new Map();
@@ -1267,12 +1267,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 parameters: parameterDiff
                     ? Object.fromEntries(
                           Object.entries(originalNode.parameters).map(([parameterId, parameterValue]) => {
-                              return [
-                                  parameterId,
+                              const value =
                                   parameterDiff && parameterDiff.has(parameterId)
                                       ? parameterDiff.get(parameterId)
-                                      : parameterValue,
-                              ];
+                                      : parameterValue;
+                              return [parameterId, typeof value === "string" ? value : value ? value.value : undefined];
                           })
                       )
                     : originalNode.parameters,
@@ -1285,6 +1284,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
+    /** Save the current rule. */
     const saveRule = async () => {
         const saveResult = await ruleEditorContext.saveRule(ruleOperatorNodes());
         if (saveResult.success) {
