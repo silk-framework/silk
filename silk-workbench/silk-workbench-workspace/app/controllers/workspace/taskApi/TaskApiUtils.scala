@@ -1,9 +1,8 @@
 package controllers.workspace.taskApi
 
 import org.silkframework.config.TaskSpec
-import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ParameterAutoCompletion, PluginDescription, PluginObjectParameterTypeTrait}
+import org.silkframework.runtime.plugin.{ClassPluginDescription, ParameterAutoCompletion, PluginDescription, PluginObjectParameterTypeTrait}
 import org.silkframework.workspace.{ProjectTask, Workspace, WorkspaceFactory}
 import play.api.libs.json.{JsObject, JsString, JsValue}
 
@@ -21,11 +20,7 @@ object TaskApiUtils {
                           parameterValues: collection.Map[String, JsValue])
                          (implicit userContext: UserContext): JsObject = {
     try {
-      val pluginClass = task.data match {
-        case ds: GenericDatasetSpec => ds.plugin.getClass
-        case o: TaskSpec => o.getClass
-      }
-      val pluginDescription = PluginDescription(pluginClass)
+      val pluginDescription = PluginDescription.forTask(task)
       implicit val workspace = WorkspaceFactory().workspace
       JsObject(addLabelsToValues(projectName, parameterValues, pluginDescription))
     } catch {
@@ -52,7 +47,7 @@ object TaskApiUtils {
         throw new RuntimeException(s"Parameter '$parameterName' is not part of the parameter description of plugin '${pluginDescription.id}'."))
       val updatedValue = parameterValue match {
         case valueObj: JsObject if pd.visibleInDialog && pd.parameterType.isInstanceOf[PluginObjectParameterTypeTrait] =>
-          val paramPluginDescription = PluginDescription(pd.parameterType.asInstanceOf[PluginObjectParameterTypeTrait].pluginObjectParameterClass)
+          val paramPluginDescription = ClassPluginDescription(pd.parameterType.asInstanceOf[PluginObjectParameterTypeTrait].pluginObjectParameterClass)
           val updatedInnerValues = addLabelsToValues(projectName, valueObj.value, paramPluginDescription)
           JsObject(Seq("value" -> JsObject(updatedInnerValues))) // Nested objects cannot have a label
         case jsString: JsString if pd.autoCompletion.isDefined && pd.autoCompletion.get.autoCompleteValueWithLabels && jsString.value != "" =>
