@@ -1220,14 +1220,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     });
 
     /** Auto-layout the rule nodes.
-     *
-     * @param noHistory If the change should be tracked or not.
      */
-    const autoLayout = (noHistory: boolean = false) => {
-        changeElementsInternal((elements) => {
-            autoLayoutInternal(elements, noHistory);
-            return elements;
-        });
+    const autoLayout = () => {
+        autoLayoutInternal(current.elements, true);
     };
 
     /** Save the current rule. */

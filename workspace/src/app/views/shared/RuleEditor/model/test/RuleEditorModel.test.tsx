@@ -45,6 +45,8 @@ describe("Rule editor model", () => {
         return modelUtils.elementNodes(currentContext().elements).sort((n1, n2) => (n1.id < n2.id ? -1 : 1));
     };
 
+    let savedRuleOperatorNodes: IRuleOperatorNode[] = [];
+
     const ruleEditorModel = async (
         initialRuleNodes: IRuleOperatorNode[] = [],
         operatorList: IRuleOperator[] = [],
@@ -66,7 +68,8 @@ describe("Rule editor model", () => {
                         editedItemLoading: false,
                         operatorListLoading: false,
                         initialRuleOperatorNodes: initialRuleNodes,
-                        saveRule: (): RuleSaveResult => {
+                        saveRule: (ruleOperatorNodes): RuleSaveResult => {
+                            savedRuleOperatorNodes = ruleOperatorNodes;
                             return { success: true };
                         },
                         convertRuleOperatorToRuleNode: utils.defaults.convertRuleOperatorToRuleNode,
@@ -337,6 +340,34 @@ describe("Rule editor model", () => {
             currentContext().redo();
         });
         checkAfterMove();
+        currentContext().saveRule();
+        expect(savedRuleOperatorNodes).toHaveLength(1);
+        expect(savedRuleOperatorNodes[0].position).toBe(newPosition);
+    });
+
+    it("should auto-layout nodes and undo & redo", async () => {
+        const initialPositions = [
+            { x: 0, y: 0 },
+            { x: -100, y: 100 },
+        ];
+        await ruleEditorModel([
+            node({ nodeId: "nodeA", position: initialPositions[0] }),
+            node({ nodeId: "nodeB", inputs: ["nodeA"], position: initialPositions[1] }),
+        ]);
+        const checkBefore = () => {
+            expect(currentOperatorNodes().map((n) => n.position)).toStrictEqual(initialPositions);
+        };
+        checkBefore();
+        act(() => {
+            currentContext().executeModelEditOperation.autoLayout();
+        });
+        const checkAfter = async () => {
+            await waitFor(() => {
+                expect(currentOperatorNodes().map((n) => n.position)).not.toStrictEqual(initialPositions);
+            });
+        };
+        await checkAfter();
+        checkUndoAndRedo(checkBefore, checkAfter);
     });
 
     it("should move multiple nodes by an offset", async () => {
@@ -585,17 +616,18 @@ describe("Rule editor model", () => {
         await recordedTransaction("Add edge", () => {
             currentContext().executeModelEditOperation.addEdge("pluginA", "nodeA", "0");
         });
-        // FIXME: Wait for elkjs release 0.7.3 to fix an issue with undefined variables
-        // await recordedTransaction("Auto-layout",
-        //     () => {
-        //         currentContext().executeModelEditOperation.autoLayout();
-        //     },
-        //     async () => { // Auto-layout is async, so we need to wait for the change to take place.
-        //         await waitFor(() => {
-        //             expect(currentOperatorNodes()).not.toStrictEqual(stateHistory[stateHistory.length - 1])
-        //         })
-        //     }
-        // );
+        await recordedTransaction(
+            "Auto-layout",
+            () => {
+                currentContext().executeModelEditOperation.autoLayout();
+            },
+            async () => {
+                // Auto-layout is async, so we need to wait for the change to take place.
+                await waitFor(() => {
+                    expect(currentOperatorNodes()).not.toStrictEqual(stateHistory[stateHistory.length - 1]);
+                });
+            }
+        );
         await recordedTransaction("Change node parameter", () => {
             currentContext().executeModelEditOperation.changeNodeParameter("nodeA", "param A", "new param value");
             currentContext().executeModelEditOperation.changeNodeParameter("nodeA", "param A", "new param value 2");
