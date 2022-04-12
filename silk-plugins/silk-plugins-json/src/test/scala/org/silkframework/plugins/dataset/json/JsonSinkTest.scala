@@ -161,7 +161,7 @@ class JsonSinkTest extends FlatSpec with Matchers {
     val entityTables = Seq(
       Seq(Entity("e1_1", IndexedSeq(Seq("e2_1"), Seq()), schema)),
       Seq(Entity("e2_1", IndexedSeq(Seq("e3_1"), Seq("e3_2")), schema)),
-      Seq(Entity("e3_1", IndexedSeq(Seq("e1_1"), Seq()), schema), Entity("e3_2", IndexedSeq(Seq(), Seq("e1_1")), schema)),
+      Seq(Entity("e3_1", IndexedSeq(Seq("e2_1"), Seq()), schema), Entity("e3_2", IndexedSeq(Seq(), Seq("e2_1")), schema)),
     )
 
     intercept[MaxDepthExceededException] {
