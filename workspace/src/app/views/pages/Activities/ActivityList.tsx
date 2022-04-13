@@ -84,7 +84,6 @@ const ActivityList = () => {
     // Register an observer from the activity widget
     const createRegisterForUpdatesFn = (activityKey: string) => (callback: (status: IActivityStatus) => any) => {
         activityUpdateCallback.set(activityKey, callback);
-        // Send current value if it exists
         const currentStatus = activityStatusMap.get(activityKey);
         currentStatus && callback(currentStatus);
     };
