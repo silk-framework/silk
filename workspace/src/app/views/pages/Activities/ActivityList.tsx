@@ -42,7 +42,6 @@ const ActivityList = () => {
 
     // Contains the callback function from a specific activity control that needs to be called every time the status changes, so only the affected activity is re-rendered.
     const [activityUpdateCallback] = React.useState<Map<string, (status: IActivityStatus) => any>>(new Map());
-    // Contains the memoized activity control execution functions for each activity
 
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
 
