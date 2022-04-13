@@ -19,6 +19,7 @@ import { useTranslation } from "react-i18next";
 import { routerOp } from "@ducks/router";
 import { useDispatch } from "react-redux";
 import { useProjectTabsView } from "../projectTaskTabView/projectTabsViewHooks";
+import ProjectTags from "../ProjectTags/ProjectTags";
 
 interface IProps {
     // The related item to be shown
@@ -88,6 +89,8 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
                             </Tag>
                         </>
                     )}
+                    <Spacing vertical size="tiny" />
+                    <ProjectTags tags={relatedItem.tags} query={textQuery} />
                 </OverviewItemLine>
             </OverviewItemDescription>
             <OverviewItemActions>

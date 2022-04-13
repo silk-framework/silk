@@ -20,6 +20,7 @@ import org.silkframework.util.{Identifier, Uri}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
 import org.silkframework.workspace.resources.InMemoryResourceRepository
 
+
 trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSugar {
 
   val PROJECT_NAME = "ProjectName"
@@ -479,6 +480,56 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
     updatedProjectOpt2 shouldBe defined
     val updatedProject2 = updatedProjectOpt2.get
     updatedProject2.prefixes.prefixMap.get(NEW_PREFIX) shouldBe Some("http://new_prefix_updated")
+  }
+
+  it should "allow managing tags" in {
+    implicit val us: UserContext = emptyUserContext
+
+    // Make sure that initially the tags are empty
+    workspaceProvider.readTags(PROJECT_NAME) shouldBe empty
+
+    // Add tags and read them back
+    val tag1 = Tag("urn:tag1", "Some Tag 1")
+    val tag2 = Tag("urn:tag2", "Some Tag 2")
+    workspaceProvider.putTag(PROJECT_NAME, tag1)
+    workspaceProvider.putTag(PROJECT_NAME, tag2)
+    refreshTest {
+      workspaceProvider.readTags(PROJECT_NAME) should contain theSameElementsAs Iterable(tag1, tag2)
+    }
+
+    // Add tags to project
+    val project = getProject(PROJECT_NAME).get
+    val metaDataWithTags = project.metaData.copy(tags = Set("urn:tag1", "urn:tag2"))
+    workspaceProvider.putProject(project.copy(metaData = metaDataWithTags))
+    refreshTest {
+      workspaceProvider.readProject(PROJECT_NAME).get.metaData shouldBe metaDataWithTags
+    }
+
+    // Modify tags on project
+    val metaDataWithTags2 = project.metaData.copy(tags = Set("urn:tag1"))
+    workspaceProvider.putProject(project.copy(metaData = metaDataWithTags2))
+    refreshTest {
+      workspaceProvider.readProject(PROJECT_NAME).get.metaData shouldBe metaDataWithTags2
+    }
+
+    // Add tags to a new task
+    val taskWithTag = customTask.copy(
+      metaData =
+        MetaData(
+          label = Some("Task Label"),
+          tags = Set("urn:tag2", "urn:tag1")
+        )
+    )
+    workspaceProvider.putTask(PROJECT_NAME, taskWithTag)
+    refreshTest {
+      workspaceProvider.readTasks[CustomTask](PROJECT_NAME, projectResources).headOption.map(_.task) shouldBe Some(taskWithTag)
+    }
+
+    // Remove tag
+    workspaceProvider.deleteTag(PROJECT_NAME, tag1.uri)
+    refreshTest {
+      workspaceProvider.readTags(PROJECT_NAME) should contain theSameElementsAs Iterable(tag2)
+    }
   }
 
   /** Executes the block before and after project refresh */

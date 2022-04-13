@@ -35,10 +35,12 @@ describe("Task page", () => {
     const taskId = "taskId";
     const taskLabel = "A task";
     const taskDescription = "This is a task";
+    const createdBy = "unknown";
+    const lastModifiedBy = "unknown";
     const pluginId = "testPlugin";
     const pluginLabel = "Test Plugin";
     const taskDataUrl = legacyApiUrl(`/workspace/projects/${projectId}/tasks/${taskId}`);
-    const taskMetaDataUrl = legacyApiUrl(`/workspace/projects/${projectId}/tasks/${taskId}/metadata`);
+    const taskMetaDataExpandedURL = legacyApiUrl(`/workspace/projects/${projectId}/tasks/${taskId}/metadataExpanded`);
     const pluginUrl = apiUrl(`/core/plugins/${pluginId}`);
 
     beforeAll(() => {
@@ -54,7 +56,7 @@ describe("Task page", () => {
     });
 
     it("should request meta data, related items and task config", async () => {
-        checkRequestMade(taskMetaDataUrl);
+        checkRequestMade(taskMetaDataExpandedURL);
         checkRequestMade(apiUrl(`/workspace/projects/${projectId}/tasks/${taskId}/relatedItems`));
         checkRequestMade(taskDataUrl, "GET", { withLabels: true });
         mockAxios.mockResponseFor(
@@ -122,13 +124,16 @@ describe("Task page", () => {
         const taskMetaData: IMetadata = {
             label: taskLabel,
             description: taskDescription,
+            modified: new Date(),
+            created: new Date(),
         };
-        mockAxios.mockResponseFor(taskMetaDataUrl, mockedAxiosResponse({ data: taskMetaData }));
+        mockAxios.mockResponseFor(taskMetaDataExpandedURL, mockedAxiosResponse({ data: taskMetaData }));
         await waitFor(() => {
             const metaData = findSingleElement(taskPageWrapper, byTestId("metaDataWidget"));
             expect(findAll(metaData, ".eccgui-propertyvalue__value").map((elem) => elem.text())).toStrictEqual([
                 taskLabel,
                 taskDescription,
+                "Created < 1 minute ago by unknown user. Last modified < 1 minute ago by unknown user.",
             ]);
         });
     });

@@ -6,6 +6,7 @@ import controllers.workspace.doc.SearchApiDoc
 import controllers.workspaceApi.search.SearchApiModel._
 import controllers.workspaceApi.search.{ItemType, ParameterAutoCompletionRequest}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -17,6 +18,7 @@ import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.serialization.json.MetaDataSerializers.FullTag
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, InjectedController, Result}
@@ -115,16 +117,22 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
         None
       } else {
         val itemType = if(taskOpt.isEmpty) ItemType.project else ItemType.itemType(taskOpt.get.data)
-        val taskData = for (task <- taskOpt) yield {
-          val pd = PluginDescription.forTask(task)
-          Seq(
-            "taskId" -> JsString(task.id),
-            "taskLabel" -> JsString(taskOpt.get.label()),
-            PLUGIN_ID -> JsString(pd.id),
-            PLUGIN_LABEL -> JsString(pd.label)
-          )
+        val additionalData = taskOpt match {
+          case Some(task) =>
+            val pd = PluginDescription.forTask(task)
+            Json.obj(
+              "taskId" -> JsString(task.id),
+              "taskLabel" -> JsString(taskOpt.get.label()),
+              PLUGIN_ID -> JsString(pd.id),
+              PLUGIN_LABEL -> JsString(pd.label),
+              TAGS -> Json.toJson(task.tags().map(FullTag.fromTag))
+            )
+          case None =>
+            Json.obj(
+              TAGS -> Json.toJson(project.tags().map(FullTag.fromTag))
+            )
         }
-        Some(JsObject(Seq(
+        Some(Json.obj(
           "projectId" -> JsString(item.projectId),
           "projectLabel" -> JsString(project.config.label()),
           "itemType" -> JsString(itemType.id),
@@ -134,7 +142,7 @@ class SearchApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) exten
             taskOpt.map(_.id.toString).getOrElse(project.name.toString),
             taskOpt.map(_.data)
           ))
-        ) ++ taskData.toSeq.flatten))
+        ) ++ additionalData)
       }
     }
     Ok(JsArray(items))

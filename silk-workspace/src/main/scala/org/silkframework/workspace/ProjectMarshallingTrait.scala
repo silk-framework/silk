@@ -135,6 +135,7 @@ trait ProjectMarshallingTrait extends AnyPlugin {
     val updatedProjectConfig = project.config.copy(projectResourceUriOpt = Some(project.config.resourceUriOrElseDefaultUri))
     val projectId = updatedProjectConfig.id
     outputWorkspaceProvider.putProject(updatedProjectConfig)
+    outputWorkspaceProvider.putTags(updatedProjectConfig.id, project.tagManager.allTags())
     for(outputResources <- exportToResources) {
       copyResources(resources, outputResources)
     }

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Prompt, useLocation } from "react-router";
-import { useTranslation } from "react-i18next";
-import { Markdown } from "gui-elements/cmem";
+import { useTranslation, Trans } from "react-i18next";
+import { ElapsedDateTimeDisplay, Markdown, TimeUnits } from "gui-elements/cmem";
 import {
     Button,
     Card,
@@ -15,14 +15,17 @@ import {
     FieldItem,
     IconButton,
     Label,
+    MultiSelect,
     PropertyName,
     PropertyValue,
     PropertyValueList,
     PropertyValuePair,
+    Link,
     TextArea,
     TextField,
+    HtmlContentBlock,
 } from "gui-elements";
-import { IMetadata, IMetadataUpdatePayload } from "@ducks/shared/typings";
+import { IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
 import { routerOp } from "@ducks/router";
 import { sharedOp } from "@ducks/shared";
@@ -30,6 +33,9 @@ import { Loading } from "../Loading/Loading";
 import { StringPreviewContentBlobToggler } from "gui-elements/src/cmem/ContentBlobToggler/StringPreviewContentBlobToggler";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import * as H from "history";
+import utils from "./MetadataUtils";
+import { IMetadataExpanded } from "./Metadatatypings";
+import { Keyword, Keywords } from "@ducks/workspace/typings";
 
 interface IProps {
     projectId?: string;
@@ -49,10 +55,12 @@ export function Metadata(props: IProps) {
     const taskId = props.taskId || _taskId;
 
     const [loading, setLoading] = useState(false);
-    const [data, setData] = useState({} as IMetadata);
+    const [data, setData] = useState({ label: "", description: "" } as IMetadataExpanded);
     const [formEditData, setFormEditData] = useState<IMetadataUpdatePayload | undefined>(undefined);
     const [isEditing, setIsEditing] = useState(false);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
+    const [createdTags, setCreatedTags] = React.useState<Partial<Keyword>[]>([]);
+    const [selectedTags, setSelectedTags] = React.useState<Keywords>([...(data.tags ?? [])]);
     const [t] = useTranslation();
 
     // Form errors
@@ -78,11 +86,13 @@ export function Metadata(props: IProps) {
         return removeDirtyState;
     }, []);
 
-    const { label, description } = data;
+    const { label, description, lastModifiedByUser, createdByUser, created, modified } = data;
 
     useEffect(() => {
         if (projectId) {
-            getTaskMetadata(taskId, projectId);
+            utils
+                .getExpandedMetaData(projectId, taskId)
+                .then((res) => setData({ ...(res?.data as IMetadataExpanded) } ?? {}));
         }
     }, [taskId, projectId]);
 
@@ -97,31 +107,11 @@ export function Metadata(props: IProps) {
 
     const toggleEdit = async () => {
         if (!isEditing) {
-            let metaData = data;
-            if (!metaData.label) {
-                metaData = await getTaskMetadata(taskId, projectId);
-                if (!metaData.label) {
-                    return; // Do not toggle edit mode, request has failed
-                }
-            }
-            setFormEditData({ label: metaData.label, description: metaData.description });
+            setFormEditData({ label: data.label ?? "", description: data.description ?? "" });
         } else {
             removeDirtyState();
         }
         setIsEditing(!isEditing);
-    };
-
-    const getTaskMetadata = async (taskId?: string, projectId?: string) => {
-        try {
-            const result = await letLoading(() => {
-                return sharedOp.getTaskMetadataAsync(taskId, projectId);
-            });
-            setData(result);
-            return result;
-        } catch (error) {
-            registerError("Metadata-getTaskMetaData", "Fetching meta data has failed.", error);
-            return {};
-        }
     };
 
     const onSubmit = async () => {
@@ -142,15 +132,37 @@ export function Metadata(props: IProps) {
         });
 
         try {
-            const result = await letLoading(async () => {
+            await letLoading(async () => {
                 const path = location.pathname;
+                //create new tags if exists
+                if (createdTags.length) {
+                    const createdTagsResponse = await utils.createNewTag(
+                        createdTags.map((t) => ({ label: t.label })),
+                        projectId
+                    );
+                    //defensive correction to ensure uris match
+                    const metadataTags = selectedTags.map((tag) => {
+                        const newlyCreatedTagMatch = (createdTagsResponse?.data ?? []).find(
+                            (t) => t.label === tag.label
+                        );
+                        if (newlyCreatedTagMatch) {
+                            return newlyCreatedTagMatch.uri;
+                        }
+                        return tag.uri;
+                    });
+                    formEditData.tags = metadataTags;
+                } else {
+                    formEditData.tags = selectedTags.map((tag) => tag.uri);
+                }
                 const metadata = await sharedOp.updateTaskMetadataAsync(formEditData!!, taskId, projectId);
                 removeDirtyState();
                 dispatch(routerOp.updateLocationState(path, projectId as string, metadata));
                 return metadata;
             });
-
-            setData(result);
+            //update metadata with expanded data
+            utils
+                .getExpandedMetaData(projectId, taskId)
+                .then((res) => setData({ ...(res?.data as IMetadataExpanded) } ?? {}));
 
             toggleEdit();
         } catch (ex) {
@@ -212,6 +224,48 @@ export function Metadata(props: IProps) {
         }
     };
 
+    const handleTagSelectionChange = React.useCallback((params) => {
+        setCreatedTags(params.createdItems);
+        setSelectedTags((oldSelectedTags) => {
+            const prevSelectedTags = oldSelectedTags.map((t) => t.uri).join("|");
+            const newlySelectedTags = params.selectedItems.map((t) => t.uri).join("|");
+            if (prevSelectedTags !== newlySelectedTags) {
+                setDirtyState();
+            } else {
+                removeDirtyState();
+            }
+            return params.selectedItems;
+        });
+    }, []);
+
+    const handleTagQueryChange = React.useCallback(async (query: string) => {
+        if (projectId) {
+            const res = await utils.queryTags(projectId, query);
+            return res?.data.tags ?? [];
+        }
+    }, []);
+
+    const goToPage = (path: string) => {
+        dispatch(routerOp.goToPage(path));
+    };
+
+    const translateUnits = (unit: TimeUnits) => t("common.units." + unit, unit);
+
+    const getDeltaInDays = (dateTime: number | string) => {
+        const now = Date.now();
+        const then = new Date(dateTime).getTime();
+        return (now - then) / 1000 / 60 / 60 / 24;
+    };
+
+    const getDateData = (dateTime: number | string) => {
+        const then = new Date(dateTime);
+        return {
+            year: then.getFullYear(),
+            month: ("0" + (then.getMonth() + 1)).slice(-2),
+            day: ("0" + then.getDate()).slice(-2),
+        };
+    };
+
     const widgetContent = (
         <CardContent data-test-id={"metaDataWidget"}>
             {loading && <Loading description={t("Metadata.loading", "Loading summary data.")} />}
@@ -257,6 +311,25 @@ export function Metadata(props: IProps) {
                             </FieldItem>
                         </PropertyValue>
                     </PropertyValuePair>
+                    <PropertyValuePair hasSpacing key="tags">
+                        <PropertyName>
+                            <Label text={t("form.field.tags", "Tags")} />
+                        </PropertyName>
+                        <PropertyValue>
+                            <FieldItem>
+                                <MultiSelect<Keyword>
+                                    canCreateNewItem
+                                    prePopulateWithItems
+                                    openOnKeyDown
+                                    equalityProp="uri"
+                                    labelProp="label"
+                                    items={data.tags ?? []}
+                                    onSelection={handleTagSelectionChange}
+                                    runOnQueryChange={handleTagQueryChange}
+                                />
+                            </FieldItem>
+                        </PropertyValue>
+                    </PropertyValuePair>
                 </PropertyValueList>
             )}
             {!loading && !isEditing && (
@@ -284,6 +357,100 @@ export function Metadata(props: IProps) {
                             </PropertyValue>
                         </PropertyValuePair>
                     )}
+                    {!!data.tags?.length && (
+                        <PropertyValuePair hasSpacing hasDivider>
+                            <PropertyName>{t("form.field.tags", "Tags")}</PropertyName>
+                            <PropertyValue>{utils.DisplayArtefactTags(data.tags, t, goToPage)}</PropertyValue>
+                        </PropertyValuePair>
+                    )}
+                    <PropertyValuePair>
+                        <PropertyValue>
+                            <HtmlContentBlock small>
+                                <Trans
+                                    i18nKey={"Metadata.createdBy"}
+                                    t={t}
+                                    values={{
+                                        timestamp: created
+                                            ? t(
+                                                  "Metadata.dateFormat",
+                                                  "{{year}}/{{month}}/{{day}}",
+                                                  getDateData(created)
+                                              )
+                                            : "",
+                                        author: createdByUser?.label ?? t("Metadata.unknownuser", "unknown user"),
+                                    }}
+                                    components={{
+                                        author: (
+                                            <Link
+                                                href={utils.generateFacetUrl("createdBy", createdByUser?.uri ?? "")}
+                                            ></Link>
+                                        ),
+                                        timestamp: created ? (
+                                            getDeltaInDays(created) < 7 ? (
+                                                <ElapsedDateTimeDisplay
+                                                    data-test-id={"metadata-creation-age"}
+                                                    suffix={t("Metadata.suffixAgo")}
+                                                    prefix={t("Metadata.prefixAgo")}
+                                                    dateTime={created}
+                                                    translateUnits={translateUnits}
+                                                />
+                                            ) : (
+                                                <span title={new Date(created).toString()} />
+                                            )
+                                        ) : (
+                                            <></>
+                                        ),
+                                    }}
+                                />
+                                {modified !== created && (
+                                    <>
+                                        {" "}
+                                        <Trans
+                                            i18nKey={"Metadata.lastModifiedBy"}
+                                            t={t}
+                                            values={{
+                                                timestamp: modified
+                                                    ? t(
+                                                          "Metadata.dateFormat",
+                                                          "{{year}}/{{month}}/{{day}}",
+                                                          getDateData(modified)
+                                                      )
+                                                    : "",
+                                                author:
+                                                    lastModifiedByUser?.label ??
+                                                    t("Metadata.unknownuser", "unknown user"),
+                                            }}
+                                            components={{
+                                                author: (
+                                                    <Link
+                                                        href={utils.generateFacetUrl(
+                                                            "createdBy",
+                                                            lastModifiedByUser?.uri ?? ""
+                                                        )}
+                                                    ></Link>
+                                                ),
+                                                timestamp: modified ? (
+                                                    getDeltaInDays(modified) < 7 ? (
+                                                        <ElapsedDateTimeDisplay
+                                                            data-test-id={"metadata-creation-age"}
+                                                            suffix={t("Metadata.suffixAgo")}
+                                                            prefix={t("Metadata.prefixAgo")}
+                                                            dateTime={modified}
+                                                            translateUnits={translateUnits}
+                                                        />
+                                                    ) : (
+                                                        <span title={new Date(modified).toString()} />
+                                                    )
+                                                ) : (
+                                                    <></>
+                                                ),
+                                            }}
+                                        />
+                                    </>
+                                )}
+                            </HtmlContentBlock>
+                        </PropertyValue>
+                    </PropertyValuePair>
                 </PropertyValueList>
             )}
         </CardContent>

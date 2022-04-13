@@ -139,10 +139,10 @@ export const Dropdown = ({
                     {options.map((item, index) => (
                         <MenuItem
                             key={index}
+                            onClick={() => onItemSelectionChange(item)}
                             internalProps={{
                                 active: currentlyFocusedIndex === index,
                                 onMouseDown: (e) => e.preventDefault(),
-                                onClick: () => onItemSelectionChange(item),
                                 text: (
                                     <Item
                                         ref={generateRef(index)}

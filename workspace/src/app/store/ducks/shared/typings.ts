@@ -1,3 +1,5 @@
+import { Keywords } from "@ducks/workspace/typings";
+
 export interface IRequestAutocompletePayload {
     pluginId: string;
     parameterId: string;
@@ -88,6 +90,7 @@ export interface IModalItem {
 export interface IMetadataUpdatePayload {
     label: string;
     description?: string;
+    tags?: string[];
 }
 
 export interface IRelatedItem {
@@ -96,6 +99,7 @@ export interface IRelatedItem {
     type: string;
     itemLinks: IItemLink[];
     pluginLabel: string;
+    tags: Keywords;
 }
 
 export interface IItemLink {

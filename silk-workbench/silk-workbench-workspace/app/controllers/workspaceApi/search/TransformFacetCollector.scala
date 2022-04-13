@@ -16,11 +16,11 @@ case class TransformFacetCollector() extends ItemTypeFacetCollector[TransformSpe
 }
 
 /** Collect file resources from input datasets. */
-case class TransformInputResourceFacetCollector() extends NoLabelKeyboardFacetCollector[TransformSpec] {
+case class TransformInputResourceFacetCollector() extends NoLabelKeywordFacetCollector[TransformSpec] {
   private val fileFacetCollector = DatasetFileFacetCollector()
 
-  override def extractKeywordIds(projectTask: ProjectTask[TransformSpec]): Set[String] = {
-    implicit val internalUser: UserContext = UserContext.INTERNAL_USER
+  override def extractKeywordIds(projectTask: ProjectTask[TransformSpec])
+                                (implicit user: UserContext): Set[String] = {
     val inputTaskId = projectTask.data.selection.inputId
     projectTask.project.taskOption[GenericDatasetSpec](inputTaskId).toSet flatMap { projectDatasetSpec: ProjectTask[GenericDatasetSpec] =>
       fileFacetCollector.extractKeywordIds(projectDatasetSpec)

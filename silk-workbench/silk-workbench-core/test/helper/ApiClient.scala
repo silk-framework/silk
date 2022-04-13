@@ -1,6 +1,7 @@
 package helper
 
 import play.api.Application
+import play.api.libs.json.{JsValue, Json, Reads, Writes}
 import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 import play.api.mvc.Call
 
@@ -19,6 +20,48 @@ trait ApiClient {
 
   protected def createRequest(call: Call): WSRequest = {
     client.url(baseUrl + call.url)
+  }
+
+  /**
+    * Simple JSON GET request.
+    */
+  protected def getRequest[ResponseType](call: Call)
+                                        (implicit reads: Reads[ResponseType]): ResponseType = {
+    val request = createRequest(call)
+    val response = request.get()
+    val responseJson = checkResponse(response).body[JsValue]
+    Json.fromJson[ResponseType](responseJson).get
+  }
+
+  /**
+    * Simple JSON PUT request.
+    */
+  protected def putRequest[RequestType, ResponseType](call: Call, requestBody: RequestType)
+                                                      (implicit writes: Writes[RequestType], reads: Reads[ResponseType]): ResponseType = {
+    val request = createRequest(call)
+    val response = request.put(Json.toJson(requestBody))
+    val responseJson = checkResponse(response).body[JsValue]
+    Json.fromJson[ResponseType](responseJson).get
+  }
+
+  /**
+    * Simple JSON POST request.
+    */
+  protected def postRequest[RequestType, ResponseType](call: Call, requestBody: RequestType)
+                                                      (implicit writes: Writes[RequestType], reads: Reads[ResponseType]): ResponseType = {
+    val request = createRequest(call)
+    val response = request.post(Json.toJson(requestBody))
+    val responseJson = checkResponse(response).body[JsValue]
+    Json.fromJson[ResponseType](responseJson).get
+  }
+
+  /**
+    * Simple delete request.
+    */
+  protected def deleteRequest(call: Call): Unit = {
+    val request = createRequest(call)
+    val response = request.delete()
+    checkResponse(response)
   }
 
   protected def checkResponse(futureResponse: Future[WSResponse],

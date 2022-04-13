@@ -1,11 +1,10 @@
 package org.silkframework.config
 
-import java.time.Instant
-
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Uri
 
+import java.time.Instant
 import scala.xml._
 
 /**
@@ -16,7 +15,8 @@ case class MetaData(label: Option[String],
                     modified: Option[Instant] = None,
                     created: Option[Instant] = None,
                     createdByUser: Option[Uri] = None,
-                    lastModifiedByUser: Option[Uri] = None) {
+                    lastModifiedByUser: Option[Uri] = None,
+                    tags: Set[Uri] = Set.empty) {
 
   /**
     * Returns the label if defined or a default string if the label is empty. Truncates the label to maxLength characters.
@@ -49,7 +49,8 @@ case class MetaData(label: Option[String],
       Some(now),
       Some(now),
       user,
-      user
+      user,
+      tags
     )
   }
 
@@ -60,7 +61,8 @@ case class MetaData(label: Option[String],
       created = created,
       modified = Some(Instant.now()),
       createdByUser = createdByUser,
-      lastModifiedByUser = userUri
+      lastModifiedByUser = userUri,
+      tags = tags
     )
   }
 
@@ -120,7 +122,8 @@ object MetaData {
         modified = (node \ "Modified").headOption.map(node => Instant.parse(node.text)),
         created = (node \ "Created").headOption.map(node => Instant.parse(node.text)),
         createdByUser = (node \ "CreatedByUser").headOption.map(node => node.text),
-        lastModifiedByUser = (node \ "LastModifiedByUser").headOption.map(node => node.text)
+        lastModifiedByUser = (node \ "LastModifiedByUser").headOption.map(node => node.text),
+        tags = (node \ "Tags" \ "Tag").map(node => Uri(node.text)).toSet
       )
     }
 
@@ -136,6 +139,9 @@ object MetaData {
         { data.created.map(instant => <Created>{instant.toString}</Created>).toSeq }
         { data.createdByUser.map(userUri => <CreatedByUser>{userUri.uri}</CreatedByUser>).toSeq }
         { data.lastModifiedByUser.map(userUri => <LastModifiedByUser>{userUri.uri}</LastModifiedByUser>).toSeq }
+        <Tags>
+          { data.tags.map(uri => <Tag>{uri}</Tag>).toSeq }
+        </Tags>
       </MetaData>
     }
   }

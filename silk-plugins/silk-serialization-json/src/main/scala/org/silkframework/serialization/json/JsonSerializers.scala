@@ -11,7 +11,7 @@ import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transform
 import org.silkframework.rule.similarity._
 import org.silkframework.rule.util.UriPatternParser
 import org.silkframework.rule.vocab.{GenericInfo, Vocabulary, VocabularyClass, VocabularyProperty}
-import org.silkframework.rule.{MappingTarget, TransformRule, _}
+import org.silkframework.rule._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
 import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
@@ -21,11 +21,11 @@ import org.silkframework.serialization.json.JsonHelpers._
 import org.silkframework.serialization.json.JsonSerializers.ObjectMappingJsonFormat.MAPPING_TARGET
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.LinkingSerializers._
+import org.silkframework.serialization.json.MetaDataSerializers._
 import org.silkframework.util.{DPair, Identifier, Uri}
 import org.silkframework.workspace.activity.transform.{CachedEntitySchemata, VocabularyCacheValue}
 import play.api.libs.json._
 
-import java.time.Instant
 import java.util.UUID
 import scala.reflect.ClassTag
 
@@ -78,55 +78,6 @@ object JsonSerializers {
       */
     override def write(value: Uri)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       JsString(writeContext.prefixes.shorten(value.uri))
-    }
-  }
-
-  implicit object MetaDataJsonFormat extends JsonFormat[MetaData] {
-
-    final val LABEL = "label"
-    final val DESCRIPTION = "description"
-    final val MODIFIED = "modified"
-    final val CREATED = "created"
-    final val CREATED_BY = "createdBy"
-    final val LAST_MODIFIED_BY = "lastModifiedBy"
-
-    /**
-      * Reads meta data. Generates a label if no label is provided in the json.
-      *
-      * @param value The json to read the meta data from.
-      */
-    override def read(value: JsValue)(implicit readContext: ReadContext): MetaData = {
-      MetaData(
-        label = stringValueOption(value, LABEL).filter(_.nonEmpty),
-        description = stringValueOption(value, DESCRIPTION),
-        modified = stringValueOption(value, MODIFIED).map(Instant.parse),
-        created = stringValueOption(value, CREATED).map(Instant.parse),
-        createdByUser = stringValueOption(value, CREATED_BY).map(Uri.apply),
-        lastModifiedByUser = stringValueOption(value, LAST_MODIFIED_BY).map(Uri.apply)
-      )
-    }
-
-    override def write(value: MetaData)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      var json = Json.obj()
-      for(label <- value.label if label.nonEmpty) {
-        json += LABEL -> JsString(label)
-      }
-      for(description <- value.description if description.nonEmpty) {
-        json += DESCRIPTION -> JsString(description)
-      }
-      for(modified <- value.modified) {
-        json += MODIFIED -> JsString(modified.toString)
-      }
-      for(created <- value.created) {
-        json += CREATED -> JsString(created.toString)
-      }
-      for(createdBy <- value.createdByUser) {
-        json += CREATED_BY -> JsString(createdBy.uri)
-      }
-      for(lastModifiedBy <- value.lastModifiedByUser) {
-        json += LAST_MODIFIED_BY -> JsString(lastModifiedBy.uri)
-      }
-      json
     }
   }
 
@@ -1346,7 +1297,7 @@ object JsonSerializers {
   private def metaData(json: JsValue)(implicit readContext: ReadContext): MetaData = {
     optionalValue(json, METADATA) match {
       case Some(metaDataJson) =>
-        MetaDataJsonFormat.read(metaDataJson)
+        fromJson[MetaData](metaDataJson)
       case None =>
         MetaData.empty
     }

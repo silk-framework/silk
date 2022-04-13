@@ -90,7 +90,7 @@ describe("Dropdown Component", () => {
     })
 
     it("should respond to click on each item and pass the clicked item to autosuggestion", () =>  {
-        const mockOnItemSelection = jest.fn((item) => {})
+        const mockOnItemSelection = jest.fn(() => {})
         props = {
             ...props,
             loading: false,
@@ -106,7 +106,7 @@ describe("Dropdown Component", () => {
     })
 
     it("should call highlight function when list item is mouse hovered",() => {
-        const mockItemToHighlight = jest.fn((item) => {})
+        const mockItemToHighlight = jest.fn(() => {})
         props = {
             ...props,
             loading: false,

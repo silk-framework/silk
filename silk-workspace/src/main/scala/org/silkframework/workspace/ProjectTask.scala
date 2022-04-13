@@ -14,7 +14,7 @@
 
 package org.silkframework.workspace
 
-import org.silkframework.config.{MetaData, PlainTask, Prefixes, Task, TaskSpec}
+import org.silkframework.config.{MetaData, PlainTask, Prefixes, Tag, Task, TaskSpec}
 import org.silkframework.runtime.activity.{HasValue, Status, UserContext, ValueHolder}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
@@ -123,14 +123,18 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     module.validator.validate(project, PlainTask(id, newData, newMetaData.getOrElse(metaData)))
     // Update data
     dataValueHolder.update(newData)
+    val oldMedataData = metaDataValueHolder()
     for(md <- newMetaData) {
       metaDataValueHolder.update(md)
     }
 
-    // Update modified timestamp if not already set in new meta data object
+    // Update created and modified timestamps if not already set in new meta data object
     metaDataValueHolder.update(
       metaDataValueHolder().copy(
-        modified = Some(newMetaData.flatMap(_.modified).getOrElse(Instant.now))
+        created = newMetaData.flatMap(_.created).orElse(oldMedataData.created),
+        createdByUser = newMetaData.flatMap(_.createdByUser).orElse(oldMedataData.createdByUser),
+        modified = Some(newMetaData.flatMap(_.modified).getOrElse(Instant.now)),
+        lastModifiedByUser = newMetaData.flatMap(_.lastModifiedByUser).orElse(userContext.user.map(_.uri)),
       )
     )
     persistTask
@@ -227,6 +231,13 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       metaDataFields = metaDataFields :+ "Description" -> description
     }
     metaDataFields
+  }
+
+  /**
+    * Retrieves all tags for this task.
+    */
+  def tags()(implicit userContext: UserContext): Set[Tag] = {
+    metaData.tags.map(uri => project.tagManager.getTag(uri))
   }
 }
 

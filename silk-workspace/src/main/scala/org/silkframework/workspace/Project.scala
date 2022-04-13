@@ -38,6 +38,8 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
 
   private implicit val logger = Logger.getLogger(classOf[Project].getName)
 
+  val tagManager = new TagManager(initialConfig.id, provider)
+
   val cacheResources: ResourceManager = provider.projectCache(initialConfig.id)
 
   @volatile
@@ -141,6 +143,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
    */
   def config_=(project : ProjectConfig)(implicit userContext: UserContext) {
     provider.putProject(project)
+    logger.info(s"Project meta data updated for ${project.labelAndId()}.")
     cachedConfig = project
   }
 
@@ -157,12 +160,9 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   def updateMetaData(metaData: MetaData)
                     (implicit userContext: UserContext): MetaData = synchronized {
     val projectConfig = config
-    val oldMetaData = config.metaData
-    val mergedMetaData = oldMetaData.copy(label = metaData.label, description = metaData.description)
+    val mergedMetaData = config.metaData.copy(label = metaData.label, description = metaData.description, tags = metaData.tags)
     val updatedProjectConfig = projectConfig.copy(metaData = mergedMetaData.asUpdatedMetaData)
     config = updatedProjectConfig
-    provider.putProject(updatedProjectConfig)
-    logger.info(s"Project meta data updated for ${projectConfig.labelAndId()}.")
     updatedProjectConfig.metaData
   }
 
@@ -365,5 +365,17 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
    */
   def registerModule[T <: TaskSpec : ClassTag](validator: TaskValidator[T] = new DefaultTaskValidator[T]): Unit = synchronized {
     modules = modules :+ new Module[T](provider, this, validator)
+  }
+
+  /**
+    * Retrieves all modules
+    */
+  def registeredModules: Seq[Module[_ <: TaskSpec]] = modules
+
+  /**
+    * Retrieves all tags for this project.
+    */
+  def tags()(implicit userContext: UserContext): Set[Tag] = {
+    config.metaData.tags.map(uri => tagManager.getTag(uri))
   }
 }

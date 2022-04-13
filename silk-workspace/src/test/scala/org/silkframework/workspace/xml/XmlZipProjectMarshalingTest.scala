@@ -1,15 +1,17 @@
 package org.silkframework.workspace.xml
 
-import java.io.{File, FileOutputStream}
-import java.nio.file.Files
-
 import org.scalatest.{FlatSpec, Matchers}
+import org.silkframework.config.Tag
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.rule.LinkSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource._
+import org.silkframework.util.Uri
 import org.silkframework.workspace.resources.InMemoryResourceRepository
 import org.silkframework.workspace.{InMemoryWorkspaceProvider, Workspace}
+
+import java.io.{File, FileOutputStream}
+import java.nio.file.Files
 
 /**
   * Tests for the XML zip based project marshalling
@@ -66,9 +68,27 @@ class XmlZipProjectMarshalingTest extends FlatSpec with Matchers {
     } else {
       resources.list shouldBe empty
     }
+
+    // Project
+    val project = workspace.readProject(projectName).get
+
+    // Datasets
     val datasets = workspace.readTasks[GenericDatasetSpec](projectName, resources)
-    val linkingTask = workspace.readTasks[LinkSpec](projectName, resources)
     datasets.map(_.task.id.toString) should contain allOf("DBpedia", "linkedmdb")
+    val dbpediaDataset = datasets.find(_.task.id.toString == "DBpedia").get.task
+    val linkedmdbDataset = datasets.find(_.task.id.toString == "linkedmdb").get.task
+
+
+    // Linking task
+    val linkingTask = workspace.readTasks[LinkSpec](projectName, resources)
     linkingTask.map(_.task.id.toString) should contain("movies")
+
+    // Tags
+    val tag1 = Tag(Uri("urn:silkframework:tag:example+tag+1"), "example tag 1")
+    val tag2 = Tag(Uri("urn:silkframework:tag:example+tag+2"), "example tag 2")
+    workspace.readTags(projectName) should contain theSameElementsAs Iterable(tag1, tag2)
+    project.metaData.tags shouldBe Set(tag1.uri, tag2.uri)
+    dbpediaDataset.metaData.tags shouldBe Set(tag1.uri, tag2.uri)
+    linkedmdbDataset.metaData.tags shouldBe Set()
   }
 }

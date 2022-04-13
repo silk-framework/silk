@@ -1,5 +1,7 @@
 package controllers.workspaceApi
 
+import controllers.projectApi.ProjectApi.{CreateTag, CreateTagsRequest}
+import controllers.util.ProjectApiClient
 import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, ProjectCreationData}
 import helper.IntegrationTestTrait
 import org.scalatest.{FlatSpec, MustMatchers}
@@ -7,11 +9,13 @@ import org.silkframework.config.MetaData
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.serialization.json.JsonSerializers
 import org.silkframework.serialization.json.JsonSerializers._
+import org.silkframework.serialization.json.MetaDataSerializers.{FullTag, MetaDataPlain}
 import play.api.libs.json.{JsResult, Json}
 import play.api.libs.ws.WSResponse
 import play.api.routing.Router
 
-class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers {
+
+class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers with ProjectApiClient {
   behavior of "Project API"
 
   private def projects: Seq[String] = workspaceProvider.readProjects().map(_.id.toString)
@@ -30,7 +34,7 @@ class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatcher
     val projectIds = for(i <- 1 to 10) yield {
       val (label, description) = (s"Some project!", Some(s"Project description $i"))
       val response: WSResponse = createProjectByLabel(label, description)
-      val metaData = JsonSerializers.fromJson[MetaData]((response.json \ "metaData").get)
+      val metaData = Json.fromJson[MetaDataPlain]((response.json \ "metaData").get).get
       metaData.label mustBe Some(label)
       metaData.description mustBe description
       val locationHeader = response.header("Location")
@@ -54,7 +58,7 @@ class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatcher
     val projectId = (createProjectByLabel("will be overwritten", Some("will also be overwritten")).json \ "name").as[String]
     val (newLabel, newDescription) = ("new label", Some("new description"))
     val response = client.url(s"$baseUrl${projectsMetaDataUrl(projectId)}").put(Json.toJson(ItemMetaData(newLabel, newDescription)))
-    val metaDataResponse = JsonSerializers.fromJson[MetaData](checkResponse(response).json)
+    val metaDataResponse = Json.fromJson[MetaDataPlain](checkResponse(response).json).get.toMetaData
     val metaData = retrieveOrCreateProject(projectId).config.metaData
     metaData mustBe metaDataResponse
     metaData.label mustBe Some(newLabel)
@@ -83,6 +87,49 @@ class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatcher
     retrieveOrCreateProject(prefixProjectId).config.prefixes.get(prefixName) mustBe Some(newPrefixUri)
     // Invalid prefix value should 400
     checkResponseExactStatusCode(client.url(s"$baseUrl${projectPrefixUrl(prefixProjectId, "prefixName")}").put(Json.toJson("urn:with space")), BAD_REQUEST)
+  }
+
+  it should "support managing tags" in {
+    val projectId = "tagsProject"
+    createProject(projectId)
+
+    // Make sure that initially there are no tags
+    retrieveTags(projectId).tags mustBe empty
+
+    // Add a new user-defined tag
+    val tag1 = createTags(projectId, CreateTagsRequest(Seq(CreateTag(None, " My    Tag  ")))).head
+    retrieveTags(projectId).tags.head.label mustBe "My Tag"
+
+    // Update metadata
+    val currentMetaData = getMetaData(projectId)
+    val updatedMetaData = currentMetaData.copy(tags = Some(Set(tag1.uri)))
+    updateMetaData(projectId, updatedMetaData)
+
+    // Make sure that the tag has been added
+    getMetaDataExpanded(projectId).tags must contain theSameElementsAs Set(tag1)
+  }
+
+  it should "support searching tags" in {
+    val projectId = "tagsProject2"
+    createProject(projectId)
+
+    val newTags = Seq(
+      CreateTag(None, "tag 1"),
+      CreateTag(None, "x tag"),
+      CreateTag(None, "tag a"),
+      CreateTag(None, "a tag"),
+      CreateTag(None, "tag X")
+    )
+    createTags(projectId, CreateTagsRequest(newTags))
+
+    retrieveTags(projectId).tags.map(_.label) must contain theSameElementsInOrderAs
+      Seq("a tag", "tag 1", "tag a", "tag X", "x tag")
+
+    retrieveTags(projectId, Some("x")).tags.map(_.label) must contain theSameElementsInOrderAs
+      Seq("x tag", "tag X")
+
+    retrieveTags(projectId, Some("a")).tags.map(_.label) must contain theSameElementsInOrderAs
+      Seq("a tag", "tag 1", "tag a", "tag X", "x tag")
   }
 
   private def fetchPrefixes: JsResult[Map[String, String]] = {

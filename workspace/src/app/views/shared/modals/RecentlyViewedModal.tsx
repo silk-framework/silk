@@ -31,6 +31,7 @@ import { ItemDepiction } from "../ItemDepiction/ItemDepiction";
 import { createNewItemRendererFactory } from "gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
 import { IRenderModifiers } from "gui-elements/src/components/AutocompleteField/AutoCompleteField";
 import { uppercaseFirstChar } from "../../../utils/transformers";
+import ProjectTags from "../ProjectTags/ProjectTags";
 
 /** Shows the recently viewed items a user has visited. Also allows to trigger a workspace search. */
 export function RecentlyViewedModal() {
@@ -156,6 +157,8 @@ export function RecentlyViewedModal() {
                                 </Tag>
                             </>
                         )}
+                        {item.tags?.length ? <Spacing vertical size="tiny" /> : null}
+                        <ProjectTags tags={item.tags} query={query} />
                     </OverviewItemLine>
                 </OverviewItemDescription>
             </OverviewItem>

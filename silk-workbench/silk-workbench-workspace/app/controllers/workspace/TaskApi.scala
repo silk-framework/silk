@@ -5,6 +5,7 @@ import controllers.core.util.ControllerUtilsTrait
 import controllers.util.SerializationUtils
 import controllers.workspace.doc.TaskApiDoc
 import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse}
+import controllers.workspaceApi.project.ProjectApiRestPayloads.ItemMetaData
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
@@ -19,8 +20,10 @@ import org.silkframework.runtime.plugin.{ClassPluginDescription, ParameterAutoCo
 import org.silkframework.runtime.resource.{FileResource, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.serialization.json.JsonSerializers.{GenericTaskJsonFormat, MetaDataJsonFormat, TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat, fromJson, toJson, _}
+import org.silkframework.serialization.json.JsonSerializers.{GenericTaskJsonFormat, TaskFormatOptions, TaskJsonFormat, TaskSpecJsonFormat, fromJson, metaData, toJson, _}
 import org.silkframework.serialization.json.{JsonSerialization, JsonSerializers}
+import org.silkframework.serialization.json.MetaDataSerializers._
+import org.silkframework.util.Uri
 import org.silkframework.workbench.utils.ErrorResult
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
@@ -393,6 +396,16 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
       )
     )
   )
+  @RequestBody(
+    description = "Updated meta data.",
+    required = true,
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[MetaDataPlain]),
+        examples = Array(new ExampleObject("{ \"label\": \"New label\", \"description\": \"New description\" }"))
+      ))
+  )
   def putTaskMetadata(@Parameter(
                         name = "project",
                         description = "The project identifier",
@@ -408,13 +421,13 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
                         in = ParameterIn.PATH,
                         schema = new Schema(implementation = classOf[String])
                       )
-                      taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+                      taskName: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
     implicit val readContext: ReadContext = ReadContext()
 
-    SerializationUtils.deserializeCompileTime[MetaData](defaultMimeType = "application/json") { metaData =>
-      task.updateMetaData(metaData)
+    validateJson[MetaDataPlain] { metaData =>
+      task.updateMetaData(metaData.toMetaData)
       Ok(taskMetaDataJson(task))
     }
   }
@@ -460,6 +473,44 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     val metaDataJson = taskMetaDataJson(task)
     accessMonitor.saveProjectTaskAccess(project.config.id, task.id)
     Ok(metaDataJson)
+  }
+
+  @Operation(
+    summary = "Retrieve expanded task metadata",
+    description = "Metadata of the task, such as the label and description.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(implementation = classOf[MetaDataExpanded])
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the project or task does not exist."
+      )
+    ))
+  def getTaskMetadataExpanded(@Parameter(
+                                 name = "project",
+                                 description = "The project identifier",
+                                 required = true,
+                                 in = ParameterIn.PATH,
+                                 schema = new Schema(implementation = classOf[String])
+                               )
+                               projectId: String,
+                               @Parameter(
+                                 name = "task",
+                                 description = "The task identifier",
+                                 required = true,
+                                 in = ParameterIn.PATH,
+                                 schema = new Schema(implementation = classOf[String])
+                               )
+                               taskId: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectId)
+    val task = project.anyTask(taskId)
+    Ok(Json.toJson(MetaDataExpanded.fromMetaData(task.metaData, project.tagManager)))
   }
 
   // Task meta data object as JSON

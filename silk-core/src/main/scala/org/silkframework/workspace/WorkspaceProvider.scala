@@ -1,6 +1,6 @@
 package org.silkframework.workspace
 
-import org.silkframework.config.{Prefixes, Task, TaskSpec}
+import org.silkframework.config.{Prefixes, Tag, Task, TaskSpec}
 import org.silkframework.dataset.rdf.SparqlEndpoint
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
@@ -66,6 +66,35 @@ trait WorkspaceProvider {
    * Deletes a task from a project.
    */
   def deleteTask[T <: TaskSpec : ClassTag](project: Identifier, task: Identifier)(implicit user: UserContext): Unit
+
+  /**
+    * Retrieve a list of all available tags.
+    */
+  def readTags(project: Identifier)
+              (implicit userContext: UserContext): Iterable[Tag]
+
+  /**
+    * Add a new tag.
+    * Adding a tag with an existing URI, will overwrite the corresponding tag.
+    */
+  def putTag(project: Identifier, tag: Tag)
+            (implicit userContext: UserContext): Unit
+
+  /**
+    * Adds a set of new tags.
+    */
+  def putTags(project: Identifier, tags: Iterable[Tag])
+             (implicit userContext: UserContext): Unit = {
+    for(tag <- tags) {
+      putTag(project, tag)
+    }
+  }
+
+  /**
+    * Remove a tag.
+    */
+  def deleteTag(project: Identifier, tagUri: String)
+               (implicit userContext: UserContext): Unit
 
   /**
     * Refreshes all projects, i.e. cleans all possible caches if there are any and reloads all projects freshly.

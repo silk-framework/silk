@@ -20,7 +20,6 @@ export const getTaskMetadataAsync = async (itemId?: string, projectId?: string):
         projectId && itemId
             ? await requestTaskMetadata(itemId, projectId)
             : await requestProjectMetadata(itemId ? itemId : (projectId as string));
-
     const { label, name, metaData, id, relations, description, type }: any = response.data;
 
     return {

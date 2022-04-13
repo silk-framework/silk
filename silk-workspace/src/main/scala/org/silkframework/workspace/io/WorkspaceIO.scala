@@ -40,6 +40,8 @@ object WorkspaceIO {
                  (implicit userContext: UserContext): Unit = {
     val updatedProjectConfig = project.copy(projectResourceUriOpt = Some(project.resourceUriOrElseDefaultUri))
     outputWorkspace.putProject(updatedProjectConfig)
+    val tags = inputWorkspace.readTags(updatedProjectConfig.id)
+    outputWorkspace.putTags(updatedProjectConfig.id, tags)
     for(input <- inputResources; output <- outputResources)
       copyResources(input, output)
     val resources = outputResources.getOrElse(inputResources.getOrElse(EmptyResourceManager()))

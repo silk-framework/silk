@@ -1,13 +1,19 @@
 # Projects
 
 POST          /                                                        controllers.projectApi.ProjectApi.createNewProject()
-GET           /validateIdentifier                                     controllers.projectApi.ProjectApi.validateIdentifier(projectIdentifier:String)
+GET           /validateIdentifier                                      controllers.projectApi.ProjectApi.validateIdentifier(projectIdentifier:String)
 POST          /:projectId/clone                                        controllers.projectApi.ProjectApi.cloneProject(projectId: String)
 PUT           /:projectId/metaData                                     controllers.projectApi.ProjectApi.updateProjectMetaData(projectId: String)
 GET           /:projectId/metaData                                     controllers.projectApi.ProjectApi.getProjectMetaData(projectId: String)
+GET           /:projectId/metaDataExpanded                             controllers.projectApi.ProjectApi.getProjectMetaDataExpanded(projectId: String)
+
 GET           /:projectId/prefixes                                     controllers.projectApi.ProjectApi.fetchProjectPrefixes(projectId: String)
 PUT           /:projectId/prefixes/:prefixName                         controllers.projectApi.ProjectApi.addProjectPrefix(projectId: String, prefixName: String)
 DELETE        /:projectId/prefixes/:prefixName                         controllers.projectApi.ProjectApi.deleteProjectPrefix(projectId: String, prefixName: String)
+
+GET           /:projectId/tags                                         controllers.projectApi.ProjectApi.fetchTags(projectId: String, filter: Option[String] ?= None)
+POST          /:projectId/tags/createTags                              controllers.projectApi.ProjectApi.createTags(projectId: String)
+DELETE        /:projectId/tags/:tag                                    controllers.projectApi.ProjectApi.deleteTag(projectId: String, tag: String)
 
 # Project error report
 

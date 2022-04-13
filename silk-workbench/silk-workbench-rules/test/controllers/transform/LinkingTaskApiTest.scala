@@ -95,7 +95,7 @@ class LinkingTaskApiTest extends PlaySpec with IntegrationTestTrait {
 
   "Check meta data" in {
     // Compare ignoring modified date
-    getMetaData(project, task).copy(modified = metaData.modified) mustBe metaData
+    getMetaData(project, task).copy(created = metaData.created, modified = metaData.modified) mustBe metaData
   }
 
   "Execute with alternative linking rule" in {
