@@ -1,10 +1,10 @@
 import { IMetadata } from "@ducks/shared/typings";
-import { KeywordProp, KeywordProps } from "@ducks/workspace/typings";
+import { Keyword, Keywords } from "@ducks/workspace/typings";
 
 export interface IMetadataExpanded extends IMetadata {
-    tags: KeywordProps;
-    lastModifiedByUser?: KeywordProp;
-    createdByUser?: KeywordProp;
+    tags: Keywords;
+    lastModifiedByUser?: Keyword;
+    createdByUser?: Keyword;
     modified: string;
     created: string;
 }

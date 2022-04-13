@@ -8,7 +8,7 @@ import { workspaceApi, legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import { IMetadataExpanded } from "./Metadatatypings";
 import { ContentBlobToggler } from "gui-elements/cmem";
 import { SERVE_PATH } from "../../../constants/path";
-import { KeywordProp, KeywordProps } from "@ducks/workspace/typings";
+import { Keyword, Keywords } from "@ducks/workspace/typings";
 
 /**
  * if both the taskId and projectId are available then fetch the EXPANDED metadata for tasks
@@ -34,25 +34,22 @@ const getExpandedMetaData = async (
  * @returns
  */
 export const createNewTag = async (
-    tags: Partial<KeywordProp>[],
+    tags: Partial<Keyword>[],
     projectId?: string
-): Promise<FetchResponse<KeywordProps> | undefined> =>
+): Promise<FetchResponse<Keywords> | undefined> =>
     fetch({
         url: workspaceApi(`/projects/${projectId}/tags/createTags`),
         method: "post",
         body: { tags },
     });
 
-export const queryTags = (
-    projectId: string,
-    filter?: string
-): Promise<FetchResponse<{ tags: KeywordProps }> | undefined> =>
+export const queryTags = (projectId: string, filter?: string): Promise<FetchResponse<{ tags: Keywords }> | undefined> =>
     fetch({
         url: workspaceApi(`/projects/${projectId}/tags${filter?.length ? `?filter=${filter}` : ""}`),
     });
 
 const DisplayArtefactTags = (
-    tags: KeywordProps,
+    tags: Keywords,
     t: (key: string, fallBack: string) => string,
     goToPage: (path: string) => void,
     minLength = 6
@@ -85,7 +82,7 @@ const DisplayArtefactTags = (
     );
 };
 
-const sortTags = (tags: KeywordProps) =>
+const sortTags = (tags: Keywords) =>
     tags.sort((a, b) =>
         a.label.toLowerCase() > b.label.toLowerCase() ? 1 : a.label.toLowerCase() < b.label.toLowerCase() ? -1 : 0
     );

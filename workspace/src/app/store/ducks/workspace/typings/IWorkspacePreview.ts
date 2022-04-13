@@ -1,4 +1,4 @@
-import { KeywordProps } from ".";
+import { Keywords } from ".";
 
 export type DATA_TYPES = "project" | "Dataset" | "transform" | "Linking" | "task";
 
@@ -46,7 +46,7 @@ export interface ISearchResultsServer {
     /**
      * set tags for a project or task
      */
-    tags?: KeywordProps;
+    tags?: Keywords;
 }
 
 export interface IPreviewState {

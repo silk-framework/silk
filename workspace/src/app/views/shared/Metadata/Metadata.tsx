@@ -35,7 +35,7 @@ import useErrorHandler from "../../../hooks/useErrorHandler";
 import * as H from "history";
 import utils from "./MetadataUtils";
 import { IMetadataExpanded } from "./Metadatatypings";
-import { KeywordProp, KeywordProps } from "@ducks/workspace/typings";
+import { Keyword, Keywords } from "@ducks/workspace/typings";
 
 interface IProps {
     projectId?: string;
@@ -59,8 +59,8 @@ export function Metadata(props: IProps) {
     const [formEditData, setFormEditData] = useState<IMetadataUpdatePayload | undefined>(undefined);
     const [isEditing, setIsEditing] = useState(false);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
-    const [createdTags, setCreatedTags] = React.useState<Partial<KeywordProp>[]>([]);
-    const [selectedTags, setSelectedTags] = React.useState<KeywordProps>([...(data.tags ?? [])]);
+    const [createdTags, setCreatedTags] = React.useState<Partial<Keyword>[]>([]);
+    const [selectedTags, setSelectedTags] = React.useState<Keywords>([...(data.tags ?? [])]);
     const [t] = useTranslation();
 
     // Form errors
@@ -317,7 +317,7 @@ export function Metadata(props: IProps) {
                         </PropertyName>
                         <PropertyValue>
                             <FieldItem>
-                                <MultiSelect<KeywordProp>
+                                <MultiSelect<Keyword>
                                     canCreateNewItem
                                     prePopulateWithItems
                                     openOnKeyDown

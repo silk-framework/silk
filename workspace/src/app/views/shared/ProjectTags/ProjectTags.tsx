@@ -1,11 +1,11 @@
 import React from "react";
-import { KeywordProps } from "@ducks/workspace/typings";
+import { Keywords } from "@ducks/workspace/typings";
 import { Highlighter, Spacing, Tag } from "gui-elements";
 import metadataUtils from "../Metadata/MetadataUtils";
 
 interface IProps {
     maxLength?: number;
-    tags?: KeywordProps;
+    tags?: Keywords;
     query?: string;
 }
 
