@@ -7,7 +7,7 @@ import { RuleEditorNotifications } from "./RuleEditorNotifications";
 import useHotKey from "../../HotKeyHandler/HotKeyHandler";
 import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
-import { EvaluationScore } from "./evaluation/EvaluationScore";
+import { EvaluationActivityControl } from "./evaluation/EvaluationActivityControl";
 import { Prompt } from "react-router";
 
 /** Toolbar of the rule editor. Contains global editor actions like save, redo/undo etc. */
@@ -97,17 +97,6 @@ export const RuleEditorToolbar = () => {
                     text={t("RuleEditor.toolbar.autoLayout")}
                     onClick={modelContext.executeModelEditOperation.autoLayout}
                 />
-                <Spacing vertical hasDivider />
-                {ruleEvaluationContext.supportsEvaluation && (
-                    <IconButton
-                        data-test-id={"rule-editor-start-evaluation-btn"}
-                        disabled={ruleEvaluationContext.evaluationRunning}
-                        name="item-start"
-                        text={t("RuleEditor.toolbar.startEvaluation")}
-                        onClick={startEvaluation}
-                        loading={ruleEvaluationContext.evaluationRunning}
-                    />
-                )}
                 {ruleEvaluationContext.supportsEvaluation && (
                     <>
                         <Spacing vertical hasDivider />
@@ -124,12 +113,20 @@ export const RuleEditorToolbar = () => {
                 <Spacing vertical />
             </ToolbarSection>
             {ruleEditorContext.additionalToolBarComponents ? ruleEditorContext.additionalToolBarComponents() : null}
-            {ruleEvaluationContext.evaluationResultsShown ? (
+            {(ruleEvaluationContext.evaluationResultsShown || ruleEvaluationContext.supportsEvaluation) ? (
                 <ToolbarSection>
-                    <EvaluationScore
+                    <EvaluationActivityControl
                         score={ruleEvaluationContext.evaluationScore}
                         loading={ruleEvaluationContext.evaluationRunning}
                         referenceLinksUrl={ruleEvaluationContext.referenceLinksUrl}
+                        evaluationResultsShown={ruleEvaluationContext.evaluationResultsShown}
+                        manualStartButton={{
+                                "data-test-id": "rule-editor-start-evaluation-btn",
+                                disabled: ruleEvaluationContext.evaluationRunning,
+                                icon: "item-start",
+                                tooltip: t("RuleEditor.toolbar.startEvaluation"),
+                                action: startEvaluation
+                        }}
                     />
                     <Spacing vertical hasDivider />
                 </ToolbarSection>
