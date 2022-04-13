@@ -1,6 +1,7 @@
 import React from "react";
 import { IRuleOperatorNode } from "../RuleEditor.typings";
 import { IEvaluatedReferenceLinksScore } from "../../../taskViews/linking/linking.types";
+import { NodeContentExtension } from "gui-elements/src/extensions/react-flow";
 
 export interface RuleEditorEvaluationContextProps {
     /** If evaluation is supported. */
@@ -43,7 +44,7 @@ export const RuleEditorEvaluationContext = React.createContext<RuleEditorEvaluat
     supportsEvaluation: false,
     supportsQuickEvaluation: false,
     startEvaluation: NOP,
-    createRuleEditorEvaluationComponent: (nodeId) => <div>{`${nodeId}`}</div>,
+    createRuleEditorEvaluationComponent: (nodeId) => <NodeContentExtension isExpanded={true}>{`${nodeId}`}</NodeContentExtension>,
     evaluationResultsShown: false,
     evaluationRunning: false,
     toggleEvaluationResults: NOP,

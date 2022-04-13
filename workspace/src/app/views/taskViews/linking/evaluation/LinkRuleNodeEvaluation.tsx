@@ -1,4 +1,5 @@
 import { OverflowText, Spacing, Tag } from "gui-elements";
+import { NodeContentExtension } from "gui-elements/src/extensions/react-flow";
 import React from "react";
 import { CLASSPREFIX as eccgui } from "gui-elements/src/configuration/constants";
 import { useTranslation } from "react-i18next";
@@ -45,7 +46,7 @@ export const LinkRuleNodeEvaluation = ({
     };
 
     return evaluationResult ? (
-        <div data-test-id={`evaluationNode${ruleOperatorId}`} style={{ backgroundColor: "#fefefe" }}>
+        <NodeContentExtension isExpanded={true} data-test-id={`evaluationNode${ruleOperatorId}`}>
             <Spacing size={"small"} />
             {evaluationResult.length > 0 ? (
                 evaluationResult.map((rowValues, idx) => {
@@ -82,7 +83,6 @@ export const LinkRuleNodeEvaluation = ({
                     <Link href={referenceLinksUrl}>{t("RuleEditor.evaluation.addMoreResults")}</Link>
                 </div>
             ) : null}
-            <Spacing size={"tiny"} />
-        </div>
+        </NodeContentExtension>
     ) : null;
 };
