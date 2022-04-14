@@ -15,8 +15,6 @@ import {
     Notification,
     Button,
     IconButton,
-    OverviewItem,
-    OverviewItemLine,
 } from "gui-elements";
 import SearchBar from "../../shared/SearchBar";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
@@ -122,7 +120,6 @@ const Activities = () => {
     ) : (
         <WorkspaceContent>
             {pageHeader}
-
             <WorkspaceMain>
                 <Section>
                     <SectionHeader>
@@ -132,24 +129,22 @@ const Activities = () => {
                                     <TitleMainsection>{t("pages.activities.title", "Activities")}</TitleMainsection>
                                 </GridColumn>
                                 <GridColumn full>
-                                    <OverviewItem hasSpacing>
-                                        <OverviewItemLine>
-                                            <div style={{ width: "100%" }}>
-                                                <SearchBar
-                                                    focusOnCreation
-                                                    textQuery={textQuery}
-                                                    sorters={sorters}
-                                                    onSort={handleSort}
-                                                    onSearch={handleSearch}
-                                                />
-                                            </div>
-                                            <IconButton
-                                                name="item-reload"
-                                                tooltip="Reload activities"
-                                                onClick={() => history.go(0)}
+                                    <div style={{ display: "flex", alignItems: "center" }}>
+                                        <div style={{ width: "100%" }}>
+                                            <SearchBar
+                                                focusOnCreation
+                                                textQuery={textQuery}
+                                                sorters={sorters}
+                                                onSort={handleSort}
+                                                onSearch={handleSearch}
                                             />
-                                        </OverviewItemLine>
-                                    </OverviewItem>
+                                        </div>
+                                        <IconButton
+                                            name="item-reload"
+                                            tooltip="Reload activities"
+                                            onClick={() => history.go(0)}
+                                        />
+                                    </div>
                                 </GridColumn>
                             </GridRow>
                         </Grid>
