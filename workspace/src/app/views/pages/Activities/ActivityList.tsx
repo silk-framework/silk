@@ -17,6 +17,8 @@ import useErrorHandler from "../../../hooks/useErrorHandler";
 import { ResourceLink } from "../../shared/ResourceLink/ResourceLink";
 import { routerOp } from "@ducks/router";
 import { batch } from "react-redux";
+import { calcIntent } from "gui-elements/src/cmem/ActivityControl/SilkActivityControl";
+import { IntentTypes } from "gui-elements/src/common/Intent";
 
 interface IActivity extends ISearchResultsServer {
     isCacheActivity: boolean;
@@ -196,7 +198,6 @@ const ActivityList = () => {
                                 showReloadAction={activity.isCacheActivity}
                                 showStartAction={!activity.isCacheActivity}
                                 showStopAction
-                                progressFinishedIcon={<Icon name="state-success" intent="success" large />}
                                 executeActivityAction={(action: ActivityAction) =>
                                     executeAction(activity.id, action, activity.project, activity.task)
                                 }
