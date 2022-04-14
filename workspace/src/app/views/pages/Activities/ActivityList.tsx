@@ -196,6 +196,7 @@ const ActivityList = () => {
                                 showReloadAction={activity.isCacheActivity}
                                 showStartAction={!activity.isCacheActivity}
                                 showStopAction
+                                progressFinishedIcon={<Icon name="state-success" intent="success" large />}
                                 executeActivityAction={(action: ActivityAction) =>
                                     executeAction(activity.id, action, activity.project, activity.task)
                                 }
