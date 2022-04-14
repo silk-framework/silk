@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { IFacetState } from "@ducks/workspace/typings";
-import { batch, useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import FacetItem from "./FacetItem";
 import { Button, HelperClasses, Icon, Spacing, TitleSubsection } from "gui-elements";

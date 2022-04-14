@@ -17,8 +17,6 @@ import useErrorHandler from "../../../hooks/useErrorHandler";
 import { ResourceLink } from "../../shared/ResourceLink/ResourceLink";
 import { routerOp } from "@ducks/router";
 import { batch } from "react-redux";
-import { calcIntent } from "gui-elements/src/cmem/ActivityControl/SilkActivityControl";
-import { IntentTypes } from "gui-elements/src/common/Intent";
 
 interface IActivity extends ISearchResultsServer {
     isCacheActivity: boolean;
@@ -64,6 +62,7 @@ const ActivityList = () => {
     const updateActivityStatus = (status: IActivityStatus) => {
         const key = activityKey(status.activity, status.project, status.task);
         activityStatusMap.set(key, status);
+        console.log("STATUS", status);
         activityUpdateCallback.get(key)?.(status);
     };
 
