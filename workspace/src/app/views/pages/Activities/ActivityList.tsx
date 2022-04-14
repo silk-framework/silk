@@ -62,7 +62,6 @@ const ActivityList = () => {
     const updateActivityStatus = (status: IActivityStatus) => {
         const key = activityKey(status.activity, status.project, status.task);
         activityStatusMap.set(key, status);
-        console.log("STATUS", status);
         activityUpdateCallback.get(key)?.(status);
     };
 
