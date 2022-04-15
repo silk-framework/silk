@@ -47,7 +47,6 @@ export const LinkingRuleCacheInfo = ({
     });
 
     const intent = getIntentState(referenceCache.intent, pathCache.intent);
-    console.log(intent);
 
     return (
         <>
