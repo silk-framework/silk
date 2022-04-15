@@ -23,10 +23,9 @@ import linkingRuleRequests, {
 } from "./LinkingRuleEditor.requests";
 import { PathWithMetaData } from "../shared/rules/rule.typings";
 import { IAutocompleteDefaultResponse, TaskPlugin } from "@ducks/shared/typings";
-import { Spacing, ToolbarSection } from "gui-elements";
-import { TaskActivityWidget } from "../../shared/TaskActivityWidget/TaskActivityWidget";
 import { FetchError } from "../../../services/fetch/responseInterceptor";
 import { LinkingRuleEvaluation } from "./evaluation/LinkingRuleEvaluation";
+import { LinkingRuleCacheInfo } from "./LinkingRuleCacheInfo";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -259,32 +258,10 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                     ruleUtils.sidebarTabs.aggregation,
                 ]}
                 additionalToolBarComponents={() => [
-                    <ToolbarSection canShrink key={"evaluation-activity"}>
-                        <div style={{ maxWidth: "100%" }}>
-                            <TaskActivityWidget
-                                label={t("taskViews.linkRulesEditor.cacheWidgets.evaluationCache")}
-                                projectId={projectId}
-                                taskId={linkingTaskId}
-                                activityName={"ReferenceEntitiesCache"}
-                                layoutConfig={{ small: true, border: true, canShrink: true, visualization: "spinner" }}
-                                isCacheActivity={true}
-                            />
-                        </div>
-                    </ToolbarSection>,
-                    <Spacing key={"spacing1"} vertical={true} size={"small"} />,
-                    <ToolbarSection canShrink key={"pathsActivity"}>
-                        <div style={{ maxWidth: "100%" }}>
-                            <TaskActivityWidget
-                                label={t("taskViews.linkRulesEditor.cacheWidgets.pathsCache")}
-                                projectId={projectId}
-                                taskId={linkingTaskId}
-                                activityName={"LinkingPathsCache"}
-                                layoutConfig={{ small: true, border: true, canShrink: true, visualization: "spinner" }}
-                                isCacheActivity={true}
-                            />
-                        </div>
-                    </ToolbarSection>,
-                    <Spacing key={"spacing2"} vertical={true} hasDivider={true} />,
+                    <LinkingRuleCacheInfo
+                        projectId={projectId}
+                        taskId={linkingTaskId}
+                    />
                 ]}
             />
         </LinkingRuleEvaluation>

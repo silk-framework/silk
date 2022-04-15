@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import {
     IActivityStatus,
     ActivityAction,
-    SilkActivityControl,
+    useSilkActivityControl,
     IActivityControlLayoutProps,
     Markdown,
     TimeUnits,
@@ -15,7 +15,7 @@ import { connectWebSocket } from "../../../services/websocketUtils";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import { activityActionCreator } from "../TaskActivityOverview/taskActivityOverviewRequests";
 
-interface IProps {
+interface TaskActivityWidgetProps {
     projectId: string;
     taskId: string;
     // Activity name/ID this control is rendered for
@@ -35,7 +35,12 @@ interface IProps {
 }
 
 /** Task activity widget to show the activity status and start / stop task activities. */
-export const TaskActivityWidget = ({
+export const TaskActivityWidget = (props: TaskActivityWidgetProps) => {
+    const { widget } = useTaskActivityWidget(props);
+    return widget;
+}
+
+export const useTaskActivityWidget = ({
     projectId,
     taskId,
     activityName,
@@ -43,7 +48,7 @@ export const TaskActivityWidget = ({
     layoutConfig,
     activityActionPreAction = {},
     isCacheActivity = false,
-}: IProps) => {
+}: TaskActivityWidgetProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
     const [updatesHandler] = useState<{ updateHandler: ((status: IActivityStatus) => any) | undefined }>({
@@ -105,37 +110,35 @@ export const TaskActivityWidget = ({
     const translateUnits = (unit: TimeUnits) => t("common.units." + unit, unit);
 
     // TODO: Fix size issues with activity control and tooltip
-    return (
-        <SilkActivityControl
-            label={label}
-            data-test-id={`activity-control-workflow-editor`}
-            executeActivityAction={executeAction}
-            registerForUpdates={registerForUpdate}
-            unregisterFromUpdates={() => {}}
-            translate={translate}
-            failureReportAction={{
-                title: "", // The title is already repeated in the markdown
-                allowDownload: true,
-                closeButtonValue: t("common.action.close"),
-                downloadButtonValue: t("common.action.download"),
-                renderMarkdown: true,
-                renderReport: (markdown) => <Markdown children={markdown as string} />,
-                fetchErrorReport: activityErrorReport,
-            }}
-            showStartAction={!isCacheActivity}
-            showStopAction={true}
-            showReloadAction={isCacheActivity}
-            layoutConfig={layoutConfig}
-            elapsedTimeOfLastStart={
-                isCacheActivity
-                    ? {
-                          translate: translateUnits,
-                          prefix: ` (${t("widget.TaskActivityOverview.cacheGroup.cacheAgePrefixIndividual")}`,
-                          suffix: `${t("widget.TaskActivityOverview.cacheGroup.cacheAgeSuffix")})`,
-                      }
-                    : undefined
-            }
-            hideMessageOnStatus={isCacheActivity ? (concreteStatus) => concreteStatus === "Successful" : undefined}
-        />
-    );
+    return useSilkActivityControl({
+        label,
+        "data-test-id": `activity-control-workflow-editor`,
+        executeActivityAction: executeAction,
+        registerForUpdates: registerForUpdate,
+        unregisterFromUpdates: () => {},
+        translate,
+        failureReportAction: {
+            title: "", // The title is already repeated in the markdown
+            allowDownload: true,
+            closeButtonValue: t("common.action.close"),
+            downloadButtonValue: t("common.action.download"),
+            renderMarkdown: true,
+            renderReport: (markdown) => <Markdown children={markdown as string} />,
+            fetchErrorReport: activityErrorReport,
+        },
+        showStartAction: !isCacheActivity,
+        showStopAction: true,
+        showReloadAction: isCacheActivity,
+        layoutConfig: layoutConfig,
+        elapsedTimeOfLastStart: (
+            isCacheActivity
+                ? {
+                      translate: translateUnits,
+                      prefix: ` (${t("widget.TaskActivityOverview.cacheGroup.cacheAgePrefixIndividual")}`,
+                      suffix: `${t("widget.TaskActivityOverview.cacheGroup.cacheAgeSuffix")})`,
+                  }
+                : undefined
+        ),
+        hideMessageOnStatus: isCacheActivity ? (concreteStatus) => concreteStatus === "Successful" : undefined,
+    });
 };
