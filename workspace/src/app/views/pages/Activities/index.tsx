@@ -30,17 +30,6 @@ import { useHistory, useParams } from "react-router";
 import { SERVE_PATH } from "../../../constants/path";
 import { ProjectTaskParams } from "views/shared/typings";
 
-const breadcrumbs = [
-    {
-        text: "Build",
-        href: SERVE_PATH,
-    },
-    {
-        text: "Activity Overview",
-        current: true,
-    },
-];
-
 const Activities = () => {
     const dispatch = useDispatch();
     const { registerError } = useErrorHandler();
@@ -51,9 +40,21 @@ const Activities = () => {
     const sorters = useSelector(workspaceSel.sortersSelector);
 
     const [t] = useTranslation();
+
+    const breadcrumbs = [
+        {
+            text: t("navigation.side.diBrowse"),
+            href: SERVE_PATH,
+        },
+        {
+            text: t("pages.activities.title"),
+            current: true,
+        },
+    ];
+
     const { pageHeader, updatePageHeader } = usePageHeader({
         alternateDepiction: "application-activities",
-        pageTitle: "Activity Overview",
+        autogeneratePageTitle: true,
         breadcrumbs,
     });
 
@@ -71,7 +72,7 @@ const Activities = () => {
                         },
                         breadcrumbs[1],
                     ],
-                    pageTitle: res.data.label,
+                    autogeneratePageTitle: true,
                 });
             });
     }, [projectId]);
