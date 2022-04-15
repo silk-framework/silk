@@ -61,10 +61,6 @@ export const filtersSlice = createSlice({
         changePage(state, action) {
             const page = action.payload;
             const offset = (page - 1) * state.pagination.limit;
-            // state.pagination = initialPaginationState({
-            //     offset,
-            //     current: page,
-            // });
             state.pagination = {
                 ...state.pagination,
                 offset,

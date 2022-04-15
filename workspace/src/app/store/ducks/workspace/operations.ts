@@ -50,7 +50,7 @@ const updateQueryString = () => {
         const { applied: appliedSorters } = workspaceSel.sortersSelector(state);
         const appliedFacets = workspaceSel.appliedFacetsSelector(state);
         const { current, limit } = workspaceSel.paginationSelector(state);
-        console.log("Applied sorters", appliedSorters);
+        //console.log("Applied sorters", appliedSorters);
         const queryParams = {
             ...appliedFilters,
             ...appliedSorters,
