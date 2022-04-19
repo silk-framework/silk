@@ -93,8 +93,12 @@ class ActivitySearchApiIntegrationTest extends FlatSpec
 
   it should "allowing sorting by recent updates" in {
     // Start two caches after another so they got a defined update order
-    project.task[GenericDatasetSpec]("xmlA1").activity[TypesCache].startBlocking()
-    project.task[GenericDatasetSpec]("xmlA2").activity[TypesCache].startBlocking()
+    val cache1 = project.task[GenericDatasetSpec]("xmlA1").activity[TypesCache]
+    val cache2 = project.task[GenericDatasetSpec]("xmlA2").activity[TypesCache]
+    cache1.control.waitUntilFinished()
+    cache1.startBlocking()
+    cache2.control.waitUntilFinished()
+    cache2.startBlocking()
 
     // Most recently updated activities should be returned first
     val response = facetedSearchRequest(
