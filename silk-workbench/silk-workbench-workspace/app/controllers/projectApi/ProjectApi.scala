@@ -691,7 +691,13 @@ object ProjectApi {
                        label: String)
 
   @Schema(description = "Request to add a new tag.")
-  case class CreateTagsRequest(tags: Iterable[CreateTag]) {
+  case class CreateTagsRequest(@ArraySchema(
+                                 schema = new Schema(
+                                   description = "The list of tags to be added.",
+                                   implementation = classOf[CreateTag]
+                                 )
+                               )
+                               tags: Iterable[CreateTag]) {
 
     def execute(project: Project)
                (implicit userContext: UserContext): Iterable[FullTag] = {
