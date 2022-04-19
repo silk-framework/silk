@@ -3,24 +3,28 @@ package controllers.workspaceApi
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.workspaceApi.doc.ActivitiesApiDoc
-import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import controllers.workspaceApi.search.SearchApiModel.FacetedSearchResult
+import controllers.workspaceApi.search.activity.ActivitySearchRequest
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
-
-import javax.inject.Inject
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.runtime.activity.{Status => ActivityStatus}
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.ActivitySerializers.ExtendedStatusJsonFormat
+import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
+
+import javax.inject.Inject
 
 /**
   * Activities API.
   */
 @Tag(name = "Activities")
-class ActivitiesApi @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
+class ActivitiesApi @Inject() (implicit accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   /** List status of all task activities. */
   @Operation(
@@ -77,6 +81,32 @@ class ActivitiesApi @Inject() () extends InjectedController with UserContextActi
       }
     }
     Ok(Json.toJson(activityStatusTraversable.toSeq))
+  }
+
+  /** Faceted search API for the activity search */
+  @Operation(
+    summary = "Activity search",
+    description = "Allows to search over all activities with text search and filter facets.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Search result",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(implementation = classOf[FacetedSearchResult])
+        ))
+      )
+    )
+  )
+  @RequestBody(
+    content = Array(new Content(
+      mediaType = "application/json",
+      schema = new Schema(implementation = classOf[ActivitySearchRequest])
+    )))
+  def activitySearch(): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
+    validateJson[ActivitySearchRequest] { searchResult =>
+      Ok(Json.toJson(searchResult()))
+    }
   }
 }
 

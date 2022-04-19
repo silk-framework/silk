@@ -6,4 +6,6 @@ package org.silkframework.runtime.users
 class WebUser(val uri: String, val name: Option[String]) extends User {
   /** A unique ID for the request this user has initiated. */
   def requestId: Option[String] = None
+
+  override lazy val label: String = name.getOrElse(User.labelFromUri(uri))
 }

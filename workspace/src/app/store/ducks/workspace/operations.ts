@@ -16,7 +16,8 @@ import { widgetsSlice } from "@ducks/workspace/widgetsSlice";
 import { fetchWarningListAsync, fetchWarningMarkdownAsync } from "@ducks/workspace/widgets/warning.thunk";
 import { fetchResourcesListAsync } from "@ducks/workspace/widgets/file.thunk";
 import { commonSel } from "@ducks/common";
-import { ISearchListRequest, requestSearchList } from "@ducks/workspace/requests";
+import { ISearchListRequest, ISearchListResponse, requestSearchList } from "@ducks/workspace/requests";
+import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 
 const {
     updateResultTotal,
@@ -49,7 +50,7 @@ const updateQueryString = () => {
         const { applied: appliedSorters } = workspaceSel.sortersSelector(state);
         const appliedFacets = workspaceSel.appliedFacetsSelector(state);
         const { current, limit } = workspaceSel.paginationSelector(state);
-
+        //console.log("Applied sorters", appliedSorters);
         const queryParams = {
             ...appliedFilters,
             ...appliedSorters,
@@ -153,7 +154,10 @@ const setupFiltersFromQs = (queryString: string) => {
  * Fetch the search results
  * by provided filters
  */
-const fetchListAsync = () => {
+const fetchListAsync = (
+    fetcher?: (payload: ISearchListRequest) => Promise<FetchResponse<ISearchListResponse>>,
+    customDefaultLimit?: number
+) => {
     return async (dispatch, getState) => {
         dispatch(fetchList());
 
@@ -170,7 +174,7 @@ const fetchListAsync = () => {
         const projectId = commonSel.currentProjectIdSelector(state);
 
         const body: ISearchListRequest = {
-            limit,
+            limit: customDefaultLimit || limit,
             offset,
         };
 
@@ -194,7 +198,9 @@ const fetchListAsync = () => {
         body.facets = appliedFacets.map((facet) => facet);
 
         try {
-            const { total, facets, results, sortByProperties } = await requestSearchList(body);
+            const { total, facets, results, sortByProperties } = fetcher
+                ? (await fetcher(body))?.data
+                : await requestSearchList(body);
             batch(() => {
                 // Apply results
                 dispatch(fetchListSuccess(results));
@@ -299,6 +305,8 @@ const workspaceOps = {
     fetchResourcesListAsync,
     resetFilters,
     updateNewPrefix,
+    applyFilters,
+    changeProjectsLimit,
 };
 
 export default workspaceOps;

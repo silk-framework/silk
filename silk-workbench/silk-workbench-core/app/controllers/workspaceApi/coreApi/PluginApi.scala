@@ -159,7 +159,7 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
         val pluginIds = PluginUsageCollector.pluginUsages(task.data)
         if(pluginIds.contains(pluginId)) {
           usages += Json.obj(
-            "project" -> project.name.toString,
+            "project" -> project.id.toString,
             "task" -> task.id.toString,
             "link" -> WorkbenchLinks.editorLink(task)
           )

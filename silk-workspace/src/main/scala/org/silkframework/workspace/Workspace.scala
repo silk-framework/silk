@@ -137,14 +137,14 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
 
   override def findProject(name: Identifier)(implicit userContext: UserContext): Option[Project] = {
     loadUserProjects()
-    projects.find(_.name == name)
+    projects.find(_.id == name)
   }
 
   def createProject(config: ProjectConfig)
                    (implicit userContext: UserContext): Project = synchronized {
     val creationConfig = config.withMetaData(config.metaData.asNewMetaData)
     loadUserProjects()
-    if(cachedProjects.exists(_.name == creationConfig.id)) {
+    if(cachedProjects.exists(_.id == creationConfig.id)) {
       throw IdentifierAlreadyExistsException("Project " + creationConfig.id + " does already exist!")
     }
     provider.putProject(creationConfig)
@@ -172,7 +172,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   }
 
   private def removeProjectFromCache(name: Identifier): Unit = {
-    cachedProjects = cachedProjects.filterNot(_.name == name)
+    cachedProjects = cachedProjects.filterNot(_.id == name)
   }
 
   /**

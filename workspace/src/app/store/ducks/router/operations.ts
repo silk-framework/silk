@@ -38,8 +38,8 @@ const setQueryString = (queryParams: IQueryParams) => {
         const currentQuery = {};
 
         Object.keys(queryParams).forEach((paramName) => {
-            const values = queryParams[paramName];
-            const validValue = Array.isArray(values) ? values : values.toString();
+            const value = queryParams[paramName];
+            const validValue = Array.isArray(value) ? value : value.toString();
 
             if (validValue && validValue.length) {
                 currentQuery[paramName] = validValue;

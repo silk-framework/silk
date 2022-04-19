@@ -64,7 +64,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
         activities ::= new TaskActivity(this, factory)
       } catch {
         case NonFatal(ex) =>
-          log.log(Level.WARNING, s"Could not load task activity '${factory.pluginSpec.id}' in task '$id' in project '${module.project.name}'.", ex)
+          log.log(Level.WARNING, s"Could not load task activity '${factory.pluginSpec.id}' in task '$id' in project '${module.project.id}'.", ex)
       }
     }
     activities.reverse
@@ -138,7 +138,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
       )
     )
     persistTask
-    log.info(s"Updated task '$id' of project ${project.name}." + userContext.logInfo)
+    log.info(s"Updated task '$id' of project ${project.id}." + userContext.logInfo)
   }
 
   /**
@@ -163,7 +163,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   def activity[T <: HasValue : ClassTag]: TaskActivity[TaskType, T] = {
     val requestedClass = implicitly[ClassTag[T]].runtimeClass
     val act = taskActivityMap.getOrElse(requestedClass,
-      throw new NoSuchElementException(s"Task '$id' in project '${project.name}' does not contain an activity of type '${requestedClass.getName}'. " +
+      throw new NoSuchElementException(s"Task '$id' in project '${project.id}' does not contain an activity of type '${requestedClass.getName}'. " +
         s"Available activities:\n${taskActivityMap.keys.map(_.getName).mkString("\n ")}"))
     act.asInstanceOf[TaskActivity[TaskType, T]]
   }
@@ -177,7 +177,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     */
   def activity(activityName: String): TaskActivity[TaskType, _ <: HasValue] = {
     taskActivities.find(_.name == activityName)
-        .getOrElse(throw new NoSuchElementException(s"Task '$id' in project '${project.name}' does not contain an activity named '$activityName'. " +
+        .getOrElse(throw new NoSuchElementException(s"Task '$id' in project '${project.id}' does not contain an activity named '$activityName'. " +
             s"Available activities: ${taskActivityMap.values.map(_.name).mkString(", ")}"))
   }
 
@@ -209,7 +209,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
 
   private def persistTask(implicit userContext: UserContext): Unit = {
     // Write task
-    module.provider.putTask(project.name, ProjectTask.this)
+    module.provider.putTask(project.id, ProjectTask.this)
     // Restart each activity, don't wait for completion.
     for (activity <- taskActivities if shouldAutoRun(activity)) {
       activity.control.restart()
@@ -236,7 +236,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
   /**
     * Retrieves all tags for this task.
     */
-  def tags()(implicit userContext: UserContext): Set[Tag] = {
+  override def tags()(implicit userContext: UserContext): Set[Tag] = {
     metaData.tags.map(uri => project.tagManager.getTag(uri))
   }
 }

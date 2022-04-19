@@ -27,7 +27,7 @@ object WorkbenchLinks {
     * Given a task in the workflow, returns the URI of the corresponding details page in the new workspace.
     */
   def editorLink(task: ProjectTask[_ <: TaskSpec]): String = {
-    val projectId = task.project.name
+    val projectId = task.project.id
     val taskId = task.id
     val taskType = task.data match {
       case _: GenericDatasetSpec => "dataset"

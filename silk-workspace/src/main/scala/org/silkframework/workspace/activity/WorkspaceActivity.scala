@@ -2,8 +2,7 @@ package org.silkframework.workspace.activity
 
 import java.time.Instant
 import java.util.logging.Logger
-
-import org.silkframework.config.Prefixes
+import org.silkframework.config.{Prefixes, TaskSpec}
 import org.silkframework.runtime.activity.{ObservableMirror, _}
 import org.silkframework.runtime.plugin.ClassPluginDescription
 import org.silkframework.util.{Identifier, IdentifierGenerator}
@@ -50,7 +49,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   /**
     * The task this activity belongs to, if any.
     */
-  def taskOption: Option[ProjectTask[_]]
+  def taskOption: Option[ProjectTask[_ <: TaskSpec]]
 
   /**
     * The factory that is used to create new activity controls.
@@ -119,6 +118,11 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   final def startTime: Option[Instant] = control.startTime
 
   /**
+    * The user that started the activity. Refers to the empty user until the activity has been started the first time.
+    */
+  final def startedBy: UserContext = control.startedBy
+
+  /**
     * True, if there is always exactly one instance of this activity.
     */
   final def isSingleton: Boolean = factory.isSingleton
@@ -178,7 +182,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     } else {
       val newControl = createControl(config)
       if(instances.size >= WorkspaceActivity.MAX_CONTROLS_PER_ACTIVITY) {
-        val activityDescription = projectOpt.map(p => s"In project ${p.name} activity '$name'").getOrElse(s"In workspace activity '$name'")
+        val activityDescription = projectOpt.map(p => s"In project ${p.id} activity '$name'").getOrElse(s"In workspace activity '$name'")
         log.warning(s"$activityDescription: Dropping an activity control instance because the control " +
             s"instance queue is full (max. ${WorkspaceActivity.MAX_CONTROLS_PER_ACTIVITY}. Dropped instance ID: ${instances.head._1}")
         instances = instances.drop(1)

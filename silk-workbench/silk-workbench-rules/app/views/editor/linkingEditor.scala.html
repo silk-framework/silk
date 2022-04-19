@@ -23,11 +23,11 @@
 
   <script type="text/javascript">
     var inEditorEnv = true;
-    var projectName = '@context.project.name';
+    var projectName = '@context.project.id';
     var taskName = '@context.task.id';
     var ruleIndex = '';
     var editorUrl = baseUrl + '/linking/' + projectName + '/' + taskName + '/editor';
-    var apiUrl = '@config.baseUrl/linking/tasks/@context.project.name/@context.task.id';
+    var apiUrl = '@config.baseUrl/linking/tasks/@context.project.id/@context.task.id';
     var serializationFunction = serializeLinkageRule;
   </script>
 }
@@ -56,7 +56,7 @@
       </div>
     </li>
     <li>
-      <a id="button_get_linkspec" class="mdl-button mdl-js-button mdl-button--icon" href="@routes.WorkspaceApi.exportLinkSpec(context.project.name, context.task.id).url" target="_blank">
+      <a id="button_get_linkspec" class="mdl-button mdl-js-button mdl-button--icon" href="@routes.WorkspaceApi.exportLinkSpec(context.project.id, context.task.id).url" target="_blank">
         <i class="material-icons">file_download</i>
       </a>
       <div class="mdl-tooltip mdl-tooltip--large" for="button_get_linkspec">

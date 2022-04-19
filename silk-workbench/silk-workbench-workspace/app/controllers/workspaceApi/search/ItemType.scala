@@ -13,6 +13,7 @@ import play.api.libs.json._
 sealed abstract class ItemType(val id: String, val label: String)
 
 object ItemType {
+  case object global extends ItemType("global", "Global")
   case object project extends ItemType(PROJECT_TYPE, "Project")
   case object dataset extends ItemType("dataset", "Dataset")
   case object transform extends ItemType("transform", "Transform")
@@ -20,8 +21,10 @@ object ItemType {
   case object workflow extends ItemType("workflow", "Workflow")
   case object task extends ItemType("task", "Task")
 
-  val ordered: Seq[ItemType] = Seq(project, workflow, dataset, transform, linking, task)
-  val idToItemType: Map[String, ItemType] = ordered.map(it => (it.id, it)).toMap
+  val taskTypes: Seq[ItemType] = Seq(workflow, dataset, transform, linking, task)
+  val all: Seq[ItemType] = Seq(global, project) ++ taskTypes
+
+  val idToItemType: Map[String, ItemType] = all.map(it => (it.id, it)).toMap
 
   private def context: String = WorkbenchConfig.applicationContext
 
@@ -44,6 +47,9 @@ object ItemType {
         ItemLink("Task details page", s"$detailsPageBase/${ItemType.task.id}/$itemId")
       case ItemType.project =>
         ItemLink("Project details page", s"$context/${workspaceProjectPath(itemId)}")
+      case _ =>
+        throw new IllegalArgumentException(s"Unsupported item type: $itemType")
+
     }
   }
 
@@ -98,7 +104,7 @@ object ItemType {
       json match {
         case JsString(value) =>ItemType.idToItemType.get(value) match {
           case Some(itemType) => JsSuccess(itemType)
-          case None => throw BadUserInputException(s"Invalid value for itemType. Got '$value'. Value values: " + ItemType.ordered.map(_.id).mkString(", "))
+          case None => throw BadUserInputException(s"Invalid value for itemType. Got '$value'. Value values: " + ItemType.all.map(_.id).mkString(", "))
         }
         case _ => throw BadUserInputException("Invalid value for itemType. String value expected.")
       }

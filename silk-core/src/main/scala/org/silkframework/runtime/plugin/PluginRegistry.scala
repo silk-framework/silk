@@ -301,7 +301,7 @@ object PluginRegistry {
     * Removes a plugin from the registry.
     */
   def unregisterPlugin(implementingClass: Class[_]): Unit = {
-    unregisterPlugin(ClassPluginDescription.create(implementingClass))
+    unregisterPlugin(PluginDescription.create(implementingClass))
   }
 
   private def getSuperTypes(clazz: Class[_]): Set[Class[_]] = {

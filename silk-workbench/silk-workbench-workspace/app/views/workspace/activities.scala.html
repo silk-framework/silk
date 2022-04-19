@@ -135,8 +135,8 @@
 }
 
 @projectActivities(project: Project) = {
-  <li id="project_@project.name" class="jstree-open" >
-    @project.name
+  <li id="project_@project.id" class="jstree-open" >
+    @project.id
     <ul>
     Project Activities
     @for(activity <- project.activities) {
@@ -152,7 +152,7 @@
 }
 
 @taskActivities(project: Project, task: ProjectTask[_ <: TaskSpec]) = {
-  <li id="task_@{project.name}_@task.id" class="jstree-open">
+  <li id="task_@{project.id}_@task.id" class="jstree-open">
     @task.label()
     <ul>
     @for(activity <- task.activities) {
@@ -182,52 +182,52 @@
 }
 
 @projectActivityStatus(project: Project, activity: ProjectActivity[_ <: HasValue]) = {
-  <li id="@id(project.name, "", activity.name)" data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}' title="@activity.description">
+  <li id="@id(project.id, "", activity.name)" data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}' title="@activity.description">
     @activity.label
     <div class="activity-progress-small">
       <div class="activity-progress-small-text"></div>
       <img class="activity-progress-small-help" src="@Assets.at("img/help.png")"/>
     </div>
     <div class="activity-button-start">
-      <img title="Start activity" width="16" height="16" src="@Assets.at("img/control-start.png")" onclick="post('@ActivityApi.startActivity(project.name, "", activity.name).url')" />
+      <img title="Start activity" width="16" height="16" src="@Assets.at("img/control-start.png")" onclick="post('@ActivityApi.startActivity(project.id, "", activity.name).url')" />
     </div>
     <div class="activity-button-stop">
-      <img title="Stop activity" width="16" height="16" src="@Assets.at("img/control-stop.png")" onclick="post('@ActivityApi.cancelActivity(project.name, "", activity.name).url')" />
+      <img title="Stop activity" width="16" height="16" src="@Assets.at("img/control-stop.png")" onclick="post('@ActivityApi.cancelActivity(project.id, "", activity.name).url')" />
     </div>
     @if(activity.defaultConfig.nonEmpty) {
       <div class="activity-button-edit">
-        <img title="Edit activity configuration" width="16" height="16" src="@Assets.at("img/wrench.png")" onclick="showDialog('@WorkspaceController.projectActivityConfigDialog(project.name, activity.name).url')" />
+        <img title="Edit activity configuration" width="16" height="16" src="@Assets.at("img/wrench.png")" onclick="showDialog('@WorkspaceController.projectActivityConfigDialog(project.id, activity.name).url')" />
       </div>
     }
   </li>
 }
 
 @taskActivityStatus(project: Project, task: ProjectTask[_ <: TaskSpec], activity: TaskActivity[_, _]) = {
-  <li id="@id(project.name, task.id, activity.name)" data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}' title="@activity.description">
+  <li id="@id(project.id, task.id, activity.name)" data-jstree='{"icon":"@Assets.at("img/file-tag.png")"}' title="@activity.description">
     @activity.label
     <div class="activity-progress-small">
       <div class="activity-progress-small-text"></div>
       <img class="activity-progress-small-help" src="@Assets.at("img/help.png")"/>
     </div>
     <div class="activity-button-start">
-      <img title="Start activity" width="16" height="16" src="@Assets.at("img/control-start.png")" onclick="post('@ActivityApi.startActivity(project.name, task.id, activity.name).url')" />
+      <img title="Start activity" width="16" height="16" src="@Assets.at("img/control-start.png")" onclick="post('@ActivityApi.startActivity(project.id, task.id, activity.name).url')" />
     </div>
     <div class="activity-button-stop">
-      <img title="Stop activity" width="16" height="16" src="@Assets.at("img/control-stop.png")" onclick="post('@ActivityApi.cancelActivity(project.name, task.id, activity.name).url')" />
+      <img title="Stop activity" width="16" height="16" src="@Assets.at("img/control-stop.png")" onclick="post('@ActivityApi.cancelActivity(project.id, task.id, activity.name).url')" />
     </div>
     <div class="activity-button-edit">
       @if(activity.defaultConfig.nonEmpty) {
-        <img title="Edit activity configuration" width="16" height="16" src="@Assets.at("img/wrench.png")" onclick="showDialog('@WorkspaceController.taskActivityConfigDialog(project.name, task.id, activity.name).url')" />
+        <img title="Edit activity configuration" width="16" height="16" src="@Assets.at("img/wrench.png")" onclick="showDialog('@WorkspaceController.taskActivityConfigDialog(project.id, task.id, activity.name).url')" />
       }
     </div>
     <div class="activity-button-value">
       @if(!activity.isUnitValueType) {
-        <img title="Show current value" width="16" height="16" src="@Assets.at("img/magnifier.png")" onclick="window.open('@ActivityApi.getActivityValue(project.name, task.id, activity.name).url', '_blank')" />
+        <img title="Show current value" width="16" height="16" src="@Assets.at("img/magnifier.png")" onclick="window.open('@ActivityApi.getActivityValue(project.id, task.id, activity.name).url', '_blank')" />
       }
     </div>
     <div class="activity-button-reload">
     @if(classOf[CachedActivity[_]].isAssignableFrom(activity.control.underlying.getClass)) {
-      <img title="Reload cache" width="16" height="16" src="@Assets.at("img/control-reload.png")" onclick="post('@ActivityApi.restartActivity(project.name, task.id, activity.name).url')" />
+      <img title="Reload cache" width="16" height="16" src="@Assets.at("img/control-reload.png")" onclick="post('@ActivityApi.restartActivity(project.id, task.id, activity.name).url')" />
     }
     </div>
   </li>

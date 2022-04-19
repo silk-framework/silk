@@ -74,7 +74,7 @@ object ActivityFacade {
         isCacheActivity = activity.isCacheActivity
       ),
       metaData = Some(ActivityMetaData(
-        projectId = activity.projectOpt.map(_.name),
+        projectId = activity.projectOpt.map(_.id),
         taskId = activity.taskOption.map(_.id)
       ))
     )

@@ -5,23 +5,33 @@ import { commonSel } from "@ducks/common";
 import { RadioButton, Spacing, TitleSubsection } from "gui-elements";
 import FacetsList from "./FacetsList";
 import { useTranslation } from "react-i18next";
+import { IAvailableDataTypeOption } from "@ducks/common/typings";
+import { useLocation } from "react-router";
 
-export function Filterbar() {
+interface IFilterBarProps {
+    extraItemTypeModifiers?: IAvailableDataTypeOption[];
+    projectId?: string;
+}
+
+export function Filterbar({ extraItemTypeModifiers = [], projectId }: IFilterBarProps) {
     const dispatch = useDispatch();
     const [t] = useTranslation();
 
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
     const modifiers = useSelector(commonSel.availableDTypesSelector);
+    const location = useLocation();
+    const locationParams = new URLSearchParams(location.search?.substring(1));
 
     const typeModifier = modifiers.type;
 
     const handleFilterSelect = (field: string, val: string) => {
         let value = val !== appliedFilters[field] ? val : "";
-        dispatch(
-            workspaceOp.applyFiltersOp({
-                [field]: value,
-            })
-        );
+        const filterOptions = {
+            [field]: value,
+            limit: locationParams.get("limit"),
+            current: locationParams.get("page"),
+        };
+        dispatch(workspaceOp.applyFiltersOp(filterOptions));
     };
 
     return (
@@ -42,20 +52,26 @@ export function Filterbar() {
                                 value={""}
                             />
                         </li>
-                        {typeModifier.options.map((opt) => (
-                            <li key={opt.id}>
-                                <RadioButton
-                                    data-test-id={"item-type-radio-button-" + opt.id}
-                                    checked={appliedFilters[typeModifier.field] === opt.id}
-                                    label={t(`widget.Filterbar.subsections.valueLabels.itemType.${opt.id}`, opt.label)}
-                                    onChange={() => handleFilterSelect(typeModifier.field, opt.id)}
-                                    value={opt.id}
-                                />
-                            </li>
-                        ))}
+
+                        {[...extraItemTypeModifiers, ...typeModifier.options]
+                            .filter((mod) => !(!!projectId && (mod.label === "Project" || mod.label === "Global")))
+                            .map((opt) => (
+                                <li key={opt.id}>
+                                    <RadioButton
+                                        data-test-id={"item-type-radio-button-" + opt.id}
+                                        checked={appliedFilters[typeModifier.field] === opt.id}
+                                        label={t(
+                                            `widget.Filterbar.subsections.valueLabels.itemType.${opt.id}`,
+                                            opt.label
+                                        )}
+                                        onChange={() => handleFilterSelect(typeModifier.field, opt.id)}
+                                        value={opt.id}
+                                    />
+                                </li>
+                            ))}
                     </ul>
                     <Spacing />
-                    <FacetsList />
+                    <FacetsList projectId={projectId} />
                 </>
             )}
         </nav>

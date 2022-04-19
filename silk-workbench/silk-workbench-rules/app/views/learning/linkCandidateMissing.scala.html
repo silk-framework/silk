@@ -19,7 +19,7 @@
 
   function done() {
     const inlineView = (window.location !== window.parent.location) ? "true" : "false"
-    window.location = "@routes.Learning.population(context.project.name, context.task.id).url?inlineView=" + inlineView
+    window.location = "@routes.Learning.population(context.project.id, context.task.id).url?inlineView=" + inlineView
   }
 
 </script>

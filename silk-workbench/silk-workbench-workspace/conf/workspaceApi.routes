@@ -5,7 +5,10 @@ POST          /searchItems                                                      
 POST          /pluginParameterAutoCompletion                                    controllers.workspaceApi.SearchApi.parameterAutoCompletion()
 GET           /recentlyViewedItems                                              controllers.workspaceApi.SearchApi.recentlyViewedItems()
 GET           /initFrontend                                                     controllers.workspaceApi.InitApi.init()
+
 GET           /taskActivitiesStatus                                             controllers.workspaceApi.ActivitiesApi.taskActivitiesStatus(projectId: Option[String] ?= None, statusFilter: Option[String] ?= None)
+POST          /searchActivities                                                 controllers.workspaceApi.ActivitiesApi.activitySearch()
+
 POST          /projectImport                                                    controllers.workspaceApi.ProjectImportApi.uploadProjectArchiveFile()
 GET           /projectImport/:projectImportId                                   controllers.workspaceApi.ProjectImportApi.projectImportDetails(projectImportId: String)
 DELETE        /projectImport/:projectImportId                                   controllers.workspaceApi.ProjectImportApi.removeProjectImport(projectImportId: String)

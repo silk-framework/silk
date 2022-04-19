@@ -79,7 +79,7 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], configuration: St
   override def run(context: ActivityContext[WorkflowOutput])
                   (implicit userContext: UserContext): Unit = {
 
-    val projectName = task.project.name
+    val projectName = task.project.id
     val variableDatasets = task.data.variableDatasets(task.project)
 
     // Create sinks and resources for variable datasets, all resources are returned in the response

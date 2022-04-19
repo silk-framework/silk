@@ -36,7 +36,7 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
     implicit val resources: ResourceManager = project.resources
     Activity(
       ClassPluginDescription(defaultFactory.getClass)(config, ignoreNonExistingParameters = false).apply(task),
-      projectAndTaskId = Some(ProjectAndTaskIds(project.name, taskOption.map(_.id)))
+      projectAndTaskId = Some(ProjectAndTaskIds(project.id, taskOption.map(_.id)))
     )
   }
 

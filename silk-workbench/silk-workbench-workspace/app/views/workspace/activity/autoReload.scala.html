@@ -19,8 +19,8 @@
 
   $( window ).on("load", function () {
     connectWebSocket(
-      '@Html(ActivityApi.activityStatusUpdatesWebSocket(context.project.name, context.task.id, activityId).webSocketURL(WorkbenchConfig().useHttps))',
-      '@Html(ActivityApi.getActivityStatusUpdates(context.project.name, context.task.id, activityId).url)',
+      '@Html(ActivityApi.activityStatusUpdatesWebSocket(context.project.id, context.task.id, activityId).webSocketURL(WorkbenchConfig().useHttps))',
+      '@Html(ActivityApi.getActivityStatusUpdates(context.project.id, context.task.id, activityId).url)',
       statusUpdated
     );
   });

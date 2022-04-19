@@ -8,8 +8,8 @@ import org.silkframework.workspace.activity.workflow.{LocalWorkflowExecutorGener
 /**
   * Facet collector for workflows.
   */
-case class WorkflowFacetCollector() extends ItemTypeFacetCollector[Workflow] {
-  override val facetCollectors: Seq[FacetCollector[Workflow]] = {
+case class WorkflowFacetCollector() extends ItemTypeFacetCollector[ProjectTask[Workflow]] {
+  override val facetCollectors: Seq[FacetCollector[ProjectTask[Workflow]]] = {
     Seq(
       WorkflowExecutionStatus()
     )
@@ -17,7 +17,7 @@ case class WorkflowFacetCollector() extends ItemTypeFacetCollector[Workflow] {
 }
 
 /** Facet to filter a workflow by its status. */
-case class WorkflowExecutionStatus() extends NoLabelKeywordFacetCollector[Workflow] {
+case class WorkflowExecutionStatus() extends NoLabelKeywordFacetCollector[ProjectTask[Workflow]] {
 
   override def extractKeywordIds(projectTask: ProjectTask[Workflow])
                                 (implicit user: UserContext): Set[String] = {

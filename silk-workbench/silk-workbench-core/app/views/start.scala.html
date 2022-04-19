@@ -30,7 +30,7 @@
       </p>
 
       <button id="open-workspace-btn" class="mdl-button mdl-js-button mdl-button--raised" onclick="window.location = '@config.baseUrl/workspace'">Open Workspace</button>
-      @if(!projects.exists(_.name == exampleName)) {
+      @if(!projects.exists(_.id == exampleName)) {
         <button id="start-load-example" class="mdl-button mdl-js-button mdl-button--raised" onclick="loadExample()" style="margin-left: 5px;">Load Example</button>
       }
       <span>

@@ -58,7 +58,7 @@
       val resources = project.resources.listRecursive
       enumParameter(param, resources, resources, value)
     case ProjectReferenceType =>
-      val projectNames = WorkspaceFactory().workspace.projects.map(_.name.toString)
+      val projectNames = WorkspaceFactory().workspace.projects.map(_.id.toString)
       enumParameter(param, projectNames, projectNames, value)
     case TaskReferenceType =>
       val taskNames = project.allTasks.map(_.id.toString)

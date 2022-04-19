@@ -3,6 +3,7 @@ package org.silkframework.serialization.json
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.config.{MetaData, Tag}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.users.User
 import org.silkframework.serialization.json.TransformedJsonFormat.TransformableJsonFormat
 import org.silkframework.util.Uri
 import org.silkframework.workspace.TagManager
@@ -30,7 +31,7 @@ object MetaDataSerializers {
 
   object UserInfo {
     def fromUri(userUri: Uri): UserInfo = {
-      UserInfo(userUri, userUri.localName.getOrElse(userUri.uri))
+      UserInfo(userUri, User.labelFromUri(userUri))
     }
   }
 

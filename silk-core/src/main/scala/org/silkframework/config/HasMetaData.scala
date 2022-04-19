@@ -1,5 +1,6 @@
 package org.silkframework.config
 
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Identifier
 
 /**
@@ -40,5 +41,10 @@ trait HasMetaData {
   def labelAndId(implicit prefixes: Prefixes = Prefixes.empty): String = {
     s"'${fullLabel()}' ($id)"
   }
+
+  /**
+    * Retrieves the full tags from the meta data.
+    */
+  def tags()(implicit userContext: UserContext): Set[Tag] = Set.empty
 
 }

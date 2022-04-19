@@ -47,7 +47,7 @@ object WorkflowPlugin {
 
   case class WorkflowTaskActions(task: ProjectTask[_ <: TaskSpec]) extends TaskActions {
 
-    private val project = task.project.name
+    private val project = task.project.id
 
     private val taskId = task.id
 

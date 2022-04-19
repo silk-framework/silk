@@ -55,7 +55,7 @@ object SearchApiModel {
   }
   lazy implicit val facetedSearchRequestReader: Reads[FacetedSearchRequest] = Json.reads[FacetedSearchRequest]
   lazy implicit val keywordFacetValueReads: Format[KeywordFacetValue] = Json.format[KeywordFacetValue]
-  lazy implicit val facetResultWrites: Writes[FacetResult] = new Writes[FacetResult] {
+  lazy implicit val facetResultWrites: Format[FacetResult] = new Format[FacetResult] {
     override def writes(facetResult: FacetResult): JsValue = {
       assert(FacetType.facetTypeSet.contains(facetResult.`type`), s"Facet type '${facetResult.`type`}' is not a valid facet type.")
       val facetValues: Seq[JsValue] = FacetType.withName(facetResult.`type`) match {
@@ -69,6 +69,21 @@ object SearchApiModel {
         DESCRIPTION -> JsString(facetResult.description),
         TYPE -> JsString(facetResult.`type`),
         VALUES -> JsArray(facetValues)
+      ))
+    }
+    override def reads(json: JsValue): JsResult[FacetResult] = {
+      val facetType = (json \ SearchApiModel.TYPE).get.as[String]
+      assert(FacetType.facetTypeSet.contains(facetType), "Facet type invalid!")
+      val facetValues = FacetType.withName(facetType) match {
+        case FacetType.keyword =>
+          (json \ SearchApiModel.VALUES).as[JsArray].value.map(keywordFacetValueReads.reads(_).get)
+      }
+      JsSuccess(FacetResult(
+        id = (json \ SearchApiModel.ID).as[String],
+        label = (json \ SearchApiModel.LABEL).as[String],
+        description = (json \ SearchApiModel.DESCRIPTION).as[String],
+        `type` = facetType,
+        values = facetValues
       ))
     }
   }
@@ -194,14 +209,19 @@ object SearchApiModel {
     final val createdBy: Facet = Facet("createdBy", "Created by", "The user who created the item.", FacetType.keyword)
     final val lastModifiedBy: Facet = Facet("lastModifiedBy", "Last modified by", "The user who last modified the item.", FacetType.keyword)
     final val tags: Facet = Facet("tags", "Tags", "The user-defined tags.", FacetType.keyword)
+    // Activity facets
+    final val activityStatus: Facet = Facet("status", "Status", "The activity status.", FacetType.keyword)
+    final val activityType: Facet = Facet("activityType", "Activity type", "Activity type (either cache or non-cache activity).", FacetType.keyword)
+    final val activityStartedBy: Facet = Facet("startedBy", "Started by", "The user that started the activity", FacetType.keyword)
 
-    val facetIds: Seq[String] = Seq(datasetType, fileResource, taskType, transformInputResource, workflowExecutionStatus, createdBy, lastModifiedBy, tags).map(_.id)
+    val facetIds: Seq[String] = Seq(datasetType, fileResource, taskType, transformInputResource, workflowExecutionStatus,
+      createdBy, lastModifiedBy, tags, activityStatus, activityType, activityStartedBy).map(_.id)
     assert(facetIds.distinct.size == facetIds.size, "Facet IDs must be unique!")
   }
 
   /** The property of the search item to sort by and the label to display in the UI. */
   case class SortableProperty(id: String, label: String)
-  lazy implicit val sortablePropertyWrites: Writes[SortableProperty] = Json.writes[SortableProperty]
+  lazy implicit val sortablePropertyWrites: Format[SortableProperty] = Json.format[SortableProperty]
 
   /** The result of a faceted search. */
   @Schema(description = "The result list as well as the list of potential facets for the currently selected task type.")
@@ -213,7 +233,7 @@ object SearchApiModel {
                                  @ArraySchema(schema = new Schema(implementation = classOf[FacetResult]))
                                  facets: Seq[FacetResult])
 
-  lazy implicit val facetedSearchResult: Writes[FacetedSearchResult] = Json.writes[FacetedSearchResult]
+  lazy implicit val facetedSearchResult: Format[FacetedSearchResult] = Json.format[FacetedSearchResult]
 
   type ProjectOrTask = Either[(ProjectTask[_ <: TaskSpec], TypedTasks), Project]
 
@@ -222,6 +242,39 @@ object SearchApiModel {
                         projectLabel: String,
                         itemType: ItemType,
                         tasks: Seq[ProjectTask[_ <: TaskSpec]])
+
+  object TypedTasks {
+
+    /** Fetches tasks. If the item type is defined, it will only fetch tasks of a specific type. */
+    def fetchTasks(project: Project, itemType: Option[ItemType])
+                          (implicit userContext: UserContext): Seq[TypedTasks] = {
+      itemType match {
+        case Some(t) =>
+          Seq(fetchTasksOfType(project, t))
+        case None =>
+          val result = new ArrayBuffer[TypedTasks]()
+          for (it <- ItemType.taskTypes) {
+            result.append(fetchTasksOfType(project, it))
+          }
+          result
+      }
+    }
+
+    /** Fetch tasks of a specific type. */
+    private def fetchTasksOfType(project: Project, itemType: ItemType)
+                                (implicit userContext: UserContext): TypedTasks = {
+      val tasks = itemType match {
+        case ItemType.dataset => project.tasks[DatasetSpec[Dataset]]
+        case ItemType.linking => project.tasks[LinkSpec]
+        case ItemType.transform => project.tasks[TransformSpec]
+        case ItemType.workflow => project.tasks[Workflow]
+        case ItemType.task => project.tasks[CustomTask]
+        case ItemType.project => Seq.empty
+        case ItemType.global => Seq.empty
+      }
+      TypedTasks(project.id, project.config.fullLabel ,itemType, tasks)
+    }
+  }
 
   /** A search request that supports types and facets. */
   case class FacetedSearchRequest(@Schema(
@@ -262,13 +315,15 @@ object SearchApiModel {
                                   @Schema(
                                     description = "Optional sort parameter allows for sorting the result list by a specific artifact property, e.g. label, creation date, update date.",
                                     required = false,
-                                    nullable = true
+                                    nullable = true,
+                                    allowableValues = Array("label")
                                   )
                                   sortBy: Option[SortBy.Value] = None,
                                   @Schema(
                                     description = "If defined, only artifacts from that project are fetched.",
                                     required = false,
-                                    nullable = true
+                                    nullable = true,
+                                    allowableValues = Array("ASC", "DESC")
                                   )
                                   sortOrder: Option[SortOrder.Value] = None,
                                   @ArraySchema(
@@ -295,7 +350,7 @@ object SearchApiModel {
     def apply()(implicit userContext: UserContext,
                 accessMonitor: WorkbenchAccessMonitor): JsValue = {
       val ps: Seq[Project] = projects
-      var tasks: Seq[TypedTasks] = ps.flatMap(fetchTasks)
+      var tasks: Seq[TypedTasks] = ps.flatMap(TypedTasks.fetchTasks(_, itemType))
       var selectedProjects: Seq[Project] = if(project.isEmpty && (itemType.contains(ItemType.project) || itemType.isEmpty)) ps else Seq()
 
       for(term <- textQuery if term.trim.nonEmpty) {
@@ -371,9 +426,9 @@ object SearchApiModel {
                                  (implicit accessMonitor: WorkbenchAccessMonitor): WorkspaceItem = {
       projectOrTask match {
         case Right(project) =>
-          WorkspaceProject(project.name)
+          WorkspaceProject(project.id)
         case Left((projectTask, _)) =>
-          WorkspaceTask(projectTask.project.name, projectTask.id)
+          WorkspaceTask(projectTask.project.id, projectTask.id)
       }
     }
 
@@ -413,36 +468,6 @@ object SearchApiModel {
         case _ =>
           typedTasks.copy(tasks = typedTasks.tasks.filter { task => facetCollector.filterAndCollectAllItems(task, facetSettings)})
       }
-    }
-
-    /** Fetches the tasks. If the item type is defined, it will only fetch tasks of a specific type. */
-    private def fetchTasks(project: Project)
-                          (implicit userContext: UserContext): Seq[TypedTasks] = {
-      itemType match {
-        case Some(t) =>
-          Seq(fetchTasksOfType(project, t))
-        case None =>
-          val result = new ArrayBuffer[TypedTasks]()
-          for (it <- ItemType.ordered.filter(_ != ItemType.project)) {
-            result.append(fetchTasksOfType(project, it))
-          }
-          result
-      }
-    }
-
-    /** Fetch tasks of a specific type. */
-    def fetchTasksOfType(project: Project,
-                         itemType: ItemType)
-                        (implicit userContext: UserContext): TypedTasks = {
-      val tasks = itemType match {
-        case ItemType.dataset => project.tasks[DatasetSpec[Dataset]]
-        case ItemType.linking => project.tasks[LinkSpec]
-        case ItemType.transform => project.tasks[TransformSpec]
-        case ItemType.workflow => project.tasks[Workflow]
-        case ItemType.task => project.tasks[CustomTask]
-        case ItemType.project => Seq.empty
-      }
-      TypedTasks(project.name, project.config.fullLabel ,itemType, tasks)
     }
 
     private def toJson(project: Project)
@@ -564,7 +589,7 @@ object SearchApiModel {
 
     private def writeTask(task: ProjectTask[_ <: TaskSpec])
                          (implicit userContext: UserContext): JsValue = {
-      taskFormat(userContext).write(task)(WriteContext[JsValue](prefixes = task.project.config.prefixes, projectId = Some(task.project.name)))
+      taskFormat(userContext).write(task)(WriteContext[JsValue](prefixes = task.project.config.prefixes, projectId = Some(task.project.id)))
     }
   }
 }

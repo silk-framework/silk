@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { batch, useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import {
@@ -61,13 +61,19 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
         dispatch(commonOp.setSelectedArtefactDType(appliedFilters.itemType));
     };
 
-    const handleNavigate = (page: string) => {
-        dispatch(routerOp.goToPage(""));
-        dispatch(
-            workspaceOp.applyFiltersOp({
-                itemType: page,
-            })
-        );
+    const handleNavigate = (page?: string, limit = 10) => {
+        const filterOptions: { [key: string]: string | number } = {
+            limit,
+            current: 1,
+        };
+
+        if (page) {
+            filterOptions.itemType = page;
+        }
+        batch(() => {
+            dispatch(routerOp.goToPage(""));
+            dispatch(workspaceOp.applyFiltersOp(filterOptions));
+        });
     };
 
     const searchURL = (page: string) => `?itemType=${page}&page=1&limit=10`;
@@ -154,6 +160,14 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         onClick={() => handleNavigate("dataset")}
                         href={location.pathname + searchURL("dataset")}
                         active={location.pathname === SERVE_PATH && locationParams.get("itemType") === "dataset"}
+                    />
+                    <MenuItem
+                        icon="application-activities"
+                        text={t("navigation.side.di.activities", "Activities")}
+                        htmlTitle={t("navigation.side.di.activitiesTooltip")}
+                        onClick={() => handleNavigate("", 25)}
+                        href={SERVE_PATH + "/activities?page=1&limit=25"}
+                        active={location.pathname.includes("activities")}
                     />
                 </Menu>
             </ApplicationSidebarNavigation>

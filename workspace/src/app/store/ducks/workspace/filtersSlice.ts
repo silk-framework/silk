@@ -19,7 +19,7 @@ export const filtersSlice = createSlice({
     initialState: initialFiltersState(),
     reducers: {
         applyFilters(state, action) {
-            const filters = action.payload;
+            const { limit = 10, current = 1, ...filters } = action.payload;
             Object.keys(filters).forEach((field) => {
                 const value = action.payload[field];
                 if (!value) {
@@ -31,7 +31,7 @@ export const filtersSlice = createSlice({
             });
 
             state.appliedFacets = [];
-            state.pagination = initialPaginationState();
+            state.pagination = initialPaginationState({ limit, current });
         },
 
         updateSorters(state, action) {
@@ -61,10 +61,11 @@ export const filtersSlice = createSlice({
         changePage(state, action) {
             const page = action.payload;
             const offset = (page - 1) * state.pagination.limit;
-            state.pagination = initialPaginationState({
+            state.pagination = {
+                ...state.pagination,
                 offset,
                 current: page,
-            });
+            };
         },
 
         changeProjectsLimit(state, action) {

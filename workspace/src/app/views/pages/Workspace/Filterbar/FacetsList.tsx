@@ -5,13 +5,16 @@ import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import FacetItem from "./FacetItem";
 import { Button, HelperClasses, Icon, Spacing, TitleSubsection } from "gui-elements";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router";
 
-export default function FacetsList() {
+export default function FacetsList({ projectId }: { projectId?: string }) {
     const dispatch = useDispatch();
     const [t] = useTranslation();
 
     const facets = useSelector(workspaceSel.facetsSelector);
     const appliedFacets = useSelector(workspaceSel.appliedFacetsSelector);
+    const location = useLocation();
+    const locationParams = new URLSearchParams(location.search?.substring(1));
 
     const [visibleFacetsKeywords, setVisibleFacetsKeywords] = useState({});
     const [toggledFacets, setToggledFacets] = useState<string[]>([]);
@@ -37,6 +40,13 @@ export default function FacetsList() {
     };
 
     const handleSetFacet = (facet: IFacetState, value: string) => {
+        const filterOptions: { [key: string]: string | number } = {
+            limit: locationParams.get("limit")!,
+            current: locationParams.get("page")!,
+        };
+        if (projectId) {
+            filterOptions.project = projectId;
+        }
         dispatch(workspaceOp.toggleFacetOp(facet, value));
     };
 

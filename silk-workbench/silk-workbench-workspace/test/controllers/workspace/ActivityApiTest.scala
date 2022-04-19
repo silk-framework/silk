@@ -43,6 +43,20 @@ class ActivityApiTest extends PlaySpec with IntegrationTestTrait with BeforeAndA
     project.addTask[MessageTask](taskId, MessageTask(message))
   }
 
+  override def afterAll(): Unit = {
+    WorkspaceFactory().workspace.removeProject(projectId)
+
+    PluginRegistry.unregisterPlugin(classOf[MessageTask])
+    PluginRegistry.unregisterPlugin(classOf[SimpleActivityFactory])
+    PluginRegistry.unregisterPlugin(classOf[MultiActivityFactory])
+    PluginRegistry.unregisterPlugin(classOf[FailingActivity])
+    PluginRegistry.unregisterPlugin(classOf[FailingWorkspaceActivityFactory])
+    PluginRegistry.unregisterPlugin(classOf[FailingProjectActivityFactory])
+    PluginRegistry.unregisterPlugin(classOf[FailingTaskActivityFactory])
+
+    super.afterAll()
+  }
+
   "start activity in blocking mode" in {
     activityClient.startBlocking(simpleActivityId)
     activityClient.activityValue(simpleActivityId).json mustBe JsString(message)

@@ -4,7 +4,7 @@
 @(activity: TaskActivity[_, _], showButtons: Boolean = false, insideIFrame: Boolean = false)(implicit request: RequestHeader)
 
 @activityControl(
-  project = activity.task.project.name,
+  project = activity.task.project.id,
   task = Some(activity.task.id),
   activity = activity,
   showProgressBar = true,

@@ -27,9 +27,9 @@
 
         // Submit task
         @if(createDialog) {
-          postTask('@project.name', json, callbacks);
+          postTask('@project.id', json, callbacks);
         } else {
-          putTask('@project.name', name, json, callbacks);
+          putTask('@project.id', name, json, callbacks);
         }
       }
     </script>

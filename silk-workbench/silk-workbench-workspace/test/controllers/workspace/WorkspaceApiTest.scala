@@ -78,10 +78,10 @@ class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with MustMatch
       sourceProj.addAnyTask(transformName, transformTask)
 
       // Copy tasks to the target project
-      val response = client.url(s"$baseUrl/workspace/projects/${sourceProj.name}/copy")
+      val response = client.url(s"$baseUrl/workspace/projects/${sourceProj.id}/copy")
         .post(Json.parse(
           s""" {
-             |    "targetProject": "${targetProj.name}",
+             |    "targetProject": "${targetProj.id}",
              |    "dryRun": false
              |  }
           """.stripMargin
@@ -134,7 +134,7 @@ class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with MustMatch
       project.addAnyTask(datasetUsingResource, new DatasetSpec(CsvDataset(resource)))
       project.addAnyTask(taskUsingResource, XSLTOperator(resource))
       project.addAnyTask(otherTask, SparqlUpdateCustomTask(""))
-      val responseJson = checkResponse(createRequest(ResourceApi.resourceUsage(project.name, resourceName)).get()).json
+      val responseJson = checkResponse(createRequest(ResourceApi.resourceUsage(project.id, resourceName)).get()).json
       val tasks = Json.fromJson[Seq[TaskLinkInfo]](responseJson).get
       tasks must contain theSameElementsAs Seq(
         TaskLinkInfo(datasetUsingResource, MetaData.labelFromId(datasetUsingResource), Some(TASK_TYPE_DATASET)),

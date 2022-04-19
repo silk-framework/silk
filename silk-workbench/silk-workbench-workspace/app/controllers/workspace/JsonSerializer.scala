@@ -35,7 +35,7 @@ object JsonSerializer {
   def projectJson(project: Project)
                  (implicit userContext: UserContext): JsObject = {
     Json.obj(
-      "name" -> JsString(project.name),
+      "name" -> JsString(project.id),
       "metaData" -> JsonSerializers.toJson(project.config.metaData),
       "tasks" -> Json.obj(
       "dataset" -> tasksJson[GenericDatasetSpec](project),

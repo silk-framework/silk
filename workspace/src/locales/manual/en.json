@@ -345,7 +345,9 @@
                 "datasets": "Datasets",
                 "datasetsTooltip": "Shows the list of all datasets across all build projects.",
                 "projects": "Projects",
-                "projectsTooltip": "Shows the list of all data-integration build projects."
+                "projectsTooltip": "Shows the list of all data-integration build projects.",
+                "activities": "Activities",
+                "activitiesTooltip": "Shows the list of all data-integration build activities"
             },
             "diBrowseTooltip": "Used to manage data-integration projects to build a knowledge graph from existing datasources",
             "dm": {
@@ -369,6 +371,10 @@
         "dataset": {
             "title": "Data preview"
         },
+        "activities": {
+            "title": "Activities",
+            "noActivities": "No Activities found"
+        },
         "notFound": {
             "backLink": "Go to homepage",
             "text": "The page you requested does not exist.",
@@ -385,6 +391,10 @@
         }
     },
     "widget": {
+        "ActivityInfoWidget": {
+            "title": "Activities",
+            "view": "View project activities"
+        },
         "ConfigWidget": {
             "loading": "Loading configuration list.",
             "loadingPrefix": "Loading prefix configuration.",

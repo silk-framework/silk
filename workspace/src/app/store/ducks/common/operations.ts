@@ -274,13 +274,15 @@ const fetchCreateProjectAsync = (formData: { label: string; description?: string
     };
 };
 
-const resetArtefactModal = (shouldClose: boolean = false) => (dispatch) => {
-    dispatch(selectArtefact(undefined));
-    dispatch(setModalError({}));
-    if (shouldClose) {
-        dispatch(closeArtefactModal());
-    }
-};
+const resetArtefactModal =
+    (shouldClose: boolean = false) =>
+    (dispatch) => {
+        dispatch(selectArtefact(undefined));
+        dispatch(setModalError({}));
+        if (shouldClose) {
+            dispatch(closeArtefactModal());
+        }
+    };
 
 const changeLocale = (locale: string) => {
     return async (dispatch) => {

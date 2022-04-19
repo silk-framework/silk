@@ -101,7 +101,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
       case Some(datasetTask) =>
         reconfigureTask(workflowDataset, datasetTask)
       case None =>
-        throw WorkflowExecutionException(s"No dataset task found in project ${project.name} with id " + datasetTaskId)
+        throw WorkflowExecutionException(s"No dataset task found in project ${project.id} with id " + datasetTaskId)
     }
   }
 
@@ -165,7 +165,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
       case Some(task) =>
         reconfigureTask(workflowDependencyNode, task)
       case None =>
-        throw WorkflowExecutionException(s"No task found in project ${project.name} with id " + taskId)
+        throw WorkflowExecutionException(s"No task found in project ${project.id} with id " + taskId)
     }
   }
 

@@ -31,6 +31,12 @@ trait ActivityControl[T] {
   def startTime: Option[Instant] = None
 
   /**
+    * The user that started the activity.
+    * Refers to the empty user until the activity has been started the first time.
+    */
+  def startedBy: UserContext
+
+  /**
    * The running child activities.
    */
   def children(): Seq[ActivityControl[_]]

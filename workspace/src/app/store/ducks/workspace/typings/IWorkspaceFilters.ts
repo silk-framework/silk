@@ -97,6 +97,10 @@ export interface IAppliedFiltersState {
      * selected object type for search results query
      */
     itemType?: string;
+    /**
+     * select a specific project for search results
+     */
+    project?: string;
 }
 
 export interface IFiltersState {
