@@ -7,7 +7,7 @@ import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.input.Transformer
 import org.silkframework.rule.similarity.{Aggregator, DistanceMeasure}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
+import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.{InputJsonSerializer, JsonHelpers, JsonSerialization}
@@ -37,7 +37,7 @@ object LinkingTaskApiUtils {
                                  linkingTask: ProjectTask[LinkSpec])
                                 (implicit userContext: UserContext): JsObject = {
     val parameterValue = (linkSpecJson \ PARAMETERS).as[JsObject].value
-    val updatedParameters: JsObject = TaskApiUtils.parametersWithLabel(linkingTask.project.name, linkingTask, parameterValue)
+    val updatedParameters: JsObject = TaskApiUtils.parametersWithLabel(linkingTask.project.id, linkingTask, parameterValue)
     val updatedDataFields = linkSpecJson.fields ++ Seq(PARAMETERS -> updatedParameters)
     JsObject(updatedDataFields)
   }

@@ -123,9 +123,10 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     module.validator.validate(project, PlainTask(id, newData, newMetaData.getOrElse(metaData)))
     // Adapt meta data before saving
     // Update created and modified timestamps if not already set in new meta data object
-    val metaDataToPersist = newMetaData.getOrElse(metaDataValueHolder()).copy(
-      created = newMetaData.flatMap(_.created).orElse(oldMedataData.created),
-      createdByUser = newMetaData.flatMap(_.createdByUser).orElse(oldMedataData.createdByUser),
+    val oldMetaData = metaDataValueHolder()
+    val metaDataToPersist = newMetaData.getOrElse(oldMetaData).copy(
+      created = newMetaData.flatMap(_.created).orElse(oldMetaData.created),
+      createdByUser = newMetaData.flatMap(_.createdByUser).orElse(oldMetaData.createdByUser),
       modified = Some(newMetaData.flatMap(_.modified).getOrElse(Instant.now)),
       lastModifiedByUser = newMetaData.flatMap(_.lastModifiedByUser).orElse(userContext.user.map(_.uri))
     )
