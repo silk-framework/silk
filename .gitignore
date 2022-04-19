@@ -34,3 +34,4 @@ yarn-error.log
 public
 workspace/junit.xml
 workspace/coverage
+workspace/stats.json

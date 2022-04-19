@@ -315,7 +315,7 @@ export function TaskActivityOverview({ projectId, taskId }: IProps) {
               }
             : undefined;
         return (
-            <span key={activity.name}>
+            <span key={`${activity.metaData?.taskId ?? "noTask"}_${activity.name}`}>
                 <SilkActivityControl
                     label={activityLabel}
                     data-test-id={`activity-control-${projectId}-${taskId}-${activity.name}`}

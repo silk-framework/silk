@@ -112,9 +112,7 @@ export const testWrapper = (
 
     return (
         <Provider store={store}>
-            <ConnectedRouter history={history}>
-                <AppLayout>{component}</AppLayout>
-            </ConnectedRouter>
+            <ConnectedRouter history={history}>{component}</ConnectedRouter>
         </Provider>
     );
 };

@@ -24,7 +24,7 @@ import scala.math.{abs, max, min}
 
 @Plugin(
   id = "koreanPhonemeDistance",
-  categories = Array("Asian"),
+  categories = Array("Language"),
   label = "Korean phoneme distance",
   description = "Korean phoneme distance."
 )

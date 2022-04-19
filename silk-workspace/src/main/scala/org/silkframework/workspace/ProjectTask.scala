@@ -121,23 +121,20 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
             (implicit userContext: UserContext): Unit = synchronized {
     // Validate
     module.validator.validate(project, PlainTask(id, newData, newMetaData.getOrElse(metaData)))
-    // Update data
-    dataValueHolder.update(newData)
-    val oldMedataData = metaDataValueHolder()
-    for(md <- newMetaData) {
-      metaDataValueHolder.update(md)
-    }
-
+    // Adapt meta data before saving
     // Update created and modified timestamps if not already set in new meta data object
-    metaDataValueHolder.update(
-      metaDataValueHolder().copy(
-        created = newMetaData.flatMap(_.created).orElse(oldMedataData.created),
-        createdByUser = newMetaData.flatMap(_.createdByUser).orElse(oldMedataData.createdByUser),
-        modified = Some(newMetaData.flatMap(_.modified).getOrElse(Instant.now)),
-        lastModifiedByUser = newMetaData.flatMap(_.lastModifiedByUser).orElse(userContext.user.map(_.uri)),
-      )
+    val metaDataToPersist = newMetaData.getOrElse(metaDataValueHolder()).copy(
+      created = newMetaData.flatMap(_.created).orElse(oldMedataData.created),
+      createdByUser = newMetaData.flatMap(_.createdByUser).orElse(oldMedataData.createdByUser),
+      modified = Some(newMetaData.flatMap(_.modified).getOrElse(Instant.now)),
+      lastModifiedByUser = newMetaData.flatMap(_.lastModifiedByUser).orElse(userContext.user.map(_.uri))
     )
-    persistTask
+    // First persist task
+    persistTask(PlainTask.fromTask(ProjectTask.this).copy(data = newData, metaData = metaDataToPersist))
+    // Update (in-memory) data
+    dataValueHolder.update(newData)
+    metaDataValueHolder.update(metaDataToPersist)
+
     log.info(s"Updated task '$id' of project ${project.id}." + userContext.logInfo)
   }
 
@@ -207,9 +204,9 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
     relatedWorkflowItems.toSet
   }
 
-  private def persistTask(implicit userContext: UserContext): Unit = {
+  private def persistTask(task: Task[TaskType])(implicit userContext: UserContext): Unit = {
     // Write task
-    module.provider.putTask(project.id, ProjectTask.this)
+    module.provider.putTask(project.id, task)
     // Restart each activity, don't wait for completion.
     for (activity <- taskActivities if shouldAutoRun(activity)) {
       activity.control.restart()

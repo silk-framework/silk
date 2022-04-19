@@ -37,7 +37,8 @@ private class WorkflowXmlSerializer extends XmlSerializer[Workflow] {
    * Writes an updated task.
    */
   override def writeTask(task: Task[Workflow], resources: ResourceManager): Unit = {
-    resources.get(task.id.toString + ".xml").write() { os => toXml(task).write(os) }
+    val workflowXml = toXml(task)
+    resources.get(task.id.toString + ".xml").write() { os => workflowXml.write(os) }
   }
 
   /**

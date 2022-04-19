@@ -16,8 +16,8 @@ import EventEmitter from './utils/EventEmitter';
 import { isDebugMode } from './utils/isDebugMode';
 import React, {useState} from "react";
 import silkApi, {HttpResponsePromise} from '../api/silkRestApi'
-import {IPartialAutoCompleteResult, IValidationResult} from "./components/AutoSuggestion/AutoSuggestion";
 import {ITransformedSuggestion} from "./containers/SuggestionNew/suggestion.typings";
+import {IPartialAutoCompleteResult, IValidationResult } from 'gui-elements/src/components/AutoSuggestion/AutoSuggestion';
 
 const silkStore = rxmq.channel('silk.api');
 export const errorChannel = rxmq.channel('errors');

@@ -15,7 +15,7 @@ import org.silkframework.rule.plugins.transformer.value.{ConstantTransformer, Co
 import org.silkframework.rule.util.UriPatternParser
 import org.silkframework.rule.util.UriPatternParser.{ConstantPart, PathPart}
 import org.silkframework.runtime.plugin.PluginObjectParameterNoSchema
-import org.silkframework.runtime.serialization.XmlSerialization.fromXml
+import org.silkframework.runtime.serialization.XmlSerialization.{fromXml, toXml}
 import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
@@ -154,7 +154,17 @@ sealed trait ContainerTransformRule extends TransformRule {
 /**
   * Base trait for all rule that generate a value and do not have any child rules.
   */
-sealed trait ValueTransformRule extends TransformRule
+sealed trait ValueTransformRule extends TransformRule {
+  /** A complex mapping representation of the value transform rule. */
+  def asComplexMapping: ComplexMapping = {
+    ComplexMapping(
+      id = id,
+      operator = operator,
+      target = target,
+      metaData = metaData
+    )
+  }
+}
 
 /**
   * The root mapping rule.
@@ -299,7 +309,8 @@ case class PatternUriMapping(id: Identifier = "URI",
   */
 case class ComplexUriMapping(id: Identifier = "complexURI",
                              operator: Input,
-                             metaData: MetaData = MetaData.empty) extends UriMapping {
+                             metaData: MetaData = MetaData.empty,
+                             layout: RuleLayout = RuleLayout()) extends UriMapping with ValueTransformRuleWithLayout {
 
   override val target: Option[MappingTarget] = None
 
@@ -328,6 +339,11 @@ case class TypeMapping(id: Identifier = "type",
 
 }
 
+/** A value transform rule that has layout information about its rule nodes. */
+trait ValueTransformRuleWithLayout { self: ValueTransformRule =>
+  def layout: RuleLayout
+}
+
 /**
   * A complex mapping, which generates property values from based on an arbitrary operator tree consisting of property paths and transformations.
   *
@@ -338,7 +354,8 @@ case class TypeMapping(id: Identifier = "type",
 case class ComplexMapping(id: Identifier = "mapping",
                           operator: Input,
                           target: Option[MappingTarget] = None,
-                          metaData: MetaData = MetaData.empty) extends ValueTransformRule {
+                          metaData: MetaData = MetaData.empty,
+                          layout: RuleLayout = RuleLayout()) extends ValueTransformRule with ValueTransformRuleWithLayout {
 
   override val typeString = "Complex"
 
@@ -462,7 +479,8 @@ object TransformRule {
           id = (node \ "@name").text,
           operator = fromXml[Input]((node \ "Input" ++ node \ "TransformInput").head),
           target = target,
-          metaData = metaData
+          metaData = metaData,
+          layout = (node \ "RuleLayout").headOption.map(rl => XmlSerialization.fromXml[RuleLayout](rl)).getOrElse(RuleLayout())
         )
       simplify(complex)(readContext.prefixes)
     }
@@ -480,8 +498,18 @@ object TransformRule {
           <TransformRule name={value.id}>
             {MetaDataXmlFormat.write(value.metaData)}
             {toXml(value.operator)}{value.target.map(toXml[MappingTarget]).getOrElse(Null)}
+            {layout(value)}
           </TransformRule>
       }
+    }
+  }
+
+  private def layout(transformRule: TransformRule) = {
+    transformRule match {
+      case withLayout: ValueTransformRuleWithLayout =>
+        toXml(withLayout.layout)
+      case _ =>
+        Null
     }
   }
 
@@ -490,22 +518,22 @@ object TransformRule {
     */
   def simplify(complexMapping: ComplexMapping)(implicit prefixes: Prefixes): TransformRule = complexMapping match {
     // Direct Mapping
-    case ComplexMapping(id, PathInput(_, path), Some(target), metaData) =>
+    case ComplexMapping(id, PathInput(_, path), Some(target), metaData, _) =>
       DirectMapping(id, path.asUntypedPath, target, metaData)
     // Pattern URI Mapping
-    case ComplexMapping(id, UriPattern(pattern), None, metaData) =>
+    case ComplexMapping(id, UriPattern(pattern), None, metaData, _) =>
       PatternUriMapping(id, pattern, metaData, prefixes = prefixes)
     // Complex URI mapping
-    case ComplexMapping(id, operator, None, metaData) =>
-      ComplexUriMapping(id, operator, metaData)
+    case ComplexMapping(id, operator, None, metaData, layout) =>
+      ComplexUriMapping(id, operator, metaData, layout)
     // Object Mapping (old style, to be removed)
-    case ComplexMapping(id, TransformInput(_, ConcatTransformer("", false), inputs), Some(target), metaData) if UriPattern.isPattern(inputs) && target.valueType == ValueType.URI =>
+    case ComplexMapping(id, TransformInput(_, ConcatTransformer("", false), inputs), Some(target), metaData, _) if UriPattern.isPattern(inputs) && target.valueType == ValueType.URI =>
       ObjectMapping(id, UntypedPath.empty, Some(target), MappingRules(uriRule = Some(PatternUriMapping(id + "uri", UriPattern.build(inputs)))), metaData, prefixes = prefixes)
     // Type Mapping
-    case ComplexMapping(id, TransformInput(_, ConstantTransformer(typeUri), Nil), Some(MappingTarget(Uri(RDF_TYPE), _, false, _)), metaData) =>
+    case ComplexMapping(id, TransformInput(_, ConstantTransformer(typeUri), Nil), Some(MappingTarget(Uri(RDF_TYPE), _, false, _)), metaData, _) =>
       TypeMapping(id, typeUri, metaData)
     // Type Mapping (old style, to be removed)
-    case ComplexMapping(id, TransformInput(_, ConstantUriTransformer(typeUri), Nil), Some(MappingTarget(Uri(RDF_TYPE), _, false, _)), metaData) =>
+    case ComplexMapping(id, TransformInput(_, ConstantUriTransformer(typeUri), Nil), Some(MappingTarget(Uri(RDF_TYPE), _, false, _)), metaData, _) =>
       TypeMapping(id, typeUri, metaData)
     // Complex Mapping
     case _ => complexMapping

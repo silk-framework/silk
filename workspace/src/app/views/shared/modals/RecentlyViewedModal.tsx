@@ -211,6 +211,7 @@ export function RecentlyViewedModal() {
                 inputProps={{
                     placeholder: t("RecentlyViewedModal.placeholder"),
                 }}
+                itemValueString={(item) => `${item.projectId}_${item.taskId}`}
                 createNewItem={{
                     itemFromQuery: globalSearch,
                     itemRenderer: createNewItemRenderer,

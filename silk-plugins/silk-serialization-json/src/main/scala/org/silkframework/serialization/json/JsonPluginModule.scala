@@ -51,5 +51,6 @@ class JsonPluginModule extends PluginModule {
       LinkageRuleJsonFormat.getClass ::
       DatasetSelectionJsonFormat.getClass ::
       ReferenceLinksJsonFormat.getClass ::
+      ComplexMappingJsonFormat.getClass ::
       Nil
 }

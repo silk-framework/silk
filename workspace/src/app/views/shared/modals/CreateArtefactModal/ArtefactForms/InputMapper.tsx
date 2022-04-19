@@ -4,7 +4,7 @@ import { Switch, TextArea, TextField } from "gui-elements";
 import { CodeEditor } from "../../../QueryEditor/CodeEditor";
 import { ITaskParameter } from "@ducks/common/typings";
 import { Intent } from "@blueprintjs/core";
-import { FileSelectionMenu } from "../../../FileUploader/FileSelectionMenu";
+import FileSelectionMenu from "../../../FileUploader/FileSelectionMenu";
 import { AppToaster } from "../../../../../services/toaster";
 import { requestResourcesList } from "@ducks/shared/requests";
 import { defaultValueAsJs, stringValueAsJs } from "../../../../../utils/transformers";

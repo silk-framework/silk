@@ -51,7 +51,7 @@ class PluginApiTest extends FlatSpec with IntegrationTestTrait with MustMatchers
   it should "have all relevant properties for task plugins" in {
     val jsonResult = taskPlugins
     jsonResult.as[JsObject].values.take(5).foreach { pd =>
-      pd.as[JsObject].keys mustBe Set("title", "categories", "description", "taskType")
+      pd.as[JsObject].keys mustBe Set("title", "categories", "description", "taskType", "pluginType")
     }
   }
 

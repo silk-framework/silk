@@ -51,7 +51,8 @@ private class DatasetXmlSerializer extends XmlSerializer[DatasetSpec[Dataset]] {
    * Writes an updated task.
    */
   override def writeTask(task: Task[GenericDatasetSpec], resources: ResourceManager): Unit = {
-    resources.get(task.id.toString + ".xml").write(){ os => XmlSerialization.toXml(task).write(os) }
+    val taskXml = XmlSerialization.toXml(task)
+    resources.get(task.id.toString + ".xml").write(){ os => taskXml.write(os) }
   }
 
   /**

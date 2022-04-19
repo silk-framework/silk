@@ -8,11 +8,15 @@ const WorkflowPage = lazy(() => import("./views/pages/Workflow"));
 const TransformPage = lazy(() => import("./views/pages/Transform"));
 const LinkingPage = lazy(() => import("./views/pages/Linking"));
 const TaskPage = lazy(() => import("./views/pages/Task"));
+const TaskPluginView = lazy(() => import("./views/pages/TaskPluginView/TaskPluginView"));
 const NotFoundPage = lazy(() => import("./views/pages/NotFound"));
 const Activities = lazy(() => import("./views/pages/Activities"));
 
-interface IRouteProps extends RouteProps {
+export interface IRouteProps extends RouteProps {
+    /** Path of the route. */
     path: string;
+    /** If true then only the component is shown without header etc. */
+    componentOnly?: boolean;
 }
 
 const appRoutes: IRouteProps[] = [
@@ -60,6 +64,12 @@ const appRoutes: IRouteProps[] = [
         path: "/activities",
         component: Activities,
         exact: true,
+    },
+    {
+        path: "/projects/:projectId/item/:pluginId/:taskId/view/:viewId",
+        component: TaskPluginView,
+        exact: true,
+        componentOnly: true,
     },
     {
         path: "*",

@@ -13,7 +13,7 @@ import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActi
 import { ProjectTaskParams } from "../../shared/typings";
 
 export default function LinkingPage() {
-    const { taskId, projectId } = useParams<ProjectTaskParams>();
+    const { projectId, taskId } = useParams<ProjectTaskParams>();
     const [notFound, setNotFound] = useState(false);
 
     const { pageHeader, updateActionsMenu } = usePageHeader({
@@ -38,7 +38,10 @@ export default function LinkingPage() {
                 <Section>
                     <Metadata />
                     <Spacing />
-                    <ProjectTaskTabView iFrameName={"detail-page-iframe"} />
+                    <ProjectTaskTabView
+                        taskViewConfig={{ pluginId: "linking", projectId: projectId, taskId: taskId }}
+                        iFrameName={"detail-page-iframe"}
+                    />
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>

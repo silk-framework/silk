@@ -1,12 +1,13 @@
 import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.dataset._
 import org.silkframework.entity.ValueType
-import org.silkframework.rule.MappingTarget
 import org.silkframework.rule.vocab._
+import org.silkframework.rule.{MappingTarget, RuleLayout}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
-import org.silkframework.serialization.json.JsonSerializers.{GenericInfoJsonFormat, VocabularyCacheValueJsonFormat, VocabularyJsonFormat}
+import org.silkframework.serialization.json.JsonSerializers._
+import org.silkframework.serialization.json.{JsonFormat, JsonSerialization}
 import org.silkframework.workspace.activity.transform.VocabularyCacheValue
 import play.api.libs.json.Json
 
@@ -52,6 +53,23 @@ class JsonSerializersTest  extends FlatSpec with Matchers {
     val json = Json.parse(toJsonString(vocabularyCacheValue))
     (json \ VocabularyCacheValueJsonFormat.VOCABULARIES \ VocabularyJsonFormat.CLASSES \\ GenericInfoJsonFormat.LABEL).
         headOption.map(_.as[String]) shouldBe vocClass.info.label
+  }
+
+  "RuleLayout" should "be serializable to and from JSON" in {
+    val layout = RuleLayout(
+      Map(
+        "nodeA" -> (1, 2),
+        "nodeB" -> (3, 4),
+        "nodeC" -> (5, 6)
+      )
+    )
+    testSerialization(layout)
+  }
+
+  def testSerialization[T](obj: T)(implicit format: JsonFormat[T]): Unit = {
+    val objJson = JsonSerialization.toJson(obj)
+    val objRoundTrip = JsonSerialization.fromJson[T](objJson)
+    obj shouldBe objRoundTrip
   }
 }
 

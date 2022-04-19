@@ -3,9 +3,10 @@ import { useTranslation } from "react-i18next";
 import {
     IActivityStatus,
     ActivityAction,
-    SilkActivityControl,
+    useSilkActivityControl,
     IActivityControlLayoutProps,
     Markdown,
+    TimeUnits,
 } from "gui-elements/cmem";
 import { DIErrorTypes } from "@ducks/error/typings";
 import useErrorHandler from "../../../hooks/useErrorHandler";
@@ -14,7 +15,7 @@ import { connectWebSocket } from "../../../services/websocketUtils";
 import { legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import { activityActionCreator } from "../TaskActivityOverview/taskActivityOverviewRequests";
 
-interface IProps {
+interface TaskActivityWidgetProps {
     projectId: string;
     taskId: string;
     // Activity name/ID this control is rendered for
@@ -29,17 +30,25 @@ interface IProps {
         // key is typed as string but should be ActivityAction, which is not allowed for index signature parameter types
         [key: string]: (mainAction: () => Promise<void>) => Promise<void>;
     };
+    /** If the activity is a cache activity the presentation will be different, e.g. reload button shown etc. */
+    isCacheActivity?: boolean;
 }
 
 /** Task activity widget to show the activity status and start / stop task activities. */
-export const TaskActivityWidget = ({
+export const TaskActivityWidget = (props: TaskActivityWidgetProps) => {
+    const { widget } = useTaskActivityWidget(props);
+    return widget;
+}
+
+export const useTaskActivityWidget = ({
     projectId,
     taskId,
     activityName,
     label = "",
     layoutConfig,
     activityActionPreAction = {},
-}: IProps) => {
+    isCacheActivity = false,
+}: TaskActivityWidgetProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
     const [updatesHandler] = useState<{ updateHandler: ((status: IActivityStatus) => any) | undefined }>({
@@ -97,29 +106,39 @@ export const TaskActivityWidget = ({
         }
     };
     const translate = useCallback((key: string) => t("widget.TaskActivityOverview.activityControl." + key), [t]);
+    // For the elapsed time component, showing when a cache was last updated
+    const translateUnits = (unit: TimeUnits) => t("common.units." + unit, unit);
 
     // TODO: Fix size issues with activity control and tooltip
-    return (
-        <SilkActivityControl
-            label={label}
-            data-test-id={`activity-control-workflow-editor`}
-            executeActivityAction={executeAction}
-            registerForUpdates={registerForUpdate}
-            unregisterFromUpdates={() => {}}
-            translate={translate}
-            failureReportAction={{
-                title: "", // The title is already repeated in the markdown
-                allowDownload: true,
-                closeButtonValue: t("common.action.close"),
-                downloadButtonValue: t("common.action.download"),
-                renderMarkdown: true,
-                renderReport: (markdown) => <Markdown children={markdown as string} />,
-                fetchErrorReport: activityErrorReport,
-            }}
-            showStartAction={true}
-            showStopAction={true}
-            showReloadAction={false}
-            layoutConfig={layoutConfig}
-        />
-    );
+    return useSilkActivityControl({
+        label,
+        "data-test-id": `activity-control-workflow-editor`,
+        executeActivityAction: executeAction,
+        registerForUpdates: registerForUpdate,
+        unregisterFromUpdates: () => {},
+        translate,
+        failureReportAction: {
+            title: "", // The title is already repeated in the markdown
+            allowDownload: true,
+            closeButtonValue: t("common.action.close"),
+            downloadButtonValue: t("common.action.download"),
+            renderMarkdown: true,
+            renderReport: (markdown) => <Markdown children={markdown as string} />,
+            fetchErrorReport: activityErrorReport,
+        },
+        showStartAction: !isCacheActivity,
+        showStopAction: true,
+        showReloadAction: isCacheActivity,
+        layoutConfig: layoutConfig,
+        elapsedTimeOfLastStart: (
+            isCacheActivity
+                ? {
+                      translate: translateUnits,
+                      prefix: ` (${t("widget.TaskActivityOverview.cacheGroup.cacheAgePrefixIndividual")}`,
+                      suffix: `${t("widget.TaskActivityOverview.cacheGroup.cacheAgeSuffix")})`,
+                  }
+                : undefined
+        ),
+        hideMessageOnStatus: isCacheActivity ? (concreteStatus) => concreteStatus === "Successful" : undefined,
+    });
 };

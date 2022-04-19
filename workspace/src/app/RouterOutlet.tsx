@@ -4,18 +4,31 @@ import Loading from "./views/shared/Loading";
 import { getFullRoutePath } from "./utils/routerUtils";
 import { AppLayout } from "./views/layout/AppLayout/AppLayout";
 import { useTranslation } from "react-i18next";
+import { IRouteProps } from "./appRoutes";
+import { ApplicationContainer, ApplicationContent } from "gui-elements";
 
-export default function RouterOutlet({ routes }) {
+interface RouterOutletProps {
+    routes: IRouteProps[];
+}
+
+export default function RouterOutlet({ routes }: RouterOutletProps) {
     const [t] = useTranslation();
     return (
         <Suspense fallback={<Loading posGlobal description={t("common.app.loading", "Loading page.")} />}>
             <Switch>
                 {routes.map((route) => {
+                    const Component = route.component as any;
                     return (
                         <Route key={route.path} path={getFullRoutePath(route.path)} exact={route.exact}>
-                            <AppLayout>
-                                <route.component />
-                            </AppLayout>
+                            {route.componentOnly && Component ? (
+                                <ApplicationContainer>
+                                    <ApplicationContent>
+                                        <Component />
+                                    </ApplicationContent>
+                                </ApplicationContainer>
+                            ) : (
+                                <AppLayout>{Component && <Component />}</AppLayout>
+                            )}
                         </Route>
                     );
                 })}

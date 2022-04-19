@@ -46,6 +46,8 @@ export class FetchError {
 
     errorResponse: ErrorResponse;
 
+    body?: any;
+
     get message(): string {
         return this.errorResponse.detail;
     }
@@ -103,6 +105,7 @@ export class HttpError extends FetchError {
 
         this.errorDetails = errorDetails;
         this.errorType = FetchError.HTTP_ERROR;
+        this.body = errorDetails.response?.data;
 
         if (errorDetails.response?.data?.title && errorDetails.response.data.detail) {
             const errorReponse = errorDetails.response.data;

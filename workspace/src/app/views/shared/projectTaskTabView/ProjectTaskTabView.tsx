@@ -238,6 +238,7 @@ export function ProjectTaskTabView({
                         {viewsAndItemLink.length > 1 &&
                             viewsAndItemLink.map((tabItem) => (
                                 <Button
+                                    data-test-id={"taskView" + tabItem.id}
                                     key={tabItem.id ?? tabItem.path}
                                     onClick={() => {
                                         changeTab(tabItem.id ?? (tabItem as IItemLink));

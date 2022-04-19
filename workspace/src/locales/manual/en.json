@@ -314,7 +314,8 @@
             "title": "Title"
         },
         "validations": {
-            "integer": "must be an integer number",
+            "float": "must be a valid floating point number",
+            "integer": "must be a valid integer number",
             "isRequired": "{{field}} is required",
             "parameter": "Parameter validation failed. Please fix the issues first."
         }
@@ -388,6 +389,116 @@
             "contents": "Contents",
             "createProject": "Create Project",
             "empty": "Your workspace is empty. In order to start, create a new project or import an existing project from an exported project file."
+        }
+    },
+    "RuleEditor": {
+        "edge": {
+            "menu": {
+                "delete": {
+                    "label": "Remove edge",
+                    "tooltip": "Removes the edge. Alternatively you can delete (multiple) selected rule elements by pressing the [←] (backspace) key on the keyboard."
+                }
+            }
+        },
+        "evaluation": {
+            "addMoreResults": "Add more reference links",
+            "noResults": "No linking results available. Please add reference links.",
+            "scoreWidget": {
+                "noResult": "No evaluation result",
+                "referenceLinks": "Open reference links UI in new tab"
+            }
+        },
+        "node": {
+            "menu": {
+                "remove": {
+                    "label": "Remove"
+                }
+            },
+            "executionButtons": {
+                "edit": {
+                    "tooltip": "Open edit dialog"
+                }
+            }
+        },
+        "selection": {
+            "menu": {
+                "delete": {
+                    "label": "Remove selected nodes",
+                    "tooltip": "Removes all selected nodes and connected edges. Alternatively you can delete (multiple) selected rule elements by pressing the [←] (backspace) key on the keyboard."
+                },
+                "clone": {
+                    "label": "Clone selected nodes",
+                    "tooltip": "Clones all selected nodes and inter-connections and inserts them as new selection. Following key combination also triggers this action: CTRL/CMD + d"
+                }
+            }
+        },
+        "sidebar": {
+            "cancelCycling": "Cancel cycling",
+            "cycleTooltip": "Cycle through {{totalMatches}} current usages of this operator",
+            "emptyList": "No operator found.",
+            "searchInput": "Search for operators and paths...",
+            "searchTooltip": "Search for rule operators and input paths."
+        },
+        "toolbar": {
+            "autoLayout": "Auto-layout",
+            "readOnly": "Read-only mode is enabled. No saving possible.",
+            "save": "Save",
+            "saveError": {
+                "nodeError": {
+                    "tooltip": "Center rule node"
+                }
+            },
+            "startEvaluation": "Start evaluation",
+            "showEvaluation": "Show evaluation"
+        }
+    },
+    "taskViews": {
+        "linkRulesEditor": {
+            "errors": {
+                "fetchTaskData": {
+                    "msg": "An error has occurred while fetching the linking task."
+                },
+                "fetchLinkingRuleOperatorDetails": {
+                    "msg": "An error has occurred while fetching the list of linking rule operators."
+                },
+                "fetchLinkingPaths": {
+                    "msg": "Could not fetch source paths for linking task."
+                },
+                "inputPathAutoCompletion": {
+                    "msg": "Could not fetch path auto-completions."
+                },
+                "saveLinkageRule": {
+                    "msg": "Could not save linking rule!"
+                },
+                "startEvaluation": {
+                    "msg": "Could not fetch evaluation results."
+                }
+            },
+            "cacheWidgets": {
+                "pathsCache": "Paths cache",
+                "evaluationCache": "Evaluation cache"
+            }
+        },
+        "ruleEditor": {
+            "errors": {
+                "loadExternalOperators": "Could not load operator list for tab '{{tabName}}'!"
+            },
+            "warnings": {
+                "unsavedChanges": "There are unsaved changes. Do you still want to close the rule editor?"
+            }
+        },
+        "transformRulesEditor": {
+            "errors": {
+                "fetchTransformRule": {
+                    "msg": "An error has occurred while fetching the transform rule."
+                },
+                "fetchTransformRuleOperatorDetails": {
+                    "msg": "An error has occurred while fetching the list of transform rule operators."
+                },
+                "saveTransformRule": {
+                    "msg": "Could not save transform rule!"
+                }
+            }
         }
     },
     "widget": {

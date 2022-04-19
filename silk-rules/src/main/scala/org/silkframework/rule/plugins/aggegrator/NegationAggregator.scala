@@ -6,7 +6,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
 
 @Plugin(
   id = "negate",
-  categories = Array("All"),
+  categories = Array(),
   label = "Negate",
   description = "Negates the result of the input comparison. A single input is expected. " +
     "Using this operator can have a performance impact, since it lowers the efficiency of the underlying computation."

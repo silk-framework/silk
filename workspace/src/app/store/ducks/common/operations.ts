@@ -8,7 +8,7 @@ import {
     requestInitFrontend,
     requestSearchConfig,
 } from "@ducks/common/requests";
-import { IArtefactItem } from "@ducks/common/typings";
+import { IPluginOverview } from "@ducks/common/typings";
 import { commonOp, commonSel } from "@ducks/common/index";
 import { requestCreateProject, requestCreateTask, requestUpdateProjectTask } from "@ducks/workspace/requests";
 import { routerOp } from "@ducks/router";
@@ -124,7 +124,7 @@ const resetArtefactsList = () => {
     };
 };
 
-const getArtefactPropertiesAsync = (artefact: IArtefactItem) => {
+const getArtefactPropertiesAsync = (artefact: IPluginOverview) => {
     return async (dispatch, getState) => {
         const { cachedArtefactProperties } = commonSel.artefactModalSelector(getState());
         dispatch(selectArtefact(artefact));

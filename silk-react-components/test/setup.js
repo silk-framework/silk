@@ -6,6 +6,7 @@
  */
 const enzyme = require("enzyme");
 const Adapter = require("enzyme-adapter-react-16");
+import "regenerator-runtime/runtime";
 
 enzyme.configure({ adapter: new Adapter() });
 if (window.document) {

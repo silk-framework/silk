@@ -13,6 +13,7 @@ import org.silkframework.rule.util.UriPatternParser
 import org.silkframework.rule.vocab.{GenericInfo, Vocabulary, VocabularyClass, VocabularyProperty}
 import org.silkframework.rule._
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginBackwardCompatibility
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
 import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
 import org.silkframework.serialization.json.EntitySerializers.EntitySchemaJsonFormat
@@ -38,16 +39,25 @@ object JsonSerializers {
   final val TYPE = "type"
   final val DATA = "data"
   final val GENERIC_INFO = "genericInfo"
+  final val PARAMETERS = "parameters"
+  final val URI = "uri"
+  final val METADATA = "metadata"
+  final val OPERATOR = "operator"
+  // Task types
   final val TASKTYPE = "taskType"
   final val TASK_TYPE_DATASET = "Dataset"
   final val TASK_TYPE_CUSTOM_TASK = "CustomTask"
   final val TASK_TYPE_TRANSFORM = "Transform"
   final val TASK_TYPE_LINKING = "Linking"
   final val TASK_TYPE_WORKFLOW = "Workflow"
-  final val PARAMETERS = "parameters"
-  final val URI = "uri"
-  final val METADATA = "metadata"
-  final val OPERATOR = "operator"
+  // Plugin types
+  final val PLUGIN_TYPE = "pluginType"
+  final val AGGREGATION_OPERATOR = "AggregationOperator"
+  final val TRANSFORM_OPERATOR = "TransformOperator"
+  final val COMPARISON_OPERATOR = "ComparisonOperator"
+  // Rule tasks
+  final val LAYOUT = "layout"
+
 
   implicit object StringJsonFormat extends JsonFormat[String] {
     /**
@@ -186,7 +196,8 @@ object JsonSerializers {
       implicit val prefixes = readContext.prefixes
       implicit val resourceManager = readContext.resources
       try {
-        val transformer = Transformer(stringValue(value, FUNCTION), readParameters(value))
+        val transformerPluginId = stringValue(value, FUNCTION)
+        val transformer = Transformer(PluginBackwardCompatibility.transformerIdMapping.getOrElse(transformerPluginId, transformerPluginId), readParameters(value))
         TransformInput(id, transformer, inputs.toList)
       } catch {
         case ex: Exception => throw new ValidationException(ex.getMessage, id, "Transformation")
@@ -419,6 +430,22 @@ object JsonSerializers {
     }
   }
 
+  /** Rule layout */
+  implicit object RuleLayoutJsonFormat extends JsonFormat[RuleLayout] {
+    final val NODE_POSITIONS = "nodePositions"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): RuleLayout = {
+      val nodePositions = JsonHelpers.fromJsonValidated[Map[String, (Int, Int)]](mustBeDefined(value, NODE_POSITIONS))
+      RuleLayout(nodePositions)
+    }
+
+    override def write(value: RuleLayout)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        NODE_POSITIONS -> Json.toJson(value.nodePositions)
+      )
+    }
+  }
+
   /**
     * Complex URI Mapping
     */
@@ -431,7 +458,8 @@ object JsonSerializers {
       ComplexUriMapping(
         id = identifier(value, "uri"),
         operator = fromJson[Input]((value \ OPERATOR).get),
-        metaData(value)
+        metaData(value),
+        layout = optionalValue(value, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout())
       )
     }
 
@@ -444,7 +472,8 @@ object JsonSerializers {
           TYPE -> JsString("complexUri"),
           ID -> JsString(rule.id),
           OPERATOR -> toJson(rule.operator),
-          METADATA -> toJson(rule.metaData)
+          METADATA -> toJson(rule.metaData),
+          LAYOUT -> toJson(rule.layout)
         )
       )
     }
@@ -568,23 +597,14 @@ object JsonSerializers {
         case "object" =>
           fromJson[ObjectMapping](jsValue)
         case "complex" =>
-          readTransformRule(jsValue)
+          readAndConvertComplexTransformRule(jsValue)
       }
     }
 
-    private def readTransformRule(jsValue: JsValue)
+    private def readAndConvertComplexTransformRule(jsValue: JsValue)
                                  (implicit readContext: ReadContext)= {
-      val mappingTarget = (jsValue \ "mappingTarget").
-          toOption.
-          map(fromJson[MappingTarget])
-      val mappingName = mappingTarget.flatMap(_.propertyUri.localName).getOrElse("ValueMapping")
-      val id = identifier(jsValue, mappingName)
-      val complex = ComplexMapping(
-        id = id,
-        operator = fromJson[Input]((jsValue \ OPERATOR).get),
-        target = mappingTarget,
-        metaData(jsValue)
-      )
+      val complex = ComplexMappingJsonFormat.read(jsValue)
+      // Simplify to other value mapping rule if possible
       TransformRule.simplify(complex)(readContext.prefixes)
     }
 
@@ -605,22 +625,61 @@ object JsonSerializers {
           toJson(d)
         case o: ObjectMapping =>
           toJson(o)
-        case _ =>
-          writeTransformRule(rule)
+        case valueTransformRule: ValueTransformRule =>
+          writeTransformRule(valueTransformRule)
       }
     }
 
-    private def writeTransformRule(rule: TransformRule)(implicit writeContext: WriteContext[JsValue]) = {
+    private def writeTransformRule(valueTransformRule: ValueTransformRule)
+                                  (implicit writeContext: WriteContext[JsValue]): JsValue = {
+      ComplexMappingJsonFormat.writeValueTransformRuleAsComplexRule(valueTransformRule)
+    }
+  }
+
+  implicit object ComplexMappingJsonFormat extends JsonFormat[ComplexMapping] {
+    override def read(jsValue: JsValue)
+                     (implicit readContext: ReadContext): ComplexMapping = {
+      val mappingTarget = (jsValue \ "mappingTarget").
+        toOption.
+        map(fromJson[MappingTarget])
+      val mappingName = mappingTarget.flatMap(_.propertyUri.localName).getOrElse("ValueMapping")
+      val id = identifier(jsValue, mappingName)
+      ComplexMapping(
+        id = id,
+        operator = fromJson[Input]((jsValue \ OPERATOR).get),
+        target = mappingTarget,
+        metaData(jsValue),
+        layout = optionalValue(jsValue, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout())
+      )
+    }
+
+    def writeValueTransformRuleAsComplexRule(valueTransformRule: ValueTransformRule)
+                                            (implicit writeContext: WriteContext[JsValue]): JsValue = {
       JsObject(
         Seq(
           TYPE -> JsString("complex"),
-          ID -> JsString(rule.id),
-          OPERATOR -> toJson(rule.operator),
-          "sourcePaths" -> JsArray(rule.sourcePaths.map(_.toUntypedPath.serialize()(writeContext.prefixes)).map(JsString)),
-          METADATA -> toJson(rule.metaData)
+          ID -> JsString(valueTransformRule.id),
+          OPERATOR -> toJson(valueTransformRule.operator),
+          "sourcePaths" -> JsArray(valueTransformRule.sourcePaths.map(_.toUntypedPath.serialize()(writeContext.prefixes)).map(JsString)),
+          METADATA -> toJson(valueTransformRule.metaData)
         ) ++
-            rule.target.map("mappingTarget" -> toJson(_))
+          valueTransformRule.target.map("mappingTarget" -> toJson(_))
+          ++ layout(valueTransformRule)
       )
+    }
+
+    private def layout(valueTransformRule: ValueTransformRule): Seq[(String, JsValue)] = {
+      valueTransformRule match {
+        case withLayout: ValueTransformRuleWithLayout =>
+          Seq(LAYOUT -> toJson(withLayout.layout))
+        case _ =>
+          Seq.empty
+      }
+    }
+
+    override def write(complexMapping: ComplexMapping)
+                      (implicit writeContext: WriteContext[JsValue]): JsValue = {
+      writeValueTransformRuleAsComplexRule(complexMapping)
     }
   }
 
@@ -742,7 +801,8 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): Comparison = {
       implicit val prefixes = readContext.prefixes
       implicit val resourceManager = readContext.resources
-      val metric = DistanceMeasure(stringValue(value, METRIC), readParameters(value))
+      val metricPluginId = stringValue(value, METRIC)
+      val metric = DistanceMeasure(PluginBackwardCompatibility.distanceMeasureIdMapping.getOrElse(metricPluginId, metricPluginId), readParameters(value))
 
       Comparison(
         id = identifier(value, "comparison"),
@@ -860,7 +920,8 @@ object JsonSerializers {
       LinkageRule(
         operator = optionalValue(value, OPERATOR).map(fromJson[SimilarityOperator]),
         filter = fromJson[LinkFilter](mustBeDefined(value, FILTER)),
-        linkType = fromJson[Uri](mustBeDefined(value, LINKTYPE))
+        linkType = fromJson[Uri](mustBeDefined(value, LINKTYPE)),
+        layout = optionalValue(value, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout())
       )
     }
 
@@ -868,7 +929,8 @@ object JsonSerializers {
       Json.obj(
         OPERATOR -> value.operator.map(toJson(_)),
         FILTER -> toJson(value.filter),
-        LINKTYPE -> toJson(value.linkType)
+        LINKTYPE -> toJson(value.linkType),
+        LAYOUT -> toJson(value.layout)
       )
     }
   }

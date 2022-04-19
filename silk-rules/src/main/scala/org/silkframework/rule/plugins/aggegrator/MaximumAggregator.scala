@@ -21,7 +21,7 @@ import org.silkframework.runtime.plugin.annotations.{AggregatorExample, Aggregat
 
 @Plugin(
   id = "max",
-  categories = Array("All", PluginCategories.recommended),
+  categories = Array(PluginCategories.recommended),
   label = "Or",
   description = "At least one input score must be within the threshold. Selects the maximum score."
 )

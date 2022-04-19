@@ -4,7 +4,7 @@ import org.silkframework.rule.input.Transformer
 import org.silkframework.runtime.plugin.annotations.{Plugin, TransformExample, TransformExamples}
 
 @Plugin(
-  id = "negate",
+  id = "negateTransformer",
   label = "Negate binary (NOT)",
   categories = Array("Conditional"),
   description = "Accepts one input, which is either 'true', '1' or 'false', '0' and negates it."

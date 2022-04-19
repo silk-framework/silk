@@ -16,14 +16,16 @@ export const atomicParamDescription = (
         parameterType: INPUT_TYPES.STRING,
         title: "No title specified",
         type: "string",
-        value: null,
+        value: "",
         visibleInDialog: true,
-        autoCompletion: autocompleteDescription(autoCompletion),
+        autoCompletion: autoCompletion ? autocompleteDescription(autoCompletion) : undefined,
         ...props,
     };
 };
 
-export const autocompleteDescription = (autoCompletion: Partial<IPropertyAutocomplete>): IPropertyAutocomplete => {
+export const autocompleteDescription = (
+    autoCompletion: Partial<IPropertyAutocomplete>
+): IPropertyAutocomplete | undefined => {
     if (autoCompletion) {
         return {
             allowOnlyAutoCompletedValues: true,

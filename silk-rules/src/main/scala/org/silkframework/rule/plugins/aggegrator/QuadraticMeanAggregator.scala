@@ -23,7 +23,7 @@ import org.silkframework.runtime.plugin.annotations.{AggregatorExample, Aggregat
  */
 @Plugin(
   id = "quadraticMean",
-  categories = Array("All"),
+  categories = Array(),
   label = "Euclidian distance",
   description = "Calculates the Euclidian distance."
 )

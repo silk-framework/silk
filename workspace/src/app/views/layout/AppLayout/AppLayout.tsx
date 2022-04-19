@@ -1,4 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
+import { Header } from "../Header/Header";
+import { RecentlyViewedModal } from "../../shared/modals/RecentlyViewedModal";
+import { ApplicationContainer, ApplicationContent } from "gui-elements";
 
 interface IProps {
     children: React.ReactNode;
@@ -9,5 +12,25 @@ interface IProps {
  * @param children
  */
 export function AppLayout({ children }: IProps) {
-    return <>{children}</>;
+    const [sideNavExpanded, setSideNavExpanded] = useState(false);
+
+    return (
+        <>
+            <ApplicationContainer>
+                <Header
+                    isApplicationSidebarExpanded={sideNavExpanded}
+                    onClickApplicationSidebarExpand={() => {
+                        setSideNavExpanded(!sideNavExpanded);
+                    }}
+                />
+                <ApplicationContent
+                    isApplicationSidebarExpanded={sideNavExpanded}
+                    isApplicationSidebarRail={!sideNavExpanded}
+                >
+                    {children}
+                </ApplicationContent>
+            </ApplicationContainer>
+            <RecentlyViewedModal />
+        </>
+    );
 }

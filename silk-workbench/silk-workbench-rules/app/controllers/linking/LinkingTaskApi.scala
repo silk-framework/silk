@@ -1,7 +1,10 @@
 package controllers.linking
 
 import controllers.core.UserContextActions
+import controllers.core.util.ControllerUtilsTrait
 import controllers.linking.doc.LinkingTaskApiDoc
+import controllers.linking.evaluation.LinkageRuleEvaluationResult
+import controllers.linking.linkingTask.LinkingTaskApiUtils
 import controllers.util.ProjectUtils._
 import controllers.util.SerializationUtils
 import io.swagger.v3.oas.annotations.enums.ParameterIn
@@ -11,39 +14,81 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{MetaData, PlainTask, Prefixes}
+import org.silkframework.dataset.Dataset
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.entity.{Entity, FullLink, MinimalLink, Restriction}
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity.{Entity, EntitySchema, FullLink, MinimalLink, Restriction}
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
-import org.silkframework.rule.evaluation.ReferenceLinks
+import org.silkframework.plugins.path.{PathMetaDataPlugin, StandardMetaDataPlugin}
+import org.silkframework.rule.evaluation.{LinkageRuleEvaluator, ReferenceEntities, ReferenceLinks}
 import org.silkframework.rule.execution.{GenerateLinks => GenerateLinksActivity}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, UserContext}
+import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlSerialization}
 import org.silkframework.runtime.validation._
+import org.silkframework.serialization.json.JsonSerialization
 import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
 import org.silkframework.util.Identifier._
 import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
+import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
-import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
+import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsArray, JsValue, Json}
-import play.api.mvc.{Action, AnyContent, AnyContentAsXml, InjectedController}
+import play.api.mvc.{Action, AnyContent, AnyContentAsXml, InjectedController, Request}
+import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonFormat
 
-import java.util.logging.{Level, Logger}
+import java.util.logging.{Level, LogRecord, Logger}
 import javax.inject.Inject
+import scala.collection.mutable
 
 @Tag(name = "Linking", description = "Linking specific operations, such as evaluating rules and managing reference links.")
-class LinkingTaskApi @Inject() () extends InjectedController with UserContextActions {
+class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   private val log = Logger.getLogger(getClass.getName)
 
-  def getLinkingTask(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project: Project = WorkspaceFactory().workspace.project(projectName)
-    val task = project.task[LinkSpec](taskName)
-    val xml = XmlSerialization.toXml(task.data)
-    Ok(xml)
+  /** Fetches a linking task. */
+  def getLinkingTask(projectName: String,
+                     taskName: String,
+                     withLabels: Boolean,
+                     langPref: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val (project, task) = getProjectAndTask[LinkSpec](projectName, taskName)
+    accessMonitor.saveProjectTaskAccess(project.config.id, task.id)
+    if(withLabels) {
+      val linkSpec = task.data
+      val DPair(sourcePaths, targetPaths) = linkSpec.entityDescriptions.map(es => es.typedPaths)
+      val sourcePathLabels = pathLabels(task.project, linkSpec.source.inputId, sourcePaths, langPref)
+      val targetPathLabels = pathLabels(task.project, linkSpec.target.inputId, targetPaths, langPref)
+      Ok(LinkingTaskApiUtils.getLinkSpecWithRuleNodeParameterValueLabels(task, sourcePathLabels, targetPathLabels))
+    } else {
+      SerializationUtils.serializeCompileTime[LinkSpec](task.data, Some(project))
+    }
+  }
+
+  private def pathLabels(project: Project,
+                         dataSourceTaskId: String,
+                         typedPaths: Seq[TypedPath],
+                         langPref: String)
+                        (implicit userContext: UserContext): Map[String, String] = {
+    implicit val prefixes: Prefixes = project.config.prefixes
+    val result = new mutable.HashMap[String, String]()
+    def dataset: Option[ProjectTask[GenericDatasetSpec]] = project.taskOption[GenericDatasetSpec](dataSourceTaskId)
+    dataset.flatMap(d => datasetPathMetaDataPlugin(d)).foreach { pathMetaDataPlugin =>
+      val pathsMetaData = pathMetaDataPlugin.fetchMetaData(dataset.get.data.plugin, typedPaths, langPref)
+      pathsMetaData
+        .foreach(pmd =>
+          pmd.label.foreach { label =>
+            result.put(pmd.value, label)
+            result.put(UntypedPath.parse(pmd.value).serialize()(Prefixes.empty), label)
+          }
+        )
+
+    }
+    result.toMap
   }
 
   def pushLinkingTask(project: String, task: String, createOnly: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
@@ -96,34 +141,49 @@ class LinkingTaskApi @Inject() () extends InjectedController with UserContextAct
   def putRule(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
-    implicit val prefixes = project.config.prefixes
-    implicit val resources = project.resources
-    implicit val readContext = ReadContext(resources, prefixes)
+    implicit val prefixes: Prefixes = project.config.prefixes
+    implicit val resources: ResourceManager = project.resources
+    implicit val readContext: ReadContext = ReadContext(resources, prefixes)
 
-    request.body.asXml match {
-      case Some(xml) =>
-        try {
-          //Collect warnings while parsing linkage rule
-          val warnings = CollectLogs(Level.WARNING, classOf[LinkageRule].getPackage.getName) {
-            //Load linkage rule
-            val updatedRule = XmlSerialization.fromXml[LinkageRule](xml.head)
-            //Update linking task
-            val updatedLinkSpec = task.data.copy(rule = updatedRule)
-            project.updateTask(taskName, updatedLinkSpec)
-          }
-          // Return warnings
-          ErrorResult.validation(OK, "Linkage rule committed successfully", issues = warnings.map(log => ValidationWarning(log.getMessage)))
-        } catch {
-          case ex: ValidationException =>
-            log.log(Level.INFO, "Invalid linkage rule")
-            ErrorResult.validation(BAD_REQUEST, "Invalid linkage rule", issues = ex.errors)
-          case ex: Exception =>
-            log.log(Level.INFO, "Failed to commit linkage rule", ex)
-            ErrorResult.validation(INTERNAL_SERVER_ERROR, "Failed to commit linkage rule", issues = ValidationError("Error in back end: " + ex.getMessage) :: Nil)
-        }
-      case None =>
-        ErrorResult(BadUserInputException("Expecting text/xml request body"))
+    try {
+      val (updatedRule, warnings) = linkageRule(request)
+      //Update linking task
+      val updatedLinkSpec = task.data.copy(rule = updatedRule)
+      project.updateTask(taskName, updatedLinkSpec)
+      // Return warnings
+      ErrorResult.validation(OK, "Linkage rule committed successfully", issues = warnings.map(log => ValidationWarning(log.getMessage)))
+    } catch {
+      case ex: BadUserInputException =>
+        throw ex
+      case ex: ValidationException =>
+        log.log(Level.INFO, "Invalid linkage rule")
+        ErrorResult.validation(BAD_REQUEST, "Invalid linkage rule", issues = ex.errors)
+      case ex: Exception =>
+        log.log(Level.INFO, "Failed to commit linkage rule", ex)
+        ErrorResult.validation(INTERNAL_SERVER_ERROR, "Failed to commit linkage rule", issues = ValidationError("Error in back end: " + ex.getMessage) :: Nil)
     }
+  }
+
+  private def linkageRule(request: Request[AnyContent])
+                         (implicit readContext: ReadContext,
+                          prefixes: Prefixes,
+                          resources: ResourceManager): (LinkageRule, Seq[LogRecord]) = {
+    var linkageRule: LinkageRule = null
+    //Collect warnings while parsing linkage rule
+    val warnings = CollectLogs(Level.WARNING, classOf[LinkageRule].getPackage.getName) {
+      request.body.asXml match {
+        case Some(xml) =>
+          linkageRule = XmlSerialization.fromXml[LinkageRule](xml.head)
+        case None =>
+          request.body.asJson match {
+            case Some(json) =>
+              linkageRule = JsonSerialization.fromJson[LinkageRule](json)
+            case None =>
+              throw BadUserInputException("Expecting text/xml or application/json request body")
+          }
+      }
+    }
+    (linkageRule, warnings)
   }
 
   def getLinkSpec(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
@@ -478,6 +538,55 @@ class LinkingTaskApi @Inject() () extends InjectedController with UserContextAct
     Ok
   }
 
+  // All path meta data plugins
+  private lazy val pathMetaDataPlugins: Map[Class[_], PathMetaDataPlugin[_]] = LinkingTaskApiUtils.pathMetaDataPlugins
+
+  private def datasetPathMetaDataPlugin(datasetTask: ProjectTask[GenericDatasetSpec]): Option[PathMetaDataPlugin[Dataset]] = {
+    pathMetaDataPlugins.get(datasetTask.data.plugin.getClass).map(_.asInstanceOf[PathMetaDataPlugin[Dataset]])
+  }
+  private val standardMetaDataPlugin = StandardMetaDataPlugin()
+
+  /** Fetches the linking path cache value.  TODO: Add swagger annotation when finalized
+    *
+    * @param target If the target paths should be fetches, else the source paths are fetched.
+    */
+  def getLinkingPathCacheValue(projectId: String,
+                               linkingTaskId: String,
+                               target: Boolean,
+                               withMetaData: Boolean,
+                               langPref: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+    val (project, linkingTask) = getProjectAndTask[LinkSpec](projectId, linkingTaskId)
+    implicit val prefixes: Prefixes = project.config.prefixes
+    linkingPathCacheValues(linkingTask) match {
+      case Some(value) =>
+        val (sourceTaskId, sourceEntitySchema) = if(target) {
+          (linkingTask.data.target.inputId, value.target)
+        } else {
+          (linkingTask.data.source.inputId, value.source)
+        }
+        if(withMetaData) {
+          // For now we only support dataset plugins
+          def dataset: Option[ProjectTask[GenericDatasetSpec]] = project.taskOption[GenericDatasetSpec](sourceTaskId)
+          val pathsWithMetaData = dataset.flatMap(d => datasetPathMetaDataPlugin(d)) match {
+            case Some(pathMetaDataPlugin) =>
+              pathMetaDataPlugin.fetchMetaData(dataset.get.data.plugin, sourceEntitySchema.typedPaths, langPref)
+            case None =>
+              standardMetaDataPlugin.fetchMetaData(standardMetaDataPlugin, sourceEntitySchema.typedPaths, langPref)
+          }
+          Ok(Json.toJson(pathsWithMetaData.toSeq))
+        } else {
+          Ok(Json.toJson(sourceEntitySchema.typedPaths.map(_.serialize())))
+        }
+      case None =>
+        throw NotFoundException("No cached value available.")
+    }
+  }
+
+  private def linkingPathCacheValues(linkingTask: ProjectTask[LinkSpec]): Option[DPair[EntitySchema]] = {
+    val linkingPathsCache = linkingTask.activity[LinkingPathsCache]
+    linkingPathsCache.value.get
+  }
+
   def writeReferenceLinks(projectName: String, taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
@@ -519,6 +628,31 @@ class LinkingTaskApi @Inject() () extends InjectedController with UserContextAct
     getProjectAndTask[LinkSpec](projectName, taskName)
   }
 
+  private def updateAndGetReferenceEntityCacheValue(task: ProjectTask[LinkSpec],
+                                                    refreshCache: Boolean)
+                                                   (implicit userContext: UserContext): ReferenceEntities = {
+    // Make sure that the reference entities cache is up-to-date
+    val referenceEntitiesCache = task.activity[ReferenceEntitiesCache].control
+    if(referenceEntitiesCache.status().isRunning) {
+      referenceEntitiesCache.waitUntilFinished()
+    }
+    if(refreshCache) {
+      referenceEntitiesCache.startBlocking()
+    }
+    referenceEntitiesCache.value()
+  }
+
+  private def serializeLinks(entities: Traversable[DPair[Entity]],
+                             linkageRule: LinkageRule): JsValue = {
+    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+    JsArray(
+      for(entities <- entities.toSeq) yield {
+        val link = new FullLink(entities.source.uri, entities.target.uri, linkageRule(entities), entities)
+        new LinkJsonFormat(Some(linkageRule)).write(link)
+      }
+    )
+  }
+
   @Operation(
     summary = "Evaluate on reference links",
     description = "Evaluates the current linking rule on all reference links.",
@@ -558,32 +692,79 @@ class LinkingTaskApi @Inject() () extends InjectedController with UserContextAct
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val rule = task.data.rule
-    implicit val writeContext = WriteContext[JsValue]()
 
-    // Make sure that the reference entities cache is up-to-date
-    val referenceEntitiesCache = task.activity[ReferenceEntitiesCache].control
-    if(referenceEntitiesCache.status().isRunning) {
-      referenceEntitiesCache.waitUntilFinished()
-    }
-    referenceEntitiesCache.startBlocking()
-    val referenceEntities = referenceEntitiesCache.value()
-
-    def serializeLinks(entities: Traversable[DPair[Entity]]): JsValue = {
-      JsArray(
-        for(entities <- entities.toSeq) yield {
-          val link = new FullLink(entities.source.uri, entities.target.uri, rule(entities), entities)
-          new LinkJsonFormat(Some(rule)).write(link)
-        }
-      )
-    }
+    val referenceEntityCacheValue = updateAndGetReferenceEntityCacheValue(task, refreshCache = true)
+    val evaluationResult: LinkageRuleEvaluationResult = referenceLinkEvaluationScore(task.data.rule, referenceEntityCacheValue)
 
     val result =
       Json.obj(
-        "positive" -> serializeLinks(referenceEntities.positiveEntities),
-        "negative" -> serializeLinks(referenceEntities.negativeEntities)
+        "positive" -> serializeLinks(referenceEntityCacheValue.positiveEntities, rule),
+        "negative" -> serializeLinks(referenceEntityCacheValue.negativeEntities, rule),
+        "evaluationScore" -> Json.toJson(evaluationResult)
       )
 
     Ok(result)
+  }
+
+  private def referenceLinkEvaluationScore(linkageRule: LinkageRule, referenceEntityCacheValue: ReferenceEntities): LinkageRuleEvaluationResult = {
+    val score = LinkageRuleEvaluator(linkageRule, referenceEntityCacheValue)
+    val evaluationResult = LinkageRuleEvaluationResult(score.truePositives, score.trueNegatives, score.falsePositives, score.falseNegatives,
+      f"${score.fMeasure}%.2f", f"${score.precision}%.2f", f"${score.recall}%.2f")
+    evaluationResult
+  }
+
+  @Operation(
+    summary = "Evaluate linkage rule against reference links",
+    description = "Evaluates a linkage rule send with the requests on all reference links of the linking task.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            examples = Array(new ExampleObject(LinkingTaskApiDoc.referenceLinksEvaluatedExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or task has not been found."
+      )
+    )
+  )
+  def referenceLinksEvaluateLinkageRule(@Parameter(name = "project", in = ParameterIn.PATH, description = "The project identifier", required = true,
+                                          schema = new Schema(implementation = classOf[String])
+                                        )
+                                        projectName: String,
+                                        @Parameter(name = "linkingTaskId", in = ParameterIn.PATH, description = "The task identifier", required = true,
+                                          schema = new Schema(implementation = classOf[String])
+                                        )
+                                        linkingTaskId: String,
+                                        @Parameter(name = "linkLimit", in = ParameterIn.QUERY, description = "The max. number of unique links that should be returned for each link categorty, i.e. psitive, negative.", required = false,
+                                          schema = new Schema(implementation = classOf[Int], defaultValue = "1000")
+                                        )
+                                        linkLimit: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    implicit val (project, task) = getProjectAndTask[LinkSpec](projectName, linkingTaskId)
+    implicit val readContext: ReadContext = ReadContext(prefixes = project.config.prefixes, resources = project.resources)
+    implicit val prefixes: Prefixes = project.config.prefixes
+
+    SerializationUtils.deserializeCompileTime[LinkageRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { linkageRule =>
+      val referenceEntityCacheValue = updateAndGetReferenceEntityCacheValue(task, refreshCache = false)
+      def serialize(links: Traversable[DPair[Entity]]): JsValue = {
+        serializeLinks(links.take(linkLimit), linkageRule)
+      }
+      val evaluationResult: LinkageRuleEvaluationResult = referenceLinkEvaluationScore(linkageRule, referenceEntityCacheValue)
+
+      val result =
+        Json.obj(
+          "positive" -> serialize(referenceEntityCacheValue.positiveEntities),
+          "negative" -> serialize(referenceEntityCacheValue.negativeEntities),
+          "evaluationScore" -> Json.toJson(evaluationResult)
+        )
+
+      Ok(result)
+    }
   }
 
   @Operation(

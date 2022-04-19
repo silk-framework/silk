@@ -6,7 +6,7 @@ import { previewSlice } from "./previewSlice";
 import { routerOp } from "@ducks/router";
 import { IFacetState } from "@ducks/workspace/typings";
 import { workspaceSel } from "@ducks/workspace";
-import qs from "qs";
+import qs, { ParsedQs } from "qs";
 import {
     fetchAddOrUpdatePrefixAsync,
     fetchProjectPrefixesAsync,
@@ -91,26 +91,26 @@ const setupFiltersFromQs = (queryString: string) => {
 
             batchQueue.push(applyFilters(filters));
 
+            /** Only expect string or array of strings. */
+            const toStringArray = (value: undefined | string | string[] | ParsedQs | ParsedQs[]): string[] => {
+                if (Array.isArray(value) && value.length > 0 && typeof value[0] === "string") {
+                    return value as string[];
+                } else if (typeof value === "string") {
+                    return value.split(VALUE_DELIMITER);
+                } else {
+                    return [];
+                }
+            };
+
             // Facets
             if (parsedQs.f_ids) {
                 const facetIds = parsedQs.f_ids;
-                if (Array.isArray(facetIds)) {
-                    facetIds.forEach((facetId, i) => {
-                        const facet: Partial<IFacetState> = {
-                            id: facetId,
-                            type: parsedQs.types ? parsedQs.types[i] : null,
-                        };
-                        batchQueue.push(
-                            applyFacet({
-                                facet,
-                                keywordIds: parsedQs.f_keys ? parsedQs.f_keys[i].split(ARRAY_DELIMITER) : [],
-                            })
-                        );
-                    });
-                } else {
-                    const fIds = facetIds.toString().split(VALUE_DELIMITER);
-                    const fValues = parsedQs.f_keys ? parsedQs.f_keys.toString().split(VALUE_DELIMITER) : [];
-                    const fTypes = parsedQs.types ? parsedQs.types.toString().split(VALUE_DELIMITER) : [];
+                const types = toStringArray(parsedQs.types);
+                const fKeys = toStringArray(parsedQs.f_keys);
+                if (typeof facetIds === "string") {
+                    const fIds = toStringArray(facetIds);
+                    const fValues = toStringArray(parsedQs.f_keys);
+                    const fTypes = toStringArray(parsedQs.types);
                     fIds.forEach((fId, idx) => {
                         batchQueue.push(
                             applyFacet({
@@ -119,6 +119,19 @@ const setupFiltersFromQs = (queryString: string) => {
                                     type: fTypes[idx],
                                 },
                                 keywordIds: fValues[idx].split(ARRAY_DELIMITER),
+                            })
+                        );
+                    });
+                } else {
+                    toStringArray(facetIds).forEach((facetId, i) => {
+                        const facet: Partial<IFacetState> = {
+                            id: facetId,
+                            type: types[i],
+                        };
+                        batchQueue.push(
+                            applyFacet({
+                                facet,
+                                keywordIds: fKeys[i].split(ARRAY_DELIMITER),
                             })
                         );
                     });

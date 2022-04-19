@@ -21,7 +21,7 @@ import scala.math.abs
 
 @Plugin(
   id = "koreanTranslitDistance",
-  categories = Array("Asian"),
+  categories = Array("Language"),
   label = "Korean translit distance",
   description = "Transliterated Korean distance."
 )

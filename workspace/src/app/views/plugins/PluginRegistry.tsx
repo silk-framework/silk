@@ -1,11 +1,16 @@
 /** A view / UI of a project task.
  * Each task can have multiple views.
  **/
+import { LinkingRuleEditor } from "../taskViews/linking/LinkingRuleEditor";
+import React from "react";
 
 // Generic actions and callbacks on views
 export interface IViewActions {
     // A callback that is executed every time the project task is saved from the view.
     onSave?: () => any;
+    /** If true then the task view is integrated into another view and not on the task details page. Things like the
+     * error notifications need to be inside the editor then. */
+    integratedView?: boolean;
 }
 
 /** A project task view that is meant to be displayed for a specific project task.
@@ -97,6 +102,15 @@ class PluginRegistry {
 }
 
 export const pluginRegistry = new PluginRegistry();
+
+// Register linking rule editor
+pluginRegistry.registerTaskView("linking", {
+    id: "linkingEditor",
+    label: "Linking editor WIP",
+    render(projectId: string, taskId: string, viewActions: IViewActions | undefined): JSX.Element {
+        return <LinkingRuleEditor projectId={projectId} linkingTaskId={taskId} viewActions={viewActions} />;
+    },
+});
 
 export const SUPPORTED_PLUGINS = {
     DATA_PREVIEW: "di:dataPreview",

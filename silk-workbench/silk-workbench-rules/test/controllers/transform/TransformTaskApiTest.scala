@@ -328,7 +328,7 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
       """
     }
 
-    // Check if rule has been update correctly
+    // Check if rule has been updated correctly
     jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rule/directRule") mustMatchJson {
       """
         {
@@ -534,6 +534,38 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
     val seqFuture = Future.sequence(resultsFutures)
     val jsons = Await.result(seqFuture, 10.seconds)
     jsons.map(json => (json \ "id").as[String]).distinct.size mustBe 10
+  }
+
+  "Convert value rules to complex rules if convertToComplex=true" in {
+    jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rule/directRule?convertToComplex=true") mustMatchJson {
+      """
+        {
+          "id": "directRule",
+          "mappingTarget": {
+              "isAttribute": true,
+              "isBackwardProperty": false,
+              "uri": "target:firstName",
+              "valueType": {
+                  "nodeType": "StringValueType"
+              }
+          },
+          "metadata": {
+              "description": "updated direct rule description",
+              "label": "updated direct rule label"
+          },
+          "operator": {
+              "id": "directRule",
+              "path": "source:firstName",
+              "type": "pathInput"
+          },
+          "sourcePaths": [
+              "source:firstName"
+          ],
+          "type": "complex",
+          "layout":{"nodePositions":{}}
+        }
+      """
+    }
   }
 
   "Delete mapping rule" in {

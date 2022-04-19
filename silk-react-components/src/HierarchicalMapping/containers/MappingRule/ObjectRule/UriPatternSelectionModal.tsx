@@ -46,6 +46,7 @@ export const UriPatternSelectionModal = ({uriPatterns, onSelect, onClose}: IProp
             <AutoCompleteField<IUriPattern, IUriPattern>
                 onSearch={handleSearch}
                 itemValueSelector={value => value}
+                itemValueString={uriPattern => uriPattern.value}
                 itemRenderer={itemOption}
                 onChange={handleSelect}
                 autoFocus={true}
