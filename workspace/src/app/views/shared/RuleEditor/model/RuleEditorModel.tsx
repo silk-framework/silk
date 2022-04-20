@@ -710,6 +710,39 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         nodeParameters.set(nodeId, parameterMap);
     };
 
+    // Creates a new node and setups all relevant helper data structures
+    const createNodeInternal = (
+        ruleOperator: IRuleOperator,
+        position: XYPosition,
+        overwriteParameterValues?: RuleOperatorNodeParameters
+    ): RuleEditorNode | undefined => {
+        if (reactFlowInstance && ruleEditorContext.operatorSpec) {
+            const ruleNode = ruleEditorContext.convertRuleOperatorToRuleNode(ruleOperator);
+            ruleNode.position = position;
+            ruleNode.parameters = { ...ruleNode.parameters, ...overwriteParameterValues };
+            const newNode = utils.createNewOperatorNode(
+                ruleNode,
+                operatorNodeOperationsInternal,
+                operatorNodeCreateContextInternal(
+                    ruleOperator.pluginId,
+                    reactFlowInstance,
+                    ruleEditorContext.operatorSpec!!
+                )
+            );
+            nodeMap.set(newNode.id, {
+                node: { ...ruleNode, nodeId: newNode.id },
+                inputs: [],
+                output: undefined,
+            });
+            return newNode;
+        } else {
+            console.warn(
+                "Could not create node since React flow and rule operator specifications are not initialized yet!",
+                ruleOperator
+            );
+        }
+    };
+
     /**
      * Public interface model change functions.
      *
@@ -723,27 +756,24 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         position: XYPosition,
         overwriteParameterValues?: RuleOperatorNodeParameters
     ) => {
-        if (reactFlowInstance && ruleEditorContext.operatorSpec) {
-            const ruleNode = ruleEditorContext.convertRuleOperatorToRuleNode(ruleOperator);
-            ruleNode.position = position;
-            ruleNode.parameters = { ...ruleNode.parameters, ...overwriteParameterValues };
+        const newNode = createNodeInternal(ruleOperator, position, overwriteParameterValues);
+        if (newNode) {
             changeElementsInternal((els) => {
-                const newNode = utils.createNewOperatorNode(
-                    ruleNode,
-                    operatorNodeOperationsInternal,
-                    operatorNodeCreateContextInternal(
-                        ruleOperator.pluginId,
-                        reactFlowInstance,
-                        ruleEditorContext.operatorSpec!!
-                    )
-                );
-                nodeMap.set(newNode.id, {
-                    node: { ...ruleNode, nodeId: newNode.id },
-                    inputs: [],
-                    output: undefined,
-                });
                 return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(newNode), els);
             });
+        } else {
+            console.warn("No new node has been created.", ruleOperator, position, overwriteParameterValues);
+        }
+    };
+
+    const fetchRuleOperatorByPluginId = (pluginId: string, pluginType: string): IRuleOperator | undefined => {
+        const op = (ruleEditorContext.operatorList ?? []).find(
+            (op) => op.pluginType === pluginType && op.pluginId === pluginId
+        );
+        if (op) {
+            return op;
+        } else {
+            console.warn(`Operator with plugin type '${pluginType}' and plugin ID '${pluginId}' does not exist!`);
         }
     };
 
@@ -760,13 +790,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         position: XYPosition,
         overwriteParameterValues?: RuleOperatorNodeParameters
     ) => {
-        const op = (ruleEditorContext.operatorList ?? []).find(
-            (op) => op.pluginType === pluginType && op.pluginId === pluginId
-        );
+        const op = fetchRuleOperatorByPluginId(pluginId, pluginType);
         if (op) {
             addNode(op, position, overwriteParameterValues);
-        } else {
-            console.warn(`Operator with plugin type '${pluginType}' and plugin ID '${pluginId}' does not exist!`);
         }
     };
 
@@ -929,19 +955,22 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     /** Copy and paste nodes with a given offset. */
     const copyAndPasteNodes = (nodeIds: string[], offset: XYPosition) => {
         changeElementsInternal((els) => {
-            const nodes = utils.nodesById(els, nodeIds);
+            const originalNodes = utils.nodesById(els, nodeIds);
             const nodeIdMap = new Map<string, string>();
-            const newNodes: RuleEditorNode[] = nodes.map((node) => {
-                const newNodeId = utils.freshNodeId(
-                    node.data?.businessData.originalRuleOperatorNode.pluginId ?? "node_id"
+            const newNodes: RuleEditorNode[] = [];
+            originalNodes.forEach((node) => {
+                const origRuleOperatorNode = node.data.businessData.originalRuleOperatorNode;
+                const op = fetchRuleOperatorByPluginId(origRuleOperatorNode.pluginId, origRuleOperatorNode.pluginType);
+                const position = { x: node.position.x + offset.x, y: node.position.y + offset.y };
+                const newNode = createNodeInternal(
+                    op!!,
+                    position,
+                    Object.fromEntries(nodeParameters.get(node.id) ?? new Map())
                 );
-                nodeIdMap.set(node.id, newNodeId);
-                return {
-                    ...node,
-                    id: newNodeId,
-                    data: { ...node.data },
-                    position: { x: node.position.x + offset.x, y: node.position.y + offset.y },
-                };
+                if (newNode) {
+                    nodeIdMap.set(node.id, newNode.id);
+                    newNodes.push(newNode);
+                }
             });
             const newEdges: Edge[] = [];
             els.forEach((elem) => {
