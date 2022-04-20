@@ -960,16 +960,18 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             const newNodes: RuleEditorNode[] = [];
             originalNodes.forEach((node) => {
                 const origRuleOperatorNode = node.data.businessData.originalRuleOperatorNode;
-                const op = fetchRuleOperatorByPluginId(origRuleOperatorNode.pluginId, origRuleOperatorNode.pluginType);
                 const position = { x: node.position.x + offset.x, y: node.position.y + offset.y };
-                const newNode = createNodeInternal(
-                    op!!,
-                    position,
-                    Object.fromEntries(nodeParameters.get(node.id) ?? new Map())
-                );
-                if (newNode) {
-                    nodeIdMap.set(node.id, newNode.id);
-                    newNodes.push(newNode);
+                const op = fetchRuleOperatorByPluginId(origRuleOperatorNode.pluginId, origRuleOperatorNode.pluginType);
+                if (op) {
+                    const newNode = createNodeInternal(
+                        op,
+                        position,
+                        Object.fromEntries(nodeParameters.get(node.id) ?? new Map())
+                    );
+                    if (newNode) {
+                        nodeIdMap.set(node.id, newNode.id);
+                        newNodes.push(newNode);
+                    }
                 }
             });
             const newEdges: Edge[] = [];
