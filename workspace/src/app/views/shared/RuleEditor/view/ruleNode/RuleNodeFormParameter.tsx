@@ -63,7 +63,7 @@ export const RuleNodeFormParameter = ({
                 tooltip: parameterDescription, // TODO: CMEM-3919 Tooltip flickers
                 tooltipProperties: {
                     tooltipProps: {
-                        placement: "top-right", // TODO: CMEM-3919: This does not work
+                        boundary: "window",
                     },
                 },
                 info: paramSpec.required ? "required" : undefined,

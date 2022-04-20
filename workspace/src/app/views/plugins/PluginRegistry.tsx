@@ -106,7 +106,7 @@ export const pluginRegistry = new PluginRegistry();
 // Register linking rule editor
 pluginRegistry.registerTaskView("linking", {
     id: "linkingEditor",
-    label: "Linking editor WIP",
+    label: "Linking editor",
     render(projectId: string, taskId: string, viewActions: IViewActions | undefined): JSX.Element {
         return <LinkingRuleEditor projectId={projectId} linkingTaskId={taskId} viewActions={viewActions} />;
     },
