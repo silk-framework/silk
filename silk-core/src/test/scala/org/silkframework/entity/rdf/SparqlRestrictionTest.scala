@@ -22,6 +22,11 @@ class SparqlRestrictionTest extends FlatSpec with Matchers {
     resolve("?a ex:date \"2012-04-12T12:00:00Z\"^^xsd:dateTime .") should be ("?a <http://silkframework.org/example/date> \"2012-04-12T12:00:00Z\"^^<http://www.w3.org/2001/XMLSchema#dateTime> .")
   }
 
+  it should "not complain about missing prefixes in literals" in {
+    val restriction = "?a <http://www.example.com/someProperty> \"\"\"+fakePrefix:12* +prefix:23\"\"\" ."
+    resolve(restriction) should be (restriction)
+  }
+
   private def resolve(sparql: String) = SparqlRestriction.fromSparql("a", sparql).toSparql
 
 }
