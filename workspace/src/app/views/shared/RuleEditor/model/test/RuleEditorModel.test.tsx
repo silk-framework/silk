@@ -48,9 +48,22 @@ describe("Rule editor model", () => {
 
     let savedRuleOperatorNodes: IRuleOperatorNode[] = [];
 
+    const ruleOperatorList: IRuleOperator[] = [
+        {
+            pluginType: "unknown",
+            pluginId: "testPlugin",
+            label: "Test plugin",
+            tags: [],
+            parameterSpecification: {},
+            portSpecification: {
+                minInputPorts: 0,
+            },
+        },
+    ];
+
     const ruleEditorModel = async (
         initialRuleNodes: IRuleOperatorNode[] = [],
-        operatorList: IRuleOperator[] = [],
+        operatorList: IRuleOperator[] = ruleOperatorList,
         operatorSpec: Map<string, Map<string, IParameterSpecification>> = new Map(),
         validateConnection: (
             fromRuleOperatorNode: RuleEditorValidationNode,
