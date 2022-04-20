@@ -17,8 +17,6 @@ package org.silkframework.entity.rdf
 import org.silkframework.config.Prefixes
 import org.silkframework.util.Uri
 
-import scala.util.matching.Regex
-
 /**
  * Represents a SPARQL restriction.
  */
@@ -63,12 +61,6 @@ object SparqlRestriction {
       // Replace prefixes in properties and types
       restrictionsFull = restrictionsFull.replaceAll("([\\s^])" + id + ":" + "([^\\s\\{\\}+*]+)([+*]*\\s+\\.)?", "$1<" + namespace + "$2>$3")
       restrictionsQualified = restrictionsQualified.replaceAll("<" + namespace + "([^>]+)>", id + ":" + "$1")
-    }
-
-    //Check if a prefix is missing
-    val missingPrefixes = new Regex("[\\s\\{\\}][^<\\s\\{\\}\"]+:").findAllIn(restrictionsFull)
-    if (missingPrefixes.nonEmpty) {
-      throw new IllegalArgumentException("The following prefixes are not defined: " + missingPrefixes.mkString(","))
     }
 
     new SparqlRestriction(variable, restrictionsFull, restrictionsQualified)
