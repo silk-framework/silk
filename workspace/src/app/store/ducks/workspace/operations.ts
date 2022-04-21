@@ -50,7 +50,6 @@ const updateQueryString = () => {
         const { applied: appliedSorters } = workspaceSel.sortersSelector(state);
         const appliedFacets = workspaceSel.appliedFacetsSelector(state);
         const { current, limit } = workspaceSel.paginationSelector(state);
-        //console.log("Applied sorters", appliedSorters);
         const queryParams = {
             ...appliedFilters,
             ...appliedSorters,
@@ -92,6 +91,7 @@ const setupFiltersFromQs = (queryString: string) => {
             batchQueue.push(applyFilters(filters));
 
             // Facets
+            console.log("PARSED.F_IDS", parsedQs);
             if (parsedQs.f_ids) {
                 const facetIds = parsedQs.f_ids;
                 if (Array.isArray(facetIds)) {
@@ -103,13 +103,13 @@ const setupFiltersFromQs = (queryString: string) => {
                         batchQueue.push(
                             applyFacet({
                                 facet,
-                                keywordIds: parsedQs.f_keys ? parsedQs.f_keys[i].split(ARRAY_DELIMITER) : [],
+                                keywordIds: parsedQs.f_keys ? parsedQs.f_keys[i].split(ARRAY_DELIMITER) : [""],
                             })
                         );
                     });
                 } else {
                     const fIds = facetIds.toString().split(VALUE_DELIMITER);
-                    const fValues = parsedQs.f_keys ? parsedQs.f_keys.toString().split(VALUE_DELIMITER) : [];
+                    const fValues = parsedQs.f_keys ? parsedQs.f_keys.toString().split(VALUE_DELIMITER) : [""];
                     const fTypes = parsedQs.types ? parsedQs.types.toString().split(VALUE_DELIMITER) : [];
                     fIds.forEach((fId, idx) => {
                         batchQueue.push(
@@ -196,7 +196,6 @@ const fetchListAsync = (
 
         // get facets
         body.facets = appliedFacets.map((facet) => facet);
-
         try {
             const { total, facets, results, sortByProperties } = fetcher
                 ? (await fetcher(body))?.data
@@ -266,7 +265,6 @@ const toggleFacetOp = (facet: IFacetState, keywordId: string) => {
     return (dispatch, getState) => {
         const facets = workspaceSel.appliedFacetsSelector(getState());
         const foundFacet = facets.find((o) => o.facetId === facet.id);
-
         const isKeywordMissing = foundFacet && !foundFacet.keywordIds.includes(keywordId);
 
         if (!foundFacet || isKeywordMissing) {
