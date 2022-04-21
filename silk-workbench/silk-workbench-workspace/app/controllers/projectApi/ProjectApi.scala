@@ -172,8 +172,8 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
       val clonedProject = workspace.createProject(clonedProjectConfig.copy(projectResourceUriOpt = Some(clonedProjectConfig.generateDefaultUri)))
       WorkspaceIO.copyResources(project.resources, clonedProject.resources)
       // Clone task spec, since task specs may contain state, e.g. RDF file dataset
-      implicit val resourceManager: ResourceManager = project.resources
-      implicit val prefixes: Prefixes = project.config.prefixes
+      implicit val resourceManager: ResourceManager = clonedProject.resources
+      implicit val prefixes: Prefixes = clonedProject.config.prefixes
       for (task <- project.allTasks) {
         val clonedTaskSpec = Try(task.data.withProperties(Map.empty)).getOrElse(task.data)
         clonedProject.addAnyTask(task.id, clonedTaskSpec, task.metaData.asNewMetaData)
