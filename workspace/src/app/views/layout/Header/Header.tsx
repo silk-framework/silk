@@ -223,11 +223,6 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                             />
                                         )}
                                         <MenuItem
-                                            text={t("common.action.activity", "Activity overview")}
-                                            href={CONTEXT_PATH + "/workspace/allActivities"}
-                                            icon={"application-activities"}
-                                        />
-                                        <MenuItem
                                             text={t("common.action.showApiDoc", "API")}
                                             href={CONTEXT_PATH + "/doc/api"}
                                             icon={"application-homepage"}
