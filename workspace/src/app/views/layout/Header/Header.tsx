@@ -150,7 +150,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         text={t("navigation.side.di.projects", "Projects")}
                         htmlTitle={t("navigation.side.di.projectsTooltip")}
                         onClick={() => handleNavigate("project")}
-                        href={location.pathname + searchURL("project")}
+                        href={SERVE_PATH + searchURL("project")}
                         active={location.pathname === SERVE_PATH && locationParams.get("itemType") === "project"}
                     />
                     <MenuItem
@@ -158,7 +158,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         text={t("navigation.side.di.datasets", "Datasets")}
                         htmlTitle={t("navigation.side.di.datasetsTooltip")}
                         onClick={() => handleNavigate("dataset")}
-                        href={location.pathname + searchURL("dataset")}
+                        href={SERVE_PATH + searchURL("dataset")}
                         active={location.pathname === SERVE_PATH && locationParams.get("itemType") === "dataset"}
                     />
                     <MenuItem
