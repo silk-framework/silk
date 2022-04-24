@@ -1,8 +1,8 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { Spacing, ToolbarSection, ContextOverlay, Icon } from "gui-elements";
-import { ActivityControlWidget } from "gui-elements/cmem";
-import { IntentTypes } from "gui-elements/src/common/Intent";
+import { Spacing, ToolbarSection, ContextOverlay, Icon } from "@eccenca/gui-elements";
+import { ActivityControlWidget } from "@eccenca/gui-elements";
+import { IntentTypes } from "@eccenca/gui-elements/src/common/Intent";
 import { useTaskActivityWidget } from "../../shared/TaskActivityWidget/TaskActivityWidget";
 
 interface LinkingRuleCacheInfoProps {

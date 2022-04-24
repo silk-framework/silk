@@ -20,12 +20,12 @@ import {
     TableRow,
     Toolbar,
     ToolbarSection,
-} from "gui-elements";
+} from "@eccenca/gui-elements";
 import Loading from "../../../shared/Loading";
 import FileUploadModal from "../../../shared/modals/FileUploadModal";
 import { EmptyFileWidget } from "./EmptyFileWidget";
 import { SearchBar } from "../../../shared/SearchBar/SearchBar";
-import { usePagination } from "gui-elements/src/components/Pagination/Pagination";
+import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
 import { commonSel } from "@ducks/common";
 import { useTranslation } from "react-i18next";
 import { FileRemoveModal } from "../../../shared/modals/FileRemoveModal";

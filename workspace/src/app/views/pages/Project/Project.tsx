@@ -15,7 +15,7 @@ import {
     WorkspaceContent,
     WorkspaceMain,
     WorkspaceSide,
-} from "gui-elements";
+} from "@eccenca/gui-elements";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { routerSel } from "@ducks/router";
 import { commonOp, commonSel } from "@ducks/common";

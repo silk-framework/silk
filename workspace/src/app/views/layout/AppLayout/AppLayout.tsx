@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Header } from "../Header/Header";
 import { RecentlyViewedModal } from "../../shared/modals/RecentlyViewedModal";
-import { ApplicationContainer, ApplicationContent } from "gui-elements";
+import { ApplicationContainer, ApplicationContent } from "@eccenca/gui-elements";
 
 interface IProps {
     children: React.ReactNode;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '@eccenca/gui-elements';
+import { Button } from 'gui-elements-deprecated';
 
 export class InfoBox extends React.Component {
     state = {

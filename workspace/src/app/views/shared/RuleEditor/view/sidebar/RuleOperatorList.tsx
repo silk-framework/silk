@@ -1,5 +1,5 @@
-import { Button, Card, List, OverviewItem, OverviewItemActions, Spacing } from "gui-elements";
-import { extractSearchWords } from "gui-elements/src/components/Typography/Highlighter";
+import { Button, Card, List, OverviewItem, OverviewItemActions, Spacing } from "@eccenca/gui-elements";
+import { extractSearchWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { IRuleOperator, RuleOperatorNodeParameters } from "../../RuleEditor.typings";

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AutoCompleteBox } from '@eccenca/gui-elements';
+import { AutoCompleteBox } from 'gui-elements-deprecated';
 import { autocompleteAsync } from '../store';
 
 const loadOptionsRaw = ({

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, Card, CardActions, CardContent, DisruptiveButton, } from '@eccenca/gui-elements';
+import { Button, Card, CardActions, CardContent, DisruptiveButton, } from 'gui-elements-deprecated';
 import _ from 'lodash';
 import PropTypes from 'prop-types';
 import { getEditorHref } from '../../../store';

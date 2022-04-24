@@ -1,4 +1,4 @@
-import { NotAvailable } from '@eccenca/gui-elements';
+import { NotAvailable } from 'gui-elements-deprecated';
 import { URIInfo } from './URIInfo';
 import React from 'react';
 

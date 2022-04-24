@@ -6,11 +6,11 @@ import {
     Button,
     Icon,
     Info,
-} from '@eccenca/gui-elements';
+} from 'gui-elements-deprecated';
 import {
     Card,
     CardContent,
-} from 'gui-elements';
+} from '@eccenca/gui-elements';
 
 import RuleTypes from '../elements/RuleTypes';
 import RuleTitle from '../elements/RuleTitle';

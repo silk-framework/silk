@@ -1,5 +1,5 @@
 import React from 'react';
-import { FloatingActionList } from '@eccenca/gui-elements';
+import { FloatingActionList } from 'gui-elements-deprecated';
 import _ from 'lodash';
 import { MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT } from '../../utils/constants';
 

@@ -16,8 +16,8 @@ import {
     Spacing,
     Spinner,
     WhiteSpaceContainer,
-} from "gui-elements";
-import { Definitions as IntentTypes } from "gui-elements/src/common/Intent";
+} from "@eccenca/gui-elements";
+import { Definitions as IntentTypes } from "@eccenca/gui-elements/src/common/Intent";
 import {
     ActivityAction,
     IActivityControlLayoutProps,
@@ -26,7 +26,7 @@ import {
     Markdown,
     ElapsedDateTimeDisplay,
     TimeUnits,
-} from "gui-elements/cmem";
+} from "@eccenca/gui-elements";
 import {
     IActivityCachesOverallStatus,
     IActivityControlFunctions,

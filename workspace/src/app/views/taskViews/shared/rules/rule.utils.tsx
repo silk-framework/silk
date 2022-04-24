@@ -19,9 +19,9 @@ import {
 } from "../../../shared/RuleEditor/model/RuleEditorModel.typings";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import React from "react";
-import { Highlighter, OverflowText, OverviewItem, OverviewItemDescription, OverviewItemLine } from "gui-elements";
-import { IRenderModifiers } from "gui-elements/src/components/AutocompleteField/AutoCompleteField";
-import { CLASSPREFIX as eccguiprefix } from "gui-elements/src/configuration/constants";
+import { Highlighter, OverflowText, OverviewItem, OverviewItemDescription, OverviewItemLine } from "@eccenca/gui-elements";
+import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
+import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
 
 /** Extracts the operator node from a path input. */
 const extractOperatorNodeFromPathInput = (

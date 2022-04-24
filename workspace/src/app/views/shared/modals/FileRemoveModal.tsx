@@ -4,7 +4,7 @@ import { projectFileResourceDependents, requestRemoveProjectResource } from "@du
 import { useTranslation } from "react-i18next";
 import { UppyFile } from "@uppy/core";
 import { ITaskLink } from "@ducks/workspace/typings";
-import { Link } from "gui-elements";
+import { Link } from "@eccenca/gui-elements";
 import { taskUrl } from "@ducks/router/operations";
 
 type UppyFileOrResource = UppyFile | { name: string; id: string };

@@ -6,7 +6,7 @@ import {
     PropertyName,
     PropertyValue,
     Notification,
-} from "gui-elements";
+} from "@eccenca/gui-elements";
 import React from "react";
 import { IArtefactItemProperty, IPluginDetails } from "@ducks/common/typings";
 import { useTranslation } from "react-i18next";

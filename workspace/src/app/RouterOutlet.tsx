@@ -5,7 +5,7 @@ import { getFullRoutePath } from "./utils/routerUtils";
 import { AppLayout } from "./views/layout/AppLayout/AppLayout";
 import { useTranslation } from "react-i18next";
 import { IRouteProps } from "./appRoutes";
-import { ApplicationContainer, ApplicationContent } from "gui-elements";
+import { ApplicationContainer, ApplicationContent } from "@eccenca/gui-elements";
 
 interface RouterOutletProps {
     routes: IRouteProps[];

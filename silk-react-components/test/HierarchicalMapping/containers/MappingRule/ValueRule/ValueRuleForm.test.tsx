@@ -1,5 +1,5 @@
 import React from "react";
-import { Spinner } from '@eccenca/gui-elements';
+import { Spinner } from 'gui-elements-deprecated';
 import ErrorView from '../../../../../src/HierarchicalMapping/components/ErrorView';
 import ExampleView from '../../../../../src/HierarchicalMapping/containers/MappingRule/ExampleView';
 import * as Store from '../../../../../src/HierarchicalMapping/store';

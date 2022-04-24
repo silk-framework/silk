@@ -1,5 +1,5 @@
 import React from "react";
-import { Pagination } from "gui-elements";
+import { Pagination } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 
 // TODO: why do we not use the Pagination element directly, don't see any real benefit of this wrapper here

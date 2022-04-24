@@ -1,6 +1,6 @@
 import React from "react";
 import STableRow from "./StableRow/STableRow";
-import { TableBody } from "gui-elements";
+import { TableBody } from "@eccenca/gui-elements";
 import {IPageSuggestion, ITargetWithSelected} from "../suggestion.typings";
 import {Set} from "immutable"
 

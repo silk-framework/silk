@@ -1,6 +1,6 @@
 import React from "react";
-import { NodeTools } from "gui-elements/src/extensions/react-flow/nodes/NodeTools";
-import { Menu, MenuItem } from "gui-elements";
+import { NodeTools } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeTools";
+import { Menu, MenuItem } from "@eccenca/gui-elements";
 
 interface NodeMenuProps {
     nodeId: string;

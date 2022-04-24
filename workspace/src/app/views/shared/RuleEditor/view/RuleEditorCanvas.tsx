@@ -7,7 +7,7 @@ import {
     HandleProps,
     OnLoadParams,
 } from "react-flow-renderer";
-import { ReactFlow } from "gui-elements/src/cmem";
+import { ReactFlow } from "@eccenca/gui-elements/src/cmem";
 import React, { MouseEvent as ReactMouseEvent } from "react";
 import { Connection, Elements, Node, OnConnectStartParams, XYPosition } from "react-flow-renderer/dist/types";
 import { SelectionMenu } from "./ruleNode/SelectionMenu";
@@ -21,9 +21,9 @@ import {
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { EdgeMenu } from "./ruleEdge/EdgeMenu";
 import { ruleEditorModelUtilsFactory, SOURCE_HANDLE_TYPE, TARGET_HANDLE_TYPE } from "../model/RuleEditorModel.utils";
-import { MiniMap } from "gui-elements/src/extensions/react-flow/minimap/MiniMap";
-import { minimapNodeClassName, minimapNodeColor } from "gui-elements/src/extensions/react-flow/minimap/utils";
-import { GridColumn } from "gui-elements";
+import { MiniMap } from "@eccenca/gui-elements/src/extensions/react-flow/minimap/MiniMap";
+import { minimapNodeClassName, minimapNodeColor } from "@eccenca/gui-elements/src/extensions/react-flow/minimap/utils";
+import { GridColumn } from "@eccenca/gui-elements";
 import { RuleEditorNode } from "../model/RuleEditorModel.typings";
 import useHotKey from "../../HotKeyHandler/HotKeyHandler";
 import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";

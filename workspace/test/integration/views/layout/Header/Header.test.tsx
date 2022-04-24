@@ -15,7 +15,7 @@ import Task from "../../../../../src/app/views/pages/Task";
 import { APP_VIEWHEADER_ID, PageHeader } from "../../../../../src/app/views/shared/PageHeader/PageHeader";
 import { waitFor } from "@testing-library/react";
 import { Helmet } from "react-helmet";
-import { ContextMenu } from "gui-elements";
+import { ContextMenu } from "@eccenca/gui-elements";
 import { pluginRegistry, SUPPORTED_PLUGINS } from "../../../../../src/app/views/plugins/PluginRegistry";
 import { BrandingProps } from "../../../../../src/app/views/plugins/plugin.types";
 

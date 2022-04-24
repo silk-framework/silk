@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityAction, IActivityStatus, Markdown, SilkActivityControl } from "gui-elements/cmem";
-import { Card, Tag, Highlighter, Spacing, OverflowText, Notification, Icon } from "gui-elements";
+import { ActivityAction, IActivityStatus, Markdown, SilkActivityControl } from "@eccenca/gui-elements";
+import { Card, Tag, Highlighter, Spacing, OverflowText, Notification, Icon } from "@eccenca/gui-elements";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import Datalist from "../../../views/shared/Datalist";

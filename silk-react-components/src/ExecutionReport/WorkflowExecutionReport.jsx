@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Card, CardContent, CardTitle, Icon} from '@eccenca/gui-elements';
+import {Card, CardContent, CardTitle, Icon} from 'gui-elements-deprecated';
 import silkStore from "../api/silkStore";
 import ExecutionReport from "./ExecutionReport";
 

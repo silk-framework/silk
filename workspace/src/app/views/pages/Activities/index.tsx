@@ -15,7 +15,7 @@ import {
     Notification,
     Button,
     IconButton,
-} from "gui-elements";
+} from "@eccenca/gui-elements";
 import SearchBar from "../../shared/SearchBar";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import NotFound from "../NotFound";

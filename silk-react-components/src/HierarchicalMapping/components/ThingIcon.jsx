@@ -1,5 +1,5 @@
 import { MAPPING_RULE_TYPE_COMPLEX, MAPPING_RULE_TYPE_DIRECT, MAPPING_RULE_TYPE_OBJECT } from '../utils/constants';
-import { Icon } from '@eccenca/gui-elements';
+import { Icon } from 'gui-elements-deprecated';
 import React from 'react';
 
 export const ThingIcon = ({type, status, message}) => {

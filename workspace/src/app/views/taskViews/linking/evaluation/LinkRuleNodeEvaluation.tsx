@@ -1,7 +1,7 @@
-import { OverflowText, Spacing, Tag } from "gui-elements";
-import { NodeContentExtension } from "gui-elements/src/extensions/react-flow";
+import { OverflowText, Spacing, Tag } from "@eccenca/gui-elements";
+import { NodeContentExtension } from "@eccenca/gui-elements/src/extensions/react-flow";
 import React from "react";
-import { CLASSPREFIX as eccgui } from "gui-elements/src/configuration/constants";
+import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements/src/configuration/constants";
 import { useTranslation } from "react-i18next";
 import { Link } from "carbon-components-react";
 

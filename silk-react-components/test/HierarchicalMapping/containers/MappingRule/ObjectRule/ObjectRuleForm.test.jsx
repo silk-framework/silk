@@ -1,7 +1,7 @@
 import React from "react";
 import {mount, shallow} from 'enzyme';
 import {ObjectRuleForm} from '../../../../../src/HierarchicalMapping/containers/MappingRule/ObjectRule/ObjectRuleForm';
-import {CardTitle} from '@eccenca/gui-elements';
+import {CardTitle} from 'gui-elements-deprecated';
 import ExampleView from '../../../../../src/HierarchicalMapping/containers/MappingRule/ExampleView';
 import * as Store from '../../../../../src/HierarchicalMapping/store';
 import EventEmitter from '../../../../../src/HierarchicalMapping/utils/EventEmitter';

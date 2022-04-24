@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { HtmlContentBlock } from "gui-elements";
+import { HtmlContentBlock } from "@eccenca/gui-elements";
 import {ITargetWithSelected, SuggestionTypeValues} from "../../suggestion.typings";
 import { SuggestionListContext } from "../../SuggestionContainer";
 import { InfoBoxOverlay } from "./InfoBoxOverlay";

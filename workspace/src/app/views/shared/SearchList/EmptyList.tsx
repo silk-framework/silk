@@ -7,7 +7,7 @@ import {
     OverviewItemDepiction,
     OverviewItemDescription,
     OverviewItemLine,
-} from "gui-elements";
+} from "@eccenca/gui-elements";
 
 function EmptyList({
     depiction, // use large icon here

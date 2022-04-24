@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ContextOverlay, Icon, IconButton, Spacing, Notification } from "gui-elements";
+import { ContextOverlay, Icon, IconButton, Spacing, Notification } from "@eccenca/gui-elements";
 import { useNotificationsQueue } from "../../ApplicationNotifications/NotificationsMenu";
 import { RuleSaveNodeError } from "../RuleEditor.typings";
 import { useTranslation } from "react-i18next";

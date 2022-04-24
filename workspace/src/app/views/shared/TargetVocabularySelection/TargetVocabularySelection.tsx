@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FieldItem, FieldItemRow, RadioButton } from "gui-elements";
+import { FieldItem, FieldItemRow, RadioButton } from "@eccenca/gui-elements";
 import { IVocabularyInfo } from "./typings";
 import VocabularyMultiSelect from "./VocabularyMultiSelect";
 import { useTranslation } from "react-i18next";

@@ -1,5 +1,5 @@
 import React from 'react';
-import { SelectBox, Checkbox, NotAvailable } from '@eccenca/gui-elements';
+import { SelectBox, Checkbox, NotAvailable } from 'gui-elements-deprecated';
 import { LABELED_SUGGESTION_TYPES } from '../../utils/constants';
 import _ from 'lodash';
 

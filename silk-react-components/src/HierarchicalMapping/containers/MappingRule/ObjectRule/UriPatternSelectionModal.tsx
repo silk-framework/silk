@@ -1,7 +1,7 @@
-import {AutoCompleteField, Button, Highlighter, MenuItem, OverflowText, SimpleDialog} from "gui-elements";
+import {AutoCompleteField, Button, Highlighter, MenuItem, OverflowText, SimpleDialog} from "@eccenca/gui-elements";
 import React from "react";
 import {IUriPattern} from "../../../../api/types";
-import {extractSearchWords, matchesAllWords} from "gui-elements/src/components/Typography/Highlighter";
+import {extractSearchWords, matchesAllWords} from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 
 interface IProps {
     // The selection of URI patterns

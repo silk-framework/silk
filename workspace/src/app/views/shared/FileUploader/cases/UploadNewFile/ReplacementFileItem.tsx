@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Notification, Spacing } from "gui-elements";
+import { Button, Notification, Spacing } from "@eccenca/gui-elements";
 import { UppyFile } from "@uppy/core";
 import { useTranslation } from "react-i18next";
 

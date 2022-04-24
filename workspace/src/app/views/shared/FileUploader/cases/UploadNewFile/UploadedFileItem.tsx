@@ -1,8 +1,8 @@
 import React from "react";
-import { Button, Notification, ProgressBar, Spacing } from "gui-elements";
+import { Button, Notification, ProgressBar, Spacing } from "@eccenca/gui-elements";
 import { UppyFile } from "@uppy/core";
 import { useTranslation } from "react-i18next";
-import { Intent } from "gui-elements/blueprint/constants";
+import { Intent } from "@eccenca/gui-elements/blueprint/constants";
 
 interface IProps {
     file: UppyFile;

@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {AffirmativeButton, DismissiveButton, SelectBox, Info, Spinner, Error, Table} from '@eccenca/gui-elements';
+import {AffirmativeButton, DismissiveButton, SelectBox, Info, Spinner, Error, Table} from 'gui-elements-deprecated';
 import silkStore from "../api/silkStore";
 import ExecutionReport from "./ExecutionReport";
 import WorkflowExecutionReport from "./WorkflowExecutionReport";

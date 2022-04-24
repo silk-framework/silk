@@ -7,7 +7,7 @@ import {
     IActivityControlLayoutProps,
     Markdown,
     TimeUnits,
-} from "gui-elements/cmem";
+} from "@eccenca/gui-elements";
 import { DIErrorTypes } from "@ducks/error/typings";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import { activityErrorReportFactory, activityQueryString } from "../TaskActivityOverview/taskActivityUtils";

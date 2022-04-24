@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 
-import {SearchField} from "gui-elements";
+import {SearchField} from "@eccenca/gui-elements";
 
 /** Mapping suggestion header including search widget etc. */
 export default function SuggestionHeader({ onSearch }) {
