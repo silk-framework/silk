@@ -518,7 +518,7 @@
                 "createdBy": {
                     "description": "The user who created the item.",
                     "label": "Created by",
-                    "valueLabel": {
+                    "valueLabels": {
                         "": "Unknown user"
                     }
                 },
