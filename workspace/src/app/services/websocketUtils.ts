@@ -23,10 +23,6 @@ export const connectWebSocket = <T>(
         updateFunc(JSON.parse(evt.data));
     };
 
-    cleanUpFunctions.push(() => {
-        websocket.close(1000, "Closing web socket connection.");
-    });
-
     websocket.onerror = function (event) {
         console.log("Connecting to WebSocket at '" + fixedWebSocketUrl + "' failed. Falling back to polling...");
         let lastUpdate = 0;
@@ -46,6 +42,12 @@ export const connectWebSocket = <T>(
             clearInterval(timeout);
         });
     };
+
+    cleanUpFunctions.push(() => {
+        websocket.onerror = null;
+        console.log("Cleaning up");
+        websocket.close(1000, "Closing web socket connection.");
+    });
     return () => {
         cleanUpFunctions.forEach((cleanUpFn) => cleanUpFn());
     };
