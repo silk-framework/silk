@@ -398,6 +398,7 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
     val context = Context.get[GenericDatasetSpec](project, task, request.path)
     implicit val prefixes: Prefixes = context.project.config.prefixes
     val typeCache = context.task.activity[TypesCache]
+    typeCache.control.waitUntilFinished()
 
     // Forward any type cache exception
     for(ex <- typeCache.status().exception) {
