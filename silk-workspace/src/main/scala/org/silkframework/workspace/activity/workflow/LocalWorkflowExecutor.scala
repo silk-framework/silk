@@ -46,7 +46,7 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   override def run(context: ActivityContext[WorkflowExecutionReport])
                   (implicit userContext: UserContext): Unit = {
     cancelled = false
-try {
+    try {
       runWorkflow(context, updateUserContext(userContext))
     } catch {
       case cancelledWorkflowException: StopWorkflowExecutionException =>
@@ -144,7 +144,7 @@ try {
       // Check if this is a nested workflow that has been executed already.
       val isExecutedWorkflow = operatorTask.data.isInstanceOf[Workflow] && workflowRunContext.alreadyExecuted.contains(operatorNode.workflowNode)
 
-      if(!isExecutedWorkflow) {
+      if(!cancelled && !isExecutedWorkflow) {
         val result = execute("Executing", operatorNode.nodeId, operatorTask, inputResults.flatten, executorOutput)
         // Throw exception if result was promised, but not returned
         if (operatorTask.data.outputSchemaOpt.isDefined && result.isEmpty) {
