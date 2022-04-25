@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { batch, useDispatch, useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import {
@@ -25,7 +25,7 @@ import {
     WorkspaceHeader,
 } from "gui-elements";
 import { commonOp, commonSel } from "@ducks/common";
-import { workspaceOp, workspaceSel } from "@ducks/workspace";
+import { workspaceSel } from "@ducks/workspace";
 import { routerOp } from "@ducks/router";
 import CreateButton from "../../shared/buttons/CreateButton";
 import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
@@ -61,19 +61,8 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
         dispatch(commonOp.setSelectedArtefactDType(appliedFilters.itemType));
     };
 
-    const handleNavigate = (page?: string, limit = 10) => {
-        const filterOptions: { [key: string]: string | number } = {
-            limit,
-            current: 1,
-        };
-
-        if (page) {
-            filterOptions.itemType = page;
-        }
-        batch(() => {
-            dispatch(routerOp.goToPage(""));
-            dispatch(workspaceOp.applyFiltersOp(filterOptions));
-        });
+    const handleNavigate = (path: string) => {
+        dispatch(routerOp.goToPage(path));
     };
 
     const searchURL = (page: string) => `?itemType=${page}&page=1&limit=10`;
@@ -149,7 +138,11 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         icon="artefact-project"
                         text={t("navigation.side.di.projects", "Projects")}
                         htmlTitle={t("navigation.side.di.projectsTooltip")}
-                        onClick={() => handleNavigate("project")}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleNavigate(SERVE_PATH + searchURL("project"));
+                        }}
                         href={SERVE_PATH + searchURL("project")}
                         active={location.pathname === SERVE_PATH && locationParams.get("itemType") === "project"}
                     />
@@ -157,7 +150,11 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         icon="artefact-dataset"
                         text={t("navigation.side.di.datasets", "Datasets")}
                         htmlTitle={t("navigation.side.di.datasetsTooltip")}
-                        onClick={() => handleNavigate("dataset")}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleNavigate(SERVE_PATH + searchURL("dataset"));
+                        }}
                         href={SERVE_PATH + searchURL("dataset")}
                         active={location.pathname === SERVE_PATH && locationParams.get("itemType") === "dataset"}
                     />
@@ -165,7 +162,11 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         icon="application-activities"
                         text={t("navigation.side.di.activities", "Activities")}
                         htmlTitle={t("navigation.side.di.activitiesTooltip")}
-                        onClick={() => handleNavigate("", 25)}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleNavigate(SERVE_PATH + "/activities?page=1&limit=25");
+                        }}
                         href={SERVE_PATH + "/activities?page=1&limit=25"}
                         active={location.pathname.includes("activities")}
                     />

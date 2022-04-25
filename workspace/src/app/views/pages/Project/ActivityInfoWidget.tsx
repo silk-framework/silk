@@ -33,7 +33,11 @@ const ActivityInfoWidget = () => {
                 </OverviewItemDescription>
                 <OverviewItemActions>
                     <IconButton
-                        onClick={() => dispatch(routerOp.goToPage(projectPath))}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            dispatch(routerOp.goToPage(projectPath));
+                        }}
                         href={`${SERVE_PATH}/${projectPath}`}
                         data-test-id={"open-project-activities-btn"}
                         name="item-viewdetails"
