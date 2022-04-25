@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {
     CardActions,
     CardContent,
-} from '@eccenca/gui-elements';
+} from 'gui-elements-deprecated';
 import _ from 'lodash';
 import { getEditorHref, updateObjectMappingAsync } from '../../../store';
 import ObjectMappingRuleForm from './ObjectRuleForm';

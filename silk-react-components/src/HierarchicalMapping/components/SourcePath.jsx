@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { NotAvailable } from '@eccenca/gui-elements';
+import { NotAvailable } from 'gui-elements-deprecated';
 import React from 'react';
 
 export const SourcePath = ({rule}) => {

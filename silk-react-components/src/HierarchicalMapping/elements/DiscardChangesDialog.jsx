@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { ConfirmationDialog } from '@eccenca/gui-elements';
-import { DismissiveButton, DisruptiveButton } from "gui-elements/legacy-replacements";
+import { ConfirmationDialog } from 'gui-elements-deprecated';
+import { DismissiveButton, DisruptiveButton } from "@eccenca/gui-elements/src/legacy-replacements";
 
 const DiscardChangesDialog = props => {
     const {

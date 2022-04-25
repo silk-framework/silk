@@ -1,8 +1,8 @@
 import { IEvaluatedReferenceLinksScore } from "../../../../taskViews/linking/linking.types";
 import React from "react";
-import { Tooltip } from "gui-elements";
-import { Markdown, ActivityControlWidget } from "gui-elements/cmem";
-import { IActivityControlProps, IActivityAction } from "gui-elements/src/cmem/ActivityControl/ActivityControlWidget";
+import { Tooltip } from "@eccenca/gui-elements";
+import { Markdown, ActivityControlWidget } from "@eccenca/gui-elements";
+import { IActivityControlProps, IActivityAction } from "@eccenca/gui-elements/src/cmem/ActivityControl/ActivityControlWidget";
 import { useTranslation } from "react-i18next";
 
 interface EvaluationActivityControlProps {

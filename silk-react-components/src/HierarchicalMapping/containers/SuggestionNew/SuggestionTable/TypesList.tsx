@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Button, MenuItem, Select } from "gui-elements";
+import { Button, MenuItem, Select } from "@eccenca/gui-elements";
 import { SuggestionListContext } from "../SuggestionContainer";
 import { SuggestionTypeValues } from "../suggestion.typings";
 

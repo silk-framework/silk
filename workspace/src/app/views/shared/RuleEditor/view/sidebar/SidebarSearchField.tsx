@@ -1,6 +1,6 @@
-import { Icon, SearchField } from "gui-elements";
-import { ISuggestionWithReplacementInfo } from "gui-elements/src/components/AutoSuggestion/AutoSuggestion";
-import { AutoSuggestionList } from "gui-elements/src/components/AutoSuggestion/AutoSuggestionList";
+import { Icon, SearchField } from "@eccenca/gui-elements";
+import { ISuggestionWithReplacementInfo } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { AutoSuggestionList } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestionList";
 import React from "react";
 import { useTranslation } from "react-i18next";
 

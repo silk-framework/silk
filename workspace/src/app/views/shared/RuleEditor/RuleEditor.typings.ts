@@ -1,6 +1,6 @@
-import { NodeContentProps } from "gui-elements/src/extensions/react-flow/nodes/NodeDefault";
+import { NodeContentProps } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import { PluginType, RuleOperatorType } from "@ducks/shared/typings";
-import { ValidIconName } from "gui-elements/src/components/Icon/canonicalIconNames";
+import { ValidIconName } from "@eccenca/gui-elements/src/components/Icon/canonicalIconNames";
 import { IPreConfiguredRuleOperator } from "./view/sidebar/RuleEditorOperatorSidebar.typings";
 import { RuleEditorNodeParameterValue } from "./model/RuleEditorModel.typings";
 import { IPropertyAutocomplete } from "@ducks/common/typings";

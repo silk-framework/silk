@@ -1,4 +1,4 @@
-import { Divider, Grid, GridColumn, GridRow } from "gui-elements";
+import { Divider, Grid, GridColumn, GridRow } from "@eccenca/gui-elements";
 import { RuleEditorToolbar } from "./RuleEditorToolbar";
 import { RuleEditorOperatorSidebar } from "./sidebar/RuleEditorOperatorSidebar";
 import React from "react";

@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { SearchField } from "gui-elements";
+import { SearchField } from "@eccenca/gui-elements";
 
 export interface ISearchInputProps {
     onFilterChange(e);

@@ -8,7 +8,7 @@ import {
     Spacing,
     Spinner,
     Table,
-} from "gui-elements";
+} from "@eccenca/gui-elements";
 import {
     IAddedSuggestion,
     IPageSuggestion,

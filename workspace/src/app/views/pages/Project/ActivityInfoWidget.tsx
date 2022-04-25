@@ -7,7 +7,7 @@ import {
     OverviewItemDescription,
     OverviewItemActions,
     OverviewItemLine,
-} from "gui-elements";
+} from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 import { useDispatch, useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";

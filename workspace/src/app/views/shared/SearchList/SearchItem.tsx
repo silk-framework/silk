@@ -15,7 +15,7 @@ import {
     OverviewItemLine,
     Spacing,
     Tag,
-} from "gui-elements";
+} from "@eccenca/gui-elements";
 import { routerOp } from "@ducks/router";
 import { useDispatch, useSelector } from "react-redux";
 import { ResourceLink } from "../ResourceLink/ResourceLink";
@@ -29,8 +29,8 @@ import { useTranslation } from "react-i18next";
 import ItemDepiction from "../../shared/ItemDepiction";
 import { useProjectTabsView } from "../projectTaskTabView/projectTabsViewHooks";
 import { wrapTooltip } from "../../../utils/uiUtils";
-import { Markdown } from "gui-elements/cmem";
-import highlightSearchWordsPluginFactory from "gui-elements/src/cmem/markdown/highlightSearchWords";
+import { Markdown } from "@eccenca/gui-elements";
+import highlightSearchWordsPluginFactory from "@eccenca/gui-elements/src/cmem/markdown/highlightSearchWords";
 import ProjectTags from "../ProjectTags/ProjectTags";
 
 interface IProps {

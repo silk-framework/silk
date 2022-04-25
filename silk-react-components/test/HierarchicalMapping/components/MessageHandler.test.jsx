@@ -1,7 +1,7 @@
 import React from "react";
 import { shallow } from 'enzyme';
 import MessageHandler from '../../../src/HierarchicalMapping/components/MessageHandler';
-import { Alert, Error, Info, Success, Warning } from '@eccenca/gui-elements';
+import { Alert, Error, Info, Success, Warning } from 'gui-elements-deprecated';
 
 
 const getWrapper = (renderer = shallow) => renderer(

@@ -9,7 +9,7 @@ import {
     DisruptiveButton,
     DismissiveButton,
     NotAvailable,
-} from '@eccenca/gui-elements';
+} from 'gui-elements-deprecated';
 import { ThingIcon } from '../components/ThingIcon';
 import RuleTitle from '../elements/RuleTitle';
 import RuleTypes from '../elements/RuleTypes';

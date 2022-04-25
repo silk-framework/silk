@@ -1,5 +1,5 @@
 import React from "react";
-import { IHandleProps } from "gui-elements/src/extensions/react-flow/nodes/NodeDefault";
+import { IHandleProps } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import { ArrowHeadType, Edge, FlowElement, OnLoadParams, Position } from "react-flow-renderer";
 import { rangeArray } from "../../../../utils/basicUtils";
 import {
@@ -15,7 +15,7 @@ import { RuleEditorNode, RuleEditorNodeParameterValue } from "./RuleEditorModel.
 import { Connection, Elements, XYPosition } from "react-flow-renderer/dist/types";
 import dagre from "dagre";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
-import { IconButton } from "gui-elements";
+import { IconButton } from "@eccenca/gui-elements";
 import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 
 /** Constants */

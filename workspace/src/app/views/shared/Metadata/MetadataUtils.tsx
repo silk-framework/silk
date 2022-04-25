@@ -1,12 +1,12 @@
 import React from "react";
 import qs from "qs";
-import { Tag, TagList } from "gui-elements";
+import { Tag, TagList } from "@eccenca/gui-elements";
 
 import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import fetch from "../../../services/fetch";
 import { workspaceApi, legacyApiEndpoint } from "../../../utils/getApiEndpoint";
 import { IMetadataExpanded } from "./Metadatatypings";
-import { ContentBlobToggler } from "gui-elements/cmem";
+import { ContentBlobToggler } from "@eccenca/gui-elements";
 import { SERVE_PATH } from "../../../constants/path";
 import { Keyword, Keywords } from "@ducks/workspace/typings";
 

@@ -1,6 +1,6 @@
 import React from "react";
 import { shallow } from 'enzyme';
-import { NotAvailable } from '@eccenca/gui-elements';
+import { NotAvailable } from 'gui-elements-deprecated';
 import { URIInfo } from '../../../src/HierarchicalMapping/components/URIInfo';
 
 const getVocabInfoAsyncMock = jest.fn();

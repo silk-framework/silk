@@ -1,5 +1,5 @@
 import React from "react";
-import { AlertDialog, Button } from "gui-elements";
+import { AlertDialog, Button } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 
 const AbortAlert = ({ isOpen, onCancel, onConfirm }) => {

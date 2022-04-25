@@ -6,10 +6,10 @@ import {
     OverviewItem,
     OverviewItemDescription,
     OverviewItemLine, Spacing
-} from "gui-elements";
-import {createNewItemRendererFactory} from "gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
-import {IRenderModifiers} from "gui-elements/src/components/AutocompleteField/AutoCompleteField";
-import {extractSearchWords, matchesAllWords} from "gui-elements/src/components/Typography/Highlighter";
+} from "@eccenca/gui-elements";
+import {createNewItemRendererFactory} from "@eccenca/gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
+import {IRenderModifiers} from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
+import {extractSearchWords, matchesAllWords} from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 
 // Creates a search function for the auto-complete field
 const onSearchFactory = (ruleId?: string,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { CardContent, Info } from '@eccenca/gui-elements';
+import { CardContent, Info } from 'gui-elements-deprecated';
 
 const EmptyList = () => {
     return (

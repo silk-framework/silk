@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Card, CardContent, CardTitle, Table, TableBody, TableCell, TableHead, TableRow } from '@eccenca/gui-elements';
+import { Card, CardContent, CardTitle, Table, TableBody, TableCell, TableHead, TableRow } from 'gui-elements-deprecated';
 import MappingsTree from '../HierarchicalMapping/containers/MappingsTree';
 
 /**

@@ -1,6 +1,6 @@
 import React from 'react';
 import _ from 'lodash';
-import { NotAvailable } from '@eccenca/gui-elements';
+import { NotAvailable } from 'gui-elements-deprecated';
 import { ThingName } from '../components/ThingName';
 
 import {

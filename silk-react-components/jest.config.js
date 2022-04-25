@@ -37,7 +37,7 @@ module.exports = {
         "^(?!.*\\.(js|jsx|ts|tsx|css|json)$)": "<rootDir>/test/config/fileTransform.js"
     },
     "transformIgnorePatterns": [
-        "[/\\\\]node_modules[/\\\\].+\\.(js|jsx|ts|tsx)$",
+        "[/\\\\]node_modules[/\\\\](?!react-markdown|).+\\.(js|jsx|ts|tsx)$",
         "^.+\\.module\\.(css|sass|scss)$"
     ],
     "moduleNameMapper": {

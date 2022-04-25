@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { IPrefixDefinition } from "@ducks/workspace/typings";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
-import { Button, SimpleDialog } from "gui-elements";
+import { Button, SimpleDialog } from "@eccenca/gui-elements";
 import PrefixRow from "./PrefixRow";
 import DeleteModal from "../../../shared/modals/DeleteModal";
 import PrefixNew from "./PrefixNew";

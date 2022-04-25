@@ -1,8 +1,8 @@
 import React, { ReactElement, useState } from "react";
-import { AlertDialog, Button, Checkbox, FieldItem, HtmlContentBlock, Notification, Spacing } from "gui-elements";
+import { AlertDialog, Button, Checkbox, FieldItem, HtmlContentBlock, Notification, Spacing } from "@eccenca/gui-elements";
 import { Loading } from "../Loading/Loading";
 import { useTranslation } from "react-i18next";
-import { TestableComponent } from "gui-elements/src/components/interfaces";
+import { TestableComponent } from "@eccenca/gui-elements/src/components/interfaces";
 
 export interface IDeleteModalOptions extends TestableComponent {
     isOpen: boolean;

@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import WorkspaceSearch from "./WorkspaceSearch";
 import { routerSel } from "@ducks/router";
-import { Grid, GridColumn, GridRow } from "gui-elements";
+import { Grid, GridColumn, GridRow } from "@eccenca/gui-elements";
 import { EmptyWorkspace } from "./EmptyWorkspace/EmptyWorkspace";
 import { commonOp, commonSel } from "@ducks/common";
 import useErrorHandler from "../../../hooks/useErrorHandler";

@@ -5,7 +5,7 @@ import {
     Spacing,
     Toolbar,
     ToolbarSection, Tooltip,
-} from "gui-elements";
+} from "@eccenca/gui-elements";
 import { SourcePathInfoBox } from "./SourcePathInfoBox";
 import {SuggestionTypeValues} from "../../suggestion.typings";
 

@@ -1,6 +1,6 @@
 import React from "react";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
-import { Grid, GridColumn, GridRow, Icon, Spacing, Tabs, TabTitle } from "gui-elements";
+import { Grid, GridColumn, GridRow, Icon, Spacing, Tabs, TabTitle } from "@eccenca/gui-elements";
 import Loading from "../../../Loading";
 import { IPreConfiguredOperators, RuleOperatorList } from "./RuleOperatorList";
 import {
@@ -8,16 +8,16 @@ import {
     IRuleSideBarFilterTabConfig,
     IRuleSidebarPreConfiguredOperatorsTabConfig,
 } from "../../RuleEditor.typings";
-import { extractSearchWords, matchesAllWords } from "gui-elements/src/components/Typography/Highlighter";
+import { extractSearchWords, matchesAllWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 import { SidebarSearchField } from "./SidebarSearchField";
 import { partitionArray, sortLexically } from "../../../../../utils/basicUtils";
-import { TabProps } from "gui-elements/src/components/Tabs/Tab";
-import { colors as tabColors } from "gui-elements/src/cmem/react-flow/configuration/linking";
+import { TabProps } from "@eccenca/gui-elements/src/components/Tabs/Tab";
+import { colors as tabColors } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/linking";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import { ISuggestionWithReplacementInfo } from "gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import { ISuggestionWithReplacementInfo } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 /** Contains the list of operators that can be dragged and dropped onto the editor canvas and supports filtering. */
 export const RuleEditorOperatorSidebar = () => {

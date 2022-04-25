@@ -1,5 +1,5 @@
 import React from "react";
-import { FieldItem, TextField } from "gui-elements";
+import { FieldItem, TextField } from "@eccenca/gui-elements";
 import { errorMessage } from "./ParameterWidget";
 import { debounce } from "../../../../../utils/debounce";
 import { requestProjectIdValidation, requestTaskIdValidation } from "@ducks/common/requests";

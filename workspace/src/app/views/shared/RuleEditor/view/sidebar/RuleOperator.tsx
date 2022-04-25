@@ -1,11 +1,11 @@
 import { wrapTooltip } from "../../../../../utils/uiUtils";
 import React from "react";
-import Highlighter, { createMultiWordRegex } from "gui-elements/src/components/Typography/Highlighter";
-import { Icon, OverflowText, OverviewItemDescription, OverviewItemLine, Spacing } from "gui-elements";
+import Highlighter, { createMultiWordRegex } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
+import { Icon, OverflowText, OverviewItemDescription, OverviewItemLine, Spacing } from "@eccenca/gui-elements";
 import utils from "../ruleNode/ruleNode.utils";
 import { SidebarRuleOperatorBase } from "./RuleEditorOperatorSidebar.typings";
 import Color from "color";
-import colors from "gui-elements/src/cmem/react-flow/configuration/_colors-linking.module.scss";
+import colors from "@eccenca/gui-elements/src/cmem/react-flow/configuration/_colors-linking.module.scss";
 
 interface RuleOperatorProps {
     // The rule operator that should be rendered

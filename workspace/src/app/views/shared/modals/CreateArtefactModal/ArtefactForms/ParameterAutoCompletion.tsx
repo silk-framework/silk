@@ -1,11 +1,11 @@
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import React from "react";
-import { AutoCompleteField } from "gui-elements";
+import { AutoCompleteField } from "@eccenca/gui-elements";
 import { IPropertyAutocomplete } from "@ducks/common/typings";
 import { sharedOp } from "@ducks/shared";
 import { useTranslation } from "react-i18next";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
-import { createNewItemRendererFactory } from "gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
+import { createNewItemRendererFactory } from "@eccenca/gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
 import { Intent } from "@blueprintjs/core";
 
 interface ParameterAutoCompletionProps {
