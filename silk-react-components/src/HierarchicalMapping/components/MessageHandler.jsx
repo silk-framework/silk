@@ -3,7 +3,7 @@ import React from 'react';
 import _ from 'lodash';
 import rxmq from 'ecc-messagebus';
 
-import { Alert, Error, Info, Success, Warning } from '@eccenca/gui-elements';
+import { Alert, Error, Info, Success, Warning } from 'gui-elements-deprecated';
 
 const RENDER_CLASSES = {
     alert: Alert,

@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { Button } from "gui-elements";
+import { Button } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 
 const CreateButton = memo<any>((props) => {

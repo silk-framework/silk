@@ -1,8 +1,8 @@
-import {ContextMenu, MenuItem} from "gui-elements";
+import {ContextMenu, MenuItem} from "@eccenca/gui-elements";
 import React, {useContext} from "react";
 import {IColumnFilters} from "../suggestion.typings";
 import {SuggestionListContext} from "../SuggestionContainer";
-import {TestableComponent} from "gui-elements/src/components/interfaces";
+import {TestableComponent} from "@eccenca/gui-elements/src/components/interfaces";
 
 interface IProps extends TestableComponent {
     // column filters array

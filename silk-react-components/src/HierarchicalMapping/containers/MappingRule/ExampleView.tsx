@@ -1,13 +1,13 @@
 import React, {useEffect, useState} from 'react';
 
-import {Chip} from '@eccenca/gui-elements';
+import {Chip} from 'gui-elements-deprecated';
 import ErrorView from '../../components/ErrorView';
 import _ from 'lodash';
 
 import {childExampleAsync, ruleExampleAsync} from '../../store';
 import {InfoBox} from '../../components/InfoBox';
 import {isDebugMode} from '../../utils/isDebugMode';
-import {Notification} from "gui-elements";
+import {Notification} from "@eccenca/gui-elements";
 
 interface IProps {
     id: string

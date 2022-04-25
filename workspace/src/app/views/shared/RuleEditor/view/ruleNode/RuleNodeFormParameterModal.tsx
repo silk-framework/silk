@@ -1,4 +1,4 @@
-import { Button, SimpleDialog } from "gui-elements";
+import { Button, SimpleDialog } from "@eccenca/gui-elements";
 import React, { useEffect } from "react";
 import { RuleNodeParameterForm, RuleNodeParametersProps } from "./RuleNodeParameterForm";
 import { useTranslation } from "react-i18next";

@@ -23,7 +23,7 @@ import {
     Toolbar,
     ToolbarSection,
     WorkspaceHeader,
-} from "gui-elements";
+} from "@eccenca/gui-elements";
 import { commonOp, commonSel } from "@ducks/common";
 import { workspaceSel } from "@ducks/workspace";
 import { routerOp } from "@ducks/router";

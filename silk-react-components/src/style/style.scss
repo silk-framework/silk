@@ -1,8 +1,9 @@
 // include basic environment
-@import '~@eccenca/gui-elements/src/main';
+$font_root: "~gui-elements-deprecated/dist/fonts";
+@import '~gui-elements-deprecated/src/main';
 @import 'workbench-rules';
 // include enhancements for silk mapping editor
 // moved some imports out to submodules because styles infer between different libraries
 // @import '../HierarchicalMapping/HierarchicalMapping';
-// @import 'gui-elements/index';
+// @import '@eccenca/gui-elements/index';
 @import '../ExecutionReport/ExecutionReport';

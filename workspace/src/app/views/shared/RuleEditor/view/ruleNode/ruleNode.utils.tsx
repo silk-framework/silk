@@ -1,4 +1,4 @@
-import { Highlighter, Spacing, Tag } from "gui-elements";
+import { Highlighter, Spacing, Tag } from "@eccenca/gui-elements";
 import React from "react";
 import { IParameterSpecification, IParameterValidationResult } from "../../RuleEditor.typings";
 import { ruleEditorNodeParameterValue, RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";

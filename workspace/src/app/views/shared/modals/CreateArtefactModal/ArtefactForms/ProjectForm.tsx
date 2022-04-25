@@ -1,5 +1,5 @@
 import React from "react";
-import { FieldItem, TextField, TextArea } from "gui-elements";
+import { FieldItem, TextField, TextArea } from "@eccenca/gui-elements";
 import { errorMessage } from "./ParameterWidget";
 import { useTranslation } from "react-i18next";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";

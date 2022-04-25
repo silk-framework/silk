@@ -19,7 +19,7 @@ import {
     Spinner,
     Tooltip,
     Warning,
-} from '@eccenca/gui-elements';
+} from 'gui-elements-deprecated';
 import _ from 'lodash';
 import ErrorView from '../../components/ErrorView';
 import SuggestionsRule from './SuggestionsRule';

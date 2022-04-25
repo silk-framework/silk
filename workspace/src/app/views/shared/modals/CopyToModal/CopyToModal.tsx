@@ -17,7 +17,7 @@ import {
     OverviewItemDepiction,
     Link,
     Tooltip,
-} from "gui-elements";
+} from "@eccenca/gui-elements";
 import { Loading } from "../../Loading/Loading";
 import { ICloneOptions } from "../CloneModal";
 import { useTranslation } from "react-i18next";

@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Notification } from "gui-elements";
+import { Button, Notification } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 
 export function EmptyFileWidget({ onFileAdd }) {

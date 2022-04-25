@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "gui-elements";
+import { Link } from "@eccenca/gui-elements";
 
 export function ResourceLink({ children, handlerResourcePageLoader, handlerResourceQuickInformationLoader, url }: any) {
     const stopEvent = (event) => {

@@ -4,7 +4,7 @@
 
 import React from 'react';
 import _ from 'lodash';
-import {Spinner} from '@eccenca/gui-elements';
+import {Spinner} from 'gui-elements-deprecated';
 import PropTypes from 'prop-types';
 import {copyRuleAsync, errorChannel, getApiDetails, getRuleAsync} from '../store';
 import MappingHeader from './MappingHeader';

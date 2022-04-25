@@ -1,8 +1,8 @@
-import { FieldItem } from "gui-elements";
+import { FieldItem } from "@eccenca/gui-elements";
 import {
     AutoCompleteField,
     IAutoCompleteFieldProps,
-} from "gui-elements/src/components/AutocompleteField/AutoCompleteField";
+} from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IProjectResource } from "@ducks/shared/typings";

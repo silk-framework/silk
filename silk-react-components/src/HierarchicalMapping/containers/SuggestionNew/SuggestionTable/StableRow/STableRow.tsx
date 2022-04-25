@@ -11,7 +11,7 @@ import {
     TableRow,
     Toolbar,
     ToolbarSection,
-} from "gui-elements";
+} from "@eccenca/gui-elements";
 import {IPageSuggestion, ITargetWithSelected, SuggestionTypeValues} from "../../suggestion.typings";
 import {SuggestionListContext} from "../../SuggestionContainer";
 import TypesList from "../TypesList";

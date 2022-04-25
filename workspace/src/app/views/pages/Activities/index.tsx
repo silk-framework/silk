@@ -15,7 +15,7 @@ import {
     Notification,
     Button,
     IconButton,
-} from "gui-elements";
+} from "@eccenca/gui-elements";
 import SearchBar from "../../shared/SearchBar";
 import { usePageHeader } from "../../shared/PageHeader/PageHeader";
 import NotFound from "../NotFound";
@@ -90,6 +90,7 @@ const Activities = () => {
         batch(() => {
             dispatch(workspaceOp.changeProjectsLimit(25));
             dispatch(commonOp.fetchAvailableDTypesAsync(projectId as string));
+            dispatch(workspaceOp.applySorterOp("recentlyUpdated"));
         });
     }, []);
 

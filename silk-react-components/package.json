@@ -30,7 +30,7 @@
   "dependencies": {
     "@blueprintjs/core": "^3.49.1",
     "@blueprintjs/select": "^3.18.1",
-    "@eccenca/gui-elements": "^5.1.1",
+    "gui-elements-deprecated": "npm:@eccenca/gui-elements@^5.1.1",
     "@eccenca/superagent": "^1.4.1",
     "@mavrin/remark-typograf": "^2.2.0",
     "classnames": "^2.2.5",
@@ -38,7 +38,7 @@
     "dialog-polyfill": "0.4.4",
     "ecc-messagebus": "^3.6.0",
     "ecc-utils": "^1.4.0",
-    "gui-elements": "0.0.1",
+    "@eccenca/gui-elements": "^22.0.1",
     "immutable": "^4.0.0-rc.12",
     "jquery": "3.3.1",
     "jquery-migrate": "3.0.1",
@@ -137,7 +137,8 @@
     "webpack-cli": "^3.3.12",
     "webpack-dev-server": "^4.6.0",
     "webpack-merge": "^4.2.2",
-    "workbox-webpack-plugin": "^4.3.1"
+    "workbox-webpack-plugin": "^4.3.1",
+    "react-markdown": "^7.0.1"
   },
   "babel": {
     "presets": [

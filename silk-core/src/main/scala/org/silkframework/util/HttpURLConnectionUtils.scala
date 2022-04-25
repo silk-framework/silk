@@ -22,7 +22,7 @@ object HttpURLConnectionUtils {
 
     def setBody(body: String): Unit = {
       connection.setDoOutput(true)
-      val writer = new OutputStreamWriter(connection.getOutputStream)
+      val writer = new OutputStreamWriter(connection.getOutputStream, "UTF8")
       try {
         writer.write(body)
       } finally {

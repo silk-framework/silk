@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, NotAvailable } from '@eccenca/gui-elements';
+import { Button, NotAvailable } from 'gui-elements-deprecated';
 import { MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI } from '../../utils/constants';
 import getPathsRecursive from '../../utils/getUriPaths';
 import getUriOperatorsRecursive from '../../utils/getUriOperators';

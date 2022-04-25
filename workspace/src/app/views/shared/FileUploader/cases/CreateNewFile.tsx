@@ -1,4 +1,4 @@
-import { FieldItem, TextField } from "gui-elements";
+import { FieldItem, TextField } from "@eccenca/gui-elements";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 

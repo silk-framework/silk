@@ -10,7 +10,7 @@ import {
     TableRow,
     Toolbar,
     ToolbarSection,
-} from "gui-elements";
+} from "@eccenca/gui-elements";
 import {COLUMN_FILTERS} from "../constants";
 import {ISortDirection, ITableHeader} from "../suggestion.typings";
 import {SuggestionListContext} from "../SuggestionContainer";

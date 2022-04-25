@@ -2,7 +2,7 @@ import React from 'react';
 import {
     Radio,
     RadioGroup,
-} from '@eccenca/gui-elements';
+} from 'gui-elements-deprecated';
 import { ParentElement } from '../ParentElement';
 
 const ObjectEntityRelation = ({ isBackwardProperty, parent }) => {

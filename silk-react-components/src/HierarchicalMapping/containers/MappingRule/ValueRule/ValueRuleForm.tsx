@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
-import {Card, CardActions, CardContent, CardTitle, ScrollingHOC, Spinner,} from '@eccenca/gui-elements';
-import {AffirmativeButton, DismissiveButton, TextField as LegacyTextField,} from "gui-elements/legacy-replacements";
-import {AutoSuggestion} from "gui-elements";
+import {Card, CardActions, CardContent, CardTitle, ScrollingHOC, Spinner,} from 'gui-elements-deprecated';
+import {AffirmativeButton, DismissiveButton, TextField as LegacyTextField,} from "@eccenca/gui-elements/src/legacy-replacements";
+import {AutoSuggestion} from "@eccenca/gui-elements";
 import _ from 'lodash';
 import ExampleView from '../ExampleView';
 import store, {checkValuePathValidity, fetchValuePathSuggestions, getEditorHref} from '../../../store';
@@ -15,7 +15,7 @@ import {wasTouched} from '../../../utils/wasTouched';
 import {newValueIsIRI} from '../../../utils/newValueIsIRI';
 import TargetCardinality from "../../../components/TargetCardinality";
 import ComplexEditButton from "../../../elements/buttons/ComplexEditButton";
-import {TextField} from "gui-elements";
+import {TextField} from "@eccenca/gui-elements";
 
 const LANGUAGES_LIST = [
     'en', 'de', 'es', 'fr', 'bs', 'bg', 'ca', 'ce', 'zh', 'hr', 'cs', 'da', 'nl', 'eo', 'fi', 'ka', 'el', 'hu', 'ga', 'is', 'it',

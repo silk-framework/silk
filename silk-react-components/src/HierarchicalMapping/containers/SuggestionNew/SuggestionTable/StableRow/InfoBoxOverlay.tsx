@@ -10,9 +10,9 @@ import {
     TableContainer,
     TableRow,
     WhiteSpaceContainer,
-} from "gui-elements";
+} from "@eccenca/gui-elements";
 import { SuggestionListContext } from "../../SuggestionContainer";
-import {TestableComponent} from "gui-elements/src/components/interfaces";
+import {TestableComponent} from "@eccenca/gui-elements/src/components/interfaces";
 
 interface IDataStackItem {
     key: string;

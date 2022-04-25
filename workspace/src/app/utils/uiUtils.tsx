@@ -1,4 +1,4 @@
-import { Tooltip } from "gui-elements";
+import { Tooltip } from "@eccenca/gui-elements";
 import React from "react";
 
 /** Wraps an element inside a tooltip when the wrap predicate is true. */

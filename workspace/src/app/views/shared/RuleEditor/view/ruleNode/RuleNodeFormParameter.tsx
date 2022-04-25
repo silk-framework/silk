@@ -1,6 +1,6 @@
 import { RuleParameterInput } from "./RuleParameterInput";
 import React from "react";
-import { FieldItem } from "gui-elements";
+import { FieldItem } from "@eccenca/gui-elements";
 import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
 import ruleNodeUtils from "./ruleNode.utils";
 import { IParameterValidationResult } from "../../RuleEditor.typings";

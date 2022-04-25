@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Icon, IconButton, Spacing, Switch, Toolbar, ToolbarSection } from "gui-elements";
+import { Button, Icon, IconButton, Spacing, Switch, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { useTranslation } from "react-i18next";
 import { RuleEditorContext } from "../contexts/RuleEditorContext";

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from "gui-elements/legacy-replacements";
+import { Button } from "@eccenca/gui-elements/src/legacy-replacements";
 
 const CloneButton = ({ onClone }) => {
     return (

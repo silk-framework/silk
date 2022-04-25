@@ -17,7 +17,7 @@ import { isDebugMode } from './utils/isDebugMode';
 import React, {useState} from "react";
 import silkApi, {HttpResponsePromise} from '../api/silkRestApi'
 import {ITransformedSuggestion} from "./containers/SuggestionNew/suggestion.typings";
-import {IPartialAutoCompleteResult, IValidationResult } from 'gui-elements/src/components/AutoSuggestion/AutoSuggestion';
+import {IPartialAutoCompleteResult, IValidationResult } from '@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion';
 
 const silkStore = rxmq.channel('silk.api');
 export const errorChannel = rxmq.channel('errors');

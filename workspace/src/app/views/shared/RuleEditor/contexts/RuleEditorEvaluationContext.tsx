@@ -1,7 +1,7 @@
 import React from "react";
 import { IRuleOperatorNode } from "../RuleEditor.typings";
 import { IEvaluatedReferenceLinksScore } from "../../../taskViews/linking/linking.types";
-import { NodeContentExtension } from "gui-elements/src/extensions/react-flow";
+import { NodeContentExtension } from "@eccenca/gui-elements/src/extensions/react-flow";
 
 export interface RuleEditorEvaluationContextProps {
     /** If evaluation is supported. */

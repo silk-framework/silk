@@ -8,13 +8,13 @@ import {
     MenuItem,
     BreadcrumbList,
     BreadcrumbItem,
-} from '@eccenca/gui-elements';
+} from 'gui-elements-deprecated';
 import {
     Card,
     CardHeader,
     CardTitle,
     CardOptions,
-} from "gui-elements";
+} from "@eccenca/gui-elements";
 
 import { ParentStructure } from '../components/ParentStructure';
 import RuleTitle from '../elements/RuleTitle';

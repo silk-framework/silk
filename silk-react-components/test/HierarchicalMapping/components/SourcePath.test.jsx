@@ -1,7 +1,7 @@
 import React from "react";
 import { shallow } from 'enzyme';
 import { SourcePath } from '../../../src/HierarchicalMapping/components/SourcePath';
-import { NotAvailable } from '@eccenca/gui-elements';
+import { NotAvailable } from 'gui-elements-deprecated';
 
 
 const getWrapper = (renderer = shallow, args = {}) => renderer(

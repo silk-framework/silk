@@ -4,7 +4,7 @@ import {
     Button,
     DisruptiveButton,
     Spinner,
-} from '@eccenca/gui-elements';
+} from 'gui-elements-deprecated';
 import { URI } from 'ecc-utils';
 import PropTypes from 'prop-types';
 

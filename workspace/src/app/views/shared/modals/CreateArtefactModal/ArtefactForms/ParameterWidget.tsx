@@ -1,8 +1,8 @@
 import React from "react";
-import { Markdown, StringPreviewContentBlobToggler } from "gui-elements/cmem";
+import { Markdown, StringPreviewContentBlobToggler } from "@eccenca/gui-elements";
 import { IArtefactItemProperty, ITaskParameter } from "@ducks/common/typings";
-import { FieldItem, FieldSet, Label, TitleSubsection, WhiteSpaceContainer } from "gui-elements";
-import { Intent } from "gui-elements/blueprint/constants";
+import { FieldItem, FieldSet, Label, TitleSubsection, WhiteSpaceContainer } from "@eccenca/gui-elements";
+import { Intent } from "@eccenca/gui-elements/blueprint/constants";
 import { InputMapper } from "./InputMapper";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
 import { INPUT_TYPES } from "../../../../../constants";

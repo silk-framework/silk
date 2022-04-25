@@ -2,6 +2,8 @@
     "extends": "../libs/gui-elements/tsconfig.json",
     "compilerOptions": {
         "baseUrl": "./src/app",
+        "noImplicitAny": false,
+        "target": "es5",
         "paths": {
             "@ducks/*": ["./store/ducks/*"]
         }

@@ -1,5 +1,5 @@
-import Toaster from "gui-elements/blueprint/toaster";
-import { Position } from "gui-elements/blueprint/constants";
+import Toaster from "@eccenca/gui-elements/blueprint/toaster";
+import { Position } from "@eccenca/gui-elements/blueprint/constants";
 
 /** Singleton toaster instance. Create separate instances for different options. */
 export const AppToaster = Toaster.create({

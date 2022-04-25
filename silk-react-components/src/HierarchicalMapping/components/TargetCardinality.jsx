@@ -2,12 +2,12 @@ import React from 'react';
 import {
     Tooltip,
     RadioGroup,
-} from '@eccenca/gui-elements';
+} from 'gui-elements-deprecated';
 import {
     Radio,
-} from "gui-elements/legacy-replacements";
+} from "@eccenca/gui-elements/src/legacy-replacements";
 import * as PropTypes from "prop-types";
-import {FieldItem} from "gui-elements";
+import {FieldItem} from "@eccenca/gui-elements";
 
 /** Let's a user choose if a target property is single or multi-valued. Depending on the dataset type this will have different implications. */
 class TargetCardinality extends React.Component {

@@ -5,7 +5,7 @@ import {
     BreadcrumbList,
     BreadcrumbItem,
     MenuItem,
-} from '@eccenca/gui-elements';
+} from 'gui-elements-deprecated';
 
 import MappingHeader from '../../../src/HierarchicalMapping/containers/MappingHeader';
 import ArrowBackButton from '../../../src/HierarchicalMapping/elements/buttons/ArrowBack';

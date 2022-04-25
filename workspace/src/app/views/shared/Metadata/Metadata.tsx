@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Prompt, useLocation } from "react-router";
 import { useTranslation, Trans } from "react-i18next";
-import { ElapsedDateTimeDisplay, Markdown, TimeUnits } from "gui-elements/cmem";
+import { ElapsedDateTimeDisplay, Markdown, TimeUnits } from "@eccenca/gui-elements";
 import {
     Button,
     Card,
@@ -24,13 +24,13 @@ import {
     TextArea,
     TextField,
     HtmlContentBlock,
-} from "gui-elements";
+} from "@eccenca/gui-elements";
 import { IMetadataUpdatePayload } from "@ducks/shared/typings";
 import { commonSel } from "@ducks/common";
 import { routerOp } from "@ducks/router";
 import { sharedOp } from "@ducks/shared";
 import { Loading } from "../Loading/Loading";
-import { StringPreviewContentBlobToggler } from "gui-elements/src/cmem/ContentBlobToggler/StringPreviewContentBlobToggler";
+import { StringPreviewContentBlobToggler } from "@eccenca/gui-elements/src/cmem/ContentBlobToggler/StringPreviewContentBlobToggler";
 import useErrorHandler from "../../../hooks/useErrorHandler";
 import * as H from "history";
 import utils from "./MetadataUtils";

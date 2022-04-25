@@ -1,7 +1,7 @@
 import React from 'react';
 import _ from 'lodash';
 import { getVocabInfoAsync } from '../store';
-import { NotAvailable } from '@eccenca/gui-elements';
+import { NotAvailable } from 'gui-elements-deprecated';
 import { isDebugMode } from '../utils/isDebugMode';
 
 export class URIInfo extends React.Component {

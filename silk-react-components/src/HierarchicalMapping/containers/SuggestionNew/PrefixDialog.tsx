@@ -1,4 +1,4 @@
-import {Button, SimpleDialog, FieldItem, TextField, Checkbox, Label} from "gui-elements";
+import {Button, SimpleDialog, FieldItem, TextField, Checkbox, Label} from "@eccenca/gui-elements";
 import PrefixList from "./PrefixList";
 import React, { useContext, useState } from "react";
 import { SuggestionListContext } from "./SuggestionContainer";

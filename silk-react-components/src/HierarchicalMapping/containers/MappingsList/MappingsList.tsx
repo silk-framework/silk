@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Card, CardTitle,} from '@eccenca/gui-elements';
+import {Card, CardTitle,} from 'gui-elements-deprecated';
 import {DragDropContext, Droppable} from 'react-beautiful-dnd';
 import {orderRulesAsync} from '../../store';
 import DraggableItem from '../MappingRule/DraggableItem';

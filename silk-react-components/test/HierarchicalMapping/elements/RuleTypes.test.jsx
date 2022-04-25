@@ -1,6 +1,6 @@
 import React from "react";
 import { mount, shallow, render } from 'enzyme';
-import { NotAvailable } from '@eccenca/gui-elements';
+import { NotAvailable } from 'gui-elements-deprecated';
 import { ThingName } from '../../../src/HierarchicalMapping/components/ThingName';
 import RuleTypes from '../../../src/HierarchicalMapping/elements/RuleTypes';
 

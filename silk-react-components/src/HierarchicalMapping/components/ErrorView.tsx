@@ -1,8 +1,8 @@
 import React, {useState} from 'react';
 
-import { Error } from '@eccenca/gui-elements';
+import { Error } from 'gui-elements-deprecated';
 import _ from 'lodash';
-import {Spacing} from "gui-elements";
+import {Spacing} from "@eccenca/gui-elements";
 
 export const ErrorCause = ({ errorCause }) => (
     <ul className="ecc-hierarchical-mapping-error-list">

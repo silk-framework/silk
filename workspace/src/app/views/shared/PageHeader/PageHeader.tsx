@@ -12,8 +12,8 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     TitlePage,
-} from "gui-elements";
-import { IBreadcrumbItemProps } from "gui-elements/src/components/Breadcrumb/BreadcrumbItem";
+} from "@eccenca/gui-elements";
+import { IBreadcrumbItemProps } from "@eccenca/gui-elements/src/components/Breadcrumb/BreadcrumbItem";
 import { routerOp } from "@ducks/router";
 import { APPLICATION_CORPORATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { fetchBreadcrumbs } from "./breadcrumbsHelper";

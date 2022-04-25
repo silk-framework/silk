@@ -1,6 +1,6 @@
 import React from "react";
 import { Keywords } from "@ducks/workspace/typings";
-import { Highlighter, Spacing, Tag } from "gui-elements";
+import { Highlighter, Spacing, Tag } from "@eccenca/gui-elements";
 import metadataUtils from "../Metadata/MetadataUtils";
 
 interface IProps {
