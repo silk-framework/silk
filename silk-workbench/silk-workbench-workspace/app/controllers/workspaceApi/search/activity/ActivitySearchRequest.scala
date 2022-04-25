@@ -4,7 +4,7 @@ import controllers.workspaceApi.search.SearchApiModel.{FacetSetting, FacetedSear
 import controllers.workspaceApi.search._
 import controllers.workspaceApi.search.activity.ActivitySearchRequest.{ActivityResult, ActivitySortBy}
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
-import org.silkframework.runtime.activity.{HasValue, UserContext}
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workbench.workspace.{WorkbenchAccessMonitor, WorkspaceItem, WorkspaceProject, WorkspaceTask}
 import org.silkframework.workspace.activity.WorkspaceActivity
 import org.silkframework.workspace.{Project, WorkspaceFactory}
@@ -180,16 +180,10 @@ case class ActivitySearchRequest(@Schema(
         }
       case None => // Sort by recently viewed parent
         val userAccessItems = accessMonitor.getAccessItems.reverse // last item is the most recent item, so reverse
-        val userAccessItemSet = userAccessItems.toSet
-        val (recentlyViewed, others) = activities.partition(activity => toWorkspaceItem(activity).exists(userAccessItemSet.contains))
-        val recentlyViewedSorted = {
-          val resultList = for(activity <- recentlyViewed; item <- toWorkspaceItem(activity)) yield (item, activity.asInstanceOf[WorkspaceActivity[_ <: HasValue]])
-          val resultMap =  Map(resultList: _*)
-          for (userAccessItem <- userAccessItems if resultMap.contains(userAccessItem)) yield {
-            resultMap(userAccessItem)
-          }
+        val userAccessIndexMap = userAccessItems.zipWithIndex.toMap
+        activities.sortBy { activity =>
+          toWorkspaceItem(activity).flatMap(userAccessIndexMap.get).getOrElse(Int.MaxValue)
         }
-        recentlyViewedSorted ++ others
     }
 
     if(sortOrder.contains(SortOrder.DESC)) {
