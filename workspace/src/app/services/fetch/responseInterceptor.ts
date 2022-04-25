@@ -19,24 +19,33 @@ export class ErrorResponse {
     detail: string;
     status?: number | null;
     cause?: ErrorResponse;
+    canBeIgnored: boolean;
 
     asString(): string {
         return this.detail ? ` Details: ${this.detail}` : this.title;
     }
 
-    constructor(title: string, detail: string, status: number | undefined | null, cause?: ErrorResponse) {
+    constructor(
+        title: string,
+        detail: string,
+        status: number | undefined | null,
+        cause?: ErrorResponse,
+        canBeIgnored: boolean = false
+    ) {
         this.title = title;
         this.detail = detail;
         this.cause = cause;
         this.status = status;
+        this.canBeIgnored = canBeIgnored;
     }
 }
 
-type ErrorType = "httpError" | "networkError";
+type ErrorType = "httpError" | "networkError" | "abortError";
 
 export class FetchError {
     static HTTP_ERROR: ErrorType = "httpError";
     static NETWORK_ERROR: ErrorType = "networkError";
+    static ABORT_ERROR: ErrorType = "abortError";
 
     isFetchError: boolean = true;
 
@@ -108,12 +117,12 @@ export class HttpError extends FetchError {
         this.body = errorDetails.response?.data;
 
         if (errorDetails.response?.data?.title && errorDetails.response.data.detail) {
-            const errorReponse = errorDetails.response.data;
+            const errorResponse = errorDetails.response.data;
             this.errorResponse = new ErrorResponse(
-                errorReponse.title,
-                errorReponse.detail,
+                errorResponse.title,
+                errorResponse.detail,
                 errorDetails.response.status,
-                errorReponse.cause
+                errorResponse.cause
             );
         } else {
             // Got no JSON response, create error response object
@@ -141,6 +150,24 @@ export class NetworkError extends FetchError {
     }
 }
 
+/** Error that is raised when a request has been aborted. */
+export class AbortError extends FetchError {
+    constructor(errorDetails: AxiosError) {
+        super();
+
+        this.errorDetails = errorDetails;
+        this.errorType = FetchError.ABORT_ERROR;
+
+        this.errorResponse = new ErrorResponse(
+            "Request cancelled",
+            "This request has been cancelled, e.g. by navigating away from the page triggering the request.",
+            undefined,
+            undefined,
+            true
+        );
+    }
+}
+
 export const responseInterceptorOnSuccess = (response: AxiosResponse): any => {
     return new FetchResponse(response);
 };
@@ -156,7 +183,7 @@ export const responseInterceptorOnError = (error: AxiosError) => {
     if (error.isAxiosError) {
         // No response object means that it is a network error
         if (!error.response) {
-            const errorObj = new NetworkError(error);
+            const errorObj = error.code === "ECONNABORTED" ? new AbortError(error) : new NetworkError(error);
             logError(errorObj);
             return Promise.reject(errorObj);
         }
