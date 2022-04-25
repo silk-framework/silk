@@ -90,6 +90,7 @@ const Activities = () => {
         batch(() => {
             dispatch(workspaceOp.changeProjectsLimit(25));
             dispatch(commonOp.fetchAvailableDTypesAsync(projectId as string));
+            dispatch(workspaceOp.applySorterOp("recentlyUpdated"));
         });
     }, []);
 

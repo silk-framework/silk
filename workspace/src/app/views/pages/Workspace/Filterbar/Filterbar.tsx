@@ -6,7 +6,6 @@ import { RadioButton, Spacing, TitleSubsection } from "@eccenca/gui-elements";
 import FacetsList from "./FacetsList";
 import { useTranslation } from "react-i18next";
 import { IAvailableDataTypeOption } from "@ducks/common/typings";
-import { useLocation } from "react-router";
 
 interface IFilterBarProps {
     extraItemTypeModifiers?: IAvailableDataTypeOption[];
@@ -19,8 +18,6 @@ export function Filterbar({ extraItemTypeModifiers = [], projectId }: IFilterBar
 
     const appliedFilters = useSelector(workspaceSel.appliedFiltersSelector);
     const modifiers = useSelector(commonSel.availableDTypesSelector);
-    const location = useLocation();
-    const locationParams = new URLSearchParams(location.search?.substring(1));
 
     const typeModifier = modifiers.type;
 
@@ -28,8 +25,6 @@ export function Filterbar({ extraItemTypeModifiers = [], projectId }: IFilterBar
         let value = val !== appliedFilters[field] ? val : "";
         const filterOptions = {
             [field]: value,
-            limit: locationParams.get("limit"),
-            current: locationParams.get("page"),
         };
         dispatch(workspaceOp.applyFiltersOp(filterOptions));
     };
