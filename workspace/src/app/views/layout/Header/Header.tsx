@@ -150,7 +150,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         text={t("navigation.side.di.projects", "Projects")}
                         htmlTitle={t("navigation.side.di.projectsTooltip")}
                         onClick={() => handleNavigate("project")}
-                        href={location.pathname + searchURL("project")}
+                        href={SERVE_PATH + searchURL("project")}
                         active={location.pathname === SERVE_PATH && locationParams.get("itemType") === "project"}
                     />
                     <MenuItem
@@ -158,7 +158,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         text={t("navigation.side.di.datasets", "Datasets")}
                         htmlTitle={t("navigation.side.di.datasetsTooltip")}
                         onClick={() => handleNavigate("dataset")}
-                        href={location.pathname + searchURL("dataset")}
+                        href={SERVE_PATH + searchURL("dataset")}
                         active={location.pathname === SERVE_PATH && locationParams.get("itemType") === "dataset"}
                     />
                     <MenuItem
@@ -222,11 +222,6 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                                 icon={"operation-search"}
                                             />
                                         )}
-                                        <MenuItem
-                                            text={t("common.action.activity", "Activity overview")}
-                                            href={CONTEXT_PATH + "/workspace/allActivities"}
-                                            icon={"application-activities"}
-                                        />
                                         <MenuItem
                                             text={t("common.action.showApiDoc", "API")}
                                             href={CONTEXT_PATH + "/doc/api"}

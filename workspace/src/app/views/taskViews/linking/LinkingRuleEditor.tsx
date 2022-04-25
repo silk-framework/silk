@@ -253,8 +253,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                             ex
                         )
                     ),
-                    ruleUtils.sidebarTabs.comparison,
                     ruleUtils.sidebarTabs.transform,
+                    ruleUtils.sidebarTabs.comparison,
                     ruleUtils.sidebarTabs.aggregation,
                 ]}
                 additionalToolBarComponents={() => [

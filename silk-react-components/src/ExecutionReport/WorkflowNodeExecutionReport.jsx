@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import {AffirmativeButton, DismissiveButton, SelectBox, Info, Spinner, Error, Table} from '@eccenca/gui-elements';
 import silkStore from "../api/silkStore";
 import ExecutionReport from "./ExecutionReport";
+import WorkflowExecutionReport from "./WorkflowExecutionReport";
 
 /**
  * Displays execution reports for a workflow node.
@@ -40,12 +41,19 @@ export default class WorkflowNodeExecutionReport extends React.Component {
   }
 
   render() {
-    return this.state.executionReports.map(report =>
-        <ExecutionReport baseUrl={this.props.baseUrl}
-                         project={this.props.project}
-                         nodeId={this.props.nodeId}
-                         executionReport={report} />
-    )
+    return this.state.executionReports.map(report => {
+      if ('taskReports' in report) {
+        // This is a nested workflow execution report
+        return <WorkflowExecutionReport baseUrl={this.props.baseUrl}
+                                        project={this.props.project}
+                                        executionReport={report}/>
+      } else {
+        return <ExecutionReport baseUrl={this.props.baseUrl}
+                                project={this.props.project}
+                                nodeId={this.props.nodeId}
+                                executionReport={report}/>
+      }
+    })
   }
 }
 

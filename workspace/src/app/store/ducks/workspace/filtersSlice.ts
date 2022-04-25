@@ -95,7 +95,6 @@ export const filtersSlice = createSlice({
                 // push keywordId if keywordId not found in applied facet
                 currentFacet.keywordIds = [...currentFacet.keywordIds, ...keywordIds];
             }
-            state.pagination = initialPaginationState();
         },
 
         removeFacet(state, action) {
@@ -110,7 +109,6 @@ export const filtersSlice = createSlice({
                 } else {
                     state.appliedFacets[ind].keywordIds = keywords;
                 }
-                state.pagination = initialPaginationState();
             }
         },
 

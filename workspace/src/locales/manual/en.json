@@ -200,7 +200,6 @@
             "CopyItems": "Copy Items to another project",
             "CopyProject": "Copy to another project",
             "abort": "Abort",
-            "activity": "Activity overview",
             "add": "Add",
             "backOld": "Back to old workspace",
             "cancel": "Cancel",
@@ -519,7 +518,7 @@
                 "createdBy": {
                     "description": "The user who created the item.",
                     "label": "Created by",
-                    "valueLabel": {
+                    "valueLabels": {
                         "": "Unknown user"
                     }
                 },
