@@ -48,8 +48,11 @@ const useErrorHandler = (): ErrorHandlerDict => {
             message: errorMessage,
             cause,
         };
-        // Handle 503 errors differently
-        if (isTemporarilyUnavailableError(cause)) {
+        if (canBeIgnored(cause)) {
+            // Just ignore this error
+            return null;
+        } else if (isTemporarilyUnavailableError(cause)) {
+            // Handle 503 errors differently
             const tempUnavailableMessage = t("common.messages.temporarilyUnavailableMessage", {
                 detailMessage: diErrorMessage(cause),
             });
@@ -80,6 +83,10 @@ const useErrorHandler = (): ErrorHandlerDict => {
             (((error as FetchError).isFetchError && (error as FetchError).httpStatus === 503) ||
                 (error as ErrorResponse).status === 503)
         );
+    };
+
+    const canBeIgnored = (error?: DIErrorTypes | null): boolean => {
+        return !!error && (error as FetchError).isFetchError && (error as FetchError).errorResponse.canBeIgnored;
     };
 
     const isNotFoundError = (error?: DIErrorTypes | null): boolean => {

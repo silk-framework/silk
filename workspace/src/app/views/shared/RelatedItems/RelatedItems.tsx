@@ -79,7 +79,6 @@ export function RelatedItems(props: IProps) {
                 setData(response.data);
             }
         } catch (ex) {
-            const error = ex;
             registerError("RelatedItems-getRelatedItemsData", "Failed to fetch related items.", ex);
         } finally {
             setLoading(false);
