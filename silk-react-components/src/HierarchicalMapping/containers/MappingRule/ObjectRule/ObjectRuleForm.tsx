@@ -410,6 +410,7 @@ export const ObjectRuleForm = (props: IProps) => {
                             onChange={value => { handleChangeValue('targetEntityType', value); }}
                         />
                         {targetCardinality}
+                        {sourcePropertyInput}
                         {patternInput}
                         {showUriPatternModal && distinctUriPatterns.length > 0 && <UriPatternSelectionModal
                             onClose={() => setShowUriPatternModal(false)}
@@ -421,7 +422,6 @@ export const ObjectRuleForm = (props: IProps) => {
                                 {previewExamples}
                             </FieldItem>
                         }
-                        {sourcePropertyInput}
                         <LegacyTextField
                             data-test-id={"object-rule-form-label-input"}
                             label="Label"
