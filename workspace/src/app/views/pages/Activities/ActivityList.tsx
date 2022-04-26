@@ -200,7 +200,7 @@ const ActivityList = () => {
                                     executeAction(activity.id, action, activity.project, activity.task)
                                 }
                                 failureReportAction={{
-                                    title: "", // The title is already repeated in the markdown
+                                    title: t("widget.WarningWidget.title"),
                                     allowDownload: true,
                                     closeButtonValue: t("common.action.close"),
                                     downloadButtonValue: t("common.action.download"),
