@@ -183,11 +183,12 @@ export const RuleEditorOperatorSidebar = () => {
         title: (
             <TabTitle
                 text={tab.icon ? null : tab.label}
-                titlePrefix={tab.icon ? <Icon name={tab.icon} /> : undefined}
+                titlePrefix={tab.icon ? <Icon name={tab.icon} small /> : undefined}
                 tooltip={tab.icon ? tab.label : undefined}
+                small
             />
         ),
-        dontShrink: tab.icon ? true : false,
+        // dontShrink: tab.icon ? true : false,
         backgroundColor: getTabColor(tab.id),
     }));
 
