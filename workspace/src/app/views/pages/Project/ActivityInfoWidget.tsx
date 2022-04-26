@@ -19,7 +19,7 @@ const ActivityInfoWidget = () => {
     const dispatch = useDispatch();
     const [t] = useTranslation();
 
-    const projectPath = `projects/${projectId}/activities?page=1&limit=25`;
+    const projectPath = `projects/${projectId}/activities?page=1&limit=25&sortBy=recentlyUpdated&sortOrder=ASC`;
     return (
         <Card>
             <OverviewItem hasSpacing>

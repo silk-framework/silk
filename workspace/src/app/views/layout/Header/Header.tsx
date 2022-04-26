@@ -71,6 +71,8 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
             ? ` @ ${APPLICATION_CORPORATION_NAME()} ${APPLICATION_SUITE_NAME()}`
             : "";
 
+    const activitiesPageLink = SERVE_PATH + "/activities?page=1&limit=25&sortBy=recentlyUpdated&sortOrder=ASC";
+
     return (
         <ApplicationHeader aria-label={`${APPLICATION_NAME}${brandingSuffix}`}>
             <ApplicationTitle
@@ -165,9 +167,9 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            handleNavigate(SERVE_PATH + "/activities?page=1&limit=25");
+                            handleNavigate(activitiesPageLink);
                         }}
-                        href={SERVE_PATH + "/activities?page=1&limit=25"}
+                        href={activitiesPageLink}
                         active={location.pathname.includes("activities")}
                     />
                 </Menu>

@@ -228,6 +228,17 @@ class ObjectRule extends React.Component {
                                 : null
                         }
                         {
+                            isObjectRule(type) && ruleData.sourcePath
+                                ? <ObjectSourcePath type={ruleData.type}>
+                                    <SourcePath
+                                        rule={{
+                                            type,
+                                            sourcePath: ruleData.sourcePath
+                                        }}
+                                    />
+                                </ObjectSourcePath> : null
+                        }
+                        {
                             <ObjectUriPattern
                                 uriRule={_.get(ruleData, 'rules.uriRule') || {}}
                                 onRemoveUriRule={this.removeUriRule}
@@ -238,17 +249,6 @@ class ObjectRule extends React.Component {
                             _.get(ruleData, 'rules.uriRule.id')
                                 ? <ExampleTarget uriRuleId={_.get(ruleData, 'rules.uriRule.id')}/>
                                 : null
-                        }
-                        {
-                            isObjectRule(type) && ruleData.sourcePath
-                                ? <ObjectSourcePath type={ruleData.type}>
-                                    <SourcePath
-                                        rule={{
-                                            type,
-                                            sourcePath: ruleData.sourcePath
-                                        }}
-                                    />
-                                </ObjectSourcePath> : null
                         }
                         {
                             _.get(ruleData, 'metadata.label')
