@@ -18,7 +18,13 @@ const createOperatorTags = (
     const returnArray: JSX.Element[] = [];
     tags.forEach((tag, idx) => {
         returnArray.push(
-            <Tag key={tag} minimal={true} backgroundColor={color ? color(tag) : undefined}>
+            <Tag
+                key={tag}
+                minimal={true}
+                small={true}
+                backgroundColor={color ? color(tag) : undefined}
+                emphasis={tag==="Recommended" ? "stronger" : "normal"}
+            >
                 {addHighlighting(tag, query)}
             </Tag>
         );
