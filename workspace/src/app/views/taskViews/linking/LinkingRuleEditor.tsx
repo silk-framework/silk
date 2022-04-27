@@ -101,7 +101,11 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
         async (term: string, limit: number): Promise<IAutocompleteDefaultResponse[]> => {
             try {
                 const response = await autoCompleteLinkingInputPaths(projectId, linkingTaskId, inputType, term, limit);
-                return response.data;
+                const results = response.data;
+                if (term.trim() === "") {
+                    results.unshift({ value: "", label: `<${t("common.words.emptyPath")}>` });
+                }
+                return results;
             } catch (err) {
                 registerError(
                     "LinkingRuleEditor_inputPathAutoCompletion",
