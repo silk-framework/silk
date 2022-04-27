@@ -17,7 +17,7 @@ export const createPrefixNameRegex = (): RegExp => {
 };
 
 // eslint-disable-next-line no-control-regex
-const invalidUriChars = new RegExp('[\\u0000-\\u0020<>"{}|^`\\\\]');
+export const invalidUriChars = new RegExp('[\\u0000-\\u0020<>"{}|^`\\\\]');
 
 export const prefixNameRegex = createPrefixNameRegex();
 

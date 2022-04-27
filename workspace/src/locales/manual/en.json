@@ -296,7 +296,8 @@
             "required": "required",
             "sortOptions": "Sort options",
             "summary": "Summary",
-            "copied": "Copied"
+            "copied": "Copied",
+            "unlimited": "unlimited"
         }
     },
     "form": {
@@ -583,6 +584,24 @@
                     }
                 }
             }
+        },
+        "LinkingRuleConfigWidget": {
+            "fetchError": "An error occurred while fetching the linkage rule configuration.",
+            "modal": {
+                "title": "Edit linkage rule configuration"
+            },
+            "parameters": {
+                "linkType": {
+                    "label": "Link type",
+                    "description": "The property URI of the link. For RDF based datasets this will be the property that connects the linked resources."
+                },
+                "limit": {
+                    "label": "Target link limit",
+                    "description": "If set to an number N, then per source entity only for the N best matching target resources links will be generated."
+                }
+            },
+            "saveError": "An error has occurred while saving the linkage rule config.",
+            "title": "Configuration: Linkage rule"
         },
         "TargetVocabularySelection": {
             "multiSelectionRadioButtonLabel": "Select individual vocabularies",

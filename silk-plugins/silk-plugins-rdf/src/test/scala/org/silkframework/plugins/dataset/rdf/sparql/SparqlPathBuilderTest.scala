@@ -29,8 +29,10 @@ class SparqlPathBuilderTest extends FlatSpec with Matchers {
   it should "check for special paths and generate the correct query" in {
     for(path <- Seq(
       "?a/<urn:prop:PropA>/#text/propB",
+      "?a/<urn:prop:PropA>/#text\\propB",
       "?a/<urn:prop:PropA>\\#text",
       "?a/<urn:prop:PropA>/#lang/propB",
+      "?a/<urn:prop:PropA>/#lang\\propB",
       "?a/<urn:prop:PropA>\\#lang"
     )) {
       intercept[ValidationException] {
