@@ -20,7 +20,10 @@ class TagManager(project: Identifier, provider: WorkspaceProvider) {
 
   def getTag(uri: String)(implicit userContext: UserContext): Tag = synchronized {
     loadIfRequired()
-    tags(uri)
+    tags.get(uri) match {
+      case Some(tag) => tag
+      case None => throw new NoSuchElementException(s"Tag $uri is referenced, but has not been found in project $project.")
+    }
   }
 
   def putTag(tag: Tag)(implicit userContext: UserContext): TagReference = synchronized {
