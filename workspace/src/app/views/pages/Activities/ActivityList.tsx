@@ -17,6 +17,7 @@ import useErrorHandler from "../../../hooks/useErrorHandler";
 import { ResourceLink } from "../../shared/ResourceLink/ResourceLink";
 import { routerOp } from "@ducks/router";
 import { batch } from "react-redux";
+import { SERVE_PATH } from "../../../constants/path";
 
 interface IActivity extends ISearchResultsServer {
     isCacheActivity: boolean;
@@ -162,7 +163,7 @@ const ActivityList = () => {
                 emptyContainer={EmptyContainer}
             >
                 {data.map((activity: IActivity, index) => {
-                    const link = `/workbench/projects/${activity.project}${
+                    const link = `${SERVE_PATH}/projects/${activity.project}${
                         activity.task ? `/${activity.parentType}/${activity.task}` : ""
                     }`;
 
@@ -173,7 +174,11 @@ const ActivityList = () => {
                             <Spacing vertical size="tiny" />
                             <ResourceLink
                                 url={link}
-                                handlerResourcePageLoader={() => dispatch(routerOp.goToPage(link))}
+                                handlerResourcePageLoader={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    dispatch(routerOp.goToPage(link));
+                                }}
                             >
                                 <OverflowText>
                                     <Highlighter
@@ -200,7 +205,7 @@ const ActivityList = () => {
                                     executeAction(activity.id, action, activity.project, activity.task)
                                 }
                                 failureReportAction={{
-                                    title: "", // The title is already repeated in the markdown
+                                    title: t("widget.WarningWidget.title"),
                                     allowDownload: true,
                                     closeButtonValue: t("common.action.close"),
                                     downloadButtonValue: t("common.action.download"),

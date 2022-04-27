@@ -24,6 +24,8 @@ case class GlobalUriPatternCacheFactory() extends GlobalWorkspaceActivityFactory
   override def apply(): Activity[GlobalUriPatternCacheValue] = {
     GlobalUriPatternCache()
   }
+
+  override def isCacheActivity: Boolean = true
 }
 
 /** Caches synonyms for vocabulary entities. */
