@@ -90,12 +90,32 @@ function createOperatorNode(
         { type: SOURCE_HANDLE_TYPE, position: Position.Right, isValidConnection: operatorContext.isValidConnection },
     ];
 
+    const editBtn = (setAdjustedContentProps: React.Dispatch<React.SetStateAction<Partial<RuleNodeContentProps>>>) => (
+        <IconButton
+            name={"item-edit"}
+            onClick={() => {
+                setAdjustedContentProps({
+                    showEditModal: true,
+                    onCloseEditModal: () =>
+                        setAdjustedContentProps((adjustedProps) => {
+                            // Remove adjusted props again
+                            const { showEditModal, onCloseEditModal, ...otherProps } = adjustedProps;
+                            return {
+                                ...otherProps,
+                            };
+                        }),
+                });
+            }}
+            tooltip={operatorContext.t("RuleEditor.node.executionButtons.edit.tooltip")}
+        />
+    );
+
     const data: NodeContentPropsWithBusinessData<IRuleNodeData> = {
         size: "medium",
         label: node.label,
         minimalShape: "none",
         handles,
-        iconName: node.icon, // findExistingIconName(createIconNameStack("FIXME", node.pluginId)), // FIXME: Calculate icons CMEM-3919
+        iconName: node.icon,
         businessData: {
             originalRuleOperatorNode: node,
             dynamicPorts: node.portSpecification.maxInputPorts == null,
@@ -105,30 +125,13 @@ function createOperatorNode(
                 nodeId={node.nodeId}
                 t={operatorContext.t}
                 handleDeleteNode={nodeOperations.handleDeleteNode}
+                ruleOperatorDescription={node.description}
             />
         ),
         executionButtons:
             Object.keys(node.parameters).length > 0
                 ? (adjustedContentProps, setAdjustedContentProps) => {
-                      return (
-                          <IconButton
-                              name={"item-edit"}
-                              onClick={() => {
-                                  setAdjustedContentProps({
-                                      showEditModal: true,
-                                      onCloseEditModal: () =>
-                                          setAdjustedContentProps((adjustedProps) => {
-                                              // Remove adjusted props again
-                                              const { showEditModal, onCloseEditModal, ...otherProps } = adjustedProps;
-                                              return {
-                                                  ...otherProps,
-                                              };
-                                          }),
-                                  });
-                              }}
-                              tooltip={operatorContext.t("RuleEditor.node.executionButtons.edit.tooltip")}
-                          />
-                      );
+                      return editBtn(setAdjustedContentProps);
                   }
                 : undefined,
         content: (adjustedProps: Partial<RuleNodeContentProps>) => (

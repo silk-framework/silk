@@ -411,6 +411,9 @@
         },
         "node": {
             "menu": {
+                "description": {
+                    "label": "Operator description"
+                },
                 "remove": {
                     "label": "Remove"
                 }

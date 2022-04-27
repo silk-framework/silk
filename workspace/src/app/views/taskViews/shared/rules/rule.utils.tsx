@@ -19,7 +19,13 @@ import {
 } from "../../../shared/RuleEditor/model/RuleEditorModel.typings";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import React from "react";
-import { Highlighter, OverflowText, OverviewItem, OverviewItemDescription, OverviewItemLine } from "@eccenca/gui-elements";
+import {
+    Highlighter,
+    OverflowText,
+    OverviewItem,
+    OverviewItemDescription,
+    OverviewItemLine,
+} from "@eccenca/gui-elements";
 import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
 import { CLASSPREFIX as eccguiprefix } from "@eccenca/gui-elements/src/configuration/constants";
 
@@ -42,6 +48,7 @@ const extractOperatorNodeFromPathInput = (
             minInputPorts: 0,
             maxInputPorts: 0,
         },
+        description: "Specifies the property, attribute or path where the input values are coming from.",
     });
     return pathInput.id;
 };
@@ -67,6 +74,7 @@ const extractOperatorNodeFromTransformInput = (
             minInputPorts: 1,
         },
         tags: ["Transform"],
+        description: ruleOperator(transformInput.function, "TransformOperator")?.description,
     });
     return transformInput.id;
 };
