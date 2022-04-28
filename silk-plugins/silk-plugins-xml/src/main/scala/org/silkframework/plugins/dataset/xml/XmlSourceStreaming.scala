@@ -323,7 +323,7 @@ class XmlSourceStreaming(file: Resource, basePath: String, uriPattern: String) e
 
   private def checkObjectPath(path: UntypedPath): Unit = {
     val validationRules = Seq[(String, Boolean)](
-      "Only forward operators and property filters on attributes are supported." ->
+      s"Path '${path.normalizedSerialization}' contains an invalid operator. Only forward operators and property filters on attributes are supported in streaming mode." ->
         path.operators.forall(op => op.isInstanceOf[ForwardOperator] ||
           (op.isInstanceOf[PropertyFilter] && op.asInstanceOf[PropertyFilter].property.uri.startsWith("@")))
         ,
