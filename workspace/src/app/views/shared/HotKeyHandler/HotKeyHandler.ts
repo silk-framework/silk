@@ -7,16 +7,19 @@ interface IProps {
     handler: (e: any) => void;
     // If the hot key should be active. If not set, the hot key will be active.
     enabled?: boolean;
+    // Make the hot key trigger on a specific event type only, else it will be decided based on the hotkey.
+    eventType?: EventType;
 }
 const Mousetrap = require("mousetrap");
 
+type EventType = "keydown" | "keyup" | "keypress";
 /**
  * Adds hotkey handling to a component.
  */
-export default function useHotKey({ hotkey, handler, enabled = true }: IProps) {
+export default function useHotKey({ hotkey, handler, enabled = true, eventType }: IProps) {
     useEffect(() => {
         if (hotkey && enabled) {
-            Mousetrap.bind(hotkey, handler);
+            Mousetrap.bind(hotkey, handler, eventType);
             return () => {
                 Mousetrap.unbind(hotkey);
             };

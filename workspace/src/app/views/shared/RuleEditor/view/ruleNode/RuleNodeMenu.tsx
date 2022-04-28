@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { NodeTools } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeTools";
-import { Menu, MenuItem } from "@eccenca/gui-elements";
+import { Markdown, Menu, MenuItem, SimpleDialog } from "@eccenca/gui-elements";
 
 interface NodeMenuProps {
     nodeId: string;
@@ -11,6 +11,8 @@ interface NodeMenuProps {
 
 /** The menu of a rule node. */
 export const RuleNodeMenu = ({ nodeId, t, handleDeleteNode, ruleOperatorDescription }: NodeMenuProps) => {
+    const [showDescription, setShowDescription] = useState(false);
+
     return (
         <NodeTools menuButtonDataTestId={"node-menu-btn"}>
             <Menu>
@@ -31,6 +33,7 @@ export const RuleNodeMenu = ({ nodeId, t, handleDeleteNode, ruleOperatorDescript
                         key="info"
                         icon={"item-info"}
                         onClick={(e) => {
+                            setShowDescription(true);
                             e.preventDefault();
                             e.stopPropagation();
                         }}
@@ -39,6 +42,18 @@ export const RuleNodeMenu = ({ nodeId, t, handleDeleteNode, ruleOperatorDescript
                             htmlTitle: ruleOperatorDescription,
                         }}
                     />
+                ) : null}
+                {showDescription && ruleOperatorDescription ? (
+                    <SimpleDialog
+                        isOpen={true}
+                        title={t("common.words.description")}
+                        onClose={() => setShowDescription(false)}
+                        hasBorder={true}
+                        size={"small"}
+                        data-test-id={"ruleEditorNode-description-modal"}
+                    >
+                        <Markdown>{ruleOperatorDescription}</Markdown>
+                    </SimpleDialog>
                 ) : null}
             </Menu>
         </NodeTools>

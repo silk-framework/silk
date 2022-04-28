@@ -86,9 +86,16 @@ export function RecentlyViewedModal() {
             return false; // prevent default
         },
     });
+    const triggerShiftUp = () => {
+        // This is needed, because e.g. on German keyboards the SHIFT keyup of the hotkey will be send from the input element of the quick search, which is ignored by e.g. react-flow
+        const customShiftUpEvent = new KeyboardEvent("keyup", { key: "Shift", bubbles: true });
+        const body = document.querySelector("body");
+        body && body.dispatchEvent(customShiftUpEvent);
+    };
     const close = () => {
         setRecentItems([]);
         setIsOpen(false);
+        triggerShiftUp();
     };
     const onChange = (itemLinks: IItemLink[], e) => {
         if (e) {
@@ -216,7 +223,7 @@ export function RecentlyViewedModal() {
                     itemFromQuery: globalSearch,
                     itemRenderer: createNewItemRenderer,
                 }}
-                popoverProps={{ placement: "bottom", boundary: "viewport" }}
+                popoverProps={{ position: "bottom-left", boundary: "window" }}
                 // This is used for the key generation of the option React elements, even though this is not displayed anywhere.
                 itemValueRenderer={(item) => `${item.projectId} ${item.taskId ? item.taskId : ""}`}
                 noResultText={t("common.messages.noResults")}

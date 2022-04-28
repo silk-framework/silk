@@ -4,16 +4,21 @@ import { render as rtlRender } from "@testing-library/react";
 import { configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import workspaceReducer from "../../../../store/ducks/workspace";
-import ActivityList from "../ActivityList";
+import ActivityList, { nonStartableActivitiesBlacklist } from "../ActivityList";
 import testData from "./test-data";
 
-const cachedActivitiesLabel = testData.activities.reduce((cachedActivities: {}, activity) => {
-    const label = activity.label.replace(/\s/g, "");
-    if (activity.isCacheActivity) {
-        cachedActivities[label] = true;
-    } else {
-        cachedActivities[label] = false;
+const activityProperties: Record<
+    string,
+    {
+        cacheActivity: boolean;
+        blacklisted: boolean;
     }
+> = testData.activities.reduce((cachedActivities: {}, activity) => {
+    const label = activity.label.replace(/\s/g, "");
+    cachedActivities[label] = {
+        cacheActivity: activity.isCacheActivity,
+        blacklisted: nonStartableActivitiesBlacklist[activity.id] ?? false,
+    };
     return cachedActivities;
 }, {});
 
@@ -82,7 +87,11 @@ describe("ActivityList", () => {
             const firstButton = activity.querySelector(".eccgui-button.eccgui-button--icon");
             const dataTestId = firstButton?.getAttribute("data-test-id");
             expect(dataTestId).toBe(
-                cachedActivitiesLabel[label!] ? "activity-reload-activity" : "activity-start-activity"
+                activityProperties[label!].blacklisted
+                    ? "activity-stop-activity"
+                    : activityProperties[label!].cacheActivity
+                    ? "activity-reload-activity"
+                    : "activity-start-activity"
             );
         }
     });

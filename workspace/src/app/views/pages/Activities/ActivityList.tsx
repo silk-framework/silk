@@ -27,6 +27,16 @@ interface IActivity extends ISearchResultsServer {
     taskLabel: string;
 }
 
+/** ACtivities listed here, will not have a Start or Restart button. */
+export const nonStartableActivitiesBlacklist = {
+    ExecuteWorkflowWithPayload: true,
+    GenerateSparkView: true,
+    ExecuteSparkOperator: true,
+    DeploySparkWorkflow: true,
+    SupervisedLearning: true,
+    ActiveLearning: true,
+};
+
 const ActivityList = () => {
     const dispatch = useDispatch();
     const pageSizes = [10, 25, 50, 100];
@@ -191,14 +201,8 @@ const ActivityList = () => {
                     );
 
                     const key = activityKey(activity.id, activity.project, activity.task);
-                    const blacklist = {
-                        ExecuteWorkflowWithPayload: true,
-                        GenerateSparkView: true,
-                        ExecuteSparkOperator: true,
-                        DeploySparkWorkflow: true,
-                        SupervisedLearning: true,
-                        ActiveLearning: true,
-                    };
+                    const startableActivity = !nonStartableActivitiesBlacklist[activity.id];
+
                     return (
                         <Card isOnlyLayout key={index}>
                             <SilkActivityControl
@@ -206,8 +210,8 @@ const ActivityList = () => {
                                 tags={<ActivityTags activity={activity} />}
                                 registerForUpdates={createRegisterForUpdatesFn(key)}
                                 unregisterFromUpdates={createUnregisterFromUpdateFn(key)}
-                                showReloadAction={activity.isCacheActivity}
-                                showStartAction={!activity.isCacheActivity && !blacklist[activity.id]}
+                                showReloadAction={activity.isCacheActivity && startableActivity}
+                                showStartAction={!activity.isCacheActivity && startableActivity}
                                 showStopAction
                                 executeActivityAction={(action: ActivityAction) =>
                                     executeAction(activity.id, action, activity.project, activity.task)
