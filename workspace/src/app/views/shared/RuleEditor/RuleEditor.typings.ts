@@ -49,6 +49,8 @@ export interface IRuleOperator extends IRuleOperatorBase {
 export interface IRuleOperatorNode extends IRuleOperatorBase {
     /** Unique node ID. */
     nodeId: string;
+    /** Description of the rule operator. */
+    description?: string;
     /** Parameter values. */
     parameters: RuleOperatorNodeParameters;
     /** The position on the canvas. */

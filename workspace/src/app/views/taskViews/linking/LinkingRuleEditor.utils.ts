@@ -84,12 +84,13 @@ const extractSimilarityOperatorNode = (
             parameters: {
                 ...operator.parameters,
                 ...additionalParameters,
-            }, // TODO CMEM-3919 Add weight and threshold
+            },
             portSpecification: {
                 minInputPorts: isComparison ? 2 : 1,
                 maxInputPorts: isComparison ? 2 : undefined,
             },
             tags: [operator.type],
+            description: ruleOperator(pluginId, pluginType)?.description,
         });
         return operator.id;
     }

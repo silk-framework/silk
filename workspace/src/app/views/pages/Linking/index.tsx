@@ -11,6 +11,7 @@ import { ArtefactManagementOptions } from "../../shared/ActionsMenu/ArtefactMana
 import NotFound from "../NotFound";
 import { TaskActivityOverview } from "../../shared/TaskActivityOverview/TaskActivityOverview";
 import { ProjectTaskParams } from "../../shared/typings";
+import { LinkageRuleConfig } from "./config/LinkageRuleConfig";
 
 export default function LinkingPage() {
     const { projectId, taskId } = useParams<ProjectTaskParams>();
@@ -49,6 +50,8 @@ export default function LinkingPage() {
                     <RelatedItems />
                     <Spacing />
                     <TaskConfig projectId={projectId} taskId={taskId} />
+                    <Spacing size={"tiny"} />
+                    <LinkageRuleConfig projectId={projectId} linkingTaskId={taskId} />
                     <Spacing />
                     <TaskActivityOverview projectId={projectId} taskId={taskId} />
                 </Section>

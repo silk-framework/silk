@@ -93,7 +93,7 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                     .map(([paramId, value]) => {
                         return (
                             <PropertyValuePair hasDivider key={paramId}>
-                                <PropertyName>{paramId}</PropertyName>
+                                <PropertyName title={paramId}>{paramId}</PropertyName>
                                 <PropertyValue>
                                     <code style={fixStyle}>{value}</code>
                                 </PropertyValue>

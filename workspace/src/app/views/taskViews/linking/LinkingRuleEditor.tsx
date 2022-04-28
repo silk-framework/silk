@@ -101,7 +101,11 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
         async (term: string, limit: number): Promise<IAutocompleteDefaultResponse[]> => {
             try {
                 const response = await autoCompleteLinkingInputPaths(projectId, linkingTaskId, inputType, term, limit);
-                return response.data;
+                const results = response.data;
+                if (term.trim() === "") {
+                    results.unshift({ value: "", label: `<${t("common.words.emptyPath")}>` });
+                }
+                return results;
             } catch (err) {
                 registerError(
                     "LinkingRuleEditor_inputPathAutoCompletion",
@@ -130,13 +134,11 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
     };
 
     /** Save the rule. */
-    const saveLinkageRule = async (
-        ruleOperatorNodes: IRuleOperatorNode[],
-        previousTask: TaskPlugin<ILinkingTaskParameters>
-    ): Promise<RuleSaveResult> => {
+    const saveLinkageRule = async (ruleOperatorNodes: IRuleOperatorNode[]): Promise<RuleSaveResult> => {
         try {
             const ruleTree = utils.constructLinkageRuleTree(ruleOperatorNodes);
-            const originalRule: ILinkingRule = utils.optionallyLabelledParameterToValue(previousTask.parameters.rule);
+            const originalRule = (await fetchLinkSpec(projectId, linkingTaskId, false)).data.parameters
+                .rule as ILinkingRule;
             await updateLinkageRule(projectId, linkingTaskId, {
                 ...originalRule,
                 operator: ruleTree,
@@ -258,10 +260,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                     ruleUtils.sidebarTabs.aggregation,
                 ]}
                 additionalToolBarComponents={() => [
-                    <LinkingRuleCacheInfo
-                        projectId={projectId}
-                        taskId={linkingTaskId}
-                    />
+                    <LinkingRuleCacheInfo projectId={projectId} taskId={linkingTaskId} />,
                 ]}
             />
         </LinkingRuleEvaluation>

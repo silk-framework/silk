@@ -191,6 +191,14 @@ const ActivityList = () => {
                     );
 
                     const key = activityKey(activity.id, activity.project, activity.task);
+                    const blacklist = {
+                        ExecuteWorkflowWithPayload: true,
+                        GenerateSparkView: true,
+                        ExecuteSparkOperator: true,
+                        DeploySparkWorkflow: true,
+                        SupervisedLearning: true,
+                        ActiveLearning: true,
+                    };
                     return (
                         <Card isOnlyLayout key={index}>
                             <SilkActivityControl
@@ -199,7 +207,7 @@ const ActivityList = () => {
                                 registerForUpdates={createRegisterForUpdatesFn(key)}
                                 unregisterFromUpdates={createUnregisterFromUpdateFn(key)}
                                 showReloadAction={activity.isCacheActivity}
-                                showStartAction={!activity.isCacheActivity}
+                                showStartAction={!activity.isCacheActivity && !blacklist[activity.id]}
                                 showStopAction
                                 executeActivityAction={(action: ActivityAction) =>
                                     executeAction(activity.id, action, activity.project, activity.task)

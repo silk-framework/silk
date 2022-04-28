@@ -1310,6 +1310,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 pluginType: originalNode.pluginType,
                 portSpecification: originalNode.portSpecification,
                 position: node.position,
+                description: originalNode.description,
             };
             return ruleOperatorNode;
         });
