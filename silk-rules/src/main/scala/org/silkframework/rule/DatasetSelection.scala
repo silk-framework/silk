@@ -17,10 +17,9 @@ package org.silkframework.rule
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.Restriction
 import org.silkframework.rule.task.DatasetOrTransformTaskAutoCompletionProvider
-import org.silkframework.runtime.plugin.{PluginObjectParameter, ReferencePluginParameterAutoCompletionProvider}
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.plugin.{PluginObjectParameter, ReferencePluginParameterAutoCompletionProvider}
 import org.silkframework.util.{Identifier, Uri}
-import org.silkframework.workspace.project.task.DatasetTaskReferenceAutoCompletionProvider
 
 import scala.xml.{Elem, Node}
 
@@ -40,7 +39,7 @@ case class DatasetSelection(@Param(label = "Dataset", value = "The dataset to se
                             autoCompletionProvider = classOf[DatasetOrTransformTaskAutoCompletionProvider],
                                    autoCompleteValueWithLabels = true, allowOnlyAutoCompletedValues = true)
                             inputId: Identifier,
-                            @Param(label = "Type", value = "The type of the dataset. If left empty, the default type will be selected.",
+                            @Param(label = "Type", value = "The type of the dataset. If left empty, the default type will be selected. In case the autocompletion is outdated, you need to refresh the types cache manually.",
                               autoCompletionProvider = classOf[DatasetTypeAutoCompletionProviderReference], autoCompletionDependsOnParameters = Array("inputId"))
                             typeUri: Uri = Uri(""),
                             @Param(label = "Restriction", value = "Additional restrictions on the enumerated entities. If this is an RDF source, " +
