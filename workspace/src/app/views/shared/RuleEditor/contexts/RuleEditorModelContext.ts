@@ -54,7 +54,8 @@ export interface IModelActions {
         pluginType: string,
         pluginId: string,
         position: XYPosition,
-        overwriteParameterValues?: RuleOperatorNodeParameters
+        overwriteParameterValues?: RuleOperatorNodeParameters,
+        isCanvasPosition?: boolean
     ) => void;
     /** Delete a rule node. */
     deleteNode: (nodeId: string) => void;

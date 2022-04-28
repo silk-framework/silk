@@ -93,6 +93,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const updateNodeInternals = useUpdateNodeInternals();
     const resetSelectedElements = useStoreActions((a) => a.resetSelectedElements);
     const setSelectedElements = useStoreActions((a) => a.setSelectedElements);
+    const unsetUserSelection = useStoreActions((actions) => actions.unsetUserSelection);
     const setInteractive = useStoreActions((a) => a.setInteractive);
     /** Map from node ID to (original) rule operator node. Used for validating connections. */
     const [nodeMap] = React.useState<Map<string, RuleTreeNode>>(new Map());
@@ -783,16 +784,19 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
      * @param pluginId   ID of the plugin
      * @param position   Position on the canvas.
      * @param overwriteParameterValues If initial parameters should be overwritten by different values.
+     * @param isCanvasPosition If the given position is the position of the currently displayed canvas, else it is the node's real position.
      */
     const addNodeByPlugin = (
         pluginType: string,
         pluginId: string,
         position: XYPosition,
-        overwriteParameterValues?: RuleOperatorNodeParameters
+        overwriteParameterValues?: RuleOperatorNodeParameters,
+        isCanvasPosition: boolean = false
     ) => {
+        const realPosition = isCanvasPosition && reactFlowInstance ? reactFlowInstance.project(position) : position;
         const op = fetchRuleOperatorByPluginId(pluginId, pluginType);
         if (op) {
-            addNode(op, position, overwriteParameterValues);
+            addNode(op, realPosition, overwriteParameterValues);
         }
     };
 
@@ -992,6 +996,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             const withNodes = addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNodes(newNodes), els);
             resetSelectedElements();
             setTimeout(() => {
+                unsetUserSelection();
                 setSelectedElements([...newNodes, ...newEdges]);
             }, 100);
             return addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addEdges(newEdges), withNodes);

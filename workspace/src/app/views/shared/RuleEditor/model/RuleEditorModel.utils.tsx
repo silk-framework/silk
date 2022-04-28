@@ -75,10 +75,10 @@ function createOperatorNode(
     operatorContext: IOperatorCreateContext
 ): RuleEditorNode {
     operatorContext.initParameters(node.nodeId, node.parameters);
-    const position = operatorContext.reactFlowInstance.project({
+    const position = {
         x: node.position?.x ?? 0,
         y: node.position?.y ?? 0,
-    });
+    };
     const usedInputs = node.inputs.length;
     const numberOfInputPorts =
         node.portSpecification.maxInputPorts != null
