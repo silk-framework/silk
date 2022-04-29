@@ -133,6 +133,8 @@
         "waitFor": "File '{{fileName}}' is being uploaded."
     },
     "Metadata": {
+        "addNewTag": "Add new tag",
+        "newTagPostfix": " (new tag)",
         "loading": "Loading summary data.",
         "updateFailed": "Updating meta data has failed",
         "unsavedMetaDataWarning": "There are unsaved changes that will be lost. Do you still want to proceed?",
@@ -220,6 +222,7 @@
             "resetSelection": "Reset selection",
             "retry": "Retry",
             "save": "Save",
+            "search": "Search",
             "showDetails": "Open details page",
             "submit": "Submit",
             "update": "Update",

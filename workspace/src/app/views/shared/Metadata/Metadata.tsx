@@ -36,6 +36,7 @@ import * as H from "history";
 import utils from "./MetadataUtils";
 import { IMetadataExpanded } from "./Metadatatypings";
 import { Keyword, Keywords } from "@ducks/workspace/typings";
+import { removeExtraSpaces } from "@eccenca/gui-elements/src/common/utils/stringUtils";
 
 interface IProps {
     projectId?: string;
@@ -240,8 +241,13 @@ export function Metadata(props: IProps) {
 
     const handleTagQueryChange = React.useCallback(async (query: string) => {
         if (projectId) {
-            const res = await utils.queryTags(projectId, query);
-            return res?.data.tags ?? [];
+            try {
+                const res = await utils.queryTags(projectId, query);
+                return res?.data.tags ?? [];
+            } catch (ex) {
+                registerError("Metadata-handleTagQueryChange", "An error occurred while searching for tags.", ex);
+                return [];
+            }
         }
     }, []);
 
@@ -318,14 +324,22 @@ export function Metadata(props: IProps) {
                         <PropertyValue>
                             <FieldItem>
                                 <MultiSelect<Keyword>
-                                    canCreateNewItem
                                     prePopulateWithItems
                                     openOnKeyDown
-                                    equalityProp="uri"
-                                    labelProp="label"
+                                    itemId={(keyword) => keyword.uri}
+                                    itemLabel={(keyword) => keyword.label}
                                     items={data.tags ?? []}
                                     onSelection={handleTagSelectionChange}
                                     runOnQueryChange={handleTagQueryChange}
+                                    newItemCreationText={t("Metadata.addNewTag")}
+                                    newItemPostfix={t("Metadata.newTagPostfix")}
+                                    inputProps={{
+                                        placeholder: `${t("common.action.search")}...`,
+                                    }}
+                                    createNewItemFromQuery={(query) => ({
+                                        uri: removeExtraSpaces(query),
+                                        label: removeExtraSpaces(query),
+                                    })}
                                 />
                             </FieldItem>
                         </PropertyValue>
