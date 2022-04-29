@@ -229,8 +229,8 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
       "org.silkframework.rule.input.Transformer"
     )
     val linkingOperatorsBase = Seq(
-      "org.silkframework.rule.similarity.Aggregator",
-      "org.silkframework.rule.similarity.DistanceMeasure"
+      "org.silkframework.rule.similarity.DistanceMeasure",
+      "org.silkframework.rule.similarity.Aggregator"
     )
     val pluginTypes = if(inputOperatorsOnly.getOrElse(false)) inputOperatorBase else inputOperatorBase ++ linkingOperatorsBase
     pluginResult(addMarkdownDocumentation, pluginTypes, None, textQuery, category, overviewOnly = overviewOnly.getOrElse(false))
