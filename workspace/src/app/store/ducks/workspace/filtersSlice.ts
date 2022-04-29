@@ -31,6 +31,7 @@ export const filtersSlice = createSlice({
             });
 
             state.appliedFacets = [];
+            state.pagination = initialPaginationState();
         },
 
         updateSorters(state, action) {
