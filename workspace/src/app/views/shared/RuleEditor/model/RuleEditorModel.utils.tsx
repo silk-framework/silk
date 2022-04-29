@@ -348,7 +348,7 @@ const layoutGraph = (elements: Elements, zoomFactor: number): Map<string, XYPosi
     g.nodes().forEach((nodeId) => {
         const node = g.node(nodeId);
         // dagre computes the position to be the vertical center of the node, react-flow uses the upper-left point, so we need to translate
-        nodeMap.set(nodeId, { x: node.x, y: node.y - sizes.get(nodeId)!!.height / 2 });
+        nodeMap.set(nodeId, { x: node.x, y: node.y - (sizes.get(nodeId)?.height ?? 0) / 2 });
     });
     return nodeMap;
 };
