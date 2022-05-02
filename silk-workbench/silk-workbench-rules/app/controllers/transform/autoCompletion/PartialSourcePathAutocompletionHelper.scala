@@ -3,7 +3,7 @@ package controllers.transform.autoCompletion
 import controllers.transform.AutoCompletionApi.Categories
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DatasetCharacteristics
-import org.silkframework.dataset.DatasetCharacteristics.SupportedPathExpressions
+import org.silkframework.dataset.DatasetCharacteristics.{SpecialPathInfo, SuggestedForEnum, SupportedPathExpressions}
 import org.silkframework.entity.paths.{PartialParseError, PartialParseResult, UntypedPath}
 import org.silkframework.util.{StringUtils, Uri}
 
@@ -57,29 +57,24 @@ object PartialSourcePathAutocompletionHelper {
     handleCursorStatusFlags(request, pathToReplace)
   }
 
+  // Path (prefix) operators
+  private val pathOps = Seq("/", "\\", "[")
+
   /** Returns completion results for data source specific "special" paths, e.g. "#idx" for CSV/Excel. */
   def specialPathCompletions(dataSourceCharacteristicsOpt: Option[DatasetCharacteristics],
                              pathToReplace: PathToReplace,
-                             pathOpFilter: OpFilter.Value): Seq[Completion] = {
+                             pathOpFilter: OpFilter.Value,
+                             isObjectPath: Boolean): Seq[Completion] = {
     if(pathToReplace.insideQuotes) {
       Seq.empty
     } else {
       dataSourceCharacteristicsOpt.toSeq.flatMap { characteristics =>
-        val pathOps = Seq("/", "\\", "[")
 
         def pathWithoutOperator(specialPath: String): Boolean = pathOps.forall(op => !specialPath.startsWith(op))
 
         characteristics.supportedPathExpressions.specialPaths
           // No backward or filter paths allowed inside filters
-          .filter { p =>
-            val validPathOp = pathOpFilter match {
-              case OpFilter.Backward => p.value.startsWith("\\")
-              case OpFilter.Forward => pathOps.forall(op => !p.value.startsWith(op))
-              case OpFilter.None => true
-            }
-            validPathOp && (
-              !pathToReplace.insideFilter || !pathOps.drop(1).forall(disallowedOp => p.value.startsWith(disallowedOp)))
-          }
+          .filter(spi => specialPathAllowed(pathOpFilter, pathToReplace, isObjectPath)(spi))
           .map { p =>
             val pathSegment = if (pathToReplace.from > 0 && !pathToReplace.insideFilter && pathWithoutOperator(p.value)) {
               "/" + p.value
@@ -92,6 +87,21 @@ object PartialSourcePathAutocompletionHelper {
           }
       }
     }
+  }
+
+  // Returns true if the special path is allowed as an auto-completion suggestion
+  private def specialPathAllowed(pathOpFilter: OpFilter.Value,
+                                 pathToReplace: PathToReplace,
+                                 isObjectPath: Boolean)
+                                (spi: SpecialPathInfo): Boolean = {
+    val validPathOp = pathOpFilter match {
+      case OpFilter.Backward => spi.value.startsWith("\\")
+      case OpFilter.Forward => pathOps.forall(op => !spi.value.startsWith(op))
+      case OpFilter.None => true
+    }
+    val allowedInObjectPath = !isObjectPath || spi.suggestedFor != SuggestedForEnum.ValuePathOnly
+    validPathOp && allowedInObjectPath && (
+      !pathToReplace.insideFilter || !pathOps.drop(1).forall(disallowedOp => spi.value.startsWith(disallowedOp)))
   }
 
   /** Returns filter results based on text query and the number of results limit. */

@@ -9,10 +9,12 @@ import play.api.libs.json.{Format, Json}
   * @param inputString    The currently entered source path string.
   * @param cursorPosition The cursor position inside the source path string.
   * @param maxSuggestions The max. number of suggestions to return.
+  * @param isObjectPath   Set to true if the auto-completion results are meant for an object path. Some suggestions might be filtered out or added.
   */
 case class PartialSourcePathAutoCompletionRequest(inputString: String,
                                                   cursorPosition: Int,
-                                                  maxSuggestions: Option[Int]) extends AutoSuggestAutoCompletionRequest {
+                                                  maxSuggestions: Option[Int],
+                                                  isObjectPath: Option[Boolean]) extends AutoSuggestAutoCompletionRequest {
   private val operatorStartChars = Set('/', '\\', '[')
 
   /** The remaining characters from the cursor position to the end of the current path operator. */

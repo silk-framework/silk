@@ -78,13 +78,13 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
       val opsSegments = if(level2EndInput(cursorPosition - 1) != '/')  jsonOps else Seq.empty
       jsonSuggestions(level2EndInput, cursorPosition) mustBe Seq("/tagId") ++ jsonSpecialPathsFull.filter(_.contains("id")) ++ opsSegments
     }
-    jsonSuggestions("department/") mustBe fullPaths(
+    jsonSuggestionsForPath("department/") mustBe fullPaths(
       allJsonPaths.filter(p => p.startsWith("department/")).map(_.stripPrefix("department/")) ++
         jsonSpecialPaths.filter(!_.startsWith("\\"))
     )
-    jsonSuggestions("/") must not contain("\\..")
-    jsonSuggestions("/") must contain("#text")
-    jsonSuggestions("department\\") mustBe Seq("\\..")
+    jsonSuggestionsForPath("/") must not contain("\\..")
+    jsonSuggestionsForPath("/") must contain("#text")
+    jsonSuggestionsForPath("department\\") mustBe Seq("\\..")
   }
 
   it should "return a client error on invalid requests" in {
@@ -130,7 +130,7 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
   }
 
   it should "suggest all path operators for RDF sources" in {
-    rdfSuggestions("", 0) mustBe allPersonRdfPaths ++ Seq("\\")
+    rdfSuggestions("", 0, None) mustBe allPersonRdfPaths ++ Seq("\\")
     // For all longer paths suggest all properties
     rdfSuggestions("rdf:type/") mustBe fullPaths(allForwardRdfPaths)
     rdfSuggestions("rdf:type/<urn:test:test>/") mustBe fullPaths(allForwardRdfPaths)
@@ -146,24 +146,24 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     rdfSuggestions("rdf:type") mustBe rdfOps
     rdfSuggestions(s"<$RDF_NS/address>") mustBe rdfOps
     // The special paths actually match "value" in the comments, that's why they show up here and /value is still proposed
-    jsonSuggestions("department/tags/evenMoreNested/value") mustBe Seq("/value", "/#id", "/#text") ++ jsonOps
+    jsonSuggestionsForPath("department/tags/evenMoreNested/value") mustBe Seq("/value", "/#id", "/#text") ++ jsonOps
     // here it's not the case and only the path ops show up
-    jsonSuggestions("phoneNumbers/number") mustBe jsonOps
+    jsonSuggestionsForPath("phoneNumbers/number") mustBe jsonOps
   }
 
   it should "not propose path ops inside a filter" in {
-    jsonSuggestions("department/[tags = ") must not contain allOf("/", "\\", "[", "]")
+    jsonSuggestionsForPath("department/[tags = ") must not contain allOf("/", "\\", "[", "]")
   }
 
   it should "propose end of filter op only when the filter expression will be valid" in {
-    jsonSuggestions("department/[tags = ") must not contain("]")
-    jsonSuggestions("department/[@lang = 'en']") must not contain("]")
-    jsonSuggestions("department/[tags = <urn:test:test>") must contain("]")
-    jsonSuggestions("department/[rdf:type != rdf:Type") must contain("]")
-    jsonSuggestions("department/[rdf:type != \"text") must not contain("]")
-    jsonSuggestions("department/[rdf:type != <urn:start") must not contain("]")
-    jsonSuggestions("department/[@lang != 'de'") must contain("]")
-    jsonSuggestions("department/[<http://domain.org/label> != \"label\"") must contain("]")
+    jsonSuggestionsForPath("department/[tags = ") must not contain("]")
+    jsonSuggestionsForPath("department/[@lang = 'en']") must not contain("]")
+    jsonSuggestionsForPath("department/[tags = <urn:test:test>") must contain("]")
+    jsonSuggestionsForPath("department/[rdf:type != rdf:Type") must contain("]")
+    jsonSuggestionsForPath("department/[rdf:type != \"text") must not contain("]")
+    jsonSuggestionsForPath("department/[rdf:type != <urn:start") must not contain("]")
+    jsonSuggestionsForPath("department/[@lang != 'de'") must contain("]")
+    jsonSuggestionsForPath("department/[<http://domain.org/label> != \"label\"") must contain("]")
   }
 
   it should "suggest the replacement of properties where the cursor is currently at" in {
@@ -202,6 +202,12 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     querySpecificResults.replacements.map(_.value) mustBe allJsonPaths.filter(_.contains("Nested")).map(_.drop(objectPathContext.length + 1))
   }
 
+  it should "not suggest special paths that should not be used in object mapping value paths" in {
+    jsonSuggestionsForPath("", Some(true)) mustBe allJsonPaths ++ jsonSpecialPaths.filterNot(p =>
+      Set(JsonDataset.specialPaths.ID, JsonDataset.specialPaths.TEXT).contains(p)) ++ Seq("\\")
+    rdfSuggestions("", Some(true)) mustBe allPersonRdfPaths.filterNot(p => Set(specialPaths.LANG, specialPaths.TEXT).contains(p)) ++ Seq("\\")
+  }
+
   private def partialAutoCompleteResult(inputString: String = "",
                                         cursorPosition: Int = 0,
                                         replacementResult: Seq[ReplacementResults]): AutoSuggestAutoCompletionResponse = {
@@ -222,19 +228,19 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
     result.copy(replacementResults = result.replacementResults.map(_.copy(replacements = null)))
   }
 
-  private def jsonSuggestions(inputText: String, cursorPosition: Int): Seq[String] = {
+  private def jsonSuggestions(inputText: String, cursorPosition: Int, isObjectPath: Option[Boolean] = None): Seq[String] = {
     project.task[TransformSpec](jsonTransform).activity[TransformPathsCache].control.waitUntilFinished()
-    suggestedValues(partialSourcePathAutoCompleteRequest(jsonTransform, inputText = inputText, cursorPosition = cursorPosition))
+    suggestedValues(partialSourcePathAutoCompleteRequest(jsonTransform, inputText = inputText, cursorPosition = cursorPosition, isObjectPath = isObjectPath))
   }
 
-  private def jsonSuggestions(inputText: String): Seq[String] = jsonSuggestions(inputText, inputText.length)
+  private def jsonSuggestionsForPath(inputText: String, isObjectPath: Option[Boolean] = None): Seq[String] = jsonSuggestions(inputText, inputText.length, isObjectPath)
 
-  private def rdfSuggestions(inputText: String, cursorPosition: Int): Seq[String] = {
+  private def rdfSuggestions(inputText: String, cursorPosition: Int, isObjectPath: Option[Boolean]): Seq[String] = {
     project.task[TransformSpec](rdfTransform).activity[TransformPathsCache].control.waitUntilFinished()
-    suggestedValues(partialSourcePathAutoCompleteRequest(rdfTransform, inputText = inputText, cursorPosition = cursorPosition))
+    suggestedValues(partialSourcePathAutoCompleteRequest(rdfTransform, inputText = inputText, cursorPosition = cursorPosition, isObjectPath = isObjectPath))
   }
 
-  private def rdfSuggestions(inputText: String): Seq[String] = rdfSuggestions(inputText, inputText.length)
+  private def rdfSuggestions(inputText: String, isObjectPath: Option[Boolean] = None): Seq[String] = rdfSuggestions(inputText, inputText.length, isObjectPath)
 
   private def suggestedValues(result: AutoSuggestAutoCompletionResponse): Seq[String] = {
     result.replacementResults.flatMap(_.replacements.map(_.value))
@@ -244,9 +250,10 @@ class PartialAutoCompletionApiTest extends FlatSpec with MustMatchers with Singl
                                                    ruleId: String = "root",
                                                    inputText: String = "",
                                                    cursorPosition: Int = 0,
-                                                   maxSuggestions: Option[Int] = None): AutoSuggestAutoCompletionResponse = {
+                                                   maxSuggestions: Option[Int] = None,
+                                                   isObjectPath: Option[Boolean] = None): AutoSuggestAutoCompletionResponse = {
     val partialUrl = controllers.transform.routes.AutoCompletionApi.partialSourcePath(projectId, transformId, ruleId).url
-    val response = client.url(s"$baseUrl$partialUrl").post(Json.toJson(PartialSourcePathAutoCompletionRequest(inputText, cursorPosition, maxSuggestions)))
+    val response = client.url(s"$baseUrl$partialUrl").post(Json.toJson(PartialSourcePathAutoCompletionRequest(inputText, cursorPosition, maxSuggestions, isObjectPath)))
     JsonHelpers.fromJsonValidated[AutoSuggestAutoCompletionResponse](checkResponse(response).json)
   }
 

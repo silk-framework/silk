@@ -305,7 +305,7 @@ export const ObjectRuleForm = (props: IProps) => {
                     onChange={value => {
                         handleChangeValue('sourceProperty', value);
                     }}
-                    fetchSuggestions={(input, cursorPosition) => fetchValuePathSuggestions(parentId, input, cursorPosition)}
+                    fetchSuggestions={(input, cursorPosition) => fetchValuePathSuggestions(parentId, input, cursorPosition, true)}
                     checkInput={checkValuePathValidity}
                     onInputChecked={setObjectPathValid}
                 />

@@ -179,7 +179,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
       validateJson[PartialSourcePathAutoCompletionRequest] { autoCompletionRequest =>
         validateAutoCompletionRequest(autoCompletionRequest)
         withRule(transformTask, ruleId) { case (_, sourcePath) =>
-          val autoCompletionResponse = autoCompletePartialSourcePath(transformTask, autoCompletionRequest, sourcePath)
+          val autoCompletionResponse = autoCompletePartialSourcePath(transformTask, autoCompletionRequest, sourcePath, autoCompletionRequest.isObjectPath.getOrElse(false))
           Ok(Json.toJson(autoCompletionResponse))
         }
       }
@@ -188,7 +188,8 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
   // Returns an auto-completion result for a partial path request
   private def autoCompletePartialSourcePath(transformTask: ProjectTask[TransformSpec],
                                             autoCompletionRequest: PartialSourcePathAutoCompletionRequest,
-                                            sourcePath: List[PathOperator])
+                                            sourcePath: List[PathOperator],
+                                            isObjectPath: Boolean)
                                            (implicit userContext: UserContext): AutoSuggestAutoCompletionResponse = {
     implicit val project: Project = transformTask.project
     implicit val prefixes: Prefixes = project.config.prefixes
@@ -209,7 +210,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
     val relativePaths = extractRelativePaths(simpleSubPath, forwardOnlySubPath, allPaths, isRdfInput, oneHopOnly = pathToReplace.insideFilter,
       serializeFull = !pathToReplace.insideFilter && pathToReplace.from > 0, pathOpFilter = pathOpFilter
     )
-    val dataSourceSpecialPathCompletions = PartialSourcePathAutocompletionHelper.specialPathCompletions(dataSourceCharacteristicsOpt, pathToReplace, pathOpFilter)
+    val dataSourceSpecialPathCompletions = PartialSourcePathAutocompletionHelper.specialPathCompletions(dataSourceCharacteristicsOpt, pathToReplace, pathOpFilter, isObjectPath)
     // Add known paths
     val completions: Completions = relativePaths ++ dataSourceSpecialPathCompletions
     // Return filtered result
@@ -275,10 +276,11 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
               val partialSourcePathAutoCompletionRequest = PartialSourcePathAutoCompletionRequest(
                 pathPart.serializedPath,
                 uriPatternAutoCompletionRequest.cursorPosition - pathPart.segmentPosition.originalStartIndex,
-                uriPatternAutoCompletionRequest.maxSuggestions
+                uriPatternAutoCompletionRequest.maxSuggestions,
+                Some(false)
               )
               val autoCompletionResponse = autoCompletePartialSourcePath(transformTask, partialSourcePathAutoCompletionRequest,
-                basePath)
+                basePath, isObjectPath = false)
               val offset = pathPart.segmentPosition.originalStartIndex
               Ok(Json.toJson(autoCompletionResponse.copy(
                 inputString = uriPatternAutoCompletionRequest.inputString,

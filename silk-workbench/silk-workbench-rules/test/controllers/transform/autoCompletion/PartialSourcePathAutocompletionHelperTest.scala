@@ -9,7 +9,7 @@ class PartialSourcePathAutocompletionHelperTest extends FlatSpec with MustMatche
   def replace(inputString: String,
               cursorPosition: Int,
               subPathOnly: Boolean = false): PathToReplace = {
-    PartialSourcePathAutocompletionHelper.pathToReplace(PartialSourcePathAutoCompletionRequest(inputString, cursorPosition, None), subPathOnly)(Prefixes.empty)
+    PartialSourcePathAutocompletionHelper.pathToReplace(PartialSourcePathAutoCompletionRequest(inputString, cursorPosition, None, None), subPathOnly)(Prefixes.empty)
   }
 
   def replace(inputString: String): PathToReplace = replace(inputString, inputString.length)
