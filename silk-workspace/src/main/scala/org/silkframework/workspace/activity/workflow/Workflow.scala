@@ -169,6 +169,17 @@ case class Workflow(@Param(label = "Workflow operators", value = "Workflow opera
     }
   }
 
+  /**
+    * Returns all direct sub workflows.
+    */
+  def subWorkflows(project: Project)
+                  (implicit userContext: UserContext): Seq[ProjectTask[Workflow]] = {
+    for (operator <- operators;
+         workflow <- project.taskOption[Workflow](operator.task)) yield {
+      workflow
+    }
+  }
+
   /** Returns node ids of workflow nodes that have inputs from other nodes */
   def inputWorkflowNodeIds(): Seq[String] = {
     val outputs = nodes.flatMap(_.outputs).distinct

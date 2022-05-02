@@ -34,7 +34,8 @@ import scala.util.control.NonFatal
 case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
                                  replaceDataSources: Map[String, Dataset] = Map.empty,
                                  replaceSinks: Map[String, Dataset] = Map.empty,
-                                 useLocalInternalDatasets: Boolean = false)
+                                 useLocalInternalDatasets: Boolean = false,
+                                 clearDatasets: Boolean = true)
     extends WorkflowExecutor[LocalExecution] {
 
   private val log = Logger.getLogger(getClass.getName)
@@ -63,7 +64,9 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
     )
 
     checkVariableDatasets()
-    clearOutputDatasets()
+    if(clearDatasets) {
+      clearOutputDatasets()
+    }
 
     val DAG = workflow.workflowDependencyGraph
     try {
@@ -88,7 +91,9 @@ case class LocalWorkflowExecutor(workflowTask: ProjectTask[Workflow],
   private def clearOutputDatasets()(implicit workflowRunContext: WorkflowRunContext): Unit = {
     implicit val userContext: UserContext = workflowRunContext.userContext
     // Clear all internal datasets and input datasets that are configured so
-    for (datasetTask <- workflow.outputDatasets(project)(workflowRunContext.userContext)) {
+    // Also clear datasets in sub workflows
+    for { currentWorkflow <- workflow +: workflow.subWorkflows(project).map(_.data)
+          datasetTask <- currentWorkflow.outputDatasets(project)(workflowRunContext.userContext) } {
       val usedDatasetTask = resolveDataset(datasetTask, replaceSinks)
       usedDatasetTask.data.entitySink.clear()
     }
