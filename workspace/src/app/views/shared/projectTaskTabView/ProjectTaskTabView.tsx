@@ -229,7 +229,12 @@ export function ProjectTaskTabView({
 
     const iframeWidget = () => {
         return (
-            <Card className="diapp-iframewindow__content" isOnlyLayout={true} elevation={displayFullscreen ? 4 : 1}>
+            <Card
+                className="diapp-iframewindow__content"
+                isOnlyLayout={true}
+                elevation={displayFullscreen ? 4 : 1}
+                scrollinOnFocus={displayFullscreen ? undefined : "center"}
+            >
                 <CardHeader>
                     <CardTitle>
                         <h2>{!!title ? title : !!selectedTab && activeLabel ? tLabel(activeLabel) : ""}</h2>

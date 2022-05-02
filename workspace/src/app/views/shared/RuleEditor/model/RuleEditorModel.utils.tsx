@@ -75,10 +75,10 @@ function createOperatorNode(
     operatorContext: IOperatorCreateContext
 ): RuleEditorNode {
     operatorContext.initParameters(node.nodeId, node.parameters);
-    const position = operatorContext.reactFlowInstance.project({
+    const position = {
         x: node.position?.x ?? 0,
         y: node.position?.y ?? 0,
-    });
+    };
     const usedInputs = node.inputs.length;
     const numberOfInputPorts =
         node.portSpecification.maxInputPorts != null
@@ -347,7 +347,8 @@ const layoutGraph = (elements: Elements, zoomFactor: number): Map<string, XYPosi
     const nodeMap = new Map<string, XYPosition>();
     g.nodes().forEach((nodeId) => {
         const node = g.node(nodeId);
-        nodeMap.set(nodeId, { x: node.x, y: node.y });
+        // dagre computes the position to be the vertical center of the node, react-flow uses the upper-left point, so we need to translate
+        nodeMap.set(nodeId, { x: node.x, y: node.y - (sizes.get(nodeId)?.height ?? 0) / 2 });
     });
     return nodeMap;
 };

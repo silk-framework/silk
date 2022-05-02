@@ -144,7 +144,7 @@ export class NetworkError extends FetchError {
 
         this.errorResponse = new ErrorResponse(
             "Network Error",
-            `Please check your connection or contact support`,
+            `There does not seem to be a network connection to the server. Please check your connection or contact support`,
             undefined
         );
     }

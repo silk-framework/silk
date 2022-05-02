@@ -478,7 +478,8 @@ export const RuleEditorCanvas = () => {
                         pluginType,
                         pluginId,
                         reactFlowPosition,
-                        parameterValues
+                        parameterValues,
+                        true
                     );
                 } else {
                     console.warn(
