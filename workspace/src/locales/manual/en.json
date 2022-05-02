@@ -149,8 +149,10 @@
         "overwriteFile": "File '{{fileName}}' already exists. Do you want to overwrite it?"
     },
     "Pagination": {
+        "backToPage1": "Back to page 1",
         "backwardText": "Previous page",
         "forwardText": "Next page",
+        "invalidPageError": "Invalid page. ",
         "itemRangeText": "{{min}}–{{max}} of {{total}} items",
         "itemsPerPage": "Items per page:",
         "pageRangeText": "of {{total}} pages"

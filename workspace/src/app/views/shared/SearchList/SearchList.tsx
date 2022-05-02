@@ -164,16 +164,10 @@ export function SearchList() {
                     />
                 ))}
             </DataList>
+            <Spacing size="small" />
+            <Pagination pagination={pagination} pageSizes={pageSizes} onChangeSelect={handlePaginationOnChange} />
             {!isEmpty ? (
                 <>
-                    <Spacing size="small" />
-
-                    <Pagination
-                        pagination={pagination}
-                        pageSizes={pageSizes}
-                        onChangeSelect={handlePaginationOnChange}
-                    />
-
                     {deleteModalOpen && selectedItem && (
                         <ItemDeleteModal
                             item={selectedItem}

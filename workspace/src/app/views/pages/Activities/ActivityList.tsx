@@ -245,9 +245,7 @@ const ActivityList = () => {
                     );
                 })}
             </Datalist>
-            {!isEmpty ? (
-                <Pagination pagination={pagination} pageSizes={pageSizes} onChangeSelect={handlePaginationOnChange} />
-            ) : null}
+            <Pagination pagination={pagination} pageSizes={pageSizes} onChangeSelect={handlePaginationOnChange} />
         </>
     );
 };
