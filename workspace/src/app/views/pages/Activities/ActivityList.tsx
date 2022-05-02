@@ -140,7 +140,13 @@ const ActivityList = () => {
                 )}
                 {activity.parentType && (
                     <Tag>
-                        <Highlighter label={activity.parentType} searchValue={textQuery} />
+                        <Highlighter
+                            label={t(
+                                "widget.Filterbar.subsections.valueLabels.itemType." + activity.parentType,
+                                activity.parentType[0].toUpperCase() + activity.parentType.substr(1)
+                            )}
+                            searchValue={textQuery}
+                        />
                     </Tag>
                 )}
             </>
