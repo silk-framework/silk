@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { NodeTools } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeTools";
+import React, { useMemo, useState } from "react";
+import { NodeTools, NodeToolsMenuFunctions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeTools";
 import { Markdown, Menu, MenuItem, SimpleDialog } from "@eccenca/gui-elements";
 
 interface NodeMenuProps {
@@ -12,9 +12,15 @@ interface NodeMenuProps {
 /** The menu of a rule node. */
 export const RuleNodeMenu = ({ nodeId, t, handleDeleteNode, ruleOperatorDescription }: NodeMenuProps) => {
     const [showDescription, setShowDescription] = useState(false);
+    const [menuFns, setMenuFns] = useState<NodeToolsMenuFunctions | undefined>(undefined);
+
+    const closeMenu = () => {
+        menuFns?.closeMenu();
+    };
+    const menuFunctionsCallback = useMemo(() => (menuFunctions) => setMenuFns(menuFunctions), []);
 
     return (
-        <NodeTools menuButtonDataTestId={"node-menu-btn"}>
+        <NodeTools menuButtonDataTestId={"node-menu-btn"} menuFunctionsCallback={menuFunctionsCallback}>
             <Menu>
                 <MenuItem
                     data-test-id="rule-node-delete-btn"
@@ -33,6 +39,7 @@ export const RuleNodeMenu = ({ nodeId, t, handleDeleteNode, ruleOperatorDescript
                         key="info"
                         icon={"item-info"}
                         onClick={(e) => {
+                            closeMenu();
                             setShowDescription(true);
                             e.preventDefault();
                             e.stopPropagation();

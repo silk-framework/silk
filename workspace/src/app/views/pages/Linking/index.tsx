@@ -50,7 +50,7 @@ export default function LinkingPage() {
                     <RelatedItems />
                     <Spacing />
                     <TaskConfig projectId={projectId} taskId={taskId} />
-                    <Spacing size={"tiny"} />
+                    <Spacing />
                     <LinkageRuleConfig projectId={projectId} linkingTaskId={taskId} />
                     <Spacing />
                     <TaskActivityOverview projectId={projectId} taskId={taskId} />
