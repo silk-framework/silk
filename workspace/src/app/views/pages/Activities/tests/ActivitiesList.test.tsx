@@ -102,7 +102,9 @@ describe("ActivityList", () => {
         activities.forEach((activity, index) => {
             const [parentTypeTag, projectTag] = Array.from(activity.querySelectorAll(".bp3-tag")).reverse();
             const activityData = testData.activities[index];
-            expect(parentTypeTag?.textContent).toBe(activityData.parentType);
+            expect(parentTypeTag?.textContent).toBe(
+                activityData.parentType[0].toUpperCase() + activityData.parentType.substr(1)
+            );
             //no project tag possibly global activity
             expect(projectTag?.textContent).toBe(!projectTag ? undefined : activityData.project);
         });
