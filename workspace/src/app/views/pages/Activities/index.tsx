@@ -29,6 +29,7 @@ import ActivityList from "./ActivityList";
 import { useHistory, useParams } from "react-router";
 import { SERVE_PATH } from "../../../constants/path";
 import { ProjectTaskParams } from "views/shared/typings";
+import { previewSlice } from "@ducks/workspace/previewSlice";
 
 const Activities = () => {
     const dispatch = useDispatch();
@@ -36,8 +37,10 @@ const Activities = () => {
     const history = useHistory();
     const error = useSelector(workspaceSel.errorSelector);
     const qs = useSelector(routerSel.routerSearchSelector);
+    const path = useSelector(routerSel.pathnameSelector);
     const { textQuery } = useSelector(workspaceSel.appliedFiltersSelector);
     const sorters = useSelector(workspaceSel.sortersSelector);
+    const { clearSearchResults } = previewSlice.actions;
 
     const [t] = useTranslation();
 
@@ -94,16 +97,21 @@ const Activities = () => {
     }, []);
 
     React.useEffect(() => {
-        batch(() => {
-            // Reset the filters, due to redirecting
-            dispatch(workspaceOp.resetFilters());
+        if (path.endsWith("activities")) {
+            batch(() => {
+                // Reset the filters, due to redirecting
+                dispatch(workspaceOp.resetFilters());
 
-            // Setup the filters from query string
-            dispatch(workspaceOp.setupFiltersFromQs(qs));
-            projectId && dispatch(commonOp.setProjectId(projectId));
-            // Fetch the list of projects
-            dispatch(workspaceOp.fetchListAsync(utils.searchActivities));
-        });
+                // Setup the filters from query string
+                dispatch(workspaceOp.setupFiltersFromQs(qs));
+                projectId && dispatch(commonOp.setProjectId(projectId));
+                // Fetch the list of projects
+                dispatch(workspaceOp.fetchListAsync(utils.searchActivities));
+            });
+        }
+        return () => {
+            dispatch(clearSearchResults());
+        };
     }, [qs]);
 
     /** handle sorting */

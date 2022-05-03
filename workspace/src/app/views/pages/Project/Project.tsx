@@ -33,6 +33,7 @@ import FileWidget from "./FileWidget";
 import NotFound from "../NotFound";
 import { diErrorMessage } from "@ducks/error/typings";
 import ActivityInfoWidget from "./ActivityInfoWidget";
+import { previewSlice } from "@ducks/workspace/previewSlice";
 
 const Project = () => {
     const dispatch = useDispatch();
@@ -43,6 +44,7 @@ const Project = () => {
     const data = useSelector(workspaceSel.resultsSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const qs = useSelector(routerSel.routerSearchSelector);
+    const { clearSearchResults } = previewSlice.actions;
     const [t] = useTranslation();
 
     /**
@@ -61,6 +63,9 @@ const Project = () => {
 
         // Fetch the list of projects
         dispatch(workspaceOp.fetchListAsync());
+        return () => {
+            dispatch(clearSearchResults());
+        };
     }, [qs, projectId]);
 
     const handleSort = (sortBy: string) => {
