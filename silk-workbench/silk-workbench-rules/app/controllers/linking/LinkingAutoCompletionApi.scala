@@ -7,9 +7,10 @@ import controllers.shared.autoCompletion.AutoCompletionApiUtils
 import controllers.transform.autoCompletion.Completions
 import controllers.transform.doc.AutoCompletionApiDoc
 import io.swagger.v3.oas.annotations.enums.ParameterIn
-import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.Dataset
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
@@ -17,14 +18,14 @@ import org.silkframework.entity.paths.TypedPath
 import org.silkframework.plugins.path.{PathMetaData, PathMetaDataPlugin, StandardMetaDataPlugin}
 import org.silkframework.rule.{DatasetSelection, LinkSpec}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.workspace.{Project, ProjectTask}
 import org.silkframework.workspace.activity.linking.LinkingPathsCache
 import org.silkframework.workspace.activity.transform.CachedEntitySchemata
-import play.api.libs.json.Json
+import org.silkframework.workspace.{Project, ProjectTask}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import javax.inject.Inject
 
+@Tag(name = "Linking")
 class LinkingAutoCompletionApi @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
   // All path meta data plugins
   private lazy val pathMetaDataPlugins: Map[Class[_], PathMetaDataPlugin[_]] = LinkingTaskApiUtils.pathMetaDataPlugins
