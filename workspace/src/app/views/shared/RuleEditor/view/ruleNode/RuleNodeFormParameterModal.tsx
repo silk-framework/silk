@@ -1,9 +1,9 @@
-import { Button, SimpleDialog } from "@eccenca/gui-elements";
+import { Button } from "@eccenca/gui-elements";
 import React, { useEffect } from "react";
 import { RuleNodeParameterForm, RuleNodeParametersProps } from "./RuleNodeParameterForm";
 import { useTranslation } from "react-i18next";
-import { RuleEditorUiContext } from "../../contexts/RuleEditorUiContext";
 import { ruleEditorNodeParameterValue, RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
+import { RuleEditorBaseModal } from "../components/RuleEditorBaseModal";
 
 type InheritedRuleNodeParameterProps = Omit<RuleNodeParametersProps, "large">;
 
@@ -23,18 +23,11 @@ export const RuleNodeFormParameterModal = ({
     ...ruleNodeParameterProps
 }: RuleNodeFormParameterModalProps) => {
     const [t] = useTranslation();
-    const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
     // The diff to the original values
     const [initialValues] = React.useState(new Map<string, RuleEditorNodeParameterValue | undefined>());
     const [parameterDiff] = React.useState(new Map<string, RuleEditorNodeParameterValue>());
     // Are there changes, yet
     const [dirty, setDirty] = React.useState(false);
-
-    // Enable editor flag "modal shown" flag
-    useEffect(() => {
-        ruleEditorUiContext.setModalShown(true);
-        return () => ruleEditorUiContext.setModalShown(false);
-    }, []);
 
     useEffect(() => {
         ruleNodeParameterProps.parameters.forEach((param) => {
@@ -80,7 +73,7 @@ export const RuleNodeFormParameterModal = ({
     };
 
     return (
-        <SimpleDialog
+        <RuleEditorBaseModal
             data-test-id={"rule-node-parameter-form-modal"}
             size={"large"}
             hasBorder
@@ -98,18 +91,8 @@ export const RuleNodeFormParameterModal = ({
                     {t("common.action.cancel")}
                 </Button>,
             ]}
-            wrapperDivProps={{
-                // Prevent react-flow from getting these events
-                onContextMenu: (event) => event.stopPropagation(),
-                onDrag: (event) => event.stopPropagation(),
-                onDragStart: (event) => event.stopPropagation(),
-                onDragEnd: (event) => event.stopPropagation(),
-                onMouseDown: (event) => event.stopPropagation(),
-                onMouseUp: (event) => event.stopPropagation(),
-                onClick: (event) => event.stopPropagation(),
-            }}
         >
             <RuleNodeParameterForm {...adaptedRuleNodeParameterProps} large={true} />
-        </SimpleDialog>
+        </RuleEditorBaseModal>
     );
 };
