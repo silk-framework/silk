@@ -145,6 +145,8 @@ export function SearchList() {
         <>
             <AppliedFacets />
             <DataList
+                // FIXME: Just a workaround for stale item bug that happens when switching between activities and search view
+                key={`search-list-${data[0]?.id}-${data.length}`}
                 data-test-id="search-result-list"
                 isEmpty={isEmpty}
                 isLoading={isLoading}

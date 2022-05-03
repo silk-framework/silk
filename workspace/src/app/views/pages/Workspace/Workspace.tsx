@@ -8,6 +8,7 @@ import { Grid, GridColumn, GridRow } from "@eccenca/gui-elements";
 import { EmptyWorkspace } from "./EmptyWorkspace/EmptyWorkspace";
 import { commonOp, commonSel } from "@ducks/common";
 import useErrorHandler from "../../../hooks/useErrorHandler";
+import { previewSlice } from "@ducks/workspace/previewSlice";
 
 export function Workspace() {
     const dispatch = useDispatch();
@@ -17,6 +18,7 @@ export function Workspace() {
     const qs = useSelector(routerSel.routerSearchSelector);
     const isEmptyWorkspace = useSelector(workspaceSel.isEmptyPageSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
+    const { clearSearchResults } = previewSlice.actions;
 
     useEffect(() => {
         if (error.detail) {
@@ -39,6 +41,9 @@ export function Workspace() {
         dispatch(workspaceOp.setupFiltersFromQs(qs));
         // Fetch the list of projects
         dispatch(workspaceOp.fetchListAsync());
+        return () => {
+            dispatch(clearSearchResults());
+        };
     }, [qs]);
 
     return !isEmptyWorkspace ? (

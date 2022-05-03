@@ -5,6 +5,9 @@ export const previewSlice = createSlice({
     name: "preview",
     initialState: initialPreviewState(),
     reducers: {
+        clearSearchResults(state) {
+            state.searchResults = [];
+        },
         setLoading(state, action) {
             state.isLoading = action.payload;
         },
