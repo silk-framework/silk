@@ -65,8 +65,12 @@ export function RuleOperatorList<T>({ ruleOperatorList, textQuery, preConfigured
                     ruleOperator.pluginId,
                     (ruleOperator as IPreConfiguredRuleOperator).parameterOverwrites
                 )}
+                style={{cursor: "grab"}}
             >
-                <Card data-test-id={"ruleEditor-sidebar-draggable-operator-" + ruleOperator.pluginId} isOnlyLayout>
+                <Card
+                    data-test-id={"ruleEditor-sidebar-draggable-operator-" + ruleOperator.pluginId}
+                    isOnlyLayout
+                >
                     <OverviewItem hasSpacing={true}>
                         <RuleOperator ruleOperator={ruleOperator} searchWords={searchWords} textQuery={textQuery} />
                         {totalMatches && totalMatches > 0 ? (
