@@ -62,7 +62,7 @@ object CsvSourceHelper {
               case None => columnName
             }
           case (s, _) =>
-            val u = Uri.parse(s)
+            val u = Uri(s)
             if (u.isValidUri) {
               u.uri
             } else {

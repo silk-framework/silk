@@ -112,7 +112,7 @@ class CsvSource(file: Resource,
 
     try {
       for (property <- propertyList) yield {
-        UntypedPath(ForwardOperator(Uri.parse(property)) :: Nil).asStringTypedPath
+        UntypedPath(ForwardOperator(Uri(property)) :: Nil).asStringTypedPath
       }
     } catch {
       case e: MalformedInputException =>
