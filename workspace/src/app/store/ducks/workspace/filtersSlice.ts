@@ -1,12 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { IAppliedSorterState, SortModifierType } from "./typings";
 import { initialPaginationState } from "../../typings";
-import {
-    initialAppliedFiltersState,
-    initialAppliedSortersState,
-    initialFiltersState,
-    initialSortersState,
-} from "./initialState";
+import { initialAppliedFiltersState, initialFiltersState, initialSortersState } from "./initialState";
 import i18n from "../../../../language";
 
 const DEFAULT_SORTER = {
@@ -26,12 +21,13 @@ export const filtersSlice = createSlice({
                     delete state.appliedFilters[field];
                 } else {
                     state.appliedFilters[field] = value;
-                    state.sorters.applied = initialAppliedSortersState();
                 }
             });
 
             state.appliedFacets = [];
-            state.pagination = initialPaginationState();
+            state.pagination = initialPaginationState({
+                limit: state.pagination.limit,
+            });
         },
 
         updateSorters(state, action) {

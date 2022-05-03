@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { NodeTools, NodeToolsMenuFunctions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeTools";
-import { Markdown, Menu, MenuItem, SimpleDialog } from "@eccenca/gui-elements";
+import { Button, Markdown, Menu, MenuItem } from "@eccenca/gui-elements";
+import { RuleEditorBaseModal } from "../components/RuleEditorBaseModal";
 
 interface NodeMenuProps {
     nodeId: string;
@@ -18,6 +19,10 @@ export const RuleNodeMenu = ({ nodeId, t, handleDeleteNode, ruleOperatorDescript
         menuFns?.closeMenu();
     };
     const menuFunctionsCallback = useMemo(() => (menuFunctions) => setMenuFns(menuFunctions), []);
+    const onClose = () => {
+        setShowDescription(false);
+        closeMenu();
+    };
 
     return (
         <NodeTools menuButtonDataTestId={"node-menu-btn"} menuFunctionsCallback={menuFunctionsCallback}>
@@ -39,7 +44,6 @@ export const RuleNodeMenu = ({ nodeId, t, handleDeleteNode, ruleOperatorDescript
                         key="info"
                         icon={"item-info"}
                         onClick={(e) => {
-                            closeMenu();
                             setShowDescription(true);
                             e.preventDefault();
                             e.stopPropagation();
@@ -51,16 +55,21 @@ export const RuleNodeMenu = ({ nodeId, t, handleDeleteNode, ruleOperatorDescript
                     />
                 ) : null}
                 {showDescription && ruleOperatorDescription ? (
-                    <SimpleDialog
+                    <RuleEditorBaseModal
                         isOpen={true}
                         title={t("common.words.description")}
-                        onClose={() => setShowDescription(false)}
+                        onClose={onClose}
                         hasBorder={true}
                         size={"small"}
                         data-test-id={"ruleEditorNode-description-modal"}
+                        actions={[
+                            <Button key="close" onClick={onClose}>
+                                {t("common.action.close")}
+                            </Button>,
+                        ]}
                     >
                         <Markdown>{ruleOperatorDescription}</Markdown>
-                    </SimpleDialog>
+                    </RuleEditorBaseModal>
                 ) : null}
             </Menu>
         </NodeTools>
