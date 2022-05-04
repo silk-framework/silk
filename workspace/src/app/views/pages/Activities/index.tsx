@@ -75,7 +75,7 @@ const Activities = () => {
                         },
                         breadcrumbs[1],
                     ],
-                    autogeneratePageTitle: true,
+                    pageTitle: `${breadcrumbs[1].text}: ${res.data.label}`,
                 });
             });
     }, [projectId]);
