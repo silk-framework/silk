@@ -139,6 +139,19 @@ export function ArtefactManagementOptions({
             },
         ];
 
+        if (itemType === DATA_TYPES.PROJECT) {
+            const projectPath = `projects/${projectId}/activities?page=1&limit=25&sortBy=recentlyUpdated&sortOrder=ASC`;
+            fullMenu.push({
+                text: t("widget.ActivityInfoWidget.title", "Activities"),
+                "data-test-id": "header-item-activities-button",
+                actionHandler: (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dispatch(routerOp.goToPage(projectPath));
+                },
+            });
+        }
+
         if (itemType === DATA_TYPES.PROJECT && !!exportTypes.length) {
             const subitems: { text: string; actionHandler: () => any }[] = [];
             exportTypes.forEach((type) => {

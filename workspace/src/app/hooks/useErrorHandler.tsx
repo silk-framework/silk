@@ -66,7 +66,7 @@ const useErrorHandler = (): ErrorHandlerDict => {
                     },
                 })
             );
-            return <Notification message={tempUnavailableMessage} info />;
+            return <Notification message={tempUnavailableMessage} />;
         } else if (isNotFoundError(cause)) {
             // Do not log 404 errors at all. These are usually due to page 404. Only log to console.
             console.warn("Received 404 error.", cause);
