@@ -192,7 +192,6 @@ const Activities = () => {
                 </Section>
             </WorkspaceMain>
             <WorkspaceSide>
-                <Section></Section>
             </WorkspaceSide>
         </WorkspaceContent>
     );
