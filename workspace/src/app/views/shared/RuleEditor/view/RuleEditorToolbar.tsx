@@ -95,7 +95,7 @@ export const RuleEditorToolbar = () => {
                     disabled={modelContext.isReadOnly() || modelContext.elements.length === 0}
                     name="operation-auto-graph-layout"
                     text={t("RuleEditor.toolbar.autoLayout")}
-                    onClick={modelContext.executeModelEditOperation.autoLayout}
+                    onClick={() => modelContext.executeModelEditOperation.autoLayout(true)}
                 />
                 {ruleEvaluationContext.supportsEvaluation && (
                     <>
@@ -113,7 +113,7 @@ export const RuleEditorToolbar = () => {
                 <Spacing vertical />
             </ToolbarSection>
             {ruleEditorContext.additionalToolBarComponents ? ruleEditorContext.additionalToolBarComponents() : null}
-            {(ruleEvaluationContext.evaluationResultsShown || ruleEvaluationContext.supportsEvaluation) ? (
+            {ruleEvaluationContext.evaluationResultsShown || ruleEvaluationContext.supportsEvaluation ? (
                 <ToolbarSection>
                     <EvaluationActivityControl
                         score={ruleEvaluationContext.evaluationScore}
@@ -121,11 +121,11 @@ export const RuleEditorToolbar = () => {
                         referenceLinksUrl={ruleEvaluationContext.referenceLinksUrl}
                         evaluationResultsShown={ruleEvaluationContext.evaluationResultsShown}
                         manualStartButton={{
-                                "data-test-id": "rule-editor-start-evaluation-btn",
-                                disabled: ruleEvaluationContext.evaluationRunning,
-                                icon: "item-start",
-                                tooltip: t("RuleEditor.toolbar.startEvaluation"),
-                                action: startEvaluation
+                            "data-test-id": "rule-editor-start-evaluation-btn",
+                            disabled: ruleEvaluationContext.evaluationRunning,
+                            icon: "item-start",
+                            tooltip: t("RuleEditor.toolbar.startEvaluation"),
+                            action: startEvaluation,
                         }}
                     />
                     <Spacing vertical hasDivider />

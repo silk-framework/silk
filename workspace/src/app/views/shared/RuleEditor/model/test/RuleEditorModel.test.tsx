@@ -366,21 +366,33 @@ describe("Rule editor model", () => {
         const initialPositions = [
             { x: 0, y: 0 },
             { x: -100, y: 100 },
+            { x: 200, y: 100 },
         ];
         await ruleEditorModel([
             node({ nodeId: "nodeA", position: initialPositions[0] }),
-            node({ nodeId: "nodeB", inputs: ["nodeA"], position: initialPositions[1] }),
+            node({ nodeId: "nodeB", position: initialPositions[1] }),
+            node({
+                nodeId: "nodeC",
+                position: initialPositions[2],
+                portSpecification: { minInputPorts: 2, maxInputPorts: 2 },
+            }),
         ]);
         const checkBefore = () => {
             expect(currentOperatorNodes().map((n) => n.position)).toStrictEqual(initialPositions);
         };
         checkBefore();
         act(() => {
-            currentContext().executeModelEditOperation.autoLayout();
+            currentContext().executeModelEditOperation.addEdge("nodeB", "nodeC", "2");
+            currentContext().executeModelEditOperation.addEdge("nodeA", "nodeC", "1");
+        });
+        act(() => {
+            currentContext().executeModelEditOperation.autoLayout(false);
         });
         const checkAfter = async () => {
             await waitFor(() => {
-                expect(currentOperatorNodes().map((n) => n.position)).not.toStrictEqual(initialPositions);
+                const newPositions = currentOperatorNodes().map((n) => n.position);
+                expect(newPositions).not.toStrictEqual(initialPositions);
+                expect(newPositions[0]?.y!!).toBeLessThan(newPositions[1]?.y!!);
             });
         };
         await checkAfter();

@@ -321,13 +321,12 @@ const layoutGraph = (elements: Elements, zoomFactor: number): Map<string, XYPosi
     g.graph().ranksep = 120;
     const nodes = elementNodes(elements);
     const edges = elementEdges(elements);
-    const maxNodeIndex = new Map<string, number>();
-    edges.forEach((edge) => {
-        const currentIdx = maxNodeIndex.get(edge.source) ?? -1;
-        const edgeIdx = Number.parseInt(edge.targetHandle ?? "-1") + 1;
-        if (edgeIdx > currentIdx) {
-            maxNodeIndex.set(edge.source, edgeIdx);
-        }
+    // Sort edges to maintain input order of edges
+    edges.sort((a, b) => {
+        const aHandle = Number.parseInt(a.targetHandle ?? "-1");
+        const bHandle = Number.parseInt(b.targetHandle ?? "-1");
+        const smaller = a.target === b.target ? aHandle < bHandle : a.target < b.target;
+        return smaller ? -1 : 1;
     });
     const sizes = nodeSizes(zoomFactor);
     const addNode = (node: RuleEditorNode) => {

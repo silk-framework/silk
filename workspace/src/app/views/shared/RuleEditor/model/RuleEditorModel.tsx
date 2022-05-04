@@ -1200,7 +1200,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     };
 
     /** Layout the rule nodes, since this must be async it cannot return the new elements directly in the setElements function. */
-    const autoLayoutInternal = async (elements: Elements, addChangeHistory: boolean): Promise<Elements> => {
+    const autoLayoutInternal = async (
+        elements: Elements,
+        addChangeHistory: boolean,
+        startTransaction: boolean
+    ): Promise<Elements> => {
         const newLayout = utils.autoLayout(elements, zoom);
         const changeNodePositionOperations: ChangeNodePosition[] = [];
         utils.elementNodes(elements).forEach((node) => {
@@ -1216,7 +1220,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
         return new Promise<Elements>((resolve) => {
             if (changeNodePositionOperations.length > 0) {
-                startChangeTransaction();
+                if (startTransaction) {
+                    startChangeTransaction();
+                }
                 const changeNodePositions = { operations: changeNodePositionOperations };
                 changeElementsInternal((elems) => {
                     const newElements = addChangeHistory
@@ -1257,8 +1263,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     /** Auto-layout the rule nodes.
      */
-    const autoLayout = () => {
-        autoLayoutInternal(current.elements, true);
+    const autoLayout = (startTransaction: boolean = true) => {
+        autoLayoutInternal(current.elements, true, startTransaction);
     };
 
     /** Convert to rule operator nodes. Only this representation should be handed outside of this component. */
@@ -1398,7 +1404,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         );
         let elems: Elements = [...nodes, ...edges];
         if (needsLayout) {
-            elems = await autoLayoutInternal(elems, false);
+            elems = await autoLayoutInternal(elems, false, false);
         }
         setElements(elems);
         utils.initNodeBaseIds(nodes);

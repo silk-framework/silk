@@ -98,7 +98,7 @@ export interface IModelActions {
         autoStartTransaction?: boolean
     ) => void;
     /** Automatically layout the rule nodes. */
-    autoLayout: () => void;
+    autoLayout: (startTransaction?: boolean) => void;
     /** Checks all nodes if their input ports need to be adapted, i.e. their number decreased or increased. Usually this is not needed and all operations are handling it themselves.
      * E.g. the deleteEdge function has the option to not fix affected nodes after deleting an edge. */
     fixNodeInputs: () => void;
