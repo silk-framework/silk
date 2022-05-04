@@ -104,7 +104,7 @@ export const RuleParameterInput = ({
                 <Switch
                     {...inputAttributes}
                     onChange={(value: boolean) => inputAttributes.onChange(`${value}`)}
-                    defaultChecked={inputAttributes.defaultValue === "true"}
+                    defaultChecked={inputAttributes.defaultValue?.toLowerCase() === "true"}
                 />
             );
         case "code":

@@ -11,7 +11,7 @@ export const stringValueAsJs = (valueType: string, value: string | null): any =>
 
     if (valueType === INPUT_TYPES.BOOLEAN) {
         // cast to boolean from string
-        v = value === "true";
+        v = value?.toLowerCase() === "true";
     }
 
     if (valueType === INPUT_TYPES.INTEGER) {

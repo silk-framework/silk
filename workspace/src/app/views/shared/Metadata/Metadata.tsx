@@ -438,7 +438,7 @@ export function Metadata(props: IProps) {
                                                 author: (
                                                     <Link
                                                         href={utils.generateFacetUrl(
-                                                            "createdBy",
+                                                            "lastModifiedBy",
                                                             lastModifiedByUser?.uri ?? ""
                                                         )}
                                                     ></Link>
