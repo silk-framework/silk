@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityAction, IActivityStatus, Markdown, SilkActivityControl } from "@eccenca/gui-elements";
-import { Card, Tag, Highlighter, Spacing, OverflowText, Notification, Icon } from "@eccenca/gui-elements";
+import { Card, Tag, TagList, Highlighter, Spacing, OverflowText, Notification, Icon } from "@eccenca/gui-elements";
 import { useDispatch, useSelector } from "react-redux";
 import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import Datalist from "../../../views/shared/Datalist";
@@ -129,14 +129,11 @@ const ActivityList = () => {
 
     const ActivityTags = ({ activity }: any) => {
         return (
-            <>
+            <TagList>
                 {activity.projectLabel && (
-                    <>
-                        <Tag>
-                            <Highlighter label={activity.projectLabel} searchValue={textQuery} />
-                        </Tag>
-                        {activity.parentType && <Spacing vertical size="tiny" />}
-                    </>
+                    <Tag>
+                        <Highlighter label={activity.projectLabel} searchValue={textQuery} />
+                    </Tag>
                 )}
                 {activity.parentType && (
                     <Tag>
@@ -149,7 +146,7 @@ const ActivityList = () => {
                         />
                     </Tag>
                 )}
-            </>
+            </TagList>
         );
     };
 
@@ -196,12 +193,10 @@ const ActivityList = () => {
                                     dispatch(routerOp.goToPage(link));
                                 }}
                             >
-                                <OverflowText>
-                                    <Highlighter
-                                        label={activity.task ? activity.taskLabel : activity.projectLabel}
-                                        searchValue={textQuery}
-                                    />
-                                </OverflowText>
+                                <Highlighter
+                                    label={activity.task ? activity.taskLabel : activity.projectLabel}
+                                    searchValue={textQuery}
+                                />
                             </ResourceLink>
                         </>
                     );
@@ -212,6 +207,14 @@ const ActivityList = () => {
                     return (
                         <Card isOnlyLayout key={index}>
                             <SilkActivityControl
+                                layoutConfig={{
+                                    small: false,
+                                    border: false,
+                                    hasSpacing: true,
+                                    canShrink: false,
+                                    visualization: "spinner",
+                                    labelWrapper: <OverflowText passDown inline />,
+                                }}
                                 label={<ActivityLabel />}
                                 tags={<ActivityTags activity={activity} />}
                                 registerForUpdates={createRegisterForUpdatesFn(key)}
