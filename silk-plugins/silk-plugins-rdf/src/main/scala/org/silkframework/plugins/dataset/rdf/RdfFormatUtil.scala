@@ -137,7 +137,7 @@ object RdfFormatUtil {
       case valueType: ValueType if valueType.uri.isDefined =>
         model.createTypedLiteral(lexicalValue, valueType.uri.get).asNode()
       case _ =>
-        throw new IllegalArgumentException(s"Cannot create RDF node from value type '${valueType.label}' and lexical string '$lexicalValue'! Validation failed.")
+        throw new IllegalArgumentException(s"Cannot create RDF node from value type $valueType and lexical string '$lexicalValue'! Validation failed.")
     }
   }
 
