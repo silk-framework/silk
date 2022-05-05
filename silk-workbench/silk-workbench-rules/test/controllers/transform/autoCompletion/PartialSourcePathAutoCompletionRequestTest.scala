@@ -30,14 +30,14 @@ class PartialSourcePathAutoCompletionRequestTest extends FlatSpec with MustMatch
   }
 
   private def isInBackwardOp(path: String): Boolean = {
-    PartialSourcePathAutoCompletionRequest(path, path.length, None).isInBackwardOp
+    PartialSourcePathAutoCompletionRequest(path, path.length, None, None).isInBackwardOp
   }
 
   private def isInExplicitForwardOp(path: String): Boolean = {
-    PartialSourcePathAutoCompletionRequest(path, path.length, None).isInExplicitForwardOp
+    PartialSourcePathAutoCompletionRequest(path, path.length, None, None).isInExplicitForwardOp
   }
 
   private def operatorPositionBeforeCursor(inputString: String, cursorPosition: Int): Option[Int] = {
-    PartialSourcePathAutoCompletionRequest(inputString, cursorPosition, None).pathOperatorIdxBeforeCursor
+    PartialSourcePathAutoCompletionRequest(inputString, cursorPosition, None, None).pathOperatorIdxBeforeCursor
   }
 }

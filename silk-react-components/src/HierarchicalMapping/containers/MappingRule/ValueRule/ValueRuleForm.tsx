@@ -308,7 +308,7 @@ export function ValueRuleForm(props: IProps) {
                             'sourceProperty',
                             setSourceProperty
                         )}
-                        fetchSuggestions={(input, cursorPosition) => fetchValuePathSuggestions(autoCompleteRuleId, input, cursorPosition)}
+                        fetchSuggestions={(input, cursorPosition) => fetchValuePathSuggestions(autoCompleteRuleId, input, cursorPosition, false)}
                         checkInput={checkValuePathValidity}
                         onInputChecked={setValuePathValid}
                         onFocusChange={setValuePathInputHasFocus}

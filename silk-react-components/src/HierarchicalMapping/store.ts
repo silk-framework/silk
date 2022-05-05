@@ -729,7 +729,7 @@ export const prefixesAsync = () => {
 };
 
 
-const getValuePathSuggestion = (ruleId:string, inputString: string, cursorPosition:number): HttpResponsePromise<any> => {
+const getValuePathSuggestion = (ruleId:string, inputString: string, cursorPosition:number, isObjectPath: boolean): HttpResponsePromise<any> => {
     const { baseUrl, transformTask, project } = getDefinedApiDetails();
     return silkApi.getSuggestionsForAutoCompletion(
         baseUrl,
@@ -737,17 +737,27 @@ const getValuePathSuggestion = (ruleId:string, inputString: string, cursorPositi
         transformTask,
         ruleId,
         inputString,
-        cursorPosition
+        cursorPosition,
+        isObjectPath
     );
 }
 
-// Fetches (partial) auto-complete suggestions for the value path
-export const fetchValuePathSuggestions = (ruleId: string | undefined, inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
+/** Fetches (partial) auto-complete suggestions for the value path
+ *
+ * @param ruleId         The transform rule ID
+ * @param inputString    The current path input string.
+ * @param cursorPosition The cursor position inside the input string.
+ * @param isObjectPath   If the suggestions are for an object path, i.e. the value path of an object mapping.
+ */
+export const fetchValuePathSuggestions = (ruleId: string | undefined,
+                                          inputString: string,
+                                          cursorPosition: number,
+                                          isObjectPath: boolean): Promise<IPartialAutoCompleteResult | undefined> => {
     return new Promise((resolve, reject) => {
         if(!ruleId) {
             resolve(undefined)
         } else {
-            getValuePathSuggestion(ruleId, inputString, cursorPosition)
+            getValuePathSuggestion(ruleId, inputString, cursorPosition, isObjectPath)
                 .then((suggestions) => resolve(suggestions?.data))
                 .catch((err) => reject(err))
         }

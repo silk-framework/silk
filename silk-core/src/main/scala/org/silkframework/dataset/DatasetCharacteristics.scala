@@ -38,7 +38,13 @@ object DatasetCharacteristics {
     * @param value       The path value.
     * @param description Description of the semantics of the special path.
     */
-  case class SpecialPathInfo(value: String, description: Option[String])
+  case class SpecialPathInfo(value: String, description: Option[String], suggestedFor: SuggestedForEnum.Value = SuggestedForEnum.All)
+
+  object SuggestedForEnum extends Enumeration {
+    type SuggestedForEnum = Value
+
+    val All, ValuePathOnly, ObjectPathOnly = Value
+  }
 
 }
 

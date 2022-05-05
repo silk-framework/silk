@@ -44,6 +44,7 @@ export const RuleNodeMenu = ({ nodeId, t, handleDeleteNode, ruleOperatorDescript
                         key="info"
                         icon={"item-info"}
                         onClick={(e) => {
+                            closeMenu();
                             setShowDescription(true);
                             e.preventDefault();
                             e.stopPropagation();

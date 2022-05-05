@@ -1,6 +1,6 @@
 package org.silkframework.plugins.dataset.xml
 
-import org.silkframework.dataset.DatasetCharacteristics.{SpecialPathInfo, SupportedPathExpressions}
+import org.silkframework.dataset.DatasetCharacteristics.{SpecialPathInfo, SuggestedForEnum, SupportedPathExpressions}
 import org.silkframework.dataset._
 import org.silkframework.dataset.bulk.BulkResourceBasedDataset
 import org.silkframework.plugins.dataset.hierarchical.HierarchicalSink.DEFAULT_MAX_SIZE
@@ -71,9 +71,9 @@ object XmlDataset {
       propertyFilter = true,
       specialPaths = Seq(
         SpecialPathInfo(BACKWARD_PATH, Some("Navigate to parent element.")),
-        SpecialPathInfo(ID, Some("A document-wide unique ID of the entity.")),
-        SpecialPathInfo(TAG, Some("The element tag of the entity.")),
-        SpecialPathInfo(TEXT, Some("The concatenated text inside an element.")),
+        SpecialPathInfo(ID, Some("A document-wide unique ID of the entity."), SuggestedForEnum.ValuePathOnly),
+        SpecialPathInfo(TAG, Some("The element tag of the entity."), SuggestedForEnum.ValuePathOnly),
+        SpecialPathInfo(TEXT, Some("The concatenated text inside an element."), SuggestedForEnum.ValuePathOnly),
         SpecialPathInfo(ALL_CHILDREN, Some("Selects all direct children of the entity.")),
         SpecialPathInfo(ALL_CHILDREN_RECURSIVE, Some("Selects all children nested below the entity at any depth."))
       )

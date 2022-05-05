@@ -290,12 +290,13 @@ const silkApi = {
         return `${baseUrl}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/targetProperties?term=${encodedSearchTerm}&maxResults=${maxResults}&fullUris=${fullUris}`
     },
 
-    getSuggestionsForAutoCompletion: function(baseUrl: string, projectId:string, transformTaskId:string, ruleId:string, inputString:string, cursorPosition: number): HttpResponsePromise<any> {
+    getSuggestionsForAutoCompletion: function(baseUrl: string, projectId:string, transformTaskId:string, ruleId:string,
+                                              inputString:string, cursorPosition: number, isObjectPath: boolean): HttpResponsePromise<any> {
         const requestUrl = `${baseUrl}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/partialSourcePaths`;
         const promise = superagent
             .post(requestUrl)
             .set("Content-Type", CONTENT_TYPE_JSON)
-            .send({ inputString, cursorPosition, maxSuggestions: 50 });
+            .send({ inputString, cursorPosition, maxSuggestions: 50, isObjectPath });
         return this.handleErrorCode(promise)
     },
 
