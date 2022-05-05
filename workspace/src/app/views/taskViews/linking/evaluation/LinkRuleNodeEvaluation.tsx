@@ -1,4 +1,4 @@
-import { OverflowText, Spacing, Tag } from "@eccenca/gui-elements";
+import { WhiteSpaceContainer, Spacing, Tag } from "@eccenca/gui-elements";
 import { NodeContentExtension } from "@eccenca/gui-elements/src/extensions/react-flow";
 import React from "react";
 import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements/src/configuration/constants";
@@ -47,28 +47,33 @@ export const LinkRuleNodeEvaluation = ({
 
     return evaluationResult ? (
         <NodeContentExtension isExpanded={true} data-test-id={`evaluationNode${ruleOperatorId}`}>
-            <Spacing size={"small"} />
             {evaluationResult.length > 0 ? (
-                evaluationResult.map((rowValues, idx) => {
+                <ul>
+                {evaluationResult.map((rowValues, idx) => {
                     return (
-                        <div key={idx}>
-                            <OverflowText
+                        <li key={idx}>
+                            <WhiteSpaceContainer
                                 className={`evaluationLink${idx}`}
                                 onMouseEnter={() => onMouseEnter(idx)}
                                 onMouseLeave={() => onMouseLeave(idx)}
                                 title={rowValues.join(" | ")}
+                                paddingTop="tiny"
+                                paddingBottom="tiny"
+                                style={{whiteSpace: "nowrap", overflow: "hidden"}}
                             >
-                                <Spacing size={"tiny"} vertical={true} />
                                 {rowValues.map((value) => (
-                                    <Tag small={true} minimal={true} round={true}>
+                                    <Tag
+                                        small={true} minimal={true} round={true}
+                                        style={{marginRight: "0.25rem"}}
+                                    >
                                         {value}
                                     </Tag>
                                 ))}
-                            </OverflowText>
-                            {idx < evaluationResult?.length - 1 ? <Spacing size={"tiny"} /> : null}
-                        </div>
+                            </WhiteSpaceContainer>
+                        </li>
                     );
-                })
+                })}
+                </ul>
             ) : referenceLinksUrl ? (
                 <div>
                     <Link href={referenceLinksUrl}>{t("RuleEditor.evaluation.noResults")}</Link>
@@ -79,7 +84,6 @@ export const LinkRuleNodeEvaluation = ({
             {evaluationResult.length < numberOfLinksToShow && evaluationResult.length && referenceLinksUrl ? (
                 <div>
                     <Spacing hasDivider={true} />
-                    <Spacing size={"tiny"} vertical={true} />
                     <Link href={referenceLinksUrl}>{t("RuleEditor.evaluation.addMoreResults")}</Link>
                 </div>
             ) : null}
