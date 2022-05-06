@@ -173,7 +173,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
         }
     };
 
-    // TODO: CMEM-3919: Add i18n to parameter specs
+    // FIXME: Add i18n to parameter specs
     const weightParameterSpec = ruleUtils.parameterSpecification({
         label: "Weight",
         description:

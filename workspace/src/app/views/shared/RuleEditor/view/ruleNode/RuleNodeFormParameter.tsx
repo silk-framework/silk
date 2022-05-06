@@ -60,7 +60,7 @@ export const RuleNodeFormParameter = ({
             key={parameter.parameterId}
             labelAttributes={{
                 text: paramSpec.label,
-                tooltip: parameterDescription, // TODO: CMEM-3919 Tooltip flickers
+                tooltip: parameterDescription,
                 tooltipProperties: {
                     tooltipProps: {
                         boundary: "window",

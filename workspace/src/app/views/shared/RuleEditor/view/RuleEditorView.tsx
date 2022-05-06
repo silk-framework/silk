@@ -10,7 +10,6 @@ export const RuleEditorView = () => {
     const [modalShown, setModalShown] = React.useState(false);
 
     return (
-        // TODO: CMEM-3873 Use component to use available height and background as in the tab views?
         <RuleEditorUiContext.Provider
             value={{
                 modalShown,

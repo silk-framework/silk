@@ -169,7 +169,7 @@ const inputPathOperator = (
             }),
         },
         categories: ["Input", "Recommended"],
-        icon: undefined, // TODO: CMEM-3919: Icon for path input
+        icon: undefined,
         description: description,
         tags: [],
     };
@@ -217,7 +217,7 @@ const convertRuleOperator = (
         label: pluginDetails.title,
         description: pluginDetails.description,
         categories: pluginDetails.categories,
-        icon: "artefact-task", // FIXME: Which icons? CMEM-3919
+        icon: undefined,
         parameterSpecification: Object.fromEntries([
             ...Object.entries(pluginDetails.properties).map(([parameterId, parameterSpec]) => {
                 const spec: IParameterSpecification = {
@@ -266,7 +266,7 @@ const convertPluginParameterType = (pluginParameterType: string): RuleParameterT
         case "uri": // TODO: CMEM-3873: We could handle URIs with a special target type
         case "option[identifier]": // TODO: CMEM-3873: We could check identifiers
         case "identifier":
-        case "enumeration": // TODO: CMEM-3873: Add auto-completion
+        case "enumeration":
         case "project": // TODO: CMEM-3873: Add auto-completion
         case "task": // TODO: CMEM-3873: Add auto-completion
         default:

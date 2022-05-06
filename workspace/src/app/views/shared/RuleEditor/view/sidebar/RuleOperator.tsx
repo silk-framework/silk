@@ -29,7 +29,6 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                 itemLabel.length > 30,
                 itemLabel,
                 <OverviewItemLine>
-                    {/** TODO: CMEM-3917: add icon*/}
                     <Spacing vertical={true} size={"tiny"} />
                     <OverflowText>
                         <Highlighter label={itemLabel} searchValue={textQuery} />

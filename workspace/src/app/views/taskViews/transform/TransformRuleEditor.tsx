@@ -123,7 +123,7 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
                     "valuePathInput",
                     "Value path",
                     "The value path of the input source of the transformation task."
-                ), // TODO: CMEM-3919: Add i18n
+                ), // FIXME: Add i18n for rule operators
             ]}
             validateConnection={ruleUtils.validateConnection}
             tabs={[ruleUtils.sidebarTabs.all, ruleUtils.sidebarTabs.transform]}

@@ -75,15 +75,15 @@ export const SidebarSearchField = ({ onQueryChange, searchSuggestions, activeTab
             />
         </>
     );
-    // TODO: Too many issues with AutoSuggestion
+    // FIXME: Too many issues with AutoSuggestion, see FIXMEs below
     // <AutoSuggestion
     //     id={"rule-editor-operator-search"}
     //     fetchSuggestions={fetchSuggestions}
     //     initialValue={""}
     //     onChange={value => setTextQuery(value)}
-    //     // TODO: Placeholder is too big and dark and stretches the input field beyond the sidebar
+    //     // FIXME: Placeholder is too big and dark and stretches the input field beyond the sidebar
     //     // placeholder={t("RuleEditor.sidebar.searchInput")}
-    //     // TODO: Instead of the scroll bar the input increases in size
+    //     // FIXME: Instead of the scroll bar the input increases in size
     //     // showScrollBar={false}
     //     leftElement={
     //         <Icon

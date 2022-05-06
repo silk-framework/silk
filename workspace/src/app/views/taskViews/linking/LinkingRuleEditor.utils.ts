@@ -142,7 +142,7 @@ const convertRuleOperatorNodeToSimilarityOperator = (
                     ruleOperatorNodes
                 ),
                 id: ruleOperatorNode.nodeId,
-                indexing: false, // FIXME: Should this be part of the config in the UI? CMEM-3919
+                indexing: true, // FIXME: Should this be part of the config in the UI?
                 parameters: Object.fromEntries(
                     Object.entries(ruleOperatorNode.parameters).map(([parameterKey, parameterValue]) => [
                         parameterKey,
