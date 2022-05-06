@@ -1,4 +1,4 @@
-import { WhiteSpaceContainer, Spacing, Tag } from "@eccenca/gui-elements";
+import { WhiteSpaceContainer, Spacing, Tag, Tooltip } from "@eccenca/gui-elements";
 import { NodeContentExtension } from "@eccenca/gui-elements/src/extensions/react-flow";
 import React from "react";
 import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements/src/configuration/constants";
@@ -49,30 +49,39 @@ export const LinkRuleNodeEvaluation = ({
         <NodeContentExtension isExpanded={true} data-test-id={`evaluationNode${ruleOperatorId}`}>
             {evaluationResult.length > 0 ? (
                 <ul>
-                {evaluationResult.map((rowValues, idx) => {
-                    return (
-                        <li key={idx}>
-                            <WhiteSpaceContainer
-                                className={`evaluationLink${idx}`}
-                                onMouseEnter={() => onMouseEnter(idx)}
-                                onMouseLeave={() => onMouseLeave(idx)}
-                                title={rowValues.join(" | ")}
-                                paddingTop="tiny"
-                                paddingBottom="tiny"
-                                style={{whiteSpace: "nowrap", overflow: "hidden"}}
-                            >
-                                {rowValues.map((value) => (
-                                    <Tag
-                                        small={true} minimal={true} round={true}
-                                        style={{marginRight: "0.25rem"}}
+                    {evaluationResult.map((rowValues, idx) => {
+                        return (
+                            <li key={idx}>
+                                <Tooltip
+                                    content={rowValues.join(" | ")}
+                                    tooltipProps={{
+                                        placement: "top",
+                                        boundary: "window",
+                                    }}
+                                >
+                                    <WhiteSpaceContainer
+                                        className={`evaluationLink${idx}`}
+                                        onMouseEnter={() => onMouseEnter(idx)}
+                                        onMouseLeave={() => onMouseLeave(idx)}
+                                        paddingTop="tiny"
+                                        paddingBottom="tiny"
+                                        style={{ whiteSpace: "nowrap", overflow: "hidden" }}
                                     >
-                                        {value}
-                                    </Tag>
-                                ))}
-                            </WhiteSpaceContainer>
-                        </li>
-                    );
-                })}
+                                        {rowValues.map((value) => (
+                                            <Tag
+                                                small={true}
+                                                minimal={true}
+                                                round={true}
+                                                style={{ marginRight: "0.25rem" }}
+                                            >
+                                                {value}
+                                            </Tag>
+                                        ))}
+                                    </WhiteSpaceContainer>
+                                </Tooltip>
+                            </li>
+                        );
+                    })}
                 </ul>
             ) : referenceLinksUrl ? (
                 <div>
