@@ -160,6 +160,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
     content = Array(
       new Content(
         mediaType = "application/x-www-form-urlencoded",
+        schema = new Schema(implementation = classOf[String]),
         examples = Array(
           new ExampleObject(
             description = "Multiple values are provided for an input property by having the same parameter multiple times in the request body.",
@@ -168,6 +169,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       ),
       new Content(
         mediaType = "application/json",
+        schema = new Schema(`type` = "object"),
         examples = Array(
           new ExampleObject(
             value = WorkflowApiDoc.variableWorkflowRequestJsonExample
@@ -175,6 +177,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       ),
       new Content(
         mediaType = "application/xml",
+        schema = new Schema(implementation = classOf[String]),
         examples = Array(
           new ExampleObject(
             value = WorkflowApiDoc.variableWorkflowRequestXmlExample
@@ -182,6 +185,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       ),
       new Content(
         mediaType = "text/comma-separated-values",
+        schema = new Schema(implementation = classOf[String]),
         examples = Array(
           new ExampleObject(
             description = "The CSV format is the default CSV dataset config, e.g. there is no array separator defined.",
@@ -190,6 +194,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       ),
       new Content(
         mediaType = "text/csv",
+        schema = new Schema(implementation = classOf[String]),
         examples = Array(
           new ExampleObject(
             description = "The CSV format is the default CSV dataset config, e.g. there is no array separator defined.",
@@ -286,6 +291,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
     content = Array(
       new Content(
         mediaType = "application/x-www-form-urlencoded",
+        schema = new Schema(implementation = classOf[String]),
         examples = Array(
           new ExampleObject(
             description = "Multiple values are provided for an input property by having the same parameter multiple times in the request body.",
@@ -294,20 +300,16 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       ),
       new Content(
         mediaType = "application/json",
-        examples = Array(
-          new ExampleObject(
-            value = WorkflowApiDoc.variableWorkflowRequestJsonExample
-          ))
+        schema = new Schema(`type` = "object"),
+        examples = Array(new ExampleObject(WorkflowApiDoc.variableWorkflowRequestJsonExample))
       ),
       new Content(
         mediaType = "application/xml",
-        examples = Array(
-          new ExampleObject(
-            value = WorkflowApiDoc.variableWorkflowRequestXmlExample
-          ))
-      ),
+        schema = new Schema(implementation = classOf[String]),
+        examples = Array(new ExampleObject(WorkflowApiDoc.variableWorkflowRequestXmlExample))),
       new Content(
         mediaType = "text/comma-separated-values",
+        schema = new Schema(implementation = classOf[String]),
         examples = Array(
           new ExampleObject(
             description = "The CSV format is the default CSV dataset config, e.g. there is no array separator defined.",
@@ -316,6 +318,7 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       ),
       new Content(
         mediaType = "text/csv",
+        schema = new Schema(implementation = classOf[String]),
         examples = Array(
           new ExampleObject(
             description = "The CSV format is the default CSV dataset config, e.g. there is no array separator defined.",

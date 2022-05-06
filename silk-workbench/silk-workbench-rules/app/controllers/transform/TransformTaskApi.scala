@@ -371,6 +371,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
         content = Array(
           new Content(
             mediaType = "application/json",
+            schema = new Schema(`type` = "object"),
             examples = Array(new ExampleObject(TransformTaskApiDoc.updateRuleResponseExample))
           ))
       ),
@@ -388,6 +389,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     content = Array(
       new Content(
         mediaType = "application/json",
+        schema = new Schema(`type` = "object"),
         examples = Array(new ExampleObject(TransformTaskApiDoc.updateRuleRequestExample))
       )
     )
@@ -501,6 +503,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
         content = Array(
           new Content(
             mediaType = "application/json",
+            schema = new Schema(`type` = "object"),
             examples = Array(new ExampleObject(TransformTaskApiDoc.appendRuleResponseExample))
           ))
       ),
@@ -518,6 +521,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     content = Array(
       new Content(
         mediaType = "application/json",
+        schema = new Schema(`type` = "object"),
         examples = Array(new ExampleObject(TransformTaskApiDoc.appendRuleRequestExample))
       )
     )
@@ -757,6 +761,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
         description = "The rules have been successfully reordered. The new ordered list of rules is returned.",
         content = Array(new Content(
           mediaType = "application/json",
+          schema = new Schema(`type` = "object"),
           examples = Array(new ExampleObject("[ \"objectRule\", \"directRule\" ]"))
         ))
       ),
@@ -770,6 +775,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     content = Array(
       new Content(
         mediaType = "application/json",
+        schema = new Schema(`type` = "object"),
         examples = Array(new ExampleObject("[ \"objectRule\", \"directRule\" ]"))
       )
     )
@@ -920,6 +926,7 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
     content = Array(
       new Content(
         mediaType = "application/xml",
+        schema = new Schema(implementation = classOf[String]),
         examples = Array(new ExampleObject(TransformTaskApiDoc.transformInputExample))
       ),
     )

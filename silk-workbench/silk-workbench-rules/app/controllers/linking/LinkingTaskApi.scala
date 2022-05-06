@@ -25,11 +25,11 @@ import org.silkframework.rule.evaluation.{LinkageRuleEvaluator, ReferenceEntitie
 import org.silkframework.rule.execution.{GenerateLinks => GenerateLinksActivity}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, UserContext}
-import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlSerialization}
 import org.silkframework.runtime.validation._
 import org.silkframework.serialization.json.JsonSerialization
+import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonFormat
 import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
 import org.silkframework.util.Identifier._
 import org.silkframework.util.{CollectLogs, DPair, Identifier, Uri}
@@ -39,8 +39,7 @@ import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
 import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.json.{JsArray, JsValue, Json}
-import play.api.mvc.{Action, AnyContent, AnyContentAsXml, InjectedController, Request}
-import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonFormat
+import play.api.mvc._
 
 import java.util.logging.{Level, LogRecord, Logger}
 import javax.inject.Inject
@@ -289,6 +288,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     content = Array(
       new Content(
         mediaType = "application/xml",
+        schema = new Schema(implementation = classOf[String]),
         examples = Array(new ExampleObject(LinkingTaskApiDoc.referenceLinksExample))
       )
     )
@@ -777,6 +777,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
         content = Array(
           new Content(
             mediaType = "application/n-triples",
+            schema = new Schema(implementation = classOf[String]),
             examples = Array(new ExampleObject(LinkingTaskApiDoc.postLinkDatasourceResponseExample))
           )
         )
@@ -792,6 +793,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     content = Array(
       new Content(
         mediaType = "application/xml",
+        schema = new Schema(implementation = classOf[String]),
         examples = Array(new ExampleObject(LinkingTaskApiDoc.postLinkDatasourceRequestExample))
       )
     )
@@ -844,6 +846,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
         content = Array(
           new Content(
             mediaType = "application/json",
+            schema = new Schema(`type` = "object"),
             examples = Array(new ExampleObject(LinkingTaskApiDoc.evaluateLinkageRuleResponseExample))
           )
         )
@@ -859,6 +862,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     content = Array(
       new Content(
         mediaType = "application/json",
+        schema = new Schema(`type` = "object"),
         examples = Array(new ExampleObject(LinkingTaskApiDoc.evaluateLinkageRuleRequestJsonExample))
       ),
       new Content(

@@ -140,10 +140,12 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
     content = Array(
       new Content(
         mediaType = "application/json",
+        schema = new Schema(`type` = "object"),
         examples = Array(new ExampleObject(WorkflowApiDoc.executeOnPayloadJsonRequestExample))
       ),
       new Content(
         mediaType = "application/xml",
+        schema = new Schema(implementation = classOf[String]),
         examples = Array(new ExampleObject(WorkflowApiDoc.executeOnPayloadXmlRequestExample))
       )
     )
@@ -207,10 +209,12 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
     content = Array(
       new Content(
         mediaType = "application/json",
+        schema = new Schema(`type` = "object"),
         examples = Array(new ExampleObject(WorkflowApiDoc.executeOnPayloadJsonRequestExample))
       ),
       new Content(
         mediaType = "application/xml",
+        schema = new Schema(implementation = classOf[String]),
         examples = Array(new ExampleObject(WorkflowApiDoc.executeOnPayloadXmlRequestExample))
       )
     )

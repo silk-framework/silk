@@ -52,6 +52,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
         description = "The added task.",
         content = Array(new Content(
           mediaType = "application/json",
+          schema = new Schema(`type` = "object"),
           examples = Array(new ExampleObject(TaskApiDoc.taskExampleJson))
         ))
       ),
@@ -74,6 +75,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     content = Array(
       new Content(
         mediaType = "application/json",
+        schema = new Schema(`type` = "object"),
         examples = Array(new ExampleObject(TaskApiDoc.taskExampleJson))
       ))
   )
@@ -118,6 +120,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     content = Array(
       new Content(
         mediaType = "application/json",
+        schema = new Schema(`type` = "object"),
         examples = Array(new ExampleObject(TaskApiDoc.taskExampleJson))
       ))
   )
@@ -171,6 +174,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     content = Array(
       new Content(
         mediaType = "application/json",
+        schema = new Schema(`type` = "object"),
         examples = Array(new ExampleObject("{ \"metadata\": { \"description\": \"task description\" } }"))
       ))
   )
