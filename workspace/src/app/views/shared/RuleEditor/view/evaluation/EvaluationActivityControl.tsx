@@ -2,7 +2,10 @@ import { IEvaluatedReferenceLinksScore } from "../../../../taskViews/linking/lin
 import React from "react";
 import { Tooltip } from "@eccenca/gui-elements";
 import { Markdown, ActivityControlWidget } from "@eccenca/gui-elements";
-import { IActivityControlProps, IActivityAction } from "@eccenca/gui-elements/src/cmem/ActivityControl/ActivityControlWidget";
+import {
+    IActivityControlProps,
+    IActivityAction,
+} from "@eccenca/gui-elements/src/cmem/ActivityControl/ActivityControlWidget";
 import { useTranslation } from "react-i18next";
 
 interface EvaluationActivityControlProps {
@@ -19,7 +22,7 @@ export const EvaluationActivityControl = ({
     loading,
     referenceLinksUrl,
     evaluationResultsShown,
-    manualStartButton
+    manualStartButton,
 }: EvaluationActivityControlProps) => {
     const [t] = useTranslation();
 
@@ -30,8 +33,8 @@ export const EvaluationActivityControl = ({
                 "data-test-id": "open-reference-links-ui",
                 icon: "item-edit",
                 action: () => window.open(referenceLinksUrl, "_blank"),
-                tooltip: t("RuleEditor.evaluation.scoreWidget.referenceLinks")
-            })
+                tooltip: t("RuleEditor.evaluation.scoreWidget.referenceLinks"),
+            });
         }
         if (manualStartButton) {
             actionButtons.push(manualStartButton);
@@ -65,27 +68,36 @@ export const EvaluationActivityControl = ({
                     intent: "primary",
                     animate: false,
                     stripes: false,
-                    value: fMeasure
+                    value: fMeasure,
                 },
                 progressSpinner: loading ? { intent: "none" } : undefined,
-            }
+            };
         } else {
             activityInfo = {
-                statusMessage: t("RuleEditor.evaluation.scoreWidget.noResult"),
+                label: (
+                    <Tooltip
+                        content={<Markdown>{t("RuleEditor.evaluation.scoreWidget.noScoreTooltip")}</Markdown>}
+                        size={"large"}
+                    >
+                        {t("RuleEditor.evaluation.scoreWidget.noScore")}
+                    </Tooltip>
+                ),
                 progressBar: {
                     animate: false,
                     stripes: false,
                     value: 0,
-                }
-            }
+                },
+            };
         }
     }
 
-    return <ActivityControlWidget
-        border={evaluationResultsShown}
-        small
-        canShrink
-        {...activityInfo}
-        activityActions={Menu()}
-    />
+    return (
+        <ActivityControlWidget
+            border={evaluationResultsShown}
+            small
+            canShrink
+            {...activityInfo}
+            activityActions={Menu()}
+        />
+    );
 };
