@@ -167,6 +167,7 @@ class DatasetApi @Inject() () extends InjectedController with UserContextActions
     content = Array(
       new Content(
         mediaType = "application/json",
+        schema = new Schema(`type` = "object"),
         examples = Array(new ExampleObject(DatasetApiDoc.datasetExampleJson))
       ),
       new Content(

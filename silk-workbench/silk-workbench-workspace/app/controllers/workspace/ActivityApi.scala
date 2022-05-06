@@ -111,6 +111,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     content = Array(
       new Content(
         mediaType = "application/x-www-form-urlencoded",
+        schema = new Schema(implementation = classOf[String]),
         examples = Array(new ExampleObject("param1=value1&param2=value2"))
       )
     )
@@ -162,6 +163,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     content = Array(
       new Content(
         mediaType = "application/x-www-form-urlencoded",
+        schema = new Schema(implementation = classOf[String]),
         examples = Array(new ExampleObject("param1=value1&param2=value2"))
       )
     )
