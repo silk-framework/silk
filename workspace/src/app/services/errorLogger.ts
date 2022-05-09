@@ -180,7 +180,7 @@ const logError = (error: FetchError | Error, reactErrorInfo?: ErrorInfo): boolea
  * Send the error via http or store in indexedDB
  */
 const sendError = async (logs) => {
-    // @TODO: prepare endpoint for logs
+    // FIXME: Log exceptions in backend
     if (isDevelopment) {
         console.log(`Send Logs at: ${Date().toString()}`);
         console.log(logs);

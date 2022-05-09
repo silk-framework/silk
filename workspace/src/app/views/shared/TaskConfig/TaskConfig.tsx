@@ -96,6 +96,7 @@ export function TaskConfig(props: IProps) {
         titlePostfix = `: ${labelledTaskData.taskDescription.title}`;
     }
 
+    // FIXME: CMEM-3742: only return CardContent when it has items, so we need check content before rendering
     return (
         <Card data-test-id={"taskConfigWidget"}>
             <CardHeader>

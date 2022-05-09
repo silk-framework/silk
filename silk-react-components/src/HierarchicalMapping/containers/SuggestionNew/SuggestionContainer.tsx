@@ -135,7 +135,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                 setVocabularies(data.vocabularies)
             })
             .catch(err => {
-                // TODO: error handling
+                // TODO: When mapping and workspace code bases are merged, add error handling
                 setVocabularies([])
             })
     }
@@ -161,7 +161,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
                 return []
             }
         } catch (err) {
-            // TODO: What to display on error?
+            // TODO: When mapping and workspace code bases are merged, add error handling
             return []
         }
     }

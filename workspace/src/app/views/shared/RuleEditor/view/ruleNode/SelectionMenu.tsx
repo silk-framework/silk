@@ -19,7 +19,7 @@ interface SelectionMenuProps {
 export const SelectionMenu = ({ position, onClose, removeSelection, cloneSelection }: SelectionMenuProps) => {
     const [t] = useTranslation();
     return (
-        // TODO CMEM-4080: Use a generic "tools" component or rename EdgeTools
+        // FIXME: CMEM-3742: Use a generic "tools" component or rename EdgeTools
         <EdgeTools posOffset={{ left: position.x, top: position.y }} onClose={onClose}>
             <Button
                 minimal

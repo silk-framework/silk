@@ -249,11 +249,11 @@ const convertPluginParameterType = (pluginParameterType: string): RuleParameterT
             return "int";
         case "boolean":
             return "boolean";
-        case "stringmap": // TODO: CMEM-3873 Investigate how common this type is
+        case "stringmap": // FIXME: Investigate how common this type is
             return "textArea";
         case "double":
             return "float";
-        case "traversable[string]": // TODO: CMEM-3873: Have some kind of list component here?
+        case "traversable[string]": // FIXME: Have some kind of list component here?
             return "textArea";
         case "restriction":
             return "code";
@@ -262,13 +262,13 @@ const convertPluginParameterType = (pluginParameterType: string): RuleParameterT
         case "resource":
             return "resource";
         case "duration":
-        case "char": // TODO: CMEM-3873: We could further restrict its target type
-        case "uri": // TODO: CMEM-3873: We could handle URIs with a special target type
-        case "option[identifier]": // TODO: CMEM-3873: We could check identifiers
+        case "char": // FIXME: We could further restrict its target type
+        case "uri": // FIXME: We could handle URIs with a special target type
+        case "option[identifier]": // FIXME: We could check identifiers
         case "identifier":
         case "enumeration":
-        case "project": // TODO: CMEM-3873: Add auto-completion
-        case "task": // TODO: CMEM-3873: Add auto-completion
+        case "project":
+        case "task":
         default:
             return "textField";
     }
@@ -278,7 +278,7 @@ const convertPluginParameterType = (pluginParameterType: string): RuleParameterT
 const pluginTags = (pluginDetails: IPluginDetails): string[] => {
     switch (pluginDetails.pluginType) {
         case "TransformOperator":
-            return ["Transform"]; // TODO: Discuss: CMEM-3919: i18n?
+            return ["Transform"];
         case "ComparisonOperator":
             return ["Comparison"];
         case "AggregationOperator":

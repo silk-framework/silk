@@ -19,12 +19,9 @@ const getIntentState = (stateReference: string, statePath: string) => {
     if (mergedState.includes("danger")) return "danger";
     if (mergedState.includes("warning")) return "warning";
     return "none";
-}
+};
 
-export const LinkingRuleCacheInfo = ({
-    projectId,
-    taskId
-}: LinkingRuleCacheInfoProps) => {
+export const LinkingRuleCacheInfo = ({ projectId, taskId }: LinkingRuleCacheInfoProps) => {
     const [t] = useTranslation();
     const [displayFullInfo, setDisplayFullInfo] = React.useState<boolean>(false);
 
@@ -53,31 +50,38 @@ export const LinkingRuleCacheInfo = ({
             <ToolbarSection canShrink key={"pathsActivity"}>
                 <ContextOverlay
                     isOpen={displayFullInfo}
-                    onClose={() => {setDisplayFullInfo(false);}}
+                    onClose={() => {
+                        setDisplayFullInfo(false);
+                    }}
                 >
                     <ActivityControlWidget
                         small
                         border
-                        label={(
+                        label={
                             <>
                                 <strong>Caches: </strong>
                                 {referenceCache.elapsedDateTime}
                                 {" / "}
                                 {pathCache.elapsedDateTime}
                             </>
-                        )}
-                        //statusMessage="TODO"
+                        }
                         progressSpinner={intent === "none" ? { intent, value: 0 } : undefined}
-                        progressSpinnerFinishedIcon={intent !== "none" ? <Icon name={[`state-${intent}`]} intent={intent as IntentTypes} />: undefined}
+                        progressSpinnerFinishedIcon={
+                            intent !== "none" ? (
+                                <Icon name={[`state-${intent}`]} intent={intent as IntentTypes} />
+                            ) : undefined
+                        }
                         activityActions={[
                             {
                                 icon: displayFullInfo ? "toggler-showless" : "toggler-showmore",
                                 tooltip: "show cache info", // TODO translation
-                                action: () => {setDisplayFullInfo(!displayFullInfo);}
-                            }
+                                action: () => {
+                                    setDisplayFullInfo(!displayFullInfo);
+                                },
+                            },
                         ]}
                     />
-                    <div style={{width: "40rem", padding: "0.5rem"}}>
+                    <div style={{ width: "40rem", padding: "0.5rem" }}>
                         {referenceCache.widget}
                         <Spacing size="small" />
                         {pathCache.widget}
@@ -86,5 +90,5 @@ export const LinkingRuleCacheInfo = ({
             </ToolbarSection>
             <Spacing key={"spacing2"} vertical={true} hasDivider={true} />
         </>
-    )
-}
+    );
+};

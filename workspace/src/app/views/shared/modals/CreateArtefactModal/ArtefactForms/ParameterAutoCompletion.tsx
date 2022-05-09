@@ -55,7 +55,7 @@ export const ParameterAutoCompletion = ({
     };
 
     const handleAutoCompleteInput = async (input: string, autoCompletion: IPropertyAutocomplete) => {
-        // The auto-completion is only showing the first 100 values TODO: Make auto-completion list scrollable?
+        // The auto-completion is only showing the first 100 values FIXME: Make auto-completion list scrollable?
         const limit = 100;
         try {
             if (autoCompletion.customAutoCompletionRequest) {

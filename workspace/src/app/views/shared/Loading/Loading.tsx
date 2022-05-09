@@ -5,7 +5,7 @@ import { SpinnerPosition, SpinnerSize, SpinnerStroke } from "@eccenca/gui-elemen
 interface IProps {
     className?: string;
     color?: string;
-    description?: string; // currently unsupported (TODO)
+    description?: string; // currently unsupported
     position?: SpinnerPosition;
     size?: SpinnerSize;
     stroke?: SpinnerStroke;

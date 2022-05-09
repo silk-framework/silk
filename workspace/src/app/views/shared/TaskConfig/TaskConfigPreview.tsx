@@ -83,7 +83,6 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
     };
     // Because of line_height: 1, underscores are not rendered
     const fixStyle = { lineHeight: "normal" };
-    // TODO: only return list when it has items, so we need calculate content before rendering
     return (
         <OverflowText passDown>
             <PropertyValueList>

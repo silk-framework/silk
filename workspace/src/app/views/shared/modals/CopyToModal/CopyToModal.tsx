@@ -111,7 +111,8 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
         try {
             setLoading(true);
             const payload: CopyPayloadProps = {
-                targetProject: targetProject || "TODO",
+                // TODO: Disable Copy button when targetProject is not set instead.
+                targetProject: targetProject || "<EMPTY>",
                 dryRun: false,
                 overwriteTasks: overWrittenAcknowledgement,
             };

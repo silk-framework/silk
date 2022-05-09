@@ -38,7 +38,7 @@ interface TaskActivityWidgetProps {
 export const TaskActivityWidget = (props: TaskActivityWidgetProps) => {
     const { widget } = useTaskActivityWidget(props);
     return widget;
-}
+};
 
 export const useTaskActivityWidget = ({
     projectId,
@@ -109,7 +109,6 @@ export const useTaskActivityWidget = ({
     // For the elapsed time component, showing when a cache was last updated
     const translateUnits = (unit: TimeUnits) => t("common.units." + unit, unit);
 
-    // TODO: Fix size issues with activity control and tooltip
     return useSilkActivityControl({
         label,
         "data-test-id": `activity-control-workflow-editor`,
@@ -130,15 +129,13 @@ export const useTaskActivityWidget = ({
         showStopAction: true,
         showReloadAction: isCacheActivity,
         layoutConfig: layoutConfig,
-        elapsedTimeOfLastStart: (
-            isCacheActivity
-                ? {
-                      translate: translateUnits,
-                      prefix: ` (${t("widget.TaskActivityOverview.cacheGroup.cacheAgePrefixIndividual")}`,
-                      suffix: `${t("widget.TaskActivityOverview.cacheGroup.cacheAgeSuffix")})`,
-                  }
-                : undefined
-        ),
+        elapsedTimeOfLastStart: isCacheActivity
+            ? {
+                  translate: translateUnits,
+                  prefix: ` (${t("widget.TaskActivityOverview.cacheGroup.cacheAgePrefixIndividual")}`,
+                  suffix: `${t("widget.TaskActivityOverview.cacheGroup.cacheAgeSuffix")})`,
+              }
+            : undefined,
         hideMessageOnStatus: isCacheActivity ? (concreteStatus) => concreteStatus === "Successful" : undefined,
     });
 };

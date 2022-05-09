@@ -209,7 +209,7 @@ export interface IObjectMapping extends ITransformRule {
     /** The source (Silk) path expression. */
     sourcePath?: string
     /** The child mapping rules of this object mapping. */
-    rules: any // TODO: Improve type
+    rules: any // FIXME: Improve type
 }
 
 interface IProps {
@@ -678,7 +678,7 @@ export const ruleRemoveAsync = id => {
                 EventEmitter.emit(MESSAGES.RELOAD, true);
             },
             err => {
-                // TODO: Beautify
+                // TODO: When mapping and workspace code bases are merged, add error handling
             }
         );
 };

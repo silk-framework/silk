@@ -292,7 +292,6 @@ export function ValueRuleForm(props: IProps) {
 
         const title = !id ? <CardTitle>Add value mapping</CardTitle> : false;
 
-        // TODO: Unfold complex mapping
         let sourcePropertyInput: React.ReactElement | undefined = undefined;
 
         if (type === MAPPING_RULE_TYPE_DIRECT) {

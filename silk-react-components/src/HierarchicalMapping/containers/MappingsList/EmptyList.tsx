@@ -7,9 +7,6 @@ const EmptyList = () => {
             <Info vertSpacing border>
                 No existing mapping rules.
             </Info>
-            {/* TODO: we should provide options like adding rules or suggestions here,
-                         even a help text would be a good support for the user.
-                         */}
         </CardContent>
     )
 };

@@ -1,4 +1,3 @@
-// @TODO: can be moved to another place as a utils
 import {
     IPageSuggestion,
     ISortDirection,

@@ -42,7 +42,7 @@ export function ActionsMenu({ actionPrimary, actionsSecondary, actionsFullMenu }
                     key={"menuitem_" + index}
                     text={
                         <OverflowText>{text}</OverflowText>
-                        /* TODO: change this OverflowText later to a multiline=false option on MenuItem, seenms to be a new one*/
+                        /* FIXME: CMEM-3742: change this OverflowText later to a multiline=false option on MenuItem, seems to be a new one*/
                     }
                 >
                     {renderMenuItems(subitems)}

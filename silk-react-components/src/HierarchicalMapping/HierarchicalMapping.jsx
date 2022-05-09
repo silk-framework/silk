@@ -42,7 +42,6 @@ class HierarchicalMapping extends React.Component {
             transformTask,
         });
 
-        // TODO: Use initialRule
         this.state = {
             // currently selected rule id
             currentRuleId: _.isEmpty(initialRule) ? undefined : initialRule,
@@ -127,7 +126,7 @@ class HierarchicalMapping extends React.Component {
     handleClickRemove = (args, removeFn) => {
         /**
          * This scenario is default for most of cases
-         * @TODO: move this functionality to RemoveConfirmDialog component and refacor this component which will work as a portal
+         * FIXME: move this functionality to RemoveConfirmDialog component and refactor this component which will work as a portal
          */
         if (args) {
             const {

@@ -50,7 +50,6 @@ export const prependSlash = (relativePath: string): string => {
 };
 
 /**
- * @TODO: will remove when old endpoints move to new endpoint
  * @param query
  */
 export const legacyApiEndpoint = (query: string) => {
