@@ -73,6 +73,7 @@ export const LinkRuleNodeEvaluation = ({
                                                 minimal={true}
                                                 round={true}
                                                 style={{ marginRight: "0.25rem" }}
+                                                htmlTitle={""}
                                             >
                                                 {value}
                                             </Tag>
