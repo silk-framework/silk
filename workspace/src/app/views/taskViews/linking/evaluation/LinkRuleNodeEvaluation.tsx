@@ -52,21 +52,23 @@ export const LinkRuleNodeEvaluation = ({
                     {evaluationResult.map((rowValues, idx) => {
                         return (
                             <li key={idx}>
-                                <Tooltip
-                                    content={rowValues.join(" | ")}
-                                    tooltipProps={{
-                                        placement: "top",
-                                        boundary: "window",
-                                    }}
+                                <WhiteSpaceContainer
+                                    className={`evaluationLink${idx}`}
+                                    onMouseEnter={() => onMouseEnter(idx)}
+                                    onMouseLeave={() => onMouseLeave(idx)}
+                                    paddingTop="tiny"
+                                    paddingBottom="tiny"
+                                    style={{ whiteSpace: "nowrap", overflow: "hidden" }}
                                 >
-                                    <WhiteSpaceContainer
-                                        className={`evaluationLink${idx}`}
-                                        onMouseEnter={() => onMouseEnter(idx)}
-                                        onMouseLeave={() => onMouseLeave(idx)}
-                                        paddingTop="tiny"
-                                        paddingBottom="tiny"
-                                        style={{ whiteSpace: "nowrap", overflow: "hidden" }}
+                                    <Tooltip
+                                        content={rowValues.join(" | ")}
+                                        tooltipProps={{
+                                            placement: "top",
+                                            boundary: "window",
+                                            targetTagName: "div",
+                                        }}
                                     >
+                                        <span>
                                         {rowValues.map((value) => (
                                             <Tag
                                                 small={true}
@@ -78,8 +80,9 @@ export const LinkRuleNodeEvaluation = ({
                                                 {value}
                                             </Tag>
                                         ))}
-                                    </WhiteSpaceContainer>
-                                </Tooltip>
+                                        </span>
+                                    </Tooltip>
+                                </WhiteSpaceContainer>
                             </li>
                         );
                     })}
