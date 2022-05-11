@@ -20,6 +20,8 @@ import { IViewActions } from "../../../plugins/PluginRegistry";
 export interface RuleEditorContextProps {
     /** The project context. */
     projectId: string;
+    /** Unique ID for the edited item. This needs to be unique inside the project. */
+    editedItemId?: string;
     /** The item whose rules are being edited, e.g. linking or transformation. */
     editedItem?: object;
     /** The operators that can be dragged and dropped onto the rule editor. */

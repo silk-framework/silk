@@ -206,6 +206,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
         <RuleEditorContext.Provider
             value={{
                 projectId,
+                editedItemId: taskId,
                 editedItem: taskData,
                 operatorList,
                 editedItemLoading: taskDataLoading,

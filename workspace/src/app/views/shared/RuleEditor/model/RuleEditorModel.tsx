@@ -127,6 +127,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         _setIsReadOnly(enabled);
     };
 
+    React.useEffect(() => {
+        // Reset model on ID changes
+        setElements([]);
+    }, [ruleEditorContext.projectId, ruleEditorContext.editedItemId]);
+
     /** Convert initial operator nodes to react-flow model. */
     React.useEffect(() => {
         if (
