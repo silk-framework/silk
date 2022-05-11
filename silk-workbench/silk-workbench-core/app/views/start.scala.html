@@ -29,16 +29,17 @@
         Your current workspace contains @projects.size project(s).
       </p>
 
-      <button id="open-workspace-btn" class="mdl-button mdl-js-button mdl-button--raised" onclick="window.location = '@config.baseUrl/workspace'">Open Workspace</button>
       @if(!projects.exists(_.id == exampleName)) {
         <button id="start-load-example" class="mdl-button mdl-js-button mdl-button--raised" onclick="loadExample()" style="margin-left: 5px;">Load Example</button>
       }
       <span>
-        <a id="beta-workspace-switch" href="@config.baseUrl/workbench?itemType=project&page=1&limit=10" class="mdl-button mdl-js-button mdl-button--raised">New workspace UI</a>
-        <div class="mdl-tooltip" data-mdl-for="beta-workspace-switch">
-          Switch to the beta version of the new workspace user interface.
+        <a id="workspace-switch" href="@config.baseUrl/workbench?itemType=project&page=1&limit=10" class="mdl-button mdl-js-button mdl-button--raised">Open workspace</a>
+        <div class="mdl-tooltip" data-mdl-for="workspace-switch">
+          Switch to workspace UI
         </div>
       </span>
+      &nbsp;
+      <button id="open-workspace-btn" class="mdl-button mdl-js-button mdl-button--raised" onclick="window.location = '@config.baseUrl/workspace'">Open legacy workspace</button>
 
       <script type="text/javascript">
         function loadExample() {
