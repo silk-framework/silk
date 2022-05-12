@@ -55,7 +55,7 @@ class ProjectImportApiTest extends FlatSpec with SingleProjectWorkspaceProviderT
     val importProjectStatusUrlZeroTimeout = controllers.workspaceApi.routes.ProjectImportApi.projectImportExecutionStatus(projectImportId, 0)
     val statusJsonZeroTimeout = checkResponseExactStatusCode(createRequest(importProjectStatusUrlZeroTimeout).get()).json
     val generatedProjectId = (statusJsonZeroTimeout \ "projectId").as[String]
-    generatedProjectId must endWith (Identifier.fromAllowed(expectedProjectLabel))
+    generatedProjectId must include (Identifier.fromAllowed(expectedProjectLabel))
     generatedProjectId must not be expectedProjectId
     (statusJsonZeroTimeout \ "importStarted").toOption mustBe defined
     (statusJsonZeroTimeout \ "importEnded").toOption must not be defined

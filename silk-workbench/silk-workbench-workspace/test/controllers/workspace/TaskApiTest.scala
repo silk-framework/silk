@@ -81,7 +81,7 @@ class TaskApiTest extends PlaySpec with IntegrationTestTrait with MustMatchers {
     )
     val r = checkResponse(response)
     val location = r.headerValues("Location").headOption.getOrElse("")
-    location must endWith ("somelabel")
+    location must include ("somelabel")
     workspaceProject(project).anyTaskOption(location.split("/").last) mustBe defined
   }
 

@@ -45,13 +45,13 @@ class ProjectApiTest extends FlatSpec with IntegrationTestTrait with MustMatcher
       projectId
     }
     val expectedProjectPrefixId = "Someproject"
-    projectIds foreach { id => id must endWith (expectedProjectPrefixId)}
-    projects foreach { id => id must endWith (expectedProjectPrefixId)}
+    projectIds foreach { id => id must include (expectedProjectPrefixId)}
+    projects foreach { id => id must include (expectedProjectPrefixId)}
   }
 
   it should "generate default IDs for labels without any allowed chars in IDs" in {
-    (createProjectByLabel("Ä*#").json \ "name").as[String] must endWith ("project")
-    (createProjectByLabel("!§$%").json \ "name").as[String] must endWith ("project")
+    (createProjectByLabel("Ä*#").json \ "name").as[String] must include ("project")
+    (createProjectByLabel("!§$%").json \ "name").as[String] must include ("project")
   }
 
   it should "update the meta data of an existing project" in {
