@@ -3,6 +3,10 @@
     "compilerOptions": {
         "baseUrl": "./src/app",
         "noImplicitAny": false,
+        "strict": false,
+        "noUnusedParameters": false,
+        "noUnusedLocals": false,
+        "noImplicitReturns": false,
         "target": "es5",
         "paths": {
             "@ducks/*": ["./store/ducks/*"]
