@@ -132,6 +132,7 @@ export const RuleParameterInput = ({
                         itemValueString: resourceNameFn,
                         noResultText: t("common.messages.noResults", "No results."),
                     }}
+                    required={ruleParameter.parameterSpecification.required}
                     {...inputAttributes}
                 />
             );

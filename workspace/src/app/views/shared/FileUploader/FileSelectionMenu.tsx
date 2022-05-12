@@ -40,6 +40,9 @@ export interface IUploaderOptions {
      */
     defaultValue?: string;
 
+    /** Indicator that there needs to be a value set/selected, else the file selection (from existing files) can e.g. be reset. */
+    required: boolean;
+
     /**
      * return uploader API
      * @see IUploaderInstance
@@ -297,6 +300,7 @@ class FileSelectionMenu extends React.Component<IUploaderOptions, IState> {
                                         info: this.props.t("common.words.required"),
                                         htmlFor: "autocompleteInput",
                                     }}
+                                    required={this.props.required}
                                 />
                             )}
                             {selectedFileMenu === "NEW" && (

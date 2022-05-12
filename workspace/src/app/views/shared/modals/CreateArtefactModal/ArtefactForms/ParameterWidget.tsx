@@ -161,6 +161,7 @@ export const ParameterWidget = (props: IProps) => {
                     intent={errors ? Intent.DANGER : Intent.NONE}
                     onChange={changeHandlers[formParamId]}
                     initialValues={initialValues}
+                    required={required}
                 />
             </FieldSet>
         );
@@ -201,6 +202,7 @@ export const ParameterWidget = (props: IProps) => {
                         intent={errors ? Intent.DANGER : Intent.NONE}
                         onChange={changeHandlers[formParamId]}
                         initialValues={initialValues}
+                        required={required}
                     />
                 )}
             </FieldItem>
