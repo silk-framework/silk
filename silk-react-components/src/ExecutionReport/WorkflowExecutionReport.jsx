@@ -83,7 +83,7 @@ export default class WorkflowExecutionReport extends React.Component {
     if(error) {
       return <Icon name="danger" className="silk-report-list-item-icon-red" />
     } else if(warnings != null && warnings.length > 0) {
-      return <Icon name="warning" className="silk-report-list-item-icon-red" />
+      return <Icon name="warning" className="silk-report-list-item-icon-yellow" />
     } else {
       return <Icon name="done" className="silk-report-list-item-icon-green" />
     }
