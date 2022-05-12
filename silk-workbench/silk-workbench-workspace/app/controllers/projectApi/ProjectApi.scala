@@ -6,7 +6,6 @@ import controllers.core.util.ControllerUtilsTrait
 import controllers.projectApi.ProjectApi.{CreateTagsRequest, ProjectTagsResponse}
 import controllers.projectApi.doc.ProjectApiDoc
 import controllers.workspace.JsonSerializer
-import controllers.workspaceApi.IdentifierUtils
 import controllers.workspaceApi.project.ProjectApiRestPayloads.{ItemMetaData, ProjectCreationData}
 import controllers.workspaceApi.project.ProjectLoadingErrors
 import controllers.workspaceApi.projectTask.{ItemCloneRequest, ItemCloneResponse}
@@ -23,7 +22,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.MetaDataSerializers.{FullTag, MetaDataExpanded, MetaDataPlain, tagFormat}
-import org.silkframework.util.Identifier
+import org.silkframework.util.{Identifier, IdentifierUtils}
 import org.silkframework.workbench.workspace.WorkbenchAccessMonitor
 import org.silkframework.workspace.exceptions.IdentifierAlreadyExistsException
 import org.silkframework.workspace.io.WorkspaceIO

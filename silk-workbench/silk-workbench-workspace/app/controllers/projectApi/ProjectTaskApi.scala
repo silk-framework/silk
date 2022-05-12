@@ -3,7 +3,6 @@ package controllers.projectApi
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.TextSearchUtils
-import controllers.workspaceApi.IdentifierUtils
 import controllers.workspaceApi.projectTask.{ItemCloneRequest, ItemCloneResponse, RelatedItem, RelatedItems}
 import controllers.workspaceApi.search.ItemType
 import io.swagger.v3.oas.annotations.enums.ParameterIn
@@ -17,7 +16,7 @@ import org.silkframework.runtime.plugin.PluginDescription
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.MetaDataSerializers.FullTag
-import org.silkframework.util.Identifier
+import org.silkframework.util.{Identifier, IdentifierUtils}
 import org.silkframework.workspace.exceptions.IdentifierAlreadyExistsException
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}

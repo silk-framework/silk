@@ -20,7 +20,7 @@ import org.silkframework.runtime.resource.{FileResource, ResourceLoader}
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.{BadUserInputException, ConflictRequestException, NotFoundException, RequestException}
 import org.silkframework.util.DurationConverters._
-import org.silkframework.util.StreamUtils
+import org.silkframework.util.{IdentifierUtils, StreamUtils}
 import org.silkframework.workspace.xml.XmlZipWithResourcesProjectMarshaling
 import play.api.libs.json._
 import play.api.mvc.{Action, AnyContent, _}

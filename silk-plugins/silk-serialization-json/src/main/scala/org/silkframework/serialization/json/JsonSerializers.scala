@@ -6,12 +6,12 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetSpec, DatasetTask}
 import org.silkframework.entity._
 import org.silkframework.rule.TransformSpec.{TargetVocabularyListParameter, TargetVocabularyParameterType}
+import org.silkframework.rule._
 import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.input.{Input, PathInput, TransformInput, Transformer}
 import org.silkframework.rule.similarity._
 import org.silkframework.rule.util.UriPatternParser
 import org.silkframework.rule.vocab.{GenericInfo, Vocabulary, VocabularyClass, VocabularyProperty}
-import org.silkframework.rule._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginBackwardCompatibility
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
@@ -23,11 +23,10 @@ import org.silkframework.serialization.json.JsonSerializers.ObjectMappingJsonFor
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.LinkingSerializers._
 import org.silkframework.serialization.json.MetaDataSerializers._
-import org.silkframework.util.{DPair, Identifier, Uri}
+import org.silkframework.util.{DPair, Identifier, IdentifierUtils, Uri}
 import org.silkframework.workspace.activity.transform.{CachedEntitySchemata, VocabularyCacheValue}
 import play.api.libs.json._
 
-import java.util.UUID
 import scala.reflect.ClassTag
 
 /**
@@ -1058,20 +1057,12 @@ object JsonSerializers {
       * Deserializes a value.
       */
     override def read(value: JsValue)(implicit readContext: ReadContext): Task[T] = {
-      def generateTaskId(label: String): Identifier = {
-        val defaultSuffix = "task"
-        if(Identifier.fromAllowed(label, alternative = Some(defaultSuffix)) == Identifier(defaultSuffix)) {
-          Identifier.fromAllowed(UUID.randomUUID().toString + "_" + defaultSuffix)
-        } else {
-          Identifier.fromAllowed(UUID.randomUUID().toString + "_" + label)
-        }
-      }
       val id: Identifier = stringValueOption(value, ID).map(_.trim).filter(_.nonEmpty).map(Identifier.apply).getOrElse {
         // Generate unique ID from label if no ID was supplied
         val md = metaData(value)
         md.label match {
           case Some(label) if label.trim.nonEmpty =>
-            generateTaskId(label)
+            IdentifierUtils.generateTaskId(label)
           case _ =>
             throw BadUserInputException("The label must not be empty if no ID is provided!")
         }
