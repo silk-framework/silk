@@ -324,6 +324,7 @@ export function Metadata(props: IProps) {
                         <PropertyValue>
                             <FieldItem>
                                 <MultiSelect<Keyword>
+                                    data-test-id={"meta-data-tag-selection"}
                                     prePopulateWithItems
                                     openOnKeyDown
                                     itemId={(keyword) => keyword.uri}
@@ -334,7 +335,10 @@ export function Metadata(props: IProps) {
                                     newItemCreationText={t("Metadata.addNewTag")}
                                     newItemPostfix={t("Metadata.newTagPostfix")}
                                     inputProps={{
-                                        placeholder: `${t("common.action.search")}...`,
+                                        placeholder: `${t("form.field.searchOrEnterTags")}...`,
+                                    }}
+                                    tagInputProps={{
+                                        placeholder: `${t("form.field.searchOrEnterTags")}...`,
                                     }}
                                     createNewItemFromQuery={(query) => ({
                                         uri: removeExtraSpaces(query),

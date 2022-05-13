@@ -312,7 +312,8 @@
             "description": "Description",
             "label": "Label",
             "searchField": "Enter search term",
-            "tags": "Tags"
+            "tags": "Tags",
+            "searchOrEnterTags": "Search or enter new tag"
         },
         "projectForm": {
             "importProjectButton": "Import existing project",
