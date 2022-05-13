@@ -5,6 +5,6 @@ export interface IMetadataExpanded extends IMetadata {
     tags: Keywords;
     lastModifiedByUser?: Keyword;
     createdByUser?: Keyword;
-    modified: string;
-    created: string;
+    modified?: string;
+    created?: string;
 }
