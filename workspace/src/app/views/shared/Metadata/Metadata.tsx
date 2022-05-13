@@ -94,7 +94,8 @@ export function Metadata(props: IProps) {
         if (projectId) {
             utils
                 .getExpandedMetaData(projectId, taskId)
-                .then((res) => setData({ ...(res?.data as IMetadataExpanded) } ?? {}));
+                .then((res) => setData({ ...(res?.data as IMetadataExpanded) } ?? {}))
+                .catch((err) => registerError("metadata-getExpandedMetaData", "Could not fetch summary data.", err));
         }
     }, [taskId, projectId]);
 
