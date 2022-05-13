@@ -525,7 +525,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     implicit val resourceManager: ResourceManager = project.resources
     implicit val prefixes: Prefixes = project.config.prefixes
     val clonedTaskSpec = Try(fromTask.data.withProperties(Map.empty)).getOrElse(fromTask.data)
-    project.addAnyTask(newTask, clonedTaskSpec)
+    project.addAnyTask(newTask, clonedTaskSpec, MetaData.empty.copy(tags = fromTask.metaData.tags))
     Ok
   }
 
