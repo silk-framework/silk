@@ -218,6 +218,7 @@
             "exportTo": "Export to",
             "logout": "Logout",
             "moreOptions": "Show more options",
+            "openInNewTab": "Open link in new tab",
             "profilingStart": "Start profiling",
             "profilingUpdate": "Update profiling",
             "replace": "Replace",

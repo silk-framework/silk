@@ -102,7 +102,7 @@ PATCH         /projects/:project/tasks/:task                                    
 GET           /projects/:project/tasks/:task                                    controllers.workspace.TaskApi.getTask(project: String, task: String, withLabels: Boolean ?= false)
 DELETE        /projects/:project/tasks/:task                                    controllers.workspace.TaskApi.deleteTask(project: String, task: String, removeDependentTasks: Boolean ?= false)
 PUT           /projects/:project/tasks/:task/metadata                           controllers.workspace.TaskApi.putTaskMetadata(project: String, task: String)
-GET           /projects/:project/tasks/:task/metadata                           controllers.workspace.TaskApi.getTaskMetadata(project: String, task: String)
+GET           /projects/:project/tasks/:task/metadata                           controllers.workspace.TaskApi.getTaskMetadata(project: String, task: String, withTaskLinks: Boolean ?= false)
 GET           /projects/:project/tasks/:task/metadataExpanded                   controllers.workspace.TaskApi.getTaskMetadataExpanded(project: String, task: String)
 POST          /projects/:project/tasks/:task/clone                              controllers.workspace.TaskApi.cloneTask(project, task, newTask)
 POST          /projects/:project/tasks/:task/copy                               controllers.workspace.TaskApi.copyTask(project: String, task: String)

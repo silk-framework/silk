@@ -6,7 +6,8 @@ import { requestRemoveProject, requestRemoveTask } from "@ducks/workspace/reques
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import { useTranslation } from "react-i18next";
 import { IModalItem, ITaskMetadataResponse } from "@ducks/shared/typings";
-import { Spacing } from "@eccenca/gui-elements";
+import { Spacing, Tooltip } from "@eccenca/gui-elements";
+import { Link } from "carbon-components-react";
 
 interface IProps {
     item: IModalItem;
@@ -69,7 +70,7 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
         try {
             const data =
                 item.projectId && item.id
-                    ? (await requestTaskMetadata(item.id, item.projectId)).data
+                    ? (await requestTaskMetadata(item.id, item.projectId, true)).data
                     : (await requestProjectMetadata(item.projectId as string)).data;
 
             // Skip check the relations for projects
@@ -84,9 +85,17 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                             {t("DeleteModal.confirmMsg", { name: data.label || item.id, itemType: itemType })}
                             <Spacing />
                             <ul>
-                                {(data as ITaskMetadataResponse).relations.dependentTasksDirect.map((rel) => (
-                                    <li key={rel}>{rel}</li>
-                                ))}
+                                {(data as ITaskMetadataResponse).relations.dependentTasksDirect.map((taskRef) =>
+                                    typeof taskRef === "string" ? (
+                                        <li key={taskRef}>{taskRef}</li>
+                                    ) : (
+                                        <Link href={taskRef.taskLink} target="_blank">
+                                            <Tooltip content={t("common.action.openInNewTab")}>
+                                                {taskRef.label ?? taskRef.id}
+                                            </Tooltip>
+                                        </Link>
+                                    )
+                                )}
                             </ul>
                         </div>
                     ),
