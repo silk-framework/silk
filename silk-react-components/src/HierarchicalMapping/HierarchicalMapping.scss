@@ -304,6 +304,9 @@ ul.ecc-hierarchical-mapping-error-list {
     &-red {
         color: to_color($palette-red-800);
     }
+    &-yellow {
+        color: to_color($palette-yellow-800);
+    }
     &-green {
         color: to_color($palette-green-800);
     }

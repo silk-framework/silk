@@ -280,7 +280,7 @@ class MappingsTree extends React.Component {
         } else if(this.props.ruleValidation[ruleId] === "ok") {
             return <Icon className="ecc-silk-mapping__ruleitem-icon-green" name="done" />
         } else {
-            return <Icon className="ecc-silk-mapping__ruleitem-icon-red" name="warning" />
+            return <Icon className="ecc-silk-mapping__ruleitem-icon-yellow" name="warning" />
         }
     };
 
