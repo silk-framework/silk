@@ -7,9 +7,9 @@ import org.silkframework.runtime.plugin.EnumerationParameterType;
  */
 public enum OrderEnum implements EnumerationParameterType {
 
-  alphabetical("alphabetical", "Alphabetical order"),
-  numerical("numerical", "Numerical order"),
-  autodetect("autodetect", "Autodetect");
+  alphabetical("Alphabetical", "Alphabetical"),
+  numerical("Numerical", "Numerical"),
+  autodetect("Autodetect", "Autodetect");
 
   private String id;
   private String displayName;
