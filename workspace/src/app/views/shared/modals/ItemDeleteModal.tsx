@@ -89,11 +89,13 @@ export function ItemDeleteModal({ item, onClose, onConfirmed }: IProps) {
                                     typeof taskRef === "string" ? (
                                         <li key={taskRef}>{taskRef}</li>
                                     ) : (
-                                        <Link href={taskRef.taskLink} target="_blank">
-                                            <Tooltip content={t("common.action.openInNewTab")}>
-                                                {taskRef.label ?? taskRef.id}
-                                            </Tooltip>
-                                        </Link>
+                                        <li key={taskRef.id}>
+                                            <Link href={taskRef.taskLink} target="_blank">
+                                                <Tooltip content={t("common.action.openInNewTab")}>
+                                                    {taskRef.label ?? taskRef.id}
+                                                </Tooltip>
+                                            </Link>
+                                        </li>
                                     )
                                 )}
                             </ul>
