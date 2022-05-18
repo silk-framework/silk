@@ -18,6 +18,10 @@ class SparqlRestrictionTest extends FlatSpec with Matchers {
     resolve("?a rdf:type ex:MyType .") should be ("?a <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://silkframework.org/example/MyType> .")
   }
 
+  it should "resolve prefixes with semicolons correctly" in {
+    resolve("?a a ex:MyType; .") should be ("?a a <http://silkframework.org/example/MyType>; .")
+  }
+
   it should "resolve type prefixes" in {
     resolve("?a ex:date \"2012-04-12T12:00:00Z\"^^xsd:dateTime .") should be ("?a <http://silkframework.org/example/date> \"2012-04-12T12:00:00Z\"^^<http://www.w3.org/2001/XMLSchema#dateTime> .")
   }
