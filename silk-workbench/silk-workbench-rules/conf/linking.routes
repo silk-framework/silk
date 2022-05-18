@@ -14,6 +14,7 @@ GET           /:project/:task/evaluate/linksStream                              
 
 # Execute
 GET           /:project/:task/execute                                                       controllers.linking.ExecuteLinkingController.execute(project: String, task: String)
+GET           /:project/:task/execute/report                                                controllers.linking.ExecuteLinkingController.executionReport(project: String, task: String)
 
 # Reference Links
 GET           /:project/:task/referenceLinks                                                controllers.linking.ReferenceLinksManager.referenceLinksView(project: String, task: String)
