@@ -2,8 +2,7 @@ package org.silkframework.util
 
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
-
-import scala.io.Source
+import scala.io.{Codec, Source}
 
 /**
   * Helper methods for [[java.net.HttpURLConnection]]
@@ -16,7 +15,7 @@ object HttpURLConnectionUtils {
     def errorMessage(prefix: String = ""): Option[String] = {
       val errorStreamOpt = Option(connection.getErrorStream)
       errorStreamOpt map { errorStream =>
-        prefix + Source.fromInputStream(errorStream).getLines.mkString("\n")
+        prefix + Source.fromInputStream(errorStream)(Codec.UTF8).getLines.mkString("\n")
       }
     }
 
