@@ -1,5 +1,12 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { IAppliedSorterState, SortModifierType } from "./typings";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import {
+    IAppliedFacetState,
+    IAppliedFiltersState,
+    IAppliedSorterState,
+    IFacetState,
+    ISorterListItemState,
+    SortModifierType,
+} from "./typings";
 import { initialPaginationState } from "../../typings";
 import { initialAppliedFiltersState, initialFiltersState, initialSortersState } from "./initialState";
 import i18n from "../../../../language";
@@ -13,8 +20,8 @@ export const filtersSlice = createSlice({
     name: "filters",
     initialState: initialFiltersState(),
     reducers: {
-        applyFilters(state, action) {
-            const { ...filters } = action.payload;
+        applyFilters(state, action: PayloadAction<IAppliedFiltersState>) {
+            const filters = action.payload;
             Object.keys(filters).forEach((field) => {
                 const value = action.payload[field];
                 if (!value) {
@@ -30,11 +37,11 @@ export const filtersSlice = createSlice({
             });
         },
 
-        updateSorters(state, action) {
+        updateSorters(state, action: PayloadAction<ISorterListItemState[]>) {
             state.sorters.list = [DEFAULT_SORTER, ...action.payload];
         },
 
-        applySorter(state, action) {
+        applySorter(state, action: PayloadAction<Partial<IAppliedSorterState>>) {
             const currentSort = state.sorters.applied;
             const { sortBy, sortOrder } = action.payload;
             let appliedSorter: IAppliedSorterState = {
@@ -54,7 +61,7 @@ export const filtersSlice = createSlice({
             state.sorters.applied = appliedSorter;
         },
 
-        changePage(state, action) {
+        changePage(state, action: PayloadAction<number>) {
             const page = action.payload;
             const offset = (page - 1) * state.pagination.limit;
             state.pagination = {
@@ -64,19 +71,19 @@ export const filtersSlice = createSlice({
             };
         },
 
-        changeProjectsLimit(state, action) {
+        changeProjectsLimit(state, action: PayloadAction<number>) {
             state.pagination.limit = action.payload;
         },
 
-        updateResultTotal: (state, action) => {
+        updateResultTotal: (state, action: PayloadAction<number>) => {
             state.pagination.total = action.payload;
         },
 
-        updateFacets(state, action) {
+        updateFacets(state, action: PayloadAction<IFacetState[]>) {
             state.facets = action.payload;
         },
 
-        applyFacet(state, action) {
+        applyFacet(state, action: PayloadAction<{ facet: Pick<IFacetState, "id" | "type">; keywordIds: string[] }>) {
             const { facet, keywordIds } = action.payload;
 
             const currentFacet = state.appliedFacets.find((o) => o.facetId === facet.id);
@@ -93,7 +100,7 @@ export const filtersSlice = createSlice({
             }
         },
 
-        removeFacet(state, action) {
+        removeFacet(state, action: PayloadAction<{ facet: IAppliedFacetState; keywordId: string }>) {
             const { facet, keywordId } = action.payload;
 
             const ind = state.appliedFacets.findIndex((fa) => fa.facetId === facet.facetId);

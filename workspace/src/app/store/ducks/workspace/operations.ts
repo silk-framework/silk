@@ -124,7 +124,7 @@ const setupFiltersFromQs = (queryString: string) => {
                     });
                 } else {
                     toStringArray(facetIds).forEach((facetId, i) => {
-                        const facet: Partial<IFacetState> = {
+                        const facet: Pick<IFacetState, "id" | "type"> = {
                             id: facetId,
                             type: types[i],
                         };

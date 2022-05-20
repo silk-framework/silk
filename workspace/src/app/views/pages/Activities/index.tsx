@@ -121,7 +121,7 @@ const Activities = () => {
 
     /** handle search */
     const handleSearch = (textQuery: string) => {
-        dispatch(workspaceOp.applyFiltersOp({ textQuery, limit: 25, project: projectId }));
+        dispatch(workspaceOp.applyFiltersOp({ textQuery, project: projectId }));
     };
 
     return error.status === 404 ? (
@@ -191,8 +191,7 @@ const Activities = () => {
                     </Grid>
                 </Section>
             </WorkspaceMain>
-            <WorkspaceSide>
-            </WorkspaceSide>
+            <WorkspaceSide></WorkspaceSide>
         </WorkspaceContent>
     );
 };
