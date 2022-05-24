@@ -43,11 +43,19 @@ import org.silkframework.runtime.plugin.annotations.{DistanceMeasureExample, Dis
 case class EqualityMetric() extends SimpleDistanceMeasure {
 
   override def apply(values1: Seq[String], values2: Seq[String], limit: Double): Double = {
-    val values2Set = values2.toSet
-    if(values1.exists(values2Set.contains)) {
-      0.0
+    if(values2.size == 1) {
+      if(values1.contains(values2.head)) {
+        0.0
+      } else {
+        1.0
+      }
     } else {
-      1.0
+      val values2Set = values2.toSet
+      if (values1.exists(values2Set.contains)) {
+        0.0
+      } else {
+        1.0
+      }
     }
   }
 

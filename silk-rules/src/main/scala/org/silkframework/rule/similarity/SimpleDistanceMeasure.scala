@@ -42,9 +42,12 @@ abstract class SimpleDistanceMeasure extends DistanceMeasure {
   override def apply(values1: Seq[String], values2: Seq[String], limit: Double): Double = {
     var minDistance = Double.MaxValue
 
-    for (str1 <- values1; str2 <- values2 if minDistance > 0.0) {
+    for (str1 <- values1; str2 <- values2) {
       val distance = evaluate(str1, str2, min(limit, minDistance))
       minDistance = min(minDistance, distance)
+      if(minDistance <= 0.0) {
+        return minDistance
+      }
     }
 
     minDistance

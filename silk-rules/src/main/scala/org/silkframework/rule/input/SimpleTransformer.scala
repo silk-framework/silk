@@ -14,13 +14,27 @@
 
 package org.silkframework.rule.input
 
+import scala.collection.mutable
+
 /**
  * Simple transformer which transforms all values of all inputs.
  */
 abstract class SimpleTransformer extends Transformer {
 
   override final def apply(values: Seq[Seq[String]]): Seq[String] = {
-    values.flatten.map(evaluate)
+    var numberOfValues = 0
+    for(inputValues <- values) {
+      numberOfValues += inputValues.size
+    }
+
+    val output = new mutable.ArrayBuffer[String](numberOfValues)
+    for {
+      inputValues <- values
+      value <- inputValues
+    } {
+      output += evaluate(value)
+    }
+    output
   }
 
   def evaluate(value: String): String

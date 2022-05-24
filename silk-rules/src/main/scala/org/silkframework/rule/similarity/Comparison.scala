@@ -23,7 +23,8 @@ import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{DPair, Identifier}
 
 import scala.util.Try
-import scala.xml.{Node, Text}
+import scala.util.control.NonFatal
+import scala.xml.Node
 
 /**
  * A comparison computes the similarity of two inputs.
@@ -38,6 +39,9 @@ case class Comparison(id: Identifier = Operator.generateId,
   require(weight > 0, "weight > 0")
   require(threshold >= 0.0, "threshold >= 0.0")
 
+  private val sourceInput = inputs.source
+  private val targetInput = inputs.target
+
   /**
    * Computes the similarity between two entities.
    *
@@ -46,8 +50,20 @@ case class Comparison(id: Identifier = Operator.generateId,
    * @return The confidence as a value between -1.0 and 1.0.
    */
   override def apply(entities: DPair[Entity], limit: Double): Option[Double] = {
-    val values1 = Try(inputs.source(entities.source)).getOrElse(Seq.empty)
-    val values2 = Try(inputs.target(entities.target)).getOrElse(Seq.empty)
+    val values1 =
+      try {
+        sourceInput.apply(entities.source)
+      } catch {
+        case NonFatal(_) =>
+          Seq.empty
+      }
+    val values2 =
+      try {
+        targetInput.apply(entities.target)
+      } catch {
+        case NonFatal(_) =>
+          Seq.empty
+      }
 
     if (values1.isEmpty || values2.isEmpty) {
       None

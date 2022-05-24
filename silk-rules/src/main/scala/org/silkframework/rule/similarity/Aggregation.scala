@@ -19,7 +19,8 @@ import org.silkframework.rule.Operator
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{DPair, Identifier}
 
-import scala.xml.{Node, Text}
+import scala.collection.mutable.ArrayBuffer
+import scala.xml.Node
 
 /**
  * An aggregation combines multiple similarity values into a single value.
@@ -30,10 +31,12 @@ case class Aggregation(id: Identifier = Operator.generateId,
                        operators: Seq[SimilarityOperator]) extends SimilarityOperator {
 
   require(weight > 0, "weight > 0")
-  //TODO learning currently may produce empty aggreagations when cleaning
+  //TODO learning currently may produce empty aggregations when cleaning
   //require(!operators.isEmpty, "!operators.isEmpty")
 
-  def indexing = operators.exists(_.indexing)
+  def indexing: Boolean = operators.exists(_.indexing)
+
+  private val operatorsSize: Int = operators.size
 
   /**
    * Computes the similarity between two entities.
@@ -44,13 +47,16 @@ case class Aggregation(id: Identifier = Operator.generateId,
    *         None, if no similarity could be computed.
    */
   override def apply(entities: DPair[Entity], limit: Double): Option[Double] = {
-    val totalWeights = operators.foldLeft(0)(_ + _.weight)
+    var totalWeights = 0.0
+    for(operator <- operators) {
+      totalWeights += operator.weight
+    }
 
-    var weightedValues: List[WeightedSimilarityScore] = Nil
+    val weightedValues = new ArrayBuffer[WeightedSimilarityScore](operatorsSize)
     for(op <- operators) {
       val opThreshold = aggregator.computeThreshold(limit, op.weight.toDouble / totalWeights)
       val score = op(entities, opThreshold)
-      weightedValues ::= WeightedSimilarityScore(score, op.weight)
+      weightedValues += WeightedSimilarityScore(score, op.weight)
     }
 
     aggregator.evaluate(weightedValues).score
