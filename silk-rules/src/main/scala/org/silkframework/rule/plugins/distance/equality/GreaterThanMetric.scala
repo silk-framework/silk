@@ -17,6 +17,6 @@ case class GreaterThanMetric(@Param("Accept equal values")
                              reverse: Boolean = false) extends SimpleDistanceMeasure with NonSymmetricDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, threshold: Double): Double = {
-    1.0 - LowerThanMetric.evaluate(str1, str2, !orEqual)
+    1.0 - LowerThanMetric.evaluate(str1, str2, !orEqual, order)
   }
 }
