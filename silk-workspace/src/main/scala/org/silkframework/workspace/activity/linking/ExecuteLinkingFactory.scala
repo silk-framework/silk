@@ -3,17 +3,17 @@ package org.silkframework.workspace.activity.linking
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.EntitySchema
-import org.silkframework.execution.{AbortExecutionException, ExecutionType, ExecutorOutput, ExecutorRegistry}
-import org.silkframework.rule.execution.ComparisonToRestrictionConverter
+import org.silkframework.execution._
+import org.silkframework.rule.execution.{ComparisonToRestrictionConverter, Linking}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
-import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityMonitor, UserContext}
+import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.util.DPair
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.TaskActivityFactory
 
 @Plugin(
-  id = "ExecuteLinking",
+  id = ExecuteLinkingFactory.pluginId,
   label = "Execute linking",
   categories = Array("LinkSpecification"),
   description = "Executes the linking task using the configured execution."
@@ -22,40 +22,47 @@ case class ExecuteLinkingFactory() extends TaskActivityFactory[LinkSpec, Execute
   /**
     * Generates a new activity for a given task.
     */
-  override def apply(task: ProjectTask[LinkSpec]): Activity[Unit] = {
+  override def apply(task: ProjectTask[LinkSpec]): Activity[ExecutionReport] = {
     new ExecuteLinking(task)
   }
 }
 
-class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[Unit] {
+object ExecuteLinkingFactory {
+
+  final val pluginId = "ExecuteLinking"
+
+}
+
+class ExecuteLinking(task: ProjectTask[LinkSpec]) extends Activity[ExecutionReport] {
 
   private val comparisonToRestrictionConverter = new ComparisonToRestrictionConverter()
 
   implicit val prefixes: Prefixes = task.project.config.prefixes
+
+  override val initialValue: Option[Linking] = Some(Linking(task))
 
   /**
     * Executes this activity.
     *
     * @param context Holds the context in which the activity is executed.
     */
-  override def run(context: ActivityContext[Unit])
+  override def run(context: ActivityContext[ExecutionReport])
                   (implicit userContext: UserContext): Unit = {
     implicit val execution: ExecutionType = ExecutorRegistry.execution()
 
     // Execute inputs
-    context.status.update("Loading inputs", 0.1)
+    context.status.updateMessage("Loading inputs")
     val inputs = loadInputs()
 
     // Generate links
-    context.status.update("Generating links", 0.4)
-    val links = ExecutorRegistry.execute(task, inputs, ExecutorOutput.empty, execution,
-      new ActivityMonitor(getClass.getSimpleName, projectAndTaskId = context.status.projectAndTaskId)) match {
+    context.status.updateMessage("Generating links")
+    val links = ExecutorRegistry.execute(task, inputs, ExecutorOutput.empty, execution, context) match {
       case Some(result) => result
       case None => throw AbortExecutionException("Linking task did not generate any links")
     }
 
     // Write links to outputs
-    context.status.update("Writing links to output", 0.8)
+    context.status.updateMessage("Writing links to output")
     for(output <- task.data.output) {
       val outputTask = task.project.task[GenericDatasetSpec](output)
       outputTask.data.linkSink.clear() // Clear link sink before writing in single execution mode

@@ -14,4 +14,9 @@ class ExecuteLinkingController @Inject() () extends InjectedController with User
     Ok(views.html.executeLinking.executeLinking(context))
   }
 
+  def executionReport(project: String, task: String): Action[AnyContent] = RequestUserContextAction { request =>implicit userContext =>
+    val context = Context.get[LinkSpec](project, task, request.path)
+    Ok(views.html.executeLinking.linkingReport(context.task))
+  }
+
 }
