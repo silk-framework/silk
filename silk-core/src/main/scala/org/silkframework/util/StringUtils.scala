@@ -14,8 +14,8 @@
 
 package org.silkframework.util
 
+import java.util.regex.Pattern
 import javax.xml.datatype.{DatatypeFactory, XMLGregorianCalendar}
-
 import scala.language.implicitConversions
 import scala.util.Try
 import scala.util.matching.Regex
@@ -48,11 +48,20 @@ object StringUtils {
   }
 
   object DoubleLiteral {
+
+    private val DOUBLE_PATTERN = Pattern.compile("[\\x00-\\x20]*[+-]?(NaN|Infinity|((((\\p{Digit}+)(\\.)?((\\p{Digit}+)?)" + "([eE][+-]?(\\p{Digit}+))?)|(\\.((\\p{Digit}+))([eE][+-]?(\\p{Digit}+))?)|" + "(((0[xX](\\p{XDigit}+)(\\.)?)|(0[xX](\\p{XDigit}+)?(\\.)(\\p{XDigit}+)))" + "[pP][+-]?(\\p{Digit}+)))[fFdD]?))[\\x00-\\x20]*")
+
+    def isDouble(str: String): Boolean = {
+      DOUBLE_PATTERN.matcher(str).matches()
+    }
+
     def apply(x: Double): String = x.toString
 
     def unapply(x: String): Option[Double] = {
-      Option(x) flatMap { s =>
-        Try(s.toDouble).toOption
+      if(isDouble(x)) {
+        Some(x.toDouble)
+      } else {
+        None
       }
     }
   }
