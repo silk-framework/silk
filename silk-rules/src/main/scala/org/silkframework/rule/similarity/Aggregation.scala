@@ -78,7 +78,7 @@ case class Aggregation(id: Identifier = Operator.generateId,
         val index = op.index(entity, sourceOrTarget, opThreshold)
         index
       }
-    }.filterNot(_.isEmpty)
+    }
 
     aggregator.aggregateIndexes(indexSets)
   }
