@@ -54,9 +54,10 @@ abstract class SimpleDistanceMeasure extends DistanceMeasure {
   }
 
   override def index(values: Seq[String], limit: Double, sourceOrTarget: Boolean): Index = {
-    if(values.isEmpty)
-      indexValue("", limit, sourceOrTarget) //We index an empty value, so that the index is empty but has the right size
-    else
+    if(values.isEmpty) {
+      Index.empty
+    } else {
       values.distinct.map((value: String) => indexValue(value, limit, sourceOrTarget)).reduce(_ merge _)
+    }
   }
 }

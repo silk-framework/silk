@@ -82,10 +82,7 @@ class Index private(private val indices: Set[Seq[Int]], private val sizes: Seq[I
    * i.e. index1 matches index3 && index2 matches index4 <=> (index1 conjunction index2) matches (index3 conjunction index4)
    */
   def conjunction(other: Index): Index = {
-    val indexes1 = if (indices.isEmpty) Set(Seq.fill(sizes.size)(0)) else indices
-    val indexes2 = if (other.indices.isEmpty) Set(Seq.fill(other.sizes.size)(0)) else other.indices
-
-    val combinedIndices = for (index1 <- indexes1; index2 <- indexes2) yield index1 ++ index2
+    val combinedIndices = for (index1 <- indices; index2 <- other.indices) yield index1 ++ index2
     val combinedSizes = sizes ++ other.sizes
 
     new Index(combinedIndices, combinedSizes)

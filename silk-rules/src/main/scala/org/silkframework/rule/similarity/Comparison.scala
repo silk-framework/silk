@@ -113,7 +113,7 @@ object Comparison {
 
     def read(node: Node)(implicit readContext: ReadContext): Comparison = {
       val id = Operator.readId(node)
-      val inputs = node.child.filter(n => n.label == "Input" || n.label == "TransformInput").map(fromXml[Input])
+      val inputs = node.child.filter(n => n.label == "Input" || n.label == "TransformInput").map(fromXml[Input]).toIndexedSeq
       if(inputs.size != 2) throw new ValidationException("A comparison must have exactly two inputs ", id, "Comparison")
       implicit val prefixes = readContext.prefixes
       implicit val resourceManager = readContext.resources
