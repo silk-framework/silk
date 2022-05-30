@@ -197,7 +197,7 @@ class FileEntityCache(val entitySchema: EntitySchema,
         stream.close()
       }
 
-      logger.log(Level.INFO, "Written partition " + partitionCount + " of block " + block)
+      logger.log(Level.FINE, "Written partition " + partitionCount + " of block " + block)
 
       partitionCount += 1
     }
