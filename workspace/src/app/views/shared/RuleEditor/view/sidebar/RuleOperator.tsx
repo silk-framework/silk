@@ -5,7 +5,7 @@ import { Icon, OverflowText, OverviewItemDescription, OverviewItemLine, Spacing 
 import utils from "../ruleNode/ruleNode.utils";
 import { SidebarRuleOperatorBase } from "./RuleEditorOperatorSidebar.typings";
 import Color from "color";
-import colors from "@eccenca/gui-elements/src/cmem/react-flow/configuration/_colors-linking.module.scss";
+import getColorConfiguration from "@eccenca/gui-elements/src/common/utils/getColorConfiguration";
 
 interface RuleOperatorProps {
     // The rule operator that should be rendered
@@ -75,20 +75,21 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
     );
 };
 
+const tagColors = getColorConfiguration("react-flow-linking");
 const tagColor = (tag: string): Color | string | undefined => {
     switch (tag) {
         case "Transform":
-            return colors.transformationNodeBright;
+            return tagColors.transformationNodeBright;
         case "Input":
-            return colors.valueEdge;
+            return tagColors.valueEdge;
         case "Comparison":
-            return colors.comparatorNodeBright;
+            return tagColors.comparatorNodeBright;
         case "Aggregation":
-            return colors.aggregatorNodeBright;
+            return tagColors.aggregatorNodeBright;
         case "Source path":
-            return colors.sourcepathNodeBright;
+            return tagColors.sourcepathNodeBright;
         case "Target path":
-            return colors.targetpathNodeBright;
+            return tagColors.targetpathNodeBright;
     }
 };
 
