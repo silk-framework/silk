@@ -63,6 +63,15 @@ case class CopyTasksRequest(@Schema(
         // Only copy resources if they are at different base paths
         val copyResources = sourceProj.resources.basePath != targetProj.resources.basePath
 
+        // Copy only those tags that do not exist in the target project
+        val targetProjectTags = targetProj.tagManager.allTags().map(_.uri).toSet
+        val tagsToCopy = tasksToCopy.flatMap(_.metaData.tags)
+          .filter(tag => !targetProjectTags.contains(tag.uri))
+          .map(tagUri => sourceProj.tagManager.getTag(tagUri.uri))
+        for(tag <- tagsToCopy) {
+          targetProj.tagManager.putTag(tag)
+        }
+
         // Tasks to be overwritten
         val overwrittenTasks =
           for { task <- tasksToCopy

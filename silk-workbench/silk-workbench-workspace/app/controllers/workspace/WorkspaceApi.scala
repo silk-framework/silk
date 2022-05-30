@@ -214,6 +214,10 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     // Clone task spec, since task specs may contain state, e.g. RDF file dataset
     implicit val resourceManager: ResourceManager = project.resources
     implicit val prefixes: Prefixes = project.config.prefixes
+    // Clone tags
+    for (tag <- project.tagManager.allTags()) {
+      clonedProject.tagManager.putTag(tag)
+    }
     for(task <- project.allTasks) {
       val clonedTaskSpec = Try(task.data.withProperties(Map.empty)).getOrElse(task.data)
       clonedProject.addAnyTask(task.id, clonedTaskSpec, task.metaData.asNewMetaData)

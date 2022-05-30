@@ -277,20 +277,18 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                             condensed
                             open={false}
                         >
-                            {orderTasksByLabel(info.copiedTasks)?.map((t) => (
-                                <OverviewItem key={t.id} className="copy-modal-item">
+                            {orderTasksByLabel(info.copiedTasks)?.map((item) => (
+                                <OverviewItem key={item.id} className="copy-modal-item">
                                     <OverviewItemDepiction>
                                         <ItemDepiction
-                                            itemType={t.taskType}
-                                            pluginId={t.pluginId}
+                                            itemType={item.taskType}
+                                            pluginId={item.pluginId}
                                             size={{ large: true }}
                                         />
                                     </OverviewItemDepiction>
                                     <OverviewItemLine>
-                                        <Link href={t.originalTaskLink} target="_blank">
-                                            <Tooltip content={`open ${t.taskType} "${t.label}" in a new window`}>
-                                                {t.label}
-                                            </Tooltip>
+                                        <Link href={item.originalTaskLink} target="_blank">
+                                            <Tooltip content={t("common.action.openInNewTab")}>{item.label}</Tooltip>
                                         </Link>
                                     </OverviewItemLine>
                                 </OverviewItem>

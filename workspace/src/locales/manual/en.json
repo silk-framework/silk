@@ -218,6 +218,7 @@
             "exportTo": "Export to",
             "logout": "Logout",
             "moreOptions": "Show more options",
+            "openInNewTab": "Open link in new tab",
             "profilingStart": "Start profiling",
             "profilingUpdate": "Update profiling",
             "replace": "Replace",
@@ -312,7 +313,8 @@
             "description": "Description",
             "label": "Label",
             "searchField": "Enter search term",
-            "tags": "Tags"
+            "tags": "Tags",
+            "searchOrEnterTags": "Search or create new tag"
         },
         "projectForm": {
             "importProjectButton": "Import existing project",

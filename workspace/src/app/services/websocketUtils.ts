@@ -45,7 +45,6 @@ export const connectWebSocket = <T>(
 
     cleanUpFunctions.push(() => {
         websocket.onerror = null;
-        console.log("Cleaning up");
         websocket.close(1000, "Closing web socket connection.");
     });
     return () => {

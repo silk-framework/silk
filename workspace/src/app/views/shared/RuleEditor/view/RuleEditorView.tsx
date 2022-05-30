@@ -17,13 +17,13 @@ export const RuleEditorView = () => {
             }}
         >
             <Grid verticalStretchable={true} useAbsoluteSpace={true} style={{ backgroundColor: "white" }}>
-                <GridRow>
+                <GridRow style={{ backgroundColor: "white" }}>
                     <GridColumn full>
                         <RuleEditorToolbar />
                         <Divider addSpacing="medium" />
                     </GridColumn>
                 </GridRow>
-                <GridRow verticalStretched={true}>
+                <GridRow verticalStretched={true} style={{ backgroundColor: "white" }}>
                     <GridColumn small>
                         <RuleEditorOperatorSidebar />
                     </GridColumn>

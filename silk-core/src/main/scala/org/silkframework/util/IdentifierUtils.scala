@@ -22,8 +22,8 @@ object IdentifierUtils {
     }
     // Shortened UUID, not truly unique, but should suffice
     val randomString = UUID.randomUUID().toString
-      .replaceAll("-", "")
       .grouped(2).map(_.head).mkString
-    Identifier.fromAllowed(prefix + "_" + randomString)
+    val inputIdString = s"${prefix}_$randomString".replaceAll("-", "")
+    Identifier.fromAllowed(inputIdString)
   }
 }

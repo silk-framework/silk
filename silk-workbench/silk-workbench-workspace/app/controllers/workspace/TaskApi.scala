@@ -1,10 +1,11 @@
 package controllers.workspace
 
+import config.WorkbenchLinks
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.SerializationUtils
 import controllers.workspace.doc.TaskApiDoc
-import controllers.workspace.taskApi.TaskApiUtils
+import controllers.workspace.taskApi.{TaskApiUtils, TaskLink}
 import controllers.workspace.workspaceRequests.{CopyTasksRequest, CopyTasksResponse}
 import controllers.workspaceApi.project.ProjectApiRestPayloads.ItemMetaData
 import io.swagger.v3.oas.annotations.enums.ParameterIn
@@ -378,7 +379,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
 
     validateJson[MetaDataPlain] { metaData =>
       task.updateMetaData(metaData.toMetaData)
-      Ok(taskMetaDataJson(task))
+      Ok(taskMetaDataJson(task, None))
     }
   }
 
@@ -417,12 +418,26 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
                         in = ParameterIn.PATH,
                         schema = new Schema(implementation = classOf[String])
                       )
-                      taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
+                      taskName: String,
+                      @Parameter(
+                        name = "withTaskLinks",
+                        description = """If set to true dependent tasks are returned in the form {id: "", label: "", taskLink: "/workbench/projects/..."}.""",
+                        required = false,
+                        in = ParameterIn.QUERY,
+                        schema = new Schema(implementation = classOf[Boolean])
+                      )
+                      withTaskLinks: Boolean): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.anyTask(taskName)
-    val metaDataJson = taskMetaDataJson(task)
+    val metaDataJson = taskMetaDataJson(task, if(withTaskLinks) Some(dependentTaskLinkFormatter(project)) else None)
     accessMonitor.saveProjectTaskAccess(project.config.id, task.id)
     Ok(metaDataJson)
+  }
+
+  private def dependentTaskLinkFormatter(project: Project)
+                                        (implicit userContext: UserContext): String => JsValue = (taskId: String) => {
+    val task = project.anyTask(taskId)
+    Json.toJson(TaskLink(task.id, task.metaData.label, WorkbenchLinks.editorLink(task)))
   }
 
   @Operation(
@@ -463,8 +478,12 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     Ok(Json.toJson(MetaDataExpanded.fromMetaData(task.metaData, project.tagManager)))
   }
 
-  // Task meta data object as JSON
-  private def taskMetaDataJson(task: ProjectTask[_ <: TaskSpec])(implicit userContext: UserContext): JsObject = {
+  /** Task meta data object as JSON
+    *
+    * @param dependentTaskFormatter Converts dependent tasks to a different JSON format than the string ID.
+    */
+  private def taskMetaDataJson(task: ProjectTask[_ <: TaskSpec],
+                               dependentTaskFormatter: Option[String => JsValue])(implicit userContext: UserContext): JsObject = {
     val formatOptions =
       TaskFormatOptions(
         includeMetaData = Some(false),
@@ -473,7 +492,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
         includeRelations = Some(true),
         includeSchemata = Some(true)
       )
-    val taskFormat = new TaskJsonFormat[TaskSpec](formatOptions, Some(userContext))
+    val taskFormat = new TaskJsonFormat[TaskSpec](formatOptions, Some(userContext), dependentTaskFormatter)
     implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](projectId = Some(task.project.config.id))
     val taskJson = taskFormat.write(task)
     val metaDataJson = JsonSerializers.toJson(task.metaData)
@@ -525,7 +544,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     implicit val resourceManager: ResourceManager = project.resources
     implicit val prefixes: Prefixes = project.config.prefixes
     val clonedTaskSpec = Try(fromTask.data.withProperties(Map.empty)).getOrElse(fromTask.data)
-    project.addAnyTask(newTask, clonedTaskSpec)
+    project.addAnyTask(newTask, clonedTaskSpec, MetaData.empty.copy(tags = fromTask.metaData.tags))
     Ok
   }
 

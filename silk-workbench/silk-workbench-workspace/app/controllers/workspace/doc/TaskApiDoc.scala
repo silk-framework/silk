@@ -127,8 +127,8 @@ object TaskApiDoc {
           "inputTasks": [],
           "outputTasks": [],
           "referencedTasks": ["DBpedia", "linkedmdb"],
-          "dependentTasksDirect": ["workflow"],
-          "dependentTasksAll": ["workflow"]
+          "dependentTasksDirect": [{id: "workflow_f76889ec", label: "Workflow label", taskLink: "/workbench/projects/MyProject/workflow/MyTask"}],
+          "dependentTasksAll": [{id: "workflow_f76889ec", label: "Workflow label", taskLink: "/workbench/projects/MyProject/workflow/MyTask"}]
         }
       }
     """

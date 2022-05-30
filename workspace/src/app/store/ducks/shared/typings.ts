@@ -10,12 +10,18 @@ export interface IRequestAutocompletePayload {
     offset: number;
 }
 
+export interface ITaskLink {
+    id: string;
+    label?: string;
+    taskLink: string;
+}
+
 export interface IRelations {
-    inputTasks: [];
-    outputTasks: [];
-    referencedTasks: [];
-    dependentTasksDirect: [];
-    dependentTasksAll: [];
+    inputTasks: string[];
+    outputTasks: string[];
+    referencedTasks: string[];
+    dependentTasksDirect: string[] | ITaskLink[];
+    dependentTasksAll: string[] | ITaskLink[];
 }
 
 export interface IProjectMetadataResponse {

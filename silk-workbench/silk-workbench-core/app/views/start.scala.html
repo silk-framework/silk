@@ -31,6 +31,7 @@
 
       @if(!projects.exists(_.id == exampleName)) {
         <button id="start-load-example" class="mdl-button mdl-js-button mdl-button--raised" onclick="loadExample()" style="margin-left: 5px;">Load Example</button>
+        &nbsp;
       }
       <span>
         <a id="workspace-switch" href="@config.baseUrl/workbench?itemType=project&page=1&limit=10" class="mdl-button mdl-js-button mdl-button--raised">Open workspace</a>

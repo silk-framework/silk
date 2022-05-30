@@ -37,6 +37,7 @@ import utils from "./MetadataUtils";
 import { IMetadataExpanded } from "./Metadatatypings";
 import { Keyword, Keywords } from "@ducks/workspace/typings";
 import { removeExtraSpaces } from "@eccenca/gui-elements/src/common/utils/stringUtils";
+import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 
 interface IProps {
     projectId?: string;
@@ -56,7 +57,7 @@ export function Metadata(props: IProps) {
     const taskId = props.taskId || _taskId;
 
     const [loading, setLoading] = useState(false);
-    const [data, setData] = useState({ label: "", description: "" } as IMetadataExpanded);
+    const [data, setData] = useState<IMetadataExpanded>({ label: "", description: "", tags: [] });
     const [formEditData, setFormEditData] = useState<IMetadataUpdatePayload | undefined>(undefined);
     const [isEditing, setIsEditing] = useState(false);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
@@ -93,9 +94,14 @@ export function Metadata(props: IProps) {
         if (projectId) {
             utils
                 .getExpandedMetaData(projectId, taskId)
-                .then((res) => setData({ ...(res?.data as IMetadataExpanded) } ?? {}));
+                .then((res) => setData({ ...(res?.data as IMetadataExpanded) } ?? {}))
+                .catch((err) => registerError("metadata-getExpandedMetaData", "Could not fetch summary data.", err));
         }
     }, [taskId, projectId]);
+
+    useEffect(() => {
+        checkEditState();
+    }, [selectedTags]);
 
     const letLoading = async (callback) => {
         setLoading(true);
@@ -218,23 +224,21 @@ export function Metadata(props: IProps) {
     };
 
     const checkEditState = () => {
-        if (formEditData && (formEditData.label !== data.label || formEditData.description !== data.description)) {
+        const selectedTagsString = selectedTags.map((t) => t.uri).join("|");
+        const originalTagsString = data.tags.map((t) => t.uri).join("|");
+        const changedTags = selectedTagsString !== originalTagsString;
+        const labelChanged = formEditData && formEditData.label !== data.label;
+        const descriptionChanged = formEditData && (formEditData.description ?? "") !== (data.description ?? "");
+        if (changedTags || labelChanged || descriptionChanged) {
             setDirtyState();
         } else {
             removeDirtyState();
         }
     };
 
-    const handleTagSelectionChange = React.useCallback((params) => {
+    const handleTagSelectionChange = React.useCallback((params: SelectedParamsType<Keyword>) => {
         setCreatedTags(params.createdItems);
         setSelectedTags((oldSelectedTags) => {
-            const prevSelectedTags = oldSelectedTags.map((t) => t.uri).join("|");
-            const newlySelectedTags = params.selectedItems.map((t) => t.uri).join("|");
-            if (prevSelectedTags !== newlySelectedTags) {
-                setDirtyState();
-            } else {
-                removeDirtyState();
-            }
             return params.selectedItems;
         });
     }, []);
@@ -322,7 +326,7 @@ export function Metadata(props: IProps) {
                             <Label text={t("form.field.tags", "Tags")} />
                         </PropertyName>
                         <PropertyValue>
-                            <FieldItem>
+                            <FieldItem data-test-id={"meta-data-tag-selection"}>
                                 <MultiSelect<Keyword>
                                     prePopulateWithItems
                                     openOnKeyDown
@@ -334,7 +338,10 @@ export function Metadata(props: IProps) {
                                     newItemCreationText={t("Metadata.addNewTag")}
                                     newItemPostfix={t("Metadata.newTagPostfix")}
                                     inputProps={{
-                                        placeholder: `${t("common.action.search")}...`,
+                                        placeholder: `${t("form.field.searchOrEnterTags")}...`,
+                                    }}
+                                    tagInputProps={{
+                                        placeholder: `${t("form.field.searchOrEnterTags")}...`,
                                     }}
                                     createNewItemFromQuery={(query) => ({
                                         uri: removeExtraSpaces(query),

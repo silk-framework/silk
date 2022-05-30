@@ -1,7 +1,6 @@
 import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
 import React, { MouseEvent } from "react";
-import { Switch, TextArea, TextField } from "@eccenca/gui-elements";
-import { CodeEditor } from "../../../QueryEditor/CodeEditor";
+import { Switch, TextArea, TextField, CodeEditor } from "@eccenca/gui-elements";
 import { requestResourcesList } from "@ducks/shared/requests";
 import { Intent } from "@blueprintjs/core";
 import { useTranslation } from "react-i18next";

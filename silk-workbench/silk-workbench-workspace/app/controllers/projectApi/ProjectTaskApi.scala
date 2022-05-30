@@ -263,7 +263,8 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
       implicit val resourceManager: ResourceManager = project.resources
       implicit val prefixes: Prefixes = project.config.prefixes
       val clonedTaskSpec = Try(fromTask.data.withProperties(Map.empty)).getOrElse(fromTask.data)
-      project.addAnyTask(generatedId, clonedTaskSpec, request.metaData.asMetaData)
+      val requestMetaData = request.metaData.asMetaData
+      project.addAnyTask(generatedId, clonedTaskSpec, requestMetaData.copy(tags = requestMetaData.tags ++ fromTask.metaData.tags))
       val itemType = ItemType.itemType(fromTask)
       val taskLink = ItemType.itemDetailsPage(itemType, projectId, generatedId).path
       Created(Json.toJson(ItemCloneResponse(generatedId, taskLink)))

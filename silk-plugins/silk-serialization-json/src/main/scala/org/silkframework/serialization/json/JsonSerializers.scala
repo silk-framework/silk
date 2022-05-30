@@ -1041,9 +1041,12 @@ object JsonSerializers {
 
   /**
     * Task
+    *
+    * @param dependentTaskFormatter Converts dependent tasks to a different JSON format than the string ID.
     */
   class TaskJsonFormat[T <: TaskSpec : ClassTag](options: TaskFormatOptions = TaskFormatOptions(),
-                                                 userContext: Option[UserContext] = None)(implicit dataFormat: JsonFormat[T]) extends JsonFormat[Task[T]] {
+                                                 userContext: Option[UserContext] = None,
+                                                 dependentTaskFormatter: Option[String => JsValue] = None)(implicit dataFormat: JsonFormat[T]) extends JsonFormat[Task[T]] {
 
     final val PROJECT = "project"
     final val PROPERTIES = "properties"
@@ -1106,7 +1109,7 @@ object JsonSerializers {
       }
       if(options.includeRelations.getOrElse(false) && userContext.isDefined) {
         implicit val uc = userContext.get // User context is needed to fetch dependent tasks
-        json += RELATIONS -> writeTaskRelations(task)
+        json += RELATIONS -> writeTaskRelations(task, dependentTaskFormatter)
       }
       if(options.includeSchemata.getOrElse(false)) {
         json += SCHEMATA -> writeTaskSchemata(task)
@@ -1123,15 +1126,34 @@ object JsonSerializers {
       )
     }
 
-    private def writeTaskRelations(task: Task[T])
+
+
+    private def writeTaskRelations(task: Task[T],
+                                   dependentTaskFormatter: Option[String => JsValue])
                                   (implicit writeContext: WriteContext[JsValue],
                                    userContext: UserContext): JsValue = {
       Json.obj(
         "inputTasks" -> JsArray(task.data.inputTasks.toSeq.map(JsString(_))),
         "outputTasks" -> JsArray(task.data.outputTasks.toSeq.map(JsString(_))),
         "referencedTasks" -> JsArray(task.data.referencedTasks.toSeq.map(JsString(_))),
-        "dependentTasksDirect" -> JsArray(task.findDependentTasks(recursive = false).map(JsString(_)).toSeq),
-        "dependentTasksAll" -> JsArray(task.findDependentTasks(recursive = true).map(JsString(_)).toSeq)
+        "dependentTasksDirect" -> {
+          val directTasks = task.findDependentTasks(recursive = false)
+          dependentTaskFormatter match {
+            case Some(jsonFormatter) =>
+              directTasks.map(t => jsonFormatter(t))
+            case None =>
+              directTasks.map(JsString(_)).toSeq
+          }
+        },
+        "dependentTasksAll" -> {
+          val allTasks = task.findDependentTasks(recursive = true)
+          dependentTaskFormatter match {
+            case Some(jsonFormatter) =>
+              allTasks.map(t => jsonFormatter(t))
+            case None =>
+              allTasks.map(JsString(_)).toSeq
+          }
+        }
       )
     }
 

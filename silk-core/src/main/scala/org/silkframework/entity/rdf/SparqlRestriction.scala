@@ -59,7 +59,7 @@ object SparqlRestriction {
     var restrictionsQualified = cleanedRestrictions
     for ((id, namespace) <- prefixes.toSeq.sortBy(_._1.length).reverse) {
       // Replace prefixes in properties and types
-      restrictionsFull = restrictionsFull.replaceAll("([\\s^])" + id + ":" + "([^\\s\\{\\}+*]+)([+*]*\\s+\\.)?", "$1<" + namespace + "$2>$3")
+      restrictionsFull = restrictionsFull.replaceAll("([\\s^])" + id + ":" + "([^;\\s\\{\\}+*]+)([+*]*\\s+\\.;)?", "$1<" + namespace + "$2>$3")
       restrictionsQualified = restrictionsQualified.replaceAll("<" + namespace + "([^>]+)>", id + ":" + "$1")
     }
 

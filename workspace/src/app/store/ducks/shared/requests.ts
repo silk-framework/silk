@@ -43,10 +43,16 @@ export const requestProjectMetadata = async (itemId: string): Promise<FetchRespo
 
 export const requestTaskMetadata = async (
     itemId: string,
-    projectId?: string
+    projectId: string,
+    withTaskLinks?: boolean
 ): Promise<FetchResponse<ITaskMetadataResponse>> => {
     return fetch({
         url: legacyApiEndpoint(`/projects/${projectId}/tasks/${itemId}/metadata`),
+        query: withTaskLinks
+            ? {
+                  withTaskLinks: true,
+              }
+            : undefined,
     });
 };
 

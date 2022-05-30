@@ -1,7 +1,6 @@
 import React from "react";
 import { INPUT_TYPES } from "../../../../../constants";
-import { Switch, TextArea, TextField } from "@eccenca/gui-elements";
-import { CodeEditor } from "../../../QueryEditor/CodeEditor";
+import { Switch, TextArea, TextField, CodeEditor } from "@eccenca/gui-elements";
 import { ITaskParameter } from "@ducks/common/typings";
 import { Intent } from "@blueprintjs/core";
 import FileSelectionMenu from "../../../FileUploader/FileSelectionMenu";
@@ -91,8 +90,9 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
         case INPUT_TYPES.TEXTAREA:
             return <TextArea {...inputAttributes} />;
         case INPUT_TYPES.RESTRICTION:
+            return <CodeEditor mode="sparql" {...inputAttributes} />;
         case INPUT_TYPES.MULTILINE_STRING:
-            return <CodeEditor {...inputAttributes} />;
+            return <CodeEditor mode="undefined" {...inputAttributes} />;
         case INPUT_TYPES.PASSWORD:
             return <TextField {...inputAttributes} type={"password"} />;
         case INPUT_TYPES.TARGET_VOCABULARY:
