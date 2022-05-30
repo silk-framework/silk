@@ -53,11 +53,19 @@ case class NumMetric(minValue: Double = Double.NegativeInfinity, maxValue: Doubl
     }
   }
 
+  override def emptyIndex(limit: Double): Index = {
+    if(indexEnabled) {
+      Index.continuousEmpty(minValue, maxValue, limit)
+    } else {
+      Index.empty
+    }
+  }
+
   override def indexValue(str: String, limit: Double, sourceOrTarget: Boolean): Index = {
     if (indexEnabled) {
       str match {
         case DoubleLiteral(num) => Index.continuous(num, minValue, maxValue, limit)
-        case _ => Index.empty
+        case _ => emptyIndex(limit)
       }
     }
     else {

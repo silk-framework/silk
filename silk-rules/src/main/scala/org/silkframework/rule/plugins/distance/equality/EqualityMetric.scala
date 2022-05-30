@@ -61,5 +61,7 @@ case class EqualityMetric() extends SimpleDistanceMeasure {
 
   override def evaluate(str1: String, str2: String, threshold: Double): Double = if (str1 == str2) 0.0 else 1.0
 
+  override def emptyIndex(limit: Double): Index = Index.oneDim(Set.empty)
+
   override def indexValue(str: String, threshold: Double, sourceOrTarget: Boolean): Index = Index.oneDim(Set(str.hashCode))
 }

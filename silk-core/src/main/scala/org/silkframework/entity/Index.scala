@@ -157,5 +157,10 @@ object Index {
 
     oneDim(indices, blockCount)
   }
+
+  def continuousEmpty(minValue: Double, maxValue: Double, limit: Double, overlap: Double = 0.5): Index = {
+    val blockCount = ((maxValue - minValue) / limit * overlap).toInt
+    oneDim(Set.empty, blockCount)
+  }
 }
 

@@ -35,6 +35,11 @@ abstract class SimpleDistanceMeasure extends DistanceMeasure {
   def evaluate(value1: String, value2: String, limit: Double = Double.PositiveInfinity): Double
 
   /**
+    * The empty index, if no value is present.
+    */
+  def emptyIndex(limit: Double): Index = Index.empty
+
+  /**
    * Computes the index of a single value.
    */
   def indexValue(value: String, limit: Double, sourceOrTarget: Boolean): Index = Index.default
@@ -55,7 +60,7 @@ abstract class SimpleDistanceMeasure extends DistanceMeasure {
 
   override def index(values: Seq[String], limit: Double, sourceOrTarget: Boolean): Index = {
     if(values.isEmpty) {
-      Index.empty
+      emptyIndex(limit)
     } else {
       values.distinct.map((value: String) => indexValue(value, limit, sourceOrTarget)).reduce(_ merge _)
     }
