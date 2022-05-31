@@ -12,7 +12,7 @@ import { extractSearchWords, matchesAllWords } from "@eccenca/gui-elements/src/c
 import { SidebarSearchField } from "./SidebarSearchField";
 import { partitionArray, sortLexically } from "../../../../../utils/basicUtils";
 import { TabProps } from "@eccenca/gui-elements/src/components/Tabs/Tab";
-import { colors as tabColors } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/linking";
+import getColorConfiguration from "@eccenca/gui-elements/src/common/utils/getColorConfiguration";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
@@ -162,6 +162,7 @@ export const RuleEditorOperatorSidebar = () => {
         }
     };
 
+    const tabColors = getColorConfiguration("react-flow-linking");
     const getTabColor = (id: string): string | undefined => {
         switch (id) {
             case "sourcePaths":
