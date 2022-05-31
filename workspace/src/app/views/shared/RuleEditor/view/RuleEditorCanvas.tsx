@@ -22,7 +22,6 @@ import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { EdgeMenu } from "./ruleEdge/EdgeMenu";
 import { ruleEditorModelUtilsFactory, SOURCE_HANDLE_TYPE, TARGET_HANDLE_TYPE } from "../model/RuleEditorModel.utils";
 import { MiniMap } from "@eccenca/gui-elements/src/extensions/react-flow/minimap/MiniMap";
-import { minimapNodeClassName, minimapNodeColor } from "@eccenca/gui-elements/src/extensions/react-flow/minimap/utils";
 import { GridColumn } from "@eccenca/gui-elements";
 import { RuleEditorNode } from "../model/RuleEditorModel.typings";
 import useHotKey from "../../HotKeyHandler/HotKeyHandler";
@@ -537,8 +536,6 @@ export const RuleEditorCanvas = () => {
             >
                 <MiniMap
                     flowInstance={reactFlowInstance}
-                    nodeClassName={minimapNodeClassName}
-                    nodeColor={minimapNodeColor}
                     enableNavigation={true}
                 />
                 <Controls
