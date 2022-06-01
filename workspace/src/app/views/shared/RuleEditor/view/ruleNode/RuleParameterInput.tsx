@@ -159,6 +159,7 @@ export const RuleParameterInput = ({
                         formParamId={uniqueId}
                         dependentValue={dependentValue}
                         required={ruleParameter.parameterSpecification.required}
+                        disabled={inputAttributes.disabled}
                     />
                 );
             } else {
