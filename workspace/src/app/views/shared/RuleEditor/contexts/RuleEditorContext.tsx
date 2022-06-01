@@ -24,6 +24,8 @@ export interface RuleEditorContextProps {
     editedItemId?: string;
     /** The item whose rules are being edited, e.g. linking or transformation. */
     editedItem?: object;
+    /** Optional title that is shown above the toolbar. */
+    editorTitle?: string;
     /** The operators that can be dragged and dropped onto the rule editor. */
     operatorList?: IRuleOperator[];
     /** The operator parameter specification of each operator plugin. */
