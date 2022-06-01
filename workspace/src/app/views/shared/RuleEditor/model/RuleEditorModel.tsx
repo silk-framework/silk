@@ -483,13 +483,15 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
      * @param ruleModelChange The operations that are executed on the rule model.
      * @param currentElements The current rule tree.
      * @param isUndoOrRedo    If this is triggered by an undo/redo action. If true then some post-processing might be needed in some cases.
+     * @param ignoreReadOnlyState When set the change will be executed even when the editor is in read-only mode.
      */
     const executeRuleModelChangeInternal = (
         ruleModelChange: RuleModelChanges,
         currentElements: Elements,
-        isUndoOrRedo: boolean = false
+        isUndoOrRedo: boolean = false,
+        ignoreReadOnlyState: boolean = false
     ): Elements => {
-        if (readOnlyState.enabled) {
+        if (readOnlyState.enabled && !ignoreReadOnlyState) {
             return currentElements;
         }
         const groupedChanges = groupedRuleModelChanges(ruleModelChange);
@@ -1232,7 +1234,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 changeElementsInternal((elems) => {
                     const newElements = addChangeHistory
                         ? addAndExecuteRuleModelChangeInternal(changeNodePositions, elements)
-                        : executeRuleModelChangeInternal(changeNodePositions, elements);
+                        : executeRuleModelChangeInternal(changeNodePositions, elements, false, true);
                     resolve(newElements);
                     return newElements;
                 });
