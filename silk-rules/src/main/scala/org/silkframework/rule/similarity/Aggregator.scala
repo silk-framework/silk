@@ -14,12 +14,13 @@
 
 package org.silkframework.rule.similarity
 
-import org.silkframework.entity.Index
+import org.silkframework.entity.{Entity, Index}
 import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
+import org.silkframework.util.DPair
 
 trait Aggregator extends AnyPlugin {
 
-  def evaluate(values: Seq[WeightedSimilarityScore]): SimilarityScore
+  def apply(operators: Seq[SimilarityOperator], entities: DPair[Entity], limit: Double): SimilarityScore
 
   /**
     * Aggregates or manipulates the child indexes. The default implementation leaves the indexes as they are.
@@ -42,10 +43,6 @@ trait Aggregator extends AnyPlugin {
    * Combines two indexes into one. This is called after preProcessIndexes.
    */
   protected def combineIndexes(index1: Index, index2: Index): Index
-
-  def computeThreshold(threshold: Double, weight: Double): Double = {
-    threshold
-  }
 }
 
 object Aggregator extends PluginFactory[Aggregator]

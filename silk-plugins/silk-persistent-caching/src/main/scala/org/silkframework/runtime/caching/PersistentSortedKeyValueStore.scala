@@ -61,6 +61,7 @@ case class PersistentSortedKeyValueStore(databaseId: Identifier,
   }
 
   private def createEnv(): Env[ByteBuffer] = {
+    Thread.currentThread.setContextClassLoader(classOf[org.lmdbjava.LmdbException].getClassLoader)
     create()
         .setMapSize(config.maxSizeInBytes)
         .setMaxDbs(1)

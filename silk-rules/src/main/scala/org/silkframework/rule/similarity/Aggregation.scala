@@ -19,7 +19,6 @@ import org.silkframework.rule.Operator
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{DPair, Identifier}
 
-import scala.collection.mutable.ArrayBuffer
 import scala.xml.Node
 
 /**
@@ -36,8 +35,6 @@ case class Aggregation(id: Identifier = Operator.generateId,
 
   def indexing: Boolean = operators.exists(_.indexing)
 
-  private val operatorsSize: Int = operators.size
-
   /**
    * Computes the similarity between two entities.
    *
@@ -47,19 +44,7 @@ case class Aggregation(id: Identifier = Operator.generateId,
    *         None, if no similarity could be computed.
    */
   override def apply(entities: DPair[Entity], limit: Double): Option[Double] = {
-    var totalWeights = 0.0
-    for(operator <- operators) {
-      totalWeights += operator.weight
-    }
-
-    val weightedValues = new ArrayBuffer[WeightedSimilarityScore](operatorsSize)
-    for(op <- operators) {
-      val opThreshold = aggregator.computeThreshold(limit, op.weight.toDouble / totalWeights)
-      val score = op(entities, opThreshold)
-      weightedValues += WeightedSimilarityScore(score, op.weight)
-    }
-
-    aggregator.evaluate(weightedValues).score
+    aggregator(operators, entities, limit).score
   }
 
   /**
@@ -70,12 +55,9 @@ case class Aggregation(id: Identifier = Operator.generateId,
    * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
    */
   override def index(entity: Entity, sourceOrTarget: Boolean, threshold: Double): Index = {
-    val totalWeights = operators.map(_.weight).sum
-
     val indexSets = {
       for (op <- operators if op.indexing) yield {
-        val opThreshold = aggregator.computeThreshold(threshold, op.weight.toDouble / totalWeights)
-        val index = op.index(entity, sourceOrTarget, opThreshold)
+        val index = op.index(entity, sourceOrTarget, threshold)
         index
       }
     }

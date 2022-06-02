@@ -16,7 +16,7 @@ package org.silkframework.rule.evaluation
 
 import org.silkframework.entity.Entity
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
-import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator, WeightedSimilarityScore}
+import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.rule.{LinkageRule, TransformRule}
 import org.silkframework.util.DPair
 
@@ -95,22 +95,13 @@ object DetailedEvaluator {
   }
 
   private def evaluateAggregation(agg: Aggregation, entities: DPair[Entity], threshold: Double): AggregatorConfidence = {
-    val totalWeights = agg.operators.map(_.weight).sum
-
     val operatorValues = {
       for (operator <- agg.operators) yield {
-        val updatedThreshold = agg.aggregator.computeThreshold(threshold, operator.weight.toDouble / totalWeights)
-        evaluateOperator(operator, entities, updatedThreshold)
+        evaluateOperator(operator, entities, threshold)
       }
     }
 
-    var weightedValues = Seq[WeightedSimilarityScore]()
-
-    for((op, value) <- agg.operators zip operatorValues.map(_.score)) yield {
-      weightedValues :+= WeightedSimilarityScore(value, op.weight)
-    }
-
-    val aggregatedValue = agg.aggregator.evaluate(weightedValues)
+    val aggregatedValue = agg.aggregator(agg.operators, entities, threshold)
     AggregatorConfidence(aggregatedValue.score, agg, operatorValues)
   }
 
