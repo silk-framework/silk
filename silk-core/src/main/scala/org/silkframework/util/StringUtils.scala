@@ -14,7 +14,6 @@
 
 package org.silkframework.util
 
-import java.util.regex.Pattern
 import javax.xml.datatype.{DatatypeFactory, XMLGregorianCalendar}
 import scala.language.implicitConversions
 import scala.util.Try
@@ -41,27 +40,35 @@ object StringUtils {
     def apply(x: Int): String = x.toString
 
     def unapply(x: String): Option[Int] = {
-      Option(x) flatMap { s =>
-        Try(s.toInt).toOption
+      try {
+        Some(x.toInt)
+      } catch {
+        case _: NumberFormatException =>
+          None
       }
     }
   }
 
   object DoubleLiteral {
 
-    private val DOUBLE_PATTERN = Pattern.compile("[\\x00-\\x20]*[+-]?(NaN|Infinity|((((\\p{Digit}+)(\\.)?((\\p{Digit}+)?)" + "([eE][+-]?(\\p{Digit}+))?)|(\\.((\\p{Digit}+))([eE][+-]?(\\p{Digit}+))?)|" + "(((0[xX](\\p{XDigit}+)(\\.)?)|(0[xX](\\p{XDigit}+)?(\\.)(\\p{XDigit}+)))" + "[pP][+-]?(\\p{Digit}+)))[fFdD]?))[\\x00-\\x20]*")
-
     def isDouble(str: String): Boolean = {
-      DOUBLE_PATTERN.matcher(str).matches()
+      try {
+        str.toDouble
+        true
+      } catch {
+        case _: NumberFormatException =>
+          false
+      }
     }
 
     def apply(x: Double): String = x.toString
 
     def unapply(x: String): Option[Double] = {
-      if(isDouble(x)) {
+      try {
         Some(x.toDouble)
-      } else {
-        None
+      } catch {
+        case _: NumberFormatException =>
+          None
       }
     }
   }
