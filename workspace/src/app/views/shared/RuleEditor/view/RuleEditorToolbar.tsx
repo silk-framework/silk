@@ -29,6 +29,7 @@ export const RuleEditorToolbar = () => {
     const [savingWorkflow, setSavingWorkflow] = React.useState(false);
     const [evaluationShown, setEvaluationShown] = React.useState(false);
     const [t] = useTranslation();
+    const integratedView = !!ruleEditorContext.viewActions?.integratedView
 
     useHotKey({
         hotkey: "mod+z",
@@ -53,6 +54,14 @@ export const RuleEditorToolbar = () => {
             window.onbeforeunload = () => true;
         } else {
             window.onbeforeunload = null;
+        }
+        const parentWindow = window.parent as Window & {setLinkingEditorUnsavedChanges?: (hasUnsavedChanges: boolean) => any}
+        if(integratedView && parentWindow !== window && typeof parentWindow.setLinkingEditorUnsavedChanges === "function") {
+            try {
+                parentWindow.setLinkingEditorUnsavedChanges(modelContext.unsavedChanges)
+            } catch(ex) {
+                console.warn("Cannot call setLinkingEditorUnsavedChanges() of parent window!", ex)
+            }
         }
     }, [modelContext.unsavedChanges]);
 
@@ -158,7 +167,7 @@ export const RuleEditorToolbar = () => {
                 </Button>
                 <RuleEditorNotifications
                     key={"notifications"}
-                    integratedView={ruleEditorContext.viewActions?.integratedView}
+                    integratedView={integratedView}
                     queueEditorNotifications={
                         ruleEditorContext.lastSaveResult?.errorMessage
                             ? [ruleEditorContext.lastSaveResult?.errorMessage]
