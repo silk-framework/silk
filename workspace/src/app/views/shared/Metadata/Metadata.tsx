@@ -147,7 +147,7 @@ export function Metadata(props: IProps) {
                         createdTags.map((t) => ({ label: t.label })),
                         projectId
                     );
-                    //defensive correction to ensure uris match
+                    //defensive correction to ensure uris match.
                     const metadataTags = selectedTags.map((tag) => {
                         const newlyCreatedTagMatch = (createdTagsResponse?.data ?? []).find(
                             (t) => t.label === tag.label
