@@ -209,7 +209,7 @@ export function Metadata(props: IProps) {
             const hasToReRender = !formEditData.label || !e.target.value;
             formEditData.label = e.target.value;
             if (hasToReRender) {
-                // Label has changed either from empty or was set to empty. Need to re-render.
+                // Label has changed either from empty or was set to empty. Need to re-render
                 setFormEditData({ ...formEditData });
             }
             checkEditState();
