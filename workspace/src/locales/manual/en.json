@@ -453,6 +453,7 @@
             "searchTooltip": "Search for rule operators and input paths."
         },
         "toolbar": {
+            "advancedParameterMode": "advanced",
             "autoLayout": "Auto-layout",
             "readOnly": "Read-only mode is enabled. No saving possible.",
             "save": "Save",

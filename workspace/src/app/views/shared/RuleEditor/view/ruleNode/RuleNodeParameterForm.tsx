@@ -1,6 +1,7 @@
 import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
 import React from "react";
 import { RuleNodeFormParameter } from "./RuleNodeFormParameter";
+import {RuleEditorUiContext} from "../../contexts/RuleEditorUiContext";
 
 export interface RuleNodeParametersProps {
     nodeId: string;
@@ -21,9 +22,13 @@ export const RuleNodeParameterForm = ({
     dependentValue,
     large,
 }: RuleNodeParametersProps) => {
+    const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
+
     return (
         <div key={"ruleNodeParameters"}>
-            {parameters.map((param) => {
+            {parameters
+                .filter(param => !param.parameterSpecification.advanced || ruleEditorUiContext.advancedParameterModeEnabled)
+                .map((param) => {
                 return (
                     <RuleNodeFormParameter
                         key={param.parameterId}

@@ -126,6 +126,13 @@ export const RuleEditorToolbar = () => {
                         />
                     </>
                 )}
+                <Spacing vertical size={"small"}/>
+                <Switch
+                    data-test-id={"rule-editor-advanced-toggle"}
+                    label={t("RuleEditor.toolbar.advancedParameterMode")}
+                    checked={ruleEditorUiContext.advancedParameterModeEnabled}
+                    onClick={() => ruleEditorUiContext.setAdvancedParameterMode(!ruleEditorUiContext.advancedParameterModeEnabled)}
+                />
             </ToolbarSection>
             <ToolbarSection canGrow>
                 <Spacing vertical />
