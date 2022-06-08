@@ -221,6 +221,7 @@ const inputPathTab = (
                     path: path.label ? { value: path.value, label: path.label } : path.value,
                 },
                 tags: [path.valueType],
+                inputsCanBeSwitched: false
             };
         },
         isOriginalOperator: (listItem) => (listItem as PathWithMetaData).valueType != null,

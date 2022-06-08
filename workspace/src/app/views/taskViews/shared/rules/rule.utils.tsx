@@ -172,6 +172,7 @@ const inputPathOperator = (
         icon: undefined,
         description: description,
         tags: [],
+        inputsCanBeSwitched: false
     };
 };
 
@@ -200,6 +201,8 @@ const parameterSpecification = ({
     };
 };
 
+const REVERSE_PARAMETER_ID = "reverse"
+
 /** Converts plugin details from the backend to rule operators.
  *
  * @param pluginDetails                      The details of the operator plugin.
@@ -210,6 +213,8 @@ const convertRuleOperator = (
     addAdditionParameterSpecifications: (pluginDetails: IPluginDetails) => [id: string, spec: IParameterSpecification][]
 ): IRuleOperator => {
     const required = (parameterId: string) => pluginDetails.required.includes(parameterId);
+    // If this is true then source and target inputs can be connected in any order.
+    const inputsCanBeSwitched = pluginDetails.properties[REVERSE_PARAMETER_ID]?.parameterType === "boolean" && pluginDetails.pluginType === "ComparisonOperator"
     const additionalParamSpecs = addAdditionParameterSpecifications(pluginDetails);
     return {
         pluginType: pluginDetails.pluginType ?? "unknown",
@@ -219,7 +224,9 @@ const convertRuleOperator = (
         categories: pluginDetails.categories,
         icon: undefined,
         parameterSpecification: Object.fromEntries([
-            ...Object.entries(pluginDetails.properties).map(([parameterId, parameterSpec]) => {
+            ...Object.entries(pluginDetails.properties)
+                .filter(([paramId, paramSpec]) => !inputsCanBeSwitched || paramId !== REVERSE_PARAMETER_ID)
+                .map(([parameterId, parameterSpec]) => {
                 const spec: IParameterSpecification = {
                     label: parameterSpec.title,
                     description: parameterSpec.description,
@@ -235,6 +242,7 @@ const convertRuleOperator = (
         ]),
         portSpecification: portSpecification(pluginDetails),
         tags: pluginTags(pluginDetails),
+        inputsCanBeSwitched
     };
 };
 
