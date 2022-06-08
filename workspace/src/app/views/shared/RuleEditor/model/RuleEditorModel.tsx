@@ -1329,6 +1329,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 portSpecification: originalNode.portSpecification,
                 position: node.position,
                 description: originalNode.description,
+                inputsCanBeSwitched: originalNode.inputsCanBeSwitched
             };
             return ruleOperatorNode;
         });

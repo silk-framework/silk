@@ -35,6 +35,8 @@ const comparatorInputs = (comparison: IComparisonOperator): IValueInput[] => [
 
 const aggregatorInputs = (aggregator: IAggregationOperator): ISimilarityOperator[] => aggregator.inputs;
 
+const REVERSE_PARAMETER_ID = "reverse"
+
 /**
  * Extracts and adds a single operator node to the array, recursively executes on its children.
  * @return the ID of the operator node
@@ -91,6 +93,7 @@ const extractSimilarityOperatorNode = (
             },
             tags: [operator.type],
             description: ruleOperator(pluginId, pluginType)?.description,
+            inputsCanBeSwitched: isComparison && operator.parameters[REVERSE_PARAMETER_ID] != null
         });
         return operator.id;
     }

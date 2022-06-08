@@ -49,6 +49,7 @@ const extractOperatorNodeFromPathInput = (
             maxInputPorts: 0,
         },
         description: "Specifies the property, attribute or path where the input values are coming from.",
+        inputsCanBeSwitched: false
     });
     return pathInput.id;
 };
@@ -75,6 +76,7 @@ const extractOperatorNodeFromTransformInput = (
         },
         tags: ["Transform"],
         description: ruleOperator(transformInput.function, "TransformOperator")?.description,
+        inputsCanBeSwitched: false
     });
     return transformInput.id;
 };
@@ -459,10 +461,19 @@ const validateConnection = (
         case "PathInputOperator":
             // Target must be either a comparison or a transform operator
             if (targetPluginType === "ComparisonOperator") {
-                return (
-                    (sourcePluginId === "targetPathInput" && targetPortIdx === 1) ||
-                    (sourcePluginId === "sourcePathInput" && targetPortIdx === 0)
-                );
+                if(toRuleOperatorNode.node.inputsCanBeSwitched) {
+                    // Check that the other input is different or missing
+                    const otherPort = targetPortIdx === 0 ? 1 : 0
+                    const inputs = toRuleOperatorNode.inputs()
+                    const otherInput = inputs[otherPort]
+                    const sourceInputType = sourcePluginId === "sourcePathInput" ? "source" : "target"
+                    return otherInput == null || fromType(otherInput) !== sourceInputType
+                } else {
+                    return (
+                        (sourcePluginId === "targetPathInput" && targetPortIdx === 1) ||
+                        (sourcePluginId === "sourcePathInput" && targetPortIdx === 0)
+                    );
+                }
             } else {
                 return (
                     targetPluginType === "TransformOperator" &&
@@ -486,40 +497,43 @@ const validateConnection = (
 /** A node can be a source value node, target value node (source/target paths, transformations) or none (comparison, aggregation). */
 type PathValidationType = "source" | "target" | undefined;
 
-/** For linking rules check that source and target paths are not mixed in transformations and go into the correct comparison port
- * Returns true if the connection is valid. */
-const inputPathValidation = (
-    fromRuleOperatorNode: RuleEditorValidationNode,
-    toRuleOperatorNode: RuleEditorValidationNode,
-    targetPortIdx: number
-): boolean => {
-    // Finds out from where the values come, either "source", "target" or undefined (meaning not possible to determine)
-    const fromType = (node: RuleEditorValidationNode, filterInputIdx?: number): PathValidationType => {
-        switch (node.node.pluginType) {
-            case "PathInputOperator":
-                return node.node.pluginId === "sourcePathInput" ? "source" : "target";
-            case "TransformOperator":
-                let isSource = false;
-                let isTarget = false;
-                node.inputs()
-                    .filter((inputNode, idx) => inputNode && idx !== filterInputIdx)
-                    .forEach((inputNode) => {
-                        const inputType = fromType(inputNode!!);
-                        if (inputType === "source") {
-                            isSource = true;
-                        }
-                        if (inputType === "target") {
-                            isTarget = true;
-                        }
-                    });
-                return pathValidationType(node.node.nodeId, isSource, isTarget);
-            default:
-                return undefined;
-        }
-    };
-    const toType = (node: RuleEditorValidationNode, targetPortIdx: number): PathValidationType => {
-        switch (node.node.pluginType) {
-            case "ComparisonOperator":
+// Finds out from where the values come, either "source", "target" or undefined (meaning not possible to determine)
+const fromType = (node: RuleEditorValidationNode, filterInputIdx?: number): PathValidationType => {
+    switch (node.node.pluginType) {
+        case "PathInputOperator":
+            return node.node.pluginId === "sourcePathInput" ? "source" : "target";
+        case "TransformOperator":
+            let isSource = false;
+            let isTarget = false;
+            node.inputs()
+                .filter((inputNode, idx) => inputNode && idx !== filterInputIdx)
+                .forEach((inputNode) => {
+                    const inputType = fromType(inputNode!!);
+                    if (inputType === "source") {
+                        isSource = true;
+                    }
+                    if (inputType === "target") {
+                        isTarget = true;
+                    }
+                });
+            return pathValidationType(node.node.nodeId, isSource, isTarget);
+        default:
+            return undefined;
+    }
+};
+
+// Finds out if the target node is marked as "source", "target" or undefined (meaning not possible to determine) when replacing the target port.
+const toType = (node: RuleEditorValidationNode, targetPortIdx: number): PathValidationType => {
+    switch (node.node.pluginType) {
+        case "ComparisonOperator":
+            if(node.node.inputsCanBeSwitched) {
+                // Return opposite type of other input if it exists
+                const otherPort = targetPortIdx === 0 ? 1 : 0
+                const inputs = node.inputs()
+                const otherInput = inputs[otherPort]
+                return otherInput == null ? undefined : fromType(otherInput) === "source" ? "target" : "source"
+            } else {
+                // Else it only depends on the requested target port
                 switch (targetPortIdx) {
                     case 0:
                         return "source";
@@ -531,32 +545,43 @@ const inputPathValidation = (
                             `Bug: Invalid connection to comparison operator ${node.node.label} on input port ${targetPortIdx} detected.`
                         );
                 }
-            case "TransformOperator":
-                const targetNode = node.output();
-                const targetNodePort = targetNode
-                    ? targetNode.inputs().findIndex((n) => n && node.node.nodeId === n.node.nodeId)
-                    : undefined;
-                return targetNode && targetNodePort != null && targetNodePort >= 0
-                    ? toType(targetNode, targetNodePort)
-                    : undefined;
-            default:
-                return undefined;
-        }
-    };
+            }
+        case "TransformOperator":
+            const targetNode = node.output();
+            const targetNodePort = targetNode
+                ? targetNode.inputs().findIndex((n) => n && node.node.nodeId === n.node.nodeId)
+                : undefined;
+            return targetNode && targetNodePort != null && targetNodePort >= 0
+                ? toType(targetNode, targetNodePort)
+                : undefined;
+        default:
+            return undefined;
+    }
+};
+
+// Returns true if this is an invalid combination of source and target operator type
+const invalidCombination = (s: PathValidationType, t: PathValidationType) => {
+    const combination = `${s}_${t}`;
+    switch (combination) {
+        // Match invalid combinations
+        case "source_target":
+        case "target_source":
+            return true;
+        default:
+            return false;
+    }
+};
+
+/** For linking rules check that source and target paths are not mixed in transformations and go into the correct comparison port
+ * Returns true if the connection is valid. */
+const inputPathValidation = (
+    fromRuleOperatorNode: RuleEditorValidationNode,
+    toRuleOperatorNode: RuleEditorValidationNode,
+    targetPortIdx: number
+): boolean => {
     const sourceNodeFromType = fromType(fromRuleOperatorNode);
     const targetNodeToType = toType(toRuleOperatorNode, targetPortIdx);
     const targetNodeFromType = fromType(toRuleOperatorNode, targetPortIdx);
-    const invalidCombination = (s: PathValidationType, t: PathValidationType) => {
-        const combination = `${s}_${t}`;
-        switch (combination) {
-            // Match invalid combinations
-            case "source_target":
-            case "target_source":
-                return true;
-            default:
-                return false;
-        }
-    };
     if (invalidCombination(sourceNodeFromType, targetNodeToType)) {
         return false;
     } else return !invalidCombination(sourceNodeFromType, targetNodeFromType);
