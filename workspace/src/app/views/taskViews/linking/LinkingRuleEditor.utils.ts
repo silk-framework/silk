@@ -5,7 +5,7 @@
 import {
     IRuleOperator,
     IRuleOperatorNode,
-    IRuleSidebarPreConfiguredOperatorsTabConfig,
+    IRuleSidebarPreConfiguredOperatorsTabConfig, RuleEditorValidationNode,
     RuleValidationError,
 } from "../../shared/RuleEditor/RuleEditor.typings";
 import { IValueInput, PathWithMetaData } from "../shared/rules/rule.typings";
@@ -122,6 +122,24 @@ const convertToRuleOperatorNodes = (
     return operatorNodes;
 };
 
+// Converts a rule operator node to a rule validation node
+const fromType = (ruleOperatorNode: IRuleOperatorNode,
+                  ruleOperatorNodes: Map<string, IRuleOperatorNode>): "source" | "target" | undefined => {
+    const convertNode = (ruleOperatorNode: IRuleOperatorNode): RuleEditorValidationNode => {
+        return {
+            node: ruleOperatorNode,
+            inputs: () => {
+                return ruleOperatorNode.inputs.map((input) => {
+                    return input && ruleOperatorNodes.has(input) ? convertNode(ruleOperatorNodes.get(input)!!) : undefined;
+                });
+            },
+            // Output is unimportant
+            output: () => undefined,
+        };
+    }
+    return ruleUtils.fromType(convertNode(ruleOperatorNode))
+};
+
 const convertRuleOperatorNodeToSimilarityOperator = (
     ruleOperatorNode: IRuleOperatorNode | undefined,
     ruleOperatorNodes: Map<string, IRuleOperatorNode>
@@ -156,6 +174,18 @@ const convertRuleOperatorNodeToSimilarityOperator = (
                 threshold: parseFloat(ruleEditorNodeParameterValue(ruleOperatorNode.parameters["threshold"])!!),
                 weight: parseInt(ruleEditorNodeParameterValue(ruleOperatorNode.parameters["weight"])!!),
             };
+            if(ruleOperatorNode.inputsCanBeSwitched && comparison.parameters[REVERSE_PARAMETER_ID] != null && ruleOperatorNode.inputs[0] != null) {
+                // Set reverse parameter correctly
+                const sourceInput = ruleOperatorNodes.get(ruleOperatorNode.inputs[0])
+                const reverse = sourceInput ? fromType(sourceInput, ruleOperatorNodes) === "target" : false
+                comparison.parameters[REVERSE_PARAMETER_ID] = `${reverse}`
+                // Switch inputs if they have the order target-source. The reverse parameter is handling the correct order.
+                if(reverse) {
+                    const sourceInput = comparison.sourceInput
+                    comparison.sourceInput = comparison.targetInput
+                    comparison.targetInput = sourceInput
+                }
+            }
             return comparison;
         } else {
             const aggregation: IAggregationOperator = {

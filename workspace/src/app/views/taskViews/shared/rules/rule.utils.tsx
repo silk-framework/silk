@@ -497,7 +497,7 @@ const validateConnection = (
 /** A node can be a source value node, target value node (source/target paths, transformations) or none (comparison, aggregation). */
 type PathValidationType = "source" | "target" | undefined;
 
-// Finds out from where the values come, either "source", "target" or undefined (meaning not possible to determine)
+/** Finds out from where the values come, either "source", "target" or undefined (meaning not possible to determine) */
 const fromType = (node: RuleEditorValidationNode, filterInputIdx?: number): PathValidationType => {
     switch (node.node.pluginType) {
         case "PathInputOperator":
@@ -636,6 +636,7 @@ const ruleUtils = {
     convertToRuleOperatorNodeMap,
     extractOperatorNodeFromValueInput,
     fetchRuleOperatorNode,
+    fromType,
     inputPathOperator,
     parameterSpecification,
     ruleLayout,
