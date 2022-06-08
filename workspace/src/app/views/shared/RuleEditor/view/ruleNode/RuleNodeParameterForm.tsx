@@ -2,6 +2,8 @@ import { IRuleNodeParameter } from "./RuleNodeParameter.typings";
 import React from "react";
 import { RuleNodeFormParameter } from "./RuleNodeFormParameter";
 import {RuleEditorUiContext} from "../../contexts/RuleEditorUiContext";
+import {partitionArray} from "../../../../../utils/basicUtils";
+import {AdvancedOptionsArea} from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
 
 export interface RuleNodeParametersProps {
     nodeId: string;
@@ -12,6 +14,8 @@ export interface RuleNodeParametersProps {
     dependentValue: (paramId: string) => string | undefined;
     /** If the form will be rendered in a large area. The used input components might differ. */
     large: boolean;
+    /** If this is true then the parameters are put into an advanced section that is collapsed by default. */
+    hasAdvancedSection?: boolean;
 }
 
 /** The parameter widget of a rule node. */
@@ -21,25 +25,36 @@ export const RuleNodeParameterForm = ({
     parameters,
     dependentValue,
     large,
+    hasAdvancedSection
 }: RuleNodeParametersProps) => {
     const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
+    const {
+        matches: normalParameters,
+        nonMatches: advancedParameters
+    } = partitionArray(parameters, param => !param.parameterSpecification.advanced)
+
+    const shownParameters = [...normalParameters]
+    if(ruleEditorUiContext.advancedParameterModeEnabled && !hasAdvancedSection) {
+        shownParameters.push(...advancedParameters)
+    }
+    const advancedSectionParameters = hasAdvancedSection ? advancedParameters : []
+    const renderFormParameter = (param: IRuleNodeParameter) =>  {
+        return <RuleNodeFormParameter
+            key={param.parameterId}
+            nodeId={nodeId}
+            parameter={param}
+            dependentValue={dependentValue}
+            pluginId={pluginId}
+            large={large}
+        />
+    }
 
     return (
         <div key={"ruleNodeParameters"}>
-            {parameters
-                .filter(param => !param.parameterSpecification.advanced || ruleEditorUiContext.advancedParameterModeEnabled)
-                .map((param) => {
-                return (
-                    <RuleNodeFormParameter
-                        key={param.parameterId}
-                        nodeId={nodeId}
-                        parameter={param}
-                        dependentValue={dependentValue}
-                        pluginId={pluginId}
-                        large={large}
-                    />
-                );
-            })}
+            {shownParameters.map(renderFormParameter)}
+            {advancedSectionParameters.length > 0 ? <AdvancedOptionsArea open={ruleEditorUiContext.advancedParameterModeEnabled}>
+                {advancedSectionParameters.map(renderFormParameter)}
+            </AdvancedOptionsArea> : null}
         </div>
     );
 };
