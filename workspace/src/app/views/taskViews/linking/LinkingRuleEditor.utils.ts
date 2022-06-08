@@ -68,6 +68,12 @@ const extractSimilarityOperatorNode = (
             }
             return t;
         };
+        const reverseParameterValue = () => operator.parameters[REVERSE_PARAMETER_ID]?.["value"] ?? operator.parameters[REVERSE_PARAMETER_ID]
+        const inputsCanBeSwitched = isComparison && reverseParameterValue() != null
+        const switchInputs = inputsCanBeSwitched && reverseParameterValue() === "true"
+        if(switchInputs) {
+            inputs.reverse()
+        }
         const additionalParameters = isComparison
             ? {
                   threshold: threshold(operator as IComparisonOperator),
@@ -82,7 +88,7 @@ const extractSimilarityOperatorNode = (
             label: ruleOperator(pluginId, pluginType)?.label ?? pluginId,
             pluginType,
             pluginId,
-            inputs: inputs,
+            inputs,
             parameters: {
                 ...operator.parameters,
                 ...additionalParameters,
@@ -93,7 +99,7 @@ const extractSimilarityOperatorNode = (
             },
             tags: [operator.type],
             description: ruleOperator(pluginId, pluginType)?.description,
-            inputsCanBeSwitched: isComparison && operator.parameters[REVERSE_PARAMETER_ID] != null
+            inputsCanBeSwitched
         });
         return operator.id;
     }
