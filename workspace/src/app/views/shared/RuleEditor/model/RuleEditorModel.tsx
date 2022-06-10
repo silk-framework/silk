@@ -26,6 +26,7 @@ import {
     AddNode,
     ChangeNodeParameter,
     ChangeNodePosition,
+    ChangeNodeSize,
     ChangeNumberOfInputHandles,
     DeleteEdge,
     DeleteNode,
@@ -38,7 +39,7 @@ import {
 import { Connection, XYPosition } from "react-flow-renderer/dist/types";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
 import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basicUtils";
-import { HighlightingState } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
+import { HighlightingState, NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 import { IconButton, Markdown, Spacing } from "@eccenca/gui-elements";
 
@@ -350,6 +351,27 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     from: undoOp.to,
                     to: undoOp.from,
                 };
+            case "Change node size":
+                return {
+                    type: "Change node size",
+                    nodeId: undoOp.nodeId,
+                    from: undoOp.to,
+                    to: undoOp.from,
+                };
+            case "Change node text content":
+                return {
+                    type: "Change node text content",
+                    nodeId: undoOp.nodeId,
+                    from: undoOp.to,
+                    to: undoOp.from,
+                };
+            case "Change node style":
+                return {
+                    type: "Change node style",
+                    nodeId: undoOp.nodeId,
+                    from: undoOp.to,
+                    to: undoOp.from,
+                };
         }
     };
 
@@ -539,6 +561,17 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         changedElements
                     );
                     break;
+                case "Change node size":
+                    changedElements = changeNodeSizeInternal(
+                        new Map(
+                            groupedChange.map((change) => {
+                                const nodeChange = change as ChangeNodeSize;
+                                return [nodeChange.nodeId, nodeChange.to];
+                            })
+                        ),
+                        changedElements
+                    );
+                    break;
                 case "Change number of input handles":
                     const nodesInputHandlesDiff: Map<string, number> = new Map();
                     groupedChange.forEach((change) => {
@@ -700,6 +733,22 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 // This must be triggered, else the new position will not be rendered
                 setTimeout(() => updateNodePos({ id: node.id, pos: newPosition }), 50);
                 return movedNode;
+            } else {
+                return elem;
+            }
+        });
+    };
+
+    const changeNodeSizeInternal = (elementsWithSizeChanges: Map<string, NodeDimensions>, els: Elements) => {
+        return els.map((elem) => {
+            if (utils.isNode(elem) && elementsWithSizeChanges.has(elem.id)) {
+                const node = utils.asNode(elem)!!;
+                const nodeDimensions = elementsWithSizeChanges.get(node.id);
+                const changedSize: RuleEditorNode = {
+                    ...node,
+                    data: { ...node.data, nodeDimensions },
+                };
+                return changedSize;
             } else {
                 return elem;
             }
@@ -1459,22 +1508,33 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     height: 70,
                 },
                 onNodeResize: ({ width, height }) => {
-                    setElements((els) =>
+                    startChangeTransaction();
+                    const newNodeDimensions = { width, height };
+                    changeElementsInternal((els) =>
                         els.map((el) => {
                             if (el.id === stickyId) {
                                 const updatedNode = {
                                     ...el,
                                     data: {
                                         ...el.data,
-                                        nodeDimensions: {
-                                            width,
-                                            height,
-                                        },
+                                        nodeDimensions: newNodeDimensions,
                                     },
                                 };
 
                                 //add undo-redo node resize
-
+                                addAndExecuteRuleModelChangeInternal(
+                                    {
+                                        operations: [
+                                            {
+                                                type: "Change node size",
+                                                nodeId: stickyId,
+                                                from: el.data.nodeDimensions,
+                                                to: newNodeDimensions,
+                                            },
+                                        ],
+                                    },
+                                    els
+                                );
                                 return updatedNode;
                             }
                             return el;
@@ -1492,12 +1552,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
         const nodeId = currentStickyContent.get("nodeId");
         if (!nodeId) {
-            setElements((elements) => [...elements, newNode]);
+            changeElementsInternal((elements) => [...elements, newNode]);
             // centerHighlightedNodeInCanvas(newNode);
             //commit history event to undo stack
             //undo-redo new node added
         } else {
-            setElements((els) =>
+            changeElementsInternal((els) =>
                 els.map((el) => {
                     if (el.id === nodeId) {
                         const updatedNode = {
