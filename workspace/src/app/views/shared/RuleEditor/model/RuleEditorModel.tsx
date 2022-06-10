@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import Color from "color";
 import {
     Edge,
     Elements,
@@ -39,6 +40,8 @@ import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent"
 import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basicUtils";
 import { HighlightingState } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
+import { IconButton, Markdown, Spacing } from "@eccenca/gui-elements";
+import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
@@ -75,6 +78,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     current.elements = elements;
     /** Rule editor context. */
     const ruleEditorContext = React.useContext<RuleEditorContextProps>(RuleEditorContext);
+    const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
     /** The rule editor change history that will be used to UNDO changes. The changes are in the order they have been executed. */
     const [ruleUndoStack] = React.useState<ChangeStackType[]>([]);
     /** If there are changes that can be undone. */
@@ -103,6 +107,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [evaluateQuickly, setEvaluateQuickly] = React.useState(false);
     const [readOnly, _setIsReadOnly] = React.useState(false);
     const [utils] = React.useState(ruleEditorModelUtilsFactory(() => (nodeMap ? "edge" : "default")));
+    const [currentStickyContent, setCurrentStickyContent] = React.useState<Map<string, string>>(new Map());
+
     /** react-flow related functions */
     const { setCenter } = useZoomPanHelper();
 
@@ -1422,6 +1428,136 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         }, 1);
     };
 
+    const addStickyNoteToCanvas = (stickyNote: string, color: string, reactFlowWrapper) => {
+        const reactFlowBounds = reactFlowWrapper.current?.getBoundingClientRect();
+        const position = (reactFlowInstance as OnLoadParams).project({
+            x: (reactFlowBounds.width - 240) / 2,
+            y: (reactFlowBounds.height - 70) / 2,
+        });
+        const stickyId = utils.freshNodeId("sticky");
+
+        let style: { [key: string]: string } = {};
+        const content = <Markdown>{stickyNote}</Markdown>;
+        try {
+            const colorObj = Color("#fff").mix(Color(color), 0.24);
+            style = {
+                backgroundColor: colorObj.toString(),
+                borderColor: color,
+                color: colorObj.isLight() ? "#000" : "#fff",
+            };
+        } catch (ex) {
+            console.warn("Received invalid color for sticky note: " + color);
+        }
+        const newNode = {
+            id: stickyId,
+            type: "stickynote",
+            position,
+            data: {
+                size: "medium",
+                handles: [],
+                nodeDimensions: {
+                    width: 240,
+                    height: 70,
+                },
+                onNodeResize: ({ width, height }) => {
+                    setElements((els) =>
+                        els.map((el) => {
+                            if (el.id === stickyId) {
+                                const updatedNode = {
+                                    ...el,
+                                    data: {
+                                        ...el.data,
+                                        nodeDimensions: {
+                                            width,
+                                            height,
+                                        },
+                                    },
+                                };
+
+                                //add undo-redo node resize
+
+                                return updatedNode;
+                            }
+                            return el;
+                        })
+                    );
+                },
+                menuButtons: stickyMenuButtons(stickyId, color, stickyNote),
+                content,
+                style,
+                businessData: {
+                    stickyNote,
+                },
+            },
+        };
+
+        const nodeId = currentStickyContent.get("nodeId");
+        if (!nodeId) {
+            setElements((elements) => [...elements, newNode]);
+            // centerHighlightedNodeInCanvas(newNode);
+            //commit history event to undo stack
+            //undo-redo new node added
+        } else {
+            setElements((els) =>
+                els.map((el) => {
+                    if (el.id === nodeId) {
+                        const updatedNode = {
+                            ...el,
+                            data: {
+                                ...el.data,
+                                style,
+                                menuButtons: stickyMenuButtons(nodeId, color, stickyNote),
+                                content,
+                                businessData: {
+                                    stickyNote,
+                                },
+                            },
+                        };
+                        //compare color theme
+                        if (style.borderColor !== el.data.style.borderColor) {
+                            //color has been edited
+                            //undo redo node style change
+                        }
+
+                        //compare content
+                        if (stickyNote !== el.data.businessData.stickyNote) {
+                            //node content change
+                        }
+
+                        return updatedNode;
+                    }
+                    return el;
+                })
+            );
+        }
+    };
+
+    function stickyMenuButtons(stickyId, color, stickyNote) {
+        return (
+            <>
+                <IconButton
+                    data-test-id={"edit-sticky-note"}
+                    name="item-edit"
+                    text="edit"
+                    onClick={() => {
+                        setCurrentStickyContent(
+                            (prevData) =>
+                                new Map(prevData.set("note", stickyNote).set("color", color).set("nodeId", stickyId))
+                        );
+                        ruleEditorUiContext.setShowStickyNoteModal(true);
+                    }}
+                />
+                <Spacing vertical size="tiny" />
+                <IconButton
+                    data-test-id={"remove-sticky-note"}
+                    name="item-remove"
+                    text="remove"
+                    onClick={() => deleteNode(stickyId)}
+                />
+            </>
+        );
+    }
+
     return (
         <RuleEditorModelContext.Provider
             value={{
@@ -1435,6 +1571,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 canUndo,
                 redo,
                 canRedo,
+                currentStickyContent,
                 executeModelEditOperation: {
                     startChangeTransaction,
                     addNode,
@@ -1450,6 +1587,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     deleteEdges,
                     moveNodes,
                     fixNodeInputs,
+                    addStickyNoteToCanvas,
                 },
                 unsavedChanges: canUndo,
                 isValidEdge,

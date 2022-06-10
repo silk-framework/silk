@@ -42,6 +42,7 @@ export interface RuleEditorModelContextProps {
     centerNode: (nodeId: string) => boolean;
     /** Get the current rule as IRuleOperatorNode objects. */
     ruleOperatorNodes: () => IRuleOperatorNode[];
+    currentStickyContent: Map<string, string>;
 }
 
 export interface IModelActions {
@@ -83,6 +84,7 @@ export interface IModelActions {
     moveNode: (nodeId: string, newPosition: XYPosition) => void;
     /** Moves nodes by a specific offset. */
     moveNodes: (nodeIds: string[], offset: XYPosition) => void;
+    addStickyNoteToCanvas: (stickyNote: string, color: string, reactFlowWrapper: any) => void;
     /** Change a single node parameter.
      *
      * @param nodeId Node affected by parameter change.
@@ -113,6 +115,7 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     /** Set to true if the model is in read-only mode. */
     isReadOnly: () => false,
     readOnly: false,
+    currentStickyContent: new Map(),
     setReactFlowInstance: NOP,
     saveRule: () => {
         return false;
@@ -133,6 +136,7 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
         addNodeByPlugin: NOP,
         deleteEdges: NOP,
         fixNodeInputs: NOP,
+        addStickyNoteToCanvas: NOP,
     },
     undo: () => false,
     canUndo: false,

@@ -8,12 +8,15 @@ import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
 /** The main view of the rule editor, integrating toolbar, sidebar and main rule canvas. */
 export const RuleEditorView = () => {
     const [modalShown, setModalShown] = React.useState(false);
+    const [showStickyNoteModal, setShowStickyNoteModal] = React.useState<boolean>(false);
 
     return (
         <RuleEditorUiContext.Provider
             value={{
                 modalShown,
                 setModalShown,
+                showStickyNoteModal,
+                setShowStickyNoteModal,
             }}
         >
             <Grid verticalStretchable={true} useAbsoluteSpace={true} style={{ backgroundColor: "white" }}>

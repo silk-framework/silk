@@ -22,7 +22,7 @@ import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { EdgeMenu } from "./ruleEdge/EdgeMenu";
 import { ruleEditorModelUtilsFactory, SOURCE_HANDLE_TYPE, TARGET_HANDLE_TYPE } from "../model/RuleEditorModel.utils";
 import { MiniMap } from "@eccenca/gui-elements/src/extensions/react-flow/minimap/MiniMap";
-import { GridColumn } from "@eccenca/gui-elements";
+import { GridColumn, MarkdownModal } from "@eccenca/gui-elements";
 import { RuleEditorNode } from "../model/RuleEditorModel.typings";
 import useHotKey from "../../HotKeyHandler/HotKeyHandler";
 import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
@@ -498,55 +498,64 @@ export const RuleEditorCanvas = () => {
         event.preventDefault();
     };
 
+    console.log("STICKY_NOTE_MODAL", ruleEditorUiContext.showStickyNoteModal);
     return (
-        <GridColumn full>
-            <ReactFlow
-                id={"ruleEditor-react-flow-canvas"}
-                data-test-id={"ruleEditor-react-flow-canvas"}
-                configuration={"linking"}
-                ref={reactFlowWrapper}
-                elements={modelContext.elements}
-                onElementClick={onElementClick}
-                onSelectionDragStart={handleSelectionDragStart}
-                onSelectionDragStop={handleSelectionDragStop}
-                onEdgeContextMenu={onEdgeContextMenu}
-                onElementsRemove={onElementsRemove}
-                onConnectStart={onConnectStart}
-                onConnect={onConnect}
-                onConnectEnd={onConnectEnd}
-                onNodeDragStart={handleNodeDragStart}
-                onNodeDragStop={handleNodeDragStop}
-                onNodeMouseEnter={onNodeMouseEnter}
-                onNodeMouseLeave={onNodeMouseLeave}
-                onNodeContextMenu={onNodeContextMenu}
-                onSelectionContextMenu={onSelectionContextMenu}
-                onSelectionChange={onSelectionChange}
-                onLoad={onLoad}
-                onDrop={onDrop}
-                onDragOver={onDragOver}
-                onEdgeUpdateStart={onEdgeUpdateStart}
-                onEdgeUpdateEnd={onEdgeUpdateEnd}
-                onEdgeUpdate={onEdgeUpdate}
-                connectionLineType={ConnectionLineType.Step}
-                snapGrid={snapGrid}
-                snapToGrid={true}
-                zoomOnDoubleClick={false}
-                maxZoom={1.25}
-                multiSelectionKeyCode={18} // ALT
-            >
-                <MiniMap
-                    flowInstance={reactFlowInstance}
-                    enableNavigation={true}
-                />
-                <Controls
-                    showInteractive={!!modelContext.setIsReadOnly}
-                    onInteractiveChange={(isInteractive) =>
-                        modelContext.setIsReadOnly && modelContext.setIsReadOnly(!isInteractive)
+        <>
+            {ruleEditorUiContext.showStickyNoteModal ? (
+                <MarkdownModal
+                    content={modelContext.currentStickyContent}
+                    onClose={() => ruleEditorUiContext.setShowStickyNoteModal(false)}
+                    onSubmit={({ note, color }) =>
+                        modelContext.executeModelEditOperation.addStickyNoteToCanvas(note, color, reactFlowWrapper)
                     }
                 />
-                <Background variant={BackgroundVariant.Lines} gap={16} />
-            </ReactFlow>
-            {contextMenu}
-        </GridColumn>
+            ) : null}
+            <GridColumn full>
+                <ReactFlow
+                    id={"ruleEditor-react-flow-canvas"}
+                    data-test-id={"ruleEditor-react-flow-canvas"}
+                    configuration={"linking"}
+                    ref={reactFlowWrapper}
+                    elements={modelContext.elements}
+                    onElementClick={onElementClick}
+                    onSelectionDragStart={handleSelectionDragStart}
+                    onSelectionDragStop={handleSelectionDragStop}
+                    onEdgeContextMenu={onEdgeContextMenu}
+                    onElementsRemove={onElementsRemove}
+                    onConnectStart={onConnectStart}
+                    onConnect={onConnect}
+                    onConnectEnd={onConnectEnd}
+                    onNodeDragStart={handleNodeDragStart}
+                    onNodeDragStop={handleNodeDragStop}
+                    onNodeMouseEnter={onNodeMouseEnter}
+                    onNodeMouseLeave={onNodeMouseLeave}
+                    onNodeContextMenu={onNodeContextMenu}
+                    onSelectionContextMenu={onSelectionContextMenu}
+                    onSelectionChange={onSelectionChange}
+                    onLoad={onLoad}
+                    onDrop={onDrop}
+                    onDragOver={onDragOver}
+                    onEdgeUpdateStart={onEdgeUpdateStart}
+                    onEdgeUpdateEnd={onEdgeUpdateEnd}
+                    onEdgeUpdate={onEdgeUpdate}
+                    connectionLineType={ConnectionLineType.Step}
+                    snapGrid={snapGrid}
+                    snapToGrid={true}
+                    zoomOnDoubleClick={false}
+                    maxZoom={1.25}
+                    multiSelectionKeyCode={18} // ALT
+                >
+                    <MiniMap flowInstance={reactFlowInstance} enableNavigation={true} />
+                    <Controls
+                        showInteractive={!!modelContext.setIsReadOnly}
+                        onInteractiveChange={(isInteractive) =>
+                            modelContext.setIsReadOnly && modelContext.setIsReadOnly(!isInteractive)
+                        }
+                    />
+                    <Background variant={BackgroundVariant.Lines} gap={16} />
+                </ReactFlow>
+                {contextMenu}
+            </GridColumn>
+        </>
     );
 };
