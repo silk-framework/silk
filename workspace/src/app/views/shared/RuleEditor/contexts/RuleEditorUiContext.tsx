@@ -6,13 +6,9 @@ export interface RuleEditorUiContextProps {
     modalShown: boolean;
     /** Set flag that a modal is currently shown. */
     setModalShown: (shown: boolean) => any;
-    showStickyNoteModal: boolean;
-    setShowStickyNoteModal: (shown: boolean) => void;
 }
 
 export const RuleEditorUiContext = React.createContext<RuleEditorUiContextProps>({
     modalShown: false,
     setModalShown(): any {},
-    showStickyNoteModal: false,
-    setShowStickyNoteModal: () => {},
 });

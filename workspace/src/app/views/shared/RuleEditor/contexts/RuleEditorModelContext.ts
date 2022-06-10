@@ -43,6 +43,8 @@ export interface RuleEditorModelContextProps {
     /** Get the current rule as IRuleOperatorNode objects. */
     ruleOperatorNodes: () => IRuleOperatorNode[];
     currentStickyContent: Map<string, string>;
+    showStickyNoteModal: boolean;
+    setShowStickyNoteModal: (shown: boolean) => void;
 }
 
 export interface IModelActions {
@@ -117,6 +119,8 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     readOnly: false,
     currentStickyContent: new Map(),
     setReactFlowInstance: NOP,
+    showStickyNoteModal: false,
+    setShowStickyNoteModal: (show: boolean) => {},
     saveRule: () => {
         return false;
     },

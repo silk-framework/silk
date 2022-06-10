@@ -41,7 +41,6 @@ import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basic
 import { HighlightingState } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 import { IconButton, Markdown, Spacing } from "@eccenca/gui-elements";
-import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
@@ -78,7 +77,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     current.elements = elements;
     /** Rule editor context. */
     const ruleEditorContext = React.useContext<RuleEditorContextProps>(RuleEditorContext);
-    const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
     /** The rule editor change history that will be used to UNDO changes. The changes are in the order they have been executed. */
     const [ruleUndoStack] = React.useState<ChangeStackType[]>([]);
     /** If there are changes that can be undone. */
@@ -108,6 +106,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [readOnly, _setIsReadOnly] = React.useState(false);
     const [utils] = React.useState(ruleEditorModelUtilsFactory(() => (nodeMap ? "edge" : "default")));
     const [currentStickyContent, setCurrentStickyContent] = React.useState<Map<string, string>>(new Map());
+    const [showStickyNoteModal, setShowStickyNoteModal] = React.useState<boolean>(false);
 
     /** react-flow related functions */
     const { setCenter } = useZoomPanHelper();
@@ -1544,7 +1543,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                             (prevData) =>
                                 new Map(prevData.set("note", stickyNote).set("color", color).set("nodeId", stickyId))
                         );
-                        ruleEditorUiContext.setShowStickyNoteModal(true);
+                        setShowStickyNoteModal(true);
                     }}
                 />
                 <Spacing vertical size="tiny" />
@@ -1572,6 +1571,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 redo,
                 canRedo,
                 currentStickyContent,
+                showStickyNoteModal,
+                setShowStickyNoteModal,
                 executeModelEditOperation: {
                     startChangeTransaction,
                     addNode,
