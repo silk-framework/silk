@@ -2,7 +2,7 @@ import { Edge, Node } from "react-flow-renderer";
 import { IRuleNodeData, NodeContentPropsWithBusinessData } from "../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 import { IOperatorNodeParameterValueWithLabel } from "../../../taskViews/shared/rules/rule.typings";
-import { NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
+import { NodeContentProps, NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 
 export interface RuleModelChanges {
     operations: RuleModelChangeType[];
@@ -75,8 +75,8 @@ export interface ChangeNodeStyle {
 export interface ChangeNodeContent {
     type: "Change node text content";
     nodeId: string;
-    from: string;
-    to: string;
+    from: NodeContentProps<any>["content"];
+    to: NodeContentProps<any>["content"];
 }
 export interface ChangeNodeParameter {
     type: "Change node parameter";
