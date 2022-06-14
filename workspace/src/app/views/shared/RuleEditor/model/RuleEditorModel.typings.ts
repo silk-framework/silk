@@ -2,10 +2,13 @@ import { Edge, Node } from "react-flow-renderer";
 import { IRuleNodeData, NodeContentPropsWithBusinessData } from "../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 import { IOperatorNodeParameterValueWithLabel } from "../../../taskViews/shared/rules/rule.typings";
+import { NodeContentProps, NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 
 export interface RuleModelChanges {
     operations: RuleModelChangeType[];
 }
+
+export type RuleNodeStyleType = { [key: string]: string | number };
 
 export interface RuleEditorNode extends Node<NodeContentPropsWithBusinessData<IRuleNodeData>> {
     data: NodeContentPropsWithBusinessData<IRuleNodeData>;
@@ -23,7 +26,10 @@ export type RuleModelChangeType =
     | DeleteEdge
     | ChangeNodePosition
     | ChangeNodeParameter
-    | ChangeNumberOfInputHandles;
+    | ChangeNumberOfInputHandles
+    | ChangeNodeSize
+    | ChangeNodeContent
+    | ChangeNodeStyle;
 
 export interface AddNode {
     type: "Add node";
@@ -52,6 +58,26 @@ export interface ChangeNodePosition {
     to: XYPosition;
 }
 
+export interface ChangeNodeSize {
+    type: "Change node size";
+    nodeId: string;
+    from: NodeDimensions;
+    to: NodeDimensions;
+}
+
+export interface ChangeNodeStyle {
+    type: "Change node style";
+    nodeId: string;
+    from: RuleNodeStyleType;
+    to: RuleNodeStyleType;
+}
+
+export interface ChangeNodeContent {
+    type: "Change node text content";
+    nodeId: string;
+    from: NodeContentProps<any>["content"];
+    to: NodeContentProps<any>["content"];
+}
 export interface ChangeNodeParameter {
     type: "Change node parameter";
     nodeId: string;
@@ -108,6 +134,12 @@ export const RuleModelChangesFactory = {
                 edge,
             }))
         ),
+    changeNodeSize: (nodeId: string, from: NodeDimensions, to: NodeDimensions) =>
+        toRuleModelChanges({ type: "Change node size", nodeId, from, to }),
+    changeNodeStyle: (nodeId: string, from: RuleNodeStyleType, to: RuleNodeStyleType) =>
+        toRuleModelChanges({ type: "Change node style", nodeId, from, to }),
+    changeNodeContent: (nodeId: string, from: string, to: string) =>
+        toRuleModelChanges({ type: "Change node text content", nodeId, from, to }),
     changeNodePosition: (nodeId: string, from: XYPosition, to: XYPosition): RuleModelChanges =>
         toRuleModelChanges({ type: "Change node position", nodeId, from, to }),
     changeNodeParameter: (

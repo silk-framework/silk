@@ -498,13 +498,12 @@ export const RuleEditorCanvas = () => {
         event.preventDefault();
     };
 
-    console.log("STICKY_NOTE_MODAL", ruleEditorUiContext.showStickyNoteModal);
     return (
         <>
-            {ruleEditorUiContext.showStickyNoteModal ? (
+            {modelContext.showStickyNoteModal ? (
                 <MarkdownModal
                     content={modelContext.currentStickyContent}
-                    onClose={() => ruleEditorUiContext.setShowStickyNoteModal(false)}
+                    onClose={() => modelContext.setShowStickyNoteModal(false)}
                     onSubmit={({ note, color }) =>
                         modelContext.executeModelEditOperation.addStickyNoteToCanvas(note, color, reactFlowWrapper)
                     }

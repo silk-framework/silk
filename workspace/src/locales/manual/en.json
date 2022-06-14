@@ -27,6 +27,14 @@
     "ShowIdentifierModal": {
         "title": "Item identifier"
     },
+    "StickNoteModal": {
+        "title": "Add Note",
+        "tooltip": "Sticky Note",
+        "labels": {
+            "codeEditor": "Note",
+            "color": "Color"
+        }
+    },
     "DataList": {
         "loading": "Loading data."
     },
@@ -359,7 +367,7 @@
                 "activities": "Activities",
                 "activitiesTooltip": "Shows the list of all data-integration build activities"
             },
-	    "diBrowse": "Silk",
+            "diBrowse": "Silk",
             "diBrowseTooltip": "Used to manage data-integration projects to build a knowledge graph from existing datasources",
             "dm": {
                 "explore": "Knowledge Graphs",

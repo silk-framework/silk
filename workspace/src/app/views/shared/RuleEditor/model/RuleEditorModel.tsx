@@ -26,6 +26,7 @@ import {
     AddNode,
     ChangeNodeParameter,
     ChangeNodePosition,
+    ChangeNodeSize,
     ChangeNumberOfInputHandles,
     DeleteEdge,
     DeleteNode,
@@ -34,14 +35,18 @@ import {
     RuleModelChanges,
     RuleModelChangesFactory,
     RuleModelChangeType,
+    RuleNodeStyleType,
 } from "./RuleEditorModel.typings";
 import { Connection, XYPosition } from "react-flow-renderer/dist/types";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
 import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basicUtils";
-import { HighlightingState } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
+import {
+    HighlightingState,
+    NodeContentProps,
+    NodeDimensions,
+} from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 import { IconButton, Markdown, Spacing } from "@eccenca/gui-elements";
-import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
@@ -78,7 +83,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     current.elements = elements;
     /** Rule editor context. */
     const ruleEditorContext = React.useContext<RuleEditorContextProps>(RuleEditorContext);
-    const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
     /** The rule editor change history that will be used to UNDO changes. The changes are in the order they have been executed. */
     const [ruleUndoStack] = React.useState<ChangeStackType[]>([]);
     /** If there are changes that can be undone. */
@@ -108,6 +112,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [readOnly, _setIsReadOnly] = React.useState(false);
     const [utils] = React.useState(ruleEditorModelUtilsFactory(() => (nodeMap ? "edge" : "default")));
     const [currentStickyContent, setCurrentStickyContent] = React.useState<Map<string, string>>(new Map());
+    const [showStickyNoteModal, setShowStickyNoteModal] = React.useState<boolean>(false);
 
     /** react-flow related functions */
     const { setCenter } = useZoomPanHelper();
@@ -351,6 +356,27 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     from: undoOp.to,
                     to: undoOp.from,
                 };
+            case "Change node size":
+                return {
+                    type: "Change node size",
+                    nodeId: undoOp.nodeId,
+                    from: undoOp.to,
+                    to: undoOp.from,
+                };
+            case "Change node text content":
+                return {
+                    type: "Change node text content",
+                    nodeId: undoOp.nodeId,
+                    from: undoOp.to,
+                    to: undoOp.from,
+                };
+            case "Change node style":
+                return {
+                    type: "Change node style",
+                    nodeId: undoOp.nodeId,
+                    from: undoOp.to,
+                    to: undoOp.from,
+                };
         }
     };
 
@@ -540,6 +566,39 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         changedElements
                     );
                     break;
+                case "Change node size":
+                    changedElements = changeNodeSizeInternal(
+                        new Map(
+                            groupedChange.map((change) => {
+                                const nodeChange = change as ChangeNodeSize;
+                                return [nodeChange.nodeId, nodeChange.to];
+                            })
+                        ),
+                        changedElements
+                    );
+                    break;
+                case "Change node style":
+                    changedElements = changeNodeStyleInternal(
+                        new Map(
+                            groupedChange.map((change) => {
+                                const nodeChange = change as ChangeNodeSize;
+                                return [nodeChange.nodeId, nodeChange.to];
+                            })
+                        ),
+                        changedElements
+                    );
+                    break;
+                case "Change node text content":
+                    changedElements = changeNodeTextContentInternal(
+                        new Map(
+                            groupedChange.map((change) => {
+                                const nodeChange = change as ChangeNodeSize;
+                                return [nodeChange.nodeId, nodeChange.to];
+                            })
+                        ),
+                        changedElements
+                    );
+                    break;
                 case "Change number of input handles":
                     const nodesInputHandlesDiff: Map<string, number> = new Map();
                     groupedChange.forEach((change) => {
@@ -706,6 +765,58 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             }
         });
     };
+
+    const changeNodeSizeInternal = (elementsWithSizeChanges: Map<string, NodeDimensions>, els: Elements) => {
+        return els.map((elem) => {
+            if (utils.isNode(elem) && elementsWithSizeChanges.has(elem.id)) {
+                const node = utils.asNode(elem)!!;
+                const nodeDimensions = elementsWithSizeChanges.get(node.id);
+                const changedSize: RuleEditorNode = {
+                    ...node,
+                    data: { ...node.data, nodeDimensions },
+                };
+                return changedSize;
+            } else {
+                return elem;
+            }
+        });
+    };
+
+    const changeNodeStyleInternal = (nodesWithStyleChanges: Map<string, RuleNodeStyleType>, els: Elements) => {
+        return els.map((elem) => {
+            if (utils.isNode(elem) && nodesWithStyleChanges.has(elem.id)) {
+                const node = utils.asNode(elem)!!;
+                const style = nodesWithStyleChanges.get(node.id);
+                const changedStyle: RuleEditorNode = {
+                    ...node,
+                    data: { ...node.data, style },
+                };
+                return changedStyle;
+            } else {
+                return elem;
+            }
+        });
+    };
+
+    const changeNodeTextContentInternal = (
+        nodeWithTextContentChanges: Map<string, NodeContentProps<any>["content"]>,
+        els: Elements
+    ) => {
+        return els.map((elem) => {
+            if (utils.isNode(elem) && nodeWithTextContentChanges.has(elem.id)) {
+                const node = utils.asNode(elem)!!;
+                const content = nodeWithTextContentChanges.get(node.id);
+                const changedContent: RuleEditorNode = {
+                    ...node,
+                    data: { ...node.data, content },
+                };
+                return changedContent;
+            } else {
+                return elem;
+            }
+        });
+    };
+
     // Changes the node parameters
     const changeNodeParametersInternal = (
         nodeParametersToChange: Map<string, Map<string, RuleEditorNodeParameterValue>>
@@ -1460,22 +1571,34 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     height: 70,
                 },
                 onNodeResize: ({ width, height }) => {
-                    setElements((els) =>
+                    startChangeTransaction();
+                    const newNodeDimensions = { width, height };
+                    changeElementsInternal((els) =>
                         els.map((el) => {
                             if (el.id === stickyId) {
                                 const updatedNode = {
                                     ...el,
                                     data: {
                                         ...el.data,
-                                        nodeDimensions: {
-                                            width,
-                                            height,
-                                        },
+                                        nodeDimensions: newNodeDimensions,
                                     },
                                 };
 
                                 //add undo-redo node resize
-
+                                startChangeTransaction();
+                                addAndExecuteRuleModelChangeInternal(
+                                    {
+                                        operations: [
+                                            {
+                                                type: "Change node size",
+                                                nodeId: stickyId,
+                                                from: el.data.nodeDimensions,
+                                                to: newNodeDimensions,
+                                            },
+                                        ],
+                                    },
+                                    els
+                                );
                                 return updatedNode;
                             }
                             return el;
@@ -1493,12 +1616,17 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
         const nodeId = currentStickyContent.get("nodeId");
         if (!nodeId) {
-            setElements((elements) => [...elements, newNode]);
+            changeElementsInternal((elements) => {
+                const updatedElements = [...elements, newNode];
+                startChangeTransaction();
+                addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(newNode as any), elements);
+                return updatedElements;
+            });
             // centerHighlightedNodeInCanvas(newNode);
             //commit history event to undo stack
             //undo-redo new node added
         } else {
-            setElements((els) =>
+            changeElementsInternal((els) =>
                 els.map((el) => {
                     if (el.id === nodeId) {
                         const updatedNode = {
@@ -1517,11 +1645,40 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         if (style.borderColor !== el.data.style.borderColor) {
                             //color has been edited
                             //undo redo node style change
+                            startChangeTransaction();
+                            addAndExecuteRuleModelChangeInternal(
+                                {
+                                    operations: [
+                                        {
+                                            type: "Change node style",
+                                            nodeId: nodeId,
+                                            from: el.data.style,
+                                            to: updatedNode.data.style,
+                                        },
+                                    ],
+                                },
+                                els
+                            );
                         }
 
                         //compare content
                         if (stickyNote !== el.data.businessData.stickyNote) {
                             //node content change
+                            //undo redo node style change
+                            startChangeTransaction();
+                            addAndExecuteRuleModelChangeInternal(
+                                {
+                                    operations: [
+                                        {
+                                            type: "Change node text content",
+                                            nodeId: nodeId,
+                                            from: el.data.content,
+                                            to: content,
+                                        },
+                                    ],
+                                },
+                                els
+                            );
                         }
 
                         return updatedNode;
@@ -1544,7 +1701,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                             (prevData) =>
                                 new Map(prevData.set("note", stickyNote).set("color", color).set("nodeId", stickyId))
                         );
-                        ruleEditorUiContext.setShowStickyNoteModal(true);
+                        setShowStickyNoteModal(true);
                     }}
                 />
                 <Spacing vertical size="tiny" />
@@ -1572,6 +1729,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 redo,
                 canRedo,
                 currentStickyContent,
+                showStickyNoteModal,
+                setShowStickyNoteModal,
                 executeModelEditOperation: {
                     startChangeTransaction,
                     addNode,
