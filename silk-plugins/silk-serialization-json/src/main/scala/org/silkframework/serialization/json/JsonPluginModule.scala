@@ -52,5 +52,6 @@ class JsonPluginModule extends PluginModule {
       DatasetSelectionJsonFormat.getClass ::
       ReferenceLinksJsonFormat.getClass ::
       ComplexMappingJsonFormat.getClass ::
+      UiAnnotationsJsonFormat.getClass ::
       Nil
 }

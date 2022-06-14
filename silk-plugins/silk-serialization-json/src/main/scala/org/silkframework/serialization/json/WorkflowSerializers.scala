@@ -2,9 +2,10 @@ package org.silkframework.serialization.json
 
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonHelpers._
-import org.silkframework.serialization.json.JsonSerializers.{PARAMETERS, TYPE}
+import org.silkframework.serialization.json.JsonSerializers.{PARAMETERS, TYPE, fromJson, toJson, UiAnnotationsJsonFormat}
 import org.silkframework.workspace.activity.workflow._
-import play.api.libs.json.{JsArray, _}
+import org.silkframework.workspace.annotation.UiAnnotations
+import play.api.libs.json._
 
 object WorkflowSerializers {
 
@@ -12,6 +13,7 @@ object WorkflowSerializers {
 
     private final val OPERATORS = "operators"
     private final val DATASETS = "datasets"
+    final val UI_ANNOTATIONS = "uiAnnotations"
 
     override def typeNames: Set[String] = Set(JsonSerializers.TASK_TYPE_WORKFLOW)
 
@@ -24,7 +26,8 @@ object WorkflowSerializers {
         operators =  WorkflowOperatorsParameter(
           arrayValueOption(parameterObject, OPERATORS).map(_.value.map(WorkflowOperatorJsonFormat.read)).getOrElse(Seq.empty)),
         datasets = WorkflowDatasetsParameter(
-          arrayValueOption(parameterObject, DATASETS).map(_.value.map(WorkflowDatasetJsonFormat.read)).getOrElse(Seq.empty))
+          arrayValueOption(parameterObject, DATASETS).map(_.value.map(WorkflowDatasetJsonFormat.read)).getOrElse(Seq.empty)),
+        uiAnnotations = optionalValue(value, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations())
       )
     }
 
@@ -34,7 +37,8 @@ object WorkflowSerializers {
         TYPE -> "workflow",
         JsonSerializers.PARAMETERS -> Json.obj(
           OPERATORS -> value.operators.map(WorkflowOperatorJsonFormat.write),
-          DATASETS -> value.datasets.map(WorkflowDatasetJsonFormat.write)
+          DATASETS -> value.datasets.map(WorkflowDatasetJsonFormat.write),
+          UI_ANNOTATIONS -> toJson(value.uiAnnotations)
         )
       )
     }

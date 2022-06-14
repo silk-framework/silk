@@ -9,6 +9,7 @@ import org.silkframework.runtime.serialization.{ReadContext, Serialization, Writ
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.{JsonFormat, JsonSerialization}
 import org.silkframework.workspace.activity.transform.VocabularyCacheValue
+import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import play.api.libs.json.Json
 
 import scala.reflect.ClassTag
@@ -64,6 +65,22 @@ class JsonSerializersTest  extends FlatSpec with Matchers {
       )
     )
     testSerialization(layout)
+  }
+
+  private val stickyNote = StickyNote(
+    "sticky ID",
+    "content with\nnew\n\nlines",
+    "#fff",
+    (3.5, 6.7),
+    (20.1, 24.9)
+  )
+
+  "StickyNote" should "serialize to and from JSON" in {
+    testSerialization(stickyNote)
+  }
+
+  "UiAnnotations" should "serialize to and from JSON" in {
+    testSerialization(UiAnnotations(Seq(stickyNote, stickyNote.copy(id = "other Id"))))
   }
 
   def testSerialization[T](obj: T)(implicit format: JsonFormat[T]): Unit = {
