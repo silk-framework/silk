@@ -2,23 +2,22 @@ import React from "react";
 
 //components
 import {
+    Accordion,
     AccordionItem,
     AutoCompleteField,
     Button,
+    Checkbox,
     FieldItem,
+    Link,
     Notification,
     OverviewItem,
+    OverviewItemDepiction,
+    OverviewItemLine,
     SimpleDialog,
     Spacing,
     TitleSubsection,
-    Accordion,
-    Checkbox,
-    OverviewItemLine,
-    OverviewItemDepiction,
-    Link,
     Tooltip,
 } from "@eccenca/gui-elements";
-import { Loading } from "../../Loading/Loading";
 import { ICloneOptions } from "../CloneModal";
 import { useTranslation } from "react-i18next";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
@@ -106,13 +105,15 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
     };
 
     const handleCopyingAction = async () => {
+        if (!targetProject) {
+            return;
+        }
         const { projectId, id } = item;
         setError(null);
         try {
             setLoading(true);
             const payload: CopyPayloadProps = {
-                // TODO: Disable Copy button when targetProject is not set instead.
-                targetProject: targetProject || "<EMPTY>",
+                targetProject: targetProject,
                 dryRun: false,
                 overwriteTasks: overWrittenAcknowledgement,
             };
@@ -165,10 +166,6 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
         return items.sort((a, b) => order[a.taskType.toLowerCase()] - order[b.taskType.toLowerCase()]);
     };
 
-    if (loading) {
-        return <Loading delay={0} />;
-    }
-
     const modalTitle = item.id ? t("common.action.CopyItems") : t("common.action.CopyProject");
     const [copiedTasks, overwrittenTasks] = [info?.copiedTasks.length ?? 0, info?.overwrittenTasks.length ?? 0];
     const buttonDisabled = !newLabel || (info?.overwrittenTasks.length && !overWrittenAcknowledgement);
@@ -184,7 +181,8 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
                     key="copy"
                     affirmative
                     onClick={handleCopyingAction}
-                    disabled={buttonDisabled ? true : false}
+                    disabled={!!buttonDisabled || loading || !targetProject}
+                    loading={loading}
                     data-test-id={"copy-modal-button"}
                 >
                     {t("common.action.copy")}
