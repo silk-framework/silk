@@ -26,7 +26,8 @@ import { IAutocompleteDefaultResponse, TaskPlugin } from "@ducks/shared/typings"
 import { FetchError } from "../../../services/fetch/responseInterceptor";
 import { LinkingRuleEvaluation } from "./evaluation/LinkingRuleEvaluation";
 import { LinkingRuleCacheInfo } from "./LinkingRuleCacheInfo";
-import {requestTaskMetadata} from "@ducks/shared/requests";
+import { requestTaskMetadata } from "@ducks/shared/requests";
+import { IStickyNote } from "../shared/task.typings";
 
 export interface LinkingRuleEditorProps {
     /** Project ID the task is in. */
@@ -50,7 +51,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
     // Label for source paths
     const [sourcePathLabels] = React.useState<Map<string, string>>(new Map());
     const [targetPathLabels] = React.useState<Map<string, string>>(new Map());
-    const [editorTitle, setEditorTitle] = React.useState<string | undefined>(undefined)
+    const [editorTitle, setEditorTitle] = React.useState<string | undefined>(undefined);
     const hideGreyListedParameters =
         (
             new URLSearchParams(window.location.search).get(HIDE_GREY_LISTED_OPERATORS_QUERY_PARAMETER) ?? ""
@@ -88,9 +89,9 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
     const fetchTaskData = async (projectId: string, taskId: string) => {
         try {
             const taskData = (await fetchLinkSpec(projectId, taskId, true, prefLang)).data;
-            if(viewActions?.integratedView) {
-                const taskMetaData = (await requestTaskMetadata(taskId, projectId)).data
-                setEditorTitle(taskMetaData.label)
+            if (viewActions?.integratedView) {
+                const taskMetaData = (await requestTaskMetadata(taskId, projectId)).data;
+                setEditorTitle(taskMetaData.label);
             }
             return taskData;
         } catch (err) {
@@ -140,7 +141,10 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
     };
 
     /** Save the rule. */
-    const saveLinkageRule = async (ruleOperatorNodes: IRuleOperatorNode[]): Promise<RuleSaveResult> => {
+    const saveLinkageRule = async (
+        ruleOperatorNodes: IRuleOperatorNode[],
+        stickyNotes: IStickyNote[] = []
+    ): Promise<RuleSaveResult> => {
         try {
             const ruleTree = utils.constructLinkageRuleTree(ruleOperatorNodes);
             const originalRule = (await fetchLinkSpec(projectId, linkingTaskId, false)).data.parameters
@@ -150,8 +154,8 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                 operator: ruleTree,
                 layout: ruleUtils.ruleLayout(ruleOperatorNodes),
                 uiAnnotations: {
-                    stickyNotes: [] // TODO: Add sticky notes. Also read sticky notes from backend.
-                }
+                    stickyNotes, // TODO: Add sticky notes. Also read sticky notes from backend.
+                },
             });
             return {
                 success: true,

@@ -16,9 +16,10 @@ import {
 } from "../../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 import utils from "../../RuleEditor.utils";
-import { ruleEditorModelUtilsFactory } from "../RuleEditorModel.utils";
+import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH, ruleEditorModelUtilsFactory } from "../RuleEditorModel.utils";
 import { RuleEditorNode } from "../RuleEditorModel.typings";
 import { rangeArray } from "../../../../../utils/basicUtils";
+import { Markdown } from "@eccenca/gui-elements";
 
 let modelContext: RuleEditorModelContextProps | undefined;
 const currentContext = () => modelContext as RuleEditorModelContextProps;
@@ -36,7 +37,7 @@ describe("Rule editor model", () => {
         return JSON.parse(
             JSON.stringify(
                 currentContext()
-                    .ruleOperatorNodes()
+                    .ruleOperatorNodes()[0]
                     .sort((n1, n2) => (n1.nodeId < n2.nodeId ? -1 : 1))
             )
         );
@@ -82,6 +83,7 @@ describe("Rule editor model", () => {
                         editedItemLoading: false,
                         operatorListLoading: false,
                         initialRuleOperatorNodes: initialRuleNodes,
+                        stickyNotes: [],
                         saveRule: (ruleOperatorNodes): RuleSaveResult => {
                             savedRuleOperatorNodes = ruleOperatorNodes;
                             return { success: true };
@@ -194,6 +196,25 @@ describe("Rule editor model", () => {
         expect(currentContext().canUndo).toBe(true);
     };
 
+    const stickyNoteNodeBootstrap = async (stickyNote = "note") => {
+        await ruleEditorModel();
+        const startPosition = { x: 50, y: 120 };
+        const defaultStyle = {
+            backgroundColor: "#000000",
+            borderColor: "#000000",
+            color: "#000000",
+        };
+        act(() => {
+            currentContext().executeModelEditOperation.addStickyNode(
+                stickyNote,
+                startPosition,
+                defaultStyle,
+                "#000000"
+            );
+        });
+        return currentContext().elements[0];
+    };
+
     /** Test UNDO and REDO behavior. The last check is always the current state. Each check before tests the states
      *  going back in time with every UNDO. Same checks are repeated going forwards with REDO.
      **/
@@ -229,7 +250,8 @@ describe("Rule editor model", () => {
         expect(currentContext().canUndo).toBe(false);
         expect(currentContext().canRedo).toBe(false);
         expect(currentContext().elements).toHaveLength(0);
-        expect(currentContext().ruleOperatorNodes()).toHaveLength(0);
+        expect(currentContext().ruleOperatorNodes()[0]).toHaveLength(0);
+        expect(currentContext().ruleOperatorNodes()[1]).toHaveLength(0);
         await ruleEditorModel(
             [
                 node({ nodeId: "node A", portSpecification: { minInputPorts: 0 } }),
@@ -240,8 +262,8 @@ describe("Rule editor model", () => {
         // 2 nodes and 1 edge
         await waitFor(async () => {
             expect(currentContext().elements).toHaveLength(3);
-            expect(currentContext().ruleOperatorNodes()).toHaveLength(2);
-            expect(currentContext().ruleOperatorNodes()[1].inputs).toStrictEqual(["node A"]);
+            expect(currentContext().ruleOperatorNodes()[0]).toHaveLength(2);
+            expect(currentContext().ruleOperatorNodes()[0][1].inputs).toStrictEqual(["node A"]);
         });
     });
 
@@ -273,17 +295,118 @@ describe("Rule editor model", () => {
             checkAfterChange();
             expect(
                 currentContext()
-                    .ruleOperatorNodes()
+                    .ruleOperatorNodes()[0]
                     .map((node) => node.nodeId)
             ).toStrictEqual(["pluginA", "node B", "pluginA_2", "pluginA_3"]);
             expect(
                 modelUtils.asNode(currentContext().elements.find((n) => n.id === "pluginA_2"))!!.position
             ).toStrictEqual(position);
-            expect(currentContext().ruleOperatorNodes()[2].position).toStrictEqual(position);
+            expect(currentContext().ruleOperatorNodes()[0][2].position).toStrictEqual(position);
         };
         checkAfterAddedNodes();
 
         checkUndoAndRedo(checkBeforeAdd, checkAfterAddedNodes);
+    });
+
+    it("should change style and undo & redo", async () => {
+        const node = await stickyNoteNodeBootstrap();
+        const assertionBeforeSizeChange = () => {
+            const defaultStyle = {
+                backgroundColor: "#000000",
+                borderColor: "#000000",
+                color: "#000000",
+            };
+            expect(node.data.style).toEqual(defaultStyle);
+        };
+        assertionBeforeSizeChange();
+        const newStyle = {
+            backgroundColor: "#ffffff",
+            borderColor: "#fee2f1",
+            color: "#000000",
+        };
+        const assertionAfterSizeChange = () => {
+            expect(modelUtils.nodeById(currentContext().elements, node.id)!!.data.style).toEqual(newStyle);
+        };
+        act(() => {
+            currentContext().executeModelEditOperation.changeNodeStyle(node.id, newStyle);
+        });
+        assertionAfterSizeChange();
+
+        //UNDO
+        act(() => {
+            currentContext().undo();
+        });
+        checkAfterUndo(true);
+        assertionBeforeSizeChange();
+
+        // REDO
+        act(() => {
+            currentContext().redo();
+        });
+        assertionAfterSizeChange();
+    });
+
+    it("should change node text content and undo & redo", async () => {
+        const stickyNote = "# Testing... 1 2 3...";
+        const node = await stickyNoteNodeBootstrap(stickyNote);
+        const assertionBeforeSizeChange = () => {
+            const stickyContent = <Markdown>{stickyNote}</Markdown>;
+            expect(node.data.content).toStrictEqual(stickyContent);
+        };
+        assertionBeforeSizeChange();
+        const newContent = <Markdown>**new Content**</Markdown>;
+        const assertionAfterSizeChange = () => {
+            expect(modelUtils.nodeById(currentContext().elements, node.id)!!.data.content).toEqual(newContent);
+        };
+        act(() => {
+            currentContext().executeModelEditOperation.changeNodeTextContent(node.id, newContent);
+        });
+        assertionAfterSizeChange();
+
+        //UNDO
+        act(() => {
+            currentContext().undo();
+        });
+        checkAfterUndo(true);
+        assertionBeforeSizeChange();
+
+        // REDO
+        act(() => {
+            currentContext().redo();
+        });
+        assertionAfterSizeChange();
+    });
+
+    it("should change size and undo & redo", async () => {
+        const node = await stickyNoteNodeBootstrap();
+        const defaultNodeDimensions = { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT };
+        const assertionBeforeSizeChange = () => {
+            expect(node.data.nodeDimensions).toEqual(defaultNodeDimensions);
+        };
+        assertionBeforeSizeChange();
+        const randomNewNodeDimensions = { width: DEFAULT_NODE_WIDTH + 30, height: DEFAULT_NODE_HEIGHT + 10 };
+        const assertionAfterSizeChange = () => {
+            expect(modelUtils.nodeById(currentContext().elements, node.id)!!.data.nodeDimensions).toEqual(
+                randomNewNodeDimensions
+            );
+        };
+        act(() => {
+            currentContext().executeModelEditOperation.changeSize(node.id, randomNewNodeDimensions);
+        });
+        assertionAfterSizeChange();
+
+        //UNDO
+        act(() => {
+            currentContext().undo();
+        });
+        checkAfterUndo(true);
+        assertionBeforeSizeChange();
+
+        // REDO
+        act(() => {
+            currentContext().redo();
+        });
+        assertionAfterSizeChange();
     });
 
     it("should delete nodes and undo & redo", async () => {
@@ -311,7 +434,7 @@ describe("Rule editor model", () => {
             expect(currentContext().elements).toHaveLength(3);
             expect(
                 currentContext()
-                    .ruleOperatorNodes()
+                    .ruleOperatorNodes()[0]
                     .map((node) => node.nodeId)
             ).toStrictEqual(["nodeB", "nodeC"]);
         };
@@ -341,7 +464,7 @@ describe("Rule editor model", () => {
         const checkAfterMove = () => {
             checkAfterChange();
             expect(nodeById(nodeId).position).toStrictEqual(newPosition);
-            expect(currentContext().ruleOperatorNodes()[0].position).toStrictEqual(newPosition);
+            expect(currentContext().ruleOperatorNodes()[0][0].position).toStrictEqual(newPosition);
         };
         checkAfterMove();
 
@@ -565,7 +688,7 @@ describe("Rule editor model", () => {
             // 2 nodes and 1 edge added
             expect(currentContext().elements).toHaveLength(9);
             expect(new Set(currentOperatorNodes().map((op) => op.nodeId)).size).toBe(
-                currentContext().ruleOperatorNodes().length
+                currentContext().ruleOperatorNodes()[0].length
             );
         };
         checkAfterCopyAndPaste();
@@ -579,7 +702,7 @@ describe("Rule editor model", () => {
             // 2 nodes and 1 edge added
             expect(currentContext().elements).toHaveLength(12);
             expect(new Set(currentOperatorNodes().map((op) => op.nodeId)).size).toBe(
-                currentContext().ruleOperatorNodes().length
+                currentContext().ruleOperatorNodes()[0].length
             );
         };
         checkAfterCopyAndPaste2nd();
@@ -640,7 +763,7 @@ describe("Rule editor model", () => {
         const stateHistory: IRuleOperatorNode[][] = [];
         const stateHistoryLabel: string[] = [];
         const recordCurrentState = (stateLabel: string) => {
-            stateHistory.push(currentOperatorNodes());
+            stateHistory.push([...currentOperatorNodes()]);
             stateHistoryLabel.push(stateLabel);
         };
         const recordedTransaction = async (
@@ -702,8 +825,25 @@ describe("Rule editor model", () => {
         await recordedTransaction("Delete nodes", () => {
             currentContext().executeModelEditOperation.deleteNodes(["nodeB", "pluginA"]);
         });
-        expect(currentOperatorNodes()).toHaveLength(3);
-        // Execute UNDO and REDO twice
+
+        await recordedTransaction("Add a node", () => {
+            currentContext().executeModelEditOperation.addStickyNode("note", { x: 1, y: 2 }, {}, "#000");
+        });
+
+        await recordedTransaction("Change node size", () => {
+            currentContext().executeModelEditOperation.changeSize("sticky", { width: 50, height: 32 });
+        });
+
+        await recordedTransaction("Change node style", () => {
+            currentContext().executeModelEditOperation.changeNodeStyle("sticky", {});
+        });
+
+        await recordedTransaction("Change node text content", () => {
+            currentContext().executeModelEditOperation.changeNodeTextContent("sticky", <></>);
+        });
+
+        expect(currentOperatorNodes()).toHaveLength(4);
+        // // Execute UNDO and REDO twice
         for (let i = 0; i < 2; i++) {
             console.log("Test UNDO");
             for (let changeIdx = stateHistory.length - 1; changeIdx > 0; changeIdx--) {
@@ -711,7 +851,11 @@ describe("Rule editor model", () => {
                 act(() => {
                     currentContext().undo();
                 });
-                console.log(`Undone change: ${stateHistoryLabel[changeIdx]} (${changeIdx}/${stateHistory.length - 1})`);
+                const change = stateHistory[changeIdx];
+                if (change)
+                    console.log(
+                        `Undone change: ${stateHistoryLabel[changeIdx]} (${changeIdx}/${stateHistory.length - 1})`
+                    );
                 expect(currentOperatorNodes()).not.toStrictEqual(stateHistory[changeIdx]);
                 expect(currentOperatorNodes()).toStrictEqual(stateHistory[changeIdx - 1]);
             }

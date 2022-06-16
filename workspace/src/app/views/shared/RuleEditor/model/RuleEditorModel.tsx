@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { CSSProperties, useEffect } from "react";
 import Color from "color";
 import {
     Edge,
@@ -12,7 +12,13 @@ import {
 } from "react-flow-renderer";
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { RuleEditorContext, RuleEditorContextProps } from "../contexts/RuleEditorContext";
-import { IOperatorCreateContext, IOperatorNodeOperations, ruleEditorModelUtilsFactory } from "./RuleEditorModel.utils";
+import {
+    DEFAULT_NODE_HEIGHT,
+    DEFAULT_NODE_WIDTH,
+    IOperatorCreateContext,
+    IOperatorNodeOperations,
+    ruleEditorModelUtilsFactory,
+} from "./RuleEditorModel.utils";
 import { useTranslation } from "react-i18next";
 import {
     IParameterSpecification,
@@ -35,7 +41,6 @@ import {
     RuleModelChanges,
     RuleModelChangesFactory,
     RuleModelChangeType,
-    RuleNodeStyleType,
 } from "./RuleEditorModel.typings";
 import { Connection, XYPosition } from "react-flow-renderer/dist/types";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
@@ -47,6 +52,7 @@ import {
 } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 import { IconButton, Markdown, Spacing } from "@eccenca/gui-elements";
+import { IStickyNote } from "views/taskViews/shared/task.typings";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
@@ -211,7 +217,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     useEffect(() => {
         if (evaluateQuickly) {
             const timeout = setTimeout(
-                () => ruleEvaluationContext.startEvaluation(ruleOperatorNodes(), ruleEditorContext.editedItem, true),
+                () => ruleEvaluationContext.startEvaluation(ruleOperatorNodes()[0], ruleEditorContext.editedItem, true),
                 500
             );
             return () => clearTimeout(timeout);
@@ -782,7 +788,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
-    const changeNodeStyleInternal = (nodesWithStyleChanges: Map<string, RuleNodeStyleType>, els: Elements) => {
+    const changeNodeStyleInternal = (nodesWithStyleChanges: Map<string, CSSProperties>, els: Elements) => {
         return els.map((elem) => {
             if (utils.isNode(elem) && nodesWithStyleChanges.has(elem.id)) {
                 const node = utils.asNode(elem)!!;
@@ -862,6 +868,107 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             console.warn(
                 "Could not create node since React flow and rule operator specifications are not initialized yet!",
                 ruleOperator
+            );
+        }
+    };
+
+    /**
+     * update node dimensions in node data property and trigger undo
+     * @param nodeId {string}
+     * @param newNodeDimensions {Object}
+     */
+    const changeSize = (nodeId: string, newNodeDimensions: NodeDimensions) => {
+        changeElementsInternal((els) => {
+            const node = utils.nodeById(els, nodeId);
+            if (node) {
+                startChangeTransaction();
+                return addAndExecuteRuleModelChangeInternal(
+                    RuleModelChangesFactory.changeNodeSize(nodeId, node.data.nodeDimensions!, newNodeDimensions),
+                    els
+                );
+            } else {
+                return els;
+            }
+        });
+    };
+
+    const changeNodeStyle = (nodeId: string, newNodeStyle: CSSProperties) => {
+        changeElementsInternal((els) => {
+            const node = utils.nodeById(els, nodeId);
+            if (node && node.data.style?.borderColor !== newNodeStyle.borderColor) {
+                startChangeTransaction();
+                return addAndExecuteRuleModelChangeInternal(
+                    RuleModelChangesFactory.changeNodeStyle(nodeId, node.data.style!, newNodeStyle),
+                    els
+                );
+            } else {
+                return els;
+            }
+        });
+    };
+
+    const changeNodeTextContent = (nodeId: string, textContent: NodeContentProps<any>["content"]) => {
+        changeElementsInternal((els) => {
+            const node = utils.nodeById(els, nodeId);
+            if (node) {
+                startChangeTransaction();
+                return addAndExecuteRuleModelChangeInternal(
+                    RuleModelChangesFactory.changeNodeContent(nodeId, node.data.content, textContent),
+                    els
+                );
+            } else {
+                return els;
+            }
+        });
+    };
+
+    const createStickyNodeInternal = (color: string, stickyNote: string, position: XYPosition) => {
+        const style = generateStickyStyle(color);
+        const stickyId = utils.freshNodeId("sticky");
+        return {
+            id: stickyId,
+            type: "stickynote",
+            position,
+            data: {
+                size: "medium",
+                handles: [],
+                nodeDimensions: {
+                    width: DEFAULT_NODE_WIDTH,
+                    height: DEFAULT_NODE_HEIGHT,
+                },
+                onNodeResize: (newNodeDimensions) => changeSize(stickyId, newNodeDimensions),
+                menuButtons: stickyMenuButtons(stickyId, color, stickyNote),
+                content: <Markdown>{stickyNote}</Markdown>,
+                style,
+                businessData: {
+                    stickyNote,
+                },
+            },
+        };
+    };
+
+    /**
+     *
+     * @param stickyNote {string} markdown content
+     * @param position {Object} position
+     * @param {number} position.x horizontal offset
+     * @param {number} position.y vertical offset
+     * @param style {Object}
+     * @param color {string}
+     */
+    const addStickyNode = (stickyNote: string, position: XYPosition, style: CSSProperties, color: string) => {
+        if (reactFlowInstance && ruleEditorContext.operatorSpec) {
+            const stickyNoteNode = createStickyNodeInternal(color, stickyNote, position);
+            changeElementsInternal((elements) => {
+                const updatedElements = [...elements, stickyNoteNode];
+                startChangeTransaction();
+                addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(stickyNoteNode as any), elements);
+                return updatedElements;
+            });
+        } else {
+            console.warn(
+                "Could not create sticky note node since React flow and rule operator specifications are not initialized yet!",
+                stickyNote
             );
         }
     };
@@ -1390,7 +1497,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     };
 
     /** Convert to rule operator nodes. Only this representation should be handed outside of this component. */
-    const ruleOperatorNodes = (): IRuleOperatorNode[] => {
+    const ruleOperatorNodes = (): [IRuleOperatorNode[], IStickyNote[]] => {
         const nodes: RuleEditorNode[] = [];
         const nodeInputEdges: Map<string, Edge[]> = new Map();
         const inputEdgesByNodeId = (nodeId: string): Edge[] => {
@@ -1410,48 +1517,70 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 inputEdgesByNodeId(edge.target).push(edge);
             }
         });
-        return nodes.map((node) => {
-            const inputHandleIds = utils.inputHandles(node).map((h) => h.id!!);
-            const inputEdges = nodeInputEdges.get(node.id) ?? [];
-            const inputEdgeMap = new Map(inputEdges.map((e) => [e.targetHandle, e.source]));
-            const inputs = inputHandleIds.map((handleId) => inputEdgeMap.get(handleId));
-            const portSpec = node.data.businessData.originalRuleOperatorNode.portSpecification;
-            // Remove undefined input ports above last defined input if spec allows it
-            if (!portSpec.maxInputPorts) {
-                while (inputs.length > Math.max(portSpec.minInputPorts - 1, 0) && inputs[inputs.length - 1] == null) {
-                    inputs.pop();
+        const stickyNotes: IStickyNote[] = [];
+        const ruleOperatorNodes: IRuleOperatorNode[] = [];
+
+        nodes.forEach((node) => {
+            if (node.type === "stickynote") {
+                stickyNotes.push({
+                    id: node.id,
+                    content: node.data.businessData.stickyNote!,
+                    position: [node.position.x, node.position.y],
+                    dimension: [node.data.nodeDimensions?.width!, node.data.nodeDimensions?.height!],
+                    color: node.data.style?.borderColor!,
+                });
+            } else {
+                const inputHandleIds = utils.inputHandles(node).map((h) => h.id!!);
+                const inputEdges = nodeInputEdges.get(node.id) ?? [];
+                const inputEdgeMap = new Map(inputEdges.map((e) => [e.targetHandle, e.source]));
+                const inputs = inputHandleIds.map((handleId) => inputEdgeMap.get(handleId));
+                const portSpec = node.data.businessData.originalRuleOperatorNode.portSpecification;
+                // Remove undefined input ports above last defined input if spec allows it
+                if (!portSpec.maxInputPorts) {
+                    while (
+                        inputs.length > Math.max(portSpec.minInputPorts - 1, 0) &&
+                        inputs[inputs.length - 1] == null
+                    ) {
+                        inputs.pop();
+                    }
                 }
+                const originalNode = node.data?.businessData.originalRuleOperatorNode!!;
+                const parameterDiff = nodeParameters.get(node.id);
+                const ruleOperatorNode: IRuleOperatorNode = {
+                    inputs,
+                    label: originalNode.label,
+                    nodeId: node.id,
+                    parameters: parameterDiff
+                        ? Object.fromEntries(
+                              Object.entries(originalNode.parameters).map(([parameterId, parameterValue]) => {
+                                  const value =
+                                      parameterDiff && parameterDiff.has(parameterId)
+                                          ? parameterDiff.get(parameterId)
+                                          : parameterValue;
+                                  return [
+                                      parameterId,
+                                      typeof value === "string" ? value : value ? value.value : undefined,
+                                  ];
+                              })
+                          )
+                        : originalNode.parameters,
+                    pluginId: originalNode.pluginId,
+                    pluginType: originalNode.pluginType,
+                    portSpecification: originalNode.portSpecification,
+                    position: node.position,
+                    description: originalNode.description,
+                };
+                ruleOperatorNodes.push(ruleOperatorNode);
             }
-            const originalNode = node.data?.businessData.originalRuleOperatorNode!!;
-            const parameterDiff = nodeParameters.get(node.id);
-            const ruleOperatorNode: IRuleOperatorNode = {
-                inputs,
-                label: originalNode.label,
-                nodeId: node.id,
-                parameters: parameterDiff
-                    ? Object.fromEntries(
-                          Object.entries(originalNode.parameters).map(([parameterId, parameterValue]) => {
-                              const value =
-                                  parameterDiff && parameterDiff.has(parameterId)
-                                      ? parameterDiff.get(parameterId)
-                                      : parameterValue;
-                              return [parameterId, typeof value === "string" ? value : value ? value.value : undefined];
-                          })
-                      )
-                    : originalNode.parameters,
-                pluginId: originalNode.pluginId,
-                pluginType: originalNode.pluginType,
-                portSpecification: originalNode.portSpecification,
-                position: node.position,
-                description: originalNode.description,
-            };
-            return ruleOperatorNode;
         });
+
+        return [ruleOperatorNodes, stickyNotes];
     };
 
     /** Save the current rule. */
     const saveRule = async () => {
-        const saveResult = await ruleEditorContext.saveRule(ruleOperatorNodes());
+        const [operatorNodes, stickyNodes] = ruleOperatorNodes();
+        const saveResult = await ruleEditorContext.saveRule(operatorNodes, stickyNodes);
         if (saveResult.success) {
             // Reset UNDO state
             ruleUndoStack.splice(0);
@@ -1524,7 +1653,15 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 output: targetNode.get(opNode.nodeId),
             })
         );
-        let elems: Elements = [...nodes, ...edges];
+        //Todo transfer logic to the gui-elements
+        const stickyNodes = ruleEditorContext.stickyNotes.map(({ color, content, position }) =>
+            createStickyNodeInternal(color, content, {
+                x: position[0],
+                y: position[1],
+            })
+        );
+
+        let elems: Elements = [...nodes, ...edges, ...stickyNodes];
         if (needsLayout) {
             elems = await autoLayoutInternal(elems, false, false);
         }
@@ -1539,16 +1676,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         }, 1);
     };
 
-    const addStickyNoteToCanvas = (stickyNote: string, color: string, reactFlowWrapper) => {
-        const reactFlowBounds = reactFlowWrapper.current?.getBoundingClientRect();
-        const position = (reactFlowInstance as OnLoadParams).project({
-            x: (reactFlowBounds.width - 240) / 2,
-            y: (reactFlowBounds.height - 70) / 2,
-        });
-        const stickyId = utils.freshNodeId("sticky");
-
-        let style: { [key: string]: string } = {};
-        const content = <Markdown>{stickyNote}</Markdown>;
+    const generateStickyStyle = (color: string): CSSProperties => {
+        let style: CSSProperties = {};
         try {
             const colorObj = Color("#fff").mix(Color(color), 0.24);
             style = {
@@ -1559,73 +1688,31 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         } catch (ex) {
             console.warn("Received invalid color for sticky note: " + color);
         }
-        const newNode = {
-            id: stickyId,
-            type: "stickynote",
-            position,
-            data: {
-                size: "medium",
-                handles: [],
-                nodeDimensions: {
-                    width: 240,
-                    height: 70,
-                },
-                onNodeResize: ({ width, height }) => {
-                    startChangeTransaction();
-                    const newNodeDimensions = { width, height };
-                    changeElementsInternal((els) =>
-                        els.map((el) => {
-                            if (el.id === stickyId) {
-                                const updatedNode = {
-                                    ...el,
-                                    data: {
-                                        ...el.data,
-                                        nodeDimensions: newNodeDimensions,
-                                    },
-                                };
+        return style;
+    };
 
-                                //add undo-redo node resize
-                                startChangeTransaction();
-                                addAndExecuteRuleModelChangeInternal(
-                                    {
-                                        operations: [
-                                            {
-                                                type: "Change node size",
-                                                nodeId: stickyId,
-                                                from: el.data.nodeDimensions,
-                                                to: newNodeDimensions,
-                                            },
-                                        ],
-                                    },
-                                    els
-                                );
-                                return updatedNode;
-                            }
-                            return el;
-                        })
-                    );
-                },
-                menuButtons: stickyMenuButtons(stickyId, color, stickyNote),
-                content,
-                style,
-                businessData: {
-                    stickyNote,
-                },
-            },
-        };
-
+    const addStickyNoteToCanvas = (stickyNote: string, color: string, reactFlowWrapper) => {
+        const reactFlowBounds = reactFlowWrapper.current?.getBoundingClientRect();
+        let style: CSSProperties = {};
+        try {
+            const colorObj = Color("#fff").mix(Color(color), 0.24);
+            style = {
+                backgroundColor: colorObj.toString(),
+                borderColor: color,
+                color: colorObj.isLight() ? "#000" : "#fff",
+            };
+        } catch (ex) {
+            console.warn("Received invalid color for sticky note: " + color);
+        }
         const nodeId = currentStickyContent.get("nodeId");
         if (!nodeId) {
-            changeElementsInternal((elements) => {
-                const updatedElements = [...elements, newNode];
-                startChangeTransaction();
-                addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(newNode as any), elements);
-                return updatedElements;
+            const position = (reactFlowInstance as OnLoadParams).project({
+                x: (reactFlowBounds.width - 240) / 2,
+                y: (reactFlowBounds.height - 70) / 2,
             });
-            // centerHighlightedNodeInCanvas(newNode);
-            //commit history event to undo stack
-            //undo-redo new node added
+            addStickyNode(stickyNote, position, style, color);
         } else {
+            const content = <Markdown>{stickyNote}</Markdown>;
             changeElementsInternal((els) =>
                 els.map((el) => {
                     if (el.id === nodeId) {
@@ -1637,6 +1724,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                                 menuButtons: stickyMenuButtons(nodeId, color, stickyNote),
                                 content,
                                 businessData: {
+                                    ...el.data.businessData,
                                     stickyNote,
                                 },
                             },
@@ -1734,6 +1822,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 executeModelEditOperation: {
                     startChangeTransaction,
                     addNode,
+                    addStickyNode,
                     addNodeByPlugin,
                     deleteNode,
                     deleteNodes,
@@ -1743,6 +1832,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     addEdge,
                     deleteEdge,
                     autoLayout,
+                    changeSize,
+                    changeNodeStyle,
+                    changeNodeTextContent,
                     deleteEdges,
                     moveNodes,
                     fixNodeInputs,

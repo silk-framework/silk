@@ -20,6 +20,9 @@ import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluati
 
 /** Constants */
 
+export const DEFAULT_NODE_HEIGHT = 70;
+export const DEFAULT_NODE_WIDTH = 240;
+
 // Source handle type
 export const SOURCE_HANDLE_TYPE = "source";
 // Target handle types

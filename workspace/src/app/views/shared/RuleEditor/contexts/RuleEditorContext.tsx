@@ -9,6 +9,7 @@ import {
     RuleEditorValidationNode,
 } from "../RuleEditor.typings";
 import { IViewActions } from "../../../plugins/PluginRegistry";
+import { IStickyNote } from "views/taskViews/shared/task.typings";
 
 /**
  * The rule editor context that contains objects and methods related to the original objects that are being edited and
@@ -36,8 +37,12 @@ export interface RuleEditorContextProps {
     operatorListLoading: boolean;
     /** The initial rule nodes, e.g. when loading an existing rule. */
     initialRuleOperatorNodes?: IRuleOperatorNode[];
+    stickyNotes: IStickyNote[];
     /** Save the rule. */
-    saveRule: (ruleOperatorNodes: IRuleOperatorNode[]) => Promise<RuleSaveResult> | RuleSaveResult;
+    saveRule: (
+        ruleOperatorNodes: IRuleOperatorNode[],
+        stickyNotes?: IStickyNote[]
+    ) => Promise<RuleSaveResult> | RuleSaveResult;
     /** Converts a rule operator to a rule node. */
     convertRuleOperatorToRuleNode: (ruleOperator: IRuleOperator) => Omit<IRuleOperatorNode, "nodeId">;
     /** Validate a connection. Specifies which connections are allowed between nodes. */
@@ -70,4 +75,5 @@ export const RuleEditorContext = React.createContext<RuleEditorContextProps>({
         throw Error("convertRuleOperatorToRuleNode is not implemented!");
     },
     validateConnection: () => true,
+    stickyNotes: [],
 });

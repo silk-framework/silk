@@ -1,7 +1,9 @@
 import { Elements, OnLoadParams } from "react-flow-renderer";
-import React from "react";
+import React, { CSSProperties } from "react";
 import { IRuleOperator, IRuleOperatorNode, RuleOperatorNodeParameters } from "../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
+import { NodeContentProps, NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
+import { IStickyNote } from "views/taskViews/shared/task.typings";
 
 /**
  * The rule editor model context that contains objects and methods related to the rule model of the editor, i.e.
@@ -41,7 +43,7 @@ export interface RuleEditorModelContextProps {
      * Returns true if the node has been found and centered, else false. */
     centerNode: (nodeId: string) => boolean;
     /** Get the current rule as IRuleOperatorNode objects. */
-    ruleOperatorNodes: () => IRuleOperatorNode[];
+    ruleOperatorNodes: () => [IRuleOperatorNode[], IStickyNote[]];
     currentStickyContent: Map<string, string>;
     showStickyNoteModal: boolean;
     setShowStickyNoteModal: (shown: boolean) => void;
@@ -50,6 +52,8 @@ export interface RuleEditorModelContextProps {
 export interface IModelActions {
     /** Starts a new change transaction. All actions after this will be handled as a single transaction, e.g. can be undone/redone as on operation. */
     startChangeTransaction: () => void;
+    /** Add sticky note node as new node */
+    addStickyNode: (stickyNote: string, position: XYPosition, style: CSSProperties, color: string) => void;
     /** Add a rule operator as new rule node. */
     addNode: (ruleOperator: IRuleOperator, position: XYPosition) => void;
     /** Add node by plugin type and ID. */
@@ -84,6 +88,9 @@ export interface IModelActions {
     copyAndPasteNodes: (nodeIds: string[], offset: XYPosition) => void;
     /** Move a single node to a new position. */
     moveNode: (nodeId: string, newPosition: XYPosition) => void;
+    changeSize: (nodeId: string, newNodeDimension: NodeDimensions) => void;
+    changeNodeStyle: (nodeId: string, newNodeStyle: CSSProperties) => void;
+    changeNodeTextContent: (nodeId: string, content: NodeContentProps<any>["content"]) => void;
     /** Moves nodes by a specific offset. */
     moveNodes: (nodeIds: string[], offset: XYPosition) => void;
     addStickyNoteToCanvas: (stickyNote: string, color: string, reactFlowWrapper: any) => void;
@@ -127,6 +134,7 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     unsavedChanges: false,
     executeModelEditOperation: {
         startChangeTransaction: NOP,
+        addStickyNode: NOP,
         deleteNode: NOP,
         deleteNodes: NOP,
         addNode: NOP,
@@ -139,6 +147,9 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
         autoLayout: NOP,
         addNodeByPlugin: NOP,
         deleteEdges: NOP,
+        changeSize: NOP,
+        changeNodeStyle: NOP,
+        changeNodeTextContent: NOP,
         fixNodeInputs: NOP,
         addStickyNoteToCanvas: NOP,
     },
@@ -148,5 +159,5 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     canRedo: false,
     isValidEdge: () => true,
     centerNode: () => true,
-    ruleOperatorNodes: () => [],
+    ruleOperatorNodes: () => [[], []],
 });

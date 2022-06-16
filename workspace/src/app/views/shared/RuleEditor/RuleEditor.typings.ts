@@ -119,6 +119,8 @@ export interface IRuleNodeData {
     originalRuleOperatorNode: IRuleOperatorNode;
     // Update switch to force content updates
     updateSwitch?: boolean;
+    //sticky note raw text
+    stickyNote?: string;
 }
 
 /** Sidebar tabs */
