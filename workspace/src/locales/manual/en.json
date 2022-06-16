@@ -159,7 +159,8 @@
     },
     "ParameterWidget": {
         "AutoComplete": {
-            "createNewItem": "Custom entry: '{{query}}'"
+            "createNewItem": "Custom entry: '{{query}}'",
+            "fetchErrorTitle": "Could not fetch auto-completion suggestions. "
         }
     },
     "PrefixDialog": {

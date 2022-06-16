@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { createNewItemRendererFactory } from "@eccenca/gui-elements/src/components/AutocompleteField/autoCompleteFieldUtils";
 import { Intent } from "@blueprintjs/core";
+import { parseErrorCauseMsg } from "../../../ApplicationNotifications/NotificationsMenu";
 
 interface ParameterAutoCompletionProps {
     /** ID of the parameter. */
@@ -26,6 +27,8 @@ interface ParameterAutoCompletionProps {
     required: boolean;
     onChange: (value: IAutocompleteDefaultResponse) => any;
     intent: Intent;
+    /** Show errors in the auto-completion list instead of the global error notification widget. */
+    showErrorsInline?: boolean;
 }
 
 /** Component for parameter auto-completion. */
@@ -40,6 +43,7 @@ export const ParameterAutoCompletion = ({
     dependentValue,
     required,
     onChange,
+    showErrorsInline = false,
 }: ParameterAutoCompletionProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
@@ -54,7 +58,12 @@ export const ParameterAutoCompletion = ({
         });
     };
 
-    const handleAutoCompleteInput = async (input: string, autoCompletion: IPropertyAutocomplete) => {
+    const errorTitle = t("ParameterWidget.AutoComplete.fetchErrorTitle");
+
+    const handleAutoCompleteInput = async (
+        input: string,
+        autoCompletion: IPropertyAutocomplete
+    ): Promise<IAutocompleteDefaultResponse[]> => {
         // The auto-completion is only showing the first 100 values FIXME: Make auto-completion list scrollable?
         const limit = 100;
         try {
@@ -72,13 +81,15 @@ export const ParameterAutoCompletion = ({
                 return autoCompleteResponse.data;
             }
         } catch (e) {
-            if (e.isHttpError && e.httpStatus !== 400) {
-                // For now hide 400 errors from user, since they are not helpful.
-                registerError(
-                    "ParameterAutoCompletion.handleAutoCompleteInput",
-                    "Could not fetch auto-completion suggestions.",
-                    e
-                );
+            // For now hide 400 errors from user, since they are not helpful.
+            if (!e.isHttpError || (e.isHttpError && e.httpStatus !== 400)) {
+                if (showErrorsInline) {
+                    registerError("ParameterAutoCompletion.handleAutoCompleteInput", errorTitle, e);
+                } else {
+                    // This should be handled in the auto completion component
+                    const details = parseErrorCauseMsg(e) ?? "";
+                    throw new Error(details);
+                }
             } else {
                 console.warn(e);
             }
@@ -127,6 +138,7 @@ export const ParameterAutoCompletion = ({
                       }
             }
             noResultText={t("common.messages.noResults")}
+            requestErrorPrefix={errorTitle}
         />
     );
 };
