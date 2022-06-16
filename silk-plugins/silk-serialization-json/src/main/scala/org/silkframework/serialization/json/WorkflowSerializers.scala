@@ -27,7 +27,7 @@ object WorkflowSerializers {
           arrayValueOption(parameterObject, OPERATORS).map(_.value.map(WorkflowOperatorJsonFormat.read)).getOrElse(Seq.empty)),
         datasets = WorkflowDatasetsParameter(
           arrayValueOption(parameterObject, DATASETS).map(_.value.map(WorkflowDatasetJsonFormat.read)).getOrElse(Seq.empty)),
-        uiAnnotations = optionalValue(value, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations())
+        uiAnnotations = optionalValue(parameterObject, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations())
       )
     }
 
