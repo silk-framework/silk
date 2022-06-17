@@ -43,7 +43,7 @@ export interface RuleEditorModelContextProps {
      * Returns true if the node has been found and centered, else false. */
     centerNode: (nodeId: string) => boolean;
     /** Get the current rule as IRuleOperatorNode objects. */
-    ruleOperatorNodes: () => [IRuleOperatorNode[], IStickyNote[]];
+    ruleOperatorNodes: () => IRuleOperatorNode[];
     currentStickyContent: Map<string, string>;
     showStickyNoteModal: boolean;
     setShowStickyNoteModal: (shown: boolean) => void;
@@ -53,7 +53,7 @@ export interface IModelActions {
     /** Starts a new change transaction. All actions after this will be handled as a single transaction, e.g. can be undone/redone as on operation. */
     startChangeTransaction: () => void;
     /** Add sticky note node as new node */
-    addStickyNode: (stickyNote: string, position: XYPosition, style: CSSProperties, color: string) => void;
+    addStickyNode: (stickyNote: string, position: XYPosition, color: string) => void;
     /** Add a rule operator as new rule node. */
     addNode: (ruleOperator: IRuleOperator, position: XYPosition) => void;
     /** Add node by plugin type and ID. */
@@ -159,5 +159,5 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     canRedo: false,
     isValidEdge: () => true,
     centerNode: () => true,
-    ruleOperatorNodes: () => [[], []],
+    ruleOperatorNodes: () => [],
 });

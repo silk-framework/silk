@@ -64,7 +64,7 @@ export const RuleEditorToolbar = () => {
     };
 
     const startEvaluation = () => {
-        ruleEvaluationContext.startEvaluation(modelContext.ruleOperatorNodes()[0], ruleEditorContext.editedItem, false);
+        ruleEvaluationContext.startEvaluation(modelContext.ruleOperatorNodes(), ruleEditorContext.editedItem, false);
         toggleEvaluation(true);
     };
 

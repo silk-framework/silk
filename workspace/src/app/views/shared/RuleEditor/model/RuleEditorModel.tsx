@@ -217,7 +217,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     useEffect(() => {
         if (evaluateQuickly) {
             const timeout = setTimeout(
-                () => ruleEvaluationContext.startEvaluation(ruleOperatorNodes()[0], ruleEditorContext.editedItem, true),
+                () => ruleEvaluationContext.startEvaluation(ruleOperatorNodes(), ruleEditorContext.editedItem, true),
                 500
             );
             return () => clearTimeout(timeout);
@@ -956,7 +956,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
      * @param style {Object}
      * @param color {string}
      */
-    const addStickyNode = (stickyNote: string, position: XYPosition, style: CSSProperties, color: string) => {
+    const addStickyNode = (stickyNote: string, position: XYPosition, color: string) => {
         if (reactFlowInstance && ruleEditorContext.operatorSpec) {
             const stickyNoteNode = createStickyNodeInternal(color, stickyNote, position);
             changeElementsInternal((elements) => {
@@ -1497,7 +1497,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     };
 
     /** Convert to rule operator nodes. Only this representation should be handed outside of this component. */
-    const ruleOperatorNodes = (): [IRuleOperatorNode[], IStickyNote[]] => {
+    const ruleOperatorNodes = (): IRuleOperatorNode[] => {
         const nodes: RuleEditorNode[] = [];
         const nodeInputEdges: Map<string, Edge[]> = new Map();
         const inputEdgesByNodeId = (nodeId: string): Edge[] => {
@@ -1511,76 +1511,69 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         };
         current.elements.forEach((elem) => {
             if (utils.isNode(elem)) {
-                nodes.push(utils.asNode(elem)!!);
+                elem.type !== "stickynote" && nodes.push(utils.asNode(elem)!!);
             } else {
                 const edge = utils.asEdge(elem)!!;
                 inputEdgesByNodeId(edge.target).push(edge);
             }
         });
-        const stickyNotes: IStickyNote[] = [];
-        const ruleOperatorNodes: IRuleOperatorNode[] = [];
 
-        nodes.forEach((node) => {
-            if (node.type === "stickynote") {
-                stickyNotes.push({
+        return nodes.map((node) => {
+            const inputHandleIds = utils.inputHandles(node).map((h) => h.id!!);
+            const inputEdges = nodeInputEdges.get(node.id) ?? [];
+            const inputEdgeMap = new Map(inputEdges.map((e) => [e.targetHandle, e.source]));
+            const inputs = inputHandleIds.map((handleId) => inputEdgeMap.get(handleId));
+            const portSpec = node.data.businessData.originalRuleOperatorNode.portSpecification;
+            // Remove undefined input ports above last defined input if spec allows it
+            if (!portSpec.maxInputPorts) {
+                while (inputs.length > Math.max(portSpec.minInputPorts - 1, 0) && inputs[inputs.length - 1] == null) {
+                    inputs.pop();
+                }
+            }
+            const originalNode = node.data?.businessData.originalRuleOperatorNode!!;
+            const parameterDiff = nodeParameters.get(node.id);
+            return {
+                inputs,
+                label: originalNode.label,
+                nodeId: node.id,
+                parameters: parameterDiff
+                    ? Object.fromEntries(
+                          Object.entries(originalNode.parameters).map(([parameterId, parameterValue]) => {
+                              const value =
+                                  parameterDiff && parameterDiff.has(parameterId)
+                                      ? parameterDiff.get(parameterId)
+                                      : parameterValue;
+                              return [parameterId, typeof value === "string" ? value : value ? value.value : undefined];
+                          })
+                      )
+                    : originalNode.parameters,
+                pluginId: originalNode.pluginId,
+                pluginType: originalNode.pluginType,
+                portSpecification: originalNode.portSpecification,
+                position: node.position,
+                description: originalNode.description,
+            };
+        });
+    };
+
+    const allStickyNodes = (): IStickyNote[] =>
+        current.elements.reduce((stickyNodes, elem) => {
+            if (utils.isNode(elem) && elem.type === "stickynote") {
+                const node = utils.asNode(elem)!;
+                stickyNodes.push({
                     id: node.id,
                     content: node.data.businessData.stickyNote!,
                     position: [node.position.x, node.position.y],
                     dimension: [node.data.nodeDimensions?.width!, node.data.nodeDimensions?.height!],
                     color: node.data.style?.borderColor!,
                 });
-            } else {
-                const inputHandleIds = utils.inputHandles(node).map((h) => h.id!!);
-                const inputEdges = nodeInputEdges.get(node.id) ?? [];
-                const inputEdgeMap = new Map(inputEdges.map((e) => [e.targetHandle, e.source]));
-                const inputs = inputHandleIds.map((handleId) => inputEdgeMap.get(handleId));
-                const portSpec = node.data.businessData.originalRuleOperatorNode.portSpecification;
-                // Remove undefined input ports above last defined input if spec allows it
-                if (!portSpec.maxInputPorts) {
-                    while (
-                        inputs.length > Math.max(portSpec.minInputPorts - 1, 0) &&
-                        inputs[inputs.length - 1] == null
-                    ) {
-                        inputs.pop();
-                    }
-                }
-                const originalNode = node.data?.businessData.originalRuleOperatorNode!!;
-                const parameterDiff = nodeParameters.get(node.id);
-                const ruleOperatorNode: IRuleOperatorNode = {
-                    inputs,
-                    label: originalNode.label,
-                    nodeId: node.id,
-                    parameters: parameterDiff
-                        ? Object.fromEntries(
-                              Object.entries(originalNode.parameters).map(([parameterId, parameterValue]) => {
-                                  const value =
-                                      parameterDiff && parameterDiff.has(parameterId)
-                                          ? parameterDiff.get(parameterId)
-                                          : parameterValue;
-                                  return [
-                                      parameterId,
-                                      typeof value === "string" ? value : value ? value.value : undefined,
-                                  ];
-                              })
-                          )
-                        : originalNode.parameters,
-                    pluginId: originalNode.pluginId,
-                    pluginType: originalNode.pluginType,
-                    portSpecification: originalNode.portSpecification,
-                    position: node.position,
-                    description: originalNode.description,
-                };
-                ruleOperatorNodes.push(ruleOperatorNode);
             }
-        });
-
-        return [ruleOperatorNodes, stickyNotes];
-    };
+            return stickyNodes;
+        }, [] as IStickyNote[]);
 
     /** Save the current rule. */
     const saveRule = async () => {
-        const [operatorNodes, stickyNodes] = ruleOperatorNodes();
-        const saveResult = await ruleEditorContext.saveRule(operatorNodes, stickyNodes);
+        const saveResult = await ruleEditorContext.saveRule(ruleOperatorNodes(), allStickyNodes());
         if (saveResult.success) {
             // Reset UNDO state
             ruleUndoStack.splice(0);
@@ -1693,26 +1686,16 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
 
     const addStickyNoteToCanvas = (stickyNote: string, color: string, reactFlowWrapper) => {
         const reactFlowBounds = reactFlowWrapper.current?.getBoundingClientRect();
-        let style: CSSProperties = {};
-        try {
-            const colorObj = Color("#fff").mix(Color(color), 0.24);
-            style = {
-                backgroundColor: colorObj.toString(),
-                borderColor: color,
-                color: colorObj.isLight() ? "#000" : "#fff",
-            };
-        } catch (ex) {
-            console.warn("Received invalid color for sticky note: " + color);
-        }
         const nodeId = currentStickyContent.get("nodeId");
         if (!nodeId) {
             const position = (reactFlowInstance as OnLoadParams).project({
                 x: (reactFlowBounds.width - 240) / 2,
                 y: (reactFlowBounds.height - 70) / 2,
             });
-            addStickyNode(stickyNote, position, style, color);
+            addStickyNode(stickyNote, position, color);
         } else {
             const content = <Markdown>{stickyNote}</Markdown>;
+            const style = generateStickyStyle(color);
             changeElementsInternal((els) =>
                 els.map((el) => {
                     if (el.id === nodeId) {

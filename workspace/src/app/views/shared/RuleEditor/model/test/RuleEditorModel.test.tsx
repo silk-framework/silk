@@ -37,7 +37,7 @@ describe("Rule editor model", () => {
         return JSON.parse(
             JSON.stringify(
                 currentContext()
-                    .ruleOperatorNodes()[0]
+                    .ruleOperatorNodes()
                     .sort((n1, n2) => (n1.nodeId < n2.nodeId ? -1 : 1))
             )
         );
@@ -199,18 +199,8 @@ describe("Rule editor model", () => {
     const stickyNoteNodeBootstrap = async (stickyNote = "note") => {
         await ruleEditorModel();
         const startPosition = { x: 50, y: 120 };
-        const defaultStyle = {
-            backgroundColor: "#000000",
-            borderColor: "#000000",
-            color: "#000000",
-        };
         act(() => {
-            currentContext().executeModelEditOperation.addStickyNode(
-                stickyNote,
-                startPosition,
-                defaultStyle,
-                "#000000"
-            );
+            currentContext().executeModelEditOperation.addStickyNode(stickyNote, startPosition, "#000000");
         });
         return currentContext().elements[0];
     };
@@ -250,8 +240,7 @@ describe("Rule editor model", () => {
         expect(currentContext().canUndo).toBe(false);
         expect(currentContext().canRedo).toBe(false);
         expect(currentContext().elements).toHaveLength(0);
-        expect(currentContext().ruleOperatorNodes()[0]).toHaveLength(0);
-        expect(currentContext().ruleOperatorNodes()[1]).toHaveLength(0);
+        expect(currentContext().ruleOperatorNodes()).toHaveLength(0);
         await ruleEditorModel(
             [
                 node({ nodeId: "node A", portSpecification: { minInputPorts: 0 } }),
@@ -262,8 +251,8 @@ describe("Rule editor model", () => {
         // 2 nodes and 1 edge
         await waitFor(async () => {
             expect(currentContext().elements).toHaveLength(3);
-            expect(currentContext().ruleOperatorNodes()[0]).toHaveLength(2);
-            expect(currentContext().ruleOperatorNodes()[0][1].inputs).toStrictEqual(["node A"]);
+            expect(currentContext().ruleOperatorNodes()).toHaveLength(2);
+            expect(currentContext().ruleOperatorNodes()[1].inputs).toStrictEqual(["node A"]);
         });
     });
 
@@ -295,13 +284,13 @@ describe("Rule editor model", () => {
             checkAfterChange();
             expect(
                 currentContext()
-                    .ruleOperatorNodes()[0]
+                    .ruleOperatorNodes()
                     .map((node) => node.nodeId)
             ).toStrictEqual(["pluginA", "node B", "pluginA_2", "pluginA_3"]);
             expect(
                 modelUtils.asNode(currentContext().elements.find((n) => n.id === "pluginA_2"))!!.position
             ).toStrictEqual(position);
-            expect(currentContext().ruleOperatorNodes()[0][2].position).toStrictEqual(position);
+            expect(currentContext().ruleOperatorNodes()[2].position).toStrictEqual(position);
         };
         checkAfterAddedNodes();
 
@@ -311,10 +300,11 @@ describe("Rule editor model", () => {
     it("should change style and undo & redo", async () => {
         const node = await stickyNoteNodeBootstrap();
         const assertionBeforeSizeChange = () => {
+            //the default style object created by Color package for color #000000 supplied
             const defaultStyle = {
-                backgroundColor: "#000000",
+                backgroundColor: "rgb(194, 194, 194)",
                 borderColor: "#000000",
-                color: "#000000",
+                color: "#000",
             };
             expect(node.data.style).toEqual(defaultStyle);
         };
@@ -434,7 +424,7 @@ describe("Rule editor model", () => {
             expect(currentContext().elements).toHaveLength(3);
             expect(
                 currentContext()
-                    .ruleOperatorNodes()[0]
+                    .ruleOperatorNodes()
                     .map((node) => node.nodeId)
             ).toStrictEqual(["nodeB", "nodeC"]);
         };
@@ -464,7 +454,7 @@ describe("Rule editor model", () => {
         const checkAfterMove = () => {
             checkAfterChange();
             expect(nodeById(nodeId).position).toStrictEqual(newPosition);
-            expect(currentContext().ruleOperatorNodes()[0][0].position).toStrictEqual(newPosition);
+            expect(currentContext().ruleOperatorNodes()[0].position).toStrictEqual(newPosition);
         };
         checkAfterMove();
 
@@ -688,7 +678,7 @@ describe("Rule editor model", () => {
             // 2 nodes and 1 edge added
             expect(currentContext().elements).toHaveLength(9);
             expect(new Set(currentOperatorNodes().map((op) => op.nodeId)).size).toBe(
-                currentContext().ruleOperatorNodes()[0].length
+                currentContext().ruleOperatorNodes().length
             );
         };
         checkAfterCopyAndPaste();
@@ -702,7 +692,7 @@ describe("Rule editor model", () => {
             // 2 nodes and 1 edge added
             expect(currentContext().elements).toHaveLength(12);
             expect(new Set(currentOperatorNodes().map((op) => op.nodeId)).size).toBe(
-                currentContext().ruleOperatorNodes()[0].length
+                currentContext().ruleOperatorNodes().length
             );
         };
         checkAfterCopyAndPaste2nd();
@@ -827,7 +817,7 @@ describe("Rule editor model", () => {
         });
 
         await recordedTransaction("Add a node", () => {
-            currentContext().executeModelEditOperation.addStickyNode("note", { x: 1, y: 2 }, {}, "#000");
+            currentContext().executeModelEditOperation.addStickyNode("note", { x: 1, y: 2 }, "#000");
         });
 
         await recordedTransaction("Change node size", () => {
