@@ -1,8 +1,8 @@
 import { Elements, OnLoadParams } from "react-flow-renderer";
-import React, { CSSProperties } from "react";
+import React from "react";
 import { IRuleOperator, IRuleOperatorNode, RuleOperatorNodeParameters } from "../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
-import { NodeContentProps, NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
+import { NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
 
 /**
@@ -44,6 +44,7 @@ export interface RuleEditorModelContextProps {
     centerNode: (nodeId: string) => boolean;
     /** Get the current rule as IRuleOperatorNode objects. */
     ruleOperatorNodes: () => IRuleOperatorNode[];
+    allStickyNodes: () => IStickyNote[];
     currentStickyContent: Map<string, string>;
     showStickyNoteModal: boolean;
     setShowStickyNoteModal: (shown: boolean) => void;
@@ -89,8 +90,8 @@ export interface IModelActions {
     /** Move a single node to a new position. */
     moveNode: (nodeId: string, newPosition: XYPosition) => void;
     changeSize: (nodeId: string, newNodeDimension: NodeDimensions) => void;
-    changeNodeStyle: (nodeId: string, newNodeStyle: CSSProperties) => void;
-    changeNodeTextContent: (nodeId: string, content: NodeContentProps<any>["content"]) => void;
+    changeStickyNodeStyle: (nodeId: string, color: string) => void;
+    changeStickyNoteContent: (nodeId: string, content: string) => void;
     /** Moves nodes by a specific offset. */
     moveNodes: (nodeIds: string[], offset: XYPosition) => void;
     addStickyNoteToCanvas: (stickyNote: string, color: string, reactFlowWrapper: any) => void;
@@ -148,8 +149,8 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
         addNodeByPlugin: NOP,
         deleteEdges: NOP,
         changeSize: NOP,
-        changeNodeStyle: NOP,
-        changeNodeTextContent: NOP,
+        changeStickyNodeStyle: NOP,
+        changeStickyNoteContent: NOP,
         fixNodeInputs: NOP,
         addStickyNoteToCanvas: NOP,
     },
@@ -160,4 +161,5 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     isValidEdge: () => true,
     centerNode: () => true,
     ruleOperatorNodes: () => [],
+    allStickyNodes: () => [],
 });

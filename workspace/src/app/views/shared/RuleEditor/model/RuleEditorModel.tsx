@@ -33,7 +33,9 @@ import {
     ChangeNodeParameter,
     ChangeNodePosition,
     ChangeNodeSize,
+    ChangeNodeStickyContent,
     ChangeNumberOfInputHandles,
+    ChangeStickyNodeStyle,
     DeleteEdge,
     DeleteNode,
     RuleEditorNode,
@@ -45,11 +47,7 @@ import {
 import { Connection, XYPosition } from "react-flow-renderer/dist/types";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
 import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basicUtils";
-import {
-    HighlightingState,
-    NodeContentProps,
-    NodeDimensions,
-} from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
+import { HighlightingState, NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 import { IconButton, Markdown, Spacing } from "@eccenca/gui-elements";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
@@ -587,7 +585,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     changedElements = changeNodeStyleInternal(
                         new Map(
                             groupedChange.map((change) => {
-                                const nodeChange = change as ChangeNodeSize;
+                                const nodeChange = change as ChangeStickyNodeStyle;
                                 return [nodeChange.nodeId, nodeChange.to];
                             })
                         ),
@@ -598,7 +596,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     changedElements = changeNodeTextContentInternal(
                         new Map(
                             groupedChange.map((change) => {
-                                const nodeChange = change as ChangeNodeSize;
+                                const nodeChange = change as ChangeNodeStickyContent;
                                 return [nodeChange.nodeId, nodeChange.to];
                             })
                         ),
@@ -804,17 +802,21 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
-    const changeNodeTextContentInternal = (
-        nodeWithTextContentChanges: Map<string, NodeContentProps<any>["content"]>,
-        els: Elements
-    ) => {
+    const changeNodeTextContentInternal = (nodeWithTextContentChanges: Map<string, string>, els: Elements) => {
         return els.map((elem) => {
             if (utils.isNode(elem) && nodeWithTextContentChanges.has(elem.id)) {
                 const node = utils.asNode(elem)!!;
                 const content = nodeWithTextContentChanges.get(node.id);
                 const changedContent: RuleEditorNode = {
                     ...node,
-                    data: { ...node.data, content },
+                    data: {
+                        ...node.data,
+                        content: <Markdown>{content!}</Markdown>,
+                        businessData: {
+                            ...node.data.businessData,
+                            stickyNote: content,
+                        },
+                    },
                 };
                 return changedContent;
             } else {
@@ -892,9 +894,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
-    const changeNodeStyle = (nodeId: string, newNodeStyle: CSSProperties) => {
+    const changeStickyNodeStyle = (nodeId: string, color: string) => {
         changeElementsInternal((els) => {
             const node = utils.nodeById(els, nodeId);
+            const newNodeStyle = generateStickyStyle(color);
             if (node && node.data.style?.borderColor !== newNodeStyle.borderColor) {
                 startChangeTransaction();
                 return addAndExecuteRuleModelChangeInternal(
@@ -907,13 +910,13 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
-    const changeNodeTextContent = (nodeId: string, textContent: NodeContentProps<any>["content"]) => {
+    const changeStickyNoteContent = (nodeId: string, textContent: string) => {
         changeElementsInternal((els) => {
             const node = utils.nodeById(els, nodeId);
             if (node) {
                 startChangeTransaction();
                 return addAndExecuteRuleModelChangeInternal(
-                    RuleModelChangesFactory.changeNodeContent(nodeId, node.data.content, textContent),
+                    RuleModelChangesFactory.changeNodeContent(nodeId, node.data.businessData.stickyNote!, textContent),
                     els
                 );
             } else {
@@ -1743,8 +1746,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                                         {
                                             type: "Change node text content",
                                             nodeId: nodeId,
-                                            from: el.data.content,
-                                            to: content,
+                                            from: el.data.businessData.stickyNote,
+                                            to: stickyNote,
                                         },
                                     ],
                                 },
@@ -1816,8 +1819,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     deleteEdge,
                     autoLayout,
                     changeSize,
-                    changeNodeStyle,
-                    changeNodeTextContent,
+                    changeStickyNodeStyle,
+                    changeStickyNoteContent,
                     deleteEdges,
                     moveNodes,
                     fixNodeInputs,
@@ -1827,6 +1830,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 isValidEdge,
                 centerNode,
                 ruleOperatorNodes,
+                allStickyNodes,
             }}
         >
             {children}
