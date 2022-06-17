@@ -51,6 +51,7 @@ import { HighlightingState, NodeDimensions } from "@eccenca/gui-elements/src/ext
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 import { IconButton, Markdown, Spacing } from "@eccenca/gui-elements";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
+import useAddStickyNote from "../../../../hooks/useAddStickyNote";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
@@ -1788,6 +1789,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             </>
         );
     }
+
+    const things = useAddStickyNote(setElements, triggerQuickEvaluation);
 
     return (
         <RuleEditorModelContext.Provider
