@@ -27,9 +27,9 @@
     "ShowIdentifierModal": {
         "title": "Item identifier"
     },
-    "StickNoteModal": {
-        "title": "Add Note",
-        "tooltip": "Sticky Note",
+    "StickyNoteModal": {
+        "title": "Add note",
+        "tooltip": "Add note",
         "labels": {
             "codeEditor": "Note",
             "color": "Color"

@@ -7,6 +7,7 @@ import {
     HandleProps,
     OnLoadParams,
 } from "react-flow-renderer";
+import { useTranslation } from "react-i18next";
 import { ReactFlow } from "@eccenca/gui-elements/src/cmem";
 import React, { MouseEvent as ReactMouseEvent } from "react";
 import { Connection, Elements, Node, OnConnectStartParams, XYPosition } from "react-flow-renderer/dist/types";
@@ -22,7 +23,7 @@ import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { EdgeMenu } from "./ruleEdge/EdgeMenu";
 import { ruleEditorModelUtilsFactory, SOURCE_HANDLE_TYPE, TARGET_HANDLE_TYPE } from "../model/RuleEditorModel.utils";
 import { MiniMap } from "@eccenca/gui-elements/src/extensions/react-flow/minimap/MiniMap";
-import { GridColumn, MarkdownModal } from "@eccenca/gui-elements";
+import { GridColumn, StickyNoteModal } from "@eccenca/gui-elements";
 import { RuleEditorNode } from "../model/RuleEditorModel.typings";
 import useHotKey from "../../HotKeyHandler/HotKeyHandler";
 import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
@@ -65,6 +66,15 @@ export const RuleEditorCanvas = () => {
     // At the moment react-flow's selection logic is buggy in some places, e.g. https://github.com/wbkd/react-flow/issues/1314
     // Until fixed, we will track selections ourselves and use them where bugs exist.
     const [selectionState] = React.useState<{ elements: Elements | null }>({ elements: null });
+
+    const [t] = useTranslation();
+    const translationsStickyNoteModal = {
+        modalTitle: t("StickyNoteModal.title"),
+        noteLabel: t("StickyNoteModal.labels.codeEditor"),
+        colorLabel: t("StickyNoteModal.labels.color"),
+        saveButton: t("common.action.save"),
+        cancelButton: t("common.action.cancel"),
+    };
 
     /** Clones the given nodes with a small offset. */
     const cloneNodes = (nodeIds: string[]) => {
@@ -501,12 +511,13 @@ export const RuleEditorCanvas = () => {
     return (
         <>
             {modelContext.showStickyNoteModal ? (
-                <MarkdownModal
+                <StickyNoteModal
                     content={modelContext.currentStickyContent}
                     onClose={() => modelContext.setShowStickyNoteModal(false)}
                     onSubmit={({ note, color }) =>
                         modelContext.executeModelEditOperation.addStickyNoteToCanvas(note, color, reactFlowWrapper)
                     }
+                    translate={(key) => translationsStickyNoteModal[key]}
                 />
             ) : null}
             <GridColumn full>

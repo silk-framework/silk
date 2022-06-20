@@ -124,7 +124,7 @@ export const RuleEditorToolbar = () => {
                     <IconButton
                         data-test-id={"workflow-header-sticky-btn"}
                         name="item-comment"
-                        text={t("StickNoteModal.tooltip")}
+                        text={t("StickyNoteModal.tooltip")}
                         onClick={() => modelContext.setShowStickyNoteModal(true)}
                     />
                 </ToolbarSection>
