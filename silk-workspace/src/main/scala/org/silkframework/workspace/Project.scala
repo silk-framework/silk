@@ -264,11 +264,12 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
     * @tparam T The task type.
     */
   def updateTask[T <: TaskSpec : ClassTag](name: Identifier, taskData: T, metaData: Option[MetaData] = None)
-                                          (implicit userContext: UserContext): Unit = synchronized {
+                                          (implicit userContext: UserContext): ProjectTask[T] = synchronized {
     module[T].taskOption(name) match {
       case Some(task) =>
         val mergedMetaData = mergeMetaData(task.metaData, metaData)
         task.update(taskData, Some(mergedMetaData.asUpdatedMetaData))
+        task
       case None =>
         addTask[T](name, taskData, metaData.getOrElse(MetaData.empty).asNewMetaData)
     }
