@@ -1,5 +1,4 @@
 import React, { CSSProperties, useEffect } from "react";
-import Color from "color";
 import {
     Edge,
     Elements,
@@ -49,9 +48,8 @@ import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent"
 import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basicUtils";
 import { HighlightingState, NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
-import { IconButton, Markdown, Spacing } from "@eccenca/gui-elements";
+import { IconButton, Markdown, nodeUtils, Spacing } from "@eccenca/gui-elements";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
-import useAddStickyNote from "../../../../hooks/useAddStickyNote";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
@@ -794,7 +792,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 const style = nodesWithStyleChanges.get(node.id);
                 const changedStyle: RuleEditorNode = {
                     ...node,
-                    data: { ...node.data, style },
+                    data: {
+                        ...node.data,
+                        style,
+                        menuButtons: stickyMenuButtons(node.id, style?.borderColor, node.data.businessData.stickyNote),
+                    },
                 };
                 return changedStyle;
             } else {
@@ -813,6 +815,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     data: {
                         ...node.data,
                         content: <Markdown>{content!}</Markdown>,
+                        menuButtons: stickyMenuButtons(node.id, node.data.style?.borderColor, content),
                         businessData: {
                             ...node.data.businessData,
                             stickyNote: content,
@@ -898,7 +901,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const changeStickyNodeStyle = (nodeId: string, color: string) => {
         changeElementsInternal((els) => {
             const node = utils.nodeById(els, nodeId);
-            const newNodeStyle = generateStickyStyle(color);
+            const newNodeStyle = nodeUtils.generateStyleWithColor(color);
             if (node && node.data.style?.borderColor !== newNodeStyle.borderColor) {
                 startChangeTransaction();
                 return addAndExecuteRuleModelChangeInternal(
@@ -914,7 +917,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const changeStickyNoteContent = (nodeId: string, textContent: string) => {
         changeElementsInternal((els) => {
             const node = utils.nodeById(els, nodeId);
-            if (node) {
+            if (node && node.data.businessData.stickyNote !== textContent) {
                 startChangeTransaction();
                 return addAndExecuteRuleModelChangeInternal(
                     RuleModelChangesFactory.changeNodeContent(nodeId, node.data.businessData.stickyNote!, textContent),
@@ -927,7 +930,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     };
 
     const createStickyNodeInternal = (color: string, stickyNote: string, position: XYPosition) => {
-        const style = generateStickyStyle(color);
+        const style = nodeUtils.generateStyleWithColor(color);
         const stickyId = utils.freshNodeId("sticky");
         return {
             id: stickyId,
@@ -1560,17 +1563,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
-    const allStickyNodes = (): IStickyNote[] =>
+    const allStickyNodes = () =>
         current.elements.reduce((stickyNodes, elem) => {
             if (utils.isNode(elem) && elem.type === "stickynote") {
                 const node = utils.asNode(elem)!;
-                stickyNodes.push({
-                    id: node.id,
-                    content: node.data.businessData.stickyNote!,
-                    position: [node.position.x, node.position.y],
-                    dimension: [node.data.nodeDimensions?.width!, node.data.nodeDimensions?.height!],
-                    color: node.data.style?.borderColor!,
-                });
+                stickyNodes.push(nodeUtils.transformNodeToStickyNode(node) as IStickyNote);
             }
             return stickyNodes;
         }, [] as IStickyNote[]);
@@ -1650,7 +1647,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 output: targetNode.get(opNode.nodeId),
             })
         );
-        //Todo transfer logic to the gui-elements
+
         const stickyNodes = ruleEditorContext.stickyNotes.map(({ color, content, position }) =>
             createStickyNodeInternal(color, content, {
                 x: position[0],
@@ -1673,94 +1670,18 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         }, 1);
     };
 
-    const generateStickyStyle = (color: string): CSSProperties => {
-        let style: CSSProperties = {};
-        try {
-            const colorObj = Color("#fff").mix(Color(color), 0.24);
-            style = {
-                backgroundColor: colorObj.toString(),
-                borderColor: color,
-                color: colorObj.isLight() ? "#000" : "#fff",
-            };
-        } catch (ex) {
-            console.warn("Received invalid color for sticky note: " + color);
-        }
-        return style;
-    };
-
     const addStickyNoteToCanvas = (stickyNote: string, color: string, reactFlowWrapper) => {
         const reactFlowBounds = reactFlowWrapper.current?.getBoundingClientRect();
         const nodeId = currentStickyContent.get("nodeId");
         if (!nodeId) {
             const position = (reactFlowInstance as OnLoadParams).project({
-                x: (reactFlowBounds.width - 240) / 2,
-                y: (reactFlowBounds.height - 70) / 2,
+                x: (reactFlowBounds.width - DEFAULT_NODE_WIDTH) / 2,
+                y: (reactFlowBounds.height - DEFAULT_NODE_HEIGHT) / 2,
             });
             addStickyNode(stickyNote, position, color);
         } else {
-            const content = <Markdown>{stickyNote}</Markdown>;
-            const style = generateStickyStyle(color);
-            changeElementsInternal((els) =>
-                els.map((el) => {
-                    if (el.id === nodeId) {
-                        const updatedNode = {
-                            ...el,
-                            data: {
-                                ...el.data,
-                                style,
-                                menuButtons: stickyMenuButtons(nodeId, color, stickyNote),
-                                content,
-                                businessData: {
-                                    ...el.data.businessData,
-                                    stickyNote,
-                                },
-                            },
-                        };
-                        //compare color theme
-                        if (style.borderColor !== el.data.style.borderColor) {
-                            //color has been edited
-                            //undo redo node style change
-                            startChangeTransaction();
-                            addAndExecuteRuleModelChangeInternal(
-                                {
-                                    operations: [
-                                        {
-                                            type: "Change node style",
-                                            nodeId: nodeId,
-                                            from: el.data.style,
-                                            to: updatedNode.data.style,
-                                        },
-                                    ],
-                                },
-                                els
-                            );
-                        }
-
-                        //compare content
-                        if (stickyNote !== el.data.businessData.stickyNote) {
-                            //node content change
-                            //undo redo node style change
-                            startChangeTransaction();
-                            addAndExecuteRuleModelChangeInternal(
-                                {
-                                    operations: [
-                                        {
-                                            type: "Change node text content",
-                                            nodeId: nodeId,
-                                            from: el.data.businessData.stickyNote,
-                                            to: stickyNote,
-                                        },
-                                    ],
-                                },
-                                els
-                            );
-                        }
-
-                        return updatedNode;
-                    }
-                    return el;
-                })
-            );
+            changeStickyNodeStyle(nodeId, color);
+            changeStickyNoteContent(nodeId, stickyNote);
         }
     };
 
@@ -1770,7 +1691,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 <IconButton
                     data-test-id={"edit-sticky-note"}
                     name="item-edit"
-                    text="edit"
+                    text={t("node.executionButtons.edit.tooltip")}
                     onClick={() => {
                         setCurrentStickyContent(
                             (prevData) =>
@@ -1783,14 +1704,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 <IconButton
                     data-test-id={"remove-sticky-note"}
                     name="item-remove"
-                    text="remove"
+                    text={t("node.menu.remove.label")}
                     onClick={() => deleteNode(stickyId)}
                 />
             </>
         );
     }
-
-    const things = useAddStickyNote(setElements, triggerQuickEvaluation);
 
     return (
         <RuleEditorModelContext.Provider
