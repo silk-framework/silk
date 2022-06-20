@@ -1691,7 +1691,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 <IconButton
                     data-test-id={"edit-sticky-note"}
                     name="item-edit"
-                    text={t("node.executionButtons.edit.tooltip")}
+                    text={t("RuleEditor.node.executionButtons.edit.tooltip")}
                     onClick={() => {
                         setCurrentStickyContent(
                             (prevData) =>
@@ -1704,7 +1704,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 <IconButton
                     data-test-id={"remove-sticky-note"}
                     name="item-remove"
-                    text={t("node.menu.remove.label")}
+                    text={t("RuleEditor.node.menu.remove.label")}
                     onClick={() => deleteNode(stickyId)}
                 />
             </>
