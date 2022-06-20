@@ -1,12 +1,14 @@
 import React, {useEffect, useState} from 'react';
 import {Card, CardTitle,} from 'gui-elements-deprecated';
 import {DragDropContext, Droppable} from 'react-beautiful-dnd';
-import {orderRulesAsync} from '../../store';
+import {getApiDetails, orderRulesAsync} from '../../store';
 import DraggableItem from '../MappingRule/DraggableItem';
 import rulesToList from '../../utils/rulesToList';
 import ListActions from './ListActions';
 import EmptyList from './EmptyList';
 import reorderArray from '../../utils/reorderArray';
+import {Spinner} from '@eccenca/gui-elements'
+import silkRestApi from "../../../api/silkRestApi";
 
 interface MappingsListProps {
     rules: any[],
@@ -45,26 +47,32 @@ const MappingsList = ({
                           onMappingCreate = nop
                       }: MappingsListProps) => {
     const [items, setItems] = useState<any[]>(rulesToList(rules, parentRuleId || currentRuleId))
+    const [reorderingRequestPending, setReorderingRequestPending] = useState(false)
 
     useEffect(() => {
         setItems(rulesToList(rules, parentRuleId || currentRuleId))
     }, [rules, parentRuleId, currentRuleId])
 
-    const handleOrderRules = ({fromPos, toPos}: {fromPos: number, toPos: number}) => {
+    const handleOrderRules = async ({fromPos, toPos}: {fromPos: number, toPos: number}) => {
         const childrenRules = reorderArray(
             items.map(a => a.key),
             fromPos,
             toPos
         );
-        
-        orderRulesAsync({
-            childrenRules,
-            id: parentRuleId,
-        });
-        
-        // FIXME: this should be in success part of request in case of error but results in content flickering than
-        // manage ordering local
-        setItems(reorderArray(items, fromPos, toPos))
+
+        setReorderingRequestPending(true)
+        const {baseUrl, project, transformTask} = getApiDetails()
+        if(baseUrl != null && project != null && transformTask != null && parentRuleId != null) {
+            try {
+                setItems(reorderArray(items, fromPos, toPos))
+                await silkRestApi.reorderRules(baseUrl, project, transformTask, parentRuleId, childrenRules)
+            } catch(ex) {
+                // Request failed, rollback change.
+                setItems(items)
+            } finally {
+                setReorderingRequestPending(false)
+            }
+        }
     }
     
     const onDragStart = () => { }
@@ -90,6 +98,7 @@ const MappingsList = ({
 
         return (
             <div className="ecc-silk-mapping__ruleslist">
+                {reorderingRequestPending && <Spinner position={"global"} />}
                 <Card shadow={0}>
                     <CardTitle>
                         <div className="mdl-card__title-text">

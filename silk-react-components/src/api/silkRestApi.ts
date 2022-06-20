@@ -328,8 +328,17 @@ const silkApi = {
             .set("Content-Type", CONTENT_TYPE_JSON)
             .send({ uriPattern });
         return this.handleErrorCode(promise);
-    }
+    },
 
+    /** Reorder the (child) mapping rules of a root/object mapping. */
+    reorderRules: function(baseUrl: string, projectId: string, transformTaskId: string, ruleId: string, childrenRules: any) {
+        const requestUrl = `${baseUrl}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/rules/reorder`;
+        const promise = superagent
+            .post(requestUrl)
+            .set("Content-Type", CONTENT_TYPE_JSON)
+            .send(childrenRules);
+        return this.handleErrorCode(promise);
+    }
 };
 
 export default silkApi
