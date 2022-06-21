@@ -1,13 +1,15 @@
 package org.silkframework.plugins.dataset.rdf.endpoint
 
-import java.io.{ByteArrayInputStream, InputStream}
-import java.nio.charset.StandardCharsets
-import java.util.concurrent.atomic.AtomicInteger
+import org.apache.jena.query.{QueryFactory, Syntax}
 
+import java.io.{ByteArrayInputStream, InputStream}
+import java.nio.charset.{Charset, StandardCharsets}
+import java.util.concurrent.atomic.AtomicInteger
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.dataset.rdf._
 
 import scala.collection.mutable.ArrayBuffer
+import scala.util.Try
 
 /**
   * Paging SPARQL Traversable tests
@@ -140,5 +142,35 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
       }
     }
     System.currentTimeMillis() - start must be < 5 * 1000L // If it is not interrupted this should run for minutes
+  }
+
+  it should "inject FROM clauses when a graph is defined and no 'GRAPH selection' is already part of the query" in {
+    def mustRewrite(query: String, invert: Boolean = false): Unit = {
+      var actualQuery = ""
+      val expectedQuery = QueryFactory.create(query).serialize(Syntax.syntaxSPARQL_11)
+      def queryExecutor(q: String): InputStream = {
+        actualQuery = q
+        // Return value doesn't matter, will be ignored
+        new ByteArrayInputStream(
+          """<sparql xmlns="http://www.w3.org/2005/sparql-results#">
+            |</sparql>
+            |""".stripMargin.getBytes(Charset.forName("UTF-8")))
+      }
+      Try(PagingSparqlTraversable(query, queryExecutor, SparqlParams(graph = Some("urn:graph"), pageSize = Int.MaxValue), Int.MaxValue).bindings.head)
+      if(invert) {
+        actualQuery mustBe expectedQuery
+      } else {
+        actualQuery must not be expectedQuery
+      }
+    }
+    def mustNotRewrite(query: String): Unit = mustRewrite(query, invert = true)
+    mustRewrite("SELECT * WHERE {?s ?p ?o}")
+    mustRewrite("SELECT * WHERE {?graph ?p ?o}")
+    mustNotRewrite("SELECT * WHERE { GRAPH <urn:someGraph> {?s ?p ?o }}")
+    mustNotRewrite("SELECT * WHERE { GRAPH\n<urn:someGraph>\n {?s ?p ?o }}")
+    mustNotRewrite("SELECT * WHERE { graph <urn:someGraph> {?s ?p ?o }}")
+    mustNotRewrite("SELECT * WHERE { graph\n<urn:someGraph>\n {?s ?p ?o }}")
+    mustNotRewrite("SELECT * FROM <urn:someGraph> WHERE { ?s ?p ?o }")
+    mustNotRewrite("SELECT * WHERE { GRAPH ?g {?s ?p ?o }}")
   }
 }
