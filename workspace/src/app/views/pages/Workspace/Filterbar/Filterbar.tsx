@@ -12,6 +12,8 @@ interface IFilterBarProps {
     projectId?: string;
 }
 
+/** The filter menu that allows to filter the search results by selecting a specific item type and
+ * filter by type specific facets. */
 export function Filterbar({ extraItemTypeModifiers = [], projectId }: IFilterBarProps) {
     const dispatch = useDispatch();
     const [t] = useTranslation();
@@ -27,6 +29,7 @@ export function Filterbar({ extraItemTypeModifiers = [], projectId }: IFilterBar
             [field]: value,
         };
         dispatch(workspaceOp.applyFiltersOp(filterOptions));
+        dispatch(workspaceOp.changePageOp(1));
     };
 
     return (
