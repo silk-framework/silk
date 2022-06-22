@@ -33,5 +33,6 @@ project: Project)(implicit userContext: UserContext)
 }
 
 @parameterValues(plugin: PluginDescription[_]) = @{
-  for(p <- plugin.parameters) yield p.defaultValue.getOrElse("").toString
+  implicit val prefixes = project.config.prefixes
+  for(p <- plugin.parameters) yield p.stringDefaultValue.getOrElse("")
 }

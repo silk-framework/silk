@@ -1,18 +1,26 @@
 import React from "react";
-import { Button, Icon, IconButton, Spacing, Switch, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
-import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
-import { useTranslation } from "react-i18next";
-import { RuleEditorContext } from "../contexts/RuleEditorContext";
-import { RuleEditorNotifications } from "./RuleEditorNotifications";
+import {
+    Button,
+    Icon,
+    IconButton,
+    Spacing,
+    Switch,
+    TitleMainsection,
+    Toolbar,
+    ToolbarSection
+} from "@eccenca/gui-elements";
+import {RuleEditorModelContext} from "../contexts/RuleEditorModelContext";
+import {useTranslation} from "react-i18next";
+import {RuleEditorContext} from "../contexts/RuleEditorContext";
+import {RuleEditorNotifications} from "./RuleEditorNotifications";
 import useHotKey from "../../HotKeyHandler/HotKeyHandler";
-import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
-import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
-import { EvaluationActivityControl } from "./evaluation/EvaluationActivityControl";
-import { Prompt } from "react-router";
+import {RuleEditorUiContext} from "../contexts/RuleEditorUiContext";
+import {RuleEditorEvaluationContext, RuleEditorEvaluationContextProps} from "../contexts/RuleEditorEvaluationContext";
+import {EvaluationActivityControl} from "./evaluation/EvaluationActivityControl";
+import {Prompt} from "react-router";
 
 /** Toolbar of the rule editor. Contains global editor actions like save, redo/undo etc. */
 export const RuleEditorToolbar = () => {
-    const ruleEditor = React.useContext(RuleEditorContext);
     const modelContext = React.useContext(RuleEditorModelContext);
     const ruleEditorContext = React.useContext(RuleEditorContext);
     const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
@@ -56,7 +64,7 @@ export const RuleEditorToolbar = () => {
     };
 
     const startEvaluation = () => {
-        ruleEvaluationContext.startEvaluation(modelContext.ruleOperatorNodes(), ruleEditor.editedItem, false);
+        ruleEvaluationContext.startEvaluation(modelContext.ruleOperatorNodes(), ruleEditorContext.editedItem, false);
         toggleEvaluation(true);
     };
 
@@ -71,7 +79,8 @@ export const RuleEditorToolbar = () => {
         return modelContext.unsavedChanges ? (t("taskViews.ruleEditor.warnings.unsavedChanges") as string) : true;
     };
 
-    return (
+    return <>
+        {ruleEditorContext.editorTitle ? <TitleMainsection>{ruleEditorContext.editorTitle}</TitleMainsection> : null}
         <Toolbar data-test-id={"workflow-editor-header"} noWrap>
             <Prompt when={modelContext.unsavedChanges} message={routingPrompt} />
             <ToolbarSection>
@@ -162,5 +171,5 @@ export const RuleEditorToolbar = () => {
                 />
             </ToolbarSection>
         </Toolbar>
-    );
+    </>
 };

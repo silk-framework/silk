@@ -23,6 +23,8 @@ export type RuleOperatorFetchFnType = (
 ) => IRuleOperator | undefined;
 
 export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
+    /** Optional title that is shown above the toolbar. */
+    editorTitle?: string;
     /** Project ID the task is in. */
     projectId: string;
     /** The task the rules are being edited of. */
@@ -81,6 +83,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     tabs,
     viewActions,
     additionalToolBarComponents,
+    editorTitle
 }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
     // The task that contains the rule, e.g. transform or linking task
     const [taskData, setTaskData] = React.useState<TASK_TYPE | undefined>(undefined);
@@ -221,6 +224,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 readOnlyMode,
                 additionalToolBarComponents,
                 lastSaveResult: lastSaveResult,
+                editorTitle
             }}
         >
             <RuleEditorModel>
