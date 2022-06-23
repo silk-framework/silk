@@ -18,7 +18,7 @@ import org.silkframework.config._
 import org.silkframework.dataset.{Dataset, DatasetSpec}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.{HasValue, UserContext}
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.{NotFoundException, ValidationException}
 import org.silkframework.util.Identifier
@@ -99,11 +99,12 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   }
 
   private val projectActivities = {
+    implicit val pluginContext: PluginContext = PluginContext(prefixes = config.prefixes, resources = resources, user = userContext)
     val factories = PluginRegistry.availablePlugins[ProjectActivityFactory[_ <: HasValue]].toList
     var activities = List[ProjectActivity[_ <: HasValue]]()
     for(factory <- factories) {
       try {
-        activities ::= new ProjectActivity(this, factory()(config.prefixes, resources))
+        activities ::= new ProjectActivity(this, factory())
       } catch {
         case NonFatal(ex) =>
           val errorMsg = s"Could not load project activity '$factory' in project '${initialConfig.id}'."

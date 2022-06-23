@@ -1,8 +1,7 @@
 package org.silkframework.rule.test
 
-import org.silkframework.config.Prefixes
 import org.silkframework.rule.similarity.{Aggregator, WeightedSimilarityScore}
-import org.silkframework.runtime.plugin.{AggregatorExampleValue, ClassPluginDescription}
+import org.silkframework.runtime.plugin.{AggregatorExampleValue, ClassPluginDescription, PluginContext}
 import org.silkframework.test.PluginTest
 
 import scala.reflect.ClassTag
@@ -46,7 +45,7 @@ abstract class AggregatorTest[T <: Aggregator : ClassTag] extends PluginTest {
   }
 
   private class AggregatorTest(example: AggregatorExampleValue) {
-    val aggregator: T = pluginDesc(example.parameters)(Prefixes.empty)
+    val aggregator: T = pluginDesc(example.parameters)(PluginContext.empty)
 
     def addTest(): Unit = {
       val result = aggregator.evaluate(weightedSimilarityScores(example.inputs, example.weights))

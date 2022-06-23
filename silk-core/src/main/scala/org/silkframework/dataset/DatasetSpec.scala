@@ -22,7 +22,8 @@ import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.GenericEntityTable
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.{Resource, ResourceManager}
+import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{Identifier, Uri}
 
@@ -92,7 +93,7 @@ case class DatasetSpec[+DatasetType <: Dataset](plugin: DatasetType, uriAttribut
 
   override def taskLinks: Seq[TaskLink] = plugin.datasetLinks
 
-  override def withProperties(updatedProperties: Map[String, String])(implicit prefixes: Prefixes, resourceManager: ResourceManager): DatasetSpec[DatasetType] = {
+  override def withProperties(updatedProperties: Map[String, String])(implicit context: PluginContext): DatasetSpec[DatasetType] = {
     copy(plugin = plugin.withParameters(updatedProperties))
   }
 
@@ -314,9 +315,6 @@ object DatasetSpec {
     override def tagNames: Set[String] = Set("Dataset")
 
     def read(node: Node)(implicit readContext: ReadContext): DatasetSpec[Dataset] = {
-      implicit val prefixes: Prefixes = readContext.prefixes
-      implicit val resources: ResourceManager = readContext.resources
-
       // Check if the data source still uses the old outdated XML format
       if (node.label == "DataSource" || node.label == "Output") {
         // Read old format

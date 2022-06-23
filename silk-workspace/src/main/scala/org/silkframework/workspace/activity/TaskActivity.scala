@@ -1,9 +1,8 @@
 package org.silkframework.workspace.activity
 
-import org.silkframework.config.{Prefixes, TaskSpec}
+import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity._
-import org.silkframework.runtime.plugin.ClassPluginDescription
-import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.plugin.{ClassPluginDescription, PluginContext}
 import org.silkframework.workspace.{Project, ProjectTask}
 
 import java.lang.reflect.{ParameterizedType, Type, TypeVariable}
@@ -32,8 +31,7 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
   def autoRun: Boolean = defaultFactory.autoRun
 
   protected override def createInstance(config: Map[String, String]): ActivityControl[ActivityType#ValueType] = {
-    implicit val prefixes: Prefixes = project.config.prefixes
-    implicit val resources: ResourceManager = project.resources
+    implicit val pluginContext: PluginContext = PluginContext(project.config.prefixes, project.resources)
     Activity(
       ClassPluginDescription(defaultFactory.getClass)(config, ignoreNonExistingParameters = false).apply(task),
       projectAndTaskId = Some(ProjectAndTaskIds(project.id, taskOption.map(_.id)))

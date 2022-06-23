@@ -1,6 +1,7 @@
 package org.silkframework.workspace.xml
 
 import org.silkframework.config._
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.serialization.XmlSerialization._
@@ -18,8 +19,9 @@ private class WorkflowXmlSerializer extends XmlSerializer[Workflow] {
   /**
    * Loads all tasks of this module.
    */
-  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager): Seq[LoadedTask[Workflow]] = {
-    implicit val readContext = ReadContext(projectResources)
+  override def loadTasks(resources: ResourceLoader, projectResources: ResourceManager)
+                        (implicit user: UserContext): Seq[LoadedTask[Workflow]] = {
+    implicit val readContext = ReadContext(projectResources, user = user)
     val names = resources.list.filter(_.endsWith(".xml"))
     val tasks =
       for(name <- names) yield {

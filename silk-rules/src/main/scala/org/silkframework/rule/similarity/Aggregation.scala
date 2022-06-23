@@ -19,7 +19,7 @@ import org.silkframework.rule.Operator
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.{DPair, Identifier}
 
-import scala.xml.{Node, Text}
+import scala.xml.Node
 
 /**
  * An aggregation combines multiple similarity values into a single value.
@@ -95,9 +95,6 @@ object Aggregation {
 
     def read(node: Node)(implicit readContext: ReadContext): Aggregation = {
       val weightStr = (node \ "@weight").text
-      implicit val prefixes = readContext.prefixes
-      implicit val resourceManager = readContext.resources
-
       val aggregator = Aggregator((node \ "@type").text, Operator.readParams(node))
 
       Aggregation(

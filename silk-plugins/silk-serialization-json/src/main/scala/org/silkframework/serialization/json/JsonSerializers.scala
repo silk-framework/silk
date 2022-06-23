@@ -14,6 +14,7 @@ import org.silkframework.rule.util.UriPatternParser
 import org.silkframework.rule.vocab.{GenericInfo, Vocabulary, VocabularyClass, VocabularyProperty}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginBackwardCompatibility
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
 import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
 import org.silkframework.serialization.json.EntitySerializers.EntitySchemaJsonFormat
@@ -99,6 +100,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): GenericDatasetSpec = {
       implicit val prefixes = readContext.prefixes
       implicit val resource = readContext.resources
+      implicit val user = readContext.user
       new DatasetSpec(
         plugin =
           Dataset(
@@ -140,8 +142,6 @@ object JsonSerializers {
     override def typeNames: Set[String] = Set(TASK_TYPE_CUSTOM_TASK)
 
     override def read(value: JsValue)(implicit readContext: ReadContext): CustomTask = {
-      implicit val prefixes = readContext.prefixes
-      implicit val resource = readContext.resources
       CustomTask(
         id = (value \ TYPE).as[JsString].value,
         params = taskParameters(value)
@@ -192,8 +192,6 @@ object JsonSerializers {
       val inputs = mustBeJsArray(mustBeDefined(value, INPUTS)) { jsArray =>
         jsArray.value.map(fromJson[Input](_)(InputJsonSerializer.InputJsonFormat, readContext))
       }
-      implicit val prefixes = readContext.prefixes
-      implicit val resourceManager = readContext.resources
       try {
         val transformerPluginId = stringValue(value, FUNCTION)
         val transformer = Transformer(PluginBackwardCompatibility.transformerIdMapping.getOrElse(transformerPluginId, transformerPluginId), readParameters(value))
@@ -798,8 +796,6 @@ object JsonSerializers {
     override def typeNames: Set[String] = Set(COMPARISON_TYPE)
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Comparison = {
-      implicit val prefixes = readContext.prefixes
-      implicit val resourceManager = readContext.resources
       val metricPluginId = stringValue(value, METRIC)
       val metric = DistanceMeasure(PluginBackwardCompatibility.distanceMeasureIdMapping.getOrElse(metricPluginId, metricPluginId), readParameters(value))
 
@@ -842,8 +838,6 @@ object JsonSerializers {
     override def typeNames: Set[String] = Set(AGGREGATION_TYPE)
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Aggregation = {
-      implicit val prefixes = readContext.prefixes
-      implicit val resourceManager = readContext.resources
       val aggregator = Aggregator(stringValue(value, AGGREGATOR), readParameters(value))
       val inputs = mustBeJsArray(mustBeDefined(value, OPERATORS)) { jsArray =>
         jsArray.value.map(fromJson[SimilarityOperator](_)(SimilarityOperatorJsonFormat, readContext))

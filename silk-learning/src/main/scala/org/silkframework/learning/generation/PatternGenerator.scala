@@ -14,17 +14,16 @@
 
 package org.silkframework.learning.generation
 
-import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.learning.LearningConfiguration.Components
 import org.silkframework.learning.individual._
 import org.silkframework.rule.input.Transformer
 import org.silkframework.rule.similarity.DistanceMeasure
-import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.DPair
 
 class PatternGenerator(components: Components)
-                      (implicit prefixes: Prefixes, resourceManager: ResourceManager) {
+                      (implicit pluginContext: PluginContext) {
 
   private val handlers = LabelHandler :: Wgs84Handler :: Nil
 

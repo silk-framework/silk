@@ -123,7 +123,7 @@ trait PluginStringParameter
 case class GenericPluginStringParameterType(pluginStringParameterClass: Class[_]) extends StringParameterType[Any] {
   private lazy val stringPlugin = {
     val pluginDescriptions = PluginRegistry.availablePluginsForClass(classOf[PluginStringParameterType[_]])
-    implicit val prefixes: Prefixes = Prefixes.empty
+    implicit val context: PluginContext = PluginContext.empty
     val plugins = pluginDescriptions.map(_.apply())
     plugins.map(_.asInstanceOf[PluginStringParameterType[_]]).find(_.dataType == pluginStringParameterClass).getOrElse(
       throw new ValidationException("No parameter type available to handle string parameter type class " + pluginStringParameterClass.getName)

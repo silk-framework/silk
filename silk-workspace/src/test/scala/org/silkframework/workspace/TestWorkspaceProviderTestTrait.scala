@@ -1,14 +1,14 @@
 package org.silkframework.workspace
 
-import java.io.{File, FileNotFoundException}
-
 import org.scalatest.{BeforeAndAfterAll, TestSuite}
-import org.silkframework.config.{MetaData, Prefixes}
+import org.silkframework.config.MetaData
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.resources.SharedFileRepository
+
+import java.io.{File, FileNotFoundException}
 
 /**
   * Setups a test workspace with an in-memory workspace provider and temporary file based resource repository.
@@ -36,8 +36,7 @@ trait TestWorkspaceProviderTestTrait extends BeforeAndAfterAll { this: TestSuite
     * The WorkspaceProvide instance
     */
   lazy val workspaceProvider: WorkspaceProvider = {
-    implicit val resourceManager: InMemoryResourceManager = InMemoryResourceManager()
-    implicit val prefixes: Prefixes = Prefixes.empty
+    implicit val pluginContext: PluginContext = PluginContext(resources = InMemoryResourceManager())
     PluginRegistry.create[WorkspaceProvider](workspaceProviderId, Map.empty)
   }
 

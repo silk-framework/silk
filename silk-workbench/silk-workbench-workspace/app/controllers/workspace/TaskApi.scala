@@ -18,7 +18,7 @@ import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.ResourceBasedDataset
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ClassPluginDescription, ParameterAutoCompletion, PluginDescription, PluginObjectParameterTypeTrait}
+import org.silkframework.runtime.plugin.{ClassPluginDescription, ParameterAutoCompletion, PluginContext, PluginDescription, PluginObjectParameterTypeTrait}
 import org.silkframework.runtime.resource.{FileResource, ResourceManager}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.runtime.validation.BadUserInputException
@@ -89,7 +89,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
                )
                projectName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes)
+    implicit val readContext: ReadContext = ReadContext(project.resources, project.config.prefixes, user = userContext)
     SerializationUtils.deserializeCompileTime[Task[TaskSpec]]() { task =>
       project.addAnyTask(task.id, task.data, task.metaData)
       implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = project.config.prefixes, projectId = Some(project.id))
@@ -142,7 +142,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
               )
               taskName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    implicit val readContext = ReadContext(project.resources, project.config.prefixes)
+    implicit val readContext = ReadContext(project.resources, project.config.prefixes, user = userContext)
     SerializationUtils.deserializeCompileTime[Task[TaskSpec]]() { task =>
       if(task.id.toString != taskName) {
         throw new BadUserInputException(s"Inconsistent task identifiers: Got $taskName in URL, but ${task.id} in payload.")
@@ -200,7 +200,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     val currentTask = project.anyTask(taskName)
 
     // Update task JSON
-    implicit val readContext = ReadContext(project.resources, project.config.prefixes)
+    implicit val readContext = ReadContext(project.resources, project.config.prefixes, user = userContext)
     val currentJson = toJson[Task[TaskSpec]](currentTask).as[JsObject]
     val updatedJson = currentJson.deepMerge(request.body.as[JsObject])
 
@@ -541,8 +541,7 @@ class TaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends Injected
     val project = WorkspaceFactory().workspace.project(projectName)
     val fromTask = project.anyTask(oldTask)
     // Clone task spec, since task specs may contain state, e.g. RDF file dataset
-    implicit val resourceManager: ResourceManager = project.resources
-    implicit val prefixes: Prefixes = project.config.prefixes
+    implicit val context: PluginContext = PluginContext.fromProject(project)
     val clonedTaskSpec = Try(fromTask.data.withProperties(Map.empty)).getOrElse(fromTask.data)
     project.addAnyTask(newTask, clonedTaskSpec, MetaData.empty.copy(tags = fromTask.metaData.tags))
     Ok
