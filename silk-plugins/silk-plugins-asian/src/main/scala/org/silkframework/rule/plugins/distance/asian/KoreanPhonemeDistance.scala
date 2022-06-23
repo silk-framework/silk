@@ -212,6 +212,10 @@ case class KoreanPhonemeDistance(minChar: Char = '0', maxChar: Char = 'z') exten
 		out
 	}
 
+	override def emptyIndex(limit: Double): Index = {
+		Index.oneDim(Set.empty, BigInt(maxChar - minChar + 1).pow(q).toInt)
+	}
+
     /**
      * Fast implementation of the levenshtein distance.
      * Based on: Gonzalo Navarro - A guided tour to approximate string matching

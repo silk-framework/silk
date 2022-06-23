@@ -1,6 +1,6 @@
 package org.silkframework.rule.similarity
 
-trait SingleValueAggregator extends Aggregator {
+trait SingleValueAggregator extends SimpleAggregator {
 
   def evaluateValue(value: WeightedSimilarityScore): SimilarityScore
 

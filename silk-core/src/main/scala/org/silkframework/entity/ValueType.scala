@@ -6,6 +6,7 @@ import org.silkframework.entity.ValueType.{GEO, XSD}
 import org.silkframework.runtime.plugin.AnyPlugin
 import org.silkframework.runtime.plugin.annotations.Plugin
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
+import org.silkframework.util.StringUtils.DoubleLiteral
 import org.silkframework.util.Uri
 
 import javax.xml.datatype.{DatatypeConstants, DatatypeFactory, Duration, XMLGregorianCalendar}
@@ -387,7 +388,7 @@ case class FloatValueType() extends ValueType with Serializable {
 case class DoubleValueType() extends ValueType with Serializable {
 
   override def validate(lexicalString: String): Boolean = {
-    Try(lexicalString.toDouble).isSuccess
+    DoubleLiteral.isDouble(lexicalString)
   }
 
   /** if None then this type has no URI, if Some then this is the type URI that can also be set in e.g. RDF */

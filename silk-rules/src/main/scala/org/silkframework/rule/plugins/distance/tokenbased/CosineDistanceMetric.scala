@@ -38,6 +38,10 @@ case class CosineDistanceMetric(k: Int = 3) extends SimpleDistanceMeasure {
     else distance
   }
 
+  override def emptyIndex(limit: Double): Index = {
+    Index.oneDim(Set.empty)
+  }
+
   override def indexValue(str: String, limit: Double, sourceOrTarget: Boolean): Index = {
     if(str.trim()=="")
       return Index.empty

@@ -1,11 +1,12 @@
 @import org.silkframework.rule.execution.ExecuteTransform
 @import views.html.workspace.activity.taskActivityControl
-@import controllers.transform.routes.ExecuteTransformTab
-@import controllers.transform.routes
 @import org.silkframework.workbench.Context
 @import org.silkframework.workspace.activity.linking.ExecuteLinking
 @import org.silkframework.rule.LinkSpec
 @import controllers.workspace.routes.TaskApi
+@import controllers.linking.routes.ExecuteLinkingController
+@import views.html.workspace.activity.autoReload
+@import org.silkframework.workspace.activity.linking.ExecuteLinkingFactory
 
 @(context: Context[LinkSpec])(implicit request: RequestHeader)
 
@@ -26,6 +27,11 @@
 }
 
 @content = {
+  @autoReload(
+    context = context,
+    contentPath = ExecuteLinkingController.executionReport(context.project.id, context.task.id).url,
+    activityId = ExecuteLinkingFactory.pluginId
+  )
 }
 
 @main(Some(context), titleLabel = context.task.label())(header)(toolbar)(content)

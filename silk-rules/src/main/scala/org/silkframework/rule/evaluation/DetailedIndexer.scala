@@ -23,16 +23,13 @@ object DetailedIndexer {
   }
 
   def indexAggregation(agg: Aggregation, entity: Entity, sourceOrTarget: Boolean, limit: Double): AggregationIndex = {
-    val totalWeights = agg.operators.map(_.weight).sum
-
     //Compute the detailed indices for each child operator
     val detailedIndices = {
       for (op <- agg.operators if op.indexing) yield {
-        val opLimit = agg.aggregator.computeThreshold(limit, op.weight.toDouble / totalWeights)
-        val index = indexOperator(op, entity, sourceOrTarget, opLimit)
+        val index = indexOperator(op, entity, sourceOrTarget, limit)
         index
       }
-    }.filterNot(_.index.isEmpty)
+    }
 
     //Compute the overall index from the child operator indices
     val overallIndex = agg.aggregator.aggregateIndexes(detailedIndices.map(_.index))

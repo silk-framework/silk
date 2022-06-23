@@ -26,10 +26,12 @@ object LowerThanMetric {
   @inline
   def evaluate(str1: String, str2: String, orEqual: Boolean, order: OrderEnum): Double = {
     order match {
-      case OrderEnum.`alphabetical` =>
+      case OrderEnum.alphabetical =>
         LowerThanMetric.evaluateAlphabeticalOrder(str1, str2, orEqual)
       case OrderEnum.numerical =>
         LowerThanMetric.evaluateNumericalOrder(str1, str2, orEqual)
+      case OrderEnum.integer =>
+        LowerThanMetric.evaluateIntegerOrder(str1, str2, orEqual)
       case OrderEnum.autodetect =>
         LowerThanMetric.evaluateAutodetect(str1, str2, orEqual)
     }
@@ -54,6 +56,21 @@ object LowerThanMetric {
     } else {
       (str1, str2) match {
         case (DoubleLiteral(n1), DoubleLiteral(n2)) => if (n1 < n2) 0.0 else 1.0
+        case _ => 1.0
+      }
+    }
+  }
+
+  @inline
+  private def evaluateIntegerOrder(str1: String, str2: String, orEqual: Boolean): Double = {
+    if(orEqual) {
+      (str1, str2) match {
+        case (IntLiteral(n1), IntLiteral(n2)) => if (n1 <= n2) 0.0 else 1.0
+        case _ => 1.0
+      }
+    } else {
+      (str1, str2) match {
+        case (IntLiteral(n1), IntLiteral(n2)) => if (n1 < n2) 0.0 else 1.0
         case _ => 1.0
       }
     }

@@ -39,6 +39,8 @@ case class LevenshteinMetric(
     levenshtein.evaluate(str1, str2, limit * scale) / scale
   }
 
+  override def emptyIndex(limit: Double): Index = levenshtein.emptyIndex(limit)
+
   override def indexValue(str: String, limit: Double, sourceOrTarget: Boolean): Index = {
     levenshtein.indexValue(str, limit * str.length, sourceOrTarget)
   }

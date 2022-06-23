@@ -15,7 +15,6 @@
 package org.silkframework.util
 
 import javax.xml.datatype.{DatatypeFactory, XMLGregorianCalendar}
-
 import scala.language.implicitConversions
 import scala.util.Try
 import scala.util.matching.Regex
@@ -41,18 +40,35 @@ object StringUtils {
     def apply(x: Int): String = x.toString
 
     def unapply(x: String): Option[Int] = {
-      Option(x) flatMap { s =>
-        Try(s.toInt).toOption
+      try {
+        Some(x.toInt)
+      } catch {
+        case _: NumberFormatException =>
+          None
       }
     }
   }
 
   object DoubleLiteral {
+
+    def isDouble(str: String): Boolean = {
+      try {
+        str.toDouble
+        true
+      } catch {
+        case _: NumberFormatException =>
+          false
+      }
+    }
+
     def apply(x: Double): String = x.toString
 
     def unapply(x: String): Option[Double] = {
-      Option(x) flatMap { s =>
-        Try(s.toDouble).toOption
+      try {
+        Some(x.toDouble)
+      } catch {
+        case _: NumberFormatException =>
+          None
       }
     }
   }
