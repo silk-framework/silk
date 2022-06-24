@@ -481,6 +481,9 @@
                 "inputPathAutoCompletion": {
                     "msg": "Could not fetch path auto-completions."
                 },
+                "missingPathsInCache": {
+                    "msg": "Input path '{{inputPath}}' is not available in the cache. Please save the rule in order for the caches to add the missing paths."
+                },
                 "saveLinkageRule": {
                     "msg": "Could not save linking rule!"
                 },
