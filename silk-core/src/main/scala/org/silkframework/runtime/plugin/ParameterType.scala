@@ -3,7 +3,7 @@ package org.silkframework.runtime.plugin
 import org.silkframework.config.{DefaultConfig, Prefixes, ProjectReference, TaskReference}
 import org.silkframework.dataset.rdf.SparqlEndpointDatasetParameter
 import org.silkframework.entity.Restriction
-import org.silkframework.runtime.resource.{EmptyResourceManager, Resource, ResourceManager, WritableResource}
+import org.silkframework.runtime.resource.{Resource, WritableResource}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{AesCrypto, Identifier, Uri}
 
@@ -130,8 +130,7 @@ case class GenericPluginStringParameterType(pluginStringParameterClass: Class[_]
     )
   }
 
-  override def fromString(str: String)
-                         (implicit prefixes: Prefixes, resourceLoader: ResourceManager): Any = {
+  override def fromString(str: String)(implicit context: PluginContext): Any = {
     stringPlugin.fromString(str)
   }
 
@@ -156,7 +155,7 @@ abstract class StringParameterType[T: ClassTag] extends ParameterType[T] {
     * @param resourceLoader The current resources for resolving resource references.
     * @return Either returns the parsed value or throws an exception.
     */
-  def fromString(str: String)(implicit prefixes: Prefixes = Prefixes.empty, resourceLoader: ResourceManager = EmptyResourceManager()): T
+  def fromString(str: String)(implicit context: PluginContext): T
 
   /**
     * Serializes a value to its string representation.
@@ -214,7 +213,7 @@ object StringParameterType {
 
     override def description: String = "A character string."
 
-    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): String = {
+    def fromString(str: String)(implicit context: PluginContext): String = {
       str
     }
 
@@ -226,7 +225,7 @@ object StringParameterType {
 
     override def description: String = "A single character."
 
-    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Char = {
+    def fromString(str: String)(implicit context: PluginContext): Char = {
       if (str.length == 1) {
         str(0)
       }
@@ -243,7 +242,7 @@ object StringParameterType {
     override def description: String = "A comma-separated list."
 
     override def fromString(str: String)
-                           (implicit prefixes: Prefixes, resourceLoader: ResourceManager): StringTraversableParameter = {
+                           (implicit context: PluginContext): StringTraversableParameter = {
       if(str.isEmpty) {
         StringTraversableParameter(Traversable.empty)
       } else {
@@ -263,7 +262,7 @@ object StringParameterType {
 
     override def description: String = "An integer number."
 
-    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Int = {
+    def fromString(str: String)(implicit context: PluginContext): Int = {
       str.toInt
     }
 
@@ -275,7 +274,7 @@ object StringParameterType {
 
     override def description: String = "A Long number."
 
-    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Long = {
+    def fromString(str: String)(implicit context: PluginContext): Long = {
       str.toLong
     }
 
@@ -287,7 +286,7 @@ object StringParameterType {
 
     override def description: String = "A floating-point number."
 
-    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Double = {
+    def fromString(str: String)(implicit context: PluginContext): Double = {
       str.toDouble
     }
 
@@ -299,7 +298,7 @@ object StringParameterType {
 
     override def description: String = "Either true or false."
 
-    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Boolean = {
+    def fromString(str: String)(implicit context: PluginContext): Boolean = {
       str.toLowerCase match {
         case "true" | "1" => true
         case "false" | "0" => false
@@ -315,7 +314,7 @@ object StringParameterType {
 
     override def description: String = "An optional integer number."
 
-    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): IntOptionParameter = {
+    override def fromString(str: String)(implicit context: PluginContext): IntOptionParameter = {
       if(str.trim.isEmpty) {
         IntOptionParameter(None)
       } else {
@@ -334,7 +333,7 @@ object StringParameterType {
 
     override def description: String = "An optional Identifier."
 
-    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): IdentifierOptionParameter = {
+    override def fromString(str: String)(implicit context: PluginContext): IdentifierOptionParameter = {
       if(str.trim.isEmpty) {
         None
       } else {
@@ -355,7 +354,7 @@ object StringParameterType {
 
     private final val utf8: String = "UTF8"
 
-    def fromString(str: String)(implicit prefixes: Prefixes = Prefixes.empty, resourceLoader: ResourceManager = EmptyResourceManager()): Map[String, String] = {
+    def fromString(str: String)(implicit context: PluginContext): Map[String, String] = {
       if(str.trim.isEmpty) {
         Map.empty
       } else {
@@ -376,8 +375,8 @@ object StringParameterType {
 
     override def description: String = "Either a full URI or a prefixed name."
 
-    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Uri = {
-      Uri.parse(str, prefixes)
+    def fromString(str: String)(implicit context: PluginContext): Uri = {
+      Uri.parse(str, context.prefixes)
     }
 
     override def toString(value: Uri)(implicit prefixes: Prefixes): String = {
@@ -391,11 +390,11 @@ object StringParameterType {
 
     override def description: String = "Either the name of a project resource or a full URI."
 
-    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Resource = {
+    def fromString(str: String)(implicit context: PluginContext): Resource = {
       if (str.trim.isEmpty) {
         throw new ValidationException("Resource cannot be empty")
       } else {
-        resourceLoader.get(str)
+        context.resources.get(str)
       }
     }
 
@@ -407,11 +406,11 @@ object StringParameterType {
 
     override def description: String = "Either the name of a project resource or a full URI."
 
-    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): WritableResource = {
+    def fromString(str: String)(implicit context: PluginContext): WritableResource = {
       if (str.trim.isEmpty) {
         throw new ValidationException("Resource cannot be empty")
       } else {
-        resourceLoader.get(str)
+        context.resources.get(str)
       }
     }
 
@@ -423,11 +422,11 @@ object StringParameterType {
 
     override def description: String = "The name of a project resource or empty."
 
-    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): ResourceOption = {
+    override def fromString(str: String)(implicit context: PluginContext): ResourceOption = {
       if (str.trim.isEmpty) {
         ResourceOption(None)
       } else {
-        ResourceOption(Some(resourceLoader.get(str)))
+        ResourceOption(Some(context.resources.get(str)))
       }
     }
 
@@ -443,7 +442,7 @@ object StringParameterType {
 
     override def description: String = " An amount of time in ISO-8601 duration format PnDTnHnMn.nS"
 
-    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Duration = {
+    override def fromString(str: String)(implicit context: PluginContext): Duration = {
       Duration.parse(str)
     }
 
@@ -459,7 +458,7 @@ object StringParameterType {
 
     override def description: String = "The identifier of a project in the workspace."
 
-    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): ProjectReference = {
+    def fromString(str: String)(implicit context: PluginContext): ProjectReference = {
       ProjectReference(Identifier(str))
     }
 
@@ -475,7 +474,7 @@ object StringParameterType {
 
     override def description: String = "The identifier of a task in the same project."
 
-    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): TaskReference = {
+    def fromString(str: String)(implicit context: PluginContext): TaskReference = {
       TaskReference(Identifier(str))
     }
 
@@ -490,7 +489,7 @@ object StringParameterType {
 
     override def description: String = "The identifier of anything."
 
-    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Identifier = {
+    def fromString(str: String)(implicit context: PluginContext): Identifier = {
       Identifier(str)
     }
 
@@ -505,8 +504,8 @@ object StringParameterType {
 
     override def description: String = "The restriction of a set of entities."
 
-    def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Restriction = {
-      Restriction.parse(str)
+    def fromString(str: String)(implicit context: PluginContext): Restriction = {
+      Restriction.parse(str)(context.prefixes)
     }
 
     override def toString(value: Restriction)(implicit prefixes: Prefixes): String = {
@@ -525,7 +524,7 @@ object StringParameterType {
 
     override def description: String = "One of the following values: " + valueList
 
-    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Enum[_] = {
+    override def fromString(str: String)(implicit context: PluginContext): Enum[_] = {
       fromStringOpt(str) getOrElse (throw new ValidationException(s"Invalid enumeration value '$str'. Allowed values are: $valueList"))
     }
 
@@ -563,7 +562,7 @@ object StringParameterType {
   object MultilineStringParameterType extends StringParameterType[MultilineStringParameter] {
     override def name: String = "multiline string"
 
-    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): MultilineStringParameter = MultilineStringParameter(str)
+    override def fromString(str: String)(implicit context: PluginContext): MultilineStringParameter = MultilineStringParameter(str)
   }
 
   object PasswordParameterType extends StringParameterType[PasswordParameter] {
@@ -598,7 +597,7 @@ object StringParameterType {
       }
     }
 
-    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): PasswordParameter = {
+    override def fromString(str: String)(implicit context: PluginContext): PasswordParameter = {
       val encryptedPassword = if (str == null || str == "") {
         str // Handle empty string as empty password and vice versa
       } else if (str.startsWith(PREAMBLE)) {
@@ -627,7 +626,7 @@ object StringParameterType {
   object SparqlEndpointDatasetParameterType extends StringParameterType[SparqlEndpointDatasetParameter] {
     override def name: String = "SPARQL endpoint"
 
-    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): SparqlEndpointDatasetParameter = {
+    override def fromString(str: String)(implicit context: PluginContext): SparqlEndpointDatasetParameter = {
       SparqlEndpointDatasetParameter(str)
     }
   }
