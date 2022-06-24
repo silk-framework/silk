@@ -3,6 +3,7 @@ package org.silkframework.runtime.plugin
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
+import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTrait
 
 /**
@@ -16,6 +17,8 @@ trait PluginContext {
 
   def user: UserContext
 
+  def projectId: Option[Identifier]
+
 }
 
 object PluginContext {
@@ -24,17 +27,19 @@ object PluginContext {
 
   def apply(prefixes: Prefixes = Prefixes.empty,
             resources: ResourceManager = EmptyResourceManager(),
-            user: UserContext = UserContext.Empty): PluginContext = {
-    PlainPluginContext(prefixes, resources, user)
+            user: UserContext = UserContext.Empty,
+            projectId: Option[Identifier] = None): PluginContext = {
+    PlainPluginContext(prefixes, resources, user, projectId)
   }
 
   def fromProject(project: ProjectTrait)(implicit user: UserContext): PluginContext = {
-    PlainPluginContext(project.config.prefixes, project.resources, user)
+    PlainPluginContext(project.config.prefixes, project.resources, user, Some(project.id))
   }
 
   private case class PlainPluginContext(prefixes: Prefixes = Prefixes.empty,
                                         resources: ResourceManager = EmptyResourceManager(),
-                                        user: UserContext = UserContext.Empty) extends PluginContext
+                                        user: UserContext = UserContext.Empty,
+                                        projectId: Option[Identifier] = None) extends PluginContext
 
 }
 
