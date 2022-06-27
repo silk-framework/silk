@@ -27,7 +27,7 @@ object CsvSourceHelper {
 
   def parse(str: String): Seq[String] = {
     standardCsvParser.synchronized {
-      standardCsvParser.parseLine(str)
+      standardCsvParser.parseLine(str).map(attribute => Option(attribute).getOrElse(""))
     }
   }
 

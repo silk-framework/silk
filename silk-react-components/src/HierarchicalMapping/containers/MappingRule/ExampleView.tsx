@@ -93,7 +93,7 @@ export const ExampleView = ({id, rawRule, ruleType, objectSourcePathContext, upd
                                 className="ecc-silk-mapping__rulesviewer__examples-table__path"
                             >
                                 {sourcePath ? (
-                                    <Chip>&lrm;{sourcePath}</Chip>
+                                    <Chip>&lrm;{sourcePath}&lrm;</Chip>
                                 ) : (
                                     false
                                 )}

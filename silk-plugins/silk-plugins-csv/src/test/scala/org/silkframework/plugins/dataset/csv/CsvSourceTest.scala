@@ -36,6 +36,8 @@ class CsvSourceTest extends FlatSpec with Matchers {
   lazy val tabArraySeparated = CsvDataset(ReadOnlyResource(resources.get("tab_array_separated.csv")), arraySeparator = "\t")
   lazy val noHeaders = CsvDataset(ReadOnlyResource(resources.get("no_header.csv")), properties = "vals1,vals2,vals3")
   lazy val iso8859 = CsvDataset(ReadOnlyResource(resources.get("iso8859.csv")))
+  lazy val cmem4065withProperties = new CsvSource(resources.get("cmem-4065.csv"), settings, properties = "A/B,urn:prop:propA,https://test.com/some/valid?uri=true")
+  lazy val cmem4065 = new CsvSource(resources.get("cmem-4065.csv"), settings)
 
   "For persons.csv, CsvParser" should "extract the schema" in {
     val properties = source.retrievePaths("").map(_.propertyUri.get.toString).toSet
@@ -237,5 +239,10 @@ class CsvSourceTest extends FlatSpec with Matchers {
     val entities = source.retrieve(es).entities
     entities.size shouldBe 3
     source.retrieveByUri(es, Seq(entities.head.uri)).entities.size shouldBe 1
+  }
+
+  it should "convert URI conform property (parameter) names B to a form that is consistent with the CSV attribute conversion" in {
+    cmem4065withProperties.retrievePaths("").map(_.normalizedSerialization) shouldBe IndexedSeq("A%2FB", "<urn:prop:propA>", "<https://test.com/some/valid?uri=true>")
+    cmem4065.retrievePaths("").map(_.normalizedSerialization) shouldBe IndexedSeq("A%2FB", "<urn:prop:propA>", "<https://test.com/some/valid?uri=true>")
   }
 }
