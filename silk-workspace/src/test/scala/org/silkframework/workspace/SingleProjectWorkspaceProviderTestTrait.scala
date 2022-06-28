@@ -31,6 +31,10 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll with Tes
     }
     assert(Option(is).isDefined, "Resource was not found in classpath: " + projectPathInClasspath)
     WorkspaceFactory().workspace.importProject(projectId, is, XmlZipProjectMarshaling())
+    val loadingErrors = WorkspaceFactory().workspace.project(projectId).loadingErrors
+    if(loadingErrors.nonEmpty) {
+      fail("Test project could not load all tasks. Details: " + loadingErrors)
+    }
   }
 
   override protected def afterAll(): Unit = {
