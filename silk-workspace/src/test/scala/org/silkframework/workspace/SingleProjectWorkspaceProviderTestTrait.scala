@@ -21,6 +21,11 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll with Tes
   /** The id under which this project will be accessible */
   def projectId: String = "singleProject"
 
+  /**
+    * Fail if a task loading error occurred during project import.
+    */
+  def failOnTaskLoadingErrors: Boolean = true
+
   override protected def beforeAll(): Unit = {
     super.beforeAll()
     val is = try {
@@ -32,7 +37,7 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll with Tes
     assert(Option(is).isDefined, "Resource was not found in classpath: " + projectPathInClasspath)
     WorkspaceFactory().workspace.importProject(projectId, is, XmlZipProjectMarshaling())
     val loadingErrors = WorkspaceFactory().workspace.project(projectId).loadingErrors
-    if(loadingErrors.nonEmpty) {
+    if(failOnTaskLoadingErrors && loadingErrors.nonEmpty) {
       fail("Test project could not load all tasks. Details: " + loadingErrors)
     }
   }
