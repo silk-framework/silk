@@ -55,7 +55,12 @@
         "react-sparklines": "^1.7.0",
         "redux": "^4.0.0",
         "redux-logger": "^3.0.6",
-        "store": "^2.0.12"
+        "store": "^2.0.12",
+        "@eccenca/superagent": "^1.4.1",
+        "ecc-utils": "^1.4.0",
+        "gui-elements-deprecated": "npm:@eccenca/gui-elements@^5.1.1",
+        "ecc-messagebus": "^3.6.0",
+        "react-beautiful-dnd": "^13.0.0"
     },
     "husky": {
         "hooks": {
@@ -96,6 +101,9 @@
         ]
     },
     "jest": {
+        "globals": {
+            "__DEBUG__": false
+        },
         "roots": [
             "<rootDir>/src/",
             "<rootDir>/test/"
