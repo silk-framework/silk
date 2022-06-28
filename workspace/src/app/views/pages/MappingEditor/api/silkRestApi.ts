@@ -285,7 +285,7 @@ const silkApi = {
     },
 
     transformTargetPropertyEndpoint: function(baseUrl: string, projectId: string, transformTaskId: string, ruleId: string,
-                                              searchTerm: string, maxResults: number, fullUris: boolean): string {
+                                              searchTerm: string | undefined, maxResults: number, fullUris: boolean): string {
         const encodedSearchTerm = searchTerm ? encodeURIComponent(searchTerm) : ""
         return `${baseUrl}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/targetProperties?term=${encodedSearchTerm}&maxResults=${maxResults}&fullUris=${fullUris}`
     },
