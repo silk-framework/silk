@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {AffirmativeButton, DismissiveButton, SelectBox, Info, Spinner, Error, Table} from 'gui-elements-deprecated';
 import silkStore from "../api/silkStore";
 import ExecutionReport from "./ExecutionReport";
 import WorkflowExecutionReport from "./WorkflowExecutionReport";
@@ -26,7 +25,6 @@ export default class WorkflowNodeExecutionReport extends React.Component {
 
   componentDidMount() {
     this.props.diStore.getWorkflowNodeExecutionReports(
-      this.props.baseUrl,
       this.props.project,
       this.props.task,
       this.props.nodeId)
@@ -44,11 +42,11 @@ export default class WorkflowNodeExecutionReport extends React.Component {
     return this.state.executionReports.map(report => {
       if ('taskReports' in report) {
         // This is a nested workflow execution report
-        return <WorkflowExecutionReport baseUrl={this.props.baseUrl}
+        return <WorkflowExecutionReport
                                         project={this.props.project}
                                         executionReport={report}/>
       } else {
-        return <ExecutionReport baseUrl={this.props.baseUrl}
+        return <ExecutionReport
                                 project={this.props.project}
                                 nodeId={this.props.nodeId}
                                 executionReport={report}/>
@@ -58,7 +56,6 @@ export default class WorkflowNodeExecutionReport extends React.Component {
 }
 
 WorkflowNodeExecutionReport.propTypes = {
-  baseUrl: PropTypes.string.isRequired, // Base URL of the DI service
   project: PropTypes.string.isRequired, // project ID
   task: PropTypes.string.isRequired, // task ID
   nodeId: PropTypes.string.isRequired, // node ID

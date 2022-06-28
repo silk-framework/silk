@@ -4,12 +4,12 @@ import _ from 'lodash';
 import {
     Spinner,
     Button,
-    Icon,
     Info,
 } from 'gui-elements-deprecated';
 import {
     Card,
     CardContent,
+    Icon
 } from '@eccenca/gui-elements';
 
 import RuleTypes from '../elements/RuleTypes';

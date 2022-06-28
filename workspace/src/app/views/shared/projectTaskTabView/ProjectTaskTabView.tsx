@@ -249,7 +249,8 @@ export function ProjectTaskTabView({
                                         changeTab(tabItem.id ?? (tabItem as IItemLink));
                                     }}
                                     minimal={true}
-                                    disabled={activeIframePath?.path === tabItem.path || tabItem.id === selectedTab}
+                                    disabled={ !!selectedTab && ((tabItem.id ?? tabItem.path) === ((selectedTab as any)?.path ?? selectedTab))}
+
                                 >
                                     {tLabel(tabItem.label as string)}
                                 </Button>

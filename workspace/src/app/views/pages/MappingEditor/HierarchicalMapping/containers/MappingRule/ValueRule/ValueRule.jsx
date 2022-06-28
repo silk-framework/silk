@@ -18,7 +18,6 @@ import ComplexEditButton from '../../../elements/buttons/ComplexEditButton';
 import ExampleTarget from '../../../components/ExampleTarget';
 import MetadataLabel from '../../../components/Metadata/MetadataLabel';
 import MetadataDesc from '../../../components/Metadata/MetadataDesc';
-import { isDebugMode } from '../../../utils/isDebugMode';
 
 class ValueRule extends React.Component {
     // define property types
@@ -30,12 +29,12 @@ class ValueRule extends React.Component {
         mappingTarget: PropTypes.object,
         edit: PropTypes.bool.isRequired,
     };
-    
+
     state = {
         edit: this.props.edit,
         href: getEditorHref(this.props.id),
     };
-    
+
     constructor(props) {
         super(props);
         this.handleCloseEdit = this.handleCloseEdit.bind(this);
@@ -45,21 +44,21 @@ class ValueRule extends React.Component {
         this.handleCopy = this.handleCopy.bind(this);
         this.handleClone = this.handleClone.bind(this);
     }
-    
+
     componentDidMount() {
         EventEmitter.on(MESSAGES.RULE_VIEW.CLOSE, this.handleCloseEdit);
     }
-    
+
     componentWillUnmount() {
         EventEmitter.off(MESSAGES.RULE_VIEW.CLOSE, this.handleCloseEdit);
     }
-    
+
     handleCloseEdit(obj) {
         if (obj.id === this.props.id) {
             this.setState({edit: false});
         }
     };
-    
+
     handleComplexEdit(event) {
         if (isDebugMode()) {
             event.stopPropagation();
@@ -67,7 +66,7 @@ class ValueRule extends React.Component {
             return false;
         }
     };
-    
+
     // open view in edit mode
     handleEdit(event) {
         event.stopPropagation();
@@ -75,24 +74,24 @@ class ValueRule extends React.Component {
             edit: !this.state.edit,
         });
     };
-    
+
     handleClose(event) {
         event.stopPropagation();
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, {id: this.props.id});
     };
-    
+
     handleCopy() {
         this.props.handleCopy(this.props.id, this.props.type);
     };
-    
+
     handleClone() {
         this.props.handleClone(this.props.id, this.props.type);
     };
-    
+
     render() {
         const {edit} = this.state;
         const {id, parentId, operator, mappingTarget = {}, sourcePath, sourcePaths, metadata} = this.props;
-        
+
         if (edit) {
             return (
                 <ValueRuleForm
@@ -101,7 +100,7 @@ class ValueRule extends React.Component {
                 />
             );
         }
-        
+
         const nodeType = _.get(mappingTarget, 'valueType.nodeType');
         return (
             <div className="ecc-silk-mapping__rulesviewer">

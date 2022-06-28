@@ -35,8 +35,8 @@ function eventEmitter(all) {
          * @memberOf mitt
          */
         emit(type, evt) {
-            (all[type] || []).slice().map(handler => { handler(evt); });
-            (all['*'] || []).slice().map(handler => { handler(type, evt); });
+            (all[type] || []).slice().forEach(handler => { handler(evt); });
+            (all['*'] || []).slice().forEach(handler => { handler(type, evt); });
         },
     };
 }

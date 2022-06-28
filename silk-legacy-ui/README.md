@@ -1,13 +1,12 @@
-# silk-react-components
+# silk-legacy-ui
 
-> JavaScript & React components of the silk project.
+> Legacy JavaScript components of the silk project.
 
 This project is part of the effort to modernize the javascript build process and asset management in the silk project.
 It serves three main purposes at the moment:
 
-1. Providing a build and development environment for new React components
-2. Providing an environment to manage other JavaScript assets for silk
-3. Providing a way to manage external libraries
+1. Providing an environment to manage other JavaScript assets for silk
+2. Providing a way to manage external libraries
 
 ## Usage
 
@@ -37,16 +36,3 @@ Furthermore you are able to check, that all files are ecmascript 5 compatible wi
 External library scripts are maintained with the help of yarn and the npm registry.
 They are defined as dependencies in the `package.json`.
 `make vendors` installs those dependencies and copies them to their respective location.
-
-### React development
-
-**Build command**: `make build-react`
-
-- With `yarn start` you start a local development environment which mocks all APIs.
-- With `make build-react` you can build all React components of silk and copy them to their respective locations
-
-### React development with Silk backend
-
-Run in Silk root directory: sbt "project workbench" ~run
-
-This will start the Silk workbench with file watchers active that watch for source changes in the Silk React subproject and trigger builds of the component.

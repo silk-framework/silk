@@ -13,7 +13,6 @@ import MappingsTree from './containers/MappingsTree';
 class EvaluateMapping extends React.Component {
     // define property types
     static propTypes = {
-        baseUrl: PropTypes.string.isRequired, // DI API Base
         project: PropTypes.string.isRequired, // Current DI Project
         transformTask: PropTypes.string.isRequired, // Current Transformation
         initialRule: PropTypes.string.isRequired, // Initially selected mapping rule
@@ -24,13 +23,8 @@ class EvaluateMapping extends React.Component {
     constructor(props) {
         super(props);
         const {
-            baseUrl, project, transformTask, initialRule,
+            initialRule,
         } = this.props;
-        setApiDetails({
-            baseUrl,
-            project,
-            transformTask,
-        });
 
         this.state = {
             // currently selected rule id

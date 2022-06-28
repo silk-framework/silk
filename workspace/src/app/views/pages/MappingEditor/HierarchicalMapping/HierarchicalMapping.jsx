@@ -18,14 +18,13 @@ import { MESSAGES } from './utils/constants';
 import RemoveMappingRuleDialog from './elements/RemoveMappingRuleDialog';
 import DiscardChangesDialog from './elements/DiscardChangesDialog';
 import EventEmitter from './utils/EventEmitter';
-import { isDebugMode } from './utils/isDebugMode';
+import {withHistoryHOC} from "./utils/withHistoryHOC";
 
 require('./HierarchicalMapping.scss');
 
 class HierarchicalMapping extends React.Component {
     // define property types
     static propTypes = {
-        baseUrl: PropTypes.string.isRequired, // DI API Base
         project: PropTypes.string.isRequired, // Current DI Project
         transformTask: PropTypes.string.isRequired, // Current Transformation
         initialRule: PropTypes.string,
@@ -34,13 +33,8 @@ class HierarchicalMapping extends React.Component {
     constructor(props) {
         super(props);
         const {
-            baseUrl, project, transformTask, initialRule,
+            initialRule,
         } = this.props;
-        setApiDetails({
-            baseUrl,
-            project,
-            transformTask,
-        });
 
         this.state = {
             // currently selected rule id
@@ -325,4 +319,4 @@ class HierarchicalMapping extends React.Component {
     }
 }
 
-export default HierarchicalMapping;
+export default withHistoryHOC(HierarchicalMapping);

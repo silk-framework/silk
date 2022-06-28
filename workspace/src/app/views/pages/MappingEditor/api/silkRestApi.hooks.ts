@@ -33,20 +33,17 @@ type ErrorHandler = (data: IProps) => any
 /** Hook that provides the frontend init data. */
 export const useInitFrontend = (errorHandler?: ErrorHandler) => {
     const [frontendData, setFrontendData] = useState<IInitFrontend | undefined>(undefined)
-    const {baseUrl} = useApiDetails()
 
     useEffect(() => {
-        if(baseUrl !== undefined) {
-            silkApi.initFrontendInfo(baseUrl)
-                .then(({data}) => setFrontendData(data))
-                .catch(({status, data}) => {
-                    if(errorHandler) {
-                        // No meaningful default value, let called handle the error.
-                        errorHandler({error: data, errorStatus: status})
-                    }
-                })
-        }
-    }, [baseUrl])
+        silkApi.initFrontendInfo()
+            .then(({data}) => setFrontendData(data))
+            .catch(({status, data}) => {
+                if (errorHandler) {
+                    // No meaningful default value, let called handle the error.
+                    errorHandler({error: data, errorStatus: status})
+                }
+            })
+    }, [])
 
     return frontendData
 }

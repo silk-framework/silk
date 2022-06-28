@@ -4,9 +4,6 @@ if (!highlightElement) {
     throw new Error('status.js must be imported as well as editor.js');
 }
 
-/* exported updateStatus showPendingIcon
-silk-react-components/silk-workbench/silk-workbench-rules/public/js/editor/editor.js
-*/
 
 /**
  * Displays messages.

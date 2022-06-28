@@ -68,11 +68,9 @@ object ItemType {
         ItemLink("Learning", s"$context/linking/$projectId/$itemId/learnStart")
       )
       case ItemType.workflow if !WorkbenchConfig().tabs.legacyWorkflowEditor => Seq(
-        ItemLink("Workflow report", s"$context/workflow/report/$projectId/$itemId")
       )
       case ItemType.workflow => Seq(
         ItemLink("Workflow editor (legacy)", s"$context/workflow/editor/$projectId/$itemId"),
-        ItemLink("Workflow report", s"$context/workflow/report/$projectId/$itemId")
       )
       case _: ItemType if taskSpec.isDefined =>
         taskSpec.get.taskLinks.map(taskLink => ItemLink(taskLink.id, taskLink.url))

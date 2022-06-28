@@ -61,11 +61,11 @@ const MappingsList = ({
         );
 
         setReorderingRequestPending(true)
-        const {baseUrl, project, transformTask} = getApiDetails()
-        if(baseUrl != null && project != null && transformTask != null && parentRuleId != null) {
+        const {project, transformTask} = getApiDetails()
+        if(project != null && transformTask != null && parentRuleId != null) {
             try {
                 setItems(reorderArray(items, fromPos, toPos))
-                await silkRestApi.reorderRules(baseUrl, project, transformTask, parentRuleId, childrenRules)
+                await silkRestApi.reorderRules(project, transformTask, parentRuleId, childrenRules)
             } catch(ex) {
                 // Request failed, rollback change.
                 setItems(items)
@@ -74,9 +74,9 @@ const MappingsList = ({
             }
         }
     }
-    
+
     const onDragStart = () => { }
-    
+
     // template rendering
     const onDragEnd = (result) => {
         // dropped outside the list
@@ -89,7 +89,7 @@ const MappingsList = ({
         if (fromPos === toPos) {
             return;
         }
-        
+
         handleOrderRules({
             fromPos,
             toPos,

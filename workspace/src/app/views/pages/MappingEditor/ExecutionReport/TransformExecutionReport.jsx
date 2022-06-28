@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {AffirmativeButton, DismissiveButton, SelectBox, Info, Spinner, Error, Table} from 'gui-elements-deprecated';
 import silkStore from "../api/silkStore";
 import ExecutionReport from "./ExecutionReport";
 
@@ -25,7 +24,6 @@ export default class TransformExecutionReport extends React.Component {
 
   componentDidMount() {
     this.props.diStore.getTransformExecutionReport(
-      this.props.baseUrl,
       this.props.project,
       this.props.task)
       .then((report) => {
@@ -39,7 +37,7 @@ export default class TransformExecutionReport extends React.Component {
   }
 
   render() {
-    return <ExecutionReport baseUrl={this.props.baseUrl}
+    return <ExecutionReport
                             project={this.props.project}
                             nodeId={this.props.task}
                             executionReport={this.state.executionReport} />
@@ -47,7 +45,6 @@ export default class TransformExecutionReport extends React.Component {
 }
 
 TransformExecutionReport.propTypes = {
-  baseUrl: PropTypes.string.isRequired, // Base URL of the DI service
   project: PropTypes.string.isRequired, // project ID
   task: PropTypes.string.isRequired, // task ID
   diStore: PropTypes.shape({

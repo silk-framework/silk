@@ -1,7 +1,7 @@
 /** A view / UI of a project task.
  * Each task can have multiple views.
  **/
-import { LinkingRuleEditor } from "../taskViews/linking/LinkingRuleEditor";
+import {LinkingRuleEditor} from "../taskViews/linking/LinkingRuleEditor";
 import React from "react";
 
 // Generic actions and callbacks on views
@@ -103,7 +103,7 @@ class PluginRegistry {
 
 export const pluginRegistry = new PluginRegistry();
 
-// Register linking rule editor
+// Register linking plugins
 pluginRegistry.registerTaskView("linking", {
     id: "linkingEditor",
     label: "Linking editor",
@@ -111,6 +111,7 @@ pluginRegistry.registerTaskView("linking", {
         return <LinkingRuleEditor projectId={projectId} linkingTaskId={taskId} viewActions={viewActions} />;
     },
 });
+
 
 export const SUPPORTED_PLUGINS = {
     DATA_PREVIEW: "di:dataPreview",
