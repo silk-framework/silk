@@ -30,7 +30,6 @@ trait SingleProjectWorkspaceProviderTestTrait extends BeforeAndAfterAll with Tes
         throw new RuntimeException(s"Project file '$projectPathInClasspath' does not exist!")
     }
     assert(Option(is).isDefined, "Resource was not found in classpath: " + projectPathInClasspath)
-    implicit val userContext: UserContext = UserContext.Empty
     WorkspaceFactory().workspace.importProject(projectId, is, XmlZipProjectMarshaling())
   }
 
