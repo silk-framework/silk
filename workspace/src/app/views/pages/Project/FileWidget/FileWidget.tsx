@@ -159,10 +159,11 @@ export const FileWidget = () => {
                                                                     name="item-download"
                                                                     text={t("common.action.download")}
                                                                     small
-                                                                    href={`${CONTEXT_PATH}/workspace/projects/${projectId}/resources/${file.name}`}
+                                                                    href={`${CONTEXT_PATH}/workspace/projects/${projectId}/resources/${encodeURIComponent(file.name)}`}
                                                                 />
                                                                 <IconButton
                                                                     name="item-remove"
+                                                                    data-test-id={"resource-delete-btn"}
                                                                     text={t("common.action.DeleteSmth", {
                                                                         smth: t("widget.FileWidget.file"),
                                                                     })}
