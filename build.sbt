@@ -234,97 +234,23 @@ lazy val plugins = (project in file("silk-plugins"))
   )
 
 //////////////////////////////////////////////////////////////////////////////
-// Silk React Components
+// Silk React Workbench
 //////////////////////////////////////////////////////////////////////////////
 
+/** Directories of the legacy UI code. */
 val silkWorkbenchRoot: Def.Initialize[File] = Def.setting {
   new File(baseDirectory.value, "../silk-workbench")
 }
 
 val silkDistRoot: Def.Initialize[File] = Def.setting {
-  new File(baseDirectory.value, "../silk-workbench/silk-workbench-core/public/libs/silk-react-components")
+  new File(baseDirectory.value, "../silk-workbench/silk-workbench-core/public/libs/silk-legacy-ui")
 }
 
-/** list of vendor libs we maintain in the package.json */
-val LIST_OF_VENDORS = "dialog-polyfill jquery jquery-migrate jsplumb jstree lodash mark.js @eccenca/material-design-lite mdl-selectfield twbs-pagination"
+val silkLegacyUiRoot: Def.Initialize[File] = Def.setting {
+  new File(baseDirectory.value, "../silk-legacy-ui")
+}
 
 val checkJsBuildTools = taskKey[Unit]("Check the commandline tools yarn")
-val buildSilkReact = taskKey[Unit]("Builds silk React module")
-
-lazy val reactComponents = (project in file("silk-react-components"))
-  .settings(commonSettings: _*)
-  .settings(
-    name := "Silk React Components",
-    //////////////////////////////////////////////////////////////////////////////
-    // Silk React build pipeline
-    //////////////////////////////////////////////////////////////////////////////
-    /** Check that all necessary build tool for the JS pipeline are available */
-    checkJsBuildTools := Def.taskDyn {
-      if(!buildReactExternally) {
-        Def.task { ReactBuildHelper.checkReactBuildTool() }
-      } else {
-        Def.task { }
-      }
-    }.value,
-    yarnInstall := Def.taskDyn {
-      checkJsBuildTools.value
-      if(!buildReactExternally) {
-        Def.task { ReactBuildHelper.yarnInstall(baseDirectory.value) }
-      } else {
-        Def.task { }
-      }
-    }.value,
-    // Run when building silk react
-    /** Build Silk React */
-    buildSilkReact := {
-      // Build React components
-      yarnInstall.value // depend on check
-      val distRoot = silkDistRoot.value
-      val workbenchRoot = silkWorkbenchRoot.value
-      if(!buildReactExternally) {
-        val reactWatchConfig = WatchConfig(new File(baseDirectory.value, "src"), fileRegex = """\.(jsx|js|tsx|ts|scss|json)$""")
-
-        def distFile(name: String): File = new File(baseDirectory.value, "dist/" + name)
-        if (Watcher.staleTargetFiles(reactWatchConfig, Seq(distFile("main.js"), distFile("style.css")))) {
-          ReactBuildHelper.buildReactComponentsAndCopy(baseDirectory.value, distRoot, "Silk")
-        }
-        // Transpile pure JavaScript files
-        val silkReactWorkbenchRoot = new File(baseDirectory.value, "silk-workbench")
-        val changedJsFiles = Watcher.filesChanged(WatchConfig(silkReactWorkbenchRoot, fileRegex = """\.js$"""))
-
-        if(changedJsFiles.nonEmpty) {
-          // Transpile JavaScript files to ES5
-          for(file <- changedJsFiles) {
-            val relativePath = silkReactWorkbenchRoot.toURI().relativize(file.toURI()).getPath()
-            val targetFile = new File(workbenchRoot, relativePath)
-            ReactBuildHelper.transpileJavaScript(baseDirectory.value, file, targetFile)
-          }
-        }
-      }
-    },
-    (Compile / compile) := ((Compile / compile) dependsOn buildSilkReact).value,
-    watchSources ++= { // Watch all files under the silk-react-components/src directory for changes
-      if(buildReactExternally) {
-        Seq.empty
-      } else {
-        val paths = for(path <- Path.allSubpaths(baseDirectory.value / "src")) yield {
-          path._1
-        }
-        paths.toSeq
-      }
-    },
-    watchSources ++= { // Watch all JavaScript files under the silk-react-components/silk-workbench directory for changes
-      val paths = for(path <- Path.allSubpaths(baseDirectory.value / "silk-workbench")) yield {
-        path._1
-      }
-      paths.toSeq.filter(_.getName.endsWith(".js"))
-    }
-  )
-
-//////////////////////////////////////////////////////////////////////////////
-// Silk React Workbench
-//////////////////////////////////////////////////////////////////////////////
-
 val buildDiReact = taskKey[Unit]("Builds Workbench React module")
 val yarnInstall = taskKey[Unit]("Runs yarn install.")
 val generateLanguageFiles = taskKey[Unit]("Generate i18n language files.")
@@ -369,6 +295,8 @@ lazy val reactUI = (project in file("workspace"))
     /** Build DataIntegration React */
     buildDiReact := {
       generateLanguageFiles.value
+      val workbenchRoot = silkWorkbenchRoot.value
+      val legacyRoot = silkLegacyUiRoot.value
       if(!buildReactExternally) {
         // TODO: Add additional source directories
         val reactWatchConfig = WatchConfig(new File(baseDirectory.value, "src"), fileRegex = """\.(tsx|ts|scss|json)$""")
@@ -385,6 +313,19 @@ lazy val reactUI = (project in file("workspace"))
         if (Watcher.staleTargetFiles(reactWatchConfig, Seq(distFile("index.html")))) {
           ReactBuildHelper.buildReactComponents(baseDirectory.value, "Workbench")
         }
+
+        /** Transpile pure JavaScript files of the legacy UI */
+        val silkLegacyWorkbenchRoot = new File(legacyRoot, "silk-workbench")
+        val changedJsFiles = Watcher.filesChanged(WatchConfig(silkLegacyWorkbenchRoot, fileRegex = """\.js$"""))
+
+        if(changedJsFiles.nonEmpty) {
+          // Transpile JavaScript files to ES5
+          for(file <- changedJsFiles) {
+            val relativePath = silkLegacyWorkbenchRoot.toURI().relativize(file.toURI()).getPath()
+            val targetFile = new File(workbenchRoot, relativePath)
+            ReactBuildHelper.transpileJavaScript(baseDirectory.value, file, targetFile)
+          }
+        }
       }
     },
     (Compile / compile) := ((Compile / compile) dependsOn buildDiReact).value,
@@ -400,6 +341,12 @@ lazy val reactUI = (project in file("workspace"))
           new File(baseDirectory.value, "src/locales/generated/en.json")
         )
       }
+    },
+    watchSources ++= { // Watch all JavaScript files under the silk-legacy-ui/silk-workbench directory for changes
+      val paths = for(path <- Path.allSubpaths(silkLegacyUiRoot.value / "silk-workbench")) yield {
+        path._1
+      }
+      paths.toSeq.filter(_.getName.endsWith(".js"))
     }
   )
 
@@ -409,8 +356,8 @@ lazy val reactUI = (project in file("workspace"))
 
 lazy val workbenchCore = (project in file("silk-workbench/silk-workbench-core"))
   .enablePlugins(PlayScala)
-  .dependsOn(workspace, workspace % "test -> test", core % "test->test", serializationJson, reactComponents, pluginsXml % "test->compile", pluginsRdf % "test->compile")
-  .aggregate(workspace, reactComponents)
+  .dependsOn(workspace, workspace % "test -> test", core % "test->test", serializationJson, pluginsXml % "test->compile", pluginsRdf % "test->compile")
+  .aggregate(workspace)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Workbench Core",

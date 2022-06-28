@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Card, CardContent, CardTitle, Icon} from 'gui-elements-deprecated';
+import {Card, CardContent, CardTitle} from 'gui-elements-deprecated';
+import {Icon} from '@eccenca/gui-elements'
 import silkStore from "../api/silkStore";
 import ExecutionReport from "./ExecutionReport";
 
@@ -81,11 +82,11 @@ export default class WorkflowExecutionReport extends React.Component {
 
   renderTaskIcon(warnings, error) {
     if(error) {
-      return <Icon name="danger" className="silk-report-list-item-icon-red" />
+      return <Icon name="state-danger" intent={"danger"} />
     } else if(warnings != null && warnings.length > 0) {
-      return <Icon name="warning" className="silk-report-list-item-icon-yellow" />
+      return <Icon name="state-warning" intent={"warning"} />
     } else {
-      return <Icon name="done" className="silk-report-list-item-icon-green" />
+      return <Icon name="state-success" intent={"success"} />
     }
   }
 
@@ -94,19 +95,19 @@ export default class WorkflowExecutionReport extends React.Component {
       const taskReport = this.props.executionReport.taskReports[this.state.selectedIndex];
       if ('taskReports' in taskReport) {
         // This is a nested workflow execution report
-        return <WorkflowExecutionReport baseUrl={this.props.baseUrl}
+        return <WorkflowExecutionReport
                                         project={this.props.project}
                                         executionReport={taskReport} />
       } else {
         // Render the report of the selected task
-        return <ExecutionReport baseUrl={this.props.baseUrl}
+        return <ExecutionReport
                                 project={this.props.project}
                                 nodeId={nodeId}
                                 executionReport={taskReport}/>
     }
     } else {
       // Render the report of the workflow itself
-      return <ExecutionReport baseUrl={this.props.baseUrl}
+      return <ExecutionReport
                               project={this.props.project}
                               nodeId={this.props.executionReport.task.id}
                               executionReport={this.props.executionReport}
@@ -116,7 +117,6 @@ export default class WorkflowExecutionReport extends React.Component {
 }
 
 WorkflowExecutionReport.propTypes = {
-  baseUrl: PropTypes.string.isRequired, // Base URL of the DI service
   project: PropTypes.string.isRequired, // project ID
   executionMetaData: PropTypes.object,
   executionReport: PropTypes.object.isRequired,

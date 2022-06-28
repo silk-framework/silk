@@ -19,7 +19,8 @@
         "test": "node scripts/test.js",
         "test-ci": "export CI=true && node scripts/test.js --coverage --reporters=\"default\" --reporters=\"jest-junit\" --no-colors",
         "sync-trans": "sync-i18n --files 'src/locales/manual/*.json' --primary en --languages de --space 4 -- --check",
-        "i18n-parser": "node scripts/i18next-scanner.js"
+        "i18n-parser": "node scripts/i18next-scanner.js",
+        "babel": "cross-env NODE_ENV=production babel --no-babelrc --presets=babel-preset-env,babel-preset-react"
     },
     "dependencies": {
         "@blueprintjs/core": "^3.49.1",
@@ -56,6 +57,7 @@
         "redux": "^4.0.0",
         "redux-logger": "^3.0.6",
         "store": "^2.0.12",
+
         "@eccenca/superagent": "^1.4.1",
         "ecc-utils": "^1.4.0",
         "gui-elements-deprecated": "npm:@eccenca/gui-elements@^5.1.1",
@@ -190,13 +192,16 @@
         "@typescript-eslint/parser": "^4.33.0",
         "@welldone-software/why-did-you-render": "^4.0.5",
         "axios-mock-adapter": "^1.18.1",
+        "babel-cli": "^6.26.0",
         "babel-eslint": "10.1.0",
         "babel-jest": "^24.9.0",
         "babel-loader": "8.1.0",
         "babel-plugin-named-asset-import": "^0.3.6",
         "babel-preset-env": "^1.7.0",
+        "babel-preset-react": "^6.24.1",
         "babel-preset-react-app": "^9.1.2",
         "case-sensitive-paths-webpack-plugin": "2.3.0",
+        "cross-env": "^5.2.0",
         "css-loader": "^5.2.7",
         "dotenv": "8.2.0",
         "dotenv-expand": "5.1.0",

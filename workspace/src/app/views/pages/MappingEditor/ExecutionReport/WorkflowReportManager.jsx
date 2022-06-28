@@ -3,11 +3,12 @@ import PropTypes from 'prop-types';
 import silkStore from "../api/silkStore";
 import WorkflowExecutionReport from "./WorkflowExecutionReport";
 import {URI} from "ecc-utils";
+import {withHistoryHOC} from "../HierarchicalMapping/utils/withHistoryHOC";
 
 /**
  * Let's the user view execution reports.
  */
-export default class WorkflowReportManager extends React.Component {
+class WorkflowReportManager extends React.Component {
 
     constructor(props) {
         super(props);
@@ -29,7 +30,6 @@ export default class WorkflowReportManager extends React.Component {
 
     componentDidMount() {
         this.props.diStore.listExecutionReports(
-            this.props.baseUrl,
             this.props.project,
             this.props.task)
             .then((reports) => {
@@ -95,7 +95,7 @@ export default class WorkflowReportManager extends React.Component {
     }
 
     renderSelectedReport() {
-        return <WorkflowExecutionReport baseUrl={this.props.baseUrl}
+        return <WorkflowExecutionReport
                                         project={this.props.project}
                                         executionMetaData={this.state.executionMetaData}
                                         executionReport={this.state.executionReport} />
@@ -103,7 +103,6 @@ export default class WorkflowReportManager extends React.Component {
 
     updateSelectedReport(newReport) {
         this.props.diStore.retrieveExecutionReport(
-            this.props.baseUrl,
             this.props.project,
             this.props.task,
             newReport)
@@ -128,7 +127,7 @@ export default class WorkflowReportManager extends React.Component {
             const segments = uriTemplate.segment();
             const reportIdx = segments.findIndex((segment) => segment === "report");
             uriTemplate.segment(reportIdx + 3, this.state.selectedReport);
-            history.pushState(null, '', uriTemplate.toString());
+            this.props.history.pushState(null, '', uriTemplate.toString());
         } catch (e) {
             console.debug(`ReportManager: ${href} is not an URI, cannot update the window state`);
         }
@@ -136,7 +135,6 @@ export default class WorkflowReportManager extends React.Component {
 }
 
 WorkflowReportManager.propTypes = {
-    baseUrl: PropTypes.string.isRequired, // Base URL of the DI service
     project: PropTypes.string.isRequired, // project ID
     task: PropTypes.string.isRequired, // task ID
     report: PropTypes.string, // optional report time
@@ -148,3 +146,5 @@ WorkflowReportManager.propTypes = {
 WorkflowReportManager.defaultProps = {
     diStore: silkStore
 };
+
+export default withHistoryHOC(WorkflowReportManager)

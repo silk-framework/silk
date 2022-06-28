@@ -1,7 +1,6 @@
 import React from 'react';
 import { autocompleteAsync } from '../../store';
 import _ from 'lodash';
-import { isDebugMode } from '../../utils/isDebugMode';
 
 export class PropertyTypeInfo extends React.Component {
     state = {
@@ -9,7 +8,7 @@ export class PropertyTypeInfo extends React.Component {
         option: this.props.option,
         result: false,
     };
-    
+
     componentDidMount() {
         autocompleteAsync({
             entity: 'propertyType',
@@ -33,7 +32,7 @@ export class PropertyTypeInfo extends React.Component {
             }
         );
     }
-    
+
     render() {
         let text = this.state.result;
         if (this.props.appendedText) {

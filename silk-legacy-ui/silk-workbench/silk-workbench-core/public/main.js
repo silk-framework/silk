@@ -19,8 +19,6 @@
  */
 
 /* exported contentWidth
-silk-react-components/silk-workbench/silk-workbench-rules/public/js/links.js
-silk-react-components/silk-workbench/silk-workbench-rules/public/js/population.js
 */
 var helpWidth = 170;
 var contentWidth;

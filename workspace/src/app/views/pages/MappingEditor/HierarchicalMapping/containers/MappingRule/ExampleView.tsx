@@ -6,7 +6,6 @@ import _ from 'lodash';
 
 import {childExampleAsync, ruleExampleAsync} from '../../store';
 import {InfoBox} from '../../components/InfoBox';
-import {isDebugMode} from '../../utils/isDebugMode';
 import {Notification} from "@eccenca/gui-elements";
 
 interface IProps {
@@ -35,7 +34,6 @@ export const ExampleView = ({id, rawRule, ruleType, objectSourcePathContext, upd
                 setExample(example);
             },
             error => {
-                isDebugMode('err MappingRuleOverview: rule.example');
                 setError(error);
             }
         )

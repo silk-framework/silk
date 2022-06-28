@@ -32,6 +32,7 @@ const RuleTypes = ({ rule, ...otherProps }) => {
                 {_.get(rule, 'mappingTarget.valueType.nodeType', <NotAvailable />) + appendText}
             </span>
         );
+        default:
     }
 };
 

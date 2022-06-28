@@ -39,6 +39,7 @@ const RuleTitle = ({ rule, ...otherProps }) => {
     case MAPPING_RULE_TYPE_URI:
     case MAPPING_RULE_TYPE_COMPLEX_URI:
         return <span>uri</span>
+        default:
     }
 
     return <NotAvailable />;

@@ -63,7 +63,7 @@ export const ObjectRuleForm = (props: IProps) => {
     const [uriPatternSuggestions, setUriPatternSuggestions] = useState<IUriPattern[]>([])
     const [showUriPatternModal, setShowUriPatternModal] = useState<boolean>(false)
     const [targetEntityTypeOptions] = useState<Map<string, any>>(new Map())
-    const {baseUrl, project, transformTask} = useApiDetails()
+    const {project, transformTask} = useApiDetails()
     const { id, parentId, parent } = props;
 
     const autoCompleteRuleId = id || parentId;
@@ -90,7 +90,7 @@ export const ObjectRuleForm = (props: IProps) => {
 
     // Fetch labels for target entity types
     useEffect(() => {
-        if(modifiedValues.targetEntityType && modifiedValues.targetEntityType.length > 0 && baseUrl !== undefined && project && transformTask) {
+        if(modifiedValues.targetEntityType && modifiedValues.targetEntityType.length > 0 && project && transformTask) {
             modifiedValues.targetEntityType.forEach((targetEntityType) => {
                 if(typeof targetEntityType === "string") {
                     const value = uriValue(targetEntityType)
@@ -100,10 +100,10 @@ export const ObjectRuleForm = (props: IProps) => {
                 }
             })
         }
-    }, [id, parentId, !!modifiedValues.targetEntityType, baseUrl, project, transformTask])
+    }, [id, parentId, !!modifiedValues.targetEntityType, project, transformTask])
 
     const fetchTargetEntityUriInfo = async (uri: string, originalTargetEntityType: string) => {
-        const {data} = await silkApi.retrieveTargetVocabularyTypeOrPropertyInfo(baseUrl!!, project!!, transformTask!!, uri)
+        const {data} = await silkApi.retrieveTargetVocabularyTypeOrPropertyInfo(project!!, transformTask!!, uri)
         if(data?.genericInfo) {
             const info = data?.genericInfo
             const typeInfo = {value: info.uri, label: info.label ?? info.uri, description: info.description}
@@ -127,13 +127,13 @@ export const ObjectRuleForm = (props: IProps) => {
     const targetClassUris = () => modifiedValues.targetEntityType.map(t => typeof t === "string" ? pureUri(t) : pureUri(t.value))
 
     useEffect(() => {
-        if(modifiedValues.targetEntityType && modifiedValues.targetEntityType.length > 0 && baseUrl !== undefined && project) {
-            silkApi.uriPatternsByTypes(baseUrl, project, targetClassUris())
+        if(modifiedValues.targetEntityType && modifiedValues.targetEntityType.length > 0 && project) {
+            silkApi.uriPatternsByTypes(project, targetClassUris())
                 .then(result => {
                     setUriPatternSuggestions(result.data.results)
                 })
         }
-    }, [modifiedValues.targetEntityType ? targetClassUris().join("") : "", baseUrl])
+    }, [modifiedValues.targetEntityType ? targetClassUris().join("") : ""])
 
     /**
      * Saves the modified data

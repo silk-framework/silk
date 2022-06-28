@@ -1,4 +1,4 @@
-[submodule "silk-react-components/src/libs/gui-elements"]
+[submodule "libs/gui-elements"]
 	path = libs/gui-elements
 	url = https://github.com/eccenca/gui-elements.git
 	branch = develop

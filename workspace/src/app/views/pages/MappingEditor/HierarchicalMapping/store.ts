@@ -13,11 +13,11 @@ import {
     MESSAGES,
 } from './utils/constants';
 import EventEmitter from './utils/EventEmitter';
-import { isDebugMode } from './utils/isDebugMode';
 import React, {useState} from "react";
 import silkApi, {HttpResponsePromise} from '../api/silkRestApi'
 import {ITransformedSuggestion} from "./containers/SuggestionNew/suggestion.typings";
 import {IPartialAutoCompleteResult, IValidationResult } from '@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion';
+import {CONTEXT_PATH} from "../../../../constants/path";
 
 const silkStore = rxmq.channel('silk.api');
 export const errorChannel = rxmq.channel('errors');
@@ -27,7 +27,6 @@ let rootId = null;
 const vocabularyCache = {};
 
 interface IApiDetails  {
-    baseUrl?: string,
     project?: string,
     transformTask?: string,
 }
@@ -47,20 +46,16 @@ export const getApiDetails = (): IApiDetails => _apiDetails;
 export const useApiDetails = () => {
     const [apiDetails, setApiDetails] = useState<IApiDetails>({})
     _setApiDetails = setApiDetails
-    if(apiDetails.baseUrl === undefined && typeof _apiDetails.baseUrl === "string") {
-        setApiDetails(_apiDetails)
-    }
     return apiDetails;
 }
 
 /** Make sure all API details are set. */
 export function getDefinedApiDetails() {
     const apiDetails = getApiDetails()
-    if(typeof apiDetails.baseUrl !== "string" || !apiDetails.project || !apiDetails.transformTask) {
+    if(!apiDetails.project || !apiDetails.transformTask) {
         throw new Error("Requested API details, but API details are not set!")
     }
     return {
-        baseUrl: apiDetails.baseUrl as string,
         project: apiDetails.project as string,
         transformTask: apiDetails.transformTask as string,
     }
@@ -593,9 +588,9 @@ export const getHierarchyAsync = () => {
 };
 
 export const getEditorHref = ruleId => {
-    const { transformTask, baseUrl, project } = getApiDetails();
+    const { transformTask, project } = getApiDetails();
     const inlineView = (window.location !== window.parent.location) ? "true" : "false"
-    return ruleId ? `${baseUrl}/transform/${project}/${transformTask}/editor/${ruleId}?inlineView=${inlineView}` : null;
+    return ruleId ? `${CONTEXT_PATH}/transform/${project}/${transformTask}/editor/${ruleId}?inlineView=${inlineView}` : null;
 };
 
 export const getRuleAsync = (id, isObjectMapping = false) => {
@@ -638,7 +633,7 @@ export const autocompleteAsync = data => {
             channel += 'sourcePaths';
             break;
         default:
-            isDebugMode(`No autocomplete defined for ${entity}`);
+            console.warn("No auto-complete route defined for " + entity)
     }
 
     return silkStore
@@ -684,12 +679,11 @@ export const ruleRemoveAsync = id => {
 };
 
 export const copyRuleAsync = data => {
-    const {baseUrl, project, transformTask} = getApiDetails();
+    const {project, transformTask} = getApiDetails();
     return silkStore
         .request({
             topic: 'transform.task.rule.copy',
             data: {
-                baseUrl,
                 project,
                 transformTask,
                 id: data.id || MAPPING_RULE_TYPE_ROOT,
@@ -701,12 +695,12 @@ export const copyRuleAsync = data => {
 };
 
 export const schemaExampleValuesAsync = (ruleId: string) => {
-    const {baseUrl, project, transformTask} = getApiDetails();
+    const {project, transformTask} = getApiDetails();
     return silkStore
         .request({
             topic: 'transform.task.rule.example',
             data: {
-                baseUrl,
+                CONTEXT_PATH,
                 project,
                 transformTask,
                 ruleId,
@@ -716,12 +710,12 @@ export const schemaExampleValuesAsync = (ruleId: string) => {
 };
 
 export const prefixesAsync = () => {
-    const {baseUrl, project} = getApiDetails();
+    const {project} = getApiDetails();
     return silkStore
         .request({
             topic: 'transform.task.prefixes',
             data: {
-                baseUrl,
+                CONTEXT_PATH,
                 project,
             },
         })
@@ -730,9 +724,8 @@ export const prefixesAsync = () => {
 
 
 const getValuePathSuggestion = (ruleId:string, inputString: string, cursorPosition:number, isObjectPath: boolean): HttpResponsePromise<any> => {
-    const { baseUrl, transformTask, project } = getDefinedApiDetails();
+    const { transformTask, project } = getDefinedApiDetails();
     return silkApi.getSuggestionsForAutoCompletion(
-        baseUrl,
         project,
         transformTask,
         ruleId,
@@ -770,9 +763,8 @@ export const fetchUriPatternAutoCompletions = (ruleId: string | undefined, input
         if(!ruleId) {
             resolve(undefined)
         } else {
-            const {baseUrl, transformTask, project} = getDefinedApiDetails();
+            const {transformTask, project} = getDefinedApiDetails();
             silkApi.getUriTemplateSuggestionsForAutoCompletion(
-                baseUrl,
                 project,
                 transformTask,
                 ruleId,
@@ -786,13 +778,13 @@ export const fetchUriPatternAutoCompletions = (ruleId: string | undefined, input
 }
 
 const pathValidation = (inputString:string) => {
-    const {baseUrl, project} = getDefinedApiDetails()
-    return silkApi.validatePathExpression(baseUrl,project,inputString)
+    const {project} = getDefinedApiDetails()
+    return silkApi.validatePathExpression(project,inputString)
 }
 
 const uriPatternValidation = (inputString:string) => {
-    const {baseUrl, project} = getDefinedApiDetails()
-    return silkApi.validateUriPattern(baseUrl,project,inputString)
+    const {project} = getDefinedApiDetails()
+    return silkApi.validateUriPattern(project,inputString)
 }
 
 // Checks if the value path syntax is valid

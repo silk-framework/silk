@@ -31,7 +31,6 @@ import ExampleTarget from '../../../components/ExampleTarget';
 import MetadataLabel from '../../../components/Metadata/MetadataLabel';
 import MetadataDesc from '../../../components/Metadata/MetadataDesc';
 import { SourcePath } from '../../../components/SourcePath';
-import { isDebugMode } from '../../../utils/isDebugMode';
 import TargetCardinality from "../../../components/TargetCardinality";
 
 class ObjectRule extends React.Component {

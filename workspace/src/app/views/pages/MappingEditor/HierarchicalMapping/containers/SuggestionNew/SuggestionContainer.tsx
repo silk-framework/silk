@@ -118,7 +118,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         }
     }
 
-    const {baseUrl, project, transformTask} = apiDetails
+    const {project, transformTask} = apiDetails
 
     useEffect(() => {
         fetchVocabularyInfos()
@@ -130,7 +130,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
 
     // Fetch vocabulary information for the transform task, i.e. the available vocabs.
     const fetchVocabularyInfos = () => {
-        silkApi.retrieveTransformVocabularyInfos(baseUrl as string, project as string, transformTask as string)
+        silkApi.retrieveTransformVocabularyInfos(project as string, transformTask as string)
             .then(({ data }) => {
                 setVocabularies(data.vocabularies)
             })
@@ -144,7 +144,7 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     const fetchTargetPropertySuggestions = async (textQuery: string): Promise<ISuggestionCandidate[]> => {
         const maxResults = 20
         try {
-            const {data} = await silkApi.retrieveTransformTargetProperties(baseUrl as string, project as string, transformTask as string, ruleId,
+            const {data} = await silkApi.retrieveTransformTargetProperties(project as string, transformTask as string, ruleId,
                 textQuery, maxResults, selectedVocabs)
             if (Array.isArray(data)) {
                 return data.map(tp => {

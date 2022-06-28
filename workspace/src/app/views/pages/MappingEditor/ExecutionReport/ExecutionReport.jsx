@@ -15,11 +15,11 @@ export default class ExecutionReport extends React.Component {
         };
         this.onRuleNavigation = this.onRuleNavigation.bind(this);
     }
-    
+
     onRuleNavigation({newRuleId}) {
         this.setState({currentRuleId: newRuleId});
     }
-    
+
     renderSummary() {
         let title;
         if (this.props.executionReport.entityCount != null && this.props.executionReport.operationDesc != null) {
@@ -123,7 +123,7 @@ export default class ExecutionReport extends React.Component {
             )
         }</div>
     }
-    
+
     renderTransformReport() {
         return <div className="mdl-grid mdl-grid--no-spacing">
             <div className="mdl-cell mdl-cell--3-col">
@@ -140,7 +140,7 @@ export default class ExecutionReport extends React.Component {
             </div>
         </div>
     }
-    
+
     generateIcons() {
         let ruleIcons = {};
         for (let [ruleId, ruleResults] of Object.entries(this.props.executionReport.ruleResults)) {
@@ -152,7 +152,7 @@ export default class ExecutionReport extends React.Component {
         }
         return ruleIcons
     }
-    
+
     renderRuleReport() {
         const ruleResults = this.props.executionReport.ruleResults[this.state.currentRuleId];
         let title;
@@ -172,7 +172,7 @@ export default class ExecutionReport extends React.Component {
             </Card>
         </div>
     }
-    
+
     renderRuleErrors(ruleResults) {
         return <Table className="di-execution-report-table" style={{width: "100%"}}>
             <TableHead>
@@ -187,7 +187,7 @@ export default class ExecutionReport extends React.Component {
             </TableBody>
         </Table>
     }
-    
+
     renderRuleError(ruleError) {
         return <TableRow key={ruleError.entity}>
             <TableCell><div className="silk-report-errors-value">{ruleError.entity}</div></TableCell>
@@ -195,7 +195,7 @@ export default class ExecutionReport extends React.Component {
             <TableCell><div className="silk-report-errors-value">{ruleError.error}</div></TableCell>
         </TableRow>
     }
-    
+
     render() {
         return <div>
             {this.renderSummary()}
@@ -205,7 +205,6 @@ export default class ExecutionReport extends React.Component {
 }
 
 ExecutionReport.propTypes = {
-    baseUrl: PropTypes.string.isRequired, // Base URL of the DI service
     project: PropTypes.string.isRequired, // project ID
     nodeId: PropTypes.string.isRequired, // workflow node ID
     executionReport: PropTypes.object, // The execution report to render

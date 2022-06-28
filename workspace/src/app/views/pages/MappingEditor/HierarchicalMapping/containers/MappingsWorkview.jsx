@@ -22,7 +22,6 @@ import {
     MESSAGES,
 } from '../utils/constants';
 import EventEmitter from '../utils/EventEmitter';
-import {isDebugMode} from '../utils/isDebugMode';
 
 class MappingsWorkview extends React.Component {
     // define property types
@@ -236,7 +235,6 @@ class MappingsWorkview extends React.Component {
         });
         const apiDetails = getApiDetails();
         const copyingData = {
-            baseUrl: apiDetails.baseUrl,
             project: apiDetails.project,
             transformTask: apiDetails.transformTask,
             id,
@@ -284,7 +282,6 @@ class MappingsWorkview extends React.Component {
     handleClone(id, type, parent = false) {
         const apiDetails = getApiDetails();
         const copyingData = {
-            baseUrl: apiDetails.baseUrl,
             project: apiDetails.project,
             transformTask: apiDetails.transformTask,
             id,

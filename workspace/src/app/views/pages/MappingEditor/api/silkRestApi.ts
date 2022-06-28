@@ -1,6 +1,7 @@
 import superagent from '@eccenca/superagent';
 import Promise from 'bluebird';
 import {IUriPatternsResult} from "./types";
+import {CONTEXT_PATH} from "../../../../constants/path";
 
 const CONTENT_TYPE_JSON = 'application/json';
 
@@ -18,8 +19,8 @@ export type HttpResponsePromise<T> = Promise<IHttpResponse<T>>
 const silkApi = {
 
     /** returns the JSON representation of a DI task */
-    getTask: function(baseUrl, projectId, taskId) {
-        const requestUrl = this.genericTaskEndpoint(baseUrl, projectId, taskId);
+    getTask: function(projectId, taskId) {
+        const requestUrl = this.genericTaskEndpoint(projectId, taskId);
 
         const promise = superagent
             .get(requestUrl)
@@ -36,8 +37,8 @@ const silkApi = {
      *    - If the new value is not an object it will overwrite the old value
      *  - It's not possible to remove a property, but only to set it to null. TODO: Clarify with Robert if there is a way to remove a property
      **/
-    patchTask: function( baseUrl, projectId, taskId, patchJson) {
-        const requestUrl = this.genericTaskEndpoint(baseUrl, projectId, taskId);
+    patchTask: function( projectId, taskId, patchJson) {
+        const requestUrl = this.genericTaskEndpoint(projectId, taskId);
 
         const promise = superagent
             .patch(requestUrl)
@@ -49,8 +50,8 @@ const silkApi = {
     /** Configure a task activity. This should be done before starting the activity.
      *  @param config a JS object interpreted as Map containing the activity config parameters
      * */
-    configureTaskActivity: function(baseUrl, projectId, taskId, activityId, config) {
-        const requestUrl = this.taskActivityConfigEndpoint(baseUrl, projectId, taskId, activityId);
+    configureTaskActivity: function(projectId, taskId, activityId, config) {
+        const requestUrl = this.taskActivityConfigEndpoint(projectId, taskId, activityId);
 
         const promise = superagent
             .post(requestUrl)
@@ -61,8 +62,8 @@ const silkApi = {
     },
 
     /** Executes an activity. Blocks until the activity finished executing. */
-    executeTaskActivityBlocking: function(baseUrl, projectId, taskId, activityId, config) {
-        const requestUrl = this.taskActivityExecuteBlockingEndpoint(baseUrl, projectId, taskId, activityId);
+    executeTaskActivityBlocking: function(projectId, taskId, activityId, config) {
+        const requestUrl = this.taskActivityExecuteBlockingEndpoint(projectId, taskId, activityId);
 
         const promise = superagent
             .post(requestUrl)
@@ -75,8 +76,8 @@ const silkApi = {
     /**
      * Returns a promise of the activity result value as JSON.
      */
-    activityResult: function(baseUrl, projectId, taskId, activityId) {
-        const requestUrl = this.taskActivityValueEndpoint(baseUrl, projectId, taskId, activityId);
+    activityResult: function(projectId, taskId, activityId) {
+        const requestUrl = this.taskActivityValueEndpoint(projectId, taskId, activityId);
 
         const promise = superagent
             .get(requestUrl)
@@ -88,8 +89,8 @@ const silkApi = {
     /**
      * Lists reports.
      */
-    listReports: function(baseUrl, projectId, taskId) {
-        const requestUrl = this.reportListEndpoint(baseUrl, projectId, taskId);
+    listReports: function(projectId, taskId) {
+        const requestUrl = this.reportListEndpoint(projectId, taskId);
 
         const promise = superagent
             .get(requestUrl)
@@ -101,8 +102,8 @@ const silkApi = {
     /**
      * Retrieves a report.
      */
-    retrieveReport: function(baseUrl, projectId, taskId, time) {
-        const requestUrl = this.reportEndpoint(baseUrl, projectId, taskId, time);
+    retrieveReport: function(projectId, taskId, time) {
+        const requestUrl = this.reportEndpoint(projectId, taskId, time);
 
         const promise = superagent
             .get(requestUrl)
@@ -114,8 +115,8 @@ const silkApi = {
     /**
      * Retrieves reports for a given workflow node.
      */
-    retrieveWorkflowNodeExecutionReports: function(baseUrl, projectId, taskId, nodeId) {
-        const requestUrl = this.workflowNodeExecutionReportsEndpoint(baseUrl, projectId, taskId, nodeId);
+    retrieveWorkflowNodeExecutionReports: function(projectId, taskId, nodeId) {
+        const requestUrl = this.workflowNodeExecutionReportsEndpoint(projectId, taskId, nodeId);
 
         const promise = superagent
             .get(requestUrl)
@@ -125,8 +126,8 @@ const silkApi = {
     },
 
     /** Retrieves information of the registered vocabularies of this transformation */
-    retrieveTransformVocabularyInfos: function(baseUrl: string, projectId: string, transformTaskId: string): HttpResponsePromise<any> {
-        const requestUrl = this.vocabularyInfoEndpoint(baseUrl, projectId, transformTaskId)
+    retrieveTransformVocabularyInfos: function(projectId: string, transformTaskId: string): HttpResponsePromise<any> {
+        const requestUrl = this.vocabularyInfoEndpoint(projectId, transformTaskId)
 
         const promise = superagent
             .get(requestUrl)
@@ -139,8 +140,8 @@ const silkApi = {
      * Fetches infos about a target type or property URI from the vocabulary.
      * @param uri The target type or property URI.
      */
-    retrieveTargetVocabularyTypeOrPropertyInfo: function(baseUrl: string, projectId: string, transformTaskId: string, uri: string): HttpResponsePromise<any> {
-        const requestUrl = this.targetVocabularyTypeOrPropertyInfoEndpoint(baseUrl, projectId, transformTaskId)
+    retrieveTargetVocabularyTypeOrPropertyInfo: function(projectId: string, transformTaskId: string, uri: string): HttpResponsePromise<any> {
+        const requestUrl = this.targetVocabularyTypeOrPropertyInfoEndpoint(projectId, transformTaskId)
 
         const promise = superagent
             .get(requestUrl)
@@ -153,10 +154,10 @@ const silkApi = {
     },
 
     /** Retrieves target properties that are valid for the specific transform rule as target property. */
-    retrieveTransformTargetProperties: function(baseUrl: string, projectId: string, taskId: string, ruleId: string,
+    retrieveTransformTargetProperties: function(projectId: string, taskId: string, ruleId: string,
                                                 searchTerm?: string, maxResults: number = 30, vocabularies?: string[],
                                                 fullUris: boolean = true): HttpResponsePromise<any> {
-        const requestUrl = this.transformTargetPropertyEndpoint(baseUrl, projectId, taskId, ruleId, searchTerm, maxResults, fullUris);
+        const requestUrl = this.transformTargetPropertyEndpoint(projectId, taskId, ruleId, searchTerm, maxResults, fullUris);
 
         const promise = superagent
             .post(requestUrl)
@@ -170,8 +171,8 @@ const silkApi = {
     /**
      * Requests auto-completion suggestions for the script task code.
      */
-    completions: function(baseUrl, projectId, taskId, requestJson) {
-        const requestUrl = this.completionEndpoint(baseUrl, projectId, taskId);
+    completions: function(projectId, taskId, requestJson) {
+        const requestUrl = this.completionEndpoint(projectId, taskId);
 
         const promise = superagent
             .post(requestUrl)
@@ -183,8 +184,8 @@ const silkApi = {
     },
 
     /** Returns information relevant for initializing the UI. */
-    initFrontendInfo: function(baseUrl) {
-        const requestUrl = this.initFrontendEndpoint(baseUrl)
+    initFrontendInfo: function() {
+        const requestUrl = this.initFrontendEndpoint()
 
         return this.handleErrorCode(
             superagent
@@ -194,8 +195,8 @@ const silkApi = {
     },
 
     /** Returns all known URI patterns for the given type URIs. */
-    uriPatternsByTypes: function(baseUrl: string, projectId: string, typeUris: string[]): HttpResponsePromise<IUriPatternsResult> {
-        const requestUrl = this.uriPatternsByTypesEndpoint(baseUrl)
+    uriPatternsByTypes: function(projectId: string, typeUris: string[]): HttpResponsePromise<IUriPatternsResult> {
+        const requestUrl = this.uriPatternsByTypesEndpoint()
 
         return this.handleErrorCode(superagent
             .post(requestUrl)
@@ -224,75 +225,75 @@ const silkApi = {
     },
 
     // Root URL of the (new) REST API
-    apiBase: function(baseUrl) {
-        return `${baseUrl}/api`
+    apiBase: function() {
+        return `${CONTEXT_PATH}/api`
     },
 
     // Root URL of the (new) workspace REST API
-    workspaceApi: function(baseUrl) {
-        return `${this.apiBase(baseUrl)}/workspace`
+    workspaceApi: function() {
+        return `${this.apiBase()}/workspace`
     },
 
     // Endpoint the returns basis information for the (new) frontend UI to initialize.
-    initFrontendEndpoint: function (baseUrl) {
-        return `${this.workspaceApi(baseUrl)}/initFrontend`
+    initFrontendEndpoint: function () {
+        return `${this.workspaceApi()}/initFrontend`
     },
 
-    genericTaskEndpoint: function(baseUrl, projectId, taskId) {
-        return `${baseUrl}/workspace/projects/${projectId}/tasks/${taskId}`;
+    genericTaskEndpoint: function(projectId, taskId) {
+        return `${CONTEXT_PATH}/workspace/projects/${projectId}/tasks/${taskId}`;
     },
 
-    taskActivityExecuteBlockingEndpoint: function(baseUrl, projectId, taskId, activityId) {
-        return `${baseUrl}/workspace/projects/${projectId}/tasks/${taskId}/activities/${activityId}/startBlocking`;
+    taskActivityExecuteBlockingEndpoint: function(projectId, taskId, activityId) {
+        return `${CONTEXT_PATH}/workspace/projects/${projectId}/tasks/${taskId}/activities/${activityId}/startBlocking`;
     },
 
-    taskActivityValueEndpoint: function(baseUrl, projectId, taskId, activityId) {
-        return `${baseUrl}/workspace/projects/${projectId}/tasks/${taskId}/activities/${activityId}/value`;
+    taskActivityValueEndpoint: function(projectId, taskId, activityId) {
+        return `${CONTEXT_PATH}/workspace/projects/${projectId}/tasks/${taskId}/activities/${activityId}/value`;
     },
 
     /** Endpoint for configuring an activity or getting the current configuration.
      **/
-    taskActivityConfigEndpoint: function(baseUrl, projectId, taskId, activityId) {
-        return `${baseUrl}/workspace/projects/${projectId}/tasks/${taskId}/activities/${activityId}/config`;
+    taskActivityConfigEndpoint: function(projectId, taskId, activityId) {
+        return `${CONTEXT_PATH}/workspace/projects/${projectId}/tasks/${taskId}/activities/${activityId}/config`;
     },
 
-    completionEndpoint: function(baseUrl, projectId, taskId) {
-        return `${baseUrl}/scripts/projects/${projectId}/tasks/${taskId}/completions`;
+    completionEndpoint: function(projectId, taskId) {
+        return `${CONTEXT_PATH}/scripts/projects/${projectId}/tasks/${taskId}/completions`;
     },
 
-    reportListEndpoint: function(baseUrl, projectId, taskId) {
-        return `${baseUrl}/api/workspace/reports/list?projectId=${projectId}&taskId=${taskId}`;
+    reportListEndpoint: function(projectId, taskId) {
+        return `${CONTEXT_PATH}/api/workspace/reports/list?projectId=${projectId}&taskId=${taskId}`;
     },
 
-    reportEndpoint: function(baseUrl, projectId, taskId, time) {
-        return `${baseUrl}/api/workspace/reports/report?projectId=${projectId}&taskId=${taskId}&time=${time}`;
+    reportEndpoint: function(projectId, taskId, time) {
+        return `${CONTEXT_PATH}/api/workspace/reports/report?projectId=${projectId}&taskId=${taskId}&time=${time}`;
     },
 
-    workflowNodeExecutionReportsEndpoint: function(baseUrl, projectId, taskId, nodeId) {
-        return `${baseUrl}/api/workspace/reports/currentReport/nodeReports?projectId=${projectId}&taskId=${taskId}&nodeId=${nodeId}`;
+    workflowNodeExecutionReportsEndpoint: function(projectId, taskId, nodeId) {
+        return `${CONTEXT_PATH}/api/workspace/reports/currentReport/nodeReports?projectId=${projectId}&taskId=${taskId}&nodeId=${nodeId}`;
     },
 
-    vocabularyInfoEndpoint: function(baseUrl: string, projectId: string, transformTaskId: string) {
-        return `${baseUrl}/transform/tasks/${projectId}/${transformTaskId}/targetVocabulary/vocabularies`;
+    vocabularyInfoEndpoint: function(projectId: string, transformTaskId: string) {
+        return `${CONTEXT_PATH}/transform/tasks/${projectId}/${transformTaskId}/targetVocabulary/vocabularies`;
     },
 
-    targetVocabularyTypeOrPropertyInfoEndpoint: function(baseUrl: string, projectId: string, transformTaskId: string) {
-        return `${baseUrl}/transform/tasks/${projectId}/${transformTaskId}/targetVocabulary/typeOrProperty`;
+    targetVocabularyTypeOrPropertyInfoEndpoint: function(projectId: string, transformTaskId: string) {
+        return `${CONTEXT_PATH}/transform/tasks/${projectId}/${transformTaskId}/targetVocabulary/typeOrProperty`;
     },
 
-    uriPatternsByTypesEndpoint: function(baseUrl) {
-        return `${baseUrl}/api/workspace/uriPatterns`
+    uriPatternsByTypesEndpoint: function() {
+        return `${CONTEXT_PATH}/api/workspace/uriPatterns`
     },
 
-    transformTargetPropertyEndpoint: function(baseUrl: string, projectId: string, transformTaskId: string, ruleId: string,
+    transformTargetPropertyEndpoint: function(projectId: string, transformTaskId: string, ruleId: string,
                                               searchTerm: string | undefined, maxResults: number, fullUris: boolean): string {
         const encodedSearchTerm = searchTerm ? encodeURIComponent(searchTerm) : ""
-        return `${baseUrl}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/targetProperties?term=${encodedSearchTerm}&maxResults=${maxResults}&fullUris=${fullUris}`
+        return `${CONTEXT_PATH}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/targetProperties?term=${encodedSearchTerm}&maxResults=${maxResults}&fullUris=${fullUris}`
     },
 
-    getSuggestionsForAutoCompletion: function(baseUrl: string, projectId:string, transformTaskId:string, ruleId:string,
+    getSuggestionsForAutoCompletion: function(projectId:string, transformTaskId:string, ruleId:string,
                                               inputString:string, cursorPosition: number, isObjectPath: boolean): HttpResponsePromise<any> {
-        const requestUrl = `${baseUrl}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/partialSourcePaths`;
+        const requestUrl = `${CONTEXT_PATH}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/partialSourcePaths`;
         const promise = superagent
             .post(requestUrl)
             .set("Content-Type", CONTENT_TYPE_JSON)
@@ -300,11 +301,11 @@ const silkApi = {
         return this.handleErrorCode(promise)
     },
 
-    getUriTemplateSuggestionsForAutoCompletion: function(baseUrl: string, projectId:string, transformTaskId:string, ruleId:string,
+    getUriTemplateSuggestionsForAutoCompletion: function(projectId:string, transformTaskId:string, ruleId:string,
                                                          inputString:string,
                                                          cursorPosition: number,
                                                          objectContextPath?: string): HttpResponsePromise<any> {
-        const requestUrl = `${baseUrl}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/uriPattern`;
+        const requestUrl = `${CONTEXT_PATH}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/completions/uriPattern`;
         const promise = superagent
             .post(requestUrl)
             .set("Content-Type", CONTENT_TYPE_JSON)
@@ -312,8 +313,8 @@ const silkApi = {
         return this.handleErrorCode(promise)
     },
 
-    validatePathExpression: function(baseUrl:string, projectId:string, pathExpression: string) {
-        const requestUrl = `${baseUrl}/api/workspace/validation/sourcePath/${projectId}`;
+    validatePathExpression: function(projectId:string, pathExpression: string) {
+        const requestUrl = `${CONTEXT_PATH}/api/workspace/validation/sourcePath/${projectId}`;
         const promise = superagent
             .post(requestUrl)
             .set("Content-Type", CONTENT_TYPE_JSON)
@@ -321,8 +322,8 @@ const silkApi = {
         return this.handleErrorCode(promise);
     },
 
-    validateUriPattern: function(baseUrl:string, projectId:string, uriPattern: string) {
-        const requestUrl = `${baseUrl}/api/workspace/validation/uriPattern/${projectId}`;
+    validateUriPattern: function(projectId:string, uriPattern: string) {
+        const requestUrl = `${CONTEXT_PATH}/api/workspace/validation/uriPattern/${projectId}`;
         const promise = superagent
             .post(requestUrl)
             .set("Content-Type", CONTENT_TYPE_JSON)
@@ -331,8 +332,8 @@ const silkApi = {
     },
 
     /** Reorder the (child) mapping rules of a root/object mapping. */
-    reorderRules: function(baseUrl: string, projectId: string, transformTaskId: string, ruleId: string, childrenRules: any) {
-        const requestUrl = `${baseUrl}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/rules/reorder`;
+    reorderRules: function(projectId: string, transformTaskId: string, ruleId: string, childrenRules: any) {
+        const requestUrl = `${CONTEXT_PATH}/transform/tasks/${projectId}/${transformTaskId}/rule/${ruleId}/rules/reorder`;
         const promise = superagent
             .post(requestUrl)
             .set("Content-Type", CONTENT_TYPE_JSON)
