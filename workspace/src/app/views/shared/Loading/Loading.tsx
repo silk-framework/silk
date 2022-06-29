@@ -25,7 +25,7 @@ export const Loading = memo<IProps>(function LoadingIndicator({
     let forwardedProps = {};
     switch (true) {
         case posGlobal:
-            forwardedProps = { position: "global", color: "primary" };
+            forwardedProps = { position: "global", color: "primary", className: "spinner-global" };
             break;
         case posInline:
             forwardedProps = { position: "inline" };

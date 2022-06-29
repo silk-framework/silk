@@ -37,6 +37,8 @@ case class LevenshteinDistance(
   /**The size of the q-Grams to be indexed */
   private val q = 2
 
+  private val indexSize = BigInt(maxChar - minChar + 1).pow(q).toInt
+
   override def evaluate(str1: String, str2: String, limit: Double) = {
     if (abs(str1.length - str2.length) > limit)
       Double.PositiveInfinity
@@ -50,7 +52,11 @@ case class LevenshteinDistance(
 
     val indices = qGramsReordered.take(limit.toInt * q + 1).map(indexQGram).toSet
 
-    Index.oneDim(indices, BigInt(maxChar - minChar + 1).pow(q).toInt)
+    Index.oneDim(indices, indexSize)
+  }
+
+  override def emptyIndex(limit: Double): Index = {
+    Index.oneDim(Set.empty, indexSize)
   }
 
   private def indexQGram(qGram: String): Int = {

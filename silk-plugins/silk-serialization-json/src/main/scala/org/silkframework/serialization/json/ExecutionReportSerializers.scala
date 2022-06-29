@@ -2,8 +2,8 @@ package org.silkframework.serialization.json
 
 import org.silkframework.execution.{ExecutionReport, SimpleExecutionReport}
 import org.silkframework.rule.TransformSpec
-import org.silkframework.rule.execution.TransformReport
 import org.silkframework.rule.execution.TransformReport.{RuleError, RuleResult}
+import org.silkframework.rule.execution.{Linking, TransformReport}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.ExecutionReportSerializers.Keys._
 import org.silkframework.serialization.json.JsonHelpers._
@@ -74,6 +74,12 @@ object ExecutionReportSerializers {
 
     private def deserializeValue(value: JsValue): (String, String) = {
       (stringValue(value, KEY), stringValue(value, VALUE))
+    }
+  }
+
+  implicit object LinkingJsonFormat extends WriteOnlyJsonFormat[Linking] {
+    override def write(value: Linking)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      ExecutionReportJsonFormat.serializeBasicValues(value)
     }
   }
 

@@ -30,10 +30,10 @@ case class Aggregation(id: Identifier = Operator.generateId,
                        operators: Seq[SimilarityOperator]) extends SimilarityOperator {
 
   require(weight > 0, "weight > 0")
-  //TODO learning currently may produce empty aggreagations when cleaning
+  //TODO learning currently may produce empty aggregations when cleaning
   //require(!operators.isEmpty, "!operators.isEmpty")
 
-  def indexing = operators.exists(_.indexing)
+  def indexing: Boolean = operators.exists(_.indexing)
 
   /**
    * Computes the similarity between two entities.
@@ -44,16 +44,7 @@ case class Aggregation(id: Identifier = Operator.generateId,
    *         None, if no similarity could be computed.
    */
   override def apply(entities: DPair[Entity], limit: Double): Option[Double] = {
-    val totalWeights = operators.foldLeft(0)(_ + _.weight)
-
-    var weightedValues: List[WeightedSimilarityScore] = Nil
-    for(op <- operators) {
-      val opThreshold = aggregator.computeThreshold(limit, op.weight.toDouble / totalWeights)
-      val score = op(entities, opThreshold)
-      weightedValues ::= WeightedSimilarityScore(score, op.weight)
-    }
-
-    aggregator.evaluate(weightedValues).score
+    aggregator(operators, entities, limit).score
   }
 
   /**
@@ -64,15 +55,12 @@ case class Aggregation(id: Identifier = Operator.generateId,
    * @return A set of (multidimensional) indexes. Entities within the threshold will always get the same index.
    */
   override def index(entity: Entity, sourceOrTarget: Boolean, threshold: Double): Index = {
-    val totalWeights = operators.map(_.weight).sum
-
     val indexSets = {
       for (op <- operators if op.indexing) yield {
-        val opThreshold = aggregator.computeThreshold(threshold, op.weight.toDouble / totalWeights)
-        val index = op.index(entity, sourceOrTarget, opThreshold)
+        val index = op.index(entity, sourceOrTarget, threshold)
         index
       }
-    }.filterNot(_.isEmpty)
+    }
 
     aggregator.aggregateIndexes(indexSets)
   }
@@ -100,7 +88,7 @@ object Aggregation {
       Aggregation(
         id = Operator.readId(node),
         weight = if (weightStr.isEmpty) 1 else weightStr.toInt,
-        operators = node.child.filter(n => n.label == "Aggregate" || n.label == "Compare").map(fromXml[SimilarityOperator]),
+        operators = node.child.filter(n => n.label == "Aggregate" || n.label == "Compare").map(fromXml[SimilarityOperator]).toArray[SimilarityOperator],
         aggregator = aggregator
       )
     }

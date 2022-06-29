@@ -63,7 +63,11 @@ case class NumericEqualityMetric(@Param("The range of tolerance in floating poin
     formatted.hashCode
   }
 
-  override def indexValue(str: String, threshold: Double, sourceOrTarget: Boolean): Index = {
+  override def emptyIndex(limit: Double): Index = {
+    Index.oneDim(Set.empty)
+  }
+
+  override def indexValue(str: String, limit: Double, sourceOrTarget: Boolean): Index = {
     try {
       val doubleValue = str.toDouble
       val indexValues = if (precision == 0.0) {
@@ -77,7 +81,7 @@ case class NumericEqualityMetric(@Param("The range of tolerance in floating poin
       Index.oneDim(indexValues)
     } catch {
       case _: NumberFormatException =>
-        Index.empty
+        emptyIndex(limit)
     }
   }
 }

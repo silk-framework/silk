@@ -98,7 +98,7 @@ const MappingsList = ({
 
         return (
             <div className="ecc-silk-mapping__ruleslist">
-                {reorderingRequestPending && <Spinner position={"global"} />}
+                {reorderingRequestPending && <Spinner position={"global"} className={"spinner-global"} />}
                 <Card shadow={0}>
                     <CardTitle>
                         <div className="mdl-card__title-text">
