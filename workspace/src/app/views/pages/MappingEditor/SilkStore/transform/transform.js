@@ -2,8 +2,6 @@
 
 import rxmq from 'ecc-messagebus';
 import superagent from '@eccenca/superagent';
-
-import _ from 'lodash';
 import {CONTEXT_PATH} from "../../../../../constants/path";
 
 const silkStore = rxmq.channel('silk.api');

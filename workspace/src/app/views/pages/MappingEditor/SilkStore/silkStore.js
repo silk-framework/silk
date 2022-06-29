@@ -2,4 +2,5 @@
 
 import * as transform from './transform/transform';
 
-export default {transform};
+const t = {transform}
+export default t;

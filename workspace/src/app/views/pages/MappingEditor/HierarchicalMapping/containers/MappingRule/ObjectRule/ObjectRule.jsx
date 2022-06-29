@@ -96,11 +96,6 @@ class ObjectRule extends React.Component {
     }
 
     editUriRule(event) {
-        if (isDebugMode()) {
-            event.stopPropagation();
-            alert('Normally this would open the complex editor (aka jsplumb view)');
-            return false;
-        }
         if (this.state.href) {
             window.location.href = this.state.href;
         } else {
@@ -130,12 +125,6 @@ class ObjectRule extends React.Component {
     }
 
     removeUriRule() {
-        if (isDebugMode()) {
-            event.stopPropagation();
-            alert('Normally this would open the complex editor (aka jsplumb view)');
-            return false;
-        }
-
         const rule = _.cloneDeep(this.props.ruleData);
         const callbackFn = () => {
             rule.rules.uriRule = null;

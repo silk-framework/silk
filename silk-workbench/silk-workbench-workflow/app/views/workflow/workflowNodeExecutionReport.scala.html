@@ -4,10 +4,10 @@
 @import org.silkframework.runtime.activity.UserContext
 @import controllers.core.routes.{Assets => CoreAssets}
 
-@(context: Context[Workflow], nodeId: String)(implicit request: RequestHeader, userContext: UserContext)
+@import config.WorkbenchConfig.WorkspaceReact
+@(context: Context[Workflow], nodeId: String)(implicit request: RequestHeader, userContext: UserContext, workspaceReact: WorkspaceReact)
 
 @header = {
-  <script src="@CoreAssets.at("libs/silk-legacy-ui/main.js")" type="text/javascript"></script>
   <style>
     html, body { background-color: #f5f5f5 !important }
   </style>
@@ -16,8 +16,10 @@
 @content = {
   <div id="react-workflowNodeExecutionReport"></div>
 
+  @coreLinks.mainJs()
+
   <script type="text/javascript">
-    silkReactComponents.workflowNodeExecutionReport(
+    window.silkReactComponents.workflowNodeExecutionReport(
       'react-workflowNodeExecutionReport',
       {
           baseUrl: '@config.baseUrl',

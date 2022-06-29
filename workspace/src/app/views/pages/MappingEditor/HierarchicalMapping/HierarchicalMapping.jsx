@@ -1,20 +1,15 @@
 import React from 'react';
 import _ from 'lodash';
-import {
-    Button,
-    DisruptiveButton,
-    Spinner,
-} from 'gui-elements-deprecated';
-import { URI } from 'ecc-utils';
+import {Spinner,} from 'gui-elements-deprecated';
+import {URI} from 'ecc-utils';
 import PropTypes from 'prop-types';
 
-import { ruleRemoveAsync, setApiDetails } from './store';
+import {ruleRemoveAsync, setApiDetails} from './store';
 
 import MappingsTree from './containers/MappingsTree';
 import MappingsWorkview from './containers/MappingsWorkview';
 import MessageHandler from './components/MessageHandler';
-import { MAPPING_RULE_TYPE_OBJECT } from './utils/constants';
-import { MESSAGES } from './utils/constants';
+import {MAPPING_RULE_TYPE_OBJECT, MESSAGES} from './utils/constants';
 import RemoveMappingRuleDialog from './elements/RemoveMappingRuleDialog';
 import DiscardChangesDialog from './elements/DiscardChangesDialog';
 import EventEmitter from './utils/EventEmitter';
@@ -28,13 +23,21 @@ class HierarchicalMapping extends React.Component {
         project: PropTypes.string.isRequired, // Current DI Project
         transformTask: PropTypes.string.isRequired, // Current Transformation
         initialRule: PropTypes.string,
+        history: PropTypes.object
     };
 
     constructor(props) {
         super(props);
         const {
             initialRule,
+            project,
+            transformTask
         } = this.props;
+
+        setApiDetails({
+            project,
+            transformTask,
+        });
 
         this.state = {
             // currently selected rule id
@@ -86,7 +89,7 @@ class HierarchicalMapping extends React.Component {
             try {
                 const uriTemplate = new URI(href);
                 const updatedUrl = HierarchicalMapping.updateMappingEditorUrl(uriTemplate, this.state.currentRuleId);
-                history.pushState(null, '', updatedUrl);
+                this.props.history.pushState(null, '', updatedUrl);
             } catch (e) {
                 console.debug(`HierarchicalMapping: ${href} is not an URI, cannot update the window state`);
             }
@@ -147,8 +150,6 @@ class HierarchicalMapping extends React.Component {
                 askForRemove: true,
                 removeFunction,
             });
-        } else if (isDebugMode()) {
-            console.error('Wrong arguments passed to handleClickRemove Function');
         }
     };
 
@@ -246,31 +247,8 @@ class HierarchicalMapping extends React.Component {
         const loading = this.state.loading ? <Spinner /> : false;
 
         // render mapping edit / create view of value and object
-        const debugOptions = isDebugMode() ? (
-            <div>
-                <DisruptiveButton
-                    onClick={() => {
-                        localStorage.setItem('mockStore', null);
-                        location.reload();
-                    }}
-                >
-                    RESET
-                </DisruptiveButton>
-                <Button
-                    onClick={() => {
-                        EventEmitter.emit(MESSAGES.RELOAD, true);
-                    }}
-                >
-                    RELOAD
-                </Button>
-                <hr />
-            </div>
-        ) : (
-            false
-        );
         return (
             <section className="ecc-silk-mapping">
-                {debugOptions}
                 {
                     askForRemove && (
                         <RemoveMappingRuleDialog

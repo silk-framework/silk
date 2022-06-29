@@ -62,7 +62,8 @@
         "ecc-utils": "^1.4.0",
         "gui-elements-deprecated": "npm:@eccenca/gui-elements@^5.1.1",
         "ecc-messagebus": "^3.6.0",
-        "react-beautiful-dnd": "^13.0.0"
+        "react-beautiful-dnd": "^13.0.0",
+        "mdl-selectfield": "1.0.3"
     },
     "husky": {
         "hooks": {

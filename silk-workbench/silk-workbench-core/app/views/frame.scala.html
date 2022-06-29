@@ -1,6 +1,7 @@
 @import controllers.core.routes.Assets
 
-@(header: Html)(content: Html)
+@import config.WorkbenchConfig.WorkspaceReact
+@(header: Html)(content: Html)(implicit workspaceReact: WorkspaceReact)
 
 <!DOCTYPE html>
 
@@ -27,7 +28,7 @@
     @header
 
     <!-- MDL inclusions: -->
-    <link type="text/css" href="@Assets.at("libs/silk-legacy-ui/style.css")" rel="stylesheet" />
+    @coreLinks.mainStyles()
 
     @if(config.workbench.mdlStyle.isDefined) {
       @* This indicates that Silk is running in a modified version which can supply an alternative version of MDL. *@

@@ -222,7 +222,7 @@ export const ObjectRuleForm = (props: IProps) => {
         }
 
         const allowConfirm =
-            modifiedValues.type === MAPPING_RULE_TYPE_ROOT || !_.isEmpty(modifiedValues.targetProperty) || modifiedValues.sourceProperty && !_.isEmpty(modifiedValues.sourceProperty.trim());
+            modifiedValues.type === MAPPING_RULE_TYPE_ROOT || !_.isEmpty(modifiedValues.targetProperty) || (modifiedValues.sourceProperty && !_.isEmpty(modifiedValues.sourceProperty.trim()));
         const errorMessage = saveObjectError && (
             <ErrorView {...saveObjectError} />
         );
@@ -442,7 +442,7 @@ export const ObjectRuleForm = (props: IProps) => {
                             className="ecc-silk-mapping__ruleseditor__actionrow-save"
                             raised
                             onClick={handleConfirm}
-                            disabled={!allowConfirm || !changed || !uriPatternIsValid && modifiedValues.pattern || !objectPathValid}
+                            disabled={!allowConfirm || !changed || (!uriPatternIsValid && modifiedValues.pattern) || !objectPathValid}
                         >
                             Save
                         </AffirmativeButton>

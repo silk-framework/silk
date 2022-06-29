@@ -26,8 +26,8 @@ export default function ColumnFilter({ filters, onApplyFilter, selectedFilter, f
         onApplyFilter(filter);
     }
     const selectableFilters = filters.filter(f => f.selectable === "always" ||
-        f.selectable === "sourceViewOnly" && fromDataset ||
-        f.selectable === "vocabularyViewOnly" && !fromDataset)
+        (f.selectable === "sourceViewOnly" && fromDataset) ||
+        (f.selectable === "vocabularyViewOnly" && !fromDataset))
     return selectableFilters.length > 0 ? <ContextMenu
         portalContainer={context.portalContainer}
         togglerElement={selectedFilter ? "operation-filteredit" : "operation-filter"}

@@ -27,7 +27,9 @@ export default function TargetInfoBox({selectedTarget}: IProps) {
             {
                 key: "Explore in DataManager",
                 value: (dmBaseUrl && selectedTarget.graph) ? <a href={dmResourceLink(selectedTarget.graph, dmBaseUrl)}
-                   target='_blank'>{selectedTarget.label}
+                                                                rel="noreferrer"
+                                                                target='_blank'>
+                    {selectedTarget.label}
                 </a> : '',
             },
             {

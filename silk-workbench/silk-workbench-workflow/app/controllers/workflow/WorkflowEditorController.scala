@@ -1,5 +1,6 @@
 package controllers.workflow
 
+import config.WorkbenchConfig.WorkspaceReact
 import controllers.core.UserContextActions
 import models.workflow.WorkflowConfig
 import org.silkframework.workbench.Context
@@ -11,7 +12,7 @@ import play.api.mvc.{Action, AnyContent, InjectedController}
 import javax.inject.Inject
 
 /** View endpoints for the workflow editor */
-class WorkflowEditorController @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions {
+class WorkflowEditorController @Inject() (implicit accessMonitor: WorkbenchAccessMonitor, workspaceReact: WorkspaceReact) extends InjectedController with UserContextActions {
 
   def editor(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[Workflow](project, task, request.path)

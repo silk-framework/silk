@@ -1,6 +1,5 @@
 import React from 'react';
-import { Button } from "@eccenca/gui-elements/src/legacy-replacements";
-import {Link} from "@eccenca/gui-elements";
+import {Button} from "@eccenca/gui-elements/src/legacy-replacements";
 
 /** Edit button for complex rule formula. */
 const ComplexEditButton = ({onClick, href, tooltip}) => {

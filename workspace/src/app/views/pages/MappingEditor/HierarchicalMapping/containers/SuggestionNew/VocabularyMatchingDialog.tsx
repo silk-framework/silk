@@ -101,10 +101,6 @@ export default function VocabularyMatchingDialog(
         }
     }
 
-    const handleVocabRemove = (vocabUri) => {
-        removeVocabFromSelection(vocabUri)
-    }
-
     const handleClear = () => {
         setSelectedVocabs([])
     }

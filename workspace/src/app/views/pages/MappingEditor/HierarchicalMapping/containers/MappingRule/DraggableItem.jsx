@@ -27,7 +27,7 @@ class DraggableItem extends React.Component {
 
     componentDidMount() {
         if (this.state.isPasted) {
-            !sessionStorage.removeItem('pastedId');
+            sessionStorage.removeItem('pastedId');
             this.props.scrollIntoView();
         }
     }

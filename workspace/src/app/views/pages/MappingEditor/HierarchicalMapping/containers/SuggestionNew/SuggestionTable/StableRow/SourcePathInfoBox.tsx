@@ -16,7 +16,7 @@ interface IProps {
 /** Shows additional information for a dataset source path, e.g. examples values. */
 export function SourcePathInfoBox({source, pathType, objectInfo}: IProps) {
     const context = useContext(SuggestionListContext);
-    const {exampleValues, portalContainer} = context;
+    const {exampleValues} = context;
 
     let examples: string[] | undefined = [];
     let sourcePath: string = ""

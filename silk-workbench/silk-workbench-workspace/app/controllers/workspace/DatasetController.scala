@@ -1,5 +1,6 @@
 package controllers.workspace
 
+import config.WorkbenchConfig.WorkspaceReact
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import org.silkframework.config.Prefixes
@@ -16,7 +17,7 @@ import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import javax.inject.Inject
 
-class DatasetController @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
+class DatasetController @Inject() (implicit workspaceReact: WorkspaceReact) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   def datasetDialog(projectName: String,
                     datasetName: String,

@@ -142,7 +142,6 @@ class MappingsWorkview extends React.Component {
         this.setState({
             loading: true,
         });
-        isDebugMode('DATA RELOAD');
         getRuleAsync(this.props.currentRuleId, true)
             .subscribe(
                 ({rule}) => {

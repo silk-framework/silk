@@ -1,7 +1,6 @@
 /** Returns frontend init data or undefined if it has not been fetched, yet. */
 import {useEffect, useState} from "react";
 import silkApi from "./silkRestApi";
-import {useApiDetails} from "../HierarchicalMapping/store";
 
 /** Config information from the backend to initialize the frontend. */
 export interface IInitFrontend {

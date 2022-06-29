@@ -24,7 +24,13 @@ class EvaluateMapping extends React.Component {
         super(props);
         const {
             initialRule,
+            project,
+            transformTask
         } = this.props;
+        setApiDetails({
+            project,
+            transformTask,
+        });
 
         this.state = {
             // currently selected rule id
@@ -48,6 +54,7 @@ class EvaluateMapping extends React.Component {
                 />
             </div>
             <iframe id = "generatedEntitiesIFrame"
+                    title={"Generate entities"}
                     className = "mdl-cell mdl-cell--9-col mdl-cell--stretch"
                     src = { `evaluate/generatedEntities?rule=${this.state.currentRuleId}&offset=${this.props.offset}&limit=${this.props.limit}` }
                     frameBorder = "0"

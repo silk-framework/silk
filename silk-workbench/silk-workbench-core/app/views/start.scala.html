@@ -1,17 +1,14 @@
-@import controllers.core.routes.Assets
-@import controllers.core.routes.Branding
-
+@import config.WorkbenchConfig.WorkspaceReact
 @import org.silkframework.runtime.activity.UserContext
-@import org.silkframework.config.ProductionConfig
-
-@(welcome: Html)(implicit request: RequestHeader, userContext: UserContext)
+@import controllers.core.routes.Branding
+@(welcome: Html)(implicit request: RequestHeader, userContext: UserContext, workspaceReact: WorkspaceReact)
 
 @exampleName = @{ "movies" }
 
 @projects = @{ org.silkframework.workspace.WorkspaceFactory().workspace.projects }
 
 @header = {
-  <link rel="stylesheet" href="@Assets.at("start.css")" type="text/css" />
+  @coreLinks.mainStyles()
 }
 
 @toolbar = {
