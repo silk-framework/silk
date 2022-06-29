@@ -6,7 +6,8 @@
 @import org.silkframework.rule.LinkSpec
 @import org.silkframework.workbench.Context
 
-@(context: Context[LinkSpec])(implicit session: play.api.mvc.Session, request: RequestHeader)
+@import config.WorkbenchConfig.WorkspaceReact
+@(context: Context[LinkSpec])(implicit session: play.api.mvc.Session, request: RequestHeader, workspaceReact: WorkspaceReact)
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/table.css")" rel="stylesheet" />

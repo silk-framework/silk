@@ -1,6 +1,6 @@
-import React, { Component } from 'react';
-import { Button, NotAvailable } from 'gui-elements-deprecated';
-import { MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI } from '../../utils/constants';
+import React, {Component} from 'react';
+import {NotAvailable} from 'gui-elements-deprecated';
+import {MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI} from '../../utils/constants';
 import getPathsRecursive from '../../utils/getUriPaths';
 import getUriOperatorsRecursive from '../../utils/getUriOperators';
 import ComplexEditButton from '../../elements/buttons/ComplexEditButton';
@@ -10,26 +10,26 @@ class ObjectUriPattern extends Component {
     render() {
         const {uriRule} = this.props;
         const {type, pattern} = uriRule;
-        
+
         let uriPattern = <NotAvailable label="automatic default pattern" inline/>;
-        
+
         let uriPatternLabel = 'URI pattern';
         let tooltipText = 'Create URI formula';
-        
+
         let removeButton = <ComplexDeleteButton
             onDelete={this.props.onRemoveUriRule}
         />;
-        
+
         if (type === MAPPING_RULE_TYPE_URI) {
             uriPattern = <code>{pattern}</code>;
             tooltipText = 'Convert URI pattern to URI formula';
         } else if (type === MAPPING_RULE_TYPE_COMPLEX_URI) {
             const paths = getPathsRecursive(uriRule.operator);
             const operators = getUriOperatorsRecursive(uriRule.operator);
-            
+
             tooltipText = 'Edit URI formula';
             uriPatternLabel = 'URI formula';
-            
+
             uriPattern = (
                 <span>
                     URI uses {paths.length} value{' '}
@@ -43,7 +43,7 @@ class ObjectUriPattern extends Component {
         } else {
             removeButton = false;
         }
-        
+
         return (
             <div className="ecc-silk-mapping__rulesviewer__idpattern">
                 <div className="ecc-silk-mapping__rulesviewer__comment">

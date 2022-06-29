@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {Card, CardTitle,} from 'gui-elements-deprecated';
 import {DragDropContext, Droppable} from 'react-beautiful-dnd';
-import {getApiDetails, orderRulesAsync} from '../../store';
+import {getApiDetails} from '../../store';
 import DraggableItem from '../MappingRule/DraggableItem';
 import rulesToList from '../../utils/rulesToList';
 import ListActions from './ListActions';

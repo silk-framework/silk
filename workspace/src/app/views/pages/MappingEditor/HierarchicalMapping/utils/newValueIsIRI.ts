@@ -7,7 +7,7 @@ export const newValueIsIRI = ({label}: IIsValidNewOptionParams) => {
     try {
         if (label.length > 0) {
             const uri = new URI(label.replace(/^<|>$/g, ''));
-            return uri.is('resourceURI') || uri.is('url') && uri.is('relative');
+            return uri.is('resourceURI') || (uri.is('url') && uri.is('relative'));
         }
         return false;
     } catch (e) {

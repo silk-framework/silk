@@ -64,8 +64,8 @@ export const filterRowsByColumnModifier = (filters: {[key: string]: string},
                 if(fromDataset) {
                     const unusedOnly = filter === FILTER_ACTIONS.SHOW_UNUSED_SOURCE_PATHS_ONLY
                     filteredResults = filteredResults.filter(row => {
-                        return unusedOnly && !row.alreadyMapped ||
-                            !unusedOnly && row.alreadyMapped
+                        return (unusedOnly && !row.alreadyMapped) ||
+                            (!unusedOnly && row.alreadyMapped)
                     })
                 }
                 break;
@@ -91,7 +91,7 @@ export const sortRows = (rows: IPageSuggestion[], sortDirections: ISortDirection
 
     const sortByTargetColumn = column === 'target';
     const sortBySourceColumn = column === 'source'
-    if (fromDataset && sortByTargetColumn || !fromDataset && sortBySourceColumn) {
+    if ((fromDataset && sortByTargetColumn) || (!fromDataset && sortBySourceColumn)) {
         // Sorts the selected item in the 3. "target" column
         sortFn = (candidate: IPageSuggestion) => {
             const selected = selectedCandidate(candidate)
@@ -103,7 +103,7 @@ export const sortRows = (rows: IPageSuggestion[], sortDirections: ISortDirection
             const selected = selectedCandidate(candidate)
             return selected === undefined ? -1 : selected.type
         }
-    } else if(fromDataset && sortBySourceColumn || !fromDataset && sortByTargetColumn) {
+    } else if((fromDataset && sortBySourceColumn) || (!fromDataset && sortByTargetColumn)) {
         // Sorts the items in the 1. "source" column
         sortFn = (candidate: IPageSuggestion) => itemLabel(candidate)
     }
@@ -133,7 +133,7 @@ export const selectedCandidate = (target: IPageSuggestion): ITargetWithSelected 
     }
 }
 
-const pathSplitRegex = /[\/\\#:]+/g
+const pathSplitRegex = /[/\\#:]+/g
 const unAllowedChars = /[<>]/g
 
 /** Returns a path string representation of path labels, instead of URIs

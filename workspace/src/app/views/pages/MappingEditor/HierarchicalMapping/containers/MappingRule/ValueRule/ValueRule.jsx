@@ -1,10 +1,10 @@
 import React from 'react';
-import { Button, Card, CardActions, CardContent, DisruptiveButton, } from 'gui-elements-deprecated';
+import {Card, CardActions, CardContent,} from 'gui-elements-deprecated';
 import _ from 'lodash';
 import PropTypes from 'prop-types';
-import { getEditorHref } from '../../../store';
+import {getEditorHref} from '../../../store';
 import ValueRuleForm from './ValueRuleForm';
-import { MAPPING_RULE_TYPE_DIRECT, MESSAGES } from '../../../utils/constants';
+import {MAPPING_RULE_TYPE_DIRECT, MESSAGES} from '../../../utils/constants';
 import EventEmitter from '../../../utils/EventEmitter';
 import EditButton from '../../../elements/buttons/EditButton';
 import CopyButton from '../../../elements/buttons/CopyButton';
@@ -60,11 +60,6 @@ class ValueRule extends React.Component {
     };
 
     handleComplexEdit(event) {
-        if (isDebugMode()) {
-            event.stopPropagation();
-            alert('Normally this would open the complex editor (aka jsplumb view)');
-            return false;
-        }
     };
 
     // open view in edit mode

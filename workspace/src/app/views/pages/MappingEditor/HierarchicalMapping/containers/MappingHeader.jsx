@@ -2,21 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import _ from 'lodash';
 
-import {
-    Button,
-    ContextMenu,
-    MenuItem,
-    BreadcrumbList,
-    BreadcrumbItem,
-} from 'gui-elements-deprecated';
-import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardOptions,
-} from "@eccenca/gui-elements";
+import {BreadcrumbItem, BreadcrumbList, ContextMenu, MenuItem,} from 'gui-elements-deprecated';
+import {Card, CardHeader, CardOptions, CardTitle,} from "@eccenca/gui-elements";
 
-import { ParentStructure } from '../components/ParentStructure';
+import {ParentStructure} from '../components/ParentStructure';
 import RuleTitle from '../elements/RuleTitle';
 import ArrowBackButton from '../elements/buttons/ArrowBack';
 

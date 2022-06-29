@@ -5,11 +5,11 @@ import {
     Spinner,
     Button,
     Info,
+    Icon
 } from 'gui-elements-deprecated';
 import {
     Card,
     CardContent,
-    Icon
 } from '@eccenca/gui-elements';
 
 import RuleTypes from '../elements/RuleTypes';

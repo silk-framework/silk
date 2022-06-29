@@ -324,7 +324,7 @@ export function ValueRuleForm(props: IProps) {
                 rightElement={editButton !== null ? editButton : undefined }
             />
         }
-        const exampleView = !_.isEmpty(sourceProperty) && valuePathValid && !valuePathInputHasFocus || (type === MAPPING_RULE_TYPE_COMPLEX && id) ? (
+        const exampleView = (!_.isEmpty(sourceProperty) && valuePathValid && !valuePathInputHasFocus) || (type === MAPPING_RULE_TYPE_COMPLEX && id) ? (
             <ExampleView
                 id={type === MAPPING_RULE_TYPE_COMPLEX ? id!! : props.parentId || 'root'}
                 key={
@@ -418,7 +418,7 @@ export function ValueRuleForm(props: IProps) {
                             className="ecc-silk-mapping__ruleseditor__actionrow-save"
                             raised
                             onClick={handleConfirm}
-                            disabled={!allowConfirm || !changed && !!id}
+                            disabled={!allowConfirm || (!changed && !!id)}
                         >
                             Save
                         </AffirmativeButton>

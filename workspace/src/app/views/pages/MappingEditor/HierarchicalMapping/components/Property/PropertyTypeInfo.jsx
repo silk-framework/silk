@@ -25,7 +25,6 @@ export class PropertyTypeInfo extends React.Component {
                 });
             },
             () => {
-                isDebugMode(`No ${this.props.option} found for the property type ${this.props.name}`);
                 this.setState({
                     result: this.props.name,
                 });

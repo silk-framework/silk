@@ -7,7 +7,8 @@
 @import org.silkframework.runtime.activity.UserContext
 @import org.silkframework.rule.input.Transformer
 
-@(context: Context[TransformSpec], rule: TransformRule)(implicit request: RequestHeader, userContext: UserContext)
+@import config.WorkbenchConfig.WorkspaceReact
+@(context: Context[TransformSpec], rule: TransformRule)(implicit request: RequestHeader, userContext: UserContext, workspaceReact: WorkspaceReact)
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/editor/editor-reset.css")" rel="stylesheet" />

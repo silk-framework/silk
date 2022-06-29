@@ -1,23 +1,14 @@
 import React from 'react';
 import _ from 'lodash';
 import className from 'classnames';
-import {
-    Button,
-    Card,
-    CardTitle,
-    ConfirmationDialog,
-    DisruptiveButton,
-    DismissiveButton,
-    NotAvailable,
-} from 'gui-elements-deprecated';
-import { ThingIcon } from '../components/ThingIcon';
+import {Card, CardTitle, NotAvailable,} from 'gui-elements-deprecated';
+import {ThingIcon} from '../components/ThingIcon';
 import RuleTitle from '../elements/RuleTitle';
 import RuleTypes from '../elements/RuleTypes';
 import ObjectRule from './MappingRule/ObjectRule/ObjectRule';
-import { MAPPING_RULE_TYPE_COMPLEX_URI, MESSAGES, MAPPING_RULE_TYPE_URI, MAPPING_RULE_TYPE_ROOT } from '../utils/constants';
+import {MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI, MESSAGES} from '../utils/constants';
 import EventEmitter from '../utils/EventEmitter';
 import ExpandButton from '../elements/buttons/ExpandButton';
-import ObjectTypeRules from "../components/ObjectMapping/ObjectTypeRules";
 
 class RootMappingRule extends React.Component {
     state = {

@@ -18,7 +18,7 @@ import LinkingExecutionReport from "./ExecutionReport/LinkingExecutionReport";
 
 require('./style/style.scss');
 
-window.silkReactComponents = {
+const silkReactComponents = {
     hierarchicalMapping: (containerId, apiSettings) => {
         ReactDom.render(
             <HierarchicalMappingComponent {...apiSettings} />,
@@ -69,3 +69,6 @@ window.silkReactComponents = {
     }
 };
 
+window.silkReactComponents = silkReactComponents;
+
+export default silkReactComponents;

@@ -11,7 +11,8 @@
 @import org.silkframework.learning.active.ActiveLearningFactory
 @import views.html.workspace.activity.autoReload
 
-@(context: Context[LinkSpec])(implicit session: play.api.mvc.Session, request: RequestHeader)
+@import config.WorkbenchConfig.WorkspaceReact
+@(context: Context[LinkSpec])(implicit session: play.api.mvc.Session, request: RequestHeader, workspaceReact: WorkspaceReact)
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/table.css")" rel="stylesheet" />

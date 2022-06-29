@@ -46,6 +46,9 @@ export const getApiDetails = (): IApiDetails => _apiDetails;
 export const useApiDetails = () => {
     const [apiDetails, setApiDetails] = useState<IApiDetails>({})
     _setApiDetails = setApiDetails
+    if(apiDetails.project === undefined && typeof _apiDetails.project === "string") {
+        setApiDetails(_apiDetails)
+    }
     return apiDetails;
 }
 
@@ -332,7 +335,7 @@ export const orderRulesAsync = ({id, childrenRules}) => {
             data: {id, childrenRules, ...getApiDetails()},
         })
         .map(() => {
-            EventEmitter.emit(MESSAGES.RELOAD);
+            return EventEmitter.emit(MESSAGES.RELOAD);
         });
 };
 
@@ -351,7 +354,7 @@ export const generateRuleAsync = (correspondences, parentId, uriPrefix) => {
         .flatMap(createGeneratedRules)
         .map(() => {
             EventEmitter.emit(MESSAGES.RULE_VIEW.CLOSE, {id: 0});
-            EventEmitter.emit(MESSAGES.RELOAD, true);
+            return EventEmitter.emit(MESSAGES.RELOAD, true);
         });
 };
 
@@ -487,7 +490,7 @@ export const getSuggestionsAsync = (data: ISuggestAsyncProps,
             if (vocabDatasetsResponse.data) {
                 vocabDatasetsResponse.data.map(match => {
                     const {uri: sourceUri, description, label, candidates, graph} = match;
-                    suggestions.push({
+                    return suggestions.push({
                         uri: sourceUri,
                         candidates,
                         description,
@@ -670,7 +673,7 @@ export const ruleRemoveAsync = id => {
         })
         .map(
             () => {
-                EventEmitter.emit(MESSAGES.RELOAD, true);
+                return EventEmitter.emit(MESSAGES.RELOAD, true);
             },
             err => {
                 // TODO: When mapping and workspace code bases are merged, add error handling
