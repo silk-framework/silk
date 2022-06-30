@@ -357,7 +357,9 @@
                 "projects": "Projects",
                 "projectsTooltip": "Shows the list of all data-integration build projects.",
                 "activities": "Activities",
-                "activitiesTooltip": "Shows the list of all data-integration build activities"
+                "activitiesTooltip": "Shows the list of all data-integration build activities",
+                "workflows": "Workflows",
+                "workflowsTooltip": "Shows the list of all workflows across all build projects."
             },
 	    "diBrowse": "Silk",
             "diBrowseTooltip": "Used to manage data-integration projects to build a knowledge graph from existing datasources",
