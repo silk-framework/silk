@@ -1,7 +1,6 @@
 import {LinkingRuleEditor} from "../taskViews/linking/LinkingRuleEditor";
 import React from "react";
 import {IViewActions, pluginRegistry} from "./PluginRegistry";
-import LinkingExecutionReport from "../pages/MappingEditor/ExecutionReport/LinkingExecutionReport";
 
 let registered = false
 export const registerCorePlugins = () => {
