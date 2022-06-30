@@ -1,4 +1,4 @@
-import HierarchicalMapping from '../../src/app/views/pages/MappingEditor/HierarchicalMapping/HierarchicalMapping';
+import HierarchicalMapping, {updateMappingEditorUrl} from '../../src/app/views/pages/MappingEditor/HierarchicalMapping/HierarchicalMapping';
 import {URI} from "ecc-utils";
 
 
@@ -7,7 +7,7 @@ describe("Hierarchical Mapping Component", () => {
     describe("Rule routing",() => {
         it("should route correctly", () => {
             const updatedUrl = (currentUrl, newRuleId) => {
-                return HierarchicalMapping.updateMappingEditorUrl(new URI(currentUrl), newRuleId);
+                return updateMappingEditorUrl(new URI(currentUrl), newRuleId);
             };
             expect(updatedUrl("/transform/project1/transform2/editor/", "test"))
                 .toEqual('/transform/project1/transform2/editor/rule/test');
