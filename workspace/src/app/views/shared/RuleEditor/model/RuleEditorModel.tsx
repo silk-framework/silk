@@ -953,6 +953,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             },
         };
     };
+    const deselectNodes = useStoreActions((actions) => actions.resetSelectedElements);
+
+    const selectNodes = useStoreActions((actions) => actions.setSelectedElements);
 
     /**
      *
@@ -967,6 +970,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         if (reactFlowInstance && ruleEditorContext.operatorSpec) {
             const stickyNoteNode = createStickyNodeInternal(color, stickyNote, position);
             changeElementsInternal((elements) => {
+                deselectNodes(elements);
+                selectNodes(stickyNoteNode);
                 const updatedElements = [...elements, stickyNoteNode];
                 startChangeTransaction();
                 addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(stickyNoteNode as any), elements);
@@ -1660,7 +1665,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             elems = await autoLayoutInternal(elems, false, false);
         }
         setElements(elems);
-        utils.initNodeBaseIds(nodes);
+        utils.initNodeBaseIds([...nodes, ...stickyNodes]);
         ruleUndoStack.splice(0);
         ruleRedoStack.splice(0);
         // Center and then zoom not too far out
