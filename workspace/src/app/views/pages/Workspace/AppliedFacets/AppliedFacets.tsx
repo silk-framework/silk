@@ -4,6 +4,7 @@ import { workspaceOp, workspaceSel } from "@ducks/workspace";
 import { IFacetState } from "@ducks/workspace/typings";
 import { Spacing, Tag, TagList } from "@eccenca/gui-elements";
 
+/** The currently active search filter facets represented as tags. Clicking a tag removes the facet. */
 export function AppliedFacets() {
     const dispatch = useDispatch();
 
@@ -12,6 +13,7 @@ export function AppliedFacets() {
 
     const handleFacetRemove = (facet: IFacetState, keywordId: string) => {
         dispatch(workspaceOp.toggleFacetOp(facet, keywordId));
+        dispatch(workspaceOp.changePageOp(1));
     };
 
     const facetsList: IFacetState[] = [];

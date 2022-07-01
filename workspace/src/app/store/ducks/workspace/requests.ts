@@ -200,7 +200,7 @@ export const requestRemoveProjectPrefix = async (prefixName: string, projectId: 
 export const requestIfResourceExists = async (projectId: string, resourceName: string): Promise<boolean> => {
     try {
         const { data } = await fetch({
-            url: legacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}/metadata`),
+            url: legacyApiEndpoint(`/projects/${projectId}/resources/${encodeURIComponent(resourceName)}/metadata`),
         });
         return "size" in data;
     } catch (e) {
@@ -215,7 +215,7 @@ export const requestIfResourceExists = async (projectId: string, resourceName: s
 export const requestRemoveProjectResource = async (projectId: string, resourceName: string): Promise<void> => {
     try {
         await fetch({
-            url: legacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}`),
+            url: legacyApiEndpoint(`/projects/${projectId}/resources/${encodeURIComponent(resourceName)}`),
             method: "DELETE",
         });
     } catch (e) {
@@ -229,7 +229,7 @@ export const projectFileResourceDependents = async (
     resourceName: string
 ): Promise<FetchResponse<ITaskLink[]>> => {
     return fetch({
-        url: legacyApiEndpoint(`/projects/${projectId}/resources/${resourceName}/usage`),
+        url: legacyApiEndpoint(`/projects/${projectId}/resources/${encodeURIComponent(resourceName)}/usage`),
     });
 };
 
