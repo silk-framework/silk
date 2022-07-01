@@ -58,13 +58,11 @@ export const RuleNodeFormParameter = ({
     return (
         <FieldItem
             key={parameter.parameterId}
-            labelAttributes={{
+            labelProps={{
                 text: paramSpec.label,
                 tooltip: parameterDescription,
-                tooltipProperties: {
-                    tooltipProps: {
-                        boundary: "window",
-                    },
+                tooltipProps: {
+                    rootBoundary: "viewport",
                 },
                 info: paramSpec.required ? "required" : undefined,
             }}

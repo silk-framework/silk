@@ -95,7 +95,7 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
                 <FieldItemRow>
                     <FieldItem
                         key={"prefix-name"}
-                        labelAttributes={{
+                        labelProps={{
                             htmlFor: "prefix-name",
                             text: t("widget.ConfigWidget.prefix", "Prefix"),
                         }}
@@ -110,7 +110,7 @@ const PrefixNew = ({ onAdd, existingPrefixes }: IProps) => {
                     </FieldItem>
                     <FieldItem
                         key={"prefix-uri"}
-                        labelAttributes={{
+                        labelProps={{
                             htmlFor: "prefix-uri",
                             text: "URI",
                         }}

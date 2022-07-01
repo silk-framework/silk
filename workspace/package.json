@@ -23,8 +23,8 @@
         "babel": "cross-env NODE_ENV=production babel --no-babelrc --presets=babel-preset-env,babel-preset-react"
     },
     "dependencies": {
-        "@blueprintjs/core": "^3.49.1",
-        "@blueprintjs/select": "^3.18.1",
+        "@blueprintjs/core": "4.0.4",
+        "@blueprintjs/select": "4.3.1",
         "@mavrin/remark-typograf": "^2.2.0",
         "@reduxjs/toolkit": "^1.4.0",
         "@uppy/core": "1.17.0",

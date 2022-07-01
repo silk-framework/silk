@@ -52,7 +52,7 @@ export const RuleEditorNotifications = ({
                 data-test-id={"ruleEditorToolbar-saveError-Btn"}
                 isOpen={isOpen}
                 onClose={() => toggleNotifications(true)}
-                boundary="window"
+                rootBoundary="viewport"
             >
                 <Icon name="application-warning" onClick={() => toggleNotifications()} />
                 <div style={{maxWidth: "39vw", padding: "0.5rem"}}>

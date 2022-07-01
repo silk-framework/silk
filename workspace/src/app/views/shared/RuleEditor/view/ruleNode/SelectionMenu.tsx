@@ -26,7 +26,7 @@ export const SelectionMenu = ({ position, onClose, removeSelection, cloneSelecti
                 icon="item-remove"
                 data-test-id={"selection-menu-remove-btn"}
                 tooltip={t("RuleEditor.selection.menu.delete.tooltip")}
-                tooltipProperties={{
+                tooltipProps={{
                     autoFocus: false,
                     enforceFocus: false,
                     openOnTargetFocus: false,
@@ -44,7 +44,7 @@ export const SelectionMenu = ({ position, onClose, removeSelection, cloneSelecti
                 icon="item-clone"
                 data-test-id={"selection-menu-clone-btn"}
                 tooltip={t("RuleEditor.selection.menu.clone.tooltip")}
-                tooltipProperties={{
+                tooltipProps={{
                     autoFocus: false,
                     enforceFocus: false,
                     openOnTargetFocus: false,

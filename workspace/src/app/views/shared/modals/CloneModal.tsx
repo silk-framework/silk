@@ -108,7 +108,7 @@ export default function CloneModal({ item, onDiscard, onConfirmed }: ICloneOptio
         >
             <FieldItem
                 key={"label"}
-                labelAttributes={{
+                labelProps={{
                     htmlFor: "label",
                     text: t("common.messages.cloneModalTitle", {
                         item: item.id ? t("common.dataTypes.task") : t("common.dataTypes.project"),
