@@ -54,13 +54,20 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     implicit val userContext: UserContext = workflowRunContext.userContext
     val taskContext = workflowRunContext.taskContext(nodeId, task)
     updateProgress(operation, task)
-    try {
-      ExecutorRegistry.execute(task, inputs, output, executionContext, taskContext)
-    } catch {
-      case NonFatal(ex) =>
-        workflowRunContext.activityContext.value.updateWith(_.addFailedNode(nodeId, ex))
-        throw ex
+    val result =
+      try {
+        ExecutorRegistry.execute(task, inputs, output, executionContext, taskContext)
+      } catch {
+        case NonFatal(ex) =>
+          workflowRunContext.activityContext.value.updateWith(_.addFailedNode(nodeId, ex))
+          throw ex
+      }
+    for(error <- taskContext.value().error) {
+      val ex = WorkflowExecutionException(error)
+      workflowRunContext.activityContext.value.updateWith(_.addFailedNode(nodeId, ex))
+      throw ex
     }
+    result
   }
 
   /**
