@@ -1,4 +1,4 @@
-import React, { CSSProperties, useEffect } from "react";
+import React, { useEffect } from "react";
 import {
     Edge,
     Elements,
@@ -32,10 +32,8 @@ import {
     ChangeNodeParameter,
     ChangeNodePosition,
     ChangeNodeSize,
-    ChangeNodeStickyContent,
     ChangeNumberOfInputHandles,
     ChangeStickyNodeProperties,
-    ChangeStickyNodeStyle,
     DeleteEdge,
     DeleteNode,
     RuleEditorNode,
@@ -382,20 +380,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     from: undoOp.to,
                     to: undoOp.from,
                 };
-            case "Change node text content":
-                return {
-                    type: "Change node text content",
-                    nodeId: undoOp.nodeId,
-                    from: undoOp.to,
-                    to: undoOp.from,
-                };
-            case "Change node style":
-                return {
-                    type: "Change node style",
-                    nodeId: undoOp.nodeId,
-                    from: undoOp.to,
-                    to: undoOp.from,
-                };
             case "Change sticky node style or content":
                 return {
                     type: "Change sticky node style or content",
@@ -603,33 +587,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         changedElements
                     );
                     break;
-                case "Change node style":
-                    changedElements = changeNodeStyleInternal(
-                        new Map(
-                            groupedChange.map((change) => {
-                                const nodeChange = change as ChangeStickyNodeStyle;
-                                return [nodeChange.nodeId, nodeChange.to];
-                            })
-                        ),
-                        changedElements
-                    );
-                    break;
                 case "Change sticky node style or content":
                     changedElements = changeStickyNodePropertiesInternal(
                         new Map(
                             groupedChange.map((change) => {
                                 const nodeChange = change as ChangeStickyNodeProperties;
-                                return [nodeChange.nodeId, nodeChange.to];
-                            })
-                        ),
-                        changedElements
-                    );
-                    break;
-                case "Change node text content":
-                    changedElements = changeNodeTextContentInternal(
-                        new Map(
-                            groupedChange.map((change) => {
-                                const nodeChange = change as ChangeNodeStickyContent;
                                 return [nodeChange.nodeId, nodeChange.to];
                             })
                         ),
@@ -851,50 +813,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
-    const changeNodeStyleInternal = (nodesWithStyleChanges: Map<string, CSSProperties>, els: Elements) => {
-        return els.map((elem) => {
-            if (utils.isNode(elem) && nodesWithStyleChanges.has(elem.id)) {
-                const node = utils.asNode(elem)!!;
-                const style = nodesWithStyleChanges.get(node.id);
-                const changedStyle: RuleEditorNode = {
-                    ...node,
-                    data: {
-                        ...node.data,
-                        style,
-                        menuButtons: stickyMenuButtons(node.id, style?.borderColor, node.data.businessData.stickyNote),
-                    },
-                };
-                return changedStyle;
-            } else {
-                return elem;
-            }
-        });
-    };
-
-    const changeNodeTextContentInternal = (nodeWithTextContentChanges: Map<string, string>, els: Elements) => {
-        return els.map((elem) => {
-            if (utils.isNode(elem) && nodeWithTextContentChanges.has(elem.id)) {
-                const node = utils.asNode(elem)!!;
-                const content = nodeWithTextContentChanges.get(node.id);
-                const changedContent: RuleEditorNode = {
-                    ...node,
-                    data: {
-                        ...node.data,
-                        content: <Markdown>{content!}</Markdown>,
-                        menuButtons: stickyMenuButtons(node.id, node.data.style?.borderColor, content),
-                        businessData: {
-                            ...node.data.businessData,
-                            stickyNote: content,
-                        },
-                    },
-                };
-                return changedContent;
-            } else {
-                return elem;
-            }
-        });
-    };
-
     // Changes the node parameters
     const changeNodeParametersInternal = (
         nodeParametersToChange: Map<string, Map<string, RuleEditorNodeParameterValue>>
@@ -964,22 +882,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
-    const changeStickyNodeStyle = (nodeId: string, color: string) => {
-        changeElementsInternal((els) => {
-            const node = utils.nodeById(els, nodeId);
-            const newNodeStyle = nodeUtils.generateStyleWithColor(color);
-            if (node && node.data.style?.borderColor !== newNodeStyle.borderColor) {
-                startChangeTransaction();
-                return addAndExecuteRuleModelChangeInternal(
-                    RuleModelChangesFactory.changeNodeStyle(nodeId, node.data.style!, newNodeStyle),
-                    els
-                );
-            } else {
-                return els;
-            }
-        });
-    };
-
     const changeStickyNodeProperties = (nodeId: string, color?: string, content?: string) => {
         changeElementsInternal((els) => {
             const node = utils.nodeById(els, nodeId);
@@ -1002,21 +904,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 );
             }
             return els;
-        });
-    };
-
-    const changeStickyNoteContent = (nodeId: string, textContent: string) => {
-        changeElementsInternal((els) => {
-            const node = utils.nodeById(els, nodeId);
-            if (node && node.data.businessData.stickyNote !== textContent) {
-                startChangeTransaction();
-                return addAndExecuteRuleModelChangeInternal(
-                    RuleModelChangesFactory.changeNodeContent(nodeId, node.data.businessData.stickyNote!, textContent),
-                    els
-                );
-            } else {
-                return els;
-            }
         });
     };
 
@@ -1767,14 +1654,9 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         }, 1);
     };
 
-    const addStickyNoteToCanvas = (stickyNote: string, color: string, reactFlowWrapper) => {
-        const reactFlowBounds = reactFlowWrapper.current?.getBoundingClientRect();
+    const addStickyNoteToCanvas = (stickyNote: string, color: string, position: XYPosition) => {
         const nodeId = currentStickyContent.get("nodeId");
         if (!nodeId) {
-            const position = (reactFlowInstance as OnLoadParams).project({
-                x: (reactFlowBounds.width - DEFAULT_NODE_WIDTH) / 2,
-                y: (reactFlowBounds.height - DEFAULT_NODE_HEIGHT) / 2,
-            });
             addStickyNode(stickyNote, position, color);
         } else {
             changeStickyNodeProperties(nodeId, color, stickyNote);
@@ -1837,8 +1719,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     deleteEdge,
                     autoLayout,
                     changeSize,
-                    changeStickyNodeStyle,
-                    changeStickyNoteContent,
+                    changeStickyNodeProperties,
                     deleteEdges,
                     moveNodes,
                     fixNodeInputs,

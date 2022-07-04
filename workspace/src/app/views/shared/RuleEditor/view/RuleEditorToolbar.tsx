@@ -4,6 +4,7 @@ import {
     Icon,
     IconButton,
     Spacing,
+    StickyNoteModal,
     Switch,
     TitleMainsection,
     Toolbar,
@@ -19,6 +20,7 @@ import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from ".
 import { EvaluationActivityControl } from "./evaluation/EvaluationActivityControl";
 import { Prompt } from "react-router";
 import { RuleValidationError } from "../RuleEditor.typings";
+import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from "../model/RuleEditorModel.utils";
 
 /** Toolbar of the rule editor. Contains global editor actions like save, redo/undo etc. */
 export const RuleEditorToolbar = () => {
@@ -85,11 +87,35 @@ export const RuleEditorToolbar = () => {
         : ruleEditorContext.lastSaveResult?.errorMessage
         ? (ruleEditorContext.lastSaveResult as RuleValidationError)
         : undefined;
+    const translationsStickyNoteModal = {
+        modalTitle: t("StickyNoteModal.title"),
+        noteLabel: t("StickyNoteModal.labels.codeEditor"),
+        colorLabel: t("StickyNoteModal.labels.color"),
+        saveButton: t("common.action.save"),
+        cancelButton: t("common.action.cancel"),
+    };
+
+    const handleStickyNoteSubmit = ({ note, color }) => {
+        const reactFlowBounds = ruleEditorUiContext?.reactFlowWrapper?.current?.getBoundingClientRect();
+        const position = {
+            x: (reactFlowBounds.width - DEFAULT_NODE_WIDTH) / 2,
+            y: (reactFlowBounds.height - DEFAULT_NODE_HEIGHT) / 2,
+        };
+        modelContext.executeModelEditOperation.addStickyNoteToCanvas(note, color, position);
+    };
 
     return (
         <>
             {ruleEditorContext.editorTitle ? (
                 <TitleMainsection>{ruleEditorContext.editorTitle}</TitleMainsection>
+            ) : null}
+            {modelContext.showStickyNoteModal ? (
+                <StickyNoteModal
+                    content={modelContext.currentStickyContent}
+                    onClose={() => modelContext.setShowStickyNoteModal(false)}
+                    onSubmit={handleStickyNoteSubmit}
+                    translate={(key) => translationsStickyNoteModal[key]}
+                />
             ) : null}
             <Toolbar data-test-id={"workflow-editor-header"} noWrap>
                 <Prompt when={modelContext.unsavedChanges} message={routingPrompt} />

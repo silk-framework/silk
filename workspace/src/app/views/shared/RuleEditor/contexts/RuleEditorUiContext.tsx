@@ -6,9 +6,11 @@ export interface RuleEditorUiContextProps {
     modalShown: boolean;
     /** Set flag that a modal is currently shown. */
     setModalShown: (shown: boolean) => any;
+    reactFlowWrapper: React.MutableRefObject<any> | null;
 }
 
 export const RuleEditorUiContext = React.createContext<RuleEditorUiContextProps>({
     modalShown: false,
     setModalShown(): any {},
+    reactFlowWrapper: null,
 });

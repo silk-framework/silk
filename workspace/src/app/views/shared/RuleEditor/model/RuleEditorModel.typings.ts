@@ -28,8 +28,6 @@ export type RuleModelChangeType =
     | ChangeNodeParameter
     | ChangeNumberOfInputHandles
     | ChangeNodeSize
-    | ChangeNodeStickyContent
-    | ChangeStickyNodeStyle
     | ChangeStickyNodeProperties;
 
 export interface AddNode {
@@ -65,26 +63,11 @@ export interface ChangeNodeSize {
     from: NodeDimensions;
     to: NodeDimensions;
 }
-
-export interface ChangeStickyNodeStyle {
-    type: "Change node style";
-    nodeId: string;
-    from: CSSProperties;
-    to: CSSProperties;
-}
-
 export interface ChangeStickyNodeProperties {
     type: "Change sticky node style or content";
     nodeId: string;
     from: StickyNodePropType;
     to: StickyNodePropType;
-}
-
-export interface ChangeNodeStickyContent {
-    type: "Change node text content";
-    nodeId: string;
-    from: string;
-    to: string;
 }
 export interface ChangeNodeParameter {
     type: "Change node parameter";
@@ -144,10 +127,6 @@ export const RuleModelChangesFactory = {
         ),
     changeNodeSize: (nodeId: string, from: NodeDimensions, to: NodeDimensions) =>
         toRuleModelChanges({ type: "Change node size", nodeId, from, to }),
-    changeNodeStyle: (nodeId: string, from: CSSProperties, to: CSSProperties) =>
-        toRuleModelChanges({ type: "Change node style", nodeId, from, to }),
-    changeNodeContent: (nodeId: string, from: string, to: string) =>
-        toRuleModelChanges({ type: "Change node text content", nodeId, from, to }),
     changeNodePosition: (nodeId: string, from: XYPosition, to: XYPosition): RuleModelChanges =>
         toRuleModelChanges({ type: "Change node position", nodeId, from, to }),
     changeStickyNodeProperties: (nodeId: string, from: StickyNodePropType, to: StickyNodePropType) =>

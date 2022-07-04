@@ -90,8 +90,7 @@ export interface IModelActions {
     /** Move a single node to a new position. */
     moveNode: (nodeId: string, newPosition: XYPosition) => void;
     changeSize: (nodeId: string, newNodeDimension: NodeDimensions) => void;
-    changeStickyNodeStyle: (nodeId: string, color: string) => void;
-    changeStickyNoteContent: (nodeId: string, content: string) => void;
+    changeStickyNodeProperties: (nodeId: string, color?: string, content?: string) => void;
     /** Moves nodes by a specific offset. */
     moveNodes: (nodeIds: string[], offset: XYPosition) => void;
     addStickyNoteToCanvas: (stickyNote: string, color: string, reactFlowWrapper: any) => void;
@@ -149,10 +148,9 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
         addNodeByPlugin: NOP,
         deleteEdges: NOP,
         changeSize: NOP,
-        changeStickyNodeStyle: NOP,
-        changeStickyNoteContent: NOP,
         fixNodeInputs: NOP,
         addStickyNoteToCanvas: NOP,
+        changeStickyNodeProperties: NOP,
     },
     undo: () => false,
     canUndo: false,

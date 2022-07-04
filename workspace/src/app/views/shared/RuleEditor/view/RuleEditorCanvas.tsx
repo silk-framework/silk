@@ -7,7 +7,6 @@ import {
     HandleProps,
     OnLoadParams,
 } from "react-flow-renderer";
-import { useTranslation } from "react-i18next";
 import { ReactFlow } from "@eccenca/gui-elements/src/cmem";
 import React, { MouseEvent as ReactMouseEvent } from "react";
 import { Connection, Elements, Node, OnConnectStartParams, XYPosition } from "react-flow-renderer/dist/types";
@@ -23,7 +22,7 @@ import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { EdgeMenu } from "./ruleEdge/EdgeMenu";
 import { ruleEditorModelUtilsFactory, SOURCE_HANDLE_TYPE, TARGET_HANDLE_TYPE } from "../model/RuleEditorModel.utils";
 import { MiniMap } from "@eccenca/gui-elements/src/extensions/react-flow/minimap/MiniMap";
-import { GridColumn, StickyNoteModal } from "@eccenca/gui-elements";
+import { GridColumn } from "@eccenca/gui-elements";
 import { RuleEditorNode } from "../model/RuleEditorModel.typings";
 import useHotKey from "../../HotKeyHandler/HotKeyHandler";
 import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
@@ -35,7 +34,6 @@ const modelUtils = ruleEditorModelUtilsFactory();
 
 /** The main graphical rule editor canvas where the rule nodes are placed and connected. */
 export const RuleEditorCanvas = () => {
-    const reactFlowWrapper = React.useRef<any>(null);
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
     // Stores state during a node drag action
     const [dragState] = React.useState<IRuleEditorViewDragState>({});
@@ -66,15 +64,6 @@ export const RuleEditorCanvas = () => {
     // At the moment react-flow's selection logic is buggy in some places, e.g. https://github.com/wbkd/react-flow/issues/1314
     // Until fixed, we will track selections ourselves and use them where bugs exist.
     const [selectionState] = React.useState<{ elements: Elements | null }>({ elements: null });
-
-    const [t] = useTranslation();
-    const translationsStickyNoteModal = {
-        modalTitle: t("StickyNoteModal.title"),
-        noteLabel: t("StickyNoteModal.labels.codeEditor"),
-        colorLabel: t("StickyNoteModal.labels.color"),
-        saveButton: t("common.action.save"),
-        cancelButton: t("common.action.cancel"),
-    };
 
     /** Clones the given nodes with a small offset. */
     const cloneNodes = (nodeIds: string[]) => {
@@ -471,7 +460,7 @@ export const RuleEditorCanvas = () => {
     // Add new node when operator is dropped
     const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
-        const reactFlowBounds = reactFlowWrapper.current?.getBoundingClientRect();
+        const reactFlowBounds = ruleEditorUiContext?.reactFlowWrapper?.current?.getBoundingClientRect();
         const pluginData = e.dataTransfer.getData("text/plain");
         if (pluginData) {
             try {
@@ -510,22 +499,12 @@ export const RuleEditorCanvas = () => {
 
     return (
         <>
-            {modelContext.showStickyNoteModal ? (
-                <StickyNoteModal
-                    content={modelContext.currentStickyContent}
-                    onClose={() => modelContext.setShowStickyNoteModal(false)}
-                    onSubmit={({ note, color }) =>
-                        modelContext.executeModelEditOperation.addStickyNoteToCanvas(note, color, reactFlowWrapper)
-                    }
-                    translate={(key) => translationsStickyNoteModal[key]}
-                />
-            ) : null}
             <GridColumn full>
                 <ReactFlow
                     id={"ruleEditor-react-flow-canvas"}
                     data-test-id={"ruleEditor-react-flow-canvas"}
                     configuration={"linking"}
-                    ref={reactFlowWrapper}
+                    ref={ruleEditorUiContext?.reactFlowWrapper}
                     elements={modelContext.elements}
                     onElementClick={onElementClick}
                     onSelectionDragStart={handleSelectionDragStart}

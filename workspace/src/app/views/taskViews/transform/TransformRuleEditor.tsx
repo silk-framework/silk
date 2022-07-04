@@ -64,6 +64,7 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
         originalRule: IComplexMappingRule
     ): Promise<RuleSaveResult> => {
         try {
+            //Todo add sticky notes to saveRule and backend
             const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
             if (rootNodes.length !== 1) {
                 return {
@@ -87,6 +88,7 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
                 success: true,
             };
         } catch (err) {
+            console.log("Error", err);
             registerError(
                 "TransformRuleEditor_saveTransformRule",
                 t("taskViews.transformRulesEditor.errors.saveTransformRule.msg"),

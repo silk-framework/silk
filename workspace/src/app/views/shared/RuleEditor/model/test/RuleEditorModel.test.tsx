@@ -305,76 +305,76 @@ describe("Rule editor model", () => {
             borderColor: "#000000",
             color: "#000",
         };
-        const assertionBeforeSizeChange = () => {
+        const checkBeforeChange = () => {
             expect(node.data.style).toEqual(defaultStyle);
         };
-        assertionBeforeSizeChange();
+        checkBeforeChange();
 
-        const assertionAfterSizeChange = () => {
+        const checkAfterChange = () => {
             expect(modelUtils.nodeById(currentContext().elements, node.id)!!.data.style).not.toStrictEqual(
                 defaultStyle
             );
         };
         act(() => {
-            currentContext().executeModelEditOperation.changeStickyNodeStyle(node.id, "#fee2f1");
+            currentContext().executeModelEditOperation.changeStickyNodeProperties(node.id, "#fee2f1");
         });
-        assertionAfterSizeChange();
+        checkAfterChange();
 
         //UNDO
         act(() => {
             currentContext().undo();
         });
         checkAfterUndo(true);
-        assertionBeforeSizeChange();
+        checkBeforeChange();
 
         // REDO
         act(() => {
             currentContext().redo();
         });
-        assertionAfterSizeChange();
+        checkAfterChange();
     });
 
     it("should change node text content and undo & redo", async () => {
         const stickyNote = "# Testing... 1 2 3...";
         const node = await stickyNoteNodeBootstrap(stickyNote);
-        const assertionBeforeSizeChange = () => {
+        const checkBeforeChange = () => {
             expect(node.data.businessData.stickyNote).toStrictEqual(stickyNote);
         };
-        assertionBeforeSizeChange();
+        checkBeforeChange();
         const newContent = "**new Content**";
-        const assertionAfterSizeChange = () => {
+        const checkAfterChange = () => {
             expect(modelUtils.nodeById(currentContext().elements, node.id)!!.data.businessData.stickyNote).toEqual(
                 newContent
             );
         };
         act(() => {
-            currentContext().executeModelEditOperation.changeStickyNoteContent(node.id, newContent);
+            currentContext().executeModelEditOperation.changeStickyNodeProperties(node.id, "#000", newContent);
         });
-        assertionAfterSizeChange();
+        checkAfterChange();
 
         //UNDO
         act(() => {
             currentContext().undo();
         });
         checkAfterUndo(true);
-        assertionBeforeSizeChange();
+        checkBeforeChange();
 
         // REDO
         act(() => {
             currentContext().redo();
         });
-        assertionAfterSizeChange();
+        checkAfterChange();
     });
 
     it("should change size and undo & redo", async () => {
         const node = await stickyNoteNodeBootstrap();
         const defaultNodeDimensions = { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT };
-        const assertionBeforeSizeChange = () => {
+        const checkBeforeChange = () => {
             expect(node.data.nodeDimensions).toEqual(defaultNodeDimensions);
         };
-        assertionBeforeSizeChange();
+        checkBeforeChange();
         const randomNewNodeDimensions = { width: DEFAULT_NODE_WIDTH + 30, height: DEFAULT_NODE_HEIGHT + 10 };
-        const assertionAfterSizeChange = () => {
+        const checkAfterChange = () => {
             expect(modelUtils.nodeById(currentContext().elements, node.id)!!.data.nodeDimensions).toEqual(
                 randomNewNodeDimensions
             );
@@ -382,20 +382,20 @@ describe("Rule editor model", () => {
         act(() => {
             currentContext().executeModelEditOperation.changeSize(node.id, randomNewNodeDimensions);
         });
-        assertionAfterSizeChange();
+        checkAfterChange();
 
         //UNDO
         act(() => {
             currentContext().undo();
         });
         checkAfterUndo(true);
-        assertionBeforeSizeChange();
+        checkBeforeChange();
 
         // REDO
         act(() => {
             currentContext().redo();
         });
-        assertionAfterSizeChange();
+        checkAfterChange();
     });
 
     it("should delete nodes and undo & redo", async () => {
@@ -825,11 +825,15 @@ describe("Rule editor model", () => {
         });
 
         await recordedTransaction("Change node style", () => {
-            currentContext().executeModelEditOperation.changeStickyNodeStyle("sticky", "#ffee12");
+            currentContext().executeModelEditOperation.changeStickyNodeProperties("sticky", "#ffee12");
         });
 
         await recordedTransaction("Change node text content", () => {
-            currentContext().executeModelEditOperation.changeStickyNoteContent("sticky", "another sticky note");
+            currentContext().executeModelEditOperation.changeStickyNodeProperties(
+                "sticky",
+                "#ffee12",
+                "another sticky note"
+            );
         });
 
         expect(allNodes()).toHaveLength(4);
@@ -841,11 +845,6 @@ describe("Rule editor model", () => {
                 act(() => {
                     currentContext().undo();
                 });
-                const change = stateHistory[changeIdx];
-                if (change)
-                    console.log(
-                        `Undone change: ${stateHistoryLabel[changeIdx]} (${changeIdx}/${stateHistory.length - 1})`
-                    );
                 expect(allNodes()).not.toStrictEqual(stateHistory[changeIdx]);
                 expect(allNodes()).toStrictEqual(stateHistory[changeIdx - 1]);
             }
