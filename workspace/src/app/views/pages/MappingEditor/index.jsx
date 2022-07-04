@@ -16,8 +16,6 @@ import SilkStore from './SilkStore/silkStore';
 import WorkflowNodeExecutionReport from "./ExecutionReport/WorkflowNodeExecutionReport";
 import LinkingExecutionReport from "./ExecutionReport/LinkingExecutionReport";
 
-require('./style/style.scss');
-
 const silkReactComponents = {
     hierarchicalMapping: (containerId, apiSettings) => {
         ReactDom.render(

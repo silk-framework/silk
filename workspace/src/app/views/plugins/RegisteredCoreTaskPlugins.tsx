@@ -1,4 +1,5 @@
 import {LinkingRuleEditor} from "../taskViews/linking/LinkingRuleEditor";
+//import HierarchicalMapping from "../pages/MappingEditor/HierarchicalMapping/HierarchicalMapping";
 import React from "react";
 import {IViewActions, pluginRegistry} from "./PluginRegistry";
 
