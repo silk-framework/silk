@@ -12,7 +12,7 @@
 }
 
 @content = {
-  <div class="bp3-card bp3-elevation-1 eccgui-card">
+  <div class="bp4-card bp4-elevation-1 eccgui-card">
     <div class="eccgui-card__content">
         <div class="eccgui-typography__contentblock">
             <div id="welcome">
@@ -32,21 +32,21 @@
     <hr class="eccgui-separation__divider-horizontal eccgui-separation__spacing--none" />
     <footer class="eccgui-card__actions">
         <span>
-          <a id="workspace-switch" href="@config.baseUrl/workbench?itemType=project&page=1&limit=10" class="bp3-button bp3-intent-primary eccgui-button ">
-              <span class="bp3-button-text">Open workspace</span>
+          <a id="workspace-switch" href="@config.baseUrl/workbench?itemType=project&page=1&limit=10" class="bp4-button bp4-intent-primary eccgui-button ">
+              <span class="bp4-button-text">Open workspace</span>
           </a>
           <div class="mdl-tooltip" data-mdl-for="workspace-switch">
             Switch to workspace UI
           </div>
         </span>
         &nbsp;
-        <button id="open-workspace-btn" class="bp3-button eccgui-button" onclick="window.location = '@config.baseUrl/workspace'">
-            <span class="bp3-button-text">Open legacy workspace</span>
+        <button id="open-workspace-btn" class="bp4-button eccgui-button" onclick="window.location = '@config.baseUrl/workspace'">
+            <span class="bp4-button-text">Open legacy workspace</span>
         </button>
 
         @if(!projects.exists(_.id == exampleName)) {
-          <button id="start-load-example" class="bp3-button eccgui-button" onclick="loadExample()" style="margin-left: 5px;">
-              <span class="bp3-button-text">Load Example</span>
+          <button id="start-load-example" class="bp4-button eccgui-button" onclick="loadExample()" style="margin-left: 5px;">
+              <span class="bp4-button-text">Load Example</span>
           </button>
             &nbsp;
         }
