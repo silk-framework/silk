@@ -65,6 +65,8 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     tabs?: (IRuleSideBarFilterTabConfig | IRuleSidebarPreConfiguredOperatorsTabConfig)[];
     /** Additional components that will be placed in the tool bar left to the save button. */
     additionalToolBarComponents?: () => JSX.Element | JSX.Element[];
+    /** parent configuration to extract stickyNote from taskData*/
+    getStickyNotes?: (taskData: RULE_TYPE | undefined) => IStickyNote[];
 }
 
 const READ_ONLY_QUERY_PARAMETER = "readOnly";
@@ -86,6 +88,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     viewActions,
     additionalToolBarComponents,
     editorTitle,
+    getStickyNotes = () => [],
 }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
     // The task that contains the rule, e.g. transform or linking task
     const [taskData, setTaskData] = React.useState<TASK_TYPE | undefined>(undefined);
@@ -95,7 +98,6 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     const [operators, setOperators] = React.useState<OPERATOR_TYPE[]>([]);
     // True while operators are loaded
     const [operatorsLoading, setOperatorsLoading] = React.useState<boolean>(false);
-    const [stickyNotes, setStickyNotes] = React.useState<IStickyNote[]>([]);
     // The internal rule operator node model
     const [initialRuleOperatorNodes, setInitialRuleOperatorNodes] = React.useState<IRuleOperatorNode[] | undefined>(
         undefined
@@ -139,7 +141,6 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                         : operatorPlugins[0];
                 }
             };
-            setStickyNotes((taskData as any).parameters.rule.value.uiAnnotations.stickyNotes || []);
             const nodes = convertToRuleOperatorNodes(taskData, getOperatorNode);
             setInitialRuleOperatorNodes(nodes);
         }
@@ -229,10 +230,10 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 tabs,
                 viewActions,
                 readOnlyMode,
-                stickyNotes,
                 additionalToolBarComponents,
                 lastSaveResult: lastSaveResult,
                 editorTitle,
+                stickyNotes: getStickyNotes(taskData),
             }}
         >
             <RuleEditorModel>

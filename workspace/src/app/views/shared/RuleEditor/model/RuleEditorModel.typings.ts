@@ -17,6 +17,7 @@ export type RuleEditorNodeParameterValue = IOperatorNodeParameterValueWithLabel 
 export const ruleEditorNodeParameterValue = (value: RuleEditorNodeParameterValue): string | undefined => {
     return typeof value === "string" ? value : value?.value;
 };
+export type StickyNodePropType = { content?: string; style?: CSSProperties };
 
 export type RuleModelChangeType =
     | AddNode
@@ -28,7 +29,8 @@ export type RuleModelChangeType =
     | ChangeNumberOfInputHandles
     | ChangeNodeSize
     | ChangeNodeStickyContent
-    | ChangeStickyNodeStyle;
+    | ChangeStickyNodeStyle
+    | ChangeStickyNodeProperties;
 
 export interface AddNode {
     type: "Add node";
@@ -69,6 +71,13 @@ export interface ChangeStickyNodeStyle {
     nodeId: string;
     from: CSSProperties;
     to: CSSProperties;
+}
+
+export interface ChangeStickyNodeProperties {
+    type: "Change sticky node style or content";
+    nodeId: string;
+    from: StickyNodePropType;
+    to: StickyNodePropType;
 }
 
 export interface ChangeNodeStickyContent {
@@ -141,6 +150,8 @@ export const RuleModelChangesFactory = {
         toRuleModelChanges({ type: "Change node text content", nodeId, from, to }),
     changeNodePosition: (nodeId: string, from: XYPosition, to: XYPosition): RuleModelChanges =>
         toRuleModelChanges({ type: "Change node position", nodeId, from, to }),
+    changeStickyNodeProperties: (nodeId: string, from: StickyNodePropType, to: StickyNodePropType) =>
+        toRuleModelChanges({ type: "Change sticky node style or content", nodeId, from, to }),
     changeNodeParameter: (
         nodeId: string,
         parameterId: string,

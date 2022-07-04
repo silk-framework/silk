@@ -10,14 +10,14 @@ export interface IInputSource {
 
 /** UI annotations, i.e. annotations like sticky notes that are displayed in the UI as additional descriptions/notes. */
 export interface IUiAnnotations {
-    stickyNotes: IStickyNote[]
+    stickyNotes: IStickyNote[];
 }
 
 /** A sticky note for display in the UI. */
 export interface IStickyNote {
-    id: string
-    content: string
-    color: string
-    position: [number, number],
-    dimension: [number, number]
+    id: string;
+    content: string;
+    color: string;
+    position: number[];
+    dimension: number[];
 }

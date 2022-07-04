@@ -37,7 +37,6 @@ export interface RuleEditorContextProps {
     operatorListLoading: boolean;
     /** The initial rule nodes, e.g. when loading an existing rule. */
     initialRuleOperatorNodes?: IRuleOperatorNode[];
-    stickyNotes: IStickyNote[];
     /** Save the rule. */
     saveRule: (
         ruleOperatorNodes: IRuleOperatorNode[],
@@ -61,6 +60,8 @@ export interface RuleEditorContextProps {
     additionalToolBarComponents?: () => JSX.Element | JSX.Element[];
     /** The last save result. */
     lastSaveResult?: RuleSaveResult;
+    /** UI annotation sticky notes */
+    stickyNotes: IStickyNote[];
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */

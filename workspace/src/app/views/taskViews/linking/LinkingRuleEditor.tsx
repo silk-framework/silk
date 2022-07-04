@@ -235,6 +235,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                 fetchRuleData={fetchTaskData}
                 fetchRuleOperators={fetchLinkingRuleOperatorDetails}
                 saveRule={saveLinkageRule}
+                getStickyNotes={utils.getStickyNotes}
                 convertRuleOperator={ruleUtils.convertRuleOperator}
                 viewActions={viewActions}
                 convertToRuleOperatorNodes={utils.convertToRuleOperatorNodes}

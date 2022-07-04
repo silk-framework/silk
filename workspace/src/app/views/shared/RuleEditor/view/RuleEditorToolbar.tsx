@@ -14,10 +14,10 @@ import { useTranslation } from "react-i18next";
 import { RuleEditorContext } from "../contexts/RuleEditorContext";
 import { RuleEditorNotifications } from "./RuleEditorNotifications";
 import useHotKey from "../../HotKeyHandler/HotKeyHandler";
-import {RuleEditorUiContext} from "../contexts/RuleEditorUiContext";
-import {RuleEditorEvaluationContext, RuleEditorEvaluationContextProps} from "../contexts/RuleEditorEvaluationContext";
-import {EvaluationActivityControl} from "./evaluation/EvaluationActivityControl";
-import {Prompt} from "react-router";
+import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
+import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
+import { EvaluationActivityControl } from "./evaluation/EvaluationActivityControl";
+import { Prompt } from "react-router";
 
 /** Toolbar of the rule editor. Contains global editor actions like save, redo/undo etc. */
 export const RuleEditorToolbar = () => {
@@ -122,7 +122,7 @@ export const RuleEditorToolbar = () => {
                     )}
                     <Spacing vertical hasDivider />
                     <IconButton
-                        data-test-id={"workflow-header-sticky-btn"}
+                        data-test-id="rule-editor-header-sticky-btn"
                         name="item-comment"
                         text={t("StickyNoteModal.tooltip")}
                         onClick={() => modelContext.setShowStickyNoteModal(true)}
