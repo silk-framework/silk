@@ -62,7 +62,7 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
           workflowRunContext.activityContext.value.updateWith(_.addFailedNode(nodeId, ex))
           throw ex
       }
-    for(error <- taskContext.value().error) {
+    for(error <- taskContext.value.get.flatMap(_.error)) {
       val ex = WorkflowExecutionException(error)
       workflowRunContext.activityContext.value.updateWith(_.addFailedNode(nodeId, ex))
       throw ex
