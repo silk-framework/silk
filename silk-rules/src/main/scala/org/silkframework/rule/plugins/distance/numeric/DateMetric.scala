@@ -14,14 +14,13 @@
 
 package org.silkframework.rule.plugins.distance.numeric
 
-import java.time.{DateTimeException, LocalDate}
-import java.time.temporal.ChronoUnit
-
-import javax.xml.datatype.{DatatypeConstants, DatatypeFactory, XMLGregorianCalendar}
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
 import org.silkframework.runtime.plugin.annotations.{DistanceMeasureExample, DistanceMeasureExamples, Param, Plugin}
 
+import java.time.temporal.ChronoUnit
+import java.time.{DateTimeException, LocalDate}
+import javax.xml.datatype.{DatatypeConstants, DatatypeFactory}
 import scala.math._
 
 @Plugin(
@@ -105,6 +104,8 @@ case class DateMetric(
     }
   }
 
+  override def emptyIndex(limit: Double): Index = Index.continuousEmpty(minDays, maxDays, limit)
+
   // Performance could be improved by using parseDate() instead of toGregorianCalendar.getTimeInMillis, which is slow.
   override def indexValue(str: String, limit: Double, sourceOrTarget: Boolean): Index = {
     try {
@@ -112,7 +113,7 @@ case class DateMetric(
       val days = date.toGregorianCalendar.getTimeInMillis / millisPerDay
       Index.continuous(days, minDays, maxDays, limit)
     } catch {
-      case ex: IllegalArgumentException => Index.empty
+      case ex: IllegalArgumentException => emptyIndex(limit)
     }
   }
 

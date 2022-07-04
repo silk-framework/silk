@@ -18,6 +18,7 @@ import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 import { EvaluationActivityControl } from "./evaluation/EvaluationActivityControl";
 import { Prompt } from "react-router";
+import { RuleValidationError } from "../RuleEditor.typings";
 
 /** Toolbar of the rule editor. Contains global editor actions like save, redo/undo etc. */
 export const RuleEditorToolbar = () => {
@@ -78,6 +79,12 @@ export const RuleEditorToolbar = () => {
         // At the moment it will complain on any kind of routing change
         return modelContext.unsavedChanges ? (t("taskViews.ruleEditor.warnings.unsavedChanges") as string) : true;
     };
+
+    const ruleValidationError: RuleValidationError | undefined = ruleEvaluationContext.ruleValidationError
+        ? ruleEvaluationContext.ruleValidationError
+        : ruleEditorContext.lastSaveResult?.errorMessage
+        ? (ruleEditorContext.lastSaveResult as RuleValidationError)
+        : undefined;
 
     return (
         <>
@@ -174,11 +181,9 @@ export const RuleEditorToolbar = () => {
                         key={"notifications"}
                         integratedView={ruleEditorContext.viewActions?.integratedView}
                         queueEditorNotifications={
-                            ruleEditorContext.lastSaveResult?.errorMessage
-                                ? [ruleEditorContext.lastSaveResult?.errorMessage]
-                                : ([] as string[])
+                            ruleValidationError ? [ruleValidationError.errorMessage] : ([] as string[])
                         }
-                        queueNodeNotifications={(ruleEditorContext.lastSaveResult?.nodeErrors ?? []).filter(
+                        queueNodeNotifications={(ruleValidationError?.nodeErrors ?? []).filter(
                             (nodeError) => nodeError.message
                         )}
                         nodeJumpToHandler={modelContext.centerNode}

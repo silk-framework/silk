@@ -29,9 +29,9 @@ object Execution {
     *
     * @param name A label to be used for naming threads. Helps debugging and finding threads that belong to this pool.
     */
-  def createForkJoinPool(name: String): ForkJoinPool = {
+  def createForkJoinPool(name: String, size: Option[Int] = None): ForkJoinPool = {
     val minimumNumberOfThreads = 4
-    val threadCount = max(minimumNumberOfThreads, Runtime.getRuntime.availableProcessors())
+    val threadCount = size.getOrElse(max(minimumNumberOfThreads, Runtime.getRuntime.availableProcessors()))
     new ForkJoinPool(threadCount, new PrefixedForkJoinWorkerThreadFactory(name), null, true)
   }
 

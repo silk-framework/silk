@@ -365,7 +365,9 @@
                 "projects": "Projects",
                 "projectsTooltip": "Shows the list of all data-integration build projects.",
                 "activities": "Activities",
-                "activitiesTooltip": "Shows the list of all data-integration build activities"
+                "activitiesTooltip": "Shows the list of all data-integration build activities",
+                "workflows": "Workflows",
+                "workflowsTooltip": "Shows the list of all workflows across all build projects."
             },
             "diBrowse": "Silk",
             "diBrowseTooltip": "Used to manage data-integration projects to build a knowledge graph from existing datasources",
@@ -488,6 +490,9 @@
                 },
                 "inputPathAutoCompletion": {
                     "msg": "Could not fetch path auto-completions."
+                },
+                "missingPathsInCache": {
+                    "msg": "Input path '{{inputPath}}' is not available in the cache. Please save the rule in order for the caches to add the missing paths."
                 },
                 "saveLinkageRule": {
                     "msg": "Could not save linking rule!"

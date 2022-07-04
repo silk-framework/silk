@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.aggegrator
 
 import org.silkframework.entity.Index
-import org.silkframework.rule.similarity.{Aggregator, SimilarityScore, WeightedSimilarityScore}
+import org.silkframework.rule.similarity.{SimilarityScore, SimpleAggregator, WeightedSimilarityScore}
 import org.silkframework.runtime.plugin.PluginCategories
 import org.silkframework.runtime.plugin.annotations.{AggregatorExample, AggregatorExamples, Plugin}
 
@@ -41,7 +41,7 @@ import org.silkframework.runtime.plugin.annotations.{AggregatorExample, Aggregat
     output = Double.NaN
   )
 ))
-case class AverageAggregator() extends Aggregator {
+case class AverageAggregator() extends SimpleAggregator {
   private val positiveWeight: Int = 1
   private val negativeWeight: Int = 1
 

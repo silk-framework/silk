@@ -23,6 +23,8 @@ case class SubStringDistance(@Param("The minimum length of a possible substring 
     }
   }
 
+  override def emptyIndex(limit: Double): Index = Index.oneDim(Set.empty)
+
   override def indexValue(str: String, threshold: Double, sourceOrTarget: Boolean): Index = {
     val nGrams = SubStringDistance.getNgrams(str, n)
     Index.oneDim(nGrams.map(a => a.hashCode()).toSet)

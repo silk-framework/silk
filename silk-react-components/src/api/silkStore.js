@@ -14,6 +14,16 @@ const silkStore = {
     },
 
     /**
+     * Retrieves a linking task execution report.
+     */
+    getLinkingExecutionReport: (baseUrl, projectId, taskId) => {
+        return silkApi.activityResult(baseUrl, projectId, taskId, "ExecuteLinking")
+            .then(({data}) => {
+                return data;
+            });
+    },
+
+    /**
      * Retrieves execution reports for a single workflow node.
      */
     getWorkflowNodeExecutionReports: (baseUrl, projectId, taskId, nodeId) => {

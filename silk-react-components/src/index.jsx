@@ -14,6 +14,7 @@ import WorkflowReportManager from "./ExecutionReport/WorkflowReportManager";
 // eslint-disable-next-line
 import SilkStore from './SilkStore/silkStore';
 import WorkflowNodeExecutionReport from "./ExecutionReport/WorkflowNodeExecutionReport";
+import LinkingExecutionReport from "./ExecutionReport/LinkingExecutionReport";
 
 require('./style/style.scss');
 
@@ -39,6 +40,12 @@ window.silkReactComponents = {
     transformExecutionReport: (containerId, apiSettings) => {
         ReactDom.render(
             <TransformExecutionReport {...apiSettings} />,
+            document.getElementById(containerId)
+        );
+    },
+    linkingExecutionReport: (containerId, apiSettings) => {
+        ReactDom.render(
+            <LinkingExecutionReport {...apiSettings} />,
             document.getElementById(containerId)
         );
     },
