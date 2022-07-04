@@ -15,8 +15,6 @@ import DiscardChangesDialog from './elements/DiscardChangesDialog';
 import EventEmitter from './utils/EventEmitter';
 import {withHistoryHOC} from "./utils/withHistoryHOC";
 
-require('./HierarchicalMapping.scss');
-
 class HierarchicalMapping extends React.Component {
     // define property types
     static propTypes = {

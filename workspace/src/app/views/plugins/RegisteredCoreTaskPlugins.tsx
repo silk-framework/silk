@@ -1,4 +1,5 @@
 import {LinkingRuleEditor} from "../taskViews/linking/LinkingRuleEditor";
+import HierarchicalMapping from "../pages/MappingEditor/HierarchicalMapping/HierarchicalMapping";
 import React from "react";
 import {IViewActions, pluginRegistry} from "./PluginRegistry";
 
@@ -18,13 +19,13 @@ export const registerCorePlugins = () => {
 
         /** Transform plugins. FIXME: CMEM-4266: Find solution for opening mapping rules in the rule editor without redirecting. */
         // Hierarchical mapping editor
-        // pluginRegistry.registerTaskView("transform", {
-        //     id: "hierarchicalMappingEditor",
-        //     label: "Mapping editor",
-        //     render(projectId: string, taskId: string): JSX.Element {
-        //         return <HierarchicalMapping project={projectId} transformTask={taskId} initialRule={"root"} />;
-        //     },
-        // });
+        pluginRegistry.registerTaskView("transform", {
+            id: "hierarchicalMappingEditor",
+            label: "Mapping editor",
+            render(projectId: string, taskId: string): JSX.Element {
+                return <HierarchicalMapping project={projectId} transformTask={taskId} initialRule={"root"} />;
+            },
+        });
 
         // Mapping evaluation // FIXME: Does not render well when not in i-frame
         // pluginRegistry.registerTaskView("transform", {
