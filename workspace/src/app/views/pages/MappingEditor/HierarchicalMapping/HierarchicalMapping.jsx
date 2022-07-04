@@ -73,7 +73,7 @@ class HierarchicalMapping extends React.Component {
             const href = window.location.href;
             try {
                 const uriTemplate = new URI(href);
-                const updatedUrl = HierarchicalMapping.updateMappingEditorUrl(uriTemplate, this.state.currentRuleId);
+                const updatedUrl = updateMappingEditorUrl(uriTemplate, this.state.currentRuleId);
                 this.props.history.pushState(null, '', updatedUrl);
             } catch (e) {
                 console.debug(`HierarchicalMapping: ${href} is not an URI, cannot update the window state`);

@@ -4,8 +4,8 @@ import React from "react";
 /** Adds the history to a component. */
 export const withHistoryHOC = (Component: any) => {
     return (props: any) => {
-        const screenWidth = useHistory()
+        const history = useHistory()
 
-        return <Component width={screenWidth} {...props} />;
+        return <Component history={history ?? window.history} {...props} />;
     };
 };
