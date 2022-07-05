@@ -39,6 +39,12 @@
   <script id="rule-mappingtarget" type="text/xml">
     @rule.target.map((r: MappingTarget) => toXml(r))
   </script>
+
+  <style>
+      .mdl-layout__content *:not([class*=eccgui]) {
+          box-sizing: initial;
+      }
+  </style>
 }
 
 @toolbar = {
