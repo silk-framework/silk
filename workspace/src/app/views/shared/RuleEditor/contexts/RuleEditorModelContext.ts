@@ -44,9 +44,13 @@ export interface RuleEditorModelContextProps {
     centerNode: (nodeId: string) => boolean;
     /** Get the current rule as IRuleOperatorNode objects. */
     ruleOperatorNodes: () => IRuleOperatorNode[];
+    /** get all the current sticky notes nodes */
     allStickyNodes: () => IStickyNote[];
+    /** currently edited sticky note node */
     currentStickyContent: Map<string, string>;
+    /** boolean switch to determine if the sticky note modal shows or not */
     showStickyNoteModal: boolean;
+    /** state utility function to toggle sticky note modal */
     setShowStickyNoteModal: (shown: boolean) => void;
 }
 
@@ -89,10 +93,13 @@ export interface IModelActions {
     copyAndPasteNodes: (nodeIds: string[], offset: XYPosition) => void;
     /** Move a single node to a new position. */
     moveNode: (nodeId: string, newPosition: XYPosition) => void;
+    /** changes the size of a node to the given new dimensions */
     changeSize: (nodeId: string, newNodeDimension: NodeDimensions) => void;
+    /** changes stickyNode properties such as style and content */
     changeStickyNodeProperties: (nodeId: string, color?: string, content?: string) => void;
     /** Moves nodes by a specific offset. */
     moveNodes: (nodeIds: string[], offset: XYPosition) => void;
+    /** utility function to create a stickyNote Node and add it to the center of the canvas */
     addStickyNoteToCanvas: (stickyNote: string, color: string, reactFlowWrapper: any) => void;
     /** Change a single node parameter.
      *
