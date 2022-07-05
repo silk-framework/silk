@@ -1,5 +1,5 @@
 import React from "react";
-import { createBrowserHistory, createMemoryHistory, History } from "history";
+import {createBrowserHistory, createMemoryHistory, History, LocationState} from "history";
 import { EnzymePropSelector, mount, ReactWrapper } from "enzyme";
 import { Provider } from "react-redux";
 import { AppLayout } from "../../src/app/views/layout/AppLayout/AppLayout";
@@ -60,7 +60,7 @@ jest.mock("react-router", () => ({
  * @param history      The initial history.
  * @param initialState
  */
-export const createStore = (history: History<{}>, initialState: RecursivePartial<IStore>) => {
+export const createStore = (history: History<LocationState>, initialState: RecursivePartial<IStore>) => {
     const root = rootReducer(history);
     const middleware = [
         ...getDefaultMiddleware({
@@ -103,7 +103,7 @@ export const withRender = (component) => render(component);
 /** Returns a wrapper for the application. */
 export const testWrapper = (
     component: React.ReactNode,
-    history: History<{}> = createBrowserHistory(),
+    history: History<LocationState> = createBrowserHistory<LocationState>(),
     initialState: RecursivePartial<IStore> = {}
 ) => {
     const store = createStore(history, initialState);
