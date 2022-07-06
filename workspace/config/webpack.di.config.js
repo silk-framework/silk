@@ -15,14 +15,12 @@ const safePostCssParser = require("postcss-safe-parser");
 const ManifestPlugin = require("webpack-manifest-plugin");
 const InterpolateHtmlPlugin = require("react-dev-utils/InterpolateHtmlPlugin");
 const WorkboxWebpackPlugin = require("workbox-webpack-plugin");
-const WatchMissingNodeModulesPlugin = require("react-dev-utils/WatchMissingNodeModulesPlugin");
 const ModuleScopePlugin = require("react-dev-utils/ModuleScopePlugin");
 const getCSSModuleLocalIdent = require("react-dev-utils/getCSSModuleLocalIdent");
 const paths = require("./paths");
 const getClientEnvironment = require("./env");
 const ModuleNotFoundPlugin = require("react-dev-utils/ModuleNotFoundPlugin");
 const ForkTsCheckerWebpackPlugin = require("react-dev-utils/ForkTsCheckerWebpackPlugin");
-const typescriptFormatter = require("react-dev-utils/typescriptFormatter");
 const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
 // Some apps do not need the benefits of saving a web request, so not inlining the chunk
@@ -516,11 +514,6 @@ module.exports = function (webpackEnv, isWatch) {
             // a plugin that prints an error when you attempt to do this.
             // See https://github.com/facebook/create-react-app/issues/240
             isEnvDevelopment && new CaseSensitivePathsPlugin(),
-            // If you require a missing module and then `npm install` it, you still have
-            // to restart the development server for Webpack to discover it. This plugin
-            // makes the discovery automatic so you don't have to restart.
-            // See https://github.com/facebook/create-react-app/issues/186
-            isEnvDevelopment && new WatchMissingNodeModulesPlugin(paths.appNodeModules),
 
             new MiniCssExtractPlugin({
                 // Options similar to the same options in webpackOptions.output
@@ -574,28 +567,15 @@ module.exports = function (webpackEnv, isWatch) {
                 }),
             // TypeScript type checking
             useTypeScript &&
-                new ForkTsCheckerWebpackPlugin({
-                    typescript: resolve.sync("typescript", {
-                        basedir: paths.appNodeModules,
-                    }),
-                    useTypescriptIncrementalApi: true,
-                    checkSyntacticErrors: true,
-                    measureCompilationTime: isEnvProduction,
-                    tsconfig: paths.appTsConfig,
-                    resolveModuleNameModule: process.versions.pnp ? `${__dirname}/pnpTs.js` : undefined,
-                    resolveTypeReferenceDirectiveModule: process.versions.pnp ? `${__dirname}/pnpTs.js` : undefined,
-                    reportFiles: [
-                        "**",
-                        "!**/__tests__/**",
-                        "!**/?(*.)(spec|test).*",
-                        "!**/src/setupProxy.*",
-                        "!**/src/setupTests.*",
-                    ],
-                    watch: paths.appSrc,
-                    async: isEnvDevelopment,
-                    silent: isEnvProduction,
-                    formatter: isEnvProduction ? typescriptFormatter : undefined,
-                }),
+                new ForkTsCheckerWebpackPlugin(
+                    {
+                        typescript: {
+                            configOverwrite: {
+                                include: [paths.appSrc, ...paths.additionalSourcePaths()]
+                            }
+                        }
+                    }
+                ),
             // isEnvProduction && new BundleAnalyzerPlugin({
             //     generateStatsFile: true
             // })

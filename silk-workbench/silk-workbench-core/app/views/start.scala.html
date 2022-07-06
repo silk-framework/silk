@@ -55,7 +55,7 @@
   <script type="text/javascript">
     function loadExample() {
       $.post('@config.baseUrl/workspace/@exampleName/importExample')
-      .success(function(request) { window.location = '@config.baseUrl/workspace' })
+      .success(function(request) { window.location = '@config.baseUrl/workbench/projects/movies' })
       .fail(function(request) { alert(request.responseText); })
     }
   </script>
