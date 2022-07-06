@@ -2,6 +2,7 @@ import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import fetch from "../../../services/fetch";
 import { legacyTransformEndpoint } from "../../../utils/getApiEndpoint";
 import { IComplexMappingRule, ITransformRule } from "./transform.types";
+import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 
 /** Fetches a transform rule. */
 export const requestTransformRule = async (
@@ -14,6 +15,17 @@ export const requestTransformRule = async (
         url: legacyTransformEndpoint(
             `/tasks/${projectId}/${transformId}/rule/${ruleId}` + (convertToComplex ? "?convertToComplex=true" : "")
         ),
+    });
+};
+
+/** fetch source paths for transform editor */
+export const autoCompleteTransformSourcePath = (
+    projectId: string,
+    taskId: string,
+    ruleId: string
+): Promise<FetchResponse<IAutocompleteDefaultResponse[]>> => {
+    return fetch({
+        url: legacyTransformEndpoint(`/tasks/${projectId}/${taskId}/rule/${ruleId}/completions/sourcePaths`),
     });
 };
 
