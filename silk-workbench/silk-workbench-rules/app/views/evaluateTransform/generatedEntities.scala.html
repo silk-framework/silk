@@ -6,7 +6,8 @@
 @import org.silkframework.entity.ValueType
 @import org.silkframework.rule.MappingTarget
 
-@(entities: Seq[org.silkframework.rule.evaluation.DetailedEntity], prefixes: Prefixes)
+@import config.WorkbenchConfig.WorkspaceReact
+@(entities: Seq[org.silkframework.rule.evaluation.DetailedEntity], prefixes: Prefixes)(implicit workspaceReact: WorkspaceReact)
 
 @frame {
   <link rel="stylesheet" href="@CoreAssets.at("libs/jquery.treeview/jquery.treeview.css")" type="text/css" />

@@ -1,5 +1,6 @@
 package controllers.core
 
+import config.WorkbenchConfig.WorkspaceReact
 import org.silkframework.config.{DefaultConfig, ProductionConfig}
 import play.api.Environment
 import play.api.libs.json.{JsBoolean, JsObject}
@@ -7,7 +8,7 @@ import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import javax.inject.Inject
 
-class ConfigController @Inject()(env: Environment) extends InjectedController {
+class ConfigController @Inject()(implicit workspaceReact: WorkspaceReact) extends InjectedController {
 
   private val ignoredPaths = Set("awt", "file", "jline", "line", "path", "promise", "sbt", "play.http.secret.key",
     "plugin.parameters.password.crypt.key", "oauth.clientSecret", "workbench.superuser", "play.server.https.keyStore.password")

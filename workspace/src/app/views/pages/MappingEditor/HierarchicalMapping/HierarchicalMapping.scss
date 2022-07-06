@@ -1,0 +1,759 @@
+@import '~@eccenca/gui-elements/src/configuration/variables';
+@import '~@eccenca/gui-elements/src/includes/blueprintjs/variables';
+
+.ecc-component-messagehandler {
+    .ecc-temp__appmessages & {
+        position: fixed;
+        right: 1rem;
+        bottom: 0;
+        width: 40rem;
+        max-width: calc(100% - 2rem);
+        max-height: 100%;
+        overflow-y: auto;
+        box-sizing: border-box;
+        padding: 0.5rem 1rem;
+        z-index: 1;
+    }
+}
+
+// TODO (left here as marker): switch back from gui elements reset to prevent display problems with other parts of the app
+*:not([class*=#{$eccgui}]) {
+    // box-sizing: inherit;
+}
+
+.ecc-silk-mapping {
+
+    .mdl-alert--narrowed {
+        .mdl-alert__content > *:not(:first-child) {
+            display: none;
+        }
+
+        .mdl-alert__content,
+        .mdl-alert__content > * {
+            max-height: 5em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+}
+
+ul.ecc-hierarchical-mapping-error-list {
+  margin-left: 0;
+  padding-left: 0;
+  list-style-type: none;
+}
+
+.ecc-silk-mapping__header {
+    margin: $ecc-size-block-whitespace/2 $ecc-size-block-whitespace;
+
+    &-action-row {
+        justify-content: flex-end;
+    }
+
+}
+
+.ecc-silk-mapping__content {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    padding: 0 $ecc-size-block-whitespace/2 $ecc-size-block-whitespace/2;
+}
+
+.ecc-silk-mapping__treenav {
+    flex-basis: calc(25% - #{$ecc-size-block-whitespace});
+    min-width: 15em;
+    max-width: 100%;
+    height: 100%;
+    flex-shrink: 1;
+    flex-grow: 1;
+    position: sticky;
+    left: 0;
+    top: 0;
+    margin: $ecc-size-block-whitespace/2;
+    box-sizing: border-box;
+
+    ul, li {
+        list-style-type: none;
+    }
+
+    ul {
+        margin: 0;
+        padding: 0;
+
+        &.ecc-silk-mapping__treenav--subtree {
+            padding-left: $button-icon-size;
+        }
+    }
+
+    & > .#{$eccgui}-card {
+
+        .#{$eccgui}__content {
+            max-height: calc(100vh - #{$layout-header-desktop-row-height} - #{$tab-height} - #{2 * $ecc-size-block-whitespace});
+            overflow: auto;
+        }
+    }
+
+    .ecc-silk-mapping__treenav--maintree {
+        box-sizing: border-box;
+    }
+
+    .ecc-silk-mapping__treenav--item {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        color: $button-secondary-color;
+    }
+
+    .ecc-silk-mapping__treenav--item-active {
+        font-weight: 500;
+        background-color: $chip-bg-active-color;
+    }
+
+    .ecc-silk-mapping__treenav--item-toggler {
+        flex-grow: 0;
+        flex-shrink: 0;
+        min-width: $button-height;
+
+        &.material-icons {
+            font-size: $typo-body-1-font-size;
+            text-align: center;
+            color: to_color($palette-grey-500);
+        }
+    }
+
+    .ecc-silk-mapping__treenav--item-handler {
+        flex-grow: 1;
+        flex-shrink: 1;
+        padding: $ecc-size-block-whitespace/4 $ecc-size-block-whitespace/2;
+        @include typo-body-1();
+        cursor: pointer;
+        border: none;
+        text-align: left;
+        background-color: transparent;
+        outline: none;
+
+        &:hover, &:focus {
+            background-color: $button-hover-color;
+        }
+    }
+
+    .ecc-silk-mapping__treenav--item-maintitle,
+    .ecc-silk-mapping__treenav--item-subtitle {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .ecc-silk-mapping__treenav--item-subtitle {
+        @include typo-caption();
+    }
+}
+
+.ecc-silk-mapping__rules {
+    flex-basis: calc(75% - #{$ecc-size-block-whitespace});
+    flex-grow: 4;
+    flex-shrink: 1;
+    min-width: 50%;
+    margin: $ecc-size-block-whitespace/2;
+    box-sizing: border-box;
+
+    .mdl-card__title {
+        z-index: auto; // TODO: only if sticky, need to be moved to gui elements
+        background-color: $card-background-color; // TODO: 90% like action row, need to be moved to gui elements
+    }
+
+    .mdl-card__title-back {
+        align-self: flex-start;
+    }
+
+    .mdl-card__title-text {
+        align-self: center;
+        display: flex;
+    }
+
+    .ecc-breadcrumbs__button {
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+}
+
+.ecc-silk-mapping__navheader {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    margin-bottom: $ecc-size-block-whitespace;
+}
+
+.ecc-silk-mapping__navheader-row {
+    //overflow: visible;
+}
+
+.ecc-silk-mapping__rulesobject {
+    position: relative;
+    margin-bottom: $ecc-size-block-whitespace;
+
+    .mdl-card__title {
+        display: block;
+        padding: 0;
+    }
+
+    .mdl-card__actions {
+        border-bottom: 1px solid to_color($card-border-color);
+    }
+}
+
+.ecc-silk-mapping__ruleslist {
+
+    .ecc-floatingactionlist__wrapper--fixed {
+        z-index: 2; // TODO: need to be moved to gui elements
+    }
+
+    &:not(.ecc-silk-mapping__suggestionlist) {
+        margin-top: -1 * $ecc-size-block-whitespace;
+
+        & .mdl-card__actions {
+            background-color: transparent;
+        }
+    }
+
+    .mdl-list {
+        margin: 0;
+        padding: 0;
+
+        & > li:nth-child(odd):not(.ecc-silk-mapping__ruleitem--defect) {
+            background-color: rgba(to_color($data-table-hover-color), 0.12);
+        }
+
+        .mdl-card,
+        .mdl-data-table {
+            background-color: transparent;
+        }
+    }
+
+    &.ecc-silk-mapping__suggestionlist {
+        .mdl-list {
+            & > li:first-child {
+                background-color: transparent;
+            }
+        }
+    }
+}
+
+.ecc-silk-mapping__suggestionlist__target-dropdown {
+    // workaround to prevent to high select dropdowns without providing own rendering functions
+    .#{$ns}-menu {
+        max-height: 45vh;
+        overflow: auto;
+    }
+
+    .#{$ns}-input {
+        width: 40rem;
+        max-width: 90vw;
+    }
+}
+
+.ecc-silk-mapping__ruleitem {
+    @include typo-body-1();
+    max-width: 100%;
+    position: relative;
+    border-bottom: $data-table-dividers;
+
+    &:last-child {
+        border-bottom: none;
+    }
+
+    .mdl-list__item {
+        color: inherit;
+    }
+
+    .mdl-list__item-primary-content {
+        display: block;
+        width: 50vw;
+    }
+}
+
+.ecc-silk-mapping__ruleitem--dnd {
+    outline: none;
+}
+
+.mdl-list__item-secondary-content {
+    .ecc-silk-mapping__ruleitem--literal &,
+    .ecc-silk-mapping__ruleitem--object & {
+        align-self: stretch;
+        justify-content: center;
+        align-items: center;
+    }
+}
+
+.ecc-silk-mapping__ruleitem-expanded {
+}
+
+.ecc-silk-mapping__ruleitem--defect {
+    color: to_color($ecc-color-warning-text);
+    background-color: to_color($ecc-color-warning-background);
+    border-color: darken(to_color($ecc-color-warning-background), 5%);
+}
+
+.ecc-silk-mapping__ruleitem-icon {
+    font-size: 1.39em;
+    vertical-align: bottom;
+    margin-right: 0.1em;
+
+    &-red {
+        color: to_color($palette-red-800);
+    }
+    &-yellow {
+        color: to_color($palette-yellow-800);
+    }
+    &-green {
+        color: to_color($palette-green-800);
+    }
+}
+
+.ecc-silk-mapping__ruleitem-headline {
+    @include typo-body-1();
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+}
+
+.ecc-silk-mapping__ruleitem-subline {
+    @include typo-caption();
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ecc-silk-mapping__ruleitem-extraline {
+    display: block;
+    margin-right: $ecc-size-blockelement-margin-horizontal;
+    font-size: $ecc-size-typo-caption;
+    font-weight: normal;
+    opacity: .61;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ecc-silk-mapping__ruleitem-label {
+    display: inline;
+}
+
+.ecc-silk-mapping__ruleitem-url {
+    direction: rtl;
+    text-align: left;
+}
+
+.ecc-silk-mapping__suggestitem-checkbox {
+    align-self: flex-start;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.ecc-silk-mapping__suggestitem-typeselect {
+    @include typo-caption();
+
+    & > .mdl-textfield {
+        display: block;
+    }
+}
+
+.ecc-silk-mapping__ruleitem-summary {
+
+    @include material-animation-default(0.28s);
+    transition-property: background-color;
+
+    &:hover {
+        background-color: $data-table-hover-color;
+    }
+
+    &.ecc-silk-mapping__ruleitem-summary--expanded {
+        background-color: transparent;
+
+        .mdl-list__item-primary-content {
+            opacity: 0.39;
+        }
+    }
+
+    .mdl-list__item {
+        padding: $ecc-size-block-whitespace/2;
+        overflow: visible;
+    }
+
+    /*
+    // probably not necessary anymore, just comment it out for the moment
+    .Select-input,
+    .Select-control {
+        height: calc(48px - #{2 * $ecc-size-block-whitespace});
+    }
+
+    .Select-placeholder, .Select--single > .Select-control .Select-value {
+        line-height: calc(48px - #{2 * $ecc-size-block-whitespace});
+    }
+    */
+
+    .Select.is-disabled .Select-value {
+        opacity: 0.61;
+    }
+
+    .ecc-silk-mapping__suggestitem-typeselect {
+        margin-top: 0.5 * $ecc-size-block-whitespace;
+    }
+
+    .ecc-silk-mapping__ruleheader {
+        background-color: transparent;
+
+        &:hover {
+            background-color: transparent;
+        }
+
+        .ecc-silk-mapping__ruleitem-headline,
+        .ecc-silk-mapping__ruleitem-subline,
+        .ecc-silk-mapping__suggestitem-typeselect {
+            @include typo-body-1();
+            font-size: $data-table-header-font-size;
+            color: $data-table-header-color;
+        }
+    }
+
+    @media (min-width: $grid-desktop-breakpoint) {
+        .mdl-list__item-primary-content {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-items: baseline;
+        }
+
+        .ecc-silk-mapping__ruleitem-headline,
+        .ecc-silk-mapping__ruleitem-subline,
+        .ecc-silk-mapping__suggestitem-typeselect {
+            font-size: $data-table-font-size;
+            flex-grow: 1;
+            flex-shrink: 0;
+            box-sizing: border-box;
+            padding: $ecc-size-inline-whitespace/2;
+            max-width: 33%;
+            margin-right: 0.333%;
+        }
+        .hide-in-table {
+            display: none;
+        }
+
+        .ecc-silk-mapping__suggestitem-headline {
+            width: 40%;
+            max-width: 40%;
+        }
+
+        .ecc-silk-mapping__suggestitem-subline {
+            width: 40%;
+            max-width: 40%;
+        }
+        .ecc-silk-mapping__suggestitem-checkbox {
+            align-self: center;
+        }
+        .ecc-silk-mapping__suggestitem-typeselect {
+            margin-top: -4px;
+            width: 20%;
+            max-width: 20%;
+            margin-right: 0;
+        }
+    }
+}
+
+.ecc-silk-mapping__ruleitem-reorderhandler {
+    width: $eccgui-size-block-whitespace;
+    position: absolute;
+    top: $ecc-size-block-whitespace / 2;
+    left: $ecc-size-block-whitespace / 2;
+    bottom: $ecc-size-block-whitespace / 2;
+    border: $data-table-dividers;
+    background-color: to_color($color-white);
+
+    & + .mdl-list__item {
+        padding-left: 2 * $eccgui-size-block-whitespace;
+    }
+
+    .ege-contextmenu__wrapper {
+        position: absolute;
+        left: 1px;
+        top: 1px;
+        right: 1px;
+        bottom: 1px;
+    }
+
+    .#{eccgui}-button,
+    .#{eccgui}-icon,
+    .#{eccgui}-contextmenu,
+    .#{$ns}-popover-target {
+        overflow: hidden;
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 100%;
+        border-radius: 0;
+        min-width: 0;
+        line-height: 100%;
+        padding: 0;
+        margin: 0 !important;
+    }
+
+    .#{eccgui}-button {
+        opacity: $eccgui-opacity-muted;
+
+        &:hover, &:focus, &:active {
+            opacity: $eccgui-opacity-regular;
+        }
+    }
+
+    .material-icons {
+        transform: translate(-1px, calc(50% - #{$button-fab-font-size/2}));
+    }
+}
+
+.ecc-silk-mapping__rulesviewer,
+.ecc-silk-mapping__ruleseditor {
+
+    .mdl-card__content {
+        padding-top: 0;
+    }
+}
+
+.ecc-silk-mapping__rulesviewer__title {
+
+    .mdl-card__title-text {
+        @include typo-subhead();
+    }
+}
+
+.ecc-silk-mapping__rulesviewer__attribute {
+
+    margin: $ecc-size-block-whitespace/2 0 $ecc-size-block-whitespace/2 0;
+
+    dt, dd {
+        margin: 0 0 $ecc-size-block-whitespace/4 0;
+        padding: 0;
+    }
+
+    code {
+        @include typo-caption();
+    }
+
+    .ecc-silk-mapping__rulesviewer__attribute-label {
+        @include typo-caption();
+        font-weight: 700;
+        list-style-type: square;
+        list-style-position: inside;
+    }
+
+    .ecc-silk-mapping__rulesviewer__attribute-info {
+        max-width: 100%;
+        overflow: visible;
+        font-weight: 300;
+
+        p {
+            font-weight: 300;
+            margin-bottom: 0;
+        }
+    }
+
+}
+
+.ecc-silk-mapping__rulesviewer__sourcePath {
+    code {
+        word-wrap: break-word;
+    }
+}
+
+.ecc-silk-mapping__rulesviewer__infobox {
+
+    display: flex;
+
+    &.is-narrowed {
+
+        .ecc-silk-mapping__rulesviewer__infobox-main,
+        .ecc-silk-mapping__rulesviewer__infobox-sub {
+
+            max-height: $typo-body-1-line-height * 1em;
+            overflow: hidden;
+
+            * {
+                display: inline;
+            }
+
+            & > * {
+                display: inline-block;
+                overflow: hidden;
+                text-overflow: ellipsis;
+
+                &:not(:first-child) {
+                    display: none;
+                }
+            }
+        }
+
+        @media (min-width: $grid-desktop-breakpoint) {
+            .ecc-silk-mapping__rulesviewer__infobox-content {
+                display: flex;
+                flex-wrap: nowrap;
+
+                .ecc-silk-mapping__rulesviewer__examples & {
+                    display: block;
+                    width: auto;
+                }
+
+                & > div + div {
+                    padding-left: 1rem;
+                    box-sizing: border-box;
+                    position: relative;
+
+                    &:before {
+                        content: '•';
+                        width: $ecc-size-block-whitespace;
+                        height: $typo-body-1-line-height * 1em;
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        text-align: center;
+                        vertical-align: middle;
+                    }
+                }
+
+            }
+
+            .ecc-silk-mapping__rulesviewer__infobox-main {
+                flex-grow: 0;
+                flex-shrink: 0;
+                max-width: 61%;
+            }
+
+            .ecc-silk-mapping__rulesviewer__infobox-sub {
+                flex-grow: 1;
+                flex-shrink: 1;
+            }
+        }
+    }
+}
+
+.ecc-silk-mapping__rulesviewer__infobox-toggler {
+    flex-grow: 0;
+    flex-shrink: 0;
+    margin: -0.5 * $ecc-size-block-whitespace 0 0 -1 * $ecc-size-block-whitespace;
+}
+
+.ecc-silk-mapping__rulesviewer__infobox-content {
+
+    flex-grow: 1;
+    flex-shrink: 1;
+    width: 50vw; // this is a spooky hack but it prevents that the layout explodes
+    overflow: auto;
+
+    .ecc-silk-mapping__rulesviewer__infobox-sub {
+        @include typo-caption();
+    }
+}
+
+.ecc-silk-mapping__rulesviewer__examples-table {
+    table-layout: unset !important;
+    width: 100%;
+
+    th, td {
+        white-space: normal;
+        height: auto;
+        border-bottom-color: rgba(to_color($data-table-divider-color), 0.06); //#ddd;
+
+        &:first-of-type,
+        &:last-of-type {
+            padding: inherit;
+        }
+
+        &.ecc-silk-mapping__rulesviewer__examples-table__path {
+            padding: $ecc-size-block-whitespace/2 $ecc-size-block-whitespace $ecc-size-block-whitespace/2 0;
+
+            .mdl-chip {
+                direction: rtl;
+            }
+        }
+        &.ecc-silk-mapping__rulesviewer__examples-table__value {
+            padding: $ecc-size-block-whitespace/2 0;
+
+            .mdl-chip {
+                // white-space: pre-wrap; // not clear why this was made but it produces linebreaks and display bugs
+            }
+        }
+        &.ecc-silk-mapping__rulesviewer__examples-table__result {
+            padding: $ecc-size-block-whitespace/2 0em $ecc-size-block-whitespace/2 $ecc-size-block-whitespace;
+
+            .mdl-chip {
+                // white-space: pre-wrap; // not clear why this was made but it produces linebreaks and display bugs
+            }
+        }
+    }
+
+    tr:first-of-type td.ecc-silk-mapping__rulesviewer__examples-table__result,
+    tr:last-of-type td {
+        border-bottom-color: to_color($data-table-divider-color);
+    }
+
+    thead {
+        border: 0;
+    }
+
+    .mdl-chip {
+        box-sizing: border-box;
+    }
+
+    tbody {
+        tr {
+            &:hover {
+                background-color: transparent;
+            }
+        }
+
+        .is-narrowed & {
+            display: none;
+
+            &:first-of-type {
+                display: table-row-group;
+            }
+
+            tr {
+                opacity: 0.39;
+            }
+
+            .mdl-chip {
+                display: none;
+
+                &:nth-child(-n+7) {
+                    display: inline-flex;
+                }
+            }
+        }
+    }
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.ecc-silk-mapping__ruleseditor__actionrow-complex-edit {
+
+    margin: 0 $ecc-size-block-whitespace/2;
+
+}
+
+.mdl-layout_item--background-flash{
+    animation-name: anim-new-element;
+    animation-duration: 1s;
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+}
+
+@keyframes anim-new-element {
+    25% {
+        background-color: darken($ecc-color-info-background, 30%);
+        color: $ecc-color-info-text;
+    }
+}

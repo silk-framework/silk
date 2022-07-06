@@ -1,11 +1,10 @@
 
 {
   "name": "silk",
-  "description": "We use Lerna and Yarn workspace to use the gui-elements sub-module in the workspace and silk-react-components projects without duplication.",
+  "description": "We use Yarn workspaces in order to use the gui-elements as dependency.",
   "private": true,
   "license": "Apache 2.0",
   "workspaces": [
-    "silk-react-components",
     "workspace",
     "libs/gui-elements"
   ],

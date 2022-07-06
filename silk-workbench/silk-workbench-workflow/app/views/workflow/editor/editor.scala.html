@@ -6,7 +6,8 @@
 @import org.silkframework.workbench.Context
 @import org.silkframework.runtime.activity.UserContext
 
-@(context: Context[Workflow])(implicit session: Session, userContext: UserContext, request: RequestHeader)
+@import config.WorkbenchConfig.WorkspaceReact
+@(context: Context[Workflow])(implicit session: Session, userContext: UserContext, request: RequestHeader, workspaceReact: WorkspaceReact)
 
 @header = {
   <link type="text/css" href="@Assets.at("editor/editor.css")" rel="stylesheet" />
@@ -21,6 +22,12 @@
     var workflowId = '@context.task.id';
     var editor = null;
   </script>
+
+  <style>
+      *:not([class*=eccgui]) {
+          box-sizing: initial;
+      }
+  </style>
 }
 
 @toolbar = {

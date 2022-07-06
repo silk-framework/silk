@@ -8,10 +8,10 @@
 @import org.silkframework.workspace.activity.transform.ExecuteTransformFactory
 @import views.html.workspace.activity.autoReload
 
-@(context: Context[TransformSpec])(implicit session: play.api.mvc.Session, request: RequestHeader)
+@import config.WorkbenchConfig.WorkspaceReact
+@(context: Context[TransformSpec])(implicit session: play.api.mvc.Session, request: RequestHeader, workspaceReact: WorkspaceReact)
 
 @header = {
-  <script src="@CoreAssets.at("libs/silk-react-components/main.js")" type="text/javascript"></script>
 }
 
 @toolbar = {
@@ -28,6 +28,7 @@
 }
 
 @content = {
+  @coreLinks.mainJs()
   @autoReload(
     context = context,
     contentPath = ExecuteTransformTab.executionReport(context.project.id, context.task.id).url,

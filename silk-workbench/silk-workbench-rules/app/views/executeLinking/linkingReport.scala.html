@@ -2,12 +2,13 @@
 @import org.silkframework.workspace.ProjectTask
 @import org.silkframework.rule.LinkSpec
 
-@(task: ProjectTask[LinkSpec])
+@import config.WorkbenchConfig.WorkspaceReact
+@(task: ProjectTask[LinkSpec])(implicit workspaceReact: WorkspaceReact)
 
 <div>
-  <script src="@CoreAssets.at("libs/silk-react-components/main.js")" type="text/javascript"></script>
+  @coreLinks.mainJs()
   <script type="text/javascript">
-    silkReactComponents.linkingExecutionReport(
+    window.silkReactComponents.linkingExecutionReport(
       'react-linkingExecutionReport',
       {
         baseUrl: '@config.baseUrl',

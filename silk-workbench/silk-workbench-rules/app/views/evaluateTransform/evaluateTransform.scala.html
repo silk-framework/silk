@@ -3,17 +3,18 @@
 @import controllers.core.routes.{Assets => CoreAssets}
 @import org.silkframework.workbench.Context
 
-@(context: Context[TransformSpec], selectedRule: String, offset: Int, limit: Int)(implicit request: RequestHeader)
+@import config.WorkbenchConfig.WorkspaceReact
+@(context: Context[TransformSpec], selectedRule: String, offset: Int, limit: Int)(implicit request: RequestHeader, workspaceReact: WorkspaceReact)
 
 @header = {
-  <script src="@CoreAssets.at("libs/silk-react-components/main.js")" type="text/javascript"></script>
   <link type="text/css" href="@Assets.at("stylesheets/evaluateTransform/evaluateTransform.css")" rel="stylesheet" />
 }
 
 @content = {
   <div id="react-evaluateMapping" style="height: 100%" ></div>
+  @coreLinks.mainJs()
   <script type="text/javascript">
-      silkReactComponents.evaluateMapping(
+      window.silkReactComponents.evaluateMapping(
         'react-evaluateMapping',
         {
           baseUrl: '@config.baseUrl',
