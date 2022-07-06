@@ -17,7 +17,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.entity.paths._
 import org.silkframework.entity.{ValueType, ValueTypeAnnotation}
 import org.silkframework.rule.vocab.ObjectPropertyType
-import org.silkframework.rule.{TransformRule, TransformSpec}
+import org.silkframework.rule.{ContainerTransformRule, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
@@ -320,13 +320,22 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
   }
 
   private def withRule[T](transformTask: ProjectTask[TransformSpec],
-                          ruleId: String)
+                          ruleId: String,
+                          // When true the container rule is returned instead when a value rule was found.
+                          firstContainerRule: Boolean = false)
                          (block: ((TransformRule, List[PathOperator])) => T): T = {
-    transformTask.nestedRuleAndSourcePath(ruleId) match {
-      case Some(value) =>
-        block(value)
-      case None =>
+    transformTask.nestedRuleAndSourcePathWithParents(ruleId) match {
+      case Nil =>
         throw new NotFoundException("Requesting auto-completion for non-existent rule " + ruleId + " in transformation task " + transformTask.fullLabel + "!")
+      case result: List[(TransformRule, List[PathOperator])] =>
+        val foundRule = result.last
+        if(firstContainerRule && !foundRule._1.isInstanceOf[ContainerTransformRule]) {
+          // The first container rule, i.e. the parent rule if the found rule was no container rule.
+          block(result.dropRight(1).last)
+        } else {
+          // The found rule
+          block(foundRule)
+        }
     }
   }
 
