@@ -15,8 +15,6 @@ import DiscardChangesDialog from './elements/DiscardChangesDialog';
 import EventEmitter from './utils/EventEmitter';
 import {withHistoryHOC} from "./utils/withHistoryHOC";
 
-require('./HierarchicalMapping.scss');
-
 class HierarchicalMapping extends React.Component {
     // define property types
     static propTypes = {
@@ -65,21 +63,6 @@ class HierarchicalMapping extends React.Component {
         EventEmitter.off(MESSAGES.RULE_VIEW.CLOSE, this.onCloseEdit);
     }
 
-    static updateMappingEditorUrl = (currentUrl, newRule) => {
-        const segments = currentUrl.segment();
-        const transformIdx = segments.findIndex((segment) => segment === "transform");
-        const editorIdx = transformIdx + 3;
-        console.assert(segments[editorIdx] === "editor", "Wrong URL structure, 'editor not at correct position!'");
-        for(let i = editorIdx + 1; i < segments.length; i++) {
-            // Remove everything after "editor"
-            currentUrl.segment(editorIdx + 1, "");
-        }
-        // add new rule suffix
-        currentUrl.segment("rule");
-        currentUrl.segment(newRule);
-        return currentUrl.toString();
-    };
-
     componentDidUpdate(prevProps, prevState) {
         if (
             prevState.currentRuleId !== this.state.currentRuleId &&
@@ -88,7 +71,7 @@ class HierarchicalMapping extends React.Component {
             const href = window.location.href;
             try {
                 const uriTemplate = new URI(href);
-                const updatedUrl = HierarchicalMapping.updateMappingEditorUrl(uriTemplate, this.state.currentRuleId);
+                const updatedUrl = updateMappingEditorUrl(uriTemplate, this.state.currentRuleId);
                 this.props.history.pushState(null, '', updatedUrl);
             } catch (e) {
                 console.debug(`HierarchicalMapping: ${href} is not an URI, cannot update the window state`);
@@ -296,5 +279,20 @@ class HierarchicalMapping extends React.Component {
         );
     }
 }
+
+export const updateMappingEditorUrl = (currentUrl, newRule) => {
+    const segments = currentUrl.segment();
+    const transformIdx = segments.findIndex((segment) => segment === "transform");
+    const editorIdx = transformIdx + 3;
+    console.assert(segments[editorIdx] === "editor", "Wrong URL structure, 'editor not at correct position!'");
+    for(let i = editorIdx + 1; i < segments.length; i++) {
+        // Remove everything after "editor"
+        currentUrl.segment(editorIdx + 1, "");
+    }
+    // add new rule suffix
+    currentUrl.segment("rule");
+    currentUrl.segment(newRule);
+    return currentUrl.toString();
+};
 
 export default withHistoryHOC(HierarchicalMapping);

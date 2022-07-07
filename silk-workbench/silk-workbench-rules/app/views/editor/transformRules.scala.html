@@ -1,9 +1,7 @@
+@import config.WorkbenchConfig.WorkspaceReact
 @import org.silkframework.rule.TransformSpec
-@import controllers.core.routes.{Assets => CoreAssets}
 @import org.silkframework.rule.vocab.Vocabularies
 @import org.silkframework.workbench.Context
-
-@import config.WorkbenchConfig.WorkspaceReact
 @(context: Context[TransformSpec], vocabularies: Vocabularies, rule: String)(implicit request: RequestHeader, workspaceReact: WorkspaceReact)
 
 @header = {

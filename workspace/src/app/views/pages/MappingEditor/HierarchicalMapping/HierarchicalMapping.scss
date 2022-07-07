@@ -1,5 +1,5 @@
-@import "~gui-elements-deprecated/src/configuration.default";
-@import '~@eccenca/gui-elements';
+@import '~@eccenca/gui-elements/src/configuration/variables';
+@import '~@eccenca/gui-elements/src/includes/blueprintjs/variables';
 
 .ecc-component-messagehandler {
     .ecc-temp__appmessages & {
@@ -18,7 +18,7 @@
 
 // TODO (left here as marker): switch back from gui elements reset to prevent display problems with other parts of the app
 *:not([class*=#{$eccgui}]) {
-    box-sizing: inherit;
+    // box-sizing: inherit;
 }
 
 .ecc-silk-mapping {
