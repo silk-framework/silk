@@ -17,6 +17,7 @@ describe("Rule utils", () => {
             portSpecification: {
                 minInputPorts: 0,
             },
+            inputsCanBeSwitched: false,
             ...node,
         };
     };
