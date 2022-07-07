@@ -7,7 +7,8 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
   id = "greaterThan",
   categories = Array("Equality"),
   label = "Greater than",
-  description = "Checks if the source value is greater than the target value.")
+  description = "Checks if the source value is greater than the target value. " +
+  "If both strings are numbers, numerical order is used for comparison. Otherwise, alphanumerical order is used.")
 case class GreaterThanMetric(@Param("Accept equal values")
                              orEqual: Boolean = false,
                              @Param("Per default, if both strings are numbers, numerical order is used for comparison. Otherwise, alphanumerical order is used. Choose a more specific order for improved performance.")

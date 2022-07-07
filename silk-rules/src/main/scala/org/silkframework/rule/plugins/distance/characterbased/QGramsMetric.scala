@@ -47,6 +47,10 @@ case class QGramsMetric(q: Int = 2,
     jaccardCoefficient(str1.qGrams(q), str2.qGrams(q), threshold)
   }
 
+  override def emptyIndex(limit: Double): Index = {
+    Index.oneDim(Set.empty, BigInt(maxChar - minChar + 1).pow(q).toInt)
+  }
+
   override def indexValue(value: String, limit: Double, sourceOrTarget: Boolean): Index = {
     val qGrams = value.qGrams(q)
 

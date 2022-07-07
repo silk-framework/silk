@@ -1,5 +1,5 @@
 import React from "react";
-import { IRuleOperatorNode } from "../RuleEditor.typings";
+import { IRuleOperatorNode, RuleValidationError } from "../RuleEditor.typings";
 import { IEvaluatedReferenceLinksScore } from "../../../taskViews/linking/linking.types";
 import { NodeContentExtension } from "@eccenca/gui-elements/src/extensions/react-flow";
 
@@ -35,6 +35,12 @@ export interface RuleEditorEvaluationContextProps {
 
     /** Link to external reference links UI. */
     referenceLinksUrl?: string;
+
+    /** When this is set the rule validation during the rule evaluation has failed. */
+    ruleValidationError: RuleValidationError | undefined;
+
+    /** Clears the last rule validation error. */
+    clearRuleValidationError: () => any;
 }
 
 const NOP = () => {};
@@ -44,8 +50,12 @@ export const RuleEditorEvaluationContext = React.createContext<RuleEditorEvaluat
     supportsEvaluation: false,
     supportsQuickEvaluation: false,
     startEvaluation: NOP,
-    createRuleEditorEvaluationComponent: (nodeId) => <NodeContentExtension isExpanded={true}>{`${nodeId}`}</NodeContentExtension>,
+    createRuleEditorEvaluationComponent: (nodeId) => (
+        <NodeContentExtension isExpanded={true}>{`${nodeId}`}</NodeContentExtension>
+    ),
     evaluationResultsShown: false,
     evaluationRunning: false,
     toggleEvaluationResults: NOP,
+    ruleValidationError: undefined,
+    clearRuleValidationError: NOP,
 });

@@ -1,0 +1,6 @@
+@import config.WorkbenchConfig.WorkspaceReact
+
+@()(implicit workspaceReact: WorkspaceReact)
+@for(jsLink <- workspaceReact.jsLinks) {
+    <script src="@jsLink"></script>
+}

@@ -1,9 +1,10 @@
 @import org.silkframework.workbench.Context
 
+@import config.WorkbenchConfig.WorkspaceReact
 @(context: Context[org.silkframework.dataset.DatasetSpec.GenericDatasetSpec],
   endpoint: org.silkframework.dataset.rdf.SparqlEndpoint,
   query: String,
-  queryResults: Option[org.silkframework.dataset.rdf.SparqlResults])(implicit request: RequestHeader)
+  queryResults: Option[org.silkframework.dataset.rdf.SparqlResults])(implicit request: RequestHeader, workspaceReact: WorkspaceReact)
 
 @header = {
 

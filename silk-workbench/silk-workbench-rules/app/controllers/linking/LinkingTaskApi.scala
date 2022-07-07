@@ -17,7 +17,7 @@ import org.silkframework.config.{MetaData, PlainTask, Prefixes}
 import org.silkframework.dataset.Dataset
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
-import org.silkframework.entity.{Entity, EntitySchema, FullLink, MinimalLink, Restriction}
+import org.silkframework.entity._
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.plugins.path.{PathMetaDataPlugin, StandardMetaDataPlugin}
@@ -756,14 +756,21 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
       }
       val evaluationResult: LinkageRuleEvaluationResult = referenceLinkEvaluationScore(linkageRule, referenceEntityCacheValue)
 
-      val result =
-        Json.obj(
-          "positive" -> serialize(referenceEntityCacheValue.positiveEntities),
-          "negative" -> serialize(referenceEntityCacheValue.negativeEntities),
-          "evaluationScore" -> Json.toJson(evaluationResult)
-        )
+      try {
+        val result =
+          Json.obj(
+            "positive" -> serialize(referenceEntityCacheValue.positiveEntities),
+            "negative" -> serialize(referenceEntityCacheValue.negativeEntities),
+            "evaluationScore" -> Json.toJson(evaluationResult)
+          )
 
-      Ok(result)
+        Ok(result)
+      } catch {
+        case NoSuchPathException(_, path) => {
+          // Signal to the user that there is a problem with the current state of the linking rule that needs to be solved by the user.
+          throw ConflictRequestException(path.serialize())
+        }
+      }
     }
   }
 

@@ -333,6 +333,8 @@ case class TokenwiseStringDistance(
     numerator / (0.5 * (arr1.size * (arr1.size -1)))
   }
 
+  override def emptyIndex(limit: Double): Index = metric.emptyIndex(limit)
+
   /**
    * Very simple indexing function that requires at least one common token in strings for them to
    * be compared
@@ -340,7 +342,7 @@ case class TokenwiseStringDistance(
   override def indexValue(value: String, limit: Double, sourceOrTarget: Boolean): Index = {
     val tokens = tokenize(value)
     if (tokens.isEmpty) {
-      Index.empty
+      emptyIndex(limit)
     } else {
       if (useIncrementalIdfWeights){
         documentCount += 1

@@ -220,6 +220,20 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         ruleEvaluationContext.evaluationResultsShown,
     ]);
 
+    React.useEffect(() => {
+        const error = ruleEvaluationContext.ruleValidationError;
+        if (error && error.nodeErrors.length > 0) {
+            const nodeId = error.nodeErrors[0].nodeId;
+            const node = utils.nodeById(elements, nodeId);
+            if (node) {
+                centerNodeInCanvas(node);
+                highlightNodes([nodeId], "warning", true);
+            }
+        } else {
+            clearHighlighting();
+        }
+    }, [ruleEvaluationContext.ruleValidationError]);
+
     // Sets the quick evaluation flag to signal that a new quick evaluation should be triggered.
     const triggerQuickEvaluation = () => {
         // Only trigger if it currently makes sense
@@ -1357,6 +1371,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         } else {
             clearHighlighting();
         }
+        ruleEvaluationContext.clearRuleValidationError();
         return saveResult.success;
     };
 

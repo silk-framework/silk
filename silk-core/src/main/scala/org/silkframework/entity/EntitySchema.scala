@@ -1,6 +1,6 @@
 package org.silkframework.entity
 
-import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity.paths.{Path, TypedPath, UntypedPath}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.util.Uri
 
@@ -64,13 +64,13 @@ case class EntitySchema(
     *
     * @param path - the path to find
     * @return - the index of the path in question
-    * @throws NoSuchElementException If the path could not be found in the schema.
+    * @throws NoSuchPathException If the path could not be found in the schema.
     */
   def indexOfTypedPath(path: TypedPath): Int = {
     //find the given path and, if provided, match the value type as well
     typedPaths.zipWithIndex.find(pi => path.equals(pi._1)) match{
       case Some((_, ind)) => ind
-      case None => throw new NoSuchElementException(s"Path $path not found on entity. Available paths: ${typedPaths.mkString(", ")}.")
+      case None => throw NoSuchPathException(s"Path $path not found on entity. Available paths: ${typedPaths.mkString(", ")}.", path)
     }
   }
 
@@ -85,7 +85,7 @@ case class EntitySchema(
     typedPaths.zipWithIndex.find(pi => path.operators == pi._1.operators) match{
       case Some((_, ind)) => ind
       case None =>
-        throw new NoSuchElementException(s"Path $path not found on entity. Available paths: ${typedPaths.mkString(", ")}.")
+        throw NoSuchPathException(s"Path $path not found on entity. Available paths: ${typedPaths.mkString(", ")}.", path)
     }
   }
 
@@ -299,3 +299,5 @@ object EntitySchema {
     </EntityDescription>
   }
 }
+
+case class NoSuchPathException(message: String, path: Path) extends NoSuchElementException(message)

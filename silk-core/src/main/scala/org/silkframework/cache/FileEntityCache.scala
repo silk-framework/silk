@@ -138,7 +138,6 @@ class FileEntityCache(val entitySchema: EntitySchema,
 
     def write(entity: Entity, index: BitsetIndex) {
       checkInit()
-      if (partitionCount == 0) partitionCount = 1
 
       currentEntities(count) = entity
       currentIndices(count) = index
@@ -147,7 +146,6 @@ class FileEntityCache(val entitySchema: EntitySchema,
       if (count == runtimeConfig.partitionSize) {
         writePartitionToFile()
         initCurrentPartition(removeTempData = false)
-        partitionCount += 1
       }
     }
 
@@ -186,11 +184,11 @@ class FileEntityCache(val entitySchema: EntitySchema,
     }
 
     private def writePartitionToFile() {
-      if (partitionCount == 1) {
+      if (partitionCount == 0) {
         blockDir.safeMkdirs()
       }
 
-      val stream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(blockDir + "/partition" + (partitionCount - 1).toString)))
+      val stream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(blockDir + "/partition" + partitionCount.toString)))
 
       try {
         Partition(currentEntities, currentIndices, count).serialize(stream)
@@ -199,7 +197,9 @@ class FileEntityCache(val entitySchema: EntitySchema,
         stream.close()
       }
 
-      logger.log(Level.FINE, "Written partition " + (partitionCount - 1) + " of block " + block)
+      logger.log(Level.FINE, "Written partition " + partitionCount + " of block " + block)
+
+      partitionCount += 1
     }
   }
 

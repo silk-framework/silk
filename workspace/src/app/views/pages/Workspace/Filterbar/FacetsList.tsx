@@ -7,6 +7,7 @@ import { Button, HelperClasses, Icon, Spacing, TitleSubsection } from "@eccenca/
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 
+/** List of filter facets used to re-fine search results. */
 export default function FacetsList({ projectId }: { projectId?: string }) {
     const dispatch = useDispatch();
     const [t] = useTranslation();
@@ -48,6 +49,7 @@ export default function FacetsList({ projectId }: { projectId?: string }) {
             filterOptions.project = projectId;
         }
         dispatch(workspaceOp.toggleFacetOp(facet, value));
+        dispatch(workspaceOp.changePageOp(1));
     };
 
     const toggleShowMore = (facet: IFacetState) => {

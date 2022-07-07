@@ -3,38 +3,15 @@ package org.silkframework.serialization.json
 import org.silkframework.entity.Link
 import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.evaluation._
-import org.silkframework.rule.execution.Linking
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
-import org.silkframework.serialization.json.EntitySerializers.{EntityJsonFormat, PairEntitySchemaJsonFormat, PairJsonFormat}
+import org.silkframework.serialization.json.EntitySerializers.{EntityJsonFormat, PairJsonFormat}
+import org.silkframework.serialization.json.JsonHelpers._
 import play.api.libs.json.{JsArray, JsValue, Json}
-import JsonHelpers._
 
 /**
   *
   */
 object LinkingSerializers {
-
-  implicit object LinkingJsonFormat extends WriteOnlyJsonFormat[Linking] {
-    final val LINKS = "links"
-    final val STATISTICS = "statistics"
-    final val ENTITY_SCHEMATA = "entitySchemata"
-
-    override def write(value: Linking)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      val firstEntityOption = value.links.headOption.flatMap(_.entities)
-      val entitySchemataOption = firstEntityOption.map(_.map(_.schema))
-      val linkFormat = new LinkJsonFormat(Some(value.rule))
-
-      Json.obj(
-        LINKS -> value.links.map(linkFormat.write),
-        STATISTICS -> Json.obj(
-          "sourceEntities" -> value.statistics.entityCount.source,
-          "targetEntities" -> value.statistics.entityCount.target,
-          "linkCount" -> value.links.size
-        ),
-        ENTITY_SCHEMATA -> entitySchemataOption.map(PairEntitySchemaJsonFormat.write)
-      )
-    }
-  }
 
   class LinkJsonFormat(rule: Option[LinkageRule], writeEntities: Boolean = false, writeEntitySchema: Boolean = false) extends JsonFormat[Link] {
     import LinkJsonFormat._

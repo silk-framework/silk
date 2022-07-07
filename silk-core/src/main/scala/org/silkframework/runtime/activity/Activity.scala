@@ -1,10 +1,10 @@
 package org.silkframework.runtime.activity
 
-import java.util.concurrent.ForkJoinPool
-
+import org.silkframework.config.DefaultConfig
 import org.silkframework.runtime.execution.Execution
 import org.silkframework.util.StringUtils._
 
+import java.util.concurrent.ForkJoinPool
 import scala.reflect.ClassTag
 
 /**
@@ -65,9 +65,24 @@ trait Activity[T] extends HasValue {
 object Activity {
 
   /**
+   * The size of the thread pool
+   */
+  private def poolSize: Option[Int] = {
+    val poolSizePath = "org.silkframework.runtime.activity.poolSize"
+    val config = DefaultConfig.instance()
+    if(config.hasPath(poolSizePath)) {
+      Option(config.getInt(poolSizePath))
+    } else {
+      None
+    }
+  }
+
+  /**
    * The fork join pool used to run activities.
    */
-  val forkJoinPool: ForkJoinPool = Execution.createForkJoinPool("Activity")
+  val forkJoinPool: ForkJoinPool = {
+    Execution.createForkJoinPool("Activity", size = poolSize)
+  }
 
   /**
     * The base path into which all activity output is logged

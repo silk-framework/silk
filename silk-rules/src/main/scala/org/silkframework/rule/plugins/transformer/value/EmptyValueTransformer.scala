@@ -7,7 +7,7 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   id = "emptyValue",
   label = "Empty value",
   categories = Array("Value"),
-  description = "Generates an empty value value."
+  description = "Generates an empty value."
 )
 case class EmptyValueTransformer() extends Transformer {
 

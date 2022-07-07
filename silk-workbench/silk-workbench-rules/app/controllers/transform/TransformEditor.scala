@@ -1,5 +1,6 @@
 package controllers.transform
 
+import config.WorkbenchConfig.WorkspaceReact
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import org.silkframework.entity.paths.UntypedPath
@@ -14,7 +15,7 @@ import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import javax.inject.Inject
 
-class TransformEditor @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions with ControllerUtilsTrait {
+class TransformEditor @Inject() (implicit accessMonitor: WorkbenchAccessMonitor, workspaceReact: WorkspaceReact) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   def start(project: String, task: String, rule: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[TransformSpec](project, task, request.path)

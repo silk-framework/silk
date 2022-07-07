@@ -1,7 +1,8 @@
 @import controllers.core.routes.{Assets => CoreAssets}
 @import controllers.workspace.routes.Assets
 
-@()(implicit request: RequestHeader)
+@import config.WorkbenchConfig.WorkspaceReact
+@()(implicit request: RequestHeader, workspaceReact: WorkspaceReact)
 
 @header = {
   <link rel="stylesheet" href="@CoreAssets.at("libs/jstree/dist/themes/default/style.css")" type="text/css" />

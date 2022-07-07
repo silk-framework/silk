@@ -4,17 +4,19 @@
 @import org.silkframework.runtime.activity.UserContext
 @import controllers.core.routes.{Assets => CoreAssets}
 
-@(context: Context[Workflow], report: Option[String])(implicit request: RequestHeader, userContext: UserContext)
+@import config.WorkbenchConfig.WorkspaceReact
+@(context: Context[Workflow], report: Option[String])(implicit request: RequestHeader, userContext: UserContext, workspaceReact: WorkspaceReact)
 
 @header = {
-  <script src="@CoreAssets.at("libs/silk-react-components/main.js")" type="text/javascript"></script>
 }
 
 @content = {
   <div id="react-workflowReportManager"></div>
 
+  @coreLinks.mainJs()
+
   <script type="text/javascript">
-    silkReactComponents.workflowReportManager(
+    window.silkReactComponents.workflowReportManager(
       'react-workflowReportManager',
       {
           baseUrl: '@config.baseUrl',
