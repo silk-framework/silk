@@ -22,7 +22,7 @@ export interface RuleEditorModelContextProps {
     /** Sets the read-only mode of the model. If the function is not defined, read-only mode cannot be changed. */
     setIsReadOnly?: (readOnly: boolean) => any;
     /** Callback to set the react-flow instance needed for the model. */
-    setReactFlowInstance: (instance: OnLoadParams) => any;
+    setReactFlowInstance: React.Dispatch<React.SetStateAction<OnLoadParams<any> | undefined>>;
     /** Save the current rule. */
     saveRule: () => Promise<boolean> | boolean;
     /** If there are unsaved changes. */

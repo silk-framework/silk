@@ -97,11 +97,14 @@ export const RuleEditorToolbar = () => {
 
     const handleStickyNoteSubmit = ({ note, color }) => {
         const reactFlowBounds = ruleEditorUiContext?.reactFlowWrapper?.current?.getBoundingClientRect();
-        const position = {
-            x: (reactFlowBounds.width - DEFAULT_NODE_WIDTH) / 2,
-            y: (reactFlowBounds.height - DEFAULT_NODE_HEIGHT) / 2,
-        };
-        modelContext.executeModelEditOperation.addStickyNoteToCanvas(note, color, position);
+        modelContext.setReactFlowInstance((instance) => {
+            const position = instance?.project({
+                x: (reactFlowBounds.width - DEFAULT_NODE_WIDTH) / 2,
+                y: (reactFlowBounds.height - DEFAULT_NODE_HEIGHT) / 2,
+            });
+            modelContext.executeModelEditOperation.addStickyNoteToCanvas(note, color, position);
+            return instance;
+        });
     };
 
     return (
