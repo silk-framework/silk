@@ -8,12 +8,15 @@ import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
 /** The main view of the rule editor, integrating toolbar, sidebar and main rule canvas. */
 export const RuleEditorView = () => {
     const [modalShown, setModalShown] = React.useState(false);
+    const [advancedParameterModeEnabled, setAdvancedParameterMode] = React.useState(false)
 
     return (
         <RuleEditorUiContext.Provider
             value={{
                 modalShown,
                 setModalShown,
+                advancedParameterModeEnabled,
+                setAdvancedParameterMode
             }}
         >
             <Grid verticalStretchable={true} useAbsoluteSpace={true} style={{ backgroundColor: "white" }}>
