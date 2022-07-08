@@ -114,7 +114,7 @@ export const RuleEditorToolbar = () => {
             ) : null}
             {modelContext.showStickyNoteModal ? (
                 <StickyNoteModal
-                    content={modelContext.currentStickyContent}
+                    noteContent={modelContext.currentStickyContent}
                     onClose={() => modelContext.setShowStickyNoteModal(false)}
                     onSubmit={handleStickyNoteSubmit}
                     translate={(key) => translationsStickyNoteModal[key]}
