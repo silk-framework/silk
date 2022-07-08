@@ -151,6 +151,49 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
     System.currentTimeMillis() - start must be < 5 * 1000L // If it is not interrupted this should run for minutes
   }
 
+  it should "stop paging when the thread is interrupted while read results from the connection" in {
+    val sparqlParams = SparqlParams(pageSize = 1)
+    val count = new AtomicInteger(0)
+    @volatile var interruptedInStream = false
+    val blockingExecutor = new QueryExecutor {
+      override def execute(query: String, processResult: InputStream => Unit): Unit = {
+        if(count.get() <= 2) {
+          sparqlResults(1).execute(query, processResult)
+        } else {
+          val blockingInputStream = new InputStream {
+            override def read(): Int = {
+              try {
+                Thread.sleep(10000)
+              } catch {
+                case _: InterruptedException =>
+                  interruptedInStream = true
+              }
+              0
+            }
+          }
+          processResult(blockingInputStream)
+        }
+      }
+    }
+    val thread = new Thread {
+      override def run(): Unit = {
+        val result = PagingSparqlTraversable("SELECT * WHERE { ?s ?p ?o }", blockingExecutor, sparqlParams, limit = Int.MaxValue)
+        for(_ <- result.bindings) {
+          count.incrementAndGet()
+        }
+      }
+    }
+    thread.start()
+    val start = System.currentTimeMillis()
+    while(thread.isAlive) {
+      if(count.get() > 2) {
+        thread.interrupt()
+      }
+    }
+    System.currentTimeMillis() - start must be < 5000L // If it is not interrupted this should run for minutes
+    interruptedInStream mustBe true
+  }
+
   it should "inject FROM clauses when a graph is defined and no 'GRAPH selection' is already part of the query" in {
     def mustRewrite(query: String, invert: Boolean = false): Unit = {
       var actualQuery = ""
