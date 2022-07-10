@@ -50,6 +50,7 @@ import { HighlightingState, NodeDimensions } from "@eccenca/gui-elements/src/ext
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 import { IconButton, Markdown, nodeUtils, Spacing } from "@eccenca/gui-elements";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
+import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
@@ -863,7 +864,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     };
 
     /**
-     * update node dimensions in node data property and trigger undo
+     * update node dimensions in node data property
      * @param nodeId {string}
      * @param newNodeDimensions {Object}
      */
@@ -907,12 +908,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
-    const createStickyNodeInternal = (color: string, stickyNote: string, position: XYPosition) => {
+    const createStickyNodeInternal = (color: string, stickyNote: string, position: XYPosition, id?: string) => {
         const style = nodeUtils.generateStyleWithColor(color);
-        const stickyId = utils.freshNodeId("sticky");
+        const stickyId = id ?? utils.freshNodeId("sticky");
         return {
             id: stickyId,
-            type: "stickynote",
+            type: LINKING_NODE_TYPES.stickynote,
             position,
             data: {
                 size: "medium",
@@ -1632,11 +1633,16 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             })
         );
 
-        const stickyNodes = ruleEditorContext.stickyNotes.map(({ color, content, position }) =>
-            createStickyNodeInternal(color, content, {
-                x: position[0],
-                y: position[1],
-            })
+        const stickyNodes = ruleEditorContext.stickyNotes.map(({ color, content, position, id }) =>
+            createStickyNodeInternal(
+                color,
+                content,
+                {
+                    x: position[0],
+                    y: position[1],
+                },
+                id
+            )
         );
 
         let elems: Elements = [...nodes, ...edges, ...stickyNodes];
@@ -1654,6 +1660,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         }, 1);
     };
 
+    // Todo pass separate functions to both edit and create new node sticky note modal
     const addStickyNoteToCanvas = (stickyNote: string, color: string, position: XYPosition) => {
         const nodeId = currentStickyContent.get("nodeId");
         if (!nodeId) {
@@ -1663,6 +1670,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         }
     };
 
+    // Todo move to a new utils file
     function stickyMenuButtons(stickyId, color, stickyNote) {
         return (
             <>
@@ -1702,8 +1710,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 canUndo,
                 redo,
                 canRedo,
-                currentStickyContent,
-                showStickyNoteModal,
+                currentStickyContent, // Todo move to a new utils file
+                showStickyNoteModal, // Todo move to a new utils file
                 setShowStickyNoteModal,
                 executeModelEditOperation: {
                     startChangeTransaction,

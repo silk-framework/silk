@@ -20,6 +20,7 @@ import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH, ruleEditorModelUtilsFactory } 
 import { RuleEditorNode } from "../RuleEditorModel.typings";
 import { rangeArray } from "../../../../../utils/basicUtils";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
+import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 
 let modelContext: RuleEditorModelContextProps | undefined;
 const currentContext = () => modelContext as RuleEditorModelContextProps;
@@ -70,7 +71,8 @@ describe("Rule editor model", () => {
             fromRuleOperatorNode: RuleEditorValidationNode,
             toRuleOperatorNode: RuleEditorValidationNode,
             targetPortIdx: number
-        ) => boolean = () => true
+        ) => boolean = () => true,
+        stickyNotes: any[] = []
     ) => {
         modelContext = undefined;
         const ruleModel = withMount(
@@ -83,7 +85,7 @@ describe("Rule editor model", () => {
                         editedItemLoading: false,
                         operatorListLoading: false,
                         initialRuleOperatorNodes: initialRuleNodes,
-                        stickyNotes: [],
+                        stickyNotes,
                         saveRule: (ruleOperatorNodes): RuleSaveResult => {
                             savedRuleOperatorNodes = ruleOperatorNodes;
                             return { success: true };
@@ -140,6 +142,32 @@ describe("Rule editor model", () => {
         "param A": "Value A",
         "param B": "Value B",
     };
+
+    const stickyNoteNode = (stickyId: string, position: XYPosition, stickyNote: string) => ({
+        id: stickyId,
+        type: LINKING_NODE_TYPES.stickynote,
+        position,
+        data: {
+            size: "medium",
+            handles: [],
+            nodeDimensions: {
+                width: DEFAULT_NODE_WIDTH,
+                height: DEFAULT_NODE_HEIGHT,
+            },
+            onNodeResize: () => {},
+            menuButtons: <></>,
+            content: <></>,
+            style: {
+                backgroundColor: "rgb(194, 194, 194)",
+                borderColor: "#000000",
+                color: "#000",
+            },
+            businessData: {
+                stickyNote,
+            },
+        },
+    });
+
     const node = ({
         nodeId,
         inputs = [],
@@ -197,12 +225,10 @@ describe("Rule editor model", () => {
     };
 
     const stickyNoteNodeBootstrap = async (stickyNote = "note") => {
-        await ruleEditorModel();
         const startPosition = { x: 50, y: 120 };
-        act(() => {
-            currentContext().executeModelEditOperation.addStickyNode(stickyNote, startPosition, "#000000");
-        });
-        return currentContext().elements[0];
+        const noteNode = stickyNoteNode("sticky", startPosition, stickyNote);
+        await ruleEditorModel(undefined, undefined, undefined, undefined, [noteNode]);
+        return noteNode;
     };
 
     /** Test UNDO and REDO behavior. The last check is always the current state. Each check before tests the states
@@ -320,18 +346,7 @@ describe("Rule editor model", () => {
         });
         checkAfterChange();
 
-        //UNDO
-        act(() => {
-            currentContext().undo();
-        });
-        checkAfterUndo(true);
-        checkBeforeChange();
-
-        // REDO
-        act(() => {
-            currentContext().redo();
-        });
-        checkAfterChange();
+        checkUndoAndRedo(checkBeforeChange, checkAfterChange);
     });
 
     it("should change node text content and undo & redo", async () => {
@@ -352,18 +367,7 @@ describe("Rule editor model", () => {
         });
         checkAfterChange();
 
-        //UNDO
-        act(() => {
-            currentContext().undo();
-        });
-        checkAfterUndo(true);
-        checkBeforeChange();
-
-        // REDO
-        act(() => {
-            currentContext().redo();
-        });
-        checkAfterChange();
+        checkUndoAndRedo(checkBeforeChange, checkAfterChange);
     });
 
     it("should change size and undo & redo", async () => {
@@ -384,18 +388,7 @@ describe("Rule editor model", () => {
         });
         checkAfterChange();
 
-        //UNDO
-        act(() => {
-            currentContext().undo();
-        });
-        checkAfterUndo(true);
-        checkBeforeChange();
-
-        // REDO
-        act(() => {
-            currentContext().redo();
-        });
-        checkAfterChange();
+        checkUndoAndRedo(checkBeforeChange, checkAfterChange);
     });
 
     it("should delete nodes and undo & redo", async () => {
