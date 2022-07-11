@@ -883,7 +883,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
-    const changeStickyNodeProperties = (nodeId: string, color?: string, content?: string) => {
+    const changeStickyNodeProps = (nodeId: string, color?: string, content?: string) => {
         changeElementsInternal((els) => {
             const node = utils.nodeById(els, nodeId);
             if (node) {
@@ -1547,18 +1547,17 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
-    const allStickyNodes = () =>
-        current.elements.reduce((stickyNodes, elem) => {
-            if (utils.isNode(elem) && elem.type === "stickynote") {
+    /** Save the current rule. */
+    const saveRule = async () => {
+        const stickyNodes = current.elements.reduce((stickyNodes, elem) => {
+            if (utils.isNode(elem) && elem.type === LINKING_NODE_TYPES.stickynote) {
                 const node = utils.asNode(elem)!;
                 stickyNodes.push(nodeUtils.transformNodeToStickyNode(node) as IStickyNote);
             }
             return stickyNodes;
         }, [] as IStickyNote[]);
 
-    /** Save the current rule. */
-    const saveRule = async () => {
-        const saveResult = await ruleEditorContext.saveRule(ruleOperatorNodes(), allStickyNodes());
+        const saveResult = await ruleEditorContext.saveRule(ruleOperatorNodes(), stickyNodes);
         if (saveResult.success) {
             // Reset UNDO state
             ruleUndoStack.splice(0);
@@ -1666,7 +1665,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         if (!nodeId) {
             addStickyNode(stickyNote, position, color);
         } else {
-            changeStickyNodeProperties(nodeId, color, stickyNote);
+            changeStickyNodeProps(nodeId, color, stickyNote);
         }
     };
 
@@ -1727,7 +1726,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     deleteEdge,
                     autoLayout,
                     changeSize,
-                    changeStickyNodeProperties,
+                    changeStickyNodeProperties: changeStickyNodeProps,
                     deleteEdges,
                     moveNodes,
                     fixNodeInputs,
@@ -1737,7 +1736,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 isValidEdge,
                 centerNode,
                 ruleOperatorNodes,
-                allStickyNodes,
             }}
         >
             {children}

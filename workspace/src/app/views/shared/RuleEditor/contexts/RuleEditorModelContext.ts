@@ -44,8 +44,6 @@ export interface RuleEditorModelContextProps {
     centerNode: (nodeId: string) => boolean;
     /** Get the current rule as IRuleOperatorNode objects. */
     ruleOperatorNodes: () => IRuleOperatorNode[];
-    /** get all the current sticky notes nodes */
-    allStickyNodes: () => IStickyNote[];
     /** currently edited sticky note node */
     currentStickyContent: Map<string, string>;
     /** boolean switch to determine if the sticky note modal shows or not */
@@ -166,5 +164,4 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     isValidEdge: () => true,
     centerNode: () => true,
     ruleOperatorNodes: () => [],
-    allStickyNodes: () => [],
 });

@@ -21,6 +21,7 @@ import { RuleEditorNode } from "../RuleEditorModel.typings";
 import { rangeArray } from "../../../../../utils/basicUtils";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
+import { nodeUtils } from "@eccenca/gui-elements";
 
 let modelContext: RuleEditorModelContextProps | undefined;
 const currentContext = () => modelContext as RuleEditorModelContextProps;
@@ -72,7 +73,7 @@ describe("Rule editor model", () => {
             toRuleOperatorNode: RuleEditorValidationNode,
             targetPortIdx: number
         ) => boolean = () => true,
-        stickyNotes: any[] = []
+        stickyNotes: IStickyNote[] = []
     ) => {
         modelContext = undefined;
         const ruleModel = withMount(
@@ -143,31 +144,6 @@ describe("Rule editor model", () => {
         "param B": "Value B",
     };
 
-    const stickyNoteNode = (stickyId: string, position: XYPosition, stickyNote: string) => ({
-        id: stickyId,
-        type: LINKING_NODE_TYPES.stickynote,
-        position,
-        data: {
-            size: "medium",
-            handles: [],
-            nodeDimensions: {
-                width: DEFAULT_NODE_WIDTH,
-                height: DEFAULT_NODE_HEIGHT,
-            },
-            onNodeResize: () => {},
-            menuButtons: <></>,
-            content: <></>,
-            style: {
-                backgroundColor: "rgb(194, 194, 194)",
-                borderColor: "#000000",
-                color: "#000",
-            },
-            businessData: {
-                stickyNote,
-            },
-        },
-    });
-
     const node = ({
         nodeId,
         inputs = [],
@@ -225,11 +201,20 @@ describe("Rule editor model", () => {
     };
 
     const stickyNoteNodeBootstrap = async (stickyNote = "note") => {
-        const startPosition = { x: 50, y: 120 };
-        const noteNode = stickyNoteNode("sticky", startPosition, stickyNote);
+        const noteNode = {
+            id: modelUtils.freshNodeId("sticky"),
+            content: stickyNote,
+            position: [50, 120],
+            dimension: [DEFAULT_NODE_WIDTH, DEFAULT_NODE_HEIGHT],
+            color: "#000000",
+        };
         await ruleEditorModel(undefined, undefined, undefined, undefined, [noteNode]);
-        return noteNode;
     };
+
+    const allStickyNodes = () =>
+        currentContext().elements.filter(
+            (elem) => elem.type === LINKING_NODE_TYPES.stickynote && modelUtils.isNode(elem)
+        );
 
     /** Test UNDO and REDO behavior. The last check is always the current state. Each check before tests the states
      *  going back in time with every UNDO. Same checks are repeated going forwards with REDO.
@@ -324,13 +309,14 @@ describe("Rule editor model", () => {
     });
 
     it("should change style and undo & redo", async () => {
-        const node = await stickyNoteNodeBootstrap();
+        await stickyNoteNodeBootstrap();
         //the default style object created by Color package for color #000000 supplied
         const defaultStyle = {
             backgroundColor: "rgb(194, 194, 194)",
             borderColor: "#000000",
             color: "#000",
         };
+        const node = allStickyNodes()[0];
         const checkBeforeChange = () => {
             expect(node.data.style).toEqual(defaultStyle);
         };
@@ -351,7 +337,8 @@ describe("Rule editor model", () => {
 
     it("should change node text content and undo & redo", async () => {
         const stickyNote = "# Testing... 1 2 3...";
-        const node = await stickyNoteNodeBootstrap(stickyNote);
+        await stickyNoteNodeBootstrap(stickyNote);
+        const node = allStickyNodes()[0];
         const checkBeforeChange = () => {
             expect(node.data.businessData.stickyNote).toStrictEqual(stickyNote);
         };
@@ -371,8 +358,9 @@ describe("Rule editor model", () => {
     });
 
     it("should change size and undo & redo", async () => {
-        const node = await stickyNoteNodeBootstrap();
+        await stickyNoteNodeBootstrap();
         const defaultNodeDimensions = { width: DEFAULT_NODE_WIDTH, height: DEFAULT_NODE_HEIGHT };
+        const node = allStickyNodes()[0];
         const checkBeforeChange = () => {
             expect(node.data.nodeDimensions).toEqual(defaultNodeDimensions);
         };
@@ -744,7 +732,16 @@ describe("Rule editor model", () => {
     it("should undo and redo complex change chains", async () => {
         const stateHistory: (IRuleOperatorNode | IStickyNote)[][] = [];
         const stateHistoryLabel: string[] = [];
-        const allNodes = () => [...currentOperatorNodes(), ...currentContext().allStickyNodes()];
+        await stickyNoteNodeBootstrap();
+        const currentStickyNodes = () =>
+            currentContext().elements.reduce((stickyNodes, elem) => {
+                if (modelUtils.isNode(elem) && elem.type === LINKING_NODE_TYPES.stickynote) {
+                    const node = modelUtils.asNode(elem)!;
+                    stickyNodes.push(nodeUtils.transformNodeToStickyNode(node) as IStickyNote);
+                }
+                return stickyNodes;
+            }, [] as IStickyNote[]);
+        const allNodes = () => [...currentOperatorNodes(), ...currentStickyNodes()];
         const recordCurrentState = (stateLabel: string) => {
             stateHistory.push(allNodes());
             stateHistoryLabel.push(stateLabel);
@@ -809,7 +806,7 @@ describe("Rule editor model", () => {
             currentContext().executeModelEditOperation.deleteNodes(["nodeB", "pluginA"]);
         });
 
-        await recordedTransaction("Add a node", () => {
+        await recordedTransaction("Add a sticky node", () => {
             currentContext().executeModelEditOperation.addStickyNode("note", { x: 1, y: 2 }, "#000");
         });
 
@@ -818,7 +815,7 @@ describe("Rule editor model", () => {
         });
 
         await recordedTransaction("Change node style", () => {
-            currentContext().executeModelEditOperation.changeStickyNodeProperties("sticky", "#ffee12");
+            currentContext().executeModelEditOperation.changeStickyNodeProperties("sticky", "#ffee13");
         });
 
         await recordedTransaction("Change node text content", () => {
