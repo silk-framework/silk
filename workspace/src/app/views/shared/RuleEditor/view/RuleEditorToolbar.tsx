@@ -31,6 +31,7 @@ export const RuleEditorToolbar = () => {
         React.useContext<RuleEditorEvaluationContextProps>(RuleEditorEvaluationContext);
     const [savingWorkflow, setSavingWorkflow] = React.useState(false);
     const [evaluationShown, setEvaluationShown] = React.useState(false);
+    const [showCreateStickyModal, setShowCreateStickyModal] = React.useState<boolean>(false);
     const [t] = useTranslation();
 
     useHotKey({
@@ -102,7 +103,7 @@ export const RuleEditorToolbar = () => {
                 x: (reactFlowBounds.width - DEFAULT_NODE_WIDTH) / 2,
                 y: (reactFlowBounds.height - DEFAULT_NODE_HEIGHT) / 2,
             });
-            modelContext.executeModelEditOperation.addStickyNoteToCanvas(note, color, position);
+            modelContext.executeModelEditOperation.addStickyNode(note, position!, color);
             return instance;
         });
     };
@@ -112,10 +113,10 @@ export const RuleEditorToolbar = () => {
             {ruleEditorContext.editorTitle ? (
                 <TitleMainsection>{ruleEditorContext.editorTitle}</TitleMainsection>
             ) : null}
-            {modelContext.showStickyNoteModal ? (
+            {showCreateStickyModal ? (
                 <StickyNoteModal
-                    noteContent={modelContext.currentStickyContent}
-                    onClose={() => modelContext.setShowStickyNoteModal(false)}
+                    noteContent={new Map()}
+                    onClose={() => setShowCreateStickyModal(false)}
                     onSubmit={handleStickyNoteSubmit}
                     translate={(key) => translationsStickyNoteModal[key]}
                 />
@@ -161,7 +162,7 @@ export const RuleEditorToolbar = () => {
                         data-test-id="rule-editor-header-sticky-btn"
                         name="item-comment"
                         text={t("StickyNoteModal.tooltip")}
-                        onClick={() => modelContext.setShowStickyNoteModal(true)}
+                        onClick={() => setShowCreateStickyModal(true)}
                     />
                 </ToolbarSection>
                 <ToolbarSection canGrow>

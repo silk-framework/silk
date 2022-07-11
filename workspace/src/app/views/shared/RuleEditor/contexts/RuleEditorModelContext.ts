@@ -3,7 +3,6 @@ import React from "react";
 import { IRuleOperator, IRuleOperatorNode, RuleOperatorNodeParameters } from "../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 import { NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
-import { IStickyNote } from "views/taskViews/shared/task.typings";
 
 /**
  * The rule editor model context that contains objects and methods related to the rule model of the editor, i.e.
@@ -44,12 +43,6 @@ export interface RuleEditorModelContextProps {
     centerNode: (nodeId: string) => boolean;
     /** Get the current rule as IRuleOperatorNode objects. */
     ruleOperatorNodes: () => IRuleOperatorNode[];
-    /** currently edited sticky note node */
-    currentStickyContent: Map<string, string>;
-    /** boolean switch to determine if the sticky note modal shows or not */
-    showStickyNoteModal: boolean;
-    /** state utility function to toggle sticky note modal */
-    setShowStickyNoteModal: (shown: boolean) => void;
 }
 
 export interface IModelActions {
@@ -97,8 +90,6 @@ export interface IModelActions {
     changeStickyNodeProperties: (nodeId: string, color?: string, content?: string) => void;
     /** Moves nodes by a specific offset. */
     moveNodes: (nodeIds: string[], offset: XYPosition) => void;
-    /** utility function to create a stickyNote Node and add it to the center of the canvas */
-    addStickyNoteToCanvas: (stickyNote: string, color: string, reactFlowWrapper: any) => void;
     /** Change a single node parameter.
      *
      * @param nodeId Node affected by parameter change.
@@ -129,10 +120,7 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     /** Set to true if the model is in read-only mode. */
     isReadOnly: () => false,
     readOnly: false,
-    currentStickyContent: new Map(),
     setReactFlowInstance: NOP,
-    showStickyNoteModal: false,
-    setShowStickyNoteModal: (show: boolean) => {},
     saveRule: () => {
         return false;
     },
@@ -154,7 +142,6 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
         deleteEdges: NOP,
         changeSize: NOP,
         fixNodeInputs: NOP,
-        addStickyNoteToCanvas: NOP,
         changeStickyNodeProperties: NOP,
     },
     undo: () => false,

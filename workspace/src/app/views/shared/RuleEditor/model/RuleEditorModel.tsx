@@ -48,9 +48,10 @@ import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent"
 import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basicUtils";
 import { HighlightingState, NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
-import { IconButton, Markdown, nodeUtils, Spacing } from "@eccenca/gui-elements";
+import { Markdown, nodeUtils } from "@eccenca/gui-elements";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
+import StickyMenuButton from "../view/components/StickyMenuButton";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
@@ -115,8 +116,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [evaluateQuickly, setEvaluateQuickly] = React.useState(false);
     const [readOnly, _setIsReadOnly] = React.useState(false);
     const [utils] = React.useState(ruleEditorModelUtilsFactory(() => (nodeMap ? "edge" : "default")));
-    const [currentStickyContent, setCurrentStickyContent] = React.useState<Map<string, string>>(new Map());
-    const [showStickyNoteModal, setShowStickyNoteModal] = React.useState<boolean>(false);
 
     /** react-flow related functions */
     const { setCenter } = useZoomPanHelper();
@@ -801,7 +800,13 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         ...node.data,
                         style,
                         content: <Markdown>{content!}</Markdown>,
-                        menuButtons: stickyMenuButtons(node.id, style?.borderColor, content),
+                        menuButtons: (
+                            <StickyMenuButton
+                                stickyNodeId={node.id}
+                                color={style?.borderColor!}
+                                stickyNote={content!}
+                            />
+                        ),
                         businessData: {
                             ...node.data.businessData,
                             stickyNote: content,
@@ -923,7 +928,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     height: DEFAULT_NODE_HEIGHT,
                 },
                 onNodeResize: (newNodeDimensions) => changeSize(stickyId, newNodeDimensions),
-                menuButtons: stickyMenuButtons(stickyId, color, stickyNote),
+                menuButtons: <StickyMenuButton stickyNodeId={stickyId} color={color} stickyNote={stickyNote} />,
                 content: <Markdown>{stickyNote}</Markdown>,
                 style,
                 businessData: {
@@ -1659,43 +1664,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         }, 1);
     };
 
-    // Todo pass separate functions to both edit and create new node sticky note modal
-    const addStickyNoteToCanvas = (stickyNote: string, color: string, position: XYPosition) => {
-        const nodeId = currentStickyContent.get("nodeId");
-        if (!nodeId) {
-            addStickyNode(stickyNote, position, color);
-        } else {
-            changeStickyNodeProps(nodeId, color, stickyNote);
-        }
-    };
-
-    // Todo move to a new utils file
-    function stickyMenuButtons(stickyId, color, stickyNote) {
-        return (
-            <>
-                <IconButton
-                    data-test-id={"edit-sticky-note"}
-                    name="item-edit"
-                    text={t("RuleEditor.node.executionButtons.edit.tooltip")}
-                    onClick={() => {
-                        setCurrentStickyContent(
-                            (prevData) =>
-                                new Map(prevData.set("note", stickyNote).set("color", color).set("nodeId", stickyId))
-                        );
-                        setShowStickyNoteModal(true);
-                    }}
-                />
-                <Spacing vertical size="tiny" />
-                <IconButton
-                    data-test-id={"remove-sticky-note"}
-                    name="item-remove"
-                    text={t("RuleEditor.node.menu.remove.label")}
-                    onClick={() => deleteNode(stickyId)}
-                />
-            </>
-        );
-    }
-
     return (
         <RuleEditorModelContext.Provider
             value={{
@@ -1709,9 +1677,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 canUndo,
                 redo,
                 canRedo,
-                currentStickyContent, // Todo move to a new utils file
-                showStickyNoteModal, // Todo move to a new utils file
-                setShowStickyNoteModal,
                 executeModelEditOperation: {
                     startChangeTransaction,
                     addNode,
@@ -1730,7 +1695,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     deleteEdges,
                     moveNodes,
                     fixNodeInputs,
-                    addStickyNoteToCanvas,
                 },
                 unsavedChanges: canUndo,
                 isValidEdge,
