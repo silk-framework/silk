@@ -154,7 +154,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                 operator: ruleTree,
                 layout: ruleUtils.ruleLayout(ruleOperatorNodes),
                 uiAnnotations: {
-                    stickyNotes, // TODO: Add sticky notes. Also read sticky notes from backend.
+                    stickyNotes,
                 },
             });
             return {
