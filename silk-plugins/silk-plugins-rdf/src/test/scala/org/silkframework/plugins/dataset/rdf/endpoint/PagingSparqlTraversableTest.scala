@@ -147,6 +147,7 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
       if(count.get() > 10) {
         thread.interrupt()
       }
+      Thread.sleep(200)
     }
     System.currentTimeMillis() - start must be < 5 * 1000L // If it is not interrupted this should run for minutes
   }
@@ -154,6 +155,7 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
   it should "stop paging when the thread is interrupted while read results from the connection" in {
     val sparqlParams = SparqlParams(pageSize = 1)
     val count = new AtomicInteger(0)
+    @volatile var inInputStream = false
     @volatile var interruptedInStream = false
     val blockingExecutor = new QueryExecutor {
       override def execute(query: String, processResult: InputStream => Unit): Unit = {
@@ -162,13 +164,15 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
         } else {
           val blockingInputStream = new InputStream {
             override def read(): Int = {
+              inInputStream = true
               try {
-                Thread.sleep(10000)
+                Thread.sleep(20000)
               } catch {
-                case _: InterruptedException =>
+                case ex: InterruptedException =>
                   interruptedInStream = true
+                  throw ex
               }
-              0
+              fail("Reading should have been interrupted")
             }
           }
           processResult(blockingInputStream)
@@ -186,9 +190,10 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
     thread.start()
     val start = System.currentTimeMillis()
     while(thread.isAlive) {
-      if(count.get() > 2) {
+      if(inInputStream) {
         thread.interrupt()
       }
+      Thread.sleep(200)
     }
     System.currentTimeMillis() - start must be < 5000L // If it is not interrupted this should run for minutes
     interruptedInStream mustBe true
