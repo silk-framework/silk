@@ -47,7 +47,7 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
   /**
     * Executes a single select query.
     */
-  def executeSelect(query: String, f: InputStream => Unit): Unit = {
+  def executeSelect(query: String, processInputStreamFunc: InputStream => Unit): Unit = {
     val queryUrl = sparqlParams.uri + "?query=" + URLEncoder.encode(query, "UTF-8") + sparqlParams.queryParameters
     //Open connection
     val httpConnection = new URL(queryUrl).openConnection.asInstanceOf[HttpURLConnection]
@@ -62,7 +62,7 @@ case class RemoteSparqlEndpoint(sparqlParams: SparqlParams) extends SparqlEndpoi
       checkResponseStatus(httpConnection, "SELECT query")
       val inputStream = httpConnection.getInputStream
       try {
-        f(inputStream)
+        processInputStreamFunc(inputStream)
       } finally {
         inputStream.close()
       }
