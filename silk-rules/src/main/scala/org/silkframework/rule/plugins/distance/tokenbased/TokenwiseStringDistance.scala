@@ -15,11 +15,10 @@
 package org.silkframework.rule.plugins.distance.tokenbased
 
 import java.util.regex.Pattern
-
 import org.silkframework.entity.Index
 import org.silkframework.rule.plugins.distance.characterbased.{JaroDistanceMetric, JaroWinklerDistance, LevenshteinMetric}
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 /**
  * <p>
@@ -91,8 +90,11 @@ case class TokenwiseStringDistance(
         metricName: String = "levenshtein",
         splitRegex: String =  "[\\s\\d\\p{Punct}]+",
         stopwords: String = "",
+        @Param(value = "Weight assigned to stopwords", advanced = true)
         stopwordWeight: Double = 0.01,
+        @Param(value = "Weight assigned to non-stopwords", advanced = true)
         nonStopwordWeight: Double = 0.1,
+        @Param(value = "Use incremental IDF weights", advanced = true)
         useIncrementalIdfWeights:Boolean = false,
         matchThreshold: Double = 0.0,
         orderingImpact: Double = 0.0,

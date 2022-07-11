@@ -26,6 +26,8 @@ interface ParameterAutoCompletionProps {
     required: boolean;
     onChange: (value: IAutocompleteDefaultResponse) => any;
     intent: Intent;
+    /** When set to true the auto-complete input field will be disabled */
+    disabled?: boolean
 }
 
 /** Component for parameter auto-completion. */
@@ -40,6 +42,7 @@ export const ParameterAutoCompletion = ({
     dependentValue,
     required,
     onChange,
+    disabled
 }: ParameterAutoCompletionProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
@@ -95,7 +98,7 @@ export const ParameterAutoCompletion = ({
             onChange={onChange}
             initialValue={initialValue}
             disabled={
-                selectDependentValues(autoCompletion).length < autoCompletion.autoCompletionDependsOnParameters.length
+                !!disabled || selectDependentValues(autoCompletion).length < autoCompletion.autoCompletionDependsOnParameters.length
             }
             inputProps={{
                 name: formParamId,
