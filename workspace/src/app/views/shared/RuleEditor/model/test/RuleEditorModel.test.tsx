@@ -183,7 +183,7 @@ describe("Rule editor model", () => {
                 minInputPorts: minInputPorts,
             },
             tags: [],
-            inputsCanBeSwitched: false
+            inputsCanBeSwitched: false,
         };
     };
 
