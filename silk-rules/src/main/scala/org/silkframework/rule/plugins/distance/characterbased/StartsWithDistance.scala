@@ -26,6 +26,10 @@ case class StartsWithDistance(@Param("Reverse source and target values")
     }
   }
 
+  override def emptyIndex(limit: Double): Index = {
+    Index.oneDim(Set.empty)
+  }
+
   override def indexValue(value: String, limit: Double, sourceOrTarget: Boolean): Index = {
     val prefixStrings = if(sourceOrTarget) {
       var prefix = value.take(minLength - 1)

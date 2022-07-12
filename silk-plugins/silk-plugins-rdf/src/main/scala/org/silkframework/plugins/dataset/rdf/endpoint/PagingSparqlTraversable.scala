@@ -16,7 +16,7 @@ import scala.util.matching.Regex
   */
 object PagingSparqlTraversable {
 
-  val graphPatternRegex: Regex = """[Gg][Rr][Aa][Pp][Hh]\s+<""".r
+  val graphPatternRegex: Regex = """[Gg][Rr][Aa][Pp][Hh]\s+[<?]\S+\s*\{""".r
 
   private val logger = Logger.getLogger(getClass.getName)
 

@@ -15,10 +15,9 @@
 package org.silkframework.rule.plugins.distance.numeric
 
 import java.util.logging.Logger
-
 import org.silkframework.entity.Index
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.util.StringUtils._
 
 import scala.math._
@@ -29,7 +28,10 @@ import scala.math._
   label = "Numeric similarity",
   description = "Computes the numeric distance between two numbers."
 )
-case class NumMetric(minValue: Double = Double.NegativeInfinity, maxValue: Double = Double.PositiveInfinity) extends SimpleDistanceMeasure {
+case class NumMetric(@Param(label = "Min index value", value = "The minimum number that is used for indexing", advanced = true)
+                     minValue: Double = Double.NegativeInfinity,
+                     @Param(label = "Max index value", value = "The maximum number that is used for indexing", advanced = true)
+                     maxValue: Double = Double.PositiveInfinity) extends SimpleDistanceMeasure {
 
   @transient
   private val logger = Logger.getLogger(classOf[NumMetric].getName)
@@ -53,11 +55,19 @@ case class NumMetric(minValue: Double = Double.NegativeInfinity, maxValue: Doubl
     }
   }
 
+  override def emptyIndex(limit: Double): Index = {
+    if(indexEnabled) {
+      Index.continuousEmpty(minValue, maxValue, limit)
+    } else {
+      Index.empty
+    }
+  }
+
   override def indexValue(str: String, limit: Double, sourceOrTarget: Boolean): Index = {
     if (indexEnabled) {
       str match {
         case DoubleLiteral(num) => Index.continuous(num, minValue, maxValue, limit)
-        case _ => Index.empty
+        case _ => emptyIndex(limit)
       }
     }
     else {

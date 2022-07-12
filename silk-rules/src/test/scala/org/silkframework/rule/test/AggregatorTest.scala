@@ -1,9 +1,12 @@
 package org.silkframework.rule.test
 
 import org.silkframework.config.Prefixes
-import org.silkframework.rule.similarity.{Aggregator, WeightedSimilarityScore}
+import org.silkframework.entity.{Entity, Index}
+import org.silkframework.rule.Operator
+import org.silkframework.rule.similarity.{Aggregator, SimilarityOperator}
 import org.silkframework.runtime.plugin.{AggregatorExampleValue, ClassPluginDescription}
 import org.silkframework.test.PluginTest
+import org.silkframework.util.{DPair, Identifier}
 
 import scala.reflect.ClassTag
 
@@ -49,7 +52,7 @@ abstract class AggregatorTest[T <: Aggregator : ClassTag] extends PluginTest {
     val aggregator: T = pluginDesc(example.parameters)(Prefixes.empty)
 
     def addTest(): Unit = {
-      val result = aggregator.evaluate(weightedSimilarityScores(example.inputs, example.weights))
+      val result = aggregator(operators(example.inputs, example.weights), DPair.fill(Entity.empty("dummy")), 0.0)
       val description = if(example.description.isEmpty) "" else s" (${example.description})"
 
       it should "fulfill: " + example.formatted + description in {
@@ -66,11 +69,26 @@ abstract class AggregatorTest[T <: Aggregator : ClassTag] extends PluginTest {
       }
     }
 
-    private def weightedSimilarityScores(scores: Seq[Option[Double]], weights: Seq[Int]): Seq[WeightedSimilarityScore] = {
+    private def operators(scores: Seq[Option[Double]], weights: Seq[Int]): Seq[DummyOperator] = {
       for((score, weight) <- scores zip weights) yield {
-        WeightedSimilarityScore(score, weight)
+        DummyOperator(score, weight)
       }
     }
+  }
+
+  private case class DummyOperator(score: Option[Double], weight: Int) extends SimilarityOperator {
+
+    override def id: Identifier = "dummy"
+
+    override def indexing: Boolean = true
+
+    override def apply(entities: DPair[Entity], limit: Double): Option[Double] = score
+
+    override def index(entity: Entity, sourceOrTarget: Boolean, limit: Double): Index = Index.default
+
+    override def children: Seq[Operator] = Seq.empty
+
+    override def withChildren(newChildren: Seq[Operator]): Operator = this
   }
 
 }

@@ -1,4 +1,5 @@
-@(errorMessage: String)(implicit request: RequestHeader)
+@import config.WorkbenchConfig.WorkspaceReact
+@(errorMessage: String)(implicit request: RequestHeader, workspaceReact: WorkspaceReact)
 
 @header = { }
 
@@ -25,4 +26,4 @@
   </div>
 }
 
-@main(None, "")(header)(toolbar)(content)(request)
+@main(None, "")(header)(toolbar)(content)

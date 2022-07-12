@@ -9,6 +9,8 @@ import org.silkframework.util.DPair
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.{CachedActivity, PathsCacheTrait}
 
+import scala.collection.mutable
+
 /**
  * Holds the most frequent paths.
  */
@@ -89,12 +91,27 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
     val restrictionChanged = currentEDs.source.filter != context.value().source.filter ||
         currentEDs.target.filter != context.value().target.filter
     val emptyPaths = context.value().source.typedPaths.isEmpty && context.value().target.typedPaths.isEmpty
+    val schemaNotFullyCovered = !currentLinkageRuleSchemaIsCovered(currentEDs.source, context.value().source) ||
+      !currentLinkageRuleSchemaIsCovered(currentEDs.target, context.value().target)
     val update =
       emptyPaths ||
-          restrictionChanged ||
-          typeChanged ||
-          fullReload
+        restrictionChanged ||
+        typeChanged ||
+        fullReload ||
+        schemaNotFullyCovered
     (typeChanged, emptyPaths, update)
+  }
+
+  private def currentLinkageRuleSchemaIsCovered(linkingSchema: EntitySchema, currentCachedSchema: EntitySchema): Boolean = {
+    val notCovered = mutable.HashSet[String](linkingSchema.typedPaths.map(_.normalizedSerialization) :_*)
+    val it = currentCachedSchema.typedPaths.iterator
+    while(notCovered.nonEmpty && it.hasNext) {
+      val next = it.next()
+      if(notCovered.contains(next.normalizedSerialization)) {
+        notCovered.remove(next.normalizedSerialization)
+      }
+    }
+    notCovered.isEmpty
   }
 
   private def updateSchema(datasetSelection: DatasetSelection,

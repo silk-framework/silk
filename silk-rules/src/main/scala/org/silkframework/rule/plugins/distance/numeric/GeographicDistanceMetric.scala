@@ -49,30 +49,41 @@ case class GeographicDistanceMetric(unit: String = "km") extends SimpleDistanceM
     }
   }
 
+  override def emptyIndex(limit: Double): Index = {
+    val emptyLatitude = Index.continuousEmpty(0.0, 1.0, normalizedLatitudeLimit(limit))
+    val emptyLongitude = Index.continuousEmpty(0.0, 1.0,  normalizedLongitudeLimit(limit))
+
+    emptyLatitude conjunction emptyLongitude
+  }
+
   override def indexValue(str: String, limit: Double, sourceOrTarget: Boolean): Index = {
     getCoordinates(str) match {
       case Some(coords) => {
-        val latIndex= indexLatitude((coords.lat + 90.0) / 180.0, limit)
+        val latIndex = indexLatitude((coords.lat + 90.0) / 180.0, limit)
         val lonIndex = indexLongitude((coords.long + 180.0) / 360.0 * cos(deg2rad(coords.lat)), limit)
 
         latIndex conjunction lonIndex
       }
-      case None => Index.empty conjunction Index.empty
+      case None => emptyIndex(limit)
     }
   }
 
   private def indexLatitude(latitude: Double, limit: Double) = {
-    val earthCircumferenceEquatorial = 40075160.0
-    val normalizedLimit = limit / (earthCircumferenceEquatorial * unitMultiplier)
-
-    Index.continuous(latitude, 0.0, 1.0, normalizedLimit)
+    Index.continuous(latitude, 0.0, 1.0, normalizedLatitudeLimit(limit))
   }
 
   private def indexLongitude(longitude: Double, limit: Double) = {
-    val earthCircumferenceMeridional = 40008000.0
-    val normalizedLimit = limit / (earthCircumferenceMeridional * unitMultiplier)
+    Index.continuous(longitude, 0.0, 1.0, normalizedLongitudeLimit(limit))
+  }
 
-    Index.continuous(longitude, 0.0, 1.0, normalizedLimit)
+  private def normalizedLatitudeLimit(limit: Double): Double = {
+    val earthCircumferenceEquatorial = 40075160.0
+    limit / (earthCircumferenceEquatorial * unitMultiplier)
+  }
+
+  private def normalizedLongitudeLimit(limit: Double): Double = {
+    val earthCircumferenceMeridional = 40008000.0
+    limit / (earthCircumferenceMeridional * unitMultiplier)
   }
 
   /**

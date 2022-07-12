@@ -4,16 +4,16 @@ This folder contains (mostly) external libraries, these can be broken down to th
 
 ## Internal libraries
 
-These libraries are written by silk maintainers and managed in the [silk-react-components](../../../../silk-react-components/)
+These libraries are written by silk maintainers and managed in the [silk-legacy-ui](../../../../silk-legacy-ui/)
 
 > ATTENTION: Changes committed to files in this directory are likely to be overwritten. DO NOT COMMIT DIRECTLY.
 
 - dynep
-- silk-react-components
+- silk-legacy-ui
 
 ## External libraries, managed
 
-These external libraries are managed via npm in the [silk-react-components](../../../../silk-react-components/).
+These external libraries are managed via npm in the [silk-legacy-ui](../../../../silk-legacy-ui/).
 
 > ATTENTION: Changes committed to files in this directory are likely to be overwritten. DO NOT COMMIT DIRECTLY.
 

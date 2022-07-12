@@ -9,6 +9,7 @@ public enum OrderEnum implements EnumerationParameterType {
 
   alphabetical("Alphabetical", "Alphabetical"),
   numerical("Numerical", "Numerical"),
+  integer("Integer", "Integer"),
   autodetect("Autodetect", "Autodetect");
 
   private String id;

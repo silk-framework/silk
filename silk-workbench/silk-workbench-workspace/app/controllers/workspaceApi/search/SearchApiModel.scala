@@ -515,7 +515,7 @@ object SearchApiModel {
   }
 
   private def label(project: Project): String = {
-    project.config.label()
+    project.config.fullLabel
   }
 
   private def label(task: ProjectTask[_ <: TaskSpec]): String = {

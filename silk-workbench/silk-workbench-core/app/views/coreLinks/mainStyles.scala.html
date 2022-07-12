@@ -1,0 +1,6 @@
+@import config.WorkbenchConfig.WorkspaceReact
+
+@()(implicit workspaceReact: WorkspaceReact)
+@for(cssLink <- workspaceReact.styleLinks) {
+    <link rel="stylesheet" href="@cssLink" type="text/css" />
+}

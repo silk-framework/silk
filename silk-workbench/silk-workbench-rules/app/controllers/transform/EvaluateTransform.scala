@@ -1,7 +1,9 @@
 package controllers.transform
 
+import config.WorkbenchConfig.WorkspaceReact
 import org.silkframework.config.Prefixes
-import controllers.core.{UserContextActions}
+import controllers.core.UserContextActions
+
 import javax.inject.Inject
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.{EvaluateTransform => EvaluateTransformTask}
@@ -13,7 +15,7 @@ import org.silkframework.workspace.activity.transform.TransformTaskUtils._
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
 /** Endpoints for evaluating transform tasks */
-class EvaluateTransform @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions {
+class EvaluateTransform @Inject() (implicit accessMonitor: WorkbenchAccessMonitor, workspaceReact: WorkspaceReact) extends InjectedController with UserContextActions {
 
   def evaluate(project: String, task: String, ruleName: Option[String], offset: Int, limit: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[TransformSpec](project, task, request.path)

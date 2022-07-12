@@ -3,9 +3,12 @@
 @(content: Html)
 
 @widgets.dialog(title = "About", width = 500) {
-  <div id="about_dialog" style="background:url('@controllers.core.routes.Branding.logo') no-repeat right 30px">
-    <p>@WorkbenchConfig.get.title, @WorkbenchConfig.version</p>
-    @content
+  <div id="about_dialog">
+    <div class="eccgui-typography__contentblock">
+        <img src="@controllers.core.routes.Branding.logo" alt="" style="float: right; margin: 0 0 1rem 1rem;"/>
+        <p>@WorkbenchConfig.get.title, @WorkbenchConfig.version</p>
+        @content
+    </div>
   </div>
   <script type="text/javascript">
     $(function() {

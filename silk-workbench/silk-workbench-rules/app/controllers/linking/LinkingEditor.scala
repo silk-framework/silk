@@ -1,5 +1,6 @@
 package controllers.linking
 
+import config.WorkbenchConfig.WorkspaceReact
 import controllers.core.UserContextActions
 import org.silkframework.entity.EntitySchema
 import org.silkframework.rule.LinkSpec
@@ -14,7 +15,7 @@ import play.api.mvc.{Action, AnyContent, InjectedController}
 import javax.inject.Inject
 import scala.util.control.NonFatal
 
-class LinkingEditor @Inject() (accessMonitor: WorkbenchAccessMonitor) extends InjectedController with UserContextActions {
+class LinkingEditor @Inject() (implicit accessMonitor: WorkbenchAccessMonitor, workspaceReact: WorkspaceReact) extends InjectedController with UserContextActions {
 
   def editor(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)

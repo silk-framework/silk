@@ -17,8 +17,9 @@ import java.nio.charset.MalformedInputException
 import java.util.logging.{Level, Logger}
 import java.util.regex.Pattern
 import scala.io.Codec
-import scala.util.Try
+import scala.util.{Success, Try}
 import scala.util.control.NonFatal
+import scala.util.matching.Regex
 
 class CsvSource(file: Resource,
                 settings: CsvSettings = CsvSettings(),
@@ -42,15 +43,18 @@ class CsvSource(file: Resource,
   // How many lines should be used for detecting the encoding or separator etc.
   final val linesForDetection = 100
 
+  val noPathSeparatorCharacter: Regex = "[:/?]".r
+
   val propertyList: IndexedSeq[String] = {
     if (properties.trim.nonEmpty) {
       // Parse the properties parameter and split it into valid properties
       for(property <- CsvSourceHelper.parse(properties).toIndexedSeq) yield {
-        // Encode properties that are not already (relative or absolute) URIs
-        if(Try{new URI(property)}.isSuccess) {
-          property
-        } else {
-          URLEncoder.encode(property, "UTF-8")
+        // Encode properties that are not already absolute URIs or already a valid URL encoded string
+        Try(new URI(property)) match {
+          case Success(uri) if uri.isAbsolute || noPathSeparatorCharacter.findFirstIn(property).isEmpty =>
+            property
+          case _ =>
+            URLEncoder.encode(property, "UTF-8")
         }
       }
     } else {

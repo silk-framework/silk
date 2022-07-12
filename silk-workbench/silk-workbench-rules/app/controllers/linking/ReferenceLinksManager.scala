@@ -1,5 +1,6 @@
 package controllers.linking
 
+import config.WorkbenchConfig.WorkspaceReact
 import controllers.core.UserContextActions
 import models.linking.EvalLink._
 import models.linking.{EvalLink, LinkResolver, LinkSorter}
@@ -14,7 +15,7 @@ import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import javax.inject.Inject
 
-class ReferenceLinksManager @Inject() () extends InjectedController with UserContextActions {
+class ReferenceLinksManager @Inject() (implicit workspaceReact: WorkspaceReact) extends InjectedController with UserContextActions {
 
   def referenceLinksView(project: String, task: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)

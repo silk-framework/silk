@@ -1,6 +1,8 @@
 @import controllers.core.routes.Assets
 
-@(header: Html)(content: Html)
+@import config.WorkbenchConfig.WorkspaceReact
+@import config.WorkbenchConfig
+@(header: Html)(content: Html)(implicit workspaceReact: WorkspaceReact)
 
 <!DOCTYPE html>
 
@@ -21,13 +23,17 @@
     <script src="@Assets.at("libs/jquery-ui/jquery-ui.js")" type="text/javascript"></script>
     <script type="text/javascript">
       var baseUrl = '@config.baseUrl'; // Base URL of this deployment
+      window.DI = {
+        basePath: "@{WorkbenchConfig.applicationContext}",
+        publicBaseUrl:"@{WorkbenchConfig.publicBaseUrl}"
+      }
     </script>
     <script src="@Assets.at("main.js")" type="text/javascript"></script>
 
     @header
 
     <!-- MDL inclusions: -->
-    <link type="text/css" href="@Assets.at("libs/silk-react-components/style.css")" rel="stylesheet" />
+    @coreLinks.mainStyles()
 
     @if(config.workbench.mdlStyle.isDefined) {
       @* This indicates that Silk is running in a modified version which can supply an alternative version of MDL. *@

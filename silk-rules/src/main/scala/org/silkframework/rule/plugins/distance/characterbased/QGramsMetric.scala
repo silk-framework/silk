@@ -17,7 +17,7 @@ package org.silkframework.rule.plugins.distance.characterbased
 import org.silkframework.entity.Index
 import org.silkframework.rule.plugins.distance.tokenbased.JaccardDistance
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.util.StringUtils._
 
 import scala.math.{max, min}
@@ -34,13 +34,21 @@ import scala.math.{max, min}
   label = "qGrams",
   description = "String similarity based on q-grams (by default q=2)."
 )
-case class QGramsMetric(q: Int = 2, minChar: Char = '0', maxChar: Char = 'z') extends SimpleDistanceMeasure {
+case class QGramsMetric(q: Int = 2,
+                        @Param(value = "The minimum character that is used for indexing", advanced = true)
+                        minChar: Char = '0',
+                        @Param(value = "The maximum character that is used for indexing", advanced = true)
+                        maxChar: Char = 'z') extends SimpleDistanceMeasure {
 
   private val jaccardCoefficient = JaccardDistance()
 
   //TODO test with toSet?
   override def evaluate(str1: String, str2: String, threshold: Double) = {
     jaccardCoefficient(str1.qGrams(q), str2.qGrams(q), threshold)
+  }
+
+  override def emptyIndex(limit: Double): Index = {
+    Index.oneDim(Set.empty, BigInt(maxChar - minChar + 1).pow(q).toInt)
   }
 
   override def indexValue(value: String, limit: Double, sourceOrTarget: Boolean): Index = {

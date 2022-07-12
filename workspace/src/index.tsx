@@ -13,7 +13,12 @@ import { createPlugin } from "./app/services/pluginApi";
 import configureStore from "./app/store/configureStore";
 
 import "./theme/index.scss";
+import mappingEditor from "./app/views/pages/MappingEditor/index"
 import "./language";
+
+if(typeof mappingEditor.hierarchicalMapping !== "function") {
+    console.error("Mapping editor factory methods no registered.")
+}
 
 const bootstrapPlugins = (plugins) => plugins.map((plugin) => createPlugin(plugin));
 

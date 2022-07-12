@@ -14,10 +14,6 @@
 
 package org.silkframework.rule.execution
 
-import java.util.concurrent.{ExecutorCompletionService, _}
-import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
-import java.util.logging.{Level, Logger}
-
 import org.silkframework.cache.EntityCache
 import org.silkframework.entity.Link
 import org.silkframework.rule.{LinkageRule, RuntimeLinkingConfig}
@@ -25,7 +21,10 @@ import org.silkframework.runtime.activity.{Activity, ActivityContext, ActivityCo
 import org.silkframework.runtime.execution.Execution
 import org.silkframework.util.DPair
 
-import scala.math.{max, min}
+import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
+import java.util.concurrent._
+import java.util.logging.{Level, Logger}
+import scala.math.min
 
 /**
  * Executes the matching.
@@ -189,8 +188,8 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
           targetLoading = loaders.target.status().isRunning
           loaderSuccessful = !Seq(loaders.source, loaders.target).exists(_.status.get.exists(_.failed))
 
-          updateSourcePartitions(!sourceLoading)
-          updateTargetPartitions(!targetLoading)
+          updateSourcePartitions()
+          updateTargetPartitions()
 
           Thread.sleep(500)
 
@@ -209,14 +208,10 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
       }
     }
 
-    private def updateSourcePartitions(includeLastPartitions: Boolean) {
+    private def updateSourcePartitions() {
       val newSourcePartitions = {
         for (block <- 0 until caches.source.blockCount) yield {
-          if (includeLastPartitions) {
-            caches.source.partitionCount(block)
-          } else {
-            max(0, caches.source.partitionCount(block) - 1)
-          }
+          caches.source.partitionCount(block)
         }
       }.toArray
 
@@ -230,14 +225,10 @@ class Matcher(loaders: DPair[ActivityControl[Unit]],
       sourcePartitions = newSourcePartitions
     }
 
-    private def updateTargetPartitions(includeLastPartitions: Boolean) {
+    private def updateTargetPartitions() {
       val newTargetPartitions = {
         for (block <- 0 until caches.target.blockCount) yield {
-          if (includeLastPartitions) {
-            caches.target.partitionCount(block)
-          } else {
-            max(0, caches.target.partitionCount(block) - 1)
-          }
+          caches.target.partitionCount(block)
         }
       }.toArray
 

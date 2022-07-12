@@ -29,6 +29,8 @@ interface ParameterAutoCompletionProps {
     intent: Intent;
     /** Show errors in the auto-completion list instead of the global error notification widget. */
     showErrorsInline?: boolean;
+    /** When set to true the auto-complete input field will be disabled */
+    disabled?: boolean
 }
 
 /** Component for parameter auto-completion. */
@@ -44,6 +46,7 @@ export const ParameterAutoCompletion = ({
     required,
     onChange,
     showErrorsInline = false,
+    disabled
 }: ParameterAutoCompletionProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
@@ -106,7 +109,7 @@ export const ParameterAutoCompletion = ({
             onChange={onChange}
             initialValue={initialValue}
             disabled={
-                selectDependentValues(autoCompletion).length < autoCompletion.autoCompletionDependsOnParameters.length
+                !!disabled || selectDependentValues(autoCompletion).length < autoCompletion.autoCompletionDependsOnParameters.length
             }
             inputProps={{
                 name: formParamId,

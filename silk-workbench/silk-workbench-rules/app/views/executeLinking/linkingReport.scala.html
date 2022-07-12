@@ -1,0 +1,21 @@
+@import controllers.core.routes.{Assets => CoreAssets}
+@import org.silkframework.workspace.ProjectTask
+@import org.silkframework.rule.LinkSpec
+
+@import config.WorkbenchConfig.WorkspaceReact
+@(task: ProjectTask[LinkSpec])(implicit workspaceReact: WorkspaceReact)
+
+<div>
+  @coreLinks.mainJs()
+  <script type="text/javascript">
+    window.silkReactComponents.linkingExecutionReport(
+      'react-linkingExecutionReport',
+      {
+        baseUrl: '@config.baseUrl',
+        project: '@task.project.id',
+        task: '@task.id'
+      }
+    );
+  </script>
+  <div id="react-linkingExecutionReport"></div>
+</div>
