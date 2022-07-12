@@ -219,7 +219,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                     <>
                         <FieldItem
                             key={LABEL}
-                            labelAttributes={{
+                            labelProps={{
                                 text: t("form.field.label"),
                                 info: t("common.words.required"),
                                 htmlFor: LABEL,
@@ -243,7 +243,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                         </FieldItem>
                         <FieldItem
                             key={DESCRIPTION}
-                            labelAttributes={{
+                            labelProps={{
                                 text: t("form.field.description"),
                                 htmlFor: DESCRIPTION,
                             }}

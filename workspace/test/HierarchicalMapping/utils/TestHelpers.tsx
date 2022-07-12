@@ -1,14 +1,14 @@
 import React from "react";
-import {EnzymePropSelector, mount, ReactWrapper} from "enzyme";
-import {render} from "@testing-library/react";
+import { EnzymePropSelector, mount, ReactWrapper } from "enzyme";
+import { render } from "@testing-library/react";
 
 /** Similar to Partial, but applies recursively. */
 export type RecursivePartial<T> = {
     [P in keyof T]?: T[P] extends (infer U)[]
         ? RecursivePartial<U>[]
         : T[P] extends object
-            ? RecursivePartial<T[P]>
-            : T[P];
+        ? RecursivePartial<T[P]>
+        : T[P];
 };
 
 export const withMount = (component) => mount(component);
@@ -124,3 +124,5 @@ export const findAll = (wrapper: ReactWrapper<any, any>, cssSelector: string | E
 
     return extractValidElements(element);
 };
+
+export const bluePrintClassPrefix = "bp4";

@@ -269,7 +269,7 @@ export function ProjectImportModal({ close, back, maxFileUploadSizeBytes }: IPro
     const uploaderElement = (
         <FieldItem
             key={"projectFile"}
-            labelAttributes={{
+            labelProps={{
                 text: t("ProjectImportModal.projectFile"),
                 htmlFor: "projectFile-input",
             }}

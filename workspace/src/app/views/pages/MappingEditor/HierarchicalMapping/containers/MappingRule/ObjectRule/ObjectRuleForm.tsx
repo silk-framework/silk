@@ -317,7 +317,7 @@ export const ObjectRuleForm = (props: IProps) => {
     // URI pattern
     if (!id || modifiedValues.uriRuleType === 'uri') {
         if (!modifiedValues.pattern && !createCustomUriPatternForNewRule && (!id || !(props.ruleData as any).pattern)) {
-            patternInput = <FieldItem labelAttributes={{text: "URI pattern"}}>
+            patternInput = <FieldItem labelProps={{text: "URI pattern"}}>
                 <TextField
                     data-test-id="object-rule-form-default-pattern"
                     disabled
@@ -418,7 +418,7 @@ export const ObjectRuleForm = (props: IProps) => {
                             onSelect={uriPattern => handleChangeValue('pattern', uriPattern.value)}
                         />}
                         {
-                            <FieldItem data-test-id="object-rule-form-example-preview" labelAttributes={{text: "Examples of target data"}}>
+                            <FieldItem data-test-id="object-rule-form-example-preview" labelProps={{text: "Examples of target data"}}>
                                 {previewExamples}
                             </FieldItem>
                         }

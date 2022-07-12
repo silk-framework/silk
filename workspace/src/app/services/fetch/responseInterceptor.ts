@@ -21,9 +21,9 @@ export class ErrorResponse {
     cause?: ErrorResponse;
     canBeIgnored: boolean;
 
-    asString(): string {
+    asString = (): string => {
         return this.detail ? ` Details: ${this.detail}` : this.title;
-    }
+    };
 
     constructor(
         title: string,
@@ -72,9 +72,9 @@ export class FetchError {
         return this.errorDetails.response?.status ? this.errorDetails.response.status : undefined;
     }
 
-    asString(): string {
+    asString = (): string => {
         return this.errorResponse.asString();
-    }
+    };
 }
 
 const httpStatusToTitle = (status?: number) => {

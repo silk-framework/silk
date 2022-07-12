@@ -1,6 +1,5 @@
-import { Button, FieldItem, Highlighter, MenuItem, OverflowText } from "@eccenca/gui-elements";
+import { Button, FieldItem, Highlighter, MenuItem, OverflowText, MultiSelect } from "@eccenca/gui-elements";
 import React, { useEffect, useState } from "react";
-import { MultiSelect } from "@blueprintjs/select";
 import { extractSearchWords, matchesAllWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 import { IVocabularyInfo } from "./typings";
 
@@ -165,7 +164,7 @@ export default function VocabularyMultiSelect({
 
     return (
         <FieldItem
-            labelAttributes={{
+            labelProps={{
                 text: label,
             }}
             // hasStateDanger={hasError} TODO?
@@ -175,7 +174,7 @@ export default function VocabularyMultiSelect({
                 popoverProps={{
                     minimal: true,
                     fill: true,
-                    position: "bottom-left",
+                    placement: "bottom-start",
                 }}
                 fill={true}
                 onQueryChange={onQueryChange}
@@ -188,7 +187,7 @@ export default function VocabularyMultiSelect({
                 tagInputProps={{
                     inputProps: {
                         id: "vocselect",
-                        autocomplete: "off",
+                        autoComplete: "off",
                     },
                     onRemove: removeVocabFromSelectionViaIndex,
                     rightElement: clearButton,

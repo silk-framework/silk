@@ -92,7 +92,7 @@ export default function STableHeader({
                 onClick={onSwap}
                 data-test-id={header.key}
                 tooltip="Swap view of source data and target vocabulary"
-                tooltipProperties={{ portalContainer: portalContainer }}
+                tooltipProps={{ portalContainer: portalContainer }}
             >
                 Swap
             </Button>
@@ -104,7 +104,9 @@ export default function STableHeader({
                 <Toolbar>
                     <ToolbarSection>
                         <ContextMenu
-                            portalContainer={portalContainer}
+                            contextOverlayProps={{
+                                portalContainer
+                            }}
                             togglerElement={ratioSelection === 0 ? "state-unchecked" : ratioSelection === 1 ? "state-checked" : "state-partlychecked"}
                         >
                             {
@@ -151,7 +153,7 @@ export default function STableHeader({
                                                 ? 'ascending'
                                                 : (sortDirections.modifier === 'asc' ? 'descending' : 'remove'))
                                         }
-                                        tooltipProperties={{ portalContainer: portalContainer }}
+                                        tooltipProps={{ portalContainer: portalContainer }}
                                         onClick={() => onSort(header.key)}
                                     />
                                     {

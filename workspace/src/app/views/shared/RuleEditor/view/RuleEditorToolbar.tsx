@@ -174,7 +174,7 @@ export const RuleEditorToolbar = () => {
                         tooltip={
                             modelContext.isReadOnly() ? t("RuleEditor.toolbar.readOnly") : t("RuleEditor.toolbar.save")
                         }
-                        tooltipProperties={{ hoverCloseDelay: 0 }}
+                        tooltipProps={{ hoverCloseDelay: 0 }}
                         onClick={saveLinkingRule}
                         disabled={modelContext.isReadOnly() || !modelContext.unsavedChanges}
                         href={modelContext.isReadOnly() || !modelContext.unsavedChanges ? "#" : undefined}

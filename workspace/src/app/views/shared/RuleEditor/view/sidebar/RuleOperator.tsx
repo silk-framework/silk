@@ -40,15 +40,15 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                                 name="item-info"
                                 small
                                 tooltipText={ruleOperator.description}
-                                tooltipProperties={{
-                                    position: "right",
-                                    boundary: "window",
+                                tooltipProps={{
+                                    placement: "right",
+                                    rootBoundary: "viewport",
                                 }}
                             />
                         </>
                     )}
                 </OverviewItemLine>,
-                "bottom-right",
+                "bottom-end",
                 "medium"
             )}
             {descriptionSearchSnippet && (
@@ -59,7 +59,7 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                         <OverflowText>
                             <Highlighter label={descriptionSearchSnippet} searchValue={textQuery} />
                         </OverflowText>,
-                        "bottom-right",
+                        "bottom-end",
                         "medium"
                     )}
                 </OverviewItemLine>

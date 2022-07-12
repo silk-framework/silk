@@ -56,7 +56,7 @@ export function PrefixDialog({ isOpen, onAdd, onDismiss, prefixList, selectedPre
                         text={"Keep source properties unchanged"}
                         info={"do not prefix them"}
                         tooltip={"If checked, the source properties are transferred unchanged to the target properties."}
-                        tooltipProperties={{portalContainer: context.portalContainer}}
+                        tooltipProps={{portalContainer: context.portalContainer}}
                         isLayoutForElement={"span"}
                         style={{ display: "inline-block"}}
                     />
@@ -69,7 +69,7 @@ export function PrefixDialog({ isOpen, onAdd, onDismiss, prefixList, selectedPre
             onChange={handleInputPrefix}
             disabled={withoutPrefix}
         />
-        <FieldItem labelAttributes={{text: 'Selected URI prefix for auto-generated properties', htmlFor:"prefix"}}>
+        <FieldItem labelProps={{text: 'Selected URI prefix for auto-generated properties', htmlFor:"prefix"}}>
             <TextField
                 name={'prefix'}
                 id="prefix"
