@@ -162,7 +162,7 @@ const AutoComplete = ({ entity, ruleId, className, placeholder, creatable, onCha
     return <div className={className}>
         <Spacing size={"tiny"} />
         <FieldItem
-            labelAttributes={{
+            labelProps={{
                 text: placeholder,
             }}
         >
@@ -170,7 +170,7 @@ const AutoComplete = ({ entity, ruleId, className, placeholder, creatable, onCha
                 inputProps={{
                     placeholder: placeholder
                 }}
-                popoverProps={{
+                contextOverlayProps={{
                     portalContainer: portalContainer()
                 }}
                 reset={reset}

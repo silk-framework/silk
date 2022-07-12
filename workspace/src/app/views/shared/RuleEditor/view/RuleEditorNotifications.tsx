@@ -52,38 +52,40 @@ export const RuleEditorNotifications = ({
                 data-test-id={"ruleEditorToolbar-saveError-Btn"}
                 isOpen={isOpen}
                 onClose={() => toggleNotifications(true)}
-                boundary="window"
+                rootBoundary="viewport"
+                content={(
+                    <div style={{maxWidth: "39vw", padding: "0.5rem"}}>
+                        {integratedView && diNotifications.notifications}
+                        {queueEditorNotifications.map((editorNotification) => (
+                            <Notification danger={true} key={"errorMessage"} iconName="state-warning">
+                                {editorNotification}
+                            </Notification>
+                        ))}
+                        {queueNodeNotifications.map((nodeNotification) => (
+                            <div key={nodeNotification.nodeId}>
+                                <Spacing size={"tiny"} />
+                                <Notification
+                                    warning={true}
+                                    iconName="state-warning"
+                                    actions={
+                                        <IconButton
+                                            data-test-id={"RuleEditorToolbar-nodeError-btn"}
+                                            name="item-viewdetails"
+                                            text={t("RuleEditor.toolbar.saveError.nodeError.tooltip")}
+                                            onClick={() => {
+                                                nodeJumpToHandler(nodeNotification.nodeId);
+                                            }}
+                                        />
+                                    }
+                                >
+                                    <p>{nodeNotification.message}</p>
+                                </Notification>
+                            </div>
+                        ))}
+                    </div>
+                )}
             >
                 <Icon name="application-warning" onClick={() => toggleNotifications()} />
-                <div style={{maxWidth: "39vw", padding: "0.5rem"}}>
-                    {integratedView && diNotifications.notifications}
-                    {queueEditorNotifications.map((editorNotification) => (
-                        <Notification danger={true} key={"errorMessage"} iconName="state-warning">
-                            {editorNotification}
-                        </Notification>
-                    ))}
-                    {queueNodeNotifications.map((nodeNotification) => (
-                        <div key={nodeNotification.nodeId}>
-                            <Spacing size={"tiny"} />
-                            <Notification
-                                warning={true}
-                                iconName="state-warning"
-                                actions={
-                                    <IconButton
-                                        data-test-id={"RuleEditorToolbar-nodeError-btn"}
-                                        name="item-viewdetails"
-                                        text={t("RuleEditor.toolbar.saveError.nodeError.tooltip")}
-                                        onClick={() => {
-                                            nodeJumpToHandler(nodeNotification.nodeId);
-                                        }}
-                                    />
-                                }
-                            >
-                                <p>{nodeNotification.message}</p>
-                            </Notification>
-                        </div>
-                    ))}
-                </div>
             </ContextOverlay>
             <Spacing vertical size="tiny" />
         </>

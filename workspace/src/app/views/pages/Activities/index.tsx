@@ -150,7 +150,7 @@ const Activities = () => {
                                         </div>
                                         <IconButton
                                             name="item-reload"
-                                            tooltip="Reload activities"
+                                            text="Reload activities"
                                             onClick={() => history.go(0)}
                                         />
                                     </div>

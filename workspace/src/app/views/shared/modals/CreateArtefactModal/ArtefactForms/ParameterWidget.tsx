@@ -168,7 +168,7 @@ export const ParameterWidget = (props: IProps) => {
     } else {
         return (
             <FieldItem
-                labelAttributes={{
+                labelProps={{
                     text: title,
                     info: required ? t("common.words.required") : "",
                     htmlFor: formParamId,

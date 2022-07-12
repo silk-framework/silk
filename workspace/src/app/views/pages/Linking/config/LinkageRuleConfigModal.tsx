@@ -100,7 +100,7 @@ export const LinkageRuleConfigModal = ({ onClose, parameters, submit }: IProps) 
                 return (
                     <FieldItem
                         key={p.id}
-                        labelAttributes={{
+                        labelProps={{
                             htmlFor: p.id,
                             text: p.label,
                         }}

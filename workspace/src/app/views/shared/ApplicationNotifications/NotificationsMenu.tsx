@@ -61,13 +61,14 @@ export function NotificationsMenu() {
             <ContextOverlay
                 isOpen={true}
                 minimal={true}
-                position="bottom-right"
+                placement="bottom-end"
                 autoFocus={false}
                 enforceFocus={false}
                 openOnTargetFocus={false}
                 content={notificationQueue.lastNotification}
-                target={notificationIndicatorButton}
-            />
+            >
+                {notificationIndicatorButton}
+            </ContextOverlay>
         ) : (
             notificationIndicatorButton
         );

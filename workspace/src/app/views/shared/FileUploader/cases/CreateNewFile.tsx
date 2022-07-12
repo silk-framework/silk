@@ -41,7 +41,7 @@ export function CreateNewFile(props: IProps) {
 
     return (
         <FieldItem
-            labelAttributes={{
+            labelProps={{
                 text: t("FileUploader.createNewFile", "New file name"),
                 info: t("common.words.required"),
                 htmlFor: "fileInput",

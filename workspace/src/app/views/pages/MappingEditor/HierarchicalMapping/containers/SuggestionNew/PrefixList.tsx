@@ -88,7 +88,7 @@ export default function PrefixList({prefixes, selectedPrefix, onChange, disabled
         />
     );
 
-    return <FieldItem labelAttributes={{text: 'Use known prefix'}}>
+    return <FieldItem labelProps={{text: 'Use known prefix'}}>
         <PrefixSelect
             filterable={true}
             onItemSelect={t => handleSelectTarget(t.uri)}

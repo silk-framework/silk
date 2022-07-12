@@ -39,7 +39,7 @@ export function ProjectForm({ form }: IProps) {
         <>
             <FieldItem
                 key={LABEL}
-                labelAttributes={{
+                labelProps={{
                     text: t("form.projectForm.title", "Title"),
                     info: t("common.words.required"),
                     htmlFor: "title-input",
@@ -56,7 +56,7 @@ export function ProjectForm({ form }: IProps) {
                 />
             </FieldItem>
             <FieldItem
-                labelAttributes={{
+                labelProps={{
                     text: t("form.field.description"),
                     htmlFor: "desc-input",
                 }}

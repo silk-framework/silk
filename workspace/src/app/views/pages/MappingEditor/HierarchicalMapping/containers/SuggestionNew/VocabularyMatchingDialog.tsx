@@ -142,7 +142,7 @@ export default function VocabularyMatchingDialog(
             </Button>,
         ]}>
         <FieldItem
-            labelAttributes={{
+            labelProps={{
                 text: "Select vocabularies used to match data attributes",
                 htmlFor: "vocselect",
             }}
@@ -165,7 +165,7 @@ export default function VocabularyMatchingDialog(
                 tagInputProps={{
                     inputProps: {
                         id: "vocselect",
-                        autocomplete: "off"
+                        autoComplete: "off"
                     },
                     onRemove: removeVocabFromSelectionViaIndex,
                     rightElement: clearButton,

@@ -66,7 +66,7 @@ const CustomIdentifierInput = ({ form, onValueChange, taskId, projectId }: IProp
     return (
         <FieldItem
             disabled={!!taskId}
-            labelAttributes={{
+            labelProps={{
                 text: projectId
                     ? t("CreateModal.CustomIdentifierInput.TaskId")
                     : t("CreateModal.CustomIdentifierInput.ProjectId"),
