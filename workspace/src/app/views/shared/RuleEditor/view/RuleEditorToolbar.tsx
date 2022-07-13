@@ -116,7 +116,6 @@ export const RuleEditorToolbar = () => {
             ) : null}
             {showCreateStickyModal ? (
                 <StickyNoteModal
-                    metaData={{}}
                     onClose={() => setShowCreateStickyModal(false)}
                     onSubmit={handleStickyNoteSubmit}
                     translate={(key) => translationsStickyNoteModal[key]}

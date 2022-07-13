@@ -11,7 +11,7 @@ interface StickyMenuButtonProps {
 }
 
 const StickyMenuButton: React.FC<StickyMenuButtonProps> = ({ stickyNodeId, color, stickyNote }) => {
-    const [currentStickyContent, setCurrentStickyContent] = React.useState<Partial<StickyNoteMetadataType>>({});
+    const [currentStickyContent, setCurrentStickyContent] = React.useState<StickyNoteMetadataType | undefined>(undefined);
     const [showEditModal, setShowEditModal] = React.useState<boolean>(false);
     const [t] = useTranslation();
     const modelContext = React.useContext(RuleEditorModelContext);
@@ -41,7 +41,7 @@ const StickyMenuButton: React.FC<StickyMenuButtonProps> = ({ stickyNodeId, color
                 name="item-edit"
                 text={t("RuleEditor.node.executionButtons.edit.tooltip")}
                 onClick={() => {
-                    setCurrentStickyContent({ note: stickyNote, color, nodeId: stickyNodeId });
+                    setCurrentStickyContent({ note: stickyNote, color });
                     setShowEditModal(true);
                 }}
             />
