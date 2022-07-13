@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import {
     Edge,
+    Node,
     Elements,
     OnLoadParams,
     removeElements,
@@ -913,7 +914,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
-    const createStickyNodeInternal = (color: string, stickyNote: string, position: XYPosition, id?: string) => {
+    const createStickyNodeInternal = (color: string, stickyNote: string, position: XYPosition, id?: string): Node => {
         const style = nodeUtils.generateStyleWithColor(color);
         const stickyId = id ?? utils.freshNodeId("sticky");
         return {
@@ -958,7 +959,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 selectNodes(stickyNoteNode);
                 const updatedElements = [...elements, stickyNoteNode];
                 startChangeTransaction();
-                addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(stickyNoteNode as any), elements);
+                addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(stickyNoteNode), elements);
                 return updatedElements;
             });
         } else {

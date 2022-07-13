@@ -32,12 +32,12 @@ export type RuleModelChangeType =
 
 export interface AddNode {
     type: "Add node";
-    node: RuleEditorNode;
+    node: Node;
 }
 
 export interface DeleteNode {
     type: "Delete node";
-    node: RuleEditorNode;
+    node: Node;
 }
 
 export interface AddEdge {
@@ -93,16 +93,16 @@ const toRuleModelChanges = (ruleModelChange: RuleModelChangeType | RuleModelChan
 
 /** Convenience factory functions for rule model changes. */
 export const RuleModelChangesFactory = {
-    addNode: (node: RuleEditorNode): RuleModelChanges => toRuleModelChanges({ type: "Add node", node }),
-    addNodes: (nodes: RuleEditorNode[]): RuleModelChanges =>
+    addNode: (node: Node): RuleModelChanges => toRuleModelChanges({ type: "Add node", node }),
+    addNodes: (nodes: Node[]): RuleModelChanges =>
         toRuleModelChanges(
-            nodes.map((node) => ({
+            nodes.map((node: Node) => ({
                 type: "Add node",
                 node,
             }))
         ),
-    deleteNode: (node: RuleEditorNode): RuleModelChanges => toRuleModelChanges({ type: "Delete node", node }),
-    deleteNodes: (nodes: RuleEditorNode[]): RuleModelChanges =>
+    deleteNode: (node: Node): RuleModelChanges => toRuleModelChanges({ type: "Delete node", node }),
+    deleteNodes: (nodes: Node[]): RuleModelChanges =>
         toRuleModelChanges(
             nodes.map((node) => ({
                 type: "Delete node",
