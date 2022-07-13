@@ -97,7 +97,7 @@ export const RuleEditorToolbar = () => {
     };
 
     const handleStickyNoteSubmit = ({ note, color }) => {
-        if(ruleEditorUiContext.reactFlowInstance && ruleEditorUiContext.reactFlowWrapper?.current) {
+        if (ruleEditorUiContext.reactFlowInstance && ruleEditorUiContext.reactFlowWrapper?.current) {
             const reactFlowBounds = ruleEditorUiContext.reactFlowWrapper.current.getBoundingClientRect();
             const position = ruleEditorUiContext.reactFlowInstance.project({
                 x: (reactFlowBounds.width - DEFAULT_NODE_WIDTH) / 2,
@@ -105,7 +105,7 @@ export const RuleEditorToolbar = () => {
             });
             modelContext.executeModelEditOperation.addStickyNode(note, position, color);
         } else {
-            console.warn("No react-flow objects loaded!")
+            console.warn("No react-flow objects loaded!");
         }
     };
 
@@ -116,7 +116,7 @@ export const RuleEditorToolbar = () => {
             ) : null}
             {showCreateStickyModal ? (
                 <StickyNoteModal
-                    noteContent={new Map()}
+                    metaData={{}}
                     onClose={() => setShowCreateStickyModal(false)}
                     onSubmit={handleStickyNoteSubmit}
                     translate={(key) => translationsStickyNoteModal[key]}

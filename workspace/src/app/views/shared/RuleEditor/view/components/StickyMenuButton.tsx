@@ -2,6 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { IconButton, Spacing, StickyNoteModal } from "@eccenca/gui-elements";
 import { RuleEditorModelContext } from "../../contexts/RuleEditorModelContext";
+import { StickyNoteMetadataType } from "@eccenca/gui-elements/src/cmem/react-flow/StickyNoteModal/StickyNoteModal";
 
 interface StickyMenuButtonProps {
     stickyNodeId: string;
@@ -10,7 +11,7 @@ interface StickyMenuButtonProps {
 }
 
 const StickyMenuButton: React.FC<StickyMenuButtonProps> = ({ stickyNodeId, color, stickyNote }) => {
-    const [currentStickyContent, setCurrentStickyContent] = React.useState<Map<string, string>>(new Map());
+    const [currentStickyContent, setCurrentStickyContent] = React.useState<Partial<StickyNoteMetadataType>>({});
     const [showEditModal, setShowEditModal] = React.useState<boolean>(false);
     const [t] = useTranslation();
     const modelContext = React.useContext(RuleEditorModelContext);
@@ -27,7 +28,7 @@ const StickyMenuButton: React.FC<StickyMenuButtonProps> = ({ stickyNodeId, color
         <>
             {showEditModal ? (
                 <StickyNoteModal
-                    noteContent={currentStickyContent}
+                    metaData={currentStickyContent}
                     onClose={() => setShowEditModal(false)}
                     onSubmit={({ note, color }) =>
                         modelContext.executeModelEditOperation.changeStickyNodeProperties(stickyNodeId, color, note)
@@ -40,10 +41,7 @@ const StickyMenuButton: React.FC<StickyMenuButtonProps> = ({ stickyNodeId, color
                 name="item-edit"
                 text={t("RuleEditor.node.executionButtons.edit.tooltip")}
                 onClick={() => {
-                    setCurrentStickyContent(
-                        (prevData) =>
-                            new Map(prevData.set("note", stickyNote).set("color", color).set("nodeId", stickyNodeId))
-                    );
+                    setCurrentStickyContent({ note: stickyNote, color, nodeId: stickyNodeId });
                     setShowEditModal(true);
                 }}
             />
