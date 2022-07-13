@@ -155,6 +155,13 @@ export const RuleEditorToolbar = () => {
                         text={t("RuleEditor.toolbar.autoLayout")}
                         onClick={() => modelContext.executeModelEditOperation.autoLayout(true)}
                     />
+                    <Spacing vertical hasDivider />
+                    <IconButton
+                        data-test-id="rule-editor-header-sticky-btn"
+                        name="item-comment"
+                        text={t("StickyNoteModal.tooltip")}
+                        onClick={() => setShowCreateStickyModal(true)}
+                    />
                     {ruleEvaluationContext.supportsEvaluation && (
                         <>
                             <Spacing vertical hasDivider />
@@ -172,13 +179,6 @@ export const RuleEditorToolbar = () => {
                         label={t("RuleEditor.toolbar.advancedParameterMode")}
                         checked={ruleEditorUiContext.advancedParameterModeEnabled}
                         onClick={() => ruleEditorUiContext.setAdvancedParameterMode(!ruleEditorUiContext.advancedParameterModeEnabled)}
-                    />
-                    <Spacing vertical hasDivider />
-                    <IconButton
-                        data-test-id="rule-editor-header-sticky-btn"
-                        name="item-comment"
-                        text={t("StickyNoteModal.tooltip")}
-                        onClick={() => setShowCreateStickyModal(true)}
                     />
                 </ToolbarSection>
                 <ToolbarSection canGrow>

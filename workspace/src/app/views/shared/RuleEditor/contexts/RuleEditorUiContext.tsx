@@ -22,7 +22,7 @@ export const RuleEditorUiContext = React.createContext<RuleEditorUiContextProps>
     modalShown: false,
     setModalShown(): any {},
     advancedParameterModeEnabled: false,
-    setAdvancedParameterMode: () => {}
+    setAdvancedParameterMode: () => {},
     reactFlowWrapper: null,
     setReactFlowInstance: () => {},
     reactFlowInstance: undefined

@@ -915,7 +915,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
-    const createStickyNodeInternal = (color: string, stickyNote: string, position: XYPosition, id?: string): Node => {
+    const defaultDimensions: NodeDimensions = {
+        width: DEFAULT_NODE_WIDTH,
+        height: DEFAULT_NODE_HEIGHT,
+    };
+
+    const createStickyNodeInternal = (color: string, stickyNote: string, position: XYPosition, dimension: NodeDimensions = defaultDimensions, id?: string): Node => {
         const style = nodeUtils.generateStyleWithColor(color);
         const stickyId = id ?? utils.freshNodeId("sticky");
         return {
@@ -925,10 +930,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             data: {
                 size: "medium",
                 handles: [],
-                nodeDimensions: {
-                    width: DEFAULT_NODE_WIDTH,
-                    height: DEFAULT_NODE_HEIGHT,
-                },
+                nodeDimensions: dimension,
                 onNodeResize: (newNodeDimensions) => changeSize(stickyId, newNodeDimensions),
                 menuButtons: <StickyMenuButton stickyNodeId={stickyId} color={color} stickyNote={stickyNote} />,
                 content: <Markdown>{stickyNote}</Markdown>,
@@ -1638,13 +1640,17 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             })
         );
 
-        const stickyNodes = ruleEditorContext.stickyNotes.map(({ color, content, position, id }) =>
+        const stickyNodes = ruleEditorContext.stickyNotes.map(({ color, content, position, dimension, id }) =>
             createStickyNodeInternal(
                 color,
                 content,
                 {
                     x: position[0],
                     y: position[1],
+                },
+                {
+                    width: dimension[0],
+                    height: dimension[1]
                 },
                 id
             )

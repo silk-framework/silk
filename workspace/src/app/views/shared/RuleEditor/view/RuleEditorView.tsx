@@ -19,7 +19,7 @@ export const RuleEditorView = () => {
                 modalShown,
                 setModalShown,
                 advancedParameterModeEnabled,
-                setAdvancedParameterMode
+                setAdvancedParameterMode,
                 reactFlowWrapper,
                 reactFlowInstance,
                 setReactFlowInstance
