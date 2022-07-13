@@ -23,6 +23,7 @@ import { RuleOperatorType, TaskPlugin } from "@ducks/shared/typings";
 import linkingRuleRequests from "./LinkingRuleEditor.requests";
 import { IPreConfiguredRuleOperator } from "../../shared/RuleEditor/view/sidebar/RuleEditorOperatorSidebar.typings";
 import { ruleEditorNodeParameterValue } from "../../shared/RuleEditor/model/RuleEditorModel.typings";
+import { IStickyNote } from "../shared/task.typings";
 
 /**
  * Convert to editor model:
@@ -111,6 +112,10 @@ function optionallyLabelledParameterToValue<T>(optionallyLabelledValue: Optional
         ? (optionallyLabelledValue as LabelledParameterValue<T>).value
         : (optionallyLabelledValue as T);
 }
+
+/** gets preloaded ui sticky notes */
+const getStickyNotes = (linkSpec: TaskPlugin<ILinkingTaskParameters>): IStickyNote[] =>
+    (linkSpec && optionallyLabelledParameterToValue(linkSpec.parameters.rule).uiAnnotations.stickyNotes) || [];
 
 /** Converts the linking task rule to the internal representation. */
 const convertToRuleOperatorNodes = (
@@ -300,6 +305,7 @@ const linkingRuleUtils = {
     inputPathTab,
     constructLinkageRuleTree,
     optionallyLabelledParameterToValue,
+    getStickyNotes,
 };
 
 export default linkingRuleUtils;

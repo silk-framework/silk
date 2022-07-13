@@ -2,6 +2,7 @@ import { Elements, OnLoadParams } from "react-flow-renderer";
 import React from "react";
 import { IRuleOperator, IRuleOperatorNode, RuleOperatorNodeParameters } from "../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
+import { NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 
 /**
  * The rule editor model context that contains objects and methods related to the rule model of the editor, i.e.
@@ -20,7 +21,7 @@ export interface RuleEditorModelContextProps {
     /** Sets the read-only mode of the model. If the function is not defined, read-only mode cannot be changed. */
     setIsReadOnly?: (readOnly: boolean) => any;
     /** Callback to set the react-flow instance needed for the model. */
-    setReactFlowInstance: (instance: OnLoadParams) => any;
+    setReactFlowInstance: React.Dispatch<React.SetStateAction<OnLoadParams<any> | undefined>>;
     /** Save the current rule. */
     saveRule: () => Promise<boolean> | boolean;
     /** If there are unsaved changes. */
@@ -47,6 +48,8 @@ export interface RuleEditorModelContextProps {
 export interface IModelActions {
     /** Starts a new change transaction. All actions after this will be handled as a single transaction, e.g. can be undone/redone as on operation. */
     startChangeTransaction: () => void;
+    /** Add sticky note node as new node */
+    addStickyNode: (stickyNote: string, position: XYPosition, color: string) => void;
     /** Add a rule operator as new rule node. */
     addNode: (ruleOperator: IRuleOperator, position: XYPosition) => void;
     /** Add node by plugin type and ID. */
@@ -81,6 +84,10 @@ export interface IModelActions {
     copyAndPasteNodes: (nodeIds: string[], offset: XYPosition) => void;
     /** Move a single node to a new position. */
     moveNode: (nodeId: string, newPosition: XYPosition) => void;
+    /** changes the size of a node to the given new dimensions */
+    changeSize: (nodeId: string, newNodeDimension: NodeDimensions) => void;
+    /** changes stickyNode properties such as style and content */
+    changeStickyNodeProperties: (nodeId: string, color?: string, content?: string) => void;
     /** Moves nodes by a specific offset. */
     moveNodes: (nodeIds: string[], offset: XYPosition) => void;
     /** Change a single node parameter.
@@ -120,6 +127,7 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     unsavedChanges: false,
     executeModelEditOperation: {
         startChangeTransaction: NOP,
+        addStickyNode: NOP,
         deleteNode: NOP,
         deleteNodes: NOP,
         addNode: NOP,
@@ -132,7 +140,9 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
         autoLayout: NOP,
         addNodeByPlugin: NOP,
         deleteEdges: NOP,
+        changeSize: NOP,
         fixNodeInputs: NOP,
+        changeStickyNodeProperties: NOP,
     },
     undo: () => false,
     canUndo: false,

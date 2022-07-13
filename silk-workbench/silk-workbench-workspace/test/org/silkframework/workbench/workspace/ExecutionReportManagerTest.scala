@@ -33,7 +33,7 @@ abstract class ExecutionReportManagerTest extends FlatSpec with Matchers {
       val reports = reportManager.listReports(Some(projectId), Some(taskId))
       reports should have size 1
       val retrievedReport = reportManager.retrieveReport(reports.head).resultValue.get
-      retrievedReport.toString shouldEqual testReport.toString
+      retrievedReport.toString.replaceAll("ArrayBuffer", "List") shouldEqual testReport.toString.replaceAll("ArrayBuffer", "List")
     }
   }
 

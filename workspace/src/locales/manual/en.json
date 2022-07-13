@@ -27,6 +27,14 @@
     "ShowIdentifierModal": {
         "title": "Item identifier"
     },
+    "StickyNoteModal": {
+        "title": "Add note",
+        "tooltip": "Add note",
+        "labels": {
+            "codeEditor": "Note",
+            "color": "Color"
+        }
+    },
     "DataList": {
         "loading": "Loading data."
     },
@@ -362,7 +370,7 @@
                 "workflows": "Workflows",
                 "workflowsTooltip": "Shows the list of all workflows across all build projects."
             },
-	    "diBrowse": "Silk",
+            "diBrowse": "Silk",
             "diBrowseTooltip": "Used to manage data-integration projects to build a knowledge graph from existing datasources",
             "dm": {
                 "explore": "Knowledge Graphs",
