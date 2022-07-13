@@ -61,6 +61,7 @@ describe("Rule editor model", () => {
             portSpecification: {
                 minInputPorts: 0,
             },
+            inputsCanBeSwitched: false,
         },
     ];
 
@@ -161,6 +162,7 @@ describe("Rule editor model", () => {
             pluginType: "unknown",
             portSpecification,
             position,
+            inputsCanBeSwitched: false,
         };
     };
 
@@ -187,6 +189,7 @@ describe("Rule editor model", () => {
                 minInputPorts: minInputPorts,
             },
             tags: [],
+            inputsCanBeSwitched: false,
         };
     };
 

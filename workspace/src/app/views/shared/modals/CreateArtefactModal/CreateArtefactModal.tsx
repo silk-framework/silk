@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useForm } from "react-hook-form";
-import { Markdown } from "@eccenca/gui-elements";
+import React, {useEffect, useState} from "react";
+import {useDispatch, useSelector} from "react-redux";
+import {useForm} from "react-hook-form";
 import {
     Button,
     Card,
@@ -13,6 +12,7 @@ import {
     Highlighter,
     HtmlContentBlock,
     IconButton,
+    Markdown,
     Notification,
     OverflowText,
     OverviewItem,
@@ -22,28 +22,27 @@ import {
     OverviewItemLine,
     OverviewItemList,
     SimpleDialog,
-    Spacing,
+    Spacing
 } from "@eccenca/gui-elements";
-import { createMultiWordRegex, extractSearchWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
-import { commonOp, commonSel } from "@ducks/common";
-import { IPluginOverview, IArtefactModal, IPluginDetails } from "@ducks/common/typings";
+import {createMultiWordRegex, extractSearchWords} from "@eccenca/gui-elements/src/components/Typography/Highlighter";
+import {commonOp, commonSel} from "@ducks/common";
+import {IArtefactModal, IPluginDetails, IPluginOverview} from "@ducks/common/typings";
 import Loading from "../../Loading";
-import { ProjectForm } from "./ArtefactForms/ProjectForm";
-import { TaskForm } from "./ArtefactForms/TaskForm";
-import { DATA_TYPES } from "../../../../constants";
+import {ProjectForm} from "./ArtefactForms/ProjectForm";
+import {TaskForm} from "./ArtefactForms/TaskForm";
+import {DATA_TYPES} from "../../../../constants";
 import ArtefactTypesList from "./ArtefactTypesList";
-import { SearchBar } from "../../SearchBar/SearchBar";
-import { routerOp } from "@ducks/router";
-import { useTranslation } from "react-i18next";
-import { TaskType } from "@ducks/shared/typings";
-import { ProjectImportModal } from "../ProjectImportModal";
+import {SearchBar} from "../../SearchBar/SearchBar";
+import {routerOp} from "@ducks/router";
+import {useTranslation} from "react-i18next";
+import {TaskType} from "@ducks/shared/typings";
+import {ProjectImportModal} from "../ProjectImportModal";
 import ItemDepiction from "../../../shared/ItemDepiction";
-import { ErrorBoundary } from "carbon-components-react";
 import ProjectSelection from "./ArtefactForms/ProjectSelection";
-import { workspaceSel } from "@ducks/workspace";
-import { requestSearchList } from "@ducks/workspace/requests";
-import { uppercaseFirstChar } from "../../../../utils/transformers";
-import { requestProjectMetadata } from "@ducks/shared/requests";
+import {workspaceSel} from "@ducks/workspace";
+import {requestSearchList} from "@ducks/workspace/requests";
+import {uppercaseFirstChar} from "../../../../utils/transformers";
+import {requestProjectMetadata} from "@ducks/shared/requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 
 const ignorableFields = new Set(["label", "description"]);
@@ -707,16 +706,14 @@ export function CreateArtefactModal() {
         </SimpleDialog>
     );
     return (
-        <ErrorBoundary>
-            {isProjectImport ? (
-                <ProjectImportModal
-                    close={closeModal}
-                    back={() => setIsProjectImport(false)}
-                    maxFileUploadSizeBytes={maxFileUploadSize}
-                />
-            ) : (
-                createDialog
-            )}
-        </ErrorBoundary>
+        isProjectImport ? (
+            <ProjectImportModal
+                close={closeModal}
+                back={() => setIsProjectImport(false)}
+                maxFileUploadSizeBytes={maxFileUploadSize}
+            />
+        ) : (
+            createDialog
+        )
     );
 }

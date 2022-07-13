@@ -3,7 +3,8 @@
 
 @import scala.collection.JavaConverters._
 
-@(config: Config)(implicit request: RequestHeader)
+@import config.WorkbenchConfig.WorkspaceReact
+@(config: Config)(implicit request: RequestHeader, workspaceReact: WorkspaceReact)
 
 @header = {
   <link rel="stylesheet" href="@Assets.at("libs/jstree/dist/themes/default/style.css")" type="text/css" />

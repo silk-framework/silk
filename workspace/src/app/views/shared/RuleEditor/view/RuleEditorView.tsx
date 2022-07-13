@@ -9,6 +9,7 @@ import {OnLoadParams} from "react-flow-renderer";
 /** The main view of the rule editor, integrating toolbar, sidebar and main rule canvas. */
 export const RuleEditorView = () => {
     const [modalShown, setModalShown] = React.useState(false);
+    const [advancedParameterModeEnabled, setAdvancedParameterMode] = React.useState(false)
     const reactFlowWrapper = React.useRef<any>(null);
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
 
@@ -17,6 +18,8 @@ export const RuleEditorView = () => {
             value={{
                 modalShown,
                 setModalShown,
+                advancedParameterModeEnabled,
+                setAdvancedParameterMode
                 reactFlowWrapper,
                 reactFlowInstance,
                 setReactFlowInstance

@@ -1,11 +1,12 @@
 @import play.api.UsefulException
 
+@import config.WorkbenchConfig.WorkspaceReact
 @(exception: UsefulException,
         intent: String,
         showExceptionId: Boolean = true,
         showDetails: Boolean = true,
         title: Option[String] = None,
-        details: Option[String] = None)(implicit session: play.api.mvc.Session)
+        details: Option[String] = None)(implicit session: play.api.mvc.Session, workspaceReact: WorkspaceReact)
 
 @frame {
 

@@ -35,6 +35,7 @@ import { atomicParamDescription, mockAutoCompleteResponse, objectParamDescriptio
 import { INPUT_TYPES } from "../../../../src/app/constants";
 import { TaskTypes } from "../../../../src/app/store/ducks/shared/typings";
 import { MemoryHistory } from "history/createMemoryHistory";
+import { bluePrintClassPrefix } from "../../../HierarchicalMapping/utils/TestHelpers";
 
 describe("Task creation widget", () => {
     beforeAll(() => {
@@ -347,7 +348,7 @@ describe("Task creation widget", () => {
         // input must be focused in order to fire requests
         autoCompleteInput.simulate("focus");
         changeValue(autoCompleteInput, "abc");
-        const beforePortals = window.document.querySelectorAll("div.bp3-portal").length;
+        const beforePortals = window.document.querySelectorAll(`div.${bluePrintClassPrefix}-portal`).length;
         await waitFor(() => {
             expect(window.document.querySelectorAll(".eccgui-spinner").length).toBe(1);
         });
@@ -363,7 +364,7 @@ describe("Task creation widget", () => {
         });
         // FIXME: Blueprint portal with suggestion results is not shown
         // await waitFor(() => {
-        //     expect(window.document.querySelectorAll("div.bp3-portal").length).toBeGreaterThan(beforePortals)
+        //     expect(window.document.querySelectorAll(`div.${bluePrintClassPrefix}-portal`).length).toBeGreaterThan(beforePortals)
         // })
     });
 

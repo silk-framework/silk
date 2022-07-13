@@ -107,7 +107,7 @@ function createOperatorNode(
                         }),
                 });
             }}
-            tooltip={operatorContext.t("RuleEditor.node.executionButtons.edit.tooltip")}
+            text={operatorContext.t("RuleEditor.node.executionButtons.edit.tooltip")}
         />
     );
 

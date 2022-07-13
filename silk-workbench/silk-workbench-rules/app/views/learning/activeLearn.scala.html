@@ -11,7 +11,8 @@
 @import org.silkframework.learning.active.ActiveLearningFactory
 @import views.html.workspace.activity.autoReload
 
-@(context: Context[LinkSpec])(implicit session: play.api.mvc.Session, request: RequestHeader)
+@import config.WorkbenchConfig.WorkspaceReact
+@(context: Context[LinkSpec])(implicit session: play.api.mvc.Session, request: RequestHeader, workspaceReact: WorkspaceReact)
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/table.css")" rel="stylesheet" />
@@ -56,6 +57,28 @@
       showLinkCandidate();
     });
   </script>
+
+  <style>
+      *:not([class*=eccgui]) {
+          box-sizing: initial;
+      }
+
+      #link-candidate-wrapper th,
+      #link-candidate-wrapper td {
+          height: 1.5em;
+          padding: 0.25em 0;
+          vertical-align: middle;
+          white-space: normal;
+          overflow: hidden;
+      }
+
+      #link-candidate-wrapper td span {
+          display: inline-block;
+          max-width: 100%;
+          overflow: hidden;
+          text-overflow: ellipsis;
+      }
+  </style>
 }
 
 @toolbar = {

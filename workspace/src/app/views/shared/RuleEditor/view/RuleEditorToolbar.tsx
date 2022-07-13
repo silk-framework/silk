@@ -33,6 +33,7 @@ export const RuleEditorToolbar = () => {
     const [evaluationShown, setEvaluationShown] = React.useState(false);
     const [showCreateStickyModal, setShowCreateStickyModal] = React.useState<boolean>(false);
     const [t] = useTranslation();
+    const integratedView = !!ruleEditorContext.viewActions?.integratedView
 
     useHotKey({
         hotkey: "mod+z",
@@ -57,6 +58,14 @@ export const RuleEditorToolbar = () => {
             window.onbeforeunload = () => true;
         } else {
             window.onbeforeunload = null;
+        }
+        const parentWindow = window.parent as Window & {setLinkingEditorUnsavedChanges?: (hasUnsavedChanges: boolean) => any}
+        if(integratedView && parentWindow !== window && typeof parentWindow.setLinkingEditorUnsavedChanges === "function") {
+            try {
+                parentWindow.setLinkingEditorUnsavedChanges(modelContext.unsavedChanges)
+            } catch(ex) {
+                console.warn("Cannot call setLinkingEditorUnsavedChanges() of parent window!", ex)
+            }
         }
     }, [modelContext.unsavedChanges]);
 
@@ -157,6 +166,13 @@ export const RuleEditorToolbar = () => {
                             />
                         </>
                     )}
+                    <Spacing vertical size={"small"}/>
+                    <Switch
+                        data-test-id={"rule-editor-advanced-toggle"}
+                        label={t("RuleEditor.toolbar.advancedParameterMode")}
+                        checked={ruleEditorUiContext.advancedParameterModeEnabled}
+                        onClick={() => ruleEditorUiContext.setAdvancedParameterMode(!ruleEditorUiContext.advancedParameterModeEnabled)}
+                    />
                     <Spacing vertical hasDivider />
                     <IconButton
                         data-test-id="rule-editor-header-sticky-btn"
@@ -195,7 +211,7 @@ export const RuleEditorToolbar = () => {
                         tooltip={
                             modelContext.isReadOnly() ? t("RuleEditor.toolbar.readOnly") : t("RuleEditor.toolbar.save")
                         }
-                        tooltipProperties={{ hoverCloseDelay: 0 }}
+                        tooltipProps={{ hoverCloseDelay: 0 }}
                         onClick={saveLinkingRule}
                         disabled={modelContext.isReadOnly() || !modelContext.unsavedChanges}
                         href={modelContext.isReadOnly() || !modelContext.unsavedChanges ? "#" : undefined}
@@ -209,7 +225,7 @@ export const RuleEditorToolbar = () => {
                     </Button>
                     <RuleEditorNotifications
                         key={"notifications"}
-                        integratedView={ruleEditorContext.viewActions?.integratedView}
+                    integratedView={integratedView}
                         queueEditorNotifications={
                             ruleValidationError ? [ruleValidationError.errorMessage] : ([] as string[])
                         }

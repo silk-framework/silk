@@ -61,13 +61,14 @@ export function NotificationsMenu() {
             <ContextOverlay
                 isOpen={true}
                 minimal={true}
-                position="bottom-right"
+                placement="bottom-end"
                 autoFocus={false}
                 enforceFocus={false}
                 openOnTargetFocus={false}
                 content={notificationQueue.lastNotification}
-                target={notificationIndicatorButton}
-            />
+            >
+                {notificationIndicatorButton}
+            </ContextOverlay>
         ) : (
             notificationIndicatorButton
         );
@@ -97,6 +98,12 @@ export function NotificationsMenu() {
         <></>
     );
 }
+
+/** Returns the error details of the top-most error */
+export const parseErrorCauseMsg = (cause?: DIErrorTypes | null): string | undefined => {
+    const asString = (cause as FetchError | ErrorResponse)?.asString;
+    return asString ? asString() : (cause as { message?: string })?.message;
+};
 
 export function useNotificationsQueue() {
     // condition: first message in array is handled as latest message, otherwise reverse it first
@@ -129,12 +136,6 @@ export function useNotificationsQueue() {
         }
     };
 
-    const parseErrorCauseMsg = (cause?: DIErrorTypes | null): string | undefined => {
-        return cause && (cause instanceof FetchError || cause instanceof ErrorResponse)
-            ? cause.asString()
-            : cause?.message;
-    };
-
     const lastNotification =
         displayLastNotification && messages.length > 0 ? (
             <Notification
@@ -144,9 +145,7 @@ export function useNotificationsQueue() {
             >
                 {messages[0].message}
             </Notification>
-        ) : (
-            null
-        );
+        ) : null;
 
     const now = new Date();
 

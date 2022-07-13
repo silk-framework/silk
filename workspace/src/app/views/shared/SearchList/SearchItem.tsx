@@ -223,12 +223,14 @@ export default function SearchItem({
                                 {contextMenuItems}
                                 <MenuDivider />
                             </>
-                        ) : null}
+                        ) : (
+                            <></>
+                        )}
                         <MenuItem
                             data-test-id="search-item-copy-btn"
                             key="copy"
                             icon="item-clone"
-                            onClick={onOpenCopyToModal}
+                            onClick={() => onOpenCopyToModal(item)}
                             text={t("common.action.copy", "Copy")}
                         />
                         <MenuItem
@@ -242,15 +244,15 @@ export default function SearchItem({
                             data-test-id={"open-duplicate-modal"}
                             icon="item-copy"
                             text={t("common.action.clone", "Clone")}
-                            onClick={onOpenDuplicateModal}
+                            onClick={() => onOpenDuplicateModal(item)}
                         />
                         <MenuItem
                             data-test-id={"open-duplicate-modal"}
                             icon="item-viewdetails"
                             text={t("common.action.showIdentifier", "Show identifier")}
-                            onClick={toggleShowIdentifierModal}
+                            onClick={() => toggleShowIdentifierModal(item)}
                         />
-                        {item.type === DATA_TYPES.PROJECT && (
+                        {item.type === DATA_TYPES.PROJECT ? (
                             <MenuItem
                                 data-test-id={"search-item-activities-btn"}
                                 icon="application-activities"
@@ -258,16 +260,22 @@ export default function SearchItem({
                                 onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    dispatch(routerOp.goToPage(`projects/${item.id}/activities?page=1&limit=25&sortBy=recentlyUpdated&sortOrder=ASC`));
+                                    dispatch(
+                                        routerOp.goToPage(
+                                            `projects/${item.id}/activities?page=1&limit=25&sortBy=recentlyUpdated&sortOrder=ASC`
+                                        )
+                                    );
                                 }}
                             />
+                        ) : (
+                            <></>
                         )}
                         <MenuDivider />
                         <MenuItem
                             data-test-id="search-item-delete-btn"
                             key="delete"
                             icon={"item-remove"}
-                            onClick={onOpenDeleteModal}
+                            onClick={() => onOpenDeleteModal(item)}
                             text={t("common.action.delete", "Delete")}
                             intent="danger"
                         />

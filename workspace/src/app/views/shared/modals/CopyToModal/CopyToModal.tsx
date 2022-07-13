@@ -194,7 +194,7 @@ const CopyToModal: React.FC<CopyToModalProps> = ({ item, onDiscard, onConfirmed 
         >
             <FieldItem
                 key={"copy-label"}
-                labelAttributes={{
+                labelProps={{
                     htmlFor: "copy-label",
                     text: t("common.messages.copyModalProjectSelect"),
                 }}

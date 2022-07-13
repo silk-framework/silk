@@ -15,6 +15,7 @@ const convertRuleOperatorToRuleNode = (ruleOperator: IRuleOperator): Omit<IRuleO
         portSpecification: ruleOperator.portSpecification,
         tags: ruleOperator.tags,
         description: ruleOperator.description,
+        inputsCanBeSwitched: ruleOperator.inputsCanBeSwitched
     };
 };
 

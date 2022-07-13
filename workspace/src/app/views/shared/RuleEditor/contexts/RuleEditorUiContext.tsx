@@ -7,6 +7,10 @@ export interface RuleEditorUiContextProps {
     modalShown: boolean;
     /** Set flag that a modal is currently shown. */
     setModalShown: (shown: boolean) => any;
+    /** If the advanced parameter mode is enabled. */
+    advancedParameterModeEnabled: boolean
+    /** Enables/disables the advanced parameter mode. */
+    setAdvancedParameterMode: (advancedEnabled: boolean) => any
     reactFlowWrapper: React.MutableRefObject<any> | null;
     /** react-flow instance */
     setReactFlowInstance: (params: OnLoadParams) => any
@@ -17,6 +21,8 @@ export interface RuleEditorUiContextProps {
 export const RuleEditorUiContext = React.createContext<RuleEditorUiContextProps>({
     modalShown: false,
     setModalShown(): any {},
+    advancedParameterModeEnabled: false,
+    setAdvancedParameterMode: () => {}
     reactFlowWrapper: null,
     setReactFlowInstance: () => {},
     reactFlowInstance: undefined

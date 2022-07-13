@@ -1,5 +1,6 @@
 package org.silkframework.workbench.utils
 
+import config.WorkbenchConfig.WorkspaceReact
 import org.silkframework.runtime.validation._
 import org.silkframework.workbench.utils.SilkErrorHandler.prefersHtml
 import play.api.PlayException.ExceptionSource
@@ -18,7 +19,8 @@ import scala.concurrent.{ExecutionException, Future}
 class SilkErrorHandler (env: Environment,
                         config: Configuration,
                         sourceMapper: OptionalSourceMapper,
-                        router: Provider[Router]) extends DefaultHttpErrorHandler(env, config, sourceMapper, router) with AcceptExtractors {
+                        router: Provider[Router],
+                        workspaceReact: WorkspaceReact) extends DefaultHttpErrorHandler(env, config, sourceMapper, router) with AcceptExtractors {
 
   private val log = Logger.getLogger(classOf[SilkErrorHandler].getName)
 
@@ -64,7 +66,7 @@ class SilkErrorHandler (env: Environment,
     * @param message The error message.
     */
   override protected def onBadRequest(request: RequestHeader, message: String): Future[Result] =
-    Future.successful(BadRequest(views.html.clientError(message)(request)))
+    Future.successful(BadRequest(views.html.clientError(message)(request, workspaceReact)))
 
   /**
     * Invoked when a client makes a request that was forbidden.
@@ -73,7 +75,7 @@ class SilkErrorHandler (env: Environment,
     * @param message The error message.
     */
   override protected def onForbidden(request: RequestHeader, message: String): Future[Result] = {
-    Future.successful(Forbidden(views.html.clientError(message)(request)))
+    Future.successful(Forbidden(views.html.clientError(message)(request, workspaceReact)))
   }
 
   /**
@@ -95,7 +97,7 @@ class SilkErrorHandler (env: Environment,
     * @param message The error message.
     */
   override protected def onOtherClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
-    Future.successful(Results.Status(statusCode)(views.html.clientError(message)(request)))
+    Future.successful(Results.Status(statusCode)(views.html.clientError(message)(request, workspaceReact)))
   }
 
   /**
@@ -119,9 +121,9 @@ class SilkErrorHandler (env: Environment,
             showDetails = false,
             title = Some("Service temporary unavailable"),
             details = Option(exception.cause.getMessage)
-          )(request.session)))
+          )(request.session, workspaceReact)))
       case _ =>
-        Future.successful(InternalServerError(views.html.serverError(exception, "danger")(request.session)))
+        Future.successful(InternalServerError(views.html.serverError(exception, "danger")(request.session, workspaceReact)))
     }
   }
 

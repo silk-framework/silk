@@ -49,7 +49,7 @@ export function SelectFileFromExisting({ autocomplete, onChange, defaultValue, l
     };
 
     return labelAttributes ? (
-        <FieldItem labelAttributes={labelAttributes} messageText={error ? t("FileUploader.fileNotSpecified") : ""}>
+        <FieldItem labelProps={labelAttributes} messageText={error ? t("FileUploader.fileNotSpecified") : ""}>
             <ProjectResourceAutoComplete
                 autocomplete={autocomplete}
                 handleChange={handleChange}

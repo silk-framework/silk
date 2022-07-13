@@ -6,6 +6,7 @@ import { Provider } from "react-redux";
 import workspaceReducer from "../../../../store/ducks/workspace";
 import ActivityList, { nonStartableActivitiesBlacklist } from "../ActivityList";
 import testData from "./test-data";
+import { bluePrintClassPrefix } from "../../../../../../test/HierarchicalMapping/utils/TestHelpers";
 
 const activityProperties: Record<
     string,
@@ -70,12 +71,14 @@ describe("ActivityList", () => {
 
     test("that ActivityList has right number of activity control items", () => {
         const wrapper = render(<ActivityList />);
-        expect(wrapper.container.querySelectorAll(".bp3-card").length).toBe(testData.activities.length);
+        expect(wrapper.container.querySelectorAll(`.${bluePrintClassPrefix}-card`).length).toBe(
+            testData.activities.length
+        );
     });
 
     test("that reload icon button only for cache activities", () => {
         const wrapper = render(<ActivityList />);
-        const activities = wrapper.container.querySelectorAll(".bp3-card");
+        const activities = wrapper.container.querySelectorAll(`.${bluePrintClassPrefix}-card`);
 
         for (let activity of activities) {
             const label = activity
@@ -98,9 +101,11 @@ describe("ActivityList", () => {
 
     test("that correct tags are displayed", () => {
         const wrapper = render(<ActivityList />);
-        const activities = wrapper.container.querySelectorAll(".bp3-card");
+        const activities = wrapper.container.querySelectorAll(`.${bluePrintClassPrefix}-card`);
         activities.forEach((activity, index) => {
-            const [parentTypeTag, projectTag] = Array.from(activity.querySelectorAll(".bp3-tag")).reverse();
+            const [parentTypeTag, projectTag] = Array.from(
+                activity.querySelectorAll(`.${bluePrintClassPrefix}-tag`)
+            ).reverse();
             const activityData = testData.activities[index];
             expect(parentTypeTag?.textContent).toBe(
                 activityData.parentType[0].toUpperCase() + activityData.parentType.substr(1)
@@ -112,7 +117,7 @@ describe("ActivityList", () => {
 
     test("that activities have the right label of task or of a project", () => {
         const wrapper = render(<ActivityList />);
-        const activities = wrapper.container.querySelectorAll(".bp3-card");
+        const activities = wrapper.container.querySelectorAll(`.${bluePrintClassPrefix}-card`);
 
         activities.forEach((activity, index) => {
             const activityObj = testData.activities[index];

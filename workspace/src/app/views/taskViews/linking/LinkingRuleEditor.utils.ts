@@ -5,7 +5,7 @@
 import {
     IRuleOperator,
     IRuleOperatorNode,
-    IRuleSidebarPreConfiguredOperatorsTabConfig,
+    IRuleSidebarPreConfiguredOperatorsTabConfig, RuleEditorValidationNode,
     RuleValidationError,
 } from "../../shared/RuleEditor/RuleEditor.typings";
 import { IValueInput, PathWithMetaData } from "../shared/rules/rule.typings";
@@ -35,6 +35,8 @@ const comparatorInputs = (comparison: IComparisonOperator): IValueInput[] => [
 ];
 
 const aggregatorInputs = (aggregator: IAggregationOperator): ISimilarityOperator[] => aggregator.inputs;
+
+const REVERSE_PARAMETER_ID = "reverse"
 
 /**
  * Extracts and adds a single operator node to the array, recursively executes on its children.
@@ -67,6 +69,12 @@ const extractSimilarityOperatorNode = (
             }
             return t;
         };
+        const reverseParameterValue = () => operator.parameters[REVERSE_PARAMETER_ID]?.["value"] ?? operator.parameters[REVERSE_PARAMETER_ID]
+        const inputsCanBeSwitched = isComparison && reverseParameterValue() != null
+        const switchInputs = inputsCanBeSwitched && reverseParameterValue() === "true"
+        if(switchInputs) {
+            inputs.reverse()
+        }
         const additionalParameters = isComparison
             ? {
                   threshold: threshold(operator as IComparisonOperator),
@@ -81,7 +89,7 @@ const extractSimilarityOperatorNode = (
             label: ruleOperator(pluginId, pluginType)?.label ?? pluginId,
             pluginType,
             pluginId,
-            inputs: inputs,
+            inputs,
             parameters: {
                 ...operator.parameters,
                 ...additionalParameters,
@@ -92,6 +100,7 @@ const extractSimilarityOperatorNode = (
             },
             tags: [operator.type],
             description: ruleOperator(pluginId, pluginType)?.description,
+            inputsCanBeSwitched
         });
         return operator.id;
     }
@@ -122,6 +131,24 @@ const convertToRuleOperatorNodes = (
         node.position = x !== null ? { x, y } : undefined;
     });
     return operatorNodes;
+};
+
+// Converts a rule operator node to a rule validation node
+const fromType = (ruleOperatorNode: IRuleOperatorNode,
+                  ruleOperatorNodes: Map<string, IRuleOperatorNode>): "source" | "target" | undefined => {
+    const convertNode = (ruleOperatorNode: IRuleOperatorNode): RuleEditorValidationNode => {
+        return {
+            node: ruleOperatorNode,
+            inputs: () => {
+                return ruleOperatorNode.inputs.map((input) => {
+                    return input && ruleOperatorNodes.has(input) ? convertNode(ruleOperatorNodes.get(input)!!) : undefined;
+                });
+            },
+            // Output is unimportant
+            output: () => undefined,
+        };
+    }
+    return ruleUtils.fromType(convertNode(ruleOperatorNode))
 };
 
 const convertRuleOperatorNodeToSimilarityOperator = (
@@ -158,6 +185,18 @@ const convertRuleOperatorNodeToSimilarityOperator = (
                 threshold: parseFloat(ruleEditorNodeParameterValue(ruleOperatorNode.parameters["threshold"])!!),
                 weight: parseInt(ruleEditorNodeParameterValue(ruleOperatorNode.parameters["weight"])!!),
             };
+            if(ruleOperatorNode.inputsCanBeSwitched && comparison.parameters[REVERSE_PARAMETER_ID] != null && ruleOperatorNode.inputs[0] != null) {
+                // Set reverse parameter correctly
+                const sourceInput = ruleOperatorNodes.get(ruleOperatorNode.inputs[0])
+                const reverse = sourceInput ? fromType(sourceInput, ruleOperatorNodes) === "target" : false
+                comparison.parameters[REVERSE_PARAMETER_ID] = `${reverse}`
+                // Switch inputs if they have the order target-source. The reverse parameter is handling the correct order.
+                if(reverse) {
+                    const sourceInput = comparison.sourceInput
+                    comparison.sourceInput = comparison.targetInput
+                    comparison.targetInput = sourceInput
+                }
+            }
             return comparison;
         } else {
             const aggregation: IAggregationOperator = {
@@ -226,6 +265,7 @@ const inputPathTab = (
                     path: path.label ? { value: path.value, label: path.label } : path.value,
                 },
                 tags: [path.valueType],
+                inputsCanBeSwitched: false
             };
         },
         isOriginalOperator: (listItem) => (listItem as PathWithMetaData).valueType != null,
