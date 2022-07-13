@@ -77,6 +77,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const { t } = useTranslation();
     /** If set, then the model cannot be modified. */
     const [readOnlyState] = React.useState<{ enabled: boolean }>({ enabled: false });
+    /** react-flow instance used for fit-view (after init) and centering nodes from the model. */
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
     /** The nodes and edges of the rule editor. */
     const [elements, setElements] = React.useState<Elements>([]);
@@ -659,7 +660,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                                                 tags={op.tags}
                                                 operatorContext={operatorNodeCreateContextInternal(
                                                     op.pluginId,
-                                                    reactFlowInstance!!,
                                                     ruleEditorContext.operatorSpec!!
                                                 )}
                                                 nodeParameters={{
@@ -851,7 +851,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 operatorNodeOperationsInternal,
                 operatorNodeCreateContextInternal(
                     ruleOperator.pluginId,
-                    reactFlowInstance,
                     ruleEditorContext.operatorSpec!!
                 )
             );
@@ -1019,6 +1018,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         overwriteParameterValues?: RuleOperatorNodeParameters,
         isCanvasPosition: boolean = false
     ) => {
+        // FIXME: Move position calculation into view code
         const realPosition = isCanvasPosition && reactFlowInstance ? reactFlowInstance.project(position) : position;
         const op = fetchRuleOperatorByPluginId(pluginId, pluginType);
         if (op) {
@@ -1473,12 +1473,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     // Context for creating new nodes
     const operatorNodeCreateContextInternal = (
         operatorPluginId: string,
-        reactFlowInstance: OnLoadParams,
         operatorSpec: Map<string, Map<string, IParameterSpecification>>
     ): IOperatorCreateContext => ({
         operatorParameterSpecification: operatorSpec.get(operatorPluginId) ?? new Map(),
         t,
-        reactFlowInstance,
         currentValue: currentParameterValue,
         initParameters: initNodeParametersInternal,
         isValidConnection,
@@ -1604,7 +1602,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 { ...operatorNodeOperationsInternal, handleDeleteNode },
                 operatorNodeCreateContextInternal(
                     operatorNode.pluginId,
-                    reactFlowInstance!!,
                     ruleEditorContext.operatorSpec!!
                 )
             );

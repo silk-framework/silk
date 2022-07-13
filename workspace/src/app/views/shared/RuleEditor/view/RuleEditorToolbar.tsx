@@ -97,15 +97,16 @@ export const RuleEditorToolbar = () => {
     };
 
     const handleStickyNoteSubmit = ({ note, color }) => {
-        const reactFlowBounds = ruleEditorUiContext?.reactFlowWrapper?.current?.getBoundingClientRect();
-        modelContext.setReactFlowInstance((instance) => {
-            const position = instance?.project({
+        if(ruleEditorUiContext.reactFlowInstance && ruleEditorUiContext.reactFlowWrapper?.current) {
+            const reactFlowBounds = ruleEditorUiContext.reactFlowWrapper.current.getBoundingClientRect();
+            const position = ruleEditorUiContext.reactFlowInstance.project({
                 x: (reactFlowBounds.width - DEFAULT_NODE_WIDTH) / 2,
                 y: (reactFlowBounds.height - DEFAULT_NODE_HEIGHT) / 2,
             });
-            modelContext.executeModelEditOperation.addStickyNode(note, position!, color);
-            return instance;
-        });
+            modelContext.executeModelEditOperation.addStickyNode(note, position, color);
+        } else {
+            console.warn("No react-flow objects loaded!")
+        }
     };
 
     return (

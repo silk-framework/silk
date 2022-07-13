@@ -34,7 +34,6 @@ const modelUtils = ruleEditorModelUtilsFactory();
 
 /** The main graphical rule editor canvas where the rule nodes are placed and connected. */
 export const RuleEditorCanvas = () => {
-    const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
     // Stores state during a node drag action
     const [dragState] = React.useState<IRuleEditorViewDragState>({});
     // Stores state during a selection drag action, i.e. moving a selection of nodes
@@ -453,7 +452,7 @@ export const RuleEditorCanvas = () => {
 
     // Triggered after the react-flow instance has been loaded
     const onLoad = (_reactFlowInstance: OnLoadParams) => {
-        setReactFlowInstance(_reactFlowInstance);
+        ruleEditorUiContext.setReactFlowInstance(_reactFlowInstance)
         modelContext.setReactFlowInstance(_reactFlowInstance);
     };
 
@@ -534,7 +533,7 @@ export const RuleEditorCanvas = () => {
                     maxZoom={1.25}
                     multiSelectionKeyCode={18} // ALT
                 >
-                    <MiniMap flowInstance={reactFlowInstance} enableNavigation={true} />
+                    <MiniMap flowInstance={ruleEditorUiContext.reactFlowInstance} enableNavigation={true} />
                     <Controls
                         showInteractive={!!modelContext.setIsReadOnly}
                         onInteractiveChange={(isInteractive) =>
