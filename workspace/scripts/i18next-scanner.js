@@ -183,7 +183,7 @@ function generateEmptyLanguageFiles() {
 /** Find missing keys and list them. Return error code if there exist missing values. */
 function validate() {
     const missingKeys = new Map();
-    for (const lang of ["en", "de"]) {
+    for (const lang of ["de", "en", "fr"]) {
         const missingKeySet = new Set();
         missingKeys.set(lang, missingKeySet);
 
