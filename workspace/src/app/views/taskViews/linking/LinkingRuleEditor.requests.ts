@@ -4,6 +4,7 @@ import { FetchResponse } from "../../../services/fetch/responseInterceptor";
 import { PathWithMetaData } from "../shared/rules/rule.typings";
 import { IEntityLink, IEvaluatedReferenceLinks, ILinkingRule, ILinkingTaskParameters } from "./linking.types";
 import { IAutocompleteDefaultResponse, TaskPlugin } from "@ducks/shared/typings";
+import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 /** Fetches the cached paths from the linking paths cache.*/
 export const fetchLinkingCachedPaths = (
@@ -108,6 +109,39 @@ export const autoCompleteLinkingInputPaths = (
             term: searchQuery,
             maxResults: limit,
             target: inputType === "target",
+        },
+    });
+};
+
+/**
+ * Fetches partial auto-completion results for the linking task input paths, i.e. any part of a path could be auto-completed
+ * without replacing the complete path.
+ *
+ * @param projectId
+ * @param linkingTaskId
+ * @param inputType      Fetches paths either from the source or target input data source.
+ * @param inputString    The path input string
+ * @param cursorPosition The cursor position inside the input string
+ * @param limit          The max number of results to return.
+ */
+export const partialAutoCompleteLinkingInputPaths = (
+    projectId: string,
+    linkingTaskId: string,
+    inputType: "source" | "target",
+    inputString: string,
+    cursorPosition: number,
+    limit?: number
+): Promise<FetchResponse<IPartialAutoCompleteResult>> => {
+    return fetch({
+        url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/completions/partialSourcePaths`),
+        method: "POST",
+        query: {
+            target: inputType === "target",
+        },
+        body: {
+            inputString,
+            cursorPosition,
+            maxSuggestions: limit,
         },
     });
 };

@@ -1,0 +1,30 @@
+div.arrow-right {
+    width: 100%;
+    height: 16px;
+    display: flex;
+}
+div.arrow-right:before {
+    content: "";
+    background: black;
+    width: 100%;
+    clip-path: polygon(
+        0 7px,
+        calc(100% - 7px) 7px,
+        calc(100% - 7px) 0,
+        100% 50%,
+        calc(100% - 7px) 100%,
+        calc(100% - 7px) calc(100% - 7px),
+        0 9px
+    );
+}
+div.arrow-left {
+    width: 100%;
+    height: 16px;
+    display: flex;
+}
+div.arrow-left:before {
+    content: "";
+    background: black;
+    width: 100%;
+    clip-path: polygon(0 50%, 7px 100%, 7px calc(100% - 7px), 100% calc(100% - 7px), 100% 7px, 7px 7px, 7px 0%);
+}
