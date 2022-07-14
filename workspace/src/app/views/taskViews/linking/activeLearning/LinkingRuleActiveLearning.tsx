@@ -10,7 +10,8 @@ import { commonSel } from "@ducks/common";
 import { TaskPlugin } from "@ducks/shared/typings";
 import { ILinkingTaskParameters } from "../linking.types";
 import { Spinner } from "@eccenca/gui-elements";
-import { CandidatePropertyPair } from "./LinkingRuleActiveLearning.typings";
+import { ActiveLearningStep, CandidatePropertyPair } from "./LinkingRuleActiveLearning.typings";
+import { LinkingRuleActiveLearningMain } from "./LinkingRuleActiveLearningMain";
 
 export interface LinkingRuleActiveLearningProps {
     /** Project ID the task is in. */
@@ -70,6 +71,7 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
     const [taskData, setTaskData] = React.useState<TaskPlugin<ILinkingTaskParameters> | undefined>(undefined);
     const [loading, setLoading] = React.useState(false);
     const [selectedPropertyPairs, setSelectedPropertyPairs] = React.useState<CandidatePropertyPair[]>(mockPairs);
+    const [activeLearningStep, setActiveLearningStep] = React.useState<ActiveLearningStep>("config");
 
     /** Fetches the parameters of the linking task */
     const fetchTaskData = async (projectId: string, taskId: string) => {
@@ -101,12 +103,20 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
                 linkTask: taskData,
                 propertiesToCompare: selectedPropertyPairs,
                 setPropertiesToCompare: setSelectedPropertyPairs,
+                navigateTo: setActiveLearningStep,
             }}
         >
             {loading ? (
                 <Spinner />
             ) : (
-                <LinkingRuleActiveLearningConfig projectId={projectId} linkingTaskId={linkingTaskId} />
+                <>
+                    {activeLearningStep === "config" ? (
+                        <LinkingRuleActiveLearningConfig projectId={projectId} linkingTaskId={linkingTaskId} />
+                    ) : null}
+                    {activeLearningStep === "linkLearning" ? (
+                        <LinkingRuleActiveLearningMain projectId={projectId} linkingTaskId={linkingTaskId} />
+                    ) : null}
+                </>
             )}
         </LinkingRuleActiveLearningContext.Provider>
     );

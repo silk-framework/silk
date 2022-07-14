@@ -1,7 +1,7 @@
 import React from "react";
 import { TaskPlugin } from "@ducks/shared/typings";
 import { ILinkingTaskParameters } from "../../linking.types";
-import { CandidatePropertyPair } from "../LinkingRuleActiveLearning.typings";
+import { ActiveLearningStep, CandidatePropertyPair } from "../LinkingRuleActiveLearning.typings";
 
 interface LinkingRuleActiveLearningContextProps {
     projectId: string;
@@ -9,6 +9,7 @@ interface LinkingRuleActiveLearningContextProps {
     linkTask?: TaskPlugin<ILinkingTaskParameters>;
     propertiesToCompare: CandidatePropertyPair[];
     setPropertiesToCompare: (pairs: CandidatePropertyPair[]) => any;
+    navigateTo: (step: ActiveLearningStep) => void;
 }
 
 /** Contains data and functions for the link rule active learning. */
@@ -17,4 +18,5 @@ export const LinkingRuleActiveLearningContext = React.createContext<LinkingRuleA
     linkingTaskId: "",
     propertiesToCompare: [],
     setPropertiesToCompare: () => {},
+    navigateTo: () => {},
 });

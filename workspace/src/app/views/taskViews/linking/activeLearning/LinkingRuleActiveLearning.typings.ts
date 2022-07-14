@@ -12,3 +12,6 @@ export interface CandidatePropertyPair {
     left: CandidateProperty;
     right: CandidateProperty;
 }
+
+/** The steps of the active learning process. */
+export type ActiveLearningStep = "config" | "linkLearning";

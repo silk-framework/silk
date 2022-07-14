@@ -378,7 +378,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         return <Notification message={"Choose properties to compare."} iconName={"item-info"} neutral={true} />;
     };
 
-    // TODO: Navigate to next step on clicking the button. i18n
+    // TODO: i18n
     const Title = () => {
         return (
             <Toolbar>
@@ -393,6 +393,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         title={"Start learning"}
                         affirmative={true}
                         disabled={activeLearningContext.propertiesToCompare.length === 0}
+                        onClick={() => activeLearningContext.navigateTo("linkLearning")}
                     >
                         Start learning
                     </Button>
