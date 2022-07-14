@@ -18,6 +18,9 @@ class LinkingPathsCache(task: ProjectTask[LinkSpec]) extends CachedActivity[DPai
 
   final val MAX_PATHS_DEFAULT = 50
 
+  // TODO: Make configurable or set to Int.MaxValue
+  override def maxDepth: Int = 3
+
   override protected val maxPaths: Option[Int] = Some{
     val cfg = DefaultConfig.instance()
     val key = "caches.linkingPathCache.maxLinks"

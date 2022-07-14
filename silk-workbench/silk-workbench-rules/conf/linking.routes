@@ -70,3 +70,4 @@ GET           /tasks/:project/:task/activeLearning/bestRule                     
 
 # Auto-completion API
 GET           /tasks/:project/:task/completions/inputPaths                          controllers.linking.LinkingAutoCompletionApi.linkingInputPaths(project: String, task: String, target: Boolean, term ?= "", maxResults: Int ?= 30, langPref: String ?= "en")
+POST          /tasks/:project/:task/completions/partialSourcePaths                  controllers.linking.LinkingAutoCompletionApi.partialSourcePath(project: String, task: String, target: Boolean)

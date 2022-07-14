@@ -100,33 +100,15 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
     var completions = Completions()
     withRule(task, ruleName) { case (_, sourcePath) =>
       val isRdfInput = TransformUtils.isRdfInput(task)
-      val simpleSourcePath = simplePath(sourcePath)
-      val forwardOnlySourcePath = forwardOnlyPath(simpleSourcePath)
+      val simpleSourcePath = AutoCompletionApiUtils.simplePath(sourcePath)
+      val forwardOnlySourcePath = AutoCompletionApiUtils.forwardOnlyPath(simpleSourcePath)
       val allPaths = AutoCompletionApiUtils.pathsCacheCompletions(task.selection, task.activity[TransformPathsCache].value.get, simpleSourcePath.nonEmpty && isRdfInput)
       // FIXME: No only generate relative "forward" paths, but also generate paths that would be accessible by following backward paths.
-      val relativeForwardPaths = extractRelativePaths(simpleSourcePath, forwardOnlySourcePath, allPaths, isRdfInput)
+      val relativeForwardPaths = AutoCompletionApiUtils.extractRelativePaths(simpleSourcePath, forwardOnlySourcePath, allPaths, isRdfInput)
       // Add known paths
       completions += relativeForwardPaths
       // Return filtered result
       Ok(completions.filterAndSort(term, maxResults, sortEmptyTermResult = false).toJson)
-    }
-  }
-
-  private def simplePath(sourcePath: List[PathOperator]): List[PathOperator] = {
-    sourcePath.filter(op => op.isInstanceOf[ForwardOperator] || op.isInstanceOf[BackwardOperator])
-  }
-
-  private def validateAutoCompletionRequest(autoCompletionRequest: AutoSuggestAutoCompletionRequest): Unit = {
-    if(autoCompletionRequest.cursorPosition > autoCompletionRequest.inputString.length) {
-      throw BadUserInputException("Cursor position must not be greater than the length of the input string!")
-    }
-    if(autoCompletionRequest.cursorPosition < 0) {
-      throw BadUserInputException("Cursor position must not be negative.")
-    }
-    autoCompletionRequest.maxSuggestions foreach { maxSuggestions =>
-      if(maxSuggestions <= 0) {
-        throw BadUserInputException("Parameter 'maxSuggestions' must not be negative or zero!")
-      }
     }
   }
 
@@ -177,7 +159,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
     implicit userContext =>
       val (_, transformTask) = projectAndTask[TransformSpec](projectId, transformTaskId)
       validateJson[PartialSourcePathAutoCompletionRequest] { autoCompletionRequest =>
-        validateAutoCompletionRequest(autoCompletionRequest)
+        AutoCompletionApi.validateAutoCompletionRequest(autoCompletionRequest)
         withRule(transformTask, ruleId) { case (_, sourcePath) =>
           val autoCompletionResponse = autoCompletePartialSourcePath(transformTask, autoCompletionRequest, sourcePath, autoCompletionRequest.isObjectPath.getOrElse(false))
           Ok(Json.toJson(autoCompletionResponse))
@@ -199,15 +181,15 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
     // compute relative paths
     val pathBeforeReplacement = UntypedPath.partialParse(autoCompletionRequest.inputString.take(pathToReplace.from)).partialPath
     val completeSubPath = sourcePath ++ pathBeforeReplacement.operators
-    val simpleSubPath = simplePath(completeSubPath)
-    val forwardOnlySubPath = forwardOnlyPath(simpleSubPath)
+    val simpleSubPath = AutoCompletionApiUtils.simplePath(completeSubPath)
+    val forwardOnlySubPath = AutoCompletionApiUtils.forwardOnlyPath(simpleSubPath)
     val allPaths = AutoCompletionApiUtils.pathsCacheCompletions(transformTask.selection, transformTask.activity[TransformPathsCache].value.get, simpleSubPath.nonEmpty && isRdfInput)
     val pathOpFilter = (autoCompletionRequest.isInBackwardOp, autoCompletionRequest.isInExplicitForwardOp) match {
       case (true, false) => OpFilter.Backward
       case (false, true) => OpFilter.Forward
       case _ => OpFilter.None
     }
-    val relativePaths = extractRelativePaths(simpleSubPath, forwardOnlySubPath, allPaths, isRdfInput, oneHopOnly = pathToReplace.insideFilter,
+    val relativePaths = AutoCompletionApiUtils.extractRelativePaths(simpleSubPath, forwardOnlySubPath, allPaths, isRdfInput, oneHopOnly = pathToReplace.insideFilter,
       serializeFull = !pathToReplace.insideFilter && pathToReplace.from > 0, pathOpFilter = pathOpFilter
     )
     val dataSourceSpecialPathCompletions = PartialSourcePathAutocompletionHelper.specialPathCompletions(dataSourceCharacteristicsOpt, pathToReplace, pathOpFilter, isObjectPath)
@@ -216,7 +198,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
     // Return filtered result
     val filteredResults = PartialSourcePathAutocompletionHelper.filterResults(autoCompletionRequest, pathToReplace, completions)
     val operatorCompletions = PartialSourcePathAutocompletionHelper.operatorCompletions(dataSourceCharacteristicsOpt, pathToReplace, autoCompletionRequest)
-    partialAutoCompletionResult(autoCompletionRequest, pathToReplace, operatorCompletions, filteredResults)
+    AutoCompletionApiUtils.partialAutoCompletionResult(autoCompletionRequest, pathToReplace, operatorCompletions, filteredResults)
   }
 
   @Operation(
@@ -266,7 +248,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
                   ruleId: String): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request => implicit userContext =>
       val (_, transformTask) = projectAndTask[TransformSpec](projectId, transformTaskId)
       validateJson[UriPatternAutoCompletionRequest] { uriPatternAutoCompletionRequest =>
-        validateAutoCompletionRequest(uriPatternAutoCompletionRequest)
+        AutoCompletionApi.validateAutoCompletionRequest(uriPatternAutoCompletionRequest)
         uriPatternAutoCompletionRequest.activePathPart match {
           case Some(pathPart) =>
             // Inside path expression, do path auto-completion
@@ -300,25 +282,6 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
       }
   }
 
-  private def partialAutoCompletionResult(autoCompletionRequest: AutoSuggestAutoCompletionRequest,
-                                          pathToReplace: PathToReplace,
-                                          operatorCompletions: Option[ReplacementResults],
-                                          filteredResults: Completions): AutoSuggestAutoCompletionResponse = {
-    val from = pathToReplace.from
-    val length = pathToReplace.length
-    AutoSuggestAutoCompletionResponse(
-      autoCompletionRequest.inputString,
-      autoCompletionRequest.cursorPosition,
-      replacementResults = Seq(
-        ReplacementResults(
-          ReplacementInterval(from, length),
-          pathToReplace.query.getOrElse(""),
-          filteredResults.toCompletionsBase.completions
-        )
-      ) ++ operatorCompletions
-    )
-  }
-
   private def withRule[T](transformTask: ProjectTask[TransformSpec],
                           ruleId: String)
                          (block: ((TransformRule, List[PathOperator])) => T): T = {
@@ -328,70 +291,6 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
       case None =>
         throw new NotFoundException("Requesting auto-completion for non-existent rule " + ruleId + " in transformation task " + transformTask.fullLabel + "!")
     }
-  }
-
-  /** Filter out paths that start with either the simple source or forward only source path, then
-    * rewrite the auto-completion to a relative path from the full paths. */
-  private def extractRelativePaths(simpleSourcePath: List[PathOperator],
-                                   forwardOnlySourcePath: List[PathOperator],
-                                   pathCacheCompletions: Completions,
-                                   isRdfInput: Boolean,
-                                   oneHopOnly: Boolean = false,
-                                   serializeFull: Boolean = false,
-                                   pathOpFilter: OpFilter.Value = OpFilter.None)
-                                  (implicit prefixes: Prefixes): Seq[Completion] = {
-    pathCacheCompletions.values.filter { p =>
-      val path = UntypedPath.parse(p.value)
-      val matchesPrefix = isRdfInput || // FIXME: Currently there are no paths longer 1 in cache, that why return full path
-        path.operators.startsWith(forwardOnlySourcePath) && path.operators.size > forwardOnlySourcePath.size ||
-        path.operators.startsWith(simpleSourcePath) && path.operators.size > simpleSourcePath.size
-      val truncatedOps = truncatePath(path, simpleSourcePath, forwardOnlySourcePath, isRdfInput)
-      val pathOpMatches = pathOpFilter match {
-        case OpFilter.Forward => truncatedOps.headOption.exists(op => op.isInstanceOf[ForwardOperator])
-        case OpFilter.Backward => truncatedOps.headOption.exists(op => op.isInstanceOf[BackwardOperator])
-        case _ => true
-      }
-      matchesPrefix && pathOpMatches && (!oneHopOnly && truncatedOps.nonEmpty || truncatedOps.size == 1)
-    } map { completion =>
-      val path = UntypedPath.parse(completion.value)
-      val truncatedOps = truncatePath(path, simpleSourcePath, forwardOnlySourcePath, isRdfInput)
-      completion.copy(value = UntypedPath(truncatedOps).serialize(stripForwardSlash = !serializeFull))
-    }
-  }
-
-  private def truncatePath(path: UntypedPath,
-                           simpleSourcePath: List[PathOperator],
-                           forwardOnlySourcePath: List[PathOperator],
-                           isRdfInput: Boolean): List[PathOperator] = {
-    if (isRdfInput) {
-      path.operators
-    } else if (path.operators.startsWith(forwardOnlySourcePath)) {
-      path.operators.drop(forwardOnlySourcePath.size)
-    } else {
-      path.operators.drop(simpleSourcePath.size)
-    }
-  }
-
-  // Normalize this path by eliminating backward operators
-  private def forwardOnlyPath(simpleSourcePath: List[PathOperator]): List[PathOperator] = {
-    // Remove BackwardOperators
-    var pathStack = List.empty[PathOperator]
-    for (op <- simpleSourcePath) {
-      op match {
-        case f: ForwardOperator =>
-          pathStack ::= f
-        case BackwardOperator(prop) =>
-          if (pathStack.isEmpty) {
-            // TODO: What to do?
-          } else {
-            pathStack = pathStack.tail
-          }
-        case _ =>
-          throw new IllegalArgumentException("Path cannot contain path operators other than forward and backward operators!")
-      }
-    }
-    pathStack.reverse
-
   }
 
   @Operation(
@@ -773,6 +672,20 @@ object AutoCompletionApi {
 
     val vocabularyProperties = "Vocabulary Properties"
 
+  }
+
+  def validateAutoCompletionRequest(autoCompletionRequest: AutoSuggestAutoCompletionRequest): Unit = {
+    if(autoCompletionRequest.cursorPosition > autoCompletionRequest.inputString.length) {
+      throw BadUserInputException("Cursor position must not be greater than the length of the input string!")
+    }
+    if(autoCompletionRequest.cursorPosition < 0) {
+      throw BadUserInputException("Cursor position must not be negative.")
+    }
+    autoCompletionRequest.maxSuggestions foreach { maxSuggestions =>
+      if(maxSuggestions <= 0) {
+        throw BadUserInputException("Parameter 'maxSuggestions' must not be negative or zero!")
+      }
+    }
   }
 
 }
