@@ -1,4 +1,5 @@
 import React from "react";
+import {OnLoadParams} from "react-flow-renderer";
 
 /** Context for all UI related properties. */
 export interface RuleEditorUiContextProps {
@@ -10,11 +11,19 @@ export interface RuleEditorUiContextProps {
     advancedParameterModeEnabled: boolean
     /** Enables/disables the advanced parameter mode. */
     setAdvancedParameterMode: (advancedEnabled: boolean) => any
+    reactFlowWrapper: React.MutableRefObject<any> | null;
+    /** react-flow instance */
+    setReactFlowInstance: (params: OnLoadParams) => any
+    /** Sets the react-flow instance, so it can be used everywhere in the view code. */
+    reactFlowInstance: OnLoadParams | undefined
 }
 
 export const RuleEditorUiContext = React.createContext<RuleEditorUiContextProps>({
     modalShown: false,
     setModalShown(): any {},
     advancedParameterModeEnabled: false,
-    setAdvancedParameterMode: () => {}
+    setAdvancedParameterMode: () => {},
+    reactFlowWrapper: null,
+    setReactFlowInstance: () => {},
+    reactFlowInstance: undefined
 });

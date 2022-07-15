@@ -5,10 +5,9 @@ import org.apache.jena.riot.ResultSetMgr
 import org.apache.jena.riot.resultset.ResultSetLang
 import org.silkframework.dataset.rdf._
 
-import java.io.{IOException, InputStream}
-import java.util.logging.{Level, Logger}
+import java.io.InputStream
+import java.util.logging.Logger
 import scala.collection.immutable.SortedMap
-import scala.util.Try
 import scala.util.matching.Regex
 
 /**
@@ -28,18 +27,23 @@ object PagingSparqlTraversable {
     * @param params The SPARQL parameters
     * @param limit The maximum number of SPARQL results returned in total (not per single query)
     */
-  def apply(query: String, queryExecutor: String => InputStream, params: SparqlParams, limit: Int): SparqlResults = {
+  def apply(query: String, queryExecutor: QueryExecutor, params: SparqlParams, limit: Int): SparqlResults = {
     SparqlResults(
       bindings = new ResultsTraversable(query, queryExecutor, params, limit)
     )
   }
 
+  /**
+    * Executes a query and passes the result to a processing function.
+    */
+  trait QueryExecutor {
+    def execute(query: String, processResult: InputStream => Unit): Unit
+  }
+
   private class ResultsTraversable(query: String,
-                                   queryExecutor: String => InputStream,
+                                   queryExecutor: QueryExecutor,
                                    params: SparqlParams,
                                    limit: Int) extends Traversable[SortedMap[String, RdfNode]] {
-
-    private var lastQueryTime = 0L
 
     override def foreach[U](f: SortedMap[String, RdfNode] => U): Unit = {
       val parsedQuery = QueryFactory.create(query)
@@ -51,88 +55,36 @@ object PagingSparqlTraversable {
       }
       // FIXME: Also inject FROM NAMED when GRAPH pattern exists and no FROM NAMED was defined in the original query (breaking change).
       if (parsedQuery.hasLimit || parsedQuery.hasOffset) {
-        val inputStream = executeQuery(parsedQuery.serialize(Syntax.syntaxSPARQL_11))
-        try {
-          outputResults(inputStream, f)
-        } finally {
-          inputStream.close()
-        }
+        queryExecutor.execute(parsedQuery.serialize(Syntax.syntaxSPARQL_11), is => outputResults(is, f))
       } else {
         for (offset <- 0 until limit by params.pageSize) {
-          if(Thread.currentThread().isInterrupted) {
+          if (Thread.currentThread().isInterrupted) {
             return
           }
-          if(params.pageSize != Int.MaxValue && limit > params.pageSize) {
+          if (params.pageSize != Int.MaxValue && limit > params.pageSize) {
             parsedQuery.setOffset(offset)
           }
-          if(limit != Int.MaxValue || params.pageSize != Int.MaxValue) {
+          if (limit != Int.MaxValue || params.pageSize != Int.MaxValue) {
             parsedQuery.setLimit(math.min(params.pageSize, limit - offset))
           }
-          val inputStream = executeQuery(parsedQuery.serialize(Syntax.syntaxSPARQL_11))
-          try {
+          queryExecutor.execute(parsedQuery.serialize(Syntax.syntaxSPARQL_11), { inputStream =>
             val resultCount = outputResults(inputStream, f)
             logger.fine("Run: " + offset + ", " + limit + ", " + params.pageSize)
-            if (resultCount < params.pageSize) return
-          } finally {
-            inputStream.close()
-          }
-        }
-      }
-    }
-
-    /**
-      * Executes a SPARQL SELECT query.
-      *
-      * @param rewrittenQuery The SPARQL query to be executed
-      * @return an XML stream reader positioned on the <results> tag.
-      */
-    private def executeQuery(rewrittenQuery: String): InputStream = {
-      //Wait until pause time is elapsed since last query
-      synchronized {
-        while (System.currentTimeMillis < lastQueryTime + params.pauseTime) Thread.sleep(params.pauseTime / 10)
-        lastQueryTime = System.currentTimeMillis
-      }
-      //Execute query
-      logger.fine("Executing query on \n" + rewrittenQuery)
-
-      var inputStream: InputStream = null
-      var retries = 0
-      val retryPause = params.retryPause
-
-      def closeInputStream() = {
-        if (inputStream != null) {
-          Try(inputStream.close())
-        }
-      }
-
-      while (inputStream == null) {
-        try {
-          inputStream = queryExecutor(rewrittenQuery)
-        } catch {
-          case ex: IOException =>
-            retries += 1
-            if (retries > params.retryCount) {
-              throw ex
+            if (resultCount < params.pageSize) {
+              return
             }
-            logger.info(s"Query failed:\n$rewrittenQuery\nError Message: '${ex.getMessage}'.\nRetrying in $retryPause ms. ($retries/${params.retryCount})")
-
-            Thread.sleep(retryPause)
-            closeInputStream()
-            //Double the retry pause up to a maximum of 1 hour
-            //retryPause = math.min(retryPause * 2, 60 * 60 * 1000)
-          case ex: Exception =>
-            logger.log(Level.SEVERE, "Could not execute query:\n" + rewrittenQuery, ex)
-            closeInputStream()
-            throw ex
+          })
         }
       }
-      //Return result
-      inputStream
     }
 
     def outputResults[U](inputStream: InputStream, f: SortedMap[String, RdfNode] => U): Int = {
       val resultSet = ResultSetMgr.read(inputStream, ResultSetLang.RS_XML)
       JenaResultsReader.read(resultSet, f)
+    }
+
+    override def toString(): String = {
+      s"Results of query: $query"
     }
   }
 }

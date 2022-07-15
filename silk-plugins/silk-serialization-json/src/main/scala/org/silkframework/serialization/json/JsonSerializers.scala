@@ -20,11 +20,12 @@ import org.silkframework.serialization.json.EntitySerializers.EntitySchemaJsonFo
 import org.silkframework.serialization.json.InputJsonSerializer._
 import org.silkframework.serialization.json.JsonHelpers._
 import org.silkframework.serialization.json.JsonSerializers.ObjectMappingJsonFormat.MAPPING_TARGET
-import org.silkframework.serialization.json.JsonSerializers._
+import org.silkframework.serialization.json.JsonSerializers.{ID, _}
 import org.silkframework.serialization.json.LinkingSerializers._
 import org.silkframework.serialization.json.MetaDataSerializers._
 import org.silkframework.util.{DPair, Identifier, IdentifierUtils, Uri}
 import org.silkframework.workspace.activity.transform.{CachedEntitySchemata, VocabularyCacheValue}
+import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import play.api.libs.json._
 
 import scala.reflect.ClassTag
@@ -910,17 +911,62 @@ object JsonSerializers {
     }
   }
 
+  /** Sticky note */
+  implicit object StickyNoteJsonFormat extends JsonFormat[StickyNote] {
+    final val CONTENT = "content"
+    final val COLOR = "color"
+    final val POSITION = "position"
+    final val DIMENSION = "dimension"
+
+    override def read(json: JsValue)(implicit readContext: ReadContext): StickyNote = {
+      val id = stringValue(json, ID)
+      val content = stringValue(json, CONTENT)
+      val color = stringValue(json, COLOR)
+      val position = fromJsonValidated[(Double, Double)](mustBeDefined(json, POSITION))
+      val dimension = fromJsonValidated[(Double, Double)](mustBeDefined(json, DIMENSION))
+      StickyNote(id, content, color, position, dimension)
+    }
+
+    override def write(stickyNote: StickyNote)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        ID -> stickyNote.id,
+        CONTENT -> stickyNote.content,
+        COLOR -> stickyNote.color,
+        POSITION -> Json.toJson(stickyNote.position),
+        DIMENSION -> Json.toJson(stickyNote.dimension)
+      )
+    }
+  }
+
+  implicit object UiAnnotationsJsonFormat extends JsonFormat[UiAnnotations] {
+    final val STICKY_NOTES = "stickyNotes"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): UiAnnotations = {
+      val stickyNotesJson = arrayValue(value, STICKY_NOTES)
+      val stickyNotes = stickyNotesJson.value.map(value => fromJson[StickyNote](value))
+      UiAnnotations(stickyNotes)
+    }
+
+    override def write(value: UiAnnotations)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        STICKY_NOTES -> JsArray(value.stickyNotes.map(toJson[StickyNote]))
+      )
+    }
+  }
+
   implicit object LinkageRuleJsonFormat extends JsonFormat[LinkageRule] {
     final val OPERATOR = "operator"
     final val FILTER = "filter"
     final val LINKTYPE = "linkType"
+    final val UI_ANNOTATIONS = "uiAnnotations"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): LinkageRule = {
       LinkageRule(
         operator = optionalValue(value, OPERATOR).map(fromJson[SimilarityOperator]),
         filter = fromJson[LinkFilter](mustBeDefined(value, FILTER)),
         linkType = fromJson[Uri](mustBeDefined(value, LINKTYPE)),
-        layout = optionalValue(value, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout())
+        layout = optionalValue(value, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout()),
+        uiAnnotations = optionalValue(value, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations())
       )
     }
 
@@ -929,7 +975,8 @@ object JsonSerializers {
         OPERATOR -> value.operator.map(toJson(_)),
         FILTER -> toJson(value.filter),
         LINKTYPE -> toJson(value.linkType),
-        LAYOUT -> toJson(value.layout)
+        LAYOUT -> toJson(value.layout),
+        UI_ANNOTATIONS -> toJson(value.uiAnnotations)
       )
     }
   }

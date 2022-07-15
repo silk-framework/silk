@@ -19,6 +19,7 @@ import org.silkframework.rule.similarity.SimilarityOperator
 import org.silkframework.runtime.plugin.PluginObjectParameterNoSchema
 import org.silkframework.runtime.serialization._
 import org.silkframework.util.{DPair, Uri}
+import org.silkframework.workspace.annotation.UiAnnotations
 
 import scala.xml.Node
 
@@ -28,7 +29,9 @@ import scala.xml.Node
 case class LinkageRule(operator: Option[SimilarityOperator] = None,
                        filter: LinkFilter = LinkFilter(),
                        linkType: Uri = Uri.fromString("http://www.w3.org/2002/07/owl#sameAs"),
-                       layout: RuleLayout = RuleLayout()) extends PluginObjectParameterNoSchema {
+                       layout: RuleLayout = RuleLayout(),
+                       uiAnnotations: UiAnnotations = UiAnnotations()
+                      ) extends PluginObjectParameterNoSchema {
 
   // Make sure that all operators use unique identifiers
   operator.foreach(_.validateIds())
@@ -88,10 +91,11 @@ object LinkageRule {
 
       val link = (node \ "@linkType").text.trim
       LinkageRule(
-        operator = (node \ "_").find(child => child.label != "Filter" && child.label != "RuleLayout").map(fromXml[SimilarityOperator]),
+        operator = (node \ "_").find(child => !Set("Filter", "RuleLayout", "UiAnnotations").contains(child.label)).map(fromXml[SimilarityOperator]),
         filter = (node \ "Filter").headOption.map(LinkFilter.fromXML).getOrElse(LinkFilter()),
         linkType = if(link.isEmpty) "http://www.w3.org/2002/07/owl#sameAs" else Uri.parse(link, readContext.prefixes),
-        layout = (node \ "RuleLayout").headOption.map(rl => XmlSerialization.fromXml[RuleLayout](rl)).getOrElse(RuleLayout())
+        layout = (node \ "RuleLayout").headOption.map(rl => XmlSerialization.fromXml[RuleLayout](rl)).getOrElse(RuleLayout()),
+        uiAnnotations = (node \ "UiAnnotations").headOption.map(uiAnnotations => XmlSerialization.fromXml[UiAnnotations](uiAnnotations)).getOrElse(UiAnnotations())
       )
     }
 
@@ -100,6 +104,7 @@ object LinkageRule {
         {value.operator.toList.map(toXml[SimilarityOperator])}
         {value.filter.toXML}
         {XmlSerialization.toXml(value.layout)}
+        {XmlSerialization.toXml(value.uiAnnotations)}
       </LinkageRule>
     }
   }
