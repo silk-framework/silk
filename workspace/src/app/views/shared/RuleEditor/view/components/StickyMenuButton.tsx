@@ -2,7 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { IconButton, StickyNoteModal } from "@eccenca/gui-elements";
 import { RuleEditorModelContext } from "../../contexts/RuleEditorModelContext";
-import { StickyNoteMetadataType } from "./StickyNoteModal";
+import { StickyNoteMetadataType } from "@eccenca/gui-elements/src/cmem/react-flow/StickyNoteModal/StickyNoteModal";
 
 interface StickyMenuButtonProps {
     stickyNodeId: string;
