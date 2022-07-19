@@ -11,7 +11,8 @@ import { TaskPlugin } from "@ducks/shared/typings";
 import { ILinkingTaskParameters } from "../linking.types";
 import { Spinner } from "@eccenca/gui-elements";
 import { ActiveLearningStep, CandidatePropertyPair } from "./LinkingRuleActiveLearning.typings";
-import { LinkingRuleActiveLearningMain } from "./LinkingRuleActiveLearningMain";
+import { LinkingRuleActiveLearningMain } from "./learningUI/LinkingRuleActiveLearningMain";
+import { EntityLink } from "./learningUI/LinkingRuleActiveLearningMain.typings";
 
 export interface LinkingRuleActiveLearningProps {
     /** Project ID the task is in. */
@@ -72,6 +73,10 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
     const [loading, setLoading] = React.useState(false);
     const [selectedPropertyPairs, setSelectedPropertyPairs] = React.useState<CandidatePropertyPair[]>(mockPairs);
     const [activeLearningStep, setActiveLearningStep] = React.useState<ActiveLearningStep>("config");
+    /** The original reference links. Used for diffing the reference links on save. */
+    const referenceLinksInternal = React.useRef<EntityLink[]>([]);
+    /** A copy of the reference links that can be modified. Changes to the backend will only be made when explicitly saving. */
+    const [referenceLinks, setReferenceLinks] = React.useState<EntityLink[] | undefined>(undefined);
 
     /** Fetches the parameters of the linking task */
     const fetchTaskData = async (projectId: string, taskId: string) => {
@@ -79,6 +84,7 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
             setLoading(true);
             const taskData = (await fetchLinkSpec(projectId, taskId, true, prefLang)).data;
             setTaskData(taskData);
+            return taskData;
         } catch (err) {
             registerError(
                 "LinkingRuleEditor_fetchLinkingTask",
@@ -92,8 +98,16 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
 
     /** Load linking task data. */
     React.useEffect(() => {
-        fetchTaskData(projectId, linkingTaskId);
+        init();
     }, [projectId, linkingTaskId]);
+
+    const init = async () => {
+        const taskData = await fetchTaskData(projectId, linkingTaskId);
+        if (taskData) {
+            const referenceLinks = taskData.parameters.referenceLinks;
+            setReferenceLinks(referenceLinks as any);
+        }
+    };
 
     return (
         <LinkingRuleActiveLearningContext.Provider
@@ -104,6 +118,7 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
                 propertiesToCompare: selectedPropertyPairs,
                 setPropertiesToCompare: setSelectedPropertyPairs,
                 navigateTo: setActiveLearningStep,
+                referenceLinks: referenceLinks ?? [],
             }}
         >
             {loading ? (

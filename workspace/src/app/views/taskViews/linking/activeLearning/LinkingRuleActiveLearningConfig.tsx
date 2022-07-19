@@ -19,13 +19,13 @@ import {
     ToolbarSection,
 } from "@eccenca/gui-elements";
 import { CandidateProperty, CandidatePropertyPair } from "./LinkingRuleActiveLearning.typings";
-import "./LinkingRuleActiveLeraningConfig.scss";
 import { LinkingRuleActiveLearningContext } from "./contexts/LinkingRuleActiveLearningContext";
 import { partialAutoCompleteLinkingInputPaths } from "../LinkingRuleEditor.requests";
 import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { checkValuePathValidity } from "../../../pages/MappingEditor/HierarchicalMapping/store";
+import { ArrowLeft, ArrowRight, columnStyles, DashedLine } from "./LinkingRuleActiveLearning.shared";
 
 interface LinkingRuleActiveLearningConfigProps {
     projectId: string;
@@ -90,29 +90,6 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         );
     };
 
-    const mainColumnStyle: CSSProperties = {
-        // TODO: style via sass
-        width: "40%",
-        maxWidth: "40%",
-        textAlign: "center",
-        padding: "5px",
-        borderWidth: "thin",
-        borderStyle: "solid",
-        borderColor: "lightgray",
-    };
-    const headerColumnStyle: CSSProperties = {
-        ...mainColumnStyle,
-        backgroundColor: "blue",
-        color: "white",
-    };
-    const centerColumnStyle: CSSProperties = {
-        display: "flex",
-        columnWidth: "20%",
-        maxWidth: "20%",
-        padding: "5px",
-        alignItems: "center",
-        justifyContent: "center",
-    };
     const fetchAutoCompletionResult =
         (isTarget: boolean) =>
         async (inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
@@ -178,18 +155,16 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             activeLearningContext.setPropertiesToCompare([...activeLearningContext.propertiesToCompare, pairToAdd]);
         }
     };
-    const ArrowRight = () => <div className={"arrow-right"} />;
-    const ArrowLeft = () => <div className={"arrow-left"} />;
     const ConfigHeader = () => {
         return (
             <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
-                <GridColumn style={headerColumnStyle}>row1</GridColumn>
-                <GridColumn style={centerColumnStyle}>
+                <GridColumn style={columnStyles.headerColumnStyle}>row1</GridColumn>
+                <GridColumn style={columnStyles.centerColumnStyle}>
                     <ArrowLeft />
                     <Tag>owl:sameAs</Tag>
                     <ArrowRight />
                 </GridColumn>
-                <GridColumn style={headerColumnStyle}>row3</GridColumn>
+                <GridColumn style={columnStyles.headerColumnStyle}>row3</GridColumn>
             </GridRow>
         );
     };
@@ -198,7 +173,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         const showLabel: boolean = !!property.label && property.label.toLowerCase() !== property.value.toLowerCase();
         const exampleTitle = property.exampleValues.join(" | ");
         return (
-            <GridColumn style={mainColumnStyle}>
+            <GridColumn style={columnStyles.mainColumnStyle}>
                 <OverviewItem>
                     <OverviewItemDescription>
                         {showLabel ? <OverviewItemLine>{property.label}</OverviewItemLine> : null}
@@ -230,7 +205,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         return (
             <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
                 <SelectedProperty property={pair.left} />
-                <GridColumn style={centerColumnStyle}>
+                <GridColumn style={columnStyles.centerColumnStyle}>
                     <HoverToggler
                         baseElement={
                             <Toolbar style={{ height: "100%" }}>
@@ -282,7 +257,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
 
     const PathAutoCompletion = ({ isTarget }: { isTarget: boolean }) => {
         return (
-            <GridColumn style={{ ...mainColumnStyle, textAlign: "left" }}>
+            <GridColumn style={{ ...columnStyles.mainColumnStyle, textAlign: "left" }}>
                 <AutoSuggestion
                     leftElement={
                         <Icon name={"operation-search"} tooltipText={"Allows to construct complex input paths."} />
@@ -305,21 +280,11 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         );
     };
 
-    const DashedLine = () => {
-        return (
-            <svg width="100%" height="10px" viewBox="0 0 100 10" preserveAspectRatio="none">
-                <g fill="none" stroke="black">
-                    <line x1="0" y1="5" x2="100" y2="5" strokeDasharray={"2 2"} />
-                </g>
-            </svg>
-        );
-    };
-
     const ManualPropertyPathSelection = () => {
         return (
             <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
                 <PathAutoCompletion isTarget={false} />
-                <GridColumn style={centerColumnStyle}>
+                <GridColumn style={columnStyles.centerColumnStyle}>
                     <Toolbar style={{ height: "100%" }}>
                         <ToolbarSection canGrow={true}>
                             <DashedLine />
@@ -356,7 +321,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         return (
             <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
                 <SelectedProperty property={pair.left} />
-                <GridColumn style={centerColumnStyle}>
+                <GridColumn style={columnStyles.centerColumnStyle}>
                     <Toolbar style={{ height: "100%" }}>
                         <ToolbarSection canGrow={true}>
                             <DashedLine />
