@@ -34,6 +34,11 @@ const getBookmark = (locationHashPart: string, maxIdx: number): number | undefin
         : undefined;
 };
 
+//  const pageId = window.location.pathname.split("/").slice(-1)[0];
+// const getPageBookmarkFromLabel = (tabs: { label: string }[]) => {
+//     return tabs.map((t) => ({ ...t }));
+// };
+
 // Returns the bookmark location for the currently selected tab
 const calculateBookmarkLocation = (currentLocation: H.Location, indexBookmark: number) => {
     const hashParsed = locationParser.parse(currentLocation.hash, { parseNumbers: true });
@@ -104,7 +109,6 @@ export function ProjectTaskTabView({
 
     const viewsAndItemLink: Partial<IProjectTaskView & IItemLink>[] = [...(taskViews ?? []), ...itemLinks];
     const isTaskView = (viewOrItemLink: Partial<IProjectTaskView & IItemLink>) => !!viewOrItemLink.id;
-
     const itemLinkActive = selectedTab != null && typeof selectedTab !== "string";
     // Either the path value of an IItemLink or the view ID or undefined
     const activeLabel: string | undefined =
@@ -123,6 +127,9 @@ export function ProjectTaskTabView({
     }, [projectId, taskId, taskViewConfig?.pluginId]);
 
     React.useEffect(() => {
+        // const currentTab = window.location.pathname.split("/").slice(-1)[0];
+        // const tabs = viewsAndItemLink.map((itemLink) => itemLink.label?.toLowerCase().split(" ").join("-"));
+        //
         if (
             tabIdxChangeRequest != null &&
             getBookmark(location.hash, viewsAndItemLink.length - 1) === tabIdxChangeRequest
@@ -249,8 +256,10 @@ export function ProjectTaskTabView({
                                         changeTab(tabItem.id ?? (tabItem as IItemLink));
                                     }}
                                     minimal={true}
-                                    disabled={ !!selectedTab && ((tabItem.id ?? tabItem.path) === ((selectedTab as any)?.path ?? selectedTab))}
-
+                                    disabled={
+                                        !!selectedTab &&
+                                        (tabItem.id ?? tabItem.path) === ((selectedTab as any)?.path ?? selectedTab)
+                                    }
                                 >
                                     {tLabel(tabItem.label as string)}
                                 </Button>

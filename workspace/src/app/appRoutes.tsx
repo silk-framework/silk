@@ -11,7 +11,6 @@ const TaskPage = lazy(() => import("./views/pages/Task"));
 const TaskPluginView = lazy(() => import("./views/pages/TaskPluginView/TaskPluginView"));
 const NotFoundPage = lazy(() => import("./views/pages/NotFound"));
 const Activities = lazy(() => import("./views/pages/Activities"));
-const TransformEditorPage = lazy(() => import("./views/taskViews/transform/TransformEditorPage"));
 
 export interface IRouteProps extends RouteProps {
     /** Path of the route. */
@@ -42,7 +41,7 @@ const appRoutes: IRouteProps[] = [
         exact: true,
     },
     {
-        path: "/projects/:projectId/transform/:taskId",
+        path: "/projects/:projectId/transform/:taskId/:tab?",
         component: TransformPage,
         exact: true,
     },
@@ -69,12 +68,6 @@ const appRoutes: IRouteProps[] = [
     {
         path: "/projects/:projectId/item/:pluginId/:taskId/view/:viewId",
         component: TaskPluginView,
-        exact: true,
-        componentOnly: true,
-    },
-    {
-        path: "/projects/:projectId/transform/:transformTaskId/:ruleId/view",
-        component: TransformEditorPage,
         exact: true,
         componentOnly: true,
     },

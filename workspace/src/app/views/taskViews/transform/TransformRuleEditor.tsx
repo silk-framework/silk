@@ -20,10 +20,18 @@ export interface TransformRuleEditorProps {
     ruleId: string;
     /** Generic actions and callbacks on views. */
     viewActions?: IViewActions;
+    /** Additional components that will be placed in the tool bar left to the save button. */
+    additionalToolBarComponents?: () => JSX.Element | JSX.Element[];
 }
 
 /** Editor for creating and changing transform rule operator trees. */
-export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: TransformRuleEditorProps) => {
+export const TransformRuleEditor = ({
+    projectId,
+    transformTaskId,
+    ruleId,
+    additionalToolBarComponents,
+    viewActions,
+}: TransformRuleEditorProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
     /** Fetches the parameters of the transform rule. */
@@ -64,7 +72,6 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
         originalRule: IComplexMappingRule
     ): Promise<RuleSaveResult> => {
         try {
-            //Todo add sticky notes to saveRule and backend
             const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
             if (rootNodes.length !== 1) {
                 return {
@@ -122,6 +129,8 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
             saveRule={saveTransformRule}
             convertRuleOperator={ruleUtils.convertRuleOperator}
             convertToRuleOperatorNodes={convertToRuleOperatorNodes}
+            viewActions={viewActions}
+            additionalToolBarComponents={additionalToolBarComponents}
             additionalRuleOperators={[
                 ruleUtils.inputPathOperator(
                     "valuePathInput",

@@ -1,14 +1,14 @@
-import React from 'react';
-import _ from 'lodash';
-import className from 'classnames';
-import {Card, CardTitle, NotAvailable,} from 'gui-elements-deprecated';
-import {ThingIcon} from '../components/ThingIcon';
-import RuleTitle from '../elements/RuleTitle';
-import RuleTypes from '../elements/RuleTypes';
-import ObjectRule from './MappingRule/ObjectRule/ObjectRule';
-import {MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI, MESSAGES} from '../utils/constants';
-import EventEmitter from '../utils/EventEmitter';
-import ExpandButton from '../elements/buttons/ExpandButton';
+import React from "react";
+import _ from "lodash";
+import className from "classnames";
+import { Card, CardTitle, NotAvailable } from "gui-elements-deprecated";
+import { ThingIcon } from "../components/ThingIcon";
+import RuleTitle from "../elements/RuleTitle";
+import RuleTypes from "../elements/RuleTypes";
+import ObjectRule from "./MappingRule/ObjectRule/ObjectRule";
+import { MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI, MESSAGES } from "../utils/constants";
+import EventEmitter from "../utils/EventEmitter";
+import ExpandButton from "../elements/buttons/ExpandButton";
 
 class RootMappingRule extends React.Component {
     state = {
@@ -40,12 +40,12 @@ class RootMappingRule extends React.Component {
         EventEmitter.off(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
     }
 
-    handleRuleToggle({expanded, id}) {
+    handleRuleToggle({ expanded, id }) {
         // only trigger state / render change if necessary
         if ((id === true || id === this.props.rule.id) && expanded !== this.state.expanded) {
-            this.setState({expanded});
+            this.setState({ expanded });
         }
-    };
+    }
 
     onOpenEdit(obj) {
         if (this.props.rule.id === obj.id) {
@@ -53,7 +53,7 @@ class RootMappingRule extends React.Component {
                 editing: true,
             });
         }
-    };
+    }
 
     onCloseEdit(obj) {
         if (this.props.rule.id === obj.id) {
@@ -61,15 +61,15 @@ class RootMappingRule extends React.Component {
                 editing: false,
             });
         }
-    };
+    }
 
     handleDiscardChanges() {
         this.setState({
             expanded: !this.state.expanded,
         });
         this.props.onAskDiscardChanges(false);
-        EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, {id: this.props.rule.id});
-    };
+        EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id: this.props.rule.id });
+    }
 
     handleToggleExpand() {
         if (this.state.editing) {
@@ -79,29 +79,29 @@ class RootMappingRule extends React.Component {
                 expanded: !this.state.expanded,
             });
         }
-    };
+    }
 
     discardAll() {
         this.setState({
             editing: false,
         });
-    };
+    }
 
     render() {
         if (_.isEmpty(this.props.rule)) {
             return false;
         }
 
-        const breadcrumbs = _.get(this.props, 'rule.breadcrumbs', []);
+        const breadcrumbs = _.get(this.props, "rule.breadcrumbs", []);
         const parent = _.last(breadcrumbs);
 
-        let uriPattern = <NotAvailable label="automatic default pattern" inline/>;
+        let uriPattern = <NotAvailable label="automatic default pattern" inline />;
 
-        const uriRuleType = _.get(this.props.rule.rules, 'uriRule.type', false);
+        const uriRuleType = _.get(this.props.rule.rules, "uriRule.type", false);
         if (uriRuleType === MAPPING_RULE_TYPE_URI) {
-            uriPattern = _.get(this, 'props.rule.rules.uriRule.pattern');
+            uriPattern = _.get(this, "props.rule.rules.uriRule.pattern");
         } else if (uriRuleType === MAPPING_RULE_TYPE_COMPLEX_URI) {
-            uriPattern = 'URI formula';
+            uriPattern = "URI formula";
         }
 
         return (
@@ -110,22 +110,14 @@ class RootMappingRule extends React.Component {
                     <CardTitle>
                         <div className="ecc-silk-mapping__ruleitem">
                             <div
-                                className={className(
-                                    'ecc-silk-mapping__ruleitem-summary',
-                                    {
-                                        'ecc-silk-mapping__ruleitem-summary--expanded': this.state.expanded,
-                                    }
-                                )}
+                                className={className("ecc-silk-mapping__ruleitem-summary", {
+                                    "ecc-silk-mapping__ruleitem-summary--expanded": this.state.expanded,
+                                })}
                             >
-                                <div
-                                    className="mdl-list__item clickable"
-                                    onClick={this.handleToggleExpand}
-                                >
-                                    <div
-                                        className="mdl-list__item-primary-content"
-                                    >
+                                <div className="mdl-list__item clickable" onClick={this.handleToggleExpand}>
+                                    <div className="mdl-list__item-primary-content">
                                         <div className="ecc-silk-mapping__ruleitem-headline">
-                                            <ThingIcon type="object"/>
+                                            <ThingIcon type="object" />
                                             <RuleTitle
                                                 rule={this.props.rule}
                                                 className="ecc-silk-mapping__rulesobject__title-property"
@@ -135,15 +127,11 @@ class RootMappingRule extends React.Component {
                                             rule={this.props.rule}
                                             className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-type"
                                         />
-                                        <div
-                                            className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-uripattern">
+                                        <div className="ecc-silk-mapping__ruleitem-subline ecc-silk-mapping__rulesobject__title-uripattern">
                                             {uriPattern}
                                         </div>
                                     </div>
-                                    <div
-                                        className="mdl-list__item-secondary-content"
-                                        key="action"
-                                    >
+                                    <div className="mdl-list__item-secondary-content" key="action">
                                         <ExpandButton
                                             id={this.props.rule.id}
                                             expanded={this.state.expanded}
@@ -154,16 +142,19 @@ class RootMappingRule extends React.Component {
                             </div>
                         </div>
                     </CardTitle>
-                    {this.state.expanded && <ObjectRule
-                        ruleData={this.props.rule}
-                        parentId={_.get(parent, 'id', '')}
-                        parent={parent}
-                        edit={false}
-                        handleCopy={this.props.handleCopy}
-                        handleClone={this.props.handleClone}
-                        onClickedRemove={this.props.onClickedRemove}
-                        type={this.props.rule.type}
-                    />}
+                    {this.state.expanded && (
+                        <ObjectRule
+                            ruleData={this.props.rule}
+                            parentId={_.get(parent, "id", "")}
+                            parent={parent}
+                            edit={false}
+                            handleCopy={this.props.handleCopy}
+                            handleClone={this.props.handleClone}
+                            onClickedRemove={this.props.onClickedRemove}
+                            openMappingEditor={this.props.openMappingEditor}
+                            type={this.props.rule.type}
+                        />
+                    )}
                 </Card>
             </div>
         );

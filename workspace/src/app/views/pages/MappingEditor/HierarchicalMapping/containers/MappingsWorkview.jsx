@@ -31,6 +31,7 @@ class MappingsWorkview extends React.Component {
         onAskDiscardChanges: PropTypes.func,
         onClickedRemove: PropTypes.func,
         showNavigation: PropTypes.bool,
+        openMappingEditor: PropTypes.func,
         currentRuleId: PropTypes.string, // selected rule id
         askForDiscardData: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]), // selected rule id
     };
@@ -376,6 +377,7 @@ class MappingsWorkview extends React.Component {
                     onClickedRemove={this.props.onClickedRemove}
                     onShowSuggestions={this.handleShowSuggestions}
                     onMappingCreate={this.handleCreate}
+                    openMappingEditor={this.props.openMappingEditor}
                     loading={this.state.loading}
                 />
             ) : null;
@@ -399,6 +401,7 @@ class MappingsWorkview extends React.Component {
                         handleClone={this.handleClone}
                         onAskDiscardChanges={this.props.onAskDiscardChanges}
                         onClickedRemove={this.props.onClickedRemove}
+                        openMappingEditor={this.props.openMappingEditor}
                     />
                     {listSuggestions ? false : listMappings}
                 </div>

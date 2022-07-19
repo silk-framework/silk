@@ -144,6 +144,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     };
 
     React.useEffect(() => {
+        const unSavedChangesFunc = ruleEditorContext.viewActions?.savedChanges;
+        unSavedChangesFunc && unSavedChangesFunc(canUndo);
+    }, [canUndo]);
+
+    React.useEffect(() => {
         // Reset model on ID changes
         setElements([]);
     }, [ruleEditorContext.projectId, ruleEditorContext.editedItemId]);
@@ -851,10 +856,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             const newNode = utils.createNewOperatorNode(
                 ruleNode,
                 operatorNodeOperationsInternal,
-                operatorNodeCreateContextInternal(
-                    ruleOperator.pluginId,
-                    ruleEditorContext.operatorSpec!!
-                )
+                operatorNodeCreateContextInternal(ruleOperator.pluginId, ruleEditorContext.operatorSpec!!)
             );
             nodeMap.set(newNode.id, {
                 node: { ...ruleNode, nodeId: newNode.id },
@@ -920,7 +922,13 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         height: DEFAULT_NODE_HEIGHT,
     };
 
-    const createStickyNodeInternal = (color: string, stickyNote: string, position: XYPosition, dimension: NodeDimensions = defaultDimensions, id?: string): Node => {
+    const createStickyNodeInternal = (
+        color: string,
+        stickyNote: string,
+        position: XYPosition,
+        dimension: NodeDimensions = defaultDimensions,
+        id?: string
+    ): Node => {
         const style = nodeUtils.generateStyleWithColor(color);
         const stickyId = id ?? utils.freshNodeId("sticky");
         return {
@@ -1551,7 +1559,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 portSpecification: originalNode.portSpecification,
                 position: node.position,
                 description: originalNode.description,
-                inputsCanBeSwitched: originalNode.inputsCanBeSwitched
+                inputsCanBeSwitched: originalNode.inputsCanBeSwitched,
             };
         });
     };
@@ -1605,10 +1613,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             return utils.createOperatorNode(
                 operatorNode,
                 { ...operatorNodeOperationsInternal, handleDeleteNode },
-                operatorNodeCreateContextInternal(
-                    operatorNode.pluginId,
-                    ruleEditorContext.operatorSpec!!
-                )
+                operatorNodeCreateContextInternal(operatorNode.pluginId, ruleEditorContext.operatorSpec!!)
             );
         });
         // Init node map for edgeType, set inputs and output further below
@@ -1650,7 +1655,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 },
                 {
                     width: dimension[0],
-                    height: dimension[1]
+                    height: dimension[1],
                 },
                 id
             )

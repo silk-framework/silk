@@ -1,4 +1,4 @@
-import {registerCorePlugins} from "./RegisteredCoreTaskPlugins"
+import { registerCorePlugins } from "./RegisteredCoreTaskPlugins";
 /** A view / UI of a project task.
  * Each task can have multiple views.
  **/
@@ -9,6 +9,8 @@ export interface IViewActions {
     /** If true then the task view is integrated into another view and not on the task details page. Things like the
      * error notifications need to be inside the editor then. */
     integratedView?: boolean;
+    /** callback executed to notify external dependencies if there are unsaved changes or not */
+    savedChanges?: (status: boolean) => void;
 }
 
 /** A project task view that is meant to be displayed for a specific project task.
@@ -109,4 +111,4 @@ export const SUPPORTED_PLUGINS = {
     DI_BRANDING: "di:branding",
 };
 
-registerCorePlugins()
+registerCorePlugins();

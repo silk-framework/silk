@@ -1,9 +1,10 @@
-import {LinkingRuleEditor} from "../taskViews/linking/LinkingRuleEditor";
+import { LinkingRuleEditor } from "../taskViews/linking/LinkingRuleEditor";
 //import HierarchicalMapping from "../pages/MappingEditor/HierarchicalMapping/HierarchicalMapping";
 import React from "react";
-import {IViewActions, pluginRegistry} from "./PluginRegistry";
+import { IViewActions, pluginRegistry } from "./PluginRegistry";
+import MappingEditorWrapper from "../../views/pages/MappingEditor/HierarchicalMapping/MappingEditorWrapper";
 
-let registered = false
+let registered = false;
 export const registerCorePlugins = () => {
     if (!registered) {
         /** Linking plugins */
@@ -13,19 +14,19 @@ export const registerCorePlugins = () => {
             id: "linkingEditor",
             label: "Linking editor",
             render(projectId: string, taskId: string, viewActions: IViewActions | undefined): JSX.Element {
-                return <LinkingRuleEditor projectId={projectId} linkingTaskId={taskId} viewActions={viewActions}/>;
+                return <LinkingRuleEditor projectId={projectId} linkingTaskId={taskId} viewActions={viewActions} />;
             },
         });
 
         /** Transform plugins. FIXME: CMEM-4266: Find solution for opening mapping rules in the rule editor without redirecting. */
         // Hierarchical mapping editor
-        // pluginRegistry.registerTaskView("transform", {
-        //     id: "hierarchicalMappingEditor",
-        //     label: "Mapping editor",
-        //     render(projectId: string, taskId: string): JSX.Element {
-        //         return <HierarchicalMapping project={projectId} transformTask={taskId} initialRule={"root"} />;
-        //     },
-        // });
+        pluginRegistry.registerTaskView("transform", {
+            id: "hierarchicalMappingEditor",
+            label: "Mapping Editor",
+            render(projectId: string, taskId: string): JSX.Element {
+                return <MappingEditorWrapper projectId={projectId} taskId={taskId} />;
+            },
+        });
 
         // Mapping evaluation // FIXME: Does not render well when not in i-frame
         // pluginRegistry.registerTaskView("transform", {
@@ -36,5 +37,5 @@ export const registerCorePlugins = () => {
         //     },
         // });
     }
-    registered = true
-}
+    registered = true;
+};
