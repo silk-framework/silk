@@ -2,7 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { IconButton, StickyNoteModal } from "@eccenca/gui-elements";
 import { RuleEditorModelContext } from "../../contexts/RuleEditorModelContext";
-import { StickyNoteMetadataType } from "@eccenca/gui-elements/src/cmem/react-flow/StickyNoteModal/StickyNoteModal";
+import { StickyNoteMetadataType } from "./StickyNoteModal";
 
 interface StickyMenuButtonProps {
     stickyNodeId: string;
@@ -11,7 +11,9 @@ interface StickyMenuButtonProps {
 }
 
 const StickyMenuButton: React.FC<StickyMenuButtonProps> = ({ stickyNodeId, color, stickyNote }) => {
-    const [currentStickyContent, setCurrentStickyContent] = React.useState<StickyNoteMetadataType | undefined>(undefined);
+    const [currentStickyContent, setCurrentStickyContent] = React.useState<StickyNoteMetadataType | undefined>(
+        undefined
+    );
     const [showEditModal, setShowEditModal] = React.useState<boolean>(false);
     const [t] = useTranslation();
     const modelContext = React.useContext(RuleEditorModelContext);
