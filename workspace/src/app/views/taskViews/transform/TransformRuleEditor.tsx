@@ -121,8 +121,16 @@ export const TransformRuleEditor = ({
     ): IRuleOperatorNode[] => {
         const operatorNodes: IRuleOperatorNode[] = [];
         ruleUtils.extractOperatorNodeFromValueInput(mappingRule.operator, operatorNodes, false, ruleOperator);
-        const nodePositions = mappingRule.layout;
-        operatorNodes.forEach((node) => (node.position = nodePositions[node.nodeId]));
+        const nodePositions = mappingRule.layout.nodePositions;
+        operatorNodes.forEach((node) => {
+            const pos = nodePositions[node.nodeId]
+            if(pos) {
+                node.position = {
+                    x: pos[0],
+                    y: pos[1]
+                }
+            }
+        });
         return operatorNodes;
     };
 
