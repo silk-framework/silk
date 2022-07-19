@@ -1,6 +1,6 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { IconButton, Spacing, StickyNoteModal } from "@eccenca/gui-elements";
+import { IconButton, StickyNoteModal } from "@eccenca/gui-elements";
 import { RuleEditorModelContext } from "../../contexts/RuleEditorModelContext";
 import { StickyNoteMetadataType } from "@eccenca/gui-elements/src/cmem/react-flow/StickyNoteModal/StickyNoteModal";
 
@@ -44,13 +44,14 @@ const StickyMenuButton: React.FC<StickyMenuButtonProps> = ({ stickyNodeId, color
                     setCurrentStickyContent({ note: stickyNote, color });
                     setShowEditModal(true);
                 }}
+                minimal={false}
             />
-            <Spacing vertical size="tiny" />
             <IconButton
                 data-test-id={"remove-sticky-note"}
                 name="item-remove"
                 text={t("RuleEditor.node.menu.remove.label")}
                 onClick={() => modelContext.executeModelEditOperation.deleteNode(stickyNodeId)}
+                minimal={false}
             />
         </>
     );
