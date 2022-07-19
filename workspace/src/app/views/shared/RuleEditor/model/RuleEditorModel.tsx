@@ -913,7 +913,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
-    const createStickyNodeInternal = (color: string, stickyNote: string, position: XYPosition, dimension: NodeDimensions, id?: string): Node => {
+    const createStickyNodeInternal = (color: string, stickyNote: string, position: XYPosition, dimension?: NodeDimensions, id?: string): Node => {
         const style = nodeUtils.generateStyleWithColor(color);
         const stickyId = id ?? utils.freshNodeId("sticky");
         return {
