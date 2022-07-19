@@ -13,8 +13,6 @@ import {
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { RuleEditorContext, RuleEditorContextProps } from "../contexts/RuleEditorContext";
 import {
-    DEFAULT_NODE_HEIGHT,
-    DEFAULT_NODE_WIDTH,
     IOperatorCreateContext,
     IOperatorNodeOperations,
     ruleEditorModelUtilsFactory,
@@ -915,12 +913,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
-    const defaultDimensions: NodeDimensions = {
-        width: DEFAULT_NODE_WIDTH,
-        height: DEFAULT_NODE_HEIGHT,
-    };
-
-    const createStickyNodeInternal = (color: string, stickyNote: string, position: XYPosition, dimension: NodeDimensions = defaultDimensions, id?: string): Node => {
+    const createStickyNodeInternal = (color: string, stickyNote: string, position: XYPosition, dimension: NodeDimensions, id?: string): Node => {
         const style = nodeUtils.generateStyleWithColor(color);
         const stickyId = id ?? utils.freshNodeId("sticky");
         return {
