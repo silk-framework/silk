@@ -1,6 +1,6 @@
-<Persons rootAttribute="top">
+<Persons xmlns:ns="urn:namespace:test" rootAttribute="top">
   <Person>
-    <ID>1</ID>
+    <ns:ID>1</ns:ID>
     <Name>Max Doe</Name>
     <Events count="2">
       <Birth>May 1900</Birth>
@@ -12,7 +12,7 @@
         <Value>V1</Value>
       </Property>
       <Property>
-        <Key id="id3">2</Key>
+        <Key ns:id="id3">2</Key>
         <Value>V2</Value>
       </Property>
       <Property>
@@ -22,7 +22,7 @@
     </Properties>
   </Person>
   <Person>
-    <ID>2</ID>
+    <ns:ID>2</ns:ID>
     <Name>Max Noe</Name>
     <OnlyInSecondPerson>only</OnlyInSecondPerson>
   </Person>
