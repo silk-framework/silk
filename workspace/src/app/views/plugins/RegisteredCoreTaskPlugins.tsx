@@ -22,7 +22,7 @@ export const registerCorePlugins = () => {
         // Hierarchical mapping editor
         pluginRegistry.registerTaskView("transform", {
             id: "hierarchicalMappingEditor",
-            label: "Mapping Editor",
+            label: "Mapping editor",
             render(projectId: string, taskId: string): JSX.Element {
                 return <MappingEditorWrapper projectId={projectId} taskId={taskId} />;
             },

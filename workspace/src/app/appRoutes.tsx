@@ -31,12 +31,12 @@ const appRoutes: IRouteProps[] = [
         exact: true,
     },
     {
-        path: "/projects/:projectId/dataset/:taskId",
+        path: "/projects/:projectId/dataset/:taskId/:tab?",
         component: DatasetPage,
         exact: true,
     },
     {
-        path: "/projects/:projectId/workflow/:taskId",
+        path: "/projects/:projectId/workflow/:taskId/:tab?",
         component: WorkflowPage,
         exact: true,
     },
@@ -46,12 +46,12 @@ const appRoutes: IRouteProps[] = [
         exact: true,
     },
     {
-        path: "/projects/:projectId/linking/:taskId",
+        path: "/projects/:projectId/linking/:taskId/:tab?",
         component: LinkingPage,
         exact: true,
     },
     {
-        path: "/projects/:projectId/task/:taskId",
+        path: "/projects/:projectId/task/:taskId/:tab?",
         component: TaskPage,
         exact: true,
     },
