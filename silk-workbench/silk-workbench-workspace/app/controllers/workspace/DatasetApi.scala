@@ -21,6 +21,7 @@ import org.silkframework.entity.EntitySchema
 import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.rule.TransformSpec
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.{BadUserInputException, RequestException}
@@ -132,7 +133,7 @@ class DatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) extends Inj
                                )
                                sourceName: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val project: Project = WorkspaceFactory().workspace.project(projectName)
-    implicit val prefixes: Prefixes = project.config.prefixes
+    implicit val context: PluginContext = PluginContext.fromProject(project)
     val task = project.task[GenericDatasetSpec](sourceName)
     val datasetPlugin = task.data.plugin
     datasetPlugin match {
@@ -273,8 +274,7 @@ class DatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) extends Inj
     val project = WorkspaceFactory().workspace.project(projectName)
     val createDialog = project.taskOption[DatasetSpec[Dataset]](datasetName).isEmpty
     val dialogTitle = if(createDialog) "Create Dataset" else "Edit Dataset"
-    implicit val prefixes: Prefixes = project.config.prefixes
-    implicit val resources: ResourceManager = project.resources
+    implicit val context: PluginContext = PluginContext.fromProject(project)
     val datasetParams = request.queryString.mapValues(_.head)
     val datasetPlugin = Dataset.apply(pluginId, datasetParams)
     datasetPlugin match {

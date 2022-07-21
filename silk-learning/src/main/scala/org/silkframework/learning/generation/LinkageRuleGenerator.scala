@@ -21,13 +21,15 @@ import org.silkframework.learning.individual.{AggregationNode, FunctionNode, Lin
 import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.evaluation.ReferenceEntities
 import org.silkframework.rule.similarity.DistanceMeasure
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.util.DPair
 
 import scala.util.Random
 
 case class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGenerator], components: Components)
-                               (implicit prefixes: Prefixes, resourceManager: ResourceManager) {
+                               (implicit context: PluginContext) {
   //require(!comparisonGenerators.isEmpty, "comparisonGenerators must not be empty")
 
   def isEmpty: Boolean = comparisonGenerators.isEmpty
@@ -92,14 +94,13 @@ case class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGener
 object LinkageRuleGenerator {
 
   def empty: LinkageRuleGenerator = {
-    implicit val prefixes = Prefixes.empty
-    implicit val projectResources = EmptyResourceManager()
+    implicit val context: PluginContext = PluginContext.empty
     new LinkageRuleGenerator(IndexedSeq.empty, Components())
   }
 
   @deprecated
   def apply(entities: ReferenceEntities, components: Components = Components())
-           (implicit prefixes: Prefixes, resourceManager: ResourceManager): LinkageRuleGenerator = {
+           (implicit context: PluginContext): LinkageRuleGenerator = {
     val es = entities.positiveEntities
     if(es.isEmpty)
       new LinkageRuleGenerator(IndexedSeq.empty, components)
@@ -111,7 +112,7 @@ object LinkageRuleGenerator {
 
   def apply(pathPairs: Seq[DPair[TypedPath]],
             components: Components)
-           (implicit prefixes: Prefixes, resourceManager: ResourceManager): LinkageRuleGenerator = {
+           (implicit context: PluginContext): LinkageRuleGenerator = {
     val generators =
       for {
         pathPair <- pathPairs
@@ -122,7 +123,7 @@ object LinkageRuleGenerator {
   }
 
   private def createGenerators(pathPair: DPair[UntypedPath], components: Components)
-                              (implicit prefixes: Prefixes, resourceManager: ResourceManager): Seq[ComparisonGenerator] = {
+                              (implicit context: PluginContext): Seq[ComparisonGenerator] = {
     ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("levenshteinDistance", Nil, DistanceMeasure), 3.0) ::
     ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("jaccard", Nil, DistanceMeasure), 1.0) ::
     // Substring is currently too slow ComparisonGenerator(InputGenerator.fromPathPair(pathPair, components.transformations), FunctionNode("substring", Nil, DistanceMeasure), 0.6) ::

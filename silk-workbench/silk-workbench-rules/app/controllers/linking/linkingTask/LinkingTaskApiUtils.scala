@@ -1,13 +1,12 @@
 package controllers.linking.linkingTask
 
 import controllers.workspace.taskApi.TaskApiUtils
-import org.silkframework.config.Prefixes
 import org.silkframework.plugins.path.PathMetaDataPlugin
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.input.Transformer
 import org.silkframework.rule.similarity.{Aggregator, DistanceMeasure}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.serialization.json.{InputJsonSerializer, JsonHelpers, JsonSerialization}
@@ -141,7 +140,7 @@ object LinkingTaskApiUtils {
   def pathMetaDataPlugins: Map[Class[_], PathMetaDataPlugin[_]] = {
     val pathMetaDataPlugins = PluginRegistry.availablePlugins[PathMetaDataPlugin[_]]
     pathMetaDataPlugins.map(plugin => {
-      val pathMetaDataPlugin = plugin.apply()(Prefixes.empty)
+      val pathMetaDataPlugin = plugin.apply()(PluginContext.empty)
       (pathMetaDataPlugin.sourcePluginClass, pathMetaDataPlugin)
     }).toMap
   }

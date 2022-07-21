@@ -1,8 +1,7 @@
 package org.silkframework.dataset
 
-import org.silkframework.config.{Prefixes, TaskLink}
-import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{AnyPlugin, PluginFactory}
+import org.silkframework.config.TaskLink
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext, PluginFactory}
 import org.silkframework.runtime.resource.Resource
 
 /**
@@ -28,7 +27,7 @@ trait DatasetPluginAutoConfigurable[T <: Dataset] {
   /**
    * returns an auto-configured version of this plugin
    */
-  def autoConfigured(implicit userContext: UserContext, prefixes: Prefixes): T
+  def autoConfigured(implicit pluginContext: PluginContext): T
 }
 
 /**

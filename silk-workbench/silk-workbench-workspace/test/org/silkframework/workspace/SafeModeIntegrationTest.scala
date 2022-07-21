@@ -8,6 +8,7 @@ import org.silkframework.dataset.SafeModeException
 import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.runtime.activity.Status.Idle
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.{ConfigTestTrait, SparqlMockServerTrait}
 import org.silkframework.workspace.activity.transform.TransformPathsCache
@@ -62,8 +63,7 @@ class SafeModeIntegrationTest extends FlatSpec
   override def beforeEach(): Unit = {
     super.beforeEach()
     if(!sparqlDatasetInitialized) {
-      implicit val prefixes: Prefixes = Prefixes.empty
-      implicit val resourceManager: ResourceManager = project.resources
+      implicit val context: PluginContext = PluginContext.fromProject(project)
       val task = project.task[GenericDatasetSpec](inputSparqlDataset)
       val oldTask = task.data
       val oldProperties = oldTask.properties
