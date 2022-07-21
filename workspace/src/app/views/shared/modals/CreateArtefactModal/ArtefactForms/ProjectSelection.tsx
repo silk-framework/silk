@@ -71,7 +71,7 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
             {showWarningModal && newProject ? warningModalForChangingProject : null}
             <FieldItem
                 key={"copy-label"}
-                labelAttributes={{
+                labelProps={{
                     htmlFor: "project-select",
                     text: t("CreateModal.projectContext.selectProjectLabel", "Select project"),
                 }}
@@ -90,7 +90,7 @@ const ProjectSelection: React.FC<ProjectSelectionProps> = ({
                             }
                         }
                     }}
-                    popoverProps={{
+                    contextOverlayProps={{
                         onClosed: () => {
                             projectId && !showWarningModal && onClose();
                         },

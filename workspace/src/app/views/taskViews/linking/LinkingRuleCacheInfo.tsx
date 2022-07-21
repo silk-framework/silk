@@ -53,6 +53,13 @@ export const LinkingRuleCacheInfo = ({ projectId, taskId }: LinkingRuleCacheInfo
                     onClose={() => {
                         setDisplayFullInfo(false);
                     }}
+                    content={(
+                        <div style={{ width: "40rem", padding: "0.5rem" }}>
+                            {referenceCache.widget}
+                            <Spacing size="small" />
+                            {pathCache.widget}
+                        </div>
+                    )}
                 >
                     <ActivityControlWidget
                         small
@@ -81,11 +88,6 @@ export const LinkingRuleCacheInfo = ({ projectId, taskId }: LinkingRuleCacheInfo
                             },
                         ]}
                     />
-                    <div style={{ width: "40rem", padding: "0.5rem" }}>
-                        {referenceCache.widget}
-                        <Spacing size="small" />
-                        {pathCache.widget}
-                    </div>
                 </ContextOverlay>
             </ToolbarSection>
             <Spacing key={"spacing2"} vertical={true} hasDivider={true} />

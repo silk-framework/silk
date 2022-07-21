@@ -2,7 +2,8 @@
 @import org.silkframework.workbench.Context
 @import config.WorkbenchConfig
 
-@(context: Context[LinkSpec])(implicit request: RequestHeader)
+@import config.WorkbenchConfig.WorkspaceReact
+@(context: Context[LinkSpec])(implicit request: RequestHeader, workspaceReact: WorkspaceReact)
 
 @header = {
   <script type="text/javascript">

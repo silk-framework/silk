@@ -1,56 +1,64 @@
-@import controllers.core.routes.Assets
-@import controllers.core.routes.Branding
-
+@import config.WorkbenchConfig.WorkspaceReact
 @import org.silkframework.runtime.activity.UserContext
-@import org.silkframework.config.ProductionConfig
-
-@(welcome: Html)(implicit request: RequestHeader, userContext: UserContext)
+@import controllers.core.routes.Branding
+@(welcome: Html)(implicit request: RequestHeader, userContext: UserContext, workspaceReact: WorkspaceReact)
 
 @exampleName = @{ "movies" }
 
 @projects = @{ org.silkframework.workspace.WorkspaceFactory().workspace.projects }
 
 @header = {
-  <link rel="stylesheet" href="@Assets.at("start.css")" type="text/css" />
-}
-
-@toolbar = {
+  @coreLinks.mainStyles()
 }
 
 @content = {
-  <div class="mdl-card mdl-shadow--2dp mdl-card--stretch">
-    <div class="mdl-card__content">
-      <div id="welcome">
-        <img class="logo" src="@Branding.logo.url"/>
-        @welcome
-      </div>
+  <div class="bp4-card bp4-elevation-1 eccgui-card">
+    <div class="eccgui-card__content">
+        <div class="eccgui-typography__contentblock">
+            <div id="welcome">
+              <img
+                class="logo"
+                src="@Branding.logo.url"
+                style="float: right; margin: 0 0 1rem 1rem;"
+              />
+              @welcome
+            </div>
 
-      <p>
-        Your current workspace contains @projects.size project(s).
-      </p>
-
-      @if(!projects.exists(_.id == exampleName)) {
-        <button id="start-load-example" class="mdl-button mdl-js-button mdl-button--raised" onclick="loadExample()" style="margin-left: 5px;">Load Example</button>
-        &nbsp;
-      }
-      <span>
-        <a id="workspace-switch" href="@config.baseUrl/workbench?itemType=project&page=1&limit=10" class="mdl-button mdl-js-button mdl-button--raised">Open workspace</a>
-        <div class="mdl-tooltip" data-mdl-for="workspace-switch">
-          Switch to workspace UI
+            <p>
+              Your current workspace contains @projects.size project(s).
+            </p>
         </div>
-      </span>
-      &nbsp;
-      <button id="open-workspace-btn" class="mdl-button mdl-js-button mdl-button--raised" onclick="window.location = '@config.baseUrl/workspace'">Open legacy workspace</button>
-
-      <script type="text/javascript">
-        function loadExample() {
-          $.post('@config.baseUrl/workspace/@exampleName/importExample')
-          .success(function(request) { window.location = '@config.baseUrl/workspace' })
-          .fail(function(request) { alert(request.responseText); })
-        }
-      </script>
     </div>
+    <hr class="eccgui-separation__divider-horizontal eccgui-separation__spacing--none" />
+    <footer class="eccgui-card__actions">
+        <span>
+          <a id="workspace-switch" href="@config.baseUrl/workbench?itemType=project&page=1&limit=10" class="bp4-button bp4-intent-primary eccgui-button ">
+              <span class="bp4-button-text">Open workspace</span>
+          </a>
+          <div class="mdl-tooltip" data-mdl-for="workspace-switch">
+            Switch to workspace UI
+          </div>
+        </span>
+        &nbsp;
+        <button id="open-workspace-btn" class="bp4-button eccgui-button" onclick="window.location = '@config.baseUrl/workspace'">
+            <span class="bp4-button-text">Open legacy workspace</span>
+        </button>
+
+        @if(!projects.exists(_.id == exampleName)) {
+          <button id="start-load-example" class="bp4-button eccgui-button" onclick="loadExample()" style="margin-left: 5px;">
+              <span class="bp4-button-text">Load Example</span>
+          </button>
+            &nbsp;
+        }
+    </footer>
   </div>
+  <script type="text/javascript">
+    function loadExample() {
+      $.post('@config.baseUrl/workspace/@exampleName/importExample')
+      .success(function(request) { window.location = '@config.baseUrl/workbench/projects/movies' })
+      .fail(function(request) { alert(request.responseText); })
+    }
+  </script>
 }
 
-@main(None, "start")(header)(toolbar)(content)
+@main(None, "start")(header)(null)(content)

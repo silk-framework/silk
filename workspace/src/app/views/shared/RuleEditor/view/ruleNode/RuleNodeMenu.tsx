@@ -50,9 +50,7 @@ export const RuleNodeMenu = ({ nodeId, t, handleDeleteNode, ruleOperatorDescript
                             e.stopPropagation();
                         }}
                         text={t("RuleEditor.node.menu.description.label")}
-                        internalProps={{
-                            htmlTitle: ruleOperatorDescription,
-                        }}
+                        htmlTitle={ruleOperatorDescription}
                     />
                 ) : null}
                 {showDescription && ruleOperatorDescription ? (

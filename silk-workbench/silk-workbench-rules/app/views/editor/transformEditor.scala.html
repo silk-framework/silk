@@ -7,7 +7,8 @@
 @import org.silkframework.runtime.activity.UserContext
 @import org.silkframework.rule.input.Transformer
 
-@(context: Context[TransformSpec], rule: TransformRule)(implicit request: RequestHeader, userContext: UserContext)
+@import config.WorkbenchConfig.WorkspaceReact
+@(context: Context[TransformSpec], rule: TransformRule)(implicit request: RequestHeader, userContext: UserContext, workspaceReact: WorkspaceReact)
 
 @header = {
   <link type="text/css" href="@Assets.at("stylesheets/editor/editor-reset.css")" rel="stylesheet" />
@@ -38,6 +39,12 @@
   <script id="rule-mappingtarget" type="text/xml">
     @rule.target.map((r: MappingTarget) => toXml(r))
   </script>
+
+  <style>
+      .mdl-layout__content *:not([class*=eccgui]) {
+          box-sizing: initial;
+      }
+  </style>
 }
 
 @toolbar = {

@@ -1,5 +1,6 @@
 package controllers.workspace
 
+import config.WorkbenchConfig.WorkspaceReact
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.SerializationUtils._
@@ -36,7 +37,7 @@ import java.net.HttpURLConnection
 import javax.inject.Inject
 
 @Tag(name = "Datasets", description = "Manage datasets.")
-class DatasetApi @Inject() () extends InjectedController with UserContextActions with ControllerUtilsTrait {
+class DatasetApi @Inject() (implicit workspaceReact: WorkspaceReact) extends InjectedController with UserContextActions with ControllerUtilsTrait {
 
   private implicit val partialPath = Json.format[PathCoverage]
   private implicit val valueCoverageMissFormat = Json.format[ValueCoverageMiss]

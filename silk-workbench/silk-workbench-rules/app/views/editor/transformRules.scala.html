@@ -1,20 +1,18 @@
+@import config.WorkbenchConfig.WorkspaceReact
 @import org.silkframework.rule.TransformSpec
-@import controllers.core.routes.{Assets => CoreAssets}
 @import org.silkframework.rule.vocab.Vocabularies
 @import org.silkframework.workbench.Context
-
-@(context: Context[TransformSpec], vocabularies: Vocabularies, rule: String)(implicit request: RequestHeader)
+@(context: Context[TransformSpec], vocabularies: Vocabularies, rule: String)(implicit request: RequestHeader, workspaceReact: WorkspaceReact)
 
 @header = {
-
 }
 
 @content = {
+  @coreLinks.mainJs()
   <div id="react-hierarchicalMapping"></div>
-  <script src="@CoreAssets.at("libs/silk-react-components/main.js")" type="text/javascript"></script>
   <script type="text/javascript">
 
-      silkReactComponents.hierarchicalMapping(
+      window.silkReactComponents.hierarchicalMapping(
         'react-hierarchicalMapping',
         {
             baseUrl: '@config.baseUrl',

@@ -59,8 +59,10 @@ export const SidebarSearchField = ({ onQueryChange, searchSuggestions, activeTab
                 leftIcon={
                     <Icon
                         name="operation-search"
-                        tooltipOpenDelay={500}
                         tooltipText={t("RuleEditor.sidebar.searchTooltip")}
+                        tooltipProps={{
+                            hoverOpenDelay: 500
+                        }}
                     />
                 }
             />

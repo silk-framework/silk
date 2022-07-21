@@ -1,3 +1,16 @@
+/**
+ * Legacy styles for older components
+ * FIXME: they need to made be obsolete as soon as possible
+ */
+
+// Transformation editor
+@import "./../app/views/pages/MappingEditor/style/style.scss";
+
+
+/**
+ * Current styles
+ */
+
 // The theme is defined only by using configuration variables only
 // no explicit style definitions outside the gui elements
 

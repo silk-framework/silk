@@ -7,3 +7,17 @@ export interface IInputSource {
     /** Optional restriction for RDF/SPARQL based sources. Contains the body/pattern of a SPARQL WHERE clause. */
     restriction?: string;
 }
+
+/** UI annotations, i.e. annotations like sticky notes that are displayed in the UI as additional descriptions/notes. */
+export interface IUiAnnotations {
+    stickyNotes: IStickyNote[];
+}
+
+/** A sticky note for display in the UI. */
+export interface IStickyNote {
+    id: string;
+    content: string;
+    color: string;
+    position: number[];
+    dimension: number[];
+}

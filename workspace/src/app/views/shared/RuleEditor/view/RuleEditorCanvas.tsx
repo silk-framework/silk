@@ -22,7 +22,6 @@ import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { EdgeMenu } from "./ruleEdge/EdgeMenu";
 import { ruleEditorModelUtilsFactory, SOURCE_HANDLE_TYPE, TARGET_HANDLE_TYPE } from "../model/RuleEditorModel.utils";
 import { MiniMap } from "@eccenca/gui-elements/src/extensions/react-flow/minimap/MiniMap";
-import { minimapNodeClassName, minimapNodeColor } from "@eccenca/gui-elements/src/extensions/react-flow/minimap/utils";
 import { GridColumn } from "@eccenca/gui-elements";
 import { RuleEditorNode } from "../model/RuleEditorModel.typings";
 import useHotKey from "../../HotKeyHandler/HotKeyHandler";
@@ -35,8 +34,6 @@ const modelUtils = ruleEditorModelUtilsFactory();
 
 /** The main graphical rule editor canvas where the rule nodes are placed and connected. */
 export const RuleEditorCanvas = () => {
-    const reactFlowWrapper = React.useRef<any>(null);
-    const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
     // Stores state during a node drag action
     const [dragState] = React.useState<IRuleEditorViewDragState>({});
     // Stores state during a selection drag action, i.e. moving a selection of nodes
@@ -455,14 +452,14 @@ export const RuleEditorCanvas = () => {
 
     // Triggered after the react-flow instance has been loaded
     const onLoad = (_reactFlowInstance: OnLoadParams) => {
-        setReactFlowInstance(_reactFlowInstance);
+        ruleEditorUiContext.setReactFlowInstance(_reactFlowInstance)
         modelContext.setReactFlowInstance(_reactFlowInstance);
     };
 
     // Add new node when operator is dropped
     const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
-        const reactFlowBounds = reactFlowWrapper.current?.getBoundingClientRect();
+        const reactFlowBounds = ruleEditorUiContext?.reactFlowWrapper?.current?.getBoundingClientRect();
         const pluginData = e.dataTransfer.getData("text/plain");
         if (pluginData) {
             try {
@@ -500,56 +497,53 @@ export const RuleEditorCanvas = () => {
     };
 
     return (
-        <GridColumn full>
-            <ReactFlow
-                id={"ruleEditor-react-flow-canvas"}
-                data-test-id={"ruleEditor-react-flow-canvas"}
-                configuration={"linking"}
-                ref={reactFlowWrapper}
-                elements={modelContext.elements}
-                onElementClick={onElementClick}
-                onSelectionDragStart={handleSelectionDragStart}
-                onSelectionDragStop={handleSelectionDragStop}
-                onEdgeContextMenu={onEdgeContextMenu}
-                onElementsRemove={onElementsRemove}
-                onConnectStart={onConnectStart}
-                onConnect={onConnect}
-                onConnectEnd={onConnectEnd}
-                onNodeDragStart={handleNodeDragStart}
-                onNodeDragStop={handleNodeDragStop}
-                onNodeMouseEnter={onNodeMouseEnter}
-                onNodeMouseLeave={onNodeMouseLeave}
-                onNodeContextMenu={onNodeContextMenu}
-                onSelectionContextMenu={onSelectionContextMenu}
-                onSelectionChange={onSelectionChange}
-                onLoad={onLoad}
-                onDrop={onDrop}
-                onDragOver={onDragOver}
-                onEdgeUpdateStart={onEdgeUpdateStart}
-                onEdgeUpdateEnd={onEdgeUpdateEnd}
-                onEdgeUpdate={onEdgeUpdate}
-                connectionLineType={ConnectionLineType.Step}
-                snapGrid={snapGrid}
-                snapToGrid={true}
-                zoomOnDoubleClick={false}
-                maxZoom={1.25}
-                multiSelectionKeyCode={18} // ALT
-            >
-                <MiniMap
-                    flowInstance={reactFlowInstance}
-                    nodeClassName={minimapNodeClassName}
-                    nodeColor={minimapNodeColor}
-                    enableNavigation={true}
-                />
-                <Controls
-                    showInteractive={!!modelContext.setIsReadOnly}
-                    onInteractiveChange={(isInteractive) =>
-                        modelContext.setIsReadOnly && modelContext.setIsReadOnly(!isInteractive)
-                    }
-                />
-                <Background variant={BackgroundVariant.Lines} gap={16} />
-            </ReactFlow>
-            {contextMenu}
-        </GridColumn>
+        <>
+            <GridColumn full>
+                <ReactFlow
+                    id={"ruleEditor-react-flow-canvas"}
+                    data-test-id={"ruleEditor-react-flow-canvas"}
+                    configuration={"linking"}
+                    ref={ruleEditorUiContext?.reactFlowWrapper}
+                    elements={modelContext.elements}
+                    onElementClick={onElementClick}
+                    onSelectionDragStart={handleSelectionDragStart}
+                    onSelectionDragStop={handleSelectionDragStop}
+                    onEdgeContextMenu={onEdgeContextMenu}
+                    onElementsRemove={onElementsRemove}
+                    onConnectStart={onConnectStart}
+                    onConnect={onConnect}
+                    onConnectEnd={onConnectEnd}
+                    onNodeDragStart={handleNodeDragStart}
+                    onNodeDragStop={handleNodeDragStop}
+                    onNodeMouseEnter={onNodeMouseEnter}
+                    onNodeMouseLeave={onNodeMouseLeave}
+                    onNodeContextMenu={onNodeContextMenu}
+                    onSelectionContextMenu={onSelectionContextMenu}
+                    onSelectionChange={onSelectionChange}
+                    onLoad={onLoad}
+                    onDrop={onDrop}
+                    onDragOver={onDragOver}
+                    onEdgeUpdateStart={onEdgeUpdateStart}
+                    onEdgeUpdateEnd={onEdgeUpdateEnd}
+                    onEdgeUpdate={onEdgeUpdate}
+                    connectionLineType={ConnectionLineType.Step}
+                    snapGrid={snapGrid}
+                    snapToGrid={true}
+                    zoomOnDoubleClick={false}
+                    maxZoom={1.25}
+                    multiSelectionKeyCode={18} // ALT
+                >
+                    <MiniMap flowInstance={ruleEditorUiContext.reactFlowInstance} enableNavigation={true} />
+                    <Controls
+                        showInteractive={!!modelContext.setIsReadOnly}
+                        onInteractiveChange={(isInteractive) =>
+                            modelContext.setIsReadOnly && modelContext.setIsReadOnly(!isInteractive)
+                        }
+                    />
+                    <Background variant={BackgroundVariant.Lines} gap={16} />
+                </ReactFlow>
+                {contextMenu}
+            </GridColumn>
+        </>
     );
 };

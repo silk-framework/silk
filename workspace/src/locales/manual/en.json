@@ -27,6 +27,14 @@
     "ShowIdentifierModal": {
         "title": "Item identifier"
     },
+    "StickyNoteModal": {
+        "title": "Add note",
+        "tooltip": "Add note",
+        "labels": {
+            "codeEditor": "Note",
+            "color": "Color"
+        }
+    },
     "DataList": {
         "loading": "Loading data."
     },
@@ -159,7 +167,8 @@
     },
     "ParameterWidget": {
         "AutoComplete": {
-            "createNewItem": "Custom entry: '{{query}}'"
+            "createNewItem": "Custom entry: '{{query}}'",
+            "fetchErrorTitle": "Could not fetch auto-completion suggestions. "
         }
     },
     "PrefixDialog": {
@@ -357,9 +366,11 @@
                 "projects": "Projects",
                 "projectsTooltip": "Shows the list of all data-integration build projects.",
                 "activities": "Activities",
-                "activitiesTooltip": "Shows the list of all data-integration build activities"
+                "activitiesTooltip": "Shows the list of all data-integration build activities",
+                "workflows": "Workflows",
+                "workflowsTooltip": "Shows the list of all workflows across all build projects."
             },
-	    "diBrowse": "Silk",
+            "diBrowse": "Silk",
             "diBrowseTooltip": "Used to manage data-integration projects to build a knowledge graph from existing datasources",
             "dm": {
                 "explore": "Knowledge Graphs",
@@ -454,6 +465,7 @@
             "searchTooltip": "Search for rule operators and input paths."
         },
         "toolbar": {
+            "advancedParameterMode": "advanced",
             "autoLayout": "Auto-layout",
             "readOnly": "Read-only mode is enabled. No saving possible.",
             "save": "Save",

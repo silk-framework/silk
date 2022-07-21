@@ -175,18 +175,41 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
     * @param ruleName The ID of the rule.
     */
   def nestedRuleAndSourcePath(ruleName: String): Option[(TransformRule, List[PathOperator])] = {
+    fetchRuleAndSourcePath(mappingRule, ruleName, List.empty).lastOption
+  }
+
+  /**
+    * Return the transform rule and the combined source path to that rule with all it parents.
+    * The returned list starts with the top most parent and ends with the found rule.
+    * If the rule has not been found an empty list is returned.
+    *
+    * @param ruleName The ID of the rule.
+    */
+  def nestedRuleAndSourcePathWithParents(ruleName: String): List[(TransformRule, List[PathOperator])] = {
     fetchRuleAndSourcePath(mappingRule, ruleName, List.empty)
   }
 
-  // Recursively search for the rule in the transform spec rule tree and accumulate the source path.
+  /* Recursively search for the rule in the transform spec rule tree and accumulate the source path.
+   * Return all rules leading to the rule with their corresponding paths. The result list starts with the top most rule, i.e. root rule.
+   * If the rule was not found it returns Mil.
+  */
   private def fetchRuleAndSourcePath(transformRule: TransformRule,
                                      ruleName: String,
-                                     sourcePath: List[PathOperator]): Option[(TransformRule, List[PathOperator])] = {
+                                     sourcePath: List[PathOperator]): List[(TransformRule, List[PathOperator])] = {
     val sourcePathOperators = sourcePathOfRule(transformRule)
+    val ruleSourcePath = sourcePath ::: sourcePathOperators
     if (transformRule.id.toString == ruleName) {
-      Some(transformRule, sourcePath ::: sourcePathOperators) // Found the rule, return the result
+      (transformRule, ruleSourcePath) :: Nil // Found the rule, return the result
     } else {
-      transformRule.rules.flatMap(rule => fetchRuleAndSourcePath(rule, ruleName, sourcePath ::: sourcePathOperators)).headOption
+      transformRule.rules
+        .map(rule => fetchRuleAndSourcePath(rule, ruleName, ruleSourcePath))
+        .find(_.nonEmpty).getOrElse(Nil) match {
+        case Nil =>
+          Nil
+        case list: List[(TransformRule, List[PathOperator])] =>
+          (transformRule, ruleSourcePath) :: list
+      }
+
     }
   }
 

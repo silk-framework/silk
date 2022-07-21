@@ -17,6 +17,7 @@ describe("Rule utils", () => {
             portSpecification: {
                 minInputPorts: 0,
             },
+            inputsCanBeSwitched: false,
             ...node,
         };
     };
@@ -59,13 +60,15 @@ describe("Rule utils", () => {
         return [validateTrue, validateFalse];
     };
 
-    const ruleTree = (edges: TestEdge[] = []) =>
+    const ruleTree = (edges: TestEdge[] = [], additionalNodes: TestOperator[] = []) =>
         createTestGraph(
             [
                 operator("sp1", "PathInputOperator", "sourcePathInput"),
                 operator("sp2", "PathInputOperator", "sourcePathInput"),
+                operator("sp3", "PathInputOperator", "sourcePathInput"),
                 operator("tp1", "PathInputOperator", "targetPathInput"),
                 operator("tp2", "PathInputOperator", "targetPathInput"),
+                operator("tp3", "PathInputOperator", "targetPathInput"),
                 operator("t1", "TransformOperator"),
                 operator("t2", "TransformOperator"),
                 operator("t3", "TransformOperator"),
@@ -75,6 +78,7 @@ describe("Rule utils", () => {
                 operator("c3", "ComparisonOperator"),
                 operator("a1", "AggregationOperator"),
                 operator("a2", "AggregationOperator"),
+                ...additionalNodes,
             ],
             edges
         );
@@ -182,6 +186,68 @@ describe("Rule utils", () => {
         validateFalse("t2", "t1");
         validateFalse("t2", "t1", 1);
     });
+
+    it("should validate connections to reversible comparators", () => {
+        const [validateTrue, validateFalse] = validateRuleTreeFactory(
+            ruleTree(
+                [
+                    // Setup some paths
+                    edge("source1", "t1"),
+                    edge("target1", "t2"),
+                    edge("source2", "t3"),
+                    edge("target2", "t4"),
+                    edge("sp1", "reverseS1"),
+                    edge("sp2", "reverseS2", 1),
+                    edge("tp1", "reverseT1"),
+                    edge("tp2", "reverseT2", 1),
+                    edge("t1", "reverseS3", 1),
+                    edge("t2", "reverseT3"),
+                ],
+                [
+                    // additional path operators
+                    operator("source1", "PathInputOperator", "sourcePathInput"),
+                    operator("source2", "PathInputOperator", "sourcePathInput"),
+                    operator("target1", "PathInputOperator", "targetPathInput"),
+                    operator("target2", "PathInputOperator", "targetPathInput"),
+                    operator("reverseNoInput", "ComparisonOperator", undefined, true),
+                    operator("reverseS1", "ComparisonOperator", undefined, true),
+                    operator("reverseS2", "ComparisonOperator", undefined, true),
+                    operator("reverseS3", "ComparisonOperator", undefined, true),
+                    operator("reverseT1", "ComparisonOperator", undefined, true),
+                    operator("reverseT2", "ComparisonOperator", undefined, true),
+                    operator("reverseT3", "ComparisonOperator", undefined, true),
+                ]
+            )
+        );
+        // reversible comparator without inputs takes any connection
+        validateTrue("tp3", "reverseNoInput");
+        validateTrue("tp3", "reverseNoInput", 1);
+        validateTrue("t1", "reverseNoInput");
+        validateTrue("t1", "reverseNoInput", 1);
+        validateTrue("sp3", "reverseNoInput", 1);
+        // reversible comparator with source input must not get another source input, but replace is OK
+        validateTrue("sp3", "reverseS1");
+        validateFalse("sp3", "reverseS1", 1);
+        validateFalse("sp3", "reverseS2");
+        validateTrue("sp3", "reverseS2", 1);
+        validateTrue("t3", "reverseS1");
+        validateFalse("t3", "reverseS1", 1);
+        validateFalse("t3", "reverseS2");
+        validateTrue("t3", "reverseS2", 1);
+        validateFalse("t3", "reverseS3");
+        validateTrue("t3", "reverseS3", 1);
+        // same for target input
+        validateTrue("tp3", "reverseT1");
+        validateFalse("tp3", "reverseT1", 1);
+        validateFalse("tp3", "reverseT2");
+        validateTrue("tp3", "reverseT2", 1);
+        validateTrue("t4", "reverseT1");
+        validateFalse("t4", "reverseT1", 1);
+        validateFalse("t4", "reverseT2");
+        validateTrue("t4", "reverseT2", 1);
+        validateFalse("t4", "reverseT3", 1);
+        validateTrue("t4", "reverseT3");
+    });
 });
 
 type TestPluginType = "doesntMatter" | "sourcePathInput" | "targetPathInput";
@@ -189,6 +255,7 @@ interface TestOperator {
     nodeId: string;
     pluginType: RuleOperatorPluginType;
     pluginId: TestPluginType;
+    inputsCanBeSwitched?: boolean;
 }
 
 interface TestEdge {
@@ -200,9 +267,10 @@ interface TestEdge {
 const operator = (
     nodeId: string,
     pluginType: RuleOperatorPluginType,
-    pluginId: TestPluginType = "doesntMatter"
+    pluginId: TestPluginType = "doesntMatter",
+    inputsCanBeSwitched: boolean = false
 ): TestOperator => {
-    return { nodeId, pluginType, pluginId };
+    return { nodeId, pluginType, pluginId, inputsCanBeSwitched };
 };
 
 const edge = (sourceNode: string, targetNode: string, targetPort: number = 0): TestEdge => {
@@ -214,7 +282,8 @@ const createTestGraph = (nodes: TestOperator[], edges: TestEdge[]): Map<string, 
     const inputNodes = new Map<string, (string | undefined)[]>(nodes.map((n) => [n.nodeId, []]));
     const outputNode = new Map<string, string>();
     edges.forEach((e) => {
-        inputNodes.get(e.targetNode)!![e.targetPort] = e.sourceNode;
+        const inputNode = inputNodes.get(e.targetNode);
+        inputNode!![e.targetPort] = e.sourceNode;
         outputNode.set(e.sourceNode, e.targetNode);
     });
     nodes.forEach((node) => {

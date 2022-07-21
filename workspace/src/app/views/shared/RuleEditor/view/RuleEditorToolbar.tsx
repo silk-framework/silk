@@ -4,6 +4,7 @@ import {
     Icon,
     IconButton,
     Spacing,
+    StickyNoteModal,
     Switch,
     TitleMainsection,
     Toolbar,
@@ -19,6 +20,7 @@ import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from ".
 import { EvaluationActivityControl } from "./evaluation/EvaluationActivityControl";
 import { Prompt } from "react-router";
 import { RuleValidationError } from "../RuleEditor.typings";
+import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from "../model/RuleEditorModel.utils";
 
 /** Toolbar of the rule editor. Contains global editor actions like save, redo/undo etc. */
 export const RuleEditorToolbar = () => {
@@ -29,7 +31,9 @@ export const RuleEditorToolbar = () => {
         React.useContext<RuleEditorEvaluationContextProps>(RuleEditorEvaluationContext);
     const [savingWorkflow, setSavingWorkflow] = React.useState(false);
     const [evaluationShown, setEvaluationShown] = React.useState(false);
+    const [showCreateStickyModal, setShowCreateStickyModal] = React.useState<boolean>(false);
     const [t] = useTranslation();
+    const integratedView = !!ruleEditorContext.viewActions?.integratedView
 
     useHotKey({
         hotkey: "mod+z",
@@ -54,6 +58,14 @@ export const RuleEditorToolbar = () => {
             window.onbeforeunload = () => true;
         } else {
             window.onbeforeunload = null;
+        }
+        const parentWindow = window.parent as Window & {setLinkingEditorUnsavedChanges?: (hasUnsavedChanges: boolean) => any}
+        if(integratedView && parentWindow !== window && typeof parentWindow.setLinkingEditorUnsavedChanges === "function") {
+            try {
+                parentWindow.setLinkingEditorUnsavedChanges(modelContext.unsavedChanges)
+            } catch(ex) {
+                console.warn("Cannot call setLinkingEditorUnsavedChanges() of parent window!", ex)
+            }
         }
     }, [modelContext.unsavedChanges]);
 
@@ -85,11 +97,38 @@ export const RuleEditorToolbar = () => {
         : ruleEditorContext.lastSaveResult?.errorMessage
         ? (ruleEditorContext.lastSaveResult as RuleValidationError)
         : undefined;
+    const translationsStickyNoteModal = {
+        modalTitle: t("StickyNoteModal.title"),
+        noteLabel: t("StickyNoteModal.labels.codeEditor"),
+        colorLabel: t("StickyNoteModal.labels.color"),
+        saveButton: t("common.action.save"),
+        cancelButton: t("common.action.cancel"),
+    };
+
+    const handleStickyNoteSubmit = ({ note, color }) => {
+        if (ruleEditorUiContext.reactFlowInstance && ruleEditorUiContext.reactFlowWrapper?.current) {
+            const reactFlowBounds = ruleEditorUiContext.reactFlowWrapper.current.getBoundingClientRect();
+            const position = ruleEditorUiContext.reactFlowInstance.project({
+                x: (reactFlowBounds.width - DEFAULT_NODE_WIDTH) / 2,
+                y: (reactFlowBounds.height - DEFAULT_NODE_HEIGHT) / 2,
+            });
+            modelContext.executeModelEditOperation.addStickyNode(note, position, color);
+        } else {
+            console.warn("No react-flow objects loaded!");
+        }
+    };
 
     return (
         <>
             {ruleEditorContext.editorTitle ? (
                 <TitleMainsection>{ruleEditorContext.editorTitle}</TitleMainsection>
+            ) : null}
+            {showCreateStickyModal ? (
+                <StickyNoteModal
+                    onClose={() => setShowCreateStickyModal(false)}
+                    onSubmit={handleStickyNoteSubmit}
+                    translate={(key) => translationsStickyNoteModal[key]}
+                />
             ) : null}
             <Toolbar data-test-id={"workflow-editor-header"} noWrap>
                 <Prompt when={modelContext.unsavedChanges} message={routingPrompt} />
@@ -116,6 +155,13 @@ export const RuleEditorToolbar = () => {
                         text={t("RuleEditor.toolbar.autoLayout")}
                         onClick={() => modelContext.executeModelEditOperation.autoLayout(true)}
                     />
+                    <Spacing vertical hasDivider />
+                    <IconButton
+                        data-test-id="rule-editor-header-sticky-btn"
+                        name="item-comment"
+                        text={t("StickyNoteModal.tooltip")}
+                        onClick={() => setShowCreateStickyModal(true)}
+                    />
                     {ruleEvaluationContext.supportsEvaluation && (
                         <>
                             <Spacing vertical hasDivider />
@@ -127,6 +173,13 @@ export const RuleEditorToolbar = () => {
                             />
                         </>
                     )}
+                    <Spacing vertical size={"small"}/>
+                    <Switch
+                        data-test-id={"rule-editor-advanced-toggle"}
+                        label={t("RuleEditor.toolbar.advancedParameterMode")}
+                        checked={ruleEditorUiContext.advancedParameterModeEnabled}
+                        onClick={() => ruleEditorUiContext.setAdvancedParameterMode(!ruleEditorUiContext.advancedParameterModeEnabled)}
+                    />
                 </ToolbarSection>
                 <ToolbarSection canGrow>
                     <Spacing vertical />
@@ -158,7 +211,7 @@ export const RuleEditorToolbar = () => {
                         tooltip={
                             modelContext.isReadOnly() ? t("RuleEditor.toolbar.readOnly") : t("RuleEditor.toolbar.save")
                         }
-                        tooltipProperties={{ hoverCloseDelay: 0 }}
+                        tooltipProps={{ hoverCloseDelay: 0 }}
                         onClick={saveLinkingRule}
                         disabled={modelContext.isReadOnly() || !modelContext.unsavedChanges}
                         href={modelContext.isReadOnly() || !modelContext.unsavedChanges ? "#" : undefined}
@@ -172,7 +225,7 @@ export const RuleEditorToolbar = () => {
                     </Button>
                     <RuleEditorNotifications
                         key={"notifications"}
-                        integratedView={ruleEditorContext.viewActions?.integratedView}
+                    integratedView={integratedView}
                         queueEditorNotifications={
                             ruleValidationError ? [ruleValidationError.errorMessage] : ([] as string[])
                         }

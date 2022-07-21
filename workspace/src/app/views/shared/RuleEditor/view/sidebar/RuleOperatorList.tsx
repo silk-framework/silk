@@ -81,7 +81,7 @@ export function RuleOperatorList<T>({ ruleOperatorList, textQuery, preConfigured
                                         data-test-id={"cancel-cycling-through-nodes"}
                                         rightIcon={"operation-clear"}
                                         tooltip={t("RuleEditor.sidebar.cancelCycling")}
-                                        tooltipProperties={{ position: "bottom", usePortal: false }}
+                                        tooltipProps={{ placement: "bottom", usePortal: false }}
                                         onClick={resetCycleTask}
                                     />
                                 ) : null}
@@ -91,7 +91,7 @@ export function RuleOperatorList<T>({ ruleOperatorList, textQuery, preConfigured
                                     rightIcon={"navigation-jump"}
                                     text={isActiveTaskItem ? `${(taskCycleIndex || 0) + 1}/${totalMatches}` : ""}
                                     tooltip={t("RuleEditor.sidebar.cycleTooltip", { totalMatches })}
-                                    tooltipProperties={{ position: "bottom", usePortal: false }}
+                                    tooltipProps={{ placement: "bottom", usePortal: false }}
                                     onClick={() => cycleThroughTaskNodes(ruleOperator.pluginId)}
                                 />
                             </OverviewItemActions>

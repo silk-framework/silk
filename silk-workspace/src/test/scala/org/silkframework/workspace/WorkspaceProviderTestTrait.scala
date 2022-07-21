@@ -20,6 +20,7 @@ import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.runtime.users.DefaultUserManager
 import org.silkframework.util.{Identifier, Uri}
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowDataset, WorkflowOperator}
+import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import org.silkframework.workspace.resources.InMemoryResourceRepository
 
 
@@ -57,7 +58,7 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
 
   private def project(implicit userContext: UserContext) = workspace.project(PROJECT_NAME)
 
-  val rule =
+  private val rule =
     LinkageRule(
       operator = Some(
         Comparison(
@@ -71,22 +72,25 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
       linkType = "http://www.w3.org/2002/07/owl#sameAs",
       layout = RuleLayout(
         nodePositions = Map("compareNames" -> (1, 2))
+      ),
+      uiAnnotations = UiAnnotations(
+        stickyNotes = Seq(StickyNote("compareNames", "content", "#fff", (0, 0), (1, 1)))
       )
     )
 
-  val metaData =
+  private val metaData =
     MetaData(
       label = Some("Task Label"),
       description = Some("Some Task Description")
     )
 
-  val metaDataUpdated =
+  private val metaDataUpdated =
     MetaData(
       label = Some("Updated Task Label"),
       description = Some("Updated Task Description")
     )
 
-  val dataset = PlainTask(DATASET_ID, DatasetSpec(MockDataset("default")), metaData = MetaData(Some(DATASET_ID), Some(DATASET_ID + " description")))
+  private val dataset = PlainTask(DATASET_ID, DatasetSpec(MockDataset("default")), metaData = MetaData(Some(DATASET_ID), Some(DATASET_ID + " description")))
 
   val datasetUpdated = PlainTask(DATASET_ID, DatasetSpec(MockDataset("updated"), uriAttribute = Some("uri")), metaData = MetaData(Some(DATASET_ID)))
 
@@ -206,7 +210,11 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
           ),
           datasets = Seq(
             WorkflowDataset(Seq(), DATASET_ID, Seq(TRANSFORM_ID), (1,2), DATASET_ID, Some(1.0), configInputs = Seq.empty)
-          )),
+          ),
+          uiAnnotations = UiAnnotations(
+            stickyNotes = Seq(StickyNote("sticky1", "content", "#fff", (0, 0), (1, 1)))
+          )
+        ),
       metaData = metaData
     )
 

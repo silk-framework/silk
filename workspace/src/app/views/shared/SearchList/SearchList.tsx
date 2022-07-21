@@ -157,10 +157,10 @@ export function SearchList() {
                     <SearchItem
                         key={`${item.id}_${item.projectId}`}
                         item={item}
-                        onOpenDeleteModal={() => onOpenDeleteModal(item)}
-                        onOpenDuplicateModal={() => onOpenDuplicateModal(item)}
-                        onOpenCopyToModal={() => onOpenCopyToModal(item)}
-                        toggleShowIdentifierModal={() => toggleShowIdentifierModal(item)}
+                        onOpenDeleteModal={onOpenDeleteModal}
+                        onOpenDuplicateModal={onOpenDuplicateModal}
+                        onOpenCopyToModal={onOpenCopyToModal}
+                        toggleShowIdentifierModal={toggleShowIdentifierModal}
                         searchValue={appliedFilters.textQuery}
                         parentProjectId={projectId}
                     />

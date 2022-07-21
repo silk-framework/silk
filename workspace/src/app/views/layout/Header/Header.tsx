@@ -162,6 +162,18 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                         active={location.pathname === SERVE_PATH && locationParams.get("itemType") === "dataset"}
                     />
                     <MenuItem
+                        icon="artefact-workflow"
+                        text={t("navigation.side.di.workflows", "Workflows")}
+                        htmlTitle={t("navigation.side.di.workflowsTooltip")}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleNavigate(SERVE_PATH + searchURL("workflow"));
+                        }}
+                        href={SERVE_PATH + searchURL("workflow")}
+                        active={location.pathname === SERVE_PATH && locationParams.get("itemType") === "workflow"}
+                    />
+                    <MenuItem
                         icon="application-activities"
                         text={t("navigation.side.di.activities", "Activities")}
                         htmlTitle={t("navigation.side.di.activitiesTooltip")}

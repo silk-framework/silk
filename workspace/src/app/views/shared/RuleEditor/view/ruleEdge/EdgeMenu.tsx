@@ -23,7 +23,7 @@ export const EdgeMenu = ({ position, onClose, removeEdge }: EdgeMenuProps) => {
                 icon="item-remove"
                 data-test-id={"edge-menu-remove-btn"}
                 tooltip={t("RuleEditor.edge.menu.delete.tooltip")}
-                tooltipProperties={{
+                tooltipProps={{
                     autoFocus: false,
                     enforceFocus: false,
                     openOnTargetFocus: false,

@@ -16,6 +16,7 @@ import {
 import ErrorBoundary from "../../../ErrorBoundary";
 import { ReactFlowProvider } from "react-flow-renderer";
 import utils from "./RuleEditor.utils";
+import { IStickyNote } from "views/taskViews/shared/task.typings";
 
 export type RuleOperatorFetchFnType = (
     pluginId: string,
@@ -34,6 +35,7 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     /** Save rule. If true is returned saving was successful, else it failed. */
     saveRule: (
         ruleOperatorNodes: IRuleOperatorNode[],
+        stickyNotes: IStickyNote[],
         originalRuleData: RULE_TYPE
     ) => Promise<RuleSaveResult> | RuleSaveResult;
     /** Fetch available rule operators. */
@@ -63,6 +65,8 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     tabs?: (IRuleSideBarFilterTabConfig | IRuleSidebarPreConfiguredOperatorsTabConfig)[];
     /** Additional components that will be placed in the tool bar left to the save button. */
     additionalToolBarComponents?: () => JSX.Element | JSX.Element[];
+    /** parent configuration to extract stickyNote from taskData*/
+    getStickyNotes?: (taskData: RULE_TYPE | undefined) => IStickyNote[];
 }
 
 const READ_ONLY_QUERY_PARAMETER = "readOnly";
@@ -83,7 +87,8 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     tabs,
     viewActions,
     additionalToolBarComponents,
-    editorTitle
+    editorTitle,
+    getStickyNotes = () => [],
 }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
     // The task that contains the rule, e.g. transform or linking task
     const [taskData, setTaskData] = React.useState<TASK_TYPE | undefined>(undefined);
@@ -174,9 +179,12 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
         }
     };
 
-    const saveRuleOperatorNodes = async (ruleNodeOperators: IRuleOperatorNode[]): Promise<RuleSaveResult> => {
+    const saveRuleOperatorNodes = async (
+        ruleNodeOperators: IRuleOperatorNode[],
+        stickyNotes: IStickyNote[] = []
+    ): Promise<RuleSaveResult> => {
         if (taskData) {
-            const result = await saveRule(ruleNodeOperators, taskData);
+            const result = await saveRule(ruleNodeOperators, stickyNotes, taskData);
             updateLastSaveResult(result);
             return result;
         } else {
@@ -224,7 +232,8 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 readOnlyMode,
                 additionalToolBarComponents,
                 lastSaveResult: lastSaveResult,
-                editorTitle
+                editorTitle,
+                stickyNotes: getStickyNotes(taskData),
             }}
         >
             <RuleEditorModel>

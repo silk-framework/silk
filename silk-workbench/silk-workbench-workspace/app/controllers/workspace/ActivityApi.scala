@@ -403,8 +403,12 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
       Some(WorkspaceFactory().workspace.project(projectName))
     }
     val activity = activityControl(projectName, taskName, activityName, activityInstance)
-    val value = activity.value()
-    SerializationUtils.serializeRuntime(value)
+    activity.value.get match {
+      case Some(value) =>
+        SerializationUtils.serializeRuntime(value)
+      case None =>
+        throw NotFoundException(s"No value found for activity.")
+    }
   }
 
   @deprecated

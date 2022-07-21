@@ -26,7 +26,7 @@ import org.silkframework.runtime.plugin.annotations.{Param, Plugin, TransformExa
   )
 ))
 case class UrlEncodeTransformer(
-  @Param("The character encoding.")
+  @Param(value = "The character encoding.", advanced = true)
   encoding: String = "UTF-8") extends SimpleTransformer {
 
   override def evaluate(value: String): String = {

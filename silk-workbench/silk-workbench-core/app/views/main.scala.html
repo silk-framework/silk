@@ -3,7 +3,8 @@
 @import org.silkframework.config.TaskSpec
 @import org.silkframework.workbench.Context
 
-@(context: Option[Context[_ <: TaskSpec]], selectedTab: String = "", titleLabel: String = "")(header: Html)(toolbar: Html)(content: Html)(implicit request: RequestHeader)
+@import config.WorkbenchConfig.WorkspaceReact
+@(context: Option[Context[_ <: TaskSpec]], selectedTab: String = "", titleLabel: String = "")(header: Html)(toolbar: Html)(content: Html)(implicit request: RequestHeader, workspaceReact: WorkspaceReact)
 
 @frame(header) {
     <dialog id="primary_dialog" class="mdl-dialog__container">

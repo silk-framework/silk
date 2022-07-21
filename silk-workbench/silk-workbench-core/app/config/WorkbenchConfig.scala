@@ -78,13 +78,33 @@ object WorkbenchConfig {
 
   @javax.inject.Singleton
   class WorkspaceReact @Inject()(env: Environment) {
-    private lazy val html: Html = calculateHtml()
+    private lazy val _indexHtml: Html = calculateHtml()
+    private lazy val _styleLinks: Seq[String] = calculateStyleLinks()
+    private lazy val _jsLinks: Seq[String] = calculateJsLinks()
 
     def indexHtml: Html = {
       if(env.mode == Mode.Prod) {
-        html
+        _indexHtml
       } else {
         calculateHtml()
+      }
+    }
+
+    /** Returns the absolute paths to the style (CSS) files. */
+    def styleLinks: Seq[String] = {
+      if(env.mode == Mode.Prod) {
+        _styleLinks
+      } else {
+        calculateStyleLinks()
+      }
+    }
+
+    /** Returns the absolute paths to the style (CSS) files. */
+    def jsLinks: Seq[String] = {
+      if(env.mode == Mode.Prod) {
+        _jsLinks
+      } else {
+        calculateJsLinks()
       }
     }
 
@@ -98,6 +118,28 @@ object WorkbenchConfig {
       val html = injectConfigProperties(context, htmlString)
       val rewrittenHtml = adaptUrls(context, html)
       Html(rewrittenHtml)
+    }
+
+    private def calculateStyleLinks(): Seq[String] = {
+      val htmlString = indexHtml.toString()
+      val regex = """(<link\s+[^>]*rel="stylesheet"\s*[^>]*>)""".r
+      val links = regex.findAllMatchIn(htmlString) flatMap { m =>
+        val linkString = htmlString.substring(m.start(1), m.end(1))
+        val linkHrefRegex = """href="([^"]+)"""".r
+        linkHrefRegex.findFirstMatchIn(linkString).map(m => linkString.substring(m.start(1), m.end(1)))
+      }
+      links.toSeq
+    }
+
+    private def calculateJsLinks(): Seq[String] = {
+      val htmlString = indexHtml.toString()
+      val regex = """(<script\s+[^>]*src\s*[^>]*>)""".r
+      val links = regex.findAllMatchIn(htmlString) flatMap { m =>
+        val linkString = htmlString.substring(m.start(1), m.end(1))
+        val linkSrcRegex = """src="([^"]+)"""".r
+        linkSrcRegex.findFirstMatchIn(linkString).map(m => linkString.substring(m.start(1), m.end(1)))
+      }
+      links.toSeq
     }
   }
 

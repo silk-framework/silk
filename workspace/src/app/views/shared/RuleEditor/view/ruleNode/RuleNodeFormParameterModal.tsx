@@ -92,7 +92,11 @@ export const RuleNodeFormParameterModal = ({
                 </Button>,
             ]}
         >
-            <RuleNodeParameterForm {...adaptedRuleNodeParameterProps} large={true} />
+            <RuleNodeParameterForm
+                {...adaptedRuleNodeParameterProps}
+                large={true}
+                hasAdvancedSection={true}
+            />
         </RuleEditorBaseModal>
     );
 };

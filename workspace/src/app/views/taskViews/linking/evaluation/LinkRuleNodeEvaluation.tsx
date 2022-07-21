@@ -62,11 +62,9 @@ export const LinkRuleNodeEvaluation = ({
                                 >
                                     <Tooltip
                                         content={rowValues.join(" | ")}
-                                        tooltipProps={{
-                                            placement: "top",
-                                            boundary: "window",
-                                            targetTagName: "div",
-                                        }}
+                                        placement="top"
+                                        rootBoundary="viewport"
+                                        targetTagName="div"
                                     >
                                         <span>
                                         {rowValues.map((value) => (
