@@ -9,7 +9,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
 import java.io.{BufferedOutputStream, File, FileOutputStream, OutputStream}
-import java.nio.file.Files
+import java.nio.file.{Files, StandardCopyOption}
 import java.util.logging.Logger
 import scala.util.Try
 
@@ -117,15 +117,15 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
   // Writes an N-Triples statement to the output stream.
   private def writeStatementString(stmtString: String)
                                   (implicit userContext: UserContext): Unit = {
+    val outBytes = stmtString.getBytes("UTF-8")
+    val outputLength = outBytes.length
+    if(byteCount + outputLength > maxBytesPerRequest) {
+      log.fine("Reached max bytes per request size limit, ending and starting new connection.")
+      internalClose()
+      internalInit()
+    }
     output match {
       case Some(o) =>
-        val outBytes = stmtString.getBytes("UTF-8")
-        val outputLength = outBytes.length
-        if(byteCount + outputLength > maxBytesPerRequest) {
-          log.fine("Reached max bytes per request size limit, ending and starting new connection.")
-          internalClose()
-          internalInit()
-        }
         byteCount += outputLength
         o.write(outBytes)
       case None =>
@@ -157,6 +157,7 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
             case fileUploadGraphStore: GraphStoreFileUploadTrait =>
               tempFile match {
                 case Some(fileToUpload) =>
+                  Files.copy(fileToUpload.toPath, new File("./upload" + nrGraphStoreRequests + ".nt").toPath, StandardCopyOption.REPLACE_EXISTING)
                   fileUploadGraphStore.uploadFileToGraph(graphUri, fileToUpload, "application/n-triples", comment)
                   nrGraphStoreRequests += 1
                 case None =>
