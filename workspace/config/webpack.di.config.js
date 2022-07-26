@@ -114,6 +114,7 @@ module.exports = function (webpackEnv, isWatch) {
                     options: {
                         implementation: sass,
                         sassOptions: {
+                            quietDeps: true,
                             functions: {
                                 'svg-icon($path, $selectors: null)': function(_path, _selectors) {
                                     return new sass.SassString("unset");

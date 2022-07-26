@@ -45,7 +45,7 @@ ul.ecc-hierarchical-mapping-error-list {
 }
 
 .ecc-silk-mapping__header {
-    margin: $ecc-size-block-whitespace/2 $ecc-size-block-whitespace;
+    margin: $ecc-size-block-whitespace * 0.5 $ecc-size-block-whitespace;
 
     &-action-row {
         justify-content: flex-end;
@@ -57,7 +57,7 @@ ul.ecc-hierarchical-mapping-error-list {
     display: flex;
     flex-wrap: wrap;
     align-items: stretch;
-    padding: 0 $ecc-size-block-whitespace/2 $ecc-size-block-whitespace/2;
+    padding: 0 $ecc-size-block-whitespace * 0.5 $ecc-size-block-whitespace * 0.5;
 }
 
 .ecc-silk-mapping__treenav {
@@ -70,7 +70,7 @@ ul.ecc-hierarchical-mapping-error-list {
     position: sticky;
     left: 0;
     top: 0;
-    margin: $ecc-size-block-whitespace/2;
+    margin: $ecc-size-block-whitespace * 0.5;
     box-sizing: border-box;
 
     ul, li {
@@ -125,7 +125,7 @@ ul.ecc-hierarchical-mapping-error-list {
     .ecc-silk-mapping__treenav--item-handler {
         flex-grow: 1;
         flex-shrink: 1;
-        padding: $ecc-size-block-whitespace/4 $ecc-size-block-whitespace/2;
+        padding: $ecc-size-block-whitespace * 0.25 $ecc-size-block-whitespace * 0.5;
         @include typo-body-1();
         cursor: pointer;
         border: none;
@@ -156,7 +156,7 @@ ul.ecc-hierarchical-mapping-error-list {
     flex-grow: 4;
     flex-shrink: 1;
     min-width: 50%;
-    margin: $ecc-size-block-whitespace/2;
+    margin: $ecc-size-block-whitespace * 0.5;
     box-sizing: border-box;
 
     .mdl-card__title {
@@ -379,7 +379,7 @@ ul.ecc-hierarchical-mapping-error-list {
     }
 
     .mdl-list__item {
-        padding: $ecc-size-block-whitespace/2;
+        padding: $ecc-size-block-whitespace * 0.5;
         overflow: visible;
     }
 
@@ -434,7 +434,7 @@ ul.ecc-hierarchical-mapping-error-list {
             flex-grow: 1;
             flex-shrink: 0;
             box-sizing: border-box;
-            padding: $ecc-size-inline-whitespace/2;
+            padding: $ecc-size-inline-whitespace * 0.5;
             max-width: 33%;
             margin-right: 0.333%;
         }
@@ -466,9 +466,9 @@ ul.ecc-hierarchical-mapping-error-list {
 .ecc-silk-mapping__ruleitem-reorderhandler {
     width: $eccgui-size-block-whitespace;
     position: absolute;
-    top: $ecc-size-block-whitespace / 2;
-    left: $ecc-size-block-whitespace / 2;
-    bottom: $ecc-size-block-whitespace / 2;
+    top: $ecc-size-block-whitespace * 0.5;
+    left: $ecc-size-block-whitespace * 0.5;
+    bottom: $ecc-size-block-whitespace * 0.5;
     border: $data-table-dividers;
     background-color: to_color($color-white);
 
@@ -510,7 +510,7 @@ ul.ecc-hierarchical-mapping-error-list {
     }
 
     .material-icons {
-        transform: translate(-1px, calc(50% - #{$button-fab-font-size/2}));
+        transform: translate(-1px, calc(50% - #{$button-fab-font-size * 0.5}));
     }
 }
 
@@ -531,10 +531,10 @@ ul.ecc-hierarchical-mapping-error-list {
 
 .ecc-silk-mapping__rulesviewer__attribute {
 
-    margin: $ecc-size-block-whitespace/2 0 $ecc-size-block-whitespace/2 0;
+    margin: $ecc-size-block-whitespace * 0.5 0 $ecc-size-block-whitespace * 0.5 0;
 
     dt, dd {
-        margin: 0 0 $ecc-size-block-whitespace/4 0;
+        margin: 0 0 $ecc-size-block-whitespace * 0.25 0;
         padding: 0;
     }
 
@@ -671,21 +671,21 @@ ul.ecc-hierarchical-mapping-error-list {
         }
 
         &.ecc-silk-mapping__rulesviewer__examples-table__path {
-            padding: $ecc-size-block-whitespace/2 $ecc-size-block-whitespace $ecc-size-block-whitespace/2 0;
+            padding: $ecc-size-block-whitespace * 0.5 $ecc-size-block-whitespace $ecc-size-block-whitespace * 0.5 0;
 
             .mdl-chip {
                 direction: rtl;
             }
         }
         &.ecc-silk-mapping__rulesviewer__examples-table__value {
-            padding: $ecc-size-block-whitespace/2 0;
+            padding: $ecc-size-block-whitespace * 0.5 0;
 
             .mdl-chip {
                 // white-space: pre-wrap; // not clear why this was made but it produces linebreaks and display bugs
             }
         }
         &.ecc-silk-mapping__rulesviewer__examples-table__result {
-            padding: $ecc-size-block-whitespace/2 0em $ecc-size-block-whitespace/2 $ecc-size-block-whitespace;
+            padding: $ecc-size-block-whitespace * 0.5 0em $ecc-size-block-whitespace * 0.5 $ecc-size-block-whitespace;
 
             .mdl-chip {
                 // white-space: pre-wrap; // not clear why this was made but it produces linebreaks and display bugs
@@ -741,7 +741,7 @@ ul.ecc-hierarchical-mapping-error-list {
 
 .ecc-silk-mapping__ruleseditor__actionrow-complex-edit {
 
-    margin: 0 $ecc-size-block-whitespace/2;
+    margin: 0 $ecc-size-block-whitespace * 0.5;
 
 }
 

@@ -1,3 +1,5 @@
+@use "sass:math";
+
 // -- Load helper functions ----------------------------------------------------------
 
 @import "replace-helpers";
@@ -41,7 +43,7 @@ $ecc-color-danger-text: $palette-red-800 !default;
 
 $ecc-size-typo-base: 14px !default; // size including absolute unit, preferable px
 $ecc-size-typo-base-lineheight: 1.39 !default; // only ratio to font size, no unit!
-$ecc-size-type-levelratio: 7/6 !default; // ratio without unit! used to calculate different text sizes, etc ...
+$ecc-size-type-levelratio: math.div(7, 6) !default; // ratio without unit! used to calculate different text sizes, etc ...
 
 // -- Calculation of more config vars ------------------------------------------------
 
@@ -50,22 +52,22 @@ $ecc-size-type-levelratio: 7/6 !default; // ratio without unit! used to calculat
     not recommended to do so.
 */
 
-$ecc-size-typo-caption: 1/$ecc-size-type-levelratio * 1rem !default;
+$ecc-size-typo-caption: math.div(1, $ecc-size-type-levelratio) * 1rem !default;
 $ecc-size-typo-caption-lineheight: max($ecc-size-type-levelratio * $ecc-size-typo-base-lineheight, 1) !default;
 $ecc-size-typo-text: 1rem !default;
 $ecc-size-typo-text-lineheight: max($ecc-size-typo-base-lineheight, 1) !default;
 $ecc-size-typo-subtitle: $ecc-size-type-levelratio * $ecc-size-typo-text !default;
-$ecc-size-typo-subtitle-lineheight: max(1/$ecc-size-type-levelratio * $ecc-size-typo-text-lineheight, 1) !default;
+$ecc-size-typo-subtitle-lineheight: max(math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-text-lineheight, 1) !default;
 $ecc-size-typo-title: $ecc-size-type-levelratio * $ecc-size-typo-subtitle !default;
-$ecc-size-typo-title-lineheight: max(1/$ecc-size-type-levelratio * $ecc-size-typo-subtitle-lineheight, 1) !default;
+$ecc-size-typo-title-lineheight: max(math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-subtitle-lineheight, 1) !default;
 $ecc-size-typo-headline: $ecc-size-type-levelratio * $ecc-size-typo-title !default;
-$ecc-size-typo-headline-lineheight: max(1/$ecc-size-type-levelratio * $ecc-size-typo-title-lineheight, 1) !default;
+$ecc-size-typo-headline-lineheight: max(math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-title-lineheight, 1) !default;
 $ecc-size-typo-display-1: $ecc-size-type-levelratio * $ecc-size-typo-headline !default;
-$ecc-size-typo-display-1-lineheight: max(1/$ecc-size-type-levelratio * $ecc-size-typo-headline-lineheight , 1)!default;
+$ecc-size-typo-display-1-lineheight: max(math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-headline-lineheight , 1)!default;
 $ecc-size-typo-display-2: $ecc-size-type-levelratio * $ecc-size-typo-display-1 !default;
-$ecc-size-typo-display-2-lineheight: max(1/$ecc-size-type-levelratio * $ecc-size-typo-display-1-lineheight, 1) !default;
+$ecc-size-typo-display-2-lineheight: max(math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-display-1-lineheight, 1) !default;
 $ecc-size-typo-display-3: $ecc-size-type-levelratio * $ecc-size-typo-display-2 !default;
-$ecc-size-typo-display-3-lineheight: max(1/$ecc-size-type-levelratio * $ecc-size-typo-display-2-lineheight, 1) !default;
+$ecc-size-typo-display-3-lineheight: max(math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-display-2-lineheight, 1) !default;
 
 $ecc-size-blockelement-margin-vertical: 1rem !default; // deprecated
 $ecc-size-blockelement-margin-horizontal: 1rem !default; // deprecated
@@ -78,7 +80,7 @@ $ecc-size-inlineelement-padding-vertical: 0.25rem !default; // deprecated
 $ecc-size-inlineelement-padding-horizontal: 0.25rem !default; // deprecated
 
 $ecc-size-block-whitespace: $ecc-size-typo-base !default;
-$ecc-size-inline-whitespace: $ecc-size-typo-base / 2 !default;
+$ecc-size-inline-whitespace: $ecc-size-typo-base * 0.5 !default;
 
 $ecc-size-maxwidth-workview: 100 * $ecc-size-typo-text;
 
