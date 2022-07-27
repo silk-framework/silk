@@ -5,6 +5,7 @@ const path = require("path");
 const webpack = require("webpack");
 const resolve = require("resolve");
 const sass = require('sass');
+const sassRenderSyncOptions = require("@eccenca/gui-elements/config/sassOptions");
 const PnpWebpackPlugin = require("pnp-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CaseSensitivePathsPlugin = require("case-sensitive-paths-webpack-plugin");
@@ -113,14 +114,7 @@ module.exports = function (webpackEnv, isWatch) {
                     loader: require.resolve(preProcessor),
                     options: {
                         implementation: sass,
-                        sassOptions: {
-                            quietDeps: true,
-                            functions: {
-                                'svg-icon($path, $selectors: null)': function(_path, _selectors) {
-                                    return new sass.SassString("unset");
-                                },
-                            }
-                        },
+                        sassOptions: sassRenderSyncOptions,
                         sourceMap: false,
                     },
                 }
