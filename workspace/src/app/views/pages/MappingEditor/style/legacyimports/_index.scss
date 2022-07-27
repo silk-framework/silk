@@ -1,9 +1,8 @@
 // include legacy environment
 $font_root: "~gui-elements-deprecated/dist/fonts";
-//@import '~gui-elements-deprecated/src/main';
 
 // we import them not at once so that we can fix the parts that are not compatible with npm (dart) sass
-// TODO: only keep the parts that are really necessary for the mapping editor
+// we only keep the parts that are really necessary for the mapping editor
 
 // -- Configuration ------------------------------------------------------------
 
@@ -13,35 +12,38 @@ $font_root: "~gui-elements-deprecated/dist/fonts";
 
 // Resets and dependencies
 @import "~@eccenca/material-design-lite/src/resets/resets";
+
 // Components
 @import "~@eccenca/material-design-lite/src/typography/typography";
-@import "~@eccenca/material-design-lite/src/palette/palette";
-@import "~@eccenca/material-design-lite/src/ripple/ripple";
-@import "~@eccenca/material-design-lite/src/animation/animation";
+// not necessary @import "~@eccenca/material-design-lite/src/palette/palette";
+// not necessary @import "~@eccenca/material-design-lite/src/ripple/ripple";
+// not necessary @import "~@eccenca/material-design-lite/src/animation/animation";
 @import "~@eccenca/material-design-lite/src/badge/badge";
 @import "~@eccenca/material-design-lite/src/button/button";
 @import "~@eccenca/material-design-lite/src/card/card";
 @import "~@eccenca/material-design-lite/src/checkbox/checkbox";
 @import "~@eccenca/material-design-lite/src/chip/chip";
-// @import "~@eccenca/material-design-lite/src/data-table/data-table";
-// @import "~@eccenca/material-design-lite/src/dialog/dialog";
-@import "~@eccenca/material-design-lite/src/footer/mega_footer";
-@import "~@eccenca/material-design-lite/src/footer/mini_footer";
-@import "~@eccenca/material-design-lite/src/icon-toggle/icon-toggle";
+
+// not necessary @import "~@eccenca/material-design-lite/src/data-table/data-table";
+// not necessary @import "~@eccenca/material-design-lite/src/dialog/dialog";
+
+// not necessary @import "~@eccenca/material-design-lite/src/footer/mega_footer";
+// not necessary @import "~@eccenca/material-design-lite/src/footer/mini_footer";
+// not necessary @import "~@eccenca/material-design-lite/src/icon-toggle/icon-toggle";
 @import "~@eccenca/material-design-lite/src/list/list";
 @import "~@eccenca/material-design-lite/src/menu/menu";
 @import "~@eccenca/material-design-lite/src/progress/progress";
-@import "~@eccenca/material-design-lite/src/layout/layout";
+// not necessary @import "~@eccenca/material-design-lite/src/layout/layout";
 @import "~@eccenca/material-design-lite/src/radio/radio";
-@import "~@eccenca/material-design-lite/src/slider/slider";
-@import "~@eccenca/material-design-lite/src/snackbar/snackbar";
+// not necessary @import "~@eccenca/material-design-lite/src/slider/slider";
+// not necessary @import "~@eccenca/material-design-lite/src/snackbar/snackbar";
 @import "~@eccenca/material-design-lite/src/spinner/spinner";
 @import "~@eccenca/material-design-lite/src/switch/switch";
-@import "~@eccenca/material-design-lite/src/tabs/tabs";
+// not necessary @import "~@eccenca/material-design-lite/src/tabs/tabs";
 @import "~@eccenca/material-design-lite/src/textfield/textfield";
 @import "~@eccenca/material-design-lite/src/tooltip/tooltip";
 @import "~@eccenca/material-design-lite/src/shadow/shadow";
-@import "~@eccenca/material-design-lite/src/grid/grid";
+// not necessary @import "~@eccenca/material-design-lite/src/grid/grid";
 
 // -- Own MDL & GUI extensions -------------------------------------------------
 
@@ -52,14 +54,14 @@ $font_root: "~gui-elements-deprecated/dist/fonts";
 @import "~gui-elements-deprecated/src/elements/Checkbox/checkbox";
 @import "replace-chip";
 @import "~gui-elements-deprecated/src/elements/ContextMenu/contextmenu";
-@import "~gui-elements-deprecated/src/elements/DateField/datefield";
+// not necessary @import "~gui-elements-deprecated/src/elements/DateField/datefield";
 @import "~gui-elements-deprecated/src/elements/Dialog/dialog";
-@import "~gui-elements-deprecated/src/elements/Grid/grid";
-@import "~gui-elements-deprecated/src/elements/Footer/footer";
-@import "~gui-elements-deprecated/src/elements/Layout/layout";
+// not necessary @import "~gui-elements-deprecated/src/elements/Grid/grid";
+// not necessary @import "~gui-elements-deprecated/src/elements/Footer/footer";
+// not necessary @import "~gui-elements-deprecated/src/elements/Layout/layout";
 @import "~gui-elements-deprecated/src/elements/NotAvailable/notavailable";
 @import "~gui-elements-deprecated/src/elements/Radio/radio";
-@import "~gui-elements-deprecated/src/elements/Pagination/pagination";
+// not necessary @import "~gui-elements-deprecated/src/elements/Pagination/pagination";
 @import "~gui-elements-deprecated/src/elements/Progressbar/progressbar";
 @import "~gui-elements-deprecated/src/elements/SelectBox/selectbox";
 @import "~gui-elements-deprecated/src/elements/AutoCompleteBox/autocomplete";
