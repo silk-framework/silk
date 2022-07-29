@@ -452,7 +452,7 @@ export const RuleEditorCanvas = () => {
 
     // Triggered after the react-flow instance has been loaded
     const onLoad = (_reactFlowInstance: OnLoadParams) => {
-        ruleEditorUiContext.setReactFlowInstance(_reactFlowInstance)
+        ruleEditorUiContext.setReactFlowInstance(_reactFlowInstance);
         modelContext.setReactFlowInstance(_reactFlowInstance);
     };
 

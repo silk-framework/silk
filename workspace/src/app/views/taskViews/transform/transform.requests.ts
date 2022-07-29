@@ -25,7 +25,9 @@ export const autoCompleteTransformSourcePath = (
     ruleId: string
 ): Promise<FetchResponse<IAutocompleteDefaultResponse[]>> => {
     return fetch({
-        url: legacyTransformEndpoint(`/tasks/${projectId}/${taskId}/rule/${ruleId}/completions/sourcePaths`),
+        url: legacyTransformEndpoint(
+            `/tasks/${projectId}/${taskId}/rule/${ruleId}/completions/sourcePaths?maxResults=1000`
+        ),
     });
 };
 

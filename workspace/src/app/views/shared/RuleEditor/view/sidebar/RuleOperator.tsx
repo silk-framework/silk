@@ -66,7 +66,7 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
             )}
             <OverviewItemLine>
                 {utils.createOperatorTags(
-                    [...ruleOperator.tags, ...(ruleOperator.categories ?? [])],
+                    [...(ruleOperator.tags ?? []), ...(ruleOperator.categories ?? [])],
                     textQuery,
                     tagColor
                 )}

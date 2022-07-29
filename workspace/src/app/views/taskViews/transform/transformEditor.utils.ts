@@ -20,8 +20,8 @@ export const inputPathTab = (
         fetchOperators: async (langPref: string) => {
             try {
                 return (await autoCompleteTransformSourcePath(projectId, transformTaskId, ruleId)).data.map((d) => ({
+                    valueType: "",
                     ...d,
-                    valueType: "URI",
                 })) as PathWithMetaData[];
             } catch (ex) {
                 errorHandler(ex);
@@ -39,8 +39,8 @@ export const inputPathTab = (
                 parameterOverwrites: {
                     path: path.label ? { value: path.value, label: path.label } : path.value,
                 },
-                tags: [path.valueType],
-                inputsCanBeSwitched: false
+                tags: path.valueType ? [path.valueType] : [],
+                inputsCanBeSwitched: false,
             };
         },
         isOriginalOperator: (listItem) => (listItem as PathWithMetaData).valueType != null,
