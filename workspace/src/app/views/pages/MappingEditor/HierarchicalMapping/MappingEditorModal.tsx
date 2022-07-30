@@ -1,6 +1,8 @@
 import React from "react";
 import { Button, SimpleDialog, Spacing } from "@eccenca/gui-elements";
 import { TransformRuleEditor } from "../../../../views/taskViews/transform/TransformRuleEditor";
+import EventEmitter from "./utils/EventEmitter";
+import { MESSAGES } from "./utils/constants";
 
 export interface MappingEditorProps {
     /** Project ID the task is in. */
@@ -76,6 +78,7 @@ const MappingEditorModal: React.FC<MappingEditorProps> = ({ ruleId, onClose, pro
                         transformTaskId={transformTaskId}
                         viewActions={{
                             savedChanges: (status) => setUnsavedChanges(status),
+                            onSave: () => EventEmitter.emit(MESSAGES.RELOAD),
                         }}
                         additionalToolBarComponents={() => (
                             <>

@@ -88,7 +88,6 @@ class ValueRule extends React.Component {
     render() {
         const { edit } = this.state;
         const { id, parentId, operator, mappingTarget = {}, sourcePath, sourcePaths, metadata } = this.props;
-
         if (edit) {
             return <ValueRuleForm id={id} parentId={parentId} />;
         }

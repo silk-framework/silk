@@ -131,7 +131,6 @@ export class MappingRule extends React.Component {
 
         const { id, type, parentId, sourcePath, sourcePaths, mappingTarget, rules, pos, count, metadata, errorInfo } =
             this.props;
-
         const srcPath = sourcePath || sourcePaths;
 
         const expandedView = this.props.expanded ? (
