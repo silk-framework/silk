@@ -27,14 +27,15 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
     const activeLearningFeedbackContext = React.useContext(LinkingRuleActiveLearningFeedbackContext);
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
     /** The property pairs that will be compared during the active learning. */
-    const [labelPropertyPairs, setlabelPropertyPairs] = React.useState<CandidatePropertyPair[]>([]);
+    const [labelPropertyPairs, setLabelPropertyPairs] = React.useState<CandidatePropertyPair[]>([]);
     /** The values of the selected entity link. */
     const [valuesToDisplay, setValuesToDisplay] = React.useState<EntityLinkPropertyPairValues[] | undefined>();
+    const labelPropertyPairIds = new Set(labelPropertyPairs.map((lpp) => lpp.pairId));
 
     // Initially set the "label" properties, i.e. values of these properties are shown for entity links
     React.useEffect(() => {
         if (labelPropertyPairs.length === 0 && activeLearningContext.propertiesToCompare.length > 0) {
-            setlabelPropertyPairs(activeLearningContext.propertiesToCompare.slice(0, 1));
+            setLabelPropertyPairs(activeLearningContext.propertiesToCompare.slice(0, 1));
         }
     }, [activeLearningContext.propertiesToCompare]);
 
@@ -64,6 +65,15 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
         return values[valueIdx] ?? [];
     };
 
+    const toggleLabelPropertyPair = (pairId: string) => {
+        setLabelPropertyPairs((pairs) => {
+            const newPair = activeLearningContext.propertiesToCompare.find((lpp) => lpp.pairId === pairId);
+            return pairs.some((value) => value.pairId === pairId) || !newPair
+                ? pairs.filter((p) => p.pairId !== pairId)
+                : [...pairs, newPair];
+        });
+    };
+
     return (
         <div>
             <Header disabledButtons={!activeLearningFeedbackContext.selectedLink} />
@@ -72,6 +82,8 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
                 <SelectedEntityLink
                     valuesToDisplay={valuesToDisplay}
                     propertyPairs={activeLearningContext.propertiesToCompare}
+                    labelPropertyPairIds={labelPropertyPairIds}
+                    toggleLabelPropertyPair={toggleLabelPropertyPair}
                 />
             ) : (
                 <Notification message={"No entity link selected"} />
@@ -150,30 +162,51 @@ const EntityComparisonHeader = ({ sourceTitle, targetTitle }: EntityComparisonHe
 interface SelectedEntityLinkProps {
     valuesToDisplay: EntityLinkPropertyPairValues[];
     propertyPairs: CandidatePropertyPair[];
+    labelPropertyPairIds: Set<string>;
+    toggleLabelPropertyPair: (pairId: string) => any;
 }
 
-// TODO: Show labels as configured instead of first values
-const SelectedEntityLink = ({ valuesToDisplay, propertyPairs }: SelectedEntityLinkProps) => {
+/** The two entities that are considered to be linked. */
+const SelectedEntityLink = ({
+    valuesToDisplay,
+    propertyPairs,
+    labelPropertyPairIds,
+    toggleLabelPropertyPair,
+}: SelectedEntityLinkProps) => {
+    const propertyPairMap = new Map(propertyPairs.map((pp, idx) => [pp.pairId, idx]));
+    const labelPropertyPairValues = [...labelPropertyPairIds]
+        .map((id, idx) => (propertyPairMap.has(id) ? valuesToDisplay[propertyPairMap.get(id)!!] : null))
+        .filter((values) => values != null) as EntityLinkPropertyPairValues[];
+    const sourceEntityLabel = labelPropertyPairValues.map((values) => values.sourceValues.join(", ")).join(", ");
+    const targetEntityLabel = labelPropertyPairValues.map((values) => values.targetValues.join(", ")).join(", ");
     return (
         <Grid columns={3} fullWidth={true}>
-            <EntityComparisonHeader
-                sourceTitle={valuesToDisplay.length > 0 ? valuesToDisplay[0].sourceValues.join(", ") : ""}
-                targetTitle={valuesToDisplay.length > 0 ? valuesToDisplay[0].targetValues.join(", ") : ""}
-            />
+            <EntityComparisonHeader sourceTitle={sourceEntityLabel} targetTitle={targetEntityLabel} />
             {(valuesToDisplay ?? []).map((selected, idx) => (
-                <EntitiesPropertyPair propertyPair={propertyPairs[idx]} values={selected} />
+                <EntitiesPropertyPair
+                    propertyPair={propertyPairs[idx]}
+                    selectedForLabel={labelPropertyPairIds.has(propertyPairs[idx].pairId)}
+                    toggleLabelSelection={() => toggleLabelPropertyPair(propertyPairs[idx].pairId)}
+                    values={selected}
+                />
             ))}
         </Grid>
     );
 };
 
+interface EntitiesPropertyPairProps {
+    propertyPair: CandidatePropertyPair;
+    values: EntityLinkPropertyPairValues;
+    selectedForLabel: boolean;
+    toggleLabelSelection: () => any;
+}
+
 const EntitiesPropertyPair = ({
     propertyPair,
     values,
-}: {
-    propertyPair: CandidatePropertyPair;
-    values: EntityLinkPropertyPairValues;
-}) => {
+    selectedForLabel,
+    toggleLabelSelection,
+}: EntitiesPropertyPairProps) => {
     return (
         <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
             <EntityPropertyValues property={propertyPair.left} values={values.sourceValues} />
@@ -201,11 +234,11 @@ const EntitiesPropertyPair = ({
                         <Toolbar style={{ height: "100%" }}>
                             <ToolbarSection canGrow={true} />
                             <ToolbarSection>
-                                {/*<IconButton*/}
-                                {/*    name={"item-remove"}*/}
-                                {/*    disruptive*/}
-                                {/*    onClick={() => removePair(pair.pairId)}*/}
-                                {/*/>*/}
+                                <IconButton
+                                    name={selectedForLabel ? "favorite-filled" : "favorite-empty"}
+                                    disruptive
+                                    onClick={toggleLabelSelection}
+                                />
                             </ToolbarSection>
                             <ToolbarSection canGrow={true} />
                         </Toolbar>
