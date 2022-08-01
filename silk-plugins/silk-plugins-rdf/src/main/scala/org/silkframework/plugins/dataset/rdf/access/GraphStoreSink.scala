@@ -9,7 +9,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Uri
 
 import java.io.{BufferedOutputStream, File, FileOutputStream, OutputStream}
-import java.nio.file.{Files, StandardCopyOption}
+import java.nio.file.Files
 import java.util.logging.Logger
 import scala.util.Try
 
@@ -157,7 +157,6 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
             case fileUploadGraphStore: GraphStoreFileUploadTrait =>
               tempFile match {
                 case Some(fileToUpload) =>
-                  Files.copy(fileToUpload.toPath, new File("./upload" + nrGraphStoreRequests + ".nt").toPath, StandardCopyOption.REPLACE_EXISTING)
                   fileUploadGraphStore.uploadFileToGraph(graphUri, fileToUpload, "application/n-triples", comment)
                   nrGraphStoreRequests += 1
                 case None =>
