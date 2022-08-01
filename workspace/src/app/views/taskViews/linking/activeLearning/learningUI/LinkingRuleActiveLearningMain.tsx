@@ -7,6 +7,7 @@ import { LinkingRuleActiveLearningFeedbackComponent } from "./LinkingRuleActiveL
 import { CandidatePropertyPair } from "../LinkingRuleActiveLearning.typings";
 import { EntityLink } from "./LinkingRuleActiveLearningMain.typings";
 import { LinkingRuleActiveLearningFeedbackContext } from "../contexts/LinkingRuleActiveLearningFeedbackContext";
+import { LinkingRuleActiveLearningBestLearnedRule } from "./LinkingRuleActiveLearningBestLearnedRule";
 
 interface LinkingRuleActiveLearningMainProps {
     projectId: string;
@@ -92,6 +93,8 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                 <Title />
                 <Spacing hasDivider={true} />
                 <LinkingRuleActiveLearningFeedbackComponent />
+                <Spacing hasDivider={true} />
+                <LinkingRuleActiveLearningBestLearnedRule rule={{ task: "TODO" }} />
             </div>
         </LinkingRuleActiveLearningFeedbackContext.Provider>
     );

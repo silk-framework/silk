@@ -781,6 +781,12 @@
             "errors": {
                 "fetchAutoCompletionResult": "An error occurred while trying to fetch path auto-completions."
             }
+        },
+        "bestLearnedRule": {
+            "title": "Top-performing learned rule ({{score}}%)",
+            "noRule": "No rule has been learned yet. You need to confirm/decline at least three candidate links for a rule to be learned.",
+            "hideRule": "Hide best learned rule",
+            "showRule": "Show best learned rule"
         }
     }
 }
