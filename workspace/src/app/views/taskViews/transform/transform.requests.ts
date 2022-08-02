@@ -22,11 +22,12 @@ export const requestTransformRule = async (
 export const autoCompleteTransformSourcePath = (
     projectId: string,
     taskId: string,
-    ruleId: string
+    ruleId: string,
+    term = ""
 ): Promise<FetchResponse<IAutocompleteDefaultResponse[]>> => {
     return fetch({
         url: legacyTransformEndpoint(
-            `/tasks/${projectId}/${taskId}/rule/${ruleId}/completions/sourcePaths?maxResults=1000`
+            `/tasks/${projectId}/${taskId}/rule/${ruleId}/completions/sourcePaths?maxResults=1000&term=${term}`
         ),
     });
 };
