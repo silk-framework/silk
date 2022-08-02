@@ -5,6 +5,7 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.util.{Identifier, IdentifierGenerator}
+import org.silkframework.workspace.ProjectTrait
 
 /** Holds context information when deserializing data.
   *
@@ -21,3 +22,16 @@ case class ReadContext(resources: ResourceManager = EmptyResourceManager(),
                        validationEnabled: Boolean = false,
                        user: UserContext = UserContext.Empty,
                        projectId: Option[Identifier] = None) extends PluginContext
+
+object ReadContext {
+
+  def fromProject(project: ProjectTrait)(implicit user: UserContext): ReadContext = {
+    ReadContext(
+      resources = project.resources,
+      prefixes = project.config.prefixes,
+      user = user,
+      projectId = Some(project.id)
+    )
+  }
+
+}
