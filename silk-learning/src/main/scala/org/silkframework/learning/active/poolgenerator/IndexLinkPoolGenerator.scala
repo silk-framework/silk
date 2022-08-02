@@ -10,7 +10,7 @@ import org.silkframework.rule.plugins.distance.characterbased.LevenshteinDistanc
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
-import org.silkframework.util.DPair
+import org.silkframework.util.{DPair, Timer}
 
 import scala.collection.mutable
 import scala.util.Random
@@ -78,7 +78,9 @@ class IndexLinkPoolGenerator() extends LinkPoolGenerator {
         (targetCache, targetIndex) <- targetCaches.zipWithIndex
       } {
         context.status.updateProgress(0.3 + 0.6 * (sourceIndex * targetCaches.size + targetIndex).toDouble / (sourceCaches.size * targetCaches.size).toDouble, logStatus = false)
-        findLinks(sourceCache, sourceIndex, targetCache, targetIndex, links)
+        Timer(s"Path ${fullEntitySchema.source.typedPaths(sourceIndex)} - ${fullEntitySchema.target.typedPaths(targetIndex)}") {
+          findLinks(sourceCache, sourceIndex, targetCache, targetIndex, links)
+        }
       }
       links.values
     }
@@ -117,13 +119,14 @@ class IndexLinkPoolGenerator() extends LinkPoolGenerator {
         targetBlock <- 0 until targetCache.blockCount
         sourcePartitionIndex <- 0 until sourceCache.partitionCount(sourceBlock)
         targetPartitionIndex <- 0 until targetCache.partitionCount(targetBlock)
-        if count < maxLinksPerPathPair
       } {
         val sourcePartition = sourceCache.read(sourceBlock, sourcePartitionIndex)
         val targetPartition = targetCache.read(targetBlock, targetPartitionIndex)
 
+        //println(s"Reading $sourceBlock $sourcePartitionIndex - $targetBlock $targetPartitionIndex")
+
         val entityPairs = runtimeConfig.executionMethod.comparisonPairs(sourcePartition, targetPartition, full = true)
-        for (entityPair <- entityPairs if count < maxLinksPerPathPair) {
+        for (entityPair <- entityPairs) {
           val entityUris = DPair(entityPair.source.uri.uri, entityPair.target.uri.uri)
           val sourceValues = normalize(entityPair.source.evaluate(sourcePathIndex))
           val targetValues = normalize(entityPair.target.evaluate(targetPathIndex))
@@ -143,10 +146,18 @@ class IndexLinkPoolGenerator() extends LinkPoolGenerator {
                 }
               links.put(entityUris, linkCandidate)
               count += 1
+              if(count >= maxLinksPerPathPair) {
+                println(s"count (break): $count")
+                return count
+                println("NEVER CALLED")
+              }
             }
           }
         }
       }
+
+      println(s"count: $count")
+
       count
     }
 
