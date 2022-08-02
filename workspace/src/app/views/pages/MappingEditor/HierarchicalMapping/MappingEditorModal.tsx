@@ -45,7 +45,7 @@ const MappingEditorModal: React.FC<MappingEditorProps> = ({ ruleId, onClose, pro
             onClose={() => setShowWarningModal(false)}
             actions={[
                 <Button
-                    hasStatePrimary
+                    disruptive={true}
                     onClick={() => {
                         setShowWarningModal(false);
                         onClose();
@@ -56,7 +56,7 @@ const MappingEditorModal: React.FC<MappingEditorProps> = ({ ruleId, onClose, pro
                 <Button onClick={() => setShowWarningModal(false)}>No, go back</Button>,
             ]}
         >
-            <p>Are you sure you want to close dialog</p>
+            <p>There are still unsaved changes. Are you sure you want to close the editor?</p>
         </SimpleDialog>
     ));
 
