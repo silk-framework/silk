@@ -1,19 +1,18 @@
 package org.silkframework.rule
 
-import java.util.NoSuchElementException
 import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.entity.paths._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
-import org.silkframework.rule.TransformSpec.{RuleSchemata, TargetVocabularyAutoCompletionProvider, TargetVocabularyCategory, TargetVocabularyParameter}
+import org.silkframework.rule.TransformSpec.{RuleSchemata, TargetVocabularyCategory, TargetVocabularyParameter}
 import org.silkframework.rule.input.TransformInput
 import org.silkframework.rule.vocab.TargetVocabularyParameterEnum
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.StringParameterType.{EnumerationType, StringTraversableParameterType}
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin._
-import org.silkframework.runtime.resource.{Resource, ResourceManager}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.NotFoundException
@@ -495,12 +494,12 @@ object TransformSpec {
       }
     }
 
-    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): TargetVocabularyParameter = {
+    override def fromString(str: String)(implicit context: PluginContext): TargetVocabularyParameter = {
       enumParameterType.fromStringOpt(str) match {
         case Some(enumValue) =>
           TargetVocabularyCategory(enumValue.asInstanceOf[TargetVocabularyParameterEnum])
         case None =>
-          TargetVocabularyListParameter(StringTraversableParameterType.fromString(str).value)
+          TargetVocabularyListParameter(StringTraversableParameterType.fromString(str)(PluginContext.empty).value)
       }
     }
   }
@@ -512,7 +511,7 @@ object TransformSpec {
 
     def stringValue(v: TargetVocabularyCategory): String = enumParameterType.toString(v.value)
 
-    def fromString(str: String): TargetVocabularyParameter = instance.fromString(str)
+    def fromString(str: String): TargetVocabularyParameter = instance.fromString(str)(PluginContext.empty)
 
     def toString(targetVocabularyParameter: TargetVocabularyParameter): String = instance.toString(targetVocabularyParameter)
   }

@@ -12,7 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.plugin.PluginDescription
+import org.silkframework.runtime.plugin.{PluginContext, PluginDescription}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.MetaDataSerializers.FullTag
@@ -260,8 +260,7 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
       val generatedId = IdentifierUtils.generateProjectId(label)
       val (project, fromTask) = projectAndAnyTask(projectId, taskId)
       // Clone task spec, since task specs may contain state, e.g. RDF file dataset
-      implicit val resourceManager: ResourceManager = project.resources
-      implicit val prefixes: Prefixes = project.config.prefixes
+      implicit val context: PluginContext = PluginContext.fromProject(project)
       val clonedTaskSpec = Try(fromTask.data.withProperties(Map.empty)).getOrElse(fromTask.data)
       val requestMetaData = request.metaData.asMetaData
       project.addAnyTask(generatedId, clonedTaskSpec, requestMetaData.copy(tags = requestMetaData.tags ++ fromTask.metaData.tags))

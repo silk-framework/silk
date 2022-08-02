@@ -14,10 +14,9 @@
 
 package org.silkframework.workspace
 
-import org.silkframework.config.{MetaData, PlainTask, Prefixes, Tag, Task, TaskSpec}
+import org.silkframework.config._
 import org.silkframework.runtime.activity.{HasValue, Status, UserContext, ValueHolder}
-import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.Workflow
 import org.silkframework.workspace.activity.{CachedActivity, TaskActivity, TaskActivityFactory}
@@ -52,8 +51,7 @@ class ProjectTask[TaskType <: TaskSpec : ClassTag](val id: Identifier,
 
   lazy private val taskActivities: Seq[TaskActivity[TaskType, _ <: HasValue]] = {
     // Get all task activity factories for this task type
-    implicit val prefixes: Prefixes = module.project.config.prefixes
-    implicit val resources: ResourceManager = module.project.resources
+    implicit val pluginContext: PluginContext = PluginContext(module.project.config.prefixes, module.project.resources)
     val taskType = data.getClass
     val factories = PluginRegistry.availablePlugins[TaskActivityFactory[TaskType, _ <: HasValue]]
                                   .map(_.apply())

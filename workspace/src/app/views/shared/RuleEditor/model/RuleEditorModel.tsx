@@ -12,13 +12,7 @@ import {
 } from "react-flow-renderer";
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { RuleEditorContext, RuleEditorContextProps } from "../contexts/RuleEditorContext";
-import {
-    DEFAULT_NODE_HEIGHT,
-    DEFAULT_NODE_WIDTH,
-    IOperatorCreateContext,
-    IOperatorNodeOperations,
-    ruleEditorModelUtilsFactory,
-} from "./RuleEditorModel.utils";
+import { IOperatorCreateContext, IOperatorNodeOperations, ruleEditorModelUtilsFactory } from "./RuleEditorModel.utils";
 import { useTranslation } from "react-i18next";
 import {
     IParameterSpecification,
@@ -917,16 +911,11 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         });
     };
 
-    const defaultDimensions: NodeDimensions = {
-        width: DEFAULT_NODE_WIDTH,
-        height: DEFAULT_NODE_HEIGHT,
-    };
-
     const createStickyNodeInternal = (
         color: string,
         stickyNote: string,
         position: XYPosition,
-        dimension: NodeDimensions = defaultDimensions,
+        dimension?: NodeDimensions,
         id?: string
     ): Node => {
         const style = nodeUtils.generateStyleWithColor(color);

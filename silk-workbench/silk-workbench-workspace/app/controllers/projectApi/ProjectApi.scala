@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.tags.{Tag => OpenApiTag}
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{MetaData, Prefixes, Tag}
 import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.serialization.json.MetaDataSerializers.{FullTag, MetaDataExpanded, MetaDataPlain, tagFormat}
@@ -172,8 +173,7 @@ class ProjectApi @Inject()(accessMonitor: WorkbenchAccessMonitor) extends Inject
       val clonedProject = workspace.createProject(clonedProjectConfig.copy(projectResourceUriOpt = Some(clonedProjectConfig.generateDefaultUri)))
       WorkspaceIO.copyResources(project.resources, clonedProject.resources)
       // Clone task spec, since task specs may contain state, e.g. RDF file dataset
-      implicit val resourceManager: ResourceManager = clonedProject.resources
-      implicit val prefixes: Prefixes = clonedProject.config.prefixes
+      implicit val context: PluginContext = PluginContext.fromProject(clonedProject)
       // Clone tags
       for (tag <- project.tagManager.allTags()) {
         clonedProject.tagManager.putTag(tag)

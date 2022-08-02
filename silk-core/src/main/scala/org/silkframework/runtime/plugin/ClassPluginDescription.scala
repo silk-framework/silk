@@ -14,10 +14,9 @@
 
 package org.silkframework.runtime.plugin
 
-import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager, ResourceNotFoundException}
+import org.silkframework.runtime.resource.ResourceNotFoundException
 import org.silkframework.util.Identifier
 import org.silkframework.util.StringUtils._
 import org.silkframework.workspace.WorkspaceReadTrait
@@ -59,7 +58,7 @@ class ClassPluginDescription[+T](val id: Identifier, val categories: Seq[String]
     *                                   If false, creation will fail if a parameter is provided that does not exist on the plugin.
    */
   def apply(parameterValues: Map[String, String] = Map.empty, ignoreNonExistingParameters: Boolean = true)
-           (implicit prefixes: Prefixes, resources: ResourceManager = EmptyResourceManager()): T = {
+           (implicit context: PluginContext): T = {
     if(!ignoreNonExistingParameters) {
       validateParameters(parameterValues)
     }
@@ -73,7 +72,7 @@ class ClassPluginDescription[+T](val id: Identifier, val categories: Seq[String]
 
   override def toString = label
 
-  private def parseParameters(parameterValues: Map[String, String])(implicit prefixes: Prefixes, resourceLoader: ResourceManager): Seq[AnyRef] = {
+  private def parseParameters(parameterValues: Map[String, String])(implicit context: PluginContext): Seq[AnyRef] = {
     for (parameter <- parameters) yield {
       parameterValues.get(parameter.name) match {
         case Some(v) =>

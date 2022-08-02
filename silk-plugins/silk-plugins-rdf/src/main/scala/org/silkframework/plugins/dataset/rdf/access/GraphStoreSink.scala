@@ -117,15 +117,15 @@ case class GraphStoreSink(graphStore: GraphStoreTrait,
   // Writes an N-Triples statement to the output stream.
   private def writeStatementString(stmtString: String)
                                   (implicit userContext: UserContext): Unit = {
+    val outBytes = stmtString.getBytes("UTF-8")
+    val outputLength = outBytes.length
+    if(byteCount + outputLength > maxBytesPerRequest) {
+      log.fine("Reached max bytes per request size limit, ending and starting new connection.")
+      internalClose()
+      internalInit()
+    }
     output match {
       case Some(o) =>
-        val outBytes = stmtString.getBytes("UTF-8")
-        val outputLength = outBytes.length
-        if(byteCount + outputLength > maxBytesPerRequest) {
-          log.fine("Reached max bytes per request size limit, ending and starting new connection.")
-          internalClose()
-          internalInit()
-        }
         byteCount += outputLength
         o.write(outBytes)
       case None =>

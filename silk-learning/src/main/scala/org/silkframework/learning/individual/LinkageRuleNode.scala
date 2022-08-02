@@ -14,9 +14,8 @@
 
 package org.silkframework.learning.individual
 
-import org.silkframework.config.Prefixes
 import org.silkframework.rule.LinkageRule
-import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.IdentifierGenerator
 
 case class LinkageRuleNode(aggregation: Option[OperatorNode]) extends Node {
@@ -35,7 +34,7 @@ case class LinkageRuleNode(aggregation: Option[OperatorNode]) extends Node {
 }
 
 object LinkageRuleNode {
-  def load(linkageRule: LinkageRule)(implicit prefixes: Prefixes, resourceManager: ResourceManager): LinkageRuleNode = {
+  def load(linkageRule: LinkageRule)(implicit context: PluginContext): LinkageRuleNode = {
     LinkageRuleNode(linkageRule.operator.map(OperatorNode.load))
   }
 }

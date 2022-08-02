@@ -10,6 +10,8 @@ class StringMapTypeTest extends FlatSpec with MustMatchers {
 
   implicit val prefixes: Prefixes = Prefixes.empty
 
+  implicit val context: PluginContext = PluginContext.empty
+
   it should "parse basic map expressions" in {
     StringMapType.fromString("a:b,c:d") mustBe Map("a" -> "b", "c" -> "d")
     StringMapType.fromString("key;1:value") mustBe Map("key;1" -> "value")

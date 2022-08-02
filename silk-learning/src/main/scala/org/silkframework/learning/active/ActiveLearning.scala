@@ -27,7 +27,7 @@ import org.silkframework.rule.evaluation.{LinkageRuleEvaluator, ReferenceEntitie
 import org.silkframework.rule.{LinkSpec, LinkageRule}
 import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
-import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.{DPair, Timer}
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
@@ -49,8 +49,8 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
     val datasets = task.dataSources
     val paths = getPaths()
     val referenceEntities = getReferenceEntities(context)
-    implicit val prefixes = task.project.config.prefixes
-    implicit val projectResources = task.project.resources
+    implicit val prefixes: Prefixes = task.project.config.prefixes
+    implicit val pluginContext: PluginContext = PluginContext.fromProject(task.project)
 
     // Update random seed
     val newRandomSeed = new Random(context.value().randomSeed).nextLong()
@@ -162,7 +162,7 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
   }
 
   private def linkageRuleGenerator(context: ActivityContext[ActiveLearningState])
-                                  (implicit prefixes: Prefixes, resourceManager: ResourceManager): LinkageRuleGenerator = {
+                                  (implicit pluginContext: PluginContext): LinkageRuleGenerator = {
 
 
     if(context.value().generator.isEmpty) {

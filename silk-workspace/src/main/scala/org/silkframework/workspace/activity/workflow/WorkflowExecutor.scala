@@ -6,6 +6,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.Entity
 import org.silkframework.execution._
 import org.silkframework.runtime.activity._
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.ProjectTask
@@ -53,13 +54,20 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
     implicit val userContext: UserContext = workflowRunContext.userContext
     val taskContext = workflowRunContext.taskContext(nodeId, task)
     updateProgress(operation, task)
-    try {
-      ExecutorRegistry.execute(task, inputs, output, executionContext, taskContext)
-    } catch {
-      case NonFatal(ex) =>
-        workflowRunContext.activityContext.value.updateWith(_.addFailedNode(nodeId, ex))
-        throw ex
+    val result =
+      try {
+        ExecutorRegistry.execute(task, inputs, output, executionContext, taskContext)
+      } catch {
+        case NonFatal(ex) =>
+          workflowRunContext.activityContext.value.updateWith(_.addFailedNode(nodeId, ex))
+          throw ex
+      }
+    for(error <- taskContext.value.get.flatMap(_.error)) {
+      val ex = WorkflowExecutionException(error)
+      workflowRunContext.activityContext.value.updateWith(_.addFailedNode(nodeId, ex))
+      throw ex
     }
+    result
   }
 
   /**
@@ -125,7 +133,8 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
   private def reconfigureTask[T <: TaskSpec](workflowNode: WorkflowDependencyNode,
                                              task: Task[T])
                                             (implicit workflowRunContext: WorkflowRunContext): Task[T] = {
-    implicit val prefixes: Prefixes = Prefixes.empty // TODO: propagate prefixes?
+    implicit val pluginContext: PluginContext = PluginContext(resources = workflowTask.project.resources,
+                                                              user = workflowRunContext.userContext) // TODO: propagate prefixes?
     try {
       workflowRunContext.reconfiguredTasks.getOrElseUpdate(
         workflowNode.workflowNode, {
@@ -138,7 +147,6 @@ trait WorkflowExecutor[ExecType <: ExecutionType] extends Activity[WorkflowExecu
           if (configParameters.isEmpty) {
             task
           } else {
-            implicit val resourceManager = workflowTask.project.resources
             PlainTask(id = task.id, data = task.data.withProperties(configParameters), metaData = task.metaData)
           }
         }
