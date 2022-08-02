@@ -40,7 +40,6 @@ class ObjectRule extends React.Component {
 
     constructor(props) {
         super(props);
-        this.editUriRule = this.editUriRule.bind(this);
         this.removeUriRule = this.removeUriRule.bind(this);
         this.handleEdit = this.handleEdit.bind(this);
         this.handleCloseEdit = this.handleCloseEdit.bind(this);
@@ -84,48 +83,30 @@ class ObjectRule extends React.Component {
         }
     }
 
-    editUriRule(event) {
-        if (this.state.href) {
-            window.location.href = this.state.href;
-        } else {
-            this.createUriRule();
-        }
-    }
-
-    openEditor = async () => {
+    openEditor = () => {
         let ruleId = _.get(this.props.ruleData, "rules.uriRule");
         if (!ruleId) {
             const rule = _.cloneDeep(this.props.ruleData);
-            rule.type = "complex";
             rule.rules.uriRule = {
                 type: "uri",
                 pattern: `{}/${rule.id}`,
             };
             ruleId = rule.id;
-            await updateObjectMappingAsync(rule);
-        }
-        this.props.openMappingEditor(ruleId);
-    };
-
-    createUriRule() {
-        const rule = _.cloneDeep(this.props.ruleData);
-        rule.rules.uriRule = {
-            type: "uri",
-            pattern: `{}/${rule.id}`,
-        };
-        updateObjectMappingAsync(rule).subscribe(
-            (data) => {
-                const href = getEditorHref(data.body.rules.uriRule.id);
-                if (href) {
-                    window.location.href = href;
+            updateObjectMappingAsync(rule).subscribe(
+                (data) => {
+                    EventEmitter.emit(MESSAGES.RELOAD, true);
+                    this.props.openMappingEditor(data.body.rules.uriRule.id);
+                },
+                (err) => {
+                    console.error(err);
                 }
-            },
-            (err) => {
-                console.error(err);
-            }
-        );
+            );
+        } else {
+            this.props.openMappingEditor(ruleId);
+        }
+
         return false;
-    }
+    };
 
     removeUriRule() {
         const rule = _.cloneDeep(this.props.ruleData);
@@ -230,7 +211,6 @@ class ObjectRule extends React.Component {
                             <ObjectUriPattern
                                 uriRule={_.get(ruleData, "rules.uriRule") || {}}
                                 onRemoveUriRule={this.removeUriRule}
-                                onEditUriRule={this.editUriRule}
                                 ruleData={this.props.ruleData}
                                 openMappingEditor={this.openEditor}
                             />
