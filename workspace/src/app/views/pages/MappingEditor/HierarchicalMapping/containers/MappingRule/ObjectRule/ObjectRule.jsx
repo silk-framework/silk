@@ -92,6 +92,21 @@ class ObjectRule extends React.Component {
         }
     }
 
+    openEditor = async () => {
+        let ruleId = _.get(this.props.ruleData, "rules.uriRule");
+        if (!ruleId) {
+            const rule = _.cloneDeep(this.props.ruleData);
+            rule.type = "complex";
+            rule.rules.uriRule = {
+                type: "uri",
+                pattern: `{}/${rule.id}`,
+            };
+            ruleId = rule.id;
+            await updateObjectMappingAsync(rule);
+        }
+        this.props.openMappingEditor(ruleId);
+    };
+
     createUriRule() {
         const rule = _.cloneDeep(this.props.ruleData);
         rule.rules.uriRule = {
@@ -217,7 +232,7 @@ class ObjectRule extends React.Component {
                                 onRemoveUriRule={this.removeUriRule}
                                 onEditUriRule={this.editUriRule}
                                 ruleData={this.props.ruleData}
-                                openMappingEditor={this.props.openMappingEditor}
+                                openMappingEditor={this.openEditor}
                             />
                         }
                         {_.get(ruleData, "rules.uriRule.id") ? (

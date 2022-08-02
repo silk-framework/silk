@@ -5,7 +5,6 @@ import getPathsRecursive from "../../utils/getUriPaths";
 import getUriOperatorsRecursive from "../../utils/getUriOperators";
 import ComplexDeleteButton from "../../elements/buttons/ComplexeDeleteButton";
 import { IconButton } from "@eccenca/gui-elements";
-import _ from "lodash";
 
 class ObjectUriPattern extends Component {
     render() {
@@ -47,14 +46,7 @@ class ObjectUriPattern extends Component {
                         <dt className="ecc-silk-mapping__rulesviewer__attribute-label">{uriPatternLabel}</dt>
                         <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                             {uriPattern}
-                            <IconButton
-                                name="item-edit"
-                                onClick={() => {
-                                    const ruleId = uriRule.id || _.cloneDeep(this.props.ruleData).id;
-                                    this.props.openMappingEditor(ruleId);
-                                }}
-                                text={tooltipText}
-                            />
+                            <IconButton name="item-edit" onClick={this.props.openMappingEditor} text={tooltipText} />
                             {removeButton}
                         </dd>
                     </dl>
