@@ -139,7 +139,6 @@ class MappingsWorkview extends React.Component {
     }
 
     loadData(params = {}) {
-        console.log("Loading... here!!!!");
         const { initialLoad = false, onFinish } = params;
         this.setState({
             loading: true,

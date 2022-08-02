@@ -35,7 +35,7 @@ class AutoCompletionApiTest extends TransformTaskApiTestBase {
   }
 
   "auto complete source paths matching input term with leading /" in {
-    val response = jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/completions/sourcePaths?term=/NaMe")
+    val response = jsonGetRequest(s"$baseUrl/transform/tasks/$project/$task/rule/root/completions/sourcePaths?term=%2FNaMe")
 
     response.checkCompletionValues(
       category = Categories.sourcePaths,

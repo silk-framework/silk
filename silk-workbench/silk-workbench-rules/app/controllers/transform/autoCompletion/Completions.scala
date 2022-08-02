@@ -55,7 +55,7 @@ case class Completions(@ArraySchema(schema = new Schema(implementation = classOf
   private def filterMethod(term: String,
                            multiWordFilter: Boolean): (Completion => Option[Double]) = {
     if(multiWordFilter) {
-      val searchWords = StringUtils.extractSearchTerms(term)
+      val searchWords = StringUtils.extractSearchTerms(term.stripPrefix("/").stripPrefix("\\"))
       val termMinLength = if(searchWords.length > 0) searchWords.map(_.length).min.toDouble else 1.0
       completion: Completion => completion.matchesMultiWordQuery(searchWords, termMinLength)
     } else {
