@@ -3,6 +3,7 @@ import { Button, SimpleDialog, Spacing } from "@eccenca/gui-elements";
 import { TransformRuleEditor } from "../../../../views/taskViews/transform/TransformRuleEditor";
 import EventEmitter from "./utils/EventEmitter";
 import { MESSAGES } from "./utils/constants";
+import { useTranslation } from "react-i18next";
 
 export interface MappingEditorProps {
     /** Project ID the task is in. */
@@ -23,6 +24,7 @@ const MappingEditorModal: React.FC<MappingEditorProps> = ({ ruleId, onClose, pro
     /** keeps track of whether there are unsaved changes or not */
     const [unsavedChanges, setUnsavedChanges] = React.useState<boolean>(false);
     const [showWarningModal, setShowWarningModal] = React.useState<boolean>(false);
+    const [t] = useTranslation();
 
     /**
      * handler to close editor if there no unsaved changes
@@ -51,12 +53,14 @@ const MappingEditorModal: React.FC<MappingEditorProps> = ({ ruleId, onClose, pro
                         onClose();
                     }}
                 >
-                    Yes, close
+                    {t("taskViews.transformRulesEditor.warning.modal.close-btn")}
                 </Button>,
-                <Button onClick={() => setShowWarningModal(false)}>No, go back</Button>,
+                <Button onClick={() => setShowWarningModal(false)}>
+                    {t("taskViews.transformRulesEditor.warning.modal.back-btn")}
+                </Button>,
             ]}
         >
-            <p>There are still unsaved changes. Are you sure you want to close the editor?</p>
+            <p>{t("taskViews.transformRulesEditor.warning.modal.body")}</p>
         </SimpleDialog>
     ));
 
