@@ -164,7 +164,7 @@ export class MappingRule extends React.Component {
             false
         );
         const reorderHandleButton = !this.props.expanded ? (
-            <div className="ecc-silk-mapping__ruleitem-reorderhandler" key={id}>
+            <div className="ecc-silk-mapping__ruleitem-reorderhandler" key={id} ref={this.props.refFromParent}>
                 <ContextMenu togglerElement="item-draggable" style={{ align: "left", valign: "top" }}>
                     <MenuItem
                         data-test-id={"reorder-mapping-move-to-top"}
