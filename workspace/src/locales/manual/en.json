@@ -787,6 +787,14 @@
             "noRule": "No rule has been learned yet. You need to confirm/decline at least three candidate links for a rule to be learned.",
             "hideRule": "Hide best learned rule",
             "showRule": "Show best learned rule"
+        },
+        "referenceLinks": {
+            "title": "Decision history & reference links"
         }
+    },
+    "ReferenceLinks": {
+        "mismatchCheckboxTitle": "Mismatches ({{nrMismatches}})",
+        "showList": "Show link list",
+        "hideList": "Hide link list"
     }
 }

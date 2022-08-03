@@ -32,8 +32,8 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({ rule }: LinkingRuleAc
                 }}
             >
                 <OverviewItemDescription>
-                    <OverviewItemLine>
-                        {t("ActiveLearning.bestLearnedRule.title", { score: "TODO: Insert score in percent" })}
+                    <OverviewItemLine large>
+                        <h1>{t("ActiveLearning.bestLearnedRule.title", { score: "TODO: Insert score in percent" })}</h1>
                     </OverviewItemLine>
                     <OverviewItemLine>TODO: Show rule details</OverviewItemLine>
                 </OverviewItemDescription>
