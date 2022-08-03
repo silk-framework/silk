@@ -517,6 +517,14 @@
             }
         },
         "transformRulesEditor": {
+            "warning": {
+               "modal" : { 
+                  "title": "Editor Warning", 
+                   "body": "There are still unsaved changes. Are you sure you want to close the editor?",
+                   "close-btn": "Yes, close", 
+                   "back-btn": "No, go back"
+               }   
+            },
             "errors": {
                 "fetchTransformRule": {
                     "msg": "An error has occurred while fetching the transform rule."
