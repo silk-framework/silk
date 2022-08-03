@@ -9,6 +9,7 @@ import ObjectRule from "./MappingRule/ObjectRule/ObjectRule";
 import { MAPPING_RULE_TYPE_COMPLEX_URI, MAPPING_RULE_TYPE_URI, MESSAGES } from "../utils/constants";
 import EventEmitter from "../utils/EventEmitter";
 import ExpandButton from "../elements/buttons/ExpandButton";
+import { getHistory } from "../../../../../store/configureStore";
 
 class RootMappingRule extends React.Component {
     state = {
@@ -24,6 +25,7 @@ class RootMappingRule extends React.Component {
         this.handleDiscardChanges = this.handleDiscardChanges.bind(this);
         this.handleToggleExpand = this.handleToggleExpand.bind(this);
         this.discardAll = this.discardAll.bind(this);
+        this.expandedRuleRef = React.createRef();
     }
 
     componentDidMount() {
@@ -31,6 +33,12 @@ class RootMappingRule extends React.Component {
         EventEmitter.on(MESSAGES.RULE_VIEW.CHANGE, this.onOpenEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.UNCHANGED, this.onCloseEdit);
         EventEmitter.on(MESSAGES.RULE_VIEW.DISCARD_ALL, this.discardAll);
+
+        const searchQuery = new URLSearchParams(window.location.search).get("ruleId");
+        if (searchQuery === this.props.rule.id) {
+            this.setState({ expanded: true });
+            this.expandedRuleRef.current?.scrollIntoView({ behavior: "smooth" });
+        }
     }
 
     componentWillUnmount() {
@@ -71,13 +79,30 @@ class RootMappingRule extends React.Component {
         EventEmitter.emit(MESSAGES.RULE_VIEW.UNCHANGED, { id: this.props.rule.id });
     }
 
+    updateQueryOnExpansion() {
+        const history = getHistory();
+        if (this.state.expanded) {
+            history.push({
+                search: `?${new URLSearchParams({ ruleId: this.props.rule.id })}`,
+            });
+            this.expandedRuleRef.current?.scrollIntoView({ behavior: "smooth" });
+        } else {
+            history.push({
+                search: "",
+            });
+        }
+    }
+
     handleToggleExpand() {
         if (this.state.editing) {
             this.props.onAskDiscardChanges(true);
         } else {
-            this.setState({
-                expanded: !this.state.expanded,
-            });
+            this.setState(
+                {
+                    expanded: !this.state.expanded,
+                },
+                this.updateQueryOnExpansion
+            );
         }
     }
 
@@ -91,7 +116,6 @@ class RootMappingRule extends React.Component {
         if (_.isEmpty(this.props.rule)) {
             return false;
         }
-
         const breadcrumbs = _.get(this.props, "rule.breadcrumbs", []);
         const parent = _.last(breadcrumbs);
 
@@ -105,7 +129,7 @@ class RootMappingRule extends React.Component {
         }
 
         return (
-            <div className="ecc-silk-mapping__rulesobject">
+            <div className="ecc-silk-mapping__rulesobject" ref={this.expandedRuleRef}>
                 <Card shadow={0}>
                     <CardTitle>
                         <div className="ecc-silk-mapping__ruleitem">
