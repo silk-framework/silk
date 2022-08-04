@@ -19,6 +19,7 @@ import { LabelledParameterValue, OptionallyLabelledParameter } from "../linking/
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import { inputPathTab } from "./transformEditor.utils";
 import { FetchError } from "../../../services/fetch/responseInterceptor";
+import TransformRuleEvaluation from "./evalution/TransformRuleEvaluation";
 
 export interface TransformRuleEditorProps {
     /** Project ID the task is in. */
@@ -189,30 +190,37 @@ export const TransformRuleEditor = ({
         );
 
     return (
-        <RuleEditor<IComplexMappingRule, IPluginDetails>
+        <TransformRuleEvaluation
             projectId={projectId}
-            taskId={transformTaskId}
-            fetchRuleData={fetchTransformRule}
-            fetchRuleOperators={fetchTransformRuleOperatorList}
-            saveRule={saveTransformRule}
-            convertRuleOperator={ruleUtils.convertRuleOperator}
-            convertToRuleOperatorNodes={convertToRuleOperatorNodes}
-            viewActions={viewActions}
-            additionalToolBarComponents={additionalToolBarComponents}
-            getStickyNotes={getStickyNotes}
-            additionalRuleOperators={[sourcePathInput()]}
-            validateConnection={ruleUtils.validateConnection}
-            tabs={[
-                ruleUtils.sidebarTabs.all,
-                inputPathTab(projectId, transformTaskId, ruleId, sourcePathInput(), (ex) =>
-                    registerError(
-                        "linking-rule-editor-fetch-source-paths",
-                        t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
-                        ex
-                    )
-                ),
-                ruleUtils.sidebarTabs.transform,
-            ]}
-        />
+            transformTaskId={transformTaskId}
+            ruleId={ruleId}
+            numberOfLinkToShow={5}
+        >
+            <RuleEditor<IComplexMappingRule, IPluginDetails>
+                projectId={projectId}
+                taskId={transformTaskId}
+                fetchRuleData={fetchTransformRule}
+                fetchRuleOperators={fetchTransformRuleOperatorList}
+                saveRule={saveTransformRule}
+                convertRuleOperator={ruleUtils.convertRuleOperator}
+                convertToRuleOperatorNodes={convertToRuleOperatorNodes}
+                viewActions={viewActions}
+                additionalToolBarComponents={additionalToolBarComponents}
+                getStickyNotes={getStickyNotes}
+                additionalRuleOperators={[sourcePathInput()]}
+                validateConnection={ruleUtils.validateConnection}
+                tabs={[
+                    ruleUtils.sidebarTabs.all,
+                    inputPathTab(projectId, transformTaskId, ruleId, sourcePathInput(), (ex) =>
+                        registerError(
+                            "linking-rule-editor-fetch-source-paths",
+                            t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
+                            ex
+                        )
+                    ),
+                    ruleUtils.sidebarTabs.transform,
+                ]}
+            />
+        </TransformRuleEvaluation>
     );
 };

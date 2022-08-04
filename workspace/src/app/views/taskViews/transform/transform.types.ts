@@ -59,3 +59,10 @@ export interface IValueType {
     /** The type of the target value, e.g. 'StringValueType' */
     nodeType: string;
 }
+
+export interface EvaluatedTransformEntity {
+    operatorId: string;
+    values: string[];
+    error: string | null;
+    children: EvaluatedTransformEntity[];
+}

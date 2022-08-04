@@ -5,6 +5,7 @@ import {
 } from "../../../views/shared/RuleEditor/RuleEditor.typings";
 import { PathWithMetaData } from "../shared/rules/rule.typings";
 import { autoCompleteTransformSourcePath } from "./transform.requests";
+import { EvaluatedTransformEntity } from "./transform.types";
 
 export const inputPathTab = (
     projectId: string,
@@ -50,4 +51,16 @@ export const inputPathTab = (
         itemId: (listItem: PathWithMetaData) => listItem.value,
     };
     return inputPathTabConfig;
+};
+
+export const transformToValueMap = (transform: EvaluatedTransformEntity): Map<string, string[]> => {
+    const valueMap = new Map<string, string[]>();
+
+    const traverseTransformTree = (transform: EvaluatedTransformEntity) => {
+        valueMap.set(transform.operatorId, transform.values);
+        transform.children && transform.children.forEach((t) => traverseTransformTree(t));
+    };
+
+    traverseTransformTree(transform);
+    return valueMap;
 };

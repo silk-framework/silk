@@ -45,3 +45,21 @@ export const putTransformRule = async (
         body: complexTransformRule,
     });
 };
+
+/** get evaluation values for a given ruleId */
+export const evaluateTransformRule = async (
+    projectId: string,
+    transformTaskId: string,
+    ruleId: string,
+    rule,
+    limit: number = 100
+): Promise<FetchResponse<any>> => {
+    return fetch({
+        url: legacyTransformEndpoint(`/tasks/${projectId}/${transformTaskId}/rule/root/evaluateRule`),
+        method: "POST",
+        body: rule,
+        query: {
+            limit,
+        },
+    });
+};
