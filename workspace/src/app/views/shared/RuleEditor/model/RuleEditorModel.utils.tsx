@@ -1,7 +1,7 @@
 import React from "react";
-import { IHandleProps } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
-import { ArrowHeadType, Edge, FlowElement, OnLoadParams, Position } from "react-flow-renderer";
-import { rangeArray } from "../../../../utils/basicUtils";
+import {IHandleProps} from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
+import {ArrowHeadType, Edge, FlowElement, Position} from "react-flow-renderer";
+import {rangeArray} from "../../../../utils/basicUtils";
 import {
     IParameterSpecification,
     IRuleNodeData,
@@ -10,15 +10,18 @@ import {
     RuleOperatorNodeParameters,
     RuleOperatorPluginType,
 } from "../RuleEditor.typings";
-import { RuleNodeMenu } from "../view/ruleNode/RuleNodeMenu";
-import { RuleEditorNode, RuleEditorNodeParameterValue } from "./RuleEditorModel.typings";
-import { Connection, Elements, XYPosition } from "react-flow-renderer/dist/types";
+import {RuleNodeMenu} from "../view/ruleNode/RuleNodeMenu";
+import {RuleEditorNode, RuleEditorNodeParameterValue} from "./RuleEditorModel.typings";
+import {Connection, Elements, XYPosition} from "react-flow-renderer/dist/types";
 import dagre from "dagre";
-import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
-import { IconButton } from "@eccenca/gui-elements";
-import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
+import {NodeContent, RuleNodeContentProps} from "../view/ruleNode/NodeContent";
+import {IconButton} from "@eccenca/gui-elements";
+import {RuleEditorEvaluationContextProps} from "../contexts/RuleEditorEvaluationContext";
 
 /** Constants */
+
+export const DEFAULT_NODE_HEIGHT = 70;
+export const DEFAULT_NODE_WIDTH = 240;
 
 // Source handle type
 export const SOURCE_HANDLE_TYPE = "source";
@@ -52,8 +55,6 @@ export interface IOperatorCreateContext {
     operatorParameterSpecification: Map<string, IParameterSpecification>;
     // Translation function
     t: (string) => string;
-    // react-flow instance
-    reactFlowInstance: OnLoadParams;
     // Fetches the current value of a node parameter
     currentValue: (nodeId: string, parameterId: string) => RuleEditorNodeParameterValue;
     // Initialize node parameters

@@ -2,6 +2,8 @@ import { Edge, Node } from "react-flow-renderer";
 import { IRuleNodeData, NodeContentPropsWithBusinessData } from "../RuleEditor.typings";
 import { XYPosition } from "react-flow-renderer/dist/types";
 import { IOperatorNodeParameterValueWithLabel } from "../../../taskViews/shared/rules/rule.typings";
+import { NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
+import { CSSProperties } from "react";
 
 export interface RuleModelChanges {
     operations: RuleModelChangeType[];
@@ -15,6 +17,7 @@ export type RuleEditorNodeParameterValue = IOperatorNodeParameterValueWithLabel 
 export const ruleEditorNodeParameterValue = (value: RuleEditorNodeParameterValue): string | undefined => {
     return typeof value === "string" ? value : value?.value;
 };
+export type StickyNodePropType = { content?: string; style?: CSSProperties };
 
 export type RuleModelChangeType =
     | AddNode
@@ -23,16 +26,18 @@ export type RuleModelChangeType =
     | DeleteEdge
     | ChangeNodePosition
     | ChangeNodeParameter
-    | ChangeNumberOfInputHandles;
+    | ChangeNumberOfInputHandles
+    | ChangeNodeSize
+    | ChangeStickyNodeProperties;
 
 export interface AddNode {
     type: "Add node";
-    node: RuleEditorNode;
+    node: Node;
 }
 
 export interface DeleteNode {
     type: "Delete node";
-    node: RuleEditorNode;
+    node: Node;
 }
 
 export interface AddEdge {
@@ -52,6 +57,18 @@ export interface ChangeNodePosition {
     to: XYPosition;
 }
 
+export interface ChangeNodeSize {
+    type: "Change node size";
+    nodeId: string;
+    from: NodeDimensions;
+    to: NodeDimensions;
+}
+export interface ChangeStickyNodeProperties {
+    type: "Change sticky node style or content";
+    nodeId: string;
+    from: StickyNodePropType;
+    to: StickyNodePropType;
+}
 export interface ChangeNodeParameter {
     type: "Change node parameter";
     nodeId: string;
@@ -76,16 +93,16 @@ const toRuleModelChanges = (ruleModelChange: RuleModelChangeType | RuleModelChan
 
 /** Convenience factory functions for rule model changes. */
 export const RuleModelChangesFactory = {
-    addNode: (node: RuleEditorNode): RuleModelChanges => toRuleModelChanges({ type: "Add node", node }),
-    addNodes: (nodes: RuleEditorNode[]): RuleModelChanges =>
+    addNode: (node: Node): RuleModelChanges => toRuleModelChanges({ type: "Add node", node }),
+    addNodes: (nodes: Node[]): RuleModelChanges =>
         toRuleModelChanges(
-            nodes.map((node) => ({
+            nodes.map((node: Node) => ({
                 type: "Add node",
                 node,
             }))
         ),
-    deleteNode: (node: RuleEditorNode): RuleModelChanges => toRuleModelChanges({ type: "Delete node", node }),
-    deleteNodes: (nodes: RuleEditorNode[]): RuleModelChanges =>
+    deleteNode: (node: Node): RuleModelChanges => toRuleModelChanges({ type: "Delete node", node }),
+    deleteNodes: (nodes: Node[]): RuleModelChanges =>
         toRuleModelChanges(
             nodes.map((node) => ({
                 type: "Delete node",
@@ -108,8 +125,12 @@ export const RuleModelChangesFactory = {
                 edge,
             }))
         ),
+    changeNodeSize: (nodeId: string, from: NodeDimensions, to: NodeDimensions) =>
+        toRuleModelChanges({ type: "Change node size", nodeId, from, to }),
     changeNodePosition: (nodeId: string, from: XYPosition, to: XYPosition): RuleModelChanges =>
         toRuleModelChanges({ type: "Change node position", nodeId, from, to }),
+    changeStickyNodeProperties: (nodeId: string, from: StickyNodePropType, to: StickyNodePropType) =>
+        toRuleModelChanges({ type: "Change sticky node style or content", nodeId, from, to }),
     changeNodeParameter: (
         nodeId: string,
         parameterId: string,

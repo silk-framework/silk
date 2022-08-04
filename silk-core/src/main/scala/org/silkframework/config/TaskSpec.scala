@@ -1,8 +1,8 @@
 package org.silkframework.config
 
 import org.silkframework.entity.EntitySchema
-import org.silkframework.execution.EntityHolder
-import org.silkframework.runtime.resource.{Resource, ResourceManager}
+import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Identifier
@@ -63,7 +63,7 @@ trait TaskSpec {
     *                          This can be a subset of all available properties.
     *                          Property values that are not part of the map remain unchanged.
     */
-  def withProperties(updatedProperties: Map[String, String])(implicit prefixes: Prefixes, resourceManager: ResourceManager): TaskSpec = {
+  def withProperties(updatedProperties: Map[String, String])(implicit context: PluginContext): TaskSpec = {
     throw new ValidationException("Tasks of type " + getClass.getSimpleName + " cannot be reconfigured.")
   }
 

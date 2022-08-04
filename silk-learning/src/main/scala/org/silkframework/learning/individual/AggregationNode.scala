@@ -14,9 +14,8 @@
 
 package org.silkframework.learning.individual
 
-import org.silkframework.config.Prefixes
 import org.silkframework.rule.similarity.{Aggregation, Aggregator, SingleValueAggregator}
-import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.IdentifierGenerator
 
 case class AggregationNode(aggregation: String, weight: Int, operators: List[OperatorNode], isSingleValueAggregator: Boolean) extends OperatorNode {
@@ -42,14 +41,14 @@ case class AggregationNode(aggregation: String, weight: Int, operators: List[Ope
       identifiers.generate(aggregation),
       weight = weight,
       operators = operators.map(_.build),
-      aggregator = Aggregator(aggregation, Map.empty)(Prefixes.empty, EmptyResourceManager())
+      aggregator = Aggregator(aggregation, Map.empty)(PluginContext.empty)
     )
   }
 }
 
 object AggregationNode {
   def load(aggregation: Aggregation)
-          (implicit prefixes: Prefixes, resourceManager: ResourceManager): AggregationNode = {
+          (implicit pluginContext: PluginContext): AggregationNode = {
     val aggregatorId = aggregation.aggregator match {
       case Aggregator(plugin, _) => plugin.id
     }

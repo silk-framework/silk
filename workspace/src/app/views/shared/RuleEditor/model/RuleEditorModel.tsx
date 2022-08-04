@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import {
     Edge,
+    Node,
     Elements,
     OnLoadParams,
     removeElements,
@@ -11,7 +12,11 @@ import {
 } from "react-flow-renderer";
 import { RuleEditorModelContext } from "../contexts/RuleEditorModelContext";
 import { RuleEditorContext, RuleEditorContextProps } from "../contexts/RuleEditorContext";
-import { IOperatorCreateContext, IOperatorNodeOperations, ruleEditorModelUtilsFactory } from "./RuleEditorModel.utils";
+import {
+    IOperatorCreateContext,
+    IOperatorNodeOperations,
+    ruleEditorModelUtilsFactory,
+} from "./RuleEditorModel.utils";
 import { useTranslation } from "react-i18next";
 import {
     IParameterSpecification,
@@ -25,7 +30,9 @@ import {
     AddNode,
     ChangeNodeParameter,
     ChangeNodePosition,
+    ChangeNodeSize,
     ChangeNumberOfInputHandles,
+    ChangeStickyNodeProperties,
     DeleteEdge,
     DeleteNode,
     RuleEditorNode,
@@ -33,12 +40,17 @@ import {
     RuleModelChanges,
     RuleModelChangesFactory,
     RuleModelChangeType,
+    StickyNodePropType,
 } from "./RuleEditorModel.typings";
 import { Connection, XYPosition } from "react-flow-renderer/dist/types";
 import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
 import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basicUtils";
-import { HighlightingState } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
+import { HighlightingState, NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
+import { Markdown, nodeUtils } from "@eccenca/gui-elements";
+import { IStickyNote } from "views/taskViews/shared/task.typings";
+import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
+import StickyMenuButton from "../view/components/StickyMenuButton";
 
 export interface RuleEditorModelProps {
     /** The children that work on this rule model. */
@@ -63,6 +75,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const { t } = useTranslation();
     /** If set, then the model cannot be modified. */
     const [readOnlyState] = React.useState<{ enabled: boolean }>({ enabled: false });
+    /** react-flow instance used for fit-view (after init) and centering nodes from the model. */
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
     /** The nodes and edges of the rule editor. */
     const [elements, setElements] = React.useState<Elements>([]);
@@ -103,6 +116,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [evaluateQuickly, setEvaluateQuickly] = React.useState(false);
     const [readOnly, _setIsReadOnly] = React.useState(false);
     const [utils] = React.useState(ruleEditorModelUtilsFactory(() => (nodeMap ? "edge" : "default")));
+
     /** react-flow related functions */
     const { setCenter } = useZoomPanHelper();
 
@@ -359,6 +373,20 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     from: undoOp.to,
                     to: undoOp.from,
                 };
+            case "Change node size":
+                return {
+                    type: "Change node size",
+                    nodeId: undoOp.nodeId,
+                    from: undoOp.to,
+                    to: undoOp.from,
+                };
+            case "Change sticky node style or content":
+                return {
+                    type: "Change sticky node style or content",
+                    nodeId: undoOp.nodeId,
+                    from: undoOp.to,
+                    to: undoOp.from,
+                };
         }
     };
 
@@ -550,6 +578,28 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                         changedElements
                     );
                     break;
+                case "Change node size":
+                    changedElements = changeNodeSizeInternal(
+                        new Map(
+                            groupedChange.map((change) => {
+                                const nodeChange = change as ChangeNodeSize;
+                                return [nodeChange.nodeId, nodeChange.to];
+                            })
+                        ),
+                        changedElements
+                    );
+                    break;
+                case "Change sticky node style or content":
+                    changedElements = changeStickyNodePropertiesInternal(
+                        new Map(
+                            groupedChange.map((change) => {
+                                const nodeChange = change as ChangeStickyNodeProperties;
+                                return [nodeChange.nodeId, nodeChange.to];
+                            })
+                        ),
+                        changedElements
+                    );
+                    break;
                 case "Change number of input handles":
                     const nodesInputHandlesDiff: Map<string, number> = new Map();
                     groupedChange.forEach((change) => {
@@ -610,7 +660,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                                                 tags={op.tags}
                                                 operatorContext={operatorNodeCreateContextInternal(
                                                     op.pluginId,
-                                                    reactFlowInstance!!,
                                                     ruleEditorContext.operatorSpec!!
                                                 )}
                                                 nodeParameters={{
@@ -716,6 +765,61 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             }
         });
     };
+
+    const changeNodeSizeInternal = (elementsWithSizeChanges: Map<string, NodeDimensions>, els: Elements) => {
+        return els.map((elem) => {
+            if (utils.isNode(elem) && elementsWithSizeChanges.has(elem.id)) {
+                const node = utils.asNode(elem)!!;
+                const nodeDimensions = elementsWithSizeChanges.get(node.id);
+                const changedSize: RuleEditorNode = {
+                    ...node,
+                    data: { ...node.data, nodeDimensions },
+                };
+                return changedSize;
+            } else {
+                return elem;
+            }
+        });
+    };
+
+    const changeStickyNodePropertiesInternal = (
+        stickyNodesWithChanges: Map<string, StickyNodePropType>,
+        els: Elements
+    ) => {
+        return els.map((elem) => {
+            if (utils.isNode(elem) && stickyNodesWithChanges.has(elem.id)) {
+                const node = utils.asNode(elem)!!;
+                const stickyProps = stickyNodesWithChanges.get(node.id);
+                const { style, content } = {
+                    style: stickyProps?.style ?? node.data.style,
+                    content: stickyProps?.content ?? node.data.businessData.stickyNote,
+                };
+
+                const changedStyle = {
+                    ...node,
+                    data: {
+                        ...node.data,
+                        style,
+                        content: <Markdown>{content!}</Markdown>,
+                        menuButtons: (
+                            <StickyMenuButton
+                                stickyNodeId={node.id}
+                                color={style?.borderColor!}
+                                stickyNote={content!}
+                            />
+                        ),
+                        businessData: {
+                            ...node.data.businessData,
+                            stickyNote: content,
+                        },
+                    },
+                };
+                return changedStyle;
+            }
+            return elem;
+        });
+    };
+
     // Changes the node parameters
     const changeNodeParametersInternal = (
         nodeParametersToChange: Map<string, Map<string, RuleEditorNodeParameterValue>>
@@ -747,7 +851,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 operatorNodeOperationsInternal,
                 operatorNodeCreateContextInternal(
                     ruleOperator.pluginId,
-                    reactFlowInstance,
                     ruleEditorContext.operatorSpec!!
                 )
             );
@@ -761,6 +864,104 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             console.warn(
                 "Could not create node since React flow and rule operator specifications are not initialized yet!",
                 ruleOperator
+            );
+        }
+    };
+
+    /**
+     * update node dimensions in node data property
+     * @param nodeId {string}
+     * @param newNodeDimensions {Object}
+     */
+    const changeSize = (nodeId: string, newNodeDimensions: NodeDimensions) => {
+        changeElementsInternal((els) => {
+            const node = utils.nodeById(els, nodeId);
+            if (node) {
+                startChangeTransaction();
+                return addAndExecuteRuleModelChangeInternal(
+                    RuleModelChangesFactory.changeNodeSize(nodeId, node.data.nodeDimensions!, newNodeDimensions),
+                    els
+                );
+            } else {
+                return els;
+            }
+        });
+    };
+
+    const changeStickyNodeProps = (nodeId: string, color?: string, content?: string) => {
+        changeElementsInternal((els) => {
+            const node = utils.nodeById(els, nodeId);
+            if (node) {
+                const newStickyProps: StickyNodePropType = {};
+                const oldStickyProps = {
+                    style: nodeUtils.generateStyleWithColor(node.data.style?.borderColor ?? "#000"),
+                    content: node.data.businessData.stickyNote,
+                };
+                if (color) {
+                    newStickyProps.style = nodeUtils.generateStyleWithColor(color);
+                }
+                if (content) {
+                    newStickyProps.content = content;
+                }
+                startChangeTransaction();
+                return addAndExecuteRuleModelChangeInternal(
+                    RuleModelChangesFactory.changeStickyNodeProperties(nodeId, oldStickyProps, newStickyProps),
+                    els
+                );
+            }
+            return els;
+        });
+    };
+
+    const createStickyNodeInternal = (color: string, stickyNote: string, position: XYPosition, dimension?: NodeDimensions, id?: string): Node => {
+        const style = nodeUtils.generateStyleWithColor(color);
+        const stickyId = id ?? utils.freshNodeId("sticky");
+        return {
+            id: stickyId,
+            type: LINKING_NODE_TYPES.stickynote,
+            position,
+            data: {
+                size: "medium",
+                handles: [],
+                nodeDimensions: dimension,
+                onNodeResize: (newNodeDimensions) => changeSize(stickyId, newNodeDimensions),
+                menuButtons: <StickyMenuButton stickyNodeId={stickyId} color={color} stickyNote={stickyNote} />,
+                content: <Markdown>{stickyNote}</Markdown>,
+                style,
+                businessData: {
+                    stickyNote,
+                },
+            },
+        };
+    };
+    const deselectNodes = useStoreActions((actions) => actions.resetSelectedElements);
+
+    const selectNodes = useStoreActions((actions) => actions.setSelectedElements);
+
+    /**
+     *
+     * @param stickyNote {string} markdown content
+     * @param position {Object} position
+     * @param {number} position.x horizontal offset
+     * @param {number} position.y vertical offset
+     * @param style {Object}
+     * @param color {string}
+     */
+    const addStickyNode = (stickyNote: string, position: XYPosition, color: string) => {
+        if (reactFlowInstance && ruleEditorContext.operatorSpec) {
+            const stickyNoteNode = createStickyNodeInternal(color, stickyNote, position);
+            changeElementsInternal((elements) => {
+                deselectNodes(elements);
+                selectNodes(stickyNoteNode);
+                const updatedElements = [...elements, stickyNoteNode];
+                startChangeTransaction();
+                addAndExecuteRuleModelChangeInternal(RuleModelChangesFactory.addNode(stickyNoteNode), elements);
+                return updatedElements;
+            });
+        } else {
+            console.warn(
+                "Could not create sticky note node since React flow and rule operator specifications are not initialized yet!",
+                stickyNote
             );
         }
     };
@@ -814,6 +1015,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         overwriteParameterValues?: RuleOperatorNodeParameters,
         isCanvasPosition: boolean = false
     ) => {
+        // FIXME: Move position calculation into view code
         const realPosition = isCanvasPosition && reactFlowInstance ? reactFlowInstance.project(position) : position;
         const op = fetchRuleOperatorByPluginId(pluginId, pluginType);
         if (op) {
@@ -1268,12 +1470,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     // Context for creating new nodes
     const operatorNodeCreateContextInternal = (
         operatorPluginId: string,
-        reactFlowInstance: OnLoadParams,
         operatorSpec: Map<string, Map<string, IParameterSpecification>>
     ): IOperatorCreateContext => ({
         operatorParameterSpecification: operatorSpec.get(operatorPluginId) ?? new Map(),
         t,
-        reactFlowInstance,
         currentValue: currentParameterValue,
         initParameters: initNodeParametersInternal,
         isValidConnection,
@@ -1303,12 +1503,13 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         };
         current.elements.forEach((elem) => {
             if (utils.isNode(elem)) {
-                nodes.push(utils.asNode(elem)!!);
+                elem.type !== "stickynote" && nodes.push(utils.asNode(elem)!!);
             } else {
                 const edge = utils.asEdge(elem)!!;
                 inputEdgesByNodeId(edge.target).push(edge);
             }
         });
+
         return nodes.map((node) => {
             const inputHandleIds = utils.inputHandles(node).map((h) => h.id!!);
             const inputEdges = nodeInputEdges.get(node.id) ?? [];
@@ -1323,7 +1524,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             }
             const originalNode = node.data?.businessData.originalRuleOperatorNode!!;
             const parameterDiff = nodeParameters.get(node.id);
-            const ruleOperatorNode: IRuleOperatorNode = {
+            return {
                 inputs,
                 label: originalNode.label,
                 nodeId: node.id,
@@ -1345,13 +1546,20 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 description: originalNode.description,
                 inputsCanBeSwitched: originalNode.inputsCanBeSwitched
             };
-            return ruleOperatorNode;
         });
     };
 
     /** Save the current rule. */
     const saveRule = async () => {
-        const saveResult = await ruleEditorContext.saveRule(ruleOperatorNodes());
+        const stickyNodes = current.elements.reduce((stickyNodes, elem) => {
+            if (utils.isNode(elem) && elem.type === LINKING_NODE_TYPES.stickynote) {
+                const node = utils.asNode(elem)!;
+                stickyNodes.push(nodeUtils.transformNodeToStickyNode(node) as IStickyNote);
+            }
+            return stickyNodes;
+        }, [] as IStickyNote[]);
+
+        const saveResult = await ruleEditorContext.saveRule(ruleOperatorNodes(), stickyNodes);
         if (saveResult.success) {
             // Reset UNDO state
             ruleUndoStack.splice(0);
@@ -1392,7 +1600,6 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 { ...operatorNodeOperationsInternal, handleDeleteNode },
                 operatorNodeCreateContextInternal(
                     operatorNode.pluginId,
-                    reactFlowInstance!!,
                     ruleEditorContext.operatorSpec!!
                 )
             );
@@ -1425,12 +1632,29 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 output: targetNode.get(opNode.nodeId),
             })
         );
-        let elems: Elements = [...nodes, ...edges];
+
+        const stickyNodes = ruleEditorContext.stickyNotes.map(({ color, content, position, dimension, id }) =>
+            createStickyNodeInternal(
+                color,
+                content,
+                {
+                    x: position[0],
+                    y: position[1],
+                },
+                {
+                    width: dimension[0],
+                    height: dimension[1]
+                },
+                id
+            )
+        );
+
+        let elems: Elements = [...nodes, ...edges, ...stickyNodes];
         if (needsLayout) {
             elems = await autoLayoutInternal(elems, false, false);
         }
         setElements(elems);
-        utils.initNodeBaseIds(nodes);
+        utils.initNodeBaseIds([...nodes, ...stickyNodes]);
         ruleUndoStack.splice(0);
         ruleRedoStack.splice(0);
         // Center and then zoom not too far out
@@ -1456,6 +1680,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 executeModelEditOperation: {
                     startChangeTransaction,
                     addNode,
+                    addStickyNode,
                     addNodeByPlugin,
                     deleteNode,
                     deleteNodes,
@@ -1465,6 +1690,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                     addEdge,
                     deleteEdge,
                     autoLayout,
+                    changeSize,
+                    changeStickyNodeProperties: changeStickyNodeProps,
                     deleteEdges,
                     moveNodes,
                     fixNodeInputs,

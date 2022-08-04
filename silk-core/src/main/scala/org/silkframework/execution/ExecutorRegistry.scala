@@ -1,16 +1,13 @@
 package org.silkframework.execution
 
-import java.lang.reflect.{Modifier, ParameterizedType, TypeVariable}
-import java.util.logging.{Level, Logger}
-
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetAccess, DatasetSpec}
-import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{ActivityContext, ActivityMonitor, UserContext}
-import org.silkframework.runtime.plugin.{PluginDescription, PluginRegistry}
-import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
+import org.silkframework.runtime.plugin.{PluginContext, PluginDescription, PluginRegistry}
 import org.silkframework.runtime.validation.ValidationException
 
+import java.lang.reflect.{Modifier, ParameterizedType, TypeVariable}
+import java.util.logging.{Level, Logger}
 import scala.language.existentials
 
 trait ExecutorRegistry {
@@ -33,8 +30,7 @@ trait ExecutorRegistry {
 
     val suitableExecutors = for(plugin <- plugins; taskType <- isSuitable(taskClass, context, plugin)) yield (plugin, taskType)
 
-    implicit val prefixes: Prefixes = Prefixes.empty
-    implicit val resource: ResourceManager = EmptyResourceManager()
+    implicit val pluginContext: PluginContext = PluginContext.empty
 
     suitableExecutors.size match {
       case 0 =>
@@ -42,7 +38,7 @@ trait ExecutorRegistry {
             s"and execution type ${context.getClass.getSimpleName}. Available executors: ${plugins.mkString(", ")}.")
       case 1 =>
         // Instantiate executor
-        suitableExecutors.head._1.apply()
+        suitableExecutors.head._1.apply()(PluginContext.empty)
       case _ =>
         // Found multiple suitable executors => Choose the most specific one
         val sortedExecutors = suitableExecutors.sortWith((p1, p2) => p2._2.isAssignableFrom(p1._2))
@@ -123,6 +119,7 @@ trait ExecutorRegistry {
 object ExecutorRegistry extends ExecutorRegistry {
 
   private lazy val executionManager = {
+    implicit val pluginContext: PluginContext = PluginContext.empty
     PluginRegistry.createFromConfig[ExecutionManager]("execution.manager")
   }
 

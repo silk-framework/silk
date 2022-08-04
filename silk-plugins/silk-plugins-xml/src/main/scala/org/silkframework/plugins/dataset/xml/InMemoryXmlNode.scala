@@ -16,7 +16,7 @@ sealed trait InMemoryXmlNode {
     * Concatenated text enclosed in "", to be used in property filters.
     */
   lazy val textExpression: String = {
-    val sb = new java.lang.StringBuilder()
+    val sb = new StringBuilder()
     sb.append('\"')
     appendText(sb)
     sb.append('\"')
@@ -112,7 +112,13 @@ object InMemoryXmlNode {
       case Unparsed(text) => InMemoryXmlText(text)
       case PCData(text) => InMemoryXmlText(text)
       case Group(nodes) => InMemoryXmlNodes(nodes.map(fromNode).toArray)
-      case e: Elem => InMemoryXmlElem(e.hashCode.toString.replace('-', '1'), e.label, e.attributes.asAttrMap, e.child.map(fromNode).toArray)
+      case e: Elem =>
+        InMemoryXmlElem(
+          id = e.hashCode.toString.replace('-', '1'),
+          label = e.label,
+          attributes = e.attributes.map(m => (m.key -> m.value.text)).toMap,
+          child = e.child.map(fromNode).toArray
+        )
       case _ => throw new IllegalArgumentException(node.getClass.getName)
     }
   }

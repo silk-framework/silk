@@ -14,9 +14,8 @@
 
 package org.silkframework.learning.individual
 
-import org.silkframework.config.Prefixes
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
-import org.silkframework.runtime.resource.ResourceManager
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.IdentifierGenerator
 
 trait InputNode extends Node {
@@ -27,7 +26,7 @@ trait InputNode extends Node {
 
 object InputNode {
   def load(input: Input, isSource: Boolean)
-          (implicit prefixes: Prefixes, resourceManager: ResourceManager): InputNode = input match {
+          (implicit context: PluginContext): InputNode = input match {
     case pathInput: PathInput => PathInputNode.load(pathInput, isSource)
     case transformInput: TransformInput => TransformNode.load(transformInput, isSource)
   }

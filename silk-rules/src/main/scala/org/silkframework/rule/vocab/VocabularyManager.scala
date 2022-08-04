@@ -2,7 +2,7 @@ package org.silkframework.rule.vocab
 
 import org.silkframework.config.DefaultConfig
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.util.Identifier
 
 trait VocabularyManager {
@@ -21,6 +21,7 @@ object VocabularyManager {
   private var vocabularyManager: Option[VocabularyManager] = None
 
   private def instance: VocabularyManager = this.synchronized {
+    implicit val context: PluginContext = PluginContext.empty
     val plugin = DefaultConfig.instance().getString("vocabulary.manager.plugin")
     if(plugin != lastPlugin || vocabularyManager.isEmpty) {
       vocabularyManager = Some(PluginRegistry.createFromConfig[VocabularyManager]("vocabulary.manager"))

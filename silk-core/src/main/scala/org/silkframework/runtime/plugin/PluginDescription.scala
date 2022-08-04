@@ -2,7 +2,6 @@ package org.silkframework.runtime.plugin
 
 import org.silkframework.config.{Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec
-import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.util.Identifier
 
 /**
@@ -41,7 +40,7 @@ trait PluginDescription[+T] {
     *                                   If false, creation will fail if a parameter is provided that does not exist on the plugin.
     */
   def apply(parameterValues: Map[String, String] = Map.empty, ignoreNonExistingParameters: Boolean = true)
-           (implicit prefixes: Prefixes, resources: ResourceManager = EmptyResourceManager()): T
+           (implicit context: PluginContext): T
 
 
   /**

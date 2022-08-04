@@ -61,8 +61,6 @@ object TransformInput {
     def read(node: Node)(implicit readContext: ReadContext): TransformInput = {
       val id = Operator.readId(node)
       val inputs = node.child.filter(n => n.label == "Input" || n.label == "TransformInput").map(fromXml[Input])
-      implicit val prefixes = readContext.prefixes
-      implicit val resourceManager = readContext.resources
 
       try {
         val transformerPluginId = (node \ "@function").text

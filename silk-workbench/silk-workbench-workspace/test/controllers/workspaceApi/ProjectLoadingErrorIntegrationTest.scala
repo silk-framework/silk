@@ -14,6 +14,8 @@ class ProjectLoadingErrorIntegrationTest extends FlatSpec with SingleProjectWork
 
   override def projectPathInClasspath: String = "diProjects/projectFailure.zip" // XML project file with manually inserted errors
 
+  override def failOnTaskLoadingErrors: Boolean = false
+
   override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkspace.Routes])
 
   override def workspaceProviderId: String = "inMemory"

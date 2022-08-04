@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import org.silkframework.config._
 import org.silkframework.rule.{LinkSpec, LinkingConfig}
 import org.silkframework.runtime.activity.Activity
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, XmlSerialization}
 import org.silkframework.runtime.validation.BadUserInputException
@@ -212,8 +212,7 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
     val clonedProject = workspace.createProject(clonedProjectConfig.copy(projectResourceUriOpt = Some(clonedProjectUri)))
     WorkspaceIO.copyResources(project.resources, clonedProject.resources)
     // Clone task spec, since task specs may contain state, e.g. RDF file dataset
-    implicit val resourceManager: ResourceManager = project.resources
-    implicit val prefixes: Prefixes = project.config.prefixes
+    implicit val context: PluginContext = PluginContext.fromProject(project)
     // Clone tags
     for (tag <- project.tagManager.allTags()) {
       clonedProject.tagManager.putTag(tag)
@@ -271,8 +270,7 @@ class WorkspaceApi  @Inject() (accessMonitor: WorkbenchAccessMonitor) extends In
 
   def executeProject(projectName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
-    implicit val prefixes: Prefixes = project.config.prefixes
-    implicit val resources: ResourceManager = project.resources
+    implicit val context: PluginContext = PluginContext.fromProject(project)
 
     val projectExecutors = PluginRegistry.availablePlugins[ProjectExecutor]
     if (projectExecutors.isEmpty) {

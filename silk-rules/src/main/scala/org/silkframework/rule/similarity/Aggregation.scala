@@ -83,9 +83,6 @@ object Aggregation {
 
     def read(node: Node)(implicit readContext: ReadContext): Aggregation = {
       val weightStr = (node \ "@weight").text
-      implicit val prefixes = readContext.prefixes
-      implicit val resourceManager = readContext.resources
-
       val aggregator = Aggregator((node \ "@type").text, Operator.readParams(node))
 
       Aggregation(

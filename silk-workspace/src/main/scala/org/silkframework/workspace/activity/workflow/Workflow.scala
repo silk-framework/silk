@@ -8,6 +8,7 @@ import org.silkframework.runtime.plugin.PluginObjectParameterNoSchema
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import org.silkframework.workspace.{Project, ProjectTask}
 
 import scala.language.implicitConversions
@@ -29,7 +30,9 @@ import scala.xml.{Node, Text}
 case class Workflow(@Param(label = "Workflow operators", value = "Workflow operators process input data or access external non-dataset services.", visibleInDialog = false)
                     operators: WorkflowOperatorsParameter = WorkflowOperatorsParameter(Seq.empty),
                     @Param(label = "Workflow datasets", value = "Workflow datasets allow reading and writing data from/to a data source/sink.", visibleInDialog = false)
-                    datasets: WorkflowDatasetsParameter = WorkflowDatasetsParameter(Seq.empty)) extends TaskSpec {
+                    datasets: WorkflowDatasetsParameter = WorkflowDatasetsParameter(Seq.empty),
+                    @Param(label = "UI annotations", value = "Annotations that are displayed in the workflow editor to describe parts of the workflow.", visibleInDialog = false)
+                    uiAnnotations: UiAnnotations = UiAnnotations()) extends TaskSpec {
 
   lazy val nodes: Seq[WorkflowNode] = operators ++ datasets
 
@@ -328,7 +331,8 @@ object Workflow {
           )
         }
 
-      new Workflow(operators, datasets)
+      val stickyNotes = (xml \ "UiAnnotations" \ "StickyNotes" \ "StickyNote").map(StickyNote.StickyNodeXmlFormat.read)
+      new Workflow(operators, datasets, UiAnnotations(stickyNotes))
     }
 
     /**
@@ -361,6 +365,7 @@ object Workflow {
           configInputs={ds.configInputs.mkString(",")}
           />
       }}
+        {UiAnnotations.UiAnnotationsXmlFormat.write(workflow.uiAnnotations)}
       </Workflow>
     }
 

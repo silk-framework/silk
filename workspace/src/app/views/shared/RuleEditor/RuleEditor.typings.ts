@@ -112,7 +112,7 @@ export interface RuleOperatorNodeParameters {
 
 /** Rule editor node with required business data. For convenience. */
 export interface NodeContentPropsWithBusinessData<T> extends NodeContentProps<T, RuleNodeContentProps> {
-    businessData: T;
+    businessData: T & { stickyNote?: string | undefined };
 }
 
 /** Business data for rule editor nodes. */

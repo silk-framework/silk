@@ -14,17 +14,19 @@ import org.silkframework.rule.util.UriPatternParser
 import org.silkframework.rule.vocab.{GenericInfo, Vocabulary, VocabularyClass, VocabularyProperty}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginBackwardCompatibility
+import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, Serialization, WriteContext}
 import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
 import org.silkframework.serialization.json.EntitySerializers.EntitySchemaJsonFormat
 import org.silkframework.serialization.json.InputJsonSerializer._
 import org.silkframework.serialization.json.JsonHelpers._
 import org.silkframework.serialization.json.JsonSerializers.ObjectMappingJsonFormat.MAPPING_TARGET
-import org.silkframework.serialization.json.JsonSerializers._
+import org.silkframework.serialization.json.JsonSerializers.{ID, _}
 import org.silkframework.serialization.json.LinkingSerializers._
 import org.silkframework.serialization.json.MetaDataSerializers._
 import org.silkframework.util.{DPair, Identifier, IdentifierUtils, Uri}
 import org.silkframework.workspace.activity.transform.{CachedEntitySchemata, VocabularyCacheValue}
+import org.silkframework.workspace.annotation.{StickyNote, UiAnnotations}
 import play.api.libs.json._
 
 import scala.reflect.ClassTag
@@ -99,6 +101,7 @@ object JsonSerializers {
     override def read(value: JsValue)(implicit readContext: ReadContext): GenericDatasetSpec = {
       implicit val prefixes = readContext.prefixes
       implicit val resource = readContext.resources
+      implicit val user = readContext.user
       new DatasetSpec(
         plugin =
           Dataset(
@@ -140,8 +143,6 @@ object JsonSerializers {
     override def typeNames: Set[String] = Set(TASK_TYPE_CUSTOM_TASK)
 
     override def read(value: JsValue)(implicit readContext: ReadContext): CustomTask = {
-      implicit val prefixes = readContext.prefixes
-      implicit val resource = readContext.resources
       CustomTask(
         id = (value \ TYPE).as[JsString].value,
         params = taskParameters(value)
@@ -192,8 +193,6 @@ object JsonSerializers {
       val inputs = mustBeJsArray(mustBeDefined(value, INPUTS)) { jsArray =>
         jsArray.value.map(fromJson[Input](_)(InputJsonSerializer.InputJsonFormat, readContext))
       }
-      implicit val prefixes = readContext.prefixes
-      implicit val resourceManager = readContext.resources
       try {
         val transformerPluginId = stringValue(value, FUNCTION)
         val transformer = Transformer(PluginBackwardCompatibility.transformerIdMapping.getOrElse(transformerPluginId, transformerPluginId), readParameters(value))
@@ -798,8 +797,6 @@ object JsonSerializers {
     override def typeNames: Set[String] = Set(COMPARISON_TYPE)
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Comparison = {
-      implicit val prefixes = readContext.prefixes
-      implicit val resourceManager = readContext.resources
       val metricPluginId = stringValue(value, METRIC)
       val metric = DistanceMeasure(PluginBackwardCompatibility.distanceMeasureIdMapping.getOrElse(metricPluginId, metricPluginId), readParameters(value))
 
@@ -842,8 +839,6 @@ object JsonSerializers {
     override def typeNames: Set[String] = Set(AGGREGATION_TYPE)
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Aggregation = {
-      implicit val prefixes = readContext.prefixes
-      implicit val resourceManager = readContext.resources
       val aggregator = Aggregator(stringValue(value, AGGREGATOR), readParameters(value))
       val inputs = mustBeJsArray(mustBeDefined(value, OPERATORS)) { jsArray =>
         jsArray.value.map(fromJson[SimilarityOperator](_)(SimilarityOperatorJsonFormat, readContext))
@@ -910,17 +905,62 @@ object JsonSerializers {
     }
   }
 
+  /** Sticky note */
+  implicit object StickyNoteJsonFormat extends JsonFormat[StickyNote] {
+    final val CONTENT = "content"
+    final val COLOR = "color"
+    final val POSITION = "position"
+    final val DIMENSION = "dimension"
+
+    override def read(json: JsValue)(implicit readContext: ReadContext): StickyNote = {
+      val id = stringValue(json, ID)
+      val content = stringValue(json, CONTENT)
+      val color = stringValue(json, COLOR)
+      val position = fromJsonValidated[(Double, Double)](mustBeDefined(json, POSITION))
+      val dimension = fromJsonValidated[(Double, Double)](mustBeDefined(json, DIMENSION))
+      StickyNote(id, content, color, position, dimension)
+    }
+
+    override def write(stickyNote: StickyNote)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        ID -> stickyNote.id,
+        CONTENT -> stickyNote.content,
+        COLOR -> stickyNote.color,
+        POSITION -> Json.toJson(stickyNote.position),
+        DIMENSION -> Json.toJson(stickyNote.dimension)
+      )
+    }
+  }
+
+  implicit object UiAnnotationsJsonFormat extends JsonFormat[UiAnnotations] {
+    final val STICKY_NOTES = "stickyNotes"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): UiAnnotations = {
+      val stickyNotesJson = arrayValue(value, STICKY_NOTES)
+      val stickyNotes = stickyNotesJson.value.map(value => fromJson[StickyNote](value))
+      UiAnnotations(stickyNotes)
+    }
+
+    override def write(value: UiAnnotations)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        STICKY_NOTES -> JsArray(value.stickyNotes.map(toJson[StickyNote]))
+      )
+    }
+  }
+
   implicit object LinkageRuleJsonFormat extends JsonFormat[LinkageRule] {
     final val OPERATOR = "operator"
     final val FILTER = "filter"
     final val LINKTYPE = "linkType"
+    final val UI_ANNOTATIONS = "uiAnnotations"
 
     override def read(value: JsValue)(implicit readContext: ReadContext): LinkageRule = {
       LinkageRule(
         operator = optionalValue(value, OPERATOR).map(fromJson[SimilarityOperator]),
         filter = fromJson[LinkFilter](mustBeDefined(value, FILTER)),
         linkType = fromJson[Uri](mustBeDefined(value, LINKTYPE)),
-        layout = optionalValue(value, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout())
+        layout = optionalValue(value, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout()),
+        uiAnnotations = optionalValue(value, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations())
       )
     }
 
@@ -929,7 +969,8 @@ object JsonSerializers {
         OPERATOR -> value.operator.map(toJson(_)),
         FILTER -> toJson(value.filter),
         LINKTYPE -> toJson(value.linkType),
-        LAYOUT -> toJson(value.layout)
+        LAYOUT -> toJson(value.layout),
+        UI_ANNOTATIONS -> toJson(value.uiAnnotations)
       )
     }
   }

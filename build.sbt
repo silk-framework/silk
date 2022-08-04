@@ -132,7 +132,7 @@ lazy val rules = (project in file("silk-rules"))
   )
 
 lazy val learning = (project in file("silk-learning"))
-  .dependsOn(rules, workspace)
+  .dependsOn(rules, workspace, serializationJson)
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Learning"
