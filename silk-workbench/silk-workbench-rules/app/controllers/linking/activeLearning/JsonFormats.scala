@@ -1,6 +1,7 @@
 package controllers.linking.activeLearning
 
 import controllers.core.util.JsonUtils
+import io.swagger.v3.oas.annotations.media.Schema
 import org.silkframework.entity.ValueType
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.learning.active.comparisons.{ComparisonPair, ComparisonPairs}
@@ -8,10 +9,13 @@ import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonFormat
 import play.api.libs.json.{JsValue, Json, OFormat}
 
-//TODO add Swagger annotations etc.
+
 object JsonFormats {
 
-  case class ComparisonPairsFormat(suggestedPairs: Seq[ComparisonPairFormat],
+  @Schema(description = "Holds the current comparison pairs.")
+  case class ComparisonPairsFormat(@Schema(description = "The comparison pairs that have been suggested by the algorithm.")
+                                   suggestedPairs: Seq[ComparisonPairFormat],
+                                   @Schema(description = " The comparison paris that have been selected by the user.")
                                    selectedPairs: Seq[ComparisonPairFormat]) {
     def toComparisonPairs: ComparisonPairs = {
       ComparisonPairs(suggestedPairs.map(_.toComparisonPair), selectedPairs.map(_.toComparisonPair))
@@ -24,7 +28,11 @@ object JsonFormats {
     }
   }
 
-  case class ComparisonPairFormat(source: TypedPathFormat, target: TypedPathFormat) {
+  @Schema(description = "A single comparison pair")
+  case class ComparisonPairFormat(@Schema(description = "The path from the first dataset.")
+                                  source: TypedPathFormat,
+                                  @Schema(description = "The path from the second dataset.")
+                                  target: TypedPathFormat) {
     def toComparisonPair: ComparisonPair = {
       ComparisonPair(source.toTypedPath, target.toTypedPath)
     }
@@ -36,7 +44,11 @@ object JsonFormats {
     }
   }
 
-  case class TypedPathFormat(path: String, valueType: String) {
+  @Schema(description = "An entity path")
+  case class TypedPathFormat(@Schema(description = "The serialized path", example = "path/name")
+                             path: String,
+                             @Schema(description = "The identifier of the value type", example = "StringValueType")
+                             valueType: String) {
     def toTypedPath: TypedPath = {
       TypedPath(path, ValueType.valueTypeById(valueType).right.get)
     }

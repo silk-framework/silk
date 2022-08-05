@@ -30,7 +30,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
 
   @Operation(
     summary = "Comparison pairs",
-    description = "Retrieves all comparison pairs.",
+    description = "Retrieves all comparison pairs. The suggested comparison pairs need to be generated first by running the 'ActiveLearning-ComparisonPairs' activity.",
     responses = Array(
       new ApiResponse(
         responseCode = "200",
