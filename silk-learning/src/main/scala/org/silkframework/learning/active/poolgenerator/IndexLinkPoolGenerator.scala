@@ -4,13 +4,13 @@ import org.silkframework.cache.{EntityCache, MemoryEntityCache}
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
-import org.silkframework.entity.paths.TypedPath
+import org.silkframework.learning.active.comparisons.ComparisonPair
 import org.silkframework.learning.active.{LinkCandidate, MatchingValues, UnlabeledLinkPool}
 import org.silkframework.rule.plugins.distance.characterbased.LevenshteinDistance
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
-import org.silkframework.util.{DPair, Timer}
+import org.silkframework.util.DPair
 
 import scala.collection.mutable
 import scala.util.Random
@@ -37,14 +37,14 @@ class IndexLinkPoolGenerator() extends LinkPoolGenerator {
   // Maximum number of indices for each path value. Additional indices will be cropped.
   private val maxIndices: Int = 5
 
-  override def generator(inputs: DPair[DataSource], linkSpec: LinkSpec, paths: Seq[DPair[TypedPath]], randomSeed: Long)
+  override def generator(inputs: DPair[DataSource], linkSpec: LinkSpec, paths: Seq[ComparisonPair], randomSeed: Long)
                         (implicit prefixes: Prefixes): Activity[UnlabeledLinkPool] = {
     new LinkPoolGeneratorActivity(inputs, linkSpec, paths, randomSeed)
   }
 
   private class LinkPoolGeneratorActivity(inputs: DPair[DataSource],
                                           linkSpec: LinkSpec,
-                                          paths: Seq[DPair[TypedPath]],
+                                          paths: Seq[ComparisonPair],
                                           randomSeed: Long)
                                          (implicit prefixes: Prefixes) extends Activity[UnlabeledLinkPool] {
 
@@ -78,9 +78,7 @@ class IndexLinkPoolGenerator() extends LinkPoolGenerator {
         (targetCache, targetIndex) <- targetCaches.zipWithIndex
       } {
         context.status.updateProgress(0.3 + 0.6 * (sourceIndex * targetCaches.size + targetIndex).toDouble / (sourceCaches.size * targetCaches.size).toDouble, logStatus = false)
-        Timer(s"Path ${fullEntitySchema.source.typedPaths(sourceIndex)} - ${fullEntitySchema.target.typedPaths(targetIndex)}") {
-          findLinks(sourceCache, sourceIndex, targetCache, targetIndex, links)
-        }
+        findLinks(sourceCache, sourceIndex, targetCache, targetIndex, links)
       }
       links.values
     }
@@ -123,8 +121,6 @@ class IndexLinkPoolGenerator() extends LinkPoolGenerator {
         val sourcePartition = sourceCache.read(sourceBlock, sourcePartitionIndex)
         val targetPartition = targetCache.read(targetBlock, targetPartitionIndex)
 
-        //println(s"Reading $sourceBlock $sourcePartitionIndex - $targetBlock $targetPartitionIndex")
-
         val entityPairs = runtimeConfig.executionMethod.comparisonPairs(sourcePartition, targetPartition, full = true)
         for (entityPair <- entityPairs) {
           val entityUris = DPair(entityPair.source.uri.uri, entityPair.target.uri.uri)
@@ -147,17 +143,12 @@ class IndexLinkPoolGenerator() extends LinkPoolGenerator {
               links.put(entityUris, linkCandidate)
               count += 1
               if(count >= maxLinksPerPathPair) {
-                println(s"count (break): $count")
                 return count
-                println("NEVER CALLED")
               }
             }
           }
         }
       }
-
-      println(s"count: $count")
-
       count
     }
 

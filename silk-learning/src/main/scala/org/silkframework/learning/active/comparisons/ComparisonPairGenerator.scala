@@ -17,18 +17,24 @@ package org.silkframework.learning.active.comparisons
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.ValueType
-import org.silkframework.entity.paths.TypedPath
-import org.silkframework.learning.active.poolgenerator.ComparisonPathsGenerator
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.learning.active.LinkCandidate
 import org.silkframework.learning.{LearningConfiguration, LearningException}
 import org.silkframework.rule.LinkSpec
+import org.silkframework.rule.input.{Input, PathInput, TransformInput}
+import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.util.{DPair, Timer}
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.linking.LinkingPathsCache
 import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
 
+import scala.collection.mutable
 import scala.util.Random
 
+/**
+  * Generates comparison pairs for the current link specification.
+  */
 class ComparisonPairGenerator(task: ProjectTask[LinkSpec],
                               config: LearningConfiguration,
                               initialState: ComparisonPairs) extends Activity[ComparisonPairs] {
@@ -84,16 +90,69 @@ class ComparisonPairGenerator(task: ProjectTask[LinkSpec],
     }
 
     // Find matching paths
-    context.value.updateWith(_.copy(comparisonPaths = ComparisonPathsGenerator(pool.links, linkSpec)))
+    context.value.updateWith(_.copy(suggestedPairs = ComparisonPairGenerator(pool.links, linkSpec)))
   }
 
-  private def generatePathPairs(paths: DPair[Seq[TypedPath]]): Seq[DPair[TypedPath]] = {
+  private def generatePathPairs(paths: DPair[Seq[TypedPath]]): Seq[ComparisonPair] = {
     if(paths.source.toSet.diff(paths.target.toSet).size <= paths.source.size.toDouble * 0.1) {
       // If both sources share most path, assume that the schemata are equal and generate direct pairs
-      for((source, target) <- paths.source zip paths.target) yield DPair(source, target)
+      for((source, target) <- paths.source zip paths.target) yield ComparisonPair(source, target)
     } else {
       // If both source have different paths, generate the complete cartesian product
-      for (sourcePath <- paths.source; targetPath <- paths.target) yield DPair(sourcePath, targetPath)
+      for (sourcePath <- paths.source; targetPath <- paths.target) yield ComparisonPair(sourcePath, targetPath)
     }
   }
+}
+
+object ComparisonPairGenerator {
+
+  def apply(linkCandidates: Traversable[LinkCandidate], linkSpec: LinkSpec): Seq[ComparisonPair] = {
+    val comparisonPairs = (fromLinkCandidates(linkCandidates) ++ fromLinkSpec(linkSpec)).distinct
+    if(comparisonPairs.isEmpty) {
+      throw new Exception("Did not find any matching paths from the current linkage rule and by matching the source data.")
+    }
+    comparisonPairs
+  }
+
+  private def fromLinkCandidates(linkCandidates: Traversable[LinkCandidate]): Seq[ComparisonPair] = {
+    val pathScores = mutable.HashMap[ComparisonPair, Double]()
+    for {
+      linkCandidate <- linkCandidates
+      matchingPair <- linkCandidate.matchingValues
+    } {
+      val paths = ComparisonPair(matchingPair.sourcePath(linkCandidate.sourceEntity), matchingPair.targetPath(linkCandidate.targetEntity))
+      pathScores.put(paths, pathScores.getOrElse(paths, 0.0) + matchingPair.score)
+    }
+    pathScores.toSeq.sortBy(-_._2).map(_._1)
+  }
+
+  private def fromLinkSpec(linkSpec: LinkSpec): Seq[ComparisonPair] = {
+    linkSpec.rule.operator.toSeq.flatMap(fromSimilarityOperator)
+  }
+
+  private def fromSimilarityOperator(similarityOperator: SimilarityOperator): Seq[ComparisonPair] = {
+    similarityOperator match {
+      case agg: Aggregation =>
+        agg.operators.flatMap(fromSimilarityOperator)
+      case cmp: Comparison =>
+        // Comparing multiple paths cannot be expressed at the moment, so we just generate the complete Cartesian product
+        for {
+          sourcePath <- collectPaths(cmp.inputs.source)
+          targetPath <- collectPaths(cmp.inputs.target)
+        } yield ComparisonPair(sourcePath, targetPath)
+    }
+  }
+
+  private def collectPaths(input: Input): Seq[TypedPath] = {
+    input match {
+      case PathInput(_, path: TypedPath) =>
+        Seq(path)
+      case PathInput(_, path: UntypedPath) =>
+        Seq(path.asStringTypedPath)
+      case transform: TransformInput =>
+        transform.inputs.flatMap(collectPaths)
+
+    }
+  }
+
 }

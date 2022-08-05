@@ -1,50 +1,46 @@
 package org.silkframework.learning.active.comparisons
 
 import org.silkframework.entity.paths.TypedPath
-import org.silkframework.runtime.serialization.WriteContext
-import org.silkframework.serialization.json.EntitySerializers.PairJsonFormat
-import org.silkframework.serialization.json.WriteOnlyJsonFormat
 import org.silkframework.util.DPair
-import play.api.libs.json.{JsValue, Json}
+
+import scala.language.implicitConversions
 
 /**
-  * Holds the current state of the active learning workflow.
+  * Holds the current comparison pairs.
   *
-  * @param comparisonPaths The matching paths from source and target.
+  * @param suggestedPairs The comparison pairs that have been suggested by the algorithm.
+  * @param selectedPairs The comparison paris that have been selected by the user.
   */
-case class ComparisonPairs(comparisonPaths: Seq[DPair[TypedPath]],
-                           randomSeed: Long)
+case class ComparisonPairs(suggestedPairs: Seq[ComparisonPair],
+                           selectedPairs: Seq[ComparisonPair],
+                           randomSeed: Long = 0)
 
-case class ComparisonPair(
+/**
+  * A single comparison pair.
+  *
+  * @param source The path from the first dataset.
+  * @param target The path from the second dataset.
+  */
+case class ComparisonPair(source: TypedPath, target: TypedPath)
 
-                         )
+object ComparisonPair {
+
+  /**
+    * Converts this comparison pair to a pair of typed paths.
+    */
+  implicit def toPair(pair: ComparisonPair): DPair[TypedPath] = {
+    DPair(pair.source, pair.target)
+  }
+
+}
 
 object ComparisonPairs {
 
+  /**
+    * Initial empty comparison pairs.
+    */
   def initial(randomSeed: Long): ComparisonPairs = {
-    ComparisonPairs(Seq.empty, randomSeed = randomSeed)
-  }
-
-  implicit object TypedPathJsonFormat extends WriteOnlyJsonFormat[TypedPath] {
-
-    override def write(value: TypedPath)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      Json.obj(
-        "path" -> value.normalizedSerialization,
-        "valueType" -> value.valueType.id
-      )
-    }
-  }
-
-
-  implicit object ComparisonPairsJsonFormat extends WriteOnlyJsonFormat[ComparisonPairs] {
-
-    private val comparisonPathsFormat = new PairJsonFormat()(TypedPathJsonFormat)
-
-    override def write(value: ComparisonPairs)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      Json.obj(
-        "comparisonPaths" -> value.comparisonPaths.map(comparisonPathsFormat.write)
-      )
-    }
+    ComparisonPairs(Seq.empty, Seq.empty, randomSeed = randomSeed)
   }
 }
 

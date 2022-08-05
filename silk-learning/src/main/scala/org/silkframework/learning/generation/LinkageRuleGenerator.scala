@@ -14,16 +14,14 @@
 
 package org.silkframework.learning.generation
 
-import org.silkframework.config.Prefixes
-import org.silkframework.entity.paths.{TypedPath, UntypedPath}
+import org.silkframework.entity.paths.UntypedPath
 import org.silkframework.learning.LearningConfiguration.Components
+import org.silkframework.learning.active.comparisons.ComparisonPair
 import org.silkframework.learning.individual.{AggregationNode, FunctionNode, LinkageRuleNode}
 import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.evaluation.ReferenceEntities
 import org.silkframework.rule.similarity.DistanceMeasure
-import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import org.silkframework.util.DPair
 
 import scala.util.Random
@@ -110,7 +108,7 @@ object LinkageRuleGenerator {
     }
   }
 
-  def apply(pathPairs: Seq[DPair[TypedPath]],
+  def apply(pathPairs: Seq[ComparisonPair],
             components: Components)
            (implicit context: PluginContext): LinkageRuleGenerator = {
     val generators =

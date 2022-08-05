@@ -16,9 +16,8 @@ package org.silkframework.learning.active
 
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
-import org.silkframework.entity.paths.TypedPath
+import org.silkframework.learning.active.comparisons.ComparisonPairGenerator
 import org.silkframework.learning.active.linkselector.WeightedLinkageRule
-import org.silkframework.learning.active.poolgenerator.ComparisonPathsGenerator
 import org.silkframework.learning.cleaning.CleanPopulationTask
 import org.silkframework.learning.generation.{GeneratePopulation, LinkageRuleGenerator}
 import org.silkframework.learning.reproduction.{Randomize, Reproduction}
@@ -31,7 +30,7 @@ import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.util.{DPair, Timer}
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
-import org.silkframework.workspace.activity.linking.{LinkingPathsCache, ReferenceEntitiesCache}
+import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 
 import scala.math.max
 import scala.util.Random
@@ -47,7 +46,6 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
 
     val linkSpec = task.data
     val datasets = task.dataSources
-    val paths = getPaths()
     val referenceEntities = getReferenceEntities(context)
     implicit val prefixes: Prefixes = task.project.config.prefixes
     implicit val pluginContext: PluginContext = PluginContext.fromProject(task.project)
@@ -58,7 +56,7 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
     implicit val random: Random = new Random(newRandomSeed)
 
     // Update unlabeled pool
-    val pool = updatePool(linkSpec, datasets, context, paths)
+    val pool = updatePool(linkSpec, datasets, context)
 
     // Create linkage rule generator
     val generator = linkageRuleGenerator(context)
@@ -78,19 +76,6 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
 
     // Clean population
     cleanPopulation(referenceEntities, generator, fitnessFunction, context)
-  }
-
-  // Retrieves available paths
-  private def getPaths() = {
-    val pathsCache = task.activity[LinkingPathsCache].control
-    pathsCache.waitUntilFinished()
-
-    // Check if we got any paths
-    val paths = pathsCache.value().map(_.typedPaths)
-    assert(paths.source.nonEmpty, "No paths have been found in the source dataset (in LinkingPathsCache).")
-    assert(paths.target.nonEmpty, "No paths have been found in the target dataset (in LinkingPathsCache).")
-
-    paths
   }
 
   // Retrieves reference entities
@@ -120,16 +105,18 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
 
   private def updatePool(linkSpec: LinkSpec,
                          datasets: DPair[DataSource],
-                         context: ActivityContext[ActiveLearningState],
-                         paths: DPair[IndexedSeq[TypedPath]])
+                         context: ActivityContext[ActiveLearningState])
                         (implicit userContext: UserContext, prefixes: Prefixes, random: Random): UnlabeledLinkPool = Timer("Generating Pool") {
     var pool = context.value().pool
 
     // Build unlabeled pool
     if(context.value().pool.isEmpty) {
       context.status.updateMessage("Loading pool")
-      val pathPairs = generatePathPairs(paths)
-      val generator = config.active.linkPoolGenerator.generator(datasets, linkSpec, pathPairs, random.nextLong())
+      val comparisonPairs = task.activity[ComparisonPairGenerator].value().selectedPairs
+      if(comparisonPairs.isEmpty) {
+        throw new LearningException("Cannot start active learning, because no comparison pairs have been selected.")
+      }
+      val generator = config.active.linkPoolGenerator.generator(datasets, linkSpec, comparisonPairs, random.nextLong())
       pool = context.child(generator, 0.5).startBlockingAndGetValue()
 
       if (pool.links.isEmpty) {
@@ -137,7 +124,7 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
       }
 
       // Find matching paths
-      context.value.updateWith(_.copy(comparisonPaths = ComparisonPathsGenerator(pool.links, linkSpec)))
+      context.value.updateWith(_.copy(comparisonPaths = comparisonPairs))
     }
 
     // Assert that no reference links are in the pool
@@ -149,16 +136,6 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
     // Update pool
     context.value() = context.value().copy(pool = pool)
     pool
-  }
-
-  private def generatePathPairs(paths: DPair[Seq[TypedPath]]): Seq[DPair[TypedPath]] = {
-    if(paths.source.toSet.diff(paths.target.toSet).size <= paths.source.size.toDouble * 0.1) {
-      // If both sources share most path, assume that the schemata are equal and generate direct pairs
-      for((source, target) <- paths.source zip paths.target) yield DPair(source, target)
-    } else {
-      // If both source have different paths, generate the complete cartesian product
-      for (sourcePath <- paths.source; targetPath <- paths.target) yield DPair(sourcePath, targetPath)
-    }
   }
 
   private def linkageRuleGenerator(context: ActivityContext[ActiveLearningState])

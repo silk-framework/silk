@@ -10,10 +10,10 @@ import org.silkframework.workspace.activity.TaskActivityFactory
 import scala.util.Random
 
 @Plugin(
-  id = "ActiveLearning-ComparisonPairs",
+  id = ComparisonPairGeneratorFactory.PLUGIN_ID,
   label = "Active learning (find comparison pairs)",
   categories = Array("LinkSpecification"),
-  description = "Executes an active learning iteration."
+  description = "Suggest comparison pairs for the current linking task."
 )
 case class ComparisonPairGeneratorFactory(fixedRandomSeed: Boolean = true) extends TaskActivityFactory[LinkSpec, ComparisonPairGenerator] {
 
@@ -25,6 +25,12 @@ case class ComparisonPairGeneratorFactory(fixedRandomSeed: Boolean = true) exten
       initialState = ComparisonPairs.initial(randomSeed)
     )
   }
+
+}
+
+object ComparisonPairGeneratorFactory {
+
+  final val PLUGIN_ID = "ActiveLearning-ComparisonPairs",
 
 }
 

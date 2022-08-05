@@ -1,9 +1,8 @@
 package org.silkframework.learning.active
 
-import org.silkframework.entity.paths.TypedPath
+import org.silkframework.learning.active.comparisons.ComparisonPair
 import org.silkframework.learning.generation.LinkageRuleGenerator
 import org.silkframework.learning.individual.Population
-import org.silkframework.util.DPair
 
 /**
   * Holds the current state of the active learning workflow.
@@ -15,7 +14,7 @@ import org.silkframework.util.DPair
   * @param links Link candidates from the unlabeled pool that have been selected for manual confirmation by the user.
   */
 case class ActiveLearningState(pool: UnlabeledLinkPool,
-                               comparisonPaths: Seq[DPair[TypedPath]],
+                               comparisonPaths: Seq[ComparisonPair],
                                generator: LinkageRuleGenerator,
                                population: Population,
                                links: Seq[LinkCandidate],

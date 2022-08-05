@@ -3,9 +3,9 @@ package org.silkframework.learning.active.poolgenerator
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity.EntitySchema
-import org.silkframework.entity.paths.TypedPath
-import org.silkframework.learning.active.{LinkCandidate, UnlabeledLinkPool}
+import org.silkframework.learning.active.comparisons.ComparisonPair
 import org.silkframework.learning.active.poolgenerator.LinkPoolGeneratorUtils._
+import org.silkframework.learning.active.{LinkCandidate, UnlabeledLinkPool}
 import org.silkframework.rule.execution.GenerateLinks
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
@@ -17,14 +17,14 @@ import org.silkframework.util.DPair
 class LinkSpecLinkPoolGenerator(maxLinks: Int = LinkSpecLinkPoolGenerator.defaultMaxLinks,
                                 timeout: Int = LinkSpecLinkPoolGenerator.defaultTimeout) extends LinkPoolGenerator {
 
-  override def generator(inputs: DPair[DataSource], linkSpec: LinkSpec, paths: Seq[DPair[TypedPath]], randomSeed: Long)
+  override def generator(inputs: DPair[DataSource], linkSpec: LinkSpec, paths: Seq[ComparisonPair], randomSeed: Long)
                         (implicit prefixes: Prefixes): Activity[UnlabeledLinkPool] = {
     new LinkPoolGeneratorActivity(inputs, linkSpec, paths)
   }
 
   private class LinkPoolGeneratorActivity(inputs: DPair[DataSource],
                                           linkSpec: LinkSpec,
-                                          paths: Seq[DPair[TypedPath]])
+                                          paths: Seq[ComparisonPair])
                                          (implicit prefixes: Prefixes) extends Activity[UnlabeledLinkPool] {
 
     private val runtimeConfig = RuntimeLinkingConfig(generateLinksWithEntities = true, linkLimit = Some(maxLinks), executionTimeout = Some(timeout))
