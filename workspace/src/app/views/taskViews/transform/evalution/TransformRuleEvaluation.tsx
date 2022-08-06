@@ -2,7 +2,6 @@ import { IPluginDetails } from "@ducks/common/typings";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 import React, { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
-import { queryParameterValue } from "../../../../utils/basicUtils";
 import { RuleEditorProps } from "views/shared/RuleEditor/RuleEditor";
 import { IRuleOperatorNode, RuleValidationError } from "../../../../views/shared/RuleEditor/RuleEditor.typings";
 import { EvaluatedTransformEntity, IComplexMappingRule } from "../transform.types";
@@ -26,8 +25,6 @@ interface TransformRuleEvaluationProps {
     children: EvaluationChildType;
 }
 
-const REFERENCE_LINK_URL_PARAMETER = "referenceLinksUrl";
-
 export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = ({
     projectId,
     transformTaskId,
@@ -39,7 +36,6 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
     const [evaluationResult, setEvaluationResult] = React.useState<EvaluatedTransformEntity[]>([]);
     const [evaluationResultMap] = React.useState<Map<string, string[][]>>(new Map());
     const [nodeUpdateCallbacks] = React.useState(new Map<string, (evaluationValues: string[][] | undefined) => any>());
-    const [referenceLinksUrl, setReferenceLinksUrl] = React.useState<string | undefined>(undefined);
     const [evaluationResultsShown, setEvaluationResultsShown] = React.useState<boolean>(false);
     const [ruleValidationError, setRuleValidationError] = React.useState<RuleValidationError | undefined>(undefined);
     const { registerError } = useErrorHandler();
@@ -49,7 +45,6 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
         setEvaluationResult([]);
         evaluationResultMap.clear();
         nodeUpdateCallbacks.clear();
-        setReferenceLinksUrl(queryParameterValue(REFERENCE_LINK_URL_PARAMETER)[0]);
     }, [projectId, transformTaskId]);
 
     React.useEffect(() => {
@@ -183,7 +178,6 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                 ruleOperatorId={ruleOperatorId}
                 registerForEvaluationResults={registerForEvaluationResults}
                 unregister={() => nodeUpdateCallbacks.delete(ruleOperatorId)}
-                referenceLinksUrl={referenceLinksUrl}
                 numberOfLinksToShow={numberOfLinkToShow}
             />
         );
@@ -204,7 +198,6 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                 toggleEvaluationResults,
                 evaluationScore: undefined,
                 evaluationResultsShown,
-                referenceLinksUrl,
                 ruleValidationError,
                 clearRuleValidationError,
             }}

@@ -425,6 +425,7 @@
             "addMoreResults": "Add more reference links",
             "noResults": "No linking results available. Please add reference links.",
             "scoreWidget": {
+                "showExamples": "Show Examples",
                 "noScore": "No evaluation score",
                 "noScoreTooltip": "No linking evaluation score available. Add positive and/or negative reference links in order to show a score",
                 "referenceLinks": "Open reference links UI in new tab"

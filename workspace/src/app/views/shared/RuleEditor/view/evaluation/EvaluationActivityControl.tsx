@@ -79,7 +79,7 @@ export const EvaluationActivityControl = ({
                         content={<Markdown>{t("RuleEditor.evaluation.scoreWidget.noScoreTooltip")}</Markdown>}
                         size={"large"}
                     >
-                        {t("RuleEditor.evaluation.scoreWidget.noScore")}
+                        {t("RuleEditor.evaluation.scoreWidget.showExamples")}
                     </Tooltip>
                 ),
                 progressBar: {
