@@ -84,8 +84,8 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
         } catch (ex) {
             if (ex.isFetchError && (ex as FetchError).httpStatus !== 409) {
                 registerError(
-                    "LinkingRuleEvaluation.fetchReferenceLinksEvaluation",
-                    "Could not fetch evaluation results for reference links. Need to fallback to executing linking evaluation.",
+                    "taskViews.transformRulesEditor.errors.fetchTransformEvaluationValues.msg",
+                    "Could not fetch evaluation results.",
                     ex
                 );
             } else {
