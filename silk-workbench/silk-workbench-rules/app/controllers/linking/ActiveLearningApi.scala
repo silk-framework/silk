@@ -6,11 +6,12 @@ import controllers.core.util.JsonUtils
 import controllers.linking.activeLearning.ActiveLearningIterator
 import controllers.linking.activeLearning.JsonFormats._
 import io.swagger.v3.oas.annotations.enums.ParameterIn
-import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import org.silkframework.entity.MinimalLink
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.learning.active.comparisons.{ComparisonPair, ComparisonPairGenerator}
 import org.silkframework.rule.LinkSpec
@@ -162,19 +163,36 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
     Ok
   }
 
-  private def updateSelectedComparisonPairs(projectId: String, taskId: String)
-                                           (updateFunc: Seq[ComparisonPair] => Seq[ComparisonPair])
-                                           (implicit user: UserContext): Unit = {
-    val project = WorkspaceFactory().workspace.project(projectId)
-    val task = project.task[LinkSpec](taskId)
-    val activity = task.activity[ComparisonPairGenerator]
-    activity.updateValue(activity.value().copy(selectedPairs = updateFunc(activity.value().selectedPairs)))
+  def addReferenceLink(project: String, task: String,
+                       linkSource: String, linkTarget: String,
+                       decision: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+    val context = Context.get[LinkSpec](project, task, request.path)
+    ActiveLearningIterator.commitLink(linkSource, linkTarget, decision, context.task)
+    Ok
+  }
+
+  def removeReferenceLink(project: String, task: String,
+                          linkSource: String, linkTarget: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+    val context = Context.get[LinkSpec](project, task, request.path)
+    val activity = context.task.activity[ActiveLearning]
+    activity.updateValue(activity.value().copy(referenceData = activity.value().referenceData.withoutLink(new MinimalLink(linkSource, linkTarget))))
+    Ok
+  }
+
+  def nextLinkCandidate(project: String, task: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+    val context = Context.get[LinkSpec](project, task, request.path)
+    val linkCandidate = ActiveLearningIterator.nextLinkCandidate(context.task)
+
+    // TODO discuss if we want another JSON format here
+    implicit val writeContext = WriteContext[JsValue]()
+    val format = new LinkJsonFormat(rule = None, writeEntities = true, writeEntitySchema = true)
+    Ok(format.write(linkCandidate))
   }
 
   def iterate(project: String, task: String, decision: String,
               linkSource: String, linkTarget: String, synchronous: Boolean = false): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)
-    val linkCandidate = ActiveLearningIterator.nextActiveLearnCandidate(decision, linkSource, linkTarget, context.task, synchronous)
+    val linkCandidate = ActiveLearningIterator.iterate(decision, linkSource, linkTarget, context.task, synchronous)
     linkCandidate match {
       case Some(candidate) =>
         implicit val writeContext = WriteContext[JsValue]()
@@ -191,5 +209,14 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
     val bestRule = activeLearning.value().population.bestIndividual.node.build
     implicit val writeContext = WriteContext[JsValue]()
     Ok(LinkageRuleJsonFormat.write(bestRule))
+  }
+
+  private def updateSelectedComparisonPairs(projectId: String, taskId: String)
+                                           (updateFunc: Seq[ComparisonPair] => Seq[ComparisonPair])
+                                           (implicit user: UserContext): Unit = {
+    val project = WorkspaceFactory().workspace.project(projectId)
+    val task = project.task[LinkSpec](taskId)
+    val activity = task.activity[ComparisonPairGenerator]
+    activity.updateValue(activity.value().copy(selectedPairs = updateFunc(activity.value().selectedPairs)))
   }
 }

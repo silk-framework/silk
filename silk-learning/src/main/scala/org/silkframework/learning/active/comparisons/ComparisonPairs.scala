@@ -21,8 +21,8 @@ case class ComparisonPairs(suggestedPairs: Seq[ComparisonPair],
   * @param source The path from the first dataset.
   * @param target The path from the second dataset.
   */
-// TODO decided if Seq[Seq[STring]] should be used. approx number of examples 3
-case class ComparisonPair(source: TypedPath, target: TypedPath, sourceExamples: Seq[String], targetExamples: Seq[String])
+// TODO decided if Seq[Seq[String]] should be used. approx number of examples 3
+case class ComparisonPair(source: TypedPath, target: TypedPath, sourceExamples: Seq[String] = Seq.empty, targetExamples: Seq[String] = Seq.empty)
 
 object ComparisonPair {
 
