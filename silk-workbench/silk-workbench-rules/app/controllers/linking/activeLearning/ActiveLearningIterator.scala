@@ -62,12 +62,23 @@ object ActiveLearningIterator {
     }
   }
 
-  def iterate(decision: String, linkSource: String, linkTarget: String, task: ProjectTask[LinkSpec], synchronous: Boolean = false)
+  def iterate(linkSource: String, linkTarget: String, decision: String, task: ProjectTask[LinkSpec], synchronous: Boolean = false)
                 (implicit userContext: UserContext): Option[LinkCandidate] = {
     commitLink(linkSource, linkTarget, decision, task, synchronous)
     Some(nextLinkCandidate(task))
   }
 
+  /**
+    *  Adds a new reference link and starts the next active learning iteration.
+    *
+    *  @param linkSource source URI of the current link candidate
+    *  @param linkTarget target URI of the current link candidate
+    *  @param decision The decision for the link candidate. One of LinkCandidateDecision.
+    *  @param task The project task
+    *  @param synchronous If false, the active learning will be run in the background and the call only blocks and waits if no more link candidates are available.
+    *                     If true, a new active learning is started in every iteration. This is slower, but deterministic.
+    *
+    */
   def commitLink(linkSource: String, linkTarget: String, decision: String, task: ProjectTask[LinkSpec], synchronous: Boolean = false)
                 (implicit userContext: UserContext): Link = {
     val activity = task.activity[ActiveLearning]
@@ -82,7 +93,8 @@ object ActiveLearningIterator {
         activity.updateValue(activity.value().copy(referenceData = activity.value().referenceData.withPositiveLink(linkCandidate)))
       case LinkCandidateDecision.negative =>
         activity.updateValue(activity.value().copy(referenceData = activity.value().referenceData.withNegativeLink(linkCandidate)))
-      case LinkCandidateDecision.pass =>
+      case LinkCandidateDecision.unlabeled =>
+        activity.updateValue(activity.value().copy(referenceData = activity.value().referenceData.withoutLink(linkCandidate)))
     }
 
     // Start a learning task
