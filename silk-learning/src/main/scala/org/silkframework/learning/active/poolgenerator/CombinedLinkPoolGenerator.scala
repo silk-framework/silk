@@ -3,7 +3,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.learning.active.comparisons.ComparisonPair
 import org.silkframework.learning.active.poolgenerator.LinkPoolGeneratorUtils._
-import org.silkframework.learning.active.{LinkCandidate, UnlabeledLinkPool}
+import org.silkframework.learning.active.LinkCandidate
 import org.silkframework.rule.LinkSpec
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.util.DPair
@@ -26,7 +26,7 @@ class CombinedLinkPoolGenerator(generators: LinkPoolGenerator*) extends LinkPool
 
       for(activity <- activities) {
         val control = context.child(activity, progressContribution)
-        linkBuffer ++= control.startBlockingAndGetValue().links
+        linkBuffer ++= control.startBlockingAndGetValue().linkCandidates
       }
 
       context.value() = UnlabeledLinkPool(entitySchema(linkSpec, paths), linkBuffer)

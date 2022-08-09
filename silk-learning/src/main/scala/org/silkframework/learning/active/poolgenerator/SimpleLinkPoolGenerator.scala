@@ -19,7 +19,7 @@ import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.learning.active.comparisons.ComparisonPair
 import org.silkframework.learning.active.poolgenerator.LinkPoolGeneratorUtils._
-import org.silkframework.learning.active.{LinkCandidate, UnlabeledLinkPool}
+import org.silkframework.learning.active.LinkCandidate
 import org.silkframework.rule.execution.{GenerateLinks, Linking}
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric
@@ -104,7 +104,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
       val maxIndices = 5
 
       def apply(entities: DPair[Entity], limit: Double = 0.0): Option[Double] = {
-        for ((ComparisonPair(sourcePath, targetPath), index) <- paths.zipWithIndex) {
+        for ((ComparisonPair(sourcePath, targetPath, _, _), index) <- paths.zipWithIndex) {
           var sourceValues = entities.source.evaluate(sourcePath)
           var targetValues = entities.target.evaluate(targetPath)
           for(transform <- transforms) {

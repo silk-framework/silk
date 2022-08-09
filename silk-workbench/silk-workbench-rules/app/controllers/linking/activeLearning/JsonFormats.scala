@@ -32,7 +32,11 @@ object JsonFormats {
   case class ComparisonPairFormat(@Schema(description = "The path from the first dataset.")
                                   source: TypedPathFormat,
                                   @Schema(description = "The path from the second dataset.")
-                                  target: TypedPathFormat) {
+                                  target: TypedPathFormat,
+                                  @Schema(description = "Example values for the source path.", required = false)
+                                  sourceExamples: Seq[String] = Seq.empty,
+                                  @Schema(description = "Example values for the target path.", required = false)
+                                  targetExamples: Seq[String] = Seq.empty) {
     def toComparisonPair: ComparisonPair = {
       ComparisonPair(source.toTypedPath, target.toTypedPath)
     }
@@ -47,16 +51,16 @@ object JsonFormats {
   @Schema(description = "An entity path")
   case class TypedPathFormat(@Schema(description = "The serialized path", example = "path/name")
                              path: String,
-                             @Schema(description = "The identifier of the value type", example = "StringValueType")
-                             valueType: String) {
+                             @Schema(description = "The identifier of the value type", required = false, defaultValue = "StringValueType", example = "StringValueType")
+                             valueType: Option[String] = None) {
     def toTypedPath: TypedPath = {
-      TypedPath(path, ValueType.valueTypeById(valueType).right.get)
+      TypedPath(path, valueType.map(id => ValueType.valueTypeById(id).right.get).getOrElse(ValueType.STRING))
     }
   }
 
   object TypedPathFormat {
     def apply(typedPath: TypedPath): TypedPathFormat = {
-      TypedPathFormat(typedPath.normalizedSerialization, typedPath.valueType.id)
+      TypedPathFormat(typedPath.normalizedSerialization, Some(typedPath.valueType.id))
     }
   }
 

@@ -6,7 +6,7 @@ import org.silkframework.learning.active.comparisons.ComparisonPair
 import org.silkframework.rule.LinkSpec
 import org.silkframework.util.DPair
 
-private object LinkPoolGeneratorUtils {
+object LinkPoolGeneratorUtils {
 
   /**
     * Generates an entity schema from a link spec, which has all provided paths.

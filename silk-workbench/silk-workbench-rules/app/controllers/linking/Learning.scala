@@ -58,7 +58,7 @@ class Learning @Inject() (implicit mat: Materializer, workspaceReact: WorkspaceR
     request.body.asFormUrlEncoded match {
       case Some(p) =>
         val params = p.mapValues(_.head)
-        val nextLinkCandidate = ActiveLearningIterator.nextActiveLearnCandidate(params("decision"), params("source"), params("target"), context.task)
+        val nextLinkCandidate = ActiveLearningIterator.iterate(params("decision"), params("source"), params("target"), context.task)
         nextLinkCandidate match {
           case Some(link) =>
             val comparisonPaths = activeLearn.value().comparisonPaths

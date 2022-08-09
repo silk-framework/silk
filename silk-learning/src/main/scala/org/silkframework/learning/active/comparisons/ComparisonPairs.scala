@@ -13,7 +13,7 @@ import scala.language.implicitConversions
   */
 case class ComparisonPairs(suggestedPairs: Seq[ComparisonPair],
                            selectedPairs: Seq[ComparisonPair],
-                           randomSeed: Long = 0)
+                           randomSeed: Long = 0L)
 
 /**
   * A single comparison pair.
@@ -21,7 +21,8 @@ case class ComparisonPairs(suggestedPairs: Seq[ComparisonPair],
   * @param source The path from the first dataset.
   * @param target The path from the second dataset.
   */
-case class ComparisonPair(source: TypedPath, target: TypedPath)
+// TODO decided if Seq[Seq[String]] should be used. approx number of examples 3
+case class ComparisonPair(source: TypedPath, target: TypedPath, sourceExamples: Seq[String] = Seq.empty, targetExamples: Seq[String] = Seq.empty)
 
 object ComparisonPair {
 

@@ -14,8 +14,6 @@
 
 package org.silkframework.learning.active
 
-import org.silkframework.config.Prefixes
-import org.silkframework.dataset.DataSource
 import org.silkframework.learning.active.comparisons.ComparisonPairGenerator
 import org.silkframework.learning.active.linkselector.WeightedLinkageRule
 import org.silkframework.learning.cleaning.CleanPopulationTask
@@ -27,10 +25,8 @@ import org.silkframework.rule.{LinkSpec, LinkageRule}
 import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.PluginContext
-import org.silkframework.util.{DPair, Timer}
+import org.silkframework.util.Timer
 import org.silkframework.workspace.ProjectTask
-import org.silkframework.workspace.activity.linking.LinkingTaskUtils._
-import org.silkframework.workspace.activity.linking.ReferenceEntitiesCache
 
 import scala.math.max
 import scala.util.Random
@@ -45,18 +41,26 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
                   (implicit userContext: UserContext): Unit = {
 
     val linkSpec = task.data
-    val datasets = task.dataSources
-    val referenceEntities = getReferenceEntities(context)
-    implicit val prefixes: Prefixes = task.project.config.prefixes
     implicit val pluginContext: PluginContext = PluginContext.fromProject(task.project)
 
     // Update random seed
     val newRandomSeed = new Random(context.value().randomSeed).nextLong()
     context.value() = context.value().copy(randomSeed = newRandomSeed)
+    //val randomSeed = task.activity[ComparisonPairGenerator].value().randomSeed
+    //context.value() = context.value().copy(randomSeed = randomSeed)
     implicit val random: Random = new Random(newRandomSeed)
 
+    // Init
+    if(context.value().referenceData.linkCandidates.isEmpty) {
+      context.value.updateWith(_.copy(referenceData = context.child(new ActiveLearningInitializer(task, config)).startBlockingAndGetValue()))
+    }
+    if(context.value().comparisonPaths.isEmpty) {
+      val comparisonPairs = task.activity[ComparisonPairGenerator].value().selectedPairs
+      context.value.updateWith(_.copy(comparisonPaths = comparisonPairs))
+    }
+
     // Update unlabeled pool
-    val pool = updatePool(linkSpec, datasets, context)
+    updateLinkCandidates(context)
 
     // Create linkage rule generator
     val generator = linkageRuleGenerator(context)
@@ -65,7 +69,7 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
     buildPopulation(linkSpec, generator, context)
 
     // Ensure that we got positive and negative reference links
-    val completeEntities = CompleteReferenceLinks(referenceEntities, pool.links, context.value().population)
+    val completeEntities = CompleteReferenceLinks(context.value().referenceData.toReferenceEntities, context.value().referenceData.linkCandidates, context.value().population)
     val fitnessFunction = config.fitnessFunction(completeEntities)
 
     // Learn new population
@@ -75,67 +79,21 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
     selectLinks(generator, completeEntities, fitnessFunction, context)
 
     // Clean population
-    cleanPopulation(referenceEntities, generator, fitnessFunction, context)
+    if(context.value().referenceData.positiveLinks.nonEmpty && context.value().referenceData.negativeLinks.nonEmpty) {
+      cleanPopulation(generator, fitnessFunction, context)
+    }
   }
 
-  // Retrieves reference entities
-  private def getReferenceEntities(context: ActivityContext[ActiveLearningState])(implicit userContext: UserContext) = {
-    context.status.updateMessage("Waiting for reference entities cache")
-    // Update reference entities cache
-    val entitiesCache = task.activity[ReferenceEntitiesCache].control
-    if(entitiesCache.status().isRunning) {
-      entitiesCache.waitUntilFinished()
-    }
-    try {
-      entitiesCache.startBlocking()
-    } catch {
-      case _: IllegalStateException =>
-        // Someone started the cache in the meantime
-        entitiesCache.waitUntilFinished()
-    }
-
-    // Check if all links have been loaded
-    val referenceEntities = entitiesCache.value()
-    val entitiesSize = referenceEntities.positiveLinks.size + referenceEntities.negativeLinks.size
-    val refSize = task.data.referenceLinks.positive.size + task.data.referenceLinks.negative.size
-    assert(entitiesSize == refSize, "Reference Entities Cache has not been loaded correctly")
-
-    referenceEntities
-  }
-
-  private def updatePool(linkSpec: LinkSpec,
-                         datasets: DPair[DataSource],
-                         context: ActivityContext[ActiveLearningState])
-                        (implicit userContext: UserContext, prefixes: Prefixes, random: Random): UnlabeledLinkPool = Timer("Generating Pool") {
-    var pool = context.value().pool
-
-    // Build unlabeled pool
-    if(context.value().pool.isEmpty) {
-      context.status.updateMessage("Loading pool")
-      val comparisonPairs = task.activity[ComparisonPairGenerator].value().selectedPairs
-      if(comparisonPairs.isEmpty) {
-        throw new LearningException("Cannot start active learning, because no comparison pairs have been selected.")
-      }
-      val generator = config.active.linkPoolGenerator.generator(datasets, linkSpec, comparisonPairs, random.nextLong())
-      pool = context.child(generator, 0.5).startBlockingAndGetValue()
-
-      if (pool.links.isEmpty) {
-        throw new LearningException("Could not find any link candidates. Learning is not possible on this dataset(s).")
-      }
-
-      // Find matching paths
-      context.value.updateWith(_.copy(comparisonPaths = comparisonPairs))
-    }
-
+  private def updateLinkCandidates(context: ActivityContext[ActiveLearningState]): Unit = {
     // Assert that no reference links are in the pool
-    pool = pool.withoutLinks(linkSpec.referenceLinks.positive ++ linkSpec.referenceLinks.negative)
-    if(pool.links.isEmpty) {
+    val referenceData = context.value().referenceData
+    var linkCandidates = referenceData.linkCandidates
+    val removeLinks = (referenceData.positiveLinks ++ referenceData.negativeLinks).toSet
+    linkCandidates = linkCandidates.filterNot(removeLinks.contains)
+    if(linkCandidates.isEmpty) {
       throw new LearningException("All available link candidates have been confirmed or declined.")
     }
-
-    // Update pool
-    context.value() = context.value().copy(pool = pool)
-    pool
+    context.value.updateWith(data => data.copy(referenceData = data.referenceData.copy(linkCandidates = linkCandidates)))
   }
 
   private def linkageRuleGenerator(context: ActivityContext[ActiveLearningState])
@@ -202,18 +160,17 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
         }
       }
 
-      val updatedLinks = config.active.selector(weightedRules, context.value().pool.links, completeEntities)
+      val updatedLinks = config.active.selector(weightedRules, context.value().referenceData.linkCandidates, completeEntities)
       context.value() = context.value().copy(links = updatedLinks)
       for(topLink <- updatedLinks.headOption)
         context.log.fine(s"Selected top link candidate $topLink using ${config.active.selector.toString}")
     }
   }
 
-  private def cleanPopulation(referenceEntities: ReferenceEntities,
-                              generator: LinkageRuleGenerator,
+  private def cleanPopulation(generator: LinkageRuleGenerator,
                               fitnessFunction: (LinkageRule => Double), context: ActivityContext[ActiveLearningState])
                              (implicit userContext: UserContext, random: Random): Unit = {
-    if(referenceEntities.isDefined && !context.status().isInstanceOf[Canceling]) {
+    if(!context.status().isInstanceOf[Canceling]) {
       val cleanedPopulation = context.child(new CleanPopulationTask(context.value().population, fitnessFunction, generator, random.nextLong())).startBlockingAndGetValue()
       context.value() = context.value().copy(population = cleanedPopulation)
     }

@@ -13,8 +13,8 @@ import org.silkframework.learning.individual.Population
   * @param population The current population of learned linkage rules.
   * @param links Link candidates from the unlabeled pool that have been selected for manual confirmation by the user.
   */
-case class ActiveLearningState(pool: UnlabeledLinkPool,
-                               comparisonPaths: Seq[ComparisonPair],
+case class ActiveLearningState(comparisonPaths: Seq[ComparisonPair],
+                               referenceData: ActiveLearningReferenceData,
                                generator: LinkageRuleGenerator,
                                population: Population,
                                links: Seq[LinkCandidate],
@@ -22,6 +22,6 @@ case class ActiveLearningState(pool: UnlabeledLinkPool,
 
 object ActiveLearningState {
   def initial(randomSeed: Long): ActiveLearningState = {
-    ActiveLearningState(UnlabeledLinkPool.empty, Seq.empty, LinkageRuleGenerator.empty, Population.empty, Seq.empty, randomSeed = randomSeed)
+    ActiveLearningState(Seq.empty, ActiveLearningReferenceData.empty, LinkageRuleGenerator.empty, Population.empty, Seq.empty, randomSeed = randomSeed)
   }
 }

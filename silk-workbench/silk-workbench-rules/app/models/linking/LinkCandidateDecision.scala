@@ -18,6 +18,6 @@ object LinkCandidateDecision {
   /**
     * No decision.
     */
-  val pass = "pass"
+  val unlabeled = "unlabeled"
 
 }

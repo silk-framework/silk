@@ -5,7 +5,7 @@ import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.learning.active.comparisons.ComparisonPair
-import org.silkframework.learning.active.{LinkCandidate, MatchingValues, UnlabeledLinkPool}
+import org.silkframework.learning.active.{LinkCandidate, MatchingValues}
 import org.silkframework.rule.plugins.distance.characterbased.LevenshteinDistance
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}

@@ -5,7 +5,7 @@ import org.silkframework.dataset.DataSource
 import org.silkframework.entity.EntitySchema
 import org.silkframework.learning.active.comparisons.ComparisonPair
 import org.silkframework.learning.active.poolgenerator.LinkPoolGeneratorUtils._
-import org.silkframework.learning.active.{LinkCandidate, UnlabeledLinkPool}
+import org.silkframework.learning.active.LinkCandidate
 import org.silkframework.rule.execution.GenerateLinks
 import org.silkframework.rule.{LinkSpec, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}

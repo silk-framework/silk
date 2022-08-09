@@ -6,11 +6,12 @@ import controllers.core.util.JsonUtils
 import controllers.linking.activeLearning.ActiveLearningIterator
 import controllers.linking.activeLearning.JsonFormats._
 import io.swagger.v3.oas.annotations.enums.ParameterIn
-import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import org.silkframework.entity.MinimalLink
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.learning.active.comparisons.{ComparisonPair, ComparisonPairGenerator}
 import org.silkframework.rule.LinkSpec
@@ -163,19 +164,146 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
     NoContent
   }
 
-  private def updateSelectedComparisonPairs(projectId: String, taskId: String)
-                                           (updateFunc: Seq[ComparisonPair] => Seq[ComparisonPair])
-                                           (implicit user: UserContext): Unit = {
-    val project = WorkspaceFactory().workspace.project(projectId)
-    val task = project.task[LinkSpec](taskId)
-    val activity = task.activity[ComparisonPairGenerator]
-    activity.updateValue(activity.value().copy(selectedPairs = updateFunc(activity.value().selectedPairs)))
+  @Operation(
+    summary = "Add a new reference link",
+    description = "Adds a new reference link.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success"
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or task has not been found."
+      )
+    )
+  )
+  def addReferenceLink(@Parameter(
+                         name = "project",
+                         description = "The project identifier",
+                         required = true,
+                         in = ParameterIn.PATH,
+                         schema = new Schema(implementation = classOf[String])
+                       )
+                       projectId: String,
+                       @Parameter(
+                         name = "task",
+                         description = "The task identifier",
+                         required = true,
+                         in = ParameterIn.PATH,
+                         schema = new Schema(implementation = classOf[String])
+                       )
+                       taskId: String,
+                       @Parameter(
+                         name = "linkSource",
+                         description = "The URI of the link source.",
+                         required = true,
+                         in = ParameterIn.PATH,
+                         schema = new Schema(implementation = classOf[String])
+                       )
+                       linkSource: String,
+                       @Parameter(
+                         name = "linkTarget",
+                         description = "The URI of the link target.",
+                         required = true,
+                         in = ParameterIn.PATH,
+                         schema = new Schema(implementation = classOf[String])
+                       )
+                       linkTarget: String,
+                       @Parameter(
+                         name = "decision",
+                         description = "The new label of the link.",
+                         required = true,
+                         in = ParameterIn.PATH,
+                         schema = new Schema(implementation = classOf[String], allowableValues = Array("positive", "negative", "unlabeled"))
+                       )
+                       decision: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+    val context = Context.get[LinkSpec](projectId, taskId, request.path)
+    ActiveLearningIterator.commitLink(linkSource, linkTarget, decision, context.task)
+    Ok
+  }
+
+  def removeReferenceLink(@Parameter(
+                            name = "project",
+                            description = "The project identifier",
+                            required = true,
+                            in = ParameterIn.PATH,
+                            schema = new Schema(implementation = classOf[String])
+                          )
+                          projectId: String,
+                          @Parameter(
+                            name = "task",
+                            description = "The task identifier",
+                            required = true,
+                            in = ParameterIn.PATH,
+                            schema = new Schema(implementation = classOf[String])
+                          )
+                          taskId: String,
+                          @Parameter(
+                            name = "linkSource",
+                            description = "The URI of the link source.",
+                            required = true,
+                            in = ParameterIn.PATH,
+                            schema = new Schema(implementation = classOf[String])
+                          )
+                          linkSource: String,
+                          @Parameter(
+                            name = "linkTarget",
+                            description = "The URI of the link target.",
+                            required = true,
+                            in = ParameterIn.PATH,
+                            schema = new Schema(implementation = classOf[String])
+                          )
+                          linkTarget: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+    val context = Context.get[LinkSpec](projectId, taskId, request.path)
+    val activity = context.task.activity[ActiveLearning]
+    activity.updateValue(activity.value().copy(referenceData = activity.value().referenceData.withoutLink(new MinimalLink(linkSource, linkTarget))))
+    Ok
+  }
+
+  @Operation(
+    summary = "Next link candidate",
+    description = "Retrieves the next link candidate.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success"
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or task has not been found."
+      )
+    )
+  )
+  def nextLinkCandidate(@Parameter(
+                          name = "project",
+                          description = "The project identifier",
+                          required = true,
+                          in = ParameterIn.PATH,
+                          schema = new Schema(implementation = classOf[String])
+                        )
+                        projectId: String,
+                        @Parameter(
+                          name = "task",
+                          description = "The task identifier",
+                          required = true,
+                          in = ParameterIn.PATH,
+                          schema = new Schema(implementation = classOf[String])
+                        )
+                        taskId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+    val context = Context.get[LinkSpec](projectId, taskId, request.path)
+    val linkCandidate = ActiveLearningIterator.nextLinkCandidate(context.task)
+
+    // TODO discuss if we want another JSON format here
+    implicit val writeContext = WriteContext[JsValue]()
+    val format = new LinkJsonFormat(rule = None, writeEntities = true, writeEntitySchema = true)
+    Ok(format.write(linkCandidate))
   }
 
   def iterate(project: String, task: String, decision: String,
               linkSource: String, linkTarget: String, synchronous: Boolean = false): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[LinkSpec](project, task, request.path)
-    val linkCandidate = ActiveLearningIterator.nextActiveLearnCandidate(decision, linkSource, linkTarget, context.task, synchronous)
+    val linkCandidate = ActiveLearningIterator.iterate(linkSource, linkTarget, decision, context.task, synchronous)
     linkCandidate match {
       case Some(candidate) =>
         implicit val writeContext = WriteContext[JsValue]()
@@ -186,8 +314,37 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
     }
   }
 
-  def bestRule(project: String, task: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
-    val context = Context.get[LinkSpec](project, task, request.path)
+  @Operation(
+    summary = "Best linkage rule",
+    description = "Retrieves the best linkage rule from the population.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success"
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or task has not been found."
+      )
+    )
+  )
+  def bestRule(@Parameter(
+                 name = "project",
+                 description = "The project identifier",
+                 required = true,
+                 in = ParameterIn.PATH,
+                 schema = new Schema(implementation = classOf[String])
+               )
+               projectId: String,
+               @Parameter(
+                 name = "task",
+                 description = "The task identifier",
+                 required = true,
+                 in = ParameterIn.PATH,
+                 schema = new Schema(implementation = classOf[String])
+               )
+               taskId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+    val context = Context.get[LinkSpec](projectId, taskId, request.path)
     val activeLearning = context.task.activity[ActiveLearning]
     val population = activeLearning.value().population
     if(population.isEmpty) {
@@ -197,5 +354,14 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
       implicit val writeContext = WriteContext[JsValue]()
       Ok(LinkageRuleJsonFormat.write(bestRule))
     }
+  }
+
+  private def updateSelectedComparisonPairs(projectId: String, taskId: String)
+                                           (updateFunc: Seq[ComparisonPair] => Seq[ComparisonPair])
+                                           (implicit user: UserContext): Unit = {
+    val project = WorkspaceFactory().workspace.project(projectId)
+    val task = project.task[LinkSpec](taskId)
+    val activity = task.activity[ComparisonPairGenerator]
+    activity.updateValue(activity.value().copy(selectedPairs = updateFunc(activity.value().selectedPairs)))
   }
 }
