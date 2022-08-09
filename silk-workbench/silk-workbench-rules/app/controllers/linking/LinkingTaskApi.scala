@@ -643,12 +643,13 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
   }
 
   private def serializeLinks(entities: Traversable[DPair[Entity]],
-                             linkageRule: LinkageRule): JsValue = {
+                             linkageRule: LinkageRule,
+                             withEntitiesAndSchema: Boolean = false): JsValue = {
     implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
     JsArray(
       for(entities <- entities.toSeq) yield {
         val link = new FullLink(entities.source.uri, entities.target.uri, linkageRule(entities), entities)
-        new LinkJsonFormat(Some(linkageRule)).write(link)
+        new LinkJsonFormat(Some(linkageRule), writeEntities = withEntitiesAndSchema, writeEntitySchema = withEntitiesAndSchema).write(link)
       }
     )
   }
@@ -688,7 +689,16 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
                                 in = ParameterIn.PATH,
                                 schema = new Schema(implementation = classOf[String])
                               )
-                              taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+                              taskName: String,
+                              @Parameter(
+                                name = "withEntitiesAndSchema",
+                                description = "When set to true each link contains the entities and the schema",
+                                required = false,
+                                in = ParameterIn.QUERY,
+                                schema = new Schema(implementation = classOf[Boolean], defaultValue = "false"),
+                              )
+                             // TODO: Remove if not needed/used
+                              withEntitiesAndSchema: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val rule = task.data.rule
@@ -698,8 +708,8 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
 
     val result =
       Json.obj(
-        "positive" -> serializeLinks(referenceEntityCacheValue.positiveEntities, rule),
-        "negative" -> serializeLinks(referenceEntityCacheValue.negativeEntities, rule),
+        "positive" -> serializeLinks(referenceEntityCacheValue.positiveEntities, rule, withEntitiesAndSchema),
+        "negative" -> serializeLinks(referenceEntityCacheValue.negativeEntities, rule, withEntitiesAndSchema),
         "evaluationScore" -> Json.toJson(evaluationResult)
       )
 

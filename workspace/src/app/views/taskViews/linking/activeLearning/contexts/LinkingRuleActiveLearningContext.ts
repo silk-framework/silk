@@ -1,8 +1,8 @@
 import React from "react";
 import { TaskPlugin } from "@ducks/shared/typings";
-import { ILinkingTaskParameters } from "../../linking.types";
+import { IEvaluatedReferenceLinks, ILinkingTaskParameters } from "../../linking.types";
 import { ActiveLearningStep, CandidatePropertyPair } from "../LinkingRuleActiveLearning.typings";
-import { EntityLink } from "../learningUI/LinkingRuleActiveLearningMain.typings";
+import { LabelProperties } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
 
 interface LinkingRuleActiveLearningContextProps {
     projectId: string;
@@ -16,7 +16,11 @@ interface LinkingRuleActiveLearningContextProps {
     /** Navigate to a different view. */
     navigateTo: (step: ActiveLearningStep) => void;
     /** The current reference links of the linking rule. */
-    referenceLinks: EntityLink[];
+    referenceLinks: IEvaluatedReferenceLinks | undefined;
+    /** The source paths of the label values that should be displayed in the UI for each entity in a link. */
+    labelPaths?: LabelProperties;
+    /** Change the label paths. */
+    changeLabelPaths: (paths: LabelProperties) => any;
 }
 
 /** Contains data and functions for the link rule active learning. */
@@ -26,5 +30,7 @@ export const LinkingRuleActiveLearningContext = React.createContext<LinkingRuleA
     propertiesToCompare: [],
     setPropertiesToCompare: () => {},
     navigateTo: () => {},
-    referenceLinks: [],
+    referenceLinks: undefined,
+    labelPaths: undefined,
+    changeLabelPaths: () => {},
 });

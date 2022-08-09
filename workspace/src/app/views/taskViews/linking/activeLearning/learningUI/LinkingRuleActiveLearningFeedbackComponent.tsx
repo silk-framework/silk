@@ -4,6 +4,8 @@ import {
     GridColumn,
     GridRow,
     HoverToggler,
+    IconButton,
+    Notification,
     OverviewItem,
     OverviewItemDescription,
     OverviewItemLine,
@@ -11,26 +13,31 @@ import {
     Tag,
     Toolbar,
     ToolbarSection,
-    Notification,
-    IconButton,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { LinkingRuleActiveLearningFeedbackContext } from "../contexts/LinkingRuleActiveLearningFeedbackContext";
 import { ArrowLeft, ArrowRight, columnStyles } from "../LinkingRuleActiveLearning.shared";
 import { CandidateProperty, CandidatePropertyPair } from "../LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
-import { EntityLink, EntityLinkPropertyPairValues } from "./LinkingRuleActiveLearningMain.typings";
-import { IEntitySchema } from "../../../shared/rules/rule.typings";
+import { EntityLinkPropertyPairValues } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
+import referenceLinksUtils from "../../referenceLinks/LinkingRuleReferenceLinks.utils";
 
 export const LinkingRuleActiveLearningFeedbackComponent = () => {
     /** Contexts */
     const activeLearningFeedbackContext = React.useContext(LinkingRuleActiveLearningFeedbackContext);
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
-    /** The property pairs that will be compared during the active learning. */
+    /** The property pairs that will be displayed as entity title during the active learning. */
     const [labelPropertyPairs, setLabelPropertyPairs] = React.useState<CandidatePropertyPair[]>([]);
     /** The values of the selected entity link. */
     const [valuesToDisplay, setValuesToDisplay] = React.useState<EntityLinkPropertyPairValues[] | undefined>();
     const labelPropertyPairIds = new Set(labelPropertyPairs.map((lpp) => lpp.pairId));
+
+    React.useEffect(() => {
+        activeLearningContext.changeLabelPaths({
+            sourceProperties: labelPropertyPairs.map((lpp) => lpp.left.value),
+            targetProperties: labelPropertyPairs.map((lpp) => lpp.right.value),
+        });
+    }, [labelPropertyPairs]);
 
     // Initially set the "label" properties, i.e. values of these properties are shown for entity links
     React.useEffect(() => {
@@ -42,28 +49,21 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
     // Extract values for property pairs
     React.useEffect(() => {
         if (activeLearningContext.propertiesToCompare && activeLearningFeedbackContext.selectedLink) {
-            const { source, target } = activeLearningFeedbackContext.selectedLink;
-            const sourceValues = source.values;
-            const sourceSchema = source.schema;
-            const targetValues = target.values;
-            const targetSchema = target.schema;
-            const values: EntityLinkPropertyPairValues[] = [];
-            activeLearningContext.propertiesToCompare.forEach((pair, idx) => {
-                const sourcePropertyValues = fetchValueFor(pair.left.value, idx, sourceValues, sourceSchema);
-                const targetPropertyValues = fetchValueFor(pair.right.value, idx, targetValues, targetSchema);
-                values.push({ sourceValues: sourcePropertyValues, targetValues: targetPropertyValues });
-            });
-            setValuesToDisplay(values);
+            const sourceValues = referenceLinksUtils.pickEntityValues(
+                activeLearningFeedbackContext.selectedLink.source,
+                activeLearningContext.propertiesToCompare.map((prop) => prop.left.value)
+            );
+            const targetValues = referenceLinksUtils.pickEntityValues(
+                activeLearningFeedbackContext.selectedLink.target,
+                activeLearningContext.propertiesToCompare.map((prop) => prop.right.value)
+            );
+            const pairValues = sourceValues.map((sourceVals, idx) => ({
+                sourceValues: sourceVals,
+                targetValues: targetValues[idx] ?? [],
+            }));
+            setValuesToDisplay(pairValues);
         }
     }, [activeLearningContext.propertiesToCompare, activeLearningFeedbackContext.selectedLink]);
-
-    const fetchValueFor = (path: string, pathIdx: number, values: string[][], schema?: IEntitySchema): string[] => {
-        const valueIdx = pathIdx;
-        if (schema) {
-            // TODO: Find idx via the schema
-        }
-        return values[valueIdx] ?? [];
-    };
 
     const toggleLabelPropertyPair = (pairId: string) => {
         setLabelPropertyPairs((pairs) => {

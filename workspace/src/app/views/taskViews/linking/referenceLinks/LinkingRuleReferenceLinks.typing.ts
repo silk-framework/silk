@@ -1,4 +1,4 @@
-import { IEntity } from "../../../shared/rules/rule.typings";
+import { IEntity } from "../../shared/rules/rule.typings";
 
 /** The type of a reference link. */
 export type LinkType = "positive" | "negative" | "unlabeled";
@@ -19,4 +19,10 @@ export interface EntityLink {
 export interface EntityLinkPropertyPairValues {
     sourceValues: string[];
     targetValues: string[];
+}
+
+/** The paths whose values should be displayed as entity labels. */
+export interface LabelProperties {
+    sourceProperties: string[];
+    targetProperties: string[];
 }
