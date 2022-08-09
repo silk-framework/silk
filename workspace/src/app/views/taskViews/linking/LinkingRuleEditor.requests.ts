@@ -69,6 +69,25 @@ export const evaluateLinkingRuleAgainstReferenceEntities = (
     });
 };
 
+/** Get a an evaluation of the currently saved linkage rule against the reference links.
+ *
+ * @param projectId
+ * @param linkingTaskId
+ * @param withEntitiesAndSchema If true each link contains both entities and the schemata.
+ */
+export const referenceLinksEvaluated = (
+    projectId: string,
+    linkingTaskId: string,
+    withEntitiesAndSchema: boolean
+): Promise<FetchResponse<IEvaluatedReferenceLinks>> => {
+    return fetch({
+        url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/referenceLinksEvaluated`),
+        query: {
+            withEntitiesAndSchema,
+        },
+    });
+};
+
 /** Fetch evaluated links for the given linkage rule. */
 export const evaluateLinkingRule = (
     projectId: string,

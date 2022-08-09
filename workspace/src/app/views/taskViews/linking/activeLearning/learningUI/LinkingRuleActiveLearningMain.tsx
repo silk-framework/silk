@@ -4,8 +4,7 @@ import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 import { useTranslation } from "react-i18next";
 import { LinkingRuleActiveLearningFeedbackComponent } from "./LinkingRuleActiveLearningFeedbackComponent";
-import { CandidatePropertyPair } from "../LinkingRuleActiveLearning.typings";
-import { EntityLink } from "./LinkingRuleActiveLearningMain.typings";
+import { EntityLink } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
 import { LinkingRuleActiveLearningFeedbackContext } from "../contexts/LinkingRuleActiveLearningFeedbackContext";
 import { LinkingRuleActiveLearningBestLearnedRule } from "./LinkingRuleActiveLearningBestLearnedRule";
 import { LinkingRuleReferenceLinks } from "../../referenceLinks/LinkingRuleReferenceLinks";
@@ -97,7 +96,10 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                 <Spacing />
                 <LinkingRuleActiveLearningBestLearnedRule rule={{ task: "TODO" }} />
                 <Spacing />
-                <LinkingRuleReferenceLinks />
+                <LinkingRuleReferenceLinks
+                    referenceLinks={activeLearningContext.referenceLinks}
+                    labelPaths={activeLearningContext.labelPaths}
+                />
             </div>
         </LinkingRuleActiveLearningFeedbackContext.Provider>
     );

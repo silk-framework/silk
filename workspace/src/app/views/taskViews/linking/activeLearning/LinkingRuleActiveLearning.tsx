@@ -2,17 +2,17 @@ import { IViewActions } from "../../../plugins/PluginRegistry";
 import { LinkingRuleActiveLearningContext } from "./contexts/LinkingRuleActiveLearningContext";
 import React from "react";
 import { LinkingRuleActiveLearningConfig } from "./LinkingRuleActiveLearningConfig";
-import { fetchLinkSpec } from "../LinkingRuleEditor.requests";
+import { fetchLinkSpec, referenceLinksEvaluated } from "../LinkingRuleEditor.requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { TaskPlugin } from "@ducks/shared/typings";
-import { ILinkingTaskParameters } from "../linking.types";
+import { IEvaluatedReferenceLinks, ILinkingTaskParameters } from "../linking.types";
 import { Spinner } from "@eccenca/gui-elements";
 import { ActiveLearningStep, CandidatePropertyPair } from "./LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningMain } from "./learningUI/LinkingRuleActiveLearningMain";
-import { EntityLink } from "./learningUI/LinkingRuleActiveLearningMain.typings";
+import { EntityLink, LabelProperties } from "../referenceLinks/LinkingRuleReferenceLinks.typing";
 
 export interface LinkingRuleActiveLearningProps {
     /** Project ID the task is in. */
@@ -28,7 +28,7 @@ const mockPairs: CandidatePropertyPair[] = [
     {
         pairId: "1",
         left: {
-            value: "urn:prop:propA",
+            value: "<https://ns.eccenca.com/source/name>",
             label: "Property A",
             exampleValues: ["Value 1", "Value 2"],
             type: "number",
@@ -76,7 +76,9 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
     /** The original reference links. Used for diffing the reference links on save. */
     const referenceLinksInternal = React.useRef<EntityLink[]>([]);
     /** A copy of the reference links that can be modified. Changes to the backend will only be made when explicitly saving. */
-    const [referenceLinks, setReferenceLinks] = React.useState<EntityLink[] | undefined>(undefined);
+    const [referenceLinks, setReferenceLinks] = React.useState<IEvaluatedReferenceLinks | undefined>(undefined);
+    /** The source paths of the label values that should be displayed in the UI for each entity in a link. */
+    const [labelPaths, setLabelPaths] = React.useState<LabelProperties | undefined>(undefined);
 
     /** Fetches the parameters of the linking task */
     const fetchTaskData = async (projectId: string, taskId: string) => {
@@ -96,17 +98,32 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
         }
     };
 
+    /** Fetches the current reference links of the linking task. TODO: Swap against version that evaluates the current best rule against all reference links saved and unsaved */
+    const fetchReferenceLinks = async (projectId: string, taskId: string) => {
+        try {
+            setLoading(true);
+            const linksEvaluated = (await referenceLinksEvaluated(projectId, taskId, true)).data;
+            setReferenceLinks(linksEvaluated);
+            return taskData;
+        } catch (err) {
+            registerError(
+                "LinkingRuleEditor_fetchLinkingTask",
+                t("taskViews.linkRulesEditor.errors.fetchTaskData.msg"),
+                err
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
     /** Load linking task data. */
     React.useEffect(() => {
         init();
     }, [projectId, linkingTaskId]);
 
     const init = async () => {
-        const taskData = await fetchTaskData(projectId, linkingTaskId);
-        if (taskData) {
-            const referenceLinks = taskData.parameters.referenceLinks;
-            setReferenceLinks(referenceLinks as any);
-        }
+        await fetchTaskData(projectId, linkingTaskId);
+        await fetchReferenceLinks(projectId, linkingTaskId);
     };
 
     return (
@@ -118,7 +135,9 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
                 propertiesToCompare: selectedPropertyPairs,
                 setPropertiesToCompare: setSelectedPropertyPairs,
                 navigateTo: setActiveLearningStep,
-                referenceLinks: referenceLinks ?? [],
+                referenceLinks: referenceLinks,
+                labelPaths,
+                changeLabelPaths: setLabelPaths,
             }}
         >
             {loading ? (

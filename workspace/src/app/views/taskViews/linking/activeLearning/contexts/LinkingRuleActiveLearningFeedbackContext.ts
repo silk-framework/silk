@@ -1,4 +1,4 @@
-import { EntityLink } from "../learningUI/LinkingRuleActiveLearningMain.typings";
+import { EntityLink } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
 import React from "react";
 
 interface LinkingRuleActiveLearningFeedbackContextProps {
