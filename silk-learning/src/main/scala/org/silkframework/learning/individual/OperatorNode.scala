@@ -17,6 +17,8 @@ package org.silkframework.learning.individual
 import org.silkframework.config.Prefixes
 import org.silkframework.rule.plugins.aggegrator.HandleMissingValuesAggregator
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.IdentifierGenerator
 
@@ -28,7 +30,7 @@ trait OperatorNode extends Node {
 }
 
 object OperatorNode {
-  def load(operator: SimilarityOperator)(implicit prefixes: Prefixes, resourceManager: ResourceManager): OperatorNode = operator match {
+  def load(operator: SimilarityOperator)(implicit pluginContext: PluginContext): OperatorNode = operator match {
     case Aggregation(_, _, HandleMissingValuesAggregator(1.0), Seq(comparison: Comparison)) =>
       ComparisonNode.load(comparison).copy(required = false)
     case aggregation: Aggregation =>

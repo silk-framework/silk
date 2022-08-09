@@ -147,7 +147,7 @@ export function Metadata(props: IProps) {
                         createdTags.map((t) => ({ label: t.label })),
                         projectId
                     );
-                    //defensive correction to ensure uris match
+                    //defensive correction to ensure uris match.
                     const metadataTags = selectedTags.map((tag) => {
                         const newlyCreatedTagMatch = (createdTagsResponse?.data ?? []).find(
                             (t) => t.label === tag.label
@@ -209,7 +209,7 @@ export function Metadata(props: IProps) {
             const hasToReRender = !formEditData.label || !e.target.value;
             formEditData.label = e.target.value;
             if (hasToReRender) {
-                // Label has changed either from empty or was set to empty. Need to re-render.
+                // Label has changed either from empty or was set to empty. Need to re-render
                 setFormEditData({ ...formEditData });
             }
             checkEditState();

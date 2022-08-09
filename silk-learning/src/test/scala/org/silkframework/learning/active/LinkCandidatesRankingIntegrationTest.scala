@@ -5,8 +5,9 @@ import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.{DatasetSpec, EmptyDataset, EntityDatasource}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema, Link, ValueType}
+import org.silkframework.learning.active.comparisons.{ComparisonPair, ComparisonPairGenerator}
 import org.silkframework.learning.active.linkselector.BestMatchSelector
-import org.silkframework.learning.active.poolgenerator.{IndexLinkPoolGenerator, ComparisonPathsGenerator}
+import org.silkframework.learning.active.poolgenerator.IndexLinkPoolGenerator
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.ReferenceEntities
 import org.silkframework.runtime.activity.{Activity, UserContext}
@@ -54,9 +55,9 @@ class LinkCandidatesRankingIntegrationTest extends FlatSpec with Matchers {
 
   // Paths with matching values sorted by TF/IDF
   val expectedPathPairs = Seq(
-    DPair(namePath, namePath),
-    DPair(genderPath, genderPath),
-    DPair(typePath, typePath)
+    ComparisonPair(namePath, namePath),
+    ComparisonPair(genderPath, genderPath),
+    ComparisonPair(typePath, typePath)
   )
 
   private val dummyTask = PlainTask("dataset", DatasetSpec(EmptyDataset))
@@ -70,7 +71,7 @@ class LinkCandidatesRankingIntegrationTest extends FlatSpec with Matchers {
     // Generate link candidates from entities
     val sources = DPair(EntityDatasource(dummyTask, sourceEntities, sourceSchema), EntityDatasource(dummyTask, targetEntities, targetSchema))
     // We put in the complete cartesian product of paths, because we want the algorithm to figure out which ones match
-    val pathPairs = for(sourcePath <- sourceSchema.typedPaths; targetPath <- targetSchema.typedPaths) yield DPair(sourcePath, targetPath)
+    val pathPairs = for(sourcePath <- sourceSchema.typedPaths; targetPath <- targetSchema.typedPaths) yield ComparisonPair(sourcePath, targetPath)
     val generatorActivity = new IndexLinkPoolGenerator().generator(sources, LinkSpec(), pathPairs, randomSeed = random.nextLong())
     val linkCandidates = Activity(generatorActivity).startBlockingAndGetValue().links
 
@@ -82,7 +83,7 @@ class LinkCandidatesRankingIntegrationTest extends FlatSpec with Matchers {
     sortedCandidates(1).confidence shouldBe > (sortedCandidates(2).confidence)
 
     // Find matching paths
-    val matchingPaths = ComparisonPathsGenerator(linkCandidates, LinkSpec())
+    val matchingPaths = ComparisonPairGenerator(linkCandidates, LinkSpec())
     matchingPaths shouldBe expectedPathPairs
   }
 }

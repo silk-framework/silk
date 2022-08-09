@@ -5,9 +5,11 @@ import org.silkframework.rule.TransformSpec
 import org.silkframework.rule.execution.TransformReport.{RuleError, RuleResult}
 import org.silkframework.rule.execution.{Linking, TransformReport}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
+import org.silkframework.serialization.json.EntitySerializers.PairEntitySchemaJsonFormat
 import org.silkframework.serialization.json.ExecutionReportSerializers.Keys._
 import org.silkframework.serialization.json.JsonHelpers._
 import org.silkframework.serialization.json.JsonSerializers.{GenericTaskJsonFormat, TaskJsonFormat, TransformSpecJsonFormat}
+import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
 import org.silkframework.serialization.json.WorkflowSerializers.WorkflowJsonFormat
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.workflow.{Workflow, WorkflowExecutionReport, WorkflowExecutionReportWithProvenance, WorkflowTaskReport}
@@ -78,8 +80,25 @@ object ExecutionReportSerializers {
   }
 
   implicit object LinkingJsonFormat extends WriteOnlyJsonFormat[Linking] {
+    final val LINKS = "links"
+    final val STATISTICS = "statistics"
+    final val ENTITY_SCHEMATA = "entitySchemata"
+
     override def write(value: Linking)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      ExecutionReportJsonFormat.serializeBasicValues(value)
+      val firstEntityOption = value.links.headOption.flatMap(_.entities)
+      val entitySchemataOption = firstEntityOption.map(_.map(_.schema))
+      val linkFormat = new LinkJsonFormat(Some(value.rule))
+
+      ExecutionReportJsonFormat.serializeBasicValues(value) ++
+        Json.obj(
+          LINKS -> value.links.map(linkFormat.write),
+          STATISTICS -> Json.obj(
+            "sourceEntities" -> value.statistics.entityCount.source,
+            "targetEntities" -> value.statistics.entityCount.target,
+            "linkCount" -> value.links.size
+          ),
+          ENTITY_SCHEMATA -> entitySchemataOption.map(PairEntitySchemaJsonFormat.write)
+        )
     }
   }
 

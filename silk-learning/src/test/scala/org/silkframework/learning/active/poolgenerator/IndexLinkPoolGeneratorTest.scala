@@ -5,6 +5,7 @@ import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.dataset.{DataSource, DatasetSpec, EmptyDataset, EntityDatasource}
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity.{Entity, EntitySchema, Link, ValueType}
+import org.silkframework.learning.active.comparisons.ComparisonPair
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.plugins.distance.characterbased.LevenshteinDistance
 import org.silkframework.runtime.activity.{Activity, UserContext}
@@ -58,7 +59,7 @@ class IndexLinkPoolGeneratorTest extends FlatSpec with Matchers {
   private def generateLinkCandidates(sourceValues: Seq[String], targetValues: Seq[String]): Seq[Link] = {
     val sources = DPair(createSource(sourceValues), createSource(targetValues))
     val generator = new IndexLinkPoolGenerator()
-    val generatorActivity = generator.generator(sources, LinkSpec(), schema.typedPaths.map(p => DPair.fill[TypedPath](p)), randomSeed = 0)
+    val generatorActivity = generator.generator(sources, LinkSpec(), schema.typedPaths.map(p => ComparisonPair(p, p)), randomSeed = 0)
     val pool = Activity(generatorActivity).startBlockingAndGetValue()
     pool.links
   }

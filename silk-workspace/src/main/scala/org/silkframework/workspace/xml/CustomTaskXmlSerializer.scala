@@ -15,6 +15,7 @@
 package org.silkframework.workspace.xml
 
 import org.silkframework.config._
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{ResourceLoader, ResourceManager}
 import org.silkframework.runtime.serialization.XmlSerialization
 import org.silkframework.util.Identifier
@@ -54,7 +55,8 @@ private class CustomTaskXmlSerializer extends XmlSerializer[CustomTask] {
   }
 
   override def loadTasks(resources: ResourceLoader,
-                         projectResources: ResourceManager): Seq[LoadedTask[CustomTask]] = {
+                         projectResources: ResourceManager)
+                        (implicit userContext: UserContext): Seq[LoadedTask[CustomTask]] = {
     val names = taskNames(resources)
     val tasks = for (name <- names) yield {
       loadTaskSafelyFromXML(name, Some(name.stripSuffix(".xml")), resources, projectResources)

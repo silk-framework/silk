@@ -7,6 +7,7 @@ import java.nio.charset.{Charset, StandardCharsets}
 import java.util.concurrent.atomic.AtomicInteger
 import org.scalatest.{FlatSpec, MustMatchers}
 import org.silkframework.dataset.rdf._
+import org.silkframework.plugins.dataset.rdf.endpoint.PagingSparqlTraversable.QueryExecutor
 
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
@@ -23,46 +24,48 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
   private final val DATA_TYPE_LITERAL = "dataTypeLiteral"
   private final val EMPTY_LITERAL = "emptyLiteral"
 
-  private def sparqlResults(nrResults: Int): InputStream = {
-    val result = <sparql xmlns="http://www.w3.org/2005/sparql-results#">
-      <head>
-        <variable name={URI}/>
-        <variable name={BNODE}/>
-        <variable name={PLAIN_LITERAL}/>
-        <variable name={LANG_LITERAL}/>
-        <variable name={DATA_TYPE_LITERAL}/>
-      </head>
+  private def sparqlResults(nrResults: Int) = new QueryExecutor {
+    override def execute(query: String, processResult: InputStream => Unit): Unit = {
+      val result = <sparql xmlns="http://www.w3.org/2005/sparql-results#">
+        <head>
+          <variable name={URI}/>
+          <variable name={BNODE}/>
+          <variable name={PLAIN_LITERAL}/>
+          <variable name={LANG_LITERAL}/>
+          <variable name={DATA_TYPE_LITERAL}/>
+        </head>
 
-      <results>
-        { for(_ <- 1 to nrResults) yield {
-        <result>
-          <binding name={URI}>
-            <uri>http://this.is.a.uri.com</uri>
-          </binding>
-          <binding name={BNODE}>
-            <bnode>bNode</bnode>
-          </binding>
-          <binding name={PLAIN_LITERAL}>
-            <literal>plain</literal>
-          </binding>
-          <binding name={LANG_LITERAL}>
-            <literal xml:lang="en">in English</literal>
-          </binding>
-          <binding name={DATA_TYPE_LITERAL}>
-            <literal datatype="http://www.w3.org/2001/XMLSchema#integer">42</literal>
-          </binding>
-          <binding name={EMPTY_LITERAL}>
-            <literal></literal>
-          </binding>
-        </result>
-      }}
-      </results>
-    </sparql>
-    new ByteArrayInputStream(("<?xml version=\"1.0\"?>\n" + result.toString()).getBytes(StandardCharsets.UTF_8))
+        <results>
+          { for(_ <- 1 to nrResults) yield {
+          <result>
+            <binding name={URI}>
+              <uri>http://this.is.a.uri.com</uri>
+            </binding>
+            <binding name={BNODE}>
+              <bnode>bNode</bnode>
+            </binding>
+            <binding name={PLAIN_LITERAL}>
+              <literal>plain</literal>
+            </binding>
+            <binding name={LANG_LITERAL}>
+              <literal xml:lang="en">in English</literal>
+            </binding>
+            <binding name={DATA_TYPE_LITERAL}>
+              <literal datatype="http://www.w3.org/2001/XMLSchema#integer">42</literal>
+            </binding>
+            <binding name={EMPTY_LITERAL}>
+              <literal></literal>
+            </binding>
+          </result>
+        }}
+        </results>
+      </sparql>
+      processResult(new ByteArrayInputStream(("<?xml version=\"1.0\"?>\n" + result.toString()).getBytes(StandardCharsets.UTF_8)))
+    }
   }
 
   it should "return correctly typed query results" in {
-    val results = PagingSparqlTraversable("select * where {?s ?p ?o}", _ => sparqlResults(2), SparqlParams(), Int.MaxValue).bindings.toArray
+    val results = PagingSparqlTraversable("select * where {?s ?p ?o}", sparqlResults(2), SparqlParams(), Int.MaxValue).bindings.toArray
     val result = results.head
     result(URI) mustBe Resource("http://this.is.a.uri.com")
     result(BNODE) mustBe a[BlankNode]
@@ -75,9 +78,11 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
 
   it should "handle graph parameter" in {
     val queries = ArrayBuffer[String]()
-    val queryCollector: String => InputStream = { query =>
-      queries.append(query)
-      sparqlResults(1) // just a dummy
+    val queryCollector = new QueryExecutor {
+      def execute(query: String, processResult: InputStream => Unit): Unit = {
+        queries.append(query)
+        sparqlResults(1).execute(query, processResult) // just a dummy
+      }
     }
     val GRAPH_URI = "http://graph.com/graph"
     val sparqlParams = SparqlParams(graph = Some(GRAPH_URI), pageSize = 1)
@@ -93,9 +98,11 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
 
   it should "not set limit and offset if already in query" in {
     val queries = ArrayBuffer[String]()
-    val queryCollector: String => InputStream = { query =>
-      queries.append(query)
-      sparqlResults(1) // just a dummy
+    val queryCollector = new QueryExecutor {
+      def execute(query: String, processResult: InputStream => Unit): Unit = {
+        queries.append(query)
+        sparqlResults(1) // just a dummy
+      }
     }
     val sparqlParams = SparqlParams(pageSize = 1)
     val result = PagingSparqlTraversable("SELECT * WHERE { ?s ?p ?o } LIMIT 1000", queryCollector, sparqlParams, Int.MaxValue)
@@ -109,9 +116,11 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
   it should "reduce the page size to the limit if the page size if greater" in {
     val lowLimit = 42
     val queries = ArrayBuffer[String]()
-    val queryCollector: String => InputStream = { query =>
-      queries.append(query)
-      sparqlResults(1) // just a dummy
+    val queryCollector = new QueryExecutor {
+      def execute(query: String, processResult: InputStream => Unit): Unit = {
+        queries.append(query)
+        sparqlResults(1).execute(query, processResult) // just a dummy
+      }
     }
     val sparqlParams = SparqlParams(pageSize = 1000000)
     val result = PagingSparqlTraversable("SELECT * WHERE { ?s ?p ?o }", queryCollector, sparqlParams, lowLimit)
@@ -122,9 +131,7 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
 
   it should "stop paging when the thread is interrupted" in {
     val sparqlParams = SparqlParams(pageSize = 1)
-    val infiniteLoop: String => InputStream = { _ =>
-      sparqlResults(1)
-    }
+    val infiniteLoop = sparqlResults(1)
     val count = new AtomicInteger(0)
     val thread = new Thread {
       override def run(): Unit = {
@@ -140,21 +147,71 @@ class PagingSparqlTraversableTest extends FlatSpec with MustMatchers {
       if(count.get() > 10) {
         thread.interrupt()
       }
+      Thread.sleep(200)
     }
     System.currentTimeMillis() - start must be < 5 * 1000L // If it is not interrupted this should run for minutes
+  }
+
+  it should "stop paging when the thread is interrupted while read results from the connection" in {
+    val sparqlParams = SparqlParams(pageSize = 1)
+    val count = new AtomicInteger(0)
+    @volatile var inInputStream = false
+    @volatile var interruptedInStream = false
+    val blockingExecutor = new QueryExecutor {
+      override def execute(query: String, processResult: InputStream => Unit): Unit = {
+        if(count.get() <= 2) {
+          sparqlResults(1).execute(query, processResult)
+        } else {
+          val blockingInputStream = new InputStream {
+            override def read(): Int = {
+              inInputStream = true
+              try {
+                Thread.sleep(20000)
+              } catch {
+                case ex: InterruptedException =>
+                  interruptedInStream = true
+                  throw ex
+              }
+              fail("Reading should have been interrupted")
+            }
+          }
+          processResult(blockingInputStream)
+        }
+      }
+    }
+    val thread = new Thread {
+      override def run(): Unit = {
+        val result = PagingSparqlTraversable("SELECT * WHERE { ?s ?p ?o }", blockingExecutor, sparqlParams, limit = Int.MaxValue)
+        for(_ <- result.bindings) {
+          count.incrementAndGet()
+        }
+      }
+    }
+    thread.start()
+    val start = System.currentTimeMillis()
+    while(thread.isAlive) {
+      if(inInputStream) {
+        thread.interrupt()
+      }
+      Thread.sleep(200)
+    }
+    System.currentTimeMillis() - start must be < 5000L // If it is not interrupted this should run for minutes
+    interruptedInStream mustBe true
   }
 
   it should "inject FROM clauses when a graph is defined and no 'GRAPH selection' is already part of the query" in {
     def mustRewrite(query: String, invert: Boolean = false): Unit = {
       var actualQuery = ""
       val expectedQuery = QueryFactory.create(query).serialize(Syntax.syntaxSPARQL_11)
-      def queryExecutor(q: String): InputStream = {
-        actualQuery = q
-        // Return value doesn't matter, will be ignored
-        new ByteArrayInputStream(
-          """<sparql xmlns="http://www.w3.org/2005/sparql-results#">
-            |</sparql>
-            |""".stripMargin.getBytes(Charset.forName("UTF-8")))
+      def queryExecutor = new QueryExecutor {
+        def execute(query: String, processResult: InputStream => Unit): Unit = {
+          actualQuery = query
+          // Return value doesn't matter, will be ignored
+          new ByteArrayInputStream(
+            """<sparql xmlns="http://www.w3.org/2005/sparql-results#">
+              |</sparql>
+              |""".stripMargin.getBytes(Charset.forName("UTF-8")))
+        }
       }
       Try(PagingSparqlTraversable(query, queryExecutor, SparqlParams(graph = Some("urn:graph"), pageSize = Int.MaxValue), Int.MaxValue).bindings.head)
       if(invert) {

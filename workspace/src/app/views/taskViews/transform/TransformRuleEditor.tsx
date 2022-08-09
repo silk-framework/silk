@@ -9,6 +9,7 @@ import { IPluginDetails } from "@ducks/common/typings";
 import { putTransformRule, requestTransformRule } from "./transform.requests";
 import { IRuleOperatorNode, RuleSaveResult } from "../../shared/RuleEditor/RuleEditor.typings";
 import ruleUtils from "../shared/rules/rule.utils";
+import { IStickyNote } from "../shared/task.typings";
 
 export interface TransformRuleEditorProps {
     /** Project ID the task is in. */
@@ -59,9 +60,11 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
     /** Save the rule. */
     const saveTransformRule = async (
         ruleOperatorNodes: IRuleOperatorNode[],
+        stickyNotes: IStickyNote[],
         originalRule: IComplexMappingRule
     ): Promise<RuleSaveResult> => {
         try {
+            //Todo add sticky notes to saveRule and backend
             const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
             if (rootNodes.length !== 1) {
                 return {
@@ -85,6 +88,7 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
                 success: true,
             };
         } catch (err) {
+            console.log("Error", err);
             registerError(
                 "TransformRuleEditor_saveTransformRule",
                 t("taskViews.transformRulesEditor.errors.saveTransformRule.msg"),

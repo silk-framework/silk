@@ -112,6 +112,20 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   final val value: Observable[ActivityType#ValueType] = new ObservableMirror(control.value)
 
   /**
+    * Updates the value of this activity.
+    *
+    * @throws UnsupportedOperationException If the value can not be updated.
+    */
+  def updateValue(value: ActivityType#ValueType): Unit = {
+    control.value match {
+      case holder: ValueHolder[ActivityType#ValueType] =>
+        holder.update(value)
+      case _ =>
+        throw new UnsupportedOperationException("Cannot update value of this activity.")
+    }
+  }
+
+  /**
     * Holds the timestamp when the activity has been started.
     * Is None if the activity is not running at the moment.
     */

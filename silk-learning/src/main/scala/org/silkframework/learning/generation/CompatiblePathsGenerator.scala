@@ -24,6 +24,8 @@ import org.silkframework.rule.plugins.transformer.normalize.LowerCaseTransformer
 import org.silkframework.rule.plugins.transformer.substring.StripUriPrefixTransformer
 import org.silkframework.rule.plugins.transformer.tokenization.Tokenizer
 import org.silkframework.rule.similarity.DistanceMeasure
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.util.DPair
 
@@ -31,7 +33,7 @@ import org.silkframework.util.DPair
   * Analyses the reference entities and generates pairs of paths.
   */
 class CompatiblePathsGenerator(components: Components)
-                              (implicit prefixes: Prefixes, resourceManager: ResourceManager){
+                              (implicit pluginContext: PluginContext){
 
   private val minFrequency = 0.01
 

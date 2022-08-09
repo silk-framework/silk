@@ -1,7 +1,6 @@
 package org.silkframework.learning.genlink
 
-import org.silkframework.config.Prefixes
-import org.silkframework.learning.{LearningConfiguration, LinkageRuleLearner}
+import org.silkframework.learning.LearningConfiguration
 import org.silkframework.learning.LinkageRuleLearner.Result
 import org.silkframework.learning.cleaning.CleanPopulationTask
 import org.silkframework.learning.generation.{GeneratePopulation, LinkageRuleGenerator}
@@ -10,7 +9,7 @@ import org.silkframework.learning.reproduction.Reproduction
 import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.evaluation.{LinkageRuleEvaluator, ReferenceEntities}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
-import org.silkframework.runtime.resource.EmptyResourceManager
+import org.silkframework.runtime.plugin.PluginContext
 
 import scala.util.Random
 
@@ -42,8 +41,7 @@ private class GenLink(trainingLinks: ReferenceEntities, seeds: Traversable[Linka
     learningStatus = Status.NotStarted
     ineffectiveIterations = 0
 
-    implicit val prefixes = Prefixes.empty
-    implicit val projectResources = EmptyResourceManager()
+    implicit val pluginContext: PluginContext = PluginContext.empty
 
     val fitnessFunction = config.fitnessFunction(trainingLinks)
     val generator = LinkageRuleGenerator(trainingLinks, config.components)

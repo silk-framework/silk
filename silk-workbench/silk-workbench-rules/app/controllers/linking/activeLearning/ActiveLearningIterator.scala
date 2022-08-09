@@ -1,12 +1,13 @@
-package controllers.linking
+package controllers.linking.activeLearning
 
-import java.util.logging.Logger
 import models.linking.LinkCandidateDecision
 import org.silkframework.entity.{Link, MinimalLink}
 import org.silkframework.learning.active.{ActiveLearning, LinkCandidate}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.ProjectTask
+
+import java.util.logging.Logger
 
 object ActiveLearningIterator {
 

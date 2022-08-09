@@ -1,7 +1,6 @@
 package org.silkframework.runtime.serialization
 
-import org.silkframework.config.Prefixes
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 
 import scala.reflect.ClassTag
 
@@ -17,7 +16,7 @@ object Serialization {
     * Holds all registered serialization formats.
     */
   private lazy val serializationFormats: Seq[SerializationFormat[Any, Any]] = {
-    implicit val prefixes = Prefixes.empty
+    implicit val context: PluginContext = PluginContext.empty
     val formatTypes = PluginRegistry.availablePlugins[SerializationFormat[Any, Any]]
     val formats = formatTypes.map(_.apply())
     // Sort formats based on their order in 'defaultMimeTypes'

@@ -1,10 +1,9 @@
 package org.silkframework.runtime.users
 
 import java.util.logging.Logger
-
 import org.silkframework.config.{DefaultConfig, Prefixes}
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
 import play.api.mvc.RequestHeader
 
@@ -31,8 +30,7 @@ object WebUserManager {
       if (config.hasPath(WEB_USER_MANAGER_PARAMETER_KEY)) {
         val userManagerPluginId = config.getString(WEB_USER_MANAGER_PARAMETER_KEY)
         if(userManagerPluginId != lastPlugin || webUserManager.isEmpty) {
-          implicit val prefixes: Prefixes = Prefixes.empty
-          implicit val resourceManager: ResourceManager = EmptyResourceManager()
+          implicit val context: PluginContext = PluginContext.empty
           webUserManager = Some(PluginRegistry.create[WebUserManager](userManagerPluginId))
         }
         lastPlugin = userManagerPluginId

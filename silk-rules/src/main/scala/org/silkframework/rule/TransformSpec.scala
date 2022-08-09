@@ -1,19 +1,18 @@
 package org.silkframework.rule
 
-import java.util.NoSuchElementException
 import org.silkframework.config.Task.TaskFormat
 import org.silkframework.config.{MetaData, Prefixes, Task, TaskSpec}
 import org.silkframework.entity._
 import org.silkframework.entity.paths._
 import org.silkframework.rule.RootMappingRule.RootMappingRuleFormat
-import org.silkframework.rule.TransformSpec.{RuleSchemata, TargetVocabularyAutoCompletionProvider, TargetVocabularyCategory, TargetVocabularyParameter}
+import org.silkframework.rule.TransformSpec.{RuleSchemata, TargetVocabularyCategory, TargetVocabularyParameter}
 import org.silkframework.rule.input.TransformInput
 import org.silkframework.rule.vocab.TargetVocabularyParameterEnum
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.StringParameterType.{EnumerationType, StringTraversableParameterType}
-import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 import org.silkframework.runtime.plugin._
-import org.silkframework.runtime.resource.{Resource, ResourceManager}
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
+import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.serialization.XmlSerialization._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.NotFoundException
@@ -176,18 +175,41 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
     * @param ruleName The ID of the rule.
     */
   def nestedRuleAndSourcePath(ruleName: String): Option[(TransformRule, List[PathOperator])] = {
+    fetchRuleAndSourcePath(mappingRule, ruleName, List.empty).lastOption
+  }
+
+  /**
+    * Return the transform rule and the combined source path to that rule with all it parents.
+    * The returned list starts with the top most parent and ends with the found rule.
+    * If the rule has not been found an empty list is returned.
+    *
+    * @param ruleName The ID of the rule.
+    */
+  def nestedRuleAndSourcePathWithParents(ruleName: String): List[(TransformRule, List[PathOperator])] = {
     fetchRuleAndSourcePath(mappingRule, ruleName, List.empty)
   }
 
-  // Recursively search for the rule in the transform spec rule tree and accumulate the source path.
+  /* Recursively search for the rule in the transform spec rule tree and accumulate the source path.
+   * Return all rules leading to the rule with their corresponding paths. The result list starts with the top most rule, i.e. root rule.
+   * If the rule was not found it returns Mil.
+  */
   private def fetchRuleAndSourcePath(transformRule: TransformRule,
                                      ruleName: String,
-                                     sourcePath: List[PathOperator]): Option[(TransformRule, List[PathOperator])] = {
+                                     sourcePath: List[PathOperator]): List[(TransformRule, List[PathOperator])] = {
     val sourcePathOperators = sourcePathOfRule(transformRule)
+    val ruleSourcePath = sourcePath ::: sourcePathOperators
     if (transformRule.id.toString == ruleName) {
-      Some(transformRule, sourcePath ::: sourcePathOperators) // Found the rule, return the result
+      (transformRule, ruleSourcePath) :: Nil // Found the rule, return the result
     } else {
-      transformRule.rules.flatMap(rule => fetchRuleAndSourcePath(rule, ruleName, sourcePath ::: sourcePathOperators)).headOption
+      transformRule.rules
+        .map(rule => fetchRuleAndSourcePath(rule, ruleName, ruleSourcePath))
+        .find(_.nonEmpty).getOrElse(Nil) match {
+        case Nil =>
+          Nil
+        case list: List[(TransformRule, List[PathOperator])] =>
+          (transformRule, ruleSourcePath) :: list
+      }
+
     }
   }
 
@@ -472,12 +494,12 @@ object TransformSpec {
       }
     }
 
-    override def fromString(str: String)(implicit prefixes: Prefixes, resourceLoader: ResourceManager): TargetVocabularyParameter = {
+    override def fromString(str: String)(implicit context: PluginContext): TargetVocabularyParameter = {
       enumParameterType.fromStringOpt(str) match {
         case Some(enumValue) =>
           TargetVocabularyCategory(enumValue.asInstanceOf[TargetVocabularyParameterEnum])
         case None =>
-          TargetVocabularyListParameter(StringTraversableParameterType.fromString(str).value)
+          TargetVocabularyListParameter(StringTraversableParameterType.fromString(str)(PluginContext.empty).value)
       }
     }
   }
@@ -489,7 +511,7 @@ object TransformSpec {
 
     def stringValue(v: TargetVocabularyCategory): String = enumParameterType.toString(v.value)
 
-    def fromString(str: String): TargetVocabularyParameter = instance.fromString(str)
+    def fromString(str: String): TargetVocabularyParameter = instance.fromString(str)(PluginContext.empty)
 
     def toString(targetVocabularyParameter: TargetVocabularyParameter): String = instance.toString(targetVocabularyParameter)
   }

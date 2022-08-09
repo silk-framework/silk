@@ -3,6 +3,7 @@ package controllers.linking
 import akka.stream.Materializer
 import config.WorkbenchConfig.WorkspaceReact
 import controllers.core.UserContextActions
+import controllers.linking.activeLearning.ActiveLearningIterator
 import models.learning.{PathValue, PathValues}
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking._

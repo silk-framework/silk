@@ -4,7 +4,7 @@ import org.silkframework.cache.{EntityCache, MemoryEntityCache}
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
-import org.silkframework.entity.paths.TypedPath
+import org.silkframework.learning.active.comparisons.ComparisonPair
 import org.silkframework.learning.active.{LinkCandidate, MatchingValues, UnlabeledLinkPool}
 import org.silkframework.rule.plugins.distance.characterbased.LevenshteinDistance
 import org.silkframework.rule.similarity.SimpleDistanceMeasure
@@ -37,14 +37,14 @@ class IndexLinkPoolGenerator() extends LinkPoolGenerator {
   // Maximum number of indices for each path value. Additional indices will be cropped.
   private val maxIndices: Int = 5
 
-  override def generator(inputs: DPair[DataSource], linkSpec: LinkSpec, paths: Seq[DPair[TypedPath]], randomSeed: Long)
+  override def generator(inputs: DPair[DataSource], linkSpec: LinkSpec, paths: Seq[ComparisonPair], randomSeed: Long)
                         (implicit prefixes: Prefixes): Activity[UnlabeledLinkPool] = {
     new LinkPoolGeneratorActivity(inputs, linkSpec, paths, randomSeed)
   }
 
   private class LinkPoolGeneratorActivity(inputs: DPair[DataSource],
                                           linkSpec: LinkSpec,
-                                          paths: Seq[DPair[TypedPath]],
+                                          paths: Seq[ComparisonPair],
                                           randomSeed: Long)
                                          (implicit prefixes: Prefixes) extends Activity[UnlabeledLinkPool] {
 
@@ -117,13 +117,12 @@ class IndexLinkPoolGenerator() extends LinkPoolGenerator {
         targetBlock <- 0 until targetCache.blockCount
         sourcePartitionIndex <- 0 until sourceCache.partitionCount(sourceBlock)
         targetPartitionIndex <- 0 until targetCache.partitionCount(targetBlock)
-        if count < maxLinksPerPathPair
       } {
         val sourcePartition = sourceCache.read(sourceBlock, sourcePartitionIndex)
         val targetPartition = targetCache.read(targetBlock, targetPartitionIndex)
 
         val entityPairs = runtimeConfig.executionMethod.comparisonPairs(sourcePartition, targetPartition, full = true)
-        for (entityPair <- entityPairs if count < maxLinksPerPathPair) {
+        for (entityPair <- entityPairs) {
           val entityUris = DPair(entityPair.source.uri.uri, entityPair.target.uri.uri)
           val sourceValues = normalize(entityPair.source.evaluate(sourcePathIndex))
           val targetValues = normalize(entityPair.target.evaluate(targetPathIndex))
@@ -143,6 +142,9 @@ class IndexLinkPoolGenerator() extends LinkPoolGenerator {
                 }
               links.put(entityUris, linkCandidate)
               count += 1
+              if(count >= maxLinksPerPathPair) {
+                return count
+              }
             }
           }
         }

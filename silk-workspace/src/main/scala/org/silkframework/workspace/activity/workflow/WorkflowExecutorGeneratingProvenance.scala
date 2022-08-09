@@ -2,7 +2,7 @@ package org.silkframework.workspace.activity.workflow
 
 import org.silkframework.config.PlainTask
 import org.silkframework.runtime.activity._
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.reports.{ExecutionReportManager, ReportIdentifier}
 
@@ -30,6 +30,7 @@ trait WorkflowExecutorGeneratingProvenance extends Activity[WorkflowExecutionRep
 
   override def run(context: ActivityContext[WorkflowExecutionReportWithProvenance])
                   (implicit userContext: UserContext): Unit = {
+    implicit val pluginContext: PluginContext = PluginContext(user = userContext)
     val workflowExecutor: Activity[WorkflowExecutionReport] = workflowExecutionActivity()
     val control = context.child(workflowExecutor, 1.0)
     var executionException: Option[Throwable] = None

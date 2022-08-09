@@ -141,6 +141,7 @@
                 </xs:choice>
                 <xs:element ref="Filter" minOccurs="0"/>
                 <xs:element ref="RuleLayout" minOccurs="0"/>
+                <xs:element name="UiAnnotations" minOccurs="0" />
             </xs:sequence>
             <xs:attribute name="linkType" type="xs:string" use="optional"/>
         </xs:complexType>

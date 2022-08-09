@@ -9,6 +9,7 @@ import {
     RuleEditorValidationNode,
 } from "../RuleEditor.typings";
 import { IViewActions } from "../../../plugins/PluginRegistry";
+import { IStickyNote } from "views/taskViews/shared/task.typings";
 
 /**
  * The rule editor context that contains objects and methods related to the original objects that are being edited and
@@ -37,7 +38,10 @@ export interface RuleEditorContextProps {
     /** The initial rule nodes, e.g. when loading an existing rule. */
     initialRuleOperatorNodes?: IRuleOperatorNode[];
     /** Save the rule. */
-    saveRule: (ruleOperatorNodes: IRuleOperatorNode[]) => Promise<RuleSaveResult> | RuleSaveResult;
+    saveRule: (
+        ruleOperatorNodes: IRuleOperatorNode[],
+        stickyNotes?: IStickyNote[]
+    ) => Promise<RuleSaveResult> | RuleSaveResult;
     /** Converts a rule operator to a rule node. */
     convertRuleOperatorToRuleNode: (ruleOperator: IRuleOperator) => Omit<IRuleOperatorNode, "nodeId">;
     /** Validate a connection. Specifies which connections are allowed between nodes. */
@@ -56,6 +60,8 @@ export interface RuleEditorContextProps {
     additionalToolBarComponents?: () => JSX.Element | JSX.Element[];
     /** The last save result. */
     lastSaveResult?: RuleSaveResult;
+    /** UI annotation sticky notes */
+    stickyNotes: IStickyNote[];
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
@@ -70,4 +76,5 @@ export const RuleEditorContext = React.createContext<RuleEditorContextProps>({
         throw Error("convertRuleOperatorToRuleNode is not implemented!");
     },
     validateConnection: () => true,
+    stickyNotes: [],
 });

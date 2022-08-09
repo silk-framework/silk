@@ -1,8 +1,7 @@
 package org.silkframework.rule.test
 
-import org.silkframework.config.Prefixes
 import org.silkframework.rule.input.Transformer
-import org.silkframework.runtime.plugin.{ClassPluginDescription, TransformExampleValue}
+import org.silkframework.runtime.plugin.{ClassPluginDescription, PluginContext, TransformExampleValue}
 import org.silkframework.test.PluginTest
 
 import java.util.logging.Logger
@@ -44,7 +43,7 @@ abstract class TransformerTest[T <: Transformer : ClassTag] extends PluginTest {
   }
 
   private class TransformTest(example: TransformExampleValue) {
-    lazy val transformer: T = pluginDesc(example.parameters)(Prefixes.empty)
+    lazy val transformer: T = pluginDesc(example.parameters)(PluginContext.empty)
 
     private lazy val (generatedOutput, throwableOpt): (Seq[String], Option[Throwable]) =
       try {
