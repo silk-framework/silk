@@ -22,6 +22,10 @@ case class ActiveLearningReferenceData(entitySchemata: DPair[EntitySchema],
     copy(negativeLinks = (negativeLinks :+ link).distinct)
   }
 
+  def withoutLink(link: Link): ActiveLearningReferenceData = {
+    copy(positiveLinks = positiveLinks.filterNot(_ == link), negativeLinks = negativeLinks.filterNot(_ == link))
+  }
+
   def toReferenceEntities: ReferenceEntities = {
     val positiveEntities = positiveLinks.map(_.entities.get)
     val negativeEntities = negativeLinks.map(_.entities.get)
