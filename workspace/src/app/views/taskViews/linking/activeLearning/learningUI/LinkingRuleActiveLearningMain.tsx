@@ -1,8 +1,6 @@
 import React from "react";
 import { Button, Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
-import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
-import { useTranslation } from "react-i18next";
 import { LinkingRuleActiveLearningFeedbackComponent } from "./LinkingRuleActiveLearningFeedbackComponent";
 import { EntityLink } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
 import { LinkingRuleActiveLearningFeedbackContext } from "../contexts/LinkingRuleActiveLearningFeedbackContext";
@@ -35,8 +33,6 @@ const mockEntityLinks: EntityLink[] = [
  * and learns a linking rule.
  */
 export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: LinkingRuleActiveLearningMainProps) => {
-    const [t] = useTranslation();
-    const { registerError } = useErrorHandler();
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
     /** The list of unlabeled entity link candidates suggested from the active learning algorithm ordered by relevance to the algorithm. */
     const [unlabeledLinkCandidates, setUnlabeledLinkCandidates] = React.useState<EntityLink[]>(mockEntityLinks);

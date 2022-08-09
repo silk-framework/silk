@@ -1,4 +1,4 @@
-import React, { CSSProperties } from "react";
+import React from "react";
 
 import {
     AutoSuggestion,
@@ -18,7 +18,7 @@ import {
     Toolbar,
     ToolbarSection,
 } from "@eccenca/gui-elements";
-import { CandidateProperty, CandidatePropertyPair } from "./LinkingRuleActiveLearning.typings";
+import { ComparisonPairWithId, TypedPath } from "./LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningContext } from "./contexts/LinkingRuleActiveLearningContext";
 import { partialAutoCompleteLinkingInputPaths } from "../LinkingRuleEditor.requests";
 import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
@@ -26,47 +26,13 @@ import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { checkValuePathValidity } from "../../../pages/MappingEditor/HierarchicalMapping/store";
 import { ArrowLeft, ArrowRight, columnStyles, DashedLine } from "./LinkingRuleActiveLearning.shared";
+import { activeLearningComparisonPairs } from "./LinkingRuleActiveLearning.requests";
+import { Spinner } from "@blueprintjs/core";
 
 interface LinkingRuleActiveLearningConfigProps {
     projectId: string;
     linkingTaskId: string;
 }
-
-// TODO: remove when not needed anymore
-const mockPairs: CandidatePropertyPair[] = [
-    {
-        pairId: "s1",
-        left: {
-            value: "propA",
-            label: "Suggested property",
-            exampleValues: ["Value 1", "Value 2"],
-            type: "date",
-        },
-        right: {
-            value: "urn:prop:propB",
-            label: "Other suggested property",
-            exampleValues: [
-                "VeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLongValue",
-                "Next Value",
-            ],
-            type: "date",
-        },
-    },
-    {
-        pairId: "s2",
-        left: {
-            value: "prop X",
-            exampleValues: ["Value 1", "Value 2"],
-            type: "string",
-        },
-        right: {
-            value: "urn:prop:propB2",
-            label: "urn:prop:propB",
-            exampleValues: ["val", "Next Value"],
-            type: "number",
-        },
-    },
-];
 
 let randomId = 0;
 const nextId = () => {
@@ -78,11 +44,37 @@ const nextId = () => {
 export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: LinkingRuleActiveLearningConfigProps) => {
     const { registerError } = useErrorHandler();
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
-    const [suggestions, setSuggestions] = React.useState<CandidatePropertyPair[]>(mockPairs);
-    const manualSourcePath = React.useRef<CandidateProperty | undefined>(undefined);
-    const manualTargetPath = React.useRef<CandidateProperty | undefined>(undefined);
+    const [suggestions, setSuggestions] = React.useState<ComparisonPairWithId[]>([]);
+    const [loadSuggestions, setLoadSuggestions] = React.useState(false);
+    const manualSourcePath = React.useRef<TypedPath | undefined>(undefined);
+    const manualTargetPath = React.useRef<TypedPath | undefined>(undefined);
     const [hasValidPath, setHasValidPath] = React.useState(false);
     const [t] = useTranslation();
+
+    React.useEffect(() => {
+        loadCandidatePairs(projectId, linkingTaskId);
+    }, []);
+
+    const loadCandidatePairs = async (projectId: string, taskId: string) => {
+        setLoadSuggestions(true);
+        try {
+            const comparisonPairs = (await activeLearningComparisonPairs(projectId, taskId)).data;
+            const suggestions = comparisonPairs.suggestedPairs.map((cp) => ({
+                ...cp,
+                pairId: `${cp.source.path} ${cp.target.path} ${cp.source.valueType} ${cp.target.valueType}`,
+            }));
+            setSuggestions(suggestions);
+        } catch (ex) {
+            // TODO: i18n
+            registerError(
+                "LinkingRuleActiveLearningConfig.loadCandidatePairs",
+                "Could not fetch comparison config",
+                ex
+            );
+        } finally {
+            setLoadSuggestions(false);
+        }
+    };
 
     const removePair = (pairId: string) => {
         activeLearningContext.setPropertiesToCompare(
@@ -114,13 +106,13 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
 
     const changeManualSourcePath = (value: string) => {
         // TODO: How to fetch example values and other meta data?
-        manualSourcePath.current = value ? { value: value, exampleValues: [] } : undefined;
+        manualSourcePath.current = value ? { path: value, valueType: "StringValueType" } : undefined;
         checkPathValidity();
     };
 
     const changeManualTargetPath = (value: string) => {
         // TODO: How to fetch example values and other meta data?
-        manualTargetPath.current = value ? { value: value, exampleValues: [] } : undefined;
+        manualTargetPath.current = value ? { path: value, valueType: "StringValueType" } : undefined;
         checkPathValidity();
     };
 
@@ -139,8 +131,8 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                 ...activeLearningContext.propertiesToCompare,
                 {
                     pairId: `manually chose: ${nextId()}`,
-                    left: manualSourcePath.current,
-                    right: manualTargetPath.current,
+                    source: manualSourcePath.current,
+                    target: manualTargetPath.current,
                 },
             ]);
             changeManualSourcePath("");
@@ -169,42 +161,42 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         );
     };
 
-    const SelectedProperty = ({ property }: { property: CandidateProperty }) => {
-        const showLabel: boolean = !!property.label && property.label.toLowerCase() !== property.value.toLowerCase();
-        const exampleTitle = property.exampleValues.join(" | ");
+    const SelectedProperty = ({ property }: { property: TypedPath }) => {
+        const showLabel: boolean = !!property.label && property.label.toLowerCase() !== property.path.toLowerCase();
+        // const exampleTitle = property.exampleValues.join(" | ");
         return (
             <GridColumn style={columnStyles.mainColumnStyle}>
                 <OverviewItem>
                     <OverviewItemDescription>
                         {showLabel ? <OverviewItemLine>{property.label}</OverviewItemLine> : null}
-                        <OverviewItemLine small={showLabel}>{property.value}</OverviewItemLine>
-                        {property.exampleValues.length > 0 ? (
-                            <OverviewItemLine small={showLabel} title={exampleTitle}>
-                                {property.exampleValues.map((example) => {
-                                    return (
-                                        <Tag
-                                            small={true}
-                                            minimal={true}
-                                            round={true}
-                                            style={{ marginRight: "0.25rem" }}
-                                            htmlTitle={exampleTitle}
-                                        >
-                                            {example}
-                                        </Tag>
-                                    );
-                                })}
-                            </OverviewItemLine>
-                        ) : null}
+                        <OverviewItemLine small={showLabel}>{property.path}</OverviewItemLine>
+                        {/*{property.exampleValues.length > 0 ? (*/}
+                        {/*    <OverviewItemLine small={showLabel} title={exampleTitle}>*/}
+                        {/*        {property.exampleValues.map((example) => {*/}
+                        {/*            return (*/}
+                        {/*                <Tag*/}
+                        {/*                    small={true}*/}
+                        {/*                    minimal={true}*/}
+                        {/*                    round={true}*/}
+                        {/*                    style={{ marginRight: "0.25rem" }}*/}
+                        {/*                    htmlTitle={exampleTitle}*/}
+                        {/*                >*/}
+                        {/*                    {example}*/}
+                        {/*                </Tag>*/}
+                        {/*            );*/}
+                        {/*        })}*/}
+                        {/*    </OverviewItemLine>*/}
+                        {/*) : null}*/}
                     </OverviewItemDescription>
                 </OverviewItem>
             </GridColumn>
         );
     };
 
-    const SelectedPropertyPair = ({ pair }: { pair: CandidatePropertyPair }) => {
+    const SelectedPropertyPair = ({ pair }: { pair: ComparisonPairWithId }) => {
         return (
             <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
-                <SelectedProperty property={pair.left} />
+                <SelectedProperty property={pair.source} />
                 <GridColumn style={columnStyles.centerColumnStyle}>
                     <HoverToggler
                         baseElement={
@@ -214,8 +206,9 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                                 </ToolbarSection>
                                 <ToolbarSection>
                                     <Tag>
-                                        {pair.left.type != null && pair.left.type === pair.right.type
-                                            ? pair.left.type
+                                        {pair.source.valueType != null &&
+                                        pair.source.valueType === pair.target.valueType
+                                            ? pair.source.valueType
                                             : "string"}
                                     </Tag>
                                 </ToolbarSection>
@@ -239,7 +232,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         }
                     />
                 </GridColumn>
-                <SelectedProperty property={pair.right} />
+                <SelectedProperty property={pair.target} />
             </GridRow>
         );
     };
@@ -263,7 +256,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         <Icon name={"operation-search"} tooltipText={"Allows to construct complex input paths."} />
                     }
                     initialValue={
-                        isTarget ? manualTargetPath.current?.value ?? "" : manualSourcePath.current?.value ?? ""
+                        isTarget ? manualTargetPath.current?.path ?? "" : manualSourcePath.current?.path ?? ""
                     }
                     onChange={(value) => {
                         if (isTarget) {
@@ -317,10 +310,10 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         );
     };
 
-    const SuggestedPathSelection = ({ pair }: { pair: CandidatePropertyPair }) => {
+    const SuggestedPathSelection = ({ pair }: { pair: ComparisonPairWithId }) => {
         return (
             <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
-                <SelectedProperty property={pair.left} />
+                <SelectedProperty property={pair.source} />
                 <GridColumn style={columnStyles.centerColumnStyle}>
                     <Toolbar style={{ height: "100%" }}>
                         <ToolbarSection canGrow={true}>
@@ -334,7 +327,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         </ToolbarSection>
                     </Toolbar>
                 </GridColumn>
-                <SelectedProperty property={pair.right} />
+                <SelectedProperty property={pair.target} />
             </GridRow>
         );
     };
@@ -388,7 +381,9 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             <InfoWidget />
             <Spacing size={"small"} />
             <SelectedPropertiesWidget />
-            {suggestions.length > 0 ? (
+            {loadSuggestions ? (
+                <Spinner />
+            ) : suggestions.length > 0 ? (
                 <>
                     <Spacing />
                     <SuggestionSelectionSubHeader />

@@ -9,10 +9,12 @@ import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { TaskPlugin } from "@ducks/shared/typings";
 import { IEvaluatedReferenceLinks, ILinkingTaskParameters } from "../linking.types";
-import { Spinner } from "@eccenca/gui-elements";
-import { ActiveLearningStep, CandidatePropertyPair } from "./LinkingRuleActiveLearning.typings";
+import { ActivityAction, Spinner } from "@eccenca/gui-elements";
+import { ActiveLearningStep, ComparisonPairWithId } from "./LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningMain } from "./learningUI/LinkingRuleActiveLearningMain";
-import { EntityLink, LabelProperties } from "../referenceLinks/LinkingRuleReferenceLinks.typing";
+import { LabelProperties } from "../referenceLinks/LinkingRuleReferenceLinks.typing";
+import { activityActionCreator } from "../../../shared/TaskActivityOverview/taskActivityOverviewRequests";
+import { DIErrorTypes } from "@ducks/error/typings";
 
 export interface LinkingRuleActiveLearningProps {
     /** Project ID the task is in. */
@@ -22,42 +24,6 @@ export interface LinkingRuleActiveLearningProps {
     /** Generic actions and callbacks on views. */
     viewActions?: IViewActions;
 }
-
-// TODO: remove when not needed anymore
-const mockPairs: CandidatePropertyPair[] = [
-    {
-        pairId: "1",
-        left: {
-            value: "<https://ns.eccenca.com/source/name>",
-            label: "Property A",
-            exampleValues: ["Value 1", "Value 2"],
-            type: "number",
-        },
-        right: {
-            value: "urn:prop:propB",
-            label: "Property B",
-            exampleValues: [
-                "VeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLongValue",
-                "Next Value",
-            ],
-            type: "number",
-        },
-    },
-    {
-        pairId: "2",
-        left: {
-            value: "urn:prop:propA2",
-            exampleValues: ["Value 1", "Value 2"],
-            type: "number",
-        },
-        right: {
-            value: "urn:prop:propB2",
-            label: "urn:prop:propB",
-            exampleValues: ["VeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLongValue", "Next Value"],
-            type: "number",
-        },
-    },
-];
 
 /** Learns a linking rule via active learning.
  * The user configs pairs of properties that make sense to match.
@@ -71,14 +37,33 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
     const prefLang = useSelector(commonSel.localeSelector);
     const [taskData, setTaskData] = React.useState<TaskPlugin<ILinkingTaskParameters> | undefined>(undefined);
     const [loading, setLoading] = React.useState(false);
-    const [selectedPropertyPairs, setSelectedPropertyPairs] = React.useState<CandidatePropertyPair[]>(mockPairs);
+    const [selectedPropertyPairs, setSelectedPropertyPairs] = React.useState<ComparisonPairWithId[]>([]);
     const [activeLearningStep, setActiveLearningStep] = React.useState<ActiveLearningStep>("config");
-    /** The original reference links. Used for diffing the reference links on save. */
-    const referenceLinksInternal = React.useRef<EntityLink[]>([]);
     /** A copy of the reference links that can be modified. Changes to the backend will only be made when explicitly saving. */
     const [referenceLinks, setReferenceLinks] = React.useState<IEvaluatedReferenceLinks | undefined>(undefined);
     /** The source paths of the label values that should be displayed in the UI for each entity in a link. */
     const [labelPaths, setLabelPaths] = React.useState<LabelProperties | undefined>(undefined);
+
+    React.useEffect(() => {
+        startComparisonPairActivity();
+    }, [projectId, linkingTaskId]);
+
+    const startComparisonPairActivity = async () => {
+        const errorHandler = (activityName: string, action: ActivityAction, error: DIErrorTypes) => {
+            registerError(
+                "LinkingRuleActiveLearning.startComparisonPairActivity",
+                "Could not start comparison pair finder activity.",
+                error
+            );
+        };
+        const executeActivity = activityActionCreator(
+            "ActiveLearning-ComparisonPairs",
+            projectId,
+            linkingTaskId,
+            errorHandler
+        );
+        await executeActivity("start");
+    };
 
     /** Fetches the parameters of the linking task */
     const fetchTaskData = async (projectId: string, taskId: string) => {
