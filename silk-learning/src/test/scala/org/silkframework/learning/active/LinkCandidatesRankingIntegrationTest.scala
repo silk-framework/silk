@@ -73,7 +73,7 @@ class LinkCandidatesRankingIntegrationTest extends FlatSpec with Matchers {
     // We put in the complete cartesian product of paths, because we want the algorithm to figure out which ones match
     val pathPairs = for(sourcePath <- sourceSchema.typedPaths; targetPath <- targetSchema.typedPaths) yield ComparisonPair(sourcePath, targetPath)
     val generatorActivity = new IndexLinkPoolGenerator().generator(sources, LinkSpec(), pathPairs, randomSeed = random.nextLong())
-    val linkCandidates = Activity(generatorActivity).startBlockingAndGetValue().links
+    val linkCandidates = Activity(generatorActivity).startBlockingAndGetValue().linkCandidates
 
     // Find top link candidates
     val sortedCandidates = BestMatchSelector()(Seq.empty, linkCandidates, ReferenceEntities.empty)

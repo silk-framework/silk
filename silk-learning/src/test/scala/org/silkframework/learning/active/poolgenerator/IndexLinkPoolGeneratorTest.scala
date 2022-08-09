@@ -61,7 +61,7 @@ class IndexLinkPoolGeneratorTest extends FlatSpec with Matchers {
     val generator = new IndexLinkPoolGenerator()
     val generatorActivity = generator.generator(sources, LinkSpec(), schema.typedPaths.map(p => ComparisonPair(p, p)), randomSeed = 0)
     val pool = Activity(generatorActivity).startBlockingAndGetValue()
-    pool.links
+    pool.linkCandidates
   }
 
   private def createSource(values: Seq[String]): DataSource = {

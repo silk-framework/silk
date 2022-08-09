@@ -27,7 +27,7 @@ object ActiveLearningIterator {
                               (implicit userContext: UserContext): Option[LinkCandidate] = {
     val activeLearn = task.activity[ActiveLearning].control
     // Try to find the chosen link candidate in the pool, because the pool links have entities attached
-    val linkCandidate = activeLearn.value().pool.links.find(l => l.source == linkSource && l.target == linkTarget) match {
+    val linkCandidate = activeLearn.value().referenceData.linkCandidates.find(l => l.source == linkSource && l.target == linkTarget) match {
       case Some(l) => l
       case None => new MinimalLink(linkSource, linkTarget)
     }
@@ -66,11 +66,12 @@ object ActiveLearningIterator {
   }
 
   private def commitLink(linkCandidate: Link, decision: String, task: ProjectTask[LinkSpec])(implicit userContext: UserContext): Unit = {
+    val activity = task.activity[ActiveLearning]
     decision match {
       case LinkCandidateDecision.positive =>
-        task.update(task.data.copy(referenceLinks = task.data.referenceLinks.withPositive(linkCandidate)))
+        activity.updateValue(activity.value().copy(referenceData = activity.value().referenceData.withPositiveLink(linkCandidate)))
       case LinkCandidateDecision.negative =>
-        task.update(task.data.copy(referenceLinks = task.data.referenceLinks.withNegative(linkCandidate)))
+        activity.updateValue(activity.value().copy(referenceData = activity.value().referenceData.withNegativeLink(linkCandidate)))
       case LinkCandidateDecision.pass =>
     }
   }

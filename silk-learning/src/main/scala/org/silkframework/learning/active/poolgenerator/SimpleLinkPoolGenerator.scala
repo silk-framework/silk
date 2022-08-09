@@ -19,7 +19,7 @@ import org.silkframework.dataset.DataSource
 import org.silkframework.entity._
 import org.silkframework.learning.active.comparisons.ComparisonPair
 import org.silkframework.learning.active.poolgenerator.LinkPoolGeneratorUtils._
-import org.silkframework.learning.active.{LinkCandidate, UnlabeledLinkPool}
+import org.silkframework.learning.active.LinkCandidate
 import org.silkframework.rule.execution.{GenerateLinks, Linking}
 import org.silkframework.rule.input.PathInput
 import org.silkframework.rule.plugins.distance.equality.EqualityMetric

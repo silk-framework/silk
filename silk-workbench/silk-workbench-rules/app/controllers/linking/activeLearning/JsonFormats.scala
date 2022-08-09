@@ -32,7 +32,10 @@ object JsonFormats {
   case class ComparisonPairFormat(@Schema(description = "The path from the first dataset.")
                                   source: TypedPathFormat,
                                   @Schema(description = "The path from the second dataset.")
-                                  target: TypedPathFormat) {
+                                  target: TypedPathFormat,
+                                  //TODO doc
+                                  sourceExamples: Seq[String],
+                                  targetxamples: Seq[String]) {
     def toComparisonPair: ComparisonPair = {
       ComparisonPair(source.toTypedPath, target.toTypedPath)
     }
@@ -48,7 +51,8 @@ object JsonFormats {
   case class TypedPathFormat(@Schema(description = "The serialized path", example = "path/name")
                              path: String,
                              @Schema(description = "The identifier of the value type", example = "StringValueType")
-                             valueType: String) {
+                             valueType: Option[String],
+                             ) {
     def toTypedPath: TypedPath = {
       TypedPath(path, ValueType.valueTypeById(valueType).right.get)
     }
