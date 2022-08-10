@@ -11,17 +11,18 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.entity.MinimalLink
+import org.silkframework.entity.{Entity, FullLink, MinimalLink}
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.learning.active.comparisons.{ComparisonPair, ComparisonPairGenerator}
-import org.silkframework.rule.LinkSpec
+import org.silkframework.rule.{LinkSpec, LinkageRule}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonFormat
 import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
+import org.silkframework.util.DPair
 import org.silkframework.workbench.Context
 import org.silkframework.workspace.WorkspaceFactory
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import javax.inject.Inject
@@ -161,6 +162,72 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
     val removeComparisonPair = JsonUtils.validateJsonFromRequest[ComparisonPairFormat](request).toComparisonPair
     updateSelectedComparisonPairs(projectId, taskId)(_.filterNot(_ == removeComparisonPair))
     Ok
+  }
+
+  @Operation(
+    summary = "Evaluate reference links",
+    description = "The current reference links, evaluated on the top performing linkage rule.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success"
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or task has not been found."
+      )
+    )
+  )
+  def referenceLinks(@Parameter(
+                         name = "project",
+                         description = "The project identifier",
+                         required = true,
+                         in = ParameterIn.PATH,
+                         schema = new Schema(implementation = classOf[String])
+                       )
+                       projectId: String,
+                       @Parameter(
+                         name = "task",
+                         description = "The task identifier",
+                         required = true,
+                         in = ParameterIn.PATH,
+                         schema = new Schema(implementation = classOf[String])
+                       )
+                       taskId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+      val context = Context.get[LinkSpec](projectId, taskId, request.path)
+      val activeLearning = context.task.activity[ActiveLearning]
+
+      val positiveEntities = activeLearning.value().referenceData.positiveLinks.map(_.entities.get)
+      val negativeEntities = activeLearning.value().referenceData.negativeLinks.map(_.entities.get)
+      val bestRule = {
+        // TODO make bestIndividual an option
+        if(activeLearning.value().population.isEmpty) {
+          LinkageRule()
+        } else {
+          activeLearning.value().population.bestIndividual.node.build
+        }
+      }
+
+      // TODO discuss JSON format
+      val result =
+        Json.obj(
+          "positive" -> serializeLinks(positiveEntities, bestRule, true),
+          "negative" -> serializeLinks(negativeEntities, bestRule, true)
+        )
+
+      Ok(result)
+  }
+
+  private def serializeLinks(entities: Traversable[DPair[Entity]],
+                             linkageRule: LinkageRule,
+                             withEntitiesAndSchema: Boolean = false): JsValue = {
+    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+    JsArray(
+      for (entities <- entities.toSeq) yield {
+        val link = new FullLink(entities.source.uri, entities.target.uri, linkageRule(entities), entities)
+        new LinkJsonFormat(Some(linkageRule), writeEntities = withEntitiesAndSchema, writeEntitySchema = withEntitiesAndSchema).write(link)
+      }
+    )
   }
 
   @Operation(

@@ -20,6 +20,11 @@ trait ActiveLearningApiClient extends ApiClient {
     checkResponse(request.post(Json.toJson(comparisonPair)))
   }
 
+  def referenceLinks(projectId: String, taskId: String): JsValue = {
+    val request = createRequest(ActiveLearningApi.referenceLinks(projectId, taskId))
+    checkResponse(request.get()).json
+  }
+
   def iterate(projectId: String, taskId: String, decision: String, linkSource: String, linkTarget: String, synchronous: Boolean = false): Option[Link] = {
     val request = createRequest(ActiveLearningApi.iterate(projectId, taskId, decision, linkSource, linkTarget, synchronous))
     val response = checkResponse(request.post(EmptyBody))
