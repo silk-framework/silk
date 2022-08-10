@@ -26,7 +26,11 @@ import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { checkValuePathValidity } from "../../../pages/MappingEditor/HierarchicalMapping/store";
 import { ArrowLeft, ArrowRight, columnStyles, DashedLine } from "./LinkingRuleActiveLearning.shared";
-import { activeLearningComparisonPairs } from "./LinkingRuleActiveLearning.requests";
+import {
+    activeLearningComparisonPairs,
+    addActiveLearningComparisonPair,
+    removeActiveLearningComparisonPair,
+} from "./LinkingRuleActiveLearning.requests";
 import { Spinner } from "@blueprintjs/core";
 
 interface LinkingRuleActiveLearningConfigProps {
@@ -45,7 +49,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     const { registerError } = useErrorHandler();
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
     const [suggestions, setSuggestions] = React.useState<ComparisonPairWithId[]>([]);
-    const [loadSuggestions, setLoadSuggestions] = React.useState(false);
+    const [loadSuggestions, setLoadSuggestions] = React.useState(true);
     const manualSourcePath = React.useRef<TypedPath | undefined>(undefined);
     const manualTargetPath = React.useRef<TypedPath | undefined>(undefined);
     const [hasValidPath, setHasValidPath] = React.useState(false);
@@ -78,10 +82,18 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         }
     };
 
-    const removePair = (pairId: string) => {
-        activeLearningContext.setPropertiesToCompare(
-            activeLearningContext.propertiesToCompare.filter((pair) => pair.pairId !== pairId)
-        );
+    const removePair = async (pairId: string) => {
+        try {
+            const pair = activeLearningContext.propertiesToCompare.find((pair) => pair.pairId === pairId);
+            if (pair) {
+                await removeActiveLearningComparisonPair(projectId, linkingTaskId, pair);
+                activeLearningContext.setPropertiesToCompare(
+                    activeLearningContext.propertiesToCompare.filter((pair) => pair.pairId !== pairId)
+                );
+            }
+        } catch (err) {
+            // TODO
+        }
     };
 
     const fetchAutoCompletionResult =
@@ -145,11 +157,16 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         }
     };
 
-    const addSuggestion = (pairId: string) => {
+    const addSuggestion = async (pairId: string) => {
         const pairToAdd = suggestions.find((s) => s.pairId === pairId);
         if (pairToAdd) {
-            setSuggestions(suggestions.filter((s) => s.pairId !== pairId));
-            activeLearningContext.setPropertiesToCompare([...activeLearningContext.propertiesToCompare, pairToAdd]);
+            try {
+                await addActiveLearningComparisonPair(projectId, linkingTaskId, pairToAdd);
+                setSuggestions(suggestions.filter((s) => s.pairId !== pairId));
+                activeLearningContext.setPropertiesToCompare([...activeLearningContext.propertiesToCompare, pairToAdd]);
+            } catch (error) {
+                // TODO
+            }
         }
     };
     const ConfigHeader = () => {

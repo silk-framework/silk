@@ -9,6 +9,8 @@ interface LinkingRuleActiveLearningFeedbackContextProps {
     /** Configured */
     /** The currently selected link. */
     selectedLink: EntityLink | undefined;
+    /** True while loading a link candidate. */
+    loadingLinkCandidate: boolean;
 }
 
 /** Contains data and functions for the link rule active learning. */
@@ -17,4 +19,5 @@ export const LinkingRuleActiveLearningFeedbackContext =
         removeReferenceLink() {},
         updateReferenceLink() {},
         selectedLink: undefined,
+        loadingLinkCandidate: false,
     });
