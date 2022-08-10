@@ -15,13 +15,13 @@ case class ActiveLearningReferenceData(entitySchemata: DPair[EntitySchema],
                                        randomSeed: Long) {
 
   def withPositiveLink(link: Link): ActiveLearningReferenceData = {
-    copy(positiveLinks = (positiveLinks :+ link).distinct,
+    copy(positiveLinks = (link +: positiveLinks).distinct,
          negativeLinks = negativeLinks.filterNot(_ == link))
   }
 
   def withNegativeLink(link: Link): ActiveLearningReferenceData = {
     copy(positiveLinks = positiveLinks.filterNot(_ == link),
-         negativeLinks = (negativeLinks :+ link).distinct)
+         negativeLinks = (link +: negativeLinks).distinct)
   }
 
   def withoutLink(link: Link): ActiveLearningReferenceData = {
