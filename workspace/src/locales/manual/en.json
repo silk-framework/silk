@@ -518,6 +518,9 @@
             }
         },
         "transformRulesEditor": {
+            "evaluation": {
+                "noResults": "No evaluation examples to show"
+            },
             "warning": {
                 "modal": {
                     "title": "Editor Warning",

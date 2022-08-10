@@ -179,6 +179,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                 registerForEvaluationResults={registerForEvaluationResults}
                 unregister={() => nodeUpdateCallbacks.delete(ruleOperatorId)}
                 numberOfLinksToShow={numberOfLinkToShow}
+                noResultMsg={t("taskViews.transformRulesEditor.evaluation.noResults")}
             />
         );
     };
