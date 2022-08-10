@@ -201,32 +201,31 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
       val positiveEntities = activeLearning.value().referenceData.positiveLinks.map(_.entities.get)
       val negativeEntities = activeLearning.value().referenceData.negativeLinks.map(_.entities.get)
       val bestRule = {
-        // TODO make bestIndividual an option
-        if(activeLearning.value().population.isEmpty) {
+        val population = activeLearning.value().population
+        if(population.isEmpty) {
           LinkageRule()
         } else {
-          activeLearning.value().population.bestIndividual.node.build
+          population.bestIndividual.node.build
         }
       }
 
       // TODO discuss JSON format
       val result =
         Json.obj(
-          "positive" -> serializeLinks(positiveEntities, bestRule, true),
-          "negative" -> serializeLinks(negativeEntities, bestRule, true)
+          "positive" -> serializeLinks(positiveEntities, bestRule),
+          "negative" -> serializeLinks(negativeEntities, bestRule)
         )
 
       Ok(result)
   }
 
   private def serializeLinks(entities: Traversable[DPair[Entity]],
-                             linkageRule: LinkageRule,
-                             withEntitiesAndSchema: Boolean = false): JsValue = {
+                             linkageRule: LinkageRule): JsValue = {
     implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
     JsArray(
       for (entities <- entities.toSeq) yield {
         val link = new FullLink(entities.source.uri, entities.target.uri, linkageRule(entities), entities)
-        new LinkJsonFormat(Some(linkageRule), writeEntities = withEntitiesAndSchema, writeEntitySchema = withEntitiesAndSchema).write(link)
+        new LinkJsonFormat(Some(linkageRule), writeEntities = false, writeEntitySchema = false).write(link)
       }
     )
   }
@@ -417,7 +416,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
     if(population.isEmpty) {
       throw NotFoundException("No rule found.")
     } else {
-      val bestRule = activeLearning.value().population.bestIndividual.node.build
+      val bestRule = population.bestIndividual.node.build
       implicit val writeContext = WriteContext[JsValue]()
       Ok(LinkageRuleJsonFormat.write(bestRule))
     }
