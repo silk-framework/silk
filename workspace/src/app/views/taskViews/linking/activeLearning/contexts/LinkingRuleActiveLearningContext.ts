@@ -1,7 +1,7 @@
 import React from "react";
 import { TaskPlugin } from "@ducks/shared/typings";
 import { IEvaluatedReferenceLinks, ILinkingTaskParameters } from "../../linking.types";
-import { ActiveLearningStep, CandidatePropertyPair } from "../LinkingRuleActiveLearning.typings";
+import { ActiveLearningStep, ComparisonPairWithId } from "../LinkingRuleActiveLearning.typings";
 import { LabelProperties } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
 
 interface LinkingRuleActiveLearningContextProps {
@@ -10,9 +10,9 @@ interface LinkingRuleActiveLearningContextProps {
     /** The current linking task. */
     linkTask?: TaskPlugin<ILinkingTaskParameters>;
     /** The properties that should be compared between the 2 data sources. */
-    propertiesToCompare: CandidatePropertyPair[];
+    propertiesToCompare: ComparisonPairWithId[];
     /** Update which properties should be compared. */
-    setPropertiesToCompare: (pairs: CandidatePropertyPair[]) => any;
+    setPropertiesToCompare: (pairs: ComparisonPairWithId[]) => any;
     /** Navigate to a different view. */
     navigateTo: (step: ActiveLearningStep) => void;
     /** The current reference links of the linking rule. */

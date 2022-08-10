@@ -1,11 +1,5 @@
 import { IEntity, IEntitySchema } from "../../shared/rules/rule.typings";
-import {
-    EntityLink,
-    EntityLinkPropertyPairValues,
-    LabelProperties,
-    LinkType,
-} from "./LinkingRuleReferenceLinks.typing";
-import { CandidatePropertyPair } from "../activeLearning/LinkingRuleActiveLearning.typings";
+import { EntityLink, LinkType } from "./LinkingRuleReferenceLinks.typing";
 import { IEntityLink } from "../linking.types";
 
 /** Chooses a specific property value based on the path index or optionally based on the given entity schema. */

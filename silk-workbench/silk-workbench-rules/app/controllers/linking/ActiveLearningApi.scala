@@ -17,6 +17,7 @@ import org.silkframework.learning.active.comparisons.{ComparisonPair, Comparison
 import org.silkframework.rule.{LinkSpec, LinkageRule}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.WriteContext
+import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonFormat
 import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
 import org.silkframework.util.DPair
@@ -81,7 +82,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
     description = "Adds a comparison pair to the list of selected pairs.",
     responses = Array(
       new ApiResponse(
-        responseCode = "200",
+        responseCode = "204",
         description = "Success"
       ),
       new ApiResponse(
@@ -117,7 +118,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
                         taskId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val newComparisonPair = JsonUtils.validateJsonFromRequest[ComparisonPairFormat](request).toComparisonPair
     updateSelectedComparisonPairs(projectId, taskId)(_ :+ newComparisonPair)
-    Ok
+    NoContent
   }
 
   @Operation(
@@ -125,7 +126,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
     description = "Removes a comparison pair from the list of selected pairs.",
     responses = Array(
       new ApiResponse(
-        responseCode = "200",
+        responseCode = "204",
         description = "Success"
       ),
       new ApiResponse(
@@ -161,7 +162,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
                            taskId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     val removeComparisonPair = JsonUtils.validateJsonFromRequest[ComparisonPairFormat](request).toComparisonPair
     updateSelectedComparisonPairs(projectId, taskId)(_.filterNot(_ == removeComparisonPair))
-    Ok
+    NoContent
   }
 
   @Operation(
@@ -412,9 +413,14 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
                taskId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[LinkSpec](projectId, taskId, request.path)
     val activeLearning = context.task.activity[ActiveLearning]
-    val bestRule = activeLearning.value().population.bestIndividual.node.build
-    implicit val writeContext = WriteContext[JsValue]()
-    Ok(LinkageRuleJsonFormat.write(bestRule))
+    val population = activeLearning.value().population
+    if(population.isEmpty) {
+      throw NotFoundException("No rule found.")
+    } else {
+      val bestRule = activeLearning.value().population.bestIndividual.node.build
+      implicit val writeContext = WriteContext[JsValue]()
+      Ok(LinkageRuleJsonFormat.write(bestRule))
+    }
   }
 
   private def updateSelectedComparisonPairs(projectId: String, taskId: String)

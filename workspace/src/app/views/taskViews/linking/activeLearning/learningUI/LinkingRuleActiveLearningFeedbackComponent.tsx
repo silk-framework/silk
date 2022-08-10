@@ -17,7 +17,7 @@ import {
 import React from "react";
 import { LinkingRuleActiveLearningFeedbackContext } from "../contexts/LinkingRuleActiveLearningFeedbackContext";
 import { ArrowLeft, ArrowRight, columnStyles } from "../LinkingRuleActiveLearning.shared";
-import { CandidateProperty, CandidatePropertyPair } from "../LinkingRuleActiveLearning.typings";
+import { ComparisonPairWithId, TypedPath } from "../LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 import { EntityLinkPropertyPairValues } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
 import referenceLinksUtils from "../../referenceLinks/LinkingRuleReferenceLinks.utils";
@@ -27,15 +27,15 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
     const activeLearningFeedbackContext = React.useContext(LinkingRuleActiveLearningFeedbackContext);
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
     /** The property pairs that will be displayed as entity title during the active learning. */
-    const [labelPropertyPairs, setLabelPropertyPairs] = React.useState<CandidatePropertyPair[]>([]);
+    const [labelPropertyPairs, setLabelPropertyPairs] = React.useState<ComparisonPairWithId[]>([]);
     /** The values of the selected entity link. */
     const [valuesToDisplay, setValuesToDisplay] = React.useState<EntityLinkPropertyPairValues[] | undefined>();
     const labelPropertyPairIds = new Set(labelPropertyPairs.map((lpp) => lpp.pairId));
 
     React.useEffect(() => {
         activeLearningContext.changeLabelPaths({
-            sourceProperties: labelPropertyPairs.map((lpp) => lpp.left.value),
-            targetProperties: labelPropertyPairs.map((lpp) => lpp.right.value),
+            sourceProperties: labelPropertyPairs.map((lpp) => lpp.source.path),
+            targetProperties: labelPropertyPairs.map((lpp) => lpp.target.path),
         });
     }, [labelPropertyPairs]);
 
@@ -51,11 +51,11 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
         if (activeLearningContext.propertiesToCompare && activeLearningFeedbackContext.selectedLink) {
             const sourceValues = referenceLinksUtils.pickEntityValues(
                 activeLearningFeedbackContext.selectedLink.source,
-                activeLearningContext.propertiesToCompare.map((prop) => prop.left.value)
+                activeLearningContext.propertiesToCompare.map((prop) => prop.source.path)
             );
             const targetValues = referenceLinksUtils.pickEntityValues(
                 activeLearningFeedbackContext.selectedLink.target,
-                activeLearningContext.propertiesToCompare.map((prop) => prop.right.value)
+                activeLearningContext.propertiesToCompare.map((prop) => prop.target.path)
             );
             const pairValues = sourceValues.map((sourceVals, idx) => ({
                 sourceValues: sourceVals,
@@ -161,7 +161,7 @@ const EntityComparisonHeader = ({ sourceTitle, targetTitle }: EntityComparisonHe
 
 interface SelectedEntityLinkProps {
     valuesToDisplay: EntityLinkPropertyPairValues[];
-    propertyPairs: CandidatePropertyPair[];
+    propertyPairs: ComparisonPairWithId[];
     labelPropertyPairIds: Set<string>;
     toggleLabelPropertyPair: (pairId: string) => any;
 }
@@ -195,7 +195,7 @@ const SelectedEntityLink = ({
 };
 
 interface EntitiesPropertyPairProps {
-    propertyPair: CandidatePropertyPair;
+    propertyPair: ComparisonPairWithId;
     values: EntityLinkPropertyPairValues;
     selectedForLabel: boolean;
     toggleLabelSelection: () => any;
@@ -209,7 +209,7 @@ const EntitiesPropertyPair = ({
 }: EntitiesPropertyPairProps) => {
     return (
         <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
-            <EntityPropertyValues property={propertyPair.left} values={values.sourceValues} />
+            <EntityPropertyValues property={propertyPair.source} values={values.sourceValues} />
             <GridColumn style={columnStyles.centerColumnStyle}>
                 <HoverToggler
                     baseElement={
@@ -219,9 +219,9 @@ const EntitiesPropertyPair = ({
                             </ToolbarSection>
                             <ToolbarSection>
                                 <Tag>
-                                    {propertyPair.left.type != null &&
-                                    propertyPair.left.type === propertyPair.right.type
-                                        ? propertyPair.left.type
+                                    {propertyPair.source.valueType != null &&
+                                    propertyPair.source.valueType === propertyPair.target.valueType
+                                        ? propertyPair.source.valueType
                                         : "string"}
                                 </Tag>
                             </ToolbarSection>
@@ -245,13 +245,13 @@ const EntitiesPropertyPair = ({
                     }
                 />
             </GridColumn>
-            <EntityPropertyValues property={propertyPair.right} values={values.targetValues} />
+            <EntityPropertyValues property={propertyPair.target} values={values.targetValues} />
         </GridRow>
     );
 };
 
-const EntityPropertyValues = ({ property, values }: { values: string[]; property: CandidateProperty }) => {
-    const propertyLabel = property.label ? property.label : property.value;
+const EntityPropertyValues = ({ property, values }: { values: string[]; property: TypedPath }) => {
+    const propertyLabel = property.label ? property.label : property.path;
     const exampleTitle = values.join(" | ");
     return (
         <GridColumn style={columnStyles.mainColumnStyle}>
