@@ -4,7 +4,7 @@ import controllers.core.util.JsonUtils
 import io.swagger.v3.oas.annotations.media.Schema
 import org.silkframework.entity.ValueType
 import org.silkframework.entity.paths.TypedPath
-import org.silkframework.learning.active.comparisons.{ComparisonPair, ComparisonPairs}
+import org.silkframework.learning.active.comparisons.{ComparisonPair, ComparisonPairWithExamples, ComparisonPairs, PlainComparisonPair}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonFormat
 import play.api.libs.json.{JsValue, Json, OFormat}
@@ -38,13 +38,18 @@ object JsonFormats {
                                   @Schema(description = "Example values for the target path.", required = false)
                                   targetExamples: Seq[String] = Seq.empty) {
     def toComparisonPair: ComparisonPair = {
-      ComparisonPair(source.toTypedPath, target.toTypedPath)
+      ComparisonPairWithExamples(source.toTypedPath, target.toTypedPath, 0.0, sourceExamples, targetExamples)
     }
   }
 
   object ComparisonPairFormat {
     def apply(pair: ComparisonPair): ComparisonPairFormat = {
-      ComparisonPairFormat(TypedPathFormat(pair.source), TypedPathFormat(pair.target))
+      pair match {
+        case PlainComparisonPair(source, target) =>
+          ComparisonPairFormat(TypedPathFormat(source), TypedPathFormat(target))
+        case ComparisonPairWithExamples(source, target, score, sourceExamples, targetExamples) =>
+          ComparisonPairFormat(TypedPathFormat(source), TypedPathFormat(target), sourceExamples, targetExamples)
+      }
     }
   }
 

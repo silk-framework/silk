@@ -87,12 +87,12 @@ class LinkWithConfidence(val source: String, val target: String, conf: Double) e
   override def reverse: Link = new LinkWithConfidence(target, source, conf)
 }
 
-class LinkWithEntities(val source: String, val target: String, ents: DPair[Entity]) extends Link {
+class LinkWithEntities(val source: String, val target: String, val linkEntities: DPair[Entity]) extends Link {
   override def confidence: Option[Double] = None
 
-  override def entities: Option[DPair[Entity]] = Some(ents)
+  override def entities: Option[DPair[Entity]] = Some(linkEntities)
 
-  override def reverse: Link = new LinkWithEntities(target, source, ents)
+  override def reverse: Link = new LinkWithEntities(target, source, linkEntities)
 }
 
 /**

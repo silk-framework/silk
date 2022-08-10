@@ -1,6 +1,6 @@
 package org.silkframework.learning.active
 
-import org.silkframework.entity.{EntitySchema, Link}
+import org.silkframework.entity.{EntitySchema, Link, LinkWithEntities}
 import org.silkframework.rule.evaluation.ReferenceEntities
 import org.silkframework.util.DPair
 
@@ -10,18 +10,16 @@ import org.silkframework.util.DPair
   */
 case class ActiveLearningReferenceData(entitySchemata: DPair[EntitySchema],
                                        linkCandidates: Seq[LinkCandidate],
-                                       positiveLinks: Seq[Link] = Seq.empty,
-                                       negativeLinks: Seq[Link] = Seq.empty,
+                                       positiveLinks: Seq[LinkWithEntities] = Seq.empty,
+                                       negativeLinks: Seq[LinkWithEntities] = Seq.empty,
                                        randomSeed: Long) {
 
-  def withPositiveLink(link: Link): ActiveLearningReferenceData = {
-    require(link.entities.isDefined, "Cannot add link that does not have entities attached.")
+  def withPositiveLink(link: LinkWithEntities): ActiveLearningReferenceData = {
     copy(positiveLinks = (link +: positiveLinks).distinct,
          negativeLinks = negativeLinks.filterNot(_ == link))
   }
 
-  def withNegativeLink(link: Link): ActiveLearningReferenceData = {
-    require(link.entities.isDefined, "Cannot add link that does not have entities attached.")
+  def withNegativeLink(link: LinkWithEntities): ActiveLearningReferenceData = {
     copy(positiveLinks = positiveLinks.filterNot(_ == link),
          negativeLinks = (link +: negativeLinks).distinct)
   }
@@ -31,14 +29,14 @@ case class ActiveLearningReferenceData(entitySchemata: DPair[EntitySchema],
          negativeLinks = negativeLinks.filterNot(_ == link))
   }
 
-  def findLink(sourceUri: String, targetUri: String): Option[Link] = {
+  def findLink(sourceUri: String, targetUri: String): Option[LinkWithEntities] = {
     val allLinks = positiveLinks ++ negativeLinks ++ linkCandidates
     allLinks.find(l => l.source == sourceUri && l.target == targetUri)
   }
 
   def toReferenceEntities: ReferenceEntities = {
-    val positiveEntities = positiveLinks.map(_.entities.get)
-    val negativeEntities = negativeLinks.map(_.entities.get)
+    val positiveEntities = positiveLinks.map(_.linkEntities)
+    val negativeEntities = negativeLinks.map(_.linkEntities)
     ReferenceEntities.fromEntities(positiveEntities, negativeEntities)
   }
 

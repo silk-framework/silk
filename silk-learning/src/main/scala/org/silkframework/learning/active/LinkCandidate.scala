@@ -1,7 +1,7 @@
 package org.silkframework.learning.active
 
 import org.silkframework.entity.paths.TypedPath
-import org.silkframework.entity.{Entity, Link}
+import org.silkframework.entity.{Entity, Link, LinkWithEntities}
 import org.silkframework.util.DPair
 
 /**
@@ -9,12 +9,7 @@ import org.silkframework.util.DPair
   */
 case class LinkCandidate(sourceEntity: Entity, targetEntity: Entity,
                          matchingValues: Seq[MatchingValues] = Seq.empty,
-                         confidence: Option[Double] = None) extends Link {
-  /** The source entity URI */
-  override def source: String = sourceEntity.uri
-
-  /** The target entity URI */
-  override def target: String = targetEntity.uri
+                         override val confidence: Option[Double] = None) extends LinkWithEntities(sourceEntity.uri, targetEntity.uri, DPair(sourceEntity, targetEntity)) {
 
   /** The optional pair of entities (values) */
   override def entities: Option[DPair[Entity]] = Some(DPair(sourceEntity, targetEntity))
