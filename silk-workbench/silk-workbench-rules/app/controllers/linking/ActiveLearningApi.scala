@@ -11,18 +11,19 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.entity.MinimalLink
+import org.silkframework.entity.{Entity, FullLink, MinimalLink}
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.learning.active.comparisons.{ComparisonPair, ComparisonPairGenerator}
-import org.silkframework.rule.LinkSpec
+import org.silkframework.rule.{LinkSpec, LinkageRule}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.WriteContext
 import org.silkframework.runtime.validation.NotFoundException
 import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonFormat
 import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
+import org.silkframework.util.DPair
 import org.silkframework.workbench.Context
 import org.silkframework.workspace.WorkspaceFactory
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import javax.inject.Inject
@@ -162,6 +163,71 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
     val removeComparisonPair = JsonUtils.validateJsonFromRequest[ComparisonPairFormat](request).toComparisonPair
     updateSelectedComparisonPairs(projectId, taskId)(_.filterNot(_ == removeComparisonPair))
     NoContent
+  }
+
+  @Operation(
+    summary = "Evaluate reference links",
+    description = "The current reference links, evaluated on the top performing linkage rule.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success"
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or task has not been found."
+      )
+    )
+  )
+  def referenceLinks(@Parameter(
+                         name = "project",
+                         description = "The project identifier",
+                         required = true,
+                         in = ParameterIn.PATH,
+                         schema = new Schema(implementation = classOf[String])
+                       )
+                       projectId: String,
+                       @Parameter(
+                         name = "task",
+                         description = "The task identifier",
+                         required = true,
+                         in = ParameterIn.PATH,
+                         schema = new Schema(implementation = classOf[String])
+                       )
+                       taskId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+      val context = Context.get[LinkSpec](projectId, taskId, request.path)
+      val activeLearning = context.task.activity[ActiveLearning]
+
+      val positiveEntities = activeLearning.value().referenceData.positiveLinks.map(_.entities.get)
+      val negativeEntities = activeLearning.value().referenceData.negativeLinks.map(_.entities.get)
+      val bestRule = {
+        val population = activeLearning.value().population
+        if(population.isEmpty) {
+          LinkageRule()
+        } else {
+          population.bestIndividual.node.build
+        }
+      }
+
+      // TODO discuss JSON format
+      val result =
+        Json.obj(
+          "positive" -> serializeLinks(positiveEntities, bestRule),
+          "negative" -> serializeLinks(negativeEntities, bestRule)
+        )
+
+      Ok(result)
+  }
+
+  private def serializeLinks(entities: Traversable[DPair[Entity]],
+                             linkageRule: LinkageRule): JsValue = {
+    implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+    JsArray(
+      for (entities <- entities.toSeq) yield {
+        val link = new FullLink(entities.source.uri, entities.target.uri, linkageRule(entities), entities)
+        new LinkJsonFormat(Some(linkageRule), writeEntities = false, writeEntitySchema = false).write(link)
+      }
+    )
   }
 
   @Operation(
@@ -350,7 +416,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
     if(population.isEmpty) {
       throw NotFoundException("No rule found.")
     } else {
-      val bestRule = activeLearning.value().population.bestIndividual.node.build
+      val bestRule = population.bestIndividual.node.build
       implicit val writeContext = WriteContext[JsValue]()
       Ok(LinkageRuleJsonFormat.write(bestRule))
     }
