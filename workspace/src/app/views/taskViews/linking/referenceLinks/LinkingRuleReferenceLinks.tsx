@@ -22,13 +22,13 @@ import {
 import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { IEntityLink, IEvaluatedReferenceLinks } from "../linking.types";
+import { IEntityLink, ReferenceLinks } from "../linking.types";
 import { LabelProperties } from "./LinkingRuleReferenceLinks.typing";
 import referenceLinksUtils from "./LinkingRuleReferenceLinks.utils";
 import { Property } from "csstype";
 
 interface LinkingRuleReferenceLinksProps {
-    referenceLinks?: IEvaluatedReferenceLinks;
+    referenceLinks?: ReferenceLinks;
     /** The paths whose values should be displayed as entity labels. If missing the first value is shown.of each entity. */
     labelPaths?: LabelProperties;
 }

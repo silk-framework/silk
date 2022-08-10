@@ -2,7 +2,7 @@ import { FetchResponse } from "../../../../services/fetch/responseInterceptor";
 import fetch from "../../../../services/fetch";
 import { legacyLinkingEndpoint } from "../../../../utils/getApiEndpoint";
 import { ComparisonPair, ComparisonPairs } from "./LinkingRuleActiveLearning.typings";
-import { IEntityLink } from "../linking.types";
+import { IEntityLink, ReferenceLinks } from "../linking.types";
 
 /** Get the comparison pair configuration for the active learning session.
  *
@@ -46,12 +46,22 @@ export const removeActiveLearningComparisonPair = (
     });
 };
 
-/** Remove a specific comparison pair. */
+/** Get the next link candidate. */
 export const nextActiveLearningLinkCandidate = (
     projectId: string,
     linkingTaskId: string
 ): Promise<FetchResponse<IEntityLink>> => {
     return fetch({
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/activeLearning/nextLinkCandidate`),
+    });
+};
+
+/** Fetch reference links / decision history for active learning. */
+export const fetchActiveLearningReferenceLinks = (
+    projectId: string,
+    linkingTaskId: string
+): Promise<FetchResponse<ReferenceLinks>> => {
+    return fetch({
+        url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/activeLearning/referenceLinks`),
     });
 };

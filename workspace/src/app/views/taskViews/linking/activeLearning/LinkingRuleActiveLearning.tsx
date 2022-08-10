@@ -2,13 +2,13 @@ import { IViewActions } from "../../../plugins/PluginRegistry";
 import { LinkingRuleActiveLearningContext } from "./contexts/LinkingRuleActiveLearningContext";
 import React from "react";
 import { LinkingRuleActiveLearningConfig } from "./LinkingRuleActiveLearningConfig";
-import { fetchLinkSpec, referenceLinksEvaluated } from "../LinkingRuleEditor.requests";
+import { fetchLinkSpec } from "../LinkingRuleEditor.requests";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { TaskPlugin } from "@ducks/shared/typings";
-import { IEvaluatedReferenceLinks, ILinkingTaskParameters } from "../linking.types";
+import { ILinkingTaskParameters, ReferenceLinks } from "../linking.types";
 import { ActivityAction, IActivityStatus, Spinner } from "@eccenca/gui-elements";
 import { ActiveLearningStep, ComparisonPairWithId } from "./LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningMain } from "./learningUI/LinkingRuleActiveLearningMain";
@@ -18,6 +18,7 @@ import { DIErrorTypes } from "@ducks/error/typings";
 import { connectWebSocket } from "../../../../services/websocketUtils";
 import { activityQueryString } from "../../../shared/TaskActivityOverview/taskActivityUtils";
 import { legacyApiEndpoint } from "../../../../utils/getApiEndpoint";
+import { fetchActiveLearningReferenceLinks } from "./LinkingRuleActiveLearning.requests";
 
 export interface LinkingRuleActiveLearningProps {
     /** Project ID the task is in. */
@@ -47,7 +48,7 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
     const [selectedPropertyPairs, setSelectedPropertyPairs] = React.useState<ComparisonPairWithId[]>([]);
     const [activeLearningStep, setActiveLearningStep] = React.useState<ActiveLearningStep>("config");
     /** A copy of the reference links that can be modified. Changes to the backend will only be made when explicitly saving. */
-    const [referenceLinks, setReferenceLinks] = React.useState<IEvaluatedReferenceLinks | undefined>(undefined);
+    const [referenceLinks, setReferenceLinks] = React.useState<ReferenceLinks | undefined>(undefined);
     /** The source paths of the label values that should be displayed in the UI for each entity in a link. */
     const [labelPaths, setLabelPaths] = React.useState<LabelProperties | undefined>(undefined);
     const [comparisonPairsLoading, setComparisonPairsLoading] = React.useState(false);
@@ -128,13 +129,12 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
         }
     };
 
-    /** Fetches the current reference links of the linking task. TODO: Swap against version that evaluates the current best rule against all reference links saved and unsaved */
+    /** Fetches the current reference links of the linking task. */
     const fetchReferenceLinks = async (projectId: string, taskId: string) => {
         try {
             setLoading(true);
-            const linksEvaluated = (await referenceLinksEvaluated(projectId, taskId, true)).data;
-            setReferenceLinks(linksEvaluated);
-            return taskData;
+            const links = (await fetchActiveLearningReferenceLinks(projectId, taskId)).data;
+            setReferenceLinks(links);
         } catch (err) {
             registerError(
                 "LinkingRuleEditor_fetchLinkingTask",

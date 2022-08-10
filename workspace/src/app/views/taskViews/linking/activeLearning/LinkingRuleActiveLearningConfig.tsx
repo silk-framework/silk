@@ -58,8 +58,10 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     const loadingSuggestions = activeLearningContext.comparisonPairsLoading || loadSuggestions;
 
     React.useEffect(() => {
-        loadCandidatePairs(projectId, linkingTaskId);
-    }, []);
+        if (!activeLearningContext.comparisonPairsLoading) {
+            loadCandidatePairs(projectId, linkingTaskId);
+        }
+    }, [activeLearningContext.comparisonPairsLoading]);
 
     const loadCandidatePairs = async (projectId: string, taskId: string) => {
         setLoadSuggestions(true);
