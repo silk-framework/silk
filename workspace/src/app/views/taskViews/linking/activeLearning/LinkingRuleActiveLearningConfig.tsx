@@ -51,6 +51,8 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     const [hasValidPath, setHasValidPath] = React.useState(false);
     const [t] = useTranslation();
 
+    const loadingSuggestions = activeLearningContext.comparisonPairsLoading || loadSuggestions;
+
     React.useEffect(() => {
         loadCandidatePairs(projectId, linkingTaskId);
     }, []);
@@ -133,6 +135,9 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                     pairId: `manually chose: ${nextId()}`,
                     source: manualSourcePath.current,
                     target: manualTargetPath.current,
+                    // TODO: where to get examples from?
+                    sourceExamples: [],
+                    targetExamples: [],
                 },
             ]);
             changeManualSourcePath("");
@@ -161,32 +166,33 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         );
     };
 
-    const SelectedProperty = ({ property }: { property: TypedPath }) => {
+    const SelectedProperty = ({ property, exampleValues }: { property: TypedPath; exampleValues: string[][] }) => {
+        const flatExampleValues: string[] = [].concat.apply([], exampleValues);
         const showLabel: boolean = !!property.label && property.label.toLowerCase() !== property.path.toLowerCase();
-        // const exampleTitle = property.exampleValues.join(" | ");
+        const exampleTitle = flatExampleValues.join(" | ");
         return (
             <GridColumn style={columnStyles.mainColumnStyle}>
                 <OverviewItem>
                     <OverviewItemDescription>
                         {showLabel ? <OverviewItemLine>{property.label}</OverviewItemLine> : null}
                         <OverviewItemLine small={showLabel}>{property.path}</OverviewItemLine>
-                        {/*{property.exampleValues.length > 0 ? (*/}
-                        {/*    <OverviewItemLine small={showLabel} title={exampleTitle}>*/}
-                        {/*        {property.exampleValues.map((example) => {*/}
-                        {/*            return (*/}
-                        {/*                <Tag*/}
-                        {/*                    small={true}*/}
-                        {/*                    minimal={true}*/}
-                        {/*                    round={true}*/}
-                        {/*                    style={{ marginRight: "0.25rem" }}*/}
-                        {/*                    htmlTitle={exampleTitle}*/}
-                        {/*                >*/}
-                        {/*                    {example}*/}
-                        {/*                </Tag>*/}
-                        {/*            );*/}
-                        {/*        })}*/}
-                        {/*    </OverviewItemLine>*/}
-                        {/*) : null}*/}
+                        {flatExampleValues.length > 0 ? (
+                            <OverviewItemLine small={showLabel} title={exampleTitle}>
+                                {flatExampleValues.map((example) => {
+                                    return (
+                                        <Tag
+                                            small={true}
+                                            minimal={true}
+                                            round={true}
+                                            style={{ marginRight: "0.25rem" }}
+                                            htmlTitle={exampleTitle}
+                                        >
+                                            {example}
+                                        </Tag>
+                                    );
+                                })}
+                            </OverviewItemLine>
+                        ) : null}
                     </OverviewItemDescription>
                 </OverviewItem>
             </GridColumn>
@@ -196,7 +202,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     const SelectedPropertyPair = ({ pair }: { pair: ComparisonPairWithId }) => {
         return (
             <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
-                <SelectedProperty property={pair.source} />
+                <SelectedProperty property={pair.source} exampleValues={pair.sourceExamples} />
                 <GridColumn style={columnStyles.centerColumnStyle}>
                     <HoverToggler
                         baseElement={
@@ -232,7 +238,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         }
                     />
                 </GridColumn>
-                <SelectedProperty property={pair.target} />
+                <SelectedProperty property={pair.target} exampleValues={pair.targetExamples} />
             </GridRow>
         );
     };
@@ -313,7 +319,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     const SuggestedPathSelection = ({ pair }: { pair: ComparisonPairWithId }) => {
         return (
             <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
-                <SelectedProperty property={pair.source} />
+                <SelectedProperty property={pair.source} exampleValues={pair.sourceExamples} />
                 <GridColumn style={columnStyles.centerColumnStyle}>
                     <Toolbar style={{ height: "100%" }}>
                         <ToolbarSection canGrow={true}>
@@ -327,7 +333,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         </ToolbarSection>
                     </Toolbar>
                 </GridColumn>
-                <SelectedProperty property={pair.target} />
+                <SelectedProperty property={pair.target} exampleValues={pair.targetExamples} />
             </GridRow>
         );
     };
@@ -361,13 +367,13 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     };
 
     const SuggestionSelectionSubHeader = () => {
-        return (
-            <Notification
-                neutral={true}
-                message={`Found ${suggestions.length} comparison suggestions you might want to add. Click button to add.`}
-                iconName={null}
-            />
-        );
+        // TODO: i18n
+        const message = loadingSuggestions
+            ? "Suggestions loading..."
+            : suggestions.length > 0
+            ? `Found ${suggestions.length} comparison suggestions you might want to add. Click button to add.`
+            : "No suggestions available. You can add further comparison pairs manually.";
+        return <Notification neutral={true} message={message} iconName={null} />;
     };
 
     const PathSelectionSubHeader = () => {
@@ -381,16 +387,10 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             <InfoWidget />
             <Spacing size={"small"} />
             <SelectedPropertiesWidget />
-            {loadSuggestions ? (
-                <Spinner />
-            ) : suggestions.length > 0 ? (
-                <>
-                    <Spacing />
-                    <SuggestionSelectionSubHeader />
-                    <Spacing />
-                    <SuggestionWidget />
-                </>
-            ) : null}
+            <Spacing />
+            <SuggestionSelectionSubHeader />
+            <Spacing />
+            {loadingSuggestions ? <Spinner /> : suggestions.length > 0 ? <SuggestionWidget /> : null}
             <Spacing />
             <PathSelectionSubHeader />
             <Spacing />

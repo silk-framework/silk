@@ -10,6 +10,8 @@ export interface ComparisonPairs {
 export interface ComparisonPair {
     source: TypedPath;
     target: TypedPath;
+    sourceExamples: string[][];
+    targetExamples: string[][];
 }
 
 /** same but with ID */

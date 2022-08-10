@@ -21,6 +21,8 @@ interface LinkingRuleActiveLearningContextProps {
     labelPaths?: LabelProperties;
     /** Change the label paths. */
     changeLabelPaths: (paths: LabelProperties) => any;
+    /** True while comparison pair activity is running. */
+    comparisonPairsLoading: boolean;
 }
 
 /** Contains data and functions for the link rule active learning. */
@@ -33,4 +35,5 @@ export const LinkingRuleActiveLearningContext = React.createContext<LinkingRuleA
     referenceLinks: undefined,
     labelPaths: undefined,
     changeLabelPaths: () => {},
+    comparisonPairsLoading: false,
 });
