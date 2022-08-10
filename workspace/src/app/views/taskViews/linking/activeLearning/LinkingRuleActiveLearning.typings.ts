@@ -28,3 +28,5 @@ export interface TypedPath {
     /** Supported value types in active learning. */
     valueType?: "StringValueType" | "UriValueType";
 }
+
+export type ActiveLearningDecisions = "positive" | "negative" | "unlabeled";

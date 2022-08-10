@@ -6,8 +6,12 @@ import { EntityLink } from "../../referenceLinks/LinkingRuleReferenceLinks.typin
 import { LinkingRuleActiveLearningFeedbackContext } from "../contexts/LinkingRuleActiveLearningFeedbackContext";
 import { LinkingRuleActiveLearningBestLearnedRule } from "./LinkingRuleActiveLearningBestLearnedRule";
 import { LinkingRuleReferenceLinks } from "../../referenceLinks/LinkingRuleReferenceLinks";
-import { nextActiveLearningLinkCandidate } from "../LinkingRuleActiveLearning.requests";
+import {
+    nextActiveLearningLinkCandidate,
+    submitActiveLearningReferenceLink,
+} from "../LinkingRuleActiveLearning.requests";
 import referenceLinksUtils from "../../referenceLinks/LinkingRuleReferenceLinks.utils";
+import { ActiveLearningDecisions } from "../LinkingRuleActiveLearning.typings";
 
 interface LinkingRuleActiveLearningMainProps {
     projectId: string;
@@ -51,9 +55,20 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
         }
     };
 
-    const removeReferenceLink = (linkId: string) => {};
-
-    const updateReferenceLink = (entityLink: EntityLink, decision: "positive" | "negative") => {};
+    const updateReferenceLink = async (link: EntityLink, decision: ActiveLearningDecisions) => {
+        try {
+            await submitActiveLearningReferenceLink(
+                activeLearningContext.projectId,
+                activeLearningContext.linkingTaskId,
+                link.source.uri,
+                link.target.uri,
+                decision
+            );
+            setSelectedEntityLink(undefined);
+        } catch (ex) {
+            // TODO
+        }
+    };
 
     const onSaveClick = () => {
         // TODO: Open save dialog
@@ -85,8 +100,7 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
     return (
         <LinkingRuleActiveLearningFeedbackContext.Provider
             value={{
-                removeReferenceLink: removeReferenceLink,
-                updateReferenceLink: updateReferenceLink,
+                updateReferenceLink,
                 selectedLink: selectedEntityLink,
                 loadingLinkCandidate,
             }}
