@@ -10,7 +10,7 @@ import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonFormat
 import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
 import play.api.http.Status
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.libs.ws.EmptyBody
 
 trait ActiveLearningApiClient extends ApiClient {
@@ -20,16 +20,26 @@ trait ActiveLearningApiClient extends ApiClient {
     checkResponse(request.post(Json.toJson(comparisonPair)))
   }
 
-  def referenceLinks(projectId: String, taskId: String): JsValue = {
+  def retrieveReferenceLinks(projectId: String, taskId: String): (Seq[Link], Seq[Link]) = {
     val request = createRequest(ActiveLearningApi.referenceLinks(projectId, taskId))
-    checkResponse(request.get()).json
+    val json = checkResponse(request.get()).json
+
+    implicit val readContext: ReadContext = ReadContext()
+    val positiveLinks = (json \ "positive").as[JsArray].value.map(new LinkJsonFormat(None).read)
+    val negativeLinks = (json \ "negative").as[JsArray].value.map(new LinkJsonFormat(None).read)
+    (positiveLinks, negativeLinks)
   }
 
-  def iterate(projectId: String, taskId: String, decision: String, linkSource: String, linkTarget: String, synchronous: Boolean = false): Option[Link] = {
-    val request = createRequest(ActiveLearningApi.iterate(projectId, taskId, decision, linkSource, linkTarget, synchronous))
-    val response = checkResponse(request.post(EmptyBody))
+  def addReferenceLink(projectId: String, taskId: String, linkSource: String, linkTarget: String, decision: String, synchronous: Boolean = false): Unit = {
+    val request = createRequest(ActiveLearningApi.addReferenceLink(projectId, taskId, linkSource, linkTarget, decision, synchronous))
+    checkResponse(request.post(EmptyBody))
+  }
 
-    if(response.status == Status.NO_CONTENT) {
+  def nextLinkCandidate(projectId: String, taskId: String): Option[Link] = {
+    val request = createRequest(ActiveLearningApi.nextLinkCandidate(projectId, taskId))
+    val response = checkResponse(request.get())
+
+    if (response.status == Status.NO_CONTENT) {
       None
     } else {
       implicit val readContext: ReadContext = ReadContext()
@@ -40,7 +50,7 @@ trait ActiveLearningApiClient extends ApiClient {
   def bestRule(projectId: String, taskId: String): LinkageRule = {
     val request = createRequest(ActiveLearningApi.bestRule(projectId, taskId))
     val response = checkResponse(request.get())
-    implicit val redContext = ReadContext()
+    implicit val readContext: ReadContext = ReadContext()
     LinkageRuleJsonFormat.read(response.json)
   }
 }

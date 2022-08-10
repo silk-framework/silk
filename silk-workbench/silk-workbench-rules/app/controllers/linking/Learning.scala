@@ -3,18 +3,15 @@ package controllers.linking
 import akka.stream.Materializer
 import config.WorkbenchConfig.WorkspaceReact
 import controllers.core.UserContextActions
-import controllers.linking.activeLearning.ActiveLearningIterator
-import models.learning.{PathValue, PathValues}
+import models.learning.PathValues
 import models.linking.EvalLink.{Correct, Generated, Incorrect, Unknown}
 import models.linking._
-import org.silkframework.config.Prefixes
 import org.silkframework.learning.LearningActivity
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.learning.individual.Population
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.runtime.validation.BadUserInputException
-import org.silkframework.util.CollectionUtils.ExtendedSeq
 import org.silkframework.util.Identifier._
 import org.silkframework.workbench.Context
 import org.silkframework.workbench.utils.ErrorResult
@@ -50,38 +47,9 @@ class Learning @Inject() (implicit mat: Materializer, workspaceReact: WorkspaceR
     Ok(views.html.learning.activeLearnDetails(activeLearnState, context.project.config.prefixes))
   }
 
+  // TODO remove old active learning endpoints and UI
   def activeLearnCandidate(project: String, task: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
-    val context = Context.get[LinkSpec](project, task, request.path)
-    implicit val prefixes: Prefixes = context.project.config.prefixes
-    val activeLearn = context.task.activity[ActiveLearning].control
-
-    request.body.asFormUrlEncoded match {
-      case Some(p) =>
-        val params = p.mapValues(_.head)
-        val nextLinkCandidate = ActiveLearningIterator.iterate(params("decision"), params("source"), params("target"), context.task)
-        nextLinkCandidate match {
-          case Some(link) =>
-            val comparisonPaths = activeLearn.value().comparisonPaths
-            // Generate all source values for this link
-            val sourceValues =
-              for(path <- comparisonPaths.map(_.source).distinctBy(_.normalizedSerialization)) yield {
-                PathValues(path.serialize(), link.sourceEntity.evaluate(path).map(PathValue(_)))
-              }
-            // Generate all target values for this link
-            val targetValues =
-              for(path <- comparisonPaths.map(_.target).distinctBy(_.normalizedSerialization)) yield {
-                PathValues(path.serialize(), link.targetEntity.evaluate(path).map(PathValue(_)))
-              }
-            // Find matching values for highlighting
-            addHighlighting(sourceValues, targetValues)
-
-            Ok(views.html.learning.linkCandidate(link, sourceValues, targetValues, context))
-          case None =>
-            Ok(views.html.learning.linkCandidateMissing(context))
-        }
-      case None =>
-        ErrorResult(BadUserInputException("query parameters missing"))
-    }
+    ErrorResult(BadUserInputException("This endpoint is no longer supported and will be removed"))
   }
 
   private def addHighlighting(sourceValues: Seq[PathValues], targetValues: Seq[PathValues]): Unit = {

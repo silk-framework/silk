@@ -209,7 +209,6 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
         }
       }
 
-      // TODO discuss JSON format
       val result =
         Json.obj(
           "positive" -> serializeLinks(positiveEntities, bestRule),
@@ -283,9 +282,17 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
                          in = ParameterIn.PATH,
                          schema = new Schema(implementation = classOf[String], allowableValues = Array("positive", "negative", "unlabeled"))
                        )
-                       decision: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+                       decision: String,
+                       @Parameter(
+                         name = "synchronous",
+                         description = "If true, the endpoint will block until a new iteration has been finished that considers the added reference link.",
+                         required = true,
+                         in = ParameterIn.PATH,
+                         schema = new Schema(implementation = classOf[Boolean], required = false, defaultValue = "false")
+                       )
+                       synchronous: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[LinkSpec](projectId, taskId, request.path)
-    ActiveLearningIterator.commitLink(linkSource, linkTarget, decision, context.task)
+    ActiveLearningIterator.commitLink(linkSource, linkTarget, decision, context.task, synchronous)
     Ok
   }
 
@@ -360,24 +367,9 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
     val context = Context.get[LinkSpec](projectId, taskId, request.path)
     val linkCandidate = ActiveLearningIterator.nextLinkCandidate(context.task)
 
-    // TODO discuss if we want another JSON format here
     implicit val writeContext = WriteContext[JsValue]()
     val format = new LinkJsonFormat(rule = None, writeEntities = true, writeEntitySchema = true)
     Ok(format.write(linkCandidate))
-  }
-
-  def iterate(project: String, task: String, decision: String,
-              linkSource: String, linkTarget: String, synchronous: Boolean = false): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
-    val context = Context.get[LinkSpec](project, task, request.path)
-    val linkCandidate = ActiveLearningIterator.iterate(linkSource, linkTarget, decision, context.task, synchronous)
-    linkCandidate match {
-      case Some(candidate) =>
-        implicit val writeContext = WriteContext[JsValue]()
-        val format = new LinkJsonFormat(rule = None, writeEntities = true, writeEntitySchema = true)
-        Ok(format.write(candidate))
-      case None =>
-        NoContent
-    }
   }
 
   @Operation(

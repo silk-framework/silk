@@ -15,11 +15,13 @@ case class ActiveLearningReferenceData(entitySchemata: DPair[EntitySchema],
                                        randomSeed: Long) {
 
   def withPositiveLink(link: Link): ActiveLearningReferenceData = {
+    require(link.entities.isDefined, "Cannot add link that does not have entities attached.")
     copy(positiveLinks = (link +: positiveLinks).distinct,
          negativeLinks = negativeLinks.filterNot(_ == link))
   }
 
   def withNegativeLink(link: Link): ActiveLearningReferenceData = {
+    require(link.entities.isDefined, "Cannot add link that does not have entities attached.")
     copy(positiveLinks = positiveLinks.filterNot(_ == link),
          negativeLinks = (link +: negativeLinks).distinct)
   }
@@ -27,6 +29,11 @@ case class ActiveLearningReferenceData(entitySchemata: DPair[EntitySchema],
   def withoutLink(link: Link): ActiveLearningReferenceData = {
     copy(positiveLinks = positiveLinks.filterNot(_ == link),
          negativeLinks = negativeLinks.filterNot(_ == link))
+  }
+
+  def findLink(sourceUri: String, targetUri: String): Option[Link] = {
+    val allLinks = positiveLinks ++ negativeLinks ++ linkCandidates
+    allLinks.find(l => l.source == sourceUri && l.target == targetUri)
   }
 
   def toReferenceEntities: ReferenceEntities = {
