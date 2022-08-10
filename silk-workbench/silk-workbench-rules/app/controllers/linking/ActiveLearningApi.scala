@@ -234,7 +234,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
     description = "Adds a new reference link.",
     responses = Array(
       new ApiResponse(
-        responseCode = "200",
+        responseCode = "204",
         description = "Success"
       ),
       new ApiResponse(
@@ -293,7 +293,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
                        synchronous: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[LinkSpec](projectId, taskId, request.path)
     ActiveLearningIterator.commitLink(linkSource, linkTarget, decision, context.task, synchronous)
-    Ok
+    NoContent
   }
 
   def removeReferenceLink(@Parameter(
@@ -331,7 +331,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
     val context = Context.get[LinkSpec](projectId, taskId, request.path)
     val activity = context.task.activity[ActiveLearning]
     activity.updateValue(activity.value().copy(referenceData = activity.value().referenceData.withoutLink(new MinimalLink(linkSource, linkTarget))))
-    Ok
+    NoContent
   }
 
   @Operation(

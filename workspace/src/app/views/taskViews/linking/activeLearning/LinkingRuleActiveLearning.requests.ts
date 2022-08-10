@@ -1,7 +1,7 @@
 import { FetchResponse } from "../../../../services/fetch/responseInterceptor";
 import fetch from "../../../../services/fetch";
 import { legacyLinkingEndpoint } from "../../../../utils/getApiEndpoint";
-import { ComparisonPair, ComparisonPairs } from "./LinkingRuleActiveLearning.typings";
+import { ActiveLearningDecisions, ComparisonPair, ComparisonPairs } from "./LinkingRuleActiveLearning.typings";
 import { IEntityLink, ReferenceLinks } from "../linking.types";
 
 /** Get the comparison pair configuration for the active learning session.
@@ -63,5 +63,24 @@ export const fetchActiveLearningReferenceLinks = (
 ): Promise<FetchResponse<ReferenceLinks>> => {
     return fetch({
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/activeLearning/referenceLinks`),
+    });
+};
+
+/** Adds or changes a reference link. */
+export const submitActiveLearningReferenceLink = (
+    projectId: string,
+    linkingTaskId: string,
+    sourceUri: string,
+    targetUri: string,
+    decision: ActiveLearningDecisions
+): Promise<FetchResponse<ReferenceLinks>> => {
+    return fetch({
+        url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/activeLearning/referenceLinks/add`),
+        method: "POST",
+        query: {
+            linkSource: sourceUri,
+            linkTarget: targetUri,
+            decision: decision,
+        },
     });
 };

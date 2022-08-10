@@ -17,9 +17,9 @@ import {
 import React from "react";
 import { LinkingRuleActiveLearningFeedbackContext } from "../contexts/LinkingRuleActiveLearningFeedbackContext";
 import { ArrowLeft, ArrowRight, columnStyles } from "../LinkingRuleActiveLearning.shared";
-import { ComparisonPairWithId, TypedPath } from "../LinkingRuleActiveLearning.typings";
+import { ActiveLearningDecisions, ComparisonPairWithId, TypedPath } from "../LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
-import { EntityLinkPropertyPairValues } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
+import { EntityLink, EntityLinkPropertyPairValues } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
 import referenceLinksUtils from "../../referenceLinks/LinkingRuleReferenceLinks.utils";
 
 export const LinkingRuleActiveLearningFeedbackComponent = () => {
@@ -74,9 +74,21 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
         });
     };
 
+    /** Changes the status of a link to the given decision. */
+    const submitLink = async (link: EntityLink | undefined, decision: ActiveLearningDecisions) => {
+        if (link) {
+            await activeLearningFeedbackContext.updateReferenceLink(link, decision);
+        }
+    };
+
     return (
         <div>
-            <Header disabledButtons={!activeLearningFeedbackContext.selectedLink} />
+            <Header
+                disabledButtons={!activeLearningFeedbackContext.selectedLink}
+                submitLink={(decision: ActiveLearningDecisions) =>
+                    submitLink(activeLearningFeedbackContext.selectedLink, decision)
+                }
+            />
             <Spacing />
             {valuesToDisplay ? (
                 <SelectedEntityLink
@@ -96,10 +108,12 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
 
 interface HeaderProps {
     disabledButtons: boolean;
+    /** Submit an entity link to the active learning backend. */
+    submitLink: (decision: ActiveLearningDecisions) => Promise<void>;
 }
 
 /** TODO: Clean up sub-components */
-const Header = ({ disabledButtons }: HeaderProps) => {
+const Header = ({ disabledButtons, submitLink }: HeaderProps) => {
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
 
     return (
@@ -112,13 +126,14 @@ const Header = ({ disabledButtons }: HeaderProps) => {
                     affirmative={true}
                     disabled={disabledButtons}
                     style={{ backgroundColor: "green" }}
+                    onClick={() => submitLink("positive")}
                 >
                     Confirm
                 </Button>
             </ToolbarSection>
             <ToolbarSection>
                 <Spacing vertical size={"large"} />
-                <Button disabled={disabledButtons} title={"Uncertain"}>
+                <Button disabled={disabledButtons} title={"Uncertain"} onClick={() => submitLink("unlabeled")}>
                     Uncertain
                 </Button>
                 <Spacing vertical size={"large"} />
@@ -127,6 +142,7 @@ const Header = ({ disabledButtons }: HeaderProps) => {
                 <Button
                     title={"Decline that the shown entities are a valid link."}
                     disabled={disabledButtons}
+                    onClick={() => submitLink("negative")}
                     disruptive={true}
                 >
                     Decline
