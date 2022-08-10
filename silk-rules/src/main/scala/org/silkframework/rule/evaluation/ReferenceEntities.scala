@@ -99,6 +99,27 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
     }
   }
 
+  def positiveLinksWithEntities: Set[LinkWithEntities] = {
+    linksWithEntities(positiveLinks)
+  }
+
+  def negativeLinksWithEntities: Set[LinkWithEntities] = {
+    linksWithEntities(negativeLinks)
+  }
+
+  private def linksWithEntities(links: Set[Link]): Set[LinkWithEntities] = {
+    for (link <- links) yield {
+      new LinkWithEntities(
+        source = link.source,
+        target = link.target,
+        linkEntities = DPair(
+          source = sourceEntities.getOrElse(link.source, throw new NoSuchElementException(s"The entity '${link.source}' is not available in the source dataset.")),
+          target = targetEntities.getOrElse(link.target, throw new NoSuchElementException(s"The entity '${link.target}' is not available in the target dataset.")),
+        )
+      )
+    }
+  }
+
   /** Merges this reference set with another reference set. */
   def merge(ref: ReferenceEntities) = ReferenceEntities(
     sourceEntities ++ ref.sourceEntities,

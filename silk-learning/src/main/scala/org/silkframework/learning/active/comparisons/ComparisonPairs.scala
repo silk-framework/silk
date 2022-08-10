@@ -15,14 +15,14 @@ case class ComparisonPairs(suggestedPairs: Seq[ComparisonPair],
                            selectedPairs: Seq[ComparisonPair],
                            randomSeed: Long = 0L)
 
-/**
-  * A single comparison pair.
-  *
-  * @param source The path from the first dataset.
-  * @param target The path from the second dataset.
-  */
-// TODO decided if Seq[Seq[String]] should be used. approx number of examples 3
-case class ComparisonPair(source: TypedPath, target: TypedPath, sourceExamples: Seq[String] = Seq.empty, targetExamples: Seq[String] = Seq.empty)
+
+trait ComparisonPair {
+
+  def source: TypedPath
+
+  def target: TypedPath
+
+}
 
 object ComparisonPair {
 
@@ -31,6 +31,39 @@ object ComparisonPair {
     */
   implicit def toPair(pair: ComparisonPair): DPair[TypedPath] = {
     DPair(pair.source, pair.target)
+  }
+
+
+  def apply(source: TypedPath, target: TypedPath): ComparisonPair = {
+    PlainComparisonPair(source, target)
+  }
+
+  def unapply(pair: ComparisonPair): Option[(TypedPath, TypedPath)] = {
+    Some(pair.source, pair.target)
+  }
+
+}
+
+case class PlainComparisonPair(source: TypedPath, target: TypedPath) extends ComparisonPair
+
+case class ComparisonPairWithExamples(source: TypedPath,
+                                      target: TypedPath,
+                                      score: Double,
+                                      sourceExamples: Seq[String] = Seq.empty,
+                                      targetExamples: Seq[String] = Seq.empty) extends ComparisonPair {
+
+  def plain: PlainComparisonPair = {
+    PlainComparisonPair(source, target)
+  }
+
+  def merge(other: ComparisonPairWithExamples, maximumExamples: Int = 3): ComparisonPairWithExamples = {
+    ComparisonPairWithExamples(
+      source = source,
+      target = target,
+      score = score + other.score,
+      sourceExamples = if(sourceExamples.size < maximumExamples) sourceExamples ++ other.sourceExamples else sourceExamples,
+      targetExamples = if(targetExamples.size < maximumExamples) targetExamples ++ other.targetExamples else targetExamples,
+    )
   }
 
 }

@@ -115,15 +115,27 @@ object ComparisonPairGenerator {
   }
 
   private def fromLinkCandidates(linkCandidates: Traversable[LinkCandidate]): Seq[ComparisonPair] = {
-    val pathScores = mutable.HashMap[ComparisonPair, Double]()
+    val pathScores = mutable.HashMap[PlainComparisonPair, ComparisonPairWithExamples]()
     for {
       linkCandidate <- linkCandidates
       matchingPair <- linkCandidate.matchingValues
     } {
-      val paths = ComparisonPair(matchingPair.sourcePath(linkCandidate.sourceEntity), matchingPair.targetPath(linkCandidate.targetEntity))
-      pathScores.put(paths, pathScores.getOrElse(paths, 0.0) + matchingPair.score)
+      val newPair = ComparisonPairWithExamples(
+        source = matchingPair.sourcePath(linkCandidate.sourceEntity),
+        target = matchingPair.targetPath(linkCandidate.targetEntity),
+        score = 0.0,
+        sourceExamples = Seq(matchingPair.normalizedSourceValue),
+        targetExamples = Seq(matchingPair.normalizedTargetValue)
+      )
+      val updatedPair = pathScores.get(newPair.plain) match {
+        case Some(existingPair) =>
+          existingPair.merge(newPair)
+        case None =>
+          newPair
+      }
+      pathScores.put(updatedPair.plain, updatedPair)
     }
-    pathScores.toSeq.sortBy(-_._2).map(_._1)
+    pathScores.values.toSeq.sortBy(-_.score)
   }
 
   private def fromLinkSpec(linkSpec: LinkSpec): Seq[ComparisonPair] = {

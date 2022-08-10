@@ -104,7 +104,7 @@ case class SimpleLinkPoolGenerator() extends LinkPoolGenerator {
       val maxIndices = 5
 
       def apply(entities: DPair[Entity], limit: Double = 0.0): Option[Double] = {
-        for ((ComparisonPair(sourcePath, targetPath, _, _), index) <- paths.zipWithIndex) {
+        for ((ComparisonPair(sourcePath, targetPath), index) <- paths.zipWithIndex) {
           var sourceValues = entities.source.evaluate(sourcePath)
           var targetValues = entities.target.evaluate(targetPath)
           for(transform <- transforms) {
