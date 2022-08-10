@@ -9,12 +9,15 @@ import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { TaskPlugin } from "@ducks/shared/typings";
 import { IEvaluatedReferenceLinks, ILinkingTaskParameters } from "../linking.types";
-import { ActivityAction, Spinner } from "@eccenca/gui-elements";
+import { ActivityAction, IActivityStatus, Spinner } from "@eccenca/gui-elements";
 import { ActiveLearningStep, ComparisonPairWithId } from "./LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningMain } from "./learningUI/LinkingRuleActiveLearningMain";
 import { LabelProperties } from "../referenceLinks/LinkingRuleReferenceLinks.typing";
 import { activityActionCreator } from "../../../shared/TaskActivityOverview/taskActivityOverviewRequests";
 import { DIErrorTypes } from "@ducks/error/typings";
+import { connectWebSocket } from "../../../../services/websocketUtils";
+import { activityQueryString } from "../../../shared/TaskActivityOverview/taskActivityUtils";
+import { legacyApiEndpoint } from "../../../../utils/getApiEndpoint";
 
 export interface LinkingRuleActiveLearningProps {
     /** Project ID the task is in. */
@@ -24,6 +27,10 @@ export interface LinkingRuleActiveLearningProps {
     /** Generic actions and callbacks on views. */
     viewActions?: IViewActions;
 }
+
+export const activeLearningActivities = {
+    comparisonPairs: "ActiveLearning-ComparisonPairs",
+};
 
 /** Learns a linking rule via active learning.
  * The user configs pairs of properties that make sense to match.
@@ -43,12 +50,39 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
     const [referenceLinks, setReferenceLinks] = React.useState<IEvaluatedReferenceLinks | undefined>(undefined);
     /** The source paths of the label values that should be displayed in the UI for each entity in a link. */
     const [labelPaths, setLabelPaths] = React.useState<LabelProperties | undefined>(undefined);
+    const [comparisonPairsLoading, setComparisonPairsLoading] = React.useState(false);
 
     React.useEffect(() => {
         startComparisonPairActivity();
     }, [projectId, linkingTaskId]);
 
+    const checkComparisonPairsActivityFinished = (
+        activityStatus: IActivityStatus,
+        unregisterFromUpdates: () => any
+    ) => {
+        let finished = true;
+        switch (activityStatus.concreteStatus) {
+            case "Successful":
+                break;
+            case "Failed":
+                //TODO: Show warning to user in comparison pair widget
+                break;
+            case "Cancelled":
+                // TODO: Show warning to user
+                break;
+            default:
+                // Wait
+                finished = false;
+        }
+        if (finished) {
+            // Close websocket connection and stop updates
+            unregisterFromUpdates();
+            setComparisonPairsLoading(false);
+        }
+    };
+
     const startComparisonPairActivity = async () => {
+        setComparisonPairsLoading(true);
         const errorHandler = (activityName: string, action: ActivityAction, error: DIErrorTypes) => {
             registerError(
                 "LinkingRuleActiveLearning.startComparisonPairActivity",
@@ -57,12 +91,23 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
             );
         };
         const executeActivity = activityActionCreator(
-            "ActiveLearning-ComparisonPairs",
+            activeLearningActivities.comparisonPairs,
             projectId,
             linkingTaskId,
             errorHandler
         );
-        await executeActivity("start");
+        try {
+            await executeActivity("start");
+            const query = activityQueryString(projectId, linkingTaskId, activeLearningActivities.comparisonPairs);
+            return connectWebSocket(
+                legacyApiEndpoint(`/activities/updatesWebSocket${query}`),
+                legacyApiEndpoint(`/activities/updates${query}`),
+                checkComparisonPairsActivityFinished
+            );
+        } catch (ex) {
+            errorHandler(activeLearningActivities.comparisonPairs, "start", ex);
+            setComparisonPairsLoading(false);
+        }
     };
 
     /** Fetches the parameters of the linking task */
@@ -123,6 +168,7 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
                 referenceLinks: referenceLinks,
                 labelPaths,
                 changeLabelPaths: setLabelPaths,
+                comparisonPairsLoading,
             }}
         >
             {loading ? (

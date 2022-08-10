@@ -6,27 +6,13 @@ import { EntityLink } from "../../referenceLinks/LinkingRuleReferenceLinks.typin
 import { LinkingRuleActiveLearningFeedbackContext } from "../contexts/LinkingRuleActiveLearningFeedbackContext";
 import { LinkingRuleActiveLearningBestLearnedRule } from "./LinkingRuleActiveLearningBestLearnedRule";
 import { LinkingRuleReferenceLinks } from "../../referenceLinks/LinkingRuleReferenceLinks";
+import { nextActiveLearningLinkCandidate } from "../LinkingRuleActiveLearning.requests";
+import referenceLinksUtils from "../../referenceLinks/LinkingRuleReferenceLinks.utils";
 
 interface LinkingRuleActiveLearningMainProps {
     projectId: string;
     linkingTaskId: string;
 }
-
-/** TODO: Fetch entity link suggestions from backend and remove this mock. */
-const mockEntityLinks: EntityLink[] = [
-    {
-        entityLinkId: "suggested-1",
-        label: "unlabeled",
-        source: {
-            uri: "source-1",
-            values: [["Source label"], ["x"], ["123"]],
-        },
-        target: {
-            uri: "target-1",
-            values: [["Target entity label"], ["y"], ["ZZZ"]],
-        },
-    },
-];
 
 /**
  * The main step of the active learning process that generates a gold standard through active learning
@@ -35,16 +21,35 @@ const mockEntityLinks: EntityLink[] = [
 export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: LinkingRuleActiveLearningMainProps) => {
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
     /** The list of unlabeled entity link candidates suggested from the active learning algorithm ordered by relevance to the algorithm. */
-    const [unlabeledLinkCandidates, setUnlabeledLinkCandidates] = React.useState<EntityLink[]>(mockEntityLinks);
+    const [unlabeledLinkCandidate, setUnlabeledLinkCandidate] = React.useState<EntityLink | undefined>(undefined);
+    const [loadingLinkCandidate, setloadingLinkCandidate] = React.useState(false);
     /** The currently selected entity, either an unlabeled link or an existing reference link. */
     const [selectedEntityLink, setSelectedEntityLink] = React.useState<EntityLink | undefined>(undefined);
 
     React.useEffect(() => {
-        if (!selectedEntityLink && unlabeledLinkCandidates.length > 0) {
-            setSelectedEntityLink(unlabeledLinkCandidates[0]);
-            setUnlabeledLinkCandidates([...unlabeledLinkCandidates.slice(1)]);
+        if (!selectedEntityLink && unlabeledLinkCandidate != null) {
+            setSelectedEntityLink(unlabeledLinkCandidate);
+            setUnlabeledLinkCandidate(undefined);
         }
-    }, [selectedEntityLink, unlabeledLinkCandidates]);
+    }, [selectedEntityLink, unlabeledLinkCandidate]);
+
+    React.useEffect(() => {
+        if (!unlabeledLinkCandidate) {
+            loadUnlabeledLinkCandidate();
+        }
+    }, [unlabeledLinkCandidate]);
+
+    const loadUnlabeledLinkCandidate = async () => {
+        setloadingLinkCandidate(true);
+        try {
+            const candidate = (await nextActiveLearningLinkCandidate(projectId, linkingTaskId)).data;
+            setUnlabeledLinkCandidate(referenceLinksUtils.toReferenceEntityLink(candidate));
+        } catch (ex) {
+            // TODO
+        } finally {
+            setloadingLinkCandidate(false);
+        }
+    };
 
     const removeReferenceLink = (linkId: string) => {};
 
@@ -83,6 +88,7 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                 removeReferenceLink: removeReferenceLink,
                 updateReferenceLink: updateReferenceLink,
                 selectedLink: selectedEntityLink,
+                loadingLinkCandidate,
             }}
         >
             <div>
