@@ -2,11 +2,10 @@ package controllers.linking.activeLearning
 
 import models.linking.LinkCandidateDecision
 import org.silkframework.entity.Link
-import org.silkframework.learning.LearningException
 import org.silkframework.learning.active.{ActiveLearning, LinkCandidate}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
 import org.silkframework.workspace.ProjectTask
 
 import java.util.logging.Logger
@@ -76,7 +75,7 @@ object ActiveLearningIterator {
         activeLearn.updateValue(activeLearn.value().copy(links = tail))
         head
       case _ =>
-        throw new LearningException("Could not find any link candidates")
+        throw NotFoundException("No more link candidates available.")
     }
   }
 

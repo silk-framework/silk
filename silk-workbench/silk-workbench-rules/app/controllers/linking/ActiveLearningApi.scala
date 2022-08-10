@@ -296,6 +296,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
     Ok
   }
 
+  //TODO remove?
   def removeReferenceLink(@Parameter(
                             name = "project",
                             description = "The project identifier",
