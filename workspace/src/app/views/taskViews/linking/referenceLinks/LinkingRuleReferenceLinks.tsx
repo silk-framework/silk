@@ -58,12 +58,21 @@ export const LinkingRuleReferenceLinks = ({
         presentation: { hideInfoText: true },
     });
     const { t } = useTranslation();
-    const referenceLinksAnnotated: IEntityLink[] = referenceLinks
+    const referenceLinksAnnotated: (IEntityLink & { misMatch: boolean })[] = referenceLinks
         ? [
-              ...referenceLinks.positive.map((l) => ({ ...l, type: "positive" })),
-              ...referenceLinks.negative.map((l) => ({ ...l, type: "negative" })),
+              ...referenceLinks.positive.map((l) => ({
+                  ...l,
+                  type: "positive",
+                  misMatch: l.confidence ? l.confidence < 0 : false,
+              })),
+              ...referenceLinks.negative.map((l) => ({
+                  ...l,
+                  type: "negative",
+                  misMatch: l.confidence ? l.confidence >= 0 : false,
+              })),
           ]
         : [];
+    const misMatches = referenceLinksAnnotated.filter((link) => link.misMatch).length;
 
     if (pagination.total !== referenceLinksAnnotated.length) {
         // TODO: Do not reset page?
@@ -125,7 +134,7 @@ export const LinkingRuleReferenceLinks = ({
                         onChange={() => setShowOnlyMismatches((prev) => !prev)}
                         style={{ verticalAlign: "center" }}
                     >
-                        {t("ReferenceLinks.mismatchCheckboxTitle", { nrMismatches: "TODO: add nr" })}
+                        {t("ReferenceLinks.mismatchCheckboxTitle", { nrMismatches: misMatches })}
                     </Checkbox>
                     <Spacing vertical={true} />
                     <IconButton

@@ -10,6 +10,7 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     Spacing,
+    Spinner,
     Tag,
     Toolbar,
     ToolbarSection,
@@ -30,7 +31,10 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
     const [labelPropertyPairs, setLabelPropertyPairs] = React.useState<ComparisonPairWithId[]>([]);
     /** The values of the selected entity link. */
     const [valuesToDisplay, setValuesToDisplay] = React.useState<EntityLinkPropertyPairValues[] | undefined>();
+    const [submittingEntityLink, setSubmittingEntityLink] = React.useState(false);
     const labelPropertyPairIds = new Set(labelPropertyPairs.map((lpp) => lpp.pairId));
+    // When the component is inactive, show spinner
+    const loading = activeLearningFeedbackContext.loadingLinkCandidate || submittingEntityLink;
 
     React.useEffect(() => {
         activeLearningContext.changeLabelPaths({
@@ -77,7 +81,12 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
     /** Changes the status of a link to the given decision. */
     const submitLink = async (link: EntityLink | undefined, decision: ActiveLearningDecisions) => {
         if (link) {
-            await activeLearningFeedbackContext.updateReferenceLink(link, decision);
+            setSubmittingEntityLink(true);
+            try {
+                await activeLearningFeedbackContext.updateReferenceLink(link, decision);
+            } finally {
+                setSubmittingEntityLink(false);
+            }
         }
     };
 
@@ -90,7 +99,9 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
                 }
             />
             <Spacing />
-            {valuesToDisplay ? (
+            {activeLearningFeedbackContext.loadingLinkCandidate ? (
+                <Spinner />
+            ) : valuesToDisplay ? (
                 <SelectedEntityLink
                     valuesToDisplay={valuesToDisplay}
                     propertyPairs={activeLearningContext.propertiesToCompare}
