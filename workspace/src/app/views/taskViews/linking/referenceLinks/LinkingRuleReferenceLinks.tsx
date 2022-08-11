@@ -27,6 +27,7 @@ import { IEntityLink, ReferenceLinks } from "../linking.types";
 import { EntityLink, LabelProperties } from "./LinkingRuleReferenceLinks.typing";
 import referenceLinksUtils from "./LinkingRuleReferenceLinks.utils";
 import { Property } from "csstype";
+import { ActiveLearningDecisions } from "../activeLearning/LinkingRuleActiveLearning.typings";
 
 interface LinkingRuleReferenceLinksProps {
     /** If the reference links are being updated/loaded from the backend. */
@@ -38,6 +39,11 @@ interface LinkingRuleReferenceLinksProps {
     /** Remove a link from the list. */
     removeLink: (link: EntityLink) => any;
 }
+
+type AnnotatedReferenceLink = IEntityLink & {
+    misMatch: boolean;
+    type: ActiveLearningDecisions;
+};
 
 /** Displays reference links of a linking rule. */
 export const LinkingRuleReferenceLinks = ({
@@ -57,26 +63,40 @@ export const LinkingRuleReferenceLinks = ({
         pageSizes: [5, 10, 20, 50],
         presentation: { hideInfoText: true },
     });
+    const [referenceLinksFiltered, setReferenceLinksFiltered] = React.useState<AnnotatedReferenceLink[] | undefined>(
+        undefined
+    );
     const { t } = useTranslation();
-    const referenceLinksAnnotated: (IEntityLink & { misMatch: boolean })[] = referenceLinks
-        ? [
-              ...referenceLinks.positive.map((l) => ({
-                  ...l,
-                  type: "positive",
-                  misMatch: l.confidence ? l.confidence < 0 : false,
-              })),
-              ...referenceLinks.negative.map((l) => ({
-                  ...l,
-                  type: "negative",
-                  misMatch: l.confidence ? l.confidence >= 0 : false,
-              })),
-          ]
-        : [];
-    const misMatches = referenceLinksAnnotated.filter((link) => link.misMatch).length;
+    const misMatches = (referenceLinksFiltered ?? []).filter((link) => link.misMatch).length;
 
-    if (pagination.total !== referenceLinksAnnotated.length) {
-        // TODO: Do not reset page?
-        onTotalChange(referenceLinksAnnotated.length);
+    // Annotate and filter reference links
+    React.useEffect(() => {
+        const positiveAnnotatedLinks: AnnotatedReferenceLink[] = (referenceLinks?.positive ?? []).map((l) => ({
+            ...l,
+            type: "positive",
+            misMatch: l.confidence ? l.confidence < 0 : false,
+        }));
+        const negativeAnnotatedLinks: AnnotatedReferenceLink[] = (referenceLinks?.negative ?? []).map((l) => ({
+            ...l,
+            type: "negative",
+            misMatch: l.confidence ? l.confidence >= 0 : false,
+        }));
+        const referenceLinksAnnotated: AnnotatedReferenceLink[] = [
+            ...positiveAnnotatedLinks,
+            ...negativeAnnotatedLinks,
+        ];
+        setReferenceLinksFiltered(
+            referenceLinksAnnotated.filter((link) => {
+                const typeFiltered =
+                    (showDeclined && link.type === "negative") || (showConfirmed && link.type === "positive");
+                const misMatchFiltered = !showOnlyMismatches || link.misMatch;
+                return typeFiltered && misMatchFiltered;
+            })
+        );
+    }, [referenceLinks, showOnlyMismatches, showConfirmed, showDeclined]);
+
+    if (referenceLinksFiltered && pagination.total !== referenceLinksFiltered.length) {
+        onTotalChange(referenceLinksFiltered.length);
     }
 
     const ReferenceLinksHeader = () => {
@@ -165,8 +185,8 @@ export const LinkingRuleReferenceLinks = ({
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {referenceLinks
-                            ? [...referenceLinks.positive, ...referenceLinks.negative]
+                        {referenceLinksFiltered
+                            ? referenceLinksFiltered
                                   .slice(
                                       (pagination.current - 1) * pagination.limit,
                                       pagination.current * pagination.limit

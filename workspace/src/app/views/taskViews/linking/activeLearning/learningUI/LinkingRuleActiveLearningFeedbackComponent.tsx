@@ -99,7 +99,8 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
                 }
             />
             <Spacing />
-            {activeLearningFeedbackContext.loadingLinkCandidate ? (
+            {loading ? (
+                // TODO: Show spinner over old comparison pair instead, so it does not hop around so much?
                 <Spinner />
             ) : valuesToDisplay ? (
                 <SelectedEntityLink
