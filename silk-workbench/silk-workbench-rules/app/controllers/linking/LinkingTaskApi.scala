@@ -697,7 +697,6 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
                                 in = ParameterIn.QUERY,
                                 schema = new Schema(implementation = classOf[Boolean], defaultValue = "false"),
                               )
-                             // TODO: Remove if not needed/used
                               withEntitiesAndSchema: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)

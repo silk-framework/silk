@@ -9,6 +9,7 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     Spacing,
+    Spinner,
     Table,
     TableBody,
     TableCell,
@@ -23,17 +24,28 @@ import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/P
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { IEntityLink, ReferenceLinks } from "../linking.types";
-import { LabelProperties } from "./LinkingRuleReferenceLinks.typing";
+import { EntityLink, LabelProperties } from "./LinkingRuleReferenceLinks.typing";
 import referenceLinksUtils from "./LinkingRuleReferenceLinks.utils";
 import { Property } from "csstype";
 
 interface LinkingRuleReferenceLinksProps {
+    /** If the reference links are being updated/loaded from the backend. */
+    loading?: boolean;
+    /** Reference links to display. */
     referenceLinks?: ReferenceLinks;
     /** The paths whose values should be displayed as entity labels. If missing the first value is shown.of each entity. */
     labelPaths?: LabelProperties;
+    /** Remove a link from the list. */
+    removeLink: (link: EntityLink) => any;
 }
 
-export const LinkingRuleReferenceLinks = ({ referenceLinks, labelPaths }: LinkingRuleReferenceLinksProps) => {
+/** Displays reference links of a linking rule. */
+export const LinkingRuleReferenceLinks = ({
+    loading,
+    referenceLinks,
+    labelPaths,
+    removeLink,
+}: LinkingRuleReferenceLinksProps) => {
     const [showLinksList, setShowLinksList] = React.useState(false);
     const [showOnlyMismatches, setShowOnlyMismatches] = React.useState(false);
     // Show uncertain links instead of decision history.
@@ -180,7 +192,11 @@ export const LinkingRuleReferenceLinks = ({ referenceLinks, labelPaths }: Linkin
                                                   <TableCell>
                                                       <Toolbar>
                                                           <ToolbarSection>
-                                                              <IconButton name={"item-remove"} disruptive={true} />
+                                                              <IconButton
+                                                                  name={"item-remove"}
+                                                                  disruptive={true}
+                                                                  onClick={() => removeLink(entityLink)}
+                                                              />
                                                               <IconButton
                                                                   name={"item-viewdetails"}
                                                                   onClick={() => {
@@ -211,7 +227,7 @@ export const LinkingRuleReferenceLinks = ({ referenceLinks, labelPaths }: Linkin
                 <>
                     <Divider />
                     <WhiteSpaceContainer paddingTop="small" paddingRight="tiny" paddingLeft="tiny">
-                        <ReferenceLinksTable />
+                        {loading ? <Spinner /> : <ReferenceLinksTable />}
                     </WhiteSpaceContainer>
                 </>
             )}

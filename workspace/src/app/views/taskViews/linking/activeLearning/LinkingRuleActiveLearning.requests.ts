@@ -63,6 +63,9 @@ export const fetchActiveLearningReferenceLinks = (
 ): Promise<FetchResponse<ReferenceLinks>> => {
     return fetch({
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/activeLearning/referenceLinks`),
+        query: {
+            withEntitiesAndSchema: true,
+        },
     });
 };
 

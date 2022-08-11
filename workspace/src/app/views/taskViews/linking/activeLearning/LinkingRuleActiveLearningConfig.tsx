@@ -174,13 +174,13 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     const ConfigHeader = () => {
         return (
             <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
-                <GridColumn style={columnStyles.headerColumnStyle}>row1</GridColumn>
+                <GridColumn style={columnStyles.headerColumnStyle}>Properties of dataset 1</GridColumn>
                 <GridColumn style={columnStyles.centerColumnStyle}>
                     <ArrowLeft />
                     <Tag>owl:sameAs</Tag>
                     <ArrowRight />
                 </GridColumn>
-                <GridColumn style={columnStyles.headerColumnStyle}>row3</GridColumn>
+                <GridColumn style={columnStyles.headerColumnStyle}>Dataset 2</GridColumn>
             </GridRow>
         );
     };
