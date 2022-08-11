@@ -33,8 +33,6 @@ interface LinkingRuleActiveLearningMainProps {
 export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: LinkingRuleActiveLearningMainProps) => {
     const [t] = useTranslation();
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
-    /** The list of unlabeled entity link candidates suggested from the active learning algorithm ordered by relevance to the algorithm. */
-    const [unlabeledLinkCandidate, setUnlabeledLinkCandidate] = React.useState<EntityLink | undefined>(undefined);
     const [loadingLinkCandidate, setLoadingLinkCandidate] = React.useState(false);
     /** The currently selected entity, either an unlabeled link or an existing reference link. */
     const [selectedEntityLink, setSelectedEntityLink] = React.useState<EntityLink | undefined>(undefined);
@@ -44,17 +42,10 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
     const { registerError } = useErrorHandler();
 
     React.useEffect(() => {
-        if (!selectedEntityLink && unlabeledLinkCandidate != null) {
-            setSelectedEntityLink(unlabeledLinkCandidate);
-            setUnlabeledLinkCandidate(undefined);
-        }
-    }, [selectedEntityLink, unlabeledLinkCandidate]);
-
-    React.useEffect(() => {
-        if (!unlabeledLinkCandidate) {
+        if (!selectedEntityLink) {
             loadUnlabeledLinkCandidate();
         }
-    }, [unlabeledLinkCandidate]);
+    }, [selectedEntityLink]);
 
     React.useEffect(() => {
         fetchReferenceLinks(projectId, linkingTaskId);
@@ -94,7 +85,7 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
         setLoadingLinkCandidate(true);
         try {
             const candidate = (await nextActiveLearningLinkCandidate(projectId, linkingTaskId)).data;
-            setUnlabeledLinkCandidate(referenceLinksUtils.toReferenceEntityLink(candidate));
+            setSelectedEntityLink(referenceLinksUtils.toReferenceEntityLink(candidate));
         } catch (ex) {
             // TODO
         } finally {
@@ -111,12 +102,6 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                 link.target.uri,
                 decision
             );
-            if (selectedEntityLink === unlabeledLinkCandidate) {
-                setUnlabeledLinkCandidate(undefined);
-            }
-            if (decision === "unlabeled" && !unlabeledLinkCandidate) {
-                loadUnlabeledLinkCandidate();
-            }
             setSelectedEntityLink(undefined);
         } catch (ex) {
             // TODO

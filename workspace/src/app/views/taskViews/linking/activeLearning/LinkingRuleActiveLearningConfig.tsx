@@ -18,7 +18,7 @@ import {
     Toolbar,
     ToolbarSection,
 } from "@eccenca/gui-elements";
-import { ComparisonPairWithId, TypedPath } from "./LinkingRuleActiveLearning.typings";
+import { ComparisonPair, ComparisonPairWithId, TypedPath } from "./LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningContext } from "./contexts/LinkingRuleActiveLearningContext";
 import { partialAutoCompleteLinkingInputPaths } from "../LinkingRuleEditor.requests";
 import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
@@ -67,10 +67,18 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         setLoadSuggestions(true);
         try {
             const comparisonPairs = (await activeLearningComparisonPairs(projectId, taskId)).data;
-            const suggestions = comparisonPairs.suggestedPairs.map((cp) => ({
-                ...cp,
-                pairId: `${cp.source.path} ${cp.target.path} ${cp.source.valueType} ${cp.target.valueType}`,
-            }));
+            const toComparisonPairWithId = (cp: ComparisonPair) => {
+                return {
+                    ...cp,
+                    pairId: `${cp.source.path} ${cp.target.path} ${cp.source.valueType} ${cp.target.valueType}`,
+                };
+            };
+            if (comparisonPairs.selectedPairs.length > 0 && activeLearningContext.propertiesToCompare.length === 0) {
+                activeLearningContext.setPropertiesToCompare(
+                    comparisonPairs.selectedPairs.map((cp) => toComparisonPairWithId(cp))
+                );
+            }
+            const suggestions = comparisonPairs.suggestedPairs.map((cp) => toComparisonPairWithId(cp));
             setSuggestions(suggestions);
         } catch (ex) {
             // TODO: i18n
