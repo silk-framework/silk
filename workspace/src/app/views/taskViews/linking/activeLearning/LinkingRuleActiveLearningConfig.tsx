@@ -92,6 +92,8 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                 activeLearningContext.setPropertiesToCompare(
                     activeLearningContext.propertiesToCompare.filter((pair) => pair.pairId !== pairId)
                 );
+                // Add again to top of list, so the user can re-add immediately
+                setSuggestions([pair, ...suggestions]);
             }
         } catch (err) {
             // TODO
