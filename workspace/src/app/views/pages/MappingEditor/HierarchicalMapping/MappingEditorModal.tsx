@@ -66,7 +66,7 @@ const MappingEditorModal: React.FC<MappingEditorProps> = ({ ruleId, onClose, pro
 
     return (
         <SimpleDialog
-            data-test-id="mapping-editor-modal"
+            data-test-id="transform-mapping-editor-modal"
             isOpen={isOpen}
             title="Mapping Editor"
             size="fullscreen"

@@ -332,6 +332,7 @@ class MappingsWorkview extends React.Component {
                         parentId={this.state.ruleData.id}
                         edit
                         onAddNewRule={this.handleAddNewRule}
+                        openMappingEditor={this.openMappingEditor}
                     />
                 )}
             </div>

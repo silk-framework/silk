@@ -46,7 +46,12 @@ class ObjectUriPattern extends Component {
                         <dt className="ecc-silk-mapping__rulesviewer__attribute-label">{uriPatternLabel}</dt>
                         <dd className="ecc-silk-mapping__rulesviewer__attribute-info">
                             {uriPattern}
-                            <IconButton name="item-edit" onClick={this.props.openMappingEditor} text={tooltipText} />
+                            <IconButton
+                                name="item-edit"
+                                data-test-id="complex-rule-edit-button"
+                                onClick={this.props.openMappingEditor}
+                                text={tooltipText}
+                            />
                             {removeButton}
                         </dd>
                     </dl>

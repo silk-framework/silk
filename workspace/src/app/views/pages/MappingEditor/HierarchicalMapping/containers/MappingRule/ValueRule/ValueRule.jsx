@@ -111,6 +111,7 @@ class ValueRule extends React.Component {
                                 <code>{sourcePath ? sourcePath : "<empty>"}</code>
                                 <IconButton
                                     name="item-edit"
+                                    data-test-id="complex-rule-edit-button"
                                     onClick={this.handleComplexEdit}
                                     text="Open value formula editor"
                                 />
@@ -120,6 +121,7 @@ class ValueRule extends React.Component {
                             <ValueSourcePaths paths={sourcePaths} operator={operator}>
                                 <IconButton
                                     name="item-edit"
+                                    data-test-id="complex-rule-edit-button"
                                     onClick={this.handleComplexEdit}
                                     text="Editor value formula"
                                 />
