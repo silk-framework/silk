@@ -87,7 +87,9 @@ const MappingEditorModal: React.FC<MappingEditorProps> = ({ ruleId, onClose, pro
                         }}
                         additionalToolBarComponents={() => (
                             <>
-                                <Button onClick={closeEditorModal}>Close</Button>
+                                <Button onClick={closeEditorModal} data-test-id="transform-mapping-editor-close-btn">
+                                    Close
+                                </Button>
                                 <Spacing vertical />
                             </>
                         )}

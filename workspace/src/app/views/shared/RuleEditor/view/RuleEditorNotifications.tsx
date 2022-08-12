@@ -15,7 +15,7 @@ export const RuleEditorNotifications = ({
     integratedView = false,
     queueEditorNotifications = [] as string[],
     queueNodeNotifications = [] as RuleSaveNodeError[],
-    nodeJumpToHandler
+    nodeJumpToHandler,
 }: RuleEditorNotificationsProps) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
     const diNotifications = useNotificationsQueue();
@@ -41,20 +41,20 @@ export const RuleEditorNotifications = ({
         }
     };
 
-    return (
-        queueEditorNotifications.length > 0 ||
+    return queueEditorNotifications.length > 0 ||
         queueNodeNotifications.length > 0 ||
-        (integratedView && diNotifications.messages.length > 0)
-    ) ? (
+        (integratedView && diNotifications.messages.length > 0) ? (
         <>
             <Spacing vertical size="tiny" />
             <ContextOverlay
-                data-test-id={"ruleEditorToolbar-saveError-Btn"}
                 isOpen={isOpen}
                 onClose={() => toggleNotifications(true)}
                 rootBoundary="viewport"
-                content={(
-                    <div style={{maxWidth: "39vw", padding: "0.5rem"}}>
+                content={
+                    <div
+                        data-test-id={"ruleEditorToolbar-saveError-Btn"}
+                        style={{ maxWidth: "39vw", padding: "0.5rem" }}
+                    >
                         {integratedView && diNotifications.notifications}
                         {queueEditorNotifications.map((editorNotification) => (
                             <Notification danger={true} key={"errorMessage"} iconName="state-warning">
@@ -83,13 +83,11 @@ export const RuleEditorNotifications = ({
                             </div>
                         ))}
                     </div>
-                )}
+                }
             >
                 <Icon name="application-warning" onClick={() => toggleNotifications()} />
             </ContextOverlay>
             <Spacing vertical size="tiny" />
         </>
-    ) : (
-        null
-    )
-}
+    ) : null;
+};
