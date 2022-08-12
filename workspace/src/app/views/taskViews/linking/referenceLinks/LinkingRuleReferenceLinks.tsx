@@ -26,8 +26,8 @@ import { useTranslation } from "react-i18next";
 import { IEntityLink, ReferenceLinks } from "../linking.types";
 import { EntityLink, LabelProperties } from "./LinkingRuleReferenceLinks.typing";
 import referenceLinksUtils from "./LinkingRuleReferenceLinks.utils";
-import { Property } from "csstype";
 import { ActiveLearningDecisions } from "../activeLearning/LinkingRuleActiveLearning.typings";
+import "./LinkingRuleReferenceLinks.scss";
 
 interface LinkingRuleReferenceLinksProps {
     /** If the reference links are being updated/loaded from the backend. */
@@ -56,8 +56,8 @@ export const LinkingRuleReferenceLinks = ({
     const [showOnlyMismatches, setShowOnlyMismatches] = React.useState(false);
     // Show uncertain links instead of decision history.
     const [showUncertainLinks, setShowUncertainLinks] = React.useState(false);
-    const [showConfirmed, setShowConfirmed] = React.useState(true);
-    const [showDeclined, setShowDeclined] = React.useState(true);
+    const [showConfirmedOnly, setShowConfirmedOnly] = React.useState(false);
+    const [showDeclinedOnly, setShowDeclinedOnly] = React.useState(false);
     const [pagination, paginationElement, onTotalChange] = usePagination({
         initialPageSize: 10,
         pageSizes: [5, 10, 20, 50],
@@ -87,13 +87,15 @@ export const LinkingRuleReferenceLinks = ({
         ];
         setReferenceLinksFiltered(
             referenceLinksAnnotated.filter((link) => {
-                const typeFiltered =
-                    (showDeclined && link.type === "negative") || (showConfirmed && link.type === "positive");
+                const typeFiltered = !(
+                    (showDeclinedOnly && link.type === "positive") ||
+                    (showConfirmedOnly && link.type === "negative")
+                );
                 const misMatchFiltered = !showOnlyMismatches || link.misMatch;
                 return typeFiltered && misMatchFiltered;
             })
         );
-    }, [referenceLinks, showOnlyMismatches, showConfirmed, showDeclined]);
+    }, [referenceLinks, showOnlyMismatches, showConfirmedOnly, showDeclinedOnly]);
 
     if (referenceLinksFiltered && pagination.total !== referenceLinksFiltered.length) {
         onTotalChange(referenceLinksFiltered.length);
@@ -118,17 +120,23 @@ export const LinkingRuleReferenceLinks = ({
                         <>
                             <Button
                                 data-test-id={"reference-links-show-confirmed-links"}
-                                elevated={showConfirmed}
-                                onClick={() => setShowConfirmed(!showConfirmed)}
+                                elevated={showConfirmedOnly}
+                                onClick={() => {
+                                    setShowConfirmedOnly(!showConfirmedOnly);
+                                    setShowDeclinedOnly(false);
+                                }}
                             >
-                                Confirmed ({referenceLinks?.positive.length ?? "-"})
+                                Confirmed only ({referenceLinks?.positive.length ?? "-"})
                             </Button>
                             <Button
                                 data-test-id={"reference-links-show-declined-links"}
-                                elevated={showDeclined}
-                                onClick={() => setShowDeclined(!showDeclined)}
+                                elevated={showDeclinedOnly}
+                                onClick={() => {
+                                    setShowDeclinedOnly(!showDeclinedOnly);
+                                    setShowConfirmedOnly(false);
+                                }}
                             >
-                                Declined ({referenceLinks?.negative.length ?? "-"})
+                                Declined only ({referenceLinks?.negative.length ?? "-"})
                             </Button>
                             <Spacing vertical={true} />
                         </>
@@ -193,14 +201,6 @@ export const LinkingRuleReferenceLinks = ({
                                   )
                                   .map((link, rowIdx) => {
                                       const entityLink = referenceLinksUtils.toReferenceEntityLink(link);
-                                      const label = entityLink?.label ?? "unlabeled";
-                                      let color: Property.BackgroundColor | undefined = undefined;
-                                      if (label === "positive") {
-                                          color = "green";
-                                      }
-                                      if (label === "negative") {
-                                          color = "red";
-                                      }
                                       if (entityLink) {
                                           const sourceLabel = referenceLinksUtils.entityValuesConcatenated(
                                               entityLink.source,
@@ -211,10 +211,12 @@ export const LinkingRuleReferenceLinks = ({
                                               labelPaths?.targetProperties
                                           );
                                           return (
-                                              <TableRow key={rowIdx} style={{ backgroundColor: color }}>
-                                                  <TableCell>
-                                                      {/** TODO: Set icon */}
-                                                      <Icon name={"state-checked"} color={"green"} />
+                                              <TableRow key={rowIdx}>
+                                                  <TableCell className={`${link.type}-link`}>
+                                                      <Icon
+                                                          name={link.misMatch ? "state-warning" : "state-checked"}
+                                                          color={link.misMatch ? "red" : "green"}
+                                                      />
                                                   </TableCell>
                                                   <TableCell>{sourceLabel}</TableCell>
                                                   <TableCell>{targetLabel}</TableCell>

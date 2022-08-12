@@ -291,6 +291,7 @@ const EntityPropertyValues = ({ property, values }: { values: string[]; property
                             {values.map((example) => {
                                 return (
                                     <Tag
+                                        key={example}
                                         small={true}
                                         minimal={true}
                                         round={true}

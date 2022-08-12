@@ -207,9 +207,10 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         <OverviewItemLine small={showLabel}>{property.path}</OverviewItemLine>
                         {flatExampleValues.length > 0 ? (
                             <OverviewItemLine small={showLabel} title={exampleTitle}>
-                                {flatExampleValues.map((example) => {
+                                {flatExampleValues.map((example, idx) => {
                                     return (
                                         <Tag
+                                            key={example + idx}
                                             small={true}
                                             minimal={true}
                                             round={true}
@@ -339,7 +340,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         return (
             <Grid columns={3} fullWidth={true}>
                 {suggestions.map((suggestion) => (
-                    <SuggestedPathSelection pair={suggestion} />
+                    <SuggestedPathSelection key={suggestion.pairId} pair={suggestion} />
                 ))}
             </Grid>
         );
