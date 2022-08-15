@@ -18,7 +18,7 @@ import {
     Toolbar,
     ToolbarSection,
 } from "@eccenca/gui-elements";
-import { ComparisonPairWithId, TypedPath } from "./LinkingRuleActiveLearning.typings";
+import { ComparisonPair, ComparisonPairWithId, TypedPath } from "./LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningContext } from "./contexts/LinkingRuleActiveLearningContext";
 import { partialAutoCompleteLinkingInputPaths } from "../LinkingRuleEditor.requests";
 import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
@@ -67,10 +67,18 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         setLoadSuggestions(true);
         try {
             const comparisonPairs = (await activeLearningComparisonPairs(projectId, taskId)).data;
-            const suggestions = comparisonPairs.suggestedPairs.map((cp) => ({
-                ...cp,
-                pairId: `${cp.source.path} ${cp.target.path} ${cp.source.valueType} ${cp.target.valueType}`,
-            }));
+            const toComparisonPairWithId = (cp: ComparisonPair) => {
+                return {
+                    ...cp,
+                    pairId: `${cp.source.path} ${cp.target.path} ${cp.source.valueType} ${cp.target.valueType}`,
+                };
+            };
+            if (comparisonPairs.selectedPairs.length > 0 && activeLearningContext.propertiesToCompare.length === 0) {
+                activeLearningContext.setPropertiesToCompare(
+                    comparisonPairs.selectedPairs.map((cp) => toComparisonPairWithId(cp))
+                );
+            }
+            const suggestions = comparisonPairs.suggestedPairs.map((cp) => toComparisonPairWithId(cp));
             setSuggestions(suggestions);
         } catch (ex) {
             // TODO: i18n
@@ -92,6 +100,8 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                 activeLearningContext.setPropertiesToCompare(
                     activeLearningContext.propertiesToCompare.filter((pair) => pair.pairId !== pairId)
                 );
+                // Add again to top of list, so the user can re-add immediately
+                setSuggestions([pair, ...suggestions]);
             }
         } catch (err) {
             // TODO
@@ -174,13 +184,13 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     const ConfigHeader = () => {
         return (
             <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
-                <GridColumn style={columnStyles.headerColumnStyle}>row1</GridColumn>
+                <GridColumn style={columnStyles.headerColumnStyle}>Properties of dataset 1</GridColumn>
                 <GridColumn style={columnStyles.centerColumnStyle}>
                     <ArrowLeft />
                     <Tag>owl:sameAs</Tag>
                     <ArrowRight />
                 </GridColumn>
-                <GridColumn style={columnStyles.headerColumnStyle}>row3</GridColumn>
+                <GridColumn style={columnStyles.headerColumnStyle}>Dataset 2</GridColumn>
             </GridRow>
         );
     };
@@ -197,9 +207,10 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         <OverviewItemLine small={showLabel}>{property.path}</OverviewItemLine>
                         {flatExampleValues.length > 0 ? (
                             <OverviewItemLine small={showLabel} title={exampleTitle}>
-                                {flatExampleValues.map((example) => {
+                                {flatExampleValues.map((example, idx) => {
                                     return (
                                         <Tag
+                                            key={example + idx}
                                             small={true}
                                             minimal={true}
                                             round={true}
@@ -329,7 +340,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         return (
             <Grid columns={3} fullWidth={true}>
                 {suggestions.map((suggestion) => (
-                    <SuggestedPathSelection pair={suggestion} />
+                    <SuggestedPathSelection key={suggestion.pairId} pair={suggestion} />
                 ))}
             </Grid>
         );

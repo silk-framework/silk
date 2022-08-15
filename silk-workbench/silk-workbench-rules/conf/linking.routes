@@ -69,7 +69,7 @@ GET           /tasks/:project/:task/activeLearning/comparisonPairs              
 POST          /tasks/:project/:task/activeLearning/comparisonPairs/addSelected      controllers.linking.ActiveLearningApi.addComparisonPair(project: String, task: String)
 POST          /tasks/:project/:task/activeLearning/comparisonPairs/removeSelected   controllers.linking.ActiveLearningApi.removeComparisonPair(project: String, task: String)
 
-GET           /tasks/:project/:task/activeLearning/referenceLinks                   controllers.linking.ActiveLearningApi.referenceLinks(project, task)
+GET           /tasks/:project/:task/activeLearning/referenceLinks                   controllers.linking.ActiveLearningApi.referenceLinks(project, task, withEntitiesAndSchema: Boolean ?= false)
 POST          /tasks/:project/:task/activeLearning/referenceLinks/add               controllers.linking.ActiveLearningApi.addReferenceLink(project, task, linkSource, linkTarget, decision, synchronous: Boolean ?= false)
 POST          /tasks/:project/:task/activeLearning/referenceLinks/remove            controllers.linking.ActiveLearningApi.removeReferenceLink(project, task, linkSource, linkTarget)
 GET           /tasks/:project/:task/activeLearning/nextLinkCandidate                controllers.linking.ActiveLearningApi.nextLinkCandidate(project, task)

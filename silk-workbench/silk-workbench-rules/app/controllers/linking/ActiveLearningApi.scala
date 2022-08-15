@@ -180,21 +180,30 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
     )
   )
   def referenceLinks(@Parameter(
-                         name = "project",
-                         description = "The project identifier",
-                         required = true,
-                         in = ParameterIn.PATH,
-                         schema = new Schema(implementation = classOf[String])
-                       )
-                       projectId: String,
-                       @Parameter(
-                         name = "task",
-                         description = "The task identifier",
-                         required = true,
-                         in = ParameterIn.PATH,
-                         schema = new Schema(implementation = classOf[String])
-                       )
-                       taskId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+                       name = "project",
+                       description = "The project identifier",
+                       required = true,
+                       in = ParameterIn.PATH,
+                       schema = new Schema(implementation = classOf[String])
+                     )
+                     projectId: String,
+                     @Parameter(
+                       name = "task",
+                       description = "The task identifier",
+                       required = true,
+                       in = ParameterIn.PATH,
+                       schema = new Schema(implementation = classOf[String])
+                     )
+                     taskId: String,
+                     @Parameter(
+                       name = "withEntitiesAndSchema",
+                       description = "When set to true each link contains the entities and the schema",
+                       required = false,
+                       in = ParameterIn.QUERY,
+                       schema = new Schema(implementation = classOf[Boolean], defaultValue = "false"),
+                     )
+                     withEntitiesAndSchema: Boolean): Action[AnyContent] = RequestUserContextAction { request =>
+    implicit userContext =>
       val context = Context.get[LinkSpec](projectId, taskId, request.path)
       val activeLearning = context.task.activity[ActiveLearning]
 
@@ -211,20 +220,21 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
 
       val result =
         Json.obj(
-          "positive" -> serializeLinks(positiveEntities, bestRule),
-          "negative" -> serializeLinks(negativeEntities, bestRule)
+          "positive" -> serializeLinks(positiveEntities, bestRule, withEntitiesAndSchema),
+          "negative" -> serializeLinks(negativeEntities, bestRule, withEntitiesAndSchema)
         )
 
       Ok(result)
   }
 
   private def serializeLinks(entities: Traversable[DPair[Entity]],
-                             linkageRule: LinkageRule): JsValue = {
+                             linkageRule: LinkageRule,
+                             withEntitiesAndSchema: Boolean): JsValue = {
     implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
     JsArray(
       for (entities <- entities.toSeq) yield {
         val link = new FullLink(entities.source.uri, entities.target.uri, linkageRule(entities), entities)
-        new LinkJsonFormat(Some(linkageRule), writeEntities = false, writeEntitySchema = false).write(link)
+        new LinkJsonFormat(Some(linkageRule), writeEntities = withEntitiesAndSchema, writeEntitySchema = withEntitiesAndSchema).write(link)
       }
     )
   }

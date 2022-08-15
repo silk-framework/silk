@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
+import { Button, IActivityStatus, Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 import { LinkingRuleActiveLearningFeedbackComponent } from "./LinkingRuleActiveLearningFeedbackComponent";
 import { EntityLink } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
@@ -7,11 +7,19 @@ import { LinkingRuleActiveLearningFeedbackContext } from "../contexts/LinkingRul
 import { LinkingRuleActiveLearningBestLearnedRule } from "./LinkingRuleActiveLearningBestLearnedRule";
 import { LinkingRuleReferenceLinks } from "../../referenceLinks/LinkingRuleReferenceLinks";
 import {
+    fetchActiveLearningReferenceLinks,
     nextActiveLearningLinkCandidate,
     submitActiveLearningReferenceLink,
 } from "../LinkingRuleActiveLearning.requests";
 import referenceLinksUtils from "../../referenceLinks/LinkingRuleReferenceLinks.utils";
 import { ActiveLearningDecisions } from "../LinkingRuleActiveLearning.typings";
+import { ReferenceLinks } from "../../linking.types";
+import useErrorHandler from "../../../../../hooks/useErrorHandler";
+import { useTranslation } from "react-i18next";
+import { activityQueryString } from "../../../../shared/TaskActivityOverview/taskActivityUtils";
+import { connectWebSocket } from "../../../../../services/websocketUtils";
+import { legacyApiEndpoint } from "../../../../../utils/getApiEndpoint";
+import { activeLearningActivities } from "../LinkingRuleActiveLearning";
 
 interface LinkingRuleActiveLearningMainProps {
     projectId: string;
@@ -23,35 +31,65 @@ interface LinkingRuleActiveLearningMainProps {
  * and learns a linking rule.
  */
 export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: LinkingRuleActiveLearningMainProps) => {
+    const [t] = useTranslation();
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
-    /** The list of unlabeled entity link candidates suggested from the active learning algorithm ordered by relevance to the algorithm. */
-    const [unlabeledLinkCandidate, setUnlabeledLinkCandidate] = React.useState<EntityLink | undefined>(undefined);
-    const [loadingLinkCandidate, setloadingLinkCandidate] = React.useState(false);
+    const [loadingLinkCandidate, setLoadingLinkCandidate] = React.useState(false);
     /** The currently selected entity, either an unlabeled link or an existing reference link. */
     const [selectedEntityLink, setSelectedEntityLink] = React.useState<EntityLink | undefined>(undefined);
+    /** The list of reference links. */
+    const [referenceLinks, setReferenceLinks] = React.useState<ReferenceLinks | undefined>(undefined);
+    const [referenceLinksLoading, setReferenceLinksLoading] = React.useState(false);
+    const { registerError } = useErrorHandler();
 
     React.useEffect(() => {
-        if (!selectedEntityLink && unlabeledLinkCandidate != null) {
-            setSelectedEntityLink(unlabeledLinkCandidate);
-            setUnlabeledLinkCandidate(undefined);
-        }
-    }, [selectedEntityLink, unlabeledLinkCandidate]);
-
-    React.useEffect(() => {
-        if (!unlabeledLinkCandidate) {
+        if (!selectedEntityLink) {
             loadUnlabeledLinkCandidate();
         }
-    }, [unlabeledLinkCandidate]);
+    }, [selectedEntityLink]);
+
+    React.useEffect(() => {
+        fetchReferenceLinks(projectId, linkingTaskId);
+        const query = activityQueryString(projectId, linkingTaskId, activeLearningActivities.activeLearning);
+        const cleanUp = connectWebSocket(
+            legacyApiEndpoint(`/activities/updatesWebSocket${query}`),
+            legacyApiEndpoint(`/activities/updates${query}`),
+            onActiveLearningUpdate
+        );
+        return cleanUp;
+    }, []);
+
+    const onActiveLearningUpdate = (activityStatus: IActivityStatus) => {
+        if (activityStatus.statusName === "Finished") {
+            fetchReferenceLinks(projectId, linkingTaskId);
+        }
+    };
+
+    /** Fetches the current reference links of the linking task. */
+    const fetchReferenceLinks = async (projectId: string, taskId: string) => {
+        try {
+            setReferenceLinksLoading(true);
+            const links = (await fetchActiveLearningReferenceLinks(projectId, taskId)).data;
+            setReferenceLinks(links);
+        } catch (err) {
+            registerError(
+                "LinkingRuleEditor_fetchLinkingTask",
+                t("taskViews.linkRulesEditor.errors.fetchTaskData.msg"),
+                err
+            );
+        } finally {
+            setReferenceLinksLoading(false);
+        }
+    };
 
     const loadUnlabeledLinkCandidate = async () => {
-        setloadingLinkCandidate(true);
+        setLoadingLinkCandidate(true);
         try {
             const candidate = (await nextActiveLearningLinkCandidate(projectId, linkingTaskId)).data;
-            setUnlabeledLinkCandidate(referenceLinksUtils.toReferenceEntityLink(candidate));
+            setSelectedEntityLink(referenceLinksUtils.toReferenceEntityLink(candidate));
         } catch (ex) {
             // TODO
         } finally {
-            setloadingLinkCandidate(false);
+            setLoadingLinkCandidate(false);
         }
     };
 
@@ -113,8 +151,10 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                 <LinkingRuleActiveLearningBestLearnedRule rule={{ task: "TODO" }} />
                 <Spacing />
                 <LinkingRuleReferenceLinks
-                    referenceLinks={activeLearningContext.referenceLinks}
+                    loading={referenceLinksLoading}
+                    referenceLinks={referenceLinks}
                     labelPaths={activeLearningContext.labelPaths}
+                    removeLink={(link) => updateReferenceLink(link, "unlabeled")}
                 />
             </div>
         </LinkingRuleActiveLearningFeedbackContext.Provider>
