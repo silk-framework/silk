@@ -418,13 +418,13 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             <Spacing size={"small"} />
             <SelectedPropertiesWidget />
             <Spacing />
-            <SuggestionSelectionSubHeader />
-            <Spacing />
-            {loadingSuggestions ? <Spinner /> : suggestions.length > 0 ? <SuggestionWidget /> : null}
-            <Spacing />
             <PathSelectionSubHeader />
             <Spacing />
             <ManualPropertyPathSelection />
+            <Spacing />
+            <SuggestionSelectionSubHeader />
+            <Spacing />
+            {loadingSuggestions ? <Spinner /> : suggestions.length > 0 ? <SuggestionWidget /> : null}
         </div>
     );
 };
