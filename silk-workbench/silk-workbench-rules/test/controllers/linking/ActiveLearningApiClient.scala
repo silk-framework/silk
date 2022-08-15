@@ -2,7 +2,7 @@ package controllers.linking
 
 import controllers.linking.activeLearning.JsonFormats.ComparisonPairFormat
 import helper.ApiClient
-import org.silkframework.entity.{Link, LinkDecision}
+import org.silkframework.entity.{Link, LinkDecision, ReferenceLink}
 import controllers.linking.routes.ActiveLearningApi
 import org.silkframework.rule.LinkageRule
 import controllers.linking.activeLearning.JsonFormats._
@@ -10,7 +10,7 @@ import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonFormat
 import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
 import play.api.http.Status
-import play.api.libs.json.{JsArray, JsValue, Json}
+import play.api.libs.json.{JsArray, JsString, JsValue, Json}
 import play.api.libs.ws.EmptyBody
 
 trait ActiveLearningApiClient extends ApiClient {
@@ -20,14 +20,16 @@ trait ActiveLearningApiClient extends ApiClient {
     checkResponse(request.post(Json.toJson(comparisonPair)))
   }
 
-  def retrieveReferenceLinks(projectId: String, taskId: String): (Seq[Link], Seq[Link]) = {
-    val request = createRequest(ActiveLearningApi.referenceLinks(projectId, taskId))
+  def retrieveReferenceLinks(projectId: String, taskId: String): Seq[ReferenceLink] = {
+    val request = createRequest(ActiveLearningApi.referenceLinks(projectId, taskId, withEntitiesAndSchema = true))
     val json = checkResponse(request.get()).json
 
     implicit val readContext: ReadContext = ReadContext()
-    val positiveLinks = (json \ "positive").as[JsArray].value.map(new LinkJsonFormat(None).read)
-    val negativeLinks = (json \ "negative").as[JsArray].value.map(new LinkJsonFormat(None).read)
-    (positiveLinks, negativeLinks)
+    for(linkJson <- (json \ "links").as[JsArray].value) yield {
+      val link = new LinkJsonFormat(None).read(linkJson)
+      val decision = LinkDecision.fromId((linkJson \ "decision").as[JsString].value)
+      new ReferenceLink(link.source, link.target, link.entities.get, decision)
+    }
   }
 
   def addReferenceLink(projectId: String, taskId: String, linkSource: String, linkTarget: String, decision: LinkDecision, synchronous: Boolean = false): Unit = {
