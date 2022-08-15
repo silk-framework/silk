@@ -14,10 +14,11 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.entity.{FullLink, MinimalLink, ReferenceLink}
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.learning.active.comparisons.{ComparisonPair, ComparisonPairGenerator}
+import org.silkframework.rule.evaluation.ReferenceLinks
 import org.silkframework.rule.{LinkSpec, LinkageRule}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.serialization.WriteContext
-import org.silkframework.runtime.validation.NotFoundException
+import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
 import org.silkframework.serialization.json.JsonSerializers.LinkageRuleJsonFormat
 import org.silkframework.serialization.json.LinkingSerializers.LinkJsonFormat
 import org.silkframework.workbench.Context
@@ -423,6 +424,75 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
       implicit val writeContext = WriteContext[JsValue]()
       Ok(LinkageRuleJsonFormat.write(bestRule))
     }
+  }
+
+  @Operation(
+    summary = "Save result",
+    description = "Saves the result of the current active learning session.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success"
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or task has not been found."
+      )
+    )
+  )
+  def saveResult(@Parameter(
+                   name = "project",
+                   description = "The project identifier",
+                   required = true,
+                   in = ParameterIn.PATH,
+                   schema = new Schema(implementation = classOf[String])
+                 )
+                 projectId: String,
+                 @Parameter(
+                   name = "task",
+                   description = "The task identifier",
+                   required = true,
+                   in = ParameterIn.PATH,
+                   schema = new Schema(implementation = classOf[String])
+                 )
+                 taskId: String,
+                 @Parameter(
+                   name = "saveRule",
+                   description = "If true, the current linkage rule will be updated to the best learned rule.",
+                   required = true,
+                   in = ParameterIn.QUERY,
+                   schema = new Schema(implementation = classOf[Boolean])
+                 )
+                 saveRule: Boolean,
+                 @Parameter(
+                   name = "saveReferenceLinks",
+                   description = "If true, the current reference rules will be updated.",
+                   required = true,
+                   in = ParameterIn.QUERY,
+                   schema = new Schema(implementation = classOf[Boolean])
+                 )
+                 saveReferenceLinks: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+    val context = Context.get[LinkSpec](projectId, taskId, request.path)
+    val activeLearning = context.task.activity[ActiveLearning]
+    val result = activeLearning.value()
+
+    if(saveRule) {
+      if (result.population.isEmpty) {
+        throw BadUserInputException("Active learning did not generate a rule")
+      }
+      context.task.update(context.task.data.copy(rule = result.population.bestIndividual.node.build))
+    }
+
+    if(saveReferenceLinks) {
+      val referenceLinks =
+        ReferenceLinks(
+          positive = result.referenceData.positiveLinks.toSet,
+          negative = result.referenceData.negativeLinks.toSet
+        )
+      context.task.update(context.task.data.copy(referenceLinks = referenceLinks))
+    }
+
+    Ok
   }
 
   private def updateSelectedComparisonPairs(projectId: String, taskId: String)

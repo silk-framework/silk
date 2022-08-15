@@ -74,6 +74,7 @@ POST          /tasks/:project/:task/activeLearning/referenceLinks/add           
 POST          /tasks/:project/:task/activeLearning/referenceLinks/remove            controllers.linking.ActiveLearningApi.removeReferenceLink(project, task, linkSource, linkTarget)
 GET           /tasks/:project/:task/activeLearning/nextLinkCandidate                controllers.linking.ActiveLearningApi.nextLinkCandidate(project, task)
 GET           /tasks/:project/:task/activeLearning/bestRule                         controllers.linking.ActiveLearningApi.bestRule(project: String, task: String)
+POST          /tasks/:project/:task/activeLearning/saveResult                       controllers.linking.ActiveLearningApi.saveResult(project, task, saveRule: Boolean, saveReferenceLinks: Boolean)
 
 # Auto-completion API
 GET           /tasks/:project/:task/completions/inputPaths                          controllers.linking.LinkingAutoCompletionApi.linkingInputPaths(project: String, task: String, target: Boolean, term ?= "", maxResults: Int ?= 30, langPref: String ?= "en")

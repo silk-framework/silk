@@ -55,4 +55,9 @@ trait ActiveLearningApiClient extends ApiClient {
     implicit val readContext: ReadContext = ReadContext()
     LinkageRuleJsonFormat.read(response.json)
   }
+
+  def saveResult(projectId: String, taskId: String, saveRule: Boolean, saveReferenceLinks: Boolean): Unit = {
+    val request = createRequest(ActiveLearningApi.saveResult(projectId, taskId, saveRule, saveReferenceLinks))
+    checkResponse(request.post(EmptyBody))
+  }
 }
