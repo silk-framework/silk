@@ -22,6 +22,10 @@ trait ComparisonPair {
 
   def target: TypedPath
 
+  def plain: PlainComparisonPair = {
+    PlainComparisonPair(source, target)
+  }
+
 }
 
 object ComparisonPair {
@@ -51,10 +55,6 @@ case class ComparisonPairWithExamples(source: TypedPath,
                                       score: Double,
                                       sourceExamples: Seq[String] = Seq.empty,
                                       targetExamples: Seq[String] = Seq.empty) extends ComparisonPair {
-
-  def plain: PlainComparisonPair = {
-    PlainComparisonPair(source, target)
-  }
 
   def merge(other: ComparisonPairWithExamples, maximumExamples: Int = 3): ComparisonPairWithExamples = {
     ComparisonPairWithExamples(

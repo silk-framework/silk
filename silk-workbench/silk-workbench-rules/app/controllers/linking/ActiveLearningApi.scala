@@ -345,7 +345,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
       ),
       new ApiResponse(
         responseCode = "404",
-        description = "If the specified project or task has not been found."
+        description = "If there are no more link candidates or if the specified project or task has not been found."
       )
     )
   )

@@ -83,7 +83,7 @@ class LinkCandidatesRankingIntegrationTest extends FlatSpec with Matchers {
     sortedCandidates(1).confidence shouldBe > (sortedCandidates(2).confidence)
 
     // Find matching paths
-    val matchingPaths = ComparisonPairGenerator(linkCandidates, LinkSpec())
+    val matchingPaths = ComparisonPairGenerator(linkCandidates, LinkSpec()).map(_.plain)
     matchingPaths shouldBe expectedPathPairs
   }
 }
