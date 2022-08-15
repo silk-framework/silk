@@ -19,11 +19,13 @@ import org.silkframework.dataset.DataSource
 import org.silkframework.entity.ValueType
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.learning.active.LinkCandidate
+import org.silkframework.learning.active.comparisons.ComparisonPair.toPair
 import org.silkframework.learning.{LearningConfiguration, LearningException}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.rule.input.{Input, PathInput, TransformInput}
 import org.silkframework.rule.similarity.{Aggregation, Comparison, SimilarityOperator}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
+import org.silkframework.util.CollectionUtils.ExtendedSeq
 import org.silkframework.util.{DPair, Timer}
 import org.silkframework.workspace.ProjectTask
 import org.silkframework.workspace.activity.linking.LinkingPathsCache
@@ -107,9 +109,9 @@ class ComparisonPairGenerator(task: ProjectTask[LinkSpec],
 object ComparisonPairGenerator {
 
   def apply(linkCandidates: Traversable[LinkCandidate], linkSpec: LinkSpec): Seq[ComparisonPair] = {
-    val comparisonPairs = (fromLinkCandidates(linkCandidates) ++ fromLinkSpec(linkSpec)).distinct
+    val comparisonPairs = (fromLinkCandidates(linkCandidates) ++ fromLinkSpec(linkSpec)).distinctBy(toPair)
     if(comparisonPairs.isEmpty) {
-      throw new Exception("Did not find any matching paths from the current linkage rule and by matching the source data.")
+      throw new LearningException("Did not find any matching paths from the current linkage rule and by matching the source data.")
     }
     comparisonPairs
   }
