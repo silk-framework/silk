@@ -51,12 +51,10 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
     implicit val random: Random = new Random(newRandomSeed)
 
     // Init
-    if(context.value().referenceData.linkCandidates.isEmpty) {
-      context.value.updateWith(_.copy(referenceData = context.child(new ActiveLearningInitializer(task, config)).startBlockingAndGetValue()))
-    }
-    if(context.value().comparisonPaths.isEmpty) {
-      val comparisonPairs = task.activity[ComparisonPairGenerator].value().selectedPairs
-      context.value.updateWith(_.copy(comparisonPaths = comparisonPairs))
+    val selectedPairs = task.activity[ComparisonPairGenerator].value().selectedPairs
+    if(context.value().comparisonPaths != selectedPairs) {
+      val referenceData = context.child(new ActiveLearningInitializer(task, config)).startBlockingAndGetValue()
+      context.value.updateWith(_.copy(links = Seq.empty, comparisonPaths = selectedPairs, referenceData = referenceData))
     }
 
     // Update unlabeled pool

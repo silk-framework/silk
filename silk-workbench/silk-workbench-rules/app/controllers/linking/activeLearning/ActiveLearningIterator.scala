@@ -2,6 +2,7 @@ package controllers.linking.activeLearning
 
 import models.linking.LinkCandidateDecision
 import org.silkframework.entity.Link
+import org.silkframework.learning.active.comparisons.ComparisonPairGenerator
 import org.silkframework.learning.active.{ActiveLearning, LinkCandidate}
 import org.silkframework.rule.LinkSpec
 import org.silkframework.runtime.activity.UserContext
@@ -58,7 +59,13 @@ object ActiveLearningIterator {
 
   def nextLinkCandidate(task: ProjectTask[LinkSpec])
                        (implicit userContext: UserContext): LinkCandidate = {
+    val comparisonActivity = task.activity[ComparisonPairGenerator]
     val activeLearn = task.activity[ActiveLearning]
+
+    // Run active learning initially, if required
+    if(comparisonActivity.value().selectedPairs != activeLearn.value().comparisonPaths) {
+      activeLearn.control.startBlocking()
+    }
 
     // Pick the next link candidate
     val links = activeLearn.value().links
