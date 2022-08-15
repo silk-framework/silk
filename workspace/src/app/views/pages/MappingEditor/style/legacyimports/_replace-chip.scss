@@ -1,0 +1,49 @@
+/**
+ * Copyright 2017 eccenca GmbH. All Rights Reserved.
+ *
+ * @author Michael Haschke
+ */
+
+.mdl-chip {
+    margin-right: $chips-margin-vertical;
+    font-weight: inherit;
+    max-width: calc(100% - #{$chips-margin-vertical});
+}
+
+.mdl-chip__text {
+    max-width: 100%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+
+    .mdl-chip__contact + & {
+        max-width: calc(101% - #{$chip-height} - #{$chips-margin-vertical});
+    }
+}
+
+.mdl-chip__contact {
+    background-color: $chip-bg-color;
+    margin-right: $chips-margin-vertical;
+
+    .material-icons {
+        line-height: $chip-height;
+        width: $chip-height;
+        height: $chip-height;
+    }
+
+    img {
+        height: auto;
+        width: auto;
+        max-height: 100%;
+        max-width: 100%;
+        vertical-align: middle;
+    }
+}
+
+a.mdl-chip,
+button.mdl-chip {
+    cursor: pointer;
+
+    &:hover {
+        @extend .mdl-chip, :focus;
+    }
+}
