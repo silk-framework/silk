@@ -1,0 +1,91 @@
+@use "sass:math";
+
+// -- Load helper functions ----------------------------------------------------------
+
+@import "replace-helpers";
+
+// -- Load MDL color definitions -----------------------------------------------------
+
+@import "~@eccenca/material-design-lite/src/color-definitions";
+
+// -- Configuration stack of colors --------------------------------------------------
+
+/*
+    We use ecc- prefix here to have an distinction to native MDL color
+    variables. Variables are only defined if they are not set before. Use those
+    variables to overwrite the default look of the application.
+*/
+
+$ecc-color-primary: rgb(254, 143, 1) !default;
+$ecc-color-primary-contrast: $color-dark-contrast !default;
+$ecc-color-accent: rgb(10, 103, 163) !default;
+$ecc-color-accent-contrast: $color-dark-contrast !default;
+
+$ecc-color-application-background: $palette-grey-300 !default;
+$ecc-color-application-text: $palette-grey-900 !default;
+
+$ecc-color-success-background: $palette-green-50 !default;
+$ecc-color-success-text: $palette-green-800 !default;
+$ecc-color-info-background: $palette-blue-50 !default;
+$ecc-color-info-text: $palette-blue-800 !default;
+$ecc-color-warning-background: $palette-orange-50 !default;
+$ecc-color-warning-text: $palette-orange-800 !default;
+$ecc-color-danger-background: $palette-red-50 !default;
+$ecc-color-danger-text: $palette-red-800 !default;
+
+// -- Configuration stack of sizes ---------------------------------------------------
+
+/*
+    We use ecc- prefix here to have an distinction to native MDL variables. All
+    variables are only defined if they are not set before. Use those
+    variables to overwrite the default look of the application.
+*/
+
+$ecc-size-typo-base: 14px !default; // size including absolute unit, preferable px
+$ecc-size-typo-base-lineheight: 1.39 !default; // only ratio to font size, no unit!
+$ecc-size-type-levelratio: math.div(7, 6) !default; // ratio without unit! used to calculate different text sizes, etc ...
+
+// -- Calculation of more config vars ------------------------------------------------
+
+/*
+    You can overwrite them by setting them before loading this configuration but it is
+    not recommended to do so.
+*/
+
+$ecc-size-typo-caption: math.div(1, $ecc-size-type-levelratio) * 1rem !default;
+$ecc-size-typo-caption-lineheight: max($ecc-size-type-levelratio * $ecc-size-typo-base-lineheight, 1) !default;
+$ecc-size-typo-text: 1rem !default;
+$ecc-size-typo-text-lineheight: max($ecc-size-typo-base-lineheight, 1) !default;
+$ecc-size-typo-subtitle: $ecc-size-type-levelratio * $ecc-size-typo-text !default;
+$ecc-size-typo-subtitle-lineheight: max(math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-text-lineheight, 1) !default;
+$ecc-size-typo-title: $ecc-size-type-levelratio * $ecc-size-typo-subtitle !default;
+$ecc-size-typo-title-lineheight: max(math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-subtitle-lineheight, 1) !default;
+$ecc-size-typo-headline: $ecc-size-type-levelratio * $ecc-size-typo-title !default;
+$ecc-size-typo-headline-lineheight: max(math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-title-lineheight, 1) !default;
+$ecc-size-typo-display-1: $ecc-size-type-levelratio * $ecc-size-typo-headline !default;
+$ecc-size-typo-display-1-lineheight: max(math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-headline-lineheight , 1)!default;
+$ecc-size-typo-display-2: $ecc-size-type-levelratio * $ecc-size-typo-display-1 !default;
+$ecc-size-typo-display-2-lineheight: max(math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-display-1-lineheight, 1) !default;
+$ecc-size-typo-display-3: $ecc-size-type-levelratio * $ecc-size-typo-display-2 !default;
+$ecc-size-typo-display-3-lineheight: max(math.div(1, $ecc-size-type-levelratio) * $ecc-size-typo-display-2-lineheight, 1) !default;
+
+$ecc-size-blockelement-margin-vertical: 1rem !default; // deprecated
+$ecc-size-blockelement-margin-horizontal: 1rem !default; // deprecated
+$ecc-size-blockelement-padding-vertical: 1rem !default; // deprecated
+$ecc-size-blockelement-padding-horizontal: 1rem !default; // deprecated
+
+$ecc-size-inlineelement-margin-vertical: 0.5rem !default; // deprecated
+$ecc-size-inlineelement-margin-horizontal: 0.5rem !default; // deprecated
+$ecc-size-inlineelement-padding-vertical: 0.25rem !default; // deprecated
+$ecc-size-inlineelement-padding-horizontal: 0.25rem !default; // deprecated
+
+$ecc-size-block-whitespace: $ecc-size-typo-base !default;
+$ecc-size-inline-whitespace: $ecc-size-typo-base * 0.5 !default;
+
+$ecc-size-maxwidth-workview: 100 * $ecc-size-typo-text;
+
+// -- Load MDL variables and mixins --------------------------------------------------
+
+@import "~gui-elements-deprecated/src/configuration.mdl"; // calculation MDL config with our changes
+@import '~@eccenca/material-design-lite/src/variables'; // original MDL configuration as fallback
+@import '~@eccenca/material-design-lite/src/mixins'; // original MDL mixins

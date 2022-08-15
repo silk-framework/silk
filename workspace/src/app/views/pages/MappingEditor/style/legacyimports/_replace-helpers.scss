@@ -1,0 +1,21 @@
+// -- Color helpers ------------------------------------------------------------
+
+@import "~sassyjson/stylesheets/decode/helpers/color/color";
+
+@function to_color($var) {
+    @if type-of($var) == "color" {
+        @return $var;
+    }
+
+    @if (
+        type-of($var) == 'string' and
+        str-slice($var, 1, 3) != 'rgb' and
+        str-slice($var, 1, 3) != 'hsl' and
+        str-slice($var, 1, 1) != '#'
+    ) {
+        @return _color(unquote('rgb(#{$var})'));
+    }
+    @else {
+        @return _color($var);
+    }
+}
