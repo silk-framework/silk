@@ -38,6 +38,14 @@ export interface LinkingRuleEditorProps {
     viewActions?: IViewActions;
 }
 
+interface LinkingRuleEditorOptionalContextProps {
+    /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
+    showRuleOnly?: boolean;
+    /** When this is defined it will show this rule instead of loading it from the backend. */
+    linkingRule?: TaskPlugin<ILinkingTaskParameters>;
+}
+export const LinkingRuleEditorOptionalContext = React.createContext<LinkingRuleEditorOptionalContextProps>({});
+
 const HIDE_GREY_LISTED_OPERATORS_QUERY_PARAMETER = "hideGreyListedParameters";
 
 const NUMBER_OF_LINKS_TO_SHOW = 5;
@@ -56,6 +64,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
         (
             new URLSearchParams(window.location.search).get(HIDE_GREY_LISTED_OPERATORS_QUERY_PARAMETER) ?? ""
         ).toLowerCase() === "true";
+    const optionalContext = React.useContext(LinkingRuleEditorOptionalContext);
 
     React.useEffect(() => {
         fetchLabels("source");
@@ -87,19 +96,23 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
     };
     /** Fetches the parameters of the linking task */
     const fetchTaskData = async (projectId: string, taskId: string) => {
-        try {
-            const taskData = (await fetchLinkSpec(projectId, taskId, true, prefLang)).data;
-            if (viewActions?.integratedView) {
-                const taskMetaData = (await requestTaskMetadata(taskId, projectId)).data;
-                setEditorTitle(taskMetaData.label);
+        if (optionalContext.linkingRule) {
+            return optionalContext.linkingRule;
+        } else {
+            try {
+                const taskData = (await fetchLinkSpec(projectId, taskId, true, prefLang)).data;
+                if (viewActions?.integratedView) {
+                    const taskMetaData = (await requestTaskMetadata(taskId, projectId)).data;
+                    setEditorTitle(taskMetaData.label);
+                }
+                return taskData;
+            } catch (err) {
+                registerError(
+                    "LinkingRuleEditor_fetchLinkingTask",
+                    t("taskViews.linkRulesEditor.errors.fetchTaskData.msg"),
+                    err
+                );
             }
-            return taskData;
-        } catch (err) {
-            registerError(
-                "LinkingRuleEditor_fetchLinkingTask",
-                t("taskViews.linkRulesEditor.errors.fetchTaskData.msg"),
-                err
-            );
         }
     };
 
@@ -277,6 +290,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                 additionalToolBarComponents={() => [
                     <LinkingRuleCacheInfo projectId={projectId} taskId={linkingTaskId} />,
                 ]}
+                showRuleOnly={!!optionalContext.showRuleOnly}
             />
         </LinkingRuleEvaluation>
     );

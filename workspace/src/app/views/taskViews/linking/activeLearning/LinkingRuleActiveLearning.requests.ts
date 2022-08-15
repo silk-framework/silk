@@ -2,7 +2,7 @@ import { FetchResponse } from "../../../../services/fetch/responseInterceptor";
 import fetch from "../../../../services/fetch";
 import { legacyLinkingEndpoint } from "../../../../utils/getApiEndpoint";
 import { ActiveLearningDecisions, ComparisonPair, ComparisonPairs } from "./LinkingRuleActiveLearning.typings";
-import { IEntityLink, ReferenceLinks } from "../linking.types";
+import { IEntityLink, ILinkingRule, OptionallyLabelledParameter, ReferenceLinks } from "../linking.types";
 
 /** Get the comparison pair configuration for the active learning session.
  *
@@ -53,6 +53,16 @@ export const nextActiveLearningLinkCandidate = (
 ): Promise<FetchResponse<IEntityLink>> => {
     return fetch({
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/activeLearning/nextLinkCandidate`),
+    });
+};
+
+/** Get the current best learned linkage rule. */
+export const bestLearnedLinkageRule = (
+    projectId: string,
+    linkingTaskId: string
+): Promise<FetchResponse<OptionallyLabelledParameter<ILinkingRule>>> => {
+    return fetch({
+        url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/activeLearning/bestRule`),
     });
 };
 

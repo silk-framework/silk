@@ -452,7 +452,7 @@ export const RuleEditorCanvas = () => {
 
     // Triggered after the react-flow instance has been loaded
     const onLoad = (_reactFlowInstance: OnLoadParams) => {
-        ruleEditorUiContext.setReactFlowInstance(_reactFlowInstance)
+        ruleEditorUiContext.setReactFlowInstance(_reactFlowInstance);
         modelContext.setReactFlowInstance(_reactFlowInstance);
     };
 
@@ -496,6 +496,7 @@ export const RuleEditorCanvas = () => {
         event.preventDefault();
     };
 
+    const permanentReadOnly = !!ruleEditorUiContext.showRuleOnly;
     return (
         <>
             <GridColumn full>
@@ -508,7 +509,7 @@ export const RuleEditorCanvas = () => {
                     onElementClick={onElementClick}
                     onSelectionDragStart={handleSelectionDragStart}
                     onSelectionDragStop={handleSelectionDragStop}
-                    onEdgeContextMenu={onEdgeContextMenu}
+                    onEdgeContextMenu={permanentReadOnly ? undefined : onEdgeContextMenu}
                     onElementsRemove={onElementsRemove}
                     onConnectStart={onConnectStart}
                     onConnect={onConnect}
@@ -517,11 +518,11 @@ export const RuleEditorCanvas = () => {
                     onNodeDragStop={handleNodeDragStop}
                     onNodeMouseEnter={onNodeMouseEnter}
                     onNodeMouseLeave={onNodeMouseLeave}
-                    onNodeContextMenu={onNodeContextMenu}
-                    onSelectionContextMenu={onSelectionContextMenu}
+                    onNodeContextMenu={permanentReadOnly ? undefined : onNodeContextMenu}
+                    onSelectionContextMenu={permanentReadOnly ? undefined : onSelectionContextMenu}
                     onSelectionChange={onSelectionChange}
                     onLoad={onLoad}
-                    onDrop={onDrop}
+                    onDrop={permanentReadOnly ? undefined : onDrop}
                     onDragOver={onDragOver}
                     onEdgeUpdateStart={onEdgeUpdateStart}
                     onEdgeUpdateEnd={onEdgeUpdateEnd}
@@ -535,9 +536,12 @@ export const RuleEditorCanvas = () => {
                 >
                     <MiniMap flowInstance={ruleEditorUiContext.reactFlowInstance} enableNavigation={true} />
                     <Controls
-                        showInteractive={!!modelContext.setIsReadOnly}
-                        onInteractiveChange={(isInteractive) =>
-                            modelContext.setIsReadOnly && modelContext.setIsReadOnly(!isInteractive)
+                        showInteractive={permanentReadOnly ? false : !!modelContext.setIsReadOnly}
+                        onInteractiveChange={
+                            permanentReadOnly
+                                ? undefined
+                                : (isInteractive) =>
+                                      modelContext.setIsReadOnly && modelContext.setIsReadOnly(!isInteractive)
                         }
                     />
                     <Background variant={BackgroundVariant.Lines} gap={16} />

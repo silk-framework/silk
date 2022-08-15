@@ -7,13 +7,14 @@ import { LinkingRuleActiveLearningFeedbackContext } from "../contexts/LinkingRul
 import { LinkingRuleActiveLearningBestLearnedRule } from "./LinkingRuleActiveLearningBestLearnedRule";
 import { LinkingRuleReferenceLinks } from "../../referenceLinks/LinkingRuleReferenceLinks";
 import {
+    bestLearnedLinkageRule,
     fetchActiveLearningReferenceLinks,
     nextActiveLearningLinkCandidate,
     submitActiveLearningReferenceLink,
 } from "../LinkingRuleActiveLearning.requests";
 import referenceLinksUtils from "../../referenceLinks/LinkingRuleReferenceLinks.utils";
 import { ActiveLearningDecisions } from "../LinkingRuleActiveLearning.typings";
-import { ReferenceLinks } from "../../linking.types";
+import { ILinkingRule, OptionallyLabelledParameter, ReferenceLinks } from "../../linking.types";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { activityQueryString } from "../../../../shared/TaskActivityOverview/taskActivityUtils";
@@ -39,6 +40,7 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
     /** The list of reference links. */
     const [referenceLinks, setReferenceLinks] = React.useState<ReferenceLinks | undefined>(undefined);
     const [referenceLinksLoading, setReferenceLinksLoading] = React.useState(false);
+    const [bestRule, setBestRule] = React.useState<OptionallyLabelledParameter<ILinkingRule> | undefined>(undefined);
     const { registerError } = useErrorHandler();
 
     React.useEffect(() => {
@@ -61,6 +63,16 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
     const onActiveLearningUpdate = (activityStatus: IActivityStatus) => {
         if (activityStatus.statusName === "Finished") {
             fetchReferenceLinks(projectId, linkingTaskId);
+            updateBestLearnedRule();
+        }
+    };
+
+    const updateBestLearnedRule = async () => {
+        try {
+            const rule = (await bestLearnedLinkageRule(projectId, linkingTaskId)).data;
+            setBestRule(rule);
+        } catch (err) {
+            // TODO
         }
     };
 
@@ -148,7 +160,7 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                 <Spacing hasDivider={true} />
                 <LinkingRuleActiveLearningFeedbackComponent />
                 <Spacing />
-                <LinkingRuleActiveLearningBestLearnedRule rule={{ task: "TODO" }} />
+                <LinkingRuleActiveLearningBestLearnedRule rule={bestRule} />
                 <Spacing />
                 <LinkingRuleReferenceLinks
                     loading={referenceLinksLoading}

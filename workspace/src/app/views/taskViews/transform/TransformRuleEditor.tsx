@@ -131,6 +131,7 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
             ]}
             validateConnection={ruleUtils.validateConnection}
             tabs={[ruleUtils.sidebarTabs.all, ruleUtils.sidebarTabs.transform]}
+            showRuleOnly={false}
         />
     );
 };

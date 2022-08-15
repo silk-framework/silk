@@ -11,9 +11,12 @@ import {
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { LinkingRuleEditor, LinkingRuleEditorOptionalContext } from "../../LinkingRuleEditor";
+import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
+import { ILinkingRule, OptionallyLabelledParameter } from "../../linking.types";
 
 interface LinkingRuleActiveLearningBestLearnedRuleProps {
-    rule?: any; // TODO: Proper type
+    rule?: OptionallyLabelledParameter<ILinkingRule>;
 }
 
 /**
@@ -22,6 +25,7 @@ interface LinkingRuleActiveLearningBestLearnedRuleProps {
  */
 export const LinkingRuleActiveLearningBestLearnedRule = ({ rule }: LinkingRuleActiveLearningBestLearnedRuleProps) => {
     const [displayVisualRule, setDisplayVisualRule] = React.useState(false);
+    const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
     const { t } = useTranslation();
     const BestLearnedRule = () => {
         return (
@@ -35,18 +39,20 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({ rule }: LinkingRuleAc
                     <OverviewItemLine large>
                         <h1>{t("ActiveLearning.bestLearnedRule.title", { score: "TODO: Insert score in percent" })}</h1>
                     </OverviewItemLine>
-                    <OverviewItemLine>TODO: Show rule details</OverviewItemLine>
+                    <OverviewItemLine>{rule ? "Show rule details" : "No rule learned, yet."}</OverviewItemLine>
                 </OverviewItemDescription>
                 <OverviewItemActions>
-                    <IconButton
-                        data-test-id={"best-learned-rule-toggler-btn"}
-                        name={displayVisualRule ? "toggler-showless" : "toggler-showmore"}
-                        text={
-                            displayVisualRule
-                                ? t("ActiveLearning.bestLearnedRule.hideRule")
-                                : t("ActiveLearning.bestLearnedRule.showRule")
-                        }
-                    />
+                    {rule ? (
+                        <IconButton
+                            data-test-id={"best-learned-rule-toggler-btn"}
+                            name={displayVisualRule ? "toggler-showless" : "toggler-showmore"}
+                            text={
+                                displayVisualRule
+                                    ? t("ActiveLearning.bestLearnedRule.hideRule")
+                                    : t("ActiveLearning.bestLearnedRule.showRule")
+                            }
+                        />
+                    ) : null}
                 </OverviewItemActions>
             </OverviewItem>
         );
@@ -56,6 +62,28 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({ rule }: LinkingRuleAc
         return <Notification neutral={true} message={t("ActiveLearning.bestLearnedRule.noRule")} />;
     };
 
+    const VisualRule = () => {
+        return activeLearningContext.linkTask && rule ? (
+            <LinkingRuleEditorOptionalContext.Provider
+                value={{
+                    linkingRule: {
+                        ...activeLearningContext.linkTask,
+                        parameters: {
+                            ...activeLearningContext.linkTask.parameters,
+                            rule: rule,
+                        },
+                    },
+                    showRuleOnly: true,
+                }}
+            >
+                <LinkingRuleEditor
+                    projectId={activeLearningContext.projectId}
+                    linkingTaskId={activeLearningContext.linkingTaskId}
+                />
+            </LinkingRuleEditorOptionalContext.Provider>
+        ) : null;
+    };
+
     return rule ? (
         <Card isOnlyLayout elevation={0} data-test-id={"best-learned-rule-visual"}>
             <BestLearnedRule />
@@ -63,7 +91,7 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({ rule }: LinkingRuleAc
                 <>
                     <Divider />
                     <WhiteSpaceContainer paddingTop="small" paddingRight="tiny" paddingLeft="tiny">
-                        TODO: Display rule visually
+                        <VisualRule />
                     </WhiteSpaceContainer>
                 </>
             )}

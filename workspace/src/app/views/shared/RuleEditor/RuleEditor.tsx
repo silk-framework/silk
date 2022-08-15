@@ -67,6 +67,8 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     additionalToolBarComponents?: () => JSX.Element | JSX.Element[];
     /** parent configuration to extract stickyNote from taskData*/
     getStickyNotes?: (taskData: RULE_TYPE | undefined) => IStickyNote[];
+    /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
+    showRuleOnly: boolean;
 }
 
 const READ_ONLY_QUERY_PARAMETER = "readOnly";
@@ -89,6 +91,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     additionalToolBarComponents,
     editorTitle,
     getStickyNotes = () => [],
+    showRuleOnly,
 }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
     // The task that contains the rule, e.g. transform or linking task
     const [taskData, setTaskData] = React.useState<TASK_TYPE | undefined>(undefined);
@@ -229,15 +232,16 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 validateConnection,
                 tabs,
                 viewActions,
-                readOnlyMode,
+                readOnlyMode: showRuleOnly || readOnlyMode,
                 additionalToolBarComponents,
                 lastSaveResult: lastSaveResult,
                 editorTitle,
                 stickyNotes: getStickyNotes(taskData),
+                showRuleOnly,
             }}
         >
             <RuleEditorModel>
-                <RuleEditorView />
+                <RuleEditorView showRuleOnly={showRuleOnly} />
             </RuleEditorModel>
         </RuleEditorContext.Provider>
     );

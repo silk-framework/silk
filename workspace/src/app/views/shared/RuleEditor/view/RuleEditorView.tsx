@@ -4,12 +4,17 @@ import { RuleEditorOperatorSidebar } from "./sidebar/RuleEditorOperatorSidebar";
 import React from "react";
 import { RuleEditorCanvas } from "./RuleEditorCanvas";
 import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
-import {OnLoadParams} from "react-flow-renderer";
+import { OnLoadParams } from "react-flow-renderer";
+
+interface RuleEditorViewProps {
+    /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
+    showRuleOnly?: boolean;
+}
 
 /** The main view of the rule editor, integrating toolbar, sidebar and main rule canvas. */
-export const RuleEditorView = () => {
+export const RuleEditorView = ({ showRuleOnly }: RuleEditorViewProps) => {
     const [modalShown, setModalShown] = React.useState(false);
-    const [advancedParameterModeEnabled, setAdvancedParameterMode] = React.useState(false)
+    const [advancedParameterModeEnabled, setAdvancedParameterMode] = React.useState(false);
     const reactFlowWrapper = React.useRef<any>(null);
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
 
@@ -22,20 +27,25 @@ export const RuleEditorView = () => {
                 setAdvancedParameterMode,
                 reactFlowWrapper,
                 reactFlowInstance,
-                setReactFlowInstance
+                setReactFlowInstance,
+                showRuleOnly,
             }}
         >
             <Grid verticalStretchable={true} useAbsoluteSpace={true} style={{ backgroundColor: "white" }}>
-                <GridRow style={{ backgroundColor: "white" }}>
-                    <GridColumn full>
-                        <RuleEditorToolbar />
-                        <Divider addSpacing="medium" />
-                    </GridColumn>
-                </GridRow>
+                {!showRuleOnly ? (
+                    <GridRow style={{ backgroundColor: "white" }}>
+                        <GridColumn full>
+                            <RuleEditorToolbar />
+                            <Divider addSpacing="medium" />
+                        </GridColumn>
+                    </GridRow>
+                ) : null}
                 <GridRow verticalStretched={true} style={{ backgroundColor: "white" }}>
-                    <GridColumn small>
-                        <RuleEditorOperatorSidebar />
-                    </GridColumn>
+                    {!showRuleOnly ? (
+                        <GridColumn small>
+                            <RuleEditorOperatorSidebar />
+                        </GridColumn>
+                    ) : null}
                     <RuleEditorCanvas />
                 </GridRow>
             </Grid>
