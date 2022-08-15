@@ -13,7 +13,10 @@ case class RelatedItem(id: String,
                        `type`: String,
                        itemLinks: Seq[ItemLink],
                        pluginLabel: String,
-                       tags: Set[FullTag])
+                       tags: Set[FullTag],
+                       pluginId: Option[String],
+                       projectId: Option[String]
+                      )
 
 object RelatedItem {
   implicit val relatedItemFormat: Format[RelatedItem] = Json.format[RelatedItem]

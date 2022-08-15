@@ -12,7 +12,6 @@ interface IWrapperProps {
 const MappingEditorWrapper: React.FC<IWrapperProps> = ({ projectId, taskId }) => {
     const [showMappingEditor, setShowMappingEditor] = React.useState<boolean>(false);
     const [currentRuleId, setCurrentRuleId] = React.useState<string>();
-
     return (
         <>
             {currentRuleId && (

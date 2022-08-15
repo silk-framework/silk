@@ -14,7 +14,11 @@ import RemoveMappingRuleDialog from "./elements/RemoveMappingRuleDialog";
 import DiscardChangesDialog from "./elements/DiscardChangesDialog";
 import EventEmitter from "./utils/EventEmitter";
 import { withHistoryHOC } from "./utils/withHistoryHOC";
+import MappingEditorModal from "./MappingEditorModal";
+import { Provider } from "react-redux";
+import configStore from "../../../../store/configureStore";
 
+const store = configStore();
 class HierarchicalMapping extends React.Component {
     // define property types
     static propTypes = {
@@ -45,6 +49,7 @@ class HierarchicalMapping extends React.Component {
             askForDiscard: false,
             askForRemove: false,
             removeFunction: this.handleConfirmRemove,
+            showMappingEditor: false,
         };
     }
 
@@ -208,19 +213,38 @@ class HierarchicalMapping extends React.Component {
         EventEmitter.emit(MESSAGES.RULE_VIEW.DISCARD_ALL);
     };
 
+    handleOpenMappingEditorModal = (currentRuleId) => {
+        console.log("This is at least being clicked");
+        this.setState({ showMappingEditor: true, currentRuleId });
+    };
+
     handleRuleIdChange = (rule) => {
         this.onRuleNavigation(rule);
     };
 
     // template rendering
     render() {
-        const { currentRuleId, showNavigation, askForRemove, elementToDelete, askForDiscard, editingElements } =
-            this.state;
+        const {
+            currentRuleId,
+            showMappingEditor,
+            showNavigation,
+            askForRemove,
+            elementToDelete,
+            askForDiscard,
+            editingElements,
+        } = this.state;
         const loading = this.state.loading ? <Spinner /> : false;
 
         // render mapping edit / create view of value and object
         return (
             <section className="ecc-silk-mapping">
+                <MappingEditorModal
+                    projectId={this.props.project}
+                    transformTaskId={this.props.transformTask}
+                    ruleId={currentRuleId}
+                    isOpen={showMappingEditor}
+                    onClose={() => this.setState({ showMappingEditor: false })}
+                />
                 {askForRemove && (
                     <RemoveMappingRuleDialog
                         mappingType={elementToDelete.type}
@@ -252,7 +276,7 @@ class HierarchicalMapping extends React.Component {
                             askForDiscardData={this.state.askForDiscard}
                             onAskDiscardChanges={this.toggleAskForDiscard}
                             onClickedRemove={this.handleClickRemove}
-                            openMappingEditor={this.props.openMappingEditor}
+                            openMappingEditor={this.handleOpenMappingEditorModal}
                         />
                     }
                 </div>

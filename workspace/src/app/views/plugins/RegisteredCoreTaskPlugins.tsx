@@ -1,8 +1,7 @@
 import { LinkingRuleEditor } from "../taskViews/linking/LinkingRuleEditor";
-//import HierarchicalMapping from "../pages/MappingEditor/HierarchicalMapping/HierarchicalMapping";
 import React from "react";
 import { IViewActions, pluginRegistry } from "./PluginRegistry";
-import MappingEditorWrapper from "../../views/pages/MappingEditor/HierarchicalMapping/MappingEditorWrapper";
+import HierarchicalMapping from "../pages/MappingEditor/HierarchicalMapping/HierarchicalMapping.jsx";
 
 let registered = false;
 export const registerCorePlugins = () => {
@@ -24,7 +23,7 @@ export const registerCorePlugins = () => {
             id: "hierarchicalMappingEditor",
             label: "Mapping editor",
             render(projectId: string, taskId: string): JSX.Element {
-                return <MappingEditorWrapper projectId={projectId} taskId={taskId} />;
+                return <HierarchicalMapping project={projectId} transformTask={taskId} />;
             },
         });
 

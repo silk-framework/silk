@@ -167,14 +167,14 @@ export function ArtefactManagementOptions({
             });
         }
 
-        if (itemLinks && itemLinks.length > 0) {
-            itemLinks.forEach((itemLink) => {
-                fullMenu.push({
-                    text: t("common.legacyGui." + itemLink.label, itemLink.label),
-                    actionHandler: () => toggleItemLink(itemLink),
-                });
-            });
-        }
+        // if (itemLinks && itemLinks.length > 0) {
+        //     itemLinks.forEach((itemLink) => {
+        //         fullMenu.push({
+        //             text: t("common.legacyGui." + itemLink.label, itemLink.label),
+        //             actionHandler: () => toggleItemLink(itemLink),
+        //         });
+        //     });
+        // }
 
         return fullMenu;
     };
@@ -219,14 +219,14 @@ export function ArtefactManagementOptions({
             {showIdentifierOpen && (
                 <ShowIdentifierModal onDiscard={toggleShowIdentifierModal} taskId={taskId} projectId={projectId} />
             )}
-            {displayItemLink && (
+            {/* {displayItemLink && (
                 <ProjectTaskTabView
                     srcLinks={itemLinks}
                     startWithLink={displayItemLink}
                     startFullscreen={true}
                     handlerRemoveModal={() => toggleItemLink(null)}
                 />
-            )}
+            )} */}
         </>
     );
 }

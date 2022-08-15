@@ -57,7 +57,6 @@ object ItemType {
   def itemTypeLinks(itemType: ItemType, projectId: String, itemId: String, taskSpec: Option[TaskSpec]): Seq[ItemLink] = {
     val itemTypeSpecificLinks = itemType match {
       case ItemType.transform => Seq(
-        ItemLink("Mapping editor", s"$context/transform/$projectId/$itemId/editor"),
         ItemLink("Transform evaluation", s"$context/transform/$projectId/$itemId/evaluate"),
         ItemLink("Transform execution", s"$context/transform/$projectId/$itemId/execute")
       )

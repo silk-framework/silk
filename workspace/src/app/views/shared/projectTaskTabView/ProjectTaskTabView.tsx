@@ -125,7 +125,7 @@ export function ProjectTaskTabView({
     }, [projectId, taskId, taskViewConfig?.pluginId]);
 
     React.useEffect(() => {
-        if (tabRouteChangeRequest != null && getBookmark() === tabRouteChangeRequest) {
+        if (tabRouteChangeRequest != null) {
             const tabItem = viewsAndItemLink.find((itemView) => itemView.label === tabRouteChangeRequest);
             if (tabItem && isTaskView(tabItem)) {
                 setSelectedTab(tabItem.id);
@@ -149,17 +149,17 @@ export function ProjectTaskTabView({
 
     // handler for link change. Triggers a tab change request. Actual change is done in useEffect.
     const changeTab = (tabItem: IItemLink | string) => {
-        if (!startWithLink) {
-            const tabRoute = viewsAndItemLink.find((itemView) => {
-                if (typeof tabItem === "string") {
-                    return itemView.id === tabItem;
-                } else {
-                    return tabItem.label === itemView.label;
-                }
-            });
-            setTabRouteChangeRequest(tabRoute?.label);
-            dispatch(history.push(calculateBookmark(tabRoute?.label ?? "", viewsAndItemLink)));
-        }
+        console.log("view-links", viewsAndItemLink, tabItem);
+        const tabRoute = viewsAndItemLink.find((itemView) => {
+            if (typeof tabItem === "string") {
+                return itemView.id === tabItem;
+            } else {
+                return tabItem.label === itemView.label;
+            }
+        });
+        setTabRouteChangeRequest(tabRoute?.label);
+        //Todo should only happen on details page
+        // dispatch(history.push(calculateBookmark(tabRoute?.label ?? "", viewsAndItemLink)));
     };
 
     const getInitialActiveLink = (itemLinks, taskViews) => {
