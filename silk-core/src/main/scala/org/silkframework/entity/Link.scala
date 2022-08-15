@@ -95,6 +95,16 @@ class LinkWithEntities(val source: String, val target: String, val linkEntities:
   override def reverse: Link = new LinkWithEntities(target, source, linkEntities)
 }
 
+class ReferenceLink(source: String, target: String, linkEntities: DPair[Entity], val decision: LinkDecision) extends LinkWithEntities(source, target, linkEntities)
+
+object ReferenceLink {
+
+  def apply(link: LinkWithEntities, decision: LinkDecision): ReferenceLink = {
+    new ReferenceLink(link.source, link.target, link.linkEntities, decision)
+  }
+
+}
+
 /**
  * Represents a link between two entities.
  *

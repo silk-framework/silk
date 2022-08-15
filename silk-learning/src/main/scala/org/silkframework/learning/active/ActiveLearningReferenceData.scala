@@ -1,6 +1,6 @@
 package org.silkframework.learning.active
 
-import org.silkframework.entity.{EntitySchema, Link, LinkWithEntities}
+import org.silkframework.entity.{EntitySchema, Link, LinkDecision, LinkWithEntities, ReferenceLink}
 import org.silkframework.rule.evaluation.ReferenceEntities
 import org.silkframework.util.DPair
 
@@ -10,27 +10,31 @@ import org.silkframework.util.DPair
   */
 case class ActiveLearningReferenceData(entitySchemata: DPair[EntitySchema],
                                        linkCandidates: Seq[LinkCandidate],
-                                       positiveLinks: Seq[LinkWithEntities] = Seq.empty,
-                                       negativeLinks: Seq[LinkWithEntities] = Seq.empty,
+                                       referenceLinks: Seq[ReferenceLink] = Seq.empty,
                                        randomSeed: Long) {
 
+  def positiveLinks: Seq[ReferenceLink] = {
+    referenceLinks.filter(_.decision == LinkDecision.POSITIVE)
+  }
+
+  def negativeLinks: Seq[ReferenceLink] = {
+    referenceLinks.filter(_.decision == LinkDecision.NEGATIVE)
+  }
+
   def withPositiveLink(link: LinkWithEntities): ActiveLearningReferenceData = {
-    copy(positiveLinks = (link +: positiveLinks).distinct,
-         negativeLinks = negativeLinks.filterNot(_ == link))
+    copy(referenceLinks = ReferenceLink(link, LinkDecision.POSITIVE) +: referenceLinks.filterNot(_ == link))
   }
 
   def withNegativeLink(link: LinkWithEntities): ActiveLearningReferenceData = {
-    copy(positiveLinks = positiveLinks.filterNot(_ == link),
-         negativeLinks = (link +: negativeLinks).distinct)
+    copy(referenceLinks = ReferenceLink(link, LinkDecision.NEGATIVE) +: referenceLinks.filterNot(_ == link))
   }
 
   def withoutLink(link: Link): ActiveLearningReferenceData = {
-    copy(positiveLinks = positiveLinks.filterNot(_ == link),
-         negativeLinks = negativeLinks.filterNot(_ == link))
+    copy(referenceLinks = referenceLinks.filterNot(_ == link))
   }
 
   def findLink(sourceUri: String, targetUri: String): Option[LinkWithEntities] = {
-    val allLinks = positiveLinks ++ negativeLinks ++ linkCandidates
+    val allLinks = referenceLinks ++ linkCandidates
     allLinks.find(l => l.source == sourceUri && l.target == targetUri)
   }
 
@@ -44,6 +48,6 @@ case class ActiveLearningReferenceData(entitySchemata: DPair[EntitySchema],
 
 object ActiveLearningReferenceData {
 
-  def empty: ActiveLearningReferenceData = ActiveLearningReferenceData(DPair.fill(EntitySchema.empty), Seq.empty, Seq.empty, Seq.empty, 0L)
+  def empty: ActiveLearningReferenceData = ActiveLearningReferenceData(DPair.fill(EntitySchema.empty), Seq.empty, Seq.empty, 0L)
 
 }

@@ -2,7 +2,7 @@ package controllers.linking
 
 import controllers.linking.activeLearning.JsonFormats.ComparisonPairFormat
 import helper.ApiClient
-import org.silkframework.entity.Link
+import org.silkframework.entity.{Link, LinkDecision}
 import controllers.linking.routes.ActiveLearningApi
 import org.silkframework.rule.LinkageRule
 import controllers.linking.activeLearning.JsonFormats._
@@ -30,8 +30,8 @@ trait ActiveLearningApiClient extends ApiClient {
     (positiveLinks, negativeLinks)
   }
 
-  def addReferenceLink(projectId: String, taskId: String, linkSource: String, linkTarget: String, decision: String, synchronous: Boolean = false): Unit = {
-    val request = createRequest(ActiveLearningApi.addReferenceLink(projectId, taskId, linkSource, linkTarget, decision, synchronous))
+  def addReferenceLink(projectId: String, taskId: String, linkSource: String, linkTarget: String, decision: LinkDecision, synchronous: Boolean = false): Unit = {
+    val request = createRequest(ActiveLearningApi.addReferenceLink(projectId, taskId, linkSource, linkTarget, decision.getId, synchronous))
     checkResponse(request.post(EmptyBody))
   }
 

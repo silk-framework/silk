@@ -1,7 +1,6 @@
 package controllers.linking.activeLearning
 
-import models.linking.LinkCandidateDecision
-import org.silkframework.entity.Link
+import org.silkframework.entity.{Link, LinkDecision}
 import org.silkframework.learning.active.comparisons.ComparisonPairGenerator
 import org.silkframework.learning.active.{ActiveLearning, LinkCandidate}
 import org.silkframework.rule.LinkSpec
@@ -36,12 +35,12 @@ object ActiveLearningIterator {
         throw BadUserInputException(s"Could not find the committed link ('$linkSource' -> '$linkTarget') in either the reference links or the link candidate pool")
     }
 
-    decision match {
-      case LinkCandidateDecision.positive =>
+    LinkDecision.fromId(decision) match {
+      case LinkDecision.POSITIVE =>
         activity.updateValue(activity.value().copy(referenceData = activity.value().referenceData.withPositiveLink(linkCandidate)))
-      case LinkCandidateDecision.negative =>
+      case LinkDecision.NEGATIVE =>
         activity.updateValue(activity.value().copy(referenceData = activity.value().referenceData.withNegativeLink(linkCandidate)))
-      case LinkCandidateDecision.unlabeled =>
+      case LinkDecision.UNLABELED =>
         activity.updateValue(activity.value().copy(referenceData = activity.value().referenceData.withoutLink(linkCandidate)))
     }
 

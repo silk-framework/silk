@@ -1,12 +1,12 @@
 @import org.silkframework.util.DPair
 @import org.silkframework.entity.Link
-@import models.linking.LinkCandidateDecision
 @import controllers.linking.routes
 @import models.learning.PathValue
 @import models.learning.PathValues
 @import org.silkframework.rule.LinkSpec
 @import org.silkframework.workbench.Context
 @import config.WorkbenchConfig
+@import org.silkframework.entity.LinkDecision
 
 @(link: Link, sourceValues: Seq[PathValues], targetValues: Seq[PathValues],context: Context[LinkSpec])
 
@@ -50,15 +50,15 @@
 <script type="text/javascript">
 
   function confirm() {
-    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.id, context.task.id).url', '@LinkCandidateDecision.positive');
+    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.id, context.task.id).url', '@LinkDecision.POSITIVE.getId');
   }
 
   function decline() {
-    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.id, context.task.id).url', '@LinkCandidateDecision.negative');
+    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.id, context.task.id).url', '@LinkDecision.NEGATIVE.getId');
   }
 
   function pass() {
-    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.id, context.task.id).url', '@LinkCandidateDecision.unlabeled');
+    nextLinkCandidate('@routes.Learning.activeLearnCandidate(context.project.id, context.task.id).url', '@LinkDecision.UNLABELED.getId');
   }
 
   function done() {

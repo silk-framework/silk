@@ -6,7 +6,7 @@ import org.silkframework.rule.evaluation._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.EntitySerializers.{EntityJsonFormat, PairJsonFormat}
 import org.silkframework.serialization.json.JsonHelpers._
-import play.api.libs.json.{JsArray, JsValue, Json}
+import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 
 /**
   *
@@ -32,7 +32,7 @@ object LinkingSerializers {
       )
     }
 
-    override def write(link: Link)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+    override def write(link: Link)(implicit writeContext: WriteContext[JsValue]): JsObject = {
       val evaluationDetails = rule.flatMap(r => link.entities.flatMap(entities => DetailedEvaluator(r, entities).details))
 
       var json =
@@ -43,8 +43,8 @@ object LinkingSerializers {
           RULE_VALUES -> evaluationDetails.map(ConfidenceJsonFormat.write)
         )
 
-      if(writeEntities) {
-        for(entities <- link.entities) {
+      if (writeEntities) {
+        for (entities <- link.entities) {
           json += (ENTITIES -> entityPairFormat.write(entities))
         }
       }

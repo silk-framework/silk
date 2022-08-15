@@ -99,23 +99,20 @@ case class ReferenceEntities(sourceEntities: Map[String, Entity] = Map.empty,
     }
   }
 
-  def positiveLinksWithEntities: Set[LinkWithEntities] = {
-    linksWithEntities(positiveLinks)
+  def toReferenceLinks: Seq[ReferenceLink] = {
+    asReferenceLinks(positiveLinks.toSeq, LinkDecision.POSITIVE) ++ asReferenceLinks(negativeLinks.toSeq, LinkDecision.NEGATIVE)
   }
 
-  def negativeLinksWithEntities: Set[LinkWithEntities] = {
-    linksWithEntities(negativeLinks)
-  }
-
-  private def linksWithEntities(links: Set[Link]): Set[LinkWithEntities] = {
+  private def asReferenceLinks(links: Seq[Link], linkDecision: LinkDecision): Seq[ReferenceLink] = {
     for (link <- links) yield {
-      new LinkWithEntities(
+      new ReferenceLink(
         source = link.source,
         target = link.target,
         linkEntities = DPair(
           source = sourceEntities.getOrElse(link.source, throw new NoSuchElementException(s"The entity '${link.source}' is not available in the source dataset.")),
           target = targetEntities.getOrElse(link.target, throw new NoSuchElementException(s"The entity '${link.target}' is not available in the target dataset.")),
-        )
+        ),
+        decision = linkDecision
       )
     }
   }

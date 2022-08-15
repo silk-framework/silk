@@ -14,6 +14,7 @@
 
 package org.silkframework.learning.active
 
+import org.silkframework.entity.LinkWithEntities
 import org.silkframework.learning.active.comparisons.ComparisonPairGenerator
 import org.silkframework.learning.active.linkselector.WeightedLinkageRule
 import org.silkframework.learning.cleaning.CleanPopulationTask
@@ -86,7 +87,7 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
     // Assert that no reference links are in the pool
     val referenceData = context.value().referenceData
     var linkCandidates = referenceData.linkCandidates
-    val removeLinks = (referenceData.positiveLinks ++ referenceData.negativeLinks).toSet
+    val removeLinks = referenceData.referenceLinks.map(_.asInstanceOf[LinkWithEntities]).toSet
     linkCandidates = linkCandidates.filterNot(removeLinks.contains)
     if(linkCandidates.isEmpty) {
       throw new LearningException("All available link candidates have been confirmed or declined.")

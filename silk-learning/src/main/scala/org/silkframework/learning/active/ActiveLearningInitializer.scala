@@ -95,7 +95,7 @@ class ActiveLearningInitializer(task: ProjectTask[LinkSpec], config: LearningCon
     val refSize = task.data.referenceLinks.positive.size + task.data.referenceLinks.negative.size
     assert(entitiesSize == refSize, "Reference Entities Cache has not been loaded correctly")
 
-    context.value.updateWith(_.copy(positiveLinks = referenceEntities.positiveLinksWithEntities.toSeq,
-                                    negativeLinks = referenceEntities.negativeLinksWithEntities.toSeq))
+    // Update reference links
+    context.value.updateWith(_.copy(referenceLinks = referenceEntities.toReferenceLinks))
   }
 }

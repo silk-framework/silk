@@ -5,13 +5,13 @@
 @import controllers.workspace.routes.ActivityApi
 @import org.silkframework.learning.active.ActiveLearning
 @import views.html.workspace.activity.taskActivityControl
-@import models.linking.LinkCandidateDecision
 @import org.silkframework.rule.LinkSpec
 @import org.silkframework.workbench.Context
 @import org.silkframework.learning.active.ActiveLearningFactory
 @import views.html.workspace.activity.autoReload
-
 @import config.WorkbenchConfig.WorkspaceReact
+@import org.silkframework.entity.LinkDecision
+
 @(context: Context[LinkSpec])(implicit session: play.api.mvc.Session, request: RequestHeader, workspaceReact: WorkspaceReact)
 
 @header = {
@@ -40,7 +40,7 @@
         {
           source: "_",
           target: "_",
-          decision: "@LinkCandidateDecision.unlabeled"
+          decision: "@LinkDecision.UNLABELED.getId"
         },
         function(data) {
           $('#link-candidate-wrapper').html(data);
