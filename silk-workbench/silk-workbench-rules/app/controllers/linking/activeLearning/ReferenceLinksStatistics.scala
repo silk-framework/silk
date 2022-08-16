@@ -1,7 +1,7 @@
 package controllers.linking.activeLearning
 
 import io.swagger.v3.oas.annotations.media.Schema
-import org.silkframework.entity.{Link, ReferenceLink}
+import org.silkframework.entity.{Link, LinkDecision, ReferenceLink}
 import org.silkframework.rule.evaluation.ReferenceLinks
 import play.api.libs.json.{Json, OFormat}
 
@@ -11,7 +11,9 @@ case class ReferenceLinksStatistics(@Schema(description = "The number of existin
                                     @Schema(description = "The number of new reference links that are not yet part of the linking task.")
                                     addedLinks: Int,
                                     @Schema(description = "The number of reference links that are part of the linking task, but have been removed.")
-                                    removedLinks: Int)
+                                    removedLinks: Int,
+                                    @Schema(description = "The number of reference links that are part of the linking task, but have been changed.")
+                                    changedLinks: Int)
 
 object ReferenceLinksStatistics {
 
@@ -25,6 +27,10 @@ object ReferenceLinksStatistics {
       existingLinks = existingReferenceLinksSet.size,
       addedLinks = newReferenceLinksSet.count(l => !existingReferenceLinksSet.contains(l)),
       removedLinks = existingReferenceLinksSet.count(l => !newReferenceLinksSet.contains(l)),
+      changedLinks = newReferenceLinks.count(l =>
+                       (l.decision == LinkDecision.POSITIVE && existingReferenceLinks.negative.contains(l)) ||
+                       (l.decision == LinkDecision.NEGATIVE && existingReferenceLinks.positive.contains(l))
+                     )
     )
   }
 
