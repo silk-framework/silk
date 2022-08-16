@@ -33,6 +33,7 @@ export class MappingRule extends React.Component {
         onClickedRemove: PropTypes.func,
         onOrderRules: PropTypes.func.isRequired,
         onExpand: PropTypes.func,
+        updateHistory: PropTypes.func.isRequired,
         // provided,
         // snapshot,
     };
