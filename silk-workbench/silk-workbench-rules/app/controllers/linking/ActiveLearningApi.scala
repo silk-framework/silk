@@ -288,7 +288,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
                          name = "linkSource",
                          description = "The URI of the link source.",
                          required = true,
-                         in = ParameterIn.PATH,
+                         in = ParameterIn.QUERY,
                          schema = new Schema(implementation = classOf[String])
                        )
                        linkSource: String,
@@ -296,7 +296,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
                          name = "linkTarget",
                          description = "The URI of the link target.",
                          required = true,
-                         in = ParameterIn.PATH,
+                         in = ParameterIn.QUERY,
                          schema = new Schema(implementation = classOf[String])
                        )
                        linkTarget: String,
@@ -304,7 +304,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
                          name = "decision",
                          description = "The new label of the link.",
                          required = true,
-                         in = ParameterIn.PATH,
+                         in = ParameterIn.QUERY,
                          schema = new Schema(implementation = classOf[String], allowableValues = Array("positive", "negative", "unlabeled"))
                        )
                        decision: String,
@@ -312,7 +312,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
                          name = "synchronous",
                          description = "If true, the endpoint will block until a new iteration has been finished that considers the added reference link.",
                          required = true,
-                         in = ParameterIn.PATH,
+                         in = ParameterIn.QUERY,
                          schema = new Schema(implementation = classOf[Boolean], required = false, defaultValue = "false")
                        )
                        synchronous: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
@@ -342,7 +342,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
                             name = "linkSource",
                             description = "The URI of the link source.",
                             required = true,
-                            in = ParameterIn.PATH,
+                            in = ParameterIn.QUERY,
                             schema = new Schema(implementation = classOf[String])
                           )
                           linkSource: String,
@@ -350,7 +350,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
                             name = "linkTarget",
                             description = "The URI of the link target.",
                             required = true,
-                            in = ParameterIn.PATH,
+                            in = ParameterIn.QUERY,
                             schema = new Schema(implementation = classOf[String])
                           )
                           linkTarget: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
