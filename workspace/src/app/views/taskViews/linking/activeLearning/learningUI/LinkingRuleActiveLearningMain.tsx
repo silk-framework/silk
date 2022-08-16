@@ -162,7 +162,7 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                 <Spacing hasDivider={true} />
                 <LinkingRuleActiveLearningFeedbackComponent />
                 <Spacing />
-                <LinkingRuleActiveLearningBestLearnedRule rule={bestRule} />
+                <LinkingRuleActiveLearningBestLearnedRule rule={bestRule} score={referenceLinks?.evaluationScore} />
                 <Spacing />
                 <LinkingRuleReferenceLinks
                     loading={referenceLinksLoading}

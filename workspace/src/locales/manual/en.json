@@ -791,7 +791,7 @@
             }
         },
         "bestLearnedRule": {
-            "title": "Top-performing learned rule ({{score}}%)",
+            "title": "Top-performing learned rule (Score: {{score}})",
             "noRule": "No rule has been learned yet. You need to confirm/decline at least three candidate links for a rule to be learned.",
             "hideRule": "Hide best learned rule",
             "showRule": "Show best learned rule"
