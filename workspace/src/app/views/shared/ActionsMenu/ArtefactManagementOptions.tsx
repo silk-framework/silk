@@ -11,7 +11,6 @@ import { downloadProject } from "../../../utils/downloadProject";
 import { DATA_TYPES } from "../../../constants";
 import { ItemDeleteModal } from "../modals/ItemDeleteModal";
 import CloneModal from "../modals/CloneModal";
-import { ProjectTaskTabView } from "../projectTaskTabView/ProjectTaskTabView";
 import { ActionsMenu, TActionsMenuItem, IActionsMenuProps } from "./ActionsMenu";
 import CopyToModal from "../modals/CopyToModal/CopyToModal";
 import ShowIdentifierModal from "../modals/ShowIdentifierModal";
@@ -36,7 +35,6 @@ export function ArtefactManagementOptions({
     const dispatch = useDispatch();
     const location = useLocation<any>();
     const [t] = useTranslation();
-    const [displayItemLink, setDisplayItemLink] = useState<IItemLink | null>(null);
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [cloneModalOpen, setCloneModalOpen] = useState(false);
     const [copyToModalOpen, setCopyToModalOpen] = useState<boolean>(false);
@@ -97,11 +95,6 @@ export function ArtefactManagementOptions({
 
     const handleCopyConfirmed = () => {
         toggleCopyToModal();
-    };
-
-    // handler for link change
-    const toggleItemLink = (linkItem: IItemLink | null = null) => {
-        setDisplayItemLink(linkItem);
     };
 
     const toggleShowIdentifierModal = () => {
@@ -166,15 +159,6 @@ export function ArtefactManagementOptions({
                 subitems: subitems,
             });
         }
-
-        // if (itemLinks && itemLinks.length > 0) {
-        //     itemLinks.forEach((itemLink) => {
-        //         fullMenu.push({
-        //             text: t("common.legacyGui." + itemLink.label, itemLink.label),
-        //             actionHandler: () => toggleItemLink(itemLink),
-        //         });
-        //     });
-        // }
 
         return fullMenu;
     };

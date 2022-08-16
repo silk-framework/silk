@@ -149,7 +149,6 @@ export function ProjectTaskTabView({
 
     // handler for link change. Triggers a tab change request. Actual change is done in useEffect.
     const changeTab = (tabItem: IItemLink | string) => {
-        console.log("view-links", viewsAndItemLink, tabItem);
         const tabRoute = viewsAndItemLink.find((itemView) => {
             if (typeof tabItem === "string") {
                 return itemView.id === tabItem;
@@ -158,8 +157,7 @@ export function ProjectTaskTabView({
             }
         });
         setTabRouteChangeRequest(tabRoute?.label);
-        //Todo should only happen on details page
-        // dispatch(history.push(calculateBookmark(tabRoute?.label ?? "", viewsAndItemLink)));
+        !startFullscreen && dispatch(history.replace(calculateBookmark(tabRoute?.label ?? "", viewsAndItemLink)));
     };
 
     const getInitialActiveLink = (itemLinks, taskViews) => {

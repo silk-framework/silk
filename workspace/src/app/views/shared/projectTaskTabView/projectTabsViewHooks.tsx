@@ -3,7 +3,6 @@ import { ProjectTaskTabView } from "./ProjectTaskTabView";
 import React, { useState } from "react";
 import { pluginRegistry } from "../../../views/plugins/PluginRegistry";
 import { MenuItem } from "@eccenca/gui-elements";
-import { useTranslation } from "react-i18next";
 import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
 
 interface IProps {
