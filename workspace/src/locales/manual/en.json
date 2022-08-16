@@ -798,6 +798,19 @@
         },
         "referenceLinks": {
             "title": "Decision history & reference links"
+        },
+        "saveDialog":{
+            "title": "Save reference links and/or best learned rule",
+            "saveReferenceLinks": {
+                "label": "Save reference links",
+                "noReferenceLinksMessage": "No unsaved reference links exist.",
+                "referenceLinksInfoMessage": "There are {{nr}} new, updated or deleted reference links that will be saved."
+            },
+            "bestLearnedRule": {
+                "label": "Save best learned rule",
+                "noBestLearnedRuleMessage": "No best learned rule exists so far."
+            },
+            "saveFailureMessage": "Saving the rule and/or the reference links has failed."
         }
     },
     "ReferenceLinks": {

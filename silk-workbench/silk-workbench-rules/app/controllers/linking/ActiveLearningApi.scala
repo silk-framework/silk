@@ -431,7 +431,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
     description = "Saves the result of the current active learning session.",
     responses = Array(
       new ApiResponse(
-        responseCode = "200",
+        responseCode = "204",
         description = "Success"
       ),
       new ApiResponse(
