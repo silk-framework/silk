@@ -89,21 +89,31 @@ object EntitySerializers {
     }
   }
 
-  class EntityJsonFormat(includeSchema: Boolean = true) extends JsonFormat[Entity] {
+  class EntityJsonFormat(includeSchema: Boolean = true, distinctValues: Boolean = false) extends JsonFormat[Entity] {
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Entity = {
       Entity(
         uri = stringValue(value, "uri"),
-        values = mustBeJsArray(requiredValue(value, "values"))(value => value.value.map(v => mustBeJsArray(v)(innerValue => innerValue.value.map(_.as[String])))),
+        values = mustBeJsArray(requiredValue(value, "values"))(value => value.value.map(v => {
+          var values = mustBeJsArray(v)(innerValue => innerValue.value.map(_.as[String]))
+          if(distinctValues) {
+            values = values.distinct
+          }
+          values
+        })),
         schema = EntitySchemaJsonFormat.read(requiredValue(value, "schema"))
       )
     }
 
     override def write(entity: Entity)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      var entityValues = entity.values
+      if(distinctValues) {
+        entityValues = entityValues.map(v => v.distinct)
+      }
       val entityJson =
         Json.obj(
           "uri" -> entity.uri.toString,
-          "values" -> entity.values.map(values => JsArray(values.map(JsString)))
+          "values" -> entityValues.map(vals => JsArray(vals.distinct.map(JsString)))
         )
 
       if(includeSchema) {

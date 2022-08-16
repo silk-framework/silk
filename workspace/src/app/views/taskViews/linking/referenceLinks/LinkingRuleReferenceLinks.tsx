@@ -38,6 +38,8 @@ interface LinkingRuleReferenceLinksProps {
     labelPaths?: LabelProperties;
     /** Remove a link from the list. */
     removeLink: (link: EntityLink) => any;
+    /** When defined an "open" icon exists that calls this function. */
+    openLink?: (link: EntityLink) => any;
 }
 
 type AnnotatedReferenceLink = IEntityLink & {
@@ -51,6 +53,7 @@ export const LinkingRuleReferenceLinks = ({
     referenceLinks,
     labelPaths,
     removeLink,
+    openLink,
 }: LinkingRuleReferenceLinksProps) => {
     const [showLinksList, setShowLinksList] = React.useState(false);
     const [showOnlyMismatches, setShowOnlyMismatches] = React.useState(false);
@@ -225,12 +228,12 @@ export const LinkingRuleReferenceLinks = ({
                                                                   disruptive={true}
                                                                   onClick={() => removeLink(entityLink)}
                                                               />
-                                                              <IconButton
-                                                                  name={"item-viewdetails"}
-                                                                  onClick={() => {
-                                                                      /** TODO: Load link into feedback component via callback */
-                                                                  }}
-                                                              />
+                                                              {openLink ? (
+                                                                  <IconButton
+                                                                      name={"item-viewdetails"}
+                                                                      onClick={() => openLink(entityLink)}
+                                                                  />
+                                                              ) : null}
                                                           </ToolbarSection>
                                                       </Toolbar>
                                                   </TableCell>

@@ -278,7 +278,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             <Grid columns={3} fullWidth={true}>
                 <ConfigHeader />
                 {(activeLearningContext.propertiesToCompare ?? []).map((selected) => (
-                    <SelectedPropertyPair pair={selected} />
+                    <SelectedPropertyPair key={selected.pairId} pair={selected} />
                 ))}
             </Grid>
         );

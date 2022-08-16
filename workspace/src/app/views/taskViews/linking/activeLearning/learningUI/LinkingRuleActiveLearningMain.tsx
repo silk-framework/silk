@@ -169,6 +169,7 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                     referenceLinks={referenceLinks}
                     labelPaths={activeLearningContext.labelPaths}
                     removeLink={(link) => updateReferenceLink(link, "unlabeled")}
+                    openLink={(link) => setSelectedEntityLink(link)}
                 />
                 {
                     // TODO: Check that reference links are saved
