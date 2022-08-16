@@ -126,8 +126,8 @@ object ComparisonPairGenerator {
         source = matchingPair.sourcePath(linkCandidate.sourceEntity),
         target = matchingPair.targetPath(linkCandidate.targetEntity),
         score = 0.0,
-        sourceExamples = Seq(matchingPair.normalizedSourceValue),
-        targetExamples = Seq(matchingPair.normalizedTargetValue)
+        sourceExamples = Set(matchingPair.normalizedSourceValue),
+        targetExamples = Set(matchingPair.normalizedTargetValue)
       )
       val updatedPair = pathScores.get(newPair.plain) match {
         case Some(existingPair) =>

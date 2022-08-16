@@ -53,8 +53,8 @@ case class PlainComparisonPair(source: TypedPath, target: TypedPath) extends Com
 case class ComparisonPairWithExamples(source: TypedPath,
                                       target: TypedPath,
                                       score: Double,
-                                      sourceExamples: Seq[String] = Seq.empty,
-                                      targetExamples: Seq[String] = Seq.empty) extends ComparisonPair {
+                                      sourceExamples: Set[String] = Set.empty,
+                                      targetExamples: Set[String] = Set.empty) extends ComparisonPair {
 
   def merge(other: ComparisonPairWithExamples, maximumExamples: Int = 3): ComparisonPairWithExamples = {
     ComparisonPairWithExamples(

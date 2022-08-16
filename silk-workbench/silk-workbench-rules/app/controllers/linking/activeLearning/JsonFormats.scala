@@ -34,9 +34,9 @@ object JsonFormats {
                                   @Schema(description = "The path from the second dataset.")
                                   target: TypedPathFormat,
                                   @Schema(description = "Example values for the source path.", required = false)
-                                  sourceExamples: Seq[String] = Seq.empty,
+                                  sourceExamples: Set[String] = Set.empty,
                                   @Schema(description = "Example values for the target path.", required = false)
-                                  targetExamples: Seq[String] = Seq.empty) {
+                                  targetExamples: Set[String] = Set.empty) {
     def toComparisonPair: ComparisonPair = {
       ComparisonPairWithExamples(source.toTypedPath, target.toTypedPath, 0.0, sourceExamples, targetExamples)
     }
