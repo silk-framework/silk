@@ -4,7 +4,7 @@ import com.typesafe.config.Config
 import org.silkframework.config.ConfigValue
 import org.silkframework.execution.ExecutionReport
 import org.silkframework.runtime.activity.ActivityExecutionResult
-import org.silkframework.runtime.plugin.{AnyPlugin, PluginRegistry}
+import org.silkframework.runtime.plugin.{AnyPlugin, PluginContext, PluginRegistry}
 import org.silkframework.util.Identifier
 
 import java.time.{Duration, Instant}
@@ -66,6 +66,7 @@ object ExecutionReportManager {
 
   private val instance: ConfigValue[ExecutionReportManager] = (config: Config) => {
     if (config.hasPath("workspace.reportManager")) {
+      implicit val pluginContext: PluginContext = PluginContext.empty
       val repository = PluginRegistry.createFromConfig[ExecutionReportManager]("workspace.reportManager")
       log.info("Using configured report manager " + config.getString("workspace.reportManager.plugin"))
       repository

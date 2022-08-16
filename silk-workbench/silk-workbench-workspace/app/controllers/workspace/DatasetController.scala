@@ -8,6 +8,7 @@ import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset.{Dataset, DatasetPluginAutoConfigurable, DatasetSpec}
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
 import org.silkframework.entity.EntitySchema
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.validation.BadUserInputException
 import org.silkframework.workbench.Context
@@ -32,8 +33,7 @@ class DatasetController @Inject() (implicit workspaceReact: WorkspaceReact) exte
     val project = WorkspaceFactory().workspace.project(projectName)
     val createDialog = project.taskOption[DatasetSpec[Dataset]](datasetName).isEmpty
     val dialogTitle = if(createDialog) "Create Dataset" else "Edit Dataset"
-    implicit val prefixes: Prefixes = project.config.prefixes
-    implicit val resources: ResourceManager = project.resources
+    implicit val context: PluginContext = PluginContext.fromProject(project)
     val datasetParams = request.queryString.mapValues(_.head)
     val datasetPlugin = Dataset.apply(pluginId, datasetParams)
     datasetPlugin match {

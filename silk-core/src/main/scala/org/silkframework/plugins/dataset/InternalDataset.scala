@@ -1,14 +1,13 @@
 package org.silkframework.plugins.dataset
 
 import java.net.{URI, URISyntaxException}
-
 import javax.inject.Inject
 import org.silkframework.config.{Config, DefaultConfig}
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlEndpoint}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 
 import scala.collection.mutable
 import scala.util.Try
@@ -76,6 +75,7 @@ object InternalDataset {
 
   def createInternalDataset(): Dataset = {
     // TODO: For non-in-memory datasets the graph must be handed over
+    implicit val pluginContext: PluginContext = PluginContext.empty
     PluginRegistry.createFromConfigOption[Dataset]("dataset.internal") match {
       case Some(dataset) =>
         dataset

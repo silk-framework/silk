@@ -38,9 +38,11 @@ class ExecuteTransform(task: Task[TransformSpec],
     val errorEntitySink = errorOutput(userContext)
 
     // Clear outputs before writing
+    context.status.updateMessage("Clearing output")
     entitySink.clear()
     errorEntitySink.foreach(_.clear())
 
+    context.status.updateMessage("Retrieving entities")
     try {
       for ((ruleSchemata, index) <- transform.ruleSchemata.zipWithIndex) {
         transformEntities(dataSource, ruleSchemata, entitySink, errorEntitySink, context)

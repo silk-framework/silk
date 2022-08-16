@@ -15,7 +15,6 @@
 package org.silkframework.runtime.plugin
 
 import org.silkframework.config.Prefixes
-import org.silkframework.runtime.resource.ResourceManager
 
 /**
  * Plugin interface.
@@ -39,7 +38,7 @@ trait AnyPlugin {
     *                          This can be a subset of all available properties.
     *                          Property values that are not part of the map remain unchanged.
     */
-  def withParameters(updatedProperties: Map[String, String])(implicit prefixes: Prefixes, resourceManager: ResourceManager): this.type = {
+  def withParameters(updatedProperties: Map[String, String])(implicit context: PluginContext): this.type = {
     val updatedParameters = parameters ++ updatedProperties
     pluginSpec.apply(updatedParameters, ignoreNonExistingParameters = false).asInstanceOf[this.type]
   }

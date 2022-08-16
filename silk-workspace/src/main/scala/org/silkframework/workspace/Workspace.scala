@@ -16,7 +16,7 @@ package org.silkframework.workspace
 
 import org.silkframework.config.{DefaultConfig, Prefixes}
 import org.silkframework.runtime.activity.{HasValue, UserContext}
-import org.silkframework.runtime.plugin.PluginRegistry
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.validation.{NotFoundException, ServiceUnavailableException}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.activity.{GlobalWorkspaceActivity, GlobalWorkspaceActivityFactory}
@@ -62,7 +62,7 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     var activities = List[GlobalWorkspaceActivity[_ <: HasValue]]()
     for(factory <- factories) {
       try {
-        activities ::= new GlobalWorkspaceActivity(factory()(Prefixes.empty))
+        activities ::= new GlobalWorkspaceActivity(factory()(PluginContext.empty))
       } catch {
         case NonFatal(ex) =>
           val errorMsg = s"Could not load workspace activity '$factory'."

@@ -26,7 +26,7 @@ object TaskApiUtils {
     } catch {
       case NonFatal(ex) =>
         log.warning(s"Could not get labels of plugin parameters for task '${task.label()}' in project '$projectName'. Details: " + ex.getMessage)
-        JsObject(parameterValues)
+        JsObject(parameterValues.mapValues(value => JsObject(Seq("value" -> value))))
     }
   }
 

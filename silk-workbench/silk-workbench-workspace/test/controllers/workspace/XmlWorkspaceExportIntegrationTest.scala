@@ -6,6 +6,7 @@ import org.scalatest.FlatSpec
   * Tests the workspace and project export features.
   */
 class XmlWorkspaceExportIntegrationTest extends FlatSpec with ExportIntegrationTestTrait {
+
   behavior of "XML workspace export"
 
   it should "export project with broken workspace provider" in {

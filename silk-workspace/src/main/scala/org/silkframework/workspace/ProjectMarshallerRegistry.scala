@@ -1,8 +1,6 @@
 package org.silkframework.workspace
 
-import org.silkframework.config.Prefixes
-import org.silkframework.runtime.plugin.PluginRegistry
-import org.silkframework.runtime.resource.EmptyResourceManager
+import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 
 /**
   * Holds all available project marshallers.
@@ -14,8 +12,7 @@ object ProjectMarshallerRegistry {
     * Retrieves all available marshalling plugins.
     */
   def marshallingPlugins: Seq[ProjectMarshallingTrait] = {
-    implicit val prefixes = Prefixes.empty
-    implicit val resources = EmptyResourceManager()
+    implicit val pluginContext: PluginContext = PluginContext.empty
     val pluginConfigs = PluginRegistry.availablePluginsForClass(classOf[ProjectMarshallingTrait])
     pluginConfigs.map(pc =>
       PluginRegistry.create[ProjectMarshallingTrait](pc.id)

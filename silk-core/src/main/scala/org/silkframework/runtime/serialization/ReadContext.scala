@@ -1,8 +1,10 @@
 package org.silkframework.runtime.serialization
 
 import org.silkframework.config.Prefixes
+import org.silkframework.runtime.activity.UserContext
+import org.silkframework.runtime.plugin.PluginContext
 import org.silkframework.runtime.resource.{EmptyResourceManager, ResourceManager}
-import org.silkframework.util.IdentifierGenerator
+import org.silkframework.util.{Identifier, IdentifierGenerator}
 
 /** Holds context information when deserializing data.
   *
@@ -16,4 +18,6 @@ import org.silkframework.util.IdentifierGenerator
 case class ReadContext(resources: ResourceManager = EmptyResourceManager(),
                        prefixes: Prefixes = Prefixes.empty,
                        identifierGenerator: IdentifierGenerator = new IdentifierGenerator(),
-                       validationEnabled: Boolean = false)
+                       validationEnabled: Boolean = false,
+                       user: UserContext = UserContext.Empty,
+                       projectId: Option[Identifier] = None) extends PluginContext
