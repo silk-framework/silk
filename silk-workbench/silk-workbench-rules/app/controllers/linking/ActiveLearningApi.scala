@@ -3,7 +3,7 @@ package controllers.linking
 import akka.stream.Materializer
 import controllers.core.UserContextActions
 import controllers.core.util.JsonUtils
-import controllers.linking.activeLearning.ActiveLearningIterator
+import controllers.linking.activeLearning.{ActiveLearningIterator, ReferenceLinksStatistics}
 import controllers.linking.activeLearning.JsonFormats._
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
@@ -205,12 +205,12 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
                      withEntitiesAndSchema: Boolean): Action[AnyContent] = RequestUserContextAction { request =>
     implicit userContext =>
       val context = Context.get[LinkSpec](projectId, taskId, request.path)
-      val activeLearning = context.task.activity[ActiveLearning]
+      val activeLearning = context.task.activity[ActiveLearning].value()
 
-      val links = activeLearning.value().referenceData.referenceLinks
+      val links = activeLearning.referenceData.referenceLinks
 
       val bestRule = {
-        val population = activeLearning.value().population
+        val population = activeLearning.population
         if(population.isEmpty) {
           LinkageRule()
         } else {
@@ -218,8 +218,11 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
         }
       }
 
+      val statistics = ReferenceLinksStatistics.compute(context.task.referenceLinks, links)
+
       val result =
         Json.obj(
+          "statistics" -> Json.toJson(statistics),
           "links" -> serializeLinks(links, bestRule, withEntitiesAndSchema)
         )
 
