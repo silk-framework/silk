@@ -13,7 +13,10 @@ import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
   */
 object LinkingSerializers {
 
-  class LinkJsonFormat(rule: Option[LinkageRule], writeEntities: Boolean = false, writeEntitySchema: Boolean = false) extends JsonFormat[Link] {
+  class LinkJsonFormat(rule: Option[LinkageRule],
+                       writeEntities: Boolean = false,
+                       writeEntitySchema: Boolean = false,
+                       distinctValues: Boolean = false) extends JsonFormat[Link] {
     import LinkJsonFormat._
 
     final val SOURCE = "source"
@@ -21,7 +24,7 @@ object LinkingSerializers {
     final val CONFIDENCE = "confidence"
     final val ENTITIES = "entities"
 
-    private val entityPairFormat = new PairJsonFormat()(new EntityJsonFormat(includeSchema = writeEntitySchema))
+    private val entityPairFormat = new PairJsonFormat()(new EntityJsonFormat(includeSchema = writeEntitySchema, distinctValues))
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Link = {
       Link(
@@ -53,7 +56,7 @@ object LinkingSerializers {
     }
   }
 
-  implicit object LinkJsonFormat extends LinkJsonFormat(None, writeEntities = false, writeEntitySchema = false) {
+  implicit object LinkJsonFormat extends LinkJsonFormat(None, writeEntities = false, writeEntitySchema = false, distinctValues = false) {
     final val RULE_VALUES = "ruleValues"
   }
 

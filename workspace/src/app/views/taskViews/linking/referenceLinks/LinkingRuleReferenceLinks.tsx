@@ -23,8 +23,8 @@ import {
 import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { IEntityLink, ReferenceLinks } from "../linking.types";
-import { EntityLink, LabelProperties } from "./LinkingRuleReferenceLinks.typing";
+import { IEntityLink } from "../linking.types";
+import { EntityLink, LabelProperties, ReferenceLinksOrdered } from "./LinkingRuleReferenceLinks.typing";
 import referenceLinksUtils from "./LinkingRuleReferenceLinks.utils";
 import { ActiveLearningDecisions } from "../activeLearning/LinkingRuleActiveLearning.typings";
 import "./LinkingRuleReferenceLinks.scss";
@@ -33,11 +33,13 @@ interface LinkingRuleReferenceLinksProps {
     /** If the reference links are being updated/loaded from the backend. */
     loading?: boolean;
     /** Reference links to display. */
-    referenceLinks?: ReferenceLinks;
+    referenceLinks?: ReferenceLinksOrdered;
     /** The paths whose values should be displayed as entity labels. If missing the first value is shown.of each entity. */
     labelPaths?: LabelProperties;
     /** Remove a link from the list. */
     removeLink: (link: EntityLink) => any;
+    /** When defined an "open" icon exists that calls this function. */
+    openLink?: (link: EntityLink) => any;
 }
 
 type AnnotatedReferenceLink = IEntityLink & {
@@ -51,6 +53,7 @@ export const LinkingRuleReferenceLinks = ({
     referenceLinks,
     labelPaths,
     removeLink,
+    openLink,
 }: LinkingRuleReferenceLinksProps) => {
     const [showLinksList, setShowLinksList] = React.useState(false);
     const [showOnlyMismatches, setShowOnlyMismatches] = React.useState(false);
@@ -68,23 +71,16 @@ export const LinkingRuleReferenceLinks = ({
     );
     const { t } = useTranslation();
     const misMatches = (referenceLinksFiltered ?? []).filter((link) => link.misMatch).length;
+    const positiveLinks = (referenceLinks?.links ?? []).filter((l) => l.decision === "positive").length;
+    const negativeLinks = (referenceLinks?.links ?? []).filter((l) => l.decision === "negative").length;
 
     // Annotate and filter reference links
     React.useEffect(() => {
-        const positiveAnnotatedLinks: AnnotatedReferenceLink[] = (referenceLinks?.positive ?? []).map((l) => ({
+        const referenceLinksAnnotated: AnnotatedReferenceLink[] = (referenceLinks?.links ?? []).map((l) => ({
             ...l,
-            type: "positive",
+            type: l.decision ?? "unlabeled",
             misMatch: l.confidence ? l.confidence < 0 : false,
         }));
-        const negativeAnnotatedLinks: AnnotatedReferenceLink[] = (referenceLinks?.negative ?? []).map((l) => ({
-            ...l,
-            type: "negative",
-            misMatch: l.confidence ? l.confidence >= 0 : false,
-        }));
-        const referenceLinksAnnotated: AnnotatedReferenceLink[] = [
-            ...positiveAnnotatedLinks,
-            ...negativeAnnotatedLinks,
-        ];
         setReferenceLinksFiltered(
             referenceLinksAnnotated.filter((link) => {
                 const typeFiltered = !(
@@ -121,22 +117,24 @@ export const LinkingRuleReferenceLinks = ({
                             <Button
                                 data-test-id={"reference-links-show-confirmed-links"}
                                 elevated={showConfirmedOnly}
+                                disabled={!showConfirmedOnly && positiveLinks <= 0}
                                 onClick={() => {
                                     setShowConfirmedOnly(!showConfirmedOnly);
                                     setShowDeclinedOnly(false);
                                 }}
                             >
-                                Confirmed only ({referenceLinks?.positive.length ?? "-"})
+                                Confirmed only ({positiveLinks.toString() ?? "-"})
                             </Button>
                             <Button
                                 data-test-id={"reference-links-show-declined-links"}
                                 elevated={showDeclinedOnly}
+                                disabled={!showDeclinedOnly && negativeLinks <= 0}
                                 onClick={() => {
                                     setShowDeclinedOnly(!showDeclinedOnly);
                                     setShowConfirmedOnly(false);
                                 }}
                             >
-                                Declined only ({referenceLinks?.negative.length ?? "-"})
+                                Declined only ({negativeLinks.toString() ?? "-"})
                             </Button>
                             <Spacing vertical={true} />
                         </>
@@ -151,6 +149,7 @@ export const LinkingRuleReferenceLinks = ({
                     <Button
                         data-test-id={"reference-links-show-uncertain-links"}
                         elevated={showUncertainLinks}
+                        disabled={true /** TODO: Display unlabeled links?? */}
                         onClick={() => setShowUncertainLinks(!showUncertainLinks)}
                     >
                         Uncertain
@@ -158,6 +157,7 @@ export const LinkingRuleReferenceLinks = ({
                     <Spacing vertical={true} />
                     <Checkbox
                         data-test-id={"reference-links-show-mismatches"}
+                        disabled={misMatches <= 0}
                         checked={showOnlyMismatches}
                         onChange={() => setShowOnlyMismatches((prev) => !prev)}
                         style={{ verticalAlign: "center" }}
@@ -228,12 +228,12 @@ export const LinkingRuleReferenceLinks = ({
                                                                   disruptive={true}
                                                                   onClick={() => removeLink(entityLink)}
                                                               />
-                                                              <IconButton
-                                                                  name={"item-viewdetails"}
-                                                                  onClick={() => {
-                                                                      /** TODO: Load link into feedback component via callback */
-                                                                  }}
-                                                              />
+                                                              {openLink ? (
+                                                                  <IconButton
+                                                                      name={"item-viewdetails"}
+                                                                      onClick={() => openLink(entityLink)}
+                                                                  />
+                                                              ) : null}
                                                           </ToolbarSection>
                                                       </Toolbar>
                                                   </TableCell>

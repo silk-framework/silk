@@ -1,7 +1,12 @@
 import { IEntity } from "../../shared/rules/rule.typings";
+import { IEntityLink } from "../linking.types";
 
 /** The type of a reference link. */
 export type LinkType = "positive" | "negative" | "unlabeled";
+
+export interface ReferenceLinksOrdered {
+    links: IEntityLink[];
+}
 
 /** A entity pair that are part of the reference links or can be added to them. */
 export interface EntityLink {

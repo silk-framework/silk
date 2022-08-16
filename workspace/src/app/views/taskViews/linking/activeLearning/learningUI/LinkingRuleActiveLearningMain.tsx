@@ -2,7 +2,7 @@ import React from "react";
 import { Button, IActivityStatus, Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 import { LinkingRuleActiveLearningFeedbackComponent } from "./LinkingRuleActiveLearningFeedbackComponent";
-import { EntityLink } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
+import { EntityLink, ReferenceLinksOrdered } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
 import { LinkingRuleActiveLearningFeedbackContext } from "../contexts/LinkingRuleActiveLearningFeedbackContext";
 import { LinkingRuleActiveLearningBestLearnedRule } from "./LinkingRuleActiveLearningBestLearnedRule";
 import { LinkingRuleReferenceLinks } from "../../referenceLinks/LinkingRuleReferenceLinks";
@@ -14,13 +14,14 @@ import {
 } from "../LinkingRuleActiveLearning.requests";
 import referenceLinksUtils from "../../referenceLinks/LinkingRuleReferenceLinks.utils";
 import { ActiveLearningDecisions } from "../LinkingRuleActiveLearning.typings";
-import { ILinkingRule, OptionallyLabelledParameter, ReferenceLinks } from "../../linking.types";
+import { ILinkingRule, OptionallyLabelledParameter } from "../../linking.types";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { activityQueryString } from "../../../../shared/TaskActivityOverview/taskActivityUtils";
 import { connectWebSocket } from "../../../../../services/websocketUtils";
 import { legacyApiEndpoint } from "../../../../../utils/getApiEndpoint";
 import { activeLearningActivities } from "../LinkingRuleActiveLearning";
+import { LinkingRuleActiveLearningSaveModal } from "./LinkingRuleActiveLearningSaveModal";
 
 interface LinkingRuleActiveLearningMainProps {
     projectId: string;
@@ -38,9 +39,10 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
     /** The currently selected entity, either an unlabeled link or an existing reference link. */
     const [selectedEntityLink, setSelectedEntityLink] = React.useState<EntityLink | undefined>(undefined);
     /** The list of reference links. */
-    const [referenceLinks, setReferenceLinks] = React.useState<ReferenceLinks | undefined>(undefined);
+    const [referenceLinks, setReferenceLinks] = React.useState<ReferenceLinksOrdered | undefined>(undefined);
     const [referenceLinksLoading, setReferenceLinksLoading] = React.useState(false);
     const [bestRule, setBestRule] = React.useState<OptionallyLabelledParameter<ILinkingRule> | undefined>(undefined);
+    const [showSaveDialog, setShowSaveDialog] = React.useState(false);
     const { registerError } = useErrorHandler();
 
     React.useEffect(() => {
@@ -121,7 +123,7 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
     };
 
     const onSaveClick = () => {
-        // TODO: Open save dialog
+        setShowSaveDialog(true);
     };
 
     // TODO: i18n
@@ -136,8 +138,8 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                     <Button
                         title={"Save link rule and/or newly added reference links."}
                         affirmative={true}
-                        // Disable if no link rule has been learned and no reference link was added
-                        disabled={false}
+                        // TODO: Disable if no reference link was added
+                        disabled={!bestRule}
                         onClick={onSaveClick}
                     >
                         Save
@@ -167,7 +169,18 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                     referenceLinks={referenceLinks}
                     labelPaths={activeLearningContext.labelPaths}
                     removeLink={(link) => updateReferenceLink(link, "unlabeled")}
+                    openLink={(link) => setSelectedEntityLink(link)}
                 />
+                {
+                    // TODO: Check that reference links are saved
+                    showSaveDialog ? (
+                        <LinkingRuleActiveLearningSaveModal
+                            unsavedBestRule={!!bestRule}
+                            unsavedReferenceLinks={1 /** TODO: Put real number*/}
+                            onClose={() => setShowSaveDialog(false)}
+                        />
+                    ) : null
+                }
             </div>
         </LinkingRuleActiveLearningFeedbackContext.Provider>
     );

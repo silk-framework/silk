@@ -223,7 +223,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
       val result =
         Json.obj(
           "statistics" -> Json.toJson(statistics),
-          "links" -> serializeLinks(links, bestRule, withEntitiesAndSchema)
+          "links" -> serializeLinks(links, bestRule, withEntitiesAndSchema, distinctValues = true)
         )
 
       Ok(result)
@@ -231,13 +231,15 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
 
   private def serializeLinks(links: Seq[ReferenceLink],
                              linkageRule: LinkageRule,
-                             withEntitiesAndSchema: Boolean): JsValue = {
+                             withEntitiesAndSchema: Boolean,
+                             distinctValues: Boolean): JsValue = {
     implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
     JsArray(
       for (link <- links) yield {
         val entities = link.linkEntities
         val fullLink = new FullLink(entities.source.uri, entities.target.uri, linkageRule(entities), entities)
-        val linkJson = new LinkJsonFormat(Some(linkageRule), writeEntities = withEntitiesAndSchema, writeEntitySchema = withEntitiesAndSchema).write(fullLink)
+        val linkJson = new LinkJsonFormat(Some(linkageRule), writeEntities = withEntitiesAndSchema,
+          writeEntitySchema = withEntitiesAndSchema, distinctValues).write(fullLink)
         linkJson + ("decision" -> JsString(link.decision.getId))
       }
     )
@@ -383,7 +385,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
     val linkCandidate = ActiveLearningIterator.nextLinkCandidate(context.task)
 
     implicit val writeContext = WriteContext[JsValue]()
-    val format = new LinkJsonFormat(rule = None, writeEntities = true, writeEntitySchema = true)
+    val format = new LinkJsonFormat(rule = None, writeEntities = true, writeEntitySchema = true, distinctValues = true)
     Ok(format.write(linkCandidate))
   }
 
@@ -434,7 +436,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
     description = "Saves the result of the current active learning session.",
     responses = Array(
       new ApiResponse(
-        responseCode = "200",
+        responseCode = "204",
         description = "Success"
       ),
       new ApiResponse(

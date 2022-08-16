@@ -212,6 +212,7 @@ const SelectedEntityLink = ({
             <EntityComparisonHeader sourceTitle={sourceEntityLabel} targetTitle={targetEntityLabel} />
             {(valuesToDisplay ?? []).map((selected, idx) => (
                 <EntitiesPropertyPair
+                    key={idx}
                     propertyPair={propertyPairs[idx]}
                     selectedForLabel={labelPropertyPairIds.has(propertyPairs[idx].pairId)}
                     toggleLabelSelection={() => toggleLabelPropertyPair(propertyPairs[idx].pairId)}

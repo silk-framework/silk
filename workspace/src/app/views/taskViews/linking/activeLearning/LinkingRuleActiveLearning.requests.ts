@@ -3,6 +3,7 @@ import fetch from "../../../../services/fetch";
 import { legacyLinkingEndpoint } from "../../../../utils/getApiEndpoint";
 import { ActiveLearningDecisions, ComparisonPair, ComparisonPairs } from "./LinkingRuleActiveLearning.typings";
 import { IEntityLink, ILinkingRule, OptionallyLabelledParameter, ReferenceLinks } from "../linking.types";
+import { ReferenceLinksOrdered } from "../referenceLinks/LinkingRuleReferenceLinks.typing";
 
 /** Get the comparison pair configuration for the active learning session.
  *
@@ -70,7 +71,7 @@ export const bestLearnedLinkageRule = (
 export const fetchActiveLearningReferenceLinks = (
     projectId: string,
     linkingTaskId: string
-): Promise<FetchResponse<ReferenceLinks>> => {
+): Promise<FetchResponse<ReferenceLinksOrdered>> => {
     return fetch({
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/activeLearning/referenceLinks`),
         query: {
@@ -94,6 +95,23 @@ export const submitActiveLearningReferenceLink = (
             linkSource: sourceUri,
             linkTarget: targetUri,
             decision: decision,
+        },
+    });
+};
+
+/** Save the current active learning state. */
+export const saveActiveLearningResults = (
+    projectId: string,
+    linkingTaskId: string,
+    saveRule: boolean,
+    saveReferenceLinks: boolean
+): Promise<FetchResponse<void>> => {
+    return fetch({
+        url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/activeLearning/saveResult`),
+        method: "POST",
+        query: {
+            saveRule,
+            saveReferenceLinks,
         },
     });
 };
