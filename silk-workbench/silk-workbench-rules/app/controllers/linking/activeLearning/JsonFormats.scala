@@ -1,7 +1,7 @@
 package controllers.linking.activeLearning
 
 import controllers.core.util.JsonUtils
-import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.entity.ValueType
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.learning.active.comparisons.{ComparisonPair, ComparisonPairWithExamples, ComparisonPairs, PlainComparisonPair}
@@ -33,12 +33,14 @@ object JsonFormats {
                                   source: TypedPathFormat,
                                   @Schema(description = "The path from the second dataset.")
                                   target: TypedPathFormat,
-                                  @Schema(description = "Example values for the source path.", required = false)
-                                  sourceExamples: Set[String] = Set.empty,
-                                  @Schema(description = "Example values for the target path.", required = false)
-                                  targetExamples: Set[String] = Set.empty) {
+                                  @ArraySchema(schema = new Schema(description = "Example values for the source path.",
+                                    implementation = classOf[String], required = false, nullable = true))
+                                  sourceExamples: Option[Set[String]] = None,
+                                  @ArraySchema(schema = new Schema(description = "Example values for the target path.",
+                                    implementation = classOf[String], required = false, nullable = true))
+                                  targetExamples: Option[Set[String]] = None) {
     def toComparisonPair: ComparisonPair = {
-      ComparisonPairWithExamples(source.toTypedPath, target.toTypedPath, 0.0, sourceExamples, targetExamples)
+      ComparisonPairWithExamples(source.toTypedPath, target.toTypedPath, 0.0, sourceExamples.getOrElse(Set.empty), targetExamples.getOrElse(Set.empty))
     }
   }
 
@@ -46,9 +48,9 @@ object JsonFormats {
     def apply(pair: ComparisonPair): ComparisonPairFormat = {
       pair match {
         case PlainComparisonPair(source, target) =>
-          ComparisonPairFormat(TypedPathFormat(source), TypedPathFormat(target))
+          ComparisonPairFormat(TypedPathFormat(source), TypedPathFormat(target), None, None)
         case ComparisonPairWithExamples(source, target, score, sourceExamples, targetExamples) =>
-          ComparisonPairFormat(TypedPathFormat(source), TypedPathFormat(target), sourceExamples, targetExamples)
+          ComparisonPairFormat(TypedPathFormat(source), TypedPathFormat(target), Some(sourceExamples), Some(targetExamples))
       }
     }
   }
