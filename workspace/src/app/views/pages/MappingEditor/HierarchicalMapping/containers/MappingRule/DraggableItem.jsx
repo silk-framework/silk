@@ -43,17 +43,19 @@ class DraggableItem extends React.Component {
         }
     }
 
-    updateQueryOnExpansion() {
+    updateHistory = (ruleId) => {
         const history = getHistory();
+        history.replace({
+            search: `?${new URLSearchParams({ ruleId })}`,
+        });
+    };
+
+    updateQueryOnExpansion() {
         if (this.state.expanded) {
-            history.push({
-                search: `?${new URLSearchParams({ ruleId: this.props.id })}`,
-            });
+            this.updateHistory(this.props.id);
             this.props.scrollIntoView();
         } else {
-            history.push({
-                search: "",
-            });
+            this.updateHistory("");
         }
     }
 
@@ -91,6 +93,7 @@ class DraggableItem extends React.Component {
                         onExpand={this.handleExpand}
                         refFromParent={this.expandedRuleRef}
                         onOrderRules={this.props.onOrderRules}
+                        updateHistory={this.updateHistory}
                         {...this.props}
                     />
                 )}

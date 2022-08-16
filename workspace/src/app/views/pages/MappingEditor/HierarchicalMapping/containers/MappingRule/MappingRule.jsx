@@ -113,6 +113,7 @@ export class MappingRule extends React.Component {
     // jumps to selected rule as new center of view
     handleNavigate(id, parent, event) {
         this.props.onRuleIdChange({ newRuleId: id, parentId: parent });
+        this.props.updateHistory(id);
         event.stopPropagation();
     }
 

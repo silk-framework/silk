@@ -15,10 +15,7 @@ import DiscardChangesDialog from "./elements/DiscardChangesDialog";
 import EventEmitter from "./utils/EventEmitter";
 import { withHistoryHOC } from "./utils/withHistoryHOC";
 import MappingEditorModal from "./MappingEditorModal";
-import { Provider } from "react-redux";
-import configStore from "../../../../store/configureStore";
 
-const store = configStore();
 class HierarchicalMapping extends React.Component {
     // define property types
     static propTypes = {
@@ -214,7 +211,6 @@ class HierarchicalMapping extends React.Component {
     };
 
     handleOpenMappingEditorModal = (currentRuleId) => {
-        console.log("This is at least being clicked");
         this.setState({ showMappingEditor: true, currentRuleId });
     };
 

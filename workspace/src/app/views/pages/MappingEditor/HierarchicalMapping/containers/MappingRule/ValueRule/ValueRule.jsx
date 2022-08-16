@@ -61,7 +61,6 @@ class ValueRule extends React.Component {
     }
 
     handleComplexEdit(event) {
-        console.log("rule-id", this.props.id);
         this.props.openMappingEditor(this.props.id);
     }
 

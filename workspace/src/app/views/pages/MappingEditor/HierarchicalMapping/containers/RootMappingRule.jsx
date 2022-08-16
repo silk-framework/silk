@@ -82,12 +82,12 @@ class RootMappingRule extends React.Component {
     updateQueryOnExpansion() {
         const history = getHistory();
         if (this.state.expanded) {
-            history.push({
+            history.replace({
                 search: `?${new URLSearchParams({ ruleId: this.props.rule.id })}`,
             });
             this.expandedRuleRef.current?.scrollIntoView({ behavior: "smooth" });
         } else {
-            history.push({
+            history.replace({
                 search: "",
             });
         }
