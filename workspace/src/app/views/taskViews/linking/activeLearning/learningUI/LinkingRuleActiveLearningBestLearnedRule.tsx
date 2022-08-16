@@ -13,20 +13,25 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 import { LinkingRuleEditor, LinkingRuleEditorOptionalContext } from "../../LinkingRuleEditor";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
-import { ILinkingRule, OptionallyLabelledParameter } from "../../linking.types";
+import { IEvaluatedReferenceLinksScore, ILinkingRule, OptionallyLabelledParameter } from "../../linking.types";
 
 interface LinkingRuleActiveLearningBestLearnedRuleProps {
     rule?: OptionallyLabelledParameter<ILinkingRule>;
+    score?: IEvaluatedReferenceLinksScore;
 }
 
 /**
  * Shows information about the currently best learned linking rule.
  * Shows rule visually when expanded.
  */
-export const LinkingRuleActiveLearningBestLearnedRule = ({ rule }: LinkingRuleActiveLearningBestLearnedRuleProps) => {
+export const LinkingRuleActiveLearningBestLearnedRule = ({
+    rule,
+    score,
+}: LinkingRuleActiveLearningBestLearnedRuleProps) => {
     const [displayVisualRule, setDisplayVisualRule] = React.useState(false);
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
     const { t } = useTranslation();
+    const scoreString = score?.fMeasure ?? "-";
     const BestLearnedRule = () => {
         return (
             <OverviewItem
@@ -37,7 +42,7 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({ rule }: LinkingRuleAc
             >
                 <OverviewItemDescription>
                     <OverviewItemLine large>
-                        <h1>{t("ActiveLearning.bestLearnedRule.title", { score: "TODO: Insert score in percent" })}</h1>
+                        <h1>{t("ActiveLearning.bestLearnedRule.title", { score: scoreString })}</h1>
                     </OverviewItemLine>
                     <OverviewItemLine>{rule ? "Show rule details" : "No rule learned, yet."}</OverviewItemLine>
                 </OverviewItemDescription>

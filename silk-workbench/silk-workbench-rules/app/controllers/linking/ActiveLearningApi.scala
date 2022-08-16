@@ -5,6 +5,8 @@ import controllers.core.UserContextActions
 import controllers.core.util.JsonUtils
 import controllers.linking.activeLearning.{ActiveLearningIterator, ReferenceLinksStatistics}
 import controllers.linking.activeLearning.JsonFormats._
+import controllers.linking.evaluation.LinkageRuleEvaluationResult
+import controllers.linking.linkingTask.LinkingTaskApiUtils
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
@@ -209,22 +211,29 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
 
       val links = activeLearning.referenceData.referenceLinks
 
-      val bestRule = {
+      val (bestRule, evaluationScore): (LinkageRule, Option[LinkageRuleEvaluationResult]) = {
         val population = activeLearning.population
         if(population.isEmpty) {
-          LinkageRule()
+          (LinkageRule(), None)
         } else {
-          population.bestIndividual.node.build
+          val bestRule = population.bestIndividual.node.build
+          val evaluationResult: LinkageRuleEvaluationResult = LinkingTaskApiUtils.referenceLinkEvaluationScore(bestRule, links)
+          (bestRule, Some(evaluationResult))
         }
       }
 
       val statistics = ReferenceLinksStatistics.compute(context.task.referenceLinks, links)
 
-      val result =
+      var result =
         Json.obj(
           "statistics" -> Json.toJson(statistics),
           "links" -> serializeLinks(links, bestRule, withEntitiesAndSchema, distinctValues = true)
         )
+      evaluationScore.foreach(score => {
+        result = result ++ Json.obj(
+          "evaluationScore" -> Json.toJson(score)
+        )
+      })
 
       Ok(result)
   }

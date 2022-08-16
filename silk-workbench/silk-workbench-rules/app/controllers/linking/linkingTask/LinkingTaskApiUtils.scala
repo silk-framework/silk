@@ -1,10 +1,13 @@
 package controllers.linking.linkingTask
 
+import controllers.linking.evaluation.LinkageRuleEvaluationResult
 import controllers.workspace.taskApi.TaskApiUtils
+import org.silkframework.entity.ReferenceLink
 import org.silkframework.plugins.path.PathMetaDataPlugin
-import org.silkframework.rule.LinkSpec
+import org.silkframework.rule.evaluation.{EvaluationResult, LinkageRuleEvaluator, ReferenceEntities}
 import org.silkframework.rule.input.Transformer
 import org.silkframework.rule.similarity.{Aggregator, DistanceMeasure}
+import org.silkframework.rule.{LinkSpec, LinkageRule}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.serialization.WriteContext
@@ -143,5 +146,22 @@ object LinkingTaskApiUtils {
       val pathMetaDataPlugin = plugin.apply()(PluginContext.empty)
       (pathMetaDataPlugin.sourcePluginClass, pathMetaDataPlugin)
     }).toMap
+  }
+
+  /** Score of reference links for a given linking rule. */
+  def referenceLinkEvaluationScore(linkageRule: LinkageRule, referenceEntityCacheValue: ReferenceEntities): LinkageRuleEvaluationResult = {
+    val score = LinkageRuleEvaluator(linkageRule, referenceEntityCacheValue)
+    linkRuleEvaluationResult(score)
+  }
+
+  /** Score of reference links for a given linking rule. */
+  def referenceLinkEvaluationScore(linkageRule: LinkageRule, referenceLinks: Seq[ReferenceLink], threshold: Double = 0.0): LinkageRuleEvaluationResult = {
+    val score = LinkageRuleEvaluator(linkageRule, referenceLinks, threshold)
+    linkRuleEvaluationResult(score)
+  }
+
+  private def linkRuleEvaluationResult(evaluationResult: EvaluationResult): LinkageRuleEvaluationResult = {
+    LinkageRuleEvaluationResult(evaluationResult.truePositives, evaluationResult.trueNegatives, evaluationResult.falsePositives, evaluationResult.falseNegatives,
+      f"${evaluationResult.fMeasure}%.2f", f"${evaluationResult.precision}%.2f", f"${evaluationResult.recall}%.2f")
   }
 }
