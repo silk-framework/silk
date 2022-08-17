@@ -14,7 +14,6 @@
 
 package org.silkframework.learning.active
 
-import org.silkframework.entity.LinkWithEntities
 import org.silkframework.learning.active.comparisons.ComparisonPairGenerator
 import org.silkframework.learning.active.linkselector.WeightedLinkageRule
 import org.silkframework.learning.cleaning.CleanPopulationTask
@@ -58,9 +57,6 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
       context.value.updateWith(_.copy(links = Seq.empty, comparisonPaths = selectedPairs, referenceData = referenceData))
     }
 
-    // Update unlabeled pool
-    updateLinkCandidates(context)
-
     // Create linkage rule generator
     val generator = linkageRuleGenerator(context)
 
@@ -81,18 +77,6 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
     if(context.value().referenceData.positiveLinks.nonEmpty && context.value().referenceData.negativeLinks.nonEmpty) {
       cleanPopulation(generator, fitnessFunction, context)
     }
-  }
-
-  private def updateLinkCandidates(context: ActivityContext[ActiveLearningState]): Unit = {
-    // Assert that no reference links are in the pool
-    val referenceData = context.value().referenceData
-    var linkCandidates = referenceData.linkCandidates
-    val removeLinks = referenceData.referenceLinks.map(_.asInstanceOf[LinkWithEntities]).toSet
-    linkCandidates = linkCandidates.filterNot(removeLinks.contains)
-    if(linkCandidates.isEmpty) {
-      throw new LearningException("All available link candidates have been confirmed or declined.")
-    }
-    context.value.updateWith(data => data.copy(referenceData = data.referenceData.copy(linkCandidates = linkCandidates)))
   }
 
   private def linkageRuleGenerator(context: ActivityContext[ActiveLearningState])
@@ -147,6 +131,10 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
                          (implicit userContext: UserContext, random: Random): Unit = Timer("Selecting links") {
     if (!context.status().isInstanceOf[Canceling]) {
       context.status.update("Selecting evaluation links", 0.8)
+
+      if (context.value().referenceData.linkCandidates.isEmpty) {
+        throw new LearningException("All available link candidates have been confirmed or declined.")
+      }
 
       //TODO measure improvement of randomization
       val randomizedPopulation = context.child(new Randomize(context.value().population, fitnessFunction, generator, config, random.nextLong())).startBlockingAndGetValue()
