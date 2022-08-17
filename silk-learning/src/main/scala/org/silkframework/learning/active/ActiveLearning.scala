@@ -96,7 +96,7 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
                              (implicit userContext: UserContext, random: Random): Unit = Timer("Generating population") {
     var population = context.value().population
     if(population.isEmpty) {
-      context.status.update("Generating population", 0.5)
+      context.status.update("Generating population", 0.0)
       val seedRules = if(config.params.seed) linkSpec.rule :: Nil else Nil
       population = context.child(new GeneratePopulation(seedRules, generator, config, random.nextLong()), 0.3).startBlockingAndGetValue()
     }
@@ -108,7 +108,7 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
                                fitnessFunction: (LinkageRule => Double),
                                context: ActivityContext[ActiveLearningState])
                               (implicit userContext: UserContext, random: Random): Unit = Timer("Updating population") {
-    context.status.update("Reproducing", 0.6)
+    context.status.update("Reproducing", 0.1)
     val targetFitness = if(context.value().population.isEmpty) 1.0 else context.value().population.bestIndividual.fitness
     var population = context.value().population
     for(i <- 0 until config.params.maxIterations
@@ -119,7 +119,7 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
       if(i % config.params.cleanFrequency == 0) {
         population = context.child(new CleanPopulationTask(population, fitnessFunction, generator, random.nextLong())).startBlockingAndGetValue()
       }
-      context.status.updateProgress(0.6 + 0.2 / config.params.maxIterations, logStatus = false)
+      context.status.updateProgress(0.1 + 0.7 * i / config.params.maxIterations, logStatus = false)
     }
     context.value() = context.value().copy(population = population)
   }
