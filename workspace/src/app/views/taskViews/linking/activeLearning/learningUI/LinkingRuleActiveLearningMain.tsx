@@ -48,11 +48,11 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
     React.useEffect(() => {
         if (!selectedEntityLink) {
             loadUnlabeledLinkCandidate();
+            fetchReferenceLinks(projectId, linkingTaskId);
         }
     }, [selectedEntityLink]);
 
     React.useEffect(() => {
-        fetchReferenceLinks(projectId, linkingTaskId);
         const query = activityQueryString(projectId, linkingTaskId, activeLearningActivities.activeLearning);
         const cleanUp = connectWebSocket(
             legacyApiEndpoint(`/activities/updatesWebSocket${query}`),
