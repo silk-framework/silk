@@ -1,5 +1,5 @@
 import { IEntity, IEntitySchema } from "../../shared/rules/rule.typings";
-import { EntityLink, LinkType } from "./LinkingRuleReferenceLinks.typing";
+import { EntityLink } from "./LinkingRuleReferenceLinks.typing";
 import { IEntityLink } from "../linking.types";
 
 /** Chooses a specific property value based on the path index or optionally based on the given entity schema. */
@@ -39,13 +39,13 @@ const entityValuesConcatenated = (entity: IEntity, paths?: string[], separator: 
 };
 
 /** Convert the entity link format from the backend. */
-const toReferenceEntityLink = (entityLink: IEntityLink, label: LinkType = "unlabeled"): EntityLink | undefined => {
+const toReferenceEntityLink = (entityLink: IEntityLink): EntityLink | undefined => {
     return entityLink.entities
         ? {
               source: entityLink.entities.source,
               target: entityLink.entities.target,
               entityLinkId: `${entityLink.source} ${entityLink.target}`,
-              label: label,
+              decision: entityLink.decision ?? "unlabeled",
           }
         : undefined;
 };
