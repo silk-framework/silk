@@ -8,6 +8,8 @@ interface LinkingRuleActiveLearningFeedbackContextProps {
     /** Configured */
     /** The currently selected link. */
     selectedLink: EntityLink | undefined;
+    /** Cancel selected link. This only has an effect if a link was selected e.g. from the reference links. */
+    cancel: () => any;
     /** True while loading a link candidate. */
     loadingLinkCandidate: boolean;
 }
@@ -18,4 +20,5 @@ export const LinkingRuleActiveLearningFeedbackContext =
         updateReferenceLink() {},
         selectedLink: undefined,
         loadingLinkCandidate: false,
+        cancel: () => {},
     });

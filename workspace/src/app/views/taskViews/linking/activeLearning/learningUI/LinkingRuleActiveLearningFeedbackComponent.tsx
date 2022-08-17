@@ -99,6 +99,7 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
                     submitLink(activeLearningFeedbackContext.selectedLink, decision)
                 }
                 selectedDecision={activeLearningFeedbackContext.selectedLink?.decision}
+                cancel={activeLearningFeedbackContext.cancel}
             />
             <Spacing />
             {loading ? (
@@ -125,10 +126,12 @@ interface HeaderProps {
     submitLink: (decision: ActiveLearningDecisions) => Promise<void>;
     /** The currently selected decision. */
     selectedDecision?: ActiveLearningDecisions;
+    /** Cancel changing an existing link. */
+    cancel: () => any;
 }
 
 /** TODO: Clean up sub-components */
-const Header = ({ disabledButtons, submitLink, selectedDecision }: HeaderProps) => {
+const Header = ({ disabledButtons, submitLink, selectedDecision, cancel }: HeaderProps) => {
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
     const [t] = useTranslation();
 
@@ -147,15 +150,19 @@ const Header = ({ disabledButtons, submitLink, selectedDecision }: HeaderProps) 
                 >
                     {t("ActiveLearning.feedback.confirm")}
                 </Button>
-            </ToolbarSection>
-            <ToolbarSection>
+                {selectedDecision === "positive" || selectedDecision === "negative" ? (
+                    <>
+                        <Spacing vertical size={"large"} />
+                        <Button icon={"operation-clear"} tooltip={t("ActiveLearning.feedback.cancel")} onClick={cancel}>
+                            {t("common.action.cancel")}
+                        </Button>
+                    </>
+                ) : null}
                 <Spacing vertical size={"large"} />
                 <Button disabled={disabledButtons} title={"Uncertain"} onClick={() => submitLink("unlabeled")}>
                     {t("ActiveLearning.feedback.uncertain")}
                 </Button>
                 <Spacing vertical size={"large"} />
-            </ToolbarSection>
-            <ToolbarSection>
                 <Button
                     title={"Decline that the shown entities are a valid link."}
                     disabled={disabledButtons || selectedDecision === "negative"}
