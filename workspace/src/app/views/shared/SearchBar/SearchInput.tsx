@@ -43,5 +43,5 @@ const SearchInput = ({
     );
 };
 
-const areEqual = (p: ISearchInputProps, n: ISearchInputProps) => p.filterValue === n.filterValue;
+const areEqual = (p: ISearchInputProps, n: ISearchInputProps) => (p.filterValue === n.filterValue) && (p.emptySearchInputMessage === n.emptySearchInputMessage);
 export default memo<ISearchInputProps>(SearchInput, areEqual);
