@@ -22,11 +22,13 @@ case class ActiveLearningReferenceData(entitySchemata: DPair[EntitySchema],
   }
 
   def withPositiveLink(link: LinkWithEntities): ActiveLearningReferenceData = {
-    copy(referenceLinks = ReferenceLink(link, LinkDecision.POSITIVE) +: referenceLinks.filterNot(_ == link))
+    copy(linkCandidates = linkCandidates.filterNot(_ == link),
+         referenceLinks = ReferenceLink(link, LinkDecision.POSITIVE) +: referenceLinks.filterNot(_ == link))
   }
 
   def withNegativeLink(link: LinkWithEntities): ActiveLearningReferenceData = {
-    copy(referenceLinks = ReferenceLink(link, LinkDecision.NEGATIVE) +: referenceLinks.filterNot(_ == link))
+    copy(linkCandidates = linkCandidates.filterNot(_ == link),
+         referenceLinks = ReferenceLink(link, LinkDecision.NEGATIVE) +: referenceLinks.filterNot(_ == link))
   }
 
   def withoutLink(link: Link): ActiveLearningReferenceData = {
