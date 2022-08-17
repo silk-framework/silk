@@ -6,6 +6,7 @@ import {
     OverviewItemActions,
     OverviewItemDescription,
     OverviewItemLine,
+    Tooltip,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -29,7 +30,7 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
     const [displayVisualRule, setDisplayVisualRule] = React.useState(false);
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
     const { t } = useTranslation();
-    const scoreString = score?.fMeasure ?? "-";
+    const scoreString = (score?.fMeasure ?? "-").replaceAll(".00", ".0");
     const BestLearnedRule = () => {
         return (
             <OverviewItem
@@ -40,7 +41,11 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
             >
                 <OverviewItemDescription>
                     <OverviewItemLine large>
-                        <h1>{t("ActiveLearning.bestLearnedRule.title", { score: scoreString })}</h1>
+                        <h1>
+                            <Tooltip content={t("ActiveLearning.bestLearnedRule.titleTooltip")}>
+                                {t("ActiveLearning.bestLearnedRule.title", { score: scoreString })}
+                            </Tooltip>
+                        </h1>
                     </OverviewItemLine>
                     <OverviewItemLine>{rule ? "Show rule details" : "No rule learned, yet."}</OverviewItemLine>
                 </OverviewItemDescription>
@@ -50,9 +55,7 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
                             data-test-id={"open-best-learned-rule-btn"}
                             name={"item-viewdetails"}
                             text={t("ActiveLearning.bestLearnedRule.showRule")}
-                        >
-                            {t("common.action.show")}
-                        </IconButton>
+                        />
                     ) : null}
                 </OverviewItemActions>
             </OverviewItem>

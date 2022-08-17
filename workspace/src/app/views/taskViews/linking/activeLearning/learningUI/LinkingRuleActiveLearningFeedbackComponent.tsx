@@ -286,7 +286,7 @@ const EntityPropertyValues = ({ property, values }: { values: string[]; property
         <GridColumn style={columnStyles.mainColumnStyle}>
             <OverviewItem>
                 <OverviewItemDescription>
-                    <OverviewItemLine>{propertyLabel}</OverviewItemLine>
+                    <OverviewItemLine small>{propertyLabel}</OverviewItemLine>
                     {values.length > 0 ? (
                         <OverviewItemLine title={exampleTitle}>
                             {values.map((example) => {

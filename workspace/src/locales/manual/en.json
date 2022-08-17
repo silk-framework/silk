@@ -793,6 +793,7 @@
         },
         "bestLearnedRule": {
             "title": "Top-performing learned rule (Score: {{score}})",
+            "titleTooltip": "The best rule that has been learned so far. The performance score ranges from 0.0 (worst) to 1.0 (best).",
             "noRule": "No rule has been learned yet. You need to confirm/decline at least three candidate links for a rule to be learned.",
             "showRule": "Show best learned rule",
             "visualRuleTitle": "Best learned linking rule"
