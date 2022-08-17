@@ -213,6 +213,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
 
       val links = activeLearning.referenceData.referenceLinks
 
+      // TODO remove evaluation score from this as it has been moved to the bestRule endpoint
       val (bestRule, evaluationScore): (LinkageRule, Option[LinkageRuleEvaluationResult]) = {
         val population = activeLearning.population
         if(population.isEmpty) {
@@ -393,13 +394,19 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
                taskId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[LinkSpec](projectId, taskId, request.path)
     val activeLearning = context.task.activity[ActiveLearning]
-    val population = activeLearning.value().population
+    val activeLearningValue = activeLearning.value()
+    val population = activeLearningValue.population
     if(population.isEmpty) {
       throw NotFoundException("No rule found.")
     } else {
       val bestRule = population.bestIndividual.node.build
+      val links = activeLearningValue.referenceData.referenceLinks
+      val score: LinkageRuleEvaluationResult = LinkingTaskApiUtils.referenceLinkEvaluationScore(bestRule, links)
+
       implicit val writeContext = WriteContext[JsValue]()
-      Ok(LinkageRuleJsonFormat.write(bestRule))
+      var ruleJson = LinkageRuleJsonFormat.write(bestRule)
+      ruleJson += ("evaluationResult" -> Json.toJson(score))
+      Ok(ruleJson)
     }
   }
 
