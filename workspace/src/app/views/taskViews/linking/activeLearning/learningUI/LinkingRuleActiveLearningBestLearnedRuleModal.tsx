@@ -14,14 +14,14 @@ interface Props {
 export const LinkingRuleActiveLearningBestLearnedRuleModal = ({ rule, onClose }: Props) => {
     const [t] = useTranslation();
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
+
     return activeLearningContext.linkTask && rule ? (
         <SimpleDialog
             data-test-id={"active-learning-best-rule-visual"}
             onClose={onClose}
             title={t("ActiveLearning.bestLearnedRule.visualRuleTitle")}
             isOpen={true}
-            size={"large"}
-            showFullScreenToggler={true}
+            startInFullScreenMode={true}
             actions={[
                 <Button onClick={onClose} data-test-id={"close-btn"}>
                     {t("common.action.close")}

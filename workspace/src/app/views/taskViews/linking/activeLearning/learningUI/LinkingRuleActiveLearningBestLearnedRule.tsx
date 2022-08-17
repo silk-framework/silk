@@ -1,5 +1,6 @@
 import {
     Card,
+    Divider,
     IconButton,
     Notification,
     OverviewItem,
@@ -7,12 +8,14 @@ import {
     OverviewItemDescription,
     OverviewItemLine,
     Tooltip,
+    WhiteSpaceContainer,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 import { IEvaluatedReferenceLinksScore, ILinkingRule, OptionallyLabelledParameter } from "../../linking.types";
 import { LinkingRuleActiveLearningBestLearnedRuleModal } from "./LinkingRuleActiveLearningBestLearnedRuleModal";
+import { VisualBestLinkingRule } from "./VisualBestLinkingRule";
 
 interface LinkingRuleActiveLearningBestLearnedRuleProps {
     rule?: OptionallyLabelledParameter<ILinkingRule>;
@@ -28,6 +31,7 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
     score,
 }: LinkingRuleActiveLearningBestLearnedRuleProps) => {
     const [displayVisualRule, setDisplayVisualRule] = React.useState(false);
+    const [displayVisualRuleModal, setDisplayVisualRuleModal] = React.useState(false);
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
     const { t } = useTranslation();
     const scoreString = (score?.fMeasure ?? "-").replaceAll(".00", ".0");
@@ -47,16 +51,29 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
                             </Tooltip>
                         </h1>
                     </OverviewItemLine>
-                    <OverviewItemLine>{rule ? "Show rule details" : "No rule learned, yet."}</OverviewItemLine>
+                    <OverviewItemLine>{rule ? "TODO: Show rule details" : "No rule learned, yet."}</OverviewItemLine>
                 </OverviewItemDescription>
                 <OverviewItemActions>
                     {rule ? (
                         <IconButton
                             data-test-id={"open-best-learned-rule-btn"}
                             name={"item-viewdetails"}
-                            text={t("ActiveLearning.bestLearnedRule.showRule")}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setDisplayVisualRuleModal(true);
+                            }}
+                            text={t("ActiveLearning.bestLearnedRule.showRuleFullscreen")}
                         />
                     ) : null}
+                    <IconButton
+                        data-test-id={"best-learned-rule-toggler-btn"}
+                        name={displayVisualRule ? "toggler-showless" : "toggler-showmore"}
+                        text={
+                            displayVisualRule
+                                ? t("ActiveLearning.bestLearnedRule.hideRule")
+                                : t("ActiveLearning.bestLearnedRule.showRule")
+                        }
+                    />
                 </OverviewItemActions>
             </OverviewItem>
         );
@@ -69,10 +86,18 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
     return rule ? (
         <Card isOnlyLayout elevation={0} data-test-id={"best-learned-rule-visual"}>
             <BestLearnedRule />
-            {activeLearningContext.linkTask && rule && displayVisualRule ? (
+            {activeLearningContext.linkTask && rule && displayVisualRule && (
+                <>
+                    <Divider />
+                    <WhiteSpaceContainer paddingTop="small" paddingRight="tiny" paddingLeft="tiny">
+                        <VisualBestLinkingRule rule={rule} />
+                    </WhiteSpaceContainer>
+                </>
+            )}
+            {activeLearningContext.linkTask && rule && displayVisualRuleModal ? (
                 <LinkingRuleActiveLearningBestLearnedRuleModal
                     rule={rule}
-                    onClose={() => setDisplayVisualRule(false)}
+                    onClose={() => setDisplayVisualRuleModal(false)}
                 />
             ) : null}
         </Card>
