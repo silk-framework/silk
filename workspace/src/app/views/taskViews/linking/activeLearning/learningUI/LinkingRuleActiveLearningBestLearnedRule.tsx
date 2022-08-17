@@ -51,7 +51,7 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
                             </Tooltip>
                         </h1>
                     </OverviewItemLine>
-                    <OverviewItemLine>{rule ? "TODO: Show rule details" : "No rule learned, yet."}</OverviewItemLine>
+                    <OverviewItemLine>{rule ? "" : "No rule learned, yet."}</OverviewItemLine>
                 </OverviewItemDescription>
                 <OverviewItemActions>
                     {rule ? (

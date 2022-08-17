@@ -47,8 +47,8 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
 
     React.useEffect(() => {
         if (!selectedEntityLink) {
-            loadUnlabeledLinkCandidate();
             fetchReferenceLinks(projectId, linkingTaskId);
+            loadUnlabeledLinkCandidate();
         }
     }, [selectedEntityLink]);
 
@@ -149,12 +149,17 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
         );
     };
 
+    const cancelSelection = () => {
+        setSelectedEntityLink(undefined);
+    };
+
     return (
         <LinkingRuleActiveLearningFeedbackContext.Provider
             value={{
                 updateReferenceLink,
                 selectedLink: selectedEntityLink,
                 loadingLinkCandidate,
+                cancel: cancelSelection,
             }}
         >
             <div>

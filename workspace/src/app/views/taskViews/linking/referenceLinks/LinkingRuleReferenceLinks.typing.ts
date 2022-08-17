@@ -25,8 +25,8 @@ export interface EntityLink {
     source: IEntity;
     /** The entity from the second data source. */
     target: IEntity;
-    /** The label given to the entity link. */
-    label: LinkType;
+    /** The label of the entity link. */
+    decision: LinkType;
 }
 
 /** The source and target values of a single property pair. */

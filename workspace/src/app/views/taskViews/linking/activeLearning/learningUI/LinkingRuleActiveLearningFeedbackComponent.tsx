@@ -22,6 +22,7 @@ import { ActiveLearningDecisions, ComparisonPairWithId, TypedPath } from "../Lin
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 import { EntityLink, EntityLinkPropertyPairValues } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
 import referenceLinksUtils from "../../referenceLinks/LinkingRuleReferenceLinks.utils";
+import { useTranslation } from "react-i18next";
 
 export const LinkingRuleActiveLearningFeedbackComponent = () => {
     /** Contexts */
@@ -97,11 +98,12 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
                 submitLink={(decision: ActiveLearningDecisions) =>
                     submitLink(activeLearningFeedbackContext.selectedLink, decision)
                 }
+                selectedDecision={activeLearningFeedbackContext.selectedLink?.decision}
+                cancel={activeLearningFeedbackContext.cancel}
             />
             <Spacing />
             {loading ? (
-                // TODO: Show spinner over old comparison pair instead, so it does not hop around so much?
-                <Spinner />
+                <Spinner delay={500} />
             ) : valuesToDisplay ? (
                 <SelectedEntityLink
                     valuesToDisplay={valuesToDisplay}
@@ -122,11 +124,16 @@ interface HeaderProps {
     disabledButtons: boolean;
     /** Submit an entity link to the active learning backend. */
     submitLink: (decision: ActiveLearningDecisions) => Promise<void>;
+    /** The currently selected decision. */
+    selectedDecision?: ActiveLearningDecisions;
+    /** Cancel changing an existing link. */
+    cancel: () => any;
 }
 
 /** TODO: Clean up sub-components */
-const Header = ({ disabledButtons, submitLink }: HeaderProps) => {
+const Header = ({ disabledButtons, submitLink, selectedDecision, cancel }: HeaderProps) => {
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
+    const [t] = useTranslation();
 
     return (
         <Toolbar>
@@ -136,28 +143,34 @@ const Header = ({ disabledButtons, submitLink }: HeaderProps) => {
                 <Button
                     title={"Confirm that the shown entities are a valid link."}
                     affirmative={true}
-                    disabled={disabledButtons}
+                    icon={selectedDecision === "positive" ? "state-checkedsimple" : undefined}
+                    disabled={disabledButtons || selectedDecision === "positive"}
                     style={{ backgroundColor: "green" }}
                     onClick={() => submitLink("positive")}
                 >
-                    Confirm
+                    {t("ActiveLearning.feedback.confirm")}
                 </Button>
-            </ToolbarSection>
-            <ToolbarSection>
+                {selectedDecision === "positive" || selectedDecision === "negative" ? (
+                    <>
+                        <Spacing vertical size={"large"} />
+                        <Button icon={"operation-clear"} tooltip={t("ActiveLearning.feedback.cancel")} onClick={cancel}>
+                            {t("common.action.cancel")}
+                        </Button>
+                    </>
+                ) : null}
                 <Spacing vertical size={"large"} />
                 <Button disabled={disabledButtons} title={"Uncertain"} onClick={() => submitLink("unlabeled")}>
-                    Uncertain
+                    {t("ActiveLearning.feedback.uncertain")}
                 </Button>
                 <Spacing vertical size={"large"} />
-            </ToolbarSection>
-            <ToolbarSection>
                 <Button
                     title={"Decline that the shown entities are a valid link."}
-                    disabled={disabledButtons}
+                    disabled={disabledButtons || selectedDecision === "negative"}
                     onClick={() => submitLink("negative")}
+                    icon={selectedDecision === "negative" ? "state-checkedsimple" : undefined}
                     disruptive={true}
                 >
-                    Decline
+                    {t("ActiveLearning.feedback.decline")}
                 </Button>
             </ToolbarSection>
             <ToolbarSection canGrow={true} />

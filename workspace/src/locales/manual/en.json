@@ -800,6 +800,12 @@
             "showRuleFullscreen": "Show best learned rule in full-screen mode.",
             "visualRuleTitle": "Best learned linking rule"
         },
+        "feedback": {
+            "confirm": "Confirm",
+            "decline": "Decline",
+            "uncertain": "Uncertain",
+            "cancel": "Cancel selection and show next link candidate."
+        },
         "referenceLinks": {
             "title": "Decision history & reference links"
         },
