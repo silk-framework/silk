@@ -14,7 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.Prefixes
-import org.silkframework.entity.{FullLink, ReferenceLink}
+import org.silkframework.entity.{FullLink, LinkDecision, ReferenceLink}
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.learning.active.comparisons.{ComparisonPair, ComparisonPairGenerator}
 import org.silkframework.rule.evaluation.ReferenceLinks
@@ -200,8 +200,48 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
                      )
                      taskId: String,
                      @Parameter(
+                       name = "includePositiveLinks",
+                       description = "If true, positive reference links are included in the result",
+                       required = false,
+                       in = ParameterIn.QUERY,
+                       schema = new Schema(implementation = classOf[Boolean], defaultValue = "true"),
+                     )
+                     includePositiveLinks: Boolean,
+                     @Parameter(
+                       name = "includeNegativeLinks",
+                       description = "If true, negative reference links are included in the result",
+                       required = false,
+                       in = ParameterIn.QUERY,
+                       schema = new Schema(implementation = classOf[Boolean], defaultValue = "true"),
+                     )
+                     includeNegativeLinks: Boolean,
+                     @Parameter(
+                       name = "includeUnlabeledLinks",
+                       description = "If true, unlabeled link candidates are included in the result",
+                       required = false,
+                       in = ParameterIn.QUERY,
+                       schema = new Schema(implementation = classOf[Boolean], defaultValue = "false"),
+                     )
+                     includeUnlabeledLinks: Boolean,
+                     @Parameter(
+                       name = "offset",
+                       description = "Result offset",
+                       required = false,
+                       in = ParameterIn.QUERY,
+                       schema = new Schema(implementation = classOf[Int], defaultValue = "0"),
+                     )
+                     offset: Int,
+                     @Parameter(
+                       name = "limit",
+                       description = "Maximum number of results",
+                       required = false,
+                       in = ParameterIn.QUERY,
+                       schema = new Schema(implementation = classOf[Int], defaultValue = "100"),
+                     )
+                     limit: Int,
+                     @Parameter(
                        name = "withEntitiesAndSchema",
-                       description = "When set to true each link contains the entities and the schema",
+                       description = "If set to true each link contains the entities and the schema",
                        required = false,
                        in = ParameterIn.QUERY,
                        schema = new Schema(implementation = classOf[Boolean], defaultValue = "false"),
@@ -211,7 +251,16 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
       val context = Context.get[LinkSpec](projectId, taskId, request.path)
       val activeLearning = context.task.activity[ActiveLearning].value()
 
-      val links = activeLearning.referenceData.referenceLinks
+      val allReferenceLinks = activeLearning.referenceData.referenceLinks
+
+      // Select Links
+      var selectedLinks = Seq[ReferenceLink]()
+      selectedLinks ++= allReferenceLinks.filter(l => (includePositiveLinks && l.decision == LinkDecision.POSITIVE) ||
+                                                      (includeNegativeLinks && l.decision == LinkDecision.NEGATIVE))
+      if(includeUnlabeledLinks) {
+        selectedLinks ++= activeLearning.referenceData.linkCandidates
+      }
+      selectedLinks = selectedLinks.slice(offset, offset + limit)
 
       // TODO remove evaluation score from this as it has been moved to the bestRule endpoint
       val (bestRule, evaluationScore): (LinkageRule, Option[LinkageRuleEvaluationResult]) = {
@@ -220,17 +269,17 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
           (LinkageRule(), None)
         } else {
           val bestRule = population.bestIndividual.node.build
-          val evaluationResult: LinkageRuleEvaluationResult = LinkingTaskApiUtils.referenceLinkEvaluationScore(bestRule, links)
+          val evaluationResult: LinkageRuleEvaluationResult = LinkingTaskApiUtils.referenceLinkEvaluationScore(bestRule, allReferenceLinks)
           (bestRule, Some(evaluationResult))
         }
       }
 
-      val statistics = ReferenceLinksStatistics.compute(context.task.referenceLinks, links)
+      val statistics = ReferenceLinksStatistics.compute(context.task.referenceLinks, allReferenceLinks)
 
       var result =
         Json.obj(
           "statistics" -> Json.toJson(statistics),
-          "links" -> serializeLinks(links, bestRule, withEntitiesAndSchema, distinctValues = true)
+          "links" -> serializeLinks(selectedLinks, bestRule, withEntitiesAndSchema, distinctValues = true)
         )
       evaluationScore.foreach(score => {
         result = result ++ Json.obj(
