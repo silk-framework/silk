@@ -1,19 +1,17 @@
 import {
     Card,
-    Divider,
     IconButton,
     Notification,
     OverviewItem,
     OverviewItemActions,
     OverviewItemDescription,
     OverviewItemLine,
-    WhiteSpaceContainer,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { LinkingRuleEditor, LinkingRuleEditorOptionalContext } from "../../LinkingRuleEditor";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 import { IEvaluatedReferenceLinksScore, ILinkingRule, OptionallyLabelledParameter } from "../../linking.types";
+import { LinkingRuleActiveLearningBestLearnedRuleModal } from "./LinkingRuleActiveLearningBestLearnedRuleModal";
 
 interface LinkingRuleActiveLearningBestLearnedRuleProps {
     rule?: OptionallyLabelledParameter<ILinkingRule>;
@@ -49,14 +47,12 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
                 <OverviewItemActions>
                     {rule ? (
                         <IconButton
-                            data-test-id={"best-learned-rule-toggler-btn"}
-                            name={displayVisualRule ? "toggler-showless" : "toggler-showmore"}
-                            text={
-                                displayVisualRule
-                                    ? t("ActiveLearning.bestLearnedRule.hideRule")
-                                    : t("ActiveLearning.bestLearnedRule.showRule")
-                            }
-                        />
+                            data-test-id={"open-best-learned-rule-btn"}
+                            name={"item-viewdetails"}
+                            text={t("ActiveLearning.bestLearnedRule.showRule")}
+                        >
+                            {t("common.action.show")}
+                        </IconButton>
                     ) : null}
                 </OverviewItemActions>
             </OverviewItem>
@@ -67,39 +63,15 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
         return <Notification neutral={true} message={t("ActiveLearning.bestLearnedRule.noRule")} />;
     };
 
-    const VisualRule = () => {
-        return activeLearningContext.linkTask && rule ? (
-            <LinkingRuleEditorOptionalContext.Provider
-                value={{
-                    linkingRule: {
-                        ...activeLearningContext.linkTask,
-                        parameters: {
-                            ...activeLearningContext.linkTask.parameters,
-                            rule: rule,
-                        },
-                    },
-                    showRuleOnly: true,
-                }}
-            >
-                <LinkingRuleEditor
-                    projectId={activeLearningContext.projectId}
-                    linkingTaskId={activeLearningContext.linkingTaskId}
-                />
-            </LinkingRuleEditorOptionalContext.Provider>
-        ) : null;
-    };
-
     return rule ? (
         <Card isOnlyLayout elevation={0} data-test-id={"best-learned-rule-visual"}>
             <BestLearnedRule />
-            {rule && displayVisualRule && (
-                <>
-                    <Divider />
-                    <WhiteSpaceContainer paddingTop="small" paddingRight="tiny" paddingLeft="tiny">
-                        <VisualRule />
-                    </WhiteSpaceContainer>
-                </>
-            )}
+            {activeLearningContext.linkTask && rule && displayVisualRule ? (
+                <LinkingRuleActiveLearningBestLearnedRuleModal
+                    rule={rule}
+                    onClose={() => setDisplayVisualRule(false)}
+                />
+            ) : null}
         </Card>
     ) : (
         <Info />

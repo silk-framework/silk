@@ -235,6 +235,7 @@
             "retry": "Retry",
             "save": "Save",
             "search": "Search",
+            "show": "Show",
             "showDetails": "Open details page",
             "submit": "Submit",
             "update": "Update",
@@ -793,8 +794,8 @@
         "bestLearnedRule": {
             "title": "Top-performing learned rule (Score: {{score}})",
             "noRule": "No rule has been learned yet. You need to confirm/decline at least three candidate links for a rule to be learned.",
-            "hideRule": "Hide best learned rule",
-            "showRule": "Show best learned rule"
+            "showRule": "Show best learned rule",
+            "visualRuleTitle": "Best learned linking rule"
         },
         "referenceLinks": {
             "title": "Decision history & reference links"
