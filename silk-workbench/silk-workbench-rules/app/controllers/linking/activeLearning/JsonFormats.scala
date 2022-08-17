@@ -2,6 +2,7 @@ package controllers.linking.activeLearning
 
 import controllers.core.util.JsonUtils
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
+import org.silkframework.config.Prefixes
 import org.silkframework.entity.ValueType
 import org.silkframework.entity.paths.TypedPath
 import org.silkframework.learning.active.comparisons.{ComparisonPair, ComparisonPairWithExamples, ComparisonPairs, PlainComparisonPair}
@@ -23,7 +24,8 @@ object JsonFormats {
   }
 
   object ComparisonPairsFormat {
-    def apply(pairs: ComparisonPairs): ComparisonPairsFormat = {
+    def apply(pairs: ComparisonPairs)
+             (implicit prefixes: Prefixes): ComparisonPairsFormat = {
       ComparisonPairsFormat(pairs.suggestedPairs.map(ComparisonPairFormat(_)), pairs.selectedPairs.map(ComparisonPairFormat(_)))
     }
   }
@@ -45,7 +47,8 @@ object JsonFormats {
   }
 
   object ComparisonPairFormat {
-    def apply(pair: ComparisonPair): ComparisonPairFormat = {
+    def apply(pair: ComparisonPair)
+             (implicit prefixes: Prefixes): ComparisonPairFormat = {
       pair match {
         case PlainComparisonPair(source, target) =>
           ComparisonPairFormat(TypedPathFormat(source), TypedPathFormat(target), None, None)
@@ -58,6 +61,8 @@ object JsonFormats {
   @Schema(description = "An entity path")
   case class TypedPathFormat(@Schema(description = "The serialized path", example = "path/name")
                              path: String,
+                             @Schema(description = "Path label", example = "path label")
+                             label: String,
                              @Schema(description = "The identifier of the value type", required = false, defaultValue = "StringValueType", example = "StringValueType")
                              valueType: Option[String] = None) {
     def toTypedPath: TypedPath = {
@@ -66,8 +71,9 @@ object JsonFormats {
   }
 
   object TypedPathFormat {
-    def apply(typedPath: TypedPath): TypedPathFormat = {
-      TypedPathFormat(typedPath.normalizedSerialization, Some(typedPath.valueType.id))
+    def apply(typedPath: TypedPath)
+             (implicit prefixes: Prefixes): TypedPathFormat = {
+      TypedPathFormat(typedPath.normalizedSerialization, typedPath.serialize(), Some(typedPath.valueType.id))
     }
   }
 
@@ -82,6 +88,7 @@ object JsonFormats {
     }
 
     override def write(value: ComparisonPairs)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      implicit val prefixes: Prefixes = writeContext.prefixes
       Json.toJson(ComparisonPairsFormat(value))
     }
   }

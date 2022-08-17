@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import org.silkframework.config.Prefixes
 import org.silkframework.entity.{FullLink, ReferenceLink}
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.learning.active.comparisons.{ComparisonPair, ComparisonPairGenerator}
@@ -75,6 +76,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
     val project = WorkspaceFactory().workspace.project(projectId)
     val task = project.task[LinkSpec](taskId)
     val activity = task.activity[ComparisonPairGenerator]
+    implicit val prefixes: Prefixes = project.config.prefixes
     val json = Json.toJson(ComparisonPairsFormat(activity.value()))
     Ok(json)
   }
