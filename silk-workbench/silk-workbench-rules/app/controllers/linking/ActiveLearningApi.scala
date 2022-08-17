@@ -3,8 +3,8 @@ package controllers.linking
 import akka.stream.Materializer
 import controllers.core.UserContextActions
 import controllers.core.util.JsonUtils
-import controllers.linking.activeLearning.{ActiveLearningIterator, ReferenceLinksStatistics}
 import controllers.linking.activeLearning.JsonFormats._
+import controllers.linking.activeLearning.{ActiveLearningIterator, ReferenceLinksStatistics}
 import controllers.linking.evaluation.LinkageRuleEvaluationResult
 import controllers.linking.linkingTask.LinkingTaskApiUtils
 import io.swagger.v3.oas.annotations.enums.ParameterIn
@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.entity.{FullLink, MinimalLink, ReferenceLink}
+import org.silkframework.entity.{FullLink, ReferenceLink}
 import org.silkframework.learning.active.ActiveLearning
 import org.silkframework.learning.active.comparisons.{ComparisonPair, ComparisonPairGenerator}
 import org.silkframework.rule.evaluation.ReferenceLinks
@@ -162,8 +162,8 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
                              schema = new Schema(implementation = classOf[String])
                            )
                            taskId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    val removeComparisonPair = JsonUtils.validateJsonFromRequest[ComparisonPairFormat](request).toComparisonPair
-    updateSelectedComparisonPairs(projectId, taskId)(_.filterNot(_ == removeComparisonPair))
+    val removeComparisonPair = JsonUtils.validateJsonFromRequest[ComparisonPairFormat](request).toComparisonPair.plain
+    updateSelectedComparisonPairs(projectId, taskId)(_.filterNot(_.plain == removeComparisonPair))
     NoContent
   }
 
@@ -318,45 +318,6 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
                        synchronous: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val context = Context.get[LinkSpec](projectId, taskId, request.path)
     ActiveLearningIterator.commitLink(linkSource, linkTarget, decision, context.task, synchronous)
-    NoContent
-  }
-
-  //TODO remove?
-  def removeReferenceLink(@Parameter(
-                            name = "project",
-                            description = "The project identifier",
-                            required = true,
-                            in = ParameterIn.PATH,
-                            schema = new Schema(implementation = classOf[String])
-                          )
-                          projectId: String,
-                          @Parameter(
-                            name = "task",
-                            description = "The task identifier",
-                            required = true,
-                            in = ParameterIn.PATH,
-                            schema = new Schema(implementation = classOf[String])
-                          )
-                          taskId: String,
-                          @Parameter(
-                            name = "linkSource",
-                            description = "The URI of the link source.",
-                            required = true,
-                            in = ParameterIn.QUERY,
-                            schema = new Schema(implementation = classOf[String])
-                          )
-                          linkSource: String,
-                          @Parameter(
-                            name = "linkTarget",
-                            description = "The URI of the link target.",
-                            required = true,
-                            in = ParameterIn.QUERY,
-                            schema = new Schema(implementation = classOf[String])
-                          )
-                          linkTarget: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
-    val context = Context.get[LinkSpec](projectId, taskId, request.path)
-    val activity = context.task.activity[ActiveLearning]
-    activity.updateValue(activity.value().copy(referenceData = activity.value().referenceData.withoutLink(new MinimalLink(linkSource, linkTarget))))
     NoContent
   }
 
