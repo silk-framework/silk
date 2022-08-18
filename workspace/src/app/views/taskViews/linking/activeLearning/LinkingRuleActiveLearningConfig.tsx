@@ -1,13 +1,11 @@
 import React from "react";
 
 import {
-    AutoSuggestion,
     Button,
     Grid,
     GridColumn,
     GridRow,
     HoverToggler,
-    Icon,
     IconButton,
     Notification,
     OverviewItem,
@@ -20,11 +18,7 @@ import {
 } from "@eccenca/gui-elements";
 import { ComparisonPair, ComparisonPairWithId, TypedPath } from "./LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningContext } from "./contexts/LinkingRuleActiveLearningContext";
-import { partialAutoCompleteLinkingInputPaths } from "../LinkingRuleEditor.requests";
-import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
-import { useTranslation } from "react-i18next";
-import { checkValuePathValidity } from "../../../pages/MappingEditor/HierarchicalMapping/store";
 import { ArrowLeft, ArrowRight, columnStyles, DashedLine } from "./LinkingRuleActiveLearning.shared";
 import {
     activeLearningComparisonPairs,
@@ -32,17 +26,12 @@ import {
     removeActiveLearningComparisonPair,
 } from "./LinkingRuleActiveLearning.requests";
 import { Spinner } from "@blueprintjs/core";
+import { ManualComparisonPairSelection } from "./config/ManualComparisonPairSelection";
 
 interface LinkingRuleActiveLearningConfigProps {
     projectId: string;
     linkingTaskId: string;
 }
-
-let randomId = 0;
-const nextId = () => {
-    randomId += 1;
-    return randomId;
-};
 
 /** Allows to configure the property pairs for the active learning. */
 export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: LinkingRuleActiveLearningConfigProps) => {
@@ -50,10 +39,6 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
     const [suggestions, setSuggestions] = React.useState<ComparisonPairWithId[]>([]);
     const [loadSuggestions, setLoadSuggestions] = React.useState(true);
-    const manualSourcePath = React.useRef<TypedPath | undefined>(undefined);
-    const manualTargetPath = React.useRef<TypedPath | undefined>(undefined);
-    const [hasValidPath, setHasValidPath] = React.useState(false);
-    const [t] = useTranslation();
 
     const loadingSuggestions = activeLearningContext.comparisonPairsLoading || loadSuggestions;
 
@@ -92,6 +77,10 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         }
     };
 
+    const addComparisonPair = React.useCallback((pair: ComparisonPairWithId) => {
+        activeLearningContext.setPropertiesToCompare([...activeLearningContext.propertiesToCompare, pair]);
+    }, []);
+
     const removePair = async (pairId: string) => {
         try {
             const pair = activeLearningContext.propertiesToCompare.find((pair) => pair.pairId === pairId);
@@ -105,67 +94,6 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             }
         } catch (err) {
             // TODO
-        }
-    };
-
-    const fetchAutoCompletionResult =
-        (isTarget: boolean) =>
-        async (inputString: string, cursorPosition: number): Promise<IPartialAutoCompleteResult | undefined> => {
-            try {
-                const result = await partialAutoCompleteLinkingInputPaths(
-                    projectId,
-                    linkingTaskId,
-                    isTarget ? "target" : "source",
-                    inputString,
-                    cursorPosition,
-                    200
-                );
-                return result.data;
-            } catch (err) {
-                registerError(
-                    "ActiveLearning.fetchAutoCompletionResult",
-                    t("ActiveLearning.config.errors.fetchAutoCompletionResult"),
-                    err
-                );
-            }
-        };
-
-    const changeManualSourcePath = (value: string) => {
-        // TODO: How to fetch example values and other meta data?
-        manualSourcePath.current = value ? { path: value, valueType: "StringValueType" } : undefined;
-        checkPathValidity();
-    };
-
-    const changeManualTargetPath = (value: string) => {
-        // TODO: How to fetch example values and other meta data?
-        manualTargetPath.current = value ? { path: value, valueType: "StringValueType" } : undefined;
-        checkPathValidity();
-    };
-
-    const checkPathValidity = () => {
-        // TODO: Add path validation (syntax) check
-        if (manualSourcePath.current && manualTargetPath.current) {
-            setHasValidPath(true);
-        } else {
-            setHasValidPath(false);
-        }
-    };
-
-    const addManuallyChosenPair = () => {
-        if (manualSourcePath.current && manualTargetPath.current) {
-            activeLearningContext.setPropertiesToCompare([
-                ...activeLearningContext.propertiesToCompare,
-                {
-                    pairId: `manually chose: ${nextId()}`,
-                    source: manualSourcePath.current,
-                    target: manualTargetPath.current,
-                    // TODO: where to get examples from?
-                    sourceExamples: [],
-                    targetExamples: [],
-                },
-            ]);
-            changeManualSourcePath("");
-            changeManualTargetPath("");
         }
     };
 
@@ -284,58 +212,6 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         );
     };
 
-    const PathAutoCompletion = ({ isTarget }: { isTarget: boolean }) => {
-        return (
-            <GridColumn style={{ ...columnStyles.mainColumnStyle, textAlign: "left" }}>
-                <AutoSuggestion
-                    leftElement={
-                        <Icon name={"operation-search"} tooltipText={"Allows to construct complex input paths."} />
-                    }
-                    initialValue={
-                        isTarget ? manualTargetPath.current?.path ?? "" : manualSourcePath.current?.path ?? ""
-                    }
-                    onChange={(value) => {
-                        if (isTarget) {
-                            changeManualTargetPath(value);
-                        } else {
-                            changeManualSourcePath(value);
-                        }
-                    }}
-                    fetchSuggestions={fetchAutoCompletionResult(isTarget)}
-                    placeholder={"Enter an input path"}
-                    checkInput={checkValuePathValidity}
-                />
-            </GridColumn>
-        );
-    };
-
-    const ManualPropertyPathSelection = () => {
-        return (
-            <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
-                <PathAutoCompletion isTarget={false} />
-                <GridColumn style={columnStyles.centerColumnStyle}>
-                    <Toolbar style={{ height: "100%" }}>
-                        <ToolbarSection canGrow={true}>
-                            <DashedLine />
-                        </ToolbarSection>
-                        <ToolbarSection>
-                            <IconButton
-                                name={"item-add-artefact"}
-                                disabled={!hasValidPath}
-                                title={hasValidPath ? "Add" : "At least one paths is not valid"}
-                                onClick={addManuallyChosenPair}
-                            />
-                        </ToolbarSection>
-                        <ToolbarSection canGrow={true}>
-                            <DashedLine />
-                        </ToolbarSection>
-                    </Toolbar>
-                </GridColumn>
-                <PathAutoCompletion isTarget={true} />
-            </GridRow>
-        );
-    };
-
     const SuggestionWidget = () => {
         return (
             <Grid columns={3} fullWidth={true}>
@@ -420,7 +296,11 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             <Spacing />
             <PathSelectionSubHeader />
             <Spacing />
-            <ManualPropertyPathSelection />
+            <ManualComparisonPairSelection
+                projectId={projectId}
+                linkingTaskId={linkingTaskId}
+                addComparisonPair={addComparisonPair}
+            />
             <Spacing />
             <SuggestionSelectionSubHeader />
             <Spacing />
