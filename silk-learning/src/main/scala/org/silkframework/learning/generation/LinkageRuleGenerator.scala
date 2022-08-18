@@ -70,10 +70,15 @@ case class LinkageRuleGenerator(comparisonGenerators: IndexedSeq[ComparisonGener
     val operatorCount = minOperatorCount + random.nextInt(maxOperatorCount - minOperatorCount + 1)
 
     //Generate operators
-    val operators =
-      for (i <- List.range(1, operatorCount + 1)) yield {
-        generateComparison(random)
+    val operators = {
+      if(comparisonGenerators.nonEmpty) {
+        for (i <- List.range(1, operatorCount + 1)) yield {
+          generateComparison(random)
+        }
+      } else {
+        List.empty
       }
+    }
 
     //Build aggregation
     AggregationNode(
