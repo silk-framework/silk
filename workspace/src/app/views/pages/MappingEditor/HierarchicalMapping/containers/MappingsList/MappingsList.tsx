@@ -122,6 +122,7 @@ const MappingsList = ({
                                             onClickedRemove={onClickedRemove}
                                             onOrderRules={handleOrderRules}
                                             openMappingEditor={openMappingEditor}
+                                            mapRuleLoading={loading}
                                         />
                                     ))}
                                     {provided.placeholder}

@@ -17,7 +17,7 @@ import ValueSourcePaths from "../../../components/ValueMapping/ValueSourcePaths"
 import ExampleTarget from "../../../components/ExampleTarget";
 import MetadataLabel from "../../../components/Metadata/MetadataLabel";
 import MetadataDesc from "../../../components/Metadata/MetadataDesc";
-import { IconButton } from "@eccenca/gui-elements";
+import { IconButton, Spinner } from "@eccenca/gui-elements";
 
 class ValueRule extends React.Component {
     // define property types
@@ -87,12 +87,23 @@ class ValueRule extends React.Component {
 
     render() {
         const { edit } = this.state;
-        const { id, parentId, operator, mappingTarget = {}, sourcePath, sourcePaths, metadata } = this.props;
+        const {
+            id,
+            parentId,
+            operator,
+            mappingTarget = {},
+            sourcePath,
+            sourcePaths,
+            metadata,
+            mapRuleLoading,
+        } = this.props;
         if (edit) {
             return <ValueRuleForm id={id} parentId={parentId} />;
         }
-
         const nodeType = _.get(mappingTarget, "valueType.nodeType");
+        if (mapRuleLoading) {
+            return <Spinner />;
+        }
         return (
             <div className="ecc-silk-mapping__rulesviewer">
                 <Card shadow={0}>
