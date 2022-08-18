@@ -14,9 +14,8 @@
 
 package org.silkframework.learning.active
 
-import org.silkframework.entity.Link
+import org.silkframework.entity.LinkDecision
 import org.silkframework.learning.individual.Population
-import org.silkframework.rule.evaluation.ReferenceEntities
 
 /**
  * Completes a set of reference links i.e. makes sure that it contains at least one positive and one negative link.
@@ -33,12 +32,12 @@ object CompleteReferenceLinks {
   /**
    * Completes a set of reference links.
    */
-  def apply(referenceEntities: ReferenceEntities, unlabeledLinks: Traversable[Link], population: Population): ReferenceEntities = {
+  def apply(referenceData: ActiveLearningReferenceData, population: Population): ActiveLearningReferenceData = {
     /** The unlabeled links where the confidence for each link is set to the average confidence amongst all rules */
     lazy val linksWithConfidence = {
       val rules = population.individuals.take(maxRules).map(_.node.build)
 
-      for(link <- unlabeledLinks.take(maxLinks)) yield {
+      for(link <- referenceData.linkCandidates.take(maxLinks)) yield {
         val confidenceSum = rules.map(_(link.entities.get, -1.0)).sum
         val confidence = confidenceSum / rules.size
 
@@ -46,26 +45,13 @@ object CompleteReferenceLinks {
       }
     }
 
-    val positive = {
-      val entities = referenceEntities.positiveEntities
-      if(!entities.isEmpty) {
-        entities
-      } else {
-        val maxLink = linksWithConfidence.maxBy(_.confidence)
-        Seq(maxLink.entities.get)
-      }
+    var referenceLinks = referenceData.referenceLinks
+    if(!referenceLinks.exists(_.decision == LinkDecision.POSITIVE)) {
+      referenceLinks = linksWithConfidence.maxBy(_.confidence) +: referenceLinks
     }
-
-    val negative = {
-      val entities = referenceEntities.negativeEntities
-      if(!entities.isEmpty) {
-        entities
-      } else {
-        val minLink = linksWithConfidence.minBy(_.confidence)
-        Seq(minLink.entities.get)
-      }
+    if (!referenceLinks.exists(_.decision == LinkDecision.NEGATIVE)) {
+      referenceLinks = linksWithConfidence.minBy(_.confidence) +: referenceLinks
     }
-
-    ReferenceEntities.fromEntities(positive, negative)
+    referenceData.copy(referenceLinks = referenceLinks)
   }
 }

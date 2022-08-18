@@ -15,9 +15,8 @@
 package org.silkframework.learning.active.linkselector
 
 import org.silkframework.entity.{Entity, Link}
-import org.silkframework.learning.active.LinkCandidate
+import org.silkframework.learning.active.{ActiveLearningReferenceData, LinkCandidate}
 import org.silkframework.rule.LinkageRule
-import org.silkframework.rule.evaluation.ReferenceEntities
 import org.silkframework.util.DPair
 
 import scala.math.log
@@ -30,12 +29,12 @@ case class JensenShannonDivergenceSelector(fulfilledOnly: Boolean = true) extend
   /**
    * Returns the links with the highest Jensen-Shannon divergence from any reference link.
    */
-  override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[LinkCandidate], referenceEntities: ReferenceEntities)(implicit random: Random): Seq[LinkCandidate] = {
-    val posDist = referenceEntities.positiveEntities.map(referencePair => new ReferenceLinkDistance(referencePair, rules, true))
-    val negDist = referenceEntities.negativeEntities.map(referencePair => new ReferenceLinkDistance(referencePair, rules, false))
+  override def apply(rules: Seq[WeightedLinkageRule], referenceData: ActiveLearningReferenceData)(implicit random: Random): Seq[LinkCandidate] = {
+    val posDist = referenceData.positiveLinks.map(referencePair => new ReferenceLinkDistance(referencePair.linkEntities, rules, true))
+    val negDist = referenceData.negativeLinks.map(referencePair => new ReferenceLinkDistance(referencePair.linkEntities, rules, false))
     val dist = posDist ++ negDist
 
-    val rankedLinks = unlabeledLinks.par.map(rankLink(dist))
+    val rankedLinks = referenceData.linkCandidates.par.map(rankLink(dist))
 
     rankedLinks.seq.sortBy(-_.confidence.get).take(3)
   }

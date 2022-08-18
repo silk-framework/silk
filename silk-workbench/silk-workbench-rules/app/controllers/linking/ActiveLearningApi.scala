@@ -246,8 +246,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
                        in = ParameterIn.QUERY,
                        schema = new Schema(implementation = classOf[Boolean], defaultValue = "false"),
                      )
-                     withEntitiesAndSchema: Boolean): Action[AnyContent] = RequestUserContextAction { request =>
-    implicit userContext =>
+                     withEntitiesAndSchema: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
       val context = Context.get[LinkSpec](projectId, taskId, request.path)
       val activeLearning = context.task.activity[ActiveLearning].value()
 
