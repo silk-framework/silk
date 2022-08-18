@@ -85,13 +85,14 @@ class ComparisonPairGenerator(task: ProjectTask[LinkSpec],
     context.status.updateMessage("Generating pool")
     val pathPairs = generatePathPairs(paths)
     val generator = config.active.linkPoolGenerator.generator(datasets, linkSpec, pathPairs, random.nextLong())
-    val pool = context.child(generator, 0.5).startBlockingAndGetValue()
+    val pool = context.child(generator, 0.8).startBlockingAndGetValue()
 
     if (pool.linkCandidates.isEmpty) {
       throw new LearningException("Could not find any matches.")
     }
 
     // Find matching paths
+    context.status.update("Finding matching pairs", 0.8)
     context.value.updateWith(_.copy(suggestedPairs = ComparisonPairGenerator(pool.linkCandidates, linkSpec)))
   }
 

@@ -77,7 +77,7 @@ class IndexLinkPoolGenerator() extends LinkPoolGenerator {
         (sourceCache, sourceIndex) <- sourceCaches.zipWithIndex
         (targetCache, targetIndex) <- targetCaches.zipWithIndex
       } {
-        context.status.updateProgress(0.3 + 0.6 * (sourceIndex * targetCaches.size + targetIndex).toDouble / (sourceCaches.size * targetCaches.size).toDouble, logStatus = false)
+        context.status.updateProgress(0.3 + 0.6 * (sourceIndex * targetCaches.size + (targetIndex + 1)).toDouble / (sourceCaches.size * targetCaches.size).toDouble, logStatus = false)
         findLinks(sourceCache, sourceIndex, targetCache, targetIndex, links)
       }
       links.values

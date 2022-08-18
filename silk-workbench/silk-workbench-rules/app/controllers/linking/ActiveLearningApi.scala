@@ -525,7 +525,47 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
       context.task.update(context.task.data.copy(referenceLinks = referenceLinks))
     }
 
-    Ok
+    NoContent
+  }
+
+  @Operation(
+    summary = "Reset active learning",
+    description = "Wipes the current active learning session.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "204",
+        description = "Success"
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or task has not been found."
+      )
+    )
+  )
+  def reset(@Parameter(
+             name = "project",
+             description = "The project identifier",
+             required = true,
+             in = ParameterIn.PATH,
+             schema = new Schema(implementation = classOf[String])
+           )
+           projectId: String,
+           @Parameter(
+             name = "task",
+             description = "The task identifier",
+             required = true,
+             in = ParameterIn.PATH,
+             schema = new Schema(implementation = classOf[String])
+           )
+           taskId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+    val context = Context.get[LinkSpec](projectId, taskId, request.path)
+    val comparisonPair = context.task.activity[ComparisonPairGenerator]
+    val activeLearning = context.task.activity[ActiveLearning]
+
+    comparisonPair.control.reset()
+    activeLearning.control.reset()
+
+    NoContent
   }
 
   private def updateSelectedComparisonPairs(projectId: String, taskId: String)
