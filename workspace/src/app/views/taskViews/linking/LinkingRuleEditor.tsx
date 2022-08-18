@@ -188,20 +188,24 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
 
     // FIXME: Add i18n to parameter specs
     const weightParameterSpec = ruleUtils.parameterSpecification({
-        label: "Weight",
-        description:
+        label: t("RuleEditor.sidebar.parameter.weightLabel", "Weight"),
+        description: t(
+            "RuleEditor.sidebar.parameter.weightDesc",
             "The weight parameter can be used by the parent aggregation when combining " +
             "its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average " +
-            "aggregation, quadraticMean and geometricMean.",
+            "aggregation, quadraticMean and geometricMean."
+        ),
         type: "int",
         advanced: true,
         defaultValue: "1",
     });
 
     const thresholdParameterSpec = ruleUtils.parameterSpecification({
-        label: "Threshold",
-        description:
-            "The maximum distance. For normalized distance measures, the threshold should be between 0.0 and 1.0.",
+        label: t("RuleEditor.sidebar.parameter.thresholdLabel", "Threshold"),
+        description: t(
+            "RuleEditor.sidebar.parameter.thresholdDesc",
+            "The maximum distance. For normalized distance measures, the threshold should be between 0.0 and 1.0."
+        ),
         type: "float",
         defaultValue: "0.0",
     });
@@ -209,16 +213,16 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
     const sourcePathInput = () =>
         ruleUtils.inputPathOperator(
             "sourcePathInput",
-            "Source path",
-            "The value path of the source input of the linking task.",
+            t("RuleEditor.sidebar.operator.sourcePathLabel", "Source path"),
+            t("RuleEditor.sidebar.operator.sourcePathDesc", "The value path of the source input of the linking task."),
             inputPathAutoCompletion("source")
         );
 
     const targetPathInput = () =>
         ruleUtils.inputPathOperator(
             "targetPathInput",
-            "Target path",
-            "The value path of the target input of the linking task.",
+            t("RuleEditor.sidebar.operator.targetPathLabel", "Target path"),
+            t("RuleEditor.sidebar.operator.targetPathDesc", "The value path of the target input of the linking task."),
             inputPathAutoCompletion("target")
         );
 

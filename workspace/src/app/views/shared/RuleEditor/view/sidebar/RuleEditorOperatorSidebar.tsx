@@ -1,6 +1,10 @@
 import React from "react";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
 import { Grid, GridColumn, GridRow, Icon, Spacing, Tabs, TabTitle } from "@eccenca/gui-elements";
+import { TabProps } from "@eccenca/gui-elements/src/components/Tabs/Tab";
+import getColorConfiguration from "@eccenca/gui-elements/src/common/utils/getColorConfiguration";
+import { extractSearchWords, matchesAllWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
+import { ISuggestionWithReplacementInfo } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import Loading from "../../../Loading";
 import { IPreConfiguredOperators, RuleOperatorList } from "./RuleOperatorList";
 import {
@@ -8,16 +12,12 @@ import {
     IRuleSideBarFilterTabConfig,
     IRuleSidebarPreConfiguredOperatorsTabConfig,
 } from "../../RuleEditor.typings";
-import { extractSearchWords, matchesAllWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 import { SidebarSearchField } from "./SidebarSearchField";
 import { partitionArray, sortLexically } from "../../../../../utils/basicUtils";
-import { TabProps } from "@eccenca/gui-elements/src/components/Tabs/Tab";
-import getColorConfiguration from "@eccenca/gui-elements/src/common/utils/getColorConfiguration";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
-import { ISuggestionWithReplacementInfo } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 
 /** Contains the list of operators that can be dragged and dropped onto the editor canvas and supports filtering. */
 export const RuleEditorOperatorSidebar = () => {
@@ -183,9 +183,9 @@ export const RuleEditorOperatorSidebar = () => {
         id: tab.id,
         title: (
             <TabTitle
-                text={tab.icon ? null : tab.label}
+                text={tab.icon ? null : t("RuleEditor.sidebar.tab."+tab.id, tab.label)}
                 titlePrefix={tab.icon ? <Icon name={tab.icon} small /> : undefined}
-                tooltip={tab.icon ? tab.label : undefined}
+                tooltip={tab.icon ? t("RuleEditor.sidebar.tab."+tab.id, tab.label) : undefined}
                 small
             />
         ),
