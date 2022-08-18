@@ -39,6 +39,15 @@ import { Keyword, Keywords } from "@ducks/workspace/typings";
 import { removeExtraSpaces } from "@eccenca/gui-elements/src/common/utils/stringUtils";
 import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 
+export const getDateData = (dateTime: number | string) => {
+    const then = new Date(dateTime);
+    return {
+        year: then.getFullYear(),
+        month: ("0" + (then.getMonth() + 1)).slice(-2),
+        day: ("0" + then.getDate()).slice(-2),
+    };
+};
+
 interface IProps {
     projectId?: string;
     taskId?: string;
@@ -265,15 +274,6 @@ export function Metadata(props: IProps) {
         const now = Date.now();
         const then = new Date(dateTime).getTime();
         return (now - then) / 1000 / 60 / 60 / 24;
-    };
-
-    const getDateData = (dateTime: number | string) => {
-        const then = new Date(dateTime);
-        return {
-            year: then.getFullYear(),
-            month: ("0" + (then.getMonth() + 1)).slice(-2),
-            day: ("0" + then.getDate()).slice(-2),
-        };
     };
 
     const widgetContent = (
