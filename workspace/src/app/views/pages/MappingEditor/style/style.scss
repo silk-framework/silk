@@ -1,6 +1,5 @@
 // include legacy environment
-$font_root: "~gui-elements-deprecated/dist/fonts";
-@import '~gui-elements-deprecated/src/main';
+@import 'legacyimports';
 // include enhancements for silk mapping editor
 // moved some imports out to submodules because styles infer between different libraries
 @import '../HierarchicalMapping/HierarchicalMapping';
