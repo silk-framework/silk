@@ -47,14 +47,15 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                     })
                     .forEach(([paramName, paramValue]) => {
                         const value = paramDisplayValue(paramValue);
+                        const propertyTitle = t("widget.ConfigWidget.properties."+paramDescriptions[paramName].title, paramDescriptions[paramName].title);
                         if (typeof value === "object" && value !== null) {
                             taskValuesRec(
                                 value,
-                                paramDescriptions[paramName].title + ": ",
+                                propertyTitle + ": ",
                                 paramDescriptions[paramName].properties as Record<string, IArtefactItemProperty>
                             );
                         } else {
-                            result[labelPrefix + paramDescriptions[paramName].title] = value;
+                            result[labelPrefix + propertyTitle] = value;
                         }
                     });
             };
@@ -68,11 +69,11 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
     /** Returns the string value if this is an atomic value, else it returns the parameter value object. */
     const paramDisplayValue = (parameterValue: any): string | any => {
         if (typeof parameterValue === "string") {
-            return parameterValue;
+            return t("widget.ConfigWidget.values."+parameterValue, parameterValue);
         } else if (typeof parameterValue.label === "string") {
-            return parameterValue.label;
+            return t("widget.ConfigWidget.values."+parameterValue.label, parameterValue.label);
         } else if (typeof parameterValue.value === "string") {
-            return parameterValue.value;
+            return t("widget.ConfigWidget.values."+parameterValue.value, parameterValue.value);
         } else if (parameterValue.value) {
             // withLabels "object" value
             return parameterValue.value;
