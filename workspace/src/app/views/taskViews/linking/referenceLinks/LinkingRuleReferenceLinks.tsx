@@ -27,9 +27,10 @@ import { IEntityLink } from "../linking.types";
 import { EntityLink, LabelProperties, ReferenceLinksOrdered } from "./LinkingRuleReferenceLinks.typing";
 import referenceLinksUtils from "./LinkingRuleReferenceLinks.utils";
 import { ActiveLearningDecisions } from "../activeLearning/LinkingRuleActiveLearning.typings";
-import "./LinkingRuleReferenceLinks.scss";
 
 interface LinkingRuleReferenceLinksProps {
+    /** Title that is shown in the header. */
+    title?: string;
     /** If the reference links are being updated/loaded from the backend. */
     loading?: boolean;
     /** Reference links to display. */
@@ -40,7 +41,11 @@ interface LinkingRuleReferenceLinksProps {
     removeLink: (link: EntityLink) => any;
     /** When defined an "open" icon exists that calls this function. */
     openLink?: (link: EntityLink) => any;
+    /** If exists then the component allows to show either labeled or unlabeled links. */
+    showLinkType?: (type: ReferenceLinkTypeFilterValue) => any;
 }
+
+type ReferenceLinkTypeFilterValue = "labeled" | "unlabeled";
 
 type AnnotatedReferenceLink = IEntityLink & {
     misMatch: boolean;
@@ -54,6 +59,8 @@ export const LinkingRuleReferenceLinks = ({
     labelPaths,
     removeLink,
     openLink,
+    showLinkType,
+    title,
 }: LinkingRuleReferenceLinksProps) => {
     const [showLinksList, setShowLinksList] = React.useState(false);
     const [showOnlyMismatches, setShowOnlyMismatches] = React.useState(false);
@@ -69,10 +76,21 @@ export const LinkingRuleReferenceLinks = ({
     const [referenceLinksFiltered, setReferenceLinksFiltered] = React.useState<AnnotatedReferenceLink[] | undefined>(
         undefined
     );
-    const { t } = useTranslation();
+    const [t] = useTranslation();
     const misMatches = (referenceLinksFiltered ?? []).filter((link) => link.misMatch).length;
     const positiveLinks = (referenceLinks?.links ?? []).filter((l) => l.decision === "positive").length;
     const negativeLinks = (referenceLinks?.links ?? []).filter((l) => l.decision === "negative").length;
+    const showLinksOfType = (type: ReferenceLinkTypeFilterValue) => {
+        showLinkType && showLinkType(type);
+        switch (type) {
+            case "labeled":
+                setShowUncertainLinks(false);
+                break;
+            case "unlabeled":
+                setShowUncertainLinks(true);
+                break;
+        }
+    };
 
     // Annotate and filter reference links
     React.useEffect(() => {
@@ -97,6 +115,8 @@ export const LinkingRuleReferenceLinks = ({
         onTotalChange(referenceLinksFiltered.length);
     }
 
+    const positiveLinkCount = positiveLinks.toString() ?? "-";
+    const negativeLinkCount = negativeLinks.toString() ?? "-";
     const ReferenceLinksHeader = () => {
         return (
             <Toolbar onClick={() => setShowLinksList((prev) => !prev)}>
@@ -104,9 +124,7 @@ export const LinkingRuleReferenceLinks = ({
                     <Spacing vertical={true} size={"tiny"} />
                     <OverviewItem>
                         <OverviewItemDescription>
-                            <OverviewItemLine large={true}>
-                                {t("ActiveLearning.referenceLinks.title") /** TODO: Make configurable from outside; */}
-                            </OverviewItemLine>
+                            <OverviewItemLine large={true}>{title}</OverviewItemLine>
                         </OverviewItemDescription>
                     </OverviewItem>
                 </ToolbarSection>
@@ -123,7 +141,7 @@ export const LinkingRuleReferenceLinks = ({
                                     setShowDeclinedOnly(false);
                                 }}
                             >
-                                Confirmed only ({positiveLinks.toString() ?? "-"})
+                                {t("ReferenceLinks.confirmedOnly", { nr: positiveLinkCount })}
                             </Button>
                             <Button
                                 data-test-id={"reference-links-show-declined-links"}
@@ -134,26 +152,32 @@ export const LinkingRuleReferenceLinks = ({
                                     setShowConfirmedOnly(false);
                                 }}
                             >
-                                Declined only ({negativeLinks.toString() ?? "-"})
+                                {t("ReferenceLinks.declinedOnly", { nr: negativeLinkCount })}
                             </Button>
                             <Spacing vertical={true} />
                         </>
                     ) : null}
-                    <Button
-                        data-test-id={"reference-links-show-certain-links"}
-                        elevated={!showUncertainLinks}
-                        onClick={() => setShowUncertainLinks(!showUncertainLinks)}
-                    >
-                        Certain
-                    </Button>
-                    <Button
-                        data-test-id={"reference-links-show-uncertain-links"}
-                        elevated={showUncertainLinks}
-                        disabled={true /** TODO: Display unlabeled links?? */}
-                        onClick={() => setShowUncertainLinks(!showUncertainLinks)}
-                    >
-                        Uncertain
-                    </Button>
+                    {!!showLinkType ? (
+                        <>
+                            <Button
+                                key={"certain"}
+                                data-test-id={"reference-links-show-certain-links"}
+                                elevated={!showUncertainLinks}
+                                onClick={() => showLinksOfType("labeled")}
+                            >
+                                Certain
+                            </Button>
+                            <Button
+                                key={"uncertain"}
+                                data-test-id={"reference-links-show-uncertain-links"}
+                                elevated={showUncertainLinks}
+                                onClick={() => showLinksOfType("unlabeled")}
+                            >
+                                Uncertain
+                            </Button>
+                        </>
+                    ) : null}
+
                     <Spacing vertical={true} />
                     <Checkbox
                         data-test-id={"reference-links-show-mismatches"}
@@ -185,6 +209,9 @@ export const LinkingRuleReferenceLinks = ({
                             <TableHeader key={"marker-column"} style={{ width: "1px" }}>
                                 &nbsp;
                             </TableHeader>
+                            <TableHeader key={"warning-column"} style={{ width: "1px" }}>
+                                &nbsp;
+                            </TableHeader>
                             <TableHeader>Dataset 1</TableHeader>
                             <TableHeader>Dataset 2</TableHeader>
                             <TableHeader key={"actions-column"} style={{ width: "1px" }}>
@@ -212,11 +239,19 @@ export const LinkingRuleReferenceLinks = ({
                                           );
                                           return (
                                               <TableRow key={rowIdx}>
-                                                  <TableCell className={`${link.type}-link`}>
+                                                  <TableCell>
                                                       <Icon
-                                                          name={link.misMatch ? "state-warning" : "state-checked"}
-                                                          color={link.misMatch ? "red" : "green"}
+                                                          name={
+                                                              link.decision !== "unlabeled"
+                                                                  ? "state-checked"
+                                                                  : "item-question"
+                                                          }
                                                       />
+                                                  </TableCell>
+                                                  <TableCell>
+                                                      {link.decision !== "unlabeled" && link.misMatch ? (
+                                                          <Icon name={"state-warning"} color={"red"} />
+                                                      ) : null}
                                                   </TableCell>
                                                   <TableCell>{sourceLabel}</TableCell>
                                                   <TableCell>{targetLabel}</TableCell>

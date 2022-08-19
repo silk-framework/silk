@@ -70,12 +70,18 @@ export const bestLearnedLinkageRule = (
 /** Fetch reference links / decision history for active learning. */
 export const fetchActiveLearningReferenceLinks = (
     projectId: string,
-    linkingTaskId: string
+    linkingTaskId: string,
+    includePositiveLinks: boolean = true,
+    includeNegativeLinks: boolean = true,
+    includeUnlabeledLinks: boolean = false
 ): Promise<FetchResponse<ReferenceLinksOrdered>> => {
     return fetch({
         url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/activeLearning/referenceLinks`),
         query: {
             withEntitiesAndSchema: true,
+            includePositiveLinks,
+            includeNegativeLinks,
+            includeUnlabeledLinks,
         },
     });
 };

@@ -43,11 +43,12 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
     const [referenceLinksLoading, setReferenceLinksLoading] = React.useState(false);
     const [bestRule, setBestRule] = React.useState<OptionallyLabelledParameter<ILinkingRule> | undefined>(undefined);
     const [showSaveDialog, setShowSaveDialog] = React.useState(false);
+    const linkTypeToShow = React.useRef<"labeled" | "unlabeled">("labeled");
     const { registerError } = useErrorHandler();
 
     React.useEffect(() => {
         if (!selectedEntityLink) {
-            fetchReferenceLinks(projectId, linkingTaskId);
+            fetchReferenceLinks();
             loadUnlabeledLinkCandidate();
         }
     }, [selectedEntityLink]);
@@ -64,7 +65,7 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
 
     const onActiveLearningUpdate = (activityStatus: IActivityStatus) => {
         if (activityStatus.statusName === "Finished") {
-            fetchReferenceLinks(projectId, linkingTaskId);
+            fetchReferenceLinks();
             updateBestLearnedRule();
         }
     };
@@ -79,10 +80,13 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
     };
 
     /** Fetches the current reference links of the linking task. */
-    const fetchReferenceLinks = async (projectId: string, taskId: string) => {
+    const fetchReferenceLinks = async () => {
+        const unlabeled = linkTypeToShow.current === "unlabeled";
         try {
             setReferenceLinksLoading(true);
-            const links = (await fetchActiveLearningReferenceLinks(projectId, taskId)).data;
+            const links = (
+                await fetchActiveLearningReferenceLinks(projectId, linkingTaskId, !unlabeled, !unlabeled, unlabeled)
+            ).data;
             setReferenceLinks(links);
         } catch (err) {
             registerError(
@@ -153,6 +157,13 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
         setSelectedEntityLink(undefined);
     };
 
+    const showLinkType = (type: "labeled" | "unlabeled") => {
+        if (type !== linkTypeToShow.current) {
+            linkTypeToShow.current = type;
+            fetchReferenceLinks();
+        }
+    };
+
     return (
         <LinkingRuleActiveLearningFeedbackContext.Provider
             value={{
@@ -170,11 +181,13 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                 <LinkingRuleActiveLearningBestLearnedRule rule={bestRule} score={referenceLinks?.evaluationScore} />
                 <Spacing />
                 <LinkingRuleReferenceLinks
+                    title={t("ActiveLearning.referenceLinks.title")}
                     loading={referenceLinksLoading}
                     referenceLinks={referenceLinks}
                     labelPaths={activeLearningContext.labelPaths}
                     removeLink={(link) => updateReferenceLink(link, "unlabeled")}
                     openLink={(link) => setSelectedEntityLink(link)}
+                    showLinkType={showLinkType}
                 />
                 {
                     // TODO: Check that reference links are saved
