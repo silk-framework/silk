@@ -237,6 +237,8 @@ export function ProjectTaskTabView({
         return locationParser.stringifyUrl(iframeUrl);
     };
 
+    let iframeNr = 1
+
     const iframeWidget = () => {
         return (
             <Card
@@ -251,9 +253,9 @@ export function ProjectTaskTabView({
                     </CardTitle>
                     <CardOptions>
                         {viewsAndItemLink.length > 1 &&
-                            viewsAndItemLink.map((tabItem) => (
+                            viewsAndItemLink.map((tabItem, idx) => (
                                 <Button
-                                    data-test-id={"taskView" + tabItem.id}
+                                    data-test-id={"taskView" + (tabItem.id ?? `-iframe-${iframeNr++}`)}
                                     key={tabItem.id ?? tabItem.path}
                                     onClick={() => {
                                         changeTab(tabItem.id ?? (tabItem as IItemLink));
@@ -290,6 +292,7 @@ export function ProjectTaskTabView({
                             <iframe
                                 ref={iframeRef}
                                 name={iFrameName}
+                                data-test-id={iFrameName}
                                 src={createIframeUrl((selectedTab as IItemLink)?.path)}
                                 title={tLabel((selectedTab as IItemLink)?.label)}
                                 style={{

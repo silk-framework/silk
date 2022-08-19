@@ -280,10 +280,6 @@ export function ValueRuleForm(props: IProps) {
             event.preventDefault();
             event.stopPropagation();
             saveRule((ruleId) => {
-                // const href = getEditorHref(ruleId ?? id)
-                // if(href) {
-                //     window.location.href = href
-                // }
                 props.openMappingEditor((ruleId ?? id)!);
             });
         };
@@ -306,7 +302,6 @@ export function ValueRuleForm(props: IProps) {
                 data-test-id="complex-rule-edit-button"
                 onClick={handleComplexEdit}
                 text={changed || !id ? "Save rule and open formula editor" : "Open formula editor"}
-                // href={id ? getEditorHref(id) : "#"}
             />
         ) : null;
 
