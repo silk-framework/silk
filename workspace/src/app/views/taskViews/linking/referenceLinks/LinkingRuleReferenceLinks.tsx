@@ -244,7 +244,9 @@ export const LinkingRuleReferenceLinks = ({
                                                       <Icon
                                                           name={
                                                               link.decision !== "unlabeled"
-                                                                  ? "state-checked"
+                                                                  ? link.decision === "positive"
+                                                                      ? "thumbs-up"
+                                                                      : "thumbs-down"
                                                                   : "item-question"
                                                           }
                                                       />

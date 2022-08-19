@@ -1,9 +1,9 @@
 import { Button, FieldItem, SimpleDialog, Switch } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { saveActiveLearningResults } from "../LinkingRuleActiveLearning.requests";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
+import { saveActiveLearningResults } from "../LinkingRuleActiveLearning.requests";
 
 interface LinkingRuleActiveLearningSaveModalProps {
     unsavedReferenceLinks: number;

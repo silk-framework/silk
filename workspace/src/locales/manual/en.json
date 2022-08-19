@@ -787,6 +787,10 @@
     },
     "ActiveLearning": {
         "config": {
+            "buttons": {
+                "startLearning": "Start learning",
+                "resetTooltip": "Reset learning state"
+            },
             "errors": {
                 "fetchAutoCompletionResult": "An error occurred while trying to fetch path auto-completions.",
                 "invalidPath": "The path you have entered is invalid."
@@ -813,6 +817,12 @@
         },
         "referenceLinks": {
             "title": "Decision history & reference links"
+        },
+        "resetDialog": {
+            "title": "Reset learning session",
+            "description": "This will reset the current learning session, e.g. changes made to the reference links and the configuration.",
+            "reset": "Reset",
+            "failed": "Could not reset learning session."
         },
         "saveDialog":{
             "title": "Save reference links and/or best learned rule",

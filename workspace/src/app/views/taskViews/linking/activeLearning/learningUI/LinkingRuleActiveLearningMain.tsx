@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, IActivityStatus, Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
+import { Button, IActivityStatus, IconButton, Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 import { LinkingRuleActiveLearningFeedbackComponent } from "./LinkingRuleActiveLearningFeedbackComponent";
 import { EntityLink, ReferenceLinksOrdered } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
@@ -139,6 +139,13 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                     <Spacing vertical />
                 </ToolbarSection>
                 <ToolbarSection>
+                    <IconButton
+                        name={"item-remove"}
+                        disruptive={true}
+                        text={t("ActiveLearning.config.buttons.resetTooltip")}
+                        onClick={activeLearningContext.showResetDialog}
+                    />
+                    <Spacing vertical={true} />
                     <Button
                         title={"Save link rule and/or newly added reference links."}
                         affirmative={true}

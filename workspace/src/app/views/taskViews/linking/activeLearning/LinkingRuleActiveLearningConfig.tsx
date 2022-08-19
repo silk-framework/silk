@@ -27,6 +27,7 @@ import {
 } from "./LinkingRuleActiveLearning.requests";
 import { Spinner } from "@blueprintjs/core";
 import { ManualComparisonPairSelection } from "./config/ManualComparisonPairSelection";
+import { useTranslation } from "react-i18next";
 
 interface LinkingRuleActiveLearningConfigProps {
     projectId: string;
@@ -39,6 +40,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
     const [suggestions, setSuggestions] = React.useState<ComparisonPairWithId[]>([]);
     const [loadSuggestions, setLoadSuggestions] = React.useState(true);
+    const [t] = useTranslation();
 
     const loadingSuggestions = activeLearningContext.comparisonPairsLoading || loadSuggestions;
 
@@ -259,8 +261,15 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                     <Spacing vertical />
                 </ToolbarSection>
                 <ToolbarSection>
+                    <IconButton
+                        name={"item-remove"}
+                        disruptive={true}
+                        text={t("ActiveLearning.config.buttons.resetTooltip")}
+                        onClick={activeLearningContext.showResetDialog}
+                    />
+                    <Spacing vertical={true} />
                     <Button
-                        title={"Start learning"}
+                        title={t("ActiveLearning.config.buttons.startLearning")}
                         affirmative={true}
                         disabled={activeLearningContext.propertiesToCompare.length === 0}
                         onClick={() => activeLearningContext.navigateTo("linkLearning")}

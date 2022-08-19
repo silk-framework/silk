@@ -18,6 +18,7 @@ import { DIErrorTypes } from "@ducks/error/typings";
 import { connectWebSocket } from "../../../../services/websocketUtils";
 import { activityQueryString } from "../../../shared/TaskActivityOverview/taskActivityUtils";
 import { legacyApiEndpoint } from "../../../../utils/getApiEndpoint";
+import { LinkingRuleActiveLearningResetModal } from "./dialogs/LinkingRuleActiveLearningResetModal";
 
 export interface LinkingRuleActiveLearningProps {
     /** Project ID the task is in. */
@@ -50,6 +51,7 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
     /** The source paths of the label values that should be displayed in the UI for each entity in a link. */
     const [labelPaths, setLabelPaths] = React.useState<LabelProperties | undefined>(undefined);
     const [comparisonPairsLoading, setComparisonPairsLoading] = React.useState(false);
+    const [showResetDialog, setShowResetDialog] = React.useState(false);
 
     React.useEffect(() => {
         startComparisonPairActivity();
@@ -136,6 +138,17 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
         await fetchTaskData(projectId, linkingTaskId);
     };
 
+    const onCloseResetModal = (hasReset: boolean) => {
+        setShowResetDialog(false);
+        if (hasReset) {
+            setActiveLearningStep("config");
+            setSelectedPropertyPairs([]);
+            setLabelPaths(undefined);
+            startComparisonPairActivity();
+            init();
+        }
+    };
+
     return (
         <LinkingRuleActiveLearningContext.Provider
             value={{
@@ -148,6 +161,7 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
                 labelPaths,
                 changeLabelPaths: setLabelPaths,
                 comparisonPairsLoading,
+                showResetDialog: () => setShowResetDialog(true),
             }}
         >
             {loading ? (
@@ -160,6 +174,7 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
                     {activeLearningStep === "linkLearning" ? (
                         <LinkingRuleActiveLearningMain projectId={projectId} linkingTaskId={linkingTaskId} />
                     ) : null}
+                    {showResetDialog ? <LinkingRuleActiveLearningResetModal close={onCloseResetModal} /> : null}
                 </>
             )}
         </LinkingRuleActiveLearningContext.Provider>

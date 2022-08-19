@@ -121,3 +121,11 @@ export const saveActiveLearningResults = (
         },
     });
 };
+
+/** Reset learning state. */
+export const resetActiveLearningSession = (projectId: string, linkingTaskId: string): Promise<FetchResponse<void>> => {
+    return fetch({
+        url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/activeLearning/reset`),
+        method: "POST",
+    });
+};

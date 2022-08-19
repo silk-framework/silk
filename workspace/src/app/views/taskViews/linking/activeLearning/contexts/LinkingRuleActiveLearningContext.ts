@@ -21,6 +21,8 @@ interface LinkingRuleActiveLearningContextProps {
     changeLabelPaths: (paths: LabelProperties) => any;
     /** True while comparison pair activity is running. */
     comparisonPairsLoading: boolean;
+    /** Show dialog to reset the state of the current learning session. */
+    showResetDialog: () => any;
 }
 
 /** Contains data and functions for the link rule active learning. */
@@ -33,4 +35,5 @@ export const LinkingRuleActiveLearningContext = React.createContext<LinkingRuleA
     labelPaths: undefined,
     changeLabelPaths: () => {},
     comparisonPairsLoading: false,
+    showResetDialog: () => {},
 });
