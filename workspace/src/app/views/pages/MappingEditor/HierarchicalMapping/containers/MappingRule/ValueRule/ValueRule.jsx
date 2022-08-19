@@ -96,9 +96,10 @@ class ValueRule extends React.Component {
             sourcePaths,
             metadata,
             mapRuleLoading,
+            openMappingEditor,
         } = this.props;
         if (edit) {
-            return <ValueRuleForm id={id} parentId={parentId} />;
+            return <ValueRuleForm id={id} parentId={parentId} openMappingEditor={openMappingEditor} />;
         }
         const nodeType = _.get(mappingTarget, "valueType.nodeType");
         if (mapRuleLoading) {

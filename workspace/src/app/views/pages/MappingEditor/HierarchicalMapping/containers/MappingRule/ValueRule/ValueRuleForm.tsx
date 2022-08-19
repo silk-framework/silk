@@ -280,7 +280,7 @@ export function ValueRuleForm(props: IProps) {
             event.preventDefault();
             event.stopPropagation();
             saveRule((ruleId) => {
-                props.openMappingEditor((ruleId ?? id)!);
+                props.openMappingEditor(ruleId!);
             });
         };
         if (!id) {
