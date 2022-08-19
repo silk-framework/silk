@@ -1,7 +1,6 @@
 package org.silkframework.learning.active.linkselector
 
-import org.silkframework.learning.active.LinkCandidate
-import org.silkframework.rule.evaluation.ReferenceEntities
+import org.silkframework.learning.active.{ActiveLearningReferenceData, LinkCandidate}
 import org.silkframework.util.SampleUtil
 
 import scala.util.Random
@@ -10,10 +9,10 @@ case class SamplingLinkSelector(baseSelector: LinkSelector, linkSampleSize: Opti
 
   private implicit val random: Random = Random
 
-  def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[LinkCandidate], referenceEntities: ReferenceEntities)(implicit random: Random): Seq[LinkCandidate] = {
+  def apply(rules: Seq[WeightedLinkageRule], referenceData: ActiveLearningReferenceData)(implicit random: Random): Seq[LinkCandidate] = {
     val sampledLinks = linkSampleSize match {
-      case Some(sampleSize) => SampleUtil.sample(unlabeledLinks, sampleSize, None)
-      case None => unlabeledLinks
+      case Some(sampleSize) => SampleUtil.sample(referenceData.linkCandidates, sampleSize, None)
+      case None => referenceData.linkCandidates
     }
 
     val sampledRules = ruleSampleSize match {
@@ -21,7 +20,7 @@ case class SamplingLinkSelector(baseSelector: LinkSelector, linkSampleSize: Opti
       case None => rules
     }
 
-    baseSelector.apply(sampledRules, sampledLinks, referenceEntities)
+    baseSelector.apply(sampledRules, referenceData.copy(linkCandidates = sampledLinks))
   }
 
 }

@@ -87,15 +87,28 @@ class LinkWithConfidence(val source: String, val target: String, conf: Double) e
   override def reverse: Link = new LinkWithConfidence(target, source, conf)
 }
 
-class LinkWithEntities(val source: String, val target: String, val linkEntities: DPair[Entity]) extends Link {
-  override def confidence: Option[Double] = None
+class LinkWithEntities(val source: String,
+                       val target: String,
+                       val linkEntities: DPair[Entity],
+                       val confidence: Option[Double] = None) extends Link {
 
   override def entities: Option[DPair[Entity]] = Some(linkEntities)
 
   override def reverse: Link = new LinkWithEntities(target, source, linkEntities)
 }
 
-class ReferenceLink(source: String, target: String, linkEntities: DPair[Entity], val decision: LinkDecision) extends LinkWithEntities(source, target, linkEntities)
+class ReferenceLink(source: String,
+                    target: String,
+                    linkEntities: DPair[Entity],
+                    val decision: LinkDecision,
+                    confidence: Option[Double] = None) extends LinkWithEntities(source, target, linkEntities, confidence) {
+
+  override def update(source: String = source,
+                      target: String = target,
+                      confidence: Option[Double] = confidence,
+                      entities: Option[DPair[Entity]] = entities): ReferenceLink = new ReferenceLink(source, target, entities.get, this.decision, confidence)
+
+}
 
 object ReferenceLink {
 

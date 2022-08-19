@@ -14,7 +14,7 @@
 
 package org.silkframework.learning.active.linkselector
 
-import org.silkframework.learning.active.LinkCandidate
+import org.silkframework.learning.active.{ActiveLearningReferenceData, LinkCandidate}
 import org.silkframework.rule.LinkageRule
 import org.silkframework.rule.evaluation.ReferenceEntities
 
@@ -26,13 +26,14 @@ import scala.util.Random
  */
 case class UniformSelector() extends LinkSelector {
 
-  def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[LinkCandidate], referenceEntities: ReferenceEntities)(implicit random: Random): Seq[LinkCandidate] = {
+  def apply(rules: Seq[WeightedLinkageRule], referenceData: ActiveLearningReferenceData)(implicit random: Random): Seq[LinkCandidate] = {
+    val referenceEntities = referenceData.toReferenceEntities
     val proj = projection(rules, referenceEntities)
 
     val positiveLinks = referenceEntities.positiveEntities map LinkSelectorHelper.pairToLink
     val negativeLinks = referenceEntities.negativeEntities map LinkSelectorHelper.pairToLink
 
-    val unlabeled = unlabeledLinks.map(proj)
+    val unlabeled = referenceData.linkCandidates.map(proj)
     val positive = positiveLinks.map(LinkCandidate.fromLink).map(proj)
     val negative = negativeLinks.map(LinkCandidate.fromLink).map(proj)
 

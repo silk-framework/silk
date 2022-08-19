@@ -15,8 +15,7 @@
 package org.silkframework.learning.active.linkselector
 
 import org.silkframework.entity.Link
-import org.silkframework.learning.active.LinkCandidate
-import org.silkframework.rule.evaluation.ReferenceEntities
+import org.silkframework.learning.active.{ActiveLearningReferenceData, LinkCandidate}
 
 import scala.math.log
 import scala.util.Random
@@ -26,8 +25,8 @@ import scala.util.Random
  */
 case class EntropySelector() extends LinkSelector {
 
-  override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[LinkCandidate], referenceEntities: ReferenceEntities)(implicit random: Random): Seq[LinkCandidate] = {
-    val maxLink = unlabeledLinks.par.maxBy(link => entropy(rules, link))
+  override def apply(rules: Seq[WeightedLinkageRule], referenceData: ActiveLearningReferenceData)(implicit random: Random): Seq[LinkCandidate] = {
+    val maxLink = referenceData.linkCandidates.par.maxBy(link => entropy(rules, link))
     Seq(maxLink)
   }
 

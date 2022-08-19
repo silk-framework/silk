@@ -18,10 +18,10 @@ import org.silkframework.learning.active.linkselector._
 import org.silkframework.learning.active.poolgenerator.{CombinedLinkPoolGenerator, IndexLinkPoolGenerator, LinkPoolGenerator, LinkSpecLinkPoolGenerator}
 
 
-case class ActiveLearningConfiguration(linkPoolGenerator: LinkPoolGenerator = ActiveLearningConfigurationDefaults.defaultLinkPoolGenerator,
-                                       selector: LinkSelector = ActiveLearningConfigurationDefaults.defaultLinkSelector)
+case class ActiveLearningConfiguration(linkPoolGenerator: LinkPoolGenerator = ActiveLearningConfiguration.defaultLinkPoolGenerator,
+                                       selector: LinkSelector = ActiveLearningConfiguration.defaultLinkSelector)
 
-object ActiveLearningConfigurationDefaults {
+object ActiveLearningConfiguration {
 
   val defaultLinkPoolGenerator: LinkPoolGenerator = {
     new CombinedLinkPoolGenerator(
@@ -35,8 +35,8 @@ object ActiveLearningConfigurationDefaults {
     val max = SamplingLinkSelector(BestMatchSelector(), linkSampleSize = Some(5000), ruleSampleSize = Some(400))
     val jensen = SamplingLinkSelector(JensenShannonDivergenceSelector(), linkSampleSize = Some(1000), ruleSampleSize = Some(1000))
     LinkSelectorCombinator(
-      pickLinkSelector =  (_, _, entities) => {
-        if(entities.positiveLinks.size < 2) max else jensen
+      pickLinkSelector =  (_, referenceData) => {
+        if(referenceData.positiveLinks.size < 2) max else jensen
       }
     )
   }

@@ -14,8 +14,7 @@
 
 package org.silkframework.learning.active.linkselector
 
-import org.silkframework.learning.active.LinkCandidate
-import org.silkframework.rule.evaluation.ReferenceEntities
+import org.silkframework.learning.active.{ActiveLearningReferenceData, LinkCandidate}
 
 import scala.util.Random
 
@@ -24,7 +23,8 @@ import scala.util.Random
  * This can be used as a baseline against other selectors can be compared.
  */
 case class RandomSelector() extends LinkSelector {
-  override def apply(rules: Seq[WeightedLinkageRule], unlabeledLinks: Seq[LinkCandidate], referenceEntities: ReferenceEntities)(implicit random: Random): Seq[LinkCandidate] = {
+  override def apply(rules: Seq[WeightedLinkageRule], referenceData: ActiveLearningReferenceData)(implicit random: Random): Seq[LinkCandidate] = {
+    val unlabeledLinks = referenceData.linkCandidates
     Seq(unlabeledLinks(random.nextInt(unlabeledLinks.size)))
   }
 }

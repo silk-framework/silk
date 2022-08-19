@@ -53,7 +53,7 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
     // Init
     val selectedPairs = task.activity[ComparisonPairGenerator].value().selectedPairs
     if(context.value().comparisonPaths != selectedPairs) {
-      val referenceData = context.child(new ActiveLearningInitializer(task, config)).startBlockingAndGetValue()
+      val referenceData = context.child(new ActiveLearningInitializer(task, config), progressContribution = 1.0).startBlockingAndGetValue()
       context.value.updateWith(_.copy(links = Seq.empty, comparisonPaths = selectedPairs, referenceData = referenceData))
     }
 
@@ -64,14 +64,17 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
     buildPopulation(linkSpec, generator, context)
 
     // Ensure that we got positive and negative reference links
-    val completeEntities = CompleteReferenceLinks(context.value().referenceData.toReferenceEntities, context.value().referenceData.linkCandidates, context.value().population)
+    val completeReferenceLinks = CompleteReferenceLinks(context.value().referenceData, context.value().population)
+    val completeEntities = completeReferenceLinks.toReferenceEntities
+
+    // Get fitness function
     val fitnessFunction = config.fitnessFunction(completeEntities)
 
     // Learn new population
     updatePopulation(generator, completeEntities, fitnessFunction, context)
 
     // Select link candidates from the pool
-    selectLinks(generator, completeEntities, fitnessFunction, context)
+    selectLinks(generator, completeReferenceLinks, fitnessFunction, context)
 
     // Clean population
     if(context.value().referenceData.positiveLinks.nonEmpty && context.value().referenceData.negativeLinks.nonEmpty) {
@@ -125,7 +128,7 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
   }
 
   private def selectLinks(generator: LinkageRuleGenerator,
-                          completeEntities: ReferenceEntities,
+                          completeEntities: ActiveLearningReferenceData,
                           fitnessFunction: (LinkageRule => Double),
                           context: ActivityContext[ActiveLearningState])
                          (implicit userContext: UserContext, random: Random): Unit = Timer("Selecting links") {
@@ -147,7 +150,7 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
         }
       }
 
-      val updatedLinks = config.active.selector(weightedRules, context.value().referenceData.linkCandidates, completeEntities)
+      val updatedLinks = config.active.selector(weightedRules, completeEntities)
       context.value() = context.value().copy(links = updatedLinks)
       for(topLink <- updatedLinks.headOption)
         context.log.fine(s"Selected top link candidate $topLink using ${config.active.selector.toString}")

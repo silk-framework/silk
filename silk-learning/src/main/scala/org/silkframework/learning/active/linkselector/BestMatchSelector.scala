@@ -1,7 +1,6 @@
 package org.silkframework.learning.active.linkselector
 
-import org.silkframework.learning.active.{LinkCandidate, MatchingValues}
-import org.silkframework.rule.evaluation.ReferenceEntities
+import org.silkframework.learning.active.{ActiveLearningReferenceData, LinkCandidate, MatchingValues}
 
 import scala.util.{Random, Try}
 
@@ -11,10 +10,9 @@ import scala.util.{Random, Try}
 case class BestMatchSelector() extends LinkSelector {
 
   override def apply(rules: Seq[WeightedLinkageRule],
-                     unlabeledLinks: Seq[LinkCandidate],
-                     referenceEntities: ReferenceEntities)
+                     referenceData: ActiveLearningReferenceData)
                     (implicit random: Random): Seq[LinkCandidate] = {
-    val sortedCandidates = unlabeledLinks.sortBy(linkCandidateScore).take(3)
+    val sortedCandidates = referenceData.linkCandidates.sortBy(linkCandidateScore).take(3)
     sortedCandidates
   }
 
