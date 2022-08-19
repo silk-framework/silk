@@ -28,7 +28,6 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
     const [hasValidPath, setHasValidPath] = React.useState(false);
 
     const checkPathValidity = () => {
-        // TODO: Add path validation (syntax) check
         if (manualSourcePath.current && manualTargetPath.current) {
             setHasValidPath(true);
         } else {
@@ -111,10 +110,11 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
     const { registerError } = useErrorHandler();
     /** Stores the path. Often updated. */
     const path = React.useRef<string | undefined>(undefined);
+    const isValid = React.useRef<boolean>(false);
     const [t] = useTranslation();
 
     const updateState = () => {
-        if (path.current != null) {
+        if (path.current != null && isValid.current) {
             changeManualPath(path.current);
         }
     };
@@ -144,6 +144,7 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
     return (
         <GridColumn style={{ ...columnStyles.mainColumnStyle, textAlign: "left" }}>
             <AutoSuggestion
+                label={t("ActiveLearning.config.manualSelection." + (isTarget ? "targetPath" : "sourcePath"))}
                 leftElement={
                     <Icon name={"operation-search"} tooltipText={"Allows to construct complex input paths."} />
                 }
@@ -153,12 +154,14 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
                 }}
                 fetchSuggestions={fetchAutoCompletionResult(isTarget)}
                 placeholder={"Enter an input path"}
-                checkInput={checkValuePathValidity}
+                checkInput={(value) => checkValuePathValidity(value, projectId)}
                 onFocusChange={(hasFocus) => {
                     if (!hasFocus) {
                         updateState();
                     }
                 }}
+                validationErrorText={t("ActiveLearning.config.errors.invalidPath")}
+                onInputChecked={(valid: boolean) => (isValid.current = valid)}
             />
         </GridColumn>
     );
