@@ -45,8 +45,6 @@ object LinkSelectorTest extends App {
 
   val rules = rule(true, true) :: rule(false, true) :: rule(false, true) :: rule(true, false) :: Nil
 
-  println(selector1(rules, unlabeledLinks, referenceLinks))
-  println(selector2(rules, unlabeledLinks, referenceLinks))
 
   def rule(matchLabel: Boolean, matchDate: Boolean) = {
     def labelComparison =
