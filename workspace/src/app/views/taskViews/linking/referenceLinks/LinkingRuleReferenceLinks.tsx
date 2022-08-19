@@ -97,7 +97,8 @@ export const LinkingRuleReferenceLinks = ({
         const referenceLinksAnnotated: AnnotatedReferenceLink[] = (referenceLinks?.links ?? []).map((l) => ({
             ...l,
             type: l.decision ?? "unlabeled",
-            misMatch: l.confidence ? l.confidence < 0 : false,
+            misMatch:
+                (l.decision === "positive" || l.decision === "negative") && l.confidence ? l.confidence < 0 : false,
         }));
         setReferenceLinksFiltered(
             referenceLinksAnnotated.filter((link) => {
