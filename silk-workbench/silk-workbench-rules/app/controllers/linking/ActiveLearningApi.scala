@@ -4,7 +4,7 @@ import akka.stream.Materializer
 import controllers.core.UserContextActions
 import controllers.core.util.JsonUtils
 import controllers.linking.activeLearning.JsonFormats._
-import controllers.linking.activeLearning.{ActiveLearningIterator, ReferenceLinksStatistics}
+import controllers.linking.activeLearning.{ActiveLearningInfo, ActiveLearningIterator, ReferenceLinksStatistics}
 import controllers.linking.evaluation.LinkageRuleEvaluationResult
 import controllers.linking.linkingTask.LinkingTaskApiUtils
 import io.swagger.v3.oas.annotations.enums.ParameterIn
@@ -170,6 +170,44 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
   }
 
   @Operation(
+    summary = "Status information",
+    description = "General status information about the active learning session.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json",
+          schema = new Schema(implementation = classOf[ActiveLearningInfo])
+        ))
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project or task has not been found."
+      )
+    )
+  )
+  def info(@Parameter(
+             name = "project",
+             description = "The project identifier",
+             required = true,
+             in = ParameterIn.PATH,
+             schema = new Schema(implementation = classOf[String])
+           )
+           projectId: String,
+           @Parameter(
+             name = "task",
+             description = "The task identifier",
+             required = true,
+             in = ParameterIn.PATH,
+             schema = new Schema(implementation = classOf[String])
+           )
+           taskId: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+    val context = Context.get[LinkSpec](projectId, taskId, request.path)
+    Ok(Json.toJson(ActiveLearningInfo(context.task)))
+  }
+
+  @Operation(
     summary = "Evaluate reference links",
     description = "The current reference links, evaluated on the top performing linkage rule.",
     responses = Array(
@@ -273,6 +311,7 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
         }
       }
 
+    // TODO remove statistics because it has been added to the info endpoint
       val statistics = ReferenceLinksStatistics.compute(context.task.referenceLinks, allReferenceLinks)
 
       var result =

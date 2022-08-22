@@ -25,9 +25,11 @@ import org.silkframework.rule.{LinkSpec, LinkageRule}
 import org.silkframework.runtime.activity.Status.Canceling
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.PluginContext
+import org.silkframework.runtime.users.User
 import org.silkframework.util.Timer
 import org.silkframework.workspace.ProjectTask
 
+import scala.collection.immutable.ListSet
 import scala.math.max
 import scala.util.Random
 
@@ -39,23 +41,11 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
 
   override def run(context: ActivityContext[ActiveLearningState])
                   (implicit userContext: UserContext): Unit = {
+    init(context)
 
     val linkSpec = task.data
     implicit val pluginContext: PluginContext = PluginContext.fromProject(task.project)
-
-    // Update random seed
-    val newRandomSeed = new Random(context.value().randomSeed).nextLong()
-    context.value() = context.value().copy(randomSeed = newRandomSeed)
-    //val randomSeed = task.activity[ComparisonPairGenerator].value().randomSeed
-    //context.value() = context.value().copy(randomSeed = randomSeed)
-    implicit val random: Random = new Random(newRandomSeed)
-
-    // Init
-    val selectedPairs = task.activity[ComparisonPairGenerator].value().selectedPairs
-    if(context.value().comparisonPaths != selectedPairs) {
-      val referenceData = context.child(new ActiveLearningInitializer(task, config), progressContribution = 1.0).startBlockingAndGetValue()
-      context.value.updateWith(_.copy(links = Seq.empty, comparisonPaths = selectedPairs, referenceData = referenceData))
-    }
+    implicit val random: Random = new Random(context.value().randomSeed)
 
     // Create linkage rule generator
     val generator = linkageRuleGenerator(context)
@@ -80,6 +70,29 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
     if(context.value().referenceData.positiveLinks.nonEmpty && context.value().referenceData.negativeLinks.nonEmpty) {
       cleanPopulation(generator, fitnessFunction, context)
     }
+  }
+
+  private def init(context: ActivityContext[ActiveLearningState])
+                  (implicit userContext: UserContext): Unit = {
+    // Update random seed
+    val newRandomSeed = new Random(context.value().randomSeed).nextLong()
+    context.value() = context.value().copy(randomSeed = newRandomSeed)
+    //val randomSeed = task.activity[ComparisonPairGenerator].value().randomSeed
+    //context.value() = context.value().copy(randomSeed = randomSeed)
+
+    var users = ListSet[User]()
+
+    // Init
+    val selectedPairs = task.activity[ComparisonPairGenerator].value().selectedPairs
+    if (context.value().comparisonPaths != selectedPairs) {
+      val referenceData = context.child(new ActiveLearningInitializer(task, config), progressContribution = 1.0).startBlockingAndGetValue()
+      users ++= task.activity[ComparisonPairGenerator].startedBy.user
+      context.value.updateWith(_.copy(links = Seq.empty, comparisonPaths = selectedPairs, referenceData = referenceData))
+    }
+
+    // Update users
+    users ++= context.startedBy.user
+    context.value.updateWith(_.copy(users = users))
   }
 
   private def linkageRuleGenerator(context: ActivityContext[ActiveLearningState])

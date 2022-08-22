@@ -3,6 +3,9 @@ package org.silkframework.learning.active
 import org.silkframework.learning.active.comparisons.ComparisonPair
 import org.silkframework.learning.generation.LinkageRuleGenerator
 import org.silkframework.learning.individual.Population
+import org.silkframework.runtime.users.User
+
+import scala.collection.immutable.ListSet
 
 /**
   * Holds the current state of the active learning workflow.
@@ -18,10 +21,11 @@ case class ActiveLearningState(comparisonPaths: Seq[ComparisonPair],
                                generator: LinkageRuleGenerator,
                                population: Population,
                                links: Seq[LinkCandidate],
-                               randomSeed: Long)
+                               randomSeed: Long,
+                               users: ListSet[User])
 
 object ActiveLearningState {
   def initial(randomSeed: Long): ActiveLearningState = {
-    ActiveLearningState(Seq.empty, ActiveLearningReferenceData.empty, LinkageRuleGenerator.empty, Population.empty, Seq.empty, randomSeed = randomSeed)
+    ActiveLearningState(Seq.empty, ActiveLearningReferenceData.empty, LinkageRuleGenerator.empty, Population.empty, Seq.empty, randomSeed = randomSeed, users = ListSet.empty)
   }
 }
