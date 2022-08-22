@@ -17,6 +17,23 @@ trait User {
     User.labelFromUri(new Uri(uri))
   }
 
+  /**
+    * Two users are equal if they share the same URI.
+    */
+  override def equals(other: Any): Boolean = {
+    other match {
+      case user: User => uri == user.uri
+      case _ => false
+    }
+  }
+
+  /**
+    * Hash code based on the user URI.
+    */
+  override def hashCode(): Int = {
+    uri.hashCode
+  }
+
 }
 
 object User {
