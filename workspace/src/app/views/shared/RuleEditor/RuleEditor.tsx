@@ -18,6 +18,7 @@ import { ReactFlowProvider } from "react-flow-renderer";
 import utils from "./RuleEditor.utils";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
 
+/** Function to fetch the rule operator spec. */
 export type RuleOperatorFetchFnType = (
     pluginId: string,
     pluginType?: RuleOperatorPluginType
@@ -134,15 +135,8 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     // Convert task data to internal model
     React.useEffect(() => {
         if (taskData && operatorMap) {
-            const getOperatorNode = (pluginId: string, pluginType?: string) => {
-                const operatorPlugins = operatorMap.get(pluginId);
-                if (!operatorPlugins) {
-                    console.warn("No plugin operator with ID " + pluginId + " found!");
-                } else {
-                    return pluginType
-                        ? operatorPlugins.find((plugin) => plugin.pluginType === pluginType)
-                        : operatorPlugins[0];
-                }
+            const getOperatorNode = (pluginId: string, pluginType?: string): IRuleOperator | undefined => {
+                return utils.getOperatorNode(pluginId, operatorMap, pluginType);
             };
             const nodes = convertToRuleOperatorNodes(taskData, getOperatorNode);
             setInitialRuleOperatorNodes(nodes);

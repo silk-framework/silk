@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
 import { TaskPlugin } from "@ducks/shared/typings";
-import { ILinkingTaskParameters } from "../linking.types";
+import { ILinkingRule, ILinkingTaskParameters } from "../linking.types";
 import { ActivityAction, IActivityStatus, Spinner } from "@eccenca/gui-elements";
 import { ActiveLearningStep, ComparisonPairWithId } from "./LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningMain } from "./learningUI/LinkingRuleActiveLearningMain";
@@ -19,6 +19,11 @@ import { connectWebSocket } from "../../../../services/websocketUtils";
 import { activityQueryString } from "../../../shared/TaskActivityOverview/taskActivityUtils";
 import { legacyApiEndpoint } from "../../../../utils/getApiEndpoint";
 import { LinkingRuleActiveLearningResetModal } from "./dialogs/LinkingRuleActiveLearningResetModal";
+import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
+import utils from "../LinkingRuleEditor.utils";
+import { IRuleOperator, IRuleOperatorNode } from "../../../shared/RuleEditor/RuleEditor.typings";
+import ruleUtils from "../../shared/rules/rule.utils";
+import ruleEditorUtils from "../../../../views/shared/RuleEditor/RuleEditor.utils";
 
 export interface LinkingRuleActiveLearningProps {
     /** Project ID the task is in. */
@@ -52,10 +57,47 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
     const [labelPaths, setLabelPaths] = React.useState<LabelProperties | undefined>(undefined);
     const [comparisonPairsLoading, setComparisonPairsLoading] = React.useState(false);
     const [showResetDialog, setShowResetDialog] = React.useState(false);
+    const [operatorMap, setOperatorMap] = React.useState<Map<string, IRuleOperator[]> | undefined>(undefined);
 
     React.useEffect(() => {
         startComparisonPairActivity();
     }, [projectId, linkingTaskId]);
+
+    React.useEffect(() => {
+        fetchRuleOperators();
+    }, []);
+
+    const fetchRuleOperators = async () => {
+        try {
+            const operatorPlugins = Object.values((await requestRuleOperatorPluginDetails(false)).data);
+            const operatorMap = new Map<string, IRuleOperator[]>();
+            operatorPlugins.forEach((op) => operatorMap.set(op.pluginId, []));
+            operatorPlugins.forEach((op) => {
+                operatorMap.get(op.pluginId)!!.push(ruleUtils.convertRuleOperator(op, () => []));
+            });
+            setOperatorMap(operatorMap);
+        } catch (ex) {
+            registerError(
+                "LinkingRuleActiveLearning.fetchRuleOperators",
+                t("taskViews.linkRulesEditor.errors.fetchLinkingRuleOperatorDetails.msg"),
+                ex
+            );
+        }
+    };
+
+    const convertRule = React.useCallback(
+        (linkingRule: ILinkingRule): IRuleOperatorNode[] => {
+            if (operatorMap) {
+                const getOperatorNode = (pluginId: string, pluginType?: string): IRuleOperator | undefined => {
+                    return ruleEditorUtils.getOperatorNode(pluginId, operatorMap, pluginType);
+                };
+                return utils.convertLinkingRuleToRuleOperatorNodes(linkingRule, getOperatorNode);
+            } else {
+                return [];
+            }
+        },
+        [operatorMap]
+    );
 
     const checkComparisonPairsActivityFinished = (
         activityStatus: IActivityStatus,
@@ -162,6 +204,7 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
                 changeLabelPaths: setLabelPaths,
                 comparisonPairsLoading,
                 showResetDialog: () => setShowResetDialog(true),
+                convertRule,
             }}
         >
             {loading ? (

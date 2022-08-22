@@ -1,8 +1,9 @@
 import React from "react";
 import { TaskPlugin } from "@ducks/shared/typings";
-import { ILinkingTaskParameters } from "../../linking.types";
+import { ILinkingRule, ILinkingTaskParameters } from "../../linking.types";
 import { ActiveLearningStep, ComparisonPairWithId } from "../LinkingRuleActiveLearning.typings";
 import { LabelProperties } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
+import { IRuleOperatorNode } from "../../../../shared/RuleEditor/RuleEditor.typings";
 
 interface LinkingRuleActiveLearningContextProps {
     projectId: string;
@@ -23,6 +24,8 @@ interface LinkingRuleActiveLearningContextProps {
     comparisonPairsLoading: boolean;
     /** Show dialog to reset the state of the current learning session. */
     showResetDialog: () => any;
+    /** Converts a linking rule to rule operators. */
+    convertRule: (linkingRule: ILinkingRule) => IRuleOperatorNode[];
 }
 
 /** Contains data and functions for the link rule active learning. */
@@ -36,4 +39,5 @@ export const LinkingRuleActiveLearningContext = React.createContext<LinkingRuleA
     changeLabelPaths: () => {},
     comparisonPairsLoading: false,
     showResetDialog: () => {},
+    convertRule: () => [],
 });

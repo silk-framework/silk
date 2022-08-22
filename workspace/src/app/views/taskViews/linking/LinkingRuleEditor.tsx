@@ -251,7 +251,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                 getStickyNotes={utils.getStickyNotes}
                 convertRuleOperator={ruleUtils.convertRuleOperator}
                 viewActions={viewActions}
-                convertToRuleOperatorNodes={utils.convertToRuleOperatorNodes}
+                convertToRuleOperatorNodes={utils.convertLinkingTaskToRuleOperatorNodes}
                 additionalRuleOperators={[sourcePathInput(), targetPathInput()]}
                 addAdditionParameterSpecifications={(pluginDetails) => {
                     switch (pluginDetails.pluginType) {
