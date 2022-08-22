@@ -84,6 +84,9 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
 
     // Init
     val selectedPairs = task.activity[ComparisonPairGenerator].value().selectedPairs
+    if (selectedPairs.isEmpty) {
+      throw new LearningException("Cannot start active learning, because no comparison pairs have been selected.")
+    }
     if (context.value().comparisonPaths != selectedPairs) {
       val referenceData = context.child(new ActiveLearningInitializer(task, config), progressContribution = 1.0).startBlockingAndGetValue()
       users ++= task.activity[ComparisonPairGenerator].startedBy.user
@@ -93,6 +96,11 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
     // Update users
     users ++= context.startedBy.user
     context.value.updateWith(_.copy(users = users))
+
+    // Make sure that there is at least one link candidate
+    if (context.value().referenceData.linkCandidates.isEmpty) {
+      throw new LearningException("All available link candidates have been confirmed or declined.")
+    }
   }
 
   private def linkageRuleGenerator(context: ActivityContext[ActiveLearningState])
@@ -147,10 +155,6 @@ class ActiveLearning(task: ProjectTask[LinkSpec],
                          (implicit userContext: UserContext, random: Random): Unit = Timer("Selecting links") {
     if (!context.status().isInstanceOf[Canceling]) {
       context.status.update("Selecting evaluation links", 0.8)
-
-      if (context.value().referenceData.linkCandidates.isEmpty) {
-        throw new LearningException("All available link candidates have been confirmed or declined.")
-      }
 
       //TODO measure improvement of randomization
       val randomizedPopulation = context.child(new Randomize(context.value().population, fitnessFunction, generator, config, random.nextLong())).startBlockingAndGetValue()

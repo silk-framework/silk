@@ -48,15 +48,6 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
       )
     )
   )
-  @RequestBody(
-    required = true,
-    content = Array(
-      new Content(
-        mediaType = "application/json",
-        schema = new Schema(implementation = classOf[ComparisonPairsFormat]),
-      )
-    )
-  )
   def comparisonPairs(@Parameter(
                         name = "project",
                         description = "The project identifier",

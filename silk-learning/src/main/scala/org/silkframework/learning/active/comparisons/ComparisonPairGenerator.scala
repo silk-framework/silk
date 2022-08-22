@@ -53,7 +53,7 @@ class ComparisonPairGenerator(task: ProjectTask[LinkSpec],
 
     // Update random seed
     val newRandomSeed = new Random(context.value().randomSeed).nextLong()
-    context.value() = context.value().copy(randomSeed = newRandomSeed)
+    context.value.updateWith(_.copy(randomSeed = newRandomSeed))
     implicit val random: Random = new Random(newRandomSeed)
 
     // Update unlabeled pool
