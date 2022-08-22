@@ -24,7 +24,7 @@ export const RuleEditorNotifications = ({
     const diErrorMessages = messages.filter(diError => diError.timestamp > initTimestamp.current)
 
     useEffect(() => {
-        setIsOpen(true && integratedView);
+        setIsOpen(!!integratedView);
     }, [diErrorMessages.length > 0 ? diErrorMessages[0] : undefined]);
 
     useEffect(() => {

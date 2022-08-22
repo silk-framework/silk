@@ -84,14 +84,13 @@ class ObjectRule extends React.Component {
     }
 
     openEditor = () => {
-        let ruleId = _.get(this.props.ruleData, "rules.uriRule");
-        if (!ruleId) {
+        let uriRuleId = _.get(this.props.ruleData, "rules.uriRule")?.id;
+        if (!uriRuleId) {
             const rule = _.cloneDeep(this.props.ruleData);
             rule.rules.uriRule = {
                 type: "uri",
                 pattern: `{}/${rule.id}`,
             };
-            ruleId = rule.id;
             updateObjectMappingAsync(rule).subscribe(
                 (data) => {
                     EventEmitter.emit(MESSAGES.RELOAD, true);
@@ -102,7 +101,7 @@ class ObjectRule extends React.Component {
                 }
             );
         } else {
-            this.props.openMappingEditor(ruleId);
+            this.props.openMappingEditor(uriRuleId);
         }
 
         return false;
