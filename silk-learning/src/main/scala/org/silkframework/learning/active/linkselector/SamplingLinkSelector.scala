@@ -11,13 +11,17 @@ case class SamplingLinkSelector(baseSelector: LinkSelector, linkSampleSize: Opti
 
   def apply(rules: Seq[WeightedLinkageRule], referenceData: ActiveLearningReferenceData)(implicit random: Random): Seq[LinkCandidate] = {
     val sampledLinks = linkSampleSize match {
-      case Some(sampleSize) => SampleUtil.sample(referenceData.linkCandidates, sampleSize, None)
-      case None => referenceData.linkCandidates
+      case Some(sampleSize) if sampleSize < referenceData.linkCandidates.size =>
+        SampleUtil.sample(referenceData.linkCandidates, sampleSize, None)
+      case _ =>
+        referenceData.linkCandidates
     }
 
     val sampledRules = ruleSampleSize match {
-      case Some(sampleSize) => SampleUtil.sample(rules, sampleSize, None)
-      case None => rules
+      case Some(sampleSize) if sampleSize < rules.size =>
+        SampleUtil.sample(rules, sampleSize, None)
+      case _ =>
+        rules
     }
 
     baseSelector.apply(sampledRules, referenceData.copy(linkCandidates = sampledLinks))

@@ -34,6 +34,7 @@ object ActiveLearningConfiguration {
     // We sample the rules and pool links to limit the runtime of the selectors
     val max = SamplingLinkSelector(BestMatchSelector(), linkSampleSize = Some(5000), ruleSampleSize = Some(400))
     val jensen = SamplingLinkSelector(JensenShannonDivergenceSelector(), linkSampleSize = Some(1000), ruleSampleSize = Some(1000))
+    //val optimized = SamplingLinkSelector(OptimizedSelector(), linkSampleSize = Some(5000), ruleSampleSize = Some(1000))
     LinkSelectorCombinator(
       pickLinkSelector =  (_, referenceData) => {
         if(referenceData.positiveLinks.size < 2) max else jensen

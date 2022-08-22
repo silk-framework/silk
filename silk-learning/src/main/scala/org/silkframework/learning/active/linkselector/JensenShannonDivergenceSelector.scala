@@ -62,7 +62,7 @@ case class JensenShannonDivergenceSelector(fulfilledOnly: Boolean = true) extend
     /** All linkage rules which fulfill this reference link */
     private val fulfilledRules = {
       if (fulfilledOnly) {
-        if(isPos) rules.filter(rule => rule(entities) > 0.0) else rules.filter(rule => rule(entities) <= 0.0)
+        if(isPos) rules.filter(rule => rule(entities) >= 0.0) else rules.filter(rule => rule(entities) < 0.0)
       }
       else
         rules
