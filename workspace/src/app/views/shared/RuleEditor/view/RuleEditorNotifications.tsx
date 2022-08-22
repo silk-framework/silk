@@ -18,12 +18,14 @@ export const RuleEditorNotifications = ({
     nodeJumpToHandler,
 }: RuleEditorNotificationsProps) => {
     const [isOpen, setIsOpen] = useState<boolean>(false);
-    const diNotifications = useNotificationsQueue();
+    const initTimestamp = React.useRef(Date.now())
+    const {messages, notifications} = useNotificationsQueue();
     const [t] = useTranslation();
+    const diErrorMessages = messages.filter(diError => diError.timestamp > initTimestamp.current)
 
     useEffect(() => {
         setIsOpen(true && integratedView);
-    }, [diNotifications.messages.length > 0 ? diNotifications.messages[0] : undefined]);
+    }, [diErrorMessages.length > 0 ? diErrorMessages[0] : undefined]);
 
     useEffect(() => {
         setIsOpen(true);
@@ -43,7 +45,7 @@ export const RuleEditorNotifications = ({
 
     return queueEditorNotifications.length > 0 ||
         queueNodeNotifications.length > 0 ||
-        (integratedView && diNotifications.messages.length > 0) ? (
+        (integratedView && diErrorMessages.length > 0) ? (
         <>
             <Spacing vertical size="tiny" />
             <ContextOverlay
@@ -55,7 +57,7 @@ export const RuleEditorNotifications = ({
                         data-test-id={"ruleEditorToolbar-saveError-Btn"}
                         style={{ maxWidth: "39vw", padding: "0.5rem" }}
                     >
-                        {integratedView && diNotifications.notifications}
+                        {integratedView && notifications}
                         {queueEditorNotifications.map((editorNotification) => (
                             <Notification danger={true} key={"errorMessage"} iconName="state-warning">
                                 {editorNotification}
