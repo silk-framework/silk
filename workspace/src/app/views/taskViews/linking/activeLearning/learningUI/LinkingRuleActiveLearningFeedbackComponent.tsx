@@ -191,9 +191,17 @@ const EntityComparisonHeader = ({ sourceTitle, targetTitle }: EntityComparisonHe
         <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
             <GridColumn style={columnStyles.headerColumnStyle}>Source entity: {sourceTitle}</GridColumn>
             <GridColumn style={columnStyles.centerColumnStyle}>
-                <ArrowLeft />
-                <Tag>owl:sameAs</Tag>
-                <ArrowRight />
+                <Toolbar style={{ height: "100%" }}>
+                    <ToolbarSection canGrow={true}>
+                        <ArrowLeft />
+                    </ToolbarSection>
+                    <ToolbarSection>
+                        <Tag>owl:sameAs</Tag>
+                    </ToolbarSection>
+                    <ToolbarSection canGrow={true}>
+                        <ArrowRight />
+                    </ToolbarSection>
+                </Toolbar>
             </GridColumn>
             <GridColumn style={columnStyles.headerColumnStyle}>Target entity: {targetTitle}</GridColumn>
         </GridRow>
@@ -254,8 +262,9 @@ const EntitiesPropertyPair = ({
             <EntityPropertyValues property={propertyPair.source} values={values.sourceValues} />
             <GridColumn style={columnStyles.centerColumnStyle}>
                 <HoverToggler
-                    baseElement={
-                        <Toolbar style={{ height: "100%" }}>
+                    style={{height: "100%"}}
+                    baseContent={
+                        <Toolbar>
                             <ToolbarSection canGrow={true}>
                                 <ArrowLeft />
                             </ToolbarSection>
@@ -272,18 +281,15 @@ const EntitiesPropertyPair = ({
                             </ToolbarSection>
                         </Toolbar>
                     }
-                    hoverElement={
-                        <Toolbar style={{ height: "100%" }}>
-                            <ToolbarSection canGrow={true} />
-                            <ToolbarSection>
-                                <IconButton
-                                    name={selectedForLabel ? "favorite-filled" : "favorite-empty"}
-                                    disruptive
-                                    onClick={toggleLabelSelection}
-                                />
-                            </ToolbarSection>
-                            <ToolbarSection canGrow={true} />
-                        </Toolbar>
+                    baseContentProps={{style: {width: "100%"}}}
+                    hoverContent={
+                        <>
+                            <IconButton
+                                name={selectedForLabel ? "favorite-filled" : "favorite-empty"}
+                                disruptive
+                                onClick={toggleLabelSelection}
+                            />
+                        </>
                     }
                 />
             </GridColumn>
