@@ -246,8 +246,8 @@ export const LinkingRuleReferenceLinks = ({
                                                           name={
                                                               link.decision !== "unlabeled"
                                                                   ? link.decision === "positive"
-                                                                      ? "thumbs-up"
-                                                                      : "thumbs-down"
+                                                                      ? "state-confirmed"
+                                                                      : "state-declined"
                                                                   : "item-question"
                                                           }
                                                       />

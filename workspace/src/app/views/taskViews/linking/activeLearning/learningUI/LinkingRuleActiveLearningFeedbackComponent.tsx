@@ -1,5 +1,11 @@
 import {
     Button,
+    Card,
+    CardHeader,
+    CardTitle,
+    CardOptions,
+    CardContent,
+    Divider,
     Grid,
     GridColumn,
     GridRow,
@@ -92,7 +98,7 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
     };
 
     return (
-        <div>
+        <Card elevation={0}>
             <Header
                 disabledButtons={!activeLearningFeedbackContext.selectedLink}
                 submitLink={(decision: ActiveLearningDecisions) =>
@@ -101,22 +107,24 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
                 selectedDecision={activeLearningFeedbackContext.selectedLink?.decision}
                 cancel={activeLearningFeedbackContext.cancel}
             />
-            <Spacing />
-            {loading ? (
-                <Spinner delay={500} />
-            ) : valuesToDisplay ? (
-                <SelectedEntityLink
-                    valuesToDisplay={valuesToDisplay}
-                    propertyPairs={activeLearningContext.propertiesToCompare}
-                    labelPropertyPairIds={labelPropertyPairIds}
-                    toggleLabelPropertyPair={toggleLabelPropertyPair}
-                />
-            ) : (
-                <Notification message={"No entity link selected"} />
-            )}
-            <Spacing />
-            <MatchingColorInfo />
-        </div>
+            <Divider />
+            <CardContent>
+                {loading ? (
+                    <Spinner delay={500} />
+                ) : valuesToDisplay ? (
+                    <SelectedEntityLink
+                        valuesToDisplay={valuesToDisplay}
+                        propertyPairs={activeLearningContext.propertiesToCompare}
+                        labelPropertyPairIds={labelPropertyPairIds}
+                        toggleLabelPropertyPair={toggleLabelPropertyPair}
+                    />
+                ) : (
+                    <Notification message={"No entity link selected"} />
+                )}
+                <Spacing />
+                <MatchingColorInfo />
+            </CardContent>
+        </Card>
     );
 };
 
@@ -136,48 +144,38 @@ const Header = ({ disabledButtons, submitLink, selectedDecision, cancel }: Heade
     const [t] = useTranslation();
 
     return (
-        <Toolbar>
-            <ToolbarSection>Reference feedback</ToolbarSection>
-            <ToolbarSection canGrow={true} />
-            <ToolbarSection>
+        <CardHeader>
+            <CardTitle>Reference feedback</CardTitle>
+            <CardOptions>
                 <Button
                     title={"Confirm that the shown entities are a valid link."}
-                    affirmative={true}
-                    icon={selectedDecision === "positive" ? "state-checkedsimple" : undefined}
-                    disabled={disabledButtons || selectedDecision === "positive"}
-                    style={{ backgroundColor: "green" }}
+                    icon={"state-confirmed"}
+                    disabled={disabledButtons}
                     onClick={() => submitLink("positive")}
+                    elevated={selectedDecision === "positive"}
+                    outlined
                 >
                     {t("ActiveLearning.feedback.confirm")}
                 </Button>
-                {selectedDecision === "positive" || selectedDecision === "negative" ? (
-                    <>
-                        <Spacing vertical size={"large"} />
-                        <Button icon={"operation-clear"} tooltip={t("ActiveLearning.feedback.cancel")} onClick={cancel}>
-                            {t("common.action.cancel")}
-                        </Button>
-                    </>
-                ) : null}
-                <Spacing vertical size={"large"} />
-                <Button disabled={disabledButtons} title={"Uncertain"} onClick={() => submitLink("unlabeled")}>
+                <Spacing vertical size={"small"} />
+                <Button outlined disabled={disabledButtons} title={"Uncertain"} onClick={() => submitLink("unlabeled")}>
                     {t("ActiveLearning.feedback.uncertain")}
                 </Button>
-                <Spacing vertical size={"large"} />
+                <Spacing vertical size={"small"} />
                 <Button
                     title={"Decline that the shown entities are a valid link."}
-                    disabled={disabledButtons || selectedDecision === "negative"}
+                    disabled={disabledButtons}
                     onClick={() => submitLink("negative")}
-                    icon={selectedDecision === "negative" ? "state-checkedsimple" : undefined}
-                    disruptive={true}
+                    icon={"state-declined"}
+                    elevated={selectedDecision === "negative"}
+                    outlined
                 >
                     {t("ActiveLearning.feedback.decline")}
                 </Button>
-            </ToolbarSection>
-            <ToolbarSection canGrow={true} />
-            <ToolbarSection>
+                <Spacing vertical />
                 <IconButton name={"settings"} onClick={() => activeLearningContext.navigateTo("config")} />
-            </ToolbarSection>
-        </Toolbar>
+            </CardOptions>
+        </CardHeader>
     );
 };
 
@@ -286,7 +284,7 @@ const EntitiesPropertyPair = ({
                         <>
                             <IconButton
                                 name={selectedForLabel ? "favorite-filled" : "favorite-empty"}
-                                disruptive
+                                elevated
                                 onClick={toggleLabelSelection}
                             />
                         </>
