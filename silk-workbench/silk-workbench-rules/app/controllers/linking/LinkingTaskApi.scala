@@ -16,12 +16,10 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{MetaData, PlainTask, Prefixes}
 import org.silkframework.dataset.Dataset
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity._
-import org.silkframework.learning.LearningActivity
-import org.silkframework.learning.active.ActiveLearning
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.plugins.path.{PathMetaDataPlugin, StandardMetaDataPlugin}
-import org.silkframework.rule.evaluation.{LinkageRuleEvaluator, ReferenceEntities, ReferenceLinks}
+import org.silkframework.rule.evaluation.{ReferenceEntities, ReferenceLinks}
 import org.silkframework.rule.execution.{GenerateLinks => GenerateLinksActivity}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, UserContext}
@@ -603,22 +601,6 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
       negOutput.writeLinks(task.data.referenceLinks.negative, params("negativeProperty").head)
     }
 
-    Ok
-  }
-
-  def learningActivity(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val task = project.task[LinkSpec](taskName)
-    task.activity[LearningActivity].control.start()
-    Ok
-  }
-
-  def activeLearningActivity(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val task = project.task[LinkSpec](taskName)
-    val learningActivity = task.activity[ActiveLearning]
-
-    learningActivity.control.start()
     Ok
   }
 

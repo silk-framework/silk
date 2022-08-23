@@ -131,13 +131,6 @@ lazy val rules = (project in file("silk-rules"))
     libraryDependencies += "org.apache.jena" % "jena-arq" % "4.4.0" exclude("org.slf4j", "slf4j-log4j12")
   )
 
-lazy val learning = (project in file("silk-learning"))
-  .dependsOn(rules, workspace, serializationJson)
-  .settings(commonSettings: _*)
-  .settings(
-    name := "Silk Learning"
-  )
-
 lazy val workspace = (project in file("silk-workspace"))
   .dependsOn(rules, core % "test->test", pluginsJson % "test->compile;test->test", pluginsCsv % "test->compile")
   .aggregate(rules)
@@ -378,7 +371,7 @@ lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-wo
 
 lazy val workbenchRules = (project in file("silk-workbench/silk-workbench-rules"))
   .enablePlugins(PlayScala)
-  .dependsOn(workbenchWorkspace % "compile->compile;test->test", pluginsXml % "test->compile", pluginsJson % "test->compile", learning)
+  .dependsOn(workbenchWorkspace % "compile->compile;test->test", pluginsXml % "test->compile", pluginsJson % "test->compile")
   .aggregate(workbenchWorkspace)
   .settings(commonSettings: _*)
   .settings(
@@ -455,5 +448,5 @@ lazy val singlemachine = (project in file("silk-tools/silk-singlemachine"))
 //////////////////////////////////////////////////////////////////////////////
 
 lazy val root = (project in file("."))
-  .aggregate(core, plugins, singlemachine, learning, workspace, workbench)
+  .aggregate(core, plugins, singlemachine, workspace, workbench)
   .settings(commonSettings: _*)

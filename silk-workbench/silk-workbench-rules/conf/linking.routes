@@ -23,18 +23,6 @@ GET           /:project/:task/referenceLinks/importDialog                       
 GET           /:project/:task/referenceLinks/removeLinksDialog                              controllers.linking.ReferenceLinksManager.removeLinksDialog(project: String, task: String)
 GET           /:project/:task/referenceLinks/:linkType/:sorting/:filter/:page               controllers.linking.ReferenceLinksManager.referenceLinks(project: String, task: String, linkType: String, sorting: String, filter: String, page: Int)
 
-# Learn
-GET           /:project/:task/learnStart                                                    controllers.linking.Learning.start(project: String, task: String)
-GET           /:project/:task/learn                                                         controllers.linking.Learning.learn(project: String, task: String)
-GET           /:project/:task/activeLearn                                                   controllers.linking.Learning.activeLearn(project: String, task: String)
-GET           /:project/:task/learn/rule                                                    controllers.linking.Learning.rule(project: String, task: String)
-GET           /:project/:task/learn/links/:sorting/:filter/:page                            controllers.linking.Learning.links(project: String, task: String, sorting: String, filter: String, page: Int)
-GET           /:project/:task/learn/population                                              controllers.linking.Learning.population(project: String, task: String)
-GET           /:project/:task/learn/populationView/:page                                    controllers.linking.Learning.populationView(project: String, task: String, page: Int)
-GET           /:project/:task/activeLearnDetails                                            controllers.linking.Learning.activeLearnDetails(project: String, task: String)
-POST          /:project/:task/activeLearn/nextCandidate                                     controllers.linking.Learning.activeLearnCandidate(project: String, task: String)
-GET           /:project/:task/activeLearn/resetDialog                                       controllers.linking.Learning.resetActiveLearningDialog(project: String, task: String)
-POST          /:project/:task/activeLearn/reset                                             controllers.linking.Learning.resetActiveLearning(project: String, task: String)
 
 # API
 GET           /tasks/:project/:task                                                 controllers.linking.LinkingTaskApi.getLinkingTask(project: String, task: String, withLabels: Boolean ?= false, langPref: String ?= "en")
@@ -55,27 +43,12 @@ POST          /tasks/:project/:task/reloadCache                                 
 GET           /tasks/:project/:task/pathCacheValue/source                           controllers.linking.LinkingTaskApi.getLinkingPathCacheValue(project: String, task: String, target: Boolean = false, withMetaData: Boolean ?= false, langPref: String ?= "en")
 GET           /tasks/:project/:task/pathCacheValue/target                           controllers.linking.LinkingTaskApi.getLinkingPathCacheValue(project: String, task: String, target: Boolean = true, withMetaData: Boolean ?= false, langPref: String ?= "en")
 PUT           /tasks/:project/:task/writeReferenceLinks                             controllers.linking.LinkingTaskApi.writeReferenceLinks(project: String, task: String)
-PUT           /tasks/:project/:task/learningTask                                    controllers.linking.LinkingTaskApi.learningActivity(project: String, task: String)
-PUT           /tasks/:project/:task/activeLearningTask                              controllers.linking.LinkingTaskApi.activeLearningActivity(project: String, task: String)
 
 GET           /tasks/:project/:task/referenceLinksEvaluated                         controllers.linking.LinkingTaskApi.referenceLinksEvaluated(project: String, task: String, withEntitiesAndSchema: Boolean ?= false)
 POST          /tasks/:project/:linkingTaskId/referenceLinksEvaluated                controllers.linking.LinkingTaskApi.referenceLinksEvaluateLinkageRule(project: String, linkingTaskId: String, linkLimit: Int ?= 1000)
 
 POST          /tasks/:project/:task/postLinkDatasource                              controllers.linking.LinkingTaskApi.postLinkDatasource(project: String, task: String)
 POST          /tasks/:project/:linkingTaskName/evaluateLinkageRule                  controllers.linking.LinkingTaskApi.evaluateLinkageRule(project: String, linkingTaskName: String, linkLimit: Int ?= 1000, timeoutInMs: Int ?= 30000, includeReferenceLinks: Boolean ?= false)
-
-# Active Learning API
-GET           /tasks/:project/:task/activeLearning/comparisonPairs                  controllers.linking.ActiveLearningApi.comparisonPairs(project: String, task: String)
-POST          /tasks/:project/:task/activeLearning/comparisonPairs/addSelected      controllers.linking.ActiveLearningApi.addComparisonPair(project: String, task: String)
-POST          /tasks/:project/:task/activeLearning/comparisonPairs/removeSelected   controllers.linking.ActiveLearningApi.removeComparisonPair(project: String, task: String)
-
-GET           /tasks/:project/:task/activeLearning/info                             controllers.linking.ActiveLearningApi.info(project, task)
-GET           /tasks/:project/:task/activeLearning/referenceLinks                   controllers.linking.ActiveLearningApi.referenceLinks(project, task, includePositiveLinks: Boolean ?= true, includeNegativeLinks: Boolean ?= true, includeUnlabeledLinks: Boolean ?= false, offset: Int ?= 0, limit: Int ?= 100, withEntitiesAndSchema: Boolean ?= false)
-POST          /tasks/:project/:task/activeLearning/referenceLinks/add               controllers.linking.ActiveLearningApi.addReferenceLink(project, task, linkSource, linkTarget, decision, synchronous: Boolean ?= false)
-GET           /tasks/:project/:task/activeLearning/nextLinkCandidate                controllers.linking.ActiveLearningApi.nextLinkCandidate(project, task)
-GET           /tasks/:project/:task/activeLearning/bestRule                         controllers.linking.ActiveLearningApi.bestRule(project: String, task: String)
-POST          /tasks/:project/:task/activeLearning/saveResult                       controllers.linking.ActiveLearningApi.saveResult(project, task, saveRule: Boolean, saveReferenceLinks: Boolean)
-POST          /tasks/:project/:task/activeLearning/reset                            controllers.linking.ActiveLearningApi.reset(project, task)
 
 # Auto-completion API
 GET           /tasks/:project/:task/completions/inputPaths                          controllers.linking.LinkingAutoCompletionApi.linkingInputPaths(project: String, task: String, target: Boolean, term ?= "", maxResults: Int ?= 30, langPref: String ?= "en")
