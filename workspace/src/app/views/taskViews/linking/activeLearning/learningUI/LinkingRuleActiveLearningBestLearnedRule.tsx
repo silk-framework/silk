@@ -1,15 +1,14 @@
 import {
     Card,
+    CardHeader,
+    CardTitle,
+    CardOptions,
+    CardContent,
     Divider,
     IconButton,
     Notification,
-    OverviewItem,
-    OverviewItemActions,
-    OverviewItemDescription,
-    OverviewItemLine,
     Tooltip,
     Tag,
-    WhiteSpaceContainer,
     Spacing,
 } from "@eccenca/gui-elements";
 import React from "react";
@@ -102,25 +101,15 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
         );
     };
 
-    const BestLearnedRule = () => {
+    const BestLearnedRuleHeader = () => {
         return (
-            <OverviewItem
-                hasSpacing
-                onClick={() => {
-                    setDisplayVisualRule(!displayVisualRule);
-                }}
-            >
-                <OverviewItemDescription>
-                    <OverviewItemLine large>
-                        <h1>
-                            <Tooltip content={t("ActiveLearning.bestLearnedRule.titleTooltip")}>
-                                {t("ActiveLearning.bestLearnedRule.title", { score: scoreString })}
-                            </Tooltip>
-                        </h1>
-                    </OverviewItemLine>
-                    <OverviewItemLine>{rule ? <RuleSummary /> : "No rule learned, yet."}</OverviewItemLine>
-                </OverviewItemDescription>
-                <OverviewItemActions>
+            <CardHeader>
+                <CardTitle>
+                    <Tooltip content={t("ActiveLearning.bestLearnedRule.titleTooltip")}>
+                        {t("ActiveLearning.bestLearnedRule.title", { score: scoreString })}
+                    </Tooltip>
+                </CardTitle>
+                <CardOptions>
                     {rule ? (
                         <IconButton
                             data-test-id={"open-best-learned-rule-btn"}
@@ -140,9 +129,12 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
                                 ? t("ActiveLearning.bestLearnedRule.hideRule")
                                 : t("ActiveLearning.bestLearnedRule.showRule")
                         }
+                        onClick={() => {
+                            setDisplayVisualRule(!displayVisualRule);
+                        }}
                     />
-                </OverviewItemActions>
-            </OverviewItem>
+                </CardOptions>
+            </CardHeader>
         );
     };
 
@@ -151,23 +143,31 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
     };
 
     return rule ? (
-        <Card isOnlyLayout elevation={0} data-test-id={"best-learned-rule-visual"}>
-            <BestLearnedRule />
-            {activeLearningContext.linkTask && rule && displayVisualRule && (
-                <>
-                    <Divider />
-                    <WhiteSpaceContainer paddingTop="small" paddingRight="tiny" paddingLeft="tiny">
-                        <VisualBestLinkingRule rule={rule} />
-                    </WhiteSpaceContainer>
-                </>
-            )}
+        <>
+            <Card elevation={0} data-test-id={"best-learned-rule-visual"}>
+                <BestLearnedRuleHeader />
+                <Divider />
+                <CardContent>
+                    {displayVisualRule ? (
+                        <>
+                            {activeLearningContext.linkTask && rule && (
+                                <VisualBestLinkingRule rule={rule} />
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            {rule ? <RuleSummary /> : "No rule learned, yet."}
+                        </>
+                    )}
+                </CardContent>
+            </Card>
             {activeLearningContext.linkTask && rule && displayVisualRuleModal ? (
                 <LinkingRuleActiveLearningBestLearnedRuleModal
                     rule={rule}
                     onClose={() => setDisplayVisualRuleModal(false)}
                 />
             ) : null}
-        </Card>
+        </>
     ) : (
         <Info />
     );
