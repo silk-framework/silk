@@ -1,6 +1,6 @@
 import { FetchResponse } from "../../../../services/fetch/responseInterceptor";
 import fetch from "../../../../services/fetch";
-import { legacyLinkingEndpoint } from "../../../../utils/getApiEndpoint";
+import {learningApi, legacyLinkingEndpoint} from "../../../../utils/getApiEndpoint";
 import { ActiveLearningDecisions, ComparisonPair, ComparisonPairs } from "./LinkingRuleActiveLearning.typings";
 import { IEntityLink, ILinkingRule, OptionallyLabelledParameter, ReferenceLinks } from "../linking.types";
 import { ReferenceLinksOrdered } from "../referenceLinks/LinkingRuleReferenceLinks.typing";
@@ -15,7 +15,7 @@ export const activeLearningComparisonPairs = (
     linkingTaskId: string
 ): Promise<FetchResponse<ComparisonPairs>> => {
     return fetch({
-        url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/activeLearning/comparisonPairs`),
+        url: learningApi(`/tasks/${projectId}/${linkingTaskId}/activeLearning/comparisonPairs`),
     });
 };
 
@@ -26,7 +26,7 @@ export const addActiveLearningComparisonPair = (
     comparisonPair: ComparisonPair
 ): Promise<FetchResponse<void>> => {
     return fetch({
-        url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/activeLearning/comparisonPairs/addSelected`),
+        url: learningApi(`/tasks/${projectId}/${linkingTaskId}/activeLearning/comparisonPairs/addSelected`),
         method: "POST",
         body: comparisonPair,
     });
@@ -39,7 +39,7 @@ export const removeActiveLearningComparisonPair = (
     comparisonPair: ComparisonPair
 ): Promise<FetchResponse<void>> => {
     return fetch({
-        url: legacyLinkingEndpoint(
+        url: learningApi(
             `/tasks/${projectId}/${linkingTaskId}/activeLearning/comparisonPairs/removeSelected`
         ),
         method: "POST",
@@ -53,7 +53,7 @@ export const nextActiveLearningLinkCandidate = (
     linkingTaskId: string
 ): Promise<FetchResponse<IEntityLink>> => {
     return fetch({
-        url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/activeLearning/nextLinkCandidate`),
+        url: learningApi(`/tasks/${projectId}/${linkingTaskId}/activeLearning/nextLinkCandidate`),
     });
 };
 
@@ -63,7 +63,7 @@ export const bestLearnedLinkageRule = (
     linkingTaskId: string
 ): Promise<FetchResponse<OptionallyLabelledParameter<ILinkingRule>>> => {
     return fetch({
-        url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/activeLearning/bestRule`),
+        url: learningApi(`/tasks/${projectId}/${linkingTaskId}/activeLearning/bestRule`),
     });
 };
 
@@ -76,7 +76,7 @@ export const fetchActiveLearningReferenceLinks = (
     includeUnlabeledLinks: boolean = false
 ): Promise<FetchResponse<ReferenceLinksOrdered>> => {
     return fetch({
-        url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/activeLearning/referenceLinks`),
+        url: learningApi(`/tasks/${projectId}/${linkingTaskId}/activeLearning/referenceLinks`),
         query: {
             withEntitiesAndSchema: true,
             includePositiveLinks,
@@ -95,7 +95,7 @@ export const submitActiveLearningReferenceLink = (
     decision: ActiveLearningDecisions
 ): Promise<FetchResponse<ReferenceLinks>> => {
     return fetch({
-        url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/activeLearning/referenceLinks/add`),
+        url: learningApi(`/tasks/${projectId}/${linkingTaskId}/activeLearning/referenceLinks/add`),
         method: "POST",
         query: {
             linkSource: sourceUri,
@@ -113,7 +113,7 @@ export const saveActiveLearningResults = (
     saveReferenceLinks: boolean
 ): Promise<FetchResponse<void>> => {
     return fetch({
-        url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/activeLearning/saveResult`),
+        url: learningApi(`/tasks/${projectId}/${linkingTaskId}/activeLearning/saveResult`),
         method: "POST",
         query: {
             saveRule,
@@ -125,7 +125,7 @@ export const saveActiveLearningResults = (
 /** Reset learning state. */
 export const resetActiveLearningSession = (projectId: string, linkingTaskId: string): Promise<FetchResponse<void>> => {
     return fetch({
-        url: legacyLinkingEndpoint(`/tasks/${projectId}/${linkingTaskId}/activeLearning/reset`),
+        url: learningApi(`/tasks/${projectId}/${linkingTaskId}/activeLearning/reset`),
         method: "POST",
     });
 };
