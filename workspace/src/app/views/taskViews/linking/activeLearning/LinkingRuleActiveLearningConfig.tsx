@@ -128,9 +128,17 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
                 <GridColumn style={columnStyles.headerColumnStyle}>Properties of dataset 1</GridColumn>
                 <GridColumn style={columnStyles.centerColumnStyle}>
-                    <ArrowLeft />
-                    <Tag>owl:sameAs</Tag>
-                    <ArrowRight />
+                    <Toolbar style={{ height: "100%" }}>
+                        <ToolbarSection canGrow={true}>
+                            <ArrowLeft />
+                        </ToolbarSection>
+                        <ToolbarSection>
+                            <Tag>owl:sameAs</Tag>
+                        </ToolbarSection>
+                        <ToolbarSection canGrow={true}>
+                            <ArrowRight />
+                        </ToolbarSection>
+                    </Toolbar>
                 </GridColumn>
                 <GridColumn style={columnStyles.headerColumnStyle}>Dataset 2</GridColumn>
             </GridRow>
@@ -177,8 +185,9 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                 <SelectedProperty property={pair.source} exampleValues={pair.sourceExamples} />
                 <GridColumn style={columnStyles.centerColumnStyle}>
                     <HoverToggler
-                        baseElement={
-                            <Toolbar style={{ height: "100%" }}>
+                        style={{height: "100%"}}
+                        baseContent={
+                            <Toolbar>
                                 <ToolbarSection canGrow={true}>
                                     <ArrowLeft />
                                 </ToolbarSection>
@@ -195,18 +204,15 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                                 </ToolbarSection>
                             </Toolbar>
                         }
-                        hoverElement={
-                            <Toolbar style={{ height: "100%" }}>
-                                <ToolbarSection canGrow={true} />
-                                <ToolbarSection>
-                                    <IconButton
-                                        name={"item-remove"}
-                                        disruptive
-                                        onClick={() => removePair(pair.pairId)}
-                                    />
-                                </ToolbarSection>
-                                <ToolbarSection canGrow={true} />
-                            </Toolbar>
+                        baseContentProps={{style: {width: "100%"}}}
+                        hoverContent={
+                            <>
+                                <IconButton
+                                    name={"item-remove"}
+                                    disruptive
+                                    onClick={() => removePair(pair.pairId)}
+                                />
+                            </>
                         }
                     />
                 </GridColumn>
@@ -241,7 +247,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
                 <SelectedProperty property={pair.source} exampleValues={pair.sourceExamples} />
                 <GridColumn style={columnStyles.centerColumnStyle}>
-                    <Toolbar style={{ height: "100%" }}>
+                    <Toolbar style={{ height: "100%" }} noWrap>
                         <ToolbarSection canGrow={true}>
                             <DashedLine />
                         </ToolbarSection>

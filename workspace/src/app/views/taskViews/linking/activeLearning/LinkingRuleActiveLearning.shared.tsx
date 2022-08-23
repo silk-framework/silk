@@ -10,18 +10,17 @@ export const ArrowLeft = () => <div className={"arrow-left"} />;
 /** A dashed line. */
 export const DashedLine = () => {
     return (
-        <svg width="100%" height="10px" viewBox="0 0 100 10" preserveAspectRatio="none">
-            <g fill="none" stroke="black">
-                <line x1="0" y1="5" x2="100" y2="5" strokeDasharray={"2 2"} />
-            </g>
-        </svg>
+        <div style={{
+            height: "0px",
+            width: "auto",
+            borderTop: "2px dashed lightgray"
+        }}/>
     );
 };
 
 /** TODO: Temp styles, replace with proper CSS styles and classes. */
 const mainColumnStyle: CSSProperties = {
     width: "40%",
-    maxWidth: "40%",
     textAlign: "center",
     padding: "5px",
     borderWidth: "thin",
@@ -34,12 +33,9 @@ const headerColumnStyle: CSSProperties = {
     color: "white",
 };
 const centerColumnStyle: CSSProperties = {
-    display: "flex",
-    columnWidth: "20%",
+    width: "20%",
     maxWidth: "20%",
     padding: "5px",
-    alignItems: "center",
-    justifyContent: "center",
 };
 
 export const columnStyles = {
