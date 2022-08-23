@@ -1,5 +1,15 @@
 import React from "react";
-import { Button, IActivityStatus, IconButton, Spacing, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
+import {
+    Button,
+    IconButton,
+    Section,
+    SectionHeader,
+    TitleMainsection,
+    Spacing,
+    Toolbar,
+    ToolbarSection,
+    IActivityStatus,
+} from "@eccenca/gui-elements";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 import { LinkingRuleActiveLearningFeedbackComponent } from "./LinkingRuleActiveLearningFeedbackComponent";
 import { EntityLink, ReferenceLinksOrdered } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
@@ -133,30 +143,36 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
     // TODO: i18n
     const Title = () => {
         return (
-            <Toolbar>
-                <ToolbarSection>Compare resources</ToolbarSection>
-                <ToolbarSection canGrow>
-                    <Spacing vertical />
-                </ToolbarSection>
-                <ToolbarSection>
-                    <IconButton
-                        name={"item-remove"}
-                        disruptive={true}
-                        text={t("ActiveLearning.config.buttons.resetTooltip")}
-                        onClick={activeLearningContext.showResetDialog}
-                    />
-                    <Spacing vertical={true} />
-                    <Button
-                        title={"Save link rule and/or newly added reference links."}
-                        affirmative={true}
-                        // TODO: Disable if no reference link was added
-                        disabled={!bestRule}
-                        onClick={onSaveClick}
-                    >
-                        Save
-                    </Button>
-                </ToolbarSection>
-            </Toolbar>
+            <SectionHeader>
+                <Toolbar>
+                    <ToolbarSection>
+                        <TitleMainsection>
+                            Compare resources
+                        </TitleMainsection>
+                    </ToolbarSection>
+                    <ToolbarSection canGrow>
+                        <Spacing vertical />
+                    </ToolbarSection>
+                    <ToolbarSection>
+                        <IconButton
+                            name={"item-remove"}
+                            disruptive={true}
+                            text={t("ActiveLearning.config.buttons.resetTooltip")}
+                            onClick={activeLearningContext.showResetDialog}
+                        />
+                        <Spacing vertical={true} size="small"/>
+                        <Button
+                            title={"Save link rule and/or newly added reference links."}
+                            affirmative={true}
+                            // TODO: Disable if no reference link was added
+                            disabled={!bestRule}
+                            onClick={onSaveClick}
+                        >
+                            Save
+                        </Button>
+                    </ToolbarSection>
+                </Toolbar>
+            </SectionHeader>
         );
     };
 
@@ -180,9 +196,9 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                 cancel: cancelSelection,
             }}
         >
-            <div>
+            <Section>
                 <Title />
-                <Spacing hasDivider={true} />
+                <Spacing />
                 <LinkingRuleActiveLearningFeedbackComponent />
                 <Spacing />
                 <LinkingRuleActiveLearningBestLearnedRule rule={bestRule} score={referenceLinks?.evaluationScore} />
@@ -206,7 +222,7 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                         />
                     ) : null
                 }
-            </div>
+            </Section>
         </LinkingRuleActiveLearningFeedbackContext.Provider>
     );
 };

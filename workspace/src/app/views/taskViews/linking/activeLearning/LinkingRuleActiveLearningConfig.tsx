@@ -11,6 +11,9 @@ import {
     OverviewItem,
     OverviewItemDescription,
     OverviewItemLine,
+    Section,
+    SectionHeader,
+    TitleMainsection,
     Spacing,
     Tag,
     Toolbar,
@@ -271,31 +274,35 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     // TODO: i18n
     const Title = () => {
         return (
-            <Toolbar>
-                <ToolbarSection>
-                    Configuration: Define properties to compare between entities of each data source.
-                </ToolbarSection>
-                <ToolbarSection canGrow>
-                    <Spacing vertical />
-                </ToolbarSection>
-                <ToolbarSection>
-                    <IconButton
-                        name={"item-remove"}
-                        disruptive={true}
-                        text={t("ActiveLearning.config.buttons.resetTooltip")}
-                        onClick={activeLearningContext.showResetDialog}
-                    />
-                    <Spacing vertical={true} />
-                    <Button
-                        title={t("ActiveLearning.config.buttons.startLearning")}
-                        affirmative={true}
-                        disabled={activeLearningContext.propertiesToCompare.length === 0}
-                        onClick={() => activeLearningContext.navigateTo("linkLearning")}
-                    >
-                        Start learning
-                    </Button>
-                </ToolbarSection>
-            </Toolbar>
+            <SectionHeader>
+                <Toolbar noWrap>
+                    <ToolbarSection canShrink>
+                        <TitleMainsection>
+                            Configuration: Define properties to compare between entities of each data source.
+                        </TitleMainsection>
+                    </ToolbarSection>
+                    <ToolbarSection canGrow>
+                        <Spacing vertical />
+                    </ToolbarSection>
+                    <ToolbarSection>
+                        <IconButton
+                            name={"item-remove"}
+                            disruptive={true}
+                            text={t("ActiveLearning.config.buttons.resetTooltip")}
+                            onClick={activeLearningContext.showResetDialog}
+                        />
+                        <Spacing vertical={true} size="small"/>
+                        <Button
+                            title={t("ActiveLearning.config.buttons.startLearning")}
+                            affirmative={true}
+                            disabled={activeLearningContext.propertiesToCompare.length === 0}
+                            onClick={() => activeLearningContext.navigateTo("linkLearning")}
+                        >
+                            Start learning
+                        </Button>
+                    </ToolbarSection>
+                </Toolbar>
+            </SectionHeader>
         );
     };
 
@@ -314,9 +321,9 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     };
 
     return (
-        <div>
+        <Section>
             <Title />
-            <Spacing hasDivider={true} />
+            <Spacing />
             <InfoWidget />
             <Spacing size={"small"} />
             <SelectedPropertiesWidget />
@@ -332,6 +339,6 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             <SuggestionSelectionSubHeader />
             <Spacing />
             {loadingSuggestions ? <Spinner /> : suggestions.length > 0 ? <SuggestionWidget /> : null}
-        </div>
+        </Section>
     );
 };
