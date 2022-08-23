@@ -12,7 +12,7 @@ interface Props {
     projectId: string;
     linkingTaskId: string;
     /** Add a single comparison pair. */
-    addComparisonPair: (pair: ComparisonPairWithId) => any;
+    addComparisonPair: (pair: ComparisonPairWithId) => Promise<boolean>;
 }
 
 let randomId = 0;
@@ -35,30 +35,40 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
         }
     };
 
-    const changeManualSourcePath = (value: string) => {
-        // TODO: How to fetch example values and other meta data?
-        manualSourcePath.current = value ? { path: value, valueType: "StringValueType" } : undefined;
+    const changeManualSourcePath = (value: string, label?: string) => {
+        // TODO: How to fetch label, example values and other meta data?
+        manualSourcePath.current = value
+            ? { path: value, valueType: "StringValueType", label: label ?? value }
+            : undefined;
         checkPathValidity();
     };
 
-    const changeManualTargetPath = (value: string) => {
+    const changeManualTargetPath = (value: string, label?: string) => {
         // TODO: How to fetch example values and other meta data?
-        manualTargetPath.current = value ? { path: value, valueType: "StringValueType" } : undefined;
+        manualTargetPath.current = value
+            ? { path: value, valueType: "StringValueType", label: label ?? value }
+            : undefined;
         checkPathValidity();
     };
 
-    const addManuallyChosenPair = () => {
+    const reset = () => {
+        changeManualSourcePath("");
+        changeManualTargetPath("");
+    };
+
+    const addManuallyChosenPair = async () => {
         if (manualSourcePath.current && manualTargetPath.current) {
-            addComparisonPair({
-                pairId: `manually chose: ${nextId()}`,
+            const added = await addComparisonPair({
+                pairId: `manually chosen: ${nextId()}`,
                 source: manualSourcePath.current,
                 target: manualTargetPath.current,
                 // TODO: where to get examples from?
                 sourceExamples: [],
                 targetExamples: [],
             });
-            changeManualSourcePath("");
-            changeManualTargetPath("");
+            if (added) {
+                reset();
+            }
         }
     };
 

@@ -79,8 +79,20 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         }
     };
 
-    const addComparisonPair = React.useCallback((pair: ComparisonPairWithId) => {
-        activeLearningContext.setPropertiesToCompare([...activeLearningContext.propertiesToCompare, pair]);
+    const addComparisonPair = React.useCallback(async (pair: ComparisonPairWithId): Promise<boolean> => {
+        try {
+            await addActiveLearningComparisonPair(projectId, linkingTaskId, pair);
+            activeLearningContext.setPropertiesToCompare([...activeLearningContext.propertiesToCompare, pair]);
+            return true;
+        } catch (ex) {
+            // TODO: i18n
+            registerError(
+                "LinkingRuleActiveLearningConfig.addComparisonPair",
+                "Adding comparison pair has failed.",
+                ex
+            );
+            return false;
+        }
     }, []);
 
     const removePair = async (pairId: string) => {
