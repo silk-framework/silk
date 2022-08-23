@@ -111,6 +111,8 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
                           schema = new Schema(implementation = classOf[String])
                         )
                         taskId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectId)
+    implicit val prefixes: Prefixes = project.config.prefixes
     val newComparisonPair = JsonUtils.validateJsonFromRequest[ComparisonPairFormat](request).toComparisonPair
     updateSelectedComparisonPairs(projectId, taskId)(_ :+ newComparisonPair)
     NoContent
@@ -155,6 +157,8 @@ class ActiveLearningApi @Inject() (implicit mat: Materializer) extends InjectedC
                              schema = new Schema(implementation = classOf[String])
                            )
                            taskId: String): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
+    val project = WorkspaceFactory().workspace.project(projectId)
+    implicit val prefixes: Prefixes = project.config.prefixes
     val removeComparisonPair = JsonUtils.validateJsonFromRequest[ComparisonPairFormat](request).toComparisonPair.plain
     updateSelectedComparisonPairs(projectId, taskId)(_.filterNot(_.plain == removeComparisonPair))
     NoContent

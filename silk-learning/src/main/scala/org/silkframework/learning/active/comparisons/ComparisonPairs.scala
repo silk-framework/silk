@@ -15,6 +15,16 @@ case class ComparisonPairs(suggestedPairs: Seq[ComparisonPair],
                            selectedPairs: Seq[ComparisonPair],
                            randomSeed: Long = 0L)
 
+object ComparisonPairs {
+
+  /**
+    * Initial empty comparison pairs.
+    */
+  def initial(randomSeed: Long): ComparisonPairs = {
+    ComparisonPairs(Seq.empty, Seq.empty, randomSeed = randomSeed)
+  }
+}
+
 
 trait ComparisonPair {
 
@@ -67,15 +77,3 @@ case class ComparisonPairWithExamples(source: TypedPath,
   }
 
 }
-
-object ComparisonPairs {
-
-  /**
-    * Initial empty comparison pairs.
-    */
-  def initial(randomSeed: Long): ComparisonPairs = {
-    ComparisonPairs(Seq.empty, Seq.empty, randomSeed = randomSeed)
-  }
-}
-
-

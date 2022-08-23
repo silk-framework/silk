@@ -4,7 +4,7 @@ import controllers.core.util.JsonUtils
 import io.swagger.v3.oas.annotations.media.{ArraySchema, Schema}
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.ValueType
-import org.silkframework.entity.paths.TypedPath
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.learning.active.comparisons.{ComparisonPair, ComparisonPairWithExamples, ComparisonPairs, PlainComparisonPair}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.JsonFormat
@@ -18,7 +18,7 @@ object JsonFormats {
                                    suggestedPairs: Seq[ComparisonPairFormat],
                                    @Schema(description = " The comparison paris that have been selected by the user.")
                                    selectedPairs: Seq[ComparisonPairFormat]) {
-    def toComparisonPairs: ComparisonPairs = {
+    def toComparisonPairs(implicit prefixes: Prefixes): ComparisonPairs = {
       ComparisonPairs(suggestedPairs.map(_.toComparisonPair), selectedPairs.map(_.toComparisonPair))
     }
   }
@@ -41,7 +41,7 @@ object JsonFormats {
                                   @ArraySchema(schema = new Schema(description = "Example values for the target path.",
                                     implementation = classOf[String], required = false, nullable = true))
                                   targetExamples: Option[Set[String]] = None) {
-    def toComparisonPair: ComparisonPair = {
+    def toComparisonPair(implicit prefixes: Prefixes): ComparisonPair = {
       ComparisonPairWithExamples(source.toTypedPath, target.toTypedPath, 0.0, sourceExamples.getOrElse(Set.empty), targetExamples.getOrElse(Set.empty))
     }
   }
@@ -65,8 +65,12 @@ object JsonFormats {
                              label: String,
                              @Schema(description = "The identifier of the value type", required = false, defaultValue = "StringValueType", example = "StringValueType")
                              valueType: Option[String] = None) {
-    def toTypedPath: TypedPath = {
-      TypedPath(path, valueType.map(id => ValueType.valueTypeById(id).right.get).getOrElse(ValueType.STRING))
+    def toTypedPath(implicit prefixes: Prefixes): TypedPath = {
+      TypedPath(
+        path = UntypedPath.parse(path),
+        valueType = valueType.map(id => ValueType.valueTypeById(id).right.get).getOrElse(ValueType.STRING),
+        isAttribute = false
+      )
     }
   }
 
@@ -84,6 +88,7 @@ object JsonFormats {
   class ComparisonPairsJsonFormat() extends JsonFormat[ComparisonPairs] {
 
     override def read(value: JsValue)(implicit readContext: ReadContext): ComparisonPairs = {
+      implicit val prefixes: Prefixes = readContext.prefixes
       JsonUtils.validateJsonFromValue[ComparisonPairsFormat](value).toComparisonPairs
     }
 
