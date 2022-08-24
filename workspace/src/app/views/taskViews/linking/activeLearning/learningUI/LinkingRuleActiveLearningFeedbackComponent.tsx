@@ -29,6 +29,7 @@ import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveL
 import { EntityLink, EntityLinkPropertyPairValues } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
 import referenceLinksUtils from "../../referenceLinks/LinkingRuleReferenceLinks.utils";
 import { useTranslation } from "react-i18next";
+import utils from "../LinkingRuleActiveLearning.utils";
 
 export const LinkingRuleActiveLearningFeedbackComponent = () => {
     /** Contexts */
@@ -260,7 +261,7 @@ const EntitiesPropertyPair = ({
             <EntityPropertyValues property={propertyPair.source} values={values.sourceValues} />
             <GridColumn style={columnStyles.centerColumnStyle}>
                 <HoverToggler
-                    style={{height: "100%"}}
+                    style={{ height: "100%" }}
                     baseContent={
                         <Toolbar>
                             <ToolbarSection canGrow={true}>
@@ -270,7 +271,7 @@ const EntitiesPropertyPair = ({
                                 <Tag>
                                     {propertyPair.source.valueType != null &&
                                     propertyPair.source.valueType === propertyPair.target.valueType
-                                        ? propertyPair.source.valueType
+                                        ? utils.convertValueType(propertyPair.source.valueType)
                                         : "string"}
                                 </Tag>
                             </ToolbarSection>
@@ -279,7 +280,7 @@ const EntitiesPropertyPair = ({
                             </ToolbarSection>
                         </Toolbar>
                     }
-                    baseContentProps={{style: {width: "100%"}}}
+                    baseContentProps={{ style: { width: "100%" } }}
                     hoverContent={
                         <>
                             <IconButton

@@ -31,6 +31,7 @@ import {
 import { Spinner } from "@blueprintjs/core";
 import { ManualComparisonPairSelection } from "./config/ManualComparisonPairSelection";
 import { useTranslation } from "react-i18next";
+import utils from "./LinkingRuleActiveLearning.utils";
 
 interface LinkingRuleActiveLearningConfigProps {
     projectId: string;
@@ -188,7 +189,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                 <SelectedProperty property={pair.source} exampleValues={pair.sourceExamples} />
                 <GridColumn style={columnStyles.centerColumnStyle}>
                     <HoverToggler
-                        style={{height: "100%"}}
+                        style={{ height: "100%" }}
                         baseContent={
                             <Toolbar>
                                 <ToolbarSection canGrow={true}>
@@ -198,7 +199,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                                     <Tag>
                                         {pair.source.valueType != null &&
                                         pair.source.valueType === pair.target.valueType
-                                            ? pair.source.valueType
+                                            ? utils.convertValueType(pair.source.valueType)
                                             : "string"}
                                     </Tag>
                                 </ToolbarSection>
@@ -207,14 +208,10 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                                 </ToolbarSection>
                             </Toolbar>
                         }
-                        baseContentProps={{style: {width: "100%"}}}
+                        baseContentProps={{ style: { width: "100%" } }}
                         hoverContent={
                             <>
-                                <IconButton
-                                    name={"item-remove"}
-                                    disruptive
-                                    onClick={() => removePair(pair.pairId)}
-                                />
+                                <IconButton name={"item-remove"} disruptive onClick={() => removePair(pair.pairId)} />
                             </>
                         }
                     />
@@ -291,7 +288,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                             text={t("ActiveLearning.config.buttons.resetTooltip")}
                             onClick={activeLearningContext.showResetDialog}
                         />
-                        <Spacing vertical={true} size="small"/>
+                        <Spacing vertical={true} size="small" />
                         <Button
                             title={t("ActiveLearning.config.buttons.startLearning")}
                             affirmative={true}

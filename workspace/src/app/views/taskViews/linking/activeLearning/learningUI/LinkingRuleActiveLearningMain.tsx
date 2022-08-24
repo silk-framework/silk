@@ -57,7 +57,7 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
     const { registerError } = useErrorHandler();
 
     React.useEffect(() => {
-        if (!selectedEntityLink) {
+        if (!selectedEntityLink || referenceLinks == null) {
             fetchReferenceLinks();
             loadUnlabeledLinkCandidate();
         }
@@ -146,9 +146,7 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
             <SectionHeader>
                 <Toolbar>
                     <ToolbarSection>
-                        <TitleMainsection>
-                            Compare resources
-                        </TitleMainsection>
+                        <TitleMainsection>Compare resources</TitleMainsection>
                     </ToolbarSection>
                     <ToolbarSection canGrow>
                         <Spacing vertical />
@@ -160,7 +158,7 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                             text={t("ActiveLearning.config.buttons.resetTooltip")}
                             onClick={activeLearningContext.showResetDialog}
                         />
-                        <Spacing vertical={true} size="small"/>
+                        <Spacing vertical={true} size="small" />
                         <Button
                             title={"Save link rule and/or newly added reference links."}
                             affirmative={true}
