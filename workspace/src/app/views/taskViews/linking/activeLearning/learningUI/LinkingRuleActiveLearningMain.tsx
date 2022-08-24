@@ -1,14 +1,14 @@
 import React from "react";
 import {
     Button,
+    IActivityStatus,
     IconButton,
     Section,
     SectionHeader,
-    TitleMainsection,
     Spacing,
+    TitleMainsection,
     Toolbar,
     ToolbarSection,
-    IActivityStatus,
 } from "@eccenca/gui-elements";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 import { LinkingRuleActiveLearningFeedbackComponent } from "./LinkingRuleActiveLearningFeedbackComponent";
@@ -22,8 +22,7 @@ import {
     nextActiveLearningLinkCandidate,
     submitActiveLearningReferenceLink,
 } from "../LinkingRuleActiveLearning.requests";
-import referenceLinksUtils from "../../referenceLinks/LinkingRuleReferenceLinks.utils";
-import { ActiveLearningDecisions } from "../LinkingRuleActiveLearning.typings";
+import { ActiveLearningDecisions, ActiveLearningLinkCandidate } from "../LinkingRuleActiveLearning.typings";
 import { ILinkingRule, OptionallyLabelledParameter } from "../../linking.types";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
@@ -46,8 +45,10 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
     const [t] = useTranslation();
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
     const [loadingLinkCandidate, setLoadingLinkCandidate] = React.useState(false);
-    /** The currently selected entity, either an unlabeled link or an existing reference link. */
-    const [selectedEntityLink, setSelectedEntityLink] = React.useState<EntityLink | undefined>(undefined);
+    /** The currently selected entity link, either an link candidate or an existing reference link. */
+    const [selectedEntityLink, setSelectedEntityLink] = React.useState<
+        ActiveLearningLinkCandidate | EntityLink | undefined
+    >(undefined);
     /** The list of reference links. */
     const [referenceLinks, setReferenceLinks] = React.useState<ReferenceLinksOrdered | undefined>(undefined);
     const [referenceLinksLoading, setReferenceLinksLoading] = React.useState(false);
@@ -113,21 +114,34 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
         setLoadingLinkCandidate(true);
         try {
             const candidate = (await nextActiveLearningLinkCandidate(projectId, linkingTaskId)).data;
-            setSelectedEntityLink(referenceLinksUtils.toReferenceEntityLink(candidate));
+            setSelectedEntityLink(candidate);
         } catch (ex) {
-            // TODO
+            registerError(
+                "LearningMain.loadUnlabeledLinkCandidate",
+                t("ActiveLearning.feedback.couldNotLoadCandidateError"),
+                ex
+            );
         } finally {
             setLoadingLinkCandidate(false);
         }
     };
 
-    const updateReferenceLink = async (link: EntityLink, decision: ActiveLearningDecisions) => {
+    const updateReferenceLink = async (
+        link: EntityLink | ActiveLearningLinkCandidate,
+        decision: ActiveLearningDecisions
+    ) => {
+        let { source, target } = link as ActiveLearningLinkCandidate;
+        if (typeof source !== "string") {
+            const entityLink = link as EntityLink;
+            source = entityLink.source.uri;
+            target = entityLink.target.uri;
+        }
         try {
             await submitActiveLearningReferenceLink(
                 activeLearningContext.projectId,
                 activeLearningContext.linkingTaskId,
-                link.source.uri,
-                link.target.uri,
+                source,
+                target,
                 decision
             );
             setSelectedEntityLink(undefined);

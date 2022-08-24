@@ -24,7 +24,13 @@ import {
 import React from "react";
 import { LinkingRuleActiveLearningFeedbackContext } from "../contexts/LinkingRuleActiveLearningFeedbackContext";
 import { ArrowLeft, ArrowRight, columnStyles } from "../LinkingRuleActiveLearning.shared";
-import { ActiveLearningDecisions, ComparisonPairWithId, TypedPath } from "../LinkingRuleActiveLearning.typings";
+import {
+    ActiveLearningDecisions,
+    ActiveLearningLinkCandidate,
+    ComparisonPair,
+    ComparisonPairWithId,
+    TypedPath,
+} from "../LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 import { EntityLink, EntityLinkPropertyPairValues } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
 import referenceLinksUtils from "../../referenceLinks/LinkingRuleReferenceLinks.utils";
@@ -38,7 +44,9 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
     /** The property pairs that will be displayed as entity title during the active learning. */
     const [labelPropertyPairs, setLabelPropertyPairs] = React.useState<ComparisonPairWithId[]>([]);
     /** The values of the selected entity link. */
-    const [valuesToDisplay, setValuesToDisplay] = React.useState<EntityLinkPropertyPairValues[] | undefined>();
+    const [valuesToDisplay, setValuesToDisplay] = React.useState<
+        EntityLinkPropertyPairValues[] | ComparisonPair[] | undefined
+    >();
     const [submittingEntityLink, setSubmittingEntityLink] = React.useState(false);
     const labelPropertyPairIds = new Set(labelPropertyPairs.map((lpp) => lpp.pairId));
     // When the component is inactive, show spinner
@@ -61,19 +69,25 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
     // Extract values for property pairs
     React.useEffect(() => {
         if (activeLearningContext.propertiesToCompare && activeLearningFeedbackContext.selectedLink) {
-            const sourceValues = referenceLinksUtils.pickEntityValues(
-                activeLearningFeedbackContext.selectedLink.source,
-                activeLearningContext.propertiesToCompare.map((prop) => prop.source.path)
-            );
-            const targetValues = referenceLinksUtils.pickEntityValues(
-                activeLearningFeedbackContext.selectedLink.target,
-                activeLearningContext.propertiesToCompare.map((prop) => prop.target.path)
-            );
-            const pairValues = sourceValues.map((sourceVals, idx) => ({
-                sourceValues: sourceVals,
-                targetValues: targetValues[idx] ?? [],
-            }));
-            setValuesToDisplay(pairValues);
+            if ((activeLearningFeedbackContext.selectedLink as EntityLink).decision) {
+                const link = activeLearningFeedbackContext.selectedLink as EntityLink;
+                const sourceValues = referenceLinksUtils.pickEntityValues(
+                    link.source,
+                    activeLearningContext.propertiesToCompare.map((prop) => prop.source.path)
+                );
+                const targetValues = referenceLinksUtils.pickEntityValues(
+                    link.target,
+                    activeLearningContext.propertiesToCompare.map((prop) => prop.target.path)
+                );
+                const pairValues = sourceValues.map((sourceVals, idx) => ({
+                    sourceExamples: sourceVals,
+                    targetExamples: targetValues[idx] ?? [],
+                }));
+                setValuesToDisplay(pairValues);
+            } else {
+                const candidate = activeLearningFeedbackContext.selectedLink as ActiveLearningLinkCandidate;
+                setValuesToDisplay(candidate.comparisons);
+            }
         }
     }, [activeLearningContext.propertiesToCompare, activeLearningFeedbackContext.selectedLink]);
 
@@ -87,7 +101,10 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
     };
 
     /** Changes the status of a link to the given decision. */
-    const submitLink = async (link: EntityLink | undefined, decision: ActiveLearningDecisions) => {
+    const submitLink = async (
+        link: EntityLink | ActiveLearningLinkCandidate | undefined,
+        decision: ActiveLearningDecisions
+    ) => {
         if (link) {
             setSubmittingEntityLink(true);
             try {
@@ -105,7 +122,7 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
                 submitLink={(decision: ActiveLearningDecisions) =>
                     submitLink(activeLearningFeedbackContext.selectedLink, decision)
                 }
-                selectedDecision={activeLearningFeedbackContext.selectedLink?.decision}
+                selectedDecision={(activeLearningFeedbackContext.selectedLink as EntityLink)?.decision}
                 cancel={activeLearningFeedbackContext.cancel}
             />
             <Divider />
@@ -208,7 +225,7 @@ const EntityComparisonHeader = ({ sourceTitle, targetTitle }: EntityComparisonHe
 };
 
 interface SelectedEntityLinkProps {
-    valuesToDisplay: EntityLinkPropertyPairValues[];
+    valuesToDisplay: EntityLinkPropertyPairValues[] | ComparisonPair[];
     propertyPairs: ComparisonPairWithId[];
     labelPropertyPairIds: Set<string>;
     toggleLabelPropertyPair: (pairId: string) => any;
@@ -225,8 +242,8 @@ const SelectedEntityLink = ({
     const labelPropertyPairValues = [...labelPropertyPairIds]
         .map((id, idx) => (propertyPairMap.has(id) ? valuesToDisplay[propertyPairMap.get(id)!!] : null))
         .filter((values) => values != null) as EntityLinkPropertyPairValues[];
-    const sourceEntityLabel = labelPropertyPairValues.map((values) => values.sourceValues.join(", ")).join(", ");
-    const targetEntityLabel = labelPropertyPairValues.map((values) => values.targetValues.join(", ")).join(", ");
+    const sourceEntityLabel = labelPropertyPairValues.map((values) => values.sourceExamples.join(", ")).join(", ");
+    const targetEntityLabel = labelPropertyPairValues.map((values) => values.targetExamples.join(", ")).join(", ");
     return (
         <Grid columns={3} fullWidth={true}>
             <EntityComparisonHeader sourceTitle={sourceEntityLabel} targetTitle={targetEntityLabel} />
@@ -258,7 +275,7 @@ const EntitiesPropertyPair = ({
 }: EntitiesPropertyPairProps) => {
     return (
         <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
-            <EntityPropertyValues property={propertyPair.source} values={values.sourceValues} />
+            <EntityPropertyValues property={propertyPair.source} values={values.sourceExamples} />
             <GridColumn style={columnStyles.centerColumnStyle}>
                 <HoverToggler
                     style={{ height: "100%" }}
@@ -292,7 +309,7 @@ const EntitiesPropertyPair = ({
                     }
                 />
             </GridColumn>
-            <EntityPropertyValues property={propertyPair.target} values={values.targetValues} />
+            <EntityPropertyValues property={propertyPair.target} values={values.targetExamples} />
         </GridRow>
     );
 };

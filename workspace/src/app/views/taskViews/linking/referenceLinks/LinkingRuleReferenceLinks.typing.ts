@@ -17,7 +17,7 @@ export interface ReferenceLinksStats {
     removedLinks: number;
 }
 
-/** A entity pair that are part of the reference links or can be added to them. */
+/** An entity pair that are part of the reference links or can be added to them. */
 export interface EntityLink {
     /** Internal globally unique ID for managing purposes. */
     entityLinkId: string;
@@ -31,8 +31,8 @@ export interface EntityLink {
 
 /** The source and target values of a single property pair. */
 export interface EntityLinkPropertyPairValues {
-    sourceValues: string[];
-    targetValues: string[];
+    sourceExamples: string[];
+    targetExamples: string[];
 }
 
 /** The paths whose values should be displayed as entity labels. */

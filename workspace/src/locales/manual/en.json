@@ -813,7 +813,8 @@
             "confirm": "Confirm",
             "decline": "Decline",
             "uncertain": "Uncertain",
-            "cancel": "Cancel selection and show next link candidate."
+            "cancel": "Cancel selection and show next link candidate.",
+            "couldNotLoadCandidateError": "Could not load entity link candidate."
         },
         "referenceLinks": {
             "title": "Decision history & reference links"

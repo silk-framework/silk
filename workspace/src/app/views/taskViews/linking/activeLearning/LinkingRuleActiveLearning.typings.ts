@@ -1,3 +1,5 @@
+import { LinkType } from "../referenceLinks/LinkingRuleReferenceLinks.typing";
+
 /** The steps of the active learning process. */
 export type ActiveLearningStep = "config" | "linkLearning";
 
@@ -30,3 +32,10 @@ export interface TypedPath {
 }
 
 export type ActiveLearningDecisions = "positive" | "negative" | "unlabeled";
+
+/** A link candidate. */
+export interface ActiveLearningLinkCandidate {
+    source: string;
+    target: string;
+    comparisons: ComparisonPair[];
+}

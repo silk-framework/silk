@@ -1,8 +1,13 @@
 import { FetchResponse } from "../../../../services/fetch/responseInterceptor";
 import fetch from "../../../../services/fetch";
-import {learningApi, legacyLinkingEndpoint} from "../../../../utils/getApiEndpoint";
-import { ActiveLearningDecisions, ComparisonPair, ComparisonPairs } from "./LinkingRuleActiveLearning.typings";
-import { IEntityLink, ILinkingRule, OptionallyLabelledParameter, ReferenceLinks } from "../linking.types";
+import { learningApi } from "../../../../utils/getApiEndpoint";
+import {
+    ActiveLearningDecisions,
+    ActiveLearningLinkCandidate,
+    ComparisonPair,
+    ComparisonPairs,
+} from "./LinkingRuleActiveLearning.typings";
+import { ILinkingRule, OptionallyLabelledParameter, ReferenceLinks } from "../linking.types";
 import { ReferenceLinksOrdered } from "../referenceLinks/LinkingRuleReferenceLinks.typing";
 
 /** Get the comparison pair configuration for the active learning session.
@@ -39,9 +44,7 @@ export const removeActiveLearningComparisonPair = (
     comparisonPair: ComparisonPair
 ): Promise<FetchResponse<void>> => {
     return fetch({
-        url: learningApi(
-            `/tasks/${projectId}/${linkingTaskId}/activeLearning/comparisonPairs/removeSelected`
-        ),
+        url: learningApi(`/tasks/${projectId}/${linkingTaskId}/activeLearning/comparisonPairs/removeSelected`),
         method: "POST",
         body: comparisonPair,
     });
@@ -51,7 +54,7 @@ export const removeActiveLearningComparisonPair = (
 export const nextActiveLearningLinkCandidate = (
     projectId: string,
     linkingTaskId: string
-): Promise<FetchResponse<IEntityLink>> => {
+): Promise<FetchResponse<ActiveLearningLinkCandidate>> => {
     return fetch({
         url: learningApi(`/tasks/${projectId}/${linkingTaskId}/activeLearning/nextLinkCandidate`),
     });
