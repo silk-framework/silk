@@ -98,7 +98,10 @@ export const LinkingRuleReferenceLinks = ({
             ...l,
             type: l.decision ?? "unlabeled",
             misMatch:
-                (l.decision === "positive" || l.decision === "negative") && l.confidence ? l.confidence < 0 : false,
+                (l.decision === "positive" || l.decision === "negative") && l.confidence
+                    ? (l.confidence < 0 && l.decision === "positive") ||
+                      (l.confidence >= 0 && l.decision === "negative")
+                    : false,
         }));
         setReferenceLinksFiltered(
             referenceLinksAnnotated.filter((link) => {
@@ -121,82 +124,80 @@ export const LinkingRuleReferenceLinks = ({
     const ReferenceLinksHeader = () => {
         return (
             <CardHeader>
-                <CardTitle>
-                    {title}
-                </CardTitle>
+                <CardTitle>{title}</CardTitle>
                 <CardOptions>
-                            {showLinksList && (
+                    {showLinksList && (
+                        <>
+                            {!showUncertainLinks ? (
                                 <>
-                                    {!showUncertainLinks ? (
-                                        <>
-                                            <Button
-                                                small
-                                                data-test-id={"reference-links-show-confirmed-links"}
-                                                elevated={showConfirmedOnly}
-                                                disabled={!showConfirmedOnly && positiveLinks <= 0}
-                                                onClick={() => {
-                                                    setShowConfirmedOnly(!showConfirmedOnly);
-                                                    setShowDeclinedOnly(false);
-                                                }}
-                                            >
-                                                {t("ReferenceLinks.confirmedOnly", { nr: positiveLinkCount })}
-                                            </Button>
-                                            <Button
-                                                small
-                                                data-test-id={"reference-links-show-declined-links"}
-                                                elevated={showDeclinedOnly}
-                                                disabled={!showDeclinedOnly && negativeLinks <= 0}
-                                                onClick={() => {
-                                                    setShowDeclinedOnly(!showDeclinedOnly);
-                                                    setShowConfirmedOnly(false);
-                                                }}
-                                            >
-                                                {t("ReferenceLinks.declinedOnly", { nr: negativeLinkCount })}
-                                            </Button>
-                                            <Spacing vertical={true} size="small" />
-                                        </>
-                                    ) : null}
-                                    {!!showLinkType ? (
-                                        <>
-                                            <Button
-                                                small
-                                                key={"certain"}
-                                                data-test-id={"reference-links-show-certain-links"}
-                                                elevated={!showUncertainLinks}
-                                                onClick={() => showLinksOfType("labeled")}
-                                            >
-                                                Certain
-                                            </Button>
-                                            <Button
-                                                small
-                                                key={"uncertain"}
-                                                data-test-id={"reference-links-show-uncertain-links"}
-                                                elevated={showUncertainLinks}
-                                                onClick={() => showLinksOfType("unlabeled")}
-                                            >
-                                                Uncertain
-                                            </Button>
-                                            <Spacing vertical={true} size="small" />
-                                        </>
-                                    ) : null}
-                                    <Checkbox
-                                        data-test-id={"reference-links-show-mismatches"}
-                                        disabled={misMatches <= 0}
-                                        checked={showOnlyMismatches}
-                                        onChange={() => setShowOnlyMismatches((prev) => !prev)}
-                                        style={{ margin: "0px" }}
+                                    <Button
+                                        small
+                                        data-test-id={"reference-links-show-confirmed-links"}
+                                        elevated={showConfirmedOnly}
+                                        disabled={!showConfirmedOnly && positiveLinks <= 0}
+                                        onClick={() => {
+                                            setShowConfirmedOnly(!showConfirmedOnly);
+                                            setShowDeclinedOnly(false);
+                                        }}
                                     >
-                                        {t("ReferenceLinks.mismatchCheckboxTitle", { nrMismatches: misMatches })}
-                                    </Checkbox>
+                                        {t("ReferenceLinks.confirmedOnly", { nr: positiveLinkCount })}
+                                    </Button>
+                                    <Button
+                                        small
+                                        data-test-id={"reference-links-show-declined-links"}
+                                        elevated={showDeclinedOnly}
+                                        disabled={!showDeclinedOnly && negativeLinks <= 0}
+                                        onClick={() => {
+                                            setShowDeclinedOnly(!showDeclinedOnly);
+                                            setShowConfirmedOnly(false);
+                                        }}
+                                    >
+                                        {t("ReferenceLinks.declinedOnly", { nr: negativeLinkCount })}
+                                    </Button>
                                     <Spacing vertical={true} size="small" />
                                 </>
-                            )}
-                            <IconButton
-                                data-test-id={"reference-links-toggler-btn"}
-                                onClick={() => setShowLinksList((prev) => !prev)}
-                                name={showLinksList ? "toggler-showless" : "toggler-showmore"}
-                                text={showLinksList ? t("ReferenceLinks.hideList") : t("ReferenceLinks.showList")}
-                            />
+                            ) : null}
+                            {!!showLinkType ? (
+                                <>
+                                    <Button
+                                        small
+                                        key={"certain"}
+                                        data-test-id={"reference-links-show-certain-links"}
+                                        elevated={!showUncertainLinks}
+                                        onClick={() => showLinksOfType("labeled")}
+                                    >
+                                        Certain
+                                    </Button>
+                                    <Button
+                                        small
+                                        key={"uncertain"}
+                                        data-test-id={"reference-links-show-uncertain-links"}
+                                        elevated={showUncertainLinks}
+                                        onClick={() => showLinksOfType("unlabeled")}
+                                    >
+                                        Uncertain
+                                    </Button>
+                                    <Spacing vertical={true} size="small" />
+                                </>
+                            ) : null}
+                            <Checkbox
+                                data-test-id={"reference-links-show-mismatches"}
+                                disabled={misMatches <= 0}
+                                checked={showOnlyMismatches}
+                                onChange={() => setShowOnlyMismatches((prev) => !prev)}
+                                style={{ margin: "0px" }}
+                            >
+                                {t("ReferenceLinks.mismatchCheckboxTitle", { nrMismatches: misMatches })}
+                            </Checkbox>
+                            <Spacing vertical={true} size="small" />
+                        </>
+                    )}
+                    <IconButton
+                        data-test-id={"reference-links-toggler-btn"}
+                        onClick={() => setShowLinksList((prev) => !prev)}
+                        name={showLinksList ? "toggler-showless" : "toggler-showmore"}
+                        text={showLinksList ? t("ReferenceLinks.hideList") : t("ReferenceLinks.showList")}
+                    />
                 </CardOptions>
             </CardHeader>
         );
@@ -296,9 +297,7 @@ export const LinkingRuleReferenceLinks = ({
             {showLinksList && (
                 <>
                     <Divider />
-                    <CardContent>
-                        {loading ? <Spinner /> : <ReferenceLinksTable />}
-                    </CardContent>
+                    <CardContent>{loading ? <Spinner /> : <ReferenceLinksTable />}</CardContent>
                 </>
             )}
         </Card>
