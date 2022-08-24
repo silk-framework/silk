@@ -117,7 +117,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
                                 sampleLimit: Option[Int],
                                 progressFN: Double => Unit)
                                (implicit userContext: UserContext): ExtractedSchema[T] = {
-    val classProperties = mutable.HashMap[String, List[TypedPath]]()
+    val classProperties = mutable.HashMap[String, Seq[TypedPath]]()
     addForwardPaths(classProperties)
     addBackwardPaths(classProperties)
     val schemaClasses = for((classUri, classProperties) <- classProperties) yield {
@@ -129,7 +129,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
     ExtractedSchema(schemaClasses.toSeq)
   }
 
-  private def addBackwardPaths(classProperties: mutable.HashMap[String, List[TypedPath]])
+  private def addBackwardPaths(classProperties: mutable.HashMap[String, Seq[TypedPath]])
                               (implicit userContext: UserContext): Unit = {
     val backwardResults = sparqlEndpoint.select(
       """
@@ -145,11 +145,11 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
       val propertyUri = binding("property").value
       val propertyType = valueType(binding("valueSample"))
       val currentProperties = classProperties.getOrElseUpdate(classUri, Nil)
-      classProperties.put(classUri, TypedPath(BackwardOperator(propertyUri) :: Nil, propertyType, isAttribute = false) :: currentProperties)
+      classProperties.put(classUri, currentProperties :+ TypedPath(BackwardOperator(propertyUri) :: Nil, propertyType, isAttribute = false))
     }
   }
 
-  private def addForwardPaths(classProperties: mutable.HashMap[String, List[TypedPath]])
+  private def addForwardPaths(classProperties: mutable.HashMap[String, Seq[TypedPath]])
                              (implicit userContext: UserContext): Unit = {
     val forwardResults = sparqlEndpoint.select(
       """
@@ -165,7 +165,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
       val propertyUri = binding("property").value
       val propertyType = valueType(binding("valueSample"))
       val currentProperties = classProperties.getOrElseUpdate(classUri, Nil)
-      classProperties.put(classUri, TypedPath(ForwardOperator(propertyUri) :: Nil, propertyType, isAttribute = false) :: currentProperties)
+      classProperties.put(classUri, currentProperties :+ TypedPath(ForwardOperator(propertyUri) :: Nil, propertyType, isAttribute = false))
     }
   }
 
