@@ -173,7 +173,6 @@ export default function VocabularyMultiSelect({
             <VocabularyMultiSelectBP
                 popoverProps={{
                     minimal: true,
-                    fill: true,
                     placement: "bottom-start",
                 }}
                 fill={true}
