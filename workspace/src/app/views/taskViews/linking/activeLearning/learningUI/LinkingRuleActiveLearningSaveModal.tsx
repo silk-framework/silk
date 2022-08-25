@@ -27,7 +27,10 @@ export const LinkingRuleActiveLearningSaveModal = ({
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
     const [saveRule, setSaveRule] = React.useState(false);
     const [saving, setSaving] = React.useState(false);
-    const { sessionInfo, loading } = useActiveLearningSessionInfo();
+    const { sessionInfo, loading } = useActiveLearningSessionInfo(
+        activeLearningContext.projectId,
+        activeLearningContext.linkingTaskId
+    );
     const [saveReferenceLinks, setSaveReferenceLinks] = React.useState(false);
     const unsavedReferenceLinks = sessionInfo?.referenceLinks
         ? sessionInfo.referenceLinks.addedLinks + sessionInfo.referenceLinks.removedLinks

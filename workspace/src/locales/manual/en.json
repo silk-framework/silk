@@ -840,6 +840,10 @@
             },
             "saveFailureMessage": "Saving the rule and/or the reference links has failed."
         },
+        "sessionExistsModal": {
+            "title": "Existing session detected",
+            "description": "There is already an existing session running that you did not participate in, yet. Please be cautious."
+        },
         "statistics": {
             "fetchError": "Could not fetch active learning session infos.",
             "noStats": "No session information available.",

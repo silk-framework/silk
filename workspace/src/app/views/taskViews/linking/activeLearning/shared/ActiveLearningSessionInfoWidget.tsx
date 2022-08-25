@@ -15,7 +15,12 @@ interface ActiveLearningSessionInfoWidgetProps {
 export const ActiveLearningSessionInfoWidget = ({
     activeLearningSessionInfo,
 }: ActiveLearningSessionInfoWidgetProps) => {
-    const { sessionInfo, loading } = useActiveLearningSessionInfo(activeLearningSessionInfo);
+    const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
+    const { sessionInfo, loading } = useActiveLearningSessionInfo(
+        activeLearningContext.projectId,
+        activeLearningContext.linkingTaskId,
+        activeLearningSessionInfo
+    );
     const [t] = useTranslation();
 
     return loading ? (
@@ -44,6 +49,7 @@ const ReferenceLinksStatsWidget = ({ stats }: { stats: ReferenceLinksStats }) =>
     const [t] = useTranslation();
     return stats.addedLinks > 0 || stats.removedLinks > 0 ? (
         <>
+            <Spacing />
             {t("ActiveLearning.statistics.referenceLinksChangeStats")}
             <Spacing />
             <ul>
@@ -69,29 +75,27 @@ interface ActiveLearningSessionInfoResult {
 
 /** Returns the current active learning session infos. */
 export const useActiveLearningSessionInfo = (
+    projectId: string,
+    linkingTaskId: string,
     activeLearningSessionInfo?: ActiveLearningSessionInfo
 ): ActiveLearningSessionInfoResult => {
     const { registerError } = useErrorHandler();
     const [sessionInfo, setSessionInfo] = React.useState<ActiveLearningSessionInfo | undefined>(
         activeLearningSessionInfo
     );
-    const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
     const [loading, setLoading] = React.useState(false);
     const [t] = useTranslation();
 
     React.useEffect(() => {
-        if (!sessionInfo) {
+        if (projectId && linkingTaskId && !sessionInfo) {
             fetchInfos();
         }
-    }, []);
+    }, [projectId, linkingTaskId]);
 
     const fetchInfos = async () => {
         setLoading(true);
         try {
-            const infos = await fetchActiveLearningSessionInfo(
-                activeLearningContext.projectId,
-                activeLearningContext.linkingTaskId
-            );
+            const infos = await fetchActiveLearningSessionInfo(projectId, linkingTaskId);
             setSessionInfo(infos.data);
         } catch (ex) {
             registerError("ActiveLearningSessionInfoWidget.fetchInfos", t("ActiveLearning.statistics.fetchError"), ex);

@@ -24,6 +24,9 @@ import utils from "../LinkingRuleEditor.utils";
 import { IRuleOperator, IRuleOperatorNode } from "../../../shared/RuleEditor/RuleEditor.typings";
 import ruleUtils from "../../shared/rules/rule.utils";
 import ruleEditorUtils from "../../../../views/shared/RuleEditor/RuleEditor.utils";
+import { useActiveLearningSessionInfo } from "./shared/ActiveLearningSessionInfoWidget";
+import { useInitFrontend } from "../../../pages/MappingEditor/api/silkRestApi.hooks";
+import { SessionRunningWarningModal } from "./dialogs/SessionRunningWarningModal";
 
 export interface LinkingRuleActiveLearningProps {
     /** Project ID the task is in. */
@@ -58,6 +61,10 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
     const [comparisonPairsLoading, setComparisonPairsLoading] = React.useState(false);
     const [showResetDialog, setShowResetDialog] = React.useState(false);
     const [operatorMap, setOperatorMap] = React.useState<Map<string, IRuleOperator[]> | undefined>(undefined);
+    // If an existing session exists and the current is new to this session, a modal will be displayed.
+    const [showExistingSessionModal, setShowExistingSessionModal] = React.useState(false);
+    const { sessionInfo } = useActiveLearningSessionInfo(projectId, linkingTaskId);
+    const initData = useInitFrontend();
 
     React.useEffect(() => {
         startComparisonPairActivity();
@@ -66,6 +73,16 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
     React.useEffect(() => {
         fetchRuleOperators();
     }, []);
+
+    React.useEffect(() => {
+        if (sessionInfo && initData && initData.userUri && sessionInfo.users.length > 0) {
+            const sessionContainsUser = sessionInfo.users.find((user) => initData.userUri === user.uri);
+            if (!sessionContainsUser) {
+                // Session does not contain current user, display (warning) modal that a session is already running.
+                setShowExistingSessionModal(true);
+            }
+        }
+    }, [initData, sessionInfo]);
 
     const fetchRuleOperators = async () => {
         try {
@@ -220,6 +237,12 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
                     {showResetDialog ? <LinkingRuleActiveLearningResetModal close={onCloseResetModal} /> : null}
                 </>
             )}
+            {showExistingSessionModal ? (
+                <SessionRunningWarningModal
+                    close={() => setShowExistingSessionModal(false)}
+                    activeLearningSessionInfo={sessionInfo}
+                />
+            ) : null}
         </LinkingRuleActiveLearningContext.Provider>
     );
 };
