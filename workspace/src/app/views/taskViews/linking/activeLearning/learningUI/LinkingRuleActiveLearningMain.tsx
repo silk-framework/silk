@@ -226,15 +226,13 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                     openLink={(link) => setSelectedEntityLink(link)}
                     showLinkType={showLinkType}
                 />
-                {
-                    // TODO: Check that reference links are saved
-                    showSaveDialog ? (
-                        <LinkingRuleActiveLearningSaveModal
-                            unsavedBestRule={!!bestRule}
-                            onClose={() => setShowSaveDialog(false)}
-                        />
-                    ) : null
-                }
+                {showSaveDialog ? (
+                    <LinkingRuleActiveLearningSaveModal
+                        unsavedBestRule={bestRule}
+                        evaluationScore={referenceLinks?.evaluationScore}
+                        onClose={() => setShowSaveDialog(false)}
+                    />
+                ) : null}
             </Section>
         </LinkingRuleActiveLearningFeedbackContext.Provider>
     );

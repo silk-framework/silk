@@ -8,14 +8,18 @@ import {
     ActiveLearningSessionInfoWidget,
     useActiveLearningSessionInfo,
 } from "../shared/ActiveLearningSessionInfoWidget";
+import { IEvaluatedReferenceLinksScore, ILinkingRule, OptionallyLabelledParameter } from "../../linking.types";
+import { LinkingRuleActiveLearningBestLearnedRule } from "./LinkingRuleActiveLearningBestLearnedRule";
 
 interface LinkingRuleActiveLearningSaveModalProps {
-    unsavedBestRule: boolean;
+    unsavedBestRule: OptionallyLabelledParameter<ILinkingRule> | undefined;
+    evaluationScore?: IEvaluatedReferenceLinksScore;
     onClose: () => any;
 }
 
 export const LinkingRuleActiveLearningSaveModal = ({
     unsavedBestRule,
+    evaluationScore,
     onClose,
 }: LinkingRuleActiveLearningSaveModalProps) => {
     const [t] = useTranslation();
@@ -61,7 +65,7 @@ export const LinkingRuleActiveLearningSaveModal = ({
     return (
         <SimpleDialog
             data-test-id={"active-learning-save-modal"}
-            size={"small"}
+            size={"large"}
             title={t("ActiveLearning.saveDialog.title")}
             isOpen={true}
             onClose={onClose}
@@ -121,6 +125,10 @@ export const LinkingRuleActiveLearningSaveModal = ({
                         />
                     </FieldItem>
                 </form>
+                <Spacing />
+                {unsavedBestRule ? (
+                    <LinkingRuleActiveLearningBestLearnedRule rule={unsavedBestRule} score={evaluationScore} />
+                ) : null}
                 <Spacing />
                 {loading ? (
                     <Spinner />
