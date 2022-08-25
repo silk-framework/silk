@@ -231,7 +231,6 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                     showSaveDialog ? (
                         <LinkingRuleActiveLearningSaveModal
                             unsavedBestRule={!!bestRule}
-                            unsavedReferenceLinks={1 /** TODO: Put real number*/}
                             onClose={() => setShowSaveDialog(false)}
                         />
                     ) : null

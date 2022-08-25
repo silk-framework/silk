@@ -10,38 +10,13 @@ import { ReferenceLinksStats } from "../../referenceLinks/LinkingRuleReferenceLi
 interface ActiveLearningSessionInfoWidgetProps {
     activeLearningSessionInfo?: ActiveLearningSessionInfo;
 }
+
 /** Displays the active learning session details. */
 export const ActiveLearningSessionInfoWidget = ({
     activeLearningSessionInfo,
 }: ActiveLearningSessionInfoWidgetProps) => {
-    const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
-    const { registerError } = useErrorHandler();
-    const [sessionInfo, setSessionInfo] = React.useState<ActiveLearningSessionInfo | undefined>(
-        activeLearningSessionInfo
-    );
-    const [loading, setLoading] = React.useState(false);
+    const { sessionInfo, loading } = useActiveLearningSessionInfo(activeLearningSessionInfo);
     const [t] = useTranslation();
-
-    React.useEffect(() => {
-        if (!sessionInfo) {
-            fetchInfos();
-        }
-    }, []);
-
-    const fetchInfos = async () => {
-        setLoading(true);
-        try {
-            const infos = await fetchActiveLearningSessionInfo(
-                activeLearningContext.projectId,
-                activeLearningContext.linkingTaskId
-            );
-            setSessionInfo(infos.data);
-        } catch (ex) {
-            registerError("ActiveLearningSessionInfoWidget.fetchInfos", t("ActiveLearning.statistics.fetchError"), ex);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     return loading ? (
         <Spinner />
@@ -85,4 +60,48 @@ const ReferenceLinksStatsWidget = ({ stats }: { stats: ReferenceLinksStats }) =>
             </ul>
         </>
     ) : null;
+};
+
+interface ActiveLearningSessionInfoResult {
+    sessionInfo: ActiveLearningSessionInfo | undefined;
+    loading: boolean;
+}
+
+/** Returns the current active learning session infos. */
+export const useActiveLearningSessionInfo = (
+    activeLearningSessionInfo?: ActiveLearningSessionInfo
+): ActiveLearningSessionInfoResult => {
+    const { registerError } = useErrorHandler();
+    const [sessionInfo, setSessionInfo] = React.useState<ActiveLearningSessionInfo | undefined>(
+        activeLearningSessionInfo
+    );
+    const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
+    const [loading, setLoading] = React.useState(false);
+    const [t] = useTranslation();
+
+    React.useEffect(() => {
+        if (!sessionInfo) {
+            fetchInfos();
+        }
+    }, []);
+
+    const fetchInfos = async () => {
+        setLoading(true);
+        try {
+            const infos = await fetchActiveLearningSessionInfo(
+                activeLearningContext.projectId,
+                activeLearningContext.linkingTaskId
+            );
+            setSessionInfo(infos.data);
+        } catch (ex) {
+            registerError("ActiveLearningSessionInfoWidget.fetchInfos", t("ActiveLearning.statistics.fetchError"), ex);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return {
+        sessionInfo,
+        loading,
+    };
 };

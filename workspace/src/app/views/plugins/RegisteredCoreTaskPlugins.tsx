@@ -2,7 +2,6 @@ import { LinkingRuleEditor } from "../taskViews/linking/LinkingRuleEditor";
 //import HierarchicalMapping from "../pages/MappingEditor/HierarchicalMapping/HierarchicalMapping";
 import React from "react";
 import { IViewActions, pluginRegistry } from "./PluginRegistry";
-import { LinkingRuleActiveLearning } from "../taskViews/linking/activeLearning/LinkingRuleActiveLearning";
 
 let registered = false;
 export const registerCorePlugins = () => {
@@ -15,16 +14,6 @@ export const registerCorePlugins = () => {
             label: "Linking editor",
             render(projectId: string, taskId: string, viewActions: IViewActions | undefined): JSX.Element {
                 return <LinkingRuleEditor projectId={projectId} linkingTaskId={taskId} viewActions={viewActions} />;
-            },
-        });
-
-        pluginRegistry.registerTaskView("linking", {
-            id: "linkRuleActiveLearning",
-            label: "Learning",
-            render(projectId: string, taskId: string, viewActions: IViewActions | undefined): JSX.Element {
-                return (
-                    <LinkingRuleActiveLearning projectId={projectId} linkingTaskId={taskId} viewActions={viewActions} />
-                );
             },
         });
 

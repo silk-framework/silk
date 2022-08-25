@@ -1,28 +1,41 @@
-import { Button, FieldItem, SimpleDialog, Spacing, Switch } from "@eccenca/gui-elements";
-import React from "react";
+import { Button, FieldItem, SimpleDialog, Spacing, Spinner, Switch } from "@eccenca/gui-elements";
+import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { saveActiveLearningResults } from "../LinkingRuleActiveLearning.requests";
-import { ActiveLearningSessionInfoWidget } from "../shared/ActiveLearningSessionInfoWidget";
+import {
+    ActiveLearningSessionInfoWidget,
+    useActiveLearningSessionInfo,
+} from "../shared/ActiveLearningSessionInfoWidget";
 
 interface LinkingRuleActiveLearningSaveModalProps {
-    unsavedReferenceLinks: number;
     unsavedBestRule: boolean;
     onClose: () => any;
 }
 
 export const LinkingRuleActiveLearningSaveModal = ({
     unsavedBestRule,
-    unsavedReferenceLinks,
     onClose,
 }: LinkingRuleActiveLearningSaveModalProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
     const [saveRule, setSaveRule] = React.useState(false);
-    const [saveReferenceLinks, setSaveReferenceLinks] = React.useState(unsavedReferenceLinks > 0);
     const [saving, setSaving] = React.useState(false);
+    const { sessionInfo, loading } = useActiveLearningSessionInfo();
+    const [saveReferenceLinks, setSaveReferenceLinks] = React.useState(false);
+    const unsavedReferenceLinks = sessionInfo?.referenceLinks
+        ? sessionInfo.referenceLinks.addedLinks + sessionInfo.referenceLinks.removedLinks
+        : undefined;
+
+    useEffect(() => {
+        if (sessionInfo) {
+            if (sessionInfo.referenceLinks.addedLinks + sessionInfo.referenceLinks.removedLinks > 0) {
+                setSaveReferenceLinks(true);
+            }
+        }
+    }, [sessionInfo]);
 
     const onSave = async () => {
         setSaving(true);
@@ -74,16 +87,18 @@ export const LinkingRuleActiveLearningSaveModal = ({
                             text: t(t("ActiveLearning.saveDialog.saveReferenceLinks.label")),
                         }}
                         messageText={
-                            unsavedReferenceLinks <= 0
-                                ? t("ActiveLearning.saveDialog.saveReferenceLinks.noReferenceLinksMessage")
-                                : t("ActiveLearning.saveDialog.saveReferenceLinks.referenceLinksInfoMessage", {
-                                      nr: unsavedReferenceLinks,
-                                  })
+                            unsavedReferenceLinks != null
+                                ? unsavedReferenceLinks <= 0
+                                    ? t("ActiveLearning.saveDialog.saveReferenceLinks.noReferenceLinksMessage")
+                                    : t("ActiveLearning.saveDialog.saveReferenceLinks.referenceLinksInfoMessage", {
+                                          nr: unsavedReferenceLinks,
+                                      })
+                                : undefined
                         }
                     >
                         <Switch
                             data-test-id={"save-reference-links"}
-                            disabled={unsavedReferenceLinks <= 0}
+                            disabled={(unsavedReferenceLinks ?? 0) <= 0}
                             checked={saveReferenceLinks}
                             onChange={(value) => setSaveReferenceLinks(value)}
                         />
@@ -107,7 +122,11 @@ export const LinkingRuleActiveLearningSaveModal = ({
                     </FieldItem>
                 </form>
                 <Spacing />
-                <ActiveLearningSessionInfoWidget />
+                {loading ? (
+                    <Spinner />
+                ) : sessionInfo ? (
+                    <ActiveLearningSessionInfoWidget activeLearningSessionInfo={sessionInfo} />
+                ) : null}
             </div>
         </SimpleDialog>
     );
