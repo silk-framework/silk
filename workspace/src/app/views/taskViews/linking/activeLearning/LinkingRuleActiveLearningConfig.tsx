@@ -157,8 +157,9 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             <GridColumn style={columnStyles.mainColumnStyle}>
                 <OverviewItem>
                     <OverviewItemDescription>
-                        {showLabel ? <OverviewItemLine>{property.label}</OverviewItemLine> : null}
-                        <OverviewItemLine small={showLabel}>{property.path}</OverviewItemLine>
+                        <OverviewItemLine title={showLabel ? property.path : undefined}>
+                            {property.label ?? property.path}
+                        </OverviewItemLine>
                         {flatExampleValues.length > 0 ? (
                             <OverviewItemLine small={showLabel} title={exampleTitle}>
                                 {flatExampleValues.map((example, idx) => {
