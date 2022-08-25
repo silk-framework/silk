@@ -1,4 +1,4 @@
-import { LinkType } from "../referenceLinks/LinkingRuleReferenceLinks.typing";
+import { ReferenceLinksStats } from "../referenceLinks/LinkingRuleReferenceLinks.typing";
 
 /** The steps of the active learning process. */
 export type ActiveLearningStep = "config" | "linkLearning";
@@ -38,4 +38,16 @@ export interface ActiveLearningLinkCandidate {
     source: string;
     target: string;
     comparisons: ComparisonPair[];
+}
+
+/** Information about users that have contributed to an active learning session. */
+interface UserInfo {
+    uri: string;
+    label: string;
+}
+
+/** Information about the current active learning session. */
+export interface ActiveLearningSessionInfo {
+    users: UserInfo[];
+    referenceLinks: ReferenceLinksStats;
 }

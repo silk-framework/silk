@@ -75,7 +75,8 @@ case class InitApi @Inject()() extends InjectedController with UserContextAction
       resultJson + ("dmBaseUrl" -> url) + ("dmModuleLinks" -> JsArray(dmLinks.map(Json.toJson(_))))
     }.getOrElse(resultJson)
     val withVersion = version.map(v => withDmUrl + ("version" -> v)).getOrElse(withDmUrl)
-    Ok(withVersion)
+    val withUser = userContext.user.map(user => withVersion + ("userUri" -> JsString(user.uri))).getOrElse(withVersion)
+    Ok(withUser)
   }
 
   val supportedLanguages = Set("en", "de")

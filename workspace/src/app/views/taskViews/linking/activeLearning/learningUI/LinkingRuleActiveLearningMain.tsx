@@ -51,6 +51,7 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
     >(undefined);
     /** The list of reference links. */
     const [referenceLinks, setReferenceLinks] = React.useState<ReferenceLinksOrdered | undefined>(undefined);
+    const [referenceLinksInitiallyLoaded, setReferenceLinksInitiallyLoaded] = React.useState(false);
     const [referenceLinksLoading, setReferenceLinksLoading] = React.useState(false);
     const [bestRule, setBestRule] = React.useState<OptionallyLabelledParameter<ILinkingRule> | undefined>(undefined);
     const [showSaveDialog, setShowSaveDialog] = React.useState(false);
@@ -58,7 +59,8 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
     const { registerError } = useErrorHandler();
 
     React.useEffect(() => {
-        if (!selectedEntityLink || referenceLinks == null) {
+        if (!selectedEntityLink || !referenceLinksInitiallyLoaded) {
+            setReferenceLinksInitiallyLoaded(true);
             fetchReferenceLinks();
             loadUnlabeledLinkCandidate();
         }

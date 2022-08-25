@@ -1,0 +1,88 @@
+import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
+import { ActiveLearningSessionInfo } from "../LinkingRuleActiveLearning.typings";
+import React from "react";
+import { fetchActiveLearningSessionInfo } from "../LinkingRuleActiveLearning.requests";
+import useErrorHandler from "../../../../../hooks/useErrorHandler";
+import { useTranslation } from "react-i18next";
+import { Notification, Spacing, Spinner } from "@eccenca/gui-elements";
+import { ReferenceLinksStats } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
+
+interface ActiveLearningSessionInfoWidgetProps {
+    activeLearningSessionInfo?: ActiveLearningSessionInfo;
+}
+/** Displays the active learning session details. */
+export const ActiveLearningSessionInfoWidget = ({
+    activeLearningSessionInfo,
+}: ActiveLearningSessionInfoWidgetProps) => {
+    const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
+    const { registerError } = useErrorHandler();
+    const [sessionInfo, setSessionInfo] = React.useState<ActiveLearningSessionInfo | undefined>(
+        activeLearningSessionInfo
+    );
+    const [loading, setLoading] = React.useState(false);
+    const [t] = useTranslation();
+
+    React.useEffect(() => {
+        if (!sessionInfo) {
+            fetchInfos();
+        }
+    }, []);
+
+    const fetchInfos = async () => {
+        setLoading(true);
+        try {
+            const infos = await fetchActiveLearningSessionInfo(
+                activeLearningContext.projectId,
+                activeLearningContext.linkingTaskId
+            );
+            setSessionInfo(infos.data);
+        } catch (ex) {
+            registerError("ActiveLearningSessionInfoWidget.fetchInfos", t("ActiveLearning.statistics.fetchError"), ex);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return loading ? (
+        <Spinner />
+    ) : sessionInfo ? (
+        <div>
+            {sessionInfo.users.length > 0 ? (
+                <>
+                    {t("ActiveLearning.statistics.users")}
+                    <Spacing />
+                    <ul>
+                        {sessionInfo.users.map((user) => {
+                            return <li key={user.uri}>{user.label || user.uri}</li>;
+                        })}
+                    </ul>
+                </>
+            ) : null}
+            <ReferenceLinksStatsWidget stats={sessionInfo.referenceLinks} />
+        </div>
+    ) : (
+        <Notification warning={true}>{t("ActiveLearning.statistics.noStats")}</Notification>
+    );
+};
+
+const ReferenceLinksStatsWidget = ({ stats }: { stats: ReferenceLinksStats }) => {
+    const [t] = useTranslation();
+    return stats.addedLinks > 0 || stats.removedLinks > 0 ? (
+        <>
+            {t("ActiveLearning.statistics.referenceLinksChangeStats")}
+            <Spacing />
+            <ul>
+                {stats.addedLinks > 0 ? (
+                    <li>
+                        {t("common.words.added")}: {stats.addedLinks}
+                    </li>
+                ) : null}
+                {stats.removedLinks > 0 ? (
+                    <li>
+                        {t("common.words.removed")}: {stats.removedLinks}
+                    </li>
+                ) : null}
+            </ul>
+        </>
+    ) : null;
+};

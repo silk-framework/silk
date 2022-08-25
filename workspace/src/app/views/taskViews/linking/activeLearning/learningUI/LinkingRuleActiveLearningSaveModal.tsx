@@ -1,9 +1,10 @@
-import { Button, FieldItem, SimpleDialog, Switch } from "@eccenca/gui-elements";
+import { Button, FieldItem, SimpleDialog, Spacing, Switch } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { saveActiveLearningResults } from "../LinkingRuleActiveLearning.requests";
+import { ActiveLearningSessionInfoWidget } from "../shared/ActiveLearningSessionInfoWidget";
 
 interface LinkingRuleActiveLearningSaveModalProps {
     unsavedReferenceLinks: number;
@@ -105,6 +106,8 @@ export const LinkingRuleActiveLearningSaveModal = ({
                         />
                     </FieldItem>
                 </form>
+                <Spacing />
+                <ActiveLearningSessionInfoWidget />
             </div>
         </SimpleDialog>
     );

@@ -4,6 +4,7 @@ import { learningApi } from "../../../../utils/getApiEndpoint";
 import {
     ActiveLearningDecisions,
     ActiveLearningLinkCandidate,
+    ActiveLearningSessionInfo,
     ComparisonPair,
     ComparisonPairs,
 } from "./LinkingRuleActiveLearning.typings";
@@ -130,5 +131,15 @@ export const resetActiveLearningSession = (projectId: string, linkingTaskId: str
     return fetch({
         url: learningApi(`/tasks/${projectId}/${linkingTaskId}/activeLearning/reset`),
         method: "POST",
+    });
+};
+
+/** Infos about the current active learning session. */
+export const fetchActiveLearningSessionInfo = (
+    projectId: string,
+    linkingTaskId: string
+): Promise<FetchResponse<ActiveLearningSessionInfo>> => {
+    return fetch({
+        url: learningApi(`/tasks/${projectId}/${linkingTaskId}/activeLearning/info`),
     });
 };

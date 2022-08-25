@@ -315,7 +315,9 @@
             "sortOptions": "Sort options",
             "summary": "Summary",
             "copied": "Copied",
-            "unlimited": "unlimited"
+            "unlimited": "unlimited",
+            "added": "Added",
+            "removed": "Removed"
         }
     },
     "form": {
@@ -837,6 +839,12 @@
                 "noBestLearnedRuleMessage": "No best learned rule exists so far."
             },
             "saveFailureMessage": "Saving the rule and/or the reference links has failed."
+        },
+        "statistics": {
+            "fetchError": "Could not fetch active learning session infos.",
+            "noStats": "No session information available.",
+            "referenceLinksChangeStats": "Change statistics for reference links:",
+            "users": "Following users have contributed to the current active learning session:"
         }
     },
     "ReferenceLinks": {

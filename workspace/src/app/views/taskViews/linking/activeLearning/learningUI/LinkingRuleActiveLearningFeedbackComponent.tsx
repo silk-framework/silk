@@ -160,6 +160,8 @@ interface HeaderProps {
 const Header = ({ disabledButtons, submitLink, selectedDecision, cancel }: HeaderProps) => {
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
     const [t] = useTranslation();
+    const positiveSelected = selectedDecision === "positive";
+    const negativeSelected = selectedDecision === "negative";
 
     return (
         <CardHeader>
@@ -169,8 +171,8 @@ const Header = ({ disabledButtons, submitLink, selectedDecision, cancel }: Heade
                     title={"Confirm that the shown entities are a valid link."}
                     icon={"state-confirmed"}
                     disabled={disabledButtons}
-                    onClick={() => submitLink("positive")}
-                    elevated={selectedDecision === "positive"}
+                    onClick={() => (positiveSelected ? cancel() : submitLink("positive"))}
+                    elevated={positiveSelected}
                     outlined
                 >
                     {t("ActiveLearning.feedback.confirm")}
@@ -183,9 +185,9 @@ const Header = ({ disabledButtons, submitLink, selectedDecision, cancel }: Heade
                 <Button
                     title={"Decline that the shown entities are a valid link."}
                     disabled={disabledButtons}
-                    onClick={() => submitLink("negative")}
+                    onClick={() => (negativeSelected ? cancel() : submitLink("negative"))}
                     icon={"state-declined"}
-                    elevated={selectedDecision === "negative"}
+                    elevated={negativeSelected}
                     outlined
                 >
                     {t("ActiveLearning.feedback.decline")}

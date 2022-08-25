@@ -1,9 +1,10 @@
-import { Button, SimpleDialog } from "@eccenca/gui-elements";
+import { Button, SimpleDialog, Spacing } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { resetActiveLearningSession } from "../LinkingRuleActiveLearning.requests";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
+import { ActiveLearningSessionInfoWidget } from "../shared/ActiveLearningSessionInfoWidget";
 
 interface Props {
     /** Closes the modal. */
@@ -49,6 +50,8 @@ export const LinkingRuleActiveLearningResetModal = ({ close }: Props) => {
             ]}
         >
             <p>{t("ActiveLearning.resetDialog.description")}</p>
+            <Spacing />
+            <ActiveLearningSessionInfoWidget />
         </SimpleDialog>
     );
 };
