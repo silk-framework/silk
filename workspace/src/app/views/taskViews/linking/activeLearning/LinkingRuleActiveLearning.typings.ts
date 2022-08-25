@@ -14,6 +14,8 @@ export interface ComparisonPair {
     target: TypedPath;
     sourceExamples: string[][];
     targetExamples: string[][];
+    /** A confidence score that goes from -1.0 to 1.0 (not matching to optimal match) */
+    score?: number;
 }
 
 /** same but with ID */

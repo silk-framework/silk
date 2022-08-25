@@ -249,15 +249,22 @@ const SelectedEntityLink = ({
     return (
         <Grid columns={3} fullWidth={true}>
             <EntityComparisonHeader sourceTitle={sourceEntityLabel} targetTitle={targetEntityLabel} />
-            {(valuesToDisplay ?? []).map((selected, idx) => (
-                <EntitiesPropertyPair
-                    key={idx}
-                    propertyPair={propertyPairs[idx]}
-                    selectedForLabel={labelPropertyPairIds.has(propertyPairs[idx].pairId)}
-                    toggleLabelSelection={() => toggleLabelPropertyPair(propertyPairs[idx].pairId)}
-                    values={selected}
-                />
-            ))}
+            {(valuesToDisplay ?? []).map((selected: EntityLinkPropertyPairValues | ComparisonPair, idx) => {
+                const values: EntityLinkPropertyPairValues = {
+                    sourceExamples: selected.sourceExamples.flat(),
+                    targetExamples: selected.targetExamples.flat(),
+                };
+                return (
+                    <EntitiesPropertyPair
+                        key={idx}
+                        propertyPair={propertyPairs[idx]}
+                        selectedForLabel={labelPropertyPairIds.has(propertyPairs[idx].pairId)}
+                        toggleLabelSelection={() => toggleLabelPropertyPair(propertyPairs[idx].pairId)}
+                        values={values}
+                        score={(selected as ComparisonPair).score}
+                    />
+                );
+            })}
         </Grid>
     );
 };
@@ -267,6 +274,7 @@ interface EntitiesPropertyPairProps {
     values: EntityLinkPropertyPairValues;
     selectedForLabel: boolean;
     toggleLabelSelection: () => any;
+    score?: number;
 }
 
 const EntitiesPropertyPair = ({
@@ -274,10 +282,11 @@ const EntitiesPropertyPair = ({
     values,
     selectedForLabel,
     toggleLabelSelection,
+    score,
 }: EntitiesPropertyPairProps) => {
     return (
         <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
-            <EntityPropertyValues property={propertyPair.source} values={values.sourceExamples} />
+            <EntityPropertyValues property={propertyPair.source} values={values.sourceExamples} score={score} />
             <GridColumn style={columnStyles.centerColumnStyle}>
                 <HoverToggler
                     style={{ height: "100%" }}
@@ -311,16 +320,32 @@ const EntitiesPropertyPair = ({
                     }
                 />
             </GridColumn>
-            <EntityPropertyValues property={propertyPair.target} values={values.targetExamples} />
+            <EntityPropertyValues property={propertyPair.target} values={values.targetExamples} score={score} />
         </GridRow>
     );
 };
 
-const EntityPropertyValues = ({ property, values }: { values: string[]; property: TypedPath }) => {
+interface EntityPropertyValuesProps {
+    values: string[];
+    property: TypedPath;
+    score?: number;
+}
+
+const EntityPropertyValues = ({ property, values, score }: EntityPropertyValuesProps) => {
     const propertyLabel = property.label ? property.label : property.path;
+    let backgroundColor: string | undefined = undefined;
+    let color: string | undefined = undefined;
+    if (score && score >= 0.0) {
+        if (score >= 0.5) {
+            backgroundColor = "mediumblue";
+            color = "white";
+        } else {
+            backgroundColor = "lightblue";
+        }
+    }
     const exampleTitle = values.join(" | ");
     return (
-        <GridColumn style={columnStyles.mainColumnStyle}>
+        <GridColumn style={{ ...columnStyles.mainColumnStyle, backgroundColor, color }}>
             <OverviewItem>
                 <OverviewItemDescription>
                     <OverviewItemLine small>{propertyLabel}</OverviewItemLine>
@@ -333,7 +358,7 @@ const EntityPropertyValues = ({ property, values }: { values: string[]; property
                                         small={true}
                                         minimal={true}
                                         round={true}
-                                        style={{ marginRight: "0.25rem" }}
+                                        style={{ marginRight: "0.25rem", backgroundColor: "white" }}
                                         htmlTitle={exampleTitle}
                                     >
                                         {example}
