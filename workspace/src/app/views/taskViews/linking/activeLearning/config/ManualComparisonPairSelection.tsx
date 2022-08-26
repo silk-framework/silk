@@ -172,6 +172,7 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
                 }}
                 validationErrorText={t("ActiveLearning.config.errors.invalidPath")}
                 onInputChecked={(valid: boolean) => (isValid.current = valid)}
+                autoCompletionRequestDelay={500}
             />
         </GridColumn>
     );
