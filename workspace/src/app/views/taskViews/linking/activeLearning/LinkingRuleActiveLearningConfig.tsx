@@ -185,6 +185,12 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     };
 
     const SelectedPropertyPair = ({ pair }: { pair: ComparisonPairWithId }) => {
+        let comparisonDataType = "string";
+        if (pair.comparisonType) {
+            comparisonDataType = pair.comparisonType;
+        } else if (pair.source.valueType != null && pair.source.valueType === pair.target.valueType) {
+            comparisonDataType = utils.convertValueType(pair.source.valueType);
+        }
         return (
             <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
                 <SelectedProperty property={pair.source} exampleValues={pair.sourceExamples} />
@@ -197,12 +203,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                                     <ArrowLeft />
                                 </ToolbarSection>
                                 <ToolbarSection>
-                                    <Tag>
-                                        {pair.source.valueType != null &&
-                                        pair.source.valueType === pair.target.valueType
-                                            ? utils.convertValueType(pair.source.valueType)
-                                            : "string"}
-                                    </Tag>
+                                    <Tag>{comparisonDataType}</Tag>
                                 </ToolbarSection>
                                 <ToolbarSection canGrow={true}>
                                     <ArrowRight />
