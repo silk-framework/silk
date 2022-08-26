@@ -68,6 +68,9 @@ export const bestLearnedLinkageRule = (
 ): Promise<FetchResponse<OptionallyLabelledParameter<ILinkingRule>>> => {
     return fetch({
         url: learningApi(`/tasks/${projectId}/${linkingTaskId}/activeLearning/bestRule`),
+        query: {
+            withLabels: true,
+        },
     });
 };
 
