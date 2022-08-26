@@ -20,6 +20,7 @@ import {
     Tag,
     Toolbar,
     ToolbarSection,
+    Utilities,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { LinkingRuleActiveLearningFeedbackContext } from "../contexts/LinkingRuleActiveLearningFeedbackContext";
@@ -368,21 +369,50 @@ interface EntityPropertyValuesProps {
     score?: number;
 }
 
+const scoreColorConfig = {
+    strongEquality: {
+        breakingPoint: 0.5,
+        backgroundColor: "deepskyblue" // "#c2e6ea",
+    },
+    weakEquality: {
+        breakingPoint: 0.0,
+        backgroundColor: "lightskyblue" // "#ddd7e2",
+    },
+    noEquality: {
+        breakingPoint: -1.0,
+        backgroundColor: "lightcyan" // "#fac9d9"
+    },
+    unknownEquality: {
+        breakingPoint: undefined,
+        backgroundColor: "#fff5d5"
+    }
+}
+
 const EntityPropertyValues = ({ property, values, score }: EntityPropertyValuesProps) => {
     const propertyLabel = property.label ? property.label : property.path;
     let backgroundColor: string | undefined = undefined;
-    let color: string | undefined = undefined;
-    if (score && score >= 0.0) {
-        if (score >= 0.5) {
-            backgroundColor = "mediumblue";
-            color = "white";
-        } else {
-            backgroundColor = "lightblue";
-        }
+    switch (true) {
+        case (score && score >= scoreColorConfig.strongEquality.breakingPoint):
+            backgroundColor = scoreColorConfig.strongEquality.backgroundColor;
+            break;
+        case (score && score >= scoreColorConfig.weakEquality.breakingPoint):
+            backgroundColor = scoreColorConfig.weakEquality.backgroundColor;
+            break;
+        case (score && score >= scoreColorConfig.noEquality.breakingPoint):
+            backgroundColor = scoreColorConfig.noEquality.backgroundColor;
+            break;
+        default:
+            backgroundColor = scoreColorConfig.unknownEquality.backgroundColor;
     }
     const exampleTitle = values.join(" | ");
     return (
-        <GridColumn style={{ ...columnStyles.mainColumnStyle, backgroundColor, color }}>
+        <GridColumn
+            style={{
+                ...columnStyles.mainColumnStyle,
+                backgroundColor,
+                color: Utilities.decideContrastColorValue({testColor: backgroundColor}),
+            }}
+        >
             <OverviewItem>
                 <OverviewItemDescription>
                     <OverviewItemLine small>{propertyLabel}</OverviewItemLine>
@@ -414,12 +444,12 @@ const MatchingColorInfo = () => {
     return (
         <Toolbar>
             <ToolbarSection canGrow={true} />
-            <ToolbarSection canGrow={true}>
-                <Button style={{ width: "10%", backgroundColor: "mediumblue", color: "white" }}>Probably equal</Button>
-                <Button style={{ width: "10%", backgroundColor: "lightblue" }}>
+            <ToolbarSection canGrow={true} style={{width: "80%"}}>
+                <Tag large backgroundColor={scoreColorConfig.strongEquality.backgroundColor} style={{width: "33%"}}>Probably equal</Tag>
+                <Tag large backgroundColor={scoreColorConfig.weakEquality.backgroundColor} style={{width: "33%"}}>
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
-                </Button>
-                <Button style={{ width: "10%" }}>Probably unequal</Button>
+                </Tag>
+                <Tag large backgroundColor={scoreColorConfig.noEquality.backgroundColor} style={{width: "33%", textAlign: "right"}}>Probably unequal</Tag>
             </ToolbarSection>
             <ToolbarSection canGrow={true} />
         </Toolbar>

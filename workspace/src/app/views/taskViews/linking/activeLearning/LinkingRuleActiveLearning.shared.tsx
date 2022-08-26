@@ -29,8 +29,9 @@ const mainColumnStyle: CSSProperties = {
 };
 const headerColumnStyle: CSSProperties = {
     ...mainColumnStyle,
-    backgroundColor: "blue",
-    color: "white",
+    backgroundColor: "rgba(17, 20, 24, 0.0915)",
+    fontWeight: "bolder",
+    //color: "white",
 };
 const centerColumnStyle: CSSProperties = {
     width: "20%",
