@@ -206,7 +206,7 @@ const DecisionButtons = ({ disabledButtons, submitLink, selectedDecision, cancel
     const negativeSelected = selectedDecision === "negative";
 
     return (
-        <div style={{textAlign: "center"}}>
+        <div style={{ textAlign: "center" }}>
             <Button
                 title={"Confirm that the shown entities are a valid link."}
                 icon={"state-confirmed"}
@@ -372,7 +372,7 @@ const EntityPropertyValues = ({ property, values, score }: EntityPropertyValuesP
     const propertyLabel = property.label ? property.label : property.path;
     let backgroundColor: string | undefined = undefined;
     let color: string | undefined = undefined;
-    if (score && score >= 0.0) {
+    if (score != null && score >= 0.0) {
         if (score >= 0.5) {
             backgroundColor = "mediumblue";
             color = "white";
