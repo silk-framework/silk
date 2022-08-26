@@ -124,9 +124,23 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
     const [t] = useTranslation();
 
     const updateState = () => {
-        if (path.current != null && isValid.current) {
-            changeManualPath(path.current);
+        if (path.current != null) {
+            if (isValid.current) {
+                changeManualPath(path.current);
+            } else {
+                changeManualPath("");
+            }
         }
+    };
+
+    const onValidation = (valid: boolean) => {
+        isValid.current = valid;
+        updateState();
+    };
+
+    const onChange = (value) => {
+        path.current = value;
+        updateState();
     };
 
     const fetchAutoCompletionResult =
@@ -159,9 +173,7 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
                     <Icon name={"operation-search"} tooltipText={"Allows to construct complex input paths."} />
                 }
                 initialValue={path.current ?? ""}
-                onChange={(value) => {
-                    path.current = value;
-                }}
+                onChange={onChange}
                 fetchSuggestions={fetchAutoCompletionResult(isTarget)}
                 placeholder={"Enter an input path"}
                 checkInput={(value) => checkValuePathValidity(value, projectId)}
@@ -171,7 +183,7 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
                     }
                 }}
                 validationErrorText={t("ActiveLearning.config.errors.invalidPath")}
-                onInputChecked={(valid: boolean) => (isValid.current = valid)}
+                onInputChecked={onValidation}
                 autoCompletionRequestDelay={500}
             />
         </GridColumn>
