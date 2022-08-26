@@ -207,7 +207,7 @@ const DecisionButtons = ({ disabledButtons, submitLink, selectedDecision, cancel
     const negativeSelected = selectedDecision === "negative";
 
     return (
-        <div style={{textAlign: "center"}}>
+        <div style={{ textAlign: "center" }}>
             <Button
                 title={"Confirm that the shown entities are a valid link."}
                 icon={"state-confirmed"}

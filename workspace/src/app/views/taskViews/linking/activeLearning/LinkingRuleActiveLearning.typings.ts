@@ -6,6 +6,7 @@ export type ActiveLearningStep = "config" | "linkLearning";
 export interface ComparisonPairs {
     suggestedPairs: ComparisonPair[];
     selectedPairs: ComparisonPair[];
+    warnings: string[];
 }
 
 /** A pair of source and target paths that will be compared. */
@@ -16,6 +17,8 @@ export interface ComparisonPair {
     targetExamples: string[][];
     /** A confidence score that goes from -1.0 to 1.0 (not matching to optimal match) */
     score?: number;
+    /** The type the comparison pair is compared with, e.g. string comparison, date comparison etc. */
+    comparisonType?: "string" | "number" | "dateTime" | string;
 }
 
 /** same but with ID */
