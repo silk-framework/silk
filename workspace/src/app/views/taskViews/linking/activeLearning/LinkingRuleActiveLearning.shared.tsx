@@ -31,15 +31,15 @@ export const columnStyles = {
 export const scoreColorConfig = {
     strongEquality: {
         breakingPoint: 0.5,
-        backgroundColor: "#003" // "#c2e6ea",
+        backgroundColor: "#333" // "#c2e6ea",
     },
     weakEquality: {
         breakingPoint: 0.0,
-        backgroundColor: "#00c" // "#ddd7e2",
+        backgroundColor: "#ccc" // "#ddd7e2",
     },
     noEquality: {
         breakingPoint: -1.0,
-        backgroundColor: "#0000f6" // "#fac9d9"
+        backgroundColor: "#f6f6f6" // "#fac9d9"
     },
     unknownEquality: {
         breakingPoint: undefined,
