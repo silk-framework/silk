@@ -11,12 +11,12 @@ import {
     OverviewItemLine,
     Section,
     SectionHeader,
-    TitleMainsection,
     Spacing,
+    Spinner,
     Tag,
+    TitleMainsection,
     Toolbar,
     ToolbarSection,
-    Spinner,
 } from "@eccenca/gui-elements";
 import { ComparisonPair, ComparisonPairWithId, TypedPath } from "./LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningContext } from "./contexts/LinkingRuleActiveLearningContext";
@@ -130,7 +130,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     const ConfigHeader = () => {
         return (
             <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
-                <GridColumn style={columnStyles.headerColumnStyle}>Properties of dataset 1</GridColumn>
+                <GridColumn style={columnStyles.headerColumnStyle}>Dataset 1</GridColumn>
                 <GridColumn style={columnStyles.centerColumnStyle}>
                     <ConnectionEnabled label={"owl:sameAs"} />
                 </GridColumn>
@@ -175,21 +175,13 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     };
 
     const SelectedPropertyPair = ({ pair }: { pair: ComparisonPairWithId }) => {
-        let comparisonDataType = "string";
-        if (pair.comparisonType) {
-            comparisonDataType = pair.comparisonType;
-        } else if (pair.source.valueType != null && pair.source.valueType === pair.target.valueType) {
-            comparisonDataType = utils.convertValueType(pair.source.valueType);
-        }
         return (
             <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
                 <SelectedProperty property={pair.source} exampleValues={pair.sourceExamples} />
                 <GridColumn style={columnStyles.centerColumnStyle}>
                     <ConnectionEnabled
-                        label={comparisonDataType}
-                        actions={(
-                            <IconButton name={"item-remove"} disruptive onClick={() => removePair(pair.pairId)} />
-                        )}
+                        label={utils.comparisonType(pair)}
+                        actions={<IconButton name={"item-remove"} disruptive onClick={() => removePair(pair.pairId)} />}
                     />
                 </GridColumn>
                 <SelectedProperty property={pair.target} exampleValues={pair.targetExamples} />
@@ -224,9 +216,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                 <SelectedProperty property={pair.source} exampleValues={pair.sourceExamples} />
                 <GridColumn style={columnStyles.centerColumnStyle}>
                     <ConnectionAvailable
-                        actions={(
-                            <IconButton name={"item-add-artefact"} onClick={() => addSuggestion(pair.pairId)} />
-                        )}
+                        actions={<IconButton name={"item-add-artefact"} onClick={() => addSuggestion(pair.pairId)} />}
                     />
                 </GridColumn>
                 <SelectedProperty property={pair.target} exampleValues={pair.targetExamples} />

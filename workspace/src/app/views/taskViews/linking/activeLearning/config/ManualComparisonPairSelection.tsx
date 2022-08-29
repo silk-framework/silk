@@ -83,14 +83,14 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
             />
             <GridColumn style={columnStyles.centerColumnStyle}>
                 <ConnectionAvailable
-                    actions={(
+                    actions={
                         <IconButton
                             name={"item-add-artefact"}
                             disabled={!hasValidPath}
                             title={hasValidPath ? "Add" : "At least one paths is not valid"}
                             onClick={addManuallyChosenPair}
                         />
-                    )}
+                    }
                 />
             </GridColumn>
             <PathAutoCompletion

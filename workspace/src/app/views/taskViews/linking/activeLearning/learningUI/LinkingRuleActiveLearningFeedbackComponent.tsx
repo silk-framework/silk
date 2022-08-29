@@ -1,10 +1,10 @@
 import {
     Button,
     Card,
-    CardHeader,
-    CardTitle,
-    CardOptions,
     CardContent,
+    CardHeader,
+    CardOptions,
+    CardTitle,
     Divider,
     Grid,
     GridColumn,
@@ -317,12 +317,7 @@ const EntitiesPropertyPair = ({
             <EntityPropertyValues property={propertyPair.source} values={values.sourceExamples} score={score} />
             <GridColumn style={columnStyles.centerColumnStyle}>
                 <ConnectionEnabled
-                    label={
-                        propertyPair.source.valueType != null &&
-                        propertyPair.source.valueType === propertyPair.target.valueType
-                        ? utils.convertValueType(propertyPair.source.valueType)
-                        : "string"
-                    }
+                    label={utils.comparisonType(propertyPair)}
                     actions={(
                         <IconButton
                             name={selectedForLabel ? "favorite-filled" : "favorite-empty"}
@@ -384,12 +379,20 @@ const MatchingColorInfo = () => {
     return (
         <Toolbar>
             <ToolbarSection canGrow={true} />
-            <ToolbarSection canGrow={true} style={{width: "80%"}}>
-                <Tag large backgroundColor={scoreColorConfig.strongEquality.backgroundColor} style={{width: "33%"}}>Probably equal</Tag>
-                <Tag large backgroundColor={scoreColorConfig.weakEquality.backgroundColor} style={{width: "33%"}}>
+            <ToolbarSection canGrow={true} style={{ width: "80%" }}>
+                <Tag large backgroundColor={scoreColorConfig.strongEquality.backgroundColor} style={{ width: "33%" }}>
+                    Probably equal
+                </Tag>
+                <Tag large backgroundColor={scoreColorConfig.weakEquality.backgroundColor} style={{ width: "33%" }}>
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
                 </Tag>
-                <Tag large backgroundColor={scoreColorConfig.noEquality.backgroundColor} style={{width: "33%", textAlign: "right"}}>Probably unequal</Tag>
+                <Tag
+                    large
+                    backgroundColor={scoreColorConfig.noEquality.backgroundColor}
+                    style={{ width: "33%", textAlign: "right" }}
+                >
+                    Probably unequal
+                </Tag>
             </ToolbarSection>
             <ToolbarSection canGrow={true} />
         </Toolbar>

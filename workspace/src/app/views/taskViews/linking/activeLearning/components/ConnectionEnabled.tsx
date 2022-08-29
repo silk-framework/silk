@@ -1,10 +1,5 @@
 import React from "react";
-import {
-    HoverToggler,
-    Tag,
-    Toolbar,
-    ToolbarSection,
-} from "@eccenca/gui-elements";
+import { HoverToggler, Tag, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
 
 interface ArrowProps {
     color?: string;
@@ -45,11 +40,7 @@ export interface ConnectionEnabledProps {
     label: string;
 }
 
-const ConnectionEnabled = ({
-    label,
-    actions,
-    color,
-}: ConnectionEnabledProps) => {
+const ConnectionEnabled = ({ label, actions, color }: ConnectionEnabledProps) => {
     const connection = (
         <Toolbar style={{ height: "100%" }} className={"diapp-linking-connectionenabled__arrow"}>
             <ToolbarSection canGrow={true}>
@@ -71,7 +62,9 @@ const ConnectionEnabled = ({
             baseContentProps={{ style: { width: "100%" } }}
             hoverContent={actions}
         />
-    ) : connection;
-}
+    ) : (
+        connection
+    );
+};
 
 export default ConnectionEnabled;

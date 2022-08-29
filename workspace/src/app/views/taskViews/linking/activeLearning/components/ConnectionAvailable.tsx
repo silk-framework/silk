@@ -1,8 +1,5 @@
 import React from "react";
-import {
-    Toolbar,
-    ToolbarSection,
-} from "@eccenca/gui-elements";
+import { Toolbar, ToolbarSection } from "@eccenca/gui-elements";
 
 /** A dashed line. */
 export const DashedLine = () => <div className="diapp-linking-connectionavailable__dashedline" />;
@@ -22,14 +19,12 @@ const ConnectionAvailable = ({
             <ToolbarSection canGrow={true}>
                 <DashedLine />
             </ToolbarSection>
-            <ToolbarSection>
-                { actions }
-            </ToolbarSection>
+            <ToolbarSection>{actions}</ToolbarSection>
             <ToolbarSection canGrow={true}>
                 <DashedLine />
             </ToolbarSection>
         </Toolbar>
     );
-}
+};
 
 export default ConnectionAvailable;

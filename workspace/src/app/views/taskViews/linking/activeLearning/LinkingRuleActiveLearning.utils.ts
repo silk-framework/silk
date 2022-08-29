@@ -1,3 +1,5 @@
+import { ComparisonPair } from "./LinkingRuleActiveLearning.typings";
+
 /** Converts a value type string to a more generic type, human-readable. */
 const convertValueType = (valueType: string): string => {
     switch (valueType) {
@@ -41,8 +43,20 @@ const convertValueType = (valueType: string): string => {
     }
 };
 
+/** Extracts the comparison data type from a comparison pair. */
+const comparisonType = (pair: ComparisonPair) => {
+    let comparisonDataType = "string";
+    if (pair.comparisonType) {
+        comparisonDataType = pair.comparisonType;
+    } else if (pair.source.valueType != null && pair.source.valueType === pair.target.valueType) {
+        comparisonDataType = utils.convertValueType(pair.source.valueType);
+    }
+    return comparisonDataType;
+};
+
 const utils = {
     convertValueType,
+    comparisonType,
 };
 
 export default utils;
