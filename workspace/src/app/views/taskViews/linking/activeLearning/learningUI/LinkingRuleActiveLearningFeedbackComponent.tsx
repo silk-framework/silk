@@ -9,7 +9,6 @@ import {
     Grid,
     GridColumn,
     GridRow,
-    HoverToggler,
     IconButton,
     Notification,
     OverviewItem,
@@ -24,7 +23,7 @@ import {
 } from "@eccenca/gui-elements";
 import React from "react";
 import { LinkingRuleActiveLearningFeedbackContext } from "../contexts/LinkingRuleActiveLearningFeedbackContext";
-import { ArrowLeft, ArrowRight, columnStyles } from "../LinkingRuleActiveLearning.shared";
+import { columnStyles } from "../LinkingRuleActiveLearning.shared";
 import {
     ActiveLearningDecisions,
     ActiveLearningLinkCandidate,
@@ -34,6 +33,7 @@ import {
 } from "../LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 import { EntityLink, EntityLinkPropertyPairValues } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
+import ConnectionEnabled from "./../components/ConnectionEnabled";
 import referenceLinksUtils from "../../referenceLinks/LinkingRuleReferenceLinks.utils";
 import { useTranslation } from "react-i18next";
 import utils from "../LinkingRuleActiveLearning.utils";
@@ -247,17 +247,7 @@ const EntityComparisonHeader = ({ sourceTitle, targetTitle }: EntityComparisonHe
         <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
             <GridColumn style={columnStyles.headerColumnStyle}>Source entity: {sourceTitle}</GridColumn>
             <GridColumn style={columnStyles.centerColumnStyle}>
-                <Toolbar style={{ height: "100%" }}>
-                    <ToolbarSection canGrow={true}>
-                        <ArrowLeft />
-                    </ToolbarSection>
-                    <ToolbarSection>
-                        <Tag>owl:sameAs</Tag>
-                    </ToolbarSection>
-                    <ToolbarSection canGrow={true}>
-                        <ArrowRight />
-                    </ToolbarSection>
-                </Toolbar>
+                <ConnectionEnabled label={"owl:sameAs"} />
             </GridColumn>
             <GridColumn style={columnStyles.headerColumnStyle}>Target entity: {targetTitle}</GridColumn>
         </GridRow>
@@ -326,36 +316,20 @@ const EntitiesPropertyPair = ({
         <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
             <EntityPropertyValues property={propertyPair.source} values={values.sourceExamples} score={score} />
             <GridColumn style={columnStyles.centerColumnStyle}>
-                <HoverToggler
-                    style={{ height: "100%" }}
-                    baseContent={
-                        <Toolbar>
-                            <ToolbarSection canGrow={true}>
-                                <ArrowLeft />
-                            </ToolbarSection>
-                            <ToolbarSection>
-                                <Tag>
-                                    {propertyPair.source.valueType != null &&
-                                    propertyPair.source.valueType === propertyPair.target.valueType
-                                        ? utils.convertValueType(propertyPair.source.valueType)
-                                        : "string"}
-                                </Tag>
-                            </ToolbarSection>
-                            <ToolbarSection canGrow={true}>
-                                <ArrowRight />
-                            </ToolbarSection>
-                        </Toolbar>
+                <ConnectionEnabled
+                    label={
+                        propertyPair.source.valueType != null &&
+                        propertyPair.source.valueType === propertyPair.target.valueType
+                        ? utils.convertValueType(propertyPair.source.valueType)
+                        : "string"
                     }
-                    baseContentProps={{ style: { width: "100%" } }}
-                    hoverContent={
-                        <>
-                            <IconButton
-                                name={selectedForLabel ? "favorite-filled" : "favorite-empty"}
-                                elevated
-                                onClick={toggleLabelSelection}
-                            />
-                        </>
-                    }
+                    actions={(
+                        <IconButton
+                            name={selectedForLabel ? "favorite-filled" : "favorite-empty"}
+                            elevated
+                            onClick={toggleLabelSelection}
+                        />
+                    )}
                 />
             </GridColumn>
             <EntityPropertyValues property={propertyPair.target} values={values.targetExamples} score={score} />

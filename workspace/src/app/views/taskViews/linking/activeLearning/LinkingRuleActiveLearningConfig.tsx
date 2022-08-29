@@ -1,11 +1,9 @@
 import React from "react";
-
 import {
     Button,
     Grid,
     GridColumn,
     GridRow,
-    HoverToggler,
     IconButton,
     Notification,
     OverviewItem,
@@ -18,18 +16,20 @@ import {
     Tag,
     Toolbar,
     ToolbarSection,
+    Spinner,
 } from "@eccenca/gui-elements";
 import { ComparisonPair, ComparisonPairWithId, TypedPath } from "./LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningContext } from "./contexts/LinkingRuleActiveLearningContext";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
-import { ArrowLeft, ArrowRight, columnStyles, DashedLine } from "./LinkingRuleActiveLearning.shared";
+import { columnStyles } from "./LinkingRuleActiveLearning.shared";
 import {
     activeLearningComparisonPairs,
     addActiveLearningComparisonPair,
     removeActiveLearningComparisonPair,
 } from "./LinkingRuleActiveLearning.requests";
-import { Spinner } from "@blueprintjs/core";
 import { ManualComparisonPairSelection } from "./config/ManualComparisonPairSelection";
+import ConnectionEnabled from "./components/ConnectionEnabled";
+import ConnectionAvailable from "./components/ConnectionAvailable";
 import { useTranslation } from "react-i18next";
 import utils from "./LinkingRuleActiveLearning.utils";
 
@@ -132,17 +132,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
                 <GridColumn style={columnStyles.headerColumnStyle}>Properties of dataset 1</GridColumn>
                 <GridColumn style={columnStyles.centerColumnStyle}>
-                    <Toolbar style={{ height: "100%" }}>
-                        <ToolbarSection canGrow={true}>
-                            <ArrowLeft />
-                        </ToolbarSection>
-                        <ToolbarSection>
-                            <Tag>owl:sameAs</Tag>
-                        </ToolbarSection>
-                        <ToolbarSection canGrow={true}>
-                            <ArrowRight />
-                        </ToolbarSection>
-                    </Toolbar>
+                    <ConnectionEnabled label={"owl:sameAs"} />
                 </GridColumn>
                 <GridColumn style={columnStyles.headerColumnStyle}>Dataset 2</GridColumn>
             </GridRow>
@@ -195,27 +185,11 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
                 <SelectedProperty property={pair.source} exampleValues={pair.sourceExamples} />
                 <GridColumn style={columnStyles.centerColumnStyle}>
-                    <HoverToggler
-                        style={{ height: "100%" }}
-                        baseContent={
-                            <Toolbar>
-                                <ToolbarSection canGrow={true}>
-                                    <ArrowLeft />
-                                </ToolbarSection>
-                                <ToolbarSection>
-                                    <Tag>{comparisonDataType}</Tag>
-                                </ToolbarSection>
-                                <ToolbarSection canGrow={true}>
-                                    <ArrowRight />
-                                </ToolbarSection>
-                            </Toolbar>
-                        }
-                        baseContentProps={{ style: { width: "100%" } }}
-                        hoverContent={
-                            <>
-                                <IconButton name={"item-remove"} disruptive onClick={() => removePair(pair.pairId)} />
-                            </>
-                        }
+                    <ConnectionEnabled
+                        label={comparisonDataType}
+                        actions={(
+                            <IconButton name={"item-remove"} disruptive onClick={() => removePair(pair.pairId)} />
+                        )}
                     />
                 </GridColumn>
                 <SelectedProperty property={pair.target} exampleValues={pair.targetExamples} />
@@ -249,17 +223,11 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
                 <SelectedProperty property={pair.source} exampleValues={pair.sourceExamples} />
                 <GridColumn style={columnStyles.centerColumnStyle}>
-                    <Toolbar style={{ height: "100%" }} noWrap>
-                        <ToolbarSection canGrow={true}>
-                            <DashedLine />
-                        </ToolbarSection>
-                        <ToolbarSection>
+                    <ConnectionAvailable
+                        actions={(
                             <IconButton name={"item-add-artefact"} onClick={() => addSuggestion(pair.pairId)} />
-                        </ToolbarSection>
-                        <ToolbarSection canGrow={true}>
-                            <DashedLine />
-                        </ToolbarSection>
-                    </Toolbar>
+                        )}
+                    />
                 </GridColumn>
                 <SelectedProperty property={pair.target} exampleValues={pair.targetExamples} />
             </GridRow>

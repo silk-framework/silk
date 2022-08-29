@@ -1,6 +1,7 @@
-import { columnStyles, DashedLine } from "../LinkingRuleActiveLearning.shared";
+import { columnStyles } from "../LinkingRuleActiveLearning.shared";
 import React from "react";
-import { AutoSuggestion, GridColumn, GridRow, Icon, IconButton, Toolbar, ToolbarSection } from "@eccenca/gui-elements";
+import ConnectionAvailable from "./../components/ConnectionAvailable";
+import { AutoSuggestion, GridColumn, GridRow, Icon, IconButton } from "@eccenca/gui-elements";
 import { checkValuePathValidity } from "../../../../pages/MappingEditor/HierarchicalMapping/store";
 import { partialAutoCompleteLinkingInputPaths } from "../../LinkingRuleEditor.requests";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
@@ -81,22 +82,16 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
                 changeManualPath={changeManualSourcePath}
             />
             <GridColumn style={columnStyles.centerColumnStyle}>
-                <Toolbar style={{ height: "100%" }}>
-                    <ToolbarSection canGrow={true}>
-                        <DashedLine />
-                    </ToolbarSection>
-                    <ToolbarSection>
+                <ConnectionAvailable
+                    actions={(
                         <IconButton
                             name={"item-add-artefact"}
                             disabled={!hasValidPath}
                             title={hasValidPath ? "Add" : "At least one paths is not valid"}
                             onClick={addManuallyChosenPair}
                         />
-                    </ToolbarSection>
-                    <ToolbarSection canGrow={true}>
-                        <DashedLine />
-                    </ToolbarSection>
-                </Toolbar>
+                    )}
+                />
             </GridColumn>
             <PathAutoCompletion
                 projectId={projectId}

@@ -1,22 +1,5 @@
-import React, { CSSProperties } from "react";
+import { CSSProperties } from "react";
 import "./LinkingRuleActiveLeraningConfig.scss";
-
-/** Arrow going to the right. */
-export const ArrowRight = () => <div className={"arrow-right"} />;
-
-/** Arrow giond to the left. */
-export const ArrowLeft = () => <div className={"arrow-left"} />;
-
-/** A dashed line. */
-export const DashedLine = () => {
-    return (
-        <div style={{
-            height: "0px",
-            width: "auto",
-            borderTop: "2px dashed lightgray"
-        }}/>
-    );
-};
 
 /** TODO: Temp styles, replace with proper CSS styles and classes. */
 const mainColumnStyle: CSSProperties = {
