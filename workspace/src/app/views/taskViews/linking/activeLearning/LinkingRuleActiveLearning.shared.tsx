@@ -27,3 +27,42 @@ export const columnStyles = {
     headerColumnStyle,
     centerColumnStyle,
 };
+
+export const scoreColorConfig = {
+    strongEquality: {
+        breakingPoint: 0.5,
+        backgroundColor: "#003" // "#c2e6ea",
+    },
+    weakEquality: {
+        breakingPoint: 0.0,
+        backgroundColor: "#00c" // "#ddd7e2",
+    },
+    noEquality: {
+        breakingPoint: -1.0,
+        backgroundColor: "#0000f6" // "#fac9d9"
+    },
+    unknownEquality: {
+        breakingPoint: undefined,
+        backgroundColor: "#fff5d5"
+    }
+}
+
+export const scoreColorRepresentation = (score: number | undefined) => {
+    let color: string | undefined = undefined;
+    if (typeof score !== "undefined") {
+        switch (true) {
+            case (score >= scoreColorConfig.strongEquality.breakingPoint):
+                color = scoreColorConfig.strongEquality.backgroundColor;
+                break;
+            case (score >= scoreColorConfig.weakEquality.breakingPoint):
+                color = scoreColorConfig.weakEquality.backgroundColor;
+                break;
+            default:
+                color = scoreColorConfig.noEquality.backgroundColor;
+        }
+    } else {
+        color = scoreColorConfig.unknownEquality.backgroundColor;
+    }
+
+    return color;
+}

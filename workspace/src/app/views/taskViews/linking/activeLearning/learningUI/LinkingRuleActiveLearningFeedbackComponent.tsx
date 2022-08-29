@@ -19,11 +19,10 @@ import {
     Tag,
     Toolbar,
     ToolbarSection,
-    Utilities,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { LinkingRuleActiveLearningFeedbackContext } from "../contexts/LinkingRuleActiveLearningFeedbackContext";
-import { columnStyles } from "../LinkingRuleActiveLearning.shared";
+import { columnStyles, scoreColorRepresentation, scoreColorConfig } from "../LinkingRuleActiveLearning.shared";
 import {
     ActiveLearningDecisions,
     ActiveLearningLinkCandidate,
@@ -312,6 +311,7 @@ const EntitiesPropertyPair = ({
     toggleLabelSelection,
     score,
 }: EntitiesPropertyPairProps) => {
+    const scoreColor = scoreColorRepresentation(score)
     return (
         <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
             <EntityPropertyValues property={propertyPair.source} values={values.sourceExamples} score={score} />
@@ -330,6 +330,7 @@ const EntitiesPropertyPair = ({
                             onClick={toggleLabelSelection}
                         />
                     )}
+                    color={scoreColor}
                 />
             </GridColumn>
             <EntityPropertyValues property={propertyPair.target} values={values.targetExamples} score={score} />
@@ -343,48 +344,13 @@ interface EntityPropertyValuesProps {
     score?: number;
 }
 
-const scoreColorConfig = {
-    strongEquality: {
-        breakingPoint: 0.5,
-        backgroundColor: "deepskyblue" // "#c2e6ea",
-    },
-    weakEquality: {
-        breakingPoint: 0.0,
-        backgroundColor: "lightskyblue" // "#ddd7e2",
-    },
-    noEquality: {
-        breakingPoint: -1.0,
-        backgroundColor: "lightcyan" // "#fac9d9"
-    },
-    unknownEquality: {
-        breakingPoint: undefined,
-        backgroundColor: "#fff5d5"
-    }
-}
-
 const EntityPropertyValues = ({ property, values, score }: EntityPropertyValuesProps) => {
     const propertyLabel = property.label ? property.label : property.path;
-    let backgroundColor: string | undefined = undefined;
-    switch (true) {
-        case (score && score >= scoreColorConfig.strongEquality.breakingPoint):
-            backgroundColor = scoreColorConfig.strongEquality.backgroundColor;
-            break;
-        case (score && score >= scoreColorConfig.weakEquality.breakingPoint):
-            backgroundColor = scoreColorConfig.weakEquality.backgroundColor;
-            break;
-        case (score && score >= scoreColorConfig.noEquality.breakingPoint):
-            backgroundColor = scoreColorConfig.noEquality.backgroundColor;
-            break;
-        default:
-            backgroundColor = scoreColorConfig.unknownEquality.backgroundColor;
-    }
     const exampleTitle = values.join(" | ");
     return (
         <GridColumn
             style={{
                 ...columnStyles.mainColumnStyle,
-                backgroundColor,
-                color: Utilities.decideContrastColorValue({testColor: backgroundColor}),
             }}
         >
             <OverviewItem>

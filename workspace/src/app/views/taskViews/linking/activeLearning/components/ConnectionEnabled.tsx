@@ -6,11 +6,29 @@ import {
     ToolbarSection,
 } from "@eccenca/gui-elements";
 
-/** Arrow going to the right. */
-export const ArrowRight = () => <div className={"diapp-linking-connectionenabled__arrow-right"} />;
+interface ArrowProps {
+    color?: string;
+}
 
 /** Arrow giond to the left. */
-export const ArrowLeft = () => <div className={"diapp-linking-connectionenabled__arrow-left"} />;
+export const ArrowLeft = ({ color = "#000" }: ArrowProps) => {
+    return (
+        <div
+            className={"diapp-linking-connectionenabled__arrow-left"}
+            style={{ color }}
+        />
+    );
+}
+
+/** Arrow going to the right. */
+export const ArrowRight = ({ color = "#000" }: ArrowProps) => {
+    return (
+        <div
+            className={"diapp-linking-connectionenabled__arrow-right"}
+            style={{ color }}
+        />
+    );
+}
 
 export interface ConnectionEnabledProps {
     /**
@@ -35,13 +53,13 @@ const ConnectionEnabled = ({
     const connection = (
         <Toolbar style={{ height: "100%" }} className={"diapp-linking-connectionenabled__arrow"}>
             <ToolbarSection canGrow={true}>
-                <ArrowLeft />
+                <ArrowLeft color={color} />
             </ToolbarSection>
             <ToolbarSection>
-                <Tag>{ label }</Tag>
+                <Tag backgroundColor={color} >{ label }</Tag>
             </ToolbarSection>
             <ToolbarSection canGrow={true}>
-                <ArrowRight />
+                <ArrowRight color={color} />
             </ToolbarSection>
         </Toolbar>
     );

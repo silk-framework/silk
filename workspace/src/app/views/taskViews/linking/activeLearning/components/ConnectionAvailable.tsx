@@ -5,31 +5,17 @@ import {
 } from "@eccenca/gui-elements";
 
 /** A dashed line. */
-export const DashedLine = () => {
-    return (
-        <div style={{
-            height: "0px",
-            width: "auto",
-            borderTop: "2px dashed lightgray"
-        }}/>
-    );
-};
+export const DashedLine = () => <div className="diapp-linking-connectionavailable__dashedline" />;
 
 export interface ConnectionAvailableProps {
     /**
      * Action buttons (or other content) displayed when the connection element is hovered.
      */
     actions: JSX.Element;
-    /**
-     * Color used to display the connection.
-     */
-    color?: string;
 }
-
 
 const ConnectionAvailable = ({
     actions,
-    color,
 }: ConnectionAvailableProps) => {
     return (
         <Toolbar style={{ height: "100%" }} noWrap>

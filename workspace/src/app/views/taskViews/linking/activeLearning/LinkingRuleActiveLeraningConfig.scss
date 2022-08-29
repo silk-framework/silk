@@ -5,7 +5,7 @@ div.diapp-linking-connectionenabled__arrow-right {
 
     &:before {
         content: "";
-        background: black;
+        background: currentColor;
         width: 100%;
         clip-path: polygon(
             0 7px,
@@ -24,8 +24,14 @@ div.diapp-linking-connectionenabled__arrow-left {
     display: flex;
     &:before {
         content: "";
-        background: black;
+        background: currentColor;
         width: 100%;
         clip-path: polygon(0 50%, 7px 100%, 7px calc(100% - 7px), 100% calc(100% - 7px), 100% 7px, 7px 7px, 7px 0%);
     }
+}
+
+div.diapp-linking-connectionavailable__dashedline {
+    height: 0px;
+    width: auto;
+    border-top: 2px dashed lightgray;
 }
