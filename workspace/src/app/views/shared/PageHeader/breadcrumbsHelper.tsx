@@ -1,7 +1,7 @@
 import React, { useDebugValue, useEffect, useState } from "react";
 import { matchPath, useLocation } from "react-router";
 import { useTranslation } from "react-i18next";
-import { IBreadcrumbItemProps } from "@eccenca/gui-elements/src/components/Breadcrumb/BreadcrumbItem";
+import { BreadcrumbItemProps } from "@eccenca/gui-elements/src/components/Breadcrumb/BreadcrumbItem";
 import BreadcrumbList from "@eccenca/gui-elements/src/components/Breadcrumb/BreadcrumbList";
 import { requestProjectMetadata, requestTaskMetadata } from "@ducks/shared/requests";
 import appRoutes from "../../../appRoutes";
@@ -16,7 +16,7 @@ export function fetchBreadcrumbs(WrappedComponent) {
 
     return function (props) {
         const location = useLocation<any>();
-        const [breadcrumbs, setBreadcrumbs] = useState<IBreadcrumbItemProps[]>([]);
+        const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbItemProps[]>([]);
         const [t] = useTranslation();
 
         useEffect(() => {
