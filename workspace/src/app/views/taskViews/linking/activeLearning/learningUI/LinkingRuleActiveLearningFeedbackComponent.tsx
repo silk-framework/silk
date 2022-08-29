@@ -334,12 +334,7 @@ const EntitiesPropertyPair = ({
                                 <ArrowLeft />
                             </ToolbarSection>
                             <ToolbarSection>
-                                <Tag>
-                                    {propertyPair.source.valueType != null &&
-                                    propertyPair.source.valueType === propertyPair.target.valueType
-                                        ? utils.convertValueType(propertyPair.source.valueType)
-                                        : "string"}
-                                </Tag>
+                                <Tag>{utils.comparisonType(propertyPair)}</Tag>
                             </ToolbarSection>
                             <ToolbarSection canGrow={true}>
                                 <ArrowRight />
@@ -372,33 +367,33 @@ interface EntityPropertyValuesProps {
 const scoreColorConfig = {
     strongEquality: {
         breakingPoint: 0.5,
-        backgroundColor: "deepskyblue" // "#c2e6ea",
+        backgroundColor: "deepskyblue", // "#c2e6ea",
     },
     weakEquality: {
         breakingPoint: 0.0,
-        backgroundColor: "lightskyblue" // "#ddd7e2",
+        backgroundColor: "lightskyblue", // "#ddd7e2",
     },
     noEquality: {
         breakingPoint: -1.0,
-        backgroundColor: "lightcyan" // "#fac9d9"
+        backgroundColor: "lightcyan", // "#fac9d9"
     },
     unknownEquality: {
         breakingPoint: undefined,
-        backgroundColor: "#fff5d5"
-    }
-}
+        backgroundColor: "#fff5d5",
+    },
+};
 
 const EntityPropertyValues = ({ property, values, score }: EntityPropertyValuesProps) => {
     const propertyLabel = property.label ? property.label : property.path;
     let backgroundColor: string | undefined = undefined;
     switch (true) {
-        case (score && score >= scoreColorConfig.strongEquality.breakingPoint):
+        case score && score >= scoreColorConfig.strongEquality.breakingPoint:
             backgroundColor = scoreColorConfig.strongEquality.backgroundColor;
             break;
-        case (score && score >= scoreColorConfig.weakEquality.breakingPoint):
+        case score && score >= scoreColorConfig.weakEquality.breakingPoint:
             backgroundColor = scoreColorConfig.weakEquality.backgroundColor;
             break;
-        case (score && score >= scoreColorConfig.noEquality.breakingPoint):
+        case score && score >= scoreColorConfig.noEquality.breakingPoint:
             backgroundColor = scoreColorConfig.noEquality.backgroundColor;
             break;
         default:
@@ -410,7 +405,7 @@ const EntityPropertyValues = ({ property, values, score }: EntityPropertyValuesP
             style={{
                 ...columnStyles.mainColumnStyle,
                 backgroundColor,
-                color: Utilities.decideContrastColorValue({testColor: backgroundColor}),
+                color: Utilities.decideContrastColorValue({ testColor: backgroundColor }),
             }}
         >
             <OverviewItem>
@@ -444,12 +439,20 @@ const MatchingColorInfo = () => {
     return (
         <Toolbar>
             <ToolbarSection canGrow={true} />
-            <ToolbarSection canGrow={true} style={{width: "80%"}}>
-                <Tag large backgroundColor={scoreColorConfig.strongEquality.backgroundColor} style={{width: "33%"}}>Probably equal</Tag>
-                <Tag large backgroundColor={scoreColorConfig.weakEquality.backgroundColor} style={{width: "33%"}}>
+            <ToolbarSection canGrow={true} style={{ width: "80%" }}>
+                <Tag large backgroundColor={scoreColorConfig.strongEquality.backgroundColor} style={{ width: "33%" }}>
+                    Probably equal
+                </Tag>
+                <Tag large backgroundColor={scoreColorConfig.weakEquality.backgroundColor} style={{ width: "33%" }}>
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
                 </Tag>
-                <Tag large backgroundColor={scoreColorConfig.noEquality.backgroundColor} style={{width: "33%", textAlign: "right"}}>Probably unequal</Tag>
+                <Tag
+                    large
+                    backgroundColor={scoreColorConfig.noEquality.backgroundColor}
+                    style={{ width: "33%", textAlign: "right" }}
+                >
+                    Probably unequal
+                </Tag>
             </ToolbarSection>
             <ToolbarSection canGrow={true} />
         </Toolbar>
