@@ -1,3 +1,4 @@
+import React from "react";
 import {
     Button,
     Card,
@@ -6,9 +7,6 @@ import {
     CardOptions,
     CardTitle,
     Divider,
-    Grid,
-    GridColumn,
-    GridRow,
     IconButton,
     Notification,
     OverviewItem,
@@ -20,9 +18,17 @@ import {
     Toolbar,
     ToolbarSection,
 } from "@eccenca/gui-elements";
-import React from "react";
+import {
+    ComparisionDataContainer,
+    ComparisionDataHead,
+    ComparisionDataBody,
+    ComparisionDataRow,
+    ComparisionDataHeader,
+    ComparisionDataCell,
+    ComparisionDataConnection,
+} from "./../components/ComparisionData";
 import { LinkingRuleActiveLearningFeedbackContext } from "../contexts/LinkingRuleActiveLearningFeedbackContext";
-import { columnStyles, scoreColorRepresentation, scoreColorConfig } from "../LinkingRuleActiveLearning.shared";
+import { scoreColorRepresentation, scoreColorConfig } from "../LinkingRuleActiveLearning.shared";
 import {
     ActiveLearningDecisions,
     ActiveLearningLinkCandidate,
@@ -243,13 +249,15 @@ interface EntityComparisonHeaderProps {
 
 const EntityComparisonHeader = ({ sourceTitle, targetTitle }: EntityComparisonHeaderProps) => {
     return (
-        <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
-            <GridColumn style={columnStyles.headerColumnStyle}>Source entity: {sourceTitle}</GridColumn>
-            <GridColumn style={columnStyles.centerColumnStyle}>
-                <ConnectionEnabled label={"owl:sameAs"} />
-            </GridColumn>
-            <GridColumn style={columnStyles.headerColumnStyle}>Target entity: {targetTitle}</GridColumn>
-        </GridRow>
+        <ComparisionDataHead>
+            <ComparisionDataRow>
+                <ComparisionDataHeader>Source entity: {sourceTitle}</ComparisionDataHeader>
+                <ComparisionDataConnection>
+                    <ConnectionEnabled label={"owl:sameAs"} />
+                </ComparisionDataConnection>
+                <ComparisionDataHeader>Target entity: {targetTitle}</ComparisionDataHeader>
+            </ComparisionDataRow>
+        </ComparisionDataHead>
     );
 };
 
@@ -274,25 +282,27 @@ const SelectedEntityLink = ({
     const sourceEntityLabel = labelPropertyPairValues.map((values) => values.sourceExamples.join(", ")).join(", ");
     const targetEntityLabel = labelPropertyPairValues.map((values) => values.targetExamples.join(", ")).join(", ");
     return (
-        <Grid columns={3} fullWidth={true}>
+        <ComparisionDataContainer>
             <EntityComparisonHeader sourceTitle={sourceEntityLabel} targetTitle={targetEntityLabel} />
-            {(valuesToDisplay ?? []).map((selected: EntityLinkPropertyPairValues | ComparisonPair, idx) => {
-                const values: EntityLinkPropertyPairValues = {
-                    sourceExamples: selected.sourceExamples.flat(),
-                    targetExamples: selected.targetExamples.flat(),
-                };
-                return (
-                    <EntitiesPropertyPair
-                        key={idx}
-                        propertyPair={propertyPairs[idx]}
-                        selectedForLabel={labelPropertyPairIds.has(propertyPairs[idx].pairId)}
-                        toggleLabelSelection={() => toggleLabelPropertyPair(propertyPairs[idx].pairId)}
-                        values={values}
-                        score={(selected as ComparisonPair).score}
-                    />
-                );
-            })}
-        </Grid>
+            <ComparisionDataBody>
+                {(valuesToDisplay ?? []).map((selected: EntityLinkPropertyPairValues | ComparisonPair, idx) => {
+                    const values: EntityLinkPropertyPairValues = {
+                        sourceExamples: selected.sourceExamples.flat(),
+                        targetExamples: selected.targetExamples.flat(),
+                    };
+                    return (
+                        <EntitiesPropertyPair
+                            key={idx}
+                            propertyPair={propertyPairs[idx]}
+                            selectedForLabel={labelPropertyPairIds.has(propertyPairs[idx].pairId)}
+                            toggleLabelSelection={() => toggleLabelPropertyPair(propertyPairs[idx].pairId)}
+                            values={values}
+                            score={(selected as ComparisonPair).score}
+                        />
+                    );
+                })}
+            </ComparisionDataBody>
+        </ComparisionDataContainer>
     );
 };
 
@@ -313,9 +323,9 @@ const EntitiesPropertyPair = ({
 }: EntitiesPropertyPairProps) => {
     const scoreColor = scoreColorRepresentation(score)
     return (
-        <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
+        <ComparisionDataRow>
             <EntityPropertyValues property={propertyPair.source} values={values.sourceExamples} score={score} />
-            <GridColumn style={columnStyles.centerColumnStyle}>
+            <ComparisionDataConnection>
                 <ConnectionEnabled
                     label={utils.comparisonType(propertyPair)}
                     actions={(
@@ -327,9 +337,9 @@ const EntitiesPropertyPair = ({
                     )}
                     color={scoreColor}
                 />
-            </GridColumn>
+            </ComparisionDataConnection>
             <EntityPropertyValues property={propertyPair.target} values={values.targetExamples} score={score} />
-        </GridRow>
+        </ComparisionDataRow>
     );
 };
 
@@ -343,11 +353,7 @@ const EntityPropertyValues = ({ property, values, score }: EntityPropertyValuesP
     const propertyLabel = property.label ? property.label : property.path;
     const exampleTitle = values.join(" | ");
     return (
-        <GridColumn
-            style={{
-                ...columnStyles.mainColumnStyle,
-            }}
-        >
+        <ComparisionDataCell>
             <OverviewItem>
                 <OverviewItemDescription>
                     <OverviewItemLine small>{propertyLabel}</OverviewItemLine>
@@ -371,7 +377,7 @@ const EntityPropertyValues = ({ property, values, score }: EntityPropertyValuesP
                     ) : null}
                 </OverviewItemDescription>
             </OverviewItem>
-        </GridColumn>
+        </ComparisionDataCell>
     );
 };
 

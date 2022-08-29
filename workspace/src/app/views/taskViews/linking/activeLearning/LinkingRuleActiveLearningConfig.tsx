@@ -1,9 +1,6 @@
 import React from "react";
 import {
     Button,
-    Grid,
-    GridColumn,
-    GridRow,
     IconButton,
     Notification,
     OverviewItem,
@@ -18,10 +15,18 @@ import {
     Toolbar,
     ToolbarSection,
 } from "@eccenca/gui-elements";
+import {
+    ComparisionDataContainer,
+    ComparisionDataHead,
+    ComparisionDataBody,
+    ComparisionDataRow,
+    ComparisionDataHeader,
+    ComparisionDataCell,
+    ComparisionDataConnection,
+} from "./components/ComparisionData";
 import { ComparisonPair, ComparisonPairWithId, TypedPath } from "./LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningContext } from "./contexts/LinkingRuleActiveLearningContext";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
-import { columnStyles } from "./LinkingRuleActiveLearning.shared";
 import {
     activeLearningComparisonPairs,
     addActiveLearningComparisonPair,
@@ -129,13 +134,15 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     };
     const ConfigHeader = () => {
         return (
-            <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
-                <GridColumn style={columnStyles.headerColumnStyle}>Dataset 1</GridColumn>
-                <GridColumn style={columnStyles.centerColumnStyle}>
-                    <ConnectionEnabled label={"owl:sameAs"} />
-                </GridColumn>
-                <GridColumn style={columnStyles.headerColumnStyle}>Dataset 2</GridColumn>
-            </GridRow>
+            <ComparisionDataHead>
+                <ComparisionDataRow>
+                    <ComparisionDataHeader>Dataset 1</ComparisionDataHeader>
+                    <ComparisionDataConnection>
+                        <ConnectionEnabled label={"owl:sameAs"} />
+                    </ComparisionDataConnection>
+                    <ComparisionDataHeader>Dataset 2</ComparisionDataHeader>
+                </ComparisionDataRow>
+            </ComparisionDataHead>
         );
     };
 
@@ -144,7 +151,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         const showLabel: boolean = !!property.label && property.label.toLowerCase() !== property.path.toLowerCase();
         const exampleTitle = flatExampleValues.join(" | ");
         return (
-            <GridColumn style={columnStyles.mainColumnStyle}>
+            <ComparisionDataCell>
                 <OverviewItem>
                     <OverviewItemDescription>
                         <OverviewItemLine title={showLabel ? property.path : undefined}>
@@ -170,57 +177,61 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         ) : null}
                     </OverviewItemDescription>
                 </OverviewItem>
-            </GridColumn>
+            </ComparisionDataCell>
         );
     };
 
     const SelectedPropertyPair = ({ pair }: { pair: ComparisonPairWithId }) => {
         return (
-            <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
+            <ComparisionDataRow>
                 <SelectedProperty property={pair.source} exampleValues={pair.sourceExamples} />
-                <GridColumn style={columnStyles.centerColumnStyle}>
+                <ComparisionDataConnection>
                     <ConnectionEnabled
                         label={utils.comparisonType(pair)}
                         actions={<IconButton name={"item-remove"} disruptive onClick={() => removePair(pair.pairId)} />}
                     />
-                </GridColumn>
+                </ComparisionDataConnection>
                 <SelectedProperty property={pair.target} exampleValues={pair.targetExamples} />
-            </GridRow>
+            </ComparisionDataRow>
         );
     };
 
     const SelectedPropertiesWidget = () => {
         return (
-            <Grid columns={3} fullWidth={true}>
+            <ComparisionDataContainer>
                 <ConfigHeader />
-                {(activeLearningContext.propertiesToCompare ?? []).map((selected) => (
-                    <SelectedPropertyPair key={selected.pairId} pair={selected} />
-                ))}
-            </Grid>
+                <ComparisionDataBody>
+                    {(activeLearningContext.propertiesToCompare ?? []).map((selected) => (
+                        <SelectedPropertyPair key={selected.pairId} pair={selected} />
+                    ))}
+                </ComparisionDataBody>
+            </ComparisionDataContainer>
         );
     };
 
     const SuggestionWidget = () => {
         return (
-            <Grid columns={3} fullWidth={true}>
-                {suggestions.map((suggestion) => (
-                    <SuggestedPathSelection key={suggestion.pairId} pair={suggestion} />
-                ))}
-            </Grid>
+            <ComparisionDataContainer>
+                <ComparisionDataBody>
+                    {suggestions.map((suggestion) => (
+                        <SuggestedPathSelection key={suggestion.pairId} pair={suggestion} />
+                    ))}
+                </ComparisionDataBody>
+            </ComparisionDataContainer>
         );
     };
 
     const SuggestedPathSelection = ({ pair }: { pair: ComparisonPairWithId }) => {
         return (
-            <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
+            <ComparisionDataRow>
                 <SelectedProperty property={pair.source} exampleValues={pair.sourceExamples} />
-                <GridColumn style={columnStyles.centerColumnStyle}>
+                <ComparisionDataConnection>
                     <ConnectionAvailable
                         actions={<IconButton name={"item-add-artefact"} onClick={() => addSuggestion(pair.pairId)} />}
                     />
-                </GridColumn>
+                </ComparisionDataConnection>
                 <SelectedProperty property={pair.target} exampleValues={pair.targetExamples} />
-            </GridRow>
+            </ComparisionDataRow>
         );
     };
 

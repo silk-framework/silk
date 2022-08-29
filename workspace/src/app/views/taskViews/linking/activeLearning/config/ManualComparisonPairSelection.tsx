@@ -1,7 +1,13 @@
-import { columnStyles } from "../LinkingRuleActiveLearning.shared";
 import React from "react";
 import ConnectionAvailable from "./../components/ConnectionAvailable";
-import { AutoSuggestion, GridColumn, GridRow, Icon, IconButton } from "@eccenca/gui-elements";
+import {
+    ComparisionDataContainer,
+    ComparisionDataBody,
+    ComparisionDataRow,
+    ComparisionDataCell,
+    ComparisionDataConnection,
+} from "./../components/ComparisionData";
+import { AutoSuggestion, Icon, IconButton } from "@eccenca/gui-elements";
 import { checkValuePathValidity } from "../../../../pages/MappingEditor/HierarchicalMapping/store";
 import { partialAutoCompleteLinkingInputPaths } from "../../LinkingRuleEditor.requests";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
@@ -74,32 +80,36 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
     };
 
     return (
-        <GridRow style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}>
-            <PathAutoCompletion
-                projectId={projectId}
-                linkingTaskId={linkingTaskId}
-                isTarget={false}
-                changeManualPath={changeManualSourcePath}
-            />
-            <GridColumn style={columnStyles.centerColumnStyle}>
-                <ConnectionAvailable
-                    actions={
-                        <IconButton
-                            name={"item-add-artefact"}
-                            disabled={!hasValidPath}
-                            title={hasValidPath ? "Add" : "At least one paths is not valid"}
-                            onClick={addManuallyChosenPair}
+        <ComparisionDataContainer>
+            <ComparisionDataBody>
+                <ComparisionDataRow>
+                    <PathAutoCompletion
+                        projectId={projectId}
+                        linkingTaskId={linkingTaskId}
+                        isTarget={false}
+                        changeManualPath={changeManualSourcePath}
+                    />
+                    <ComparisionDataConnection>
+                        <ConnectionAvailable
+                            actions={
+                                <IconButton
+                                    name={"item-add-artefact"}
+                                    disabled={!hasValidPath}
+                                    title={hasValidPath ? "Add" : "At least one paths is not valid"}
+                                    onClick={addManuallyChosenPair}
+                                />
+                            }
                         />
-                    }
-                />
-            </GridColumn>
-            <PathAutoCompletion
-                projectId={projectId}
-                linkingTaskId={linkingTaskId}
-                isTarget={true}
-                changeManualPath={changeManualTargetPath}
-            />
-        </GridRow>
+                    </ComparisionDataConnection>
+                    <PathAutoCompletion
+                        projectId={projectId}
+                        linkingTaskId={linkingTaskId}
+                        isTarget={true}
+                        changeManualPath={changeManualTargetPath}
+                    />
+                </ComparisionDataRow>
+            </ComparisionDataBody>
+        </ComparisionDataContainer>
     );
 };
 
@@ -161,7 +171,7 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
         };
 
     return (
-        <GridColumn style={{ ...columnStyles.mainColumnStyle, textAlign: "left" }}>
+        <ComparisionDataCell>
             <AutoSuggestion
                 label={t("ActiveLearning.config.manualSelection." + (isTarget ? "targetPath" : "sourcePath"))}
                 leftElement={
@@ -181,6 +191,6 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
                 onInputChecked={onValidation}
                 autoCompletionRequestDelay={500}
             />
-        </GridColumn>
+        </ComparisionDataCell>
     );
 };
