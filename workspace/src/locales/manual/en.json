@@ -800,7 +800,8 @@
             "manualSelection": {
                 "sourcePath": "Source path",
                 "targetPath": "Target path"
-            }
+            },
+            "suggestionWarnings": "There are"
         },
         "bestLearnedRule": {
             "title": "Top-performing learned rule (Score: {{score}})",
