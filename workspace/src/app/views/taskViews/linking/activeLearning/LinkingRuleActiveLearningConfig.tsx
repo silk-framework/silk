@@ -7,6 +7,7 @@ import {
     CardTitle,
     Divider,
     IconButton,
+    Markdown,
     Notification,
     OverviewItem,
     OverviewItemDescription,
@@ -19,6 +20,7 @@ import {
     TitleMainsection,
     Toolbar,
     ToolbarSection,
+    Tooltip,
 } from "@eccenca/gui-elements";
 import {
     ComparisionDataContainer,
@@ -53,6 +55,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     const { registerError } = useErrorHandler();
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
     const [suggestions, setSuggestions] = React.useState<ComparisonPairWithId[]>([]);
+    const [suggestionWarnings, setSuggestionsWarnings] = React.useState<string[]>([]);
     const [loadSuggestions, setLoadSuggestions] = React.useState(true);
     const [t] = useTranslation();
 
@@ -80,6 +83,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                 );
             }
             const suggestions = comparisonPairs.suggestedPairs.map((cp) => toComparisonPairWithId(cp));
+            setSuggestionsWarnings(comparisonPairs.warnings);
             setSuggestions(suggestions);
         } catch (ex) {
             // TODO: i18n
@@ -243,7 +247,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                 <CardContent>
                     {loadingSuggestions ? <Spinner /> : (
                         <>
-                            <SuggestionSelectionSubHeader />
+                            <SuggestionSelectionSubHeader warnings={suggestionWarnings} />
                             <Spacing size="small" />
                             {suggestions.length > 0 && (
                                 <ComparisionDataContainer>
@@ -323,14 +327,24 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         );
     };
 
-    const SuggestionSelectionSubHeader = () => {
+    const SuggestionSelectionSubHeader = ({ warnings }: { warnings: string[] }) => {
+        const prefix = warnings.length > 1 ? "- " : "";
+        const actions = warnings.length ? (
+            <Tooltip
+                placement={"top"}
+                size={"large"}
+                content={<Markdown>{warnings.map((w) => `${prefix}${w}`).join("\n")}</Markdown>}
+            >
+                <IconButton name={"state-warning"} hasStateWarning={true} />
+            </Tooltip>
+        ) : undefined;
         // TODO: i18n
         const message = loadingSuggestions
             ? "Suggestions loading..."
             : suggestions.length > 0
             ? `Found ${suggestions.length} comparison suggestions you might want to add. Click button to add.`
             : "No suggestions available. You can add further comparison pairs manually.";
-        return <Notification message={message} iconName={null} />;
+        return <Notification message={message} iconName={null} actions={actions} />;
     };
 
     return (
