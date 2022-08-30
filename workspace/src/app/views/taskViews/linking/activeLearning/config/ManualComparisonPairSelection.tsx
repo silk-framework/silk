@@ -7,7 +7,18 @@ import {
     ComparisionDataCell,
     ComparisionDataConnection,
 } from "./../components/ComparisionData";
-import { AutoSuggestion, Icon, IconButton } from "@eccenca/gui-elements";
+import {
+    AutoSuggestion,
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+    Divider,
+    Icon,
+    IconButton,
+    Notification,
+    Spacing,
+} from "@eccenca/gui-elements";
 import { checkValuePathValidity } from "../../../../pages/MappingEditor/HierarchicalMapping/store";
 import { partialAutoCompleteLinkingInputPaths } from "../../LinkingRuleEditor.requests";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
@@ -79,37 +90,51 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
         }
     };
 
+    const PathSelectionSubHeader = () => {
+        return <Notification message={"Specify property paths to be compared."} iconName={null} />;
+    };
+
     return (
-        <ComparisionDataContainer>
-            <ComparisionDataBody>
-                <ComparisionDataRow>
-                    <PathAutoCompletion
-                        projectId={projectId}
-                        linkingTaskId={linkingTaskId}
-                        isTarget={false}
-                        changeManualPath={changeManualSourcePath}
-                    />
-                    <ComparisionDataConnection>
-                        <ConnectionAvailable
-                            actions={
-                                <IconButton
-                                    name={"item-add-artefact"}
-                                    disabled={!hasValidPath}
-                                    title={hasValidPath ? "Add" : "At least one paths is not valid"}
-                                    onClick={addManuallyChosenPair}
+        <Card elevation={0}>
+            <CardHeader>
+                <CardTitle>Add property paths pair</CardTitle>
+            </CardHeader>
+            <Divider />
+            <CardContent>
+                <PathSelectionSubHeader />
+                <Spacing />
+                <ComparisionDataContainer>
+                    <ComparisionDataBody>
+                        <ComparisionDataRow>
+                            <PathAutoCompletion
+                                projectId={projectId}
+                                linkingTaskId={linkingTaskId}
+                                isTarget={false}
+                                changeManualPath={changeManualSourcePath}
+                            />
+                            <ComparisionDataConnection>
+                                <ConnectionAvailable
+                                    actions={
+                                        <IconButton
+                                            name={"item-add-artefact"}
+                                            disabled={!hasValidPath}
+                                            title={hasValidPath ? "Add" : "At least one paths is not valid"}
+                                            onClick={addManuallyChosenPair}
+                                        />
+                                    }
                                 />
-                            }
-                        />
-                    </ComparisionDataConnection>
-                    <PathAutoCompletion
-                        projectId={projectId}
-                        linkingTaskId={linkingTaskId}
-                        isTarget={true}
-                        changeManualPath={changeManualTargetPath}
-                    />
-                </ComparisionDataRow>
-            </ComparisionDataBody>
-        </ComparisionDataContainer>
+                            </ComparisionDataConnection>
+                            <PathAutoCompletion
+                                projectId={projectId}
+                                linkingTaskId={linkingTaskId}
+                                isTarget={true}
+                                changeManualPath={changeManualTargetPath}
+                            />
+                        </ComparisionDataRow>
+                    </ComparisionDataBody>
+                </ComparisionDataContainer>
+            </CardContent>
+        </Card>
     );
 };
 

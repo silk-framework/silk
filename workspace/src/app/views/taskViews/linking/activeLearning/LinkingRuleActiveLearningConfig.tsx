@@ -1,6 +1,11 @@
 import React from "react";
 import {
     Button,
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
+    Divider,
     IconButton,
     Notification,
     OverviewItem,
@@ -197,27 +202,62 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     };
 
     const SelectedPropertiesWidget = () => {
+        // TODO: i18n
         return (
-            <ComparisionDataContainer>
-                <ConfigHeader />
-                <ComparisionDataBody>
-                    {(activeLearningContext.propertiesToCompare ?? []).map((selected) => (
-                        <SelectedPropertyPair key={selected.pairId} pair={selected} />
-                    ))}
-                </ComparisionDataBody>
-            </ComparisionDataContainer>
+            <Card elevation={0}>
+                <CardHeader>
+                    <CardTitle>Selected properties to compare entities</CardTitle>
+                </CardHeader>
+                <Divider />
+                <CardContent>
+                    <ComparisionDataContainer>
+                        <ConfigHeader />
+                        {(!activeLearningContext.propertiesToCompare || activeLearningContext.propertiesToCompare.length === 0) && (
+                            <>
+                                <Spacing size="small" />
+                                <InfoWidget />
+                            </>
+                        )}
+                        <ComparisionDataBody>
+                            {(activeLearningContext.propertiesToCompare ?? []).map((selected) => (
+                                <SelectedPropertyPair key={selected.pairId} pair={selected} />
+                            ))}
+                        </ComparisionDataBody>
+                    </ComparisionDataContainer>
+                </CardContent>
+            </Card>
         );
     };
 
     const SuggestionWidget = () => {
+        // TODO: i18n
         return (
-            <ComparisionDataContainer>
-                <ComparisionDataBody>
-                    {suggestions.map((suggestion) => (
-                        <SuggestedPathSelection key={suggestion.pairId} pair={suggestion} />
-                    ))}
-                </ComparisionDataBody>
-            </ComparisionDataContainer>
+            <Card elevation={0}>
+                <CardHeader>
+                    <CardTitle>
+                        Add suggestions
+                        {(!loadSuggestions && suggestions.length > 0) && " ("+suggestions.length+")"}
+                    </CardTitle>
+                </CardHeader>
+                <Divider />
+                <CardContent>
+                    {loadingSuggestions ? <Spinner /> : (
+                        <>
+                            <SuggestionSelectionSubHeader />
+                            <Spacing size="small" />
+                            {suggestions.length > 0 && (
+                                <ComparisionDataContainer>
+                                    <ComparisionDataBody>
+                                        {suggestions.map((suggestion) => (
+                                            <SuggestedPathSelection key={suggestion.pairId} pair={suggestion} />
+                                        ))}
+                                    </ComparisionDataBody>
+                                </ComparisionDataContainer>
+                            )}
+                        </>
+                    )}
+                </CardContent>
+            </Card>
         );
     };
 
@@ -236,7 +276,16 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     };
 
     const InfoWidget = () => {
-        return <Notification message={"Choose properties to compare."} iconName={"item-info"} neutral={true} />;
+        // TODO: i18n
+        return (
+            <Notification
+                iconName={"item-info"}
+                message={
+                    "Choose properties to compare. " +
+                    "Select from the suggestions or add them by specifying property paths for both entities."
+                }
+            />
+        );
     };
 
     // TODO: i18n
@@ -281,22 +330,14 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             : suggestions.length > 0
             ? `Found ${suggestions.length} comparison suggestions you might want to add. Click button to add.`
             : "No suggestions available. You can add further comparison pairs manually.";
-        return <Notification neutral={true} message={message} iconName={null} />;
-    };
-
-    const PathSelectionSubHeader = () => {
-        return <Notification neutral={true} message={"Specify property paths to be compared."} iconName={null} />;
+        return <Notification message={message} iconName={null} />;
     };
 
     return (
         <Section>
             <Title />
             <Spacing />
-            <InfoWidget />
-            <Spacing size={"small"} />
             <SelectedPropertiesWidget />
-            <Spacing />
-            <PathSelectionSubHeader />
             <Spacing />
             <ManualComparisonPairSelection
                 projectId={projectId}
@@ -304,9 +345,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                 addComparisonPair={addComparisonPair}
             />
             <Spacing />
-            <SuggestionSelectionSubHeader />
-            <Spacing />
-            {loadingSuggestions ? <Spinner /> : suggestions.length > 0 ? <SuggestionWidget /> : null}
+            <SuggestionWidget />
         </Section>
     );
 };
