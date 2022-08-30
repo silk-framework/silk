@@ -82,10 +82,7 @@ const MappingEditorModal: React.FC<MappingEditorProps> = ({ ruleId, onClose, pro
                         transformTaskId={transformTaskId}
                         viewActions={{
                             savedChanges: (status) => setUnsavedChanges(status),
-                            onSave: () => {
-                                EventEmitter.emit(MESSAGES.RELOAD, true);
-                                EventEmitter.emit(MESSAGES.EXAMPLE_VIEW.RELOAD);
-                            },
+                            onSave: () => EventEmitter.emit(MESSAGES.RELOAD, true),
                             integratedView: true,
                         }}
                         additionalToolBarComponents={() => (

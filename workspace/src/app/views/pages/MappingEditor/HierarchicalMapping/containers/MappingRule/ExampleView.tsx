@@ -41,9 +41,9 @@ export const ExampleView = ({ id, rawRule, ruleType, objectSourcePathContext, up
         );
 
     useEffect(() => {
-        EventEmitter.on(MESSAGES.EXAMPLE_VIEW.RELOAD, updateFn);
+        EventEmitter.on(MESSAGES.RELOAD, updateFn);
         return () => {
-            EventEmitter.off(MESSAGES.EXAMPLE_VIEW.RELOAD, updateFn);
+            EventEmitter.off(MESSAGES.RELOAD, updateFn);
         };
     });
 

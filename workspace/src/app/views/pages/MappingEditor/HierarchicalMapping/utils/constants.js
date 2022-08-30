@@ -17,9 +17,6 @@ export const MESSAGES = {
     },
     RELOAD: "reload",
     TOGGLE_DETAILS: "toggleDetails",
-    EXAMPLE_VIEW: {
-        RELOAD: "exampleView.reload",
-    },
 };
 
 export const MAPPING_RULE_TYPE_DIRECT = "direct";
