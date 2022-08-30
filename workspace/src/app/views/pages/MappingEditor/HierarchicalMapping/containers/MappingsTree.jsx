@@ -1,8 +1,8 @@
 import React from "react";
 import PropTypes from "prop-types";
 import _ from "lodash";
-import { Spinner, Button, Info, Icon } from "gui-elements-deprecated";
-import { Card, CardContent } from "@eccenca/gui-elements";
+import { Button, Info, Icon } from "gui-elements-deprecated";
+import { Card, CardContent, Spinner } from "@eccenca/gui-elements";
 
 import RuleTypes from "../elements/RuleTypes";
 import RuleTitle from "../elements/RuleTitle";
@@ -293,7 +293,7 @@ class MappingsTree extends React.Component {
             <div className="ecc-silk-mapping__treenav">
                 <Card isOnlyLayout={true}>
                     <CardContent>
-                        {navigationLoading && <Spinner />}
+                        {navigationLoading && <Spinner position={"global"} />}
                         {navigationLoading && _.isUndefined(data) && (
                             <Info data-test-id="ecc-silk-mapping__treenav-loading">Loading rules</Info>
                         )}

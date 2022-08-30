@@ -1,6 +1,6 @@
 import React from "react";
 import _ from "lodash";
-import { Spinner } from "gui-elements-deprecated";
+import { Spinner } from "@eccenca/gui-elements"
 import { URI } from "ecc-utils";
 import PropTypes from "prop-types";
 
@@ -47,6 +47,7 @@ class HierarchicalMapping extends React.Component {
             askForRemove: false,
             removeFunction: this.handleConfirmRemove,
             showMappingEditor: false,
+            mappingEditorRuleId: undefined
         };
     }
 
@@ -210,8 +211,8 @@ class HierarchicalMapping extends React.Component {
         EventEmitter.emit(MESSAGES.RULE_VIEW.DISCARD_ALL);
     };
 
-    handleOpenMappingEditorModal = (currentRuleId) => {
-        this.setState({ showMappingEditor: true, currentRuleId });
+    handleOpenMappingEditorModal = (mappingEditorRuleId) => {
+        this.setState({ showMappingEditor: true, mappingEditorRuleId });
     };
 
     handleRuleIdChange = (rule) => {
@@ -229,18 +230,24 @@ class HierarchicalMapping extends React.Component {
             askForDiscard,
             editingElements,
         } = this.state;
-        const loading = this.state.loading ? <Spinner /> : false;
+        const loading = this.state.loading ? <Spinner position={"global"} /> : false;
 
         // render mapping edit / create view of value and object
         return (
             <section className="ecc-silk-mapping">
-                <MappingEditorModal
+                {showMappingEditor && this.state.mappingEditorRuleId ? <MappingEditorModal
                     projectId={this.props.project}
                     transformTaskId={this.props.transformTask}
-                    ruleId={currentRuleId}
+                    ruleId={this.state.mappingEditorRuleId}
                     isOpen={showMappingEditor}
-                    onClose={() => this.setState({ showMappingEditor: false })}
-                />
+                    onClose={() => {
+                        this.setState({
+                            showMappingEditor: false,
+                            mappingEditorRuleId: undefined,
+                        })
+                        EventEmitter.emit(MESSAGES.RELOAD, true);
+                    }}
+                /> : null}
                 {askForRemove && (
                     <RemoveMappingRuleDialog
                         mappingType={elementToDelete.type}

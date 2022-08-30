@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardActions, CardContent, CardTitle, ScrollingHOC, Spinner } from "gui-elements-deprecated";
+import { Card, CardActions, CardContent, CardTitle, ScrollingHOC} from "gui-elements-deprecated";
 import {
     AffirmativeButton,
     DismissiveButton,
@@ -18,7 +18,7 @@ import EventEmitter from "../../../utils/EventEmitter";
 import { wasTouched } from "../../../utils/wasTouched";
 import { newValueIsIRI } from "../../../utils/newValueIsIRI";
 import TargetCardinality from "../../../components/TargetCardinality";
-import { TextField } from "@eccenca/gui-elements";
+import { TextField, Spinner } from "@eccenca/gui-elements";
 
 const LANGUAGES_LIST = [
     "en",

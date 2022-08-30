@@ -4,9 +4,9 @@
 
 import React from "react";
 import _ from "lodash";
-import { Spinner } from "gui-elements-deprecated";
 import PropTypes from "prop-types";
 import { copyRuleAsync, errorChannel, getApiDetails, getRuleAsync } from "../store";
+import { Spinner } from "@eccenca/gui-elements"
 import MappingHeader from "./MappingHeader";
 import RootMappingRule from "./RootMappingRule";
 import ObjectMappingRuleForm from "./MappingRule/ObjectRule/ObjectRuleForm";
@@ -310,7 +310,7 @@ class MappingsWorkview extends React.Component {
 
     render() {
         const { rules = {}, id } = this.state.ruleData;
-        const loading = this.state.loading ? <Spinner /> : false;
+        const loading = this.state.loading ? <Spinner position={"global"} /> : false;
         const createType = _.get(this.state, "ruleEditView.type", false);
 
         const createRuleForm = createType ? (

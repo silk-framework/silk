@@ -93,7 +93,6 @@ class ObjectRule extends React.Component {
             };
             updateObjectMappingAsync(rule).subscribe(
                 (data) => {
-                    EventEmitter.emit(MESSAGES.RELOAD, true);
                     this.props.openMappingEditor(data.body.rules.uriRule.id);
                 },
                 (err) => {
