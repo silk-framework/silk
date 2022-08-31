@@ -7,7 +7,7 @@ import { Card, CardContent, Spinner } from "@eccenca/gui-elements";
 import RuleTypes from "../elements/RuleTypes";
 import RuleTitle from "../elements/RuleTitle";
 import { MAPPING_RULE_TYPE_ROOT } from "../utils/constants";
-import { getHierarchyAsync } from "../store";
+import { getHierarchyAsync, getRuleAsync } from "../store";
 import EventEmitter from "../utils/EventEmitter";
 import { MAPPING_RULE_TYPE_OBJECT, MESSAGES } from "../utils/constants";
 import { getHistory } from "../../../../../store/configureStore";
@@ -27,7 +27,7 @@ class MappingsTree extends React.Component {
         this.updateNavigationTree();
         const searchQuery = new URLSearchParams(window.location.search).get("ruleId");
         if (searchQuery) {
-            this.props.handleRuleNavigation({ newRuleId: searchQuery, parentId: undefined });
+            this.getRuleById(searchQuery);
         }
         EventEmitter.on(MESSAGES.RELOAD, this.updateNavigationTree);
     }
@@ -45,6 +45,23 @@ class MappingsTree extends React.Component {
             EventEmitter.off(MESSAGES.RELOAD, this.updateNavigationTree);
         }
     }
+
+    getRuleById = (searchId) => {
+        this.setState({
+            navigationLoading: true,
+        });
+        getRuleAsync(searchId, true).subscribe(({ rule }) => {
+            const navigationExpanded = {
+                ...rule.breadcrumbs.reduce((exp, breadcrumb) => {
+                    exp[breadcrumb.id] = true;
+                    return exp;
+                }, {}),
+                [rule.id]: true,
+            };
+            this.props.handleRuleNavigation({ newRuleId: rule.id });
+            this.setState({ navigationExpanded });
+        });
+    };
 
     updateNavigationTree = (args = {}) => {
         if (this.props.ruleTree == null) {
