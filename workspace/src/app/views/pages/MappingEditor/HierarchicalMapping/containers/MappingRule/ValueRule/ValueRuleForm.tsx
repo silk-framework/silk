@@ -180,10 +180,10 @@ export function ValueRuleForm(props: IProps) {
     const handleConfirm = (event) => {
         event.stopPropagation();
         event.persist();
-        saveRule();
+        saveRule(true);
     };
 
-    const saveRule = (onSuccess?: (ruleId?: string) => any) => {
+    const saveRule = (reload: boolean, onSuccess?: (ruleId?: string) => any) => {
         setLoading(true);
         store
             .createMappingAsync({
@@ -201,10 +201,10 @@ export function ValueRuleForm(props: IProps) {
                 (response) => {
                     if (props.onAddNewRule) {
                         props.onAddNewRule(() => {
-                            handleCloseWithChanges();
+                            handleCloseWithChanges(reload);
                         });
                     } else {
-                        handleCloseWithChanges();
+                        handleCloseWithChanges(reload);
                     }
                     onSuccess?.(response?.body?.id);
                 },
@@ -264,9 +264,12 @@ export function ValueRuleForm(props: IProps) {
     };
 
     // Closes the edit form. Reacts to changes in the mapping rules.
-    const handleCloseWithChanges = () => {
+    const handleCloseWithChanges = (reload: boolean) => {
         handleClose();
-        EventEmitter.emit(MESSAGES.RELOAD, true);
+        if(reload) {
+            // There are some use cases where the mapping editor should not be reloaded, e.g. when opening the rule editor right after creation of a rule.
+            EventEmitter.emit(MESSAGES.RELOAD, true);
+        }
     };
 
     const allowConfirmation = () => {
@@ -279,7 +282,7 @@ export function ValueRuleForm(props: IProps) {
         const saveRuleAndGoToComplexEditor = () => {
             event.preventDefault();
             event.stopPropagation();
-            saveRule((ruleId) => {
+            saveRule(false,(ruleId) => {
                 props.openMappingEditor(ruleId!);
             });
         };

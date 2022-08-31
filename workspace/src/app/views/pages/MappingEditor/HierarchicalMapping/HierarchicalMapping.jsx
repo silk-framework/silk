@@ -1,20 +1,20 @@
 import React from "react";
 import _ from "lodash";
-import { Spinner } from "@eccenca/gui-elements"
-import { URI } from "ecc-utils";
+import {Spinner} from "@eccenca/gui-elements"
 import PropTypes from "prop-types";
 
-import { ruleRemoveAsync, setApiDetails } from "./store";
+import {ruleRemoveAsync, setApiDetails} from "./store";
 
 import MappingsTree from "./containers/MappingsTree";
 import MappingsWorkview from "./containers/MappingsWorkview";
 import MessageHandler from "./components/MessageHandler";
-import { MAPPING_RULE_TYPE_OBJECT, MESSAGES } from "./utils/constants";
+import {MAPPING_RULE_TYPE_OBJECT, MESSAGES} from "./utils/constants";
 import RemoveMappingRuleDialog from "./elements/RemoveMappingRuleDialog";
 import DiscardChangesDialog from "./elements/DiscardChangesDialog";
 import EventEmitter from "./utils/EventEmitter";
-import { withHistoryHOC } from "./utils/withHistoryHOC";
+import {withHistoryHOC} from "./utils/withHistoryHOC";
 import MappingEditorModal from "./MappingEditorModal";
+import {getHistory} from "../../../../store/configureStore";
 
 class HierarchicalMapping extends React.Component {
     // define property types
@@ -65,14 +65,11 @@ class HierarchicalMapping extends React.Component {
 
     componentDidUpdate(prevProps, prevState) {
         if (prevState.currentRuleId !== this.state.currentRuleId && !_.isEmpty(this.state.currentRuleId)) {
-            const href = window.location.href;
-            try {
-                const uriTemplate = new URI(href);
-                const updatedUrl = updateMappingEditorUrl(uriTemplate, this.state.currentRuleId);
-                this.props.history.pushState(null, "", updatedUrl);
-            } catch (e) {
-                console.debug(`HierarchicalMapping: ${href} is not an URI, cannot update the window state`);
-            }
+            const history = getHistory();
+            const ruleId = this.state.currentRuleId
+            history.replace({
+                search: `?${new URLSearchParams({ ruleId })}`,
+            });
         }
         if (prevProps.task !== this.props.task) {
             this.loadNavigationTree();
@@ -245,6 +242,7 @@ class HierarchicalMapping extends React.Component {
                             showMappingEditor: false,
                             mappingEditorRuleId: undefined,
                         })
+                        this.onRuleNavigation({newRuleId: this.state.mappingEditorRuleId})
                         EventEmitter.emit(MESSAGES.RELOAD, true);
                     }}
                 /> : null}
@@ -287,20 +285,5 @@ class HierarchicalMapping extends React.Component {
         );
     }
 }
-
-export const updateMappingEditorUrl = (currentUrl, newRule) => {
-    const segments = currentUrl.segment();
-    const transformIdx = segments.findIndex((segment) => segment === "transform");
-    const editorIdx = transformIdx + 3;
-    console.assert(segments[editorIdx] === "editor", "Wrong URL structure, 'editor not at correct position!'");
-    for (let i = editorIdx + 1; i < segments.length; i++) {
-        // Remove everything after "editor"
-        currentUrl.segment(editorIdx + 1, "");
-    }
-    // add new rule suffix
-    currentUrl.segment("rule");
-    currentUrl.segment(newRule);
-    return currentUrl.toString();
-};
 
 export default withHistoryHOC(HierarchicalMapping);
