@@ -8,12 +8,12 @@ import {
     CardTitle,
     Divider,
     IconButton,
+    InteractionGate,
     Notification,
     OverviewItem,
     OverviewItemDescription,
     OverviewItemLine,
     Spacing,
-    Spinner,
     Tag,
     Toolbar,
     ToolbarSection,
@@ -130,31 +130,35 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
             />
             <Divider />
             <CardContent>
-                <DecisionButtons
-                    disabledButtons={!activeLearningFeedbackContext.selectedLink}
-                    submitLink={(decision: ActiveLearningDecisions) =>
-                        submitLink(activeLearningFeedbackContext.selectedLink, decision)
-                    }
-                    selectedDecision={(activeLearningFeedbackContext.selectedLink as EntityLink)?.decision}
-                    cancel={activeLearningFeedbackContext.cancel}
-                />
-                {loading ? (
-                    <Spinner delay={500} />
-                ) : valuesToDisplay ? (
-                    <>
-                        <Spacing />
-                        <SelectedEntityLink
-                            valuesToDisplay={valuesToDisplay}
-                            propertyPairs={activeLearningContext.propertiesToCompare}
-                            labelPropertyPairIds={labelPropertyPairIds}
-                            toggleLabelPropertyPair={toggleLabelPropertyPair}
-                        />
-                    </>
-                ) : (
-                    <Notification message={"No entity link selected"} />
-                )}
-                <Spacing />
-                <MatchingColorInfo />
+                <InteractionGate
+                    inert={loading}
+                    showSpinner={loading}
+                    spinnerProps={{delay: 500}}
+                >
+                    <DecisionButtons
+                        disabledButtons={!activeLearningFeedbackContext.selectedLink}
+                        submitLink={(decision: ActiveLearningDecisions) =>
+                            submitLink(activeLearningFeedbackContext.selectedLink, decision)
+                        }
+                        selectedDecision={(activeLearningFeedbackContext.selectedLink as EntityLink)?.decision}
+                        cancel={activeLearningFeedbackContext.cancel}
+                    />
+                    {valuesToDisplay ? (
+                        <>
+                            <Spacing />
+                            <SelectedEntityLink
+                                valuesToDisplay={valuesToDisplay}
+                                propertyPairs={activeLearningContext.propertiesToCompare}
+                                labelPropertyPairIds={labelPropertyPairIds}
+                                toggleLabelPropertyPair={toggleLabelPropertyPair}
+                            />
+                        </>
+                    ) : (
+                        <Notification message={"No entity link selected"} />
+                    )}
+                    <Spacing />
+                    <MatchingColorInfo />
+                </InteractionGate>
             </CardContent>
         </Card>
     );
