@@ -39,6 +39,12 @@ case class DPair[+T](source: T, target: T) {
  */
 object DPair {
 
+  /** Select the source in sourceOrTarget selections */
+  final val SOURCE = true
+
+  /** Select the target in sourceOrTarget selections */
+  final val TARGET = false
+
   /**
    * Creates a DPair from a Scala Pair.
    */
