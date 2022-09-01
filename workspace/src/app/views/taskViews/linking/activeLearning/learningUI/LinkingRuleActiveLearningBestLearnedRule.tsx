@@ -113,7 +113,7 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
                     {rule ? (
                         <IconButton
                             data-test-id={"open-best-learned-rule-btn"}
-                            name={"item-viewdetails"}
+                            name={"toggler-maximize"}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 setDisplayVisualRuleModal(true);

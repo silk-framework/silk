@@ -14,7 +14,6 @@ import {
     CardHeader,
     CardTitle,
     Divider,
-    Icon,
     IconButton,
     Notification,
     Spacing,

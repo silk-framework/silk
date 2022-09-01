@@ -2,7 +2,7 @@ import { LinkingRuleEditor, LinkingRuleEditorOptionalContext } from "../../Linki
 import React from "react";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 import { ILinkingRule, OptionallyLabelledParameter } from "../../linking.types";
-import { Button, SimpleDialog } from "@eccenca/gui-elements";
+import { SimpleDialog, IconButton } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
 
 interface Props {
@@ -21,11 +21,14 @@ export const LinkingRuleActiveLearningBestLearnedRuleModal = ({ rule, onClose }:
             onClose={onClose}
             title={t("ActiveLearning.bestLearnedRule.visualRuleTitle")}
             isOpen={true}
-            startInFullScreenMode={true}
-            actions={[
-                <Button onClick={onClose} data-test-id={"close-btn"}>
-                    {t("common.action.close")}
-                </Button>,
+            size="fullscreen"
+            headerOptions={[
+                <IconButton
+                    onClick={onClose}
+                    data-test-id={"close-btn"}
+                    text={t("common.action.close")}
+                    name="navigation-close"
+                />
             ]}
         >
             <LinkingRuleEditorOptionalContext.Provider
@@ -40,7 +43,7 @@ export const LinkingRuleActiveLearningBestLearnedRuleModal = ({ rule, onClose }:
                     showRuleOnly: true,
                 }}
             >
-                <div style={{ position: "relative", height: "1080px" }}>
+                <div style={{ position: "relative", height: "100%" }}>
                     <LinkingRuleEditor
                         projectId={activeLearningContext.projectId}
                         linkingTaskId={activeLearningContext.linkingTaskId}
