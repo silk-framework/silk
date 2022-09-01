@@ -4,7 +4,7 @@ import React from "react";
 import { fetchActiveLearningSessionInfo } from "../LinkingRuleActiveLearning.requests";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
-import { Notification, Spacing, Spinner } from "@eccenca/gui-elements";
+import { Notification, Spacing, Spinner, HtmlContentBlock } from "@eccenca/gui-elements";
 import { ReferenceLinksStats } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
 
 interface ActiveLearningSessionInfoWidgetProps {
@@ -26,7 +26,7 @@ export const ActiveLearningSessionInfoWidget = ({
     return loading ? (
         <Spinner />
     ) : sessionInfo ? (
-        <div>
+        <HtmlContentBlock>
             {sessionInfo.users.length > 0 ? (
                 <>
                     {t("ActiveLearning.statistics.users")}
@@ -39,7 +39,7 @@ export const ActiveLearningSessionInfoWidget = ({
                 </>
             ) : null}
             <ReferenceLinksStatsWidget stats={sessionInfo.referenceLinks} />
-        </div>
+        </HtmlContentBlock>
     ) : (
         <Notification warning={true}>{t("ActiveLearning.statistics.noStats")}</Notification>
     );

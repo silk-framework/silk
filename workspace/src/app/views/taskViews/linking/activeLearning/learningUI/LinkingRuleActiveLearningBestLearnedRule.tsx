@@ -25,6 +25,7 @@ import { ruleEditorNodeParameterLabel } from "../../../../shared/RuleEditor/mode
 interface LinkingRuleActiveLearningBestLearnedRuleProps {
     rule?: OptionallyLabelledParameter<ILinkingRule>;
     score?: IEvaluatedReferenceLinksScore;
+    defaultDisplayVisualRule?: boolean;
 }
 
 /**
@@ -34,8 +35,9 @@ interface LinkingRuleActiveLearningBestLearnedRuleProps {
 export const LinkingRuleActiveLearningBestLearnedRule = ({
     rule,
     score,
+    defaultDisplayVisualRule = false
 }: LinkingRuleActiveLearningBestLearnedRuleProps) => {
-    const [displayVisualRule, setDisplayVisualRule] = React.useState(false);
+    const [displayVisualRule, setDisplayVisualRule] = React.useState(defaultDisplayVisualRule);
     const [displayVisualRuleModal, setDisplayVisualRuleModal] = React.useState(false);
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
     const { t } = useTranslation();
