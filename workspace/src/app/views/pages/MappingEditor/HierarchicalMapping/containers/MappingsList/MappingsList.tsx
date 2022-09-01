@@ -9,6 +9,7 @@ import EmptyList from "./EmptyList";
 import reorderArray from "../../utils/reorderArray";
 import { Spinner } from "@eccenca/gui-elements";
 import silkRestApi from "../../../api/silkRestApi";
+import useErrorHandler from "../../../../../../hooks/useErrorHandler";
 
 interface MappingsListProps {
     rules: any[];
@@ -49,7 +50,7 @@ const MappingsList = ({
 }: MappingsListProps) => {
     const [items, setItems] = useState<any[]>(rulesToList(rules, parentRuleId || currentRuleId));
     const [reorderingRequestPending, setReorderingRequestPending] = useState(false);
-
+    const {registerError} = useErrorHandler()
     useEffect(() => {
         setItems(rulesToList(rules, parentRuleId || currentRuleId));
     }, [rules, parentRuleId, currentRuleId]);
@@ -61,13 +62,14 @@ const MappingsList = ({
             toPos
         );
 
-        setReorderingRequestPending(true);
         const { project, transformTask } = getApiDetails();
         if (project != null && transformTask != null && parentRuleId != null) {
+            setReorderingRequestPending(true);
             try {
                 setItems(reorderArray(items, fromPos, toPos));
                 await silkRestApi.reorderRules(project, transformTask, parentRuleId, childrenRules);
             } catch (ex) {
+                registerError("MappingsList.handleOrderRules", "Reordering of the mappings rules has failed.", ex)
                 // Request failed, rollback change.
                 setItems(items);
             } finally {
@@ -99,7 +101,7 @@ const MappingsList = ({
 
     return (
         <div className="ecc-silk-mapping__ruleslist">
-            {reorderingRequestPending && <Spinner position={"global"} className={"spinner-global"} />}
+            {reorderingRequestPending && <Spinner position={"global"} />}
             <Card shadow={0}>
                 <CardTitle>
                     <div className="mdl-card__title-text">Mapping rules {`(${rules.length})`}</div>
