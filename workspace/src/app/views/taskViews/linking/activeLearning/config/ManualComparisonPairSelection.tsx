@@ -199,9 +199,6 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
         <ComparisionDataCell>
             <AutoSuggestion
                 label={t("ActiveLearning.config.manualSelection." + (isTarget ? "targetPath" : "sourcePath"))}
-                leftElement={
-                    <Icon name={"operation-search"} tooltipText={"Allows to construct complex input paths."} />
-                }
                 initialValue={path.current ?? ""}
                 onChange={onChange}
                 fetchSuggestions={fetchAutoCompletionResult(isTarget)}
