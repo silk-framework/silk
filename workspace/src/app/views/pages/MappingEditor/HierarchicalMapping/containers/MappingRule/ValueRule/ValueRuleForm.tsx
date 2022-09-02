@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardActions, CardContent, CardTitle, ScrollingHOC} from "gui-elements-deprecated";
+import { Card, CardActions, CardContent, CardTitle, ScrollingHOC } from "gui-elements-deprecated";
 import {
     AffirmativeButton,
     DismissiveButton,
@@ -266,7 +266,7 @@ export function ValueRuleForm(props: IProps) {
     // Closes the edit form. Reacts to changes in the mapping rules.
     const handleCloseWithChanges = (reload: boolean) => {
         handleClose();
-        if(reload) {
+        if (reload) {
             // There are some use cases where the mapping editor should not be reloaded, e.g. when opening the rule editor right after creation of a rule.
             EventEmitter.emit(MESSAGES.RELOAD, true);
         }
@@ -279,21 +279,11 @@ export function ValueRuleForm(props: IProps) {
     };
 
     const handleComplexEdit = (event) => {
-        const saveRuleAndGoToComplexEditor = () => {
-            event.preventDefault();
-            event.stopPropagation();
-            saveRule(false,(ruleId) => {
-                props.openMappingEditor(ruleId!);
-            });
-        };
-        if (!id) {
-            saveRuleAndGoToComplexEditor();
-        } else {
-            if (changed) {
-                saveRuleAndGoToComplexEditor();
-            }
-            // Go to URL, href is set correctly
-        }
+        event.preventDefault();
+        event.stopPropagation();
+        saveRule(false, (ruleId) => {
+            props.openMappingEditor(ruleId!);
+        });
     };
 
     const allowConfirm = allowConfirmation();
