@@ -35,7 +35,7 @@ export const inputPathTab = (
                 pluginType,
                 icon,
                 label: path.label ?? path.value,
-                description: path.label ? path.value : undefined,
+                description: path.label !== path.value ? path.value : undefined,
                 categories: ["Source path"],
                 parameterOverwrites: {
                     path: path.label ? { value: path.value, label: path.label } : path.value,
