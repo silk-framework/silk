@@ -535,6 +535,13 @@ object TransformRule {
     * Tries to express a complex mapping as a basic mapping, such as a direct mapping.
     */
   def simplify(complexMapping: ComplexMapping)(implicit prefixes: Prefixes): TransformRule = complexMapping match {
+    // Rule with annotations or layout info is always treated as complex (URI) mapping rule
+    case ComplexMapping(id, operator, targetOpt, metaData, layout, uiAnnotations) if layout.nodePositions.nonEmpty || uiAnnotations.stickyNotes.nonEmpty =>
+      if(targetOpt.isEmpty) {
+        ComplexUriMapping(id, operator, metaData, layout, uiAnnotations)
+      } else {
+        complexMapping
+      }
     // Direct Mapping
     case ComplexMapping(id, PathInput(_, path), Some(target), metaData, _, _) =>
       DirectMapping(id, path.asUntypedPath, target, metaData)
