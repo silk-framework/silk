@@ -30,7 +30,7 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                 itemLabel,
                 <OverviewItemLine>
                     <Spacing vertical={true} size={"tiny"} />
-                    <OverflowText>
+                    <OverflowText ellipsis={"reverse"}>
                         <Highlighter label={itemLabel} searchValue={textQuery} />
                     </OverflowText>
                     {ruleOperator.description && (
@@ -49,7 +49,7 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                     )}
                 </OverviewItemLine>,
                 "bottom-end",
-                "medium"
+                "large"
             )}
             {descriptionSearchSnippet && (
                 <OverviewItemLine data-test-id={"ruleOperator-sidebar-search-operator-description"}>
