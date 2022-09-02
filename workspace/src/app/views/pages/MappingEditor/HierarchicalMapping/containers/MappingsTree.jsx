@@ -58,7 +58,7 @@ class MappingsTree extends React.Component {
                 }, {}),
                 [rule.id]: true,
             };
-            this.props.handleRuleNavigation({ newRuleId: rule.id });
+            this.props.handleRuleNavigation({ newRuleId: searchId });
             this.setState({ navigationExpanded });
         });
     };
