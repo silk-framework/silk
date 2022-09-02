@@ -1,17 +1,16 @@
-import { IPluginDetails } from "@ducks/common/typings";
+import {IPluginDetails} from "@ducks/common/typings";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
-import React, { ReactElement } from "react";
-import { useTranslation } from "react-i18next";
-import { RuleEditorProps } from "views/shared/RuleEditor/RuleEditor";
-import { IRuleOperatorNode, RuleValidationError } from "../../../../views/shared/RuleEditor/RuleEditor.typings";
-import { EvaluatedTransformEntity, IComplexMappingRule } from "../transform.types";
-import { evaluateTransformRule } from "../transform.requests";
-import { FetchError } from "../../../../services/fetch/responseInterceptor";
-import { LinkRuleNodeEvaluation } from "../../../../views/taskViews/linking/evaluation/LinkRuleNodeEvaluation";
-import { RuleEditorEvaluationContext } from "../../../../views/shared/RuleEditor/contexts/RuleEditorEvaluationContext";
-import { ruleEditorNodeParameterValue } from "../../../../views/shared/RuleEditor/model/RuleEditorModel.typings";
+import React, {ReactElement} from "react";
+import {useTranslation} from "react-i18next";
+import {RuleEditorProps} from "views/shared/RuleEditor/RuleEditor";
+import {IRuleOperatorNode, RuleValidationError} from "../../../../views/shared/RuleEditor/RuleEditor.typings";
+import {EvaluatedTransformEntity, IComplexMappingRule} from "../transform.types";
+import {evaluateTransformRule} from "../transform.requests";
+import {FetchError} from "../../../../services/fetch/responseInterceptor";
+import {LinkRuleNodeEvaluation} from "../../../../views/taskViews/linking/evaluation/LinkRuleNodeEvaluation";
+import {RuleEditorEvaluationContext} from "../../../../views/shared/RuleEditor/contexts/RuleEditorEvaluationContext";
 import ruleUtils from "../../../../views/taskViews/shared/rules/rule.utils";
-import { transformToValueMap } from "../transformEditor.utils";
+import {transformToValueMap} from "../transformEditor.utils";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<IComplexMappingRule, IPluginDetails>>;
 
@@ -36,9 +35,8 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
     const [evaluationResult, setEvaluationResult] = React.useState<EvaluatedTransformEntity[]>([]);
     const [evaluationResultMap] = React.useState<Map<string, string[][]>>(new Map());
     const [nodeUpdateCallbacks] = React.useState(new Map<string, (evaluationValues: string[][] | undefined) => any>());
-    const [evaluationResultsShown, setEvaluationResultsShown] = React.useState<boolean>(false);
     const [ruleValidationError, setRuleValidationError] = React.useState<RuleValidationError | undefined>(undefined);
-    const { registerError } = useErrorHandler();
+    const { registerError, registerErrorI18N } = useErrorHandler();
     const [t] = useTranslation();
 
     React.useEffect(() => {
@@ -72,7 +70,6 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                 updateCallback(undefined);
             });
         }
-        setEvaluationResultsShown(show);
     };
 
     const fetchReferenceLinksEvaluation: (
@@ -83,9 +80,8 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
             return result.data;
         } catch (ex) {
             if (ex.isFetchError && (ex as FetchError).httpStatus !== 409) {
-                registerError(
+                registerErrorI18N(
                     "taskViews.transformRulesEditor.errors.fetchTransformEvaluationValues.msg",
-                    "Could not fetch evaluation results.",
                     ex
                 );
             } else {
@@ -125,35 +121,11 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
             setEvaluationResult(result ?? []);
         } catch (ex) {
             if (ex.isFetchError) {
-                if ((ex as FetchError).httpStatus === 409) {
-                    const path = (ex as FetchError).errorResponse.detail;
-                    const pathNode = ruleOperatorNodes.find(
-                        (op) =>
-                            op.pluginType === "PathInputOperator" &&
-                            ruleEditorNodeParameterValue(op.parameters.path) === path
-                    );
-                    setRuleValidationError(
-                        new RuleValidationError(
-                            t("taskViews.linkRulesEditor.errors.startEvaluation.msg", { inputPath: path }),
-                            pathNode
-                                ? [
-                                      {
-                                          nodeId: pathNode.nodeId,
-                                          message: t("taskViews.linkRulesEditor.errors.missingPathsInCache.msg", {
-                                              inputPath: path,
-                                          }),
-                                      },
-                                  ]
-                                : undefined
-                        )
-                    );
-                } else {
-                    registerError(
-                        "LinkingRuleEvaluation.startEvaluation",
-                        t("taskViews.linkRulesEditor.errors.startEvaluation.msg"),
-                        ex
-                    );
-                }
+                registerError(
+                    "TransformRuleEvaluation.startEvaluation",
+                    t("taskViews.linkRulesEditor.errors.startEvaluation.msg"),
+                    ex
+                );
             } else {
                 console.warn("Could not fetch evaluation results!", ex);
             }
@@ -198,7 +170,8 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
                 evaluationRunning,
                 toggleEvaluationResults,
                 evaluationScore: undefined,
-                evaluationResultsShown,
+                // There is no evaluation result for mapping rules
+                evaluationResultsShown: false,
                 ruleValidationError,
                 clearRuleValidationError,
             }}

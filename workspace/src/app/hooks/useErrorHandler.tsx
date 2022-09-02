@@ -18,10 +18,18 @@ export type ErrorHandlerRegisterFuncType = (
     cause: DIErrorTypes | null
 ) => JSX.Element | null;
 
+type ErrorHandlerRegisterShortFuncType = (
+    /** A valid language key from the language files. This key will be used as error ID. */
+    langKey: string,
+    /** The error cause. */
+    cause: DIErrorTypes | null
+) => JSX.Element | null;
+
 interface ErrorHandlerDict {
     registerError: ErrorHandlerRegisterFuncType;
     getAllErrors: () => Array<DIErrorFormat>;
     clearErrors: (errorIds?: Array<string> | undefined) => void;
+    registerErrorI18N: ErrorHandlerRegisterShortFuncType
 }
 
 export type RegisterErrorType = Pick<DIErrorFormat, "id" | "message" | "cause">;
@@ -77,6 +85,11 @@ const useErrorHandler = (): ErrorHandlerDict => {
         }
     };
 
+    /** Shorter version that uses the language file key as error ID. */
+    const registerErrorI18N: ErrorHandlerRegisterShortFuncType = (langKey: string, cause: DIErrorTypes | null) => {
+        return registerError(langKey, t(langKey), cause)
+    }
+
     const isTemporarilyUnavailableError = (error?: DIErrorTypes | null): boolean => {
         return (
             !!error &&
@@ -114,6 +127,7 @@ const useErrorHandler = (): ErrorHandlerDict => {
         registerError,
         getAllErrors,
         clearErrors,
+        registerErrorI18N
     };
 };
 
