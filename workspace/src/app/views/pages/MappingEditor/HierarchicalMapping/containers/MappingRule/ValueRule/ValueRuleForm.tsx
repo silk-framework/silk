@@ -89,7 +89,7 @@ interface IProps {
     // ID of the rule
     id?: string;
     //
-    scrollIntoView: ({ topOffset: number }) => any;
+    scrollIntoView: ({ topOffset }) => any;
     parentId?: string;
     onAddNewRule?: (call: () => any) => any;
     openMappingEditor: (ruleId: string) => void;

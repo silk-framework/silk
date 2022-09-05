@@ -245,7 +245,7 @@ class HierarchicalMapping extends React.Component {
                                 showMappingEditor: false,
                                 mappingEditorRuleId: undefined,
                             });
-                            this.onRuleNavigation({ newRuleId: this.state.mappingEditorRuleId });
+                            // this.onRuleNavigation({ newRuleId: this.state.mappingEditorRuleId });
                             EventEmitter.emit(MESSAGES.RELOAD, true);
                         }}
                     />
