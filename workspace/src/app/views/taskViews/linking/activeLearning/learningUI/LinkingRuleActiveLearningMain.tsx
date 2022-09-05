@@ -12,7 +12,6 @@ import {
 } from "@eccenca/gui-elements";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 import { LinkingRuleActiveLearningFeedbackComponent } from "./LinkingRuleActiveLearningFeedbackComponent";
-import { EntityLink, ReferenceLinksOrdered } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
 import { LinkingRuleActiveLearningFeedbackContext } from "../contexts/LinkingRuleActiveLearningFeedbackContext";
 import { LinkingRuleActiveLearningBestLearnedRule } from "./LinkingRuleActiveLearningBestLearnedRule";
 import { LinkingRuleReferenceLinks } from "../../referenceLinks/LinkingRuleReferenceLinks";
@@ -22,8 +21,13 @@ import {
     nextActiveLearningLinkCandidate,
     submitActiveLearningReferenceLink,
 } from "../LinkingRuleActiveLearning.requests";
-import { ActiveLearningDecisions, ActiveLearningLinkCandidate } from "../LinkingRuleActiveLearning.typings";
-import { ILinkingRule, OptionallyLabelledParameter } from "../../linking.types";
+import {
+    ActiveLearningBestRule,
+    ActiveLearningDecisions,
+    ActiveLearningLinkCandidate,
+    ActiveLearningReferenceLink,
+    ActiveLearningReferenceLinks,
+} from "../LinkingRuleActiveLearning.typings";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { activityQueryString } from "../../../../shared/TaskActivityOverview/taskActivityUtils";
@@ -47,13 +51,13 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
     const [loadingLinkCandidate, setLoadingLinkCandidate] = React.useState(false);
     /** The currently selected entity link, either an link candidate or an existing reference link. */
     const [selectedEntityLink, setSelectedEntityLink] = React.useState<
-        ActiveLearningLinkCandidate | EntityLink | undefined
+        ActiveLearningLinkCandidate | ActiveLearningReferenceLink | undefined
     >(undefined);
     /** The list of reference links. */
-    const [referenceLinks, setReferenceLinks] = React.useState<ReferenceLinksOrdered | undefined>(undefined);
+    const [referenceLinks, setReferenceLinks] = React.useState<ActiveLearningReferenceLinks | undefined>(undefined);
     const [referenceLinksInitiallyLoaded, setReferenceLinksInitiallyLoaded] = React.useState(false);
     const [referenceLinksLoading, setReferenceLinksLoading] = React.useState(false);
-    const [bestRule, setBestRule] = React.useState<OptionallyLabelledParameter<ILinkingRule> | undefined>(undefined);
+    const [bestRule, setBestRule] = React.useState<ActiveLearningBestRule | undefined>(undefined);
     const [showSaveDialog, setShowSaveDialog] = React.useState(false);
     const linkTypeToShow = React.useRef<"labeled" | "unlabeled">("labeled");
     const { registerError } = useErrorHandler();
@@ -128,16 +132,8 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
         }
     };
 
-    const updateReferenceLink = async (
-        link: EntityLink | ActiveLearningLinkCandidate,
-        decision: ActiveLearningDecisions
-    ) => {
-        let { source, target } = link as ActiveLearningLinkCandidate;
-        if (typeof source !== "string") {
-            const entityLink = link as EntityLink;
-            source = entityLink.source.uri;
-            target = entityLink.target.uri;
-        }
+    const updateReferenceLink = async (link: ActiveLearningLinkCandidate, decision: ActiveLearningDecisions) => {
+        let { source, target } = link;
         try {
             await submitActiveLearningReferenceLink(
                 activeLearningContext.projectId,
@@ -215,7 +211,7 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                 <Spacing />
                 <LinkingRuleActiveLearningFeedbackComponent />
                 <Spacing />
-                <LinkingRuleActiveLearningBestLearnedRule rule={bestRule} score={referenceLinks?.evaluationScore} />
+                <LinkingRuleActiveLearningBestLearnedRule rule={bestRule} />
                 <Spacing />
                 <LinkingRuleReferenceLinks
                     title={t("ActiveLearning.referenceLinks.title")}
@@ -229,7 +225,6 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                 {showSaveDialog ? (
                     <LinkingRuleActiveLearningSaveModal
                         unsavedBestRule={bestRule}
-                        evaluationScore={referenceLinks?.evaluationScore}
                         onClose={() => setShowSaveDialog(false)}
                     />
                 ) : null}

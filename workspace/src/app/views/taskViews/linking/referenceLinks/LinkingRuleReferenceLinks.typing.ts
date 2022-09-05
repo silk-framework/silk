@@ -6,8 +6,6 @@ export type LinkType = "positive" | "negative" | "unlabeled";
 
 export interface ReferenceLinksOrdered {
     links: IEntityLink[];
-    statistics?: ReferenceLinksStats;
-    evaluationScore?: IEvaluatedReferenceLinksScore;
 }
 
 /** Stats of reference links. Also includes numbers of yet unsaved changes. */

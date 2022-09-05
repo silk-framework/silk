@@ -1,12 +1,4 @@
-import {
-    Button,
-    FieldItem,
-    FieldItemRow,
-    Notification,
-    SimpleDialog,
-    Spacing,
-    Switch
-} from "@eccenca/gui-elements";
+import { Button, FieldItem, FieldItemRow, Notification, SimpleDialog, Spacing, Switch } from "@eccenca/gui-elements";
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
@@ -16,18 +8,16 @@ import {
     ActiveLearningSessionInfoWidget,
     useActiveLearningSessionInfo,
 } from "../shared/ActiveLearningSessionInfoWidget";
-import { IEvaluatedReferenceLinksScore, ILinkingRule, OptionallyLabelledParameter } from "../../linking.types";
 import { LinkingRuleActiveLearningBestLearnedRule } from "./LinkingRuleActiveLearningBestLearnedRule";
+import { ActiveLearningBestRule } from "../LinkingRuleActiveLearning.typings";
 
 interface LinkingRuleActiveLearningSaveModalProps {
-    unsavedBestRule: OptionallyLabelledParameter<ILinkingRule> | undefined;
-    evaluationScore?: IEvaluatedReferenceLinksScore;
+    unsavedBestRule: ActiveLearningBestRule | undefined;
     onClose: () => any;
 }
 
 export const LinkingRuleActiveLearningSaveModal = ({
     unsavedBestRule,
-    evaluationScore,
     onClose,
 }: LinkingRuleActiveLearningSaveModalProps) => {
     const [t] = useTranslation();
@@ -94,24 +84,24 @@ export const LinkingRuleActiveLearningSaveModal = ({
                     {t("common.action.cancel")}
                 </Button>,
             ]}
-            notifications={(saveReferenceLinks || saveRule) ? (
-                <>
-                    {saveReferenceLinks && sessionInfo && (
-                        <ActiveLearningSessionInfoWidget activeLearningSessionInfo={sessionInfo} />
-                    )}
-                    {saveReferenceLinks && saveRule && <Spacing />}
-                    {saveRule && (
-                        <Notification warning>
-                            Your current linking rule will be overwritten.
-                        </Notification>
-                    )}
-                </>
-            ) : undefined}
+            notifications={
+                saveReferenceLinks || saveRule ? (
+                    <>
+                        {saveReferenceLinks && sessionInfo && (
+                            <ActiveLearningSessionInfoWidget activeLearningSessionInfo={sessionInfo} />
+                        )}
+                        {saveReferenceLinks && saveRule && <Spacing />}
+                        {saveRule && (
+                            <Notification warning>Your current linking rule will be overwritten.</Notification>
+                        )}
+                    </>
+                ) : undefined
+            }
         >
             <div data-test-id="active-learning-save-form">
                 <FieldItemRow justifyItemWidths>
                     <FieldItem
-                        style={{alignSelf: "flex-start"}}
+                        style={{ alignSelf: "flex-start" }}
                         messageText={
                             unsavedReferenceLinks != null
                                 ? unsavedReferenceLinks <= 0
@@ -132,7 +122,7 @@ export const LinkingRuleActiveLearningSaveModal = ({
                         </Switch>
                     </FieldItem>
                     <FieldItem
-                        style={{alignSelf: "flex-start"}}
+                        style={{ alignSelf: "flex-start" }}
                         messageText={
                             !unsavedBestRule
                                 ? t("ActiveLearning.saveDialog.bestLearnedRule.noBestLearnedRuleMessage")
@@ -151,11 +141,7 @@ export const LinkingRuleActiveLearningSaveModal = ({
                 </FieldItemRow>
                 <Spacing />
                 {unsavedBestRule ? (
-                    <LinkingRuleActiveLearningBestLearnedRule
-                        rule={unsavedBestRule}
-                        score={evaluationScore}
-                        defaultDisplayVisualRule
-                    />
+                    <LinkingRuleActiveLearningBestLearnedRule rule={unsavedBestRule} defaultDisplayVisualRule />
                 ) : null}
             </div>
         </SimpleDialog>

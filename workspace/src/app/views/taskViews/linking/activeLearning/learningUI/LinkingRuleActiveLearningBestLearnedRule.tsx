@@ -1,30 +1,29 @@
 import {
     Card,
-    CardHeader,
-    CardTitle,
-    CardOptions,
     CardContent,
+    CardHeader,
+    CardOptions,
+    CardTitle,
     Divider,
     IconButton,
     Notification,
-    Tooltip,
-    Tag,
     Spacing,
+    Tag,
+    Tooltip,
 } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
-import { IEvaluatedReferenceLinksScore, ILinkingRule, OptionallyLabelledParameter } from "../../linking.types";
 import { LinkingRuleActiveLearningBestLearnedRuleModal } from "./LinkingRuleActiveLearningBestLearnedRuleModal";
 import { VisualBestLinkingRule } from "./VisualBestLinkingRule";
 import linkingRuleUtils from "../../LinkingRuleEditor.utils";
 import ruleEditorUtils from "../../../../shared/RuleEditor/RuleEditor.utils";
 import { IRuleOperatorNode } from "../../../../shared/RuleEditor/RuleEditor.typings";
 import { ruleEditorNodeParameterLabel } from "../../../../shared/RuleEditor/model/RuleEditorModel.typings";
+import { ActiveLearningBestRule } from "../LinkingRuleActiveLearning.typings";
 
 interface LinkingRuleActiveLearningBestLearnedRuleProps {
-    rule?: OptionallyLabelledParameter<ILinkingRule>;
-    score?: IEvaluatedReferenceLinksScore;
+    rule?: ActiveLearningBestRule;
     defaultDisplayVisualRule?: boolean;
 }
 
@@ -34,13 +33,13 @@ interface LinkingRuleActiveLearningBestLearnedRuleProps {
  */
 export const LinkingRuleActiveLearningBestLearnedRule = ({
     rule,
-    score,
-    defaultDisplayVisualRule = false
+    defaultDisplayVisualRule = false,
 }: LinkingRuleActiveLearningBestLearnedRuleProps) => {
     const [displayVisualRule, setDisplayVisualRule] = React.useState(defaultDisplayVisualRule);
     const [displayVisualRuleModal, setDisplayVisualRuleModal] = React.useState(false);
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
     const { t } = useTranslation();
+    const score = rule?.evaluationResult;
     const scoreString = (score?.fMeasure ?? "-").replaceAll(".00", ".0");
     const ruleOperators = rule
         ? activeLearningContext.convertRule(linkingRuleUtils.optionallyLabelledParameterToValue(rule))
@@ -90,13 +89,13 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
             <div>
                 {[...sourcePaths, ...targetPaths, ...comparisons, ...transformations, ...aggregations].map((op) => {
                     return (
-                        <>
-                            <Tag key={op.label} backgroundColor={op.color}>
+                        <React.Fragment key={op.label}>
+                            <Tag backgroundColor={op.color}>
                                 {op.label}
                                 {op.count > 1 ? ` (${op.count})` : ""}
                             </Tag>
                             <Spacing size={"tiny"} vertical={true} />
-                        </>
+                        </React.Fragment>
                     );
                 })}
             </div>
@@ -151,15 +150,11 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
                 <Divider />
                 <CardContent>
                     {displayVisualRule ? (
-                        <>
-                            {activeLearningContext.linkTask && rule && (
-                                <VisualBestLinkingRule rule={rule} />
-                            )}
-                        </>
+                        <>{activeLearningContext.linkTask && rule && <VisualBestLinkingRule rule={rule} />}</>
+                    ) : rule ? (
+                        <RuleSummary />
                     ) : (
-                        <>
-                            {rule ? <RuleSummary /> : "No rule learned, yet."}
-                        </>
+                        "No rule learned, yet."
                     )}
                 </CardContent>
             </Card>

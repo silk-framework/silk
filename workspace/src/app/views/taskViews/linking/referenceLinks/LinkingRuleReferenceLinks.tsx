@@ -1,10 +1,10 @@
 import {
     Button,
     Card,
-    CardHeader,
-    CardTitle,
-    CardOptions,
     CardContent,
+    CardHeader,
+    CardOptions,
+    CardTitle,
     Checkbox,
     Divider,
     Icon,
@@ -23,10 +23,11 @@ import {
 import { usePagination } from "@eccenca/gui-elements/src/components/Pagination/Pagination";
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { IEntityLink } from "../linking.types";
-import { EntityLink, LabelProperties, ReferenceLinksOrdered } from "./LinkingRuleReferenceLinks.typing";
-import referenceLinksUtils from "./LinkingRuleReferenceLinks.utils";
-import { ActiveLearningDecisions } from "../activeLearning/LinkingRuleActiveLearning.typings";
+import { LabelProperties } from "./LinkingRuleReferenceLinks.typing";
+import {
+    ActiveLearningReferenceLink,
+    ActiveLearningReferenceLinks,
+} from "../activeLearning/LinkingRuleActiveLearning.typings";
 
 interface LinkingRuleReferenceLinksProps {
     /** Title that is shown in the header. */
@@ -34,22 +35,21 @@ interface LinkingRuleReferenceLinksProps {
     /** If the reference links are being updated/loaded from the backend. */
     loading?: boolean;
     /** Reference links to display. */
-    referenceLinks?: ReferenceLinksOrdered;
+    referenceLinks?: ActiveLearningReferenceLinks;
     /** The paths whose values should be displayed as entity labels. If missing the first value is shown.of each entity. */
     labelPaths?: LabelProperties;
     /** Remove a link from the list. */
-    removeLink: (link: EntityLink) => any;
+    removeLink: (link: ActiveLearningReferenceLink) => any;
     /** When defined an "open" icon exists that calls this function. */
-    openLink?: (link: EntityLink) => any;
+    openLink?: (link: ActiveLearningReferenceLink) => any;
     /** If exists then the component allows to show either labeled or unlabeled links. */
     showLinkType?: (type: ReferenceLinkTypeFilterValue) => any;
 }
 
 type ReferenceLinkTypeFilterValue = "labeled" | "unlabeled";
 
-type AnnotatedReferenceLink = IEntityLink & {
+type AnnotatedReferenceLink = ActiveLearningReferenceLink & {
     misMatch: boolean;
-    type: ActiveLearningDecisions;
 };
 
 /** Displays reference links of a linking rule. */
@@ -98,16 +98,15 @@ export const LinkingRuleReferenceLinks = ({
             ...l,
             type: l.decision ?? "unlabeled",
             misMatch:
-                (l.decision === "positive" || l.decision === "negative") && l.confidence
-                    ? (l.confidence < 0 && l.decision === "positive") ||
-                      (l.confidence >= 0 && l.decision === "negative")
+                (l.decision === "positive" || l.decision === "negative") && l.score
+                    ? (l.score < 0 && l.decision === "positive") || (l.score >= 0 && l.decision === "negative")
                     : false,
         }));
         setReferenceLinksFiltered(
             referenceLinksAnnotated.filter((link) => {
                 const typeFiltered = !(
-                    (showDeclinedOnly && link.type === "positive") ||
-                    (showConfirmedOnly && link.type === "negative")
+                    (showDeclinedOnly && link.decision === "positive") ||
+                    (showConfirmedOnly && link.decision === "negative")
                 );
                 const misMatchFiltered = !showOnlyMismatches || link.misMatch;
                 return typeFiltered && misMatchFiltered;
@@ -203,6 +202,33 @@ export const LinkingRuleReferenceLinks = ({
         );
     };
 
+    const entityLabels = (link: AnnotatedReferenceLink): [string, string] => {
+        const { sourceProperties, targetProperties } = labelPaths ?? {};
+        const extractLabel = (ofTarget: boolean): string => {
+            const properties = ofTarget ? targetProperties : sourceProperties;
+            const pathValues = link.comparisons.map((comparison) => {
+                return {
+                    path: ofTarget ? comparison.target : comparison.source,
+                    examples: ofTarget ? comparison.targetExamples : comparison.sourceExamples,
+                };
+            });
+            if (properties) {
+                const labelValues = properties.map((property, idx) => {
+                    const match = pathValues.find((pv) => pv.path.path === property);
+                    if (match) {
+                        return match.examples;
+                    } else {
+                        return pathValues[idx]?.examples ?? [];
+                    }
+                });
+                return labelValues.flat().join(", ");
+            } else {
+                return (pathValues[0]?.examples ?? []).flat().join(", ");
+            }
+        };
+        return [extractLabel(false), extractLabel(true)];
+    };
+
     const ReferenceLinksTable = () => {
         return (
             <>
@@ -230,58 +256,46 @@ export const LinkingRuleReferenceLinks = ({
                                       pagination.current * pagination.limit
                                   )
                                   .map((link, rowIdx) => {
-                                      const entityLink = referenceLinksUtils.toReferenceEntityLink(link);
-                                      if (entityLink) {
-                                          const sourceLabel = referenceLinksUtils.entityValuesConcatenated(
-                                              entityLink.source,
-                                              labelPaths?.sourceProperties
-                                          );
-                                          const targetLabel = referenceLinksUtils.entityValuesConcatenated(
-                                              entityLink.target,
-                                              labelPaths?.targetProperties
-                                          );
-                                          return (
-                                              <TableRow key={rowIdx}>
-                                                  <TableCell>
-                                                      <Icon
-                                                          name={
-                                                              link.decision !== "unlabeled"
-                                                                  ? link.decision === "positive"
-                                                                      ? "state-confirmed"
-                                                                      : "state-declined"
-                                                                  : "item-question"
-                                                          }
-                                                      />
-                                                  </TableCell>
-                                                  <TableCell>
-                                                      {link.decision !== "unlabeled" && link.misMatch ? (
-                                                          <Icon name={"state-warning"} color={"red"} />
-                                                      ) : null}
-                                                  </TableCell>
-                                                  <TableCell>{sourceLabel}</TableCell>
-                                                  <TableCell>{targetLabel}</TableCell>
-                                                  <TableCell>
-                                                      <Toolbar>
-                                                          <ToolbarSection>
+                                      const [sourceLabel, targetLabel] = entityLabels(link);
+                                      return (
+                                          <TableRow key={rowIdx}>
+                                              <TableCell>
+                                                  <Icon
+                                                      name={
+                                                          link.decision !== "unlabeled"
+                                                              ? link.decision === "positive"
+                                                                  ? "state-confirmed"
+                                                                  : "state-declined"
+                                                              : "item-question"
+                                                      }
+                                                  />
+                                              </TableCell>
+                                              <TableCell>
+                                                  {link.decision !== "unlabeled" && link.misMatch ? (
+                                                      <Icon name={"state-warning"} color={"red"} />
+                                                  ) : null}
+                                              </TableCell>
+                                              <TableCell>{sourceLabel}</TableCell>
+                                              <TableCell>{targetLabel}</TableCell>
+                                              <TableCell>
+                                                  <Toolbar>
+                                                      <ToolbarSection>
+                                                          <IconButton
+                                                              name={"item-remove"}
+                                                              disruptive={true}
+                                                              onClick={() => removeLink(link)}
+                                                          />
+                                                          {openLink ? (
                                                               <IconButton
-                                                                  name={"item-remove"}
-                                                                  disruptive={true}
-                                                                  onClick={() => removeLink(entityLink)}
+                                                                  name={"item-viewdetails"}
+                                                                  onClick={() => openLink(link)}
                                                               />
-                                                              {openLink ? (
-                                                                  <IconButton
-                                                                      name={"item-viewdetails"}
-                                                                      onClick={() => openLink(entityLink)}
-                                                                  />
-                                                              ) : null}
-                                                          </ToolbarSection>
-                                                      </Toolbar>
-                                                  </TableCell>
-                                              </TableRow>
-                                          );
-                                      } else {
-                                          return null;
-                                      }
+                                                          ) : null}
+                                                      </ToolbarSection>
+                                                  </Toolbar>
+                                              </TableCell>
+                                          </TableRow>
+                                      );
                                   })
                             : null}
                     </TableBody>
