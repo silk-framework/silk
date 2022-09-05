@@ -2,14 +2,15 @@ import { FetchResponse } from "../../../../services/fetch/responseInterceptor";
 import fetch from "../../../../services/fetch";
 import { learningApi } from "../../../../utils/getApiEndpoint";
 import {
+    ActiveLearningBestRule,
     ActiveLearningDecisions,
     ActiveLearningLinkCandidate,
+    ActiveLearningReferenceLinks,
     ActiveLearningSessionInfo,
     ComparisonPair,
     ComparisonPairs,
 } from "./LinkingRuleActiveLearning.typings";
-import { ILinkingRule, OptionallyLabelledParameter, ReferenceLinks } from "../linking.types";
-import { ReferenceLinksOrdered } from "../referenceLinks/LinkingRuleReferenceLinks.typing";
+import { ReferenceLinks } from "../linking.types";
 
 /** Get the comparison pair configuration for the active learning session.
  *
@@ -65,7 +66,7 @@ export const nextActiveLearningLinkCandidate = (
 export const bestLearnedLinkageRule = (
     projectId: string,
     linkingTaskId: string
-): Promise<FetchResponse<OptionallyLabelledParameter<ILinkingRule>>> => {
+): Promise<FetchResponse<ActiveLearningBestRule>> => {
     return fetch({
         url: learningApi(`/tasks/${projectId}/${linkingTaskId}/activeLearning/bestRule`),
         query: {
@@ -81,11 +82,11 @@ export const fetchActiveLearningReferenceLinks = (
     includePositiveLinks: boolean = true,
     includeNegativeLinks: boolean = true,
     includeUnlabeledLinks: boolean = false
-): Promise<FetchResponse<ReferenceLinksOrdered>> => {
+): Promise<FetchResponse<ActiveLearningReferenceLinks>> => {
     return fetch({
         url: learningApi(`/tasks/${projectId}/${linkingTaskId}/activeLearning/referenceLinks`),
         query: {
-            withEntitiesAndSchema: true,
+            withComparisons: true,
             includePositiveLinks,
             includeNegativeLinks,
             includeUnlabeledLinks,

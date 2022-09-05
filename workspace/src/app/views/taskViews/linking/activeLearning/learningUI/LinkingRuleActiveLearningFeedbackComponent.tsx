@@ -19,19 +19,20 @@ import {
     ToolbarSection,
 } from "@eccenca/gui-elements";
 import {
-    ComparisionDataContainer,
-    ComparisionDataHead,
     ComparisionDataBody,
-    ComparisionDataRow,
-    ComparisionDataHeader,
     ComparisionDataCell,
     ComparisionDataConnection,
+    ComparisionDataContainer,
+    ComparisionDataHead,
+    ComparisionDataHeader,
+    ComparisionDataRow,
 } from "./../components/ComparisionData";
 import { LinkingRuleActiveLearningFeedbackContext } from "../contexts/LinkingRuleActiveLearningFeedbackContext";
-import { scoreColorRepresentation, scoreColorConfig } from "../LinkingRuleActiveLearning.shared";
+import { scoreColorConfig, scoreColorRepresentation } from "../LinkingRuleActiveLearning.shared";
 import {
     ActiveLearningDecisions,
     ActiveLearningLinkCandidate,
+    ActiveLearningReferenceLink,
     ComparisonPair,
     ComparisonPairWithId,
     TypedPath,
@@ -39,7 +40,6 @@ import {
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 import { EntityLink, EntityLinkPropertyPairValues } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
 import ConnectionEnabled from "./../components/ConnectionEnabled";
-import referenceLinksUtils from "../../referenceLinks/LinkingRuleReferenceLinks.utils";
 import { useTranslation } from "react-i18next";
 import utils from "../LinkingRuleActiveLearning.utils";
 
@@ -51,9 +51,7 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
     /** The property pairs that will be displayed as entity title during the active learning. */
     const [labelPropertyPairs, setLabelPropertyPairs] = React.useState<ComparisonPairWithId[]>([]);
     /** The values of the selected entity link. */
-    const [valuesToDisplay, setValuesToDisplay] = React.useState<
-        EntityLinkPropertyPairValues[] | ComparisonPair[] | undefined
-    >();
+    const [valuesToDisplay, setValuesToDisplay] = React.useState<ComparisonPair[] | undefined>();
     const [submittingEntityLink, setSubmittingEntityLink] = React.useState(false);
     const labelPropertyPairIds = new Set(labelPropertyPairs.map((lpp) => lpp.pairId));
     // When the component is inactive, show spinner
@@ -76,25 +74,7 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
     // Extract values for property pairs
     React.useEffect(() => {
         if (activeLearningContext.propertiesToCompare && activeLearningFeedbackContext.selectedLink) {
-            if ((activeLearningFeedbackContext.selectedLink as EntityLink).decision) {
-                const link = activeLearningFeedbackContext.selectedLink as EntityLink;
-                const sourceValues = referenceLinksUtils.pickEntityValues(
-                    link.source,
-                    activeLearningContext.propertiesToCompare.map((prop) => prop.source.path)
-                );
-                const targetValues = referenceLinksUtils.pickEntityValues(
-                    link.target,
-                    activeLearningContext.propertiesToCompare.map((prop) => prop.target.path)
-                );
-                const pairValues = sourceValues.map((sourceVals, idx) => ({
-                    sourceExamples: sourceVals,
-                    targetExamples: targetValues[idx] ?? [],
-                }));
-                setValuesToDisplay(pairValues);
-            } else {
-                const candidate = activeLearningFeedbackContext.selectedLink as ActiveLearningLinkCandidate;
-                setValuesToDisplay(candidate.comparisons);
-            }
+            setValuesToDisplay(activeLearningFeedbackContext.selectedLink.comparisons);
         }
     }, [activeLearningContext.propertiesToCompare, activeLearningFeedbackContext.selectedLink]);
 
@@ -126,22 +106,20 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
         <Card elevation={0}>
             <Header
                 disabledButtons={!activeLearningFeedbackContext.selectedLink}
-                selectedDecision={(activeLearningFeedbackContext.selectedLink as EntityLink)?.decision}
+                selectedDecision={(activeLearningFeedbackContext.selectedLink as ActiveLearningReferenceLink)?.decision}
                 cancel={activeLearningFeedbackContext.cancel}
             />
             <Divider />
             <CardContent>
-                <InteractionGate
-                    inert={loading}
-                    showSpinner={loading}
-                    spinnerProps={{delay: 500}}
-                >
+                <InteractionGate inert={loading} showSpinner={loading} spinnerProps={{ delay: 500 }}>
                     <DecisionButtons
                         disabledButtons={!activeLearningFeedbackContext.selectedLink}
                         submitLink={(decision: ActiveLearningDecisions) =>
                             submitLink(activeLearningFeedbackContext.selectedLink, decision)
                         }
-                        selectedDecision={(activeLearningFeedbackContext.selectedLink as EntityLink)?.decision}
+                        selectedDecision={
+                            (activeLearningFeedbackContext.selectedLink as ActiveLearningReferenceLink)?.decision
+                        }
                         cancel={activeLearningFeedbackContext.cancel}
                     />
                     {valuesToDisplay ? (
@@ -339,7 +317,7 @@ const EntitiesPropertyPair = ({
     toggleLabelSelection,
     score,
 }: EntitiesPropertyPairProps) => {
-    const scoreColor = scoreColorRepresentation(score)
+    const scoreColor = scoreColorRepresentation(score);
     const [t] = useTranslation();
     return (
         <ComparisionDataRow>
@@ -347,14 +325,14 @@ const EntitiesPropertyPair = ({
             <ComparisionDataConnection>
                 <ConnectionEnabled
                     label={utils.comparisonType(propertyPair)}
-                    actions={(
+                    actions={
                         <IconButton
                             text={selectedForLabel ? t("ActiveLearning.feedback.removeFromLabel") : t("ActiveLearning.feedback.addToLabel")}
                             name={selectedForLabel ? "favorite-filled" : "favorite-empty"}
                             elevated
                             onClick={toggleLabelSelection}
                         />
-                    )}
+                    }
                     color={scoreColor}
                 />
             </ComparisionDataConnection>

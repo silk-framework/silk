@@ -1,4 +1,5 @@
-import { ReferenceLinksStats } from "../referenceLinks/LinkingRuleReferenceLinks.typing";
+import { LinkType, ReferenceLinksStats } from "../referenceLinks/LinkingRuleReferenceLinks.typing";
+import { IEvaluatedReferenceLinksScore, ILinkingRule, OptionallyLabelledParameter } from "../linking.types";
 
 /** The steps of the active learning process. */
 export type ActiveLearningStep = "config" | "linkLearning";
@@ -13,6 +14,7 @@ export interface ComparisonPairs {
 export interface ComparisonPair {
     source: TypedPath;
     target: TypedPath;
+    // TODO: nested arrays needed?
     sourceExamples: string[][];
     targetExamples: string[][];
     /** A confidence score that goes from -1.0 to 1.0 (not matching to optimal match) */
@@ -55,4 +57,22 @@ interface UserInfo {
 export interface ActiveLearningSessionInfo {
     users: UserInfo[];
     referenceLinks: ReferenceLinksStats;
+}
+
+/** The best currently learned rule returned by the bestRule endpoint. */
+export type ActiveLearningBestRule = OptionallyLabelledParameter<ILinkingRule> & {
+    evaluationResult: IEvaluatedReferenceLinksScore;
+};
+
+/** A reference link from the active learning reference links endpoint that contains an evaluation of the comparison pairs. */
+export interface ActiveLearningReferenceLink extends ActiveLearningLinkCandidate {
+    /** The label of the reference link. */
+    decision: LinkType;
+    /** The confidence score, -1.0 to 1.0 */
+    score?: number;
+}
+
+/** Reference links returned from the active learning reference links endpoint. */
+export interface ActiveLearningReferenceLinks {
+    links: ActiveLearningReferenceLink[];
 }
