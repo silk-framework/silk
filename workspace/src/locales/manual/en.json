@@ -791,7 +791,9 @@
         "config": {
             "buttons": {
                 "startLearning": "Start learning",
-                "resetTooltip": "Reset learning state"
+                "resetTooltip": "Reset learning state",
+                "showInfo": "Show more information",
+                "closeInfo": "Close"
             },
             "errors": {
                 "fetchAutoCompletionResult": "An error occurred while trying to fetch path auto-completions.",
@@ -799,7 +801,10 @@
             },
             "manualSelection": {
                 "sourcePath": "Source path",
-                "targetPath": "Target path"
+                "targetPath": "Target path",
+                "info": "Specify property paths to be compared.",
+                "cannotAdd": "At least one paths is not valid.",
+                "insertPath": "Enter an input path"
             },
             "suggestionWarnings": "There are"
         },
