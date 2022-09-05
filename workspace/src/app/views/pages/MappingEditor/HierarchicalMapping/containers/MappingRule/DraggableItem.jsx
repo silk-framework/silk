@@ -44,10 +44,12 @@ class DraggableItem extends React.Component {
     }
 
     updateHistory = (ruleId) => {
-        const history = getHistory();
-        history.replace({
-            search: `?${new URLSearchParams({ ruleId })}`,
-        });
+        if (!this.props.startFullScreen) {
+            const history = getHistory();
+            history.replace({
+                search: `?${new URLSearchParams({ ruleId })}`,
+            });
+        }
     };
 
     updateQueryOnExpansion() {

@@ -237,7 +237,7 @@ export function ProjectTaskTabView({
         return locationParser.stringifyUrl(iframeUrl);
     };
 
-    let iframeNr = 1
+    let iframeNr = 1;
 
     const iframeWidget = () => {
         return (
@@ -304,7 +304,9 @@ export function ProjectTaskTabView({
                         ) : (
                             projectId &&
                             taskId &&
-                            (taskViews ?? []).find((v) => v.id === selectedTab)?.render(projectId, taskId, viewActions)
+                            (taskViews ?? [])
+                                .find((v) => v.id === selectedTab)
+                                ?.render(projectId, taskId, viewActions, startFullscreen)
                         )
                     ) : isFetchingLinks ? (
                         <Loading />

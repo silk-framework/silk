@@ -1,20 +1,20 @@
 import React from "react";
 import _ from "lodash";
-import {Spinner} from "@eccenca/gui-elements"
+import { Spinner } from "@eccenca/gui-elements";
 import PropTypes from "prop-types";
 
-import {ruleRemoveAsync, setApiDetails} from "./store";
+import { ruleRemoveAsync, setApiDetails } from "./store";
 
 import MappingsTree from "./containers/MappingsTree";
 import MappingsWorkview from "./containers/MappingsWorkview";
 import MessageHandler from "./components/MessageHandler";
-import {MAPPING_RULE_TYPE_OBJECT, MESSAGES} from "./utils/constants";
+import { MAPPING_RULE_TYPE_OBJECT, MESSAGES } from "./utils/constants";
 import RemoveMappingRuleDialog from "./elements/RemoveMappingRuleDialog";
 import DiscardChangesDialog from "./elements/DiscardChangesDialog";
 import EventEmitter from "./utils/EventEmitter";
-import {withHistoryHOC} from "./utils/withHistoryHOC";
+import { withHistoryHOC } from "./utils/withHistoryHOC";
 import MappingEditorModal from "./MappingEditorModal";
-import {getHistory} from "../../../../store/configureStore";
+import { getHistory } from "../../../../store/configureStore";
 
 class HierarchicalMapping extends React.Component {
     // define property types
@@ -22,8 +22,8 @@ class HierarchicalMapping extends React.Component {
         project: PropTypes.string.isRequired, // Current DI Project
         transformTask: PropTypes.string.isRequired, // Current Transformation
         initialRule: PropTypes.string,
-        openMappingEditor: PropTypes.func,
         history: PropTypes.object,
+        startFullScreen: PropTypes.bool,
     };
 
     constructor(props) {
@@ -47,7 +47,7 @@ class HierarchicalMapping extends React.Component {
             askForRemove: false,
             removeFunction: this.handleConfirmRemove,
             showMappingEditor: false,
-            mappingEditorRuleId: undefined
+            mappingEditorRuleId: undefined,
         };
     }
 
@@ -66,10 +66,12 @@ class HierarchicalMapping extends React.Component {
     componentDidUpdate(prevProps, prevState) {
         if (prevState.currentRuleId !== this.state.currentRuleId && !_.isEmpty(this.state.currentRuleId)) {
             const history = getHistory();
-            const ruleId = this.state.currentRuleId
-            history.replace({
-                search: `?${new URLSearchParams({ ruleId })}`,
-            });
+            const ruleId = this.state.currentRuleId;
+            if (!this.props.startFullScreen) {
+                history.replace({
+                    search: `?${new URLSearchParams({ ruleId })}`,
+                });
+            }
         }
         if (prevProps.task !== this.props.task) {
             this.loadNavigationTree();
@@ -232,20 +234,22 @@ class HierarchicalMapping extends React.Component {
         // render mapping edit / create view of value and object
         return (
             <section className="ecc-silk-mapping">
-                {showMappingEditor && this.state.mappingEditorRuleId ? <MappingEditorModal
-                    projectId={this.props.project}
-                    transformTaskId={this.props.transformTask}
-                    ruleId={this.state.mappingEditorRuleId}
-                    isOpen={showMappingEditor}
-                    onClose={() => {
-                        this.setState({
-                            showMappingEditor: false,
-                            mappingEditorRuleId: undefined,
-                        })
-                        this.onRuleNavigation({newRuleId: this.state.mappingEditorRuleId})
-                        EventEmitter.emit(MESSAGES.RELOAD, true);
-                    }}
-                /> : null}
+                {showMappingEditor && this.state.mappingEditorRuleId ? (
+                    <MappingEditorModal
+                        projectId={this.props.project}
+                        transformTaskId={this.props.transformTask}
+                        ruleId={this.state.mappingEditorRuleId}
+                        isOpen={showMappingEditor}
+                        onClose={() => {
+                            this.setState({
+                                showMappingEditor: false,
+                                mappingEditorRuleId: undefined,
+                            });
+                            this.onRuleNavigation({ newRuleId: this.state.mappingEditorRuleId });
+                            EventEmitter.emit(MESSAGES.RELOAD, true);
+                        }}
+                    />
+                ) : null}
                 {askForRemove && (
                     <RemoveMappingRuleDialog
                         mappingType={elementToDelete.type}
@@ -266,7 +270,11 @@ class HierarchicalMapping extends React.Component {
                 </div>
                 <div className="ecc-silk-mapping__content">
                     {showNavigation && (
-                        <MappingsTree currentRuleId={currentRuleId} handleRuleNavigation={this.onRuleNavigation} />
+                        <MappingsTree
+                            currentRuleId={currentRuleId}
+                            handleRuleNavigation={this.onRuleNavigation}
+                            startFullScreen={this.props.startFullScreen}
+                        />
                     )}
                     {
                         <MappingsWorkview
@@ -278,6 +286,7 @@ class HierarchicalMapping extends React.Component {
                             onAskDiscardChanges={this.toggleAskForDiscard}
                             onClickedRemove={this.handleClickRemove}
                             openMappingEditor={this.handleOpenMappingEditorModal}
+                            startFullScreen={this.props.startFullScreen}
                         />
                     }
                 </div>

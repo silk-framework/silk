@@ -22,8 +22,10 @@ export const registerCorePlugins = () => {
         pluginRegistry.registerTaskView("transform", {
             id: "hierarchicalMappingEditor",
             label: "Mapping editor",
-            render(projectId: string, taskId: string): JSX.Element {
-                return <HierarchicalMapping project={projectId} transformTask={taskId} />;
+            render(projectId: string, taskId: string, _: IViewActions, startFullScreen: boolean): JSX.Element {
+                return (
+                    <HierarchicalMapping project={projectId} transformTask={taskId} startFullScreen={startFullScreen} />
+                );
             },
         });
 

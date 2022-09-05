@@ -225,16 +225,17 @@ class MappingsTree extends React.Component {
         const childs = _.chain(allRules)
             .filter(({ type }) => showValueMappings || type === MAPPING_RULE_TYPE_OBJECT)
             .value();
-
         const element = () => (
             <button
                 className="ecc-silk-mapping__treenav--item-handler"
                 data-test-id={`ecc-silk-mapping__treenav__button-${id}`}
                 onClick={() => {
-                    const history = getHistory();
-                    history.replace({
-                        search: `?${new URLSearchParams({ ruleId: id })}`,
-                    });
+                    if (!this.props.startFullScreen) {
+                        const history = getHistory();
+                        history.replace({
+                            search: `?${new URLSearchParams({ ruleId: id })}`,
+                        });
+                    }
                     handleRuleNavigation({ newRuleId: id, parentId: undefined });
                 }}
             >

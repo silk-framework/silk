@@ -6,7 +6,7 @@ import React from "react";
 import _ from "lodash";
 import PropTypes from "prop-types";
 import { copyRuleAsync, errorChannel, getApiDetails, getRuleAsync } from "../store";
-import { Spinner } from "@eccenca/gui-elements"
+import { Spinner } from "@eccenca/gui-elements";
 import MappingHeader from "./MappingHeader";
 import RootMappingRule from "./RootMappingRule";
 import ObjectMappingRuleForm from "./MappingRule/ObjectRule/ObjectRuleForm";
@@ -380,6 +380,7 @@ class MappingsWorkview extends React.Component {
                     onMappingCreate={this.handleCreate}
                     openMappingEditor={this.props.openMappingEditor}
                     loading={this.state.loading}
+                    startFullScreen={this.props.startFullScreen}
                 />
             ) : null;
 
@@ -403,6 +404,7 @@ class MappingsWorkview extends React.Component {
                         onAskDiscardChanges={this.props.onAskDiscardChanges}
                         onClickedRemove={this.props.onClickedRemove}
                         openMappingEditor={this.props.openMappingEditor}
+                        startFullScreen={this.props.startFullScreen}
                     />
                     {listSuggestions ? false : listMappings}
                 </div>

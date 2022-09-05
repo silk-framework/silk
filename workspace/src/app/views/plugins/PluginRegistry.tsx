@@ -21,7 +21,7 @@ export interface IProjectTaskView {
     // The label that should be shown to the user
     label: string;
     // Function that renders the view
-    render: (projectId: string, taskId: string, viewActions?: IViewActions) => JSX.Element;
+    render: (projectId: string, taskId: string, viewActions?: IViewActions, startInFullScreen?: boolean) => JSX.Element;
 }
 
 /** A plugin component that can receive arbitrary parameters. */

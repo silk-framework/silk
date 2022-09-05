@@ -25,6 +25,7 @@ interface MappingsListProps {
     onRuleIdChange?: () => any;
     onAskDiscardChanges?: () => any;
     openMappingEditor: () => void;
+    startFullScreen: boolean;
     // Executes when one of the create mapping options are clicked. The type specifies the type of mapping.
     onMappingCreate?: (mappingSkeleton: { type: "direct" | "object" }) => any;
 }
@@ -47,10 +48,11 @@ const MappingsList = ({
     onAskDiscardChanges = nop,
     onMappingCreate = nop,
     openMappingEditor,
+    startFullScreen = false,
 }: MappingsListProps) => {
     const [items, setItems] = useState<any[]>(rulesToList(rules, parentRuleId || currentRuleId));
     const [reorderingRequestPending, setReorderingRequestPending] = useState(false);
-    const {registerError} = useErrorHandler()
+    const { registerError } = useErrorHandler();
     useEffect(() => {
         setItems(rulesToList(rules, parentRuleId || currentRuleId));
     }, [rules, parentRuleId, currentRuleId]);
@@ -69,7 +71,7 @@ const MappingsList = ({
                 setItems(reorderArray(items, fromPos, toPos));
                 await silkRestApi.reorderRules(project, transformTask, parentRuleId, childrenRules);
             } catch (ex) {
-                registerError("MappingsList.handleOrderRules", "Reordering of the mappings rules has failed.", ex)
+                registerError("MappingsList.handleOrderRules", "Reordering of the mappings rules has failed.", ex);
                 // Request failed, rollback change.
                 setItems(items);
             } finally {
@@ -125,6 +127,7 @@ const MappingsList = ({
                                             onOrderRules={handleOrderRules}
                                             openMappingEditor={openMappingEditor}
                                             mapRuleLoading={loading}
+                                            startFullScreen={startFullScreen}
                                         />
                                     ))}
                                     {provided.placeholder}
