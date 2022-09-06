@@ -824,6 +824,9 @@
                 "warningsButton": "Show warnings"
             }
         },
+        "toolbar": {
+            "title": "Compare resources"
+        },
         "bestLearnedRule": {
             "title": "Top-performing learned rule (Score: {{score}})",
             "titleTooltip": "The best rule that has been learned so far. The performance score ranges from 0.0 (worst) to 1.0 (best).",

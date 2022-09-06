@@ -70,6 +70,7 @@ export const LinkingRuleActiveLearningSaveModal = ({
             title={t("ActiveLearning.saveDialog.title")}
             isOpen={true}
             onClose={onClose}
+            hasBorder
             actions={[
                 <Button
                     affirmative

@@ -152,13 +152,12 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
         setShowSaveDialog(true);
     };
 
-    // TODO: i18n
     const Title = () => {
         return (
             <SectionHeader>
                 <Toolbar>
                     <ToolbarSection>
-                        <TitleMainsection>Compare resources</TitleMainsection>
+                        <TitleMainsection>{t("ActiveLearning.toolbar.title")}</TitleMainsection>
                     </ToolbarSection>
                     <ToolbarSection canGrow>
                         <Spacing vertical />
@@ -172,14 +171,13 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                         />
                         <Spacing vertical={true} size="small" />
                         <Button
-                            title={"Save link rule and/or newly added reference links."}
+                            text={t("common.action.save")}
+                            title={t("ActiveLearning.saveDialog.title")}
                             affirmative={true}
                             // TODO: Disable if no reference link was added
                             disabled={!bestRule}
                             onClick={onSaveClick}
-                        >
-                            Save
-                        </Button>
+                        />
                     </ToolbarSection>
                 </Toolbar>
             </SectionHeader>

@@ -36,9 +36,14 @@ export const ActiveLearningSessionInfoWidget = ({
                             return <li key={user.uri}>{user.label || user.uri}</li>;
                         })}
                     </ul>
+                    <Spacing />
                 </>
             ) : null}
-            <ReferenceLinksStatsWidget stats={sessionInfo.referenceLinks} />
+            {(sessionInfo.referenceLinks.addedLinks + sessionInfo.referenceLinks.removedLinks > 0) && (
+                <>
+                    <ReferenceLinksStatsWidget stats={sessionInfo.referenceLinks} />
+                </>
+            )}
         </HtmlContentBlock>
     ) : (
         <Notification warning={true}>{t("ActiveLearning.statistics.noStats")}</Notification>
@@ -49,7 +54,6 @@ const ReferenceLinksStatsWidget = ({ stats }: { stats: ReferenceLinksStats }) =>
     const [t] = useTranslation();
     return stats.addedLinks > 0 || stats.removedLinks > 0 ? (
         <>
-            <Spacing />
             {t("ActiveLearning.statistics.referenceLinksChangeStats")}
             <Spacing />
             <ul>
