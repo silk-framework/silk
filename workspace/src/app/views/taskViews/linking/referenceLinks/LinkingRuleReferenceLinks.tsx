@@ -64,6 +64,7 @@ export const LinkingRuleReferenceLinks = ({
 }: LinkingRuleReferenceLinksProps) => {
     const [showLinksList, setShowLinksList] = React.useState(false);
     const [showOnlyMismatches, setShowOnlyMismatches] = React.useState(false);
+    const [activeTableRow, setActiveTableRow] = React.useState<ActiveLearningReferenceLink | undefined>(undefined);
     // Show uncertain links instead of decision history.
     const [showUncertainLinks, setShowUncertainLinks] = React.useState(false);
     const [showConfirmedOnly, setShowConfirmedOnly] = React.useState(false);
@@ -112,6 +113,7 @@ export const LinkingRuleReferenceLinks = ({
                 return typeFiltered && misMatchFiltered;
             })
         );
+        setActiveTableRow(undefined);
     }, [referenceLinks, showOnlyMismatches, showConfirmedOnly, showDeclinedOnly]);
 
     if (referenceLinksFiltered && pagination.total !== referenceLinksFiltered.length) {
@@ -266,7 +268,10 @@ export const LinkingRuleReferenceLinks = ({
                                   .map((link, rowIdx) => {
                                       const [sourceLabel, targetLabel] = entityLabels(link);
                                       return (
-                                          <TableRow key={rowIdx}>
+                                          <TableRow
+                                              key={rowIdx}
+                                              isSelected={openLink && activeTableRow === link}
+                                          >
                                               <TableCell>
                                                   <Icon
                                                       name={
@@ -305,7 +310,10 @@ export const LinkingRuleReferenceLinks = ({
                                                               <IconButton
                                                                   name={"item-viewdetails"}
                                                                   text={t("ReferenceLinks.checkFeedback")}
-                                                                  onClick={() => openLink(link)}
+                                                                  onClick={() => {
+                                                                      openLink(link);
+                                                                      setActiveTableRow(link);
+                                                                  }}
                                                               />
                                                           ) : null}
                                                       </ToolbarSection>
