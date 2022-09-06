@@ -165,7 +165,7 @@ export const LinkingRuleReferenceLinks = ({
                                         elevated={!showUncertainLinks}
                                         onClick={() => showLinksOfType("labeled")}
                                     >
-                                        Certain
+                                        {t("ReferenceLinks.certainedOnly")}
                                     </Button>
                                     <Button
                                         small
@@ -174,7 +174,7 @@ export const LinkingRuleReferenceLinks = ({
                                         elevated={showUncertainLinks}
                                         onClick={() => showLinksOfType("unlabeled")}
                                     >
-                                        Uncertain
+                                        {t("ReferenceLinks.uncertainedOnly")}
                                     </Button>
                                     <Spacing vertical={true} size="small" />
                                 </>
@@ -241,8 +241,16 @@ export const LinkingRuleReferenceLinks = ({
                             <TableHeader key={"warning-column"} style={{ width: "1px" }}>
                                 &nbsp;
                             </TableHeader>
-                            <TableHeader>Dataset 1</TableHeader>
-                            <TableHeader>Dataset 2</TableHeader>
+                            <TableHeader>
+                                {t("widget.Filterbar.subsections.valueLabels.itemType.dataset")}
+                                {" "}
+                                1
+                            </TableHeader>
+                            <TableHeader>
+                                {t("widget.Filterbar.subsections.valueLabels.itemType.dataset")}
+                                {" "}
+                                2
+                            </TableHeader>
                             <TableHeader key={"actions-column"} style={{ width: "1px" }}>
                                 &nbsp;
                             </TableHeader>
@@ -268,11 +276,18 @@ export const LinkingRuleReferenceLinks = ({
                                                                   : "state-declined"
                                                               : "item-question"
                                                       }
+                                                      tooltipText={
+                                                          link.decision !== "unlabeled"
+                                                              ? link.decision === "positive"
+                                                                  ? t("ReferenceLinks.confirmed")
+                                                                  : t("ReferenceLinks.declined")
+                                                              : t("ReferenceLinks.uncertainedOnly")
+                                                      }
                                                   />
                                               </TableCell>
                                               <TableCell>
                                                   {link.decision !== "unlabeled" && link.misMatch ? (
-                                                      <Icon name={"state-warning"} color={"red"} />
+                                                      <Icon name={"state-warning"} color={"red"} tooltipText={t("ReferenceLinks.mismatchWithRule")} />
                                                   ) : null}
                                               </TableCell>
                                               <TableCell>{sourceLabel}</TableCell>
@@ -282,12 +297,14 @@ export const LinkingRuleReferenceLinks = ({
                                                       <ToolbarSection>
                                                           <IconButton
                                                               name={"item-remove"}
+                                                              text={t("ReferenceLinks.removeLink")}
                                                               disruptive={true}
                                                               onClick={() => removeLink(link)}
                                                           />
                                                           {openLink ? (
                                                               <IconButton
                                                                   name={"item-viewdetails"}
+                                                                  text={t("ReferenceLinks.checkFeedback")}
                                                                   onClick={() => openLink(link)}
                                                               />
                                                           ) : null}
@@ -306,7 +323,7 @@ export const LinkingRuleReferenceLinks = ({
     };
 
     return (
-        <Card elevation={0} data-test-id={"best-learned-rule-visual"}>
+        <Card elevation={0} data-test-id={"linking-reference-links"}>
             <ReferenceLinksHeader />
             {showLinksList && (
                 <>

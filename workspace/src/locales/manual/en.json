@@ -890,9 +890,16 @@
     },
     "ReferenceLinks": {
         "mismatchCheckboxTitle": "Mismatches ({{nrMismatches}})",
+        "mismatchWithRule": "Current best rule decides differently",
         "showList": "Show link list",
         "hideList": "Hide link list",
         "confirmedOnly": "Confirmed only ({{nr}})",
-        "declinedOnly": "Declined only ({{nr}})"
+        "declinedOnly": "Declined only ({{nr}})",
+        "confirmed": "Confirmed",
+        "declined": "Declined",
+        "certainedOnly": "Certained",
+        "uncertainedOnly": "Uncertained",
+        "removeLink": "Delete reference link",
+        "checkFeedback": "Re-evaluate feedback decision"
     }
 }
