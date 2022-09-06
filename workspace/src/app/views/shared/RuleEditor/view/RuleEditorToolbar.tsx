@@ -3,6 +3,7 @@ import {
     Button,
     Icon,
     IconButton,
+    Markdown,
     Spacing,
     StickyNoteModal,
     Switch,
@@ -21,6 +22,7 @@ import { EvaluationActivityControl } from "./evaluation/EvaluationActivityContro
 import { Prompt } from "react-router";
 import { RuleValidationError } from "../RuleEditor.typings";
 import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from "../model/RuleEditorModel.utils";
+import { RuleEditorBaseModal } from "./components/RuleEditorBaseModal";
 
 /** Toolbar of the rule editor. Contains global editor actions like save, redo/undo etc. */
 export const RuleEditorToolbar = () => {
@@ -128,6 +130,27 @@ export const RuleEditorToolbar = () => {
         <>
             {ruleEditorContext.editorTitle ? (
                 <TitleMainsection>{ruleEditorContext.editorTitle}</TitleMainsection>
+            ) : null}
+
+            {ruleEditorUiContext.currentRuleNodeDescription ? (
+                <RuleEditorBaseModal
+                    isOpen={true}
+                    title={t("common.words.description")}
+                    onClose={() => ruleEditorUiContext.setCurrentRuleNodeDescription(undefined)}
+                    hasBorder={true}
+                    size={"small"}
+                    data-test-id={"ruleEditorNode-description-modal"}
+                    actions={[
+                        <Button
+                            key="close"
+                            onClick={() => ruleEditorUiContext.setCurrentRuleNodeDescription(undefined)}
+                        >
+                            {t("common.action.close")}
+                        </Button>,
+                    ]}
+                >
+                    <Markdown>{ruleEditorUiContext.currentRuleNodeDescription}</Markdown>
+                </RuleEditorBaseModal>
             ) : null}
             {showCreateStickyModal ? (
                 <StickyNoteModal

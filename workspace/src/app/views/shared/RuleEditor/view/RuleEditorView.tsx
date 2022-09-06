@@ -10,6 +10,7 @@ import { OnLoadParams } from "react-flow-renderer";
 export const RuleEditorView = () => {
     const [modalShown, setModalShown] = React.useState(false);
     const [advancedParameterModeEnabled, setAdvancedParameterMode] = React.useState(false);
+    const [currentRuleNodeDescription, setCurrentRuleNodeDescription] = React.useState<string | undefined>("");
     const reactFlowWrapper = React.useRef<any>(null);
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
 
@@ -23,6 +24,8 @@ export const RuleEditorView = () => {
                 reactFlowWrapper,
                 reactFlowInstance,
                 setReactFlowInstance,
+                currentRuleNodeDescription,
+                setCurrentRuleNodeDescription,
             }}
         >
             <Grid verticalStretchable={true} useAbsoluteSpace={true} style={{ backgroundColor: "white" }}>
