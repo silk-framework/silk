@@ -113,13 +113,13 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
                         <Notification
                             message={t("ActiveLearning.config.manualSelection.info")}
                             iconName={"item-info"}
-                            actions={(
+                            actions={
                                 <IconButton
                                     name="navigation-close"
                                     text={t("ActiveLearning.config.buttons.closeInfo")}
                                     onClick={() => setShowInfo(false)}
                                 />
-                            )}
+                            }
                         />
                         <Spacing />
                     </>
@@ -139,7 +139,11 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
                                         <IconButton
                                             name={"item-add-artefact"}
                                             disabled={!hasValidPath}
-                                            title={hasValidPath ? t("common.action.add") : t("ActiveLearning.config.manualSelection.cannotAdd")}
+                                            title={
+                                                hasValidPath
+                                                    ? t("common.action.add")
+                                                    : t("ActiveLearning.config.manualSelection.cannotAdd")
+                                            }
                                             onClick={addManuallyChosenPair}
                                         />
                                     }
@@ -211,6 +215,10 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
                     setExampleValues(result.data.exampleValues);
                 }
             } catch (ex) {
+                if (ex.isFetchError && ex.httpStatus === 400) {
+                    // ignore errors because of invalid paths
+                    return;
+                }
                 registerError("PathAutoCompletion.fetchExampleValues", "Could not fetch example value for path.", ex);
             }
         }
