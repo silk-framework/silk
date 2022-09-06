@@ -791,7 +791,9 @@
         "config": {
             "buttons": {
                 "startLearning": "Start learning",
-                "resetTooltip": "Reset learning state"
+                "resetTooltip": "Reset learning state",
+                "showInfo": "Show more information",
+                "closeInfo": "Close"
             },
             "errors": {
                 "fetchAutoCompletionResult": "An error occurred while trying to fetch path auto-completions.",
@@ -799,7 +801,10 @@
             },
             "manualSelection": {
                 "sourcePath": "Source path",
-                "targetPath": "Target path"
+                "targetPath": "Target path",
+                "info": "Specify property paths to be compared.",
+                "cannotAdd": "At least one paths is not valid.",
+                "insertPath": "Enter an input path"
             },
             "suggestionWarnings": "There are"
         },
@@ -814,10 +819,19 @@
         },
         "feedback": {
             "confirm": "Confirm",
+            "confirmDescription": "Confirm that the shown entities are a valid link.",
             "decline": "Decline",
+            "declineDescription": "Decline that the shown entities are a valid link.",
             "uncertain": "Uncertain",
+            "uncertainDescription": "Positive or negative link reference cannot be decided yet.",
             "cancel": "Cancel selection and show next link candidate.",
-            "couldNotLoadCandidateError": "Could not load entity link candidate."
+            "couldNotLoadCandidateError": "Could not load entity link candidate.",
+            "propertyConfiguration": "Configure which properties should be shown for reference feedback",
+            "noSelection": "No entity link selected.",
+            "addToLabel": "Select property value to be part of the entity label",
+            "removeFromLabel": "Remove property value from entity label",
+            "scoreProbablyEqual": "probably equal",
+            "scoreProbablyUnequal": "probably unequal"
         },
         "referenceLinks": {
             "title": "Decision history & reference links"

@@ -44,6 +44,7 @@ import { useTranslation } from "react-i18next";
 import utils from "../LinkingRuleActiveLearning.utils";
 
 export const LinkingRuleActiveLearningFeedbackComponent = () => {
+    const [t] = useTranslation();
     /** Contexts */
     const activeLearningFeedbackContext = React.useContext(LinkingRuleActiveLearningFeedbackContext);
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
@@ -132,7 +133,7 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
                             />
                         </>
                     ) : (
-                        <Notification message={"No entity link selected"} />
+                        <Notification message={t("ActiveLearning.feedback.noSelection")} />
                     )}
                     <Spacing />
                     <MatchingColorInfo />
@@ -171,7 +172,7 @@ const Header = ({ disabledButtons, selectedDecision, cancel }: HeaderProps) => {
                         <Spacing vertical size="small" />
                     </>
                 )}
-                <IconButton name={"settings"} onClick={() => activeLearningContext.navigateTo("config")} />
+                <IconButton text={t("ActiveLearning.feedback.propertyConfiguration")} name={"settings"} onClick={() => activeLearningContext.navigateTo("config")} />
             </CardOptions>
         </CardHeader>
     );
@@ -196,7 +197,7 @@ const DecisionButtons = ({ disabledButtons, submitLink, selectedDecision, cancel
     return (
         <div style={{ textAlign: "center" }}>
             <Button
-                title={"Confirm that the shown entities are a valid link."}
+                title={t("ActiveLearning.feedback.confirmDescription")}
                 icon={"state-confirmed"}
                 disabled={disabledButtons}
                 onClick={() => (positiveSelected ? cancel() : submitLink("positive"))}
@@ -206,12 +207,17 @@ const DecisionButtons = ({ disabledButtons, submitLink, selectedDecision, cancel
                 {t("ActiveLearning.feedback.confirm")}
             </Button>
             <Spacing vertical size={"small"} />
-            <Button outlined disabled={disabledButtons} title={"Uncertain"} onClick={() => submitLink("unlabeled")}>
+            <Button
+                title={t("ActiveLearning.feedback.uncertainDescription")}
+                disabled={disabledButtons}
+                onClick={() => submitLink("unlabeled")}
+                outlined
+            >
                 {t("ActiveLearning.feedback.uncertain")}
             </Button>
             <Spacing vertical size={"small"} />
             <Button
-                title={"Decline that the shown entities are a valid link."}
+                title={t("ActiveLearning.feedback.declineDescription")}
                 disabled={disabledButtons}
                 onClick={() => (negativeSelected ? cancel() : submitLink("negative"))}
                 icon={"state-declined"}
@@ -233,11 +239,19 @@ const EntityComparisonHeader = ({ sourceTitle, targetTitle }: EntityComparisonHe
     return (
         <ComparisionDataHead>
             <ComparisionDataRow>
-                <ComparisionDataHeader>Source entity: {sourceTitle}</ComparisionDataHeader>
+                <ComparisionDataHeader>
+                    Source entity
+                    {sourceTitle ? ": " : ""}
+                    {sourceTitle}
+                </ComparisionDataHeader>
                 <ComparisionDataConnection>
                     <ConnectionEnabled label={"owl:sameAs"} />
                 </ComparisionDataConnection>
-                <ComparisionDataHeader>Target entity: {targetTitle}</ComparisionDataHeader>
+                <ComparisionDataHeader>
+                    Target entity
+                    {targetTitle ? ": " : ""}
+                    {targetTitle}
+                </ComparisionDataHeader>
             </ComparisionDataRow>
         </ComparisionDataHead>
     );
@@ -304,6 +318,7 @@ const EntitiesPropertyPair = ({
     score,
 }: EntitiesPropertyPairProps) => {
     const scoreColor = scoreColorRepresentation(score);
+    const [t] = useTranslation();
     return (
         <ComparisionDataRow>
             <EntityPropertyValues property={propertyPair.source} values={values.sourceExamples} score={score} />
@@ -312,6 +327,7 @@ const EntitiesPropertyPair = ({
                     label={utils.comparisonType(propertyPair)}
                     actions={
                         <IconButton
+                            text={selectedForLabel ? t("ActiveLearning.feedback.removeFromLabel") : t("ActiveLearning.feedback.addToLabel")}
                             name={selectedForLabel ? "favorite-filled" : "favorite-empty"}
                             elevated
                             onClick={toggleLabelSelection}
@@ -364,12 +380,13 @@ const EntityPropertyValues = ({ property, values, score }: EntityPropertyValuesP
 };
 
 const MatchingColorInfo = () => {
+    const [t] = useTranslation();
     return (
         <Toolbar>
             <ToolbarSection canGrow={true} />
             <ToolbarSection canGrow={true} style={{ width: "80%" }}>
                 <Tag large backgroundColor={scoreColorConfig.strongEquality.backgroundColor} style={{ width: "33%" }}>
-                    Probably equal
+                    {t("ActiveLearning.feedback.scoreProbablyEqual")}
                 </Tag>
                 <Tag large backgroundColor={scoreColorConfig.weakEquality.backgroundColor} style={{ width: "33%" }}>
                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
@@ -379,7 +396,7 @@ const MatchingColorInfo = () => {
                     backgroundColor={scoreColorConfig.noEquality.backgroundColor}
                     style={{ width: "33%", textAlign: "right" }}
                 >
-                    Probably unequal
+                    {t("ActiveLearning.feedback.scoreProbablyUnequal")}
                 </Tag>
             </ToolbarSection>
             <ToolbarSection canGrow={true} />

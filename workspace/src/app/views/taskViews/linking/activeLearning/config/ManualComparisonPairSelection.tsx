@@ -13,6 +13,7 @@ import {
     CardContent,
     CardHeader,
     CardTitle,
+    CardOptions,
     Divider,
     IconButton,
     Notification,
@@ -44,7 +45,9 @@ const nextId = () => {
 export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addComparisonPair }: Props) => {
     const manualSourcePath = React.useRef<TypedPath | undefined>(undefined);
     const manualTargetPath = React.useRef<TypedPath | undefined>(undefined);
+    const [t] = useTranslation();
     const [hasValidPath, setHasValidPath] = React.useState(false);
+    const [showInfo, setShowInfo] = React.useState(false);
 
     const checkPathValidity = () => {
         if (manualSourcePath.current && manualTargetPath.current) {
@@ -91,19 +94,36 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
         }
     };
 
-    const PathSelectionSubHeader = () => {
-        return <Notification message={"Specify property paths to be compared."} iconName={null} />;
-    };
-
     return (
         <Card elevation={0}>
             <CardHeader>
                 <CardTitle>Add property paths pair</CardTitle>
+                <CardOptions>
+                    <IconButton
+                        name="item-info"
+                        text={t("ActiveLearning.config.buttons.showInfo")}
+                        onClick={() => setShowInfo(!showInfo)}
+                    />
+                </CardOptions>
             </CardHeader>
             <Divider />
             <CardContent>
-                <PathSelectionSubHeader />
-                <Spacing />
+                {showInfo && (
+                    <>
+                        <Notification
+                            message={t("ActiveLearning.config.manualSelection.info")}
+                            iconName={"item-info"}
+                            actions={(
+                                <IconButton
+                                    name="navigation-close"
+                                    text={t("ActiveLearning.config.buttons.closeInfo")}
+                                    onClick={() => setShowInfo(false)}
+                                />
+                            )}
+                        />
+                        <Spacing />
+                    </>
+                )}
                 <ComparisionDataContainer>
                     <ComparisionDataBody>
                         <ComparisionDataRow>
@@ -119,7 +139,7 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
                                         <IconButton
                                             name={"item-add-artefact"}
                                             disabled={!hasValidPath}
-                                            title={hasValidPath ? "Add" : "At least one paths is not valid"}
+                                            title={hasValidPath ? t("common.action.add") : t("ActiveLearning.config.manualSelection.cannotAdd")}
                                             onClick={addManuallyChosenPair}
                                         />
                                     }
@@ -235,7 +255,7 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
                 initialValue={""}
                 onChange={onChange}
                 fetchSuggestions={fetchAutoCompletionResult(isTarget)}
-                placeholder={"Enter an input path"}
+                placeholder={t("ActiveLearning.config.manualSelection.insertPath")}
                 checkInput={(value) => checkValuePathValidity(value, projectId)}
                 onFocusChange={onFocusChange}
                 validationErrorText={t("ActiveLearning.config.errors.invalidPath")}
