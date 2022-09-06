@@ -226,6 +226,7 @@
             "export": "Export to",
             "exportTo": "Export to",
             "logout": "Logout",
+            "remove": "Remove",
             "moreOptions": "Show more options",
             "openInNewTab": "Open link in new tab",
             "profilingStart": "Start profiling",
@@ -789,6 +790,7 @@
     },
     "ActiveLearning": {
         "config": {
+            "title": "Configuration: Define properties to compare between entities of each data source",
             "buttons": {
                 "startLearning": "Start learning",
                 "resetTooltip": "Reset learning state",
@@ -797,16 +799,30 @@
             },
             "errors": {
                 "fetchAutoCompletionResult": "An error occurred while trying to fetch path auto-completions.",
-                "invalidPath": "The path you have entered is invalid."
+                "invalidPath": "The path you have entered is invalid.",
+                "fetchComparisionConfig": "Could not fetch comparison config.",
+                "addFailed": "Adding comparison pair has failed."
             },
             "manualSelection": {
+                "title": "Add property paths pair",
                 "sourcePath": "Source path",
                 "targetPath": "Target path",
                 "info": "Specify property paths to be compared.",
                 "cannotAdd": "At least one paths is not valid.",
                 "insertPath": "Enter an input path"
             },
-            "suggestionWarnings": "There are"
+            "entitiyPair": {
+                "title": "Selected properties to compare entities",
+                "info": "Choose properties to compare. Select from the suggestions or add them by specifying property paths for both entities."
+            },
+            "suggestions": {
+                "title": "Add suggestions",
+                "foundSuggestions": "Found one comparison suggestion.",
+                "foundSuggestions_plural": "Found {{count}} comparison suggestions. Add them in the order you want to see them in the entity comparision later.",
+                "emptyList": "No suggestions available. You can add further comparison pairs manually by connection their property paths.",
+                "warningsTitle": "Warnings",
+                "warningsButton": "Show warnings"
+            }
         },
         "bestLearnedRule": {
             "title": "Top-performing learned rule (Score: {{score}})",

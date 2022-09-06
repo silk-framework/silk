@@ -88,10 +88,9 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             setSuggestionsWarnings(comparisonPairs.warnings);
             setSuggestions(suggestions);
         } catch (ex) {
-            // TODO: i18n
             registerError(
                 "LinkingRuleActiveLearningConfig.loadCandidatePairs",
-                "Could not fetch comparison config",
+                t("ActiveLearning.config.errors.fetchComparisionConfig"),
                 ex
             );
         } finally {
@@ -105,10 +104,9 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             activeLearningContext.setPropertiesToCompare([...activeLearningContext.propertiesToCompare, pair]);
             return true;
         } catch (ex) {
-            // TODO: i18n
             registerError(
                 "LinkingRuleActiveLearningConfig.addComparisonPair",
-                "Adding comparison pair has failed.",
+                t("ActiveLearning.config.errors.addFailed"),
                 ex
             );
             return false;
@@ -147,11 +145,19 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         return (
             <ComparisionDataHead>
                 <ComparisionDataRow>
-                    <ComparisionDataHeader>Dataset 1</ComparisionDataHeader>
+                    <ComparisionDataHeader>
+                        {t("widget.Filterbar.subsections.valueLabels.itemType.dataset")}
+                        {" "}
+                        1
+                    </ComparisionDataHeader>
                     <ComparisionDataConnection>
                         <ConnectionEnabled label={"owl:sameAs"} />
                     </ComparisionDataConnection>
-                    <ComparisionDataHeader>Dataset 2</ComparisionDataHeader>
+                    <ComparisionDataHeader>
+                        {t("widget.Filterbar.subsections.valueLabels.itemType.dataset")}
+                        {" "}
+                        2
+                    </ComparisionDataHeader>
                 </ComparisionDataRow>
             </ComparisionDataHead>
         );
@@ -199,7 +205,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                 <ComparisionDataConnection>
                     <ConnectionEnabled
                         label={utils.comparisonType(pair)}
-                        actions={<IconButton name={"item-remove"} disruptive onClick={() => removePair(pair.pairId)} />}
+                        actions={<IconButton text={t("common.action.remove")} name={"item-remove"} disruptive onClick={() => removePair(pair.pairId)} />}
                     />
                 </ComparisionDataConnection>
                 <SelectedProperty property={pair.target} exampleValues={pair.targetExamples} />
@@ -208,11 +214,10 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     };
 
     const SelectedPropertiesWidget = () => {
-        // TODO: i18n
         return (
             <Card elevation={0}>
                 <CardHeader>
-                    <CardTitle>Selected properties to compare entities</CardTitle>
+                    <CardTitle>{t("ActiveLearning.config.entitiyPair.title")}</CardTitle>
                 </CardHeader>
                 <Divider />
                 <CardContent>
@@ -236,7 +241,6 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     };
 
     const SuggestionWidget = () => {
-        // TODO: i18n
         const [showInfo, setShowInfo] = React.useState<boolean>(false);
         React.useEffect(() => {
             if (!showInfo && suggestions.length === 0) {
@@ -248,7 +252,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             <Card elevation={0}>
                 <CardHeader>
                     <CardTitle>
-                        Add suggestions
+                        {t("ActiveLearning.config.suggestions.title")}
                         {(!loadSuggestions && suggestions.length > 0) && " ("+suggestions.length+")"}
                     </CardTitle>
                     <CardOptions>
@@ -258,7 +262,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         {!loadSuggestions && suggestions.length > 0 && (
                             <IconButton
                                 name="item-info"
-                                text="Show info"
+                                text={t("ActiveLearning.config.buttons.showInfo")}
                                 onClick={() => setShowInfo(!showInfo)}
                             />
                         )}
@@ -274,15 +278,15 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                                         actions={suggestions.length > 0 ? (
                                             <IconButton
                                                 name="navigation-close"
-                                                text="Close info"
+                                                text={t("ActiveLearning.config.buttons.closeInfo")}
                                                 onClick={() => setShowInfo(false)}
                                             />
                                         ) : undefined}
                                     >
                                         {
                                             suggestions.length > 0 ?
-                                            `Found ${suggestions.length} comparison suggestions. You might want to add them in the order you want to see them in the entity comparision later.` :
-                                            "No suggestions available. You can add further comparison pairs manually by connection their property paths."
+                                            t("ActiveLearning.config.suggestions.foundSuggestions", { count: suggestions.length}) :
+                                            t("ActiveLearning.config.suggestions.emptyList")
                                         }
                                     </Notification>
                                     <Spacing size="small" />
@@ -304,13 +308,50 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         );
     };
 
+    const SuggestionsWarningModal = ({ warnings }: { warnings: string[] }) => {
+        const [showWarningsModal, setShowWarningsModal] = React.useState<boolean>(false);
+
+        if (warnings.length === 0) {
+            return <></>;
+        }
+
+        const prefix = warnings.length > 1 ? "- " : "";
+        const warningsModal = (
+            <SimpleDialog
+                title={t("ActiveLearning.config.suggestions.warningsTitle")}
+                intent="warning"
+                isOpen={showWarningsModal}
+                actions={<Button text={t("common.action.close")} onClick={() => setShowWarningsModal(false)}/>}
+            >
+                <HtmlContentBlock>
+                    <Markdown>{warnings.map((w) => `${prefix}${w}`).join("\n")}</Markdown>
+                </HtmlContentBlock>
+            </SimpleDialog>
+        );
+        const warningsToggler = (
+            <IconButton
+                text={t("ActiveLearning.config.suggestions.warningsButton")}
+                name={"state-warning"}
+                hasStateWarning={true}
+                onClick={() => setShowWarningsModal(true)}
+            />
+        );
+
+        return (
+            <>
+                { warningsToggler }
+                { warningsModal }
+            </>
+        );
+    }
+
     const SuggestedPathSelection = ({ pair }: { pair: ComparisonPairWithId }) => {
         return (
             <ComparisionDataRow>
                 <SelectedProperty property={pair.source} exampleValues={pair.sourceExamples} />
                 <ComparisionDataConnection>
                     <ConnectionAvailable
-                        actions={<IconButton name={"item-add-artefact"} onClick={() => addSuggestion(pair.pairId)} />}
+                        actions={<IconButton text={t("common.action.add")} name={"item-add-artefact"} onClick={() => addSuggestion(pair.pairId)} />}
                     />
                 </ComparisionDataConnection>
                 <SelectedProperty property={pair.target} exampleValues={pair.targetExamples} />
@@ -319,26 +360,21 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     };
 
     const InfoWidget = () => {
-        // TODO: i18n
         return (
             <Notification
                 iconName={"item-info"}
-                message={
-                    "Choose properties to compare. " +
-                    "Select from the suggestions or add them by specifying property paths for both entities."
-                }
+                message={t("ActiveLearning.config.entitiyPair.info")}
             />
         );
     };
 
-    // TODO: i18n
     const Title = () => {
         return (
             <SectionHeader>
                 <Toolbar noWrap>
                     <ToolbarSection canShrink>
                         <TitleMainsection>
-                            Configuration: Define properties to compare between entities of each data source.
+                            {t("ActiveLearning.config.title")}
                         </TitleMainsection>
                     </ToolbarSection>
                     <ToolbarSection canGrow>
@@ -353,55 +389,17 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         />
                         <Spacing vertical={true} size="small" />
                         <Button
-                            title={t("ActiveLearning.config.buttons.startLearning")}
                             affirmative={true}
                             disabled={activeLearningContext.propertiesToCompare.length === 0}
                             onClick={() => activeLearningContext.navigateTo("linkLearning")}
                         >
-                            Start learning
+                            {t("ActiveLearning.config.buttons.startLearning")}
                         </Button>
                     </ToolbarSection>
                 </Toolbar>
             </SectionHeader>
         );
     };
-
-    const SuggestionsWarningModal = ({ warnings }: { warnings: string[] }) => {
-        const [showWarningsModal, setShowWarningsModal] = React.useState<boolean>(false);
-
-        if (warnings.length === 0) {
-            return <></>;
-        }
-
-        const prefix = warnings.length > 1 ? "- " : "";
-        const warningsModal = (
-            <SimpleDialog
-                title="Warnings"
-                intent="warning"
-                isOpen={showWarningsModal}
-                actions={<Button text={t("common.action.close")} onClick={() => setShowWarningsModal(false)}/>}
-            >
-                <HtmlContentBlock>
-                    <Markdown>{warnings.map((w) => `${prefix}${w}`).join("\n")}</Markdown>
-                </HtmlContentBlock>
-            </SimpleDialog>
-        );
-        const warningsToggler = (
-            <IconButton
-                text="Show warnings"
-                name={"state-warning"}
-                hasStateWarning={true}
-                onClick={() => setShowWarningsModal(true)}
-            />
-        );
-
-        return (
-            <>
-                { warningsToggler }
-                { warningsModal }
-            </>
-        );
-    }
 
     return (
         <Section>

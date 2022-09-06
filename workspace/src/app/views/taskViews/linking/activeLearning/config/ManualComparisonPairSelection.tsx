@@ -97,7 +97,7 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
     return (
         <Card elevation={0}>
             <CardHeader>
-                <CardTitle>Add property paths pair</CardTitle>
+                <CardTitle>{t("ActiveLearning.config.manualSelection.title")}</CardTitle>
                 <CardOptions>
                     <IconButton
                         name="item-info"
