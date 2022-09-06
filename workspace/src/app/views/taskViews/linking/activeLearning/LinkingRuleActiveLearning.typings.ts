@@ -76,3 +76,7 @@ export interface ActiveLearningReferenceLink extends ActiveLearningLinkCandidate
 export interface ActiveLearningReferenceLinks {
     links: ActiveLearningReferenceLink[];
 }
+
+export interface LinkingValuePathExampleValues {
+    exampleValues: string[];
+}

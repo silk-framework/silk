@@ -9,6 +9,7 @@ import {
     ActiveLearningSessionInfo,
     ComparisonPair,
     ComparisonPairs,
+    LinkingValuePathExampleValues,
 } from "./LinkingRuleActiveLearning.typings";
 import { ReferenceLinks } from "../linking.types";
 
@@ -145,5 +146,22 @@ export const fetchActiveLearningSessionInfo = (
 ): Promise<FetchResponse<ActiveLearningSessionInfo>> => {
     return fetch({
         url: learningApi(`/tasks/${projectId}/${linkingTaskId}/activeLearning/info`),
+    });
+};
+
+/** Manual path selection example values request. */
+export const fetchPathExampleValues = (
+    projectId: string,
+    linkingTaskId: string,
+    forTarget: boolean,
+    valuePath: string
+): Promise<FetchResponse<LinkingValuePathExampleValues>> => {
+    return fetch({
+        url: learningApi(`/tasks/${projectId}/${linkingTaskId}/activeLearning/pathExampleValues`),
+        method: "POST",
+        body: {
+            forTarget,
+            valuePath,
+        },
     });
 };
