@@ -5,7 +5,9 @@ import {
     CardContent,
     CardHeader,
     CardTitle,
+    CardOptions,
     Divider,
+    HtmlContentBlock,
     IconButton,
     Markdown,
     Notification,
@@ -14,13 +16,13 @@ import {
     OverviewItemLine,
     Section,
     SectionHeader,
+    SimpleDialog,
     Spacing,
     Spinner,
     Tag,
     TitleMainsection,
     Toolbar,
     ToolbarSection,
-    Tooltip,
 } from "@eccenca/gui-elements";
 import {
     ComparisionDataContainer,
@@ -235,6 +237,13 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
 
     const SuggestionWidget = () => {
         // TODO: i18n
+        const [showInfo, setShowInfo] = React.useState<boolean>(false);
+        React.useEffect(() => {
+            if (!showInfo && suggestions.length === 0) {
+                setShowInfo(true);
+            }
+        }, [suggestions]);
+
         return (
             <Card elevation={0}>
                 <CardHeader>
@@ -242,13 +251,43 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         Add suggestions
                         {(!loadSuggestions && suggestions.length > 0) && " ("+suggestions.length+")"}
                     </CardTitle>
+                    <CardOptions>
+                        {!loadingSuggestions && suggestionWarnings && (
+                            <SuggestionsWarningModal warnings={suggestionWarnings} />
+                        )}
+                        {!loadSuggestions && suggestions.length > 0 && (
+                            <IconButton
+                                name="item-info"
+                                text="Show info"
+                                onClick={() => setShowInfo(!showInfo)}
+                            />
+                        )}
+                    </CardOptions>
                 </CardHeader>
                 <Divider />
                 <CardContent>
                     {loadingSuggestions ? <Spinner /> : (
                         <>
-                            <SuggestionSelectionSubHeader warnings={suggestionWarnings} />
-                            <Spacing size="small" />
+                            {showInfo && (
+                                <>
+                                    <Notification
+                                        actions={suggestions.length > 0 ? (
+                                            <IconButton
+                                                name="navigation-close"
+                                                text="Close info"
+                                                onClick={() => setShowInfo(false)}
+                                            />
+                                        ) : undefined}
+                                    >
+                                        {
+                                            suggestions.length > 0 ?
+                                            `Found ${suggestions.length} comparison suggestions. You might want to add them in the order you want to see them in the entity comparision later.` :
+                                            "No suggestions available. You can add further comparison pairs manually by connection their property paths."
+                                        }
+                                    </Notification>
+                                    <Spacing size="small" />
+                                </>
+                            )}
                             {suggestions.length > 0 && (
                                 <ComparisionDataContainer>
                                     <ComparisionDataBody>
@@ -327,25 +366,42 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         );
     };
 
-    const SuggestionSelectionSubHeader = ({ warnings }: { warnings: string[] }) => {
+    const SuggestionsWarningModal = ({ warnings }: { warnings: string[] }) => {
+        const [showWarningsModal, setShowWarningsModal] = React.useState<boolean>(false);
+
+        if (warnings.length === 0) {
+            return <></>;
+        }
+
         const prefix = warnings.length > 1 ? "- " : "";
-        const actions = warnings.length ? (
-            <Tooltip
-                placement={"top"}
-                size={"large"}
-                content={<Markdown>{warnings.map((w) => `${prefix}${w}`).join("\n")}</Markdown>}
+        const warningsModal = (
+            <SimpleDialog
+                title="Warnings"
+                intent="warning"
+                isOpen={showWarningsModal}
+                actions={<Button text={t("common.action.close")} onClick={() => setShowWarningsModal(false)}/>}
             >
-                <IconButton name={"state-warning"} hasStateWarning={true} />
-            </Tooltip>
-        ) : undefined;
-        // TODO: i18n
-        const message = loadingSuggestions
-            ? "Suggestions loading..."
-            : suggestions.length > 0
-            ? `Found ${suggestions.length} comparison suggestions you might want to add. Click button to add.`
-            : "No suggestions available. You can add further comparison pairs manually.";
-        return <Notification message={message} iconName={null} actions={actions} />;
-    };
+                <HtmlContentBlock>
+                    <Markdown>{warnings.map((w) => `${prefix}${w}`).join("\n")}</Markdown>
+                </HtmlContentBlock>
+            </SimpleDialog>
+        );
+        const warningsToggler = (
+            <IconButton
+                text="Show warnings"
+                name={"state-warning"}
+                hasStateWarning={true}
+                onClick={() => setShowWarningsModal(true)}
+            />
+        );
+
+        return (
+            <>
+                { warningsToggler }
+                { warningsModal }
+            </>
+        );
+    }
 
     return (
         <Section>
