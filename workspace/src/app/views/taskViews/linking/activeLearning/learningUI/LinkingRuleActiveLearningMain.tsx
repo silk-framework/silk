@@ -165,7 +165,7 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                     </ToolbarSection>
                     <ToolbarSection>
                         <IconButton
-                            name={"item-remove"}
+                            name={"item-reset"}
                             disruptive={true}
                             text={t("ActiveLearning.config.buttons.resetTooltip")}
                             onClick={activeLearningContext.showResetDialog}

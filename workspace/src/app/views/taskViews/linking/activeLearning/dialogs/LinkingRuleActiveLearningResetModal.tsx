@@ -1,4 +1,4 @@
-import { Button, SimpleDialog, Spacing } from "@eccenca/gui-elements";
+import { Button, SimpleDialog, Spacing, HtmlContentBlock } from "@eccenca/gui-elements";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
@@ -41,15 +41,18 @@ export const LinkingRuleActiveLearningResetModal = ({ close }: Props) => {
             size={"small"}
             title={t("ActiveLearning.resetDialog.title")}
             actions={[
-                <Button key="reset" onClick={resetState} loading={resetting} disruptive={true}>
+                <Button key="reset" onClick={resetState} loading={resetting}>
                     {t("ActiveLearning.resetDialog.reset")}
                 </Button>,
                 <Button key="cancel" onClick={() => close(false)}>
                     {t("common.action.cancel")}
                 </Button>,
             ]}
+            intent="danger"
         >
-            <p>{t("ActiveLearning.resetDialog.description")}</p>
+            <HtmlContentBlock>
+                <p>{t("ActiveLearning.resetDialog.description")}</p>
+            </HtmlContentBlock>
             <Spacing />
             <ActiveLearningSessionInfoWidget />
         </SimpleDialog>
