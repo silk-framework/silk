@@ -837,6 +837,7 @@
             "visualRuleTitle": "Best learned linking rule"
         },
         "feedback": {
+            "title": "Reference feedback",
             "confirm": "Confirm",
             "confirmDescription": "Confirm that the shown entities are a valid link.",
             "decline": "Decline",
@@ -850,7 +851,9 @@
             "addToLabel": "Select property value to be part of the entity label",
             "removeFromLabel": "Remove property value from entity label",
             "scoreProbablyEqual": "probably equal",
-            "scoreProbablyUnequal": "probably unequal"
+            "scoreProbablyUnequal": "probably unequal",
+            "sourceColumnTitle": "Source entity",
+            "targetColumnTitle": "Target entity"
         },
         "referenceLinks": {
             "title": "Decision history & reference links"

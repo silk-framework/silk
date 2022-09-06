@@ -160,7 +160,7 @@ const Header = ({ disabledButtons, selectedDecision, cancel }: HeaderProps) => {
 
     return (
         <CardHeader>
-            <CardTitle>Reference feedback</CardTitle>
+            <CardTitle>{t("ActiveLearning.feedback.title")}</CardTitle>
             <CardOptions>
                 {(positiveSelected || negativeSelected) && (
                     <>
@@ -236,11 +236,12 @@ interface EntityComparisonHeaderProps {
 }
 
 const EntityComparisonHeader = ({ sourceTitle, targetTitle }: EntityComparisonHeaderProps) => {
+    const [t] = useTranslation();
     return (
         <ComparisionDataHead>
             <ComparisionDataRow>
                 <ComparisionDataHeader>
-                    Source entity
+                    {t("ActiveLearning.feedback.sourceColumnTitle")}
                     {sourceTitle ? ": " : ""}
                     {sourceTitle}
                 </ComparisionDataHeader>
@@ -248,7 +249,7 @@ const EntityComparisonHeader = ({ sourceTitle, targetTitle }: EntityComparisonHe
                     <ConnectionEnabled label={"owl:sameAs"} />
                 </ComparisionDataConnection>
                 <ComparisionDataHeader>
-                    Target entity
+                    {t("ActiveLearning.feedback.targetColumnTitle")}
                     {targetTitle ? ": " : ""}
                     {targetTitle}
                 </ComparisionDataHeader>
