@@ -26,6 +26,8 @@ interface LinkingRuleActiveLearningContextProps {
     showResetDialog: () => any;
     /** Converts a linking rule to rule operators. */
     convertRule: (linkingRule: ILinkingRule) => IRuleOperatorNode[];
+    /** Basically if the user has already clicked on the start learning button. */
+    learningStarted: boolean;
 }
 
 /** Contains data and functions for the link rule active learning. */
@@ -40,4 +42,5 @@ export const LinkingRuleActiveLearningContext = React.createContext<LinkingRuleA
     comparisonPairsLoading: false,
     showResetDialog: () => {},
     convertRule: () => [],
+    learningStarted: false,
 });

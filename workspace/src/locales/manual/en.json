@@ -793,6 +793,7 @@
             "title": "Configuration: Define properties to compare between entities of each data source",
             "buttons": {
                 "startLearning": "Start learning",
+                "continueLearning": "Continue learning",
                 "resetTooltip": "Reset learning state",
                 "showInfo": "Show more information",
                 "closeInfo": "Close"

@@ -400,7 +400,9 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                             disabled={activeLearningContext.propertiesToCompare.length === 0}
                             onClick={() => activeLearningContext.navigateTo("linkLearning")}
                         >
-                            {t("ActiveLearning.config.buttons.startLearning")}
+                            {activeLearningContext.learningStarted
+                                ? t("ActiveLearning.config.buttons.continueLearning")
+                                : t("ActiveLearning.config.buttons.startLearning")}
                         </Button>
                     </ToolbarSection>
                 </Toolbar>

@@ -63,6 +63,8 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
     const [operatorMap, setOperatorMap] = React.useState<Map<string, IRuleOperator[]> | undefined>(undefined);
     // If an existing session exists and the current is new to this session, a modal will be displayed.
     const [showExistingSessionModal, setShowExistingSessionModal] = React.useState(false);
+    // Basically tracks if a user has already clicked on the "Start learning" button
+    const [activeLearningStarted, setActiveLearningStarted] = React.useState(false);
     const { sessionInfo } = useActiveLearningSessionInfo(projectId, linkingTaskId);
     const initData = useInitFrontend();
 
@@ -197,9 +199,17 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
         await fetchTaskData(projectId, linkingTaskId);
     };
 
+    const navigate = (toStep: ActiveLearningStep) => {
+        setActiveLearningStep(toStep);
+        if (toStep === "linkLearning") {
+            setActiveLearningStarted(true);
+        }
+    };
+
     const onCloseResetModal = (hasReset: boolean) => {
         setShowResetDialog(false);
         if (hasReset) {
+            setActiveLearningStarted(false);
             setActiveLearningStep("config");
             setSelectedPropertyPairs([]);
             setLabelPaths(undefined);
@@ -216,12 +226,13 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
                 linkTask: taskData,
                 propertiesToCompare: selectedPropertyPairs,
                 setPropertiesToCompare: setSelectedPropertyPairs,
-                navigateTo: setActiveLearningStep,
+                navigateTo: navigate,
                 labelPaths,
                 changeLabelPaths: setLabelPaths,
                 comparisonPairsLoading,
                 showResetDialog: () => setShowResetDialog(true),
                 convertRule,
+                learningStarted: activeLearningStarted,
             }}
         >
             {loading ? (
