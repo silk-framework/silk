@@ -40,7 +40,7 @@ export const scoreColorConfig = {
     },
     noEquality: {
         breakingPoint: -1.0,
-        backgroundColor: "#ceeafc",
+        backgroundColor: "#e5e5e5",
     },
     unknownEquality: {
         breakingPoint: undefined,
