@@ -97,7 +97,7 @@ export const LinkingRuleReferenceLinks = ({
     React.useEffect(() => {
         const referenceLinksAnnotated: AnnotatedReferenceLink[] = (referenceLinks?.links ?? []).map((l) => ({
             ...l,
-            type: l.decision ?? "unlabeled",
+            decision: l.decision ?? "unlabeled",
             misMatch:
                 (l.decision === "positive" || l.decision === "negative") && l.score
                     ? (l.score < 0 && l.decision === "positive") || (l.score >= 0 && l.decision === "negative")
@@ -167,7 +167,7 @@ export const LinkingRuleReferenceLinks = ({
                                         elevated={!showUncertainLinks}
                                         onClick={() => showLinksOfType("labeled")}
                                     >
-                                        {t("ReferenceLinks.certainedOnly")}
+                                        {t("ReferenceLinks.certainOnly")}
                                     </Button>
                                     <Button
                                         small
@@ -176,7 +176,7 @@ export const LinkingRuleReferenceLinks = ({
                                         elevated={showUncertainLinks}
                                         onClick={() => showLinksOfType("unlabeled")}
                                     >
-                                        {t("ReferenceLinks.uncertainedOnly")}
+                                        {t("ReferenceLinks.uncertainOnly")}
                                     </Button>
                                     <Spacing vertical={true} size="small" />
                                 </>
@@ -244,14 +244,10 @@ export const LinkingRuleReferenceLinks = ({
                                 &nbsp;
                             </TableHeader>
                             <TableHeader>
-                                {t("widget.Filterbar.subsections.valueLabels.itemType.dataset")}
-                                {" "}
-                                1
+                                {t("widget.Filterbar.subsections.valueLabels.itemType.dataset")} 1
                             </TableHeader>
                             <TableHeader>
-                                {t("widget.Filterbar.subsections.valueLabels.itemType.dataset")}
-                                {" "}
-                                2
+                                {t("widget.Filterbar.subsections.valueLabels.itemType.dataset")} 2
                             </TableHeader>
                             <TableHeader key={"actions-column"} style={{ width: "1px" }}>
                                 &nbsp;
@@ -268,10 +264,7 @@ export const LinkingRuleReferenceLinks = ({
                                   .map((link, rowIdx) => {
                                       const [sourceLabel, targetLabel] = entityLabels(link);
                                       return (
-                                          <TableRow
-                                              key={rowIdx}
-                                              isSelected={openLink && activeTableRow === link}
-                                          >
+                                          <TableRow key={rowIdx} isSelected={openLink && activeTableRow === link}>
                                               <TableCell>
                                                   <Icon
                                                       name={
@@ -286,13 +279,17 @@ export const LinkingRuleReferenceLinks = ({
                                                               ? link.decision === "positive"
                                                                   ? t("ReferenceLinks.confirmed")
                                                                   : t("ReferenceLinks.declined")
-                                                              : t("ReferenceLinks.uncertainedOnly")
+                                                              : t("ReferenceLinks.uncertainOnly")
                                                       }
                                                   />
                                               </TableCell>
                                               <TableCell>
                                                   {link.decision !== "unlabeled" && link.misMatch ? (
-                                                      <Icon name={"state-warning"} color={"red"} tooltipText={t("ReferenceLinks.mismatchWithRule")} />
+                                                      <Icon
+                                                          name={"state-warning"}
+                                                          color={"red"}
+                                                          tooltipText={t("ReferenceLinks.mismatchWithRule")}
+                                                      />
                                                   ) : null}
                                               </TableCell>
                                               <TableCell>{sourceLabel}</TableCell>

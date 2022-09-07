@@ -897,8 +897,8 @@
         "declinedOnly": "Declined only ({{nr}})",
         "confirmed": "Confirmed",
         "declined": "Declined",
-        "certainedOnly": "Certained",
-        "uncertainedOnly": "Uncertained",
+        "certainOnly": "Certain",
+        "uncertainOnly": "Uncertain",
         "removeLink": "Delete reference link",
         "checkFeedback": "Re-evaluate feedback decision"
     }
