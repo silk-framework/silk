@@ -13,7 +13,7 @@ interface LinkingRuleActiveLearningContextProps {
     /** The properties that should be compared between the 2 data sources. */
     propertiesToCompare: ComparisonPairWithId[];
     /** Update which properties should be compared. */
-    setPropertiesToCompare: (pairs: ComparisonPairWithId[]) => any;
+    setPropertiesToCompare: React.Dispatch<React.SetStateAction<ComparisonPairWithId[]>>;
     /** Navigate to a different view. */
     navigateTo: (step: ActiveLearningStep) => void;
     /** The source paths of the label values that should be displayed in the UI for each entity in a link. */

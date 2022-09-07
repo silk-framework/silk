@@ -19,6 +19,7 @@ import {
     Notification,
     Spacing,
     Tag,
+    Spinner,
 } from "@eccenca/gui-elements";
 import { checkValuePathValidity } from "../../../../pages/MappingEditor/HierarchicalMapping/store";
 import { partialAutoCompleteLinkingInputPaths } from "../../LinkingRuleEditor.requests";
@@ -178,6 +179,7 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
     const isValid = React.useRef<boolean>(false);
     const [t] = useTranslation();
     const [exampleValues, setExampleValues] = React.useState<string[] | undefined>(undefined);
+    const [exampleValuesLoading, setExampleValuesLoading] = React.useState(false);
     const exampleValuesRequestId = React.useRef<string>("");
 
     const updateState = () => {
@@ -207,6 +209,7 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
         const requestId = `${path.current}__${isValid.current}`;
         if (path.current && requestId !== exampleValuesRequestId.current) {
             setExampleValues(undefined);
+            setExampleValuesLoading(true);
             exampleValuesRequestId.current = requestId;
             try {
                 const result = await fetchPathExampleValues(projectId, linkingTaskId, isTarget, path.current);
@@ -220,6 +223,8 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
                     return;
                 }
                 registerError("PathAutoCompletion.fetchExampleValues", "Could not fetch example value for path.", ex);
+            } finally {
+                setExampleValuesLoading(false);
             }
         }
     };
@@ -270,6 +275,11 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
                 onInputChecked={onValidation}
                 autoCompletionRequestDelay={500}
             />
+            {exampleValuesLoading && (
+                <div>
+                    <Spinner position={"inline"} size={"tiny"} delay={1000} />
+                </div>
+            )}
             {exampleValues && exampleValues.length > 0 ? (
                 <div>
                     {exampleValues.map((value) => (
