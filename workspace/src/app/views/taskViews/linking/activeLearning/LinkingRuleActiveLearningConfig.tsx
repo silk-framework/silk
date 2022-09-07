@@ -19,6 +19,7 @@ import {
     SimpleDialog,
     Spacing,
     Spinner,
+    Tag,
     TitleMainsection,
     Toolbar,
     ToolbarSection,
@@ -163,10 +164,12 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         property,
         exampleValues,
         sameExampleValues,
+        filterByPath,
     }: {
         property: TypedPath;
         exampleValues: string[][];
         sameExampleValues: Set<string>;
+        filterByPath?: () => any;
     }) => {
         const flatExampleValues: string[] = [].concat.apply([], exampleValues);
         const showLabel: boolean = !!property.label && property.label.toLowerCase() !== property.path.toLowerCase();
@@ -174,7 +177,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         return (
             <ComparisionDataCell>
                 <OverviewItem>
-                    <OverviewItemDescription>
+                    <OverviewItemDescription onClick={filterByPath}>
                         <OverviewItemLine title={showLabel ? property.path : undefined}>
                             {property.label ?? property.path}
                         </OverviewItemLine>
@@ -253,11 +256,44 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
 
     const SuggestionWidget = () => {
         const [showInfo, setShowInfo] = React.useState<boolean>(false);
+        const pathFilter = React.useRef<{ path: string; isTarget: boolean; label?: string } | undefined>(undefined);
+        const [filteredSuggestions, setFilteredSuggestions] = React.useState<ComparisonPairWithId[] | undefined>(
+            undefined
+        );
+
         React.useEffect(() => {
             if (!showInfo && suggestions.length === 0) {
                 setShowInfo(true);
             }
         }, [suggestions]);
+
+        const filterSuggestions = (path: string, isTarget: boolean) => {
+            pathFilter.current = { path, isTarget };
+            const filteredSuggestions = suggestions.filter((suggestion) => {
+                const suggestionPath = isTarget ? suggestion.target : suggestion.source;
+                const samePath = path === suggestionPath.path;
+                if (samePath && !pathFilter.current!.label) {
+                    pathFilter.current!.label = suggestionPath.label;
+                }
+                return samePath;
+            });
+            setFilteredSuggestions(filteredSuggestions);
+        };
+
+        const resetFilter = () => {
+            pathFilter.current = undefined;
+            setFilteredSuggestions(undefined);
+        };
+
+        const filterByPath = React.useCallback((path: string, isTarget: boolean) => {
+            const current = pathFilter.current;
+            if (current && current.path === path && current.isTarget === isTarget) {
+                // Reset filter when same path is clicked again
+                resetFilter();
+            } else {
+                filterSuggestions(path, isTarget);
+            }
+        }, []);
 
         return (
             <Card elevation={0}>
@@ -307,11 +343,23 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                                     <Spacing size="small" />
                                 </>
                             )}
+                            {pathFilter.current ? (
+                                <div>
+                                    <Tag onRemove={resetFilter}>
+                                        {pathFilter.current.label ?? pathFilter.current.path}
+                                    </Tag>
+                                    <Spacing />
+                                </div>
+                            ) : null}
                             {suggestions.length > 0 && (
                                 <ComparisionDataContainer>
                                     <ComparisionDataBody>
-                                        {suggestions.map((suggestion) => (
-                                            <SuggestedPathSelection key={suggestion.pairId} pair={suggestion} />
+                                        {(filteredSuggestions ?? suggestions).map((suggestion) => (
+                                            <SuggestedPathSelection
+                                                key={suggestion.pairId}
+                                                pair={suggestion}
+                                                filterByPath={filterByPath}
+                                            />
                                         ))}
                                     </ComparisionDataBody>
                                 </ComparisionDataContainer>
@@ -360,7 +408,13 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         );
     };
 
-    const SuggestedPathSelection = ({ pair }: { pair: ComparisonPairWithId }) => {
+    const SuggestedPathSelection = ({
+        pair,
+        filterByPath,
+    }: {
+        pair: ComparisonPairWithId;
+        filterByPath: (path: string, isTarget: boolean) => any;
+    }) => {
         const sameExampleValues = sameValues(pair.sourceExamples.flat(), pair.targetExamples.flat());
         return (
             <ComparisionDataRow>
@@ -368,6 +422,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                     property={pair.source}
                     exampleValues={pair.sourceExamples}
                     sameExampleValues={sameExampleValues}
+                    filterByPath={() => filterByPath(pair.source.path, false)}
                 />
                 <ComparisionDataConnection>
                     <ConnectionAvailable
@@ -384,6 +439,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                     property={pair.target}
                     exampleValues={pair.targetExamples}
                     sameExampleValues={sameExampleValues}
+                    filterByPath={() => filterByPath(pair.target.path, true)}
                 />
             </ComparisionDataRow>
         );
