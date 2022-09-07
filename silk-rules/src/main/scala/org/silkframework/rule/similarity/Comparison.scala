@@ -17,6 +17,7 @@ package org.silkframework.rule.similarity
 import org.silkframework.entity.{Entity, Index}
 import org.silkframework.rule.Operator
 import org.silkframework.rule.input.Input
+import org.silkframework.rule.similarity.Comparison.distanceToScore
 import org.silkframework.runtime.plugin.PluginBackwardCompatibility
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat, XmlSerialization}
 import org.silkframework.runtime.validation.ValidationException
@@ -69,13 +70,7 @@ case class Comparison(id: Identifier = Operator.generateId,
       None
     } else {
       val distance = metric(values1, values2, threshold * (1.0 - limit))
-
-      if (distance == 0.0 && threshold == 0.0)
-        Some(1.0)
-      else if (distance <= 2.0 * threshold)
-        Some(1.0 - distance / threshold)
-      else
-        Some(-1.0)
+      Some(distanceToScore(distance, threshold))
     }
   }
 
@@ -103,6 +98,25 @@ case class Comparison(id: Identifier = Operator.generateId,
 }
 
 object Comparison {
+
+  /**
+    * Converts a distance to a similarity score in the range [-1, 1].
+    *
+    * @param distance The distance value.
+    * @param maxDistance The maximum distance that should still result in a similarity score of 0.0.
+    *                    Twice the maximum will result in a similarity score of -1.0.
+    * @return The similarity score in the range [-1, 1]
+    */
+  @inline
+  def distanceToScore(distance: Double, maxDistance: Double): Double = {
+    if (distance == 0.0 && maxDistance == 0.0) {
+      1.0
+    } else if (distance <= 2.0 * maxDistance) {
+      1.0 - distance / maxDistance
+    } else {
+      -1.0
+    }
+  }
 
   /**
    * XML serialization format.
