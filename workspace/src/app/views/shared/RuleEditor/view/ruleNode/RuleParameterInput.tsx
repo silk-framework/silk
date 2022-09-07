@@ -180,4 +180,8 @@ const preventEventsFromBubblingToReactFlow = {
     onMouseDown: (event: MouseEvent<any>) => event.stopPropagation(),
     onMouseUp: (event: MouseEvent<any>) => event.stopPropagation(),
     onContextMenu: (event: MouseEvent<any>) => event.stopPropagation(),
+    onDrag: (event: MouseEvent<any>) => event.stopPropagation(),
+    onDragStart: (event: MouseEvent<any>) => event.stopPropagation(),
+    onDragEnd: (event: MouseEvent<any>) => event.stopPropagation(),
+    onClick: (event: MouseEvent<any>) => event.stopPropagation(),
 };
