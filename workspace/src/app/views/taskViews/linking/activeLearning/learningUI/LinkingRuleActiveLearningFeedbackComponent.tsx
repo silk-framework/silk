@@ -43,7 +43,7 @@ import ConnectionEnabled from "./../components/ConnectionEnabled";
 import ConnectionAvailable from "./../components/ConnectionAvailable";
 import { useTranslation } from "react-i18next";
 import utils from "../LinkingRuleActiveLearning.utils";
-import { ActiveLearningValueExamples, sameValues } from "../shared/ActiveLearningValueExamples";
+import { ActiveLearningValueExamples, sameValues, highlightedTagColor } from "../shared/ActiveLearningValueExamples";
 
 export const LinkingRuleActiveLearningFeedbackComponent = () => {
     const [t] = useTranslation();
@@ -390,8 +390,7 @@ const MatchingColorInfo = () => {
     const [t] = useTranslation();
     return (
         <Toolbar>
-            <ToolbarSection canGrow={true} />
-            <ToolbarSection canGrow={true} style={{ width: "80%" }}>
+            <ToolbarSection canGrow={true} style={{ width: "75%" }}>
                 <Tag large backgroundColor={scoreColorConfig.strongEquality.backgroundColor} style={{ width: "33%" }}>
                     {t("ActiveLearning.feedback.scoreProbablyEqual")}
                 </Tag>
@@ -407,6 +406,11 @@ const MatchingColorInfo = () => {
                 </Tag>
             </ToolbarSection>
             <ToolbarSection canGrow={true} />
+            <ToolbarSection canGrow={true} style={{ width: "15%" }}>
+                <Tag round large backgroundColor={highlightedTagColor} style={{ width: "100%", textAlign: "center" }}>
+                    {t("ActiveLearning.feedback.equalValues")}
+                </Tag>
+            </ToolbarSection>
         </Toolbar>
     );
 };

@@ -1,41 +1,38 @@
-import React, { CSSProperties } from "react";
-import { Tag } from "@eccenca/gui-elements";
+import React from "react";
+import { Tag, TagList } from "@eccenca/gui-elements";
+import { colorValue } from "@eccenca/gui-elements/src/common/utils/colorDecideContrastvalue";
 
 interface Props {
     exampleValues: string[];
     valuesToHighlight?: Set<String>;
-    highlightStyle?: CSSProperties;
+    highlightColor?: colorValue;
 }
+
+export const highlightedTagColor = "#745a85"
 
 /** Shows example values for a property. */
 export const ActiveLearningValueExamples = ({
     exampleValues,
     valuesToHighlight,
-    highlightStyle = { backgroundColor: "lightgoldenrodyellow" },
+    highlightColor = "#745a85",
 }: Props) => {
     const exampleTitle = exampleValues.join(" | ");
     return (
-        <span>
+        <TagList>
             {exampleValues.map((example, idx) => {
                 const highlightValue: boolean = !!valuesToHighlight?.has(example);
-                let style: CSSProperties = { marginRight: "0.25rem", backgroundColor: "white" };
-                if (highlightValue) {
-                    style = { ...style, ...highlightStyle };
-                }
                 return (
                     <Tag
                         key={example + idx}
-                        small={true}
-                        minimal={true}
                         round={true}
-                        style={style}
                         htmlTitle={exampleTitle}
+                        backgroundColor={highlightValue ? highlightColor : undefined}
                     >
                         {example}
                     </Tag>
                 );
             })}
-        </span>
+        </TagList>
     );
 };
 

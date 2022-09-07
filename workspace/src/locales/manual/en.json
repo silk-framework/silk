@@ -854,7 +854,8 @@
             "scoreProbablyEqual": "probably equal",
             "scoreProbablyUnequal": "probably unequal",
             "sourceColumnTitle": "Source entity",
-            "targetColumnTitle": "Target entity"
+            "targetColumnTitle": "Target entity",
+            "equalValues": "equal example values"
         },
         "referenceLinks": {
             "title": "Decision history & reference links"
