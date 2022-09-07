@@ -876,7 +876,8 @@
                 "label": "Save best learned rule",
                 "noBestLearnedRuleMessage": "No best learned rule exists so far."
             },
-            "saveFailureMessage": "Saving the rule and/or the reference links has failed."
+            "saveFailureMessage": "Saving the rule and/or the reference links has failed.",
+            "overwriteWarning": "Your current linking rule will be overwritten."
         },
         "sessionExistsModal": {
             "title": "Existing session detected",

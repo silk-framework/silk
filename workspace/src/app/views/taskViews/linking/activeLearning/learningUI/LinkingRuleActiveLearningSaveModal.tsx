@@ -93,7 +93,9 @@ export const LinkingRuleActiveLearningSaveModal = ({
                         )}
                         {saveReferenceLinks && saveRule && <Spacing />}
                         {saveRule && (
-                            <Notification warning>Your current linking rule will be overwritten.</Notification>
+                            <Notification warning>
+                                {t("ActiveLearning.saveDialog.overwriteWarning")}
+                            </Notification>
                         )}
                     </>
                 ) : undefined
