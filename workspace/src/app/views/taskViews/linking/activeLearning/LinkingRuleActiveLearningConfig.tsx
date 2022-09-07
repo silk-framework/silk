@@ -150,7 +150,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         {t("widget.Filterbar.subsections.valueLabels.itemType.dataset")} 1
                     </ComparisionDataHeader>
                     <ComparisionDataConnection>
-                        <ConnectionEnabled label={"owl:sameAs"} />
+                        <ConnectionAvailable actions={<Tag>owl:sameAs</Tag>} />
                     </ComparisionDataConnection>
                     <ComparisionDataHeader>
                         {t("widget.Filterbar.subsections.valueLabels.itemType.dataset")} 2

@@ -40,6 +40,7 @@ import {
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 import { EntityLink, EntityLinkPropertyPairValues } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
 import ConnectionEnabled from "./../components/ConnectionEnabled";
+import ConnectionAvailable from "./../components/ConnectionAvailable";
 import { useTranslation } from "react-i18next";
 import utils from "../LinkingRuleActiveLearning.utils";
 import { ActiveLearningValueExamples, sameValues } from "../shared/ActiveLearningValueExamples";
@@ -251,7 +252,7 @@ const EntityComparisonHeader = ({ sourceTitle, targetTitle }: EntityComparisonHe
                     {sourceTitle}
                 </ComparisionDataHeader>
                 <ComparisionDataConnection>
-                    <ConnectionEnabled label={"owl:sameAs"} />
+                    <ConnectionAvailable actions={<Tag>owl:sameAs</Tag>} />
                 </ComparisionDataConnection>
                 <ComparisionDataHeader>
                     {t("ActiveLearning.feedback.targetColumnTitle")}
