@@ -1,24 +1,23 @@
 import React from "react";
 import ConnectionAvailable from "./../components/ConnectionAvailable";
 import {
-    ComparisionDataContainer,
     ComparisionDataBody,
-    ComparisionDataRow,
     ComparisionDataCell,
     ComparisionDataConnection,
+    ComparisionDataContainer,
+    ComparisionDataRow,
 } from "./../components/ComparisionData";
 import {
     AutoSuggestion,
     Card,
     CardContent,
     CardHeader,
-    CardTitle,
     CardOptions,
+    CardTitle,
     Divider,
     IconButton,
     Notification,
     Spacing,
-    Tag,
     Spinner,
 } from "@eccenca/gui-elements";
 import { checkValuePathValidity } from "../../../../pages/MappingEditor/HierarchicalMapping/store";
@@ -28,6 +27,7 @@ import { IPartialAutoCompleteResult } from "@eccenca/gui-elements/src/components
 import { ComparisonPairWithId, TypedPath } from "../LinkingRuleActiveLearning.typings";
 import { useTranslation } from "react-i18next";
 import { fetchPathExampleValues } from "../LinkingRuleActiveLearning.requests";
+import { ActiveLearningValueExamples } from "../shared/ActiveLearningValueExamples";
 
 interface Props {
     projectId: string;
@@ -259,8 +259,6 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
         []
     );
 
-    const exampleTitle = (exampleValues ?? []).join(" | ");
-
     return (
         <ComparisionDataCell>
             <AutoSuggestion
@@ -282,18 +280,7 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
             )}
             {exampleValues && exampleValues.length > 0 ? (
                 <div>
-                    {exampleValues.map((value) => (
-                        <Tag
-                            key={value}
-                            small={true}
-                            minimal={true}
-                            round={true}
-                            style={{ marginRight: "0.25rem" }}
-                            htmlTitle={exampleTitle}
-                        >
-                            {value}
-                        </Tag>
-                    ))}
+                    <ActiveLearningValueExamples exampleValues={exampleValues} />
                 </div>
             ) : null}
         </ComparisionDataCell>

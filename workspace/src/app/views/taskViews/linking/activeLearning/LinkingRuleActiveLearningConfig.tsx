@@ -4,8 +4,8 @@ import {
     Card,
     CardContent,
     CardHeader,
-    CardTitle,
     CardOptions,
+    CardTitle,
     Divider,
     HtmlContentBlock,
     IconButton,
@@ -19,19 +19,18 @@ import {
     SimpleDialog,
     Spacing,
     Spinner,
-    Tag,
     TitleMainsection,
     Toolbar,
     ToolbarSection,
 } from "@eccenca/gui-elements";
 import {
-    ComparisionDataContainer,
-    ComparisionDataHead,
     ComparisionDataBody,
-    ComparisionDataRow,
-    ComparisionDataHeader,
     ComparisionDataCell,
     ComparisionDataConnection,
+    ComparisionDataContainer,
+    ComparisionDataHead,
+    ComparisionDataHeader,
+    ComparisionDataRow,
 } from "./components/ComparisionData";
 import { ComparisonPair, ComparisonPairWithId, TypedPath } from "./LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningContext } from "./contexts/LinkingRuleActiveLearningContext";
@@ -46,6 +45,7 @@ import ConnectionEnabled from "./components/ConnectionEnabled";
 import ConnectionAvailable from "./components/ConnectionAvailable";
 import { useTranslation } from "react-i18next";
 import utils from "./LinkingRuleActiveLearning.utils";
+import { ActiveLearningValueExamples, sameValues } from "./shared/ActiveLearningValueExamples";
 
 interface LinkingRuleActiveLearningConfigProps {
     projectId: string;
@@ -159,7 +159,15 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         );
     };
 
-    const SelectedProperty = ({ property, exampleValues }: { property: TypedPath; exampleValues: string[][] }) => {
+    const SelectedProperty = ({
+        property,
+        exampleValues,
+        sameExampleValues,
+    }: {
+        property: TypedPath;
+        exampleValues: string[][];
+        sameExampleValues: Set<string>;
+    }) => {
         const flatExampleValues: string[] = [].concat.apply([], exampleValues);
         const showLabel: boolean = !!property.label && property.label.toLowerCase() !== property.path.toLowerCase();
         const exampleTitle = flatExampleValues.join(" | ");
@@ -172,20 +180,10 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         </OverviewItemLine>
                         {flatExampleValues.length > 0 ? (
                             <OverviewItemLine small={showLabel} title={exampleTitle}>
-                                {flatExampleValues.map((example, idx) => {
-                                    return (
-                                        <Tag
-                                            key={example + idx}
-                                            small={true}
-                                            minimal={true}
-                                            round={true}
-                                            style={{ marginRight: "0.25rem" }}
-                                            htmlTitle={exampleTitle}
-                                        >
-                                            {example}
-                                        </Tag>
-                                    );
-                                })}
+                                <ActiveLearningValueExamples
+                                    exampleValues={flatExampleValues}
+                                    valuesToHighlight={sameExampleValues}
+                                />
                             </OverviewItemLine>
                         ) : null}
                     </OverviewItemDescription>
@@ -195,9 +193,14 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     };
 
     const SelectedPropertyPair = ({ pair }: { pair: ComparisonPairWithId }) => {
+        const sameExampleValues = sameValues(pair.sourceExamples.flat(), pair.targetExamples.flat());
         return (
             <ComparisionDataRow>
-                <SelectedProperty property={pair.source} exampleValues={pair.sourceExamples} />
+                <SelectedProperty
+                    property={pair.source}
+                    exampleValues={pair.sourceExamples}
+                    sameExampleValues={sameExampleValues}
+                />
                 <ComparisionDataConnection>
                     <ConnectionEnabled
                         label={utils.comparisonType(pair)}
@@ -211,7 +214,11 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         }
                     />
                 </ComparisionDataConnection>
-                <SelectedProperty property={pair.target} exampleValues={pair.targetExamples} />
+                <SelectedProperty
+                    property={pair.target}
+                    exampleValues={pair.targetExamples}
+                    sameExampleValues={sameExampleValues}
+                />
             </ComparisionDataRow>
         );
     };
@@ -354,9 +361,14 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     };
 
     const SuggestedPathSelection = ({ pair }: { pair: ComparisonPairWithId }) => {
+        const sameExampleValues = sameValues(pair.sourceExamples.flat(), pair.targetExamples.flat());
         return (
             <ComparisionDataRow>
-                <SelectedProperty property={pair.source} exampleValues={pair.sourceExamples} />
+                <SelectedProperty
+                    property={pair.source}
+                    exampleValues={pair.sourceExamples}
+                    sameExampleValues={sameExampleValues}
+                />
                 <ComparisionDataConnection>
                     <ConnectionAvailable
                         actions={
@@ -368,7 +380,11 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         }
                     />
                 </ComparisionDataConnection>
-                <SelectedProperty property={pair.target} exampleValues={pair.targetExamples} />
+                <SelectedProperty
+                    property={pair.target}
+                    exampleValues={pair.targetExamples}
+                    sameExampleValues={sameExampleValues}
+                />
             </ComparisionDataRow>
         );
     };
