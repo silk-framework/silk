@@ -4,8 +4,8 @@ import {
     Card,
     CardContent,
     CardHeader,
-    CardTitle,
     CardOptions,
+    CardTitle,
     Divider,
     HtmlContentBlock,
     IconButton,
@@ -25,13 +25,13 @@ import {
     ToolbarSection,
 } from "@eccenca/gui-elements";
 import {
-    ComparisionDataContainer,
-    ComparisionDataHead,
     ComparisionDataBody,
-    ComparisionDataRow,
-    ComparisionDataHeader,
     ComparisionDataCell,
     ComparisionDataConnection,
+    ComparisionDataContainer,
+    ComparisionDataHead,
+    ComparisionDataHeader,
+    ComparisionDataRow,
 } from "./components/ComparisionData";
 import { ComparisonPair, ComparisonPairWithId, TypedPath } from "./LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningContext } from "./contexts/LinkingRuleActiveLearningContext";
@@ -46,6 +46,7 @@ import ConnectionEnabled from "./components/ConnectionEnabled";
 import ConnectionAvailable from "./components/ConnectionAvailable";
 import { useTranslation } from "react-i18next";
 import utils from "./LinkingRuleActiveLearning.utils";
+import { ActiveLearningValueExamples, sameValues } from "./shared/ActiveLearningValueExamples";
 
 interface LinkingRuleActiveLearningConfigProps {
     projectId: string;
@@ -159,33 +160,33 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         );
     };
 
-    const SelectedProperty = ({ property, exampleValues }: { property: TypedPath; exampleValues: string[][] }) => {
+    const SelectedProperty = ({
+        property,
+        exampleValues,
+        sameExampleValues,
+        filterByPath,
+    }: {
+        property: TypedPath;
+        exampleValues: string[][];
+        sameExampleValues: Set<string>;
+        filterByPath?: () => any;
+    }) => {
         const flatExampleValues: string[] = [].concat.apply([], exampleValues);
         const showLabel: boolean = !!property.label && property.label.toLowerCase() !== property.path.toLowerCase();
         const exampleTitle = flatExampleValues.join(" | ");
         return (
             <ComparisionDataCell>
                 <OverviewItem>
-                    <OverviewItemDescription>
+                    <OverviewItemDescription onClick={filterByPath}>
                         <OverviewItemLine title={showLabel ? property.path : undefined}>
                             {property.label ?? property.path}
                         </OverviewItemLine>
                         {flatExampleValues.length > 0 ? (
                             <OverviewItemLine small={showLabel} title={exampleTitle}>
-                                {flatExampleValues.map((example, idx) => {
-                                    return (
-                                        <Tag
-                                            key={example + idx}
-                                            small={true}
-                                            minimal={true}
-                                            round={true}
-                                            style={{ marginRight: "0.25rem" }}
-                                            htmlTitle={exampleTitle}
-                                        >
-                                            {example}
-                                        </Tag>
-                                    );
-                                })}
+                                <ActiveLearningValueExamples
+                                    exampleValues={flatExampleValues}
+                                    valuesToHighlight={sameExampleValues}
+                                />
                             </OverviewItemLine>
                         ) : null}
                     </OverviewItemDescription>
@@ -195,9 +196,14 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     };
 
     const SelectedPropertyPair = ({ pair }: { pair: ComparisonPairWithId }) => {
+        const sameExampleValues = sameValues(pair.sourceExamples.flat(), pair.targetExamples.flat());
         return (
             <ComparisionDataRow>
-                <SelectedProperty property={pair.source} exampleValues={pair.sourceExamples} />
+                <SelectedProperty
+                    property={pair.source}
+                    exampleValues={pair.sourceExamples}
+                    sameExampleValues={sameExampleValues}
+                />
                 <ComparisionDataConnection>
                     <ConnectionEnabled
                         label={utils.comparisonType(pair)}
@@ -211,7 +217,11 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         }
                     />
                 </ComparisionDataConnection>
-                <SelectedProperty property={pair.target} exampleValues={pair.targetExamples} />
+                <SelectedProperty
+                    property={pair.target}
+                    exampleValues={pair.targetExamples}
+                    sameExampleValues={sameExampleValues}
+                />
             </ComparisionDataRow>
         );
     };
@@ -246,11 +256,44 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
 
     const SuggestionWidget = () => {
         const [showInfo, setShowInfo] = React.useState<boolean>(false);
+        const pathFilter = React.useRef<{ path: string; isTarget: boolean; label?: string } | undefined>(undefined);
+        const [filteredSuggestions, setFilteredSuggestions] = React.useState<ComparisonPairWithId[] | undefined>(
+            undefined
+        );
+
         React.useEffect(() => {
             if (!showInfo && suggestions.length === 0) {
                 setShowInfo(true);
             }
         }, [suggestions]);
+
+        const filterSuggestions = (path: string, isTarget: boolean) => {
+            pathFilter.current = { path, isTarget };
+            const filteredSuggestions = suggestions.filter((suggestion) => {
+                const suggestionPath = isTarget ? suggestion.target : suggestion.source;
+                const samePath = path === suggestionPath.path;
+                if (samePath && !pathFilter.current!.label) {
+                    pathFilter.current!.label = suggestionPath.label;
+                }
+                return samePath;
+            });
+            setFilteredSuggestions(filteredSuggestions);
+        };
+
+        const resetFilter = () => {
+            pathFilter.current = undefined;
+            setFilteredSuggestions(undefined);
+        };
+
+        const filterByPath = React.useCallback((path: string, isTarget: boolean) => {
+            const current = pathFilter.current;
+            if (current && current.path === path && current.isTarget === isTarget) {
+                // Reset filter when same path is clicked again
+                resetFilter();
+            } else {
+                filterSuggestions(path, isTarget);
+            }
+        }, []);
 
         return (
             <Card elevation={0}>
@@ -300,11 +343,23 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                                     <Spacing size="small" />
                                 </>
                             )}
+                            {pathFilter.current ? (
+                                <div>
+                                    <Tag onRemove={resetFilter}>
+                                        {pathFilter.current.label ?? pathFilter.current.path}
+                                    </Tag>
+                                    <Spacing />
+                                </div>
+                            ) : null}
                             {suggestions.length > 0 && (
                                 <ComparisionDataContainer>
                                     <ComparisionDataBody>
-                                        {suggestions.map((suggestion) => (
-                                            <SuggestedPathSelection key={suggestion.pairId} pair={suggestion} />
+                                        {(filteredSuggestions ?? suggestions).map((suggestion) => (
+                                            <SuggestedPathSelection
+                                                key={suggestion.pairId}
+                                                pair={suggestion}
+                                                filterByPath={filterByPath}
+                                            />
                                         ))}
                                     </ComparisionDataBody>
                                 </ComparisionDataContainer>
@@ -353,10 +408,22 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         );
     };
 
-    const SuggestedPathSelection = ({ pair }: { pair: ComparisonPairWithId }) => {
+    const SuggestedPathSelection = ({
+        pair,
+        filterByPath,
+    }: {
+        pair: ComparisonPairWithId;
+        filterByPath: (path: string, isTarget: boolean) => any;
+    }) => {
+        const sameExampleValues = sameValues(pair.sourceExamples.flat(), pair.targetExamples.flat());
         return (
             <ComparisionDataRow>
-                <SelectedProperty property={pair.source} exampleValues={pair.sourceExamples} />
+                <SelectedProperty
+                    property={pair.source}
+                    exampleValues={pair.sourceExamples}
+                    sameExampleValues={sameExampleValues}
+                    filterByPath={() => filterByPath(pair.source.path, false)}
+                />
                 <ComparisionDataConnection>
                     <ConnectionAvailable
                         actions={
@@ -368,7 +435,12 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         }
                     />
                 </ComparisionDataConnection>
-                <SelectedProperty property={pair.target} exampleValues={pair.targetExamples} />
+                <SelectedProperty
+                    property={pair.target}
+                    exampleValues={pair.targetExamples}
+                    sameExampleValues={sameExampleValues}
+                    filterByPath={() => filterByPath(pair.target.path, true)}
+                />
             </ComparisionDataRow>
         );
     };

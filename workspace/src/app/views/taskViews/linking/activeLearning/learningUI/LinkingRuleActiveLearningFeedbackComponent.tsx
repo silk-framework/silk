@@ -42,6 +42,7 @@ import { EntityLink, EntityLinkPropertyPairValues } from "../../referenceLinks/L
 import ConnectionEnabled from "./../components/ConnectionEnabled";
 import { useTranslation } from "react-i18next";
 import utils from "../LinkingRuleActiveLearning.utils";
+import { ActiveLearningValueExamples, sameValues } from "../shared/ActiveLearningValueExamples";
 
 export const LinkingRuleActiveLearningFeedbackComponent = () => {
     const [t] = useTranslation();
@@ -172,7 +173,11 @@ const Header = ({ disabledButtons, selectedDecision, cancel }: HeaderProps) => {
                         <Spacing vertical size="small" />
                     </>
                 )}
-                <IconButton text={t("ActiveLearning.feedback.propertyConfiguration")} name={"settings"} onClick={() => activeLearningContext.navigateTo("config")} />
+                <IconButton
+                    text={t("ActiveLearning.feedback.propertyConfiguration")}
+                    name={"settings"}
+                    onClick={() => activeLearningContext.navigateTo("config")}
+                />
             </CardOptions>
         </CardHeader>
     );
@@ -320,15 +325,24 @@ const EntitiesPropertyPair = ({
 }: EntitiesPropertyPairProps) => {
     const scoreColor = scoreColorRepresentation(score);
     const [t] = useTranslation();
+    const sameExampleValues = sameValues(values.sourceExamples, values.targetExamples);
     return (
         <ComparisionDataRow>
-            <EntityPropertyValues property={propertyPair.source} values={values.sourceExamples} score={score} />
+            <EntityPropertyValues
+                property={propertyPair.source}
+                values={values.sourceExamples}
+                sameExampleValues={sameExampleValues}
+            />
             <ComparisionDataConnection>
                 <ConnectionEnabled
                     label={utils.comparisonType(propertyPair)}
                     actions={
                         <IconButton
-                            text={selectedForLabel ? t("ActiveLearning.feedback.removeFromLabel") : t("ActiveLearning.feedback.addToLabel")}
+                            text={
+                                selectedForLabel
+                                    ? t("ActiveLearning.feedback.removeFromLabel")
+                                    : t("ActiveLearning.feedback.addToLabel")
+                            }
                             name={selectedForLabel ? "favorite-filled" : "favorite-empty"}
                             elevated
                             onClick={toggleLabelSelection}
@@ -337,7 +351,11 @@ const EntitiesPropertyPair = ({
                     color={scoreColor}
                 />
             </ComparisionDataConnection>
-            <EntityPropertyValues property={propertyPair.target} values={values.targetExamples} score={score} />
+            <EntityPropertyValues
+                property={propertyPair.target}
+                values={values.targetExamples}
+                sameExampleValues={sameExampleValues}
+            />
         </ComparisionDataRow>
     );
 };
@@ -345,10 +363,10 @@ const EntitiesPropertyPair = ({
 interface EntityPropertyValuesProps {
     values: string[];
     property: TypedPath;
-    score?: number;
+    sameExampleValues: Set<string>;
 }
 
-const EntityPropertyValues = ({ property, values, score }: EntityPropertyValuesProps) => {
+const EntityPropertyValues = ({ property, values, sameExampleValues }: EntityPropertyValuesProps) => {
     const propertyLabel = property.label ? property.label : property.path;
     const exampleTitle = values.join(" | ");
     return (
@@ -358,20 +376,7 @@ const EntityPropertyValues = ({ property, values, score }: EntityPropertyValuesP
                     <OverviewItemLine small>{propertyLabel}</OverviewItemLine>
                     {values.length > 0 ? (
                         <OverviewItemLine title={exampleTitle}>
-                            {values.map((example) => {
-                                return (
-                                    <Tag
-                                        key={example}
-                                        small={true}
-                                        minimal={true}
-                                        round={true}
-                                        style={{ marginRight: "0.25rem", backgroundColor: "white" }}
-                                        htmlTitle={exampleTitle}
-                                    >
-                                        {example}
-                                    </Tag>
-                                );
-                            })}
+                            <ActiveLearningValueExamples exampleValues={values} valuesToHighlight={sameExampleValues} />
                         </OverviewItemLine>
                     ) : null}
                 </OverviewItemDescription>
