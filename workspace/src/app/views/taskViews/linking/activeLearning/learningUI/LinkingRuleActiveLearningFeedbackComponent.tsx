@@ -155,7 +155,6 @@ interface HeaderProps {
 
 /** TODO: Clean up sub-components */
 const Header = ({ disabledButtons, selectedDecision, cancel }: HeaderProps) => {
-    const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
     const [t] = useTranslation();
     const positiveSelected = selectedDecision === "positive";
     const negativeSelected = selectedDecision === "negative";
@@ -174,11 +173,6 @@ const Header = ({ disabledButtons, selectedDecision, cancel }: HeaderProps) => {
                         <Spacing vertical size="small" />
                     </>
                 )}
-                <IconButton
-                    text={t("ActiveLearning.feedback.propertyConfiguration")}
-                    name={"settings"}
-                    onClick={() => activeLearningContext.navigateTo("config")}
-                />
             </CardOptions>
         </CardHeader>
     );

@@ -170,6 +170,12 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                             onClick={activeLearningContext.showResetDialog}
                         />
                         <Spacing vertical={true} size="small" />
+                        <IconButton
+                            text={t("ActiveLearning.feedback.propertyConfiguration")}
+                            name={"settings"}
+                            onClick={() => activeLearningContext.navigateTo("config")}
+                        />
+                        <Spacing vertical={true} size="small" />
                         <Button
                             text={t("common.action.save")}
                             title={t("ActiveLearning.saveDialog.title")}
