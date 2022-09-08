@@ -9,10 +9,12 @@ import { OnLoadParams } from "react-flow-renderer";
 interface RuleEditorViewProps {
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
     showRuleOnly?: boolean;
+    /** When enabled the mini map is not displayed. */
+    hideMinimap?: boolean;
 }
 
 /** The main view of the rule editor, integrating toolbar, sidebar and main rule canvas. */
-export const RuleEditorView = ({ showRuleOnly }: RuleEditorViewProps) => {
+export const RuleEditorView = ({ showRuleOnly, hideMinimap }: RuleEditorViewProps) => {
     const [modalShown, setModalShown] = React.useState(false);
     const [advancedParameterModeEnabled, setAdvancedParameterMode] = React.useState(false);
     const reactFlowWrapper = React.useRef<any>(null);
@@ -29,6 +31,7 @@ export const RuleEditorView = ({ showRuleOnly }: RuleEditorViewProps) => {
                 reactFlowInstance,
                 setReactFlowInstance,
                 showRuleOnly,
+                hideMinimap,
             }}
         >
             <Grid verticalStretchable={true} useAbsoluteSpace={true} style={{ backgroundColor: "white" }}>

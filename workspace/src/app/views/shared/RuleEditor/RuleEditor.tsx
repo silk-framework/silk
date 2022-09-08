@@ -70,6 +70,8 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     getStickyNotes?: (taskData: RULE_TYPE | undefined) => IStickyNote[];
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
     showRuleOnly: boolean;
+    /** When enabled the mini map is not displayed. */
+    hideMinimap?: boolean;
 }
 
 const READ_ONLY_QUERY_PARAMETER = "readOnly";
@@ -93,6 +95,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     editorTitle,
     getStickyNotes = () => [],
     showRuleOnly,
+    hideMinimap
 }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
     // The task that contains the rule, e.g. transform or linking task
     const [taskData, setTaskData] = React.useState<TASK_TYPE | undefined>(undefined);
@@ -232,10 +235,11 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 editorTitle,
                 stickyNotes: getStickyNotes(taskData),
                 showRuleOnly,
+                hideMinimap
             }}
         >
             <RuleEditorModel>
-                <RuleEditorView showRuleOnly={showRuleOnly} />
+                <RuleEditorView showRuleOnly={showRuleOnly} hideMinimap={hideMinimap} />
             </RuleEditorModel>
         </RuleEditorContext.Provider>
     );

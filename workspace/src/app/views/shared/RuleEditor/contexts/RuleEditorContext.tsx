@@ -64,6 +64,8 @@ export interface RuleEditorContextProps {
     stickyNotes: IStickyNote[];
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
     showRuleOnly?: boolean;
+    /** When enabled the mini map is not displayed. */
+    hideMinimap?: boolean;
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
@@ -80,4 +82,5 @@ export const RuleEditorContext = React.createContext<RuleEditorContextProps>({
     validateConnection: () => true,
     stickyNotes: [],
     showRuleOnly: false,
+    hideMinimap: false,
 });

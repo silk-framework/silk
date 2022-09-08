@@ -41,6 +41,8 @@ export interface LinkingRuleEditorProps {
 interface LinkingRuleEditorOptionalContextProps {
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
     showRuleOnly?: boolean;
+    /** When enabled the mini map is not displayed. */
+    hideMinimap?: boolean;
     /** When this is defined it will show this rule instead of loading it from the backend. */
     linkingRule?: TaskPlugin<ILinkingTaskParameters>;
 }
@@ -291,6 +293,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                     <LinkingRuleCacheInfo projectId={projectId} taskId={linkingTaskId} />,
                 ]}
                 showRuleOnly={!!optionalContext.showRuleOnly}
+                hideMinimap={!!optionalContext.hideMinimap}
             />
         </LinkingRuleEvaluation>
     );

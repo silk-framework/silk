@@ -534,7 +534,7 @@ export const RuleEditorCanvas = () => {
                     maxZoom={1.25}
                     multiSelectionKeyCode={18} // ALT
                 >
-                    <MiniMap flowInstance={ruleEditorUiContext.reactFlowInstance} enableNavigation={true} />
+                    {!ruleEditorUiContext.hideMinimap && <MiniMap flowInstance={ruleEditorUiContext.reactFlowInstance} enableNavigation={true} />}
                     <Controls
                         showInteractive={permanentReadOnly ? false : !!modelContext.setIsReadOnly}
                         onInteractiveChange={

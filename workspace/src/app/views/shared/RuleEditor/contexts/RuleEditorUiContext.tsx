@@ -18,6 +18,8 @@ export interface RuleEditorUiContextProps {
     reactFlowInstance: OnLoadParams | undefined;
     /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
     showRuleOnly?: boolean;
+    /** When enabled the mini map is not displayed. */
+    hideMinimap?: boolean;
 }
 
 export const RuleEditorUiContext = React.createContext<RuleEditorUiContextProps>({
@@ -29,4 +31,5 @@ export const RuleEditorUiContext = React.createContext<RuleEditorUiContextProps>
     setReactFlowInstance: () => {},
     reactFlowInstance: undefined,
     showRuleOnly: false,
+    hideMinimap: false,
 });

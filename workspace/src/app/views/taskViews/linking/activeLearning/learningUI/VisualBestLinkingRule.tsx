@@ -33,6 +33,7 @@ export const VisualBestLinkingRule = ({ rule }: Props) => {
                     },
                 },
                 showRuleOnly: true,
+                hideMinimap: true,
             }}
         >
             <div style={{ position: "relative", height: "400px" }}>
