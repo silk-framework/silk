@@ -66,6 +66,8 @@ export interface RuleEditorContextProps {
     showRuleOnly?: boolean;
     /** When enabled the mini map is not displayed. */
     hideMinimap?: boolean;
+    /** Defines minimun and maximum of the available zoom levels */
+    zoomRange?: [number, number];
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
@@ -83,4 +85,5 @@ export const RuleEditorContext = React.createContext<RuleEditorContextProps>({
     stickyNotes: [],
     showRuleOnly: false,
     hideMinimap: false,
+    zoomRange:  [0.5, 1.5],
 });

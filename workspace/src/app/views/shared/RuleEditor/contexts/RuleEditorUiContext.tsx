@@ -20,6 +20,8 @@ export interface RuleEditorUiContextProps {
     showRuleOnly?: boolean;
     /** When enabled the mini map is not displayed. */
     hideMinimap?: boolean;
+    /** Defines minimun and maximum of the available zoom levels */
+    zoomRange?: [number, number];
 }
 
 export const RuleEditorUiContext = React.createContext<RuleEditorUiContextProps>({
@@ -32,4 +34,5 @@ export const RuleEditorUiContext = React.createContext<RuleEditorUiContextProps>
     reactFlowInstance: undefined,
     showRuleOnly: false,
     hideMinimap: false,
+    zoomRange: [0.5, 1.5],
 });

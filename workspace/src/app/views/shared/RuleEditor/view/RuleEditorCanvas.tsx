@@ -531,7 +531,8 @@ export const RuleEditorCanvas = () => {
                     snapGrid={snapGrid}
                     snapToGrid={true}
                     zoomOnDoubleClick={false}
-                    maxZoom={1.25}
+                    minZoom={!!ruleEditorUiContext.zoomRange ? ruleEditorUiContext.zoomRange[0] : undefined}
+                    maxZoom={!!ruleEditorUiContext.zoomRange ? ruleEditorUiContext.zoomRange[1] :  1.25}
                     multiSelectionKeyCode={18} // ALT
                 >
                     {!ruleEditorUiContext.hideMinimap && <MiniMap flowInstance={ruleEditorUiContext.reactFlowInstance} enableNavigation={true} />}

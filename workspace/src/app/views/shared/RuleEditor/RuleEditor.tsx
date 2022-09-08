@@ -72,6 +72,8 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     showRuleOnly: boolean;
     /** When enabled the mini map is not displayed. */
     hideMinimap?: boolean;
+    /** Defines minimun and maximum of the available zoom levels */
+    zoomRange?: [number, number];
 }
 
 const READ_ONLY_QUERY_PARAMETER = "readOnly";
@@ -95,7 +97,8 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     editorTitle,
     getStickyNotes = () => [],
     showRuleOnly,
-    hideMinimap
+    hideMinimap,
+    zoomRange
 }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
     // The task that contains the rule, e.g. transform or linking task
     const [taskData, setTaskData] = React.useState<TASK_TYPE | undefined>(undefined);
@@ -235,11 +238,12 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 editorTitle,
                 stickyNotes: getStickyNotes(taskData),
                 showRuleOnly,
-                hideMinimap
+                hideMinimap,
+                zoomRange
             }}
         >
             <RuleEditorModel>
-                <RuleEditorView showRuleOnly={showRuleOnly} hideMinimap={hideMinimap} />
+                <RuleEditorView showRuleOnly={showRuleOnly} hideMinimap={hideMinimap} zoomRange={zoomRange} />
             </RuleEditorModel>
         </RuleEditorContext.Provider>
     );

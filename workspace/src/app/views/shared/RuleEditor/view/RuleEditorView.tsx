@@ -11,10 +11,12 @@ interface RuleEditorViewProps {
     showRuleOnly?: boolean;
     /** When enabled the mini map is not displayed. */
     hideMinimap?: boolean;
+    /** Defines minimun and maximum of the available zoom levels */
+    zoomRange?: [number, number];
 }
 
 /** The main view of the rule editor, integrating toolbar, sidebar and main rule canvas. */
-export const RuleEditorView = ({ showRuleOnly, hideMinimap }: RuleEditorViewProps) => {
+export const RuleEditorView = ({ showRuleOnly, hideMinimap, zoomRange }: RuleEditorViewProps) => {
     const [modalShown, setModalShown] = React.useState(false);
     const [advancedParameterModeEnabled, setAdvancedParameterMode] = React.useState(false);
     const reactFlowWrapper = React.useRef<any>(null);
@@ -32,6 +34,7 @@ export const RuleEditorView = ({ showRuleOnly, hideMinimap }: RuleEditorViewProp
                 setReactFlowInstance,
                 showRuleOnly,
                 hideMinimap,
+                zoomRange,
             }}
         >
             <Grid verticalStretchable={true} useAbsoluteSpace={true} style={{ backgroundColor: "white" }}>

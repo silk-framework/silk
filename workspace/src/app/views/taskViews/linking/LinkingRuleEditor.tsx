@@ -43,6 +43,8 @@ interface LinkingRuleEditorOptionalContextProps {
     showRuleOnly?: boolean;
     /** When enabled the mini map is not displayed. */
     hideMinimap?: boolean;
+    /** Defines minimun and maximum of the available zoom levels */
+    zoomRange?: [number, number];
     /** When this is defined it will show this rule instead of loading it from the backend. */
     linkingRule?: TaskPlugin<ILinkingTaskParameters>;
 }
@@ -294,6 +296,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                 ]}
                 showRuleOnly={!!optionalContext.showRuleOnly}
                 hideMinimap={!!optionalContext.hideMinimap}
+                zoomRange={optionalContext.zoomRange}
             />
         </LinkingRuleEvaluation>
     );
