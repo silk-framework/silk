@@ -840,6 +840,7 @@
         },
         "feedback": {
             "title": "Reference feedback",
+            "info": "Confirm or decline if the configured relation is correct between the entities. The colors of the connections indicate the equality score of the property values, equal values are highlighted. Properties can be marked so that one of the values is used for the title in the decision history table.",
             "confirm": "Confirm",
             "confirmDescription": "Confirm that the shown entities are a valid link.",
             "decline": "Decline",

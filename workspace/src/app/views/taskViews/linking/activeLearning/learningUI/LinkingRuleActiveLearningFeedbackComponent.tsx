@@ -7,6 +7,8 @@ import {
     CardOptions,
     CardTitle,
     Divider,
+    HtmlContentBlock,
+    Markdown,
     IconButton,
     InteractionGate,
     Notification,
@@ -47,6 +49,7 @@ import { ActiveLearningValueExamples, sameValues, highlightedTagColor } from "..
 
 export const LinkingRuleActiveLearningFeedbackComponent = () => {
     const [t] = useTranslation();
+    const [showInfo, setShowInfo] = React.useState<boolean>(false);
     /** Contexts */
     const activeLearningFeedbackContext = React.useContext(LinkingRuleActiveLearningFeedbackContext);
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
@@ -110,9 +113,25 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
                 disabledButtons={!activeLearningFeedbackContext.selectedLink}
                 selectedDecision={(activeLearningFeedbackContext.selectedLink as ActiveLearningReferenceLink)?.decision}
                 cancel={activeLearningFeedbackContext.cancel}
+                toggleInfo={() => setShowInfo(!showInfo)}
             />
             <Divider />
             <CardContent>
+                {showInfo && (
+                    <>
+                        <Notification neutral actions={(
+                            <IconButton text={t("common.action.close")} name="navigation-close" onClick={() => setShowInfo(false)} />
+                        )}>
+                            <HtmlContentBlock>
+                                <Markdown inheritBlock>
+                                    {t("ActiveLearning.feedback.info")}
+                                </Markdown>
+                                <MatchingColorInfo />
+                            </HtmlContentBlock>
+                        </Notification>
+                        <Spacing />
+                    </>
+                )}
                 <InteractionGate inert={loading} showSpinner={loading} spinnerProps={{ delay: 500 }}>
                     <DecisionButtons
                         disabledButtons={!activeLearningFeedbackContext.selectedLink}
@@ -137,8 +156,6 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
                     ) : (
                         <Notification message={t("ActiveLearning.feedback.noSelection")} />
                     )}
-                    <Spacing />
-                    <MatchingColorInfo />
                 </InteractionGate>
             </CardContent>
         </Card>
@@ -151,10 +168,12 @@ interface HeaderProps {
     selectedDecision?: ActiveLearningDecisions;
     /** Cancel changing an existing link. */
     cancel: () => any;
+    /** Handler to toggle the info area. */
+    toggleInfo: () => void;
 }
 
 /** TODO: Clean up sub-components */
-const Header = ({ disabledButtons, selectedDecision, cancel }: HeaderProps) => {
+const Header = ({ disabledButtons, selectedDecision, cancel, toggleInfo }: HeaderProps) => {
     const [t] = useTranslation();
     const positiveSelected = selectedDecision === "positive";
     const negativeSelected = selectedDecision === "negative";
@@ -173,6 +192,7 @@ const Header = ({ disabledButtons, selectedDecision, cancel }: HeaderProps) => {
                         <Spacing vertical size="small" />
                     </>
                 )}
+                <IconButton text={t("ActiveLearning.config.buttons.showInfo")} name="item-info" onClick={() => toggleInfo()} />
             </CardOptions>
         </CardHeader>
     );
