@@ -7,8 +7,8 @@ import {
     Divider,
     IconButton,
     Notification,
-    Spacing,
     Tag,
+    TagList,
     Tooltip,
 } from "@eccenca/gui-elements";
 import React from "react";
@@ -86,7 +86,7 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
         const transformations = aggregateOps(ruleOperators.filter((op) => op.pluginType === "TransformOperator"));
         const aggregations = aggregateOps(ruleOperators.filter((op) => op.pluginType === "AggregationOperator"));
         return (
-            <div>
+            <TagList>
                 {[...sourcePaths, ...targetPaths, ...comparisons, ...transformations, ...aggregations].map((op) => {
                     return (
                         <React.Fragment key={op.label}>
@@ -94,11 +94,10 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
                                 {op.label}
                                 {op.count > 1 ? ` (${op.count})` : ""}
                             </Tag>
-                            <Spacing size={"tiny"} vertical={true} />
                         </React.Fragment>
                     );
                 })}
-            </div>
+            </TagList>
         );
     };
 
@@ -106,12 +105,20 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
         return (
             <CardHeader>
                 <CardTitle>
-                    <Tooltip content={t("ActiveLearning.bestLearnedRule.titleTooltip")}>
+                    <h2>
                         {t("ActiveLearning.bestLearnedRule.title", { score: scoreString })}
-                    </Tooltip>
+                        {rule && (
+                            <>
+                            {" "}
+                            <Tooltip content={t("ActiveLearning.bestLearnedRule.titleTooltip")}>
+                                {`(${t("ActiveLearning.bestLearnedRule.scoreInfo", { score: scoreString })})`}
+                            </Tooltip>
+                            </>
+                        )}
+                    </h2>
                 </CardTitle>
-                <CardOptions>
-                    {rule ? (
+                {rule && (
+                    <CardOptions>
                         <IconButton
                             data-test-id={"open-best-learned-rule-btn"}
                             name={"toggler-maximize"}
@@ -121,20 +128,20 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
                             }}
                             text={t("ActiveLearning.bestLearnedRule.showRuleFullscreen")}
                         />
-                    ) : null}
-                    <IconButton
-                        data-test-id={"best-learned-rule-toggler-btn"}
-                        name={displayVisualRule ? "toggler-showless" : "toggler-showmore"}
-                        text={
-                            displayVisualRule
-                                ? t("ActiveLearning.bestLearnedRule.hideRule")
-                                : t("ActiveLearning.bestLearnedRule.showRule")
-                        }
-                        onClick={() => {
-                            setDisplayVisualRule(!displayVisualRule);
-                        }}
-                    />
-                </CardOptions>
+                        <IconButton
+                            data-test-id={"best-learned-rule-toggler-btn"}
+                            name={displayVisualRule ? "toggler-showless" : "toggler-showmore"}
+                            text={
+                                displayVisualRule
+                                    ? t("ActiveLearning.bestLearnedRule.hideRule")
+                                    : t("ActiveLearning.bestLearnedRule.showRule")
+                            }
+                            onClick={() => {
+                                setDisplayVisualRule(!displayVisualRule);
+                            }}
+                        />
+                    </CardOptions>
+                )}
             </CardHeader>
         );
     };
@@ -143,7 +150,7 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
         return <Notification neutral={true} message={t("ActiveLearning.bestLearnedRule.noRule")} />;
     };
 
-    return rule ? (
+    return (
         <>
             <Card elevation={0} data-test-id={"best-learned-rule-visual"}>
                 <BestLearnedRuleHeader />
@@ -154,7 +161,7 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
                     ) : rule ? (
                         <RuleSummary />
                     ) : (
-                        "No rule learned, yet."
+                        <Info />
                     )}
                 </CardContent>
             </Card>
@@ -165,8 +172,6 @@ export const LinkingRuleActiveLearningBestLearnedRule = ({
                 />
             ) : null}
         </>
-    ) : (
-        <Info />
     );
 };
 
