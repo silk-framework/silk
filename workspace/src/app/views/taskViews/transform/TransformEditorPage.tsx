@@ -8,7 +8,12 @@ const TransformEditorPage = () => {
     return !projectId || !ruleId || !transformTaskId ? (
         <NotFound />
     ) : (
-        <TransformRuleEditor projectId={projectId} ruleId={ruleId} transformTaskId={transformTaskId} />
+        <TransformRuleEditor
+            projectId={projectId}
+            ruleId={ruleId}
+            transformTaskId={transformTaskId}
+            instanceId={"tab-instance"}
+        />
     );
 };
 

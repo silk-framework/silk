@@ -70,6 +70,8 @@ export interface RuleEditorContextProps {
     zoomRange?: [number, number];
     /** After the initial fit to view, zoom to the specified Zoom level to avoid showing too small nodes. */
     initialFitToViewZoomLevel?: number;
+    /** The ID of the instance. If multiple instances are used in parallel, they need to have unique IDs, else there can be interferences. */
+    instanceId: string;
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
@@ -89,4 +91,5 @@ export const RuleEditorContext = React.createContext<RuleEditorContextProps>({
     hideMinimap: false,
     zoomRange: [0.5, 1.5],
     initialFitToViewZoomLevel: 0.75,
+    instanceId: "uniqueId",
 });

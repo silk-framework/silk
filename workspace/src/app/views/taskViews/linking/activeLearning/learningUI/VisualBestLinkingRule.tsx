@@ -42,6 +42,7 @@ export const VisualBestLinkingRule = ({ rule }: Props) => {
                     <LinkingRuleEditor
                         projectId={activeLearningContext.projectId}
                         linkingTaskId={activeLearningContext.linkingTaskId}
+                        instanceId={"best-learned-rule"}
                     />
                 ) : null}
             </div>

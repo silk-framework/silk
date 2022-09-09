@@ -36,6 +36,8 @@ export interface LinkingRuleEditorProps {
     linkingTaskId: string;
     /** Generic actions and callbacks on views. */
     viewActions?: IViewActions;
+    /** The instance of the linking editor. This needs to be unique if multiple instances of the linking editor are displayed on the same page. */
+    instanceId: string;
 }
 
 interface LinkingRuleEditorOptionalContextProps {
@@ -57,7 +59,7 @@ const HIDE_GREY_LISTED_OPERATORS_QUERY_PARAMETER = "hideGreyListedParameters";
 const NUMBER_OF_LINKS_TO_SHOW = 5;
 
 /** Editor for creating and changing linking rule operator trees. */
-export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: LinkingRuleEditorProps) => {
+export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, instanceId }: LinkingRuleEditorProps) => {
     // The linking task parameters
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
@@ -300,6 +302,7 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions }: Lin
                 hideMinimap={!!optionalContext.hideMinimap}
                 zoomRange={optionalContext.zoomRange}
                 initialFitToViewZoomLevel={optionalContext.initialFitToViewZoomLevel}
+                instanceId={instanceId}
             />
         </LinkingRuleEvaluation>
     );

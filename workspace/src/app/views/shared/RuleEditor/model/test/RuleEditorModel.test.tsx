@@ -95,6 +95,7 @@ describe("Rule editor model", () => {
                         convertRuleOperatorToRuleNode: utils.defaults.convertRuleOperatorToRuleNode,
                         operatorSpec,
                         validateConnection,
+                        instanceId: "id",
                     }}
                 >
                     <ReactFlowProvider>

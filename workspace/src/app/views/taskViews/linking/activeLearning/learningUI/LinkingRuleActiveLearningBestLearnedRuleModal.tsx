@@ -28,7 +28,7 @@ export const LinkingRuleActiveLearningBestLearnedRuleModal = ({ rule, onClose }:
                     data-test-id={"close-btn"}
                     text={t("common.action.close")}
                     name="navigation-close"
-                />
+                />,
             ]}
         >
             <LinkingRuleEditorOptionalContext.Provider
@@ -47,6 +47,7 @@ export const LinkingRuleActiveLearningBestLearnedRuleModal = ({ rule, onClose }:
                     <LinkingRuleEditor
                         projectId={activeLearningContext.projectId}
                         linkingTaskId={activeLearningContext.linkingTaskId}
+                        instanceId={"best-learned-rule-modal"}
                     />
                 </div>
             </LinkingRuleEditorOptionalContext.Provider>

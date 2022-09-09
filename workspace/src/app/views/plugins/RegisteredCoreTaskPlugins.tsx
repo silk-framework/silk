@@ -19,7 +19,12 @@ export const registerCorePlugins = () => {
                             initialFitToViewZoomLevel: 0.75,
                         }}
                     >
-                        <LinkingRuleEditor projectId={projectId} linkingTaskId={taskId} viewActions={viewActions} />
+                        <LinkingRuleEditor
+                            projectId={projectId}
+                            linkingTaskId={taskId}
+                            viewActions={viewActions}
+                            instanceId={"tab-instance"}
+                        />
                     </LinkingRuleEditorOptionalContext.Provider>
                 );
             },

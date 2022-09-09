@@ -22,6 +22,8 @@ export interface TransformRuleEditorProps {
     viewActions?: IViewActions;
     /** After the initial fit to view, zoom to the specified Zoom level to avoid showing too small nodes. */
     initialFitToViewZoomLevel?: number;
+    /** The instance of the linking editor. This needs to be unique if multiple instances of the linking editor are displayed on the same page. */
+    instanceId: string;
 }
 
 /** Editor for creating and changing transform rule operator trees. */
@@ -30,6 +32,7 @@ export const TransformRuleEditor = ({
     transformTaskId,
     ruleId,
     initialFitToViewZoomLevel,
+    instanceId,
 }: TransformRuleEditorProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
@@ -140,6 +143,7 @@ export const TransformRuleEditor = ({
             tabs={[ruleUtils.sidebarTabs.all, ruleUtils.sidebarTabs.transform]}
             showRuleOnly={false}
             initialFitToViewZoomLevel={initialFitToViewZoomLevel}
+            instanceId={instanceId}
         />
     );
 };
