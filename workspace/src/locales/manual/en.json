@@ -850,7 +850,7 @@
             "cancel": "Cancel selection and show next link candidate.",
             "couldNotLoadCandidateError": "Could not load entity link candidate.",
             "propertyConfiguration": "Configure which properties should be shown for reference feedback",
-            "noSelection": "No entity link selected.",
+            "noSelection": "No entity link selected and no further candidates left.",
             "addToLabel": "Select property value to be part of the entity label",
             "removeFromLabel": "Remove property value from entity label",
             "scoreProbablyEqual": "probably equal",

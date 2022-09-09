@@ -119,13 +119,18 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
             <CardContent>
                 {showInfo && (
                     <>
-                        <Notification neutral actions={(
-                            <IconButton text={t("common.action.close")} name="navigation-close" onClick={() => setShowInfo(false)} />
-                        )}>
+                        <Notification
+                            neutral
+                            actions={
+                                <IconButton
+                                    text={t("common.action.close")}
+                                    name="navigation-close"
+                                    onClick={() => setShowInfo(false)}
+                                />
+                            }
+                        >
                             <HtmlContentBlock>
-                                <Markdown inheritBlock>
-                                    {t("ActiveLearning.feedback.info")}
-                                </Markdown>
+                                <Markdown inheritBlock>{t("ActiveLearning.feedback.info")}</Markdown>
                                 <MatchingColorInfo />
                             </HtmlContentBlock>
                         </Notification>
@@ -143,16 +148,14 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
                         }
                         cancel={activeLearningFeedbackContext.cancel}
                     />
+                    <Spacing />
                     {valuesToDisplay ? (
-                        <>
-                            <Spacing />
-                            <SelectedEntityLink
-                                valuesToDisplay={valuesToDisplay}
-                                propertyPairs={activeLearningContext.propertiesToCompare}
-                                labelPropertyPairIds={labelPropertyPairIds}
-                                toggleLabelPropertyPair={toggleLabelPropertyPair}
-                            />
-                        </>
+                        <SelectedEntityLink
+                            valuesToDisplay={valuesToDisplay}
+                            propertyPairs={activeLearningContext.propertiesToCompare}
+                            labelPropertyPairIds={labelPropertyPairIds}
+                            toggleLabelPropertyPair={toggleLabelPropertyPair}
+                        />
                     ) : (
                         <Notification message={t("ActiveLearning.feedback.noSelection")} />
                     )}
@@ -192,7 +195,11 @@ const Header = ({ disabledButtons, selectedDecision, cancel, toggleInfo }: Heade
                         <Spacing vertical size="small" />
                     </>
                 )}
-                <IconButton text={t("ActiveLearning.config.buttons.showInfo")} name="item-info" onClick={() => toggleInfo()} />
+                <IconButton
+                    text={t("ActiveLearning.config.buttons.showInfo")}
+                    name="item-info"
+                    onClick={() => toggleInfo()}
+                />
             </CardOptions>
         </CardHeader>
     );
