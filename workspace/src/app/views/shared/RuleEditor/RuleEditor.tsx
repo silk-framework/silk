@@ -74,6 +74,8 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     hideMinimap?: boolean;
     /** Defines minimun and maximum of the available zoom levels */
     zoomRange?: [number, number];
+    /** After the initial fit to view, zoom to the specified Zoom level to avoid showing too small nodes. */
+    initialFitToViewZoomLevel?: number;
 }
 
 const READ_ONLY_QUERY_PARAMETER = "readOnly";
@@ -98,7 +100,8 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     getStickyNotes = () => [],
     showRuleOnly,
     hideMinimap,
-    zoomRange
+    zoomRange,
+    initialFitToViewZoomLevel,
 }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
     // The task that contains the rule, e.g. transform or linking task
     const [taskData, setTaskData] = React.useState<TASK_TYPE | undefined>(undefined);
@@ -239,7 +242,8 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 stickyNotes: getStickyNotes(taskData),
                 showRuleOnly,
                 hideMinimap,
-                zoomRange
+                zoomRange,
+                initialFitToViewZoomLevel,
             }}
         >
             <RuleEditorModel>

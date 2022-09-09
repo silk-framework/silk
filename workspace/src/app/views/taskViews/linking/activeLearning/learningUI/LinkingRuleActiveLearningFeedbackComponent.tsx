@@ -148,7 +148,7 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
                         }
                         cancel={activeLearningFeedbackContext.cancel}
                     />
-                    <Spacing />
+                    <Spacing size={"large"} />
                     {valuesToDisplay ? (
                         <SelectedEntityLink
                             valuesToDisplay={valuesToDisplay}

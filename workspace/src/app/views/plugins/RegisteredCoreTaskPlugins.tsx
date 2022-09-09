@@ -1,4 +1,4 @@
-import { LinkingRuleEditor } from "../taskViews/linking/LinkingRuleEditor";
+import { LinkingRuleEditor, LinkingRuleEditorOptionalContext } from "../taskViews/linking/LinkingRuleEditor";
 //import HierarchicalMapping from "../pages/MappingEditor/HierarchicalMapping/HierarchicalMapping";
 import React from "react";
 import { IViewActions, pluginRegistry } from "./PluginRegistry";
@@ -13,7 +13,15 @@ export const registerCorePlugins = () => {
             id: "linkingEditor",
             label: "Linking editor",
             render(projectId: string, taskId: string, viewActions: IViewActions | undefined): JSX.Element {
-                return <LinkingRuleEditor projectId={projectId} linkingTaskId={taskId} viewActions={viewActions} />;
+                return (
+                    <LinkingRuleEditorOptionalContext.Provider
+                        value={{
+                            initialFitToViewZoomLevel: 0.75,
+                        }}
+                    >
+                        <LinkingRuleEditor projectId={projectId} linkingTaskId={taskId} viewActions={viewActions} />
+                    </LinkingRuleEditorOptionalContext.Provider>
+                );
             },
         });
 

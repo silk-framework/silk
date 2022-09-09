@@ -20,10 +20,17 @@ export interface TransformRuleEditorProps {
     ruleId: string;
     /** Generic actions and callbacks on views. */
     viewActions?: IViewActions;
+    /** After the initial fit to view, zoom to the specified Zoom level to avoid showing too small nodes. */
+    initialFitToViewZoomLevel?: number;
 }
 
 /** Editor for creating and changing transform rule operator trees. */
-export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: TransformRuleEditorProps) => {
+export const TransformRuleEditor = ({
+    projectId,
+    transformTaskId,
+    ruleId,
+    initialFitToViewZoomLevel,
+}: TransformRuleEditorProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
     /** Fetches the parameters of the transform rule. */
@@ -132,6 +139,7 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
             validateConnection={ruleUtils.validateConnection}
             tabs={[ruleUtils.sidebarTabs.all, ruleUtils.sidebarTabs.transform]}
             showRuleOnly={false}
+            initialFitToViewZoomLevel={initialFitToViewZoomLevel}
         />
     );
 };
