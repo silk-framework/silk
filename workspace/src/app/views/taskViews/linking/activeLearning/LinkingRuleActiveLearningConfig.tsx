@@ -11,9 +11,6 @@ import {
     IconButton,
     Markdown,
     Notification,
-    OverviewItem,
-    OverviewItemDescription,
-    OverviewItemLine,
     Section,
     SectionHeader,
     SimpleDialog,
@@ -33,6 +30,7 @@ import {
     ComparisionDataHeader,
     ComparisionDataRow,
 } from "./components/ComparisionData";
+import { PropertyBox } from "./components/PropertyBox";
 import { ComparisonPair, ComparisonPairWithId, TypedPath } from "./LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningContext } from "./contexts/LinkingRuleActiveLearningContext";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
@@ -176,21 +174,18 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         const exampleTitle = flatExampleValues.join(" | ");
         return (
             <ComparisionDataCell>
-                <OverviewItem>
-                    <OverviewItemDescription onClick={filterByPath}>
-                        <OverviewItemLine title={showLabel ? property.path : undefined}>
-                            {property.label ?? property.path}
-                        </OverviewItemLine>
-                        {flatExampleValues.length > 0 ? (
-                            <OverviewItemLine small={showLabel} title={exampleTitle}>
-                                <ActiveLearningValueExamples
-                                    exampleValues={flatExampleValues}
-                                    valuesToHighlight={sameExampleValues}
-                                />
-                            </OverviewItemLine>
-                        ) : null}
-                    </OverviewItemDescription>
-                </OverviewItem>
+                <PropertyBox
+                    propertyName={property.label ?? property.path}
+                    propertyTooltip={showLabel ? property.path : undefined}
+                    exampleValues={flatExampleValues.length > 0 ? (
+                        <ActiveLearningValueExamples
+                            exampleValues={flatExampleValues}
+                            valuesToHighlight={sameExampleValues}
+                        />
+                    ) : undefined}
+                    exampleTooltip={exampleTitle}
+                    onFilter={filterByPath}
+                />
             </ComparisionDataCell>
         );
     };

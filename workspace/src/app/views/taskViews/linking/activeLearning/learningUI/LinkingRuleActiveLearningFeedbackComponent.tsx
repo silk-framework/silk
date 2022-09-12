@@ -12,9 +12,6 @@ import {
     IconButton,
     InteractionGate,
     Notification,
-    OverviewItem,
-    OverviewItemDescription,
-    OverviewItemLine,
     Spacing,
     Tag,
     Toolbar,
@@ -29,6 +26,7 @@ import {
     ComparisionDataHeader,
     ComparisionDataRow,
 } from "./../components/ComparisionData";
+import { PropertyBox } from "./../components/PropertyBox";
 import { LinkingRuleActiveLearningFeedbackContext } from "../contexts/LinkingRuleActiveLearningFeedbackContext";
 import { scoreColorConfig, scoreColorRepresentation } from "../LinkingRuleActiveLearning.shared";
 import {
@@ -393,16 +391,13 @@ const EntityPropertyValues = ({ property, values, sameExampleValues }: EntityPro
     const exampleTitle = values.join(" | ");
     return (
         <ComparisionDataCell>
-            <OverviewItem>
-                <OverviewItemDescription>
-                    <OverviewItemLine small>{propertyLabel}</OverviewItemLine>
-                    {values.length > 0 ? (
-                        <OverviewItemLine title={exampleTitle}>
-                            <ActiveLearningValueExamples exampleValues={values} valuesToHighlight={sameExampleValues} />
-                        </OverviewItemLine>
-                    ) : null}
-                </OverviewItemDescription>
-            </OverviewItem>
+            <PropertyBox
+                propertyName={propertyLabel}
+                exampleValues={values.length > 0 ? (
+                    <ActiveLearningValueExamples exampleValues={values} valuesToHighlight={sameExampleValues} />
+                ) : undefined}
+                exampleTooltip={exampleTitle}
+            />
         </ComparisionDataCell>
     );
 };
