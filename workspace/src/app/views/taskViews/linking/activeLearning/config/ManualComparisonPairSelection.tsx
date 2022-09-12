@@ -183,7 +183,7 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
     const exampleValuesRequestId = React.useRef<string>("");
 
     const updateState = () => {
-        if (path.current != null) {
+        if (!!path.current) {
             if (isValid.current) {
                 fetchExampleValues();
                 changeManualPath(path.current);
