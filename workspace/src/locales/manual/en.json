@@ -736,7 +736,7 @@
             "saveBtnTooltip": "Save the current state of the workflow",
             "toggleProgressLabel": "Toggle progress",
             "warning": {
-                "tooltip": "Focuses on failed node and opens execution report"
+                "tooltip": "Centers the failed node and if available, opens its loading error report."
             },
             "warningMenuTooltip": "Show list of errors and warnings"
         },
