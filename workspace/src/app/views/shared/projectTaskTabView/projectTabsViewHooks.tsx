@@ -31,8 +31,7 @@ export const useProjectTabsView = ({ srcLinks, startLink, pluginId, taskId, proj
         <ProjectTaskTabView
             srcLinks={srcLinks.map((link) => {
                 return {
-                    path: link.path,
-                    label: link.label,
+                    ...link,
                     itemType: undefined,
                 };
             })}

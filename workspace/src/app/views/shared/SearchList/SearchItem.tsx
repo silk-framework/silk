@@ -70,7 +70,7 @@ export default function SearchItem({
     // Remove detailsPath
     const menuItemLinks = itemLinks.slice(1);
     const { projectTabView, changeTab, menuItems } = useProjectTabsView({
-        srcLinks: menuItemLinks,
+        srcLinks: menuItemLinks.map(link => ({...link, id: link.label})),
         pluginId: item.pluginId,
         projectId: item.projectId,
         taskId: item.id,
@@ -84,6 +84,7 @@ export default function SearchItem({
                 icon={getItemLinkIcons(link.label)}
                 onClick={() =>
                     changeTab({
+                        id: link.label,
                         path: link.path,
                         label: link.label,
                         itemType: undefined,

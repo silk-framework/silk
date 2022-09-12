@@ -121,6 +121,7 @@ export interface IRelatedItem {
 }
 
 export interface IItemLink {
+    id: string;
     label: string;
     path: string;
     itemType?: string;
