@@ -57,7 +57,6 @@ class ReferenceEntitiesCache(task: ProjectTask[LinkSpec]) extends CachedActivity
 /**
   * Given a set of reference links, loads the referenced entities.
   */
-// TODO make this a real activity?
 class ReferenceLinksEntityLoader(task: ProjectTask[LinkSpec],
                                  context: ActivityContext[ReferenceEntities],
                                  entitySchemata: DPair[EntitySchema],
