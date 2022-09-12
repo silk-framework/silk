@@ -108,10 +108,9 @@ export function ProjectTaskTabView({
     const isTaskView = (viewOrItemLink: Partial<IProjectTaskView & IItemLink>) => !viewOrItemLink.path;
     const itemLinkActive = selectedTab != null && typeof selectedTab !== "string";
     // Either the ID of an IItemLink or the view ID or undefined
-    const activeId: string | undefined =
-        activeIframePath?.id ?? itemLinkActive
-            ? (selectedTab as IItemLink).id
-            : (taskViews ?? []).find((v) => v.id === selectedTab)?.id;
+    const activeTab: IProjectTaskView | IItemLink | undefined = activeIframePath?.id ?? itemLinkActive
+        ? (selectedTab as IItemLink)
+        : (taskViews ?? []).find((v) => v.id === selectedTab);
 
     React.useEffect(() => {
         if (projectId && taskId) {
@@ -247,7 +246,7 @@ export function ProjectTaskTabView({
             >
                 <CardHeader>
                     <CardTitle>
-                        <h2>{!!title ? title : !!selectedTab && activeId ? tLabel(activeId) : ""}</h2>
+                        <h2>{tLabel(activeTab?.label ?? "")}</h2>
                     </CardTitle>
                     <CardOptions>
                         {viewsAndItemLink.length > 1 &&
