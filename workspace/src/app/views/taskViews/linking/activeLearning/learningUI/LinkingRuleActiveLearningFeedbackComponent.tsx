@@ -146,7 +146,7 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
                         }
                         cancel={activeLearningFeedbackContext.cancel}
                     />
-                    <Spacing size={"large"} />
+                    <Spacing size={"small"} />
                     {valuesToDisplay ? (
                         <SelectedEntityLink
                             valuesToDisplay={valuesToDisplay}
@@ -265,15 +265,15 @@ const EntityComparisonHeader = ({ sourceTitle, targetTitle }: EntityComparisonHe
     return (
         <ComparisionDataHead>
             <ComparisionDataRow>
-                <ComparisionDataHeader>
+                <ComparisionDataHeader className="diapp-linking-learningdata__source">
                     {t("ActiveLearning.feedback.sourceColumnTitle")}
                     {sourceTitle ? ": " : ""}
                     {sourceTitle}
                 </ComparisionDataHeader>
                 <ComparisionDataConnection>
-                    <ConnectionAvailable actions={<Tag>owl:sameAs</Tag>} />
+                    <ConnectionAvailable actions={<Tag emphasis="weak">owl:sameAs</Tag>} />
                 </ComparisionDataConnection>
-                <ComparisionDataHeader>
+                <ComparisionDataHeader className="diapp-linking-learningdata__target">
                     {t("ActiveLearning.feedback.targetColumnTitle")}
                     {targetTitle ? ": " : ""}
                     {targetTitle}
@@ -347,11 +347,12 @@ const EntitiesPropertyPair = ({
     const [t] = useTranslation();
     const sameExampleValues = sameValues(values.sourceExamples, values.targetExamples);
     return (
-        <ComparisionDataRow>
+        <ComparisionDataRow className="diapp-linking-learningdata__row-body">
             <EntityPropertyValues
                 property={propertyPair.source}
                 values={values.sourceExamples}
                 sameExampleValues={sameExampleValues}
+                datasink="source"
             />
             <ComparisionDataConnection>
                 <ConnectionEnabled
@@ -375,6 +376,7 @@ const EntitiesPropertyPair = ({
                 property={propertyPair.target}
                 values={values.targetExamples}
                 sameExampleValues={sameExampleValues}
+                datasink="target"
             />
         </ComparisionDataRow>
     );
@@ -384,17 +386,21 @@ interface EntityPropertyValuesProps {
     values: string[];
     property: TypedPath;
     sameExampleValues: Set<string>;
+    datasink?: "source" | "target";
 }
 
-const EntityPropertyValues = ({ property, values, sameExampleValues }: EntityPropertyValuesProps) => {
+const EntityPropertyValues = ({ property, values, sameExampleValues, datasink }: EntityPropertyValuesProps) => {
     const propertyLabel = property.label ? property.label : property.path;
     const exampleTitle = values.join(" | ");
     return (
-        <ComparisionDataCell>
+        <ComparisionDataCell className={datasink ? `diapp-linking-learningdata__${datasink}` : undefined}>
             <PropertyBox
                 propertyName={propertyLabel}
                 exampleValues={values.length > 0 ? (
-                    <ActiveLearningValueExamples exampleValues={values} valuesToHighlight={sameExampleValues} />
+                    <ActiveLearningValueExamples
+                        exampleValues={values}
+                        valuesToHighlight={sameExampleValues}
+                    />
                 ) : undefined}
                 exampleTooltip={exampleTitle}
             />

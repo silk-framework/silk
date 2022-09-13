@@ -144,13 +144,13 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         return (
             <ComparisionDataHead>
                 <ComparisionDataRow>
-                    <ComparisionDataHeader>
+                    <ComparisionDataHeader className="diapp-linking-learningdata__source">
                         {t("widget.Filterbar.subsections.valueLabels.itemType.dataset")} 1
                     </ComparisionDataHeader>
                     <ComparisionDataConnection>
                         <ConnectionAvailable actions={<Tag>owl:sameAs</Tag>} />
                     </ComparisionDataConnection>
-                    <ComparisionDataHeader>
+                    <ComparisionDataHeader className="diapp-linking-learningdata__target">
                         {t("widget.Filterbar.subsections.valueLabels.itemType.dataset")} 2
                     </ComparisionDataHeader>
                 </ComparisionDataRow>
@@ -163,17 +163,19 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         exampleValues,
         sameExampleValues,
         filterByPath,
+        datasink
     }: {
         property: TypedPath;
         exampleValues: string[][];
         sameExampleValues: Set<string>;
         filterByPath?: () => any;
+        datasink?: "source" | "target"
     }) => {
         const flatExampleValues: string[] = [].concat.apply([], exampleValues);
         const showLabel: boolean = !!property.label && property.label.toLowerCase() !== property.path.toLowerCase();
         const exampleTitle = flatExampleValues.join(" | ");
         return (
-            <ComparisionDataCell>
+            <ComparisionDataCell className={datasink ? `diapp-linking-learningdata__${datasink}` : undefined}>
                 <PropertyBox
                     propertyName={property.label ?? property.path}
                     propertyTooltip={showLabel ? property.path : undefined}
@@ -193,11 +195,12 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     const SelectedPropertyPair = ({ pair }: { pair: ComparisonPairWithId }) => {
         const sameExampleValues = sameValues(pair.sourceExamples.flat(), pair.targetExamples.flat());
         return (
-            <ComparisionDataRow>
+            <ComparisionDataRow className="diapp-linking-learningdata__row-body">
                 <SelectedProperty
                     property={pair.source}
                     exampleValues={pair.sourceExamples}
                     sameExampleValues={sameExampleValues}
+                    datasink="source"
                 />
                 <ComparisionDataConnection>
                     <ConnectionEnabled
@@ -216,6 +219,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                     property={pair.target}
                     exampleValues={pair.targetExamples}
                     sameExampleValues={sameExampleValues}
+                    datasink="target"
                 />
             </ComparisionDataRow>
         );
@@ -412,12 +416,13 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     }) => {
         const sameExampleValues = sameValues(pair.sourceExamples.flat(), pair.targetExamples.flat());
         return (
-            <ComparisionDataRow>
+            <ComparisionDataRow className="diapp-linking-learningdata__row-body">
                 <SelectedProperty
                     property={pair.source}
                     exampleValues={pair.sourceExamples}
                     sameExampleValues={sameExampleValues}
                     filterByPath={() => filterByPath(pair.source.path, false)}
+                    datasink="source"
                 />
                 <ComparisionDataConnection>
                     <ConnectionAvailable
@@ -435,6 +440,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                     exampleValues={pair.targetExamples}
                     sameExampleValues={sameExampleValues}
                     filterByPath={() => filterByPath(pair.target.path, true)}
+                    datasink="target"
                 />
             </ComparisionDataRow>
         );

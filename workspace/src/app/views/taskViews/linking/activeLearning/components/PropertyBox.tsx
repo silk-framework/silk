@@ -22,17 +22,19 @@ export const PropertyBox = ({
     onFilter
 }: PropertyBoxProps) => {
     return (
-        <OverviewItem>
-            <OverviewItemDescription onClick={onFilter}>
-                <OverviewItemLine title={!!propertyTooltip ? propertyTooltip : undefined} small>
-                    {propertyName}
-                </OverviewItemLine>
-                {!!exampleValues && (
-                    <OverviewItemLine title={!!exampleTooltip ? exampleTooltip : undefined}>
-                        {exampleValues}
+        <div className="diapp-linking-learningdata__propertybox">
+            <OverviewItem>
+                <OverviewItemDescription onClick={onFilter}>
+                    <OverviewItemLine title={!!propertyTooltip ? propertyTooltip : undefined} small>
+                        {propertyName}
                     </OverviewItemLine>
-                )}
-            </OverviewItemDescription>
-        </OverviewItem>
+                    {!!exampleValues && (
+                        <OverviewItemLine title={!!exampleTooltip ? exampleTooltip : undefined}>
+                            {exampleValues}
+                        </OverviewItemLine>
+                    )}
+                </OverviewItemDescription>
+            </OverviewItem>
+        </div>
     );
 }

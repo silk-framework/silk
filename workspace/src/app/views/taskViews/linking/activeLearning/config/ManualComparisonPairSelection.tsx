@@ -17,6 +17,7 @@ import {
     Divider,
     IconButton,
     Notification,
+    OverflowText,
     Spacing,
     Spinner,
 } from "@eccenca/gui-elements";
@@ -260,7 +261,7 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
     );
 
     return (
-        <ComparisionDataCell>
+        <ComparisionDataCell className="diapp-linking-learningdata__pathselection">
             <AutoSuggestion
                 label={t("ActiveLearning.config.manualSelection." + (isTarget ? "targetPath" : "sourcePath"))}
                 initialValue={""}
@@ -279,9 +280,9 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
                 </div>
             )}
             {exampleValues && exampleValues.length > 0 ? (
-                <div>
+                <OverflowText>
                     <ActiveLearningValueExamples exampleValues={exampleValues} />
-                </div>
+                </OverflowText>
             ) : null}
         </ComparisionDataCell>
     );

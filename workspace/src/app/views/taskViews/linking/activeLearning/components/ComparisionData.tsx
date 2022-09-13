@@ -4,14 +4,18 @@ import {
     GridRow,
     GridColumn,
 } from "@eccenca/gui-elements";
-import { columnStyles } from "./../LinkingRuleActiveLearning.shared";
 
-export const ComparisionDataContainer = ({children}) => {
+interface ComparisionDataObjectProps {
+    children?: React.ReactNode;
+    className?: string;
+}
+
+export const ComparisionDataContainer = ({children, className=""}: ComparisionDataObjectProps) => {
     return (
         <Grid
             columns={3}
             fullWidth={true}
-            className="diapp-linking-learningdata__container"
+            className={`diapp-linking-learningdata__container ${className}`}
         >
             {children}
         </Grid>
@@ -34,36 +38,33 @@ export const ComparisionDataBody = ({children}) => {
     )
 }
 
-export const ComparisionDataRow = ({children}) => {
+export const ComparisionDataRow = ({children, className=""}: ComparisionDataObjectProps) => {
     return (
-        <GridRow
-            style={{ maxWidth: "100%", minWidth: "100%", paddingLeft: "10px" }}
-            className="diapp-linking-learningdata__row"
-        >
+        <GridRow className={`diapp-linking-learningdata__row ${className}`}>
             {children}
         </GridRow>
     )
 }
 
-export const ComparisionDataHeader = ({children}) => {
+export const ComparisionDataHeader = ({children, className=""}: ComparisionDataObjectProps) => {
     return (
-        <GridColumn style={columnStyles.headerColumnStyle} className="diapp-linking-learningdata__header">
+        <GridColumn className={`diapp-linking-learningdata__header ${className}`}>
             {children}
         </GridColumn>
     )
 }
 
-export const ComparisionDataCell = ({children}) => {
+export const ComparisionDataCell = ({children, className=""}: ComparisionDataObjectProps) => {
     return (
-        <GridColumn style={{...columnStyles.mainColumnStyle}} className="diapp-linking-learningdata__cell">
+        <GridColumn className={`diapp-linking-learningdata__cell ${className}`}>
             {children}
         </GridColumn>
     )
 }
 
-export const ComparisionDataConnection = ({children}) => {
+export const ComparisionDataConnection = ({children, className=""}: ComparisionDataObjectProps) => {
     return (
-        <GridColumn style={columnStyles.centerColumnStyle} className="diapp-linking-learningdata__connection">
+        <GridColumn className={`diapp-linking-learningdata__connection ${className}`}>
             {children}
         </GridColumn>
     )
