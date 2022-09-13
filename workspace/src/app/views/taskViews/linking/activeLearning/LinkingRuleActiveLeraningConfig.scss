@@ -1,4 +1,7 @@
-$diapp-propertybox-border-color: lightgray !default;
+$diapp-entitybox-basecolor: gray !default;
+$diapp-entitybox-header-background: mix($diapp-entitybox-basecolor, #fff, 15%) !default;
+$diapp-entitybox-cell-background: mix($diapp-entitybox-basecolor, #fff, 9%) !default;
+$diapp-entitybox-cell-border: mix($diapp-entitybox-basecolor, #fff, 39%) !default;
 
 .diapp-linking-learningdata__container {
 
@@ -10,32 +13,24 @@ $diapp-propertybox-border-color: lightgray !default;
 
 .diapp-linking-learningdata__header {
     max-width: 40%;
-    // text-align: center;
-    background-color: rgba(17, 20, 24, 0.0915);
-    border: solid 1px $diapp-propertybox-border-color;
-    border-style: solid;
-    border-radius: 2px 2px 0 0;
-    padding: 0.75rem 7px;
+    background-color: $diapp-entitybox-header-background;
+    border-bottom: solid 1px $diapp-entitybox-cell-border;
+    padding: 0.75rem 5px;
     font-weight: 500;
-    color: #222;
-    background: white;
+    color: #000;
     vertical-align: middle;
     font-size: 0.875rem;
 }
 
 .diapp-linking-learningdata__cell {
     max-width: 40%;
-    border-left: solid 1px $diapp-propertybox-border-color;
-    border-right: solid 1px $diapp-propertybox-border-color;
-    border-bottom: dotted 1px lightgray;
+    background-color: $diapp-entitybox-cell-background;
+    border-bottom: solid 1px $diapp-entitybox-cell-border;
 
     .diapp-linking-learningdata__row-body:first-of-type & {
-        border-top: solid 1px $diapp-propertybox-border-color;
-        border-radius: 2px 2px 0 0;
+        border-top: solid 1px $diapp-entitybox-cell-border;
     }
     .diapp-linking-learningdata__row-body:last-of-type & {
-        border-bottom: solid 1px $diapp-propertybox-border-color;
-        border-radius: 0 0 2px 2px;
     }
 }
 
@@ -78,8 +73,8 @@ $diapp-propertybox-border-color: lightgray !default;
 }
 
 .diapp-linking-learningdata__pathselection {
+    background-color: transparent;
     border: none;
-    padding: 0;
 }
 
 div.diapp-linking-connectionenabled__arrow-right {

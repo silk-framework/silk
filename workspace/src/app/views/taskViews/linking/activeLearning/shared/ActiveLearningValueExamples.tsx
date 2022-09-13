@@ -26,6 +26,7 @@ export const ActiveLearningValueExamples = ({
                         key={example + idx}
                         round={true}
                         htmlTitle={exampleTitle}
+                        emphasis="stronger"
                         backgroundColor={highlightValue ? highlightColor : undefined}
                     >
                         {example}
