@@ -47,6 +47,18 @@ $diapp-propertybox-border-color: lightgray !default;
     .eccgui-overviewitem__line {
         max-width: 100%;
     }
+
+    .diapp-linking-learningdata__examples {
+        &.diapp-linking-learningdata__examples--count-2 .eccgui-tag__list-item {
+            max-width: 70%;
+        }
+        &.diapp-linking-learningdata__examples--count-3 .eccgui-tag__list-item {
+            max-width: 40%;
+        }
+        &.diapp-linking-learningdata__examples--count-more .eccgui-tag__list-item {
+            max-width: 30%;
+        }
+    }
 }
 
 .diapp-linking-learningdata__source {

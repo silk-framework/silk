@@ -18,7 +18,7 @@ export const ActiveLearningValueExamples = ({
 }: Props) => {
     const exampleTitle = exampleValues.join(" | ");
     return (
-        <TagList>
+        <TagList className={"diapp-linking-learningdata__examples diapp-linking-learningdata__examples--count-"+(exampleValues.length > 3 ? "more" : exampleValues.length)}>
             {exampleValues.map((example, idx) => {
                 const highlightValue: boolean = !!valuesToHighlight?.has(example);
                 return (
