@@ -15,6 +15,7 @@ private case class EntityCache() extends Closeable {
 
   private lazy val cacheId: String = "entities-" + UUID.randomUUID().toString
 
+  // TODO: Add strategy for too long keys
   private val cache = new PersistentSortedKeyValueStore(cacheId, None, temporary = true, config = PersistentSortedKeyValueStoreConfig(compressValues = true))
 
   /**
