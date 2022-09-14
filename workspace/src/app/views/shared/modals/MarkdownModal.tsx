@@ -12,7 +12,7 @@ interface IProps extends Partial<SimpleDialogProps> {
 }
 
 /** Render markdown in a modal. */
-const MarkdownModal = ({ onDiscard, isOpen, markdown, title = "Error report", ...otherProps }: IProps) => {
+const MarkdownModal = ({ onDiscard, isOpen, markdown, title = "Error report", ...additionalProps }: IProps) => {
     const [t] = useTranslation();
 
     const handleDownload = () => {
@@ -31,7 +31,7 @@ const MarkdownModal = ({ onDiscard, isOpen, markdown, title = "Error report", ..
             title={title}
             isOpen={isOpen}
             onClose={onDiscard}
-            {...otherProps}
+            {...additionalProps}
             actions={[
                 <Button affirmative onClick={handleDownload} key="download">
                     {t("common.action.download", "Download")}
