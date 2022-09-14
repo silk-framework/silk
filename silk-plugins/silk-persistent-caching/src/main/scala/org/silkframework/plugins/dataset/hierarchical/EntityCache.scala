@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.hierarchical
 
 import org.silkframework.dataset.rdf.ClosableIterator
-import org.silkframework.runtime.caching.{PersistentSortedKeyValueStore, PersistentSortedKeyValueStoreConfig}
+import org.silkframework.runtime.caching.{HandleTooLargeKeyStrategy, PersistentSortedKeyValueStore, PersistentSortedKeyValueStoreConfig}
 
 import java.io._
 import java.nio.ByteBuffer
@@ -11,12 +11,14 @@ import java.util.UUID
 /**
   * Holds entities in a persistent cache.
   */
-private case class EntityCache() extends Closeable {
+private case class HierarchicalEntityCache() extends Closeable {
 
   private lazy val cacheId: String = "entities-" + UUID.randomUUID().toString
 
-  // TODO: Add strategy for too long keys
-  private val cache = new PersistentSortedKeyValueStore(cacheId, None, temporary = true, config = PersistentSortedKeyValueStoreConfig(compressValues = true))
+  private val cache = new PersistentSortedKeyValueStore(cacheId, None, temporary = true, config = PersistentSortedKeyValueStoreConfig(
+    tooLargeKeyStrategy = HandleTooLargeKeyStrategy.TruncateKeyWithHash,
+    compressValues = true
+  ))
 
   /**
     * Add an entity to the cache.
@@ -28,6 +30,7 @@ private case class EntityCache() extends Closeable {
     val byteStream = new ByteArrayOutputStream
     val objectStream = new ObjectOutputStream(byteStream)
     try {
+      objectStream.writeUTF(entity.uri)
       objectStream.writeObject(entity.values)
       objectStream.writeInt(entity.tableIndex)
     } finally {
@@ -43,7 +46,7 @@ private case class EntityCache() extends Closeable {
     */
   def getEntity(uri: String): Option[CachedEntity] = {
     for(valueBuffer <- cache.getBytes(uri, None)) yield {
-      readEntity(uri, valueBuffer)
+      readEntity(Some(uri), valueBuffer)
     }
   }
 
@@ -64,12 +67,14 @@ private case class EntityCache() extends Closeable {
   /**
     * Reads an entity from a byte buffer.
     */
-  private def readEntity(uri: String, buffer: ByteBuffer): CachedEntity = {
+  private def readEntity(uriOpt: Option[String], buffer: ByteBuffer): CachedEntity = {
     val inputStream = new ObjectInputStream(new ByteBufferBackedInputStream(buffer))
     try {
+      val entityUri = inputStream.readUTF()
+      assert(uriOpt.getOrElse(entityUri) == entityUri, s"Cached entity has a different URI: '$entityUri' vs '$uriOpt'.")
       val values = inputStream.readObject().asInstanceOf[IndexedSeq[Seq[String]]]
       val index = inputStream.readInt()
-      CachedEntity(uri, values, index)
+      CachedEntity(entityUri, values, index)
     } finally {
       inputStream.close()
     }
@@ -80,9 +85,8 @@ private case class EntityCache() extends Closeable {
     override def hasNext: Boolean = iterator.hasNext
 
     override def next(): CachedEntity = {
-      val (keyBytes, valueBytes) = iterator.next()
-      val uri = UTF_8.decode(keyBytes).toString
-      readEntity(uri, valueBytes)
+      val (_, valueBytes) = iterator.next()
+      readEntity(None, valueBytes)
     }
 
     override def close(): Unit = iterator.close()

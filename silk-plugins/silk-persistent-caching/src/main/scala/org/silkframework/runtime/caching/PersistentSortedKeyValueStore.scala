@@ -36,7 +36,9 @@ import scala.util.Try;
 case class PersistentSortedKeyValueStore(databaseId: Identifier,
                                          optionalDbDirectory: Option[File] = None,
                                          temporary: Boolean = false,
-                                         config: PersistentSortedKeyValueStoreConfig = PersistentSortedKeyValueStoreConfig()) {
+                                         config: PersistentSortedKeyValueStoreConfig = PersistentSortedKeyValueStoreConfig(
+                                           tooLargeKeyStrategy = HandleTooLargeKeyStrategy.TruncateKeyWithHash)
+                                        ) {
   private val log: Logger = Logger.getLogger(this.getClass.getCanonicalName)
   private lazy val dbDirectory: File = {
     val dir = optionalDbDirectory.getOrElse {
@@ -90,12 +92,15 @@ case class PersistentSortedKeyValueStore(databaseId: Identifier,
       keyBytes = CompressionHelper.lz4Compress(keyBytes, addLengthPreamble = true)
     }
     if(keyBytes.length > maxKeySize) {
-      if(config.truncateKeys) {
-        log.fine(s"Key '${byteArrayToString(key)}' is longer than $maxKeySize bytes. Truncating key.")
-        keyBytes = util.Arrays.copyOfRange(keyBytes, 0, maxKeySize);
-      } else {
-        throw new IllegalArgumentException(s"Failed to create key for key/value store of DB '$databaseId'. Key is larger than allowed" +
+      config.tooLargeKeyStrategy match {
+        case HandleTooLargeKeyStrategy.ThrowError =>
+          throw new IllegalArgumentException(s"Failed to create key for key/value store of DB '$databaseId'. Key is larger than allowed" +
             s" size of $maxKeySize. Key (${keyBytes.length} bytes): ${byteArrayToString(key)}")
+        case HandleTooLargeKeyStrategy.TruncateKey =>
+          log.fine(s"Key '${byteArrayToString(key)}' is longer than $maxKeySize bytes. Truncating key.")
+          keyBytes = util.Arrays.copyOfRange(keyBytes, 0, maxKeySize);
+        case HandleTooLargeKeyStrategy.TruncateKeyWithHash =>
+          keyBytes = HandleTooLargeKeyStrategy.truncateKeyWithHash(keyBytes, maxKeySize)
       }
     }
     val keyBuffer = allocateDirect(maxKeySize)
