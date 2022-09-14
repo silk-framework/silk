@@ -31,7 +31,7 @@ $font_root: "~gui-elements-deprecated/dist/fonts";
 @import "~@eccenca/material-design-lite/src/list/list";
 @import "~@eccenca/material-design-lite/src/menu/menu";
 @import "~@eccenca/material-design-lite/src/progress/progress";
-// not necessary @import "~@eccenca/material-design-lite/src/layout/layout";
+@import "~@eccenca/material-design-lite/src/layout/layout"; // only necessary for legacy includes via iframe
 @import "~@eccenca/material-design-lite/src/radio/radio";
 // not necessary @import "~@eccenca/material-design-lite/src/slider/slider";
 // not necessary @import "~@eccenca/material-design-lite/src/snackbar/snackbar";
@@ -41,7 +41,7 @@ $font_root: "~gui-elements-deprecated/dist/fonts";
 @import "~@eccenca/material-design-lite/src/textfield/textfield";
 @import "~@eccenca/material-design-lite/src/tooltip/tooltip";
 @import "~@eccenca/material-design-lite/src/shadow/shadow";
-// not necessary @import "~@eccenca/material-design-lite/src/grid/grid";
+@import "~@eccenca/material-design-lite/src/grid/grid"; // only necessary for legacy includes via iframe
 
 // -- Own MDL & GUI extensions -------------------------------------------------
 
