@@ -44,6 +44,8 @@ $diapp-entitybox-cell-border: mix($diapp-entitybox-basecolor, #fff, 39%) !defaul
     }
 
     .diapp-linking-learningdata__examples {
+        width: 100%;
+
         &.diapp-linking-learningdata__examples--count-2 .eccgui-tag__list-item {
             max-width: 70%;
         }
