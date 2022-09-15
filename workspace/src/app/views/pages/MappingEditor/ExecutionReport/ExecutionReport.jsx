@@ -159,9 +159,9 @@ export default class ExecutionReport extends React.Component {
         if (ruleResults === undefined) {
             title = "Select a mapping for detailed results."
         } else if (ruleResults.errorCount === 0) {
-            title = "This mapping executed successfully without any issues."
+            title = "This mapping rule executed successfully without any issues."
         } else {
-            title = "This mapping generated  " + ruleResults.errorCount + " validation issues during execution."
+            title = "This mapping rule generated  " + ruleResults.errorCount + " validation issues during execution."
         }
         return <div className="ecc-silk-mapping__treenav">
             <Card className="mdl-card mdl-shadow--2dp mdl-card--stretch">
