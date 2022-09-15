@@ -1,7 +1,9 @@
-$diapp-entitybox-basecolor: gray !default;
-$diapp-entitybox-header-background: mix($diapp-entitybox-basecolor, #fff, 15%) !default;
-$diapp-entitybox-cell-background: mix($diapp-entitybox-basecolor, #fff, 9%) !default;
-$diapp-entitybox-cell-border: mix($diapp-entitybox-basecolor, #fff, 39%) !default;
+@use "sass:color";
+
+$diapp-entitybox-basecolor: #bbb !default;
+$diapp-entitybox-header-background: color.scale(mix($diapp-entitybox-basecolor, #fff, 24%), $saturation: -39%) !default;
+$diapp-entitybox-cell-background: color.scale(mix($diapp-entitybox-basecolor, #fff, 15%), $saturation: -39%) !default;
+$diapp-entitybox-cell-border: color.scale(mix($diapp-entitybox-basecolor, #fff, 39%), $saturation: -39%) !default;
 
 .diapp-linking-learningdata__container {
 
@@ -14,8 +16,10 @@ $diapp-entitybox-cell-border: mix($diapp-entitybox-basecolor, #fff, 39%) !defaul
 .diapp-linking-learningdata__header {
     max-width: 40%;
     background-color: $diapp-entitybox-header-background;
-    border-bottom: solid 1px $diapp-entitybox-cell-border;
-    padding: 0.75rem 5px;
+    border-color: $diapp-entitybox-cell-border;
+    border-width: 2px;
+    border-style: solid solid none solid;
+    padding: 0.75rem 7px;
     font-weight: 500;
     color: #000;
     vertical-align: middle;
@@ -24,13 +28,20 @@ $diapp-entitybox-cell-border: mix($diapp-entitybox-basecolor, #fff, 39%) !defaul
 
 .diapp-linking-learningdata__cell {
     max-width: 40%;
-    background-color: $diapp-entitybox-cell-background;
-    border-bottom: solid 1px $diapp-entitybox-cell-border;
+    border-color: $diapp-entitybox-cell-border;
+    border-width: 2px;
+    border-style: none solid;
+    padding: 7px 7px 3.5px 7px;
+
+    .diapp-linking-learningdata__row-body:nth-child(odd) & {
+        background-color: $diapp-entitybox-cell-background;
+    }
 
     .diapp-linking-learningdata__row-body:first-of-type & {
-        border-top: solid 1px $diapp-entitybox-cell-border;
+        border-top-style: solid;
     }
     .diapp-linking-learningdata__row-body:last-of-type & {
+        border-bottom-style: solid;
     }
 }
 
@@ -60,6 +71,10 @@ $diapp-entitybox-cell-border: mix($diapp-entitybox-basecolor, #fff, 39%) !defaul
 
 .diapp-linking-learningdata__source {
     text-align: right;
+
+    .eccgui-overviewitem__item {
+        flex-direction: row-reverse;
+    }
 
     .eccgui-overviewitem__line {
         align-self: end;

@@ -161,14 +161,15 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     const SelectedProperty = ({
         property,
         exampleValues,
-        sameExampleValues,
         filterByPath,
+        isActiveFilter,
         datasink
     }: {
         property: TypedPath;
         exampleValues: string[][];
         sameExampleValues: Set<string>;
         filterByPath?: () => any;
+        isActiveFilter?: boolean;
         datasink?: "source" | "target"
     }) => {
         const flatExampleValues: string[] = [].concat.apply([], exampleValues);
@@ -182,11 +183,11 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                     exampleValues={flatExampleValues.length > 0 ? (
                         <ActiveLearningValueExamples
                             exampleValues={flatExampleValues}
-                            valuesToHighlight={sameExampleValues}
                         />
                     ) : undefined}
                     exampleTooltip={exampleTitle}
                     onFilter={filterByPath}
+                    filtered={isActiveFilter}
                 />
             </ComparisionDataCell>
         );
@@ -284,9 +285,13 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             setFilteredSuggestions(undefined);
         };
 
-        const filterByPath = React.useCallback((path: string, isTarget: boolean) => {
+        const isActiveFilter = (path: string, isTarget: boolean) => {
             const current = pathFilter.current;
-            if (current && current.path === path && current.isTarget === isTarget) {
+            return (current && current.path === path && current.isTarget === isTarget);
+        };
+
+        const filterByPath = React.useCallback((path: string, isTarget: boolean) => {
+            if (isActiveFilter(path, isTarget)) {
                 // Reset filter when same path is clicked again
                 resetFilter();
             } else {
@@ -307,7 +312,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         )}
                         {!loadSuggestions && suggestions.length > 0 && (
                             <IconButton
-                                name="item-info"
+                                name={"item-question"}
                                 text={t("ActiveLearning.config.buttons.showInfo")}
                                 onClick={() => setShowInfo(!showInfo)}
                             />
@@ -323,6 +328,8 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                             {showInfo && (
                                 <>
                                     <Notification
+                                        iconName={suggestions.length > 0 ? "item-question" : undefined}
+                                        neutral={suggestions.length > 0}
                                         actions={
                                             suggestions.length > 0 ? (
                                                 <IconButton
@@ -347,17 +354,19 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                                     <Tag onRemove={resetFilter}>
                                         {pathFilter.current.label ?? pathFilter.current.path}
                                     </Tag>
-                                    <Spacing />
+                                    <Spacing size="small" />
                                 </div>
                             ) : null}
                             {suggestions.length > 0 && (
                                 <ComparisionDataContainer>
+                                    <ConfigHeader />
                                     <ComparisionDataBody>
                                         {(filteredSuggestions ?? suggestions).map((suggestion) => (
                                             <SuggestedPathSelection
                                                 key={suggestion.pairId}
                                                 pair={suggestion}
                                                 filterByPath={filterByPath}
+                                                isActiveFilterCheck={isActiveFilter}
                                             />
                                         ))}
                                     </ComparisionDataBody>
@@ -410,9 +419,11 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     const SuggestedPathSelection = ({
         pair,
         filterByPath,
+        isActiveFilterCheck,
     }: {
         pair: ComparisonPairWithId;
         filterByPath: (path: string, isTarget: boolean) => any;
+        isActiveFilterCheck: (path: string, isTarget: boolean) => any;
     }) => {
         const sameExampleValues = sameValues(pair.sourceExamples.flat(), pair.targetExamples.flat());
         return (
@@ -422,6 +433,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                     exampleValues={pair.sourceExamples}
                     sameExampleValues={sameExampleValues}
                     filterByPath={() => filterByPath(pair.source.path, false)}
+                    isActiveFilter={isActiveFilterCheck(pair.source.path, false)}
                     datasink="source"
                 />
                 <ComparisionDataConnection>
@@ -440,6 +452,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                     exampleValues={pair.targetExamples}
                     sameExampleValues={sameExampleValues}
                     filterByPath={() => filterByPath(pair.target.path, true)}
+                    isActiveFilter={isActiveFilterCheck(pair.target.path, true)}
                     datasink="target"
                 />
             </ComparisionDataRow>
@@ -447,7 +460,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     };
 
     const InfoWidget = () => {
-        return <Notification iconName={"item-info"} message={t("ActiveLearning.config.entitiyPair.info")} />;
+        return <Notification message={t("ActiveLearning.config.entitiyPair.info")} />;
     };
 
     const Title = () => {
