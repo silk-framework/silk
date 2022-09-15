@@ -226,8 +226,8 @@ const DecisionButtons = ({ disabledButtons, submitLink, selectedDecision, cancel
                 icon={"state-confirmed"}
                 disabled={disabledButtons}
                 onClick={() => (positiveSelected ? cancel() : submitLink("positive"))}
-                elevated={positiveSelected}
-                outlined
+                outlined={!positiveSelected}
+                hasStateSuccess
             >
                 {t("ActiveLearning.feedback.confirm")}
             </Button>
@@ -246,8 +246,8 @@ const DecisionButtons = ({ disabledButtons, submitLink, selectedDecision, cancel
                 disabled={disabledButtons}
                 onClick={() => (negativeSelected ? cancel() : submitLink("negative"))}
                 icon={"state-declined"}
-                elevated={negativeSelected}
-                outlined
+                outlined={!negativeSelected}
+                hasStateDanger
             >
                 {t("ActiveLearning.feedback.decline")}
             </Button>
