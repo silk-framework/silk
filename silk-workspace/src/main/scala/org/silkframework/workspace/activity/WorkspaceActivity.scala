@@ -5,6 +5,7 @@ import java.util.logging.Logger
 import org.silkframework.config.{DefaultConfig, Prefixes, TaskSpec}
 import org.silkframework.runtime.activity.{ObservableMirror, _}
 import org.silkframework.runtime.plugin.ClassPluginDescription
+import org.silkframework.runtime.validation.ServiceUnavailableException
 import org.silkframework.util.{Identifier, IdentifierGenerator}
 import org.silkframework.workspace.{Project, ProjectTask}
 
@@ -201,11 +202,19 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     } else {
       val newControl = createControl(config)
       if(instances.size >= maxConcurrentExecutionsPerActivity) {
+        val configInfo = s"This limit can be increased via config key '${WorkspaceActivity.MAX_CONCURRENT_EXECUTIONS_CONFIG_KEY}'."
         val activityDescription = projectOpt.map(p => s"In project ${p.id} activity '$name'").getOrElse(s"In workspace activity '$name'")
-        log.warning(s"$activityDescription: Dropping an activity control instance because the control " +
-            s"instance queue is full (max. $maxConcurrentExecutionsPerActivity. Dropped instance ID: ${instances.head._1}." +
-        s" Make sure to remove consumed results by the client. This limit can be increased via config key '${WorkspaceActivity.MAX_CONCURRENT_EXECUTIONS_CONFIG_KEY}'.")
-        instances = instances.drop(1)
+        instances.find(instance => instance._2.status.get.exists(_.finished())) match {
+          case Some(instance) =>
+            log.warning(s"$activityDescription: Dropping an activity control instance because the control " +
+              s"instance queue is full (max. $maxConcurrentExecutionsPerActivity. Dropped instance ID: ${instance._1}." +
+              s" Make sure to remove consumed results by the client. $configInfo")
+            removeActivityInstance(instance._1)
+          case None =>
+            // Cannot remove running instances, abort.
+            throw ServiceUnavailableException(s"$activityDescription: Cannot start another instance of activity '$label' because " +
+              s"limit ($maxConcurrentExecutionsPerActivity) of concurrently running instances has been reached. $configInfo")
+        }
       }
       instances += ((identifier, newControl))
       currentInstance = newControl
