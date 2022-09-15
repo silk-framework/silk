@@ -169,9 +169,9 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
     implicit val (project, workflowTask) = getProjectAndTask[Workflow](projectName, workflowTaskName)
 
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
-    val id = activity.startBlocking(workflowConfiguration)
+    val resultValue = activity.startBlockingAndGetValue(workflowConfiguration)
 
-    SerializationUtils.serializeCompileTime(activity.instance(id).value(), Some(project))
+    SerializationUtils.serializeCompileTime(resultValue, Some(project))
   }
 
   /**
