@@ -312,7 +312,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         )}
                         {!loadSuggestions && suggestions.length > 0 && (
                             <IconButton
-                                name="item-info"
+                                name={"item-question"}
                                 text={t("ActiveLearning.config.buttons.showInfo")}
                                 onClick={() => setShowInfo(!showInfo)}
                             />
@@ -328,6 +328,8 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                             {showInfo && (
                                 <>
                                     <Notification
+                                        iconName={suggestions.length > 0 ? "item-question" : undefined}
+                                        neutral={suggestions.length > 0}
                                         actions={
                                             suggestions.length > 0 ? (
                                                 <IconButton
@@ -458,7 +460,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     };
 
     const InfoWidget = () => {
-        return <Notification iconName={"item-info"} message={t("ActiveLearning.config.entitiyPair.info")} />;
+        return <Notification message={t("ActiveLearning.config.entitiyPair.info")} />;
     };
 
     const Title = () => {

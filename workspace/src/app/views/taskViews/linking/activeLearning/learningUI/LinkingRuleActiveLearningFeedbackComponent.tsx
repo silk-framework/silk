@@ -119,6 +119,7 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
                     <>
                         <Notification
                             neutral
+                            iconName={"item-question"}
                             actions={
                                 <IconButton
                                     text={t("common.action.close")}
@@ -195,7 +196,7 @@ const Header = ({ disabledButtons, selectedDecision, cancel, toggleInfo }: Heade
                 )}
                 <IconButton
                     text={t("ActiveLearning.config.buttons.showInfo")}
-                    name="item-info"
+                    name={"item-question"}
                     onClick={() => toggleInfo()}
                 />
             </CardOptions>

@@ -102,7 +102,7 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
                 <CardTitle>{t("ActiveLearning.config.manualSelection.title")}</CardTitle>
                 <CardOptions>
                     <IconButton
-                        name="item-info"
+                        name={"item-question"}
                         text={t("ActiveLearning.config.buttons.showInfo")}
                         onClick={() => setShowInfo(!showInfo)}
                     />
@@ -113,8 +113,9 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
                 {showInfo && (
                     <>
                         <Notification
+                            neutral
+                            iconName={"item-question"}
                             message={t("ActiveLearning.config.manualSelection.info")}
-                            iconName={"item-info"}
                             actions={
                                 <IconButton
                                     name="navigation-close"
