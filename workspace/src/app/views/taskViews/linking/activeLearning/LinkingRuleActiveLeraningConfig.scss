@@ -1,7 +1,9 @@
-$diapp-entitybox-basecolor: gray !default;
-$diapp-entitybox-header-background: desaturate(mix($diapp-entitybox-basecolor, #fff, 15%), 61%) !default;
-$diapp-entitybox-cell-background: mix($diapp-entitybox-basecolor, #fff, 9%) !default;
-$diapp-entitybox-cell-border: mix($diapp-entitybox-basecolor, #fff, 24%) !default;
+@use "sass:color";
+
+$diapp-entitybox-basecolor: #bbb !default;
+$diapp-entitybox-header-background: color.scale(mix($diapp-entitybox-basecolor, #fff, 24%), $saturation: -39%) !default;
+$diapp-entitybox-cell-background: color.scale(mix($diapp-entitybox-basecolor, #fff, 15%), $saturation: -39%) !default;
+$diapp-entitybox-cell-border: color.scale(mix($diapp-entitybox-basecolor, #fff, 39%), $saturation: -39%) !default;
 
 .diapp-linking-learningdata__container {
 
