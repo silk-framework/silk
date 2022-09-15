@@ -352,6 +352,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                             ) : null}
                             {suggestions.length > 0 && (
                                 <ComparisionDataContainer>
+                                    <ConfigHeader />
                                     <ComparisionDataBody>
                                         {(filteredSuggestions ?? suggestions).map((suggestion) => (
                                             <SuggestedPathSelection
