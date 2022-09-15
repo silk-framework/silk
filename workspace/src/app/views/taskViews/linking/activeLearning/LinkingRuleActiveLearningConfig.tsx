@@ -162,12 +162,14 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         property,
         exampleValues,
         filterByPath,
+        isActiveFilter,
         datasink
     }: {
         property: TypedPath;
         exampleValues: string[][];
         sameExampleValues: Set<string>;
         filterByPath?: () => any;
+        isActiveFilter?: boolean;
         datasink?: "source" | "target"
     }) => {
         const flatExampleValues: string[] = [].concat.apply([], exampleValues);
@@ -185,6 +187,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                     ) : undefined}
                     exampleTooltip={exampleTitle}
                     onFilter={filterByPath}
+                    filtered={isActiveFilter}
                 />
             </ComparisionDataCell>
         );
@@ -282,9 +285,13 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             setFilteredSuggestions(undefined);
         };
 
-        const filterByPath = React.useCallback((path: string, isTarget: boolean) => {
+        const isActiveFilter = (path: string, isTarget: boolean) => {
             const current = pathFilter.current;
-            if (current && current.path === path && current.isTarget === isTarget) {
+            return (current && current.path === path && current.isTarget === isTarget);
+        };
+
+        const filterByPath = React.useCallback((path: string, isTarget: boolean) => {
+            if (isActiveFilter(path, isTarget)) {
                 // Reset filter when same path is clicked again
                 resetFilter();
             } else {
@@ -345,7 +352,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                                     <Tag onRemove={resetFilter}>
                                         {pathFilter.current.label ?? pathFilter.current.path}
                                     </Tag>
-                                    <Spacing />
+                                    <Spacing size="small" />
                                 </div>
                             ) : null}
                             {suggestions.length > 0 && (
@@ -357,6 +364,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                                                 key={suggestion.pairId}
                                                 pair={suggestion}
                                                 filterByPath={filterByPath}
+                                                isActiveFilterCheck={isActiveFilter}
                                             />
                                         ))}
                                     </ComparisionDataBody>
@@ -409,9 +417,11 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     const SuggestedPathSelection = ({
         pair,
         filterByPath,
+        isActiveFilterCheck,
     }: {
         pair: ComparisonPairWithId;
         filterByPath: (path: string, isTarget: boolean) => any;
+        isActiveFilterCheck: (path: string, isTarget: boolean) => any;
     }) => {
         const sameExampleValues = sameValues(pair.sourceExamples.flat(), pair.targetExamples.flat());
         return (
@@ -421,6 +431,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                     exampleValues={pair.sourceExamples}
                     sameExampleValues={sameExampleValues}
                     filterByPath={() => filterByPath(pair.source.path, false)}
+                    isActiveFilter={isActiveFilterCheck(pair.source.path, false)}
                     datasink="source"
                 />
                 <ComparisionDataConnection>
@@ -439,6 +450,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                     exampleValues={pair.targetExamples}
                     sameExampleValues={sameExampleValues}
                     filterByPath={() => filterByPath(pair.target.path, true)}
+                    isActiveFilter={isActiveFilterCheck(pair.target.path, true)}
                     datasink="target"
                 />
             </ComparisionDataRow>

@@ -241,7 +241,9 @@
             "submit": "Submit",
             "update": "Update",
             "showApiDoc": "API",
-            "copyClipboard": "Copy to clipboard"
+            "copyClipboard": "Copy to clipboard",
+            "filterOn": "Use as filter",
+            "filterOff": "Remove filter"
         },
         "app": {
             "build": "Workbench",

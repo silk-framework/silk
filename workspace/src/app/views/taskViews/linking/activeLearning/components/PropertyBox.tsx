@@ -3,7 +3,10 @@ import {
     OverviewItem,
     OverviewItemDescription,
     OverviewItemLine,
+    OverviewItemActions,
+    IconButton,
 } from "@eccenca/gui-elements";
+import { useTranslation } from "react-i18next";
 
 export interface PropertyBoxProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "children"> {
     propertyName: string;
@@ -12,6 +15,7 @@ export interface PropertyBoxProps extends Omit<React.HTMLAttributes<HTMLDivEleme
     exampleTooltip?: string;
     /** handler to forward a filter function */
     onFilter?: () => any;
+    filtered?: boolean;
 }
 
 export const PropertyBox = ({
@@ -19,12 +23,14 @@ export const PropertyBox = ({
     propertyTooltip,
     exampleValues,
     exampleTooltip,
-    onFilter
+    onFilter,
+    filtered
 }: PropertyBoxProps) => {
+    const [t] = useTranslation();
     return (
         <div className="diapp-linking-learningdata__propertybox">
             <OverviewItem>
-                <OverviewItemDescription onClick={onFilter}>
+                <OverviewItemDescription>
                     <OverviewItemLine title={!!propertyTooltip ? propertyTooltip : undefined} small>
                         {propertyName}
                     </OverviewItemLine>
@@ -34,6 +40,11 @@ export const PropertyBox = ({
                         </OverviewItemLine>
                     )}
                 </OverviewItemDescription>
+                {onFilter && !filtered && (
+                    <OverviewItemActions>
+                        <IconButton name="operation-filter" text={t("common.action.filterOn")} onClick={onFilter} />
+                    </OverviewItemActions>
+                )}
             </OverviewItem>
         </div>
     );

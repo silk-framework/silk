@@ -72,6 +72,10 @@ $diapp-entitybox-cell-border: color.scale(mix($diapp-entitybox-basecolor, #fff, 
 .diapp-linking-learningdata__source {
     text-align: right;
 
+    .eccgui-overviewitem__item {
+        flex-direction: row-reverse;
+    }
+
     .eccgui-overviewitem__line {
         align-self: end;
         text-align: right;
