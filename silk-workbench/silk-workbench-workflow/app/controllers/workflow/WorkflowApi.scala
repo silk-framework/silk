@@ -132,6 +132,10 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
       new ApiResponse(
         responseCode = "404",
         description = "If the specified project or workflow has not been found."
+      ),
+      new ApiResponse(
+        responseCode = "503",
+        description = "Workflow execution could not be started because concurrent execution limit is reached."
       )
   ))
   @RequestBody(
@@ -201,6 +205,10 @@ class WorkflowApi @Inject() () extends InjectedController with UserContextAction
       new ApiResponse(
         responseCode = "404",
         description = "If the specified project or workflow has not been found."
+      ),
+      new ApiResponse(
+        responseCode = "503",
+        description = "Workflow execution could not be started because concurrent execution limit is reached."
       )
     ))
   @RequestBody(

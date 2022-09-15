@@ -152,6 +152,10 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       new ApiResponse(
         responseCode = "500",
         description = "The workflow execution has failed."
+      ),
+      new ApiResponse(
+        responseCode = "503",
+        description = "Workflow execution could not be started because concurrent execution limit is reached."
       )
   ))
   @RequestBody(
@@ -283,6 +287,10 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       new ApiResponse(
         responseCode = "500",
         description = "The workflow execution has failed."
+      ),
+      new ApiResponse(
+        responseCode = "503",
+        description = "Workflow execution could not be started because concurrent execution limit is reached."
       )
     ))
   @RequestBody(
