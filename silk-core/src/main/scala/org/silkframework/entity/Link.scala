@@ -56,7 +56,7 @@ trait Link {
              confidence: Option[Double] = confidence,
              entities: Option[DPair[Entity]] = entities): Link = Link(source, target, confidence, entities)
 
-  override def hashCode: Int = (source + target).hashCode
+  override def hashCode: Int = source.hashCode + target.hashCode
 
   override def toString: String = "<" + source + ">  <" + target + ">"
 
