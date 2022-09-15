@@ -161,7 +161,6 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     const SelectedProperty = ({
         property,
         exampleValues,
-        sameExampleValues,
         filterByPath,
         datasink
     }: {
@@ -182,7 +181,6 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                     exampleValues={flatExampleValues.length > 0 ? (
                         <ActiveLearningValueExamples
                             exampleValues={flatExampleValues}
-                            valuesToHighlight={sameExampleValues}
                         />
                     ) : undefined}
                     exampleTooltip={exampleTitle}
