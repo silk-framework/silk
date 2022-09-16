@@ -145,13 +145,13 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             <ComparisionDataHead>
                 <ComparisionDataRow>
                     <ComparisionDataHeader className="diapp-linking-learningdata__source">
-                        {t("widget.Filterbar.subsections.valueLabels.itemType.dataset")} 1
+                        {t("ActiveLearning.config.entitiyPair.sourceColumnTitle")}
                     </ComparisionDataHeader>
                     <ComparisionDataConnection>
                         <ConnectionAvailable actions={<Tag emphasis="weak">owl:sameAs</Tag>} />
                     </ComparisionDataConnection>
                     <ComparisionDataHeader className="diapp-linking-learningdata__target">
-                        {t("widget.Filterbar.subsections.valueLabels.itemType.dataset")} 2
+                        {t("ActiveLearning.config.entitiyPair.targetColumnTitle")}
                     </ComparisionDataHeader>
                 </ComparisionDataRow>
             </ComparisionDataHead>
