@@ -817,8 +817,8 @@
             "entitiyPair": {
                 "title": "Selected properties to compare entities",
                 "info": "Choose properties to compare. Select from the suggestions or add them by specifying property paths for both entities.",
-                "sourceColumnTitle": "Source entity",
-                "targetColumnTitle": "Target entity"
+                "sourceColumnTitle": "Source dataset",
+                "targetColumnTitle": "Target dataset"
             },
             "suggestions": {
                 "title": "Add suggestions",

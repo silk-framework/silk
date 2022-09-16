@@ -244,10 +244,10 @@ export const LinkingRuleReferenceLinks = ({
                                 &nbsp;
                             </TableHeader>
                             <TableHeader>
-                                {t("ActiveLearning.config.entitiyPair.sourceColumnTitle")} 1
+                                {t("ActiveLearning.config.entitiyPair.sourceColumnTitle")}
                             </TableHeader>
                             <TableHeader>
-                                {t("ActiveLearning.config.entitiyPair.targetColumnTitle")} 2
+                                {t("ActiveLearning.config.entitiyPair.targetColumnTitle")}
                             </TableHeader>
                             <TableHeader key={"actions-column"} style={{ width: "1px" }}>
                                 &nbsp;
