@@ -46,10 +46,13 @@ const nextId = () => {
 /** Allows to manually select a comparison property pair. */
 export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addComparisonPair }: Props) => {
     const manualSourcePath = React.useRef<TypedPath | undefined>(undefined);
+    const sourceExampleValues = React.useRef<string[]>([]);
     const manualTargetPath = React.useRef<TypedPath | undefined>(undefined);
+    const targetExampleValues = React.useRef<string[]>([]);
     const [t] = useTranslation();
     const [hasValidPath, setHasValidPath] = React.useState(false);
     const [showInfo, setShowInfo] = React.useState(false);
+    const [resetting, setResetting] = React.useState(false);
 
     const checkPathValidity = () => {
         if (manualSourcePath.current && manualTargetPath.current) {
@@ -59,25 +62,34 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
         }
     };
 
-    const changeManualSourcePath = (value: string, label?: string) => {
-        // TODO: How to fetch label, example values and other meta data?
+    React.useEffect(() => {
+        if (resetting) {
+            setResetting(false);
+        }
+    }, [resetting]);
+
+    const changeManualSourcePath = (value: string, label: string | undefined, exampleValues: string[]) => {
+        // TODO: How to fetch label and other meta data?
         manualSourcePath.current = value
             ? { path: value, valueType: "StringValueType", label: label ?? value }
             : undefined;
+        sourceExampleValues.current = [...exampleValues];
         checkPathValidity();
     };
 
-    const changeManualTargetPath = (value: string, label?: string) => {
-        // TODO: How to fetch example values and other meta data?
+    const changeManualTargetPath = (value: string, label: string | undefined, exampleValues: string[]) => {
+        // TODO: How to fetch label and other meta data?
         manualTargetPath.current = value
             ? { path: value, valueType: "StringValueType", label: label ?? value }
             : undefined;
+        targetExampleValues.current = [...exampleValues];
         checkPathValidity();
     };
 
     const reset = () => {
-        changeManualSourcePath("");
-        changeManualTargetPath("");
+        changeManualSourcePath("", undefined, []);
+        changeManualTargetPath("", undefined, []);
+        setResetting(true);
     };
 
     const addManuallyChosenPair = async () => {
@@ -86,9 +98,8 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
                 pairId: `manually chosen: ${nextId()}`,
                 source: manualSourcePath.current,
                 target: manualTargetPath.current,
-                // TODO: where to get examples from?
-                sourceExamples: [],
-                targetExamples: [],
+                sourceExamples: sourceExampleValues.current,
+                targetExamples: targetExampleValues.current,
             });
             if (added) {
                 reset();
@@ -133,6 +144,7 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
                             <PathAutoCompletion
                                 projectId={projectId}
                                 linkingTaskId={linkingTaskId}
+                                resetting={resetting}
                                 isTarget={false}
                                 changeManualPath={changeManualSourcePath}
                             />
@@ -155,6 +167,7 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
                             <PathAutoCompletion
                                 projectId={projectId}
                                 linkingTaskId={linkingTaskId}
+                                resetting={resetting}
                                 isTarget={true}
                                 changeManualPath={changeManualTargetPath}
                             />
@@ -169,33 +182,58 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
 interface PathAutoCompletionProps {
     projectId: string;
     linkingTaskId: string;
+    resetting: boolean;
     isTarget: boolean;
-    /** Called when the path has been changed. Only called when input looses focus. */
-    changeManualPath: (path: string) => any;
+    /** Called when the path has been changed. */
+    changeManualPath: (path: string, label: string | undefined, exampleValues: string[]) => any;
 }
 
-const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPath }: PathAutoCompletionProps) => {
+/** Path auto-completion. */
+const PathAutoCompletion = ({
+    projectId,
+    linkingTaskId,
+    resetting,
+    isTarget,
+    changeManualPath,
+}: PathAutoCompletionProps) => {
     const { registerError } = useErrorHandler();
     /** Stores the path. Often updated. */
     const path = React.useRef<string | undefined>(undefined);
     const isValid = React.useRef<boolean>(false);
+    const exampleValues = React.useRef<string[]>([]);
     const [t] = useTranslation();
-    const [exampleValues, setExampleValues] = React.useState<string[] | undefined>(undefined);
+    const [showExampleValues, setShowExampleValues] = React.useState<boolean>(false);
     const [exampleValuesLoading, setExampleValuesLoading] = React.useState(false);
     const exampleValuesRequestId = React.useRef<string>("");
 
-    const updateState = () => {
+    React.useEffect(() => {
+        if (resetting) {
+            path.current = undefined;
+            isValid.current = false;
+            exampleValues.current = [];
+            setShowExampleValues(false);
+        }
+    }, [resetting]);
+
+    const updateState = (fetchValues: boolean = true) => {
         if (!!path.current) {
             if (isValid.current) {
-                fetchExampleValues();
-                changeManualPath(path.current);
+                if (fetchValues) {
+                    fetchExampleValues();
+                }
+                changeManualPath(path.current, undefined, exampleValues.current ?? []);
             } else {
-                changeManualPath("");
+                changeManualPath("", undefined, []);
             }
         } else {
-            setExampleValues(undefined);
+            exampleValues.current = [];
+            setShowExampleValues(false);
         }
     };
+
+    React.useEffect(() => {
+        updateState(false);
+    }, [exampleValues]);
 
     const onValidation = React.useCallback((valid: boolean) => {
         isValid.current = valid;
@@ -210,14 +248,16 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
     const fetchExampleValues = async () => {
         const requestId = `${path.current}__${isValid.current}`;
         if (path.current && requestId !== exampleValuesRequestId.current) {
-            setExampleValues(undefined);
+            exampleValues.current = [];
+            setShowExampleValues(false);
             setExampleValuesLoading(true);
             exampleValuesRequestId.current = requestId;
             try {
                 const result = await fetchPathExampleValues(projectId, linkingTaskId, isTarget, path.current);
                 // Make sure that only the most recent request is used
                 if (requestId === exampleValuesRequestId.current) {
-                    setExampleValues(result.data.exampleValues);
+                    exampleValues.current = result.data.exampleValues;
+                    setShowExampleValues(true);
                 }
             } catch (ex) {
                 if (ex.isFetchError && ex.httpStatus === 400) {
@@ -233,7 +273,7 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
 
     const onFocusChange = React.useCallback((hasFocus: boolean) => {
         if (!hasFocus) {
-            updateState();
+            updateState(false);
         }
     }, []);
 
@@ -263,26 +303,28 @@ const PathAutoCompletion = ({ projectId, linkingTaskId, isTarget, changeManualPa
 
     return (
         <ComparisionDataCell className="diapp-linking-learningdata__pathselection">
-            <AutoSuggestion
-                label={t("ActiveLearning.config.manualSelection." + (isTarget ? "targetPath" : "sourcePath"))}
-                initialValue={""}
-                onChange={onChange}
-                fetchSuggestions={fetchAutoCompletionResult(isTarget)}
-                placeholder={t("ActiveLearning.config.manualSelection.insertPath")}
-                checkInput={(value) => checkValuePathValidity(value, projectId)}
-                onFocusChange={onFocusChange}
-                validationErrorText={t("ActiveLearning.config.errors.invalidPath")}
-                onInputChecked={onValidation}
-                autoCompletionRequestDelay={500}
-            />
+            {resetting ? null : (
+                <AutoSuggestion
+                    label={t("ActiveLearning.config.manualSelection." + (isTarget ? "targetPath" : "sourcePath"))}
+                    initialValue={""}
+                    onChange={onChange}
+                    fetchSuggestions={fetchAutoCompletionResult(isTarget)}
+                    placeholder={t("ActiveLearning.config.manualSelection.insertPath")}
+                    checkInput={(value) => checkValuePathValidity(value, projectId)}
+                    onFocusChange={onFocusChange}
+                    validationErrorText={t("ActiveLearning.config.errors.invalidPath")}
+                    onInputChecked={onValidation}
+                    autoCompletionRequestDelay={500}
+                />
+            )}
             {exampleValuesLoading && (
                 <div>
                     <Spinner position={"inline"} size={"tiny"} delay={1000} />
                 </div>
             )}
-            {exampleValues && exampleValues.length > 0 ? (
+            {showExampleValues && exampleValues.current.length > 0 ? (
                 <OverflowText>
-                    <ActiveLearningValueExamples exampleValues={exampleValues} />
+                    <ActiveLearningValueExamples exampleValues={exampleValues.current} />
                 </OverflowText>
             ) : null}
         </ComparisionDataCell>

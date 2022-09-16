@@ -15,8 +15,8 @@ export interface ComparisonPair {
     source: TypedPath;
     target: TypedPath;
     // TODO: nested arrays needed?
-    sourceExamples: string[][];
-    targetExamples: string[][];
+    sourceExamples: string[];
+    targetExamples: string[];
     /** A confidence score that goes from -1.0 to 1.0 (not matching to optimal match) */
     score?: number;
     /** The type the comparison pair is compared with, e.g. string comparison, date comparison etc. */

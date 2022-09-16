@@ -163,14 +163,14 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         exampleValues,
         filterByPath,
         isActiveFilter,
-        datasink
+        datasink,
     }: {
         property: TypedPath;
-        exampleValues: string[][];
+        exampleValues: string[];
         sameExampleValues: Set<string>;
         filterByPath?: () => any;
         isActiveFilter?: boolean;
-        datasink?: "source" | "target"
+        datasink?: "source" | "target";
     }) => {
         const flatExampleValues: string[] = [].concat.apply([], exampleValues);
         const showLabel: boolean = !!property.label && property.label.toLowerCase() !== property.path.toLowerCase();
@@ -180,11 +180,11 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                 <PropertyBox
                     propertyName={property.label ?? property.path}
                     propertyTooltip={showLabel ? property.path : undefined}
-                    exampleValues={flatExampleValues.length > 0 ? (
-                        <ActiveLearningValueExamples
-                            exampleValues={flatExampleValues}
-                        />
-                    ) : undefined}
+                    exampleValues={
+                        flatExampleValues.length > 0 ? (
+                            <ActiveLearningValueExamples exampleValues={flatExampleValues} />
+                        ) : undefined
+                    }
                     exampleTooltip={exampleTitle}
                     onFilter={filterByPath}
                     filtered={isActiveFilter}
@@ -287,7 +287,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
 
         const isActiveFilter = (path: string, isTarget: boolean) => {
             const current = pathFilter.current;
-            return (current && current.path === path && current.isTarget === isTarget);
+            return current && current.path === path && current.isTarget === isTarget;
         };
 
         const filterByPath = React.useCallback((path: string, isTarget: boolean) => {
