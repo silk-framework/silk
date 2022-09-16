@@ -306,7 +306,7 @@ object ClassPluginDescription {
       }
     }
     catch {
-      case ex: ClassNotFoundException => Array.fill(count)(None)
+      case _: ClassNotFoundException => Array.fill(count)(None)
     }
   }
 }

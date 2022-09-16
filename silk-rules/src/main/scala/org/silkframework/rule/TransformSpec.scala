@@ -162,7 +162,8 @@ case class TransformSpec(@Param(label = "Input task", value = "The source from w
     schemata :+= RuleSchemata.create(rule, selection, subPath)
 
     // Add rule schemata of all child object rules
-    for(objectMapping @ ObjectMapping(_, relativePath, _, _, _, _) <- rule.rules.allRules) {
+    for(objectMapping @ ObjectMapping(_, relativePath, _, objectMappingRules, _, _) <- rule.rules.allRules
+        if objectMappingRules.typeRules.nonEmpty || objectMappingRules.propertyRules.nonEmpty) {
       schemata ++= collectSchemata(objectMapping.fillEmptyUriRule, subPath ++ relativePath)
     }
 
