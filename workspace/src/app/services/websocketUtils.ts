@@ -63,14 +63,7 @@ import { fetch } from "./fetch/fetch";
             registerError &&
                 registerError("Socket.Connection.Close", "There has been a disconnect, attempting to reconnect");
             const timeoutId = setTimeout(() => {
-                connectWebSocket(
-                    webSocketUrl,
-                    pollingUrl,
-                    updateFunc,
-                    registerError,
-                    isReconnecting,
-                    hasEstablishedConnection
-                );
+                connectWebSocket(webSocketUrl, pollingUrl, updateFunc, registerError, true, true);
             }, 5000);
 
             cleanUpFunctions.push(() => {
