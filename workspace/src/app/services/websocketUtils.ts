@@ -10,37 +10,73 @@ import { fetch } from "./fetch/fetch";
  *                     It must return a JSON of the format { "timestamp": Server timestamp, "updates": [ update1, update2, ...] }
  * @param updateFunc   Function to be called on every update. Receives a single argument, which is the received JSON object.
  *
- */
-export const connectWebSocket = <T>(
+ */ export const connectWebSocket = <T>(
     webSocketUrl: string,
-    pollingUrl: string,
-    updateFunc: (updateItem: T) => any
+    pollingUrl: string = "",
+    updateFunc: (updateItem: T) => any,
+    registerError?: (errorId: string, err: any, cause?: any) => void,
+    __isReconnecting__: boolean = false,
+    __hasPrevConnection: boolean = false
 ): CleanUpFunction => {
     const cleanUpFunctions: CleanUpFunction[] = [];
     const fixedWebSocketUrl = convertToWebsocketUrl(webSocketUrl);
     const websocket = new WebSocket(fixedWebSocketUrl);
+    let hasEstablishedConnection = __hasPrevConnection;
+    let isReconnecting = __isReconnecting__;
+
     websocket.onmessage = function (evt) {
         updateFunc(JSON.parse(evt.data));
     };
 
+    websocket.onopen = function () {
+        hasEstablishedConnection = true;
+        isReconnecting = false;
+    };
+
     websocket.onerror = function (event) {
-        console.log("Connecting to WebSocket at '" + fixedWebSocketUrl + "' failed. Falling back to polling...");
-        let lastUpdate = 0;
-        const timeout = setInterval(async function () {
-            let timestampedUrl = pollingUrl + (pollingUrl.indexOf("?") >= 0 ? "&" : "?") + "timestamp=" + lastUpdate;
-            const response = await fetch({
-                url: timestampedUrl,
+        if (!isReconnecting) {
+            console.log("Connecting to WebSocket at '" + fixedWebSocketUrl + "' failed. Falling back to polling...");
+            let lastUpdate = 0;
+            const timeout = setInterval(async function () {
+                let timestampedUrl =
+                    pollingUrl + (pollingUrl.indexOf("?") >= 0 ? "&" : "?") + "timestamp=" + lastUpdate;
+                const response = await fetch({
+                    url: timestampedUrl,
+                });
+                const responseData = response.data;
+                if (responseData.timestamp === undefined || responseData.updates === undefined) {
+                } else {
+                    lastUpdate = responseData.timestamp;
+                    responseData.updates.forEach(updateFunc);
+                }
+            }, 1000);
+            cleanUpFunctions.push(() => {
+                clearInterval(timeout);
             });
-            const responseData = response.data;
-            if (responseData.timestamp === undefined || responseData.updates === undefined) {
-            } else {
-                lastUpdate = responseData.timestamp;
-                responseData.updates.forEach(updateFunc);
-            }
-        }, 1000);
-        cleanUpFunctions.push(() => {
-            clearInterval(timeout);
-        });
+        }
+    };
+
+    websocket.onclose = function (event) {
+        console.log("There has been a disconnect, attempting to reconnect...");
+        if ((event.code === 1006 || event.code === 1011) && hasEstablishedConnection) {
+            //only retry for abnormal closures and server internal error
+            registerError &&
+                registerError("Socket.Connection.Close", "There has been a disconnect, attempting to reconnect");
+            const timeoutId = setTimeout(() => {
+                connectWebSocket(
+                    webSocketUrl,
+                    pollingUrl,
+                    updateFunc,
+                    registerError,
+                    isReconnecting,
+                    hasEstablishedConnection
+                );
+            }, 5000);
+
+            cleanUpFunctions.push(() => {
+                clearTimeout(timeoutId);
+            });
+        }
     };
 
     cleanUpFunctions.push(() => {
