@@ -227,6 +227,21 @@ export function ProjectTaskTabView({
         return locationParser.stringifyUrl(iframeUrl);
     };
 
+    const extendedViewActions: IViewActions = {
+        ...viewActions,
+        switchToView: (viewIdx) => {
+            // FIXME: Change to viewId when this component is switched to viewId instead of index
+            const view = viewsAndItemLink[viewIdx];
+            if (view) {
+                if (view.id) {
+                    changeTab(view.id);
+                } else {
+                    changeTab(view as IItemLink);
+                }
+            }
+        },
+    };
+
     const iframeWidget = () => {
         return (
             <Card
@@ -249,8 +264,10 @@ export function ProjectTaskTabView({
                                         changeTab(tabItem.id ?? (tabItem as IItemLink));
                                     }}
                                     minimal={true}
-                                    disabled={ !!selectedTab && ((tabItem.id ?? tabItem.path) === ((selectedTab as any)?.path ?? selectedTab))}
-
+                                    disabled={
+                                        !!selectedTab &&
+                                        (tabItem.id ?? tabItem.path) === ((selectedTab as any)?.path ?? selectedTab)
+                                    }
                                 >
                                     {tLabel(tabItem.label as string)}
                                 </Button>
@@ -289,7 +306,9 @@ export function ProjectTaskTabView({
                         ) : (
                             projectId &&
                             taskId &&
-                            (taskViews ?? []).find((v) => v.id === selectedTab)?.render(projectId, taskId, viewActions)
+                            (taskViews ?? [])
+                                .find((v) => v.id === selectedTab)
+                                ?.render(projectId, taskId, extendedViewActions)
                         )
                     ) : isFetchingLinks ? (
                         <Loading />

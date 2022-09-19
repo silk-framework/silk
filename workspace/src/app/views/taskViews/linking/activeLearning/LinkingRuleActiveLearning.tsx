@@ -48,7 +48,11 @@ export const activeLearningActivities = {
  * building a set of links called reference links.
  * Based on this user-constructed gold standard the backend then learns the "optimal" linking rule which can then be saved.
  **/
-export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingRuleActiveLearningProps) => {
+export const LinkingRuleActiveLearning = ({
+    projectId,
+    linkingTaskId,
+    viewActions,
+}: LinkingRuleActiveLearningProps) => {
     const { registerError } = useErrorHandler();
     const [t] = useTranslation();
     const prefLang = useSelector(commonSel.localeSelector);
@@ -199,9 +203,21 @@ export const LinkingRuleActiveLearning = ({ projectId, linkingTaskId }: LinkingR
         await fetchTaskData(projectId, linkingTaskId);
     };
 
-    const navigate = (toStep: ActiveLearningStep) => {
-        setActiveLearningStep(toStep);
-        if (toStep === "linkLearning") {
+    const navigate = (toStep: ActiveLearningStep | "linkingEditor") => {
+        let navigateTo: ActiveLearningStep = "config";
+        if (toStep === "linkingEditor") {
+            if (viewActions?.integratedView || !viewActions?.switchToView) {
+                // Cannot navigate away from the current view in integrated mode.
+                navigateTo = "config";
+            } else {
+                // FIXME: Change view index to view ID when possible
+                viewActions.switchToView(0);
+            }
+        } else {
+            navigateTo = toStep;
+        }
+        setActiveLearningStep(navigateTo);
+        if (navigateTo === "linkLearning") {
             setActiveLearningStarted(true);
         }
     };

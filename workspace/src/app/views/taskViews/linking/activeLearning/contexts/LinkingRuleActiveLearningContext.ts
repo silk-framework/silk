@@ -15,7 +15,7 @@ interface LinkingRuleActiveLearningContextProps {
     /** Update which properties should be compared. */
     setPropertiesToCompare: React.Dispatch<React.SetStateAction<ComparisonPairWithId[]>>;
     /** Navigate to a different view. */
-    navigateTo: (step: ActiveLearningStep) => void;
+    navigateTo: (step: ActiveLearningStep | "linkingEditor") => void;
     /** The source paths of the label values that should be displayed in the UI for each entity in a link. */
     labelPaths?: LabelProperties;
     /** Change the label paths. */

@@ -201,6 +201,16 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
         }
     };
 
+    const onClose = (saved: boolean, ruleSaved: boolean) => {
+        setShowSaveDialog(false);
+        if (!saved) return;
+        if (ruleSaved) {
+            activeLearningContext.navigateTo("linkingEditor");
+        } else {
+            activeLearningContext.navigateTo("config");
+        }
+    };
+
     return (
         <LinkingRuleActiveLearningFeedbackContext.Provider
             value={{
@@ -227,10 +237,7 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                     showLinkType={showLinkType}
                 />
                 {showSaveDialog ? (
-                    <LinkingRuleActiveLearningSaveModal
-                        unsavedBestRule={bestRule}
-                        onClose={() => setShowSaveDialog(false)}
-                    />
+                    <LinkingRuleActiveLearningSaveModal unsavedBestRule={bestRule} onClose={onClose} />
                 ) : null}
             </Section>
         </LinkingRuleActiveLearningFeedbackContext.Provider>

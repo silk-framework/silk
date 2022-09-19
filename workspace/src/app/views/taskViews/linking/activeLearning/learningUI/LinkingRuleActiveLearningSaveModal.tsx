@@ -13,7 +13,7 @@ import { ActiveLearningBestRule } from "../LinkingRuleActiveLearning.typings";
 
 interface LinkingRuleActiveLearningSaveModalProps {
     unsavedBestRule: ActiveLearningBestRule | undefined;
-    onClose: () => any;
+    onClose: (saved: boolean, ruleSaved: boolean) => any;
 }
 
 export const LinkingRuleActiveLearningSaveModal = ({
@@ -51,7 +51,7 @@ export const LinkingRuleActiveLearningSaveModal = ({
                 saveRule,
                 saveReferenceLinks
             );
-            onClose();
+            setTimeout(() => onClose(true, saveRule), 50);
         } catch (error) {
             registerError(
                 "LinkingRuleActiveLearningSaveModal.onSave",
@@ -63,13 +63,17 @@ export const LinkingRuleActiveLearningSaveModal = ({
         }
     };
 
+    const onCancel = () => {
+        onClose(false, false);
+    };
+
     return (
         <SimpleDialog
             data-test-id={"active-learning-save-modal"}
             size={"large"}
             title={t("ActiveLearning.saveDialog.title")}
             isOpen={true}
-            onClose={onClose}
+            onClose={onCancel}
             hasBorder
             actions={[
                 <Button
@@ -81,7 +85,7 @@ export const LinkingRuleActiveLearningSaveModal = ({
                 >
                     {t("common.action.save")}
                 </Button>,
-                <Button onClick={onClose} data-test-id={"close-btn"}>
+                <Button onClick={onCancel} data-test-id={"close-btn"}>
                     {t("common.action.cancel")}
                 </Button>,
             ]}
@@ -93,9 +97,7 @@ export const LinkingRuleActiveLearningSaveModal = ({
                         )}
                         {saveReferenceLinks && saveRule && <Spacing />}
                         {saveRule && (
-                            <Notification warning>
-                                {t("ActiveLearning.saveDialog.overwriteWarning")}
-                            </Notification>
+                            <Notification warning>{t("ActiveLearning.saveDialog.overwriteWarning")}</Notification>
                         )}
                     </>
                 ) : undefined
