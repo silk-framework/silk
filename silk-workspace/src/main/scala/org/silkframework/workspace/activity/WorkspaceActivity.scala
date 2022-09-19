@@ -2,14 +2,16 @@ package org.silkframework.workspace.activity
 
 import java.time.Instant
 import java.util.logging.Logger
-import org.silkframework.config.{Prefixes, TaskSpec}
+import org.silkframework.config.{DefaultConfig, Prefixes, TaskSpec}
 import org.silkframework.runtime.activity.{ObservableMirror, _}
 import org.silkframework.runtime.plugin.ClassPluginDescription
+import org.silkframework.runtime.validation.ServiceUnavailableException
 import org.silkframework.util.{Identifier, IdentifierGenerator}
 import org.silkframework.workspace.{Project, ProjectTask}
 
 import scala.collection.immutable.ListMap
 import scala.reflect.ClassTag
+import scala.util.Try
 
 /**
   * An activity that is either attached to a project (ProjectActivity) or a task (TaskActivity) or is a GlobalWorkspaceActivity.
@@ -21,6 +23,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
     */
   private val identifierGenerator = new IdentifierGenerator(name)
   private val log: Logger = Logger.getLogger(this.getClass.getName)
+  lazy private val maxConcurrentExecutionsPerActivity = WorkspaceActivity.maxConcurrentExecutionsPerActivity()
 
   /**
     * Each workspace activity does have a current instance that's always defined.
@@ -36,7 +39,7 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
 
   /**
     * For non-singleton activities, this holds all instances.
-    * If there are more instances than [[WorkspaceActivity.MAX_CONTROLS_PER_ACTIVITY]], the oldest ones are removed.
+    * If there are more instances than [[maxConcurrentExecutionsPerActivity]], the oldest finished ones are removed.
     */
   @volatile
   private var instances: ListMap[Identifier, ActivityControl[ActivityType#ValueType]] = ListMap()
@@ -156,6 +159,23 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   }
 
   /**
+    * Starts an activity in blocking mode and returns the result of the activity execution.
+    * The activity instance is removed automatically after the activity has finished.
+    * Optionally applies a supplied configuration to the started activity.
+    *
+    * @param config The activity parameters
+    * @param user The user context
+    * @return The identifier of the started activity
+    */
+  final def startBlockingAndGetValue(config: Map[String, String] = Map.empty)(implicit user: UserContext): ActivityType#ValueType = {
+    val (id, control) = addInstance(config)
+    control.startBlocking()
+    val value = control.value()
+    removeActivityInstance(id)
+    value
+  }
+
+  /**
     * The default configuration of this activity type.
     */
   final def defaultConfig: Map[String, String] = ClassPluginDescription(factory.getClass).parameterValues(factory)(Prefixes.empty)
@@ -181,11 +201,20 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
       }
     } else {
       val newControl = createControl(config)
-      if(instances.size >= WorkspaceActivity.MAX_CONTROLS_PER_ACTIVITY) {
+      if(instances.size >= maxConcurrentExecutionsPerActivity) {
+        val configInfo = s"This limit can be increased via config key '${WorkspaceActivity.MAX_CONCURRENT_EXECUTIONS_CONFIG_KEY}'."
         val activityDescription = projectOpt.map(p => s"In project ${p.id} activity '$name'").getOrElse(s"In workspace activity '$name'")
-        log.warning(s"$activityDescription: Dropping an activity control instance because the control " +
-            s"instance queue is full (max. ${WorkspaceActivity.MAX_CONTROLS_PER_ACTIVITY}. Dropped instance ID: ${instances.head._1}")
-        instances = instances.drop(1)
+        instances.find(instance => instance._2.status.get.exists(_.finished())) match {
+          case Some(instance) =>
+            log.warning(s"$activityDescription: Dropping an activity control instance because the control " +
+              s"instance queue is full (max. $maxConcurrentExecutionsPerActivity. Dropped instance ID: ${instance._1}." +
+              s" Make sure to remove consumed results by the client. $configInfo")
+            removeActivityInstance(instance._1)
+          case None =>
+            // Cannot remove running instances, abort.
+            throw ServiceUnavailableException(s"$activityDescription: Cannot start another instance of activity '$label' because " +
+              s"limit ($maxConcurrentExecutionsPerActivity) of concurrently running instances has been reached. $configInfo")
+        }
       }
       instances += ((identifier, newControl))
       currentInstance = newControl
@@ -210,10 +239,19 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
 
 object WorkspaceActivity {
 
+  val MAX_CONCURRENT_EXECUTIONS_CONFIG_KEY = "org.silkframework.runtime.activity.concurrentExecutions"
+
   /**
     * The maximum number of instances that are held in memory for each activity type.
     * If more instances are created, the oldest ones are removed.
     */
-  val MAX_CONTROLS_PER_ACTIVITY: Int = 20
-
+  def maxConcurrentExecutionsPerActivity(): Int = {
+    val cfg = DefaultConfig.instance()
+    val defaultValue = 20
+    if(cfg.hasPath(MAX_CONCURRENT_EXECUTIONS_CONFIG_KEY)) {
+      Try(cfg.getInt(MAX_CONCURRENT_EXECUTIONS_CONFIG_KEY)).getOrElse(defaultValue)
+    } else {
+      defaultValue
+    }
+  }
 }

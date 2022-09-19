@@ -66,6 +66,9 @@ sealed trait Status {
    */
   override def toString: String = message
 
+  /** If this activity has finished running. */
+  def finished(): Boolean = this.isInstanceOf[Status.Finished]
+
   /** The concrete status string. In order to distinguish different states of Finished. */
   def concreteStatus: String = {
     this match {
