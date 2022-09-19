@@ -150,7 +150,6 @@ export default function VocabularyMatchingDialog(
                 popoverProps={{
                     portalContainer: context.portalContainer,
                     minimal: true,
-                    fill: true,
                     position: "bottom-left"
                 }}
                 fill={true}
