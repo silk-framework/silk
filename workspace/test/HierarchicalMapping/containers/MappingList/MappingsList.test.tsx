@@ -1,12 +1,14 @@
 import React from "react";
-import {mount, shallow} from 'enzyme';
+import {mount, ReactWrapper, shallow, ShallowWrapper} from 'enzyme';
 
 import MappingsList from '../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingsList/MappingsList';
 import EmptyList from '../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingsList/EmptyList';
 import {DragDropContext} from 'react-beautiful-dnd';
 import DraggableItem from '../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingRule/DraggableItem';
 import ListActions from '../../../../src/app/views/pages/MappingEditor/HierarchicalMapping/containers/MappingsList/ListActions';
-import {findAll} from "../../utils/TestHelpers";
+import {findAll, logWrapperHtml} from "../../utils/TestHelpers";
+import {testWrapper, withMount, withShallow} from "../../../integration/TestHelper";
+import {waitFor} from "@testing-library/react";
 
 const props = {
     rules: [
@@ -113,19 +115,19 @@ const props = {
     loading: false
 };
 
-const getWrapper: <T>(renderer: (component: any) => T, args?: any) => T = (renderer, args = props) => renderer(
-    <MappingsList {...args} />
-);
+const getWrapper = (args: any = props): ReactWrapper<any, any> => {
+    return withMount(testWrapper(<MappingsList {...args} />));
+};
 
 describe("MappingsList Component", () => {
     describe("on component mounted, ",() => {
         let wrapper;
         beforeEach(() => {
-            wrapper = getWrapper(shallow);
+            wrapper = getWrapper();
         });
 
         it('should render EmptyList component, when rules array is empty', () => {
-            const wrapper = getWrapper(shallow, {
+            const wrapper = getWrapper({
                 ...props,
                 rules: []
             });
@@ -137,7 +139,6 @@ describe("MappingsList Component", () => {
         });
 
         it('should render DraggableItem component, the right count', () => {
-            const wrapper = getWrapper(mount);
             expect(wrapper.find(DraggableItem)).toHaveLength(2);
         });
 
@@ -149,60 +150,4 @@ describe("MappingsList Component", () => {
             wrapper.unmount();
         })
     });
-
-    describe('on component receive updates', () => {
-        let wrapper;
-        beforeEach(() => {
-            wrapper = getWrapper(shallow);
-        });
-
-        it('should update the rules, when new data is passed', () => {
-            const wrapper = getWrapper(mount);
-            wrapper.setProps({
-                ...props,
-                rules: [
-                    {
-                        "type":"complex",
-                        "id":"country",
-                        "operator":{
-                            "type":"transformInput",
-                            "id":"normalize",
-                            "function":"GeoLocationParser",
-                            "inputs":[
-                                {
-                                    "type":"pathInput",
-                                    "id":"country",
-                                    "path":"country"
-                                }
-                            ],
-                            "parameters":{
-                                "parseTypeId":"Country",
-                                "fullStateName":"true"
-                            }
-                        },
-                        "sourcePaths":[
-                            "country"
-                        ],
-                        "metadata":{
-                            "description":"sss",
-                            "label":""
-                        },
-                        "mappingTarget":{
-                            "uri":"<urn:ruleProperty:country>",
-                            "valueType":{
-                                "nodeType":"UriValueType"
-                            },
-                            "isBackwardProperty":false,
-                            "isAttribute":false
-                        }
-                    }
-                ]
-            });
-            expect(findAll(wrapper, `ol[data-rbd-droppable-id="droppable"] li.ecc-silk-mapping__ruleitem`)).toHaveLength(1)
-        });
-
-        afterEach(() => {
-            wrapper.unmount();
-        })
-    })
 });

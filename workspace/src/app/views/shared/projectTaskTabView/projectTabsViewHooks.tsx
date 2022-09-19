@@ -1,28 +1,46 @@
 import { IItemLink } from "@ducks/shared/typings";
 import { ProjectTaskTabView } from "./ProjectTaskTabView";
 import React, { useState } from "react";
+import { pluginRegistry } from "../../../views/plugins/PluginRegistry";
+import { MenuItem } from "@eccenca/gui-elements";
+import { getItemLinkIcons } from "../../../utils/getItemLinkIcons";
+
+interface IProps {
+    srcLinks: IItemLink[];
+    startLink?: IItemLink;
+    pluginId?: string;
+    projectId?: string;
+    taskId?: string;
+}
 
 /** An I-frame supported version for item links. */
-export const useProjectTabsView = (srcLinks: IItemLink[], startLink?: IItemLink) => {
+export const useProjectTabsView = ({ srcLinks, startLink, pluginId, taskId, projectId }: IProps) => {
     // active legacy link
-    const [displayLegacyLink, setDisplayLegacyLink] = useState<IItemLink | undefined>(startLink);
+    const [displayLegacyLink, setDisplayLegacyLink] = useState<IItemLink | string | undefined>(startLink);
+    const taskViews = pluginId ? pluginRegistry.taskViews(pluginId) : [];
+    const menuItems = taskViews.map(({ id, label }) => (
+        <MenuItem key={id} text={label} icon={getItemLinkIcons(label)} onClick={() => changeTab(id)} />
+    ));
+
     // handler for link change
-    const toggleIFrameLink = (linkItem?: IItemLink) => {
+    const changeTab = (linkItem?: IItemLink | string) => {
         setDisplayLegacyLink(linkItem);
     };
-    const returnElement: JSX.Element | undefined = displayLegacyLink && (
+    const taskViewConfig = pluginId ? { pluginId, taskId, projectId } : undefined;
+    const returnElement: JSX.Element | null = displayLegacyLink ? (
         <ProjectTaskTabView
             srcLinks={srcLinks.map((link) => {
                 return {
-                    path: link.path,
-                    label: link.label,
+                    ...link,
                     itemType: undefined,
                 };
             })}
             startWithLink={displayLegacyLink}
             startFullscreen={true}
-            handlerRemoveModal={() => toggleIFrameLink(undefined)}
+            taskViewConfig={taskViewConfig}
+            handlerRemoveModal={() => changeTab(undefined)}
         />
-    );
-    return { projectTabView: returnElement, toggleIFrameLink };
+    ) : null;
+
+    return { projectTabView: returnElement, changeTab, menuItems };
 };

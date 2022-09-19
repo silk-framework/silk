@@ -56,3 +56,5 @@ GET           /tasks/:project/:task/targetVocabulary/relationsOfClass           
 POST          /tasks/:project/:task/transformInput                                 controllers.transform.TransformTaskApi.postTransformInput(project: String, task: String)
 GET           /tasks/:project/:task/rule/:rule/valueSourcePaths                    controllers.transform.SourcePathsApi.valueSourcePaths(project: String, task: String, rule: String, maxDepth: Int ?= Int.MaxValue, unusedOnly: Boolean ?= false, usedOnly: Boolean ?= false)
 GET           /tasks/:project/:task/rule/:rule/valueSourcePathsInfo                controllers.transform.SourcePathsApi.valueSourcePathsFullInfo(project: String, task: String, rule: String, maxDepth: Int ?= Int.MaxValue, objectInfo: Boolean ?= false)
+
+POST          /tasks/:project/:task/rule/:rule/evaluateRule                        controllers.transform.EvaluateTransformApi.evaluateRule(project: String, task:String, rule: String, limit: Int ?= 3)

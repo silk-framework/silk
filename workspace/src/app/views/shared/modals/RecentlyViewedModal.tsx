@@ -196,7 +196,7 @@ export function RecentlyViewedModal() {
             projectLabel: "",
             itemType: "",
             itemLinks: [
-                { label: "Search workspace", path: absolutePageUrl("?textQuery=" + encodeURIComponent(query)) },
+                { id: "workspaceSearch", label: "Search workspace", path: absolutePageUrl("?textQuery=" + encodeURIComponent(query)) },
             ],
         };
     };

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useHistory, useLocation } from "react-router";
+import { useHistory } from "react-router";
 import { useTranslation } from "react-i18next";
 import locationParser from "query-string";
 import {
@@ -24,22 +24,25 @@ import Loading from "../Loading";
 import { SERVE_PATH } from "../../../constants/path";
 import "./projectTaskTabView.scss";
 import { IProjectTaskView, IViewActions, pluginRegistry } from "../../plugins/PluginRegistry";
-import * as H from "history";
 
-// Get the bookmark value
-const getBookmark = (locationHashPart: string, maxIdx: number): number | undefined => {
-    const hashParsed = locationParser.parse(locationHashPart, { parseNumbers: true });
-    return typeof hashParsed.viewIdx === "number" && hashParsed.viewIdx > -1 && hashParsed.viewIdx <= maxIdx
-        ? hashParsed.viewIdx
-        : undefined;
-};
+const getBookmark = () => window.location.pathname.split("/").slice(-1)[0];
 
-// Returns the bookmark location for the currently selected tab
-const calculateBookmarkLocation = (currentLocation: H.Location, indexBookmark: number) => {
-    const hashParsed = locationParser.parse(currentLocation.hash, { parseNumbers: true });
-    hashParsed["viewIdx"] = indexBookmark;
-    const updatedHash = locationParser.stringify(hashParsed);
-    return `${currentLocation.pathname}${currentLocation.search}#${updatedHash}`;
+/** Returns the bookmark location for the currently selected tab
+ *
+ * @param id The ID of the tab.
+ * @param unBookmarkedSuffix Optional path suffix when no tab selection is present in the URL.
+ * @param tabViews All tab views
+ */
+const calculateBookmark = (id: string,
+                           unBookmarkedSuffix: string | undefined,
+                           tabViews: Partial<IProjectTaskView & IItemLink>[]) => {
+    const pathnameArray = window.location.pathname.split("/");
+    const [currentTab] = pathnameArray.slice(-1);
+    const currentTabExist = tabViews.find((view) => view.id === currentTab);
+    if (currentTabExist || (!!unBookmarkedSuffix && currentTab !== unBookmarkedSuffix)) {
+        pathnameArray.splice(-1);
+    }
+    return `${pathnameArray.join("/")}/${id}`;
 };
 
 interface IProjectTaskTabView {
@@ -88,7 +91,6 @@ export function ProjectTaskTabView({
     const taskId = taskViewConfig?.taskId ?? globalTaskId;
     const dispatch = useDispatch();
     const history = useHistory();
-    const location = useLocation();
     const [t] = useTranslation();
     const [isFetchingLinks, setIsFetchingLinks] = useState(true);
     const iframeRef = React.useRef<HTMLIFrameElement>(null);
@@ -100,17 +102,15 @@ export function ProjectTaskTabView({
     const [itemLinks, setItemLinks] = useState<IItemLink[]>([]);
     const [taskViews, setTaskViews] = React.useState<IProjectTaskView[] | undefined>(undefined);
     // Stores request to change the tab. The requests is represented by the tab idx.
-    const [tabIdxChangeRequest, setTabIdxChangeRequest] = React.useState<number | undefined>(undefined);
+    const [tabRouteChangeRequest, setTabRouteChangeRequest] = React.useState<string | undefined>(undefined);
 
     const viewsAndItemLink: Partial<IProjectTaskView & IItemLink>[] = [...(taskViews ?? []), ...itemLinks];
-    const isTaskView = (viewOrItemLink: Partial<IProjectTaskView & IItemLink>) => !!viewOrItemLink.id;
-
+    const isTaskView = (viewOrItemLink: Partial<IProjectTaskView & IItemLink>) => !viewOrItemLink.path;
     const itemLinkActive = selectedTab != null && typeof selectedTab !== "string";
-    // Either the path value of an IItemLink or the view ID or undefined
-    const activeLabel: string | undefined =
-        activeIframePath?.label ?? itemLinkActive
-            ? (selectedTab as IItemLink).label
-            : (taskViews ?? []).find((v) => v.id === selectedTab)?.label;
+    // Either the ID of an IItemLink or the view ID or undefined
+    const activeTab: IProjectTaskView | IItemLink | undefined = activeIframePath?.id ?? itemLinkActive
+        ? (selectedTab as IItemLink)
+        : (taskViews ?? []).find((v) => v.id === selectedTab);
 
     React.useEffect(() => {
         if (projectId && taskId) {
@@ -123,12 +123,9 @@ export function ProjectTaskTabView({
     }, [projectId, taskId, taskViewConfig?.pluginId]);
 
     React.useEffect(() => {
-        if (
-            tabIdxChangeRequest != null &&
-            getBookmark(location.hash, viewsAndItemLink.length - 1) === tabIdxChangeRequest
-        ) {
-            const tabItem = viewsAndItemLink[tabIdxChangeRequest];
-            if (isTaskView(tabItem)) {
+        if (tabRouteChangeRequest != null) {
+            const tabItem = viewsAndItemLink.find((itemView) => itemView.id === tabRouteChangeRequest);
+            if (tabItem && isTaskView(tabItem)) {
                 setSelectedTab(tabItem.id);
                 setActiveIframePath(undefined);
             } else {
@@ -137,9 +134,9 @@ export function ProjectTaskTabView({
                     iframeRef.current.src = createIframeUrl((tabItem as IItemLink).path);
                 }
             }
-            setTabIdxChangeRequest(undefined);
+            setTabRouteChangeRequest(undefined);
         }
-    }, [tabIdxChangeRequest, location.hash]);
+    }, [tabRouteChangeRequest]);
 
     // flag if the widget is shown as fullscreen modal
     const [displayFullscreen, setDisplayFullscreen] = useState(!!handlerRemoveModal || startFullscreen);
@@ -150,21 +147,26 @@ export function ProjectTaskTabView({
 
     // handler for link change. Triggers a tab change request. Actual change is done in useEffect.
     const changeTab = (tabItem: IItemLink | string) => {
-        if (!startWithLink) {
-            const tabIdx =
-                typeof tabItem === "string"
-                    ? viewsAndItemLink.findIndex((elem) => elem.id === tabItem)
-                    : viewsAndItemLink.indexOf(tabItem);
-            setTabIdxChangeRequest(tabIdx);
-            dispatch(history.push(calculateBookmarkLocation(location, tabIdx)));
-        }
+        const tabRoute = viewsAndItemLink.find((itemView) => {
+            if (typeof tabItem === "string") {
+                return itemView.id === tabItem;
+            } else {
+                return tabItem.id === itemView.id;
+            }
+        });
+        setTabRouteChangeRequest(tabRoute?.id);
+        !startFullscreen && dispatch(history.replace(calculateBookmark(tabRoute?.id ?? "", taskId, viewsAndItemLink)));
     };
 
-    const getInitialActiveLink = (itemLinks, taskViews) => {
-        const locationHashBookmark = getBookmark(location.hash, itemLinks.length + taskViews.length - 1) ?? 0;
-        return locationHashBookmark < taskViews.length
-            ? taskViews[locationHashBookmark].id
-            : itemLinks[locationHashBookmark - taskViews.length];
+    const getInitialActiveLink = (itemLinks: IItemLink[], taskViews: IProjectTaskView[]): IItemLink | string | undefined => {
+        const initial = [...taskViews, ...itemLinks].find((elem) => {
+            return elem.id === getBookmark();
+        });
+        if (initial) {
+            return (initial as IItemLink).path ? initial as IItemLink : initial.id;
+        } else {
+            return taskViews[0]?.id ?? itemLinks[0];
+        }
     };
 
     React.useEffect(() => {
@@ -188,13 +190,18 @@ export function ProjectTaskTabView({
         }
     }, [iframeRef, selectedTab, itemLinks?.length, taskViews]);
 
+    const removeDuplicates = (srcLinks: IItemLink[]): IItemLink[] => {
+        const taskViewsLabels = (taskViews || []).map((t) => t.id);
+        return srcLinks.filter((item) => !taskViewsLabels.includes(item.id));
+    };
+
     // update item links by rest api request
     const getItemLinksAndSelectTab = async (projectId: string, taskId: string, taskViews: IProjectTaskView[]) => {
         setIsFetchingLinks(true);
         try {
             const { data } = await requestItemLinks(projectId, taskId);
             // remove current page link
-            const srcLinks = data.filter((item) => !item.path.startsWith(SERVE_PATH));
+            const srcLinks = removeDuplicates(data.filter((item) => !item.path.startsWith(SERVE_PATH)));
             setItemLinks(srcLinks);
             setSelectedTab(getInitialActiveLink(srcLinks, taskViews));
         } catch (e) {
@@ -227,6 +234,8 @@ export function ProjectTaskTabView({
         return locationParser.stringifyUrl(iframeUrl);
     };
 
+    let iframeNr = 1;
+
     const iframeWidget = () => {
         return (
             <Card
@@ -237,20 +246,22 @@ export function ProjectTaskTabView({
             >
                 <CardHeader>
                     <CardTitle>
-                        <h2>{!!title ? title : !!selectedTab && activeLabel ? tLabel(activeLabel) : ""}</h2>
+                        <h2>{tLabel(activeTab?.label ?? "")}</h2>
                     </CardTitle>
                     <CardOptions>
                         {viewsAndItemLink.length > 1 &&
-                            viewsAndItemLink.map((tabItem) => (
+                            viewsAndItemLink.map((tabItem, idx) => (
                                 <Button
-                                    data-test-id={"taskView" + tabItem.id}
+                                    data-test-id={"taskView-" + (tabItem.id ?? `-iframe-${iframeNr++}`)}
                                     key={tabItem.id ?? tabItem.path}
                                     onClick={() => {
                                         changeTab(tabItem.id ?? (tabItem as IItemLink));
                                     }}
                                     minimal={true}
-                                    disabled={ !!selectedTab && ((tabItem.id ?? tabItem.path) === ((selectedTab as any)?.path ?? selectedTab))}
-
+                                    disabled={
+                                        !!selectedTab &&
+                                        (tabItem.path ?? tabItem.id) === ((selectedTab as any)?.path ?? selectedTab)
+                                    }
                                 >
                                     {tLabel(tabItem.label as string)}
                                 </Button>
@@ -278,6 +289,7 @@ export function ProjectTaskTabView({
                             <iframe
                                 ref={iframeRef}
                                 name={iFrameName}
+                                data-test-id={iFrameName}
                                 src={createIframeUrl((selectedTab as IItemLink)?.path)}
                                 title={tLabel((selectedTab as IItemLink)?.label)}
                                 style={{
@@ -289,7 +301,9 @@ export function ProjectTaskTabView({
                         ) : (
                             projectId &&
                             taskId &&
-                            (taskViews ?? []).find((v) => v.id === selectedTab)?.render(projectId, taskId, viewActions)
+                            (taskViews ?? [])
+                                .find((v) => v.id === selectedTab)
+                                ?.render(projectId, taskId, viewActions, startFullscreen)
                         )
                     ) : isFetchingLinks ? (
                         <Loading />

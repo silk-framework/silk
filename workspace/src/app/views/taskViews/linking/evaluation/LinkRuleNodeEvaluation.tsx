@@ -18,6 +18,7 @@ interface LinkRuleNodeEvaluationProps {
     /** A URL to link to when there is no result found. */
     referenceLinksUrl?: string;
     numberOfLinksToShow: number;
+    noResultMsg?: string;
 }
 
 /** Show linking evaluation results for a specific node. */
@@ -27,6 +28,7 @@ export const LinkRuleNodeEvaluation = ({
     unregister,
     referenceLinksUrl,
     numberOfLinksToShow,
+    noResultMsg,
 }: LinkRuleNodeEvaluationProps) => {
     const [evaluationResult, setEvaluationResult] = React.useState<string[][] | undefined>([]);
     const [t] = useTranslation();
@@ -67,17 +69,17 @@ export const LinkRuleNodeEvaluation = ({
                                         targetTagName="div"
                                     >
                                         <span>
-                                        {rowValues.map((value) => (
-                                            <Tag
-                                                small={true}
-                                                minimal={true}
-                                                round={true}
-                                                style={{ marginRight: "0.25rem" }}
-                                                htmlTitle={""}
-                                            >
-                                                {value}
-                                            </Tag>
-                                        ))}
+                                            {rowValues.map((value) => (
+                                                <Tag
+                                                    small={true}
+                                                    minimal={true}
+                                                    round={true}
+                                                    style={{ marginRight: "0.25rem" }}
+                                                    htmlTitle={""}
+                                                >
+                                                    {value}
+                                                </Tag>
+                                            ))}
                                         </span>
                                     </Tooltip>
                                 </WhiteSpaceContainer>
@@ -90,7 +92,7 @@ export const LinkRuleNodeEvaluation = ({
                     <Link href={referenceLinksUrl}>{t("RuleEditor.evaluation.noResults")}</Link>
                 </div>
             ) : (
-                <div>{t("RuleEditor.evaluation.noResults")}</div>
+                <div>{noResultMsg ?? t("RuleEditor.evaluation.noResults")}</div>
             )}
             {evaluationResult.length < numberOfLinksToShow && evaluationResult.length && referenceLinksUrl ? (
                 <div>

@@ -31,7 +31,12 @@ interface IProps {
 export function RelatedItem({ relatedItem, textQuery }: IProps) {
     const [t] = useTranslation();
     const dispatch = useDispatch();
-    const { projectTabView, toggleIFrameLink } = useProjectTabsView(relatedItem.itemLinks.slice(1));
+    const { projectTabView, changeTab, menuItems } = useProjectTabsView({
+        srcLinks: relatedItem.itemLinks.slice(1),
+        pluginId: relatedItem.pluginId,
+        projectId: relatedItem.projectId,
+        taskId: relatedItem.id,
+    });
 
     // Go to details page of related item
     const goToDetailsPage = (relatedItem: IRelatedItem, event) => {
@@ -47,7 +52,7 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
         }
     };
 
-    const contextMenuItems = relatedItem.itemLinks.map((link, idx) => (
+    const otherMenuItems = relatedItem.itemLinks.map((link, idx) => (
         <MenuItem
             key={link.path}
             text={link.label}
@@ -59,11 +64,14 @@ export function RelatedItem({ relatedItem, textQuery }: IProps) {
                     : (e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          toggleIFrameLink(link);
+                          changeTab(link);
                       }
             }
         />
     ));
+
+    const contextMenuItems = [otherMenuItems[0], ...menuItems, ...otherMenuItems.slice(1)];
+
     return (
         <OverviewItem key={relatedItem.id}>
             <OverviewItemDescription>

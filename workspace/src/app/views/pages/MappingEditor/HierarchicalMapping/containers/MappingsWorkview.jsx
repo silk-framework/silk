@@ -4,9 +4,9 @@
 
 import React from "react";
 import _ from "lodash";
-import { Spinner } from "gui-elements-deprecated";
 import PropTypes from "prop-types";
 import { copyRuleAsync, errorChannel, getApiDetails, getRuleAsync } from "../store";
+import { Spinner } from "@eccenca/gui-elements";
 import MappingHeader from "./MappingHeader";
 import RootMappingRule from "./RootMappingRule";
 import ObjectMappingRuleForm from "./MappingRule/ObjectRule/ObjectRuleForm";
@@ -31,6 +31,7 @@ class MappingsWorkview extends React.Component {
         onAskDiscardChanges: PropTypes.func,
         onClickedRemove: PropTypes.func,
         showNavigation: PropTypes.bool,
+        openMappingEditor: PropTypes.func,
         currentRuleId: PropTypes.string, // selected rule id
         askForDiscardData: PropTypes.oneOfType([PropTypes.object, PropTypes.bool]), // selected rule id
     };
@@ -309,7 +310,7 @@ class MappingsWorkview extends React.Component {
 
     render() {
         const { rules = {}, id } = this.state.ruleData;
-        const loading = this.state.loading ? <Spinner /> : false;
+        const loading = this.state.loading ? <Spinner position={"global"} /> : false;
         const createType = _.get(this.state, "ruleEditView.type", false);
 
         const createRuleForm = createType ? (
@@ -331,6 +332,7 @@ class MappingsWorkview extends React.Component {
                         parentId={this.state.ruleData.id}
                         edit
                         onAddNewRule={this.handleAddNewRule}
+                        openMappingEditor={this.props.openMappingEditor}
                     />
                 )}
             </div>
@@ -376,7 +378,9 @@ class MappingsWorkview extends React.Component {
                     onClickedRemove={this.props.onClickedRemove}
                     onShowSuggestions={this.handleShowSuggestions}
                     onMappingCreate={this.handleCreate}
+                    openMappingEditor={this.props.openMappingEditor}
                     loading={this.state.loading}
+                    startFullScreen={this.props.startFullScreen}
                 />
             ) : null;
 
@@ -399,6 +403,8 @@ class MappingsWorkview extends React.Component {
                         handleClone={this.handleClone}
                         onAskDiscardChanges={this.props.onAskDiscardChanges}
                         onClickedRemove={this.props.onClickedRemove}
+                        openMappingEditor={this.props.openMappingEditor}
+                        startFullScreen={this.props.startFullScreen}
                     />
                     {listSuggestions ? false : listMappings}
                 </div>
