@@ -203,7 +203,9 @@ export function ProjectTaskTabView({
             // remove current page link
             const srcLinks = removeDuplicates(data.filter((item) => !item.path.startsWith(SERVE_PATH)));
             setItemLinks(srcLinks);
-            setSelectedTab(getInitialActiveLink(srcLinks, taskViews));
+            if(!startWithLink) {
+                setSelectedTab(getInitialActiveLink(srcLinks, taskViews));
+            }
         } catch (e) {
         } finally {
             setIsFetchingLinks(false);
