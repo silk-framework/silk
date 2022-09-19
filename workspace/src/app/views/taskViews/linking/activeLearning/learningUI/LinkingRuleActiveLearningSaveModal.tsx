@@ -1,4 +1,4 @@
-import { Button, FieldItem, FieldItemRow, Notification, SimpleDialog, Spacing, Switch } from "@eccenca/gui-elements";
+import { Button, FieldItem, Notification, SimpleDialog, Spacing, Switch } from "@eccenca/gui-elements";
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
@@ -85,64 +85,58 @@ export const LinkingRuleActiveLearningSaveModal = ({
                     {t("common.action.cancel")}
                 </Button>,
             ]}
-            notifications={
-                saveReferenceLinks || saveRule ? (
-                    <>
-                        {saveReferenceLinks && sessionInfo && (
-                            <ActiveLearningSessionInfoWidget activeLearningSessionInfo={sessionInfo} />
-                        )}
-                        {saveReferenceLinks && saveRule && <Spacing />}
-                        {saveRule && (
-                            <Notification warning>
-                                {t("ActiveLearning.saveDialog.overwriteWarning")}
-                            </Notification>
-                        )}
-                    </>
-                ) : undefined
-            }
         >
             <div data-test-id="active-learning-save-form">
-                <FieldItemRow justifyItemWidths>
-                    <FieldItem
-                        style={{ alignSelf: "flex-start" }}
-                        messageText={
-                            unsavedReferenceLinks != null
-                                ? unsavedReferenceLinks <= 0
-                                    ? t("ActiveLearning.saveDialog.saveReferenceLinks.noReferenceLinksMessage")
-                                    : t("ActiveLearning.saveDialog.saveReferenceLinks.referenceLinksInfoMessage", {
-                                          nr: unsavedReferenceLinks,
-                                      })
-                                : undefined
-                        }
+                <FieldItem
+                    style={{ alignSelf: "flex-start" }}
+                    messageText={
+                        unsavedReferenceLinks != null
+                            ? unsavedReferenceLinks <= 0
+                                ? t("ActiveLearning.saveDialog.saveReferenceLinks.noReferenceLinksMessage")
+                                : t("ActiveLearning.saveDialog.saveReferenceLinks.referenceLinksInfoMessage", {
+                                      nr: unsavedReferenceLinks,
+                                  })
+                            : undefined
+                    }
+                >
+                    <Switch
+                        data-test-id={"save-reference-links"}
+                        disabled={(unsavedReferenceLinks ?? 0) <= 0}
+                        checked={saveReferenceLinks}
+                        onChange={(value) => setSaveReferenceLinks(value)}
                     >
-                        <Switch
-                            data-test-id={"save-reference-links"}
-                            disabled={(unsavedReferenceLinks ?? 0) <= 0}
-                            checked={saveReferenceLinks}
-                            onChange={(value) => setSaveReferenceLinks(value)}
-                        >
-                            {t("ActiveLearning.saveDialog.saveReferenceLinks.label")}
-                        </Switch>
-                    </FieldItem>
-                    <FieldItem
-                        style={{ alignSelf: "flex-start" }}
-                        messageText={
-                            !unsavedBestRule
-                                ? t("ActiveLearning.saveDialog.bestLearnedRule.noBestLearnedRuleMessage")
-                                : undefined
-                        }
+                        {t("ActiveLearning.saveDialog.saveReferenceLinks.label")}
+                    </Switch>
+                </FieldItem>
+                {saveReferenceLinks && sessionInfo && (
+                    <Notification>
+                        <ActiveLearningSessionInfoWidget activeLearningSessionInfo={sessionInfo} />
+                    </Notification>
+                )}
+                <Spacing size="large" hasDivider />
+                <FieldItem
+                    style={{ alignSelf: "flex-start" }}
+                    messageText={
+                        !unsavedBestRule
+                            ? t("ActiveLearning.saveDialog.bestLearnedRule.noBestLearnedRuleMessage")
+                            : undefined
+                    }
+                >
+                    <Switch
+                        data-test-id={"save-best-rule"}
+                        disabled={!unsavedBestRule}
+                        checked={saveRule}
+                        onChange={(value) => setSaveRule(value)}
                     >
-                        <Switch
-                            data-test-id={"save-best-rule"}
-                            disabled={!unsavedBestRule}
-                            checked={saveRule}
-                            onChange={(value) => setSaveRule(value)}
-                        >
-                            {t("ActiveLearning.saveDialog.bestLearnedRule.label")}
-                        </Switch>
-                    </FieldItem>
-                </FieldItemRow>
-                <Spacing />
+                        {t("ActiveLearning.saveDialog.bestLearnedRule.label")}
+                    </Switch>
+                </FieldItem>
+                {saveRule && (
+                    <Notification warning>
+                        {t("ActiveLearning.saveDialog.overwriteWarning")}
+                    </Notification>
+                )}
+                <Spacing size="small" />
                 {unsavedBestRule ? (
                     <LinkingRuleActiveLearningBestLearnedRule rule={unsavedBestRule} defaultDisplayVisualRule />
                 ) : null}
