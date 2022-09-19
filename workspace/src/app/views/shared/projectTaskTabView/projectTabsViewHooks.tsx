@@ -15,8 +15,7 @@ interface IProps {
 
 /** An I-frame supported version for item links. */
 export const useProjectTabsView = ({ srcLinks, startLink, pluginId, taskId, projectId }: IProps) => {
-    // active legacy link
-    const [displayLegacyLink, setDisplayLegacyLink] = useState<IItemLink | string | undefined>(startLink);
+    const [activeTab, setActiveTab] = useState<IItemLink | string | undefined>(startLink);
     const taskViews = pluginId ? pluginRegistry.taskViews(pluginId) : [];
     const menuItems = taskViews.map(({ id, label }) => (
         <MenuItem key={id} text={label} icon={getItemLinkIcons(label)} onClick={() => changeTab(id)} />
@@ -24,10 +23,10 @@ export const useProjectTabsView = ({ srcLinks, startLink, pluginId, taskId, proj
 
     // handler for link change
     const changeTab = (linkItem?: IItemLink | string) => {
-        setDisplayLegacyLink(linkItem);
+        setActiveTab(linkItem);
     };
     const taskViewConfig = pluginId ? { pluginId, taskId, projectId } : undefined;
-    const returnElement: JSX.Element | null = displayLegacyLink ? (
+    const returnElement: JSX.Element | null = activeTab ? (
         <ProjectTaskTabView
             srcLinks={srcLinks.map((link) => {
                 return {
@@ -35,7 +34,7 @@ export const useProjectTabsView = ({ srcLinks, startLink, pluginId, taskId, proj
                     itemType: undefined,
                 };
             })}
-            startWithLink={displayLegacyLink}
+            startWithLink={activeTab}
             startFullscreen={true}
             taskViewConfig={taskViewConfig}
             handlerRemoveModal={() => changeTab(undefined)}
