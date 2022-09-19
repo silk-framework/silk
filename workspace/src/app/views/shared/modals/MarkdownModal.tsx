@@ -2,8 +2,9 @@ import React from "react";
 import { Markdown } from "@eccenca/gui-elements";
 import { Button, SimpleDialog, HtmlContentBlock } from "@eccenca/gui-elements";
 import { useTranslation } from "react-i18next";
+import { SimpleDialogProps } from "@eccenca/gui-elements/src/components/Dialog/SimpleDialog";
 
-interface IProps {
+interface IProps extends Partial<SimpleDialogProps> {
     onDiscard: () => any;
     isOpen: boolean;
     markdown: string;
@@ -11,7 +12,7 @@ interface IProps {
 }
 
 /** Render markdown in a modal. */
-const MarkdownModal = ({ onDiscard, isOpen, markdown, title = "Error report" }: IProps) => {
+const MarkdownModal = ({ onDiscard, isOpen, markdown, title = "Error report", ...additionalProps }: IProps) => {
     const [t] = useTranslation();
 
     const handleDownload = () => {
@@ -30,6 +31,7 @@ const MarkdownModal = ({ onDiscard, isOpen, markdown, title = "Error report" }: 
             title={title}
             isOpen={isOpen}
             onClose={onDiscard}
+            {...additionalProps}
             actions={[
                 <Button affirmative onClick={handleDownload} key="download">
                     {t("common.action.download", "Download")}
