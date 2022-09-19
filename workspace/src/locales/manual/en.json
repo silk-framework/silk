@@ -751,7 +751,7 @@
             "saveBtnTooltip": "Save the current state of the workflow",
             "toggleProgressLabel": "Toggle progress",
             "warning": {
-                "tooltip": "Focuses on failed node and opens execution report"
+                "tooltip": "Centers the failed node and if available, opens its loading error report."
             },
             "warningMenuTooltip": "Show list of errors and warnings"
         },
@@ -773,7 +773,8 @@
             "WorkflowEditor_fetchPortsConfigs": "Could not load task configurations.",
             "WorkflowEditor_fetchTaskList": "Could not fetch available workflow datasets and operators.",
             "WorkflowEditor_saveWorkflow": "Failed to save the workflow.",
-            "WorkflowEditor_fetchWorkflow": "Failed to load the workflow."
+            "WorkflowEditor_fetchWorkflow": "Failed to load the workflow.",
+            "WorkflowEditor_taskNotLoaded": "Workflow task could not be loaded properly"
         },
         "node": {
             "actions": {

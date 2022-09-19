@@ -19,4 +19,5 @@ trait StatusCodeTestTrait {
 
   // Server error
   final val INTERNAL_ERROR: Int = 500
+  final val SERVICE_UNAVAILABLE: Int = 503
 }
