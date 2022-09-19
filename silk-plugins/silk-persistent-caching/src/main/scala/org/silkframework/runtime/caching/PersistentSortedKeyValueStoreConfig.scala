@@ -1,6 +1,6 @@
 package org.silkframework.runtime.caching
 
-import org.apache.commons.codec.digest.DigestUtils
+import java.security.MessageDigest
 
 /**
   * Config properties for the persistent, sorted key value store.
@@ -36,7 +36,7 @@ object HandleTooLargeKeyStrategy {
   def truncateKeyWithHash(key: Array[Byte], maxKeyLength: Int): Array[Byte] = {
     if(key.length > maxKeyLength) {
       val newKeyBytes = new Array[Byte](maxKeyLength)
-      val keyDigest = DigestUtils.sha256(key)
+      val keyDigest =  MessageDigest.getInstance("SHA-256").digest(key)
       assert(keyDigest.length < maxKeyLength, "Max key length is too short to store the hash in it.")
       val keyPrefixLength = maxKeyLength - keyDigest.length
       Array.copy(key, 0, newKeyBytes, 0, keyPrefixLength)
