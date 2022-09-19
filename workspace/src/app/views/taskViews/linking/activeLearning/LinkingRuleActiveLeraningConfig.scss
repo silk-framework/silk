@@ -4,6 +4,7 @@ $diapp-entitybox-basecolor: #bbb !default;
 $diapp-entitybox-header-background: color.scale(mix($diapp-entitybox-basecolor, #fff, 24%), $saturation: -39%) !default;
 $diapp-entitybox-cell-background: color.scale(mix($diapp-entitybox-basecolor, #fff, 15%), $saturation: -39%) !default;
 $diapp-entitybox-cell-background-even: color.scale(mix($diapp-entitybox-basecolor, #fff, 4%), $saturation: -39%) !default;
+$diapp-entitybox-cell-background-hovered: color.scale(mix($diapp-entitybox-basecolor, #fff, 39%), $saturation: -39%) !default;
 $diapp-entitybox-cell-border: color.scale(mix($diapp-entitybox-basecolor, #fff, 39%), $saturation: -39%) !default;
 
 .diapp-linking-learningdata__container {
@@ -37,6 +38,10 @@ $diapp-entitybox-cell-border: color.scale(mix($diapp-entitybox-basecolor, #fff, 
 
     .diapp-linking-learningdata__row-body:nth-child(odd) & {
         background-color: $diapp-entitybox-cell-background;
+    }
+
+    .diapp-linking-learningdata__row-body:hover & {
+        background-color: $diapp-entitybox-cell-background-hovered;
     }
 
     .diapp-linking-learningdata__row-body:first-of-type & {
