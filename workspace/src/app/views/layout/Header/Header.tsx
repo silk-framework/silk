@@ -243,11 +243,6 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                             href={CONTEXT_PATH + "/doc/api"}
                                             icon={"application-homepage"}
                                         />
-                                        <MenuItem
-                                            text={t("common.action.backOld", "Back to old workspace")}
-                                            href={CONTEXT_PATH + "/workspace"}
-                                            icon={"application-legacygui"}
-                                        />
                                         {!!dmBaseUrl && diUserMenuItems && <diUserMenuItems.Component />}
                                     </Menu>
                                 </ToolbarSection>
