@@ -224,6 +224,7 @@
             "download": "Download",
             "export": "Export to",
             "exportTo": "Export to",
+            "loadExampleProject": "Add \"movies\" example project",
             "logout": "Logout",
             "moreOptions": "Show more options",
             "openInNewTab": "Open link in new tab",
