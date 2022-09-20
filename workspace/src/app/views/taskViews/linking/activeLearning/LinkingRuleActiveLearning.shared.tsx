@@ -1,5 +1,4 @@
-import "./LinkingRuleActiveLeraningConfig.scss";
-
+// FIXME: we should use colors from CSS when we have color schemes for it.
 export const scoreColorConfig = {
     strongEquality: {
         breakingPoint: 0.5,

@@ -1,11 +1,10 @@
 @use "sass:color";
 
-$diapp-entitybox-basecolor: #bbb !default;
-$diapp-entitybox-header-background: color.scale(mix($diapp-entitybox-basecolor, #fff, 24%), $saturation: -39%) !default;
-$diapp-entitybox-cell-background: color.scale(mix($diapp-entitybox-basecolor, #fff, 15%), $saturation: -39%) !default;
-$diapp-entitybox-cell-background-even: color.scale(mix($diapp-entitybox-basecolor, #fff, 4%), $saturation: -39%) !default;
-$diapp-entitybox-cell-background-hovered: color.scale(mix($diapp-entitybox-basecolor, #fff, 39%), $saturation: -39%) !default;
-$diapp-entitybox-cell-border: color.scale(mix($diapp-entitybox-basecolor, #fff, 39%), $saturation: -39%) !default;
+$diapp-entitybox-header-background: $eccgui-color-tableheader-background !default;
+$diapp-entitybox-cell-background: $eccgui-color-tablerow-background-odd !default;
+$diapp-entitybox-cell-background-even: $eccgui-color-tablerow-background-even !default;
+$diapp-entitybox-cell-background-hovered: $eccgui-color-tablerow-hover !default;
+$diapp-entitybox-cell-border: $eccgui-color-tablerow-hover !default;
 
 .diapp-linking-learningdata__container {
 
