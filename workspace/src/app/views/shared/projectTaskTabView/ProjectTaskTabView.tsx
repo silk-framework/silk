@@ -238,7 +238,7 @@ export function ProjectTaskTabView({
 
     let iframeNr = 1;
 
-    const iframeWidget = () => {
+    const TabWidget = () => {
         return (
             <Card
                 className="diapp-iframewindow__content"
@@ -322,7 +322,7 @@ export function ProjectTaskTabView({
 
     return !!handlerRemoveModal ? (
         <Modal size="fullscreen" isOpen={true} canEscapeKeyClose={true} onClose={handlerRemoveModal}>
-            {iframeWidget()}
+            <TabWidget />
         </Modal>
     ) : (
         <section className={"diapp-iframewindow"} {...otherProps}>
@@ -332,7 +332,7 @@ export function ProjectTaskTabView({
                 </Grid>
             </div>
             <div className={displayFullscreen ? "diapp-iframewindow--fullscreen" : "diapp-iframewindow--inside"}>
-                {iframeWidget()}
+                <TabWidget />
             </div>
         </section>
     );
