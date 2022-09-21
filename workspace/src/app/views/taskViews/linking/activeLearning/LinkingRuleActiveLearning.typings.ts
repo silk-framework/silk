@@ -45,6 +45,10 @@ export interface ActiveLearningLinkCandidate {
     source: string;
     target: string;
     comparisons: ComparisonPair[];
+    /** Reference link for source entity */
+    sourceBrowserUrl?: string;
+    /** Reference link for target entity */
+    targetBrowserUrl?: string;
 }
 
 /** Information about users that have contributed to an active learning session. */

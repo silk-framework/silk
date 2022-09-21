@@ -8,6 +8,7 @@ import {
     CardTitle,
     Divider,
     HtmlContentBlock,
+    Link,
     Markdown,
     IconButton,
     InteractionGate,
@@ -150,6 +151,10 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
                     <Spacing size={"small"} />
                     {valuesToDisplay ? (
                         <SelectedEntityLink
+                            resourceLinks={{
+                                source: activeLearningFeedbackContext.selectedLink?.sourceBrowserUrl,
+                                target: activeLearningFeedbackContext.selectedLink?.targetBrowserUrl,
+                            }}
                             valuesToDisplay={valuesToDisplay}
                             propertyPairs={activeLearningContext.propertiesToCompare}
                             labelPropertyPairIds={labelPropertyPairIds}
@@ -259,25 +264,32 @@ const DecisionButtons = ({ disabledButtons, submitLink, selectedDecision, cancel
 interface EntityComparisonHeaderProps {
     sourceTitle: string;
     targetTitle: string;
+    sourceUrl?: string;
+    targetUrl?: string;
 }
 
-const EntityComparisonHeader = ({ sourceTitle, targetTitle }: EntityComparisonHeaderProps) => {
+const EntityComparisonHeader = ({
+    sourceTitle,
+    targetTitle,
+    sourceUrl,
+    targetUrl
+}: EntityComparisonHeaderProps) => {
     const [t] = useTranslation();
     return (
         <ComparisionDataHead>
             <ComparisionDataRow>
                 <ComparisionDataHeader className="diapp-linking-learningdata__source">
-                    {t("ActiveLearning.feedback.sourceColumnTitle")}
+                    {(!sourceTitle && sourceUrl) ? <Link href={sourceUrl} target="_new">{t("ActiveLearning.feedback.sourceColumnTitle")}</Link> : t("ActiveLearning.feedback.sourceColumnTitle")}
                     {sourceTitle ? ": " : ""}
-                    {sourceTitle}
+                    {(sourceTitle && sourceUrl) ? <Link href={sourceUrl} target="_new">{sourceTitle}</Link> : sourceTitle}
                 </ComparisionDataHeader>
                 <ComparisionDataConnection>
                     <ConnectionAvailable actions={<Tag emphasis="weak">owl:sameAs</Tag>} />
                 </ComparisionDataConnection>
                 <ComparisionDataHeader className="diapp-linking-learningdata__target">
-                    {t("ActiveLearning.feedback.targetColumnTitle")}
-                    {targetTitle ? ": " : ""}
-                    {targetTitle}
+                {(!targetTitle && targetUrl) ? <Link href={targetUrl} target="_new">{t("ActiveLearning.feedback.targetColumnTitle")}</Link> : t("ActiveLearning.feedback.targetColumnTitle")}
+                {targetTitle ? ": " : ""}
+                {(targetTitle && targetUrl) ? <Link href={targetUrl} target="_new">{targetTitle}</Link> : targetTitle}
                 </ComparisionDataHeader>
             </ComparisionDataRow>
         </ComparisionDataHead>
@@ -285,6 +297,7 @@ const EntityComparisonHeader = ({ sourceTitle, targetTitle }: EntityComparisonHe
 };
 
 interface SelectedEntityLinkProps {
+    resourceLinks?: { source?: string, target?: string },
     valuesToDisplay: EntityLinkPropertyPairValues[] | ComparisonPair[];
     propertyPairs: ComparisonPairWithId[];
     labelPropertyPairIds: Set<string>;
@@ -297,6 +310,7 @@ const SelectedEntityLink = ({
     propertyPairs,
     labelPropertyPairIds,
     toggleLabelPropertyPair,
+    resourceLinks
 }: SelectedEntityLinkProps) => {
     const propertyPairMap = new Map(propertyPairs.map((pp, idx) => [pp.pairId, idx]));
     const labelPropertyPairValues = [...labelPropertyPairIds]
@@ -306,7 +320,12 @@ const SelectedEntityLink = ({
     const targetEntityLabel = labelPropertyPairValues.map((values) => values.targetExamples.join(", ")).join(", ");
     return (
         <ComparisionDataContainer>
-            <EntityComparisonHeader sourceTitle={sourceEntityLabel} targetTitle={targetEntityLabel} />
+            <EntityComparisonHeader
+                sourceUrl={resourceLinks ? resourceLinks.source : undefined}
+                targetUrl={resourceLinks ? resourceLinks.target : undefined}
+                sourceTitle={sourceEntityLabel}
+                targetTitle={targetEntityLabel}
+            />
             <ComparisionDataBody>
                 {(valuesToDisplay ?? []).map((selected: EntityLinkPropertyPairValues | ComparisonPair, idx) => {
                     const values: EntityLinkPropertyPairValues = {
