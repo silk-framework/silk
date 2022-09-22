@@ -6,7 +6,7 @@ import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.execution.{ExecutorOutput, ExecutorRegistry}
-import org.silkframework.execution.local.{GenericEntityTable, LocalExecution}
+import org.silkframework.execution.local.{GenericEntityTable, LocalExecution, MultiEntityTable}
 import org.silkframework.rule._
 import org.silkframework.runtime.activity.TestUserContextTrait
 
@@ -49,5 +49,32 @@ class LocalTransformSpecExecutorTest extends FlatSpec with MustMatchers with Exe
       TypedPath(UntypedPath("urn:prop:label"), ValueType.STRING, isAttribute = false)
     )
     result.get.entities.map(_.values) mustBe Seq(IndexedSeq(Seq("A"), Seq("B", "D"), Seq("C", "E")))
+  }
+
+  it should "output the correct entity schemas" in {
+    val executor = new LocalTransformSpecExecutor()
+    val transformTask = PlainTask("transform", TransformSpec(
+      DatasetSelection.empty,
+      RootMappingRule(MappingRules(
+        typeRules = Seq(TypeMapping("type", "TypeRoot")),
+        propertyRules = Seq(
+          DirectMapping(id = "sp1", sourcePath = UntypedPath("pathA"), mappingTarget = MappingTarget("propA")),
+          ObjectMapping("object", rules = MappingRules(
+            typeRules = Seq(TypeMapping("type2", "TypeObject")),
+            propertyRules = Seq(
+              DirectMapping(id = "sp2", sourcePath = UntypedPath("pathB"), mappingTarget = MappingTarget("propB"))
+            )
+          ))
+        )
+      ))
+    ))
+    val es = EntitySchema("es", IndexedSeq(UntypedPath("pathA"), UntypedPath("pathB")).map(_.asStringTypedPath))
+    val entities = Seq(Entity("uri1", IndexedSeq(Seq("A"), Seq("B")), es))
+    val multiEntitySchema = MultiEntityTable(entities, es, transformTask, Seq(GenericEntityTable(entities, es, transformTask)))
+    val result = executor.execute(transformTask, Seq(multiEntitySchema), ExecutorOutput.empty, LocalExecution(true)).get
+    result.entitySchema.typeUri.toString mustBe "TypeRoot"
+    val subTables = result.asInstanceOf[MultiEntityTable].subTables
+    subTables must have size 1
+    subTables.head.entitySchema.typeUri.toString mustBe "TypeObject"
   }
 }
