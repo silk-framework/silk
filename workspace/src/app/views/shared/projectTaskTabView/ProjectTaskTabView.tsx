@@ -103,6 +103,8 @@ export function ProjectTaskTabView({
     const [taskViews, setTaskViews] = React.useState<IProjectTaskView[] | undefined>(undefined);
     // Stores request to change the tab. The requests is represented by the tab idx.
     const [tabRouteChangeRequest, setTabRouteChangeRequest] = React.useState<string | undefined>(undefined);
+    // To react to task changes
+    const [selectedTask, setSelectedTask] = React.useState<string | undefined>(taskViewConfig?.taskId)
 
     const viewsAndItemLink: Partial<IProjectTaskView & IItemLink>[] = [...(taskViews ?? []), ...itemLinks];
     const isTaskView = (viewOrItemLink: Partial<IProjectTaskView & IItemLink>) => !viewOrItemLink.path;
@@ -137,6 +139,12 @@ export function ProjectTaskTabView({
             setTabRouteChangeRequest(undefined);
         }
     }, [tabRouteChangeRequest]);
+
+    React.useEffect(() => {
+        if(projectId && taskId && taskId !== selectedTask) {
+            setSelectedTask(taskId)
+        }
+    }, [projectId, taskId, selectedTask])
 
     // flag if the widget is shown as fullscreen modal
     const [displayFullscreen, setDisplayFullscreen] = useState(!!handlerRemoveModal || startFullscreen);
@@ -236,9 +244,9 @@ export function ProjectTaskTabView({
         return locationParser.stringifyUrl(iframeUrl);
     };
 
-    let iframeNr = 1;
+    let tabNr = 1;
 
-    const iframeWidget = () => {
+    const tabsWidget = (projectId: string | undefined, taskId: string | undefined) => {
         return (
             <Card
                 className="diapp-iframewindow__content"
@@ -254,7 +262,7 @@ export function ProjectTaskTabView({
                         {viewsAndItemLink.length > 1 &&
                             viewsAndItemLink.map((tabItem, idx) => (
                                 <Button
-                                    data-test-id={"taskView-" + (tabItem.id ?? `-iframe-${iframeNr++}`)}
+                                    data-test-id={"taskView-" + (tabItem.id ?? `-iframe-${tabNr++}`)}
                                     key={tabItem.id ?? tabItem.path}
                                     onClick={() => {
                                         changeTab(tabItem.id ?? (tabItem as IItemLink));
@@ -320,11 +328,11 @@ export function ProjectTaskTabView({
         );
     };
 
-    return !!handlerRemoveModal ? (
+    return selectedTask === taskId && !!handlerRemoveModal ? (
         <Modal size="fullscreen" isOpen={true} canEscapeKeyClose={true} onClose={handlerRemoveModal}>
-            {iframeWidget()}
+            {tabsWidget(projectId, taskId)}
         </Modal>
-    ) : (
+    ) : selectedTask === taskId ? (
         <section className={"diapp-iframewindow"} {...otherProps}>
             <div className="diapp-iframewindow__placeholder">
                 <Grid fullWidth={true}>
@@ -332,8 +340,8 @@ export function ProjectTaskTabView({
                 </Grid>
             </div>
             <div className={displayFullscreen ? "diapp-iframewindow--fullscreen" : "diapp-iframewindow--inside"}>
-                {iframeWidget()}
+                {tabsWidget(projectId, taskId)}
             </div>
         </section>
-    );
+    ) : null;
 }
