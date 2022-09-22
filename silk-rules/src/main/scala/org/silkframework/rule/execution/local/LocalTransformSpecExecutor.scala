@@ -58,7 +58,7 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
       // Add input errors to transformation report
       context.value() = context.value().copy(globalErrors = context.value().globalErrors ++ inputTable.globalErrors)
 
-      if (requestedOutputType.isEmpty || rules.exists {
+      if (requestedOutputType.isEmpty || requestedOutputType.get == Uri("") || rules.exists {
         // Only output if requested type matches
         case typeMapping: TypeMapping => typeMapping.typeUri == requestedOutputType.get
         case _ => false
