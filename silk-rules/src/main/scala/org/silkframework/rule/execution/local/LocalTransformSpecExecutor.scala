@@ -52,34 +52,82 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
                           outputSchema: EntitySchema,
                           context: ActivityContext[TransformReport])
                          (implicit prefixes: Prefixes): Unit = {
+      requestedOutputType match {
+        case Some(outputType) =>
+          val activeOutputSchema = requestedOutputSchema.get
+          // If a specific output type is requested only execute rules of that requested type. Only the result table of the matching container rule will be returned.
+          val (requestedRuleLabel, requestedRules, inputTable) = findMappingRulesMatchingRequestedOutputSchema(rules, ruleLabel, outputType, inputTables)
+          addInputErrorsToTransformReport(inputTable, context)
+          val transformedEntities = new TransformedEntities(task, inputTable.entities, requestedRuleLabel, requestedRules, activeOutputSchema,
+            isRequestedSchema = true, abortIfErrorsOccur = task.data.abortIfErrorsOccur, context = context)
+          outputTables.append(GenericEntityTable(transformedEntities, activeOutputSchema, task))
+        case _ =>
+          // Else execute the complete mapping
+          val inputTable = inputTables.remove(0)
+          addInputErrorsToTransformReport(inputTable, context)
+          val transformedEntities = new TransformedEntities(task, inputTable.entities, ruleLabel, rules, outputSchema,
+            isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, context = context)
+          outputTables.append(GenericEntityTable(transformedEntities, outputSchema, task))
 
-      val inputTable = inputTables.remove(0)
+          // Recursively transform object mappings and append results to output tables
+          for(objectMapping @ ObjectMapping(_, _, _, childRules, _, _) <- rules) {
+            val childOutputSchema =
+              EntitySchema(
+                typeUri = childRules.collectFirst { case tm: TypeMapping => tm.typeUri }.getOrElse(""),
+                typedPaths = childRules.flatMap(_.target).map(mt => mt.asTypedPath()).toIndexedSeq
+              )
 
-      // Add input errors to transformation report
+            transformEntities(objectMapping.label(), updateChildRules(childRules, objectMapping), childOutputSchema, context)
+          }
+      }
+    }
+
+    private def addInputErrorsToTransformReport(inputTable: LocalEntities, context: ActivityContext[TransformReport]): Unit = {
       context.value() = context.value().copy(globalErrors = context.value().globalErrors ++ inputTable.globalErrors)
+    }
 
-      if (requestedOutputType.isEmpty || requestedOutputType.get == Uri("") || rules.exists {
-        // Only output if requested type matches
-        case typeMapping: TypeMapping => typeMapping.typeUri == requestedOutputType.get
-        case _ => false
-      }) {
-        val activeOutputSchema = requestedOutputSchema.getOrElse(outputSchema)
-        val transformedEntities = new TransformedEntities(task, inputTable.entities, ruleLabel, rules, activeOutputSchema,
-          isRequestedSchema = output.requestedSchema.isDefined, abortIfErrorsOccur = task.data.abortIfErrorsOccur, context = context)
-        outputTables.append(GenericEntityTable(transformedEntities, activeOutputSchema, task))
+    // Tries to find the container rule that matches the requested output type.
+    // Returns the label, rules and input of the matching container rule.
+    private def findMappingRulesMatchingRequestedOutputSchema(rules: Seq[TransformRule],
+                                                              ruleLabel: String,
+                                                              requestedOutputType: Uri,
+                                                              inputTables: mutable.Buffer[LocalEntities])
+                                                             (implicit prefixes: Prefixes): (String, Seq[TransformRule], LocalEntities) = {
+      var matchingTransformRules: Option[Seq[TransformRule]] = None
+      var matchingRuleLabel: Option[String] = None
+      var inputTable: LocalEntities = inputTables.head
+      // Finds first mapping container rule that matches the requested type
+      def findRecursive(ruleLabel: String, containerRules: Seq[TransformRule]): Unit = {
+        val currentInputTable = inputTables.remove(0)
+        if(matchingTransformRules.nonEmpty) {
+          // Just return if a rule has already been found
+        } else if (containerRules.exists {
+          case typeMapping: TypeMapping => typeMapping.typeUri == requestedOutputType
+          case _ => false
+        }) {
+          matchingRuleLabel = Some(ruleLabel)
+          matchingTransformRules = Some(containerRules)
+          inputTable = currentInputTable
+        } else {
+          for(objectMapping @ ObjectMapping(_, _, _, childRules, _, _) <- containerRules) {
+            findRecursive(objectMapping.label(), updateChildRules(childRules, objectMapping))
+          }
+        }
       }
-
-      for(objectMapping @ ObjectMapping(_, relativePath, _, childRules, _, _) <- rules) {
-        val childOutputSchema =
-          EntitySchema(
-            typeUri = childRules.collectFirst { case tm: TypeMapping => tm.typeUri }.getOrElse(""),
-            typedPaths = childRules.flatMap(_.target).map(mt => mt.asTypedPath()).toIndexedSeq
-          )
-
-        val updatedChildRules = childRules.copy(uriRule = childRules.uriRule.orElse(objectMapping.uriRule()))
-
-        transformEntities(objectMapping.label(), updatedChildRules, childOutputSchema, context)
+      if(requestedOutputType.toString != "") {
+        findRecursive(ruleLabel, rules)
       }
+      // If nothing else matches or requested type is empty, return root mapping rules and input
+      (
+        matchingRuleLabel.getOrElse(ruleLabel),
+        matchingTransformRules.getOrElse(rules),
+        inputTable
+      )
+    }
+
+    private def updateChildRules(childRules: MappingRules, objectMapping: ObjectMapping): MappingRules = {
+      // Add the URI rule of the object mappings, so it generates different default URIs
+      childRules.copy(uriRule = childRules.uriRule.orElse(objectMapping.uriRule()))
     }
   }
 }

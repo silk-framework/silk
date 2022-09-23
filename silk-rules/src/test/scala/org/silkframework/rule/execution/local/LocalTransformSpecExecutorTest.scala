@@ -51,7 +51,7 @@ class LocalTransformSpecExecutorTest extends FlatSpec with MustMatchers with Exe
     result.get.entities.map(_.values) mustBe Seq(IndexedSeq(Seq("A"), Seq("B", "D"), Seq("C", "E")))
   }
 
-  it should "output the correct entity schemas" in {
+  it should "output the correct entity schemas and entities" in {
     val executor = new LocalTransformSpecExecutor()
     val transformTask = PlainTask("transform", TransformSpec(
       DatasetSelection.empty,
@@ -68,13 +68,23 @@ class LocalTransformSpecExecutorTest extends FlatSpec with MustMatchers with Exe
         )
       ))
     ))
-    val es = EntitySchema("es", IndexedSeq(UntypedPath("pathA"), UntypedPath("pathB")).map(_.asStringTypedPath))
-    val entities = Seq(Entity("uri1", IndexedSeq(Seq("A"), Seq("B")), es))
-    val multiEntitySchema = MultiEntityTable(entities, es, transformTask, Seq(GenericEntityTable(entities, es, transformTask)))
-    val result = executor.execute(transformTask, Seq(multiEntitySchema), ExecutorOutput.empty, LocalExecution(true)).get
-    result.entitySchema.typeUri.toString mustBe "TypeRoot"
-    val subTables = result.asInstanceOf[MultiEntityTable].subTables
+    val rootEntitySchema = EntitySchema("es", IndexedSeq(UntypedPath("pathA")).map(_.asStringTypedPath))
+    val objectEntitySchema = EntitySchema("es", IndexedSeq(UntypedPath("pathB")).map(_.asStringTypedPath))
+    val rootEntities = Seq(Entity("uri1", IndexedSeq(Seq("A")), rootEntitySchema))
+    val objectEntities = Seq(Entity("uri1", IndexedSeq(Seq("B")), objectEntitySchema))
+    val multiEntitySchema = MultiEntityTable(rootEntities, rootEntitySchema, transformTask, Seq(GenericEntityTable(objectEntities, objectEntitySchema, transformTask)))
+    val rootEntitiesResult = executor.execute(transformTask, Seq(multiEntitySchema), ExecutorOutput.empty, LocalExecution(true)).get
+    val subTables = rootEntitiesResult.asInstanceOf[MultiEntityTable].subTables
     subTables must have size 1
-    subTables.head.entitySchema.typeUri.toString mustBe "TypeObject"
+    val objectEntitiesResult = subTables.head
+    // Check entities
+    objectEntitiesResult.entitySchema.typeUri.toString mustBe "TypeObject"
+    objectEntitiesResult.entities.flatMap(e => e.values).flatten mustBe Seq("B")
+    val objectEntityUri = objectEntitiesResult.entities.head.uri
+    rootEntitiesResult.entitySchema.typeUri.toString mustBe "TypeRoot"
+    rootEntitiesResult.entities.flatMap(e => e.values).flatten mustBe Seq("A", objectEntityUri.toString)
+    val rootEntityUri = rootEntitiesResult.entities.head.uri
+    rootEntityUri must not be objectEntityUri
+
   }
 }
