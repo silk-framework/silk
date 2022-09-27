@@ -480,6 +480,9 @@
     },
     "taskViews": {
         "linkRulesEditor": {
+            "notFound": {
+               "title": "Linking Task not found"
+            },
             "errors": {
                 "fetchTaskData": {
                     "msg": "An error has occurred while fetching the linking task."

@@ -12,7 +12,12 @@ import {
 import { PUBLIC_URL, SERVE_PATH } from "../../../constants/path";
 import { useTranslation } from "react-i18next";
 
-export default function NotFound() {
+interface NotFoundProps {
+    title?: string;
+    message?: string;
+}
+
+export default function NotFound({ title, message }: NotFoundProps) {
     const [t] = useTranslation();
 
     return (
@@ -32,8 +37,10 @@ export default function NotFound() {
                             }
                         >
                             <HtmlContentBlock>
-                                <TitleMainsection>{t("pages.notFound.title", "Page not found.")}</TitleMainsection>
-                                <p>{t("pages.notFound.text", "The page you requested does not exist.")}</p>
+                                <TitleMainsection>
+                                    {title ?? t("pages.notFound.title", "Page not found.")}
+                                </TitleMainsection>
+                                <p>{message ?? t("pages.notFound.text", "The page you requested does not exist.")}</p>
                             </HtmlContentBlock>
                         </Notification>
                     </GridColumn>
