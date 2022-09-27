@@ -58,6 +58,52 @@ object JsonSerializers {
   final val COMPARISON_OPERATOR = "ComparisonOperator"
   // Rule tasks
   final val LAYOUT = "layout"
+  final val UI_ANNOTATIONS = "uiAnnotations"
+
+
+  /** Sticky note */
+  implicit object StickyNoteJsonFormat extends JsonFormat[StickyNote] {
+    final val CONTENT = "content"
+    final val COLOR = "color"
+    final val POSITION = "position"
+    final val DIMENSION = "dimension"
+
+    override def read(json: JsValue)(implicit readContext: ReadContext): StickyNote = {
+      val id = stringValue(json, ID)
+      val content = stringValue(json, CONTENT)
+      val color = stringValue(json, COLOR)
+      val position = fromJsonValidated[(Double, Double)](mustBeDefined(json, POSITION))
+      val dimension = fromJsonValidated[(Double, Double)](mustBeDefined(json, DIMENSION))
+      StickyNote(id, content, color, position, dimension)
+    }
+
+    override def write(stickyNote: StickyNote)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        ID -> stickyNote.id,
+        CONTENT -> stickyNote.content,
+        COLOR -> stickyNote.color,
+        POSITION -> Json.toJson(stickyNote.position),
+        DIMENSION -> Json.toJson(stickyNote.dimension)
+      )
+    }
+  }
+
+  implicit object UiAnnotationsJsonFormat extends JsonFormat[UiAnnotations] {
+    final val STICKY_NOTES = "stickyNotes"
+
+    override def read(value: JsValue)(implicit readContext: ReadContext): UiAnnotations = {
+      val stickyNotesJson = arrayValue(value, STICKY_NOTES)
+      val stickyNotes = stickyNotesJson.value.map(value => fromJson[StickyNote](value))
+      UiAnnotations(stickyNotes)
+    }
+
+    override def write(value: UiAnnotations)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+      Json.obj(
+        STICKY_NOTES -> JsArray(value.stickyNotes.map(toJson[StickyNote]))
+      )
+    }
+  }
+
 
 
   implicit object StringJsonFormat extends JsonFormat[String] {
@@ -457,7 +503,8 @@ object JsonSerializers {
         id = identifier(value, "uri"),
         operator = fromJson[Input]((value \ OPERATOR).get),
         metaData(value),
-        layout = optionalValue(value, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout())
+        layout = optionalValue(value, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout()),
+        uiAnnotations = optionalValue(value, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations()),
       )
     }
 
@@ -471,7 +518,8 @@ object JsonSerializers {
           ID -> JsString(rule.id),
           OPERATOR -> toJson(rule.operator),
           METADATA -> toJson(rule.metaData),
-          LAYOUT -> toJson(rule.layout)
+          LAYOUT -> toJson(rule.layout),
+          UI_ANNOTATIONS -> toJson(rule.uiAnnotations)
         )
       )
     }
@@ -647,7 +695,8 @@ object JsonSerializers {
         operator = fromJson[Input]((jsValue \ OPERATOR).get),
         target = mappingTarget,
         metaData(jsValue),
-        layout = optionalValue(jsValue, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout())
+        layout = optionalValue(jsValue, LAYOUT).map(fromJson[RuleLayout]).getOrElse(RuleLayout()),
+        uiAnnotations = optionalValue(jsValue, UI_ANNOTATIONS).map(fromJson[UiAnnotations]).getOrElse(UiAnnotations())
       )
     }
 
@@ -659,20 +708,12 @@ object JsonSerializers {
           ID -> JsString(valueTransformRule.id),
           OPERATOR -> toJson(valueTransformRule.operator),
           "sourcePaths" -> JsArray(valueTransformRule.sourcePaths.map(_.toUntypedPath.serialize()(writeContext.prefixes)).map(JsString)),
-          METADATA -> toJson(valueTransformRule.metaData)
+          METADATA -> toJson(valueTransformRule.metaData),
+          LAYOUT -> toJson(valueTransformRule.layout),
+          UI_ANNOTATIONS -> toJson(valueTransformRule.uiAnnotations)
         ) ++
           valueTransformRule.target.map("mappingTarget" -> toJson(_))
-          ++ layout(valueTransformRule)
       )
-    }
-
-    private def layout(valueTransformRule: ValueTransformRule): Seq[(String, JsValue)] = {
-      valueTransformRule match {
-        case withLayout: ValueTransformRuleWithLayout =>
-          Seq(LAYOUT -> toJson(withLayout.layout))
-        case _ =>
-          Seq.empty
-      }
     }
 
     override def write(complexMapping: ComplexMapping)
@@ -905,48 +946,6 @@ object JsonSerializers {
     }
   }
 
-  /** Sticky note */
-  implicit object StickyNoteJsonFormat extends JsonFormat[StickyNote] {
-    final val CONTENT = "content"
-    final val COLOR = "color"
-    final val POSITION = "position"
-    final val DIMENSION = "dimension"
-
-    override def read(json: JsValue)(implicit readContext: ReadContext): StickyNote = {
-      val id = stringValue(json, ID)
-      val content = stringValue(json, CONTENT)
-      val color = stringValue(json, COLOR)
-      val position = fromJsonValidated[(Double, Double)](mustBeDefined(json, POSITION))
-      val dimension = fromJsonValidated[(Double, Double)](mustBeDefined(json, DIMENSION))
-      StickyNote(id, content, color, position, dimension)
-    }
-
-    override def write(stickyNote: StickyNote)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      Json.obj(
-        ID -> stickyNote.id,
-        CONTENT -> stickyNote.content,
-        COLOR -> stickyNote.color,
-        POSITION -> Json.toJson(stickyNote.position),
-        DIMENSION -> Json.toJson(stickyNote.dimension)
-      )
-    }
-  }
-
-  implicit object UiAnnotationsJsonFormat extends JsonFormat[UiAnnotations] {
-    final val STICKY_NOTES = "stickyNotes"
-
-    override def read(value: JsValue)(implicit readContext: ReadContext): UiAnnotations = {
-      val stickyNotesJson = arrayValue(value, STICKY_NOTES)
-      val stickyNotes = stickyNotesJson.value.map(value => fromJson[StickyNote](value))
-      UiAnnotations(stickyNotes)
-    }
-
-    override def write(value: UiAnnotations)(implicit writeContext: WriteContext[JsValue]): JsValue = {
-      Json.obj(
-        STICKY_NOTES -> JsArray(value.stickyNotes.map(toJson[StickyNote]))
-      )
-    }
-  }
 
   implicit object LinkageRuleJsonFormat extends JsonFormat[LinkageRule] {
     final val OPERATOR = "operator"

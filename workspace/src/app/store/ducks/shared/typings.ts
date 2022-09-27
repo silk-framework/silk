@@ -116,9 +116,12 @@ export interface IRelatedItem {
     itemLinks: IItemLink[];
     pluginLabel: string;
     tags: Keywords;
+    projectId?: string;
+    pluginId?: string;
 }
 
 export interface IItemLink {
+    id: string;
     label: string;
     path: string;
     itemType?: string;

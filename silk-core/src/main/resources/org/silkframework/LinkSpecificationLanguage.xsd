@@ -192,6 +192,7 @@
                 </xs:choice>
                 <xs:element ref="MappingTarget" minOccurs="0" />
                 <xs:element ref="RuleLayout" minOccurs="0"/>
+                <xs:element name="UiAnnotations" minOccurs="0" />
             </xs:sequence>
             <xs:attribute name="name" type="xs:string"/>
             <xs:attribute name="targetProperty" type="xs:string"/>

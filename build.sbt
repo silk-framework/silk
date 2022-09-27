@@ -217,7 +217,7 @@ lazy val serializationJson = (project in file("silk-plugins/silk-serialization-j
   )
 
 lazy val persistentCaching = (project in file("silk-plugins/silk-persistent-caching"))
-  .dependsOn(core)
+  .dependsOn(core % "compile -> compile;test -> test")
   .settings(commonSettings: _*)
   .settings(
     name := "Persistent caching",

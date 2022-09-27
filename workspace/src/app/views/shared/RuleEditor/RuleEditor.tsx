@@ -186,6 +186,7 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
         if (taskData) {
             const result = await saveRule(ruleNodeOperators, stickyNotes, taskData);
             updateLastSaveResult(result);
+            viewActions?.onSave && viewActions.onSave();
             return result;
         } else {
             const error = {

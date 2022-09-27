@@ -9,12 +9,13 @@ import org.silkframework.entity.EntitySchema
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
 import org.silkframework.runtime.plugin.PluginRegistry
 import org.silkframework.serialization.json.JsonHelpers
+import org.silkframework.util.ConfigTestTrait
 import org.silkframework.workspace.activity.{GlobalWorkspaceActivityFactory, ProjectActivityFactory, TaskActivityFactory, WorkspaceActivity}
 import org.silkframework.workspace.{Project, ProjectConfig, ProjectTask, WorkspaceFactory}
 import play.api.libs.json._
 import play.api.routing.Router
 
-class ActivityApiTest extends PlaySpec with IntegrationTestTrait with BeforeAndAfterAll {
+class ActivityApiTest extends PlaySpec with ConfigTestTrait with IntegrationTestTrait with BeforeAndAfterAll {
 
   private val projectId = "project"
   private val taskId = "messageTask"
@@ -57,6 +58,10 @@ class ActivityApiTest extends PlaySpec with IntegrationTestTrait with BeforeAndA
     super.afterAll()
   }
 
+  "number of concurrent activity executions is configurable" in {
+    WorkspaceActivity.maxConcurrentExecutionsPerActivity() mustBe 21
+  }
+
   "start activity in blocking mode" in {
     activityClient.startBlocking(simpleActivityId)
     activityClient.activityValue(simpleActivityId).json mustBe JsString(message)
@@ -88,7 +93,7 @@ class ActivityApiTest extends PlaySpec with IntegrationTestTrait with BeforeAndA
 
   "limit the number of activities that are held in memory" in {
     val createdControlIds =
-      for(i <- 0 until WorkspaceActivity.MAX_CONTROLS_PER_ACTIVITY + 1) yield {
+      for(i <- 0 until WorkspaceActivity.maxConcurrentExecutionsPerActivity() + 1) yield {
         activityClient.start(multiActivityId, Map("message" -> i.toString)).instanceId
       }
 
@@ -136,6 +141,14 @@ class ActivityApiTest extends PlaySpec with IntegrationTestTrait with BeforeAndA
   override def workspaceProviderId: String = "inMemory"
 
   protected override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkspace.Routes])
+
+  /** The properties that should be changed.
+    * If the value is [[None]] then the property value is removed,
+    * else it is set to the new value.
+    */
+  override def propertyMap: Map[String, Option[String]] = Map(
+    WorkspaceActivity.MAX_CONCURRENT_EXECUTIONS_CONFIG_KEY -> Some("21")
+  )
 }
 
 case class MessageTask(message: String) extends CustomTask {

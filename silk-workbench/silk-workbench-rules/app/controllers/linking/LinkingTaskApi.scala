@@ -746,7 +746,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
                                         )
                                         linkLimit: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[LinkSpec](projectName, linkingTaskId)
-    implicit val readContext: ReadContext = ReadContext(prefixes = project.config.prefixes, resources = project.resources)
+    implicit val readContext: ReadContext = ReadContext.fromProject(project)
     implicit val prefixes: Prefixes = project.config.prefixes
 
     SerializationUtils.deserializeCompileTime[LinkageRule](defaultMimeType = SerializationUtils.APPLICATION_JSON) { linkageRule =>

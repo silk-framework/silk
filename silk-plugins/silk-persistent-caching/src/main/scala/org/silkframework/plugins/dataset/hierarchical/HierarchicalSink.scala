@@ -21,7 +21,7 @@ abstract class HierarchicalSink extends EntitySink {
   private val rootEntities: SequentialEntityCache = SequentialEntityCache()
 
   // Holds nested entities
-  private lazy val cache: EntityCache = EntityCache()
+  private lazy val cache: HierarchicalEntityCache = HierarchicalEntityCache()
 
   // All properties for each table.
   private val tables: mutable.Buffer[TableSpec] = mutable.Buffer.empty

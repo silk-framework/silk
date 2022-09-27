@@ -1,4 +1,4 @@
-import { IInputSource } from "../shared/task.typings";
+import { IInputSource, IStickyNote } from "../shared/task.typings";
 import { IMetadata } from "@ducks/shared/typings";
 import { IValueInput, RuleLayout } from "../shared/rules/rule.typings";
 
@@ -28,6 +28,9 @@ export interface IComplexMappingRule extends ITransformRule {
     operator: IValueInput;
     /** Rule operator layout information. */
     layout: RuleLayout;
+    uiAnnotations: {
+        stickyNotes: IStickyNote[];
+    };
 }
 
 export interface IComplexUriRule extends ITransformRule {
@@ -55,4 +58,11 @@ export interface IMappingTarget {
 export interface IValueType {
     /** The type of the target value, e.g. 'StringValueType' */
     nodeType: string;
+}
+
+export interface EvaluatedTransformEntity {
+    operatorId: string;
+    values: string[];
+    error: string | null;
+    children: EvaluatedTransformEntity[];
 }

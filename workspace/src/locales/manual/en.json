@@ -425,6 +425,7 @@
             "addMoreResults": "Add more reference links",
             "noResults": "No linking results available. Please add reference links.",
             "scoreWidget": {
+                "showExamples": "Show Examples",
                 "noScore": "No evaluation score",
                 "noScoreTooltip": "No linking evaluation score available. Add positive and/or negative reference links in order to show a score",
                 "referenceLinks": "Open reference links UI in new tab"
@@ -517,6 +518,17 @@
             }
         },
         "transformRulesEditor": {
+            "evaluation": {
+                "noResults": "No evaluation examples to show"
+            },
+            "warning": {
+                "modal": {
+                    "title": "Editor Warning",
+                    "body": "There are still unsaved changes. Are you sure you want to close the editor?",
+                    "close-btn": "Yes, close",
+                    "back-btn": "No, go back"
+                }
+            },
             "errors": {
                 "fetchTransformRule": {
                     "msg": "An error has occurred while fetching the transform rule."
@@ -526,6 +538,9 @@
                 },
                 "saveTransformRule": {
                     "msg": "Could not save transform rule!"
+                },
+                "fetchTransformEvaluationValues": {
+                    "msg": "Could not fetch evaluation results"
                 }
             }
         }
@@ -736,7 +751,7 @@
             "saveBtnTooltip": "Save the current state of the workflow",
             "toggleProgressLabel": "Toggle progress",
             "warning": {
-                "tooltip": "Focuses on failed node and opens execution report"
+                "tooltip": "Centers the failed node and if available, opens its loading error report."
             },
             "warningMenuTooltip": "Show list of errors and warnings"
         },
@@ -758,7 +773,8 @@
             "WorkflowEditor_fetchPortsConfigs": "Could not load task configurations.",
             "WorkflowEditor_fetchTaskList": "Could not fetch available workflow datasets and operators.",
             "WorkflowEditor_saveWorkflow": "Failed to save the workflow.",
-            "WorkflowEditor_fetchWorkflow": "Failed to load the workflow."
+            "WorkflowEditor_fetchWorkflow": "Failed to load the workflow.",
+            "WorkflowEditor_taskNotLoaded": "Workflow task could not be loaded properly"
         },
         "node": {
             "actions": {

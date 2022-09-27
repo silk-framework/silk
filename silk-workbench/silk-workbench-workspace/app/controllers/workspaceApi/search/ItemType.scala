@@ -36,17 +36,17 @@ object ItemType {
     val detailsPageBase = s"$context/${workspaceProjectPath(projectId)}"
     itemType match {
       case ItemType.dataset =>
-        ItemLink("Dataset details page", s"$detailsPageBase/${ItemType.dataset.id}/$itemId")
+        ItemLink("details", "Dataset details page", s"$detailsPageBase/${ItemType.dataset.id}/$itemId")
       case ItemType.transform =>
-        ItemLink("Transform details page", s"$detailsPageBase/${ItemType.transform.id}/$itemId")
+        ItemLink("details", "Transform details page", s"$detailsPageBase/${ItemType.transform.id}/$itemId")
       case ItemType.linking =>
-        ItemLink("Linking details page", s"$detailsPageBase/${ItemType.linking.id}/$itemId")
+        ItemLink("details", "Linking details page", s"$detailsPageBase/${ItemType.linking.id}/$itemId")
       case ItemType.workflow =>
-        ItemLink("Workflow details page", s"$detailsPageBase/${ItemType.workflow.id}/$itemId")
+        ItemLink("details", "Workflow details page", s"$detailsPageBase/${ItemType.workflow.id}/$itemId")
       case ItemType.task =>
-        ItemLink("Task details page", s"$detailsPageBase/${ItemType.task.id}/$itemId")
+        ItemLink("details", "Task details page", s"$detailsPageBase/${ItemType.task.id}/$itemId")
       case ItemType.project =>
-        ItemLink("Project details page", s"$context/${workspaceProjectPath(itemId)}")
+        ItemLink("details", "Project details page", s"$context/${workspaceProjectPath(itemId)}")
       case _ =>
         throw new IllegalArgumentException(s"Unsupported item type: $itemType")
 
@@ -57,23 +57,22 @@ object ItemType {
   def itemTypeLinks(itemType: ItemType, projectId: String, itemId: String, taskSpec: Option[TaskSpec]): Seq[ItemLink] = {
     val itemTypeSpecificLinks = itemType match {
       case ItemType.transform => Seq(
-        ItemLink("Mapping editor", s"$context/transform/$projectId/$itemId/editor"),
-        ItemLink("Transform evaluation", s"$context/transform/$projectId/$itemId/evaluate"),
-        ItemLink("Transform execution", s"$context/transform/$projectId/$itemId/execute")
+        ItemLink("evaluate", "Transform evaluation", s"$context/transform/$projectId/$itemId/evaluate"),
+        ItemLink("execute", "Transform execution", s"$context/transform/$projectId/$itemId/execute")
       )
       case ItemType.linking => Seq(
-        ItemLink("Linking evaluation", s"$context/linking/$projectId/$itemId/evaluate"),
-        ItemLink("Linking execution", s"$context/linking/$projectId/$itemId/execute"),
-        ItemLink("Reference links", s"$context/linking/$projectId/$itemId/referenceLinks"),
-        ItemLink("Learning", s"$context/linking/$projectId/$itemId/learnStart")
+        ItemLink("evaluate", "Linking evaluation", s"$context/linking/$projectId/$itemId/evaluate"),
+        ItemLink("execute", "Linking execution", s"$context/linking/$projectId/$itemId/execute"),
+        ItemLink("referenceLinks", "Reference links", s"$context/linking/$projectId/$itemId/referenceLinks"),
+        ItemLink("learning", "Learning", s"$context/linking/$projectId/$itemId/learnStart")
       )
       case ItemType.workflow if !WorkbenchConfig().tabs.legacyWorkflowEditor => Seq(
       )
       case ItemType.workflow => Seq(
-        ItemLink("Workflow editor (legacy)", s"$context/workflow/editor/$projectId/$itemId"),
+        ItemLink("editor", "Workflow editor (legacy)", s"$context/workflow/editor/$projectId/$itemId"),
       )
       case _: ItemType if taskSpec.isDefined =>
-        taskSpec.get.taskLinks.map(taskLink => ItemLink(taskLink.id, taskLink.url))
+        taskSpec.get.taskLinks.map(taskLink => ItemLink(taskLink.id, taskLink.id, taskLink.url))
       case _ => Seq()
     }
     Seq(itemDetailsPage(itemType, projectId, itemId)) ++ itemTypeSpecificLinks
@@ -110,7 +109,7 @@ object ItemType {
   }
 }
 
-case class ItemLink(label: String, path: String)
+case class ItemLink(id: String, label: String, path: String)
 
 object ItemLink {
   implicit val itemLinkFormat: Format[ItemLink] = Json.format[ItemLink]

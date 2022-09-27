@@ -103,6 +103,10 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
           mediaType = "application/json",
           schema = new Schema(implementation = classOf[StartActivityResponse])
         ))
+      ),
+      new ApiResponse(
+        responseCode = "503",
+        description = "Activity execution could not be started because concurrent execution limit is reached."
       )
   ))
   @RequestBody(
@@ -155,6 +159,10 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
           mediaType = "application/json",
           schema = new Schema(implementation = classOf[StartActivityResponse])
         ))
+      ),
+      new ApiResponse(
+        responseCode = "503",
+        description = "Activity execution could not be started because concurrent execution limit is reached."
       )
     ))
   @RequestBody(

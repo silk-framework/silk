@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { NodeTools, NodeToolsMenuFunctions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeTools";
-import { Button, Markdown, Menu, MenuItem } from "@eccenca/gui-elements";
-import { RuleEditorBaseModal } from "../components/RuleEditorBaseModal";
+import { Menu, MenuItem } from "@eccenca/gui-elements";
+import { RuleEditorUiContext } from "../../contexts/RuleEditorUiContext";
 
 interface NodeMenuProps {
     nodeId: string;
@@ -12,17 +12,12 @@ interface NodeMenuProps {
 
 /** The menu of a rule node. */
 export const RuleNodeMenu = ({ nodeId, t, handleDeleteNode, ruleOperatorDescription }: NodeMenuProps) => {
-    const [showDescription, setShowDescription] = useState(false);
     const [menuFns, setMenuFns] = useState<NodeToolsMenuFunctions | undefined>(undefined);
-
+    const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
     const closeMenu = () => {
         menuFns?.closeMenu();
     };
     const menuFunctionsCallback = useMemo(() => (menuFunctions) => setMenuFns(menuFunctions), []);
-    const onClose = () => {
-        setShowDescription(false);
-        closeMenu();
-    };
 
     return (
         <NodeTools menuButtonDataTestId={"node-menu-btn"} menuFunctionsCallback={menuFunctionsCallback}>
@@ -45,30 +40,13 @@ export const RuleNodeMenu = ({ nodeId, t, handleDeleteNode, ruleOperatorDescript
                         icon={"item-info"}
                         onClick={(e) => {
                             closeMenu();
-                            setShowDescription(true);
+                            ruleEditorUiContext.setCurrentRuleNodeDescription(ruleOperatorDescription);
                             e.preventDefault();
                             e.stopPropagation();
                         }}
                         text={t("RuleEditor.node.menu.description.label")}
                         htmlTitle={ruleOperatorDescription}
                     />
-                ) : null}
-                {showDescription && ruleOperatorDescription ? (
-                    <RuleEditorBaseModal
-                        isOpen={true}
-                        title={t("common.words.description")}
-                        onClose={onClose}
-                        hasBorder={true}
-                        size={"small"}
-                        data-test-id={"ruleEditorNode-description-modal"}
-                        actions={[
-                            <Button key="close" onClick={onClose}>
-                                {t("common.action.close")}
-                            </Button>,
-                        ]}
-                    >
-                        <Markdown>{ruleOperatorDescription}</Markdown>
-                    </RuleEditorBaseModal>
                 ) : null}
             </Menu>
         </NodeTools>

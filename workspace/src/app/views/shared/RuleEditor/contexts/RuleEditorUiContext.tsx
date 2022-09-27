@@ -1,5 +1,5 @@
 import React from "react";
-import {OnLoadParams} from "react-flow-renderer";
+import { OnLoadParams } from "react-flow-renderer";
 
 /** Context for all UI related properties. */
 export interface RuleEditorUiContextProps {
@@ -8,14 +8,18 @@ export interface RuleEditorUiContextProps {
     /** Set flag that a modal is currently shown. */
     setModalShown: (shown: boolean) => any;
     /** If the advanced parameter mode is enabled. */
-    advancedParameterModeEnabled: boolean
+    advancedParameterModeEnabled: boolean;
     /** Enables/disables the advanced parameter mode. */
-    setAdvancedParameterMode: (advancedEnabled: boolean) => any
+    setAdvancedParameterMode: (advancedEnabled: boolean) => any;
     reactFlowWrapper: React.MutableRefObject<any> | null;
     /** react-flow instance */
-    setReactFlowInstance: (params: OnLoadParams) => any
+    setReactFlowInstance: (params: OnLoadParams) => any;
     /** Sets the react-flow instance, so it can be used everywhere in the view code. */
-    reactFlowInstance: OnLoadParams | undefined
+    reactFlowInstance: OnLoadParams | undefined;
+    /** markdown description for rule operator node  */
+    currentRuleNodeDescription: string | undefined;
+    /** Sets the markdown description for rule operator node */
+    setCurrentRuleNodeDescription: (description: string | undefined) => void;
 }
 
 export const RuleEditorUiContext = React.createContext<RuleEditorUiContextProps>({
@@ -25,5 +29,7 @@ export const RuleEditorUiContext = React.createContext<RuleEditorUiContextProps>
     setAdvancedParameterMode: () => {},
     reactFlowWrapper: null,
     setReactFlowInstance: () => {},
-    reactFlowInstance: undefined
+    reactFlowInstance: undefined,
+    currentRuleNodeDescription: undefined,
+    setCurrentRuleNodeDescription: () => {},
 });

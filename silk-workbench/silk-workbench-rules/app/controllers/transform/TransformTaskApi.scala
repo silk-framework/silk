@@ -343,22 +343,21 @@ class TransformTaskApi @Inject() () extends InjectedController with UserContextA
                 required = false,
                 in = ParameterIn.QUERY,
                 schema = new Schema(implementation = classOf[Boolean]))
-              convertToComplex: Option[Boolean]): Action[AnyContent] = RequestUserContextAction { implicit request =>
-    implicit userContext =>
+              convertToComplex: Option[Boolean]): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
       implicit val (project, task) = getProjectAndTask[TransformSpec](projectName, taskName)
       implicit val prefixes: Prefixes = project.config.prefixes
-    processRule(task, ruleId) { rule =>
-      if(convertToComplex.getOrElse(false)) {
-        rule.operator match {
-          case valueRule: ValueTransformRule =>
-            serializeCompileTime(valueRule.asComplexMapping, Some(project))
-          case operator: Operator =>
-            serializeCompileTime(operator.asInstanceOf[TransformRule], Some(project))
+      processRule(task, ruleId) { rule =>
+        if (convertToComplex.getOrElse(false)) {
+          rule.operator match {
+            case valueRule: ValueTransformRule =>
+              serializeCompileTime(valueRule.asComplexMapping, Some(project))
+            case operator: Operator =>
+              serializeCompileTime(operator.asInstanceOf[TransformRule], Some(project))
+          }
+        } else {
+          serializeCompileTime(rule.operator.asInstanceOf[TransformRule], Some(project))
         }
-      } else {
-        serializeCompileTime(rule.operator.asInstanceOf[TransformRule], Some(project))
       }
-    }
   }
 
   @Operation(

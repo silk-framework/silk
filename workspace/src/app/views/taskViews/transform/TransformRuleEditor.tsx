@@ -6,10 +6,20 @@ import { IViewActions } from "../../plugins/PluginRegistry";
 import RuleEditor, { RuleOperatorFetchFnType } from "../../shared/RuleEditor/RuleEditor";
 import { requestRuleOperatorPluginDetails } from "@ducks/common/requests";
 import { IPluginDetails } from "@ducks/common/typings";
-import { putTransformRule, requestTransformRule } from "./transform.requests";
-import { IRuleOperatorNode, RuleSaveResult } from "../../shared/RuleEditor/RuleEditor.typings";
+import { autoCompleteTransformSourcePath, putTransformRule, requestTransformRule } from "./transform.requests";
+import {
+    IRuleOperatorNode,
+    RuleSaveNodeError,
+    RuleSaveResult,
+    RuleValidationError,
+} from "../../shared/RuleEditor/RuleEditor.typings";
 import ruleUtils from "../shared/rules/rule.utils";
 import { IStickyNote } from "../shared/task.typings";
+import { LabelledParameterValue, OptionallyLabelledParameter } from "../linking/linking.types";
+import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
+import { inputPathTab } from "./transformEditor.utils";
+import { FetchError } from "../../../services/fetch/responseInterceptor";
+import TransformRuleEvaluation from "./evalution/TransformRuleEvaluation";
 
 export interface TransformRuleEditorProps {
     /** Project ID the task is in. */
@@ -20,10 +30,18 @@ export interface TransformRuleEditorProps {
     ruleId: string;
     /** Generic actions and callbacks on views. */
     viewActions?: IViewActions;
+    /** Additional components that will be placed in the tool bar left to the save button. */
+    additionalToolBarComponents?: () => JSX.Element | JSX.Element[];
 }
 
 /** Editor for creating and changing transform rule operator trees. */
-export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: TransformRuleEditorProps) => {
+export const TransformRuleEditor = ({
+    projectId,
+    transformTaskId,
+    ruleId,
+    additionalToolBarComponents,
+    viewActions,
+}: TransformRuleEditorProps) => {
     const [t] = useTranslation();
     const { registerError } = useErrorHandler();
     /** Fetches the parameters of the transform rule. */
@@ -64,7 +82,6 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
         originalRule: IComplexMappingRule
     ): Promise<RuleSaveResult> => {
         try {
-            //Todo add sticky notes to saveRule and backend
             const [operatorNodeMap, rootNodes] = ruleUtils.convertToRuleOperatorNodeMap(ruleOperatorNodes, true);
             if (rootNodes.length !== 1) {
                 return {
@@ -82,22 +99,37 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
                 sourcePaths: [],
                 operator: ruleUtils.convertRuleOperatorNodeToValueInput(rootNodes[0], operatorNodeMap),
                 layout: ruleUtils.ruleLayout(ruleOperatorNodes),
+                uiAnnotations: {
+                    stickyNotes,
+                },
             };
             await putTransformRule(projectId, transformTaskId, ruleId, rule);
             return {
                 success: true,
             };
         } catch (err) {
-            console.log("Error", err);
-            registerError(
-                "TransformRuleEditor_saveTransformRule",
-                t("taskViews.transformRulesEditor.errors.saveTransformRule.msg"),
-                err
-            );
-            return {
-                success: false,
-                errorMessage: t("taskViews.transformRulesEditor.errors.saveTransformRule.msg"),
-            };
+            if ((err as RuleValidationError).isRuleValidationError) {
+                return err;
+            } else {
+                if (err.isHttpError && err.httpStatus === 400 && Array.isArray((err as FetchError).body?.issues)) {
+                    const fetchError = err as FetchError;
+                    const nodeErrors: RuleSaveNodeError[] = fetchError.body.issues.map((issue) => ({
+                        nodeId: issue.id,
+                        message: issue.message,
+                    }));
+                    return new RuleValidationError(
+                        t("taskViews.transformRulesEditor.errors.saveTransformRule.msg"),
+                        nodeErrors
+                    );
+                } else {
+                    return {
+                        success: false,
+                        errorMessage: `${t("taskViews.transformRulesEditor.errors.saveTransformRule.msg")}${
+                            err.message ? ": " + err.message : ""
+                        }`,
+                    };
+                }
+            }
         }
     };
 
@@ -108,29 +140,87 @@ export const TransformRuleEditor = ({ projectId, transformTaskId, ruleId }: Tran
     ): IRuleOperatorNode[] => {
         const operatorNodes: IRuleOperatorNode[] = [];
         ruleUtils.extractOperatorNodeFromValueInput(mappingRule.operator, operatorNodes, false, ruleOperator);
-        const nodePositions = mappingRule.layout;
-        operatorNodes.forEach((node) => (node.position = nodePositions[node.nodeId]));
+        const nodePositions = mappingRule.layout.nodePositions;
+        operatorNodes.forEach((node) => {
+            const pos = nodePositions[node.nodeId];
+            if (pos) {
+                node.position = {
+                    x: pos[0],
+                    y: pos[1],
+                };
+            }
+        });
         return operatorNodes;
     };
 
+    /** Get the value of an optionally labelled parameter value. */
+    function optionallyLabelledParameterToValue<T>(optionallyLabelledValue: OptionallyLabelledParameter<T>): T {
+        return (optionallyLabelledValue as LabelledParameterValue<T>).value
+            ? (optionallyLabelledValue as LabelledParameterValue<T>).value
+            : (optionallyLabelledValue as T);
+    }
+
+    const getStickyNotes = (mapping: IComplexMappingRule): IStickyNote[] =>
+        (mapping && optionallyLabelledParameterToValue(mapping.uiAnnotations.stickyNotes)) || [];
+
+    const inputPathAutoCompletion = async (term: string, limit: number): Promise<IAutocompleteDefaultResponse[]> => {
+        try {
+            const response = await autoCompleteTransformSourcePath(projectId, transformTaskId, ruleId, term);
+            const results = response.data.map((data) => ({ ...data, valueType: "" }));
+            if (term.trim() === "") {
+                results.unshift({ value: "", label: `<${t("common.words.emptyPath")}>`, valueType: "StringValue" });
+            }
+            return results;
+        } catch (err) {
+            registerError(
+                "LinkingRuleEditor_inputPathAutoCompletion",
+                t("taskViews.linkRulesEditor.errors.inputPathAutoCompletion.msg"),
+                err
+            );
+            return [];
+        }
+    };
+
+    const sourcePathInput = () =>
+        ruleUtils.inputPathOperator(
+            "sourcePathInput",
+            "Source path",
+            "The value path of the input source of the transformation task.",
+            inputPathAutoCompletion
+        );
+
     return (
-        <RuleEditor<IComplexMappingRule, IPluginDetails>
+        <TransformRuleEvaluation
             projectId={projectId}
-            taskId={transformTaskId}
-            fetchRuleData={fetchTransformRule}
-            fetchRuleOperators={fetchTransformRuleOperatorList}
-            saveRule={saveTransformRule}
-            convertRuleOperator={ruleUtils.convertRuleOperator}
-            convertToRuleOperatorNodes={convertToRuleOperatorNodes}
-            additionalRuleOperators={[
-                ruleUtils.inputPathOperator(
-                    "valuePathInput",
-                    "Value path",
-                    "The value path of the input source of the transformation task."
-                ), // FIXME: Add i18n for rule operators
-            ]}
-            validateConnection={ruleUtils.validateConnection}
-            tabs={[ruleUtils.sidebarTabs.all, ruleUtils.sidebarTabs.transform]}
-        />
+            transformTaskId={transformTaskId}
+            ruleId={ruleId}
+            numberOfLinkToShow={5}
+        >
+            <RuleEditor<IComplexMappingRule, IPluginDetails>
+                projectId={projectId}
+                taskId={transformTaskId}
+                fetchRuleData={fetchTransformRule}
+                fetchRuleOperators={fetchTransformRuleOperatorList}
+                saveRule={saveTransformRule}
+                convertRuleOperator={ruleUtils.convertRuleOperator}
+                convertToRuleOperatorNodes={convertToRuleOperatorNodes}
+                viewActions={viewActions}
+                additionalToolBarComponents={additionalToolBarComponents}
+                getStickyNotes={getStickyNotes}
+                additionalRuleOperators={[sourcePathInput()]}
+                validateConnection={ruleUtils.validateConnection}
+                tabs={[
+                    ruleUtils.sidebarTabs.all,
+                    inputPathTab(projectId, transformTaskId, ruleId, sourcePathInput(), (ex) =>
+                        registerError(
+                            "linking-rule-editor-fetch-source-paths",
+                            t("taskViews.linkRulesEditor.errors.fetchLinkingPaths.msg"),
+                            ex
+                        )
+                    ),
+                    ruleUtils.sidebarTabs.transform,
+                ]}
+            />
+        </TransformRuleEvaluation>
     );
 };
