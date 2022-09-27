@@ -5,7 +5,6 @@ import controllers.workspace.activityApi.StartActivityResponse
 import org.silkframework.util.Identifier
 import play.api.libs.json.{JsBoolean, JsValue, Json}
 import play.api.libs.ws.{WSClient, WSResponse}
-
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 

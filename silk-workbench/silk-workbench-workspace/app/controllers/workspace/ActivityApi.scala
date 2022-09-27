@@ -18,7 +18,7 @@ import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.TaskSpec
 import org.silkframework.runtime.activity._
-import org.silkframework.runtime.serialization.WriteContext
+import org.silkframework.runtime.serialization.{Serialization, WriteContext}
 import org.silkframework.runtime.validation.{BadUserInputException, NotFoundException}
 import org.silkframework.serialization.json.ActivitySerializers.ExtendedStatusJsonFormat
 import org.silkframework.workbench.utils.ErrorResult
@@ -29,6 +29,7 @@ import play.api.mvc._
 
 import java.util.logging.{LogRecord, Logger}
 import javax.inject.Inject
+import scala.concurrent.duration.{FiniteDuration, MILLISECONDS}
 import scala.language.existentials
 
 @Tag(name = "Activities", description = ActivityApiDoc.activityDoc)
@@ -507,6 +508,78 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
   }
 
   @Operation(
+    summary = "Get activity value updates",
+    description = "Request updates on the values of one or many activities.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json"
+        ))
+      )
+    ))
+  def getActivityValueUpdates(@Parameter(
+                                 name = "project",
+                                 description = "Optional project identifier. If empty or not provided, activities from all projects are considered.",
+                                 required = false,
+                                 in = ParameterIn.QUERY,
+                                 schema = new Schema(implementation = classOf[String])
+                               )
+                               projectName: String,
+                               @Parameter(
+                                 name = "task",
+                                 description = "Optional task identifier. If empty or not provided, activities from all tasks are considered.",
+                                 required = false,
+                                 in = ParameterIn.QUERY,
+                                 schema = new Schema(implementation = classOf[String])
+                               )
+                               taskName: String,
+                               @Parameter(
+                                 name = "activity",
+                                 description = "Optional activity identifier. If empty or not provided, updates from all activities that match the task and project are returned.",
+                                 required = false,
+                                 in = ParameterIn.QUERY,
+                                 schema = new Schema(implementation = classOf[String])
+                               )
+                               activityName: String,
+                               @Parameter(
+                                 name = "instance",
+                                 description = "Optional activity instance identifier. Non-singleton activity types allow multiple concurrent instances that are identified by their instance id.",
+                                 required = false,
+                                 in = ParameterIn.QUERY,
+                                 schema = new Schema(implementation = classOf[String])
+                               )
+                               activityInstance: String,
+                               @Parameter(
+                                 name = "timestamp",
+                                 description = "Only return status updates that happened after this timestamp. Provided in milliseconds since midnight, January 1, 1970 UTC. If not provided or 0, the stati of all matching activities are returned.",
+                                 required = false,
+                                 in = ParameterIn.QUERY,
+                                 schema = new Schema(implementation = classOf[String])
+                               )
+                               timestamp: Long): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
+    implicit val writeContext = WriteContext[JsValue]()
+    val activities = allActivities(projectName, taskName, activityName)
+    val startTime = System.currentTimeMillis()
+
+    Ok(
+      Json.obj(
+        "timestamp" -> startTime,
+        "updates" ->
+          JsArray(
+            for (activity <- activities if activity.status().timestamp > timestamp) yield {
+              val activityControl = activityControlForInstance(activity, activityInstance)
+              val value = activityControl.value()
+              val format = Serialization.formatForDynamicType[JsValue](value.getClass)
+              format.write(value)
+            }
+          )
+      )
+    )
+  }
+
+  @Operation(
     summary = "Get activity status updates (websocket)",
     description = "Request updates on the status of one or many activities.",
     responses = Array(
@@ -564,6 +637,75 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
 
     // Combine all sources into a single flow
     val combinedSources = Source.combine(Source.empty, Source.empty, sources :_*)(Merge(_))
+    AkkaUtils.createWebSocket(combinedSources)
+  }
+
+  @Operation(
+    summary = "Get activity value updates (websocket)",
+    description = "Request updates on the values of one or many activities.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = "Success",
+        content = Array(new Content(
+          mediaType = "application/json"
+        ))
+      )
+    ))
+  def activityValuesUpdatesWebSocket(@Parameter(
+                                       name = "project",
+                                       description = "Optional project identifier. If empty or not provided, activities from all projects are considered.",
+                                       required = false,
+                                       in = ParameterIn.QUERY,
+                                       schema = new Schema(implementation = classOf[String])
+                                     )
+                                     projectName: String,
+                                     @Parameter(
+                                       name = "task",
+                                       description = "Optional task identifier. If empty or not provided, activities from all tasks are considered.",
+                                       required = false,
+                                       in = ParameterIn.QUERY,
+                                       schema = new Schema(implementation = classOf[String])
+                                     )
+                                     taskName: String,
+                                     @Parameter(
+                                       name = "activity",
+                                       description = "Optional activity identifier. If empty or not provided, updates from all activities that match the task and project are returned.",
+                                       required = false,
+                                       in = ParameterIn.QUERY,
+                                       schema = new Schema(implementation = classOf[String])
+                                     )
+                                     activityName: String,
+                                     @Parameter(
+                                       name = "instance",
+                                       description = "Optional activity instance identifier. Non-singleton activity types allow multiple concurrent instances that are identified by their instance id.",
+                                       required = false,
+                                       in = ParameterIn.QUERY,
+                                       schema = new Schema(implementation = classOf[String])
+                                     )
+                                     activityInstance: String,
+                                     @Parameter(
+                                       name = "minIntervalMs",
+                                       description = "Minimum number of milliseconds between updates.",
+                                       required = false,
+                                       in = ParameterIn.QUERY,
+                                       schema = new Schema(implementation = classOf[String], defaultValue = "1000")
+                                     )
+                                     minIntervalMs: Int): WebSocket = {
+
+    implicit val userContext = UserContext.Empty
+    implicit val writeContext = WriteContext[JsValue]()
+
+    val activities = allActivities(projectName, taskName, activityName)
+    val sources =
+      for (activity <- activities) yield {
+        val format = Serialization.formatForDynamicType[JsValue](activity.value().getClass)
+        val activityControl = activityControlForInstance(activity, activityInstance)
+        AkkaUtils.createSource(activityControl.value, Some(FiniteDuration(minIntervalMs, MILLISECONDS))).map(format.write)
+      }
+
+    // Combine all sources into a single flow
+    val combinedSources = Source.combine(Source.empty, Source.empty, sources: _*)(Merge(_))
     AkkaUtils.createWebSocket(combinedSources)
   }
 

@@ -183,6 +183,11 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   def isCacheActivity: Boolean = factory.isCacheActivity
 
   /**
+    * The class of the activity value.
+    */
+  def activityType: Class[_] = factory.activityType
+
+  /**
     * Adds a new instance of this activity type.
     * If this is a singleton activity, it will only be updated if the configuration changed.
     */
