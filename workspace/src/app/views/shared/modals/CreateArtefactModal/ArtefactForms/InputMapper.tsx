@@ -1,6 +1,6 @@
-import React from "react";
+import React, {useEffect} from "react";
 import { INPUT_TYPES } from "../../../../../constants";
-import { Switch, TextArea, TextField, CodeEditor } from "@eccenca/gui-elements";
+import { Spinner, Switch, TextArea, TextField, CodeEditor } from "@eccenca/gui-elements";
 import { ITaskParameter } from "@ducks/common/typings";
 import { Intent } from "@blueprintjs/core";
 import FileSelectionMenu from "../../../FileUploader/FileSelectionMenu";
@@ -28,7 +28,11 @@ interface IProps {
     };
     /** This is a required parameter. */
     required: boolean;
+    /** Register for getting external updates for values. */
+    registerForExternalChanges: RegisterForExternalChangesFn
 }
+
+export type RegisterForExternalChangesFn = (paramId:string, handleUpdates: (value: {value: string, label?: string}) => any) => any
 
 /** The attributes for the GUI components. */
 export interface IInputAttributes {
@@ -43,14 +47,33 @@ export interface IInputAttributes {
 }
 
 /** Maps an atomic value to the corresponding value type widget. */
-export function InputMapper({ projectId, parameter, intent, onChange, initialValues, required }: IProps) {
+export function InputMapper({ projectId, parameter, intent, onChange, initialValues, required, registerForExternalChanges }: IProps) {
     const [t] = useTranslation();
     const { maxFileUploadSize } = useSelector(commonSel.initialSettingsSelector);
     const { paramId, param } = parameter;
+    const [externalValue, setExternalValue] = React.useState<{value: string, label?: string} | undefined>(undefined)
+    const [show, setShow] = React.useState(true)
+    const initialOrExternalValue = externalValue ? externalValue.value : initialValues[paramId]?.value
     const initialValue =
-        initialValues[paramId] !== undefined
-            ? stringValueAsJs(parameter.param.parameterType, initialValues[paramId].value)
+        initialOrExternalValue != null
+            ? stringValueAsJs(parameter.param.parameterType, initialOrExternalValue)
             : defaultValueAsJs(param);
+
+    useEffect(() => {
+        const handleUpdates = (externalValue: {value: string, label?: string}) => {
+            setExternalValue(externalValue)
+            onChange(stringValueAsJs(parameter.param.parameterType, externalValue.value))
+        }
+        registerForExternalChanges(paramId, handleUpdates)
+    }, [])
+
+    // Re-init element when value is set from outside
+    useEffect(() => {
+        if(externalValue) {
+            setShow(false)
+            setTimeout(() => setShow(true), 0)
+        }
+    }, [externalValue?.value])
 
     const inputAttributes: IInputAttributes = {
         id: paramId,
@@ -79,6 +102,10 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
 
     if (param.parameterType === INPUT_TYPES.BOOLEAN) {
         inputAttributes.defaultChecked = initialValue;
+    }
+
+    if(!show) {
+        return <Spinner />
     }
 
     switch (param.parameterType) {

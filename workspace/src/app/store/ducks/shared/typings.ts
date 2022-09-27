@@ -80,6 +80,11 @@ export interface TaskPlugin<PLUGIN_PARAMETERS = IArbitraryPluginParameters> {
     taskType?: TaskType;
 }
 
+export interface DatasetTaskPlugin<PLUGIN_PARAMETERS = IArbitraryPluginParameters> extends TaskPlugin<PLUGIN_PARAMETERS> {
+    /** The attribute/property (URI) that the entity URI should be written to. */
+    uriProperty?: string
+}
+
 export interface ITaskMetadataResponse {
     taskType: TaskType;
     schemata: any;

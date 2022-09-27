@@ -18,7 +18,14 @@ import errorSelector from "@ducks/error/selectors";
 import { DIErrorFormat, DIErrorTypes } from "@ducks/error/typings";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 
-export function NotificationsMenu() {
+interface Props {
+    /** The size of the notification icon. */
+    iconSize?: "small" | "medium" | "large"
+    /** When true the last notification will be shown for some seconds. */
+    autoDisplayNotifications?: boolean
+}
+
+export function NotificationsMenu({iconSize = "large", autoDisplayNotifications = true}: Props) {
     const [displayNotifications, setDisplayNotifications] = useState<boolean>(false);
     const [displayLastNotification, setDisplayLastNotification] = useState<boolean>(false);
 
@@ -26,13 +33,15 @@ export function NotificationsMenu() {
 
     useEffect(() => {
         if (notificationQueue.displayLastNotification) {
-            setDisplayLastNotification(true);
-            const timeout: number = window.setTimeout(async () => {
-                setDisplayLastNotification(false);
-            }, 6000);
-            return () => {
-                clearTimeout(timeout);
-            };
+            if(autoDisplayNotifications) {
+                setDisplayLastNotification(true);
+                const timeout: number = window.setTimeout(async () => {
+                    setDisplayLastNotification(false);
+                }, 6000);
+                return () => {
+                    clearTimeout(timeout);
+                };
+            }
         } else {
             setDisplayLastNotification(false);
             setDisplayNotifications(false);
@@ -52,7 +61,7 @@ export function NotificationsMenu() {
                 toggleNotifications();
             }}
         >
-            <Icon name="application-warning" description="Notification menu icon" large />
+            <Icon name="application-warning" description="Notification menu icon" large={iconSize === "large"} small={iconSize === "small"} />
         </ApplicationToolbarAction>
     );
 

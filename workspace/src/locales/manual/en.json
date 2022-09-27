@@ -5,6 +5,8 @@
         "loading": "Loading artefact type list.",
         "noMatch": "No match found.",
         "updateTitle": "Update item of type {{type}}",
+        "autoConfigButton": "Auto-config",
+        "autoConfigTooltip": "Try to auto-configure technical parameters of the item based on the current configuration.",
         "projectContext": {
             "configResetInfo": "All settings are going to be reset, except label and description.",
             "selectProjectLabel": "Select target project",

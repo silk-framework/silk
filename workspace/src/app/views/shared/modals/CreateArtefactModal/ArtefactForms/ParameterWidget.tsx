@@ -3,7 +3,7 @@ import { Markdown, StringPreviewContentBlobToggler } from "@eccenca/gui-elements
 import { IArtefactItemProperty, ITaskParameter } from "@ducks/common/typings";
 import { FieldItem, FieldSet, Label, TitleSubsection, WhiteSpaceContainer } from "@eccenca/gui-elements";
 import { Intent } from "@eccenca/gui-elements/blueprint/constants";
-import { InputMapper } from "./InputMapper";
+import {InputMapper, RegisterForExternalChangesFn} from "./InputMapper";
 import { defaultValueAsJs } from "../../../../../utils/transformers";
 import { INPUT_TYPES } from "../../../../../constants";
 import { useTranslation } from "react-i18next";
@@ -39,6 +39,8 @@ interface IProps {
     dependentValues: {
         [key: string]: string;
     };
+    /** Register for getting external updates for values. */
+    registerForExternalChanges: RegisterForExternalChangesFn
 }
 
 /** Renders the errors message based on the error type. */
@@ -68,6 +70,7 @@ export const ParameterWidget = (props: IProps) => {
         changeHandlers,
         initialValues,
         dependentValues,
+        registerForExternalChanges
     } = props;
     const errors = formHooks.errors[taskParameter.paramId];
     const propertyDetails = taskParameter.param;
@@ -133,6 +136,7 @@ export const ParameterWidget = (props: IProps) => {
                                 changeHandlers={changeHandlers}
                                 initialValues={initialValues}
                                 dependentValues={dependentValues}
+                                registerForExternalChanges={registerForExternalChanges}
                             />
                         );
                     }
@@ -162,6 +166,7 @@ export const ParameterWidget = (props: IProps) => {
                     onChange={changeHandlers[formParamId]}
                     initialValues={initialValues}
                     required={required}
+                    registerForExternalChanges={registerForExternalChanges}
                 />
             </FieldSet>
         );
@@ -203,6 +208,7 @@ export const ParameterWidget = (props: IProps) => {
                         onChange={changeHandlers[formParamId]}
                         initialValues={initialValues}
                         required={required}
+                        registerForExternalChanges={registerForExternalChanges}
                     />
                 )}
             </FieldItem>

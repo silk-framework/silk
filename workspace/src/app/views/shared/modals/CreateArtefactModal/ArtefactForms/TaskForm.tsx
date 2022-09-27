@@ -11,6 +11,7 @@ import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import Loading from "../../../Loading";
 import { SUPPORTED_PLUGINS, pluginRegistry } from "../../../../plugins/PluginRegistry";
 import { DataPreviewProps, IDatasetConfigPreview } from "../../../../plugins/plugin.types";
+import {RegisterForExternalChangesFn} from "./InputMapper";
 
 export interface IProps {
     form: any;
@@ -30,6 +31,9 @@ export interface IProps {
             [key: string]: string | object;
         };
     };
+
+    /** Register for getting external updates for values. */
+    registerForExternalChanges: RegisterForExternalChangesFn
 }
 
 const LABEL = "label";
@@ -51,7 +55,7 @@ const datasetConfigPreview = (
 };
 
 /** The task creation/update form. */
-export function TaskForm({ form, projectId, artefact, updateTask, taskId, detectChange }: IProps) {
+export function TaskForm({ form, projectId, artefact, updateTask, taskId, detectChange, registerForExternalChanges }: IProps) {
     const { properties, required: requiredRootParameters } = artefact;
     const { register, errors, getValues, setValue, unregister, triggerValidation } = form;
     const [formValueKeys, setFormValueKeys] = useState<string[]>([]);
@@ -272,6 +276,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                         changeHandlers={changeHandlers}
                         initialValues={initialValues}
                         dependentValues={dependentValues}
+                        registerForExternalChanges={registerForExternalChanges}
                     />
                 ))}
 
@@ -297,6 +302,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                             changeHandlers={changeHandlers}
                             initialValues={initialValues}
                             dependentValues={dependentValues}
+                            registerForExternalChanges={registerForExternalChanges}
                         />
                     ))}
                 </AdvancedOptionsArea>

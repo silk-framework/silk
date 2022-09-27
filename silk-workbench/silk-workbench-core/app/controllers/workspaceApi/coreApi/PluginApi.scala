@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.silkframework.config.{CustomTask, TaskSpec}
-import org.silkframework.dataset.{Dataset, DatasetSpec}
+import org.silkframework.dataset.{Dataset, DatasetPluginAutoConfigurable, DatasetSpec}
 import org.silkframework.rule.input.{TransformInput, Transformer}
 import org.silkframework.rule.similarity.{Aggregator, DistanceMeasure}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
@@ -125,8 +125,10 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
     PluginRegistry.pluginDescriptionsById(pluginId, Some(Seq(classOf[TaskSpec], classOf[Dataset]))).headOption match {
       case Some(pluginDesc) =>
         implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
-        val resultJson = PluginListJsonFormat.serializePlugin(pluginDesc, addMarkdownDocumentation, overviewOnly = false,
+        var resultJson = PluginListJsonFormat.serializePlugin(pluginDesc, addMarkdownDocumentation, overviewOnly = false,
           taskType = PluginApiCache.taskTypeByClass(pluginDesc.pluginClass))
+        val autoConfigurable = classOf[DatasetPluginAutoConfigurable[_]].isAssignableFrom(pluginDesc.pluginClass)
+        resultJson += ("autoConfigurable" -> JsBoolean(autoConfigurable))
         result(pretty, resultJson)
       case None =>
         NotFound
