@@ -5,10 +5,12 @@ import {
     CardHeader,
     CardOptions,
     CardTitle,
+    ContextMenu,
     Checkbox,
     Divider,
     Icon,
     IconButton,
+    MenuItem,
     Spacing,
     Spinner,
     Table,
@@ -28,6 +30,7 @@ import {
     ActiveLearningReferenceLink,
     ActiveLearningReferenceLinks,
 } from "../activeLearning/LinkingRuleActiveLearning.typings";
+import {ReferenceLinkEntityUrisModal} from "./ReferenceLinkEntityUrisModal";
 
 interface LinkingRuleReferenceLinksProps {
     /** Title that is shown in the header. */
@@ -69,6 +72,7 @@ export const LinkingRuleReferenceLinks = ({
     const [showUncertainLinks, setShowUncertainLinks] = React.useState(false);
     const [showConfirmedOnly, setShowConfirmedOnly] = React.useState(false);
     const [showDeclinedOnly, setShowDeclinedOnly] = React.useState(false);
+    const [entityUrisToOpenInModal, setEntityUrisToOpenInModal] = React.useState<AnnotatedReferenceLink | undefined>(undefined)
     const [pagination, paginationElement, onTotalChange] = usePagination({
         initialPageSize: 10,
         pageSizes: [5, 10, 20, 50],
@@ -231,6 +235,10 @@ export const LinkingRuleReferenceLinks = ({
         return [extractLabel(false), extractLabel(true)];
     };
 
+    const openEntityUrisModal = (link: AnnotatedReferenceLink) => {
+        setEntityUrisToOpenInModal(link)
+    }
+
     const ReferenceLinksTable = () => {
         return (
             <>
@@ -313,6 +321,17 @@ export const LinkingRuleReferenceLinks = ({
                                                                   }}
                                                               />
                                                           ) : null}
+                                                          <ContextMenu
+                                                              data-test-id={`reference-link-more-menu-${rowIdx}`}
+                                                              togglerText={t("common.action.moreOptions", "Show more options")}
+                                                          >
+                                                              <MenuItem
+                                                                  data-test-id="show-entity-uris"
+                                                                  icon="item-viewdetails"
+                                                                  onClick={() => openEntityUrisModal(link)}
+                                                                  text={t("ReferenceLinks.showEntityUris.menuText")}
+                                                              />
+                                                          </ContextMenu>
                                                       </ToolbarSection>
                                                   </Toolbar>
                                               </TableCell>
@@ -336,6 +355,13 @@ export const LinkingRuleReferenceLinks = ({
                     <CardContent>{loading ? <Spinner /> : <ReferenceLinksTable />}</CardContent>
                 </>
             )}
+            {entityUrisToOpenInModal ?
+                <ReferenceLinkEntityUrisModal
+                    link={entityUrisToOpenInModal}
+                    onClose={() => setEntityUrisToOpenInModal(undefined)}
+                /> :
+                null
+            }
         </Card>
     );
 };

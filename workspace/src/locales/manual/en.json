@@ -909,6 +909,12 @@
         "certainOnly": "Certain",
         "uncertainOnly": "Uncertain",
         "removeLink": "Delete reference link",
-        "checkFeedback": "Re-evaluate feedback decision"
+        "checkFeedback": "Re-evaluate feedback decision",
+        "showEntityUris": {
+            "menuText": "Show entity URIs",
+            "modalTitle": "Reference link entity URIs",
+            "sourceEntity": "Source entity",
+            "targetEntity": "Target entity"
+        }
     }
 }
