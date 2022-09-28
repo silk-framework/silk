@@ -245,7 +245,7 @@ case class FrequentUpdatesActivityFactory(numberOfUpdates: Int = DEFAULT_UPDATES
 
   case class FrequentUpdatesActivity(task: ProjectTask[MessageTask]) extends Activity[String] {
 
-    override def initialValue: Option[String] = Some("")
+    override def initialValue: Option[String] = Some("0")
 
     override def run(context: ActivityContext[String])
                     (implicit userContext: UserContext): Unit = {
