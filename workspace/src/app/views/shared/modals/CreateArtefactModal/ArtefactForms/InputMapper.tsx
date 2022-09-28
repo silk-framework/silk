@@ -53,15 +53,25 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
     const { paramId, param } = parameter;
     const [externalValue, setExternalValue] = React.useState<{value: string, label?: string} | undefined>(undefined)
     const [show, setShow] = React.useState(true)
+    const [highlightInput, setHighlightInput] = React.useState(false)
     const initialOrExternalValue = externalValue ? externalValue.value : initialValues[paramId]?.value
     const initialValue =
         initialOrExternalValue != null
             ? stringValueAsJs(parameter.param.parameterType, initialOrExternalValue)
             : defaultValueAsJs(param);
 
+    let onChangeUsed = onChange
+    if(highlightInput) {
+        onChangeUsed = (value: any) => {
+            onChange(value)
+            setHighlightInput(false)
+        }
+    }
+
     useEffect(() => {
         const handleUpdates = (externalValue: {value: string, label?: string}) => {
             setExternalValue(externalValue)
+            setHighlightInput(true)
             onChange(stringValueAsJs(parameter.param.parameterType, externalValue.value))
         }
         registerForExternalChanges(paramId, handleUpdates)
@@ -78,8 +88,8 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
     const inputAttributes: IInputAttributes = {
         id: paramId,
         name: paramId,
-        intent: intent,
-        onChange: onChange,
+        intent: highlightInput ? "success" : intent,
+        onChange: onChangeUsed,
         defaultValue: initialValue,
     };
 
