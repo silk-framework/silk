@@ -43,9 +43,8 @@ import {workspaceSel} from "@ducks/workspace";
 import {requestSearchList} from "@ducks/workspace/requests";
 import {uppercaseFirstChar} from "../../../../utils/transformers";
 import {requestProjectMetadata} from "@ducks/shared/requests";
-import useErrorHandler from "../../../../hooks/useErrorHandler";
 import {requestAutoConfiguredDataset} from "./CreateArtefactModal.requests";
-import {NotificationsMenu} from "../../ApplicationNotifications/NotificationsMenu";
+import {diErrorMessage} from "@ducks/error/typings";
 
 const ignorableFields = new Set(["label", "description"]);
 
@@ -58,7 +57,6 @@ export function CreateArtefactModal() {
     const dispatch = useDispatch();
     const form = useForm();
 
-    const { registerError } = useErrorHandler();
     const [searchValue, setSearchValue] = useState("");
     const [idEnhancedDescription, setIdEnhancedDescription] = useState("");
     const [actionLoading, setActionLoading] = useState(false);
@@ -101,6 +99,20 @@ export function CreateArtefactModal() {
     const isEmptyWorkspace = useSelector(workspaceSel.isEmptyPageSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
     const externalParameterUpdateMap = React.useRef(new Map<string, (value: {value: string, label?: string}) => any>())
+    const NOTIFICATION_ID = "create-update-dialog"
+
+    const registerError = (errorId: string, errorMessage: string, error: any, notificationId: string) => {
+        const diServerMessage = diErrorMessage(error)
+        const errorDetails = diServerMessage ? ` Details: ${diServerMessage}` : ""
+        const m = errorMessage.trim().endsWith(".") ? `${errorMessage}${errorDetails}` : `${errorMessage.trim()}.${errorDetails}`
+        const newError = {
+            ...error,
+            errorMessage: m,
+            details: diErrorMessage(error),
+            cause: error
+        }
+        dispatch(commonOp.setModalError(newError))
+    }
 
     /** set the current Project when opening modal from a project
      * i.e project id already exists **/
@@ -114,7 +126,8 @@ export function CreateArtefactModal() {
                     registerError(
                         "CreateArtefactModal-fetch-project-meta-data",
                         "Could not fetch project information",
-                        e
+                        e,
+                        NOTIFICATION_ID
                     );
                 }
             })();
@@ -173,7 +186,7 @@ export function CreateArtefactModal() {
             const results = (await requestSearchList(payload)).results;
             return results;
         } catch (err) {
-            registerError("CreateArtefactModal-getWorkspaceProjects", "Could not fetch project list.", err);
+            registerError("CreateArtefactModal-getWorkspaceProjects", "Could not fetch project list.", err, NOTIFICATION_ID);
             return [];
         }
     };
@@ -503,7 +516,7 @@ export function CreateArtefactModal() {
                 }
             })
         } catch(ex) {
-            registerError("CreateArtefactModal.handleAutConfigure", "Auto-configuration has failed.", ex)
+            registerError("CreateArtefactModal.handleAutConfigure", "Auto-configuration has failed.", ex, NOTIFICATION_ID)
         } finally {
             setAutoConfigPending(false)
         }
@@ -526,9 +539,7 @@ export function CreateArtefactModal() {
         </Button>)
     }
 
-    const headerOptions: JSX.Element[] = [
-        <NotificationsMenu iconSize={"medium"} autoDisplayNotifications={false} />
-    ]
+    const headerOptions: JSX.Element[] = []
     if(selectedArtefactTitle && (selectedArtefact?.markdownDocumentation || selectedArtefact?.description)) {
         headerOptions.push(<IconButton
             name="item-question"
@@ -600,9 +611,9 @@ export function CreateArtefactModal() {
                 )
             }
             notifications={
-                (!!error.detail && (
+                ((!!error.detail || !!error.errorMessage) && (
                     <Notification
-                        message={t("common.messages.actionFailed", {
+                        message={error.errorMessage || t("common.messages.actionFailed", {
                             action: updateExistingTask ? t("common.action.update") : t("common.action.create"),
                             error: error.detail.replace(/^(assertion failed: )/, ""),
                         })}
