@@ -61,7 +61,8 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
         isRequestedSchema = output.requestedSchema.isDefined, abortIfErrorsOccur = task.data.abortIfErrorsOccur, context = context)
       outputTables.append(GenericEntityTable(transformedEntities, outputSchema, task))
 
-      for(objectMapping @ ObjectMapping(_, relativePath, _, childRules, _, _) <- rules) {
+      for(objectMapping @ ObjectMapping(_, _, _, childRules, _, _) <- rules
+          if childRules.typeRules.nonEmpty || childRules.propertyRules.nonEmpty) {
         val childOutputSchema =
           EntitySchema(
             typeUri = childRules.collectFirst { case tm: TypeMapping => tm.typeUri }.getOrElse(""),
