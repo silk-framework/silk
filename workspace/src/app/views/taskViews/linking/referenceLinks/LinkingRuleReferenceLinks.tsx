@@ -28,9 +28,9 @@ import { useTranslation } from "react-i18next";
 import { LabelProperties } from "./LinkingRuleReferenceLinks.typing";
 import {
     ActiveLearningReferenceLink,
-    ActiveLearningReferenceLinks,
+    ActiveLearningReferenceLinks, UnlabeledEntityLink,
 } from "../activeLearning/LinkingRuleActiveLearning.typings";
-import {ReferenceLinkEntityUrisModal} from "./ReferenceLinkEntityUrisModal";
+import {EntityLinkUrisModal} from "./EntityLinkUrisModal";
 
 interface LinkingRuleReferenceLinksProps {
     /** Title that is shown in the header. */
@@ -72,7 +72,7 @@ export const LinkingRuleReferenceLinks = ({
     const [showUncertainLinks, setShowUncertainLinks] = React.useState(false);
     const [showConfirmedOnly, setShowConfirmedOnly] = React.useState(false);
     const [showDeclinedOnly, setShowDeclinedOnly] = React.useState(false);
-    const [entityUrisToOpenInModal, setEntityUrisToOpenInModal] = React.useState<AnnotatedReferenceLink | undefined>(undefined)
+    const [entityUrisToOpenInModal, setEntityUrisToOpenInModal] = React.useState<UnlabeledEntityLink | undefined>(undefined)
     const [pagination, paginationElement, onTotalChange] = usePagination({
         initialPageSize: 10,
         pageSizes: [5, 10, 20, 50],
@@ -235,7 +235,7 @@ export const LinkingRuleReferenceLinks = ({
         return [extractLabel(false), extractLabel(true)];
     };
 
-    const openEntityUrisModal = (link: AnnotatedReferenceLink) => {
+    const openEntityUrisModal = (link: UnlabeledEntityLink) => {
         setEntityUrisToOpenInModal(link)
     }
 
@@ -356,7 +356,7 @@ export const LinkingRuleReferenceLinks = ({
                 </>
             )}
             {entityUrisToOpenInModal ?
-                <ReferenceLinkEntityUrisModal
+                <EntityLinkUrisModal
                     link={entityUrisToOpenInModal}
                     onClose={() => setEntityUrisToOpenInModal(undefined)}
                 /> :

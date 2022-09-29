@@ -1,17 +1,15 @@
 import {Button, SimpleDialog, FieldItem, TextField} from "@eccenca/gui-elements"
 import React from "react";
 import {useTranslation} from "react-i18next";
+import {UnlabeledEntityLink} from "../activeLearning/LinkingRuleActiveLearning.typings";
 
 interface Props {
-    link: {
-        source: string;
-        target: string;
-    }
+    link: UnlabeledEntityLink
     onClose: () => any
 }
 
 /** Shows the entity URIs of a reference link. */
-export const ReferenceLinkEntityUrisModal = ({link, onClose}: Props) => {
+export const EntityLinkUrisModal = ({link, onClose}: Props) => {
     const [t] = useTranslation()
 
     return <SimpleDialog

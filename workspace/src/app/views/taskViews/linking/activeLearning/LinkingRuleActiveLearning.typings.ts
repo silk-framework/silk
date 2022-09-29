@@ -40,10 +40,14 @@ export interface TypedPath {
 
 export type ActiveLearningDecisions = "positive" | "negative" | "unlabeled";
 
-/** A link candidate. */
-export interface ActiveLearningLinkCandidate {
+/** An unnamed link between two entities. */
+export interface UnlabeledEntityLink {
     source: string;
     target: string;
+}
+
+/** A link candidate. */
+export interface ActiveLearningLinkCandidate extends UnlabeledEntityLink {
     comparisons: ComparisonPair[];
     /** Reference link for source entity */
     sourceBrowserUrl?: string;

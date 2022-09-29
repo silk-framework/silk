@@ -10,6 +10,8 @@ import {
     HtmlContentBlock,
     Link,
     Markdown,
+    MenuItem,
+    ContextMenu,
     IconButton,
     InteractionGate,
     Notification,
@@ -36,7 +38,7 @@ import {
     ActiveLearningReferenceLink,
     ComparisonPair,
     ComparisonPairWithId,
-    TypedPath,
+    TypedPath, UnlabeledEntityLink,
 } from "../LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningContext } from "../contexts/LinkingRuleActiveLearningContext";
 import { EntityLink, EntityLinkPropertyPairValues } from "../../referenceLinks/LinkingRuleReferenceLinks.typing";
@@ -45,6 +47,7 @@ import ConnectionAvailable from "./../components/ConnectionAvailable";
 import { useTranslation } from "react-i18next";
 import utils from "../LinkingRuleActiveLearning.utils";
 import { ActiveLearningValueExamples, sameValues, highlightedTagColor } from "../shared/ActiveLearningValueExamples";
+import {EntityLinkUrisModal} from "../../referenceLinks/EntityLinkUrisModal";
 
 export const LinkingRuleActiveLearningFeedbackComponent = () => {
     const [t] = useTranslation();
@@ -57,6 +60,8 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
     /** The values of the selected entity link. */
     const [valuesToDisplay, setValuesToDisplay] = React.useState<ComparisonPair[] | undefined>();
     const [submittingEntityLink, setSubmittingEntityLink] = React.useState(false);
+    const [entityUrisToOpenInModal, setEntityUrisToOpenInModal] = React.useState<UnlabeledEntityLink | undefined>(undefined)
+
     const labelPropertyPairIds = new Set(labelPropertyPairs.map((lpp) => lpp.pairId));
     // When the component is inactive, show spinner
     const loading = activeLearningFeedbackContext.loadingLinkCandidate || submittingEntityLink;
@@ -113,6 +118,11 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
                 selectedDecision={(activeLearningFeedbackContext.selectedLink as ActiveLearningReferenceLink)?.decision}
                 cancel={activeLearningFeedbackContext.cancel}
                 toggleInfo={() => setShowInfo(!showInfo)}
+                showEntityUris={
+                    activeLearningFeedbackContext.selectedLink ?
+                        () => setEntityUrisToOpenInModal(activeLearningFeedbackContext.selectedLink) :
+                        undefined
+                }
             />
             <Divider />
             <CardContent>
@@ -164,6 +174,13 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
                         <Notification message={t("ActiveLearning.feedback.noSelection")} />
                     )}
                 </InteractionGate>
+                {entityUrisToOpenInModal ?
+                    <EntityLinkUrisModal
+                        link={entityUrisToOpenInModal}
+                        onClose={() => setEntityUrisToOpenInModal(undefined)}
+                    /> :
+                    null
+                }
             </CardContent>
         </Card>
     );
@@ -177,10 +194,12 @@ interface HeaderProps {
     cancel: () => any;
     /** Handler to toggle the info area. */
     toggleInfo: () => void;
+    /** If defined, adds a menu to show the entity URIs. */
+    showEntityUris?: () => any
 }
 
 /** TODO: Clean up sub-components */
-const Header = ({ disabledButtons, selectedDecision, cancel, toggleInfo }: HeaderProps) => {
+const Header = ({ disabledButtons, selectedDecision, cancel, toggleInfo, showEntityUris }: HeaderProps) => {
     const [t] = useTranslation();
     const positiveSelected = selectedDecision === "positive";
     const negativeSelected = selectedDecision === "negative";
@@ -204,6 +223,18 @@ const Header = ({ disabledButtons, selectedDecision, cancel, toggleInfo }: Heade
                     name={"item-question"}
                     onClick={() => toggleInfo()}
                 />
+                <ContextMenu
+                    data-test-id={"active-learning-feedback-more-menu"}
+                    togglerText={t("common.action.moreOptions", "Show more options")}
+                    disabled={!showEntityUris}
+                >
+                    {showEntityUris ? <MenuItem
+                        data-test-id="show-entity-uris"
+                        icon="item-viewdetails"
+                        onClick={showEntityUris}
+                        text={t("ReferenceLinks.showEntityUris.menuText")}
+                    /> : undefined}
+                </ContextMenu>
             </CardOptions>
         </CardHeader>
     );
