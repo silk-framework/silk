@@ -1,4 +1,4 @@
-import {IInputSource, IUiAnnotations} from "../shared/task.typings";
+import { IInputSource, IUiAnnotations } from "../shared/task.typings";
 import { IEntity, IOperatorNode, IOperatorNodeParameters, IValueInput, RuleLayout } from "../shared/rules/rule.typings";
 
 /** A linking rule. */
@@ -16,7 +16,7 @@ export interface ILinkingRule {
     /** Layout information of the link rule operators. */
     layout: RuleLayout;
     /** Visual annotations to be displayed in the editor. */
-    uiAnnotations: IUiAnnotations
+    uiAnnotations: IUiAnnotations;
 }
 
 export interface ISimilarityOperator extends IOperatorNode {

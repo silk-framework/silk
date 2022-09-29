@@ -1,9 +1,10 @@
-import { WhiteSpaceContainer, Spacing, Tag, Tooltip } from "@eccenca/gui-elements";
+import { WhiteSpaceContainer, Spacing, Tag, Tooltip, StringPreviewContentBlobToggler } from "@eccenca/gui-elements";
 import { NodeContentExtension } from "@eccenca/gui-elements/src/extensions/react-flow";
 import React from "react";
 import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements/src/configuration/constants";
 import { useTranslation } from "react-i18next";
 import { Link } from "carbon-components-react";
+import { EvaluationResultType } from "./LinkingRuleEvaluation";
 
 const highlightedContainerClass = `${eccgui}-container--highlighted`;
 
@@ -12,7 +13,7 @@ interface LinkRuleNodeEvaluationProps {
     /** Register for evaluation updates. */
     registerForEvaluationResults: (
         ruleOperatorId: string,
-        evaluationUpdate: (evaluationValues: string[][] | undefined) => any
+        evaluationUpdate: (evaluationValues: EvaluationResultType | undefined) => any
     ) => void;
     unregister: () => void;
     /** A URL to link to when there is no result found. */
@@ -30,7 +31,7 @@ export const LinkRuleNodeEvaluation = ({
     numberOfLinksToShow,
     noResultMsg,
 }: LinkRuleNodeEvaluationProps) => {
-    const [evaluationResult, setEvaluationResult] = React.useState<string[][] | undefined>([]);
+    const [evaluationResult, setEvaluationResult] = React.useState<EvaluationResultType | undefined>([]);
     const [t] = useTranslation();
 
     React.useEffect(() => {
@@ -51,7 +52,8 @@ export const LinkRuleNodeEvaluation = ({
         <NodeContentExtension isExpanded={true} data-test-id={`evaluationNode${ruleOperatorId}`}>
             {evaluationResult.length > 0 ? (
                 <ul>
-                    {evaluationResult.map((rowValues, idx) => {
+                    {evaluationResult.map((rowData, idx) => {
+                        const { value, error } = rowData;
                         return (
                             <li key={idx}>
                                 <WhiteSpaceContainer
@@ -63,23 +65,35 @@ export const LinkRuleNodeEvaluation = ({
                                     style={{ whiteSpace: "nowrap", overflow: "hidden" }}
                                 >
                                     <Tooltip
-                                        content={rowValues.join(" | ")}
+                                        content={error ?? value.join(" | ")}
                                         placement="top"
                                         rootBoundary="viewport"
                                         targetTagName="div"
                                     >
                                         <span>
-                                            {rowValues.map((value) => (
-                                                <Tag
-                                                    small={true}
-                                                    minimal={true}
-                                                    round={true}
-                                                    style={{ marginRight: "0.25rem" }}
-                                                    htmlTitle={""}
-                                                >
-                                                    {value}
-                                                </Tag>
-                                            ))}
+                                            {error ? (
+                                                <StringPreviewContentBlobToggler
+                                                    className="linking__error-description"
+                                                    content={error}
+                                                    previewMaxLength={10}
+                                                    fullviewContent={error}
+                                                    toggleExtendText={t("common.words.more", "more")}
+                                                    toggleReduceText={t("common.words.less", "less")}
+                                                    firstNonEmptyLineOnly={true}
+                                                />
+                                            ) : (
+                                                value.map((value) => (
+                                                    <Tag
+                                                        small={true}
+                                                        minimal={true}
+                                                        round={true}
+                                                        style={{ marginRight: "0.25rem" }}
+                                                        htmlTitle={""}
+                                                    >
+                                                        {value}
+                                                    </Tag>
+                                                ))
+                                            )}
                                         </span>
                                     </Tooltip>
                                 </WhiteSpaceContainer>
