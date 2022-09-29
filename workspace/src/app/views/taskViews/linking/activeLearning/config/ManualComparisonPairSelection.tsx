@@ -219,7 +219,11 @@ const PathAutoCompletion = ({
         if (!!path.current) {
             if (isValid.current) {
                 if (fetchValues) {
-                    fetchExampleValues();
+                    const currentPath = path.current
+                    setTimeout(
+                        () => fetchExampleValues(currentPath),
+                        1000
+                    )
                 }
                 changeManualPath(path.current, undefined, exampleValues.current ?? []);
             } else {
@@ -245,7 +249,11 @@ const PathAutoCompletion = ({
         updateState();
     }, []);
 
-    const fetchExampleValues = async () => {
+    const fetchExampleValues = async (forPath: string) => {
+        if(path.current !== forPath) {
+            // Path has changed in the meantime, do not fetch.
+            return
+        }
         const requestId = `${path.current}__${isValid.current}`;
         if (path.current && requestId !== exampleValuesRequestId.current) {
             exampleValues.current = [];

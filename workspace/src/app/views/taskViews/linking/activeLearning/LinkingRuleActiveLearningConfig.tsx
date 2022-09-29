@@ -31,7 +31,7 @@ import {
     ComparisionDataRow,
 } from "./components/ComparisionData";
 import { PropertyBox } from "./components/PropertyBox";
-import { ComparisonPair, ComparisonPairWithId, TypedPath } from "./LinkingRuleActiveLearning.typings";
+import {ComparisonPair, ComparisonPairs, ComparisonPairWithId, TypedPath} from "./LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningContext } from "./contexts/LinkingRuleActiveLearningContext";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 import {
@@ -45,6 +45,8 @@ import ConnectionAvailable from "./components/ConnectionAvailable";
 import { useTranslation } from "react-i18next";
 import utils from "./LinkingRuleActiveLearning.utils";
 import { ActiveLearningValueExamples, sameValues } from "./shared/ActiveLearningValueExamples";
+import {legacyApiEndpoint} from "../../../../utils/getApiEndpoint";
+import {connectWebSocket} from "../../../../services/websocketUtils";
 
 interface LinkingRuleActiveLearningConfigProps {
     projectId: string;
@@ -57,11 +59,9 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
     const [suggestions, setSuggestions] = React.useState<ComparisonPairWithId[]>([]);
     const [suggestionWarnings, setSuggestionsWarnings] = React.useState<string[]>([]);
-    const [loadSuggestions, setLoadSuggestions] = React.useState(true);
+    const [loadingSuggestions, setLoadingSuggestions] = React.useState(true);
     const [propertiesToCompare, setPropertiesToCompare] = React.useState<ComparisonPairWithId[]>(activeLearningContext.propertiesToCompare)
     const [t] = useTranslation();
-
-    const loadingSuggestions = activeLearningContext.comparisonPairsLoading || loadSuggestions;
 
     React.useEffect(() => {
         if (!activeLearningContext.comparisonPairsLoading) {
@@ -69,32 +69,45 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         }
     }, [activeLearningContext.comparisonPairsLoading]);
 
+    const toComparisonPairWithId = (cp: ComparisonPair) => {
+        return {
+            ...cp,
+            pairId: `${cp.source.path} ${cp.target.path} ${cp.source.valueType} ${cp.target.valueType}`,
+        };
+    };
+
+    React.useEffect(() => {
+        const query = `?project=${projectId}&task=${linkingTaskId}&activity=ActiveLearning-ComparisonPairs`
+        setLoadingSuggestions(true);
+        const updateSuggestions = (comparisonPairs: ComparisonPairs) => {
+            const suggestions = comparisonPairs.suggestedPairs.map((cp) => toComparisonPairWithId(cp));
+            setSuggestionsWarnings(comparisonPairs.warnings);
+            setSuggestions(suggestions);
+            if(suggestions.length > 0) {
+                setLoadingSuggestions(false);
+            }
+        }
+        return connectWebSocket(
+            legacyApiEndpoint(`/activities/valueUpdatesWebSocket${query}`),
+            legacyApiEndpoint(`/activities/valueUpdates${query}`),
+            updateSuggestions
+        )
+    }, [projectId, linkingTaskId])
+
     const loadCandidatePairs = async (projectId: string, taskId: string) => {
-        setLoadSuggestions(true);
         try {
             const comparisonPairs = (await activeLearningComparisonPairs(projectId, taskId)).data;
-            const toComparisonPairWithId = (cp: ComparisonPair) => {
-                return {
-                    ...cp,
-                    pairId: `${cp.source.path} ${cp.target.path} ${cp.source.valueType} ${cp.target.valueType}`,
-                };
-            };
             if (comparisonPairs.selectedPairs.length > 0 && propertiesToCompare.length === 0) {
                 setPropertiesToCompare(
                     comparisonPairs.selectedPairs.map((cp) => toComparisonPairWithId(cp))
                 );
             }
-            const suggestions = comparisonPairs.suggestedPairs.map((cp) => toComparisonPairWithId(cp));
-            setSuggestionsWarnings(comparisonPairs.warnings);
-            setSuggestions(suggestions);
         } catch (ex) {
             registerError(
                 "LinkingRuleActiveLearningConfig.loadCandidatePairs",
                 t("ActiveLearning.config.errors.fetchComparisionConfig"),
                 ex
             );
-        } finally {
-            setLoadSuggestions(false);
         }
     };
 
@@ -478,12 +491,17 @@ const SuggestionWidget = ({suggestions, loadingSuggestions, suggestionWarnings, 
                             </>
                         )}
                         {pathFilter.current ? (
-                            <div>
-                                <Tag onRemove={resetFilter}>
-                                    {pathFilter.current.label ?? pathFilter.current.path}
-                                </Tag>
-                                <Spacing size="small" />
-                            </div>
+                            <Toolbar>
+                                <ToolbarSection canGrow={pathFilter.current.isTarget} />
+                                <ToolbarSection>
+                                    <div>
+                                        <Tag onRemove={resetFilter}>
+                                            {pathFilter.current.label ?? pathFilter.current.path}
+                                        </Tag>
+                                        <Spacing size="small" />
+                                    </div>
+                                </ToolbarSection>
+                            </Toolbar>
                         ) : null}
                         {suggestions.length > 0 && (
                             <ComparisionDataContainer>
