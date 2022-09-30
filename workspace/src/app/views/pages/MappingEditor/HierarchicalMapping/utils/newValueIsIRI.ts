@@ -4,9 +4,13 @@ import {IIsValidNewOptionParams} from "../components/AutoComplete";
 
 /** Tests if the value is a relative or absolute IRI or URN? */
 export const newValueIsIRI = ({label}: IIsValidNewOptionParams) => {
+    valueIsIRI(label.replace(/^<|>$/g, ''))
+};
+
+export const valueIsIRI = (value: string) => {
     try {
-        if (label.length > 0) {
-            const uri = new URI(label.replace(/^<|>$/g, ''));
+        if (value.length > 0) {
+            const uri = new URI(value);
             return uri.is('resourceURI') || (uri.is('url') && uri.is('relative'));
         }
         return false;
