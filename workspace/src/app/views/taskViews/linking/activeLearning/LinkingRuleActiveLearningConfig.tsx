@@ -31,7 +31,7 @@ import {
     ComparisionDataRow,
 } from "./components/ComparisionData";
 import { PropertyBox } from "./components/PropertyBox";
-import {ComparisonPair, ComparisonPairs, ComparisonPairWithId, TypedPath} from "./LinkingRuleActiveLearning.typings";
+import { ComparisonPair, ComparisonPairs, ComparisonPairWithId, TypedPath } from "./LinkingRuleActiveLearning.typings";
 import { LinkingRuleActiveLearningContext } from "./contexts/LinkingRuleActiveLearningContext";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
 import {
@@ -45,23 +45,81 @@ import ConnectionAvailable from "./components/ConnectionAvailable";
 import { useTranslation } from "react-i18next";
 import utils from "./LinkingRuleActiveLearning.utils";
 import { ActiveLearningValueExamples, sameValues } from "./shared/ActiveLearningValueExamples";
-import {legacyApiEndpoint} from "../../../../utils/getApiEndpoint";
-import {connectWebSocket} from "../../../../services/websocketUtils";
+import { legacyApiEndpoint } from "../../../../utils/getApiEndpoint";
+import { connectWebSocket } from "../../../../services/websocketUtils";
 
 interface LinkingRuleActiveLearningConfigProps {
     projectId: string;
     linkingTaskId: string;
 }
 
+interface ComparisonPairState {
+    suggestions: ComparisonPairWithId[];
+    suggestionWarnings: string[];
+    propertiesToCompare: ComparisonPairWithId[];
+}
+
+interface ComparisonPairOverview {
+    nrSuggestions: number;
+    warnings: string;
+    nrSelected;
+}
+
 /** Allows to configure the property pairs for the active learning. */
 export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: LinkingRuleActiveLearningConfigProps) => {
     const { registerError } = useErrorHandler();
     const activeLearningContext = React.useContext(LinkingRuleActiveLearningContext);
-    const [suggestions, setSuggestions] = React.useState<ComparisonPairWithId[]>([]);
-    const [suggestionWarnings, setSuggestionsWarnings] = React.useState<string[]>([]);
     const [loadingSuggestions, setLoadingSuggestions] = React.useState(true);
-    const [propertiesToCompare, setPropertiesToCompare] = React.useState<ComparisonPairWithId[]>(activeLearningContext.propertiesToCompare)
+    const [comparisonPairState, setComparisonPairState] = React.useState<ComparisonPairState>({
+        suggestions: [],
+        suggestionWarnings: [],
+        propertiesToCompare: activeLearningContext.propertiesToCompare,
+    });
+    const comparisonPairStateOverview = React.useRef<ComparisonPairOverview>({
+        nrSuggestions: 0,
+        warnings: "",
+        nrSelected: 0,
+    });
     const [t] = useTranslation();
+
+    // Updates all or parts of the comparison pair state. Checks if the state will change first.
+    const updateComparisonPairState = (
+        stateUpdateFunction: (currentState: ComparisonPairState) => Partial<ComparisonPairState>
+    ) => {
+        setComparisonPairState((current) => {
+            const updatedState = stateUpdateFunction(current);
+            const overview = comparisonPairStateOverview.current;
+            let updatedOverviewProperties: Partial<ComparisonPairOverview> | undefined = undefined;
+            const update = (updated: Partial<ComparisonPairOverview>) => {
+                updatedOverviewProperties = {
+                    ...(updatedOverviewProperties ?? {}),
+                    ...updated,
+                };
+            };
+            if (updatedState.propertiesToCompare && updatedState.propertiesToCompare.length !== overview.nrSelected) {
+                update({ nrSelected: updatedState.propertiesToCompare.length });
+            }
+            if (updatedState.suggestions && updatedState.suggestions.length !== overview.nrSuggestions) {
+                update({ nrSuggestions: updatedState.suggestions.length });
+            }
+            if (updatedState.suggestionWarnings && updatedState.suggestionWarnings.join(" ") !== overview.warnings) {
+                update({ warnings: updatedState.suggestionWarnings.join(" ") });
+            }
+            if (updatedOverviewProperties) {
+                // Only update if one of the overview parameters has changed. This should avoid updating twice in a row (websocket and programmatically)
+                comparisonPairStateOverview.current = {
+                    ...comparisonPairStateOverview.current,
+                    ...(updatedOverviewProperties as Partial<ComparisonPairOverview>),
+                };
+                return {
+                    ...current,
+                    ...updatedState,
+                };
+            } else {
+                return current;
+            }
+        });
+    };
 
     React.useEffect(() => {
         if (!activeLearningContext.comparisonPairsLoading) {
@@ -77,30 +135,37 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     };
 
     React.useEffect(() => {
-        const query = `?project=${projectId}&task=${linkingTaskId}&activity=ActiveLearning-ComparisonPairs`
+        const query = `?project=${projectId}&task=${linkingTaskId}&activity=ActiveLearning-ComparisonPairs`;
         setLoadingSuggestions(true);
         const updateSuggestions = (comparisonPairs: ComparisonPairs) => {
             const suggestions = comparisonPairs.suggestedPairs.map((cp) => toComparisonPairWithId(cp));
-            setSuggestionsWarnings(comparisonPairs.warnings);
-            setSuggestions(suggestions);
-            if(suggestions.length > 0) {
-                setLoadingSuggestions(false);
-            }
-        }
+            // Postpone update a little bit to avoid race condition with updates right after an add or remove action
+            setTimeout(() => {
+                updateComparisonPairState(() => {
+                    return {
+                        suggestionWarnings: comparisonPairs.warnings,
+                        suggestions: suggestions,
+                    };
+                });
+                if (suggestions.length > 0) {
+                    setLoadingSuggestions(false);
+                }
+            }, 5);
+        };
         return connectWebSocket(
             legacyApiEndpoint(`/activities/valueUpdatesWebSocket${query}`),
             legacyApiEndpoint(`/activities/valueUpdates${query}`),
             updateSuggestions
-        )
-    }, [projectId, linkingTaskId])
+        );
+    }, [projectId, linkingTaskId]);
 
     const loadCandidatePairs = async (projectId: string, taskId: string) => {
         try {
             const comparisonPairs = (await activeLearningComparisonPairs(projectId, taskId)).data;
-            if (comparisonPairs.selectedPairs.length > 0 && propertiesToCompare.length === 0) {
-                setPropertiesToCompare(
-                    comparisonPairs.selectedPairs.map((cp) => toComparisonPairWithId(cp))
-                );
+            if (comparisonPairs.selectedPairs.length > 0 && comparisonPairState.propertiesToCompare.length === 0) {
+                updateComparisonPairState(() => ({
+                    propertiesToCompare: comparisonPairs.selectedPairs.map((cp) => toComparisonPairWithId(cp)),
+                }));
             }
         } catch (ex) {
             registerError(
@@ -114,7 +179,9 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
     const addComparisonPair = React.useCallback(async (pair: ComparisonPairWithId): Promise<boolean> => {
         try {
             await addActiveLearningComparisonPair(projectId, linkingTaskId, pair);
-            setPropertiesToCompare((current) => [...current, pair]);
+            updateComparisonPairState((current) => ({
+                propertiesToCompare: [...current.propertiesToCompare, pair],
+            }));
             return true;
         } catch (ex) {
             registerError(
@@ -126,34 +193,43 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
         }
     }, []);
 
-    const removePair = React.useCallback(async (pairId: string) => {
-        try {
-            const pair = propertiesToCompare.find((pair) => pair.pairId === pairId);
-            if (pair) {
-                await removeActiveLearningComparisonPair(projectId, linkingTaskId, pair);
-                setPropertiesToCompare( propertiesToCompare =>
-                    propertiesToCompare.filter((pair) => pair.pairId !== pairId)
-                );
-                // Add again to top of list, so the user can re-add immediately
-                setSuggestions(suggestions => [pair, ...suggestions]);
-            }
-        } catch (error) {
-            registerError("ActiveLearningFeedback.removePair", "Removing comparison pair has failed.", error)
-        }
-    }, [propertiesToCompare]);
-
-    const addSuggestion = React.useCallback(async (pairId: string) => {
-        const pairToAdd = suggestions.find((s) => s.pairId === pairId);
-        if (pairToAdd) {
+    const removePair = React.useCallback(
+        async (pairId: string) => {
             try {
-                await addActiveLearningComparisonPair(projectId, linkingTaskId, pairToAdd);
-                setSuggestions(suggestions => suggestions.filter((s) => s.pairId !== pairId));
-                setPropertiesToCompare(propertiesToCompare => [...propertiesToCompare, pairToAdd]);
+                const pair = comparisonPairState.propertiesToCompare.find((pair) => pair.pairId === pairId);
+                if (pair) {
+                    await removeActiveLearningComparisonPair(projectId, linkingTaskId, pair);
+                    updateComparisonPairState((current) => ({
+                        propertiesToCompare: current.propertiesToCompare.filter((pair) => pair.pairId !== pairId),
+                        // Add again to top of list, so the user can re-add immediately
+                        suggestions: [pair, ...current.suggestions],
+                    }));
+                }
             } catch (error) {
-                registerError("ActiveLearningFeedback.addSuggestion", "Adding suggestion has failed.", error)
+                registerError("ActiveLearningFeedback.removePair", "Removing comparison pair has failed.", error);
             }
-        }
-    }, [suggestions, propertiesToCompare]);
+        },
+        [comparisonPairState.propertiesToCompare]
+    );
+
+    const addSuggestion = React.useCallback(
+        async (pairId: string) => {
+            const pairToAdd = comparisonPairState.suggestions.find((s) => s.pairId === pairId);
+            if (pairToAdd) {
+                try {
+                    await addActiveLearningComparisonPair(projectId, linkingTaskId, pairToAdd);
+                    updateComparisonPairState((current) => ({
+                        propertiesToCompare: [...current.propertiesToCompare, pairToAdd],
+                        // Add again to top of list, so the user can re-add immediately
+                        suggestions: current.suggestions.filter((s) => s.pairId !== pairId),
+                    }));
+                } catch (error) {
+                    registerError("ActiveLearningFeedback.addSuggestion", "Adding suggestion has failed.", error);
+                }
+            }
+        },
+        [comparisonPairState.suggestions, comparisonPairState.propertiesToCompare]
+    );
 
     const Title = () => {
         return (
@@ -175,10 +251,10 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         <Spacing vertical={true} size="small" />
                         <Button
                             affirmative={true}
-                            disabled={propertiesToCompare.length === 0}
+                            disabled={comparisonPairState.propertiesToCompare.length === 0}
                             onClick={() => {
-                                activeLearningContext.setPropertiesToCompare(propertiesToCompare)
-                                activeLearningContext.navigateTo("linkLearning")
+                                activeLearningContext.setPropertiesToCompare(comparisonPairState.propertiesToCompare);
+                                activeLearningContext.navigateTo("linkLearning");
                             }}
                         >
                             {activeLearningContext.learningStarted
@@ -196,7 +272,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             <Title />
             <Spacing />
             <SelectedPropertiesWidget
-                propertiesToCompare={propertiesToCompare}
+                propertiesToCompare={comparisonPairState.propertiesToCompare}
                 removePair={removePair}
             />
             <Spacing />
@@ -207,9 +283,9 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
             />
             <Spacing />
             <SuggestionWidget
-                suggestions={suggestions}
+                suggestions={comparisonPairState.suggestions}
                 loadingSuggestions={loadingSuggestions}
-                suggestionWarnings={suggestionWarnings}
+                suggestionWarnings={comparisonPairState.suggestionWarnings}
                 addSuggestion={addSuggestion}
             />
         </Section>
@@ -217,13 +293,13 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
 };
 
 interface SelectedPropertyPairProps {
-    pair: ComparisonPairWithId
-    remove: () => any
+    pair: ComparisonPairWithId;
+    remove: () => any;
 }
 
 /** A single comparison pair in the selected pair list. */
 const SelectedPropertyPair = ({ pair, remove }: SelectedPropertyPairProps) => {
-    const [t] = useTranslation()
+    const [t] = useTranslation();
     const sameExampleValues = sameValues(pair.sourceExamples.flat(), pair.targetExamples.flat());
     return (
         <ComparisionDataRow className="diapp-linking-learningdata__row-body">
@@ -237,12 +313,7 @@ const SelectedPropertyPair = ({ pair, remove }: SelectedPropertyPairProps) => {
                 <ConnectionEnabled
                     label={utils.comparisonType(pair)}
                     actions={
-                        <IconButton
-                            text={t("common.action.remove")}
-                            name={"item-remove"}
-                            disruptive
-                            onClick={remove}
-                        />
+                        <IconButton text={t("common.action.remove")} name={"item-remove"} disruptive onClick={remove} />
                     }
                 />
             </ComparisionDataConnection>
@@ -257,13 +328,13 @@ const SelectedPropertyPair = ({ pair, remove }: SelectedPropertyPairProps) => {
 };
 
 interface SelectedPropertiesWidgetProps {
-    propertiesToCompare: ComparisonPairWithId[]
-    removePair: (pairId: string) => any
+    propertiesToCompare: ComparisonPairWithId[];
+    removePair: (pairId: string) => any;
 }
 
 /** Shows the selected comparison pairs used for active learning. */
-const SelectedPropertiesWidget = ({propertiesToCompare, removePair}: SelectedPropertiesWidgetProps) => {
-    const [t] = useTranslation()
+const SelectedPropertiesWidget = ({ propertiesToCompare, removePair }: SelectedPropertiesWidgetProps) => {
+    const [t] = useTranslation();
 
     return (
         <Card elevation={0}>
@@ -274,8 +345,7 @@ const SelectedPropertiesWidget = ({propertiesToCompare, removePair}: SelectedPro
             <CardContent>
                 <ComparisionDataContainer>
                     <ComparisonPairTableHeader />
-                    {(!propertiesToCompare ||
-                        propertiesToCompare.length === 0) && (
+                    {(!propertiesToCompare || propertiesToCompare.length === 0) && (
                         <>
                             <Spacing size="small" />
                             <InfoWidget />
@@ -297,7 +367,7 @@ const SelectedPropertiesWidget = ({propertiesToCompare, removePair}: SelectedPro
 };
 
 const InfoWidget = () => {
-    const [t] = useTranslation()
+    const [t] = useTranslation();
     return <Notification message={t("ActiveLearning.config.entitiyPair.info")} />;
 };
 
@@ -305,17 +375,17 @@ interface SuggestedPathSelectionProps {
     pair: ComparisonPairWithId;
     filterByPath: (path: string, isTarget: boolean) => any;
     isActiveFilterCheck: (path: string, isTarget: boolean) => any;
-    addSuggestion: (pairId: string) => any
+    addSuggestion: (pairId: string) => any;
 }
 
 /** A comparison pair of the suggested pairs. */
 const SuggestedPathSelection = ({
-                                    pair,
-                                    filterByPath,
-                                    isActiveFilterCheck,
-                                    addSuggestion
-                                }: SuggestedPathSelectionProps) => {
-    const [t] = useTranslation()
+    pair,
+    filterByPath,
+    isActiveFilterCheck,
+    addSuggestion,
+}: SuggestedPathSelectionProps) => {
+    const [t] = useTranslation();
     const sameExampleValues = sameValues(pair.sourceExamples.flat(), pair.targetExamples.flat());
     return (
         <ComparisionDataRow className="diapp-linking-learningdata__row-body">
@@ -352,12 +422,12 @@ const SuggestedPathSelection = ({
 
 /** A property of a comparison pair. */
 const SelectedProperty = ({
-                              property,
-                              exampleValues,
-                              filterByPath,
-                              isActiveFilter,
-                              datasink,
-                          }: {
+    property,
+    exampleValues,
+    filterByPath,
+    isActiveFilter,
+    datasink,
+}: {
     property: TypedPath;
     exampleValues: string[];
     sameExampleValues: Set<string>;
@@ -387,20 +457,23 @@ const SelectedProperty = ({
 };
 
 interface SuggestionWidgetProps {
-    suggestions: ComparisonPairWithId[]
-    loadingSuggestions: boolean
-    suggestionWarnings: string[]
-    addSuggestion: (suggestionPair: string) => any
+    suggestions: ComparisonPairWithId[];
+    loadingSuggestions: boolean;
+    suggestionWarnings: string[];
+    addSuggestion: (suggestionPair: string) => any;
 }
 
 /** Shows the comparison pair suggestion list. */
-const SuggestionWidget = ({suggestions, loadingSuggestions, suggestionWarnings, addSuggestion}: SuggestionWidgetProps) => {
-    const [t] = useTranslation()
+const SuggestionWidget = ({
+    suggestions,
+    loadingSuggestions,
+    suggestionWarnings,
+    addSuggestion,
+}: SuggestionWidgetProps) => {
+    const [t] = useTranslation();
     const [showInfo, setShowInfo] = React.useState<boolean>(false);
     const pathFilter = React.useRef<{ path: string; isTarget: boolean; label?: string } | undefined>(undefined);
-    const [filteredSuggestions, setFilteredSuggestions] = React.useState<ComparisonPairWithId[] | undefined>(
-        undefined
-    );
+    const [filteredSuggestions, setFilteredSuggestions] = React.useState<ComparisonPairWithId[] | undefined>(undefined);
 
     React.useEffect(() => {
         if (!showInfo && suggestions.length === 0) {
@@ -431,14 +504,17 @@ const SuggestionWidget = ({suggestions, loadingSuggestions, suggestionWarnings, 
         return current && current.path === path && current.isTarget === isTarget;
     };
 
-    const filterByPath = React.useCallback((path: string, isTarget: boolean) => {
-        if (isActiveFilter(path, isTarget)) {
-            // Reset filter when same path is clicked again
-            resetFilter();
-        } else {
-            filterSuggestions(path, isTarget);
-        }
-    }, [suggestions]);
+    const filterByPath = React.useCallback(
+        (path: string, isTarget: boolean) => {
+            if (isActiveFilter(path, isTarget)) {
+                // Reset filter when same path is clicked again
+                resetFilter();
+            } else {
+                filterSuggestions(path, isTarget);
+            }
+        },
+        [suggestions]
+    );
 
     return (
         <Card elevation={0}>
@@ -483,8 +559,8 @@ const SuggestionWidget = ({suggestions, loadingSuggestions, suggestionWarnings, 
                                 >
                                     {suggestions.length > 0
                                         ? t("ActiveLearning.config.suggestions.foundSuggestions", {
-                                            count: suggestions.length,
-                                        })
+                                              count: suggestions.length,
+                                          })
                                         : t("ActiveLearning.config.suggestions.emptyList")}
                                 </Notification>
                                 <Spacing size="small" />
@@ -507,15 +583,17 @@ const SuggestionWidget = ({suggestions, loadingSuggestions, suggestionWarnings, 
                             <ComparisionDataContainer>
                                 <ComparisonPairTableHeader />
                                 <ComparisionDataBody>
-                                    {(filteredSuggestions ?? suggestions).map((suggestion) => (
-                                        <SuggestedPathSelection
-                                            key={suggestion.pairId}
-                                            pair={suggestion}
-                                            filterByPath={filterByPath}
-                                            isActiveFilterCheck={isActiveFilter}
-                                            addSuggestion={addSuggestion}
-                                        />
-                                    ))}
+                                    {(filteredSuggestions ?? suggestions).map((suggestion) => {
+                                        return (
+                                            <SuggestedPathSelection
+                                                key={suggestion.pairId}
+                                                pair={suggestion}
+                                                filterByPath={filterByPath}
+                                                isActiveFilterCheck={isActiveFilter}
+                                                addSuggestion={addSuggestion}
+                                            />
+                                        );
+                                    })}
                                 </ComparisionDataBody>
                             </ComparisionDataContainer>
                         )}
@@ -524,12 +602,12 @@ const SuggestionWidget = ({suggestions, loadingSuggestions, suggestionWarnings, 
             </CardContent>
         </Card>
     );
-}
+};
 
 /** Shows warnings regarding the suggestions. */
 const SuggestionsWarningModal = ({ warnings }: { warnings: string[] }) => {
     const [showWarningsModal, setShowWarningsModal] = React.useState<boolean>(false);
-    const [t] = useTranslation()
+    const [t] = useTranslation();
 
     if (warnings.length === 0) {
         return <></>;
@@ -567,7 +645,7 @@ const SuggestionsWarningModal = ({ warnings }: { warnings: string[] }) => {
 
 /** The header for the selected and suggested comparison pair lists. */
 const ComparisonPairTableHeader = () => {
-    const [t] = useTranslation()
+    const [t] = useTranslation();
     return (
         <ComparisionDataHead>
             <ComparisionDataRow>

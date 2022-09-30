@@ -57,7 +57,7 @@ export const LinkingRuleActiveLearning = ({
     const [t] = useTranslation();
     const prefLang = useSelector(commonSel.localeSelector);
     const [taskData, setTaskData] = React.useState<TaskPlugin<ILinkingTaskParameters> | undefined>(undefined);
-    const [loading, setLoading] = React.useState(false);
+    const [loading, setLoading] = React.useState(true);
     const [selectedPropertyPairs, setSelectedPropertyPairs] = React.useState<ComparisonPairWithId[]>([]);
     const [activeLearningStep, setActiveLearningStep] = React.useState<ActiveLearningStep>("config");
     /** The source paths of the label values that should be displayed in the UI for each entity in a link. */
