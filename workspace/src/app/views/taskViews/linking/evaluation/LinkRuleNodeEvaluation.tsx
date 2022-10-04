@@ -5,7 +5,6 @@ import {
     Tooltip,
     Icon,
     OverflowText,
-    OverviewItem,
     OverviewItemLine,
 } from "@eccenca/gui-elements";
 import { NodeContentExtension } from "@eccenca/gui-elements/src/extensions/react-flow";
