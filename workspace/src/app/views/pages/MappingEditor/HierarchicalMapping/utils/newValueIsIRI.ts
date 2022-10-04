@@ -4,7 +4,9 @@ import {IIsValidNewOptionParams} from "../components/AutoComplete";
 
 /** Tests if the value is a relative or absolute IRI or URN? */
 export const newValueIsIRI = ({label}: IIsValidNewOptionParams) => {
-    valueIsIRI(label.replace(/^<|>$/g, ''))
+    return typeof label === "string" ?
+        valueIsIRI(label.replace(/^<|>$/g, '')) :
+        false
 };
 
 export const valueIsIRI = (value: string) => {
