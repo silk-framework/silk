@@ -3,7 +3,7 @@ import WS from "jest-websocket-mock";
 import { waitFor } from "@testing-library/react";
 
 describe("websocketUtils", () => {
-    xit("should convert to a correct websocket URL given a http URL", () => {
+    it("should convert to a correct websocket URL given a http URL", () => {
         expect(convertToWebsocketUrl("https://websocketserver.com")).toBe("wss://websocketserver.com");
         expect(convertToWebsocketUrl("http://websocketserver.com")).toBe("ws://websocketserver.com");
         expect(convertToWebsocketUrl("http://websocketserver.com/path/")).toBe("ws://websocketserver.com/path/");
