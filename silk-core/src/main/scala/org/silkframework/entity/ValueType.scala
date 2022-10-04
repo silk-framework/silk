@@ -154,6 +154,15 @@ object ValueType {
     }
   }
 
+  def plainValueTypeById(valueTypeId: String): ValueType = {
+    valueTypeById(valueTypeId) match {
+      case Right(valueType) =>
+        valueType
+      case Left(_) =>
+        throw new IllegalArgumentException(s"Value type ID '$valueTypeId' is not a plain value type.")
+    }
+  }
+
   /**
     * XML serialization of value types.
     */

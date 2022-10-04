@@ -129,4 +129,10 @@ class ActivityMonitor[T](name: String,
       case _ => None
     }
   }
+
+  /**
+    * The user that started the activity.
+    * Refers to the empty user until the activity has been started the first time.
+    */
+  override def startedBy: UserContext = UserContext.Empty
 }

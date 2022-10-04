@@ -13,7 +13,7 @@ abstract class GlobalWorkspaceActivityFactory[ActivityType <: HasValue : ClassTa
   /**
     * Returns the type of generated activity.
     */
-  def activityType: Class[_] = implicitly[ClassTag[ActivityType]].runtimeClass
+  override def activityType: Class[_] = implicitly[ClassTag[ActivityType]].runtimeClass
 
   /** True, if this activity shall be executed automatically after startup */
   def autoRun: Boolean = false

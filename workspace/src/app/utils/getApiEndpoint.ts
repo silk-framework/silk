@@ -40,6 +40,10 @@ export const resourcesLegacyApi = (relativePath: string) => {
     return rootPath("/resources") + prependSlash(relativePath);
 };
 
+export const learningApi = (relativePath: string) => {
+    return apiPath("/learning") + prependSlash(relativePath);
+};
+
 /** In order to build correct paths this function will prepend a slash before the relative path if it's missing. */
 export const prependSlash = (relativePath: string): string => {
     if (relativePath.startsWith("/") || relativePath.startsWith("?")) {
@@ -48,6 +52,7 @@ export const prependSlash = (relativePath: string): string => {
         return "/" + relativePath;
     }
 };
+
 
 /**
  * @param query

@@ -14,13 +14,16 @@ import { fetch } from "./fetch/fetch";
 export const connectWebSocket = <T>(
     webSocketUrl: string,
     pollingUrl: string,
-    updateFunc: (updateItem: T) => any
+    updateFunc: (updateItem: T, cleanUp: CleanUpFunction) => any
 ): CleanUpFunction => {
     const cleanUpFunctions: CleanUpFunction[] = [];
+    const cleanUp = () => {
+        cleanUpFunctions.forEach((cleanUpFn) => cleanUpFn());
+    };
     const fixedWebSocketUrl = convertToWebsocketUrl(webSocketUrl);
     const websocket = new WebSocket(fixedWebSocketUrl);
     websocket.onmessage = function (evt) {
-        updateFunc(JSON.parse(evt.data));
+        updateFunc(JSON.parse(evt.data), cleanUp);
     };
 
     websocket.onerror = function (event) {
@@ -47,9 +50,7 @@ export const connectWebSocket = <T>(
         websocket.onerror = null;
         websocket.close(1000, "Closing web socket connection.");
     });
-    return () => {
-        cleanUpFunctions.forEach((cleanUpFn) => cleanUpFn());
-    };
+    return cleanUp;
 };
 
 export const convertToWebsocketUrl = (url: string): string => {

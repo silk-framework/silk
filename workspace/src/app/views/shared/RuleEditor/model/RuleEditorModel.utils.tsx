@@ -1,7 +1,7 @@
 import React from "react";
-import {IHandleProps} from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
-import {ArrowHeadType, Edge, FlowElement, Position} from "react-flow-renderer";
-import {rangeArray} from "../../../../utils/basicUtils";
+import { IHandleProps } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
+import { ArrowHeadType, Edge, FlowElement, Position } from "react-flow-renderer";
+import { rangeArray } from "../../../../utils/basicUtils";
 import {
     IParameterSpecification,
     IRuleNodeData,
@@ -10,13 +10,13 @@ import {
     RuleOperatorNodeParameters,
     RuleOperatorPluginType,
 } from "../RuleEditor.typings";
-import {RuleNodeMenu} from "../view/ruleNode/RuleNodeMenu";
-import {RuleEditorNode, RuleEditorNodeParameterValue} from "./RuleEditorModel.typings";
-import {Connection, Elements, XYPosition} from "react-flow-renderer/dist/types";
+import { RuleNodeMenu } from "../view/ruleNode/RuleNodeMenu";
+import { RuleEditorNode, RuleEditorNodeParameterValue } from "./RuleEditorModel.typings";
+import { Connection, Elements, XYPosition } from "react-flow-renderer/dist/types";
 import dagre from "dagre";
-import {NodeContent, RuleNodeContentProps} from "../view/ruleNode/NodeContent";
-import {IconButton} from "@eccenca/gui-elements";
-import {RuleEditorEvaluationContextProps} from "../contexts/RuleEditorEvaluationContext";
+import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent";
+import { IconButton } from "@eccenca/gui-elements";
+import { RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
 
 /** Constants */
 
@@ -310,7 +310,7 @@ const elementEdges = (elements: Elements): Edge[] => {
 };
 
 // Layouts the nodes and returns a map with the new coordinates for the nodes
-const layoutGraph = (elements: Elements, zoomFactor: number): Map<string, XYPosition> => {
+const layoutGraph = (elements: Elements, zoomFactor: number, canvasId: string): Map<string, XYPosition> => {
     const g = new dagre.graphlib.Graph();
     // Init defaults
     g.setGraph({});
@@ -329,7 +329,7 @@ const layoutGraph = (elements: Elements, zoomFactor: number): Map<string, XYPosi
         const smaller = a.target === b.target ? aHandle < bHandle : a.target < b.target;
         return smaller ? -1 : 1;
     });
-    const sizes = nodeSizes(zoomFactor);
+    const sizes = nodeSizes(zoomFactor, canvasId);
     const addNode = (node: RuleEditorNode) => {
         g.setNode(node.id, {
             label: node.id,
@@ -359,8 +359,9 @@ const reactFlowNodeClass = "react-flow__node";
 const reactFlowNodeId = "data-id";
 
 /** Get the actual sizes of the nodes in the DOM corrected by the zoom-factor. */
-const nodeSizes = (zoomFactor: number): Map<string, Size> => {
-    const htmlNodes = document.getElementsByClassName(reactFlowNodeClass);
+const nodeSizes = (zoomFactor: number, canvasId: string): Map<string, Size> => {
+    const canvas = document.getElementById(canvasId);
+    const htmlNodes = canvas ? canvas.getElementsByClassName(reactFlowNodeClass) : [];
     const sizes = new Map<string, Size>();
     for (let i = 0; i < htmlNodes.length; i++) {
         const node = htmlNodes[i];
@@ -399,10 +400,10 @@ const findEdges = ({ elements, source, target, targetHandle }: FindEdgeParameter
 /** Layouts the nodes of the rule graph.
  *
  * Returns a map of the new node positions. */
-const autoLayout = (elements: Elements, zoomFactor: number): Map<string, XYPosition> => {
+const autoLayout = (elements: Elements, zoomFactor: number, canvasId: string): Map<string, XYPosition> => {
     const nodes = elementNodes(elements);
     const center = graphCenter(nodes.filter((n) => n.position).map((n) => n.position));
-    const newPositions = layoutGraph(elements, zoomFactor);
+    const newPositions = layoutGraph(elements, zoomFactor, canvasId);
     // Adapt positions so the graph is not rendered somewhere else, keep the original center
     const newCenter = graphCenter([...newPositions.values()]);
     if (center.x !== newCenter.x || center.y !== newCenter.y) {

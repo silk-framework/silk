@@ -1,7 +1,6 @@
 package org.silkframework.runtime.activity
 
 import java.util.logging.Logger
-
 import scala.reflect.ClassTag
 
 /**
@@ -49,4 +48,10 @@ trait ActivityContext[T] {
     * @param condition Evaluates the condition to wait for. Will be called frequently.
     */
   def blockUntil(condition: () => Boolean)
+
+  /**
+    * The user that started the activity.
+    * Refers to the empty user until the activity has been started the first time.
+    */
+  def startedBy: UserContext
 }

@@ -16,10 +16,14 @@ object AkkaUtils {
   /**
     * Creates an Akka Source from a Silk Observable
     */
-  def createSource[T](observable: Observable[T])
+  def createSource[T](observable: Observable[T], maxFrequency: Option[FiniteDuration] = None)
                      (implicit system: ActorSystem, mat: Materializer): Source[T, _] = {
     // Create new source
-    val actorSource = Source.actorRef(1, OverflowStrategy.dropHead)
+    var actorSource = Source.actorRef(1, OverflowStrategy.dropHead)
+    for(duration <- maxFrequency) {
+      actorSource = actorSource.throttle(1, duration)
+    }
+
     val (outActor, publisher) = actorSource.toMat(Sink.asPublisher(false))(Keep.both).run()
 
     // Subscribe to updates

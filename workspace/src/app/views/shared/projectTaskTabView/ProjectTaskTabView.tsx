@@ -244,6 +244,21 @@ export function ProjectTaskTabView({
         return locationParser.stringifyUrl(iframeUrl);
     };
 
+    const extendedViewActions: IViewActions = {
+        ...viewActions,
+        switchToView: (viewIdx) => {
+            // FIXME: Change to viewId when this component is switched to viewId instead of index
+            const view = viewsAndItemLink[viewIdx];
+            if (view) {
+                if (view.id) {
+                    changeTab(view.id);
+                } else {
+                    changeTab(view as IItemLink);
+                }
+            }
+        },
+    };
+
     let tabNr = 1;
 
     const tabsWidget = (projectId: string | undefined, taskId: string | undefined) => {
@@ -313,7 +328,7 @@ export function ProjectTaskTabView({
                             taskId &&
                             (taskViews ?? [])
                                 .find((v) => v.id === selectedTab)
-                                ?.render(projectId, taskId, viewActions, startFullscreen)
+                                ?.render(projectId, taskId, extendedViewActions, startFullscreen)
                         )
                     ) : isFetchingLinks ? (
                         <Loading />

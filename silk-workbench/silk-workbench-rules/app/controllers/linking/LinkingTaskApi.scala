@@ -16,12 +16,10 @@ import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{MetaData, PlainTask, Prefixes}
 import org.silkframework.dataset.Dataset
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.entity._
-import org.silkframework.learning.LearningActivity
-import org.silkframework.learning.active.ActiveLearning
+import org.silkframework.entity.paths.{TypedPath, UntypedPath}
 import org.silkframework.plugins.path.{PathMetaDataPlugin, StandardMetaDataPlugin}
-import org.silkframework.rule.evaluation.{LinkageRuleEvaluator, ReferenceEntities, ReferenceLinks}
+import org.silkframework.rule.evaluation.{ReferenceEntities, ReferenceLinks}
 import org.silkframework.rule.execution.{GenerateLinks => GenerateLinksActivity}
 import org.silkframework.rule.{DatasetSelection, LinkSpec, LinkageRule, RuntimeLinkingConfig}
 import org.silkframework.runtime.activity.{Activity, UserContext}
@@ -606,22 +604,6 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     Ok
   }
 
-  def learningActivity(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val task = project.task[LinkSpec](taskName)
-    task.activity[LearningActivity].control.start()
-    Ok
-  }
-
-  def activeLearningActivity(projectName: String, taskName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
-    val project = WorkspaceFactory().workspace.project(projectName)
-    val task = project.task[LinkSpec](taskName)
-    val learningActivity = task.activity[ActiveLearning]
-
-    learningActivity.control.start()
-    Ok
-  }
-
   // Get the project and linking task
   private def projectAndTask(projectName: String, taskName: String)
                             (implicit userContext: UserContext): (Project, ProjectTask[LinkSpec]) = {
@@ -643,12 +625,13 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
   }
 
   private def serializeLinks(entities: Traversable[DPair[Entity]],
-                             linkageRule: LinkageRule): JsValue = {
+                             linkageRule: LinkageRule,
+                             withEntitiesAndSchema: Boolean = false): JsValue = {
     implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
     JsArray(
       for(entities <- entities.toSeq) yield {
         val link = new FullLink(entities.source.uri, entities.target.uri, linkageRule(entities), entities)
-        new LinkJsonFormat(Some(linkageRule)).write(link)
+        new LinkJsonFormat(Some(linkageRule), writeEntities = withEntitiesAndSchema, writeEntitySchema = withEntitiesAndSchema).write(link)
       }
     )
   }
@@ -688,29 +671,30 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
                                 in = ParameterIn.PATH,
                                 schema = new Schema(implementation = classOf[String])
                               )
-                              taskName: String): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
+                              taskName: String,
+                              @Parameter(
+                                name = "withEntitiesAndSchema",
+                                description = "When set to true each link contains the entities and the schema",
+                                required = false,
+                                in = ParameterIn.QUERY,
+                                schema = new Schema(implementation = classOf[Boolean], defaultValue = "false"),
+                              )
+                              withEntitiesAndSchema: Boolean): Action[AnyContent] = RequestUserContextAction { request => implicit userContext =>
     val project = WorkspaceFactory().workspace.project(projectName)
     val task = project.task[LinkSpec](taskName)
     val rule = task.data.rule
 
     val referenceEntityCacheValue = updateAndGetReferenceEntityCacheValue(task, refreshCache = true)
-    val evaluationResult: LinkageRuleEvaluationResult = referenceLinkEvaluationScore(task.data.rule, referenceEntityCacheValue)
+    val evaluationResult: LinkageRuleEvaluationResult = LinkingTaskApiUtils.referenceLinkEvaluationScore(task.data.rule, referenceEntityCacheValue)
 
     val result =
       Json.obj(
-        "positive" -> serializeLinks(referenceEntityCacheValue.positiveEntities, rule),
-        "negative" -> serializeLinks(referenceEntityCacheValue.negativeEntities, rule),
+        "positive" -> serializeLinks(referenceEntityCacheValue.positiveEntities, rule, withEntitiesAndSchema),
+        "negative" -> serializeLinks(referenceEntityCacheValue.negativeEntities, rule, withEntitiesAndSchema),
         "evaluationScore" -> Json.toJson(evaluationResult)
       )
 
     Ok(result)
-  }
-
-  private def referenceLinkEvaluationScore(linkageRule: LinkageRule, referenceEntityCacheValue: ReferenceEntities): LinkageRuleEvaluationResult = {
-    val score = LinkageRuleEvaluator(linkageRule, referenceEntityCacheValue)
-    val evaluationResult = LinkageRuleEvaluationResult(score.truePositives, score.trueNegatives, score.falsePositives, score.falseNegatives,
-      f"${score.fMeasure}%.2f", f"${score.precision}%.2f", f"${score.recall}%.2f")
-    evaluationResult
   }
 
   @Operation(
@@ -754,7 +738,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
       def serialize(links: Traversable[DPair[Entity]]): JsValue = {
         serializeLinks(links.take(linkLimit), linkageRule)
       }
-      val evaluationResult: LinkageRuleEvaluationResult = referenceLinkEvaluationScore(linkageRule, referenceEntityCacheValue)
+      val evaluationResult: LinkageRuleEvaluationResult = LinkingTaskApiUtils.referenceLinkEvaluationScore(linkageRule, referenceEntityCacheValue)
 
       try {
         val result =

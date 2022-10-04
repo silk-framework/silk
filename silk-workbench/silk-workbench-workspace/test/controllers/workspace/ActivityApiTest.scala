@@ -1,8 +1,11 @@
 package controllers.workspace
 
 import controllers.errorReporting.ErrorReport.ErrorReportItem
+import controllers.workspace.FrequentUpdatesActivityFactory.{DEFAULT_INTERVAL, DEFAULT_UPDATES}
 import helper.IntegrationTestTrait
 import org.scalatest.BeforeAndAfterAll
+import org.scalatest.concurrent.Eventually
+import org.scalatest.time.{Seconds, Span}
 import org.scalatestplus.play.PlaySpec
 import org.silkframework.config.{CustomTask, MetaData}
 import org.silkframework.entity.EntitySchema
@@ -15,7 +18,9 @@ import org.silkframework.workspace.{Project, ProjectConfig, ProjectTask, Workspa
 import play.api.libs.json._
 import play.api.routing.Router
 
-class ActivityApiTest extends PlaySpec with ConfigTestTrait with IntegrationTestTrait with BeforeAndAfterAll {
+import java.time.Duration
+
+class ActivityApiTest extends PlaySpec with ConfigTestTrait with IntegrationTestTrait with BeforeAndAfterAll with Eventually {
 
   private val projectId = "project"
   private val taskId = "messageTask"
@@ -24,9 +29,12 @@ class ActivityApiTest extends PlaySpec with ConfigTestTrait with IntegrationTest
   private val failingWorkspaceActivity = "FailingWorkspaceActivityFactory"
   private val failingProjectActivity = "FailingProjectActivityFactory"
   private val failingTaskActivity = "FailingTaskActivityFactory"
+  private val frequentUpdatesActivity = "FrequentUpdatesActivityFactory"
   private val message = "Message"
 
   private val activityClient = new ActivityClient(baseUrl, projectId, taskId)
+
+  implicit override val patienceConfig: PatienceConfig = PatienceConfig(scaled(Span(30, Seconds)))
 
   override def initWorkspaceBeforeAll: Boolean = false
 
@@ -39,6 +47,7 @@ class ActivityApiTest extends PlaySpec with ConfigTestTrait with IntegrationTest
     PluginRegistry.registerPlugin(classOf[FailingWorkspaceActivityFactory])
     PluginRegistry.registerPlugin(classOf[FailingProjectActivityFactory])
     PluginRegistry.registerPlugin(classOf[FailingTaskActivityFactory])
+    PluginRegistry.registerPlugin(classOf[FrequentUpdatesActivityFactory])
 
     val project = WorkspaceFactory().workspace.createProject(ProjectConfig(projectId, metaData = MetaData.empty))
     project.addTask[MessageTask](taskId, MessageTask(message))
@@ -54,6 +63,7 @@ class ActivityApiTest extends PlaySpec with ConfigTestTrait with IntegrationTest
     PluginRegistry.unregisterPlugin(classOf[FailingWorkspaceActivityFactory])
     PluginRegistry.unregisterPlugin(classOf[FailingProjectActivityFactory])
     PluginRegistry.unregisterPlugin(classOf[FailingTaskActivityFactory])
+    PluginRegistry.unregisterPlugin(classOf[FrequentUpdatesActivityFactory])
 
     super.afterAll()
   }
@@ -138,6 +148,25 @@ class ActivityApiTest extends PlaySpec with ConfigTestTrait with IntegrationTest
     markdownReport must (include (projectId) and include (taskId) and include (failingTaskActivity) and include ("Planned exception") and include ("ActivityApiTest"))
   }
 
+  "push value updates into a WebSocket" in {
+    var count = 0
+    var lastValue: Int = 0
+
+    activityClient.start(frequentUpdatesActivity)
+    activityValueWebsocket(projectId, taskId, frequentUpdatesActivity) { value =>
+      count += 1
+      lastValue = value.as[JsString].value.toInt
+    }
+    activityClient.waitForActivity(frequentUpdatesActivity)
+
+    // Make sure that the final value has been received
+    eventually {
+      lastValue mustBe FrequentUpdatesActivityFactory.DEFAULT_UPDATES
+    }
+    // Make sure that throttling worked
+    count must equal (11 +- 5)
+  }
+
   override def workspaceProviderId: String = "inMemory"
 
   protected override def routes: Option[Class[_ <: Router]] = Some(classOf[testWorkspace.Routes])
@@ -218,4 +247,33 @@ case class FailingActivity() extends Activity[Unit] {
   override def run(context: ActivityContext[Unit])(implicit userContext: UserContext): Unit = {
     throw new PlannedException("Planned exception")
   }
+}
+
+case class FrequentUpdatesActivityFactory(numberOfUpdates: Int = DEFAULT_UPDATES,
+                                          interval: Duration = DEFAULT_INTERVAL) extends TaskActivityFactory[MessageTask, Activity[String]] {
+
+  def apply(task: ProjectTask[MessageTask]): Activity[String] = {
+    FrequentUpdatesActivity(task)
+  }
+
+  case class FrequentUpdatesActivity(task: ProjectTask[MessageTask]) extends Activity[String] {
+
+    override def initialValue: Option[String] = Some("0")
+
+    override def run(context: ActivityContext[String])
+                    (implicit userContext: UserContext): Unit = {
+      for(i <- 1 to numberOfUpdates) {
+        Thread.sleep(interval.toMillis)
+        context.value() = i.toString
+      }
+    }
+  }
+}
+
+object FrequentUpdatesActivityFactory {
+
+  final val DEFAULT_UPDATES = 100
+
+  final val DEFAULT_INTERVAL = Duration.ofMillis(100)
+
 }

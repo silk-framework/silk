@@ -226,6 +226,7 @@
             "exportTo": "Export to",
             "loadExampleProject": "Add \"movies\" example project",
             "logout": "Logout",
+            "remove": "Remove",
             "moreOptions": "Show more options",
             "openInNewTab": "Open link in new tab",
             "profilingStart": "Start profiling",
@@ -235,11 +236,14 @@
             "retry": "Retry",
             "save": "Save",
             "search": "Search",
+            "show": "Show",
             "showDetails": "Open details page",
             "submit": "Submit",
             "update": "Update",
             "showApiDoc": "API",
-            "copyClipboard": "Copy to clipboard"
+            "copyClipboard": "Copy to clipboard",
+            "filterOn": "Use as filter",
+            "filterOff": "Remove filter"
         },
         "app": {
             "build": "Workbench",
@@ -314,7 +318,9 @@
             "sortOptions": "Sort options",
             "summary": "Summary",
             "copied": "Copied",
-            "unlimited": "unlimited"
+            "unlimited": "unlimited",
+            "added": "Added",
+            "removed": "Removed"
         }
     },
     "form": {
@@ -798,6 +804,133 @@
         },
         "warnings": {
             "unsavedChanges": "There are unsaved changes. Do you still want to close the workflow editor?"
+        }
+    },
+    "ActiveLearning": {
+        "config": {
+            "title": "Configuration: Define properties to compare between entities of each data source",
+            "buttons": {
+                "startLearning": "Start learning",
+                "continueLearning": "Continue learning",
+                "resetTooltip": "Reset learning state",
+                "showInfo": "Show more information",
+                "closeInfo": "Close"
+            },
+            "errors": {
+                "fetchAutoCompletionResult": "An error occurred while trying to fetch path auto-completions.",
+                "invalidPath": "The path you have entered is invalid.",
+                "fetchComparisionConfig": "Could not fetch comparison config.",
+                "addFailed": "Adding comparison pair has failed."
+            },
+            "manualSelection": {
+                "title": "Add property paths pair",
+                "sourcePath": "Source path",
+                "targetPath": "Target path",
+                "info": "Specify property paths to be compared.",
+                "cannotAdd": "At least one paths is not valid.",
+                "insertPath": "Enter an input path"
+            },
+            "entitiyPair": {
+                "title": "Selected properties to compare entities",
+                "info": "Choose properties to compare. Select from the suggestions or add them by specifying property paths for both entities.",
+                "sourceColumnTitle": "Source dataset",
+                "targetColumnTitle": "Target dataset"
+            },
+            "suggestions": {
+                "title": "Add suggestions",
+                "foundSuggestions": "Found one comparison suggestion.",
+                "foundSuggestions_plural": "Found {{count}} comparison suggestions. Add them in the order you want to see them in the entity comparision later.",
+                "emptyList": "No suggestions available. You can add further comparison pairs manually by connection their property paths.",
+                "warningsTitle": "Warnings",
+                "warningsButton": "Show warnings"
+            }
+        },
+        "toolbar": {
+            "title": "Compare resources"
+        },
+        "bestLearnedRule": {
+            "title": "Top-performing learned rule",
+            "scoreInfo": "Score: {{score}}",
+            "titleTooltip": "The best rule that has been learned so far. The performance score ranges from 0.0 (worst) to 1.0 (best).",
+            "noRule": "No rule has been learned yet. You need to confirm/decline at least three candidate links for a rule to be learned.",
+            "hideRule": "Hide best learned rule",
+            "showRule": "Show best learned rule",
+            "showRuleFullscreen": "Show best learned rule in full-screen mode.",
+            "visualRuleTitle": "Best learned linking rule"
+        },
+        "feedback": {
+            "title": "Reference feedback",
+            "info": "Confirm or decline if the configured relation is correct between the entities. The colors of the connections indicate the equality score of the property values, equal values are highlighted. Properties can be marked so that one of the values is used for the title in the decision history table.",
+            "confirm": "Confirm",
+            "confirmDescription": "Confirm that the shown entities are a valid link.",
+            "decline": "Decline",
+            "declineDescription": "Decline that the shown entities are a valid link.",
+            "uncertain": "Uncertain",
+            "uncertainDescription": "Positive or negative link reference cannot be decided yet.",
+            "cancel": "Cancel selection and show next link candidate.",
+            "couldNotLoadCandidateError": "Could not load entity link candidate.",
+            "propertyConfiguration": "Configure which properties should be shown for reference feedback",
+            "noSelection": "No entity link selected and no further candidates left.",
+            "addToLabel": "Select property value to be part of the entity label",
+            "removeFromLabel": "Remove property value from entity label",
+            "scoreProbablyEqual": "probably equal",
+            "scoreProbablyUnequal": "probably unequal",
+            "sourceColumnTitle": "Source entity",
+            "targetColumnTitle": "Target entity",
+            "equalValues": "equal example values"
+        },
+        "referenceLinks": {
+            "title": "Decision history & reference links"
+        },
+        "resetDialog": {
+            "title": "Reset learning session",
+            "description": "This will reset the current learning session, e.g. changes made to the reference links and the configuration.",
+            "reset": "Reset",
+            "failed": "Could not reset learning session."
+        },
+        "saveDialog":{
+            "title": "Save reference links and/or best learned rule",
+            "saveReferenceLinks": {
+                "label": "Save reference links",
+                "noReferenceLinksMessage": "No unsaved reference links exist.",
+                "referenceLinksInfoMessage": "There are {{nr}} new, updated or deleted reference links that will be saved."
+            },
+            "bestLearnedRule": {
+                "label": "Save best learned rule",
+                "noBestLearnedRuleMessage": "No best learned rule exists so far."
+            },
+            "saveFailureMessage": "Saving the rule and/or the reference links has failed.",
+            "overwriteWarning": "Your current linking rule will be overwritten."
+        },
+        "sessionExistsModal": {
+            "title": "Existing session detected",
+            "description": "There is already an existing session running that you did not participate in, yet. Please be cautious."
+        },
+        "statistics": {
+            "fetchError": "Could not fetch active learning session infos.",
+            "noStats": "No session information available.",
+            "referenceLinksChangeStats": "Change statistics for reference links:",
+            "users": "Following users have contributed to the current active learning session:"
+        }
+    },
+    "ReferenceLinks": {
+        "mismatchCheckboxTitle": "Mismatches ({{nrMismatches}})",
+        "mismatchWithRule": "Current best rule decides differently",
+        "showList": "Show link list",
+        "hideList": "Hide link list",
+        "confirmedOnly": "Confirmed only ({{nr}})",
+        "declinedOnly": "Declined only ({{nr}})",
+        "confirmed": "Confirmed",
+        "declined": "Declined",
+        "certainOnly": "Certain",
+        "uncertainOnly": "Uncertain",
+        "removeLink": "Delete reference link",
+        "checkFeedback": "Re-evaluate feedback decision",
+        "showEntityUris": {
+            "menuText": "Show entity URIs",
+            "modalTitle": "Reference link entity URIs",
+            "sourceEntity": "Source entity",
+            "targetEntity": "Target entity"
         }
     }
 }
