@@ -69,7 +69,7 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
     }, [resetting]);
 
     const changeManualSourcePath = (value: string, label: string | undefined, exampleValues: string[]) => {
-        // TODO: How to fetch label and other meta data?
+        // FIXME: How to fetch label and other meta data?
         manualSourcePath.current = value
             ? { path: value, valueType: "StringValueType", label: label ?? value }
             : undefined;
@@ -78,7 +78,7 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
     };
 
     const changeManualTargetPath = (value: string, label: string | undefined, exampleValues: string[]) => {
-        // TODO: How to fetch label and other meta data?
+        // FIXME: How to fetch label and other meta data?
         manualTargetPath.current = value
             ? { path: value, valueType: "StringValueType", label: label ?? value }
             : undefined;

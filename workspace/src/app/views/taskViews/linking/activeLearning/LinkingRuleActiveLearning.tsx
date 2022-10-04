@@ -131,10 +131,10 @@ export const LinkingRuleActiveLearning = ({
             case "Successful":
                 break;
             case "Failed":
-                //TODO: Show warning to user in comparison pair widget
+                // Warning will be shown in the activity overview
                 break;
             case "Cancelled":
-                // TODO: Show warning to user
+                // do nothing
                 break;
             default:
                 // Wait

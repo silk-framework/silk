@@ -14,7 +14,6 @@ export interface ComparisonPairs {
 export interface ComparisonPair {
     source: TypedPath;
     target: TypedPath;
-    // TODO: nested arrays needed?
     sourceExamples: string[];
     targetExamples: string[];
     /** A confidence score that goes from -1.0 to 1.0 (not matching to optimal match) */

@@ -128,7 +128,7 @@ object AutoCompletionApiUtils {
           pathStack ::= f
         case BackwardOperator(_) =>
           if (pathStack.isEmpty) {
-            // TODO: What to do?
+            // Nothing we can do
           } else {
             pathStack = pathStack.tail
           }
