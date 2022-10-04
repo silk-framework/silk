@@ -791,14 +791,19 @@ const uriPatternValidation = (inputString: string) => {
 // Checks if the value path syntax is valid
 export const checkValuePathValidity = (inputString, projectId?: string): Promise<IValidationResult | undefined> => {
     return new Promise((resolve, reject) => {
-        pathValidation(inputString, projectId)
-            .then((response) => {
-                const payload = response?.data;
-                resolve(payload);
-            })
-            .catch((err) => {
-                reject(err);
-            });
+        if (!inputString) {
+            // Empty string is considered valid
+            resolve({ valid: true });
+        } else {
+            pathValidation(inputString, projectId)
+                .then((response) => {
+                    const payload = response?.data;
+                    resolve(payload);
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        }
     });
 };
 

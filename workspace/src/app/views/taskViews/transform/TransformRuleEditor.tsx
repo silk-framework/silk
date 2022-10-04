@@ -32,7 +32,7 @@ export interface TransformRuleEditorProps {
     viewActions?: IViewActions;
     /** After the initial fit to view, zoom to the specified Zoom level to avoid showing too small nodes. */
     initialFitToViewZoomLevel?: number;
-    /** The instance of the linking editor. This needs to be unique if multiple instances of the linking editor are displayed on the same page. */
+    /** The instance of the transform rule editor. This needs to be unique if multiple instances of the linking editor are displayed on the same page. */
     instanceId: string;
     /** Additional components that will be placed in the tool bar left to the save button. */
     additionalToolBarComponents?: () => JSX.Element | JSX.Element[];
