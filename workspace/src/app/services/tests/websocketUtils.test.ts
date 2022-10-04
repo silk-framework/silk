@@ -27,8 +27,8 @@ describe("websocketUtils", () => {
             },
             100
         );
-        await server.connected;
         const testMsg = `{"event": "testing"}`;
+        await server.connected;
         server.send(testMsg);
         server.close({ code: 1006, reason: "NOPE", wasClean: true });
         await server.closed;
