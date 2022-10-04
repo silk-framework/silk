@@ -50,7 +50,7 @@ export function InputMapper({ projectId, parameter, intent, onChange, initialVal
     const initialValue =
         initialValues[paramId] !== undefined
             ? stringValueAsJs(parameter.param.parameterType, initialValues[paramId].value)
-            : defaultValueAsJs(param);
+            : defaultValueAsJs(param, false);
 
     const inputAttributes: IInputAttributes = {
         id: paramId,

@@ -121,12 +121,20 @@ class PluginApi @Inject()() extends InjectedController with UserContextActions {
                in = ParameterIn.QUERY,
                schema = new Schema(implementation = classOf[Boolean], example = "true")
              )
-             pretty: Boolean): Action[AnyContent] = Action { implicit request =>
+             pretty: Boolean,
+             @Parameter(
+               name = "withLabels",
+               description = "If true, all plugin parameter values will be reified in a new object that has an optional label property. A label is added for all auto-completable parameters that have the 'autoCompleteValueWithLabels' property set to true. This guarantees that a user always sees the label of such values.",
+               required = false,
+               in = ParameterIn.QUERY,
+               schema = new Schema(implementation = classOf[Boolean])
+             )
+             withLabels: Boolean): Action[AnyContent] = Action { implicit request =>
     PluginRegistry.pluginDescriptionsById(pluginId, Some(Seq(classOf[TaskSpec], classOf[Dataset]))).headOption match {
       case Some(pluginDesc) =>
         implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
         val resultJson = PluginListJsonFormat.serializePlugin(pluginDesc, addMarkdownDocumentation, overviewOnly = false,
-          taskType = PluginApiCache.taskTypeByClass(pluginDesc.pluginClass))
+          taskType = PluginApiCache.taskTypeByClass(pluginDesc.pluginClass), withLabels = withLabels)
         result(pretty, resultJson)
       case None =>
         NotFound

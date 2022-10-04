@@ -1,22 +1,29 @@
 import { IArtefactItemProperty } from "@ducks/common/typings";
 import { INPUT_TYPES } from "../constants";
+import {
+    OptionallyLabelledParameter,
+    optionallyLabelledParameterToLabel,
+    optionallyLabelledParameterToValue,
+} from "../views/taskViews/linking/linking.types";
 
 /** Converts the default value to a JS value */
-export const defaultValueAsJs = (property: IArtefactItemProperty): any => {
-    return stringValueAsJs(property.parameterType, property.value);
+export const defaultValueAsJs = (property: IArtefactItemProperty, withLabel: boolean): any => {
+    const value = stringValueAsJs(property.parameterType, property.value);
+    return withLabel ? { value, label: optionallyLabelledParameterToLabel(property.value) } : value;
 };
 /** Converts a string value to its typed equivalent based on the given value type. */
-export const stringValueAsJs = (valueType: string, value: string | null): any => {
-    let v: any = value || "";
+export const stringValueAsJs = (valueType: string, value: OptionallyLabelledParameter<string> | null): any => {
+    const stringValue = value != null ? optionallyLabelledParameterToValue(value) ?? "" : "";
+    let v: any = stringValue;
 
     if (valueType === INPUT_TYPES.BOOLEAN) {
         // cast to boolean from string
-        v = value?.toLowerCase() === "true";
+        v = stringValue.toLowerCase() === "true";
     }
 
     if (valueType === INPUT_TYPES.INTEGER) {
-        if (v !== "" && value) {
-            v = parseInt(value);
+        if (v !== "" && stringValue) {
+            v = parseInt(stringValue);
         } else {
             v = null;
         }

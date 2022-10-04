@@ -126,7 +126,7 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                         console.warn(`Parameter '${key}' is of type "object", but has no parameters object defined!`);
                     }
                 } else {
-                    let value = defaultValueAsJs(param);
+                    let value = defaultValueAsJs(param, false);
                     returnKeys.push(key);
                     register(
                         {

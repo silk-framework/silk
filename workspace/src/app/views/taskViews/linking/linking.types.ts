@@ -63,6 +63,26 @@ export interface IResourceLink {
 export type OptionallyLabelledParameter<ACTUAL_TYPE> = ACTUAL_TYPE | LabelledParameterValue<ACTUAL_TYPE>;
 export type LabelledParameterValue<ACTUAL_TYPE> = { value: ACTUAL_TYPE; label?: string };
 
+/** Get the value of an optionally labelled parameter value. */
+export function optionallyLabelledParameterToValue<T>(optionallyLabelledValue: OptionallyLabelledParameter<T>): T {
+    if (optionallyLabelledValue == null) {
+        return optionallyLabelledValue;
+    }
+    return (optionallyLabelledValue as LabelledParameterValue<T>).value
+        ? (optionallyLabelledValue as LabelledParameterValue<T>).value
+        : (optionallyLabelledValue as T);
+}
+
+export function optionallyLabelledParameterToLabel(
+    optionallyLabelledValue: OptionallyLabelledParameter<any>
+): string | undefined {
+    if (optionallyLabelledValue != null) {
+        return (optionallyLabelledValue as LabelledParameterValue<any>).label
+            ? (optionallyLabelledValue as LabelledParameterValue<any>).label
+            : undefined;
+    }
+}
+
 /** Parameters of a linking task.
  * Either all or zero parameters have the value/label structure.
  */

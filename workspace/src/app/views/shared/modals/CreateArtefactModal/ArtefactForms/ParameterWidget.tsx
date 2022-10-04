@@ -187,7 +187,7 @@ export const ParameterWidget = (props: IProps) => {
                         initialValue={
                             initialValues[formParamId]
                                 ? initialValues[formParamId]
-                                : { value: defaultValueAsJs(propertyDetails) }
+                                : defaultValueAsJs(propertyDetails, true)
                         }
                         autoCompletion={autoCompletion}
                         intent={errors ? Intent.DANGER : Intent.NONE}
