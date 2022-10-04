@@ -1,4 +1,13 @@
-import { WhiteSpaceContainer, Spacing, Tag, Tooltip, StringPreviewContentBlobToggler } from "@eccenca/gui-elements";
+import {
+    WhiteSpaceContainer,
+    Spacing,
+    Tag,
+    Tooltip,
+    Icon,
+    OverflowText,
+    OverviewItem,
+    OverviewItemLine,
+} from "@eccenca/gui-elements";
 import { NodeContentExtension } from "@eccenca/gui-elements/src/extensions/react-flow";
 import React from "react";
 import { CLASSPREFIX as eccgui } from "@eccenca/gui-elements/src/configuration/constants";
@@ -72,15 +81,11 @@ export const LinkRuleNodeEvaluation = ({
                                     >
                                         <span>
                                             {error ? (
-                                                <StringPreviewContentBlobToggler
-                                                    className="linking__error-description"
-                                                    content={error}
-                                                    previewMaxLength={10}
-                                                    fullviewContent={error}
-                                                    toggleExtendText={t("common.words.more", "more")}
-                                                    toggleReduceText={t("common.words.less", "less")}
-                                                    firstNonEmptyLineOnly={true}
-                                                />
+                                                <OverviewItemLine small>
+                                                    <Icon name="application-warning" intent="warning" />
+                                                    <Spacing size="tiny" vertical />
+                                                    <OverflowText>{error}</OverflowText>
+                                                </OverviewItemLine>
                                             ) : (
                                                 value.map((value) => (
                                                     <Tag
