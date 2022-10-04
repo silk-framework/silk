@@ -6,6 +6,7 @@ import org.lmdbjava.Env.create
 import org.lmdbjava._
 import org.silkframework.config.{ConfigValue, DefaultConfig}
 import org.silkframework.dataset.rdf.ClosableIterator
+import org.silkframework.runtime.caching.PersistentSortedKeyValueStore.byteBufferToString
 import org.silkframework.util.FileUtils.toFileUtils
 import org.silkframework.util.Identifier
 
@@ -16,7 +17,8 @@ import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.Files
 import java.util
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.logging.{Level, Logger};
+import java.util.logging.{Level, Logger}
+import scala.util.Try;
 
 /**
   * A file system backed ordered key value store containing a single DB.
@@ -34,7 +36,9 @@ import java.util.logging.{Level, Logger};
 case class PersistentSortedKeyValueStore(databaseId: Identifier,
                                          optionalDbDirectory: Option[File] = None,
                                          temporary: Boolean = false,
-                                         config: PersistentSortedKeyValueStoreConfig = PersistentSortedKeyValueStoreConfig()) {
+                                         config: PersistentSortedKeyValueStoreConfig = PersistentSortedKeyValueStoreConfig(
+                                           tooLargeKeyStrategy = HandleTooLargeKeyStrategy.TruncateKeyWithHash)
+                                        ) {
   private val log: Logger = Logger.getLogger(this.getClass.getCanonicalName)
   private lazy val dbDirectory: File = {
     val dir = optionalDbDirectory.getOrElse {
@@ -77,6 +81,10 @@ case class PersistentSortedKeyValueStore(databaseId: Identifier,
     createKeyBuffer(key.getBytes(UTF_8))
   }
 
+  private def byteArrayToString(byteArray: Array[Byte]): String = {
+    Try(byteBufferToString(ByteBuffer.wrap(byteArray))).getOrElse("- cannot decode bytes -")
+  }
+
   /** Create key buffer from an array. */
   def createKeyBuffer(key: Array[Byte]): ByteBuffer = {
     var keyBytes = key
@@ -84,15 +92,18 @@ case class PersistentSortedKeyValueStore(databaseId: Identifier,
       keyBytes = CompressionHelper.lz4Compress(keyBytes, addLengthPreamble = true)
     }
     if(keyBytes.length > maxKeySize) {
-      if(config.truncateKeys) {
-        log.fine(s"Key '$key' is longer than $maxKeySize bytes. Truncating key.")
-        keyBytes = util.Arrays.copyOfRange(keyBytes, 0, maxKeySize);
-      } else {
-        throw new IllegalArgumentException(s"Failed to create key for key/value store of DB '$databaseId'. Key is larger than allowed" +
-            s" size of $maxKeySize. Key (${keyBytes.length} bytes): $key")
+      config.tooLargeKeyStrategy match {
+        case HandleTooLargeKeyStrategy.ThrowError =>
+          throw new IllegalArgumentException(s"Failed to create key for key/value store of DB '$databaseId'. Key is larger than allowed" +
+            s" size of $maxKeySize. Key (${keyBytes.length} bytes): ${byteArrayToString(key)}")
+        case HandleTooLargeKeyStrategy.TruncateKey =>
+          log.fine(s"Key '${byteArrayToString(key)}' is longer than $maxKeySize bytes. Truncating key.")
+          keyBytes = util.Arrays.copyOfRange(keyBytes, 0, maxKeySize);
+        case HandleTooLargeKeyStrategy.TruncateKeyWithHash =>
+          keyBytes = HandleTooLargeKeyStrategy.truncateKeyWithHash(keyBytes, maxKeySize)
       }
     }
-    val keyBuffer = allocateDirect(env.getMaxKeySize)
+    val keyBuffer = allocateDirect(maxKeySize)
     if(keyBytes.length > 0) {
       keyBuffer.put(keyBytes)
     } else {
@@ -135,6 +146,9 @@ case class PersistentSortedKeyValueStore(databaseId: Identifier,
 
   /** Insert a key/value pair */
   def put(keyBuffer: ByteBuffer, valueBuffer: ByteBuffer, txnOpt: Option[Txn[ByteBuffer]]): Unit = {
+    if(keyBuffer.remaining() > maxKeySize) {
+      throw new RuntimeException(s"Trying to write key with byte size ${keyBuffer.remaining()} into persistent key value store. Max. key length: $maxKeySize")
+    }
     checkState()
     txnOpt match {
       case Some(txn) => db.put(txn, keyBuffer, valueBuffer)

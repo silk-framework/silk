@@ -4,12 +4,13 @@ import { RuleEditorOperatorSidebar } from "./sidebar/RuleEditorOperatorSidebar";
 import React from "react";
 import { RuleEditorCanvas } from "./RuleEditorCanvas";
 import { RuleEditorUiContext } from "../contexts/RuleEditorUiContext";
-import {OnLoadParams} from "react-flow-renderer";
+import { OnLoadParams } from "react-flow-renderer";
 
 /** The main view of the rule editor, integrating toolbar, sidebar and main rule canvas. */
 export const RuleEditorView = () => {
     const [modalShown, setModalShown] = React.useState(false);
-    const [advancedParameterModeEnabled, setAdvancedParameterMode] = React.useState(false)
+    const [advancedParameterModeEnabled, setAdvancedParameterMode] = React.useState(false);
+    const [currentRuleNodeDescription, setCurrentRuleNodeDescription] = React.useState<string | undefined>("");
     const reactFlowWrapper = React.useRef<any>(null);
     const [reactFlowInstance, setReactFlowInstance] = React.useState<OnLoadParams | undefined>(undefined);
 
@@ -22,7 +23,9 @@ export const RuleEditorView = () => {
                 setAdvancedParameterMode,
                 reactFlowWrapper,
                 reactFlowInstance,
-                setReactFlowInstance
+                setReactFlowInstance,
+                currentRuleNodeDescription,
+                setCurrentRuleNodeDescription,
             }}
         >
             <Grid verticalStretchable={true} useAbsoluteSpace={true} style={{ backgroundColor: "white" }}>

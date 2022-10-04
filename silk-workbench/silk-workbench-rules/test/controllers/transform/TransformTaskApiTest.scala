@@ -562,7 +562,8 @@ class TransformTaskApiTest extends TransformTaskApiTestBase {
               "source:firstName"
           ],
           "type": "complex",
-          "layout":{"nodePositions":{}}
+          "layout":{"nodePositions":{}},
+          "uiAnnotations":{"stickyNotes":[]}
         }
       """
     }

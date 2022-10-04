@@ -19,6 +19,7 @@ import org.silkframework.runtime.serialization.XmlSerialization.{fromXml, toXml}
 import org.silkframework.runtime.serialization._
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util._
+import org.silkframework.workspace.annotation.UiAnnotations
 
 import java.net.URI
 import scala.language.implicitConversions
@@ -161,9 +162,15 @@ sealed trait ValueTransformRule extends TransformRule {
       id = id,
       operator = operator,
       target = target,
-      metaData = metaData
+      metaData = metaData,
+      layout = layout,
+      uiAnnotations = uiAnnotations
     )
   }
+
+  def layout: RuleLayout = RuleLayout()
+
+  def uiAnnotations: UiAnnotations = UiAnnotations()
 }
 
 /**
@@ -310,7 +317,9 @@ case class PatternUriMapping(id: Identifier = "URI",
 case class ComplexUriMapping(id: Identifier = "complexURI",
                              operator: Input,
                              metaData: MetaData = MetaData.empty,
-                             layout: RuleLayout = RuleLayout()) extends UriMapping with ValueTransformRuleWithLayout {
+                             override val layout: RuleLayout = RuleLayout(),
+                             override val uiAnnotations: UiAnnotations = UiAnnotations()
+                            ) extends UriMapping with ValueTransformRule {
 
   override val target: Option[MappingTarget] = None
 
@@ -339,11 +348,6 @@ case class TypeMapping(id: Identifier = "type",
 
 }
 
-/** A value transform rule that has layout information about its rule nodes. */
-trait ValueTransformRuleWithLayout { self: ValueTransformRule =>
-  def layout: RuleLayout
-}
-
 /**
   * A complex mapping, which generates property values from based on an arbitrary operator tree consisting of property paths and transformations.
   *
@@ -355,7 +359,9 @@ case class ComplexMapping(id: Identifier = "mapping",
                           operator: Input,
                           target: Option[MappingTarget] = None,
                           metaData: MetaData = MetaData.empty,
-                          layout: RuleLayout = RuleLayout()) extends ValueTransformRule with ValueTransformRuleWithLayout {
+                          override val layout: RuleLayout = RuleLayout(),
+                          override val uiAnnotations: UiAnnotations = UiAnnotations()
+                         ) extends ValueTransformRule {
 
   override val typeString = "Complex"
 
@@ -389,7 +395,7 @@ case class ObjectMapping(id: Identifier = "mapping",
             val rewrittenInput = Input.rewriteSourcePaths(rule.operator, path => {
               UntypedPath(sourcePath.operators ++ path.operators)
             })
-            Some(ComplexUriMapping(rule.id, rewrittenInput, rule.metaData))
+            Some(ComplexUriMapping(rule.id, rewrittenInput, rule.metaData, RuleLayout(),UiAnnotations()))
           }
           case None if sourcePath.isEmpty =>
             Some(PatternUriMapping(pattern = s"{}/$id", prefixes = prefixes))
@@ -480,7 +486,8 @@ object TransformRule {
           operator = fromXml[Input]((node \ "Input" ++ node \ "TransformInput").head),
           target = target,
           metaData = metaData,
-          layout = (node \ "RuleLayout").headOption.map(rl => XmlSerialization.fromXml[RuleLayout](rl)).getOrElse(RuleLayout())
+          layout = (node \ "RuleLayout").headOption.map(rl => XmlSerialization.fromXml[RuleLayout](rl)).getOrElse(RuleLayout()),
+          uiAnnotations = (node \ "UiAnnotations").headOption.map(rl => XmlSerialization.fromXml[UiAnnotations](rl)).getOrElse(UiAnnotations())
         )
       simplify(complex)(readContext.prefixes)
     }
@@ -499,6 +506,7 @@ object TransformRule {
             {MetaDataXmlFormat.write(value.metaData)}
             {toXml(value.operator)}{value.target.map(toXml[MappingTarget]).getOrElse(Null)}
             {layout(value)}
+            {uiAnnotation(value)}
           </TransformRule>
       }
     }
@@ -506,34 +514,51 @@ object TransformRule {
 
   private def layout(transformRule: TransformRule) = {
     transformRule match {
-      case withLayout: ValueTransformRuleWithLayout =>
+      case withLayout: ValueTransformRule =>
         toXml(withLayout.layout)
       case _ =>
         Null
     }
   }
 
+  private def uiAnnotation(transformRule: TransformRule) = {
+    transformRule match {
+      case withLayout: ValueTransformRule =>
+        toXml(withLayout.uiAnnotations)
+      case _ =>
+        Null
+    }
+  }
+
+
   /**
     * Tries to express a complex mapping as a basic mapping, such as a direct mapping.
     */
   def simplify(complexMapping: ComplexMapping)(implicit prefixes: Prefixes): TransformRule = complexMapping match {
+    // Rule with annotations or layout info is always treated as complex (URI) mapping rule
+    case ComplexMapping(id, operator, targetOpt, metaData, layout, uiAnnotations) if layout.nodePositions.nonEmpty || uiAnnotations.stickyNotes.nonEmpty =>
+      if(targetOpt.isEmpty) {
+        ComplexUriMapping(id, operator, metaData, layout, uiAnnotations)
+      } else {
+        complexMapping
+      }
     // Direct Mapping
-    case ComplexMapping(id, PathInput(_, path), Some(target), metaData, _) =>
+    case ComplexMapping(id, PathInput(_, path), Some(target), metaData, _, _) =>
       DirectMapping(id, path.asUntypedPath, target, metaData)
     // Pattern URI Mapping
-    case ComplexMapping(id, UriPattern(pattern), None, metaData, _) =>
+    case ComplexMapping(id, UriPattern(pattern), None, metaData, _, _) =>
       PatternUriMapping(id, pattern, metaData, prefixes = prefixes)
     // Complex URI mapping
-    case ComplexMapping(id, operator, None, metaData, layout) =>
-      ComplexUriMapping(id, operator, metaData, layout)
+    case ComplexMapping(id, operator, None, metaData, layout, uiAnnotations) =>
+      ComplexUriMapping(id, operator, metaData, layout, uiAnnotations)
     // Object Mapping (old style, to be removed)
-    case ComplexMapping(id, TransformInput(_, ConcatTransformer("", false), inputs), Some(target), metaData, _) if UriPattern.isPattern(inputs) && target.valueType == ValueType.URI =>
+    case ComplexMapping(id, TransformInput(_, ConcatTransformer("", false), inputs), Some(target), metaData, _, _) if UriPattern.isPattern(inputs) && target.valueType == ValueType.URI =>
       ObjectMapping(id, UntypedPath.empty, Some(target), MappingRules(uriRule = Some(PatternUriMapping(id + "uri", UriPattern.build(inputs)))), metaData, prefixes = prefixes)
     // Type Mapping
-    case ComplexMapping(id, TransformInput(_, ConstantTransformer(typeUri), Nil), Some(MappingTarget(Uri(RDF_TYPE), _, false, _)), metaData, _) =>
+    case ComplexMapping(id, TransformInput(_, ConstantTransformer(typeUri), Nil), Some(MappingTarget(Uri(RDF_TYPE), _, false, _)), metaData, _, _) =>
       TypeMapping(id, typeUri, metaData)
     // Type Mapping (old style, to be removed)
-    case ComplexMapping(id, TransformInput(_, ConstantUriTransformer(typeUri), Nil), Some(MappingTarget(Uri(RDF_TYPE), _, false, _)), metaData, _) =>
+    case ComplexMapping(id, TransformInput(_, ConstantUriTransformer(typeUri), Nil), Some(MappingTarget(Uri(RDF_TYPE), _, false, _)), metaData, _, _) =>
       TypeMapping(id, typeUri, metaData)
     // Complex Mapping
     case _ => complexMapping

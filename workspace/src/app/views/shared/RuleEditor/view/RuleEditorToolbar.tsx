@@ -3,6 +3,7 @@ import {
     Button,
     Icon,
     IconButton,
+    Markdown,
     Spacing,
     StickyNoteModal,
     Switch,
@@ -21,6 +22,7 @@ import { EvaluationActivityControl } from "./evaluation/EvaluationActivityContro
 import { Prompt } from "react-router";
 import { RuleValidationError } from "../RuleEditor.typings";
 import { DEFAULT_NODE_HEIGHT, DEFAULT_NODE_WIDTH } from "../model/RuleEditorModel.utils";
+import { RuleEditorBaseModal } from "./components/RuleEditorBaseModal";
 
 /** Toolbar of the rule editor. Contains global editor actions like save, redo/undo etc. */
 export const RuleEditorToolbar = () => {
@@ -33,7 +35,7 @@ export const RuleEditorToolbar = () => {
     const [evaluationShown, setEvaluationShown] = React.useState(false);
     const [showCreateStickyModal, setShowCreateStickyModal] = React.useState<boolean>(false);
     const [t] = useTranslation();
-    const integratedView = !!ruleEditorContext.viewActions?.integratedView
+    const integratedView = !!ruleEditorContext.viewActions?.integratedView;
 
     useHotKey({
         hotkey: "mod+z",
@@ -59,12 +61,18 @@ export const RuleEditorToolbar = () => {
         } else {
             window.onbeforeunload = null;
         }
-        const parentWindow = window.parent as Window & {setLinkingEditorUnsavedChanges?: (hasUnsavedChanges: boolean) => any}
-        if(integratedView && parentWindow !== window && typeof parentWindow.setLinkingEditorUnsavedChanges === "function") {
+        const parentWindow = window.parent as Window & {
+            setLinkingEditorUnsavedChanges?: (hasUnsavedChanges: boolean) => any;
+        };
+        if (
+            integratedView &&
+            parentWindow !== window &&
+            typeof parentWindow.setLinkingEditorUnsavedChanges === "function"
+        ) {
             try {
-                parentWindow.setLinkingEditorUnsavedChanges(modelContext.unsavedChanges)
-            } catch(ex) {
-                console.warn("Cannot call setLinkingEditorUnsavedChanges() of parent window!", ex)
+                parentWindow.setLinkingEditorUnsavedChanges(modelContext.unsavedChanges);
+            } catch (ex) {
+                console.warn("Cannot call setLinkingEditorUnsavedChanges() of parent window!", ex);
             }
         }
     }, [modelContext.unsavedChanges]);
@@ -123,6 +131,27 @@ export const RuleEditorToolbar = () => {
             {ruleEditorContext.editorTitle ? (
                 <TitleMainsection>{ruleEditorContext.editorTitle}</TitleMainsection>
             ) : null}
+
+            {ruleEditorUiContext.currentRuleNodeDescription ? (
+                <RuleEditorBaseModal
+                    isOpen={true}
+                    title={t("common.words.description")}
+                    onClose={() => ruleEditorUiContext.setCurrentRuleNodeDescription(undefined)}
+                    hasBorder={true}
+                    size={"small"}
+                    data-test-id={"ruleEditorNode-description-modal"}
+                    actions={[
+                        <Button
+                            key="close"
+                            onClick={() => ruleEditorUiContext.setCurrentRuleNodeDescription(undefined)}
+                        >
+                            {t("common.action.close")}
+                        </Button>,
+                    ]}
+                >
+                    <Markdown>{ruleEditorUiContext.currentRuleNodeDescription}</Markdown>
+                </RuleEditorBaseModal>
+            ) : null}
             {showCreateStickyModal ? (
                 <StickyNoteModal
                     onClose={() => setShowCreateStickyModal(false)}
@@ -173,12 +202,16 @@ export const RuleEditorToolbar = () => {
                             />
                         </>
                     )}
-                    <Spacing vertical size={"small"}/>
+                    <Spacing vertical size={"small"} />
                     <Switch
                         data-test-id={"rule-editor-advanced-toggle"}
                         label={t("RuleEditor.toolbar.advancedParameterMode")}
                         checked={ruleEditorUiContext.advancedParameterModeEnabled}
-                        onClick={() => ruleEditorUiContext.setAdvancedParameterMode(!ruleEditorUiContext.advancedParameterModeEnabled)}
+                        onClick={() =>
+                            ruleEditorUiContext.setAdvancedParameterMode(
+                                !ruleEditorUiContext.advancedParameterModeEnabled
+                            )
+                        }
                     />
                 </ToolbarSection>
                 <ToolbarSection canGrow>
@@ -225,7 +258,7 @@ export const RuleEditorToolbar = () => {
                     </Button>
                     <RuleEditorNotifications
                         key={"notifications"}
-                    integratedView={integratedView}
+                        integratedView={integratedView}
                         queueEditorNotifications={
                             ruleValidationError ? [ruleValidationError.errorMessage] : ([] as string[])
                         }

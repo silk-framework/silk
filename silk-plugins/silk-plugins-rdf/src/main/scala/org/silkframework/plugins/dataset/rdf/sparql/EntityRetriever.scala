@@ -75,12 +75,16 @@ object EntityRetriever {
   /** Extracts the subject URI from the SPARQL result. */
   def extractSubject(result: Map[String, RdfNode],
                      subjectVar: String): Option[String] = {
-    result.get(subjectVar) match {
-      case Some(Resource(value)) => Some(value)
+    result.get(subjectVar).map(extractEntityUri)
+  }
+
+  /** Creates an entity URI based on the RDF node type. */
+  def extractEntityUri(rdfNode: RdfNode): String = {
+    rdfNode match {
+      case Resource(value) => value
       // Allow literals as subjects
-      case Some(literal: Literal) => Some(literalToUri(literal))
-      case Some(blankNode: BlankNode) => Some(blankNodeToUri(blankNode))
-      case _ => None
+      case literal: Literal => literalToUri(literal)
+      case blankNode: BlankNode => blankNodeToUri(blankNode)
     }
   }
 

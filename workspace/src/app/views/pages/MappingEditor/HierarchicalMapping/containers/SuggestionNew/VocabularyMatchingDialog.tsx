@@ -1,8 +1,7 @@
-import {Button, FieldItem, Highlighter, MenuItem, SimpleDialog} from "@eccenca/gui-elements";
+import {Button, FieldItem, Highlighter, MenuItem, SimpleDialog, MultiSelect} from "@eccenca/gui-elements";
 import React, {useContext, useEffect, useState} from "react";
 import {IVocabularyInfo} from "./suggestion.typings";
 import {SuggestionListContext} from "./SuggestionContainer";
-import {MultiSelect} from "@blueprintjs/select";
 import {extractSearchWords, matchesAllWords} from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 
 interface IProps {
@@ -151,7 +150,6 @@ export default function VocabularyMatchingDialog(
                 popoverProps={{
                     portalContainer: context.portalContainer,
                     minimal: true,
-                    fill: true,
                     position: "bottom-left"
                 }}
                 fill={true}

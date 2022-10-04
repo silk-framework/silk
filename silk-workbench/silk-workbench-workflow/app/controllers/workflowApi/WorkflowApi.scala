@@ -152,6 +152,10 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       new ApiResponse(
         responseCode = "500",
         description = "The workflow execution has failed."
+      ),
+      new ApiResponse(
+        responseCode = "503",
+        description = "Workflow execution could not be started because concurrent execution limit is reached."
       )
   ))
   @RequestBody(
@@ -232,10 +236,10 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
 
     val (workflowConfig, mimeTypeOpt) = VariableWorkflowRequestUtils.queryStringToWorkflowConfig(project, workflowTask)
     val activity = workflowTask.activity[WorkflowWithPayloadExecutor]
-    val id = activity.startBlocking(workflowConfig)
+    val resultValue = activity.startBlockingAndGetValue(workflowConfig)
     mimeTypeOpt match {
       case Some(mimeType) =>
-        val outputResource = activity.instance(id).value().resourceManager.get(VariableWorkflowRequestUtils.OUTPUT_FILE_RESOURCE_NAME, mustExist = true)
+        val outputResource = resultValue.resourceManager.get(VariableWorkflowRequestUtils.OUTPUT_FILE_RESOURCE_NAME, mustExist = true)
         Result(
           header = ResponseHeader(OK, Map.empty),
           body = HttpEntity.Strict(ByteString(outputResource.loadAsBytes), Some(mimeType))
@@ -283,6 +287,10 @@ class WorkflowApi @Inject()() extends InjectedController with ControllerUtilsTra
       new ApiResponse(
         responseCode = "500",
         description = "The workflow execution has failed."
+      ),
+      new ApiResponse(
+        responseCode = "503",
+        description = "Workflow execution could not be started because concurrent execution limit is reached."
       )
     ))
   @RequestBody(

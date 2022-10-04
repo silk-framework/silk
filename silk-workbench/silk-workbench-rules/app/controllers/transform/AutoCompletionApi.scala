@@ -108,7 +108,7 @@ class AutoCompletionApi @Inject() () extends InjectedController with UserContext
       // Add known paths
       completions += relativeForwardPaths
       // Return filtered result
-      Ok(completions.filterAndSort(term, maxResults, sortEmptyTermResult = false).toJson)
+      Ok(completions.filterAndSort(term, maxResults, sortEmptyTermResult = false, multiWordFilter = true).toJson)
     }
   }
 

@@ -138,6 +138,17 @@ trait WorkspaceProviderTestTrait extends FlatSpec with Matchers with MockitoSuga
                         "concat" -> (3, 4),
                         "path" -> (5, 6)
                       )
+                    ),
+                    uiAnnotations = UiAnnotations(
+                      stickyNotes = Seq(
+                        StickyNote(
+                          id = "stickyId",
+                          content = "test",
+                          color = "#000",
+                          position = (12,23),
+                          dimension = (32, 32)
+                        )
+                      )
                     )
                   )
                 ),

@@ -1,6 +1,6 @@
 import React from "react";
 import {createBrowserHistory, createMemoryHistory, History, LocationState} from "history";
-import { EnzymePropSelector, mount, ReactWrapper } from "enzyme";
+import {EnzymePropSelector, mount, ReactWrapper, shallow} from "enzyme";
 import { Provider } from "react-redux";
 import { AppLayout } from "../../src/app/views/layout/AppLayout/AppLayout";
 import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit";
@@ -95,6 +95,8 @@ export type RecursivePartial<T> = {
         ? RecursivePartial<T[P]>
         : T[P];
 };
+
+export const withShallow = (component) => shallow(component)
 
 export const withMount = (component) => mount(component);
 

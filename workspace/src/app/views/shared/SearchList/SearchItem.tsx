@@ -69,21 +69,30 @@ export default function SearchItem({
     const itemLinks = item.itemLinks ?? [{ path: "", label: "" }];
     // Remove detailsPath
     const menuItemLinks = itemLinks.slice(1);
-    const { projectTabView, toggleIFrameLink } = useProjectTabsView(menuItemLinks);
-    const contextMenuItems = menuItemLinks.map((link) => (
-        <MenuItem
-            key={link.path}
-            text={t("common.legacyGui." + link.label, link.label)}
-            icon={getItemLinkIcons(link.label)}
-            onClick={() =>
-                toggleIFrameLink({
-                    path: link.path,
-                    label: link.label,
-                    itemType: undefined,
-                })
-            }
-        />
-    ));
+    const { projectTabView, changeTab, menuItems } = useProjectTabsView({
+        srcLinks: menuItemLinks.map(link => ({...link, id: link.label})),
+        pluginId: item.pluginId,
+        projectId: item.projectId,
+        taskId: item.id,
+    });
+    const contextMenuItems = [
+        ...menuItems,
+        ...menuItemLinks.map((link) => (
+            <MenuItem
+                key={link.path}
+                text={t("common.legacyGui." + link.label, link.label)}
+                icon={getItemLinkIcons(link.label)}
+                onClick={() =>
+                    changeTab({
+                        id: link.label,
+                        path: link.path,
+                        label: link.label,
+                        itemType: undefined,
+                    })
+                }
+            />
+        )),
+    ];
 
     if (item.type === DATA_TYPES.PROJECT && !!exportTypes.length) {
         contextMenuItems.push(

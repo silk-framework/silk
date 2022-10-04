@@ -13,7 +13,7 @@ import {
     OverviewItemLine,
     TitlePage,
 } from "@eccenca/gui-elements";
-import { IBreadcrumbItemProps } from "@eccenca/gui-elements/src/components/Breadcrumb/BreadcrumbItem";
+import { BreadcrumbItemProps } from "@eccenca/gui-elements/src/components/Breadcrumb/BreadcrumbItem";
 import { routerOp } from "@ducks/router";
 import { APPLICATION_CORPORATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
 import { fetchBreadcrumbs } from "./breadcrumbsHelper";
@@ -21,7 +21,7 @@ import { fetchBreadcrumbs } from "./breadcrumbsHelper";
 interface IPageHeaderContentBasicProps extends React.HTMLAttributes<HTMLDivElement> {
     type?: string;
     alternateDepiction?: string;
-    breadcrumbs?: IBreadcrumbItemProps[];
+    breadcrumbs?: BreadcrumbItemProps[];
     autogenerateBreadcrumbs?: boolean;
     pageTitle?: string;
     autogeneratePageTitle?: boolean;
