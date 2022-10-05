@@ -68,7 +68,7 @@ export function optionallyLabelledParameterToValue<T>(optionallyLabelledValue: O
     if (optionallyLabelledValue == null) {
         return optionallyLabelledValue;
     }
-    return (optionallyLabelledValue as LabelledParameterValue<T>).value
+    return (optionallyLabelledValue as LabelledParameterValue<T>).value !== undefined
         ? (optionallyLabelledValue as LabelledParameterValue<T>).value
         : (optionallyLabelledValue as T);
 }
