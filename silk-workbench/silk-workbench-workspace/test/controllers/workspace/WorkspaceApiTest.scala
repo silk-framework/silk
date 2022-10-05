@@ -4,6 +4,7 @@ import controllers.workspace.routes.ResourceApi
 import controllers.workspace.workspaceApi.TaskLinkInfo
 import controllers.workspace.workspaceRequests.CopyTasksResponse
 import helper.IntegrationTestTrait
+import org.scalatest.concurrent.Eventually.eventually
 import org.scalatest.{BeforeAndAfterAll, MustMatchers}
 import org.scalatestplus.play.PlaySpec
 import org.silkframework.config.MetaData
@@ -11,6 +12,7 @@ import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.StringValueType
 import org.silkframework.plugins.dataset.csv.CsvDataset
+import org.silkframework.plugins.dataset.json.JsonDataset
 import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
 import org.silkframework.plugins.dataset.xml.XSLTOperator
@@ -21,6 +23,8 @@ import org.silkframework.rule.similarity.Comparison
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.serialization.json.JsonSerializers._
 import org.silkframework.util.{DPair, Uri}
+import org.silkframework.workspace.activity.dataset.TypesCache
+import org.silkframework.workspace.activity.transform.TransformPathsCache
 import play.api.libs.json.Json
 import testWorkspace.Routes
 
@@ -142,6 +146,31 @@ class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with MustMatch
         TaskLinkInfo(transformTaskUsingResource, MetaData.labelFromId(transformTaskUsingResource), Some(TASK_TYPE_TRANSFORM)),
         TaskLinkInfo(linkingTaskUsingResource, MetaData.labelFromId(linkingTaskUsingResource), Some(TASK_TYPE_LINKING))
       )
+    }
+  }
+
+  "Resource endpoint" should {
+    "trigger updates of depending tasks" in {
+      val p = workspaceProject(project)
+      val resourceName = "resource.json"
+      val resource = p.resources.get(resourceName)
+      resource.writeString("""{"id": 1, "sub": {"name": "name1"}}""")
+      val datasetId = "json1"
+      val jsonDataset = JsonDataset(resource)
+      p.addTask(datasetId, DatasetSpec(jsonDataset))
+      val transformId = "transform1"
+      p.addTask(transformId, TransformSpec(DatasetSelection(datasetId)))
+      def cachedPaths(): IndexedSeq[String] = p.task[TransformSpec](transformId).activity[TransformPathsCache].value().configuredSchema.typedPaths.map(_.normalizedSerialization)
+      def cachedTypes(): Seq[String] = p.task[GenericDatasetSpec](datasetId).activity[TypesCache].value().types
+      eventually {
+        cachedTypes() mustBe Seq("", "sub")
+        cachedPaths() mustBe IndexedSeq("id", "sub", "sub/name")
+      }
+      checkResponse(client.url(s"$baseUrl/workspace/projects/$project/resources/$resourceName").put("""{"id": 1, "sub": {"name": "name1"}, "newSub": {"subName": "name2"}}"""))
+      eventually {
+        cachedTypes() mustBe Seq("", "sub", "newSub")
+        cachedPaths() mustBe IndexedSeq("id", "sub", "sub/name", "newSub", "newSub/subName")
+      }
     }
   }
 
