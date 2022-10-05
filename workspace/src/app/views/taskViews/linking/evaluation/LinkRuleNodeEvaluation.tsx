@@ -21,7 +21,7 @@ interface LinkRuleNodeEvaluationProps {
     /** Register for evaluation updates. */
     registerForEvaluationResults: (
         ruleOperatorId: string,
-        evaluationUpdate: (evaluationValues: EvaluationResultType | undefined) => any
+        evaluationUpdate: (evaluationValues: EvaluationResultType | undefined) => void
     ) => void;
     unregister: () => void;
     /** A URL to link to when there is no result found. */

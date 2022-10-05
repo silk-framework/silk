@@ -1,16 +1,16 @@
-import {IPluginDetails} from "@ducks/common/typings";
+import { IPluginDetails } from "@ducks/common/typings";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
-import React, {ReactElement} from "react";
-import {useTranslation} from "react-i18next";
-import {RuleEditorProps} from "views/shared/RuleEditor/RuleEditor";
-import {IRuleOperatorNode, RuleValidationError} from "../../../../views/shared/RuleEditor/RuleEditor.typings";
-import {EvaluatedTransformEntity, IComplexMappingRule} from "../transform.types";
-import {evaluateTransformRule} from "../transform.requests";
-import {FetchError} from "../../../../services/fetch/responseInterceptor";
-import {LinkRuleNodeEvaluation} from "../../../../views/taskViews/linking/evaluation/LinkRuleNodeEvaluation";
-import {RuleEditorEvaluationContext} from "../../../../views/shared/RuleEditor/contexts/RuleEditorEvaluationContext";
+import React, { ReactElement } from "react";
+import { useTranslation } from "react-i18next";
+import { RuleEditorProps } from "views/shared/RuleEditor/RuleEditor";
+import { IRuleOperatorNode, RuleValidationError } from "../../../../views/shared/RuleEditor/RuleEditor.typings";
+import { EvaluatedTransformEntity, IComplexMappingRule } from "../transform.types";
+import { evaluateTransformRule } from "../transform.requests";
+import { FetchError } from "../../../../services/fetch/responseInterceptor";
+import { RuleEditorEvaluationContext } from "../../../../views/shared/RuleEditor/contexts/RuleEditorEvaluationContext";
 import ruleUtils from "../../../../views/taskViews/shared/rules/rule.utils";
-import {transformToValueMap} from "../transformEditor.utils";
+import { transformToValueMap } from "../transformEditor.utils";
+import { TransformRuleNodeEvaluation } from "./TransformRuleNodeEvaluation";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<IComplexMappingRule, IPluginDetails>>;
 
@@ -80,10 +80,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
             return result.data;
         } catch (ex) {
             if (ex.isFetchError && (ex as FetchError).httpStatus !== 409) {
-                registerErrorI18N(
-                    "taskViews.transformRulesEditor.errors.fetchTransformEvaluationValues.msg",
-                    ex
-                );
+                registerErrorI18N("taskViews.transformRulesEditor.errors.fetchTransformEvaluationValues.msg", ex);
             } else {
                 throw ex;
             }
@@ -146,7 +143,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
     /** Factory method used by the rule editor to create an evaluation element. */
     const createRuleEditorEvaluationComponent = (ruleOperatorId: string): JSX.Element => {
         return (
-            <LinkRuleNodeEvaluation
+            <TransformRuleNodeEvaluation
                 ruleOperatorId={ruleOperatorId}
                 registerForEvaluationResults={registerForEvaluationResults}
                 unregister={() => nodeUpdateCallbacks.delete(ruleOperatorId)}
