@@ -10,14 +10,18 @@ import { fetch } from "./fetch/fetch";
  *                     It must return a JSON of the format { "timestamp": Server timestamp, "updates": [ update1, update2, ...] }
  * @param updateFunc   Function to be called on every update. Receives a single argument, which is the received JSON object.
  *
- */ export const connectWebSocket = <T>(
+ */
+export const connectWebSocket = <T>(
     webSocketUrl: string,
-    pollingUrl: string = "",
-    updateFunc: (updateItem: T) => any,
+    pollingUrl: string,
+    updateFunc: (updateItem: T, cleanUp: CleanUpFunction) => any,
     registerError?: (errorId: string, err: any, cause?: any) => void,
     retryTimeout: number = 5000
 ): CleanUpFunction => {
     const cleanUpFunctions: CleanUpFunction[] = [];
+    const cleanUp = () => {
+        cleanUpFunctions.forEach((cleanUpFn) => cleanUpFn());
+    };
     const fixedWebSocketUrl = convertToWebsocketUrl(webSocketUrl);
     const websocketState = {
         socket: new WebSocket(fixedWebSocketUrl),
@@ -26,7 +30,7 @@ import { fetch } from "./fetch/fetch";
 
     const initWebsocket = () => {
         websocketState.socket.onmessage = function (evt) {
-            updateFunc(JSON.parse(evt.data));
+            updateFunc(JSON.parse(evt.data), cleanUp);
         };
 
         websocketState.socket.onopen = function () {
@@ -81,9 +85,7 @@ import { fetch } from "./fetch/fetch";
         });
     };
     initWebsocket();
-    return () => {
-        cleanUpFunctions.forEach((cleanUpFn) => cleanUpFn());
-    };
+    return cleanUp;
 };
 
 export const convertToWebsocketUrl = (url: string): string => {

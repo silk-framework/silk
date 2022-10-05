@@ -4,23 +4,27 @@ import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.linking.linkingTask.LinkingTaskApiUtils
 import controllers.shared.autoCompletion.AutoCompletionApiUtils
-import controllers.transform.autoCompletion.Completions
+import controllers.transform.AutoCompletionApi
+import controllers.transform.autoCompletion.{AutoSuggestAutoCompletionResponse, Completions, OpFilter, PartialSourcePathAutoCompletionRequest, PartialSourcePathAutocompletionHelper}
 import controllers.transform.doc.AutoCompletionApiDoc
+import controllers.transform.transformTask.TransformUtils
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
+import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.Prefixes
 import org.silkframework.dataset.Dataset
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
-import org.silkframework.entity.paths.TypedPath
+import org.silkframework.entity.paths.{PathOperator, TypedPath, UntypedPath}
 import org.silkframework.plugins.path.{PathMetaData, PathMetaDataPlugin, StandardMetaDataPlugin}
-import org.silkframework.rule.{DatasetSelection, LinkSpec}
+import org.silkframework.rule.{DatasetSelection, LinkSpec, TransformSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.workspace.activity.linking.LinkingPathsCache
-import org.silkframework.workspace.activity.transform.CachedEntitySchemata
+import org.silkframework.workspace.activity.transform.{CachedEntitySchemata, TransformPathsCache}
 import org.silkframework.workspace.{Project, ProjectTask}
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{Action, AnyContent, InjectedController}
 
 import javax.inject.Inject
@@ -56,9 +60,9 @@ class LinkingAutoCompletionApi @Inject() () extends InjectedController with User
       )
     ))
   def linkingInputPaths(@Parameter(name = "project", description = "The project identifier", in = ParameterIn.PATH,
-    required = true,
-    schema = new Schema(implementation = classOf[String])
-  )
+                          required = true,
+                          schema = new Schema(implementation = classOf[String])
+                        )
                         projectId: String,
                         @Parameter(
                           name = "task",
@@ -122,5 +126,100 @@ class LinkingAutoCompletionApi @Inject() () extends InjectedController with User
       case None =>
         None
     }
+  }
+
+  @Operation(
+    summary = "Linking rule partial source paths",
+    description = "Returns auto-completion suggestions based on a complex path expression (including backward paths and filters) and the cursor position. The results may only replace a part of the original input string.",
+    responses = Array(
+      new ApiResponse(
+        responseCode = "200",
+        description = AutoCompletionApiDoc.partialSourcePathsResponseDescription,
+        content = Array(
+          new Content(
+            mediaType = "application/json",
+            schema = new Schema(implementation = classOf[AutoSuggestAutoCompletionResponse]),
+            examples = Array(new ExampleObject(AutoCompletionApiDoc.partialSourcePathsResponseExample))
+          )
+        )
+      ),
+      new ApiResponse(
+        responseCode = "404",
+        description = "If the specified project, task or rule has not been found."
+      )
+    ))
+  @RequestBody(
+    content = Array(
+      new Content(
+        mediaType = "application/json",
+        schema = new Schema(implementation = classOf[PartialSourcePathAutoCompletionRequest]),
+        examples = Array(new ExampleObject(AutoCompletionApiDoc.partialSourcePathsRequestExample))
+      )
+    )
+  )
+  def partialSourcePath(@Parameter(name = "project", description = "The project identifier", in = ParameterIn.PATH,
+                          required = true,
+                          schema = new Schema(implementation = classOf[String])
+                        )
+                        projectId: String,
+                        @Parameter(name = "task", description = "The task identifier", in = ParameterIn.PATH,
+                          required = true,
+                          schema = new Schema(implementation = classOf[String])
+                        )
+                        linkingTaskId: String,
+                        @Parameter(
+                          name = "target",
+                          description = "If defined and set to true, auto-completions for the target input source are returned, else for the source input source.",
+                          required = true,
+                          in = ParameterIn.QUERY,
+                          schema = new Schema(implementation = classOf[Boolean])
+                        )
+                        isTarget: Boolean): Action[JsValue] = RequestUserContextAction(parse.json) { implicit request =>
+    implicit userContext =>
+      val (project, linkingTask) = projectAndTask[LinkSpec](projectId, linkingTaskId)
+      implicit val prefixes: Prefixes = project.config.prefixes
+      validateJson[PartialSourcePathAutoCompletionRequest] { autoCompletionRequest =>
+        AutoCompletionApi.validateAutoCompletionRequest(autoCompletionRequest)
+        val datasetSelection = if (isTarget) linkingTask.target else linkingTask.source
+        val autoCompletionResponse = autoCompletePartialSourcePath(linkingTask, datasetSelection, autoCompletionRequest, isTarget)
+        Ok(Json.toJson(autoCompletionResponse))
+      }
+  }
+
+  // Returns an auto-completion result for a partial path request
+  private def autoCompletePartialSourcePath(linkingTask: ProjectTask[LinkSpec],
+                                            datasetSelection: DatasetSelection,
+                                            autoCompletionRequest: PartialSourcePathAutoCompletionRequest,
+                                            isTarget: Boolean)
+                                           (implicit userContext: UserContext): AutoSuggestAutoCompletionResponse = {
+    implicit val project: Project = linkingTask.project
+    implicit val prefixes: Prefixes = project.config.prefixes
+    val isRdfInput = TransformUtils.isRdfInput(project, datasetSelection)
+    val pathToReplace = PartialSourcePathAutocompletionHelper.pathToReplace(autoCompletionRequest, isRdfInput)
+    val dataSourceCharacteristicsOpt = TransformUtils.datasetCharacteristics(project, datasetSelection)
+    // compute relative paths
+    val pathBeforeReplacement = UntypedPath.partialParse(autoCompletionRequest.inputString.take(pathToReplace.from)).partialPath
+    val completeSubPath = pathBeforeReplacement.operators
+    val simpleSubPath = AutoCompletionApiUtils.simplePath(completeSubPath)
+    val forwardOnlySubPath = AutoCompletionApiUtils.forwardOnlyPath(simpleSubPath)
+    val linkingPathsCache = linkingTask.activity[LinkingPathsCache]
+    val entitySchemaOpt = linkingPathsCache.value.get.map(cacheValue => if(isTarget) cacheValue.target else cacheValue.source)
+    val cachedEntitySchemata = entitySchemaOpt.map(entitySchema => CachedEntitySchemata(entitySchema, if(isRdfInput) Some(entitySchema) else None, datasetSelection.inputId, None))
+    val allPaths = AutoCompletionApiUtils.pathsCacheCompletions(datasetSelection, cachedEntitySchemata, simpleSubPath.nonEmpty && isRdfInput)
+    val pathOpFilter = (autoCompletionRequest.isInBackwardOp, autoCompletionRequest.isInExplicitForwardOp) match {
+      case (true, false) => OpFilter.Backward
+      case (false, true) => OpFilter.Forward
+      case _ => OpFilter.None
+    }
+    val relativePaths = AutoCompletionApiUtils.extractRelativePaths(simpleSubPath, forwardOnlySubPath, allPaths, isRdfInput, oneHopOnly = pathToReplace.insideFilter,
+      serializeFull = !pathToReplace.insideFilter && pathToReplace.from > 0, pathOpFilter = pathOpFilter
+    )
+    val dataSourceSpecialPathCompletions = PartialSourcePathAutocompletionHelper.specialPathCompletions(dataSourceCharacteristicsOpt, pathToReplace, pathOpFilter, isObjectPath = false)
+    // Add known paths
+    val completions = Completions(relativePaths ++ dataSourceSpecialPathCompletions)
+    // Return filtered result
+    val filteredResults = PartialSourcePathAutocompletionHelper.filterResults(autoCompletionRequest, pathToReplace, completions)
+    val operatorCompletions = PartialSourcePathAutocompletionHelper.operatorCompletions(dataSourceCharacteristicsOpt, pathToReplace, autoCompletionRequest)
+    AutoCompletionApiUtils.partialAutoCompletionResult(autoCompletionRequest, pathToReplace, operatorCompletions, filteredResults)
   }
 }

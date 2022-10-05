@@ -11,6 +11,8 @@ export interface IViewActions {
     integratedView?: boolean;
     /** callback executed to notify external dependencies if there are unsaved changes or not */
     savedChanges?: (status: boolean) => void;
+    /** Switches to another view of the same task, e.g. in a tab view. */
+    switchToView?: (viewIdx: number) => any;
 }
 
 /** A project task view that is meant to be displayed for a specific project task.

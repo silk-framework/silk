@@ -5,13 +5,13 @@ import controllers.core.UserContextActions
 import controllers.util.{PluginUsageCollector, TextSearchUtils}
 import controllers.workspaceApi.coreApi.doc.PluginApiDoc
 import io.swagger.v3.oas.annotations.enums.ParameterIn
-import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{CustomTask, TaskSpec}
 import org.silkframework.dataset.{Dataset, DatasetSpec}
-import org.silkframework.rule.input.{TransformInput, Transformer}
+import org.silkframework.rule.input.Transformer
 import org.silkframework.rule.similarity.{Aggregator, DistanceMeasure}
 import org.silkframework.rule.{LinkSpec, TransformSpec}
 import org.silkframework.runtime.plugin.{PluginDescription, PluginList, PluginRegistry}
@@ -293,13 +293,8 @@ object PluginApiCache {
   @volatile
   private var itemTypeMapById: Map[String, String] = Map.empty
 
-  private lazy val pluginTypeMapById: Map[String, String] = {
-    PluginRegistry.allPlugins
-      .filter(pd => Seq(classOf[TaskSpec], classOf[Dataset], classOf[Transformer], classOf[Aggregator], classOf[DistanceMeasure])
-        .exists(_.isAssignableFrom(pd.pluginClass)))
-      .flatMap(pd => pluginTypeByClass(pd.pluginClass).map(pluginType => (pd.id.toString, pluginType)))
-      .toMap
-  }
+  @volatile
+  private var pluginTypeMapById: Map[String, String] = Map.empty
 
   def taskType(pluginId: String): Option[String] = {
     updateCache()
@@ -307,6 +302,7 @@ object PluginApiCache {
   }
 
   def pluginType(pluginId: String): Option[String] = {
+    updateCache()
     pluginTypeMapById.get(pluginId)
   }
 
@@ -342,6 +338,13 @@ object PluginApiCache {
         PluginRegistry.allPlugins
           .filter(pd => classOf[TaskSpec].isAssignableFrom(pd.pluginClass) || classOf[Dataset].isAssignableFrom(pd.pluginClass))
           .flatMap(pd => taskTypeByClass(pd.pluginClass).map(taskType => (pd.id.toString, taskType)))
+          .toMap
+      }
+      pluginTypeMapById = {
+        PluginRegistry.allPlugins
+          .filter(pd => Seq(classOf[TaskSpec], classOf[Dataset], classOf[Transformer], classOf[Aggregator], classOf[DistanceMeasure])
+            .exists(_.isAssignableFrom(pd.pluginClass)))
+          .flatMap(pd => pluginTypeByClass(pd.pluginClass).map(pluginType => (pd.id.toString, pluginType)))
           .toMap
       }
     }

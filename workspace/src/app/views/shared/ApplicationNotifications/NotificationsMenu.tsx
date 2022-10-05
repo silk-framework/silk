@@ -112,9 +112,10 @@ export function useNotificationsQueue() {
     const { errors } = useSelector(errorSelector);
     //first message is the latest entry based on the timestamp
     const messages = [...errors].sort((a, b) => b.timestamp - a.timestamp); //https://stackoverflow.com/questions/53420055/
+    const initTime = React.useRef(new Date().getTime());
 
     useEffect(() => {
-        if (messages.length) {
+        if (messages.length && messages[0].timestamp > initTime.current) {
             setDisplayLastNotification(true);
             const timeout: number = window.setTimeout(async () => {
                 setDisplayLastNotification(false);

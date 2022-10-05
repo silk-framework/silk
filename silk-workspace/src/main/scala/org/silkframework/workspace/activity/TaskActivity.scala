@@ -38,8 +38,6 @@ class TaskActivity[DataType <: TaskSpec : ClassTag, ActivityType <: HasValue : C
     )
   }
 
-  def activityType: Class[_] = defaultFactory.activityType
-
   /**
     * Checks if the value type of the activity is Unit.
     */

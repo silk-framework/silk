@@ -1,4 +1,4 @@
-import {IInputSource, IUiAnnotations} from "../shared/task.typings";
+import { IInputSource, IUiAnnotations } from "../shared/task.typings";
 import { IEntity, IOperatorNode, IOperatorNodeParameters, IValueInput, RuleLayout } from "../shared/rules/rule.typings";
 
 /** A linking rule. */
@@ -16,7 +16,7 @@ export interface ILinkingRule {
     /** Layout information of the link rule operators. */
     layout: RuleLayout;
     /** Visual annotations to be displayed in the editor. */
-    uiAnnotations: IUiAnnotations
+    uiAnnotations: IUiAnnotations;
 }
 
 export interface ISimilarityOperator extends IOperatorNode {
@@ -89,10 +89,14 @@ export interface ILinkingTaskParameters {
 
 /** Link evaluation */
 
-/** The result when evaluating a linkage rule against the reference links. */
-export interface IEvaluatedReferenceLinks {
+/** Reference links of a linking rule. */
+export interface ReferenceLinks {
     negative: IEntityLink[];
     positive: IEntityLink[];
+}
+
+/** The result when evaluating a linkage rule against the reference links. */
+export interface IEvaluatedReferenceLinks extends ReferenceLinks {
     evaluationScore: IEvaluatedReferenceLinksScore;
 }
 
@@ -115,6 +119,8 @@ export interface IEntityLink {
     target: string;
     /** The confidence regarding to the linkage rule. Range: -1.0 to 1.0 */
     confidence?: number;
+    /** The label of the entity link. */
+    decision: "positive" | "negative" | "unlabeled" | undefined;
     /** The rule evaluation tree. For empty rules it is just a score. */
     ruleValues?: IEvaluationNode | { score: number };
     entities?: {

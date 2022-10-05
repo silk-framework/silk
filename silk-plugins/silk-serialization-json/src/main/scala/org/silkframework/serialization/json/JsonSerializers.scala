@@ -963,7 +963,7 @@ object JsonSerializers {
       )
     }
 
-    override def write(value: LinkageRule)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+    override def write(value: LinkageRule)(implicit writeContext: WriteContext[JsValue]): JsObject = {
       Json.obj(
         OPERATOR -> value.operator.map(toJson(_)),
         FILTER -> toJson(value.filter),

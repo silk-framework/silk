@@ -4,7 +4,11 @@ import org.silkframework.runtime.activity.Status
 import org.silkframework.runtime.activity.Status.Idle
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.serialization.json.ActivitySerializers.StatusJsonFormat
-import play.api.libs.json.{JsObject, JsValue}
+import play.api.libs.json.{JsObject, JsValue, Json}
+import play.shaded.ahc.org.asynchttpclient.AsyncHttpClient
+import play.shaded.ahc.org.asynchttpclient.ws.{WebSocket, WebSocketListener, WebSocketUpgradeHandler}
+
+import java.util.logging.Level
 
 trait ActivityApiClient extends ApiClient {
 
@@ -35,6 +39,34 @@ trait ActivityApiClient extends ApiClient {
     val response = request.get()
     implicit val readFormat = ReadContext()
     StatusJsonFormat.read(checkResponse(response).body[JsValue])
+  }
+
+  def activityValueWebsocket(projectId: String, taskId: String, activityId: String)(f: JsValue => Unit): Unit = {
+    val requestUrl = s"ws://localhost:$port/workspace/activities/valueUpdatesWebSocket?project=$projectId&task=$taskId&activity=$activityId"
+    val asyncHttpClient = client.underlying[AsyncHttpClient]
+
+    val upgradeHandlerBuilder = new WebSocketUpgradeHandler.Builder
+    val wsHandler = upgradeHandlerBuilder.addWebSocketListener(new WebSocketListener {
+      def onOpen(websocket: WebSocket): Unit = {
+        // WebSocket connection opened
+      }
+
+      def onClose(websocket: WebSocket, code: Int, reason: String): Unit = {
+        // WebSocket connection closed
+      }
+
+      def onError(t: Throwable): Unit = {
+        // WebSocket connection error
+        log.log(Level.WARNING, "Websocket failed", t)
+      }
+
+      override def onTextFrame(payload: String, finalFragment: Boolean, rsv: Int): Unit = {
+        f(Json.parse(payload))
+      }
+
+    }).build
+
+    asyncHttpClient.prepareGet(requestUrl).execute(wsHandler).get()
   }
 
 }

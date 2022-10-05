@@ -62,6 +62,16 @@ export interface RuleEditorContextProps {
     lastSaveResult?: RuleSaveResult;
     /** UI annotation sticky notes */
     stickyNotes: IStickyNote[];
+    /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
+    showRuleOnly?: boolean;
+    /** When enabled the mini map is not displayed. */
+    hideMinimap?: boolean;
+    /** Defines minimum and maximum of the available zoom levels */
+    zoomRange?: [number, number];
+    /** After the initial fit to view, zoom to the specified Zoom level to avoid showing too small nodes. */
+    initialFitToViewZoomLevel?: number;
+    /** The ID of the instance. If multiple instances are used in parallel, they need to have unique IDs, else there can be interferences. */
+    instanceId: string;
 }
 
 /** Creates a rule editor model context that contains the actual rule model and low-level update functions. */
@@ -77,4 +87,9 @@ export const RuleEditorContext = React.createContext<RuleEditorContextProps>({
     },
     validateConnection: () => true,
     stickyNotes: [],
+    showRuleOnly: false,
+    hideMinimap: false,
+    zoomRange: [0.5, 1.5],
+    initialFitToViewZoomLevel: 0.75,
+    instanceId: "uniqueId",
 });

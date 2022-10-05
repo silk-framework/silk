@@ -36,5 +36,5 @@ abstract class TaskActivityFactory[TaskType <: TaskSpec : ClassTag, ActivityType
   /**
     * Returns the type of generated activities.
     */
-  def activityType: Class[_] = implicitly[ClassTag[ActivityType]].runtimeClass
+  override def activityType: Class[_] = implicitly[ClassTag[ActivityType]].runtimeClass
 }
