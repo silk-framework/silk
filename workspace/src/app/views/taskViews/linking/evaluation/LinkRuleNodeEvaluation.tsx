@@ -83,7 +83,9 @@ export const LinkRuleNodeEvaluation = ({
                                                 <OverviewItemLine small>
                                                     <Icon name="application-warning" intent="warning" />
                                                     <Spacing size="tiny" vertical />
-                                                    <OverflowText>{error}</OverflowText>
+                                                    <OverflowText className="linking__error-description">
+                                                        {error}
+                                                    </OverflowText>
                                                 </OverviewItemLine>
                                             ) : (
                                                 value.map((value) => (
