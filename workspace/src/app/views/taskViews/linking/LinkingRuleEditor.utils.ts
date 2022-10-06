@@ -5,13 +5,15 @@
 import {
     IRuleOperator,
     IRuleOperatorNode,
-    IRuleSidebarPreConfiguredOperatorsTabConfig, RuleEditorValidationNode,
+    IRuleSidebarPreConfiguredOperatorsTabConfig,
+    RuleEditorValidationNode,
     RuleValidationError,
 } from "../../shared/RuleEditor/RuleEditor.typings";
 import { IValueInput, PathWithMetaData } from "../shared/rules/rule.typings";
 import {
     IAggregationOperator,
     IComparisonOperator,
+    ILinkingRule,
     ILinkingTaskParameters,
     ISimilarityOperator,
     LabelledParameterValue,
@@ -36,7 +38,7 @@ const comparatorInputs = (comparison: IComparisonOperator): IValueInput[] => [
 
 const aggregatorInputs = (aggregator: IAggregationOperator): ISimilarityOperator[] => aggregator.inputs;
 
-const REVERSE_PARAMETER_ID = "reverse"
+const REVERSE_PARAMETER_ID = "reverse";
 
 /**
  * Extracts and adds a single operator node to the array, recursively executes on its children.
@@ -69,11 +71,12 @@ const extractSimilarityOperatorNode = (
             }
             return t;
         };
-        const reverseParameterValue = () => operator.parameters[REVERSE_PARAMETER_ID]?.["value"] ?? operator.parameters[REVERSE_PARAMETER_ID]
-        const inputsCanBeSwitched = isComparison && reverseParameterValue() != null
-        const switchInputs = inputsCanBeSwitched && reverseParameterValue() === "true"
-        if(switchInputs) {
-            inputs.reverse()
+        const reverseParameterValue = () =>
+            operator.parameters[REVERSE_PARAMETER_ID]?.["value"] ?? operator.parameters[REVERSE_PARAMETER_ID];
+        const inputsCanBeSwitched = isComparison && reverseParameterValue() != null;
+        const switchInputs = inputsCanBeSwitched && reverseParameterValue() === "true";
+        if (switchInputs) {
+            inputs.reverse();
         }
         const additionalParameters = isComparison
             ? {
@@ -100,7 +103,7 @@ const extractSimilarityOperatorNode = (
             },
             tags: [operator.type],
             description: ruleOperator(pluginId, pluginType)?.description,
-            inputsCanBeSwitched
+            inputsCanBeSwitched,
         });
         return operator.id;
     }
@@ -118,14 +121,22 @@ const getStickyNotes = (linkSpec: TaskPlugin<ILinkingTaskParameters>): IStickyNo
     (linkSpec && optionallyLabelledParameterToValue(linkSpec.parameters.rule).uiAnnotations.stickyNotes) || [];
 
 /** Converts the linking task rule to the internal representation. */
-const convertToRuleOperatorNodes = (
+const convertLinkingTaskToRuleOperatorNodes = (
     linkSpec: TaskPlugin<ILinkingTaskParameters>,
     ruleOperator: RuleOperatorFetchFnType
 ): IRuleOperatorNode[] => {
     const rule = optionallyLabelledParameterToValue(linkSpec.parameters.rule);
+    return convertLinkingRuleToRuleOperatorNodes(rule, ruleOperator);
+};
+
+/** Convert a linking rule to rule operator nodes. */
+const convertLinkingRuleToRuleOperatorNodes = (
+    linkRule: ILinkingRule,
+    ruleOperator: RuleOperatorFetchFnType
+): IRuleOperatorNode[] => {
     const operatorNodes: IRuleOperatorNode[] = [];
-    extractSimilarityOperatorNode(rule.operator, operatorNodes, ruleOperator);
-    const nodePositions = rule.layout.nodePositions;
+    extractSimilarityOperatorNode(linkRule.operator, operatorNodes, ruleOperator);
+    const nodePositions = linkRule.layout.nodePositions;
     operatorNodes.forEach((node) => {
         const [x, y] = nodePositions[node.nodeId] ?? [null, null];
         node.position = x !== null ? { x, y } : undefined;
@@ -134,21 +145,25 @@ const convertToRuleOperatorNodes = (
 };
 
 // Converts a rule operator node to a rule validation node
-const fromType = (ruleOperatorNode: IRuleOperatorNode,
-                  ruleOperatorNodes: Map<string, IRuleOperatorNode>): "source" | "target" | undefined => {
+const fromType = (
+    ruleOperatorNode: IRuleOperatorNode,
+    ruleOperatorNodes: Map<string, IRuleOperatorNode>
+): "source" | "target" | undefined => {
     const convertNode = (ruleOperatorNode: IRuleOperatorNode): RuleEditorValidationNode => {
         return {
             node: ruleOperatorNode,
             inputs: () => {
                 return ruleOperatorNode.inputs.map((input) => {
-                    return input && ruleOperatorNodes.has(input) ? convertNode(ruleOperatorNodes.get(input)!!) : undefined;
+                    return input && ruleOperatorNodes.has(input)
+                        ? convertNode(ruleOperatorNodes.get(input)!!)
+                        : undefined;
                 });
             },
             // Output is unimportant
             output: () => undefined,
         };
-    }
-    return ruleUtils.fromType(convertNode(ruleOperatorNode))
+    };
+    return ruleUtils.fromType(convertNode(ruleOperatorNode));
 };
 
 const convertRuleOperatorNodeToSimilarityOperator = (
@@ -185,16 +200,20 @@ const convertRuleOperatorNodeToSimilarityOperator = (
                 threshold: parseFloat(ruleEditorNodeParameterValue(ruleOperatorNode.parameters["threshold"])!!),
                 weight: parseInt(ruleEditorNodeParameterValue(ruleOperatorNode.parameters["weight"])!!),
             };
-            if(ruleOperatorNode.inputsCanBeSwitched && comparison.parameters[REVERSE_PARAMETER_ID] != null && ruleOperatorNode.inputs[0] != null) {
+            if (
+                ruleOperatorNode.inputsCanBeSwitched &&
+                comparison.parameters[REVERSE_PARAMETER_ID] != null &&
+                ruleOperatorNode.inputs[0] != null
+            ) {
                 // Set reverse parameter correctly
-                const sourceInput = ruleOperatorNodes.get(ruleOperatorNode.inputs[0])
-                const reverse = sourceInput ? fromType(sourceInput, ruleOperatorNodes) === "target" : false
-                comparison.parameters[REVERSE_PARAMETER_ID] = `${reverse}`
+                const sourceInput = ruleOperatorNodes.get(ruleOperatorNode.inputs[0]);
+                const reverse = sourceInput ? fromType(sourceInput, ruleOperatorNodes) === "target" : false;
+                comparison.parameters[REVERSE_PARAMETER_ID] = `${reverse}`;
                 // Switch inputs if they have the order target-source. The reverse parameter is handling the correct order.
-                if(reverse) {
-                    const sourceInput = comparison.sourceInput
-                    comparison.sourceInput = comparison.targetInput
-                    comparison.targetInput = sourceInput
+                if (reverse) {
+                    const sourceInput = comparison.sourceInput;
+                    comparison.sourceInput = comparison.targetInput;
+                    comparison.targetInput = sourceInput;
                 }
             }
             return comparison;
@@ -265,7 +284,7 @@ const inputPathTab = (
                     path: path.label ? { value: path.value, label: path.label } : path.value,
                 },
                 tags: [path.valueType],
-                inputsCanBeSwitched: false
+                inputsCanBeSwitched: false,
             };
         },
         isOriginalOperator: (listItem) => (listItem as PathWithMetaData).valueType != null,
@@ -301,7 +320,8 @@ export const constructLinkageRuleTree = (ruleOperatorNodes: IRuleOperatorNode[])
 
 const linkingRuleUtils = {
     convertRuleOperatorNodeToSimilarityOperator,
-    convertToRuleOperatorNodes,
+    convertLinkingTaskToRuleOperatorNodes,
+    convertLinkingRuleToRuleOperatorNodes,
     inputPathTab,
     constructLinkageRuleTree,
     optionallyLabelledParameterToValue,

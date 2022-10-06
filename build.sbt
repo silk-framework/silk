@@ -109,7 +109,7 @@ lazy val core = (project in file("silk-core"))
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Core",
-    libraryDependencies += "com.typesafe" % "config" % "1.4.1", // Should always use the same version as the Play Framework dependency
+    libraryDependencies += "com.typesafe" % "config" % "1.4.2", // Should always use the same version as the Play Framework dependency
     libraryDependencies += "com.github.halfmatthalfcat" %% "stringmetric-core" % "0.28.0",
     // Additional scala standard libraries
     libraryDependencies += "org.scala-lang.modules" %% "scala-xml" % "1.1.0",
@@ -129,13 +129,6 @@ lazy val rules = (project in file("silk-rules"))
     libraryDependencies += "org.postgresql" % "postgresql" % "42.2.5",
     libraryDependencies += "org.apache.jena" % "jena-core" % "4.4.0" exclude("org.slf4j", "slf4j-log4j12"),
     libraryDependencies += "org.apache.jena" % "jena-arq" % "4.4.0" exclude("org.slf4j", "slf4j-log4j12")
-  )
-
-lazy val learning = (project in file("silk-learning"))
-  .dependsOn(rules, workspace)
-  .settings(commonSettings: _*)
-  .settings(
-    name := "Silk Learning"
   )
 
 lazy val workspace = (project in file("silk-workspace"))
@@ -378,7 +371,7 @@ lazy val workbenchWorkspace = (project in file("silk-workbench/silk-workbench-wo
 
 lazy val workbenchRules = (project in file("silk-workbench/silk-workbench-rules"))
   .enablePlugins(PlayScala)
-  .dependsOn(workbenchWorkspace % "compile->compile;test->test", pluginsXml % "test->compile", pluginsJson % "test->compile", learning)
+  .dependsOn(workbenchWorkspace % "compile->compile;test->test", pluginsXml % "test->compile", pluginsJson % "test->compile")
   .aggregate(workbenchWorkspace)
   .settings(commonSettings: _*)
   .settings(
@@ -455,5 +448,5 @@ lazy val singlemachine = (project in file("silk-tools/silk-singlemachine"))
 //////////////////////////////////////////////////////////////////////////////
 
 lazy val root = (project in file("."))
-  .aggregate(core, plugins, singlemachine, learning, workspace, workbench)
+  .aggregate(core, plugins, singlemachine, workspace, workbench)
   .settings(commonSettings: _*)

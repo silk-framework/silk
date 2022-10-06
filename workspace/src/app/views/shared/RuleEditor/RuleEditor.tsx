@@ -18,12 +18,15 @@ import { ReactFlowProvider } from "react-flow-renderer";
 import utils from "./RuleEditor.utils";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
 
+/** Function to fetch the rule operator spec. */
 export type RuleOperatorFetchFnType = (
     pluginId: string,
     pluginType?: RuleOperatorPluginType
 ) => IRuleOperator | undefined;
 
 export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
+    /** The ID of the instance. If multiple instances are used in parallel, they need to have unique IDs, else there can be interferences. */
+    instanceId: string;
     /** Optional title that is shown above the toolbar. */
     editorTitle?: string;
     /** Project ID the task is in. */
@@ -67,6 +70,14 @@ export interface RuleEditorProps<RULE_TYPE, OPERATOR_TYPE> {
     additionalToolBarComponents?: () => JSX.Element | JSX.Element[];
     /** parent configuration to extract stickyNote from taskData*/
     getStickyNotes?: (taskData: RULE_TYPE | undefined) => IStickyNote[];
+    /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
+    showRuleOnly: boolean;
+    /** When enabled the mini map is not displayed. */
+    hideMinimap?: boolean;
+    /** Defines minimun and maximum of the available zoom levels */
+    zoomRange?: [number, number];
+    /** After the initial fit to view, zoom to the specified Zoom level to avoid showing too small nodes. */
+    initialFitToViewZoomLevel?: number;
 }
 
 const READ_ONLY_QUERY_PARAMETER = "readOnly";
@@ -89,6 +100,11 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     additionalToolBarComponents,
     editorTitle,
     getStickyNotes = () => [],
+    showRuleOnly,
+    hideMinimap,
+    zoomRange,
+    initialFitToViewZoomLevel,
+    instanceId,
 }: RuleEditorProps<TASK_TYPE, OPERATOR_TYPE>) => {
     // The task that contains the rule, e.g. transform or linking task
     const [taskData, setTaskData] = React.useState<TASK_TYPE | undefined>(undefined);
@@ -131,15 +147,8 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
     // Convert task data to internal model
     React.useEffect(() => {
         if (taskData && operatorMap) {
-            const getOperatorNode = (pluginId: string, pluginType?: string) => {
-                const operatorPlugins = operatorMap.get(pluginId);
-                if (!operatorPlugins) {
-                    console.warn("No plugin operator with ID " + pluginId + " found!");
-                } else {
-                    return pluginType
-                        ? operatorPlugins.find((plugin) => plugin.pluginType === pluginType)
-                        : operatorPlugins[0];
-                }
+            const getOperatorNode = (pluginId: string, pluginType?: string): IRuleOperator | undefined => {
+                return utils.getOperatorNode(pluginId, operatorMap, pluginType);
             };
             const nodes = convertToRuleOperatorNodes(taskData, getOperatorNode);
             setInitialRuleOperatorNodes(nodes);
@@ -230,15 +239,20 @@ const RuleEditor = <TASK_TYPE extends object, OPERATOR_TYPE extends object>({
                 validateConnection,
                 tabs,
                 viewActions,
-                readOnlyMode,
+                readOnlyMode: showRuleOnly || readOnlyMode,
                 additionalToolBarComponents,
                 lastSaveResult: lastSaveResult,
                 editorTitle,
                 stickyNotes: getStickyNotes(taskData),
+                showRuleOnly,
+                hideMinimap,
+                zoomRange,
+                initialFitToViewZoomLevel,
+                instanceId,
             }}
         >
             <RuleEditorModel>
-                <RuleEditorView />
+                <RuleEditorView showRuleOnly={showRuleOnly} hideMinimap={hideMinimap} zoomRange={zoomRange} />
             </RuleEditorModel>
         </RuleEditorContext.Provider>
     );

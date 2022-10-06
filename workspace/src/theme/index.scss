@@ -20,3 +20,10 @@
 @import "~@eccenca/gui-elements/src/extensions";
 // extensions for cmem context
 @import "~@eccenca/gui-elements/src/cmem";
+
+
+/**
+ * Additional styles for modules
+ */
+
+@import "./../app/views/taskViews/linking/activeLearning/LinkingRuleActiveLeraningConfig";

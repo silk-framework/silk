@@ -1,17 +1,16 @@
 package controllers
 
-import config.WorkbenchConfig
 import config.WorkbenchConfig.WorkspaceReact
+import config.baseUrl
 import controllers.core.UserContextActions
-import javax.inject.Inject
 import play.api.mvc.{Action, AnyContent, InjectedController}
-import play.twirl.api.Html
+
+import javax.inject.Inject
 
 class Workbench @Inject() (implicit workspaceReact: WorkspaceReact) extends InjectedController with UserContextActions {
 
   def index: Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
-    val welcome = Html(WorkbenchConfig.get.welcome.loadAsString())
-    Ok(views.html.start(welcome))
+    Redirect(s"$baseUrl/workbench?itemType=project")
   }
 
   def reactUIRoot(): Action[AnyContent] = Action {

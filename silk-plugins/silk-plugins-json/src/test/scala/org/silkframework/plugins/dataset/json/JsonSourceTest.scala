@@ -241,9 +241,9 @@ abstract class JsonSourceTest extends FlatSpec with MustMatchers {
     schema.classes.size mustBe 4
     val classes = schema.classes
     classes.head mustBe ExtractedSchemaClass("", Seq())
-    classes(1) mustBe ExtractedSchemaClass("persons", Seq(ExtractedSchemaProperty(UntypedPath("id"),Some("1")), ExtractedSchemaProperty(UntypedPath("name"),Some("Max"))))
-    classes(2) mustBe ExtractedSchemaClass("persons/phoneNumbers", Seq(ExtractedSchemaProperty(UntypedPath("type"),Some("office")), ExtractedSchemaProperty(UntypedPath("number"),Some("789"))))
-    classes(3) mustBe ExtractedSchemaClass("organizations", Seq(ExtractedSchemaProperty(UntypedPath("name"),Some("John Inc"))))
+    classes(1) mustBe ExtractedSchemaClass("persons", Seq(ExtractedSchemaProperty(path("id"),Some("1")), ExtractedSchemaProperty(path("name"),Some("Max"))))
+    classes(2) mustBe ExtractedSchemaClass("persons/phoneNumbers", Seq(ExtractedSchemaProperty(path("type"),Some("office")), ExtractedSchemaProperty(path("number"),Some("789"))))
+    classes(3) mustBe ExtractedSchemaClass("organizations", Seq(ExtractedSchemaProperty(path("name"),Some("John Inc"))))
   }
 
   it should "extract schema with value sample limit" in {
@@ -251,9 +251,9 @@ abstract class JsonSourceTest extends FlatSpec with MustMatchers {
     schema.classes.size mustBe 4
     val classes = schema.classes
     classes.head mustBe ExtractedSchemaClass("", Seq())
-    classes(1) mustBe ExtractedSchemaClass("persons", Seq(ExtractedSchemaProperty(UntypedPath("id"),Some("0")), ExtractedSchemaProperty(UntypedPath("name"),Some("John"))))
-    classes(2) mustBe ExtractedSchemaClass("persons/phoneNumbers", Seq(ExtractedSchemaProperty(UntypedPath("type"),Some("home")), ExtractedSchemaProperty(UntypedPath("number"),Some("123"))))
-    classes(3) mustBe ExtractedSchemaClass("organizations", Seq(ExtractedSchemaProperty(UntypedPath("name"),Some("John Inc"))))
+    classes(1) mustBe ExtractedSchemaClass("persons", Seq(ExtractedSchemaProperty(path("id"),Some("0")), ExtractedSchemaProperty(path("name"),Some("John"))))
+    classes(2) mustBe ExtractedSchemaClass("persons/phoneNumbers", Seq(ExtractedSchemaProperty(path("type"),Some("home")), ExtractedSchemaProperty(path("number"),Some("123"))))
+    classes(3) mustBe ExtractedSchemaClass("organizations", Seq(ExtractedSchemaProperty(path("name"),Some("John Inc"))))
   }
 
   it should "extract schema with base path set" in {
@@ -262,9 +262,9 @@ abstract class JsonSourceTest extends FlatSpec with MustMatchers {
       val schema = source.extractSchema(new TestAnalyzerFactory(), Int.MaxValue, sampleLimit = None)
       schema.classes.size mustBe 2
       val classes = schema.classes
-      classes.head mustBe ExtractedSchemaClass("", Seq(ExtractedSchemaProperty(UntypedPath("id"),Some("1")), ExtractedSchemaProperty(UntypedPath("name"),Some("Max"))))
+      classes.head mustBe ExtractedSchemaClass("", Seq(ExtractedSchemaProperty(path("id"),Some("1")), ExtractedSchemaProperty(path("name"),Some("Max"))))
       classes(1) mustBe ExtractedSchemaClass("phoneNumbers",
-        Seq(ExtractedSchemaProperty(UntypedPath("type"),Some("office")), ExtractedSchemaProperty(UntypedPath("number"),Some("789"))))
+        Seq(ExtractedSchemaProperty(path("type"),Some("office")), ExtractedSchemaProperty(path("number"),Some("789"))))
     }
   }
 
@@ -311,5 +311,9 @@ abstract class JsonSourceTest extends FlatSpec with MustMatchers {
     val jsonResource = InMemoryResourceManager().get("temp.json")
     jsonResource.writeString(json)
     createSource(jsonResource, basePath = basePath, uriPattern = "")
+  }
+
+  private def path(str: String): TypedPath = {
+    UntypedPath(str).asStringTypedPath
   }
 }

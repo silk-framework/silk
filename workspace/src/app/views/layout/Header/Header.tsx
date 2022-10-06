@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useTranslation } from "react-i18next";
-import { useLocation } from "react-router-dom";
+import React, {useState} from "react";
+import {useDispatch, useSelector} from "react-redux";
+import {useTranslation} from "react-i18next";
+import {useLocation} from "react-router-dom";
 import {
     ApplicationHeader,
     ApplicationSidebarNavigation,
@@ -24,18 +24,19 @@ import {
     ToolbarSection,
     WorkspaceHeader,
 } from "@eccenca/gui-elements";
-import { commonOp, commonSel } from "@ducks/common";
-import { workspaceSel } from "@ducks/workspace";
-import { routerOp } from "@ducks/router";
+import {commonOp, commonSel} from "@ducks/common";
+import {workspaceSel} from "@ducks/workspace";
+import {routerOp} from "@ducks/router";
 import CreateButton from "../../shared/buttons/CreateButton";
-import { CreateArtefactModal } from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
-import { NotificationsMenu } from "../../shared/ApplicationNotifications/NotificationsMenu";
-import { triggerHotkeyHandler } from "../../shared/HotKeyHandler/HotKeyHandler";
-import { APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME } from "../../../constants/base";
-import { CONTEXT_PATH, SERVE_PATH } from "../../../constants/path";
-import { APP_VIEWHEADER_ID } from "../../shared/PageHeader/PageHeader";
-import { pluginRegistry, SUPPORTED_PLUGINS } from "../../plugins/PluginRegistry";
-import { UserMenuFooterProps } from "../../plugins/plugin.types";
+import {CreateArtefactModal} from "../../shared/modals/CreateArtefactModal/CreateArtefactModal";
+import {NotificationsMenu} from "../../shared/ApplicationNotifications/NotificationsMenu";
+import {triggerHotkeyHandler} from "../../shared/HotKeyHandler/HotKeyHandler";
+import {APPLICATION_CORPORATION_NAME, APPLICATION_NAME, APPLICATION_SUITE_NAME} from "../../../constants/base";
+import {CONTEXT_PATH, SERVE_PATH} from "../../../constants/path";
+import {APP_VIEWHEADER_ID} from "../../shared/PageHeader/PageHeader";
+import {pluginRegistry, SUPPORTED_PLUGINS} from "../../plugins/PluginRegistry";
+import {UserMenuFooterProps} from "../../plugins/plugin.types";
+import {ExampleProjectImportMenu} from "./ExampleProjectImportMenu";
 
 interface IProps {
     onClickApplicationSidebarExpand: any;
@@ -243,11 +244,7 @@ export function Header({ onClickApplicationSidebarExpand, isApplicationSidebarEx
                                             href={CONTEXT_PATH + "/doc/api"}
                                             icon={"application-homepage"}
                                         />
-                                        <MenuItem
-                                            text={t("common.action.backOld", "Back to old workspace")}
-                                            href={CONTEXT_PATH + "/workspace"}
-                                            icon={"application-legacygui"}
-                                        />
+                                        <ExampleProjectImportMenu />
                                         {!!dmBaseUrl && diUserMenuItems && <diUserMenuItems.Component />}
                                     </Menu>
                                 </ToolbarSection>
