@@ -37,7 +37,8 @@ class CacheUpdaterTask @Inject() (actorSystem: ActorSystem, executionContext: Ca
   private def updateTypeAndPathCaches(interval: FiniteDuration): Unit = {
     val updateStart = System.currentTimeMillis()
     val updatedFiles = DirtyTrackingFileDataSink.fetchAndClearUpdatedFiles()
-    val lastUpdateInstant = Instant.ofEpochMilli(lastUpdate).minus(interval.toNanos, ChronoUnit.NANOS)
+    val minExtraToleranceInMs = 1000L
+    val lastUpdateInstant = Instant.ofEpochMilli(lastUpdate).minus(math.max(interval.toMillis, minExtraToleranceInMs), ChronoUnit.MILLIS)
     if(updatedFiles.nonEmpty) {
       log.info(s"Cache updater task running. ${updatedFiles.size} updated file(s) found. Triggering cache updates...")
       implicit val userContext: UserContext = UserContext.INTERNAL_USER

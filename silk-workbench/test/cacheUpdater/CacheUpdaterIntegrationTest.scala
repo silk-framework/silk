@@ -38,9 +38,9 @@ class CacheUpdaterIntegrationTest() extends FlatSpec with IntegrationTestTrait w
       cachedTypes() mustBe Seq("", "sub")
       cachedPaths() mustBe IndexedSeq("id", "sub", "sub/name")
     }
-    resource.writeString(afterJsonContent)
     val jsonSink = new JsonSink(resource)
     jsonSink.close()
+    // JSON sink overwrites the resource on close, so we need to update the value afterwards
     resource.writeString(afterJsonContent)
     eventually {
       cachedTypes() mustBe Seq("", "sub", "newSub")
