@@ -806,6 +806,11 @@
             "unsavedChanges": "There are unsaved changes. Do you still want to close the workflow editor?"
         }
     },
+    "DatasetUriPropertyParameter": {
+        "label": "URI attribute",
+        "description": "When reading data from the dataset, the specified attribute will be used to get the URIs of the entities. When writing to a dataset, the specified attribute will be automatically added to the schema as well as the generated entity URIs will be added as values for each entity. If the entered value is not a valid URI, it will be converted to a valid URI.",
+        "invalid": "The URI you have entered is not a valid URI and/or cannot be converted to a valid URI."
+    },
     "ActiveLearning": {
         "config": {
             "title": "Configuration: Define properties to compare between entities of each data source",
