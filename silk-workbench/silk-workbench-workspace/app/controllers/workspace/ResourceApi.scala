@@ -25,6 +25,7 @@ import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.Files
 import play.api.libs.json.Json
 import play.api.mvc._
+import resources.ResourceHelper
 
 import java.io.File
 import java.net.URL
@@ -245,26 +246,9 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
     }
     if(response == NoContent) { // Successfully updated
       log.info(s"Created/updated resource '$resourceName' in project '$projectName'. " + userContext.logInfo)
-      refreshCachesOfDependingTasks(resourceName, project)
+      ResourceHelper.refreshCachesOfDependingTasks(resourceName, project)
     }
     response
-  }
-
-  private def refreshCachesOfDependingTasks(resourceName: String,
-                                            project: Project)
-                                           (implicit userContext: UserContext): Unit = {
-    // The tasks depending on the resource that were actually updated.
-    val updatedResourceTasks = mutable.Set[Identifier]()
-    tasksDependingOnResource(resourceName, project).foreach { task =>
-      task.activities.foreach { activity =>
-        if (activity.isCacheActivity) {
-          updatedResourceTasks.add(task.id)
-          Try(activity.start())
-        }
-      }
-      // Also update path caches of tasks that directly depend on any of the updated tasks
-      task.dataValueHolder.republish()
-    }
   }
 
   private def putResourceFromMultipartFormData(resource: WritableResource, formData: MultipartFormData[Files.TemporaryFile]) = {
@@ -328,17 +312,11 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
                     )
                     resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = super[ControllerUtilsTrait].getProject(projectId)
-    val dependentTasks: Seq[TaskLinkInfo] = tasksDependingOnResource(resourceName, project)
+    val dependentTasks: Seq[TaskLinkInfo] = ResourceHelper.tasksDependingOnResource(resourceName, project)
       .map { task =>
         TaskLinkInfo(task.id, task.fullLabel, PluginApiCache.taskTypeByClass(task.taskType))
       }
     Ok(Json.toJson(dependentTasks))
-  }
-
-  private def tasksDependingOnResource(resourceName: String, project: Project)
-                                      (implicit userContext: UserContext): Seq[ProjectTask[_ <: TaskSpec]] = {
-    project.allTasks
-      .filter(_.referencedResources.map(_.name).contains(resourceName))
   }
 
   @Operation(
@@ -376,5 +354,4 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
     log.info(s"Deleted resource '$resourceName' in project '$projectName'. " + userContext.logInfo)
     NoContent
   }
-
 }

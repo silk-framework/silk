@@ -12,7 +12,7 @@ import org.silkframework.dataset.DatasetSpec
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.entity.StringValueType
 import org.silkframework.plugins.dataset.csv.CsvDataset
-import org.silkframework.plugins.dataset.json.JsonDataset
+import org.silkframework.plugins.dataset.json.{JsonDataset, JsonSink}
 import org.silkframework.plugins.dataset.rdf.datasets.InMemoryDataset
 import org.silkframework.plugins.dataset.rdf.tasks.SparqlUpdateCustomTask
 import org.silkframework.plugins.dataset.xml.XSLTOperator
@@ -149,12 +149,15 @@ class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with MustMatch
     }
   }
 
+  private val beforeJsonContent = """{"id": 1, "sub": {"name": "name1"}}"""
+  private val afterJsonContent = """{"id": 1, "sub": {"name": "name1"}, "newSub": {"subName": "name2"}}"""
+
   "Resource endpoint" should {
     "trigger updates of depending tasks" in {
       val p = workspaceProject(project)
       val resourceName = "resource.json"
       val resource = p.resources.get(resourceName)
-      resource.writeString("""{"id": 1, "sub": {"name": "name1"}}""")
+      resource.writeString(beforeJsonContent)
       val datasetId = "json1"
       val jsonDataset = JsonDataset(resource)
       p.addTask(datasetId, DatasetSpec(jsonDataset))
@@ -166,7 +169,7 @@ class WorkspaceApiTest extends PlaySpec with IntegrationTestTrait with MustMatch
         cachedTypes() mustBe Seq("", "sub")
         cachedPaths() mustBe IndexedSeq("id", "sub", "sub/name")
       }
-      checkResponse(client.url(s"$baseUrl/workspace/projects/$project/resources/$resourceName").put("""{"id": 1, "sub": {"name": "name1"}, "newSub": {"subName": "name2"}}"""))
+      checkResponse(client.url(s"$baseUrl/workspace/projects/$project/resources/$resourceName").put(afterJsonContent))
       eventually {
         cachedTypes() mustBe Seq("", "sub", "newSub")
         cachedPaths() mustBe IndexedSeq("id", "sub", "sub/name", "newSub", "newSub/subName")
