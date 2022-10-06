@@ -246,7 +246,7 @@ export const RuleEditorCanvas = () => {
         handleAction: (handle: HandleProps, handleDom: Element) => void
     ) => {
         const handles = modelUtils.inputHandles(ruleEditorNode);
-        const ruleDomNode = document.querySelector(`#ruleEditor-react-flow-canvas div[data-id="${ruleEditorNode.id}"]`);
+        const ruleDomNode = document.querySelector(`#${modelContext.canvasId} div[data-id="${ruleEditorNode.id}"]`);
         ruleDomNode &&
             handles.forEach((handle) => {
                 const handleDom = ruleDomNode.querySelector(
@@ -264,7 +264,7 @@ export const RuleEditorCanvas = () => {
         handleAction: (handle: HandleProps, handleDom: Element) => void
     ) => {
         const handles = modelUtils.outputHandles(ruleEditorNode);
-        const ruleDomNode = document.querySelector(`#ruleEditor-react-flow-canvas div[data-id="${ruleEditorNode.id}"]`);
+        const ruleDomNode = document.querySelector(`#${modelContext.canvasId} div[data-id="${ruleEditorNode.id}"]`);
         ruleDomNode &&
             handles.forEach((handle) => {
                 const handleDom = ruleDomNode.querySelector(`div[data-handlepos = "right"]`);
@@ -496,11 +496,12 @@ export const RuleEditorCanvas = () => {
         event.preventDefault();
     };
 
+    const permanentReadOnly = !!ruleEditorUiContext.showRuleOnly;
     return (
         <>
             <GridColumn full>
                 <ReactFlow
-                    id={"ruleEditor-react-flow-canvas"}
+                    id={modelContext.canvasId}
                     data-test-id={"ruleEditor-react-flow-canvas"}
                     configuration={"linking"}
                     ref={ruleEditorUiContext?.reactFlowWrapper}
@@ -508,7 +509,7 @@ export const RuleEditorCanvas = () => {
                     onElementClick={onElementClick}
                     onSelectionDragStart={handleSelectionDragStart}
                     onSelectionDragStop={handleSelectionDragStop}
-                    onEdgeContextMenu={onEdgeContextMenu}
+                    onEdgeContextMenu={permanentReadOnly ? undefined : onEdgeContextMenu}
                     onElementsRemove={onElementsRemove}
                     onConnectStart={onConnectStart}
                     onConnect={onConnect}
@@ -517,11 +518,11 @@ export const RuleEditorCanvas = () => {
                     onNodeDragStop={handleNodeDragStop}
                     onNodeMouseEnter={onNodeMouseEnter}
                     onNodeMouseLeave={onNodeMouseLeave}
-                    onNodeContextMenu={onNodeContextMenu}
-                    onSelectionContextMenu={onSelectionContextMenu}
+                    onNodeContextMenu={permanentReadOnly ? undefined : onNodeContextMenu}
+                    onSelectionContextMenu={permanentReadOnly ? undefined : onSelectionContextMenu}
                     onSelectionChange={onSelectionChange}
                     onLoad={onLoad}
-                    onDrop={onDrop}
+                    onDrop={permanentReadOnly ? undefined : onDrop}
                     onDragOver={onDragOver}
                     onEdgeUpdateStart={onEdgeUpdateStart}
                     onEdgeUpdateEnd={onEdgeUpdateEnd}
@@ -530,14 +531,20 @@ export const RuleEditorCanvas = () => {
                     snapGrid={snapGrid}
                     snapToGrid={true}
                     zoomOnDoubleClick={false}
-                    maxZoom={1.25}
+                    minZoom={!!ruleEditorUiContext.zoomRange ? ruleEditorUiContext.zoomRange[0] : undefined}
+                    maxZoom={!!ruleEditorUiContext.zoomRange ? ruleEditorUiContext.zoomRange[1] : 1.25}
                     multiSelectionKeyCode={18} // ALT
                 >
-                    <MiniMap flowInstance={ruleEditorUiContext.reactFlowInstance} enableNavigation={true} />
+                    {!ruleEditorUiContext.hideMinimap && (
+                        <MiniMap flowInstance={ruleEditorUiContext.reactFlowInstance} enableNavigation={true} />
+                    )}
                     <Controls
-                        showInteractive={!!modelContext.setIsReadOnly}
-                        onInteractiveChange={(isInteractive) =>
-                            modelContext.setIsReadOnly && modelContext.setIsReadOnly(!isInteractive)
+                        showInteractive={permanentReadOnly ? false : !!modelContext.setIsReadOnly}
+                        onInteractiveChange={
+                            permanentReadOnly
+                                ? undefined
+                                : (isInteractive) =>
+                                      modelContext.setIsReadOnly && modelContext.setIsReadOnly(!isInteractive)
                         }
                     />
                     <Background variant={BackgroundVariant.Lines} gap={16} />

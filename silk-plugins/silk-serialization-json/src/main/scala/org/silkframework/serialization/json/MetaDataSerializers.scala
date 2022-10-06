@@ -33,6 +33,10 @@ object MetaDataSerializers {
     def fromUri(userUri: Uri): UserInfo = {
       UserInfo(userUri, User.labelFromUri(userUri))
     }
+
+    def fromUser(user: User): UserInfo = {
+      UserInfo(user.uri, user.label)
+    }
   }
 
   @Schema(description = "Plain meta data object")

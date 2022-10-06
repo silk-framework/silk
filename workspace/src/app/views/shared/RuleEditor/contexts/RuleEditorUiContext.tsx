@@ -20,6 +20,12 @@ export interface RuleEditorUiContextProps {
     currentRuleNodeDescription: string | undefined;
     /** Sets the markdown description for rule operator node */
     setCurrentRuleNodeDescription: (description: string | undefined) => void;
+    /** When enabled only the rule is shown without side- and toolbar and any other means to edit the rule. */
+    showRuleOnly?: boolean;
+    /** When enabled the mini map is not displayed. */
+    hideMinimap?: boolean;
+    /** Defines minimun and maximum of the available zoom levels */
+    zoomRange?: [number, number];
 }
 
 export const RuleEditorUiContext = React.createContext<RuleEditorUiContextProps>({
@@ -32,4 +38,7 @@ export const RuleEditorUiContext = React.createContext<RuleEditorUiContextProps>
     reactFlowInstance: undefined,
     currentRuleNodeDescription: undefined,
     setCurrentRuleNodeDescription: () => {},
+    showRuleOnly: false,
+    hideMinimap: false,
+    zoomRange: [0.5, 1.5],
 });

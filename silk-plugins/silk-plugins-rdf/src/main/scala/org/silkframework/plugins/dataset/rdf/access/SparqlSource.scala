@@ -1,11 +1,10 @@
 package org.silkframework.plugins.dataset.rdf.access
 
-import java.util.logging.{Level, Logger}
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
-import org.silkframework.dataset.rdf.{Resource, SparqlEndpoint, SparqlParams}
+import org.silkframework.dataset.rdf._
 import org.silkframework.entity._
-import org.silkframework.entity.paths.{BackwardOperator, TypedPath, UntypedPath}
+import org.silkframework.entity.paths.{BackwardOperator, ForwardOperator, TypedPath, UntypedPath}
 import org.silkframework.entity.rdf.SparqlRestriction
 import org.silkframework.execution.EntityHolder
 import org.silkframework.execution.local.{EmptyEntityTable, GenericEntityTable}
@@ -13,6 +12,7 @@ import org.silkframework.plugins.dataset.rdf.sparql._
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.{Identifier, Uri}
 
+import java.util.logging.{Level, Logger}
 import scala.collection.mutable
 
 /**
@@ -117,7 +117,7 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
                                 sampleLimit: Option[Int],
                                 progressFN: Double => Unit)
                                (implicit userContext: UserContext): ExtractedSchema[T] = {
-    val classProperties = mutable.HashMap[String, List[UntypedPath]]()
+    val classProperties = mutable.HashMap[String, Seq[TypedPath]]()
     addForwardPaths(classProperties)
     addBackwardPaths(classProperties)
     val schemaClasses = for((classUri, classProperties) <- classProperties) yield {
@@ -129,41 +129,51 @@ class SparqlSource(params: SparqlParams, val sparqlEndpoint: SparqlEndpoint)
     ExtractedSchema(schemaClasses.toSeq)
   }
 
-  private def addBackwardPaths[T](classProperties: mutable.HashMap[String, List[UntypedPath]])
-                                 (implicit userContext: UserContext): Unit = {
+  private def addBackwardPaths(classProperties: mutable.HashMap[String, Seq[TypedPath]])
+                              (implicit userContext: UserContext): Unit = {
     val backwardResults = sparqlEndpoint.select(
       """
-        |SELECT DISTINCT ?class ?property
+        |SELECT DISTINCT ?class ?property (SAMPLE(?v) as ?valueSample)
         |WHERE {
         |  ?s a ?class .
         |  ?v ?property ?s
-        |}
+        |} GROUP BY ?class ?property
       """.stripMargin)
     for (binding <- backwardResults.bindings;
          classResource <- binding.get("class") if classResource.isInstanceOf[Resource]) {
       val classUri = binding("class").value
       val propertyUri = binding("property").value
+      val propertyType = valueType(binding("valueSample"))
       val currentProperties = classProperties.getOrElseUpdate(classUri, Nil)
-      classProperties.put(classUri, UntypedPath(BackwardOperator(propertyUri) :: Nil) :: currentProperties)
+      classProperties.put(classUri, currentProperties :+ TypedPath(BackwardOperator(propertyUri) :: Nil, propertyType, isAttribute = false))
     }
   }
 
-  private def addForwardPaths[T](classProperties: mutable.HashMap[String, List[UntypedPath]])
-                                (implicit userContext: UserContext): Unit = {
+  private def addForwardPaths(classProperties: mutable.HashMap[String, Seq[TypedPath]])
+                             (implicit userContext: UserContext): Unit = {
     val forwardResults = sparqlEndpoint.select(
       """
-        |SELECT DISTINCT ?class ?property
+        |SELECT DISTINCT ?class ?property (SAMPLE(?v) as ?valueSample)
         |WHERE {
         |  ?s a ?class ;
         |     ?property ?v
-        |}
+        |} GROUP BY ?class ?property
       """.stripMargin)
     for (binding <- forwardResults.bindings;
          classResource <- binding.get("class") if classResource.isInstanceOf[Resource]) {
       val classUri = binding("class").value
       val propertyUri = binding("property").value
+      val propertyType = valueType(binding("valueSample"))
       val currentProperties = classProperties.getOrElseUpdate(classUri, Nil)
-      classProperties.put(classUri, UntypedPath(propertyUri) :: currentProperties)
+      classProperties.put(classUri, currentProperties :+ TypedPath(ForwardOperator(propertyUri) :: Nil, propertyType, isAttribute = false))
+    }
+  }
+
+  private def valueType(value: RdfNode): ValueType = {
+    value match {
+      case _: Resource => ValueType.URI
+      case _: BlankNode => ValueType.BLANK_NODE
+      case _ => ValueType.STRING
     }
   }
 

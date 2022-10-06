@@ -5,10 +5,13 @@ import play.api.libs.json.{JsValue, Json, Reads, Writes}
 import play.api.libs.ws.{WSClient, WSRequest, WSResponse}
 import play.api.mvc.Call
 
+import java.util.logging.Logger
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 
 trait ApiClient {
+
+  protected val log: Logger = Logger.getLogger(getClass.getName)
 
   def baseUrl: String
 

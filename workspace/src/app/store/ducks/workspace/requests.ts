@@ -319,3 +319,11 @@ export const requestProjectTags = async (projectId: string): Promise<FetchRespon
     fetch({
         url: workspaceApi(`/projects/${projectId}/tags`),
     });
+
+/** Import the "movies" example project. */
+export const importExampleProjectRequest = async (): Promise<FetchResponse<void>> => {
+    return fetch({
+        url: legacyApiEndpoint("movies/importExample"),
+        method: "POST"
+    })
+}

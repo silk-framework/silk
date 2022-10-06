@@ -112,6 +112,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const [evaluateQuickly, setEvaluateQuickly] = React.useState(false);
     const [readOnly, _setIsReadOnly] = React.useState(false);
     const [utils] = React.useState(ruleEditorModelUtilsFactory(() => (nodeMap ? "edge" : "default")));
+    /** ID of the rule editor canvas. This is needed for the auto-layout operation. */
+    const canvasId = `ruleEditor-react-flow-canvas-${ruleEditorContext.instanceId}`;
 
     /** react-flow related functions */
     const { setCenter } = useZoomPanHelper();
@@ -1432,7 +1434,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         addChangeHistory: boolean,
         startTransaction: boolean
     ): Promise<Elements> => {
-        const newLayout = utils.autoLayout(elements, zoom);
+        const newLayout = utils.autoLayout(elements, zoom, canvasId);
         const changeNodePositionOperations: ChangeNodePosition[] = [];
         utils.elementNodes(elements).forEach((node) => {
             const newPosition = newLayout.get(node.id);
@@ -1661,7 +1663,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         // Center and then zoom not too far out
         setTimeout(() => {
             reactFlowInstance?.fitView();
-            reactFlowInstance?.zoomTo(0.75);
+            ruleEditorContext.initialFitToViewZoomLevel &&
+                reactFlowInstance?.zoomTo(ruleEditorContext.initialFitToViewZoomLevel);
         }, 1);
     };
 
@@ -1678,6 +1681,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 canUndo,
                 redo,
                 canRedo,
+                canvasId,
                 executeModelEditOperation: {
                     startChangeTransaction,
                     addNode,

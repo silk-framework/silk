@@ -50,6 +50,11 @@ import scala.math._
     output = 365.0
   ),
   new DistanceMeasureExample(
+    input1 = Array("2018"),
+    input2 = Array("2019"),
+    output = 365.0
+  ),
+  new DistanceMeasureExample(
     description = "Time of day is ignored.",
     input1 = Array("2003-03-01"),
     input2 = Array("2003-03-01T06:00:00"),

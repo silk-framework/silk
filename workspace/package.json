@@ -166,6 +166,7 @@
         ]
     },
     "devDependencies": {
+        "jest-websocket-mock":"2.4.0",
         "@babel/core": "7.9.0",
         "@babel/plugin-transform-react-jsx": "^7.3.0",
         "@babel/plugin-transform-react-jsx-self": "^7.2.0",

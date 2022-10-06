@@ -151,14 +151,14 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
     const fixStyle = { lineHeight: "normal" };
 
     return (
-        <Card data-test-id={"taskConfigWidget"}>
+        <Card data-test-id={"linkageRuleConfigWidget"}>
             <CardHeader>
                 <CardTitle>
                     <h3>{t("widget.LinkingRuleConfigWidget.title")}</h3>
                 </CardTitle>
                 <CardOptions>
                     <IconButton
-                        data-test-id="task-config-edit-btn"
+                        data-test-id="linkage-rule-config-edit-btn"
                         name={"item-edit"}
                         text={"Configure"}
                         onClick={() => setShowModal(true)}

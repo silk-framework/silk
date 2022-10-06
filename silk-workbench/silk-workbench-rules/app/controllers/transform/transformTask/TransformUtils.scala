@@ -9,10 +9,17 @@ import org.silkframework.workspace.{Project, ProjectTask}
 
 /** Utility functions for transform tasks. */
 object TransformUtils {
-  /** Returns the dataset characteristics if the input task of the transformation is a datset. */
+  /** Returns the dataset characteristics if the input task of the transformation is a dataset. */
   def datasetCharacteristics(task: ProjectTask[TransformSpec])
                             (implicit userContext: UserContext): Option[DatasetCharacteristics] = {
-    task.project.taskOption[GenericDatasetSpec](task.selection.inputId)
+    datasetCharacteristics(task.project, task.selection)
+  }
+
+  /** Returns the dataset characteristics of the dataset selection. */
+  def datasetCharacteristics(project: Project,
+                             datasetSelection: DatasetSelection)
+                            (implicit userContext: UserContext): Option[DatasetCharacteristics] = {
+    project.taskOption[GenericDatasetSpec](datasetSelection.inputId)
       .map(_.data.characteristics)
   }
 

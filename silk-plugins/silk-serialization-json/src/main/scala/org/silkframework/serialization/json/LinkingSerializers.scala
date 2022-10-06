@@ -6,14 +6,17 @@ import org.silkframework.rule.evaluation._
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext}
 import org.silkframework.serialization.json.EntitySerializers.{EntityJsonFormat, PairJsonFormat}
 import org.silkframework.serialization.json.JsonHelpers._
-import play.api.libs.json.{JsArray, JsValue, Json}
+import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 
 /**
   *
   */
 object LinkingSerializers {
 
-  class LinkJsonFormat(rule: Option[LinkageRule], writeEntities: Boolean = false, writeEntitySchema: Boolean = false) extends JsonFormat[Link] {
+  class LinkJsonFormat(rule: Option[LinkageRule],
+                       writeEntities: Boolean = false,
+                       writeEntitySchema: Boolean = false,
+                       distinctValues: Boolean = false) extends JsonFormat[Link] {
     import LinkJsonFormat._
 
     final val SOURCE = "source"
@@ -21,7 +24,7 @@ object LinkingSerializers {
     final val CONFIDENCE = "confidence"
     final val ENTITIES = "entities"
 
-    private val entityPairFormat = new PairJsonFormat()(new EntityJsonFormat(includeSchema = writeEntitySchema))
+    private val entityPairFormat = new PairJsonFormat()(new EntityJsonFormat(includeSchema = writeEntitySchema, distinctValues))
 
     override def read(value: JsValue)(implicit readContext: ReadContext): Link = {
       Link(
@@ -32,7 +35,7 @@ object LinkingSerializers {
       )
     }
 
-    override def write(link: Link)(implicit writeContext: WriteContext[JsValue]): JsValue = {
+    override def write(link: Link)(implicit writeContext: WriteContext[JsValue]): JsObject = {
       val evaluationDetails = rule.flatMap(r => link.entities.flatMap(entities => DetailedEvaluator(r, entities).details))
 
       var json =
@@ -43,8 +46,8 @@ object LinkingSerializers {
           RULE_VALUES -> evaluationDetails.map(ConfidenceJsonFormat.write)
         )
 
-      if(writeEntities) {
-        for(entities <- link.entities) {
+      if (writeEntities) {
+        for (entities <- link.entities) {
           json += (ENTITIES -> entityPairFormat.write(entities))
         }
       }
@@ -53,7 +56,7 @@ object LinkingSerializers {
     }
   }
 
-  implicit object LinkJsonFormat extends LinkJsonFormat(None, writeEntities = false, writeEntitySchema = false) {
+  implicit object LinkJsonFormat extends LinkJsonFormat(None, writeEntities = false, writeEntitySchema = false, distinctValues = false) {
     final val RULE_VALUES = "ruleValues"
   }
 

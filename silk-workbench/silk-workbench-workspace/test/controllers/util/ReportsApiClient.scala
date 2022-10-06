@@ -19,8 +19,6 @@ import scala.concurrent.Future
 
 trait ReportsApiClient extends ApiClient {
 
-  private val log = Logger.getLogger(getClass.getName)
-
   def currentReport(projectId: String, taskId: String): ExecutionReport = {
     val request = createRequest(ReportsApi.currentReport(projectId, taskId))
     val response = request.get()
