@@ -24,22 +24,36 @@ object PluginDocumentation {
                            pluginParameterDisplay: PluginParameterDisplay): Unit = {
     sb ++= "## " + title + "\n\n"
     sb ++= description + "\n\n"
-    val categories = PluginRegistry.availablePlugins[T].flatMap(_.categories).filter(_ != PluginCategories.recommended).distinct.sorted
+    val categories = PluginRegistry.availablePlugins[T].flatMap(getCategories).distinct.sorted
     for (category <- categories) {
       if (categories.size > 1)
-        sb ++= "### " + category + "\n\n"
-      for (categoryDescription <- categoryDescriptions.get(category)) {
+        sb ++= "### " + category.getOrElse("Uncategorized") + "\n\n"
+      for (cat <- category; categoryDescription <- categoryDescriptions.get(cat)) {
         sb ++= categoryDescription + "\n\n"
       }
       pluginCategory[T](title, category, pluginParameterDisplay)
     }
   }
 
+  private def getCategories(pluginDesc: PluginDescription[_]): Seq[Option[String]] = {
+    val categories = pluginDesc.categories.filter(_ != PluginCategories.recommended)
+    if(categories.isEmpty) {
+      Seq(None)
+    } else {
+      categories.map(Some(_))
+    }
+  }
+
   def pluginCategory[T: ClassTag](title: String,
-                                  category: String,
+                                  category: Option[String],
                                   pluginParameterDisplay: PluginParameterDisplay)
                                  (implicit sb: StringBuilder): Unit = {
-    val plugins = PluginRegistry.availablePlugins[T].filter(_.categories.contains(category)).sortBy(_.id.toString)
+    val plugins = category match {
+      case Some(cat) =>
+        PluginRegistry.availablePlugins[T].filter(_.categories.contains(cat)).sortBy(_.id.toString)
+      case None =>
+        PluginRegistry.availablePlugins[T].sortBy(_.id.toString)
+    }
     for (plugin <- plugins) {
       val paramTable =
         Table(
@@ -57,7 +71,7 @@ object PluginDocumentation {
     sb ++= "#### " + plugin.label + "\n\n"
     sb ++= plugin.description + "\n\n"
     if (table.values.nonEmpty) {
-      sb ++= table.toMarkdown + "\n"
+      sb ++= table.toMarkdown() + "\n"
     } else {
       sb ++= "This plugin does not require any parameters.\n"
     }

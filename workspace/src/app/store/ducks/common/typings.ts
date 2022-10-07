@@ -114,6 +114,9 @@ export interface IProjectTaskUpdatePayload {
     currentParameterValues: {
         [key: string]: string | object;
     };
+    dataParameters?: {
+        [key: string]: string
+    }
 }
 
 export interface IExportTypes {

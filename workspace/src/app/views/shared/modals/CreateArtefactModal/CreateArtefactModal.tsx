@@ -218,17 +218,24 @@ export function CreateArtefactModal() {
         const isValidFields = await form.triggerValidation();
         try {
             if (isValidFields) {
+                const formValues = form.getValues()
+                const type = updateExistingTask?.taskPluginDetails.taskType ?? taskType(selectedArtefactKey)
+                let dataParameters: any
+                if(type === "Dataset") {
+                    dataParameters = commonOp.extractDataAttributes(formValues)
+                }
                 if (updateExistingTask) {
                     await dispatch(
                         commonOp.fetchUpdateTaskAsync(
                             updateExistingTask.projectId,
                             updateExistingTask.taskId,
-                            form.getValues()
+                            formValues,
+                            dataParameters
                         )
                     );
                 } else {
                     !projectId && currentProject && dispatch(commonOp.setProjectId(currentProject.id));
-                    await dispatch(commonOp.createArtefactAsync(form.getValues(), taskType(selectedArtefactKey)));
+                    await dispatch(commonOp.createArtefactAsync(formValues, type, dataParameters));
                 }
             } else {
                 const errKey = Object.keys(form.errors)[0];
@@ -394,7 +401,10 @@ export function CreateArtefactModal() {
                 artefact={updateExistingTask.taskPluginDetails}
                 projectId={updateExistingTask.projectId}
                 taskId={updateExistingTask.taskId}
-                updateTask={{ parameterValues: updateExistingTask.currentParameterValues }}
+                updateTask={{
+                    parameterValues: updateExistingTask.currentParameterValues,
+                    dataParameters: updateExistingTask.dataParameters
+                }}
             />
         );
     } else {
