@@ -7,6 +7,7 @@
         "updateTitle": "Update item of type {{type}}",
         "autoConfigButton": "Auto-config",
         "autoConfigTooltip": "Try to auto-configure technical parameters of the item based on the current configuration.",
+        "autoConfigParametersUpdated": "Auto-configuration has changed {{number}} parameter values.",
         "projectContext": {
             "configResetInfo": "All settings are going to be reset, except label and description.",
             "selectProjectLabel": "Select target project",
