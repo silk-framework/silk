@@ -15,6 +15,7 @@ import { routerOp } from "@ducks/router";
 import { TaskType } from "@ducks/shared/typings";
 import { HttpError } from "../../../services/fetch/responseInterceptor";
 import i18Instance, { fetchStoredLang } from "../../../../language";
+import {URI_PROPERTY_PARAMETER_ID} from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/UriAttributeParameterInput";
 
 const {
     setError,
@@ -166,7 +167,14 @@ const buildTaskObject = (formData: any): object => {
     return returnObject;
 };
 
-const createArtefactAsync = (formData, taskType: TaskType | "Project") => {
+type ArtefactDataParameters = {
+    [key: string]: string
+}
+
+
+const createArtefactAsync = (formData,
+                             taskType: TaskType | "Project",
+                             dataParameters?: ArtefactDataParameters) => {
     return async (dispatch, getState) => {
         const { selectedArtefact } = commonSel.artefactModalSelector(getState());
 
@@ -177,7 +185,7 @@ const createArtefactAsync = (formData, taskType: TaskType | "Project") => {
             default:
                 if (selectedArtefact) {
                     selectedArtefact &&
-                        (await dispatch(fetchCreateTaskAsync(formData, selectedArtefact.key, taskType as TaskType)));
+                        (await dispatch(fetchCreateTaskAsync(formData, selectedArtefact.key, taskType as TaskType, dataParameters)));
                 } else {
                     console.error("selectedArtefact not set! Cannot create item.");
                 }
@@ -186,7 +194,19 @@ const createArtefactAsync = (formData, taskType: TaskType | "Project") => {
     };
 };
 
-const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: TaskType) => {
+/** Extracts form attributes that should be added to the data object directly instead of the parameter object. */
+const extractDataAttributes = (formData): ArtefactDataParameters => {
+    let returnValue: ArtefactDataParameters = {}
+    const uriAttribute = formData[URI_PROPERTY_PARAMETER_ID]
+    returnValue = {}
+    returnValue[URI_PROPERTY_PARAMETER_ID] = uriAttribute
+    return returnValue
+}
+
+const fetchCreateTaskAsync = (formData: any,
+                              artefactId: string,
+                              taskType: TaskType,
+                              dataParameters?: {[key: string]: string}) => {
     return async (dispatch, getState) => {
         const currentProjectId = commonSel.currentProjectIdSelector(getState());
         const { label, description, id, ...restFormData } = formData;
@@ -200,6 +220,7 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: TaskT
             metadata,
             id,
             data: {
+                ...dataParameters,
                 taskType: taskType,
                 type: artefactId,
                 parameters: {
@@ -231,11 +252,15 @@ const fetchCreateTaskAsync = (formData: any, artefactId: string, taskType: TaskT
 };
 
 /** Updates the technical parameters of a project task. */
-const fetchUpdateTaskAsync = (projectId: string, itemId: string, formData: any) => {
+const fetchUpdateTaskAsync = (projectId: string,
+                              itemId: string,
+                              formData: any,
+                              dataParameters?: ArtefactDataParameters) => {
     return async (dispatch) => {
         const requestData = buildTaskObject(formData);
         const payload = {
             data: {
+                ...dataParameters,
                 parameters: {
                     ...requestData,
                 },
@@ -312,6 +337,7 @@ const commonOps = {
     fetchCreateProjectAsync,
     resetArtefactModal,
     fetchExportTypesAsync,
+    extractDataAttributes,
 };
 
 export default commonOps;
