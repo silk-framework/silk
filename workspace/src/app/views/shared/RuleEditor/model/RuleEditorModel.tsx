@@ -43,7 +43,7 @@ import { NodeContent, RuleNodeContentProps } from "../view/ruleNode/NodeContent"
 import { maxNumberValuePicker, setConditionalMap } from "../../../../utils/basicUtils";
 import { HighlightingState, NodeDimensions } from "@eccenca/gui-elements/src/extensions/react-flow/nodes/NodeContent";
 import { RuleEditorEvaluationContext, RuleEditorEvaluationContextProps } from "../contexts/RuleEditorEvaluationContext";
-import { Markdown, nodeUtils } from "@eccenca/gui-elements";
+import { InteractionGate, Markdown, nodeUtils } from "@eccenca/gui-elements";
 import { IStickyNote } from "views/taskViews/shared/task.typings";
 import { LINKING_NODE_TYPES } from "@eccenca/gui-elements/src/cmem/react-flow/configuration/typing";
 import StickyMenuButton from "../view/components/StickyMenuButton";
@@ -111,6 +111,8 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         React.useContext<RuleEditorEvaluationContextProps>(RuleEditorEvaluationContext);
     const [evaluateQuickly, setEvaluateQuickly] = React.useState(false);
     const [readOnly, _setIsReadOnly] = React.useState(false);
+    /** True while the editor is initializing. */
+    const [initializing, setInitializing] = React.useState(true);
     const [utils] = React.useState(ruleEditorModelUtilsFactory(() => (nodeMap ? "edge" : "default")));
     /** ID of the rule editor canvas. This is needed for the auto-layout operation. */
     const canvasId = `ruleEditor-react-flow-canvas-${ruleEditorContext.instanceId}`;
@@ -1590,6 +1592,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     };
 
     const initModel = async () => {
+        setInitializing(true);
         const handleDeleteNode = (nodeId: string) => {
             startChangeTransaction();
             deleteNode(nodeId);
@@ -1668,6 +1671,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
             reactFlowInstance?.fitView();
             ruleEditorContext.initialFitToViewZoomLevel &&
                 reactFlowInstance?.zoomTo(ruleEditorContext.initialFitToViewZoomLevel);
+            setInitializing(false);
         }, 1);
     };
 
@@ -1710,7 +1714,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 ruleOperatorNodes,
             }}
         >
-            {children}
+            <InteractionGate showSpinner={initializing}>{children}</InteractionGate>
         </RuleEditorModelContext.Provider>
     );
 };
