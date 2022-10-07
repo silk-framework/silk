@@ -10,7 +10,8 @@ import { FetchError } from "../../../../services/fetch/responseInterceptor";
 import { RuleEditorEvaluationContext } from "../../../../views/shared/RuleEditor/contexts/RuleEditorEvaluationContext";
 import ruleUtils from "../../../../views/taskViews/shared/rules/rule.utils";
 import { transformToValueMap } from "../transformEditor.utils";
-import { TransformRuleNodeEvaluation } from "./TransformRuleNodeEvaluation";
+import { LinkRuleNodeEvaluation } from "../../../../views/taskViews/linking/evaluation/LinkRuleNodeEvaluation";
+import { EvaluationResultType } from "../../../../views/taskViews/linking/evaluation/LinkingRuleEvaluation";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<IComplexMappingRule, IPluginDetails>>;
 
@@ -33,8 +34,10 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
 }) => {
     const [evaluationRunning, setEvaluationRunning] = React.useState<boolean>(false);
     const [evaluationResult, setEvaluationResult] = React.useState<EvaluatedTransformEntity[]>([]);
-    const [evaluationResultMap] = React.useState<Map<string, string[][]>>(new Map());
-    const [nodeUpdateCallbacks] = React.useState(new Map<string, (evaluationValues: string[][] | undefined) => any>());
+    const [evaluationResultMap] = React.useState<Map<string, EvaluationResultType>>(new Map());
+    const [nodeUpdateCallbacks] = React.useState(
+        new Map<string, (evaluationValues: EvaluationResultType | undefined) => any>()
+    );
     const [ruleValidationError, setRuleValidationError] = React.useState<RuleValidationError | undefined>(undefined);
     const { registerError, registerErrorI18N } = useErrorHandler();
     const [t] = useTranslation();
@@ -50,7 +53,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
             const valueMaps = evaluationResult.map((transform) => transformToValueMap(transform));
             nodeUpdateCallbacks.forEach((updateCallback, operatorId) => {
                 const evaluationValues = valueMaps.map((valueMap) => {
-                    return valueMap.get(operatorId) ?? [];
+                    return valueMap.get(operatorId) ?? { value: [] };
                 });
                 evaluationResultMap.set(operatorId, evaluationValues);
                 updateCallback(evaluationValues);
@@ -134,7 +137,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
     /** Called by a rule operator node to register for evaluation updates. */
     const registerForEvaluationResults = (
         ruleOperatorId: string,
-        evaluationUpdate: (evaluationValues: string[][] | undefined) => void
+        evaluationUpdate: (evaluationValues: EvaluationResultType | undefined) => void
     ) => {
         nodeUpdateCallbacks.set(ruleOperatorId, evaluationUpdate);
         evaluationUpdate(evaluationResultMap.get(ruleOperatorId));
@@ -143,7 +146,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
     /** Factory method used by the rule editor to create an evaluation element. */
     const createRuleEditorEvaluationComponent = (ruleOperatorId: string): JSX.Element => {
         return (
-            <TransformRuleNodeEvaluation
+            <LinkRuleNodeEvaluation
                 ruleOperatorId={ruleOperatorId}
                 registerForEvaluationResults={registerForEvaluationResults}
                 unregister={() => nodeUpdateCallbacks.delete(ruleOperatorId)}
