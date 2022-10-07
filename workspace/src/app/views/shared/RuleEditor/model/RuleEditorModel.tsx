@@ -1661,7 +1661,10 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
         ruleUndoStack.splice(0);
         ruleRedoStack.splice(0);
         // Center and then zoom not too far out
-        setTimeout(() => {
+        setTimeout(async () => {
+            if (needsLayout) {
+                await autoLayoutInternal(elems, false, false);
+            }
             reactFlowInstance?.fitView();
             ruleEditorContext.initialFitToViewZoomLevel &&
                 reactFlowInstance?.zoomTo(ruleEditorContext.initialFitToViewZoomLevel);
