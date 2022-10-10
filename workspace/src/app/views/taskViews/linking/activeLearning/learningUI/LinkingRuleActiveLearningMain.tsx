@@ -36,6 +36,7 @@ import { legacyApiEndpoint } from "../../../../../utils/getApiEndpoint";
 import { activeLearningActivities } from "../LinkingRuleActiveLearning";
 import { LinkingRuleActiveLearningSaveModal } from "./LinkingRuleActiveLearningSaveModal";
 import {useActiveLearningSessionInfo} from "../shared/ActiveLearningSessionInfoWidget";
+import {FetchError} from "../../../../../services/fetch/responseInterceptor";
 
 interface LinkingRuleActiveLearningMainProps {
     projectId: string;
@@ -105,7 +106,10 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
             const rule = (await bestLearnedLinkageRule(projectId, linkingTaskId)).data;
             setBestRule(rule);
         } catch (err) {
-            // TODO
+            if(err.isHttpError && (err as FetchError).httpStatus !== 404) {
+                registerError("activeLearning-updateBestLearnedRule", "Currently best learned rule could not be fetched from the backend.", err)
+            }
+
         }
     };
 
@@ -157,7 +161,7 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
             );
             setSelectedEntityLink(undefined);
         } catch (ex) {
-            // TODO
+            registerError("activeLearning-updateReferenceLink", "Updating reference links has failed.", ex)
         }
     };
 

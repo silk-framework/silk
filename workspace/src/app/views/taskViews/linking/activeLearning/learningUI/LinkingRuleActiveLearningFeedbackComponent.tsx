@@ -204,7 +204,6 @@ interface HeaderProps {
     showEntityUris?: () => any
 }
 
-/** TODO: Clean up sub-components */
 const Header = ({ disabledButtons, selectedDecision, cancel, toggleInfo, showEntityUris }: HeaderProps) => {
     const [t] = useTranslation();
     const positiveSelected = selectedDecision === "positive";
