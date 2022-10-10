@@ -108,7 +108,7 @@ export const ManualComparisonPairSelection = ({ projectId, linkingTaskId, addCom
     };
 
     return (
-        <Card elevation={0}>
+        <Card elevation={0} data-test-id={"manual-comparison-selection"}>
             <CardHeader>
                 <CardTitle>{t("ActiveLearning.config.manualSelection.title")}</CardTitle>
                 <CardOptions>

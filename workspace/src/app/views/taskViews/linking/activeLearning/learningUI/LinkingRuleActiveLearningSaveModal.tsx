@@ -13,7 +13,7 @@ import { ActiveLearningBestRule } from "../LinkingRuleActiveLearning.typings";
 
 interface LinkingRuleActiveLearningSaveModalProps {
     unsavedBestRule: ActiveLearningBestRule | undefined;
-    onClose: (saved: boolean, ruleSaved: boolean) => any;
+    onClose: (saved: boolean, ruleSaved: boolean, referenceLinksSaved: boolean) => any;
 }
 
 export const LinkingRuleActiveLearningSaveModal = ({
@@ -51,7 +51,7 @@ export const LinkingRuleActiveLearningSaveModal = ({
                 saveRule,
                 saveReferenceLinks
             );
-            setTimeout(() => onClose(true, saveRule), 50);
+            setTimeout(() => onClose(true, saveRule, saveReferenceLinks), 50);
         } catch (error) {
             registerError(
                 "LinkingRuleActiveLearningSaveModal.onSave",
@@ -64,7 +64,7 @@ export const LinkingRuleActiveLearningSaveModal = ({
     };
 
     const onCancel = () => {
-        onClose(false, false);
+        onClose(false, false, false);
     };
 
     return (

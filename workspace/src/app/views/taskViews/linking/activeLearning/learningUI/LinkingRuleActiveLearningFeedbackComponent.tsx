@@ -49,7 +49,12 @@ import utils from "../LinkingRuleActiveLearning.utils";
 import { ActiveLearningValueExamples, sameValues, highlightedTagColor } from "../shared/ActiveLearningValueExamples";
 import {EntityLinkUrisModal} from "../../referenceLinks/EntityLinkUrisModal";
 
-export const LinkingRuleActiveLearningFeedbackComponent = () => {
+interface Props {
+    /** Called when changes are made that still need to be saved. */
+    setUnsavedStateExists: () => any
+}
+
+export const LinkingRuleActiveLearningFeedbackComponent = ({setUnsavedStateExists}: Props) => {
     const [t] = useTranslation();
     const [showInfo, setShowInfo] = React.useState<boolean>(false);
     /** Contexts */
@@ -105,6 +110,7 @@ export const LinkingRuleActiveLearningFeedbackComponent = () => {
             setSubmittingEntityLink(true);
             try {
                 await activeLearningFeedbackContext.updateReferenceLink(link, decision);
+                setUnsavedStateExists()
             } finally {
                 setSubmittingEntityLink(false);
             }
@@ -250,7 +256,6 @@ interface DecisionButtonsProps {
     cancel: () => any;
 }
 
-/** TODO: Clean up sub-components */
 const DecisionButtons = ({ disabledButtons, submitLink, selectedDecision, cancel }: DecisionButtonsProps) => {
     const [t] = useTranslation();
     const positiveSelected = selectedDecision === "positive";
@@ -259,6 +264,7 @@ const DecisionButtons = ({ disabledButtons, submitLink, selectedDecision, cancel
     return (
         <div style={{ textAlign: "center" }}>
             <Button
+                data-test-id={"learning-confirm-btn"}
                 title={t("ActiveLearning.feedback.confirmDescription")}
                 icon={"state-confirmed"}
                 disabled={disabledButtons}
@@ -270,6 +276,7 @@ const DecisionButtons = ({ disabledButtons, submitLink, selectedDecision, cancel
             </Button>
             <Spacing vertical size={"small"} />
             <Button
+                data-test-id={"learning-uncertain-btn"}
                 title={t("ActiveLearning.feedback.uncertainDescription")}
                 disabled={disabledButtons}
                 onClick={() => submitLink("unlabeled")}
@@ -279,6 +286,7 @@ const DecisionButtons = ({ disabledButtons, submitLink, selectedDecision, cancel
             </Button>
             <Spacing vertical size={"small"} />
             <Button
+                data-test-id={"learning-decline-btn"}
                 title={t("ActiveLearning.feedback.declineDescription")}
                 disabled={disabledButtons}
                 onClick={() => (negativeSelected ? cancel() : submitLink("negative"))}

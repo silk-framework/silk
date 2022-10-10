@@ -250,6 +250,7 @@ export const LinkingRuleActiveLearningConfig = ({ projectId, linkingTaskId }: Li
                         />
                         <Spacing vertical={true} size="small" />
                         <Button
+                            data-test-id={"go-to-learning-btn"}
                             affirmative={true}
                             disabled={comparisonPairState.propertiesToCompare.length === 0}
                             onClick={() => {
@@ -337,7 +338,7 @@ const SelectedPropertiesWidget = ({ propertiesToCompare, removePair }: SelectedP
     const [t] = useTranslation();
 
     return (
-        <Card elevation={0}>
+        <Card elevation={0} data-test-id={"selected-properties-for-active-learning"}>
             <CardHeader>
                 <CardTitle>{t("ActiveLearning.config.entitiyPair.title")}</CardTitle>
             </CardHeader>
@@ -401,6 +402,7 @@ const SuggestedPathSelection = ({
                 <ConnectionAvailable
                     actions={
                         <IconButton
+                            data-test-id={"add-comparison-pair-btn"}
                             text={t("common.action.add")}
                             name={"item-add-artefact"}
                             onClick={() => addSuggestion(pair.pairId)}
@@ -517,7 +519,7 @@ const SuggestionWidget = ({
     );
 
     return (
-        <Card elevation={0}>
+        <Card elevation={0} data-test-id={"comparison-pair-suggestions"}>
             <CardHeader>
                 <CardTitle>
                     {t("ActiveLearning.config.suggestions.title")}
