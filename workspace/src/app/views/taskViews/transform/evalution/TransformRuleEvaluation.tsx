@@ -1,16 +1,17 @@
-import {IPluginDetails} from "@ducks/common/typings";
+import { IPluginDetails } from "@ducks/common/typings";
 import useErrorHandler from "../../../../hooks/useErrorHandler";
-import React, {ReactElement} from "react";
-import {useTranslation} from "react-i18next";
-import {RuleEditorProps} from "views/shared/RuleEditor/RuleEditor";
-import {IRuleOperatorNode, RuleValidationError} from "../../../../views/shared/RuleEditor/RuleEditor.typings";
-import {EvaluatedTransformEntity, IComplexMappingRule} from "../transform.types";
-import {evaluateTransformRule} from "../transform.requests";
-import {FetchError} from "../../../../services/fetch/responseInterceptor";
-import {LinkRuleNodeEvaluation} from "../../../../views/taskViews/linking/evaluation/LinkRuleNodeEvaluation";
-import {RuleEditorEvaluationContext} from "../../../../views/shared/RuleEditor/contexts/RuleEditorEvaluationContext";
+import React, { ReactElement } from "react";
+import { useTranslation } from "react-i18next";
+import { RuleEditorProps } from "views/shared/RuleEditor/RuleEditor";
+import { IRuleOperatorNode, RuleValidationError } from "../../../../views/shared/RuleEditor/RuleEditor.typings";
+import { EvaluatedTransformEntity, IComplexMappingRule } from "../transform.types";
+import { evaluateTransformRule } from "../transform.requests";
+import { FetchError } from "../../../../services/fetch/responseInterceptor";
+import { RuleEditorEvaluationContext } from "../../../../views/shared/RuleEditor/contexts/RuleEditorEvaluationContext";
 import ruleUtils from "../../../../views/taskViews/shared/rules/rule.utils";
-import {transformToValueMap} from "../transformEditor.utils";
+import { transformToValueMap } from "../transformEditor.utils";
+import { LinkRuleNodeEvaluation } from "../../../../views/taskViews/linking/evaluation/LinkRuleNodeEvaluation";
+import { EvaluationResultType } from "../../../../views/taskViews/linking/evaluation/LinkingRuleEvaluation";
 
 type EvaluationChildType = ReactElement<RuleEditorProps<IComplexMappingRule, IPluginDetails>>;
 
@@ -33,8 +34,10 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
 }) => {
     const [evaluationRunning, setEvaluationRunning] = React.useState<boolean>(false);
     const [evaluationResult, setEvaluationResult] = React.useState<EvaluatedTransformEntity[]>([]);
-    const [evaluationResultMap] = React.useState<Map<string, string[][]>>(new Map());
-    const [nodeUpdateCallbacks] = React.useState(new Map<string, (evaluationValues: string[][] | undefined) => any>());
+    const [evaluationResultMap] = React.useState<Map<string, EvaluationResultType>>(new Map());
+    const [nodeUpdateCallbacks] = React.useState(
+        new Map<string, (evaluationValues: EvaluationResultType | undefined) => any>()
+    );
     const [ruleValidationError, setRuleValidationError] = React.useState<RuleValidationError | undefined>(undefined);
     const { registerError, registerErrorI18N } = useErrorHandler();
     const [t] = useTranslation();
@@ -50,7 +53,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
             const valueMaps = evaluationResult.map((transform) => transformToValueMap(transform));
             nodeUpdateCallbacks.forEach((updateCallback, operatorId) => {
                 const evaluationValues = valueMaps.map((valueMap) => {
-                    return valueMap.get(operatorId) ?? [];
+                    return valueMap.get(operatorId) ?? { value: [] };
                 });
                 evaluationResultMap.set(operatorId, evaluationValues);
                 updateCallback(evaluationValues);
@@ -80,10 +83,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
             return result.data;
         } catch (ex) {
             if (ex.isFetchError && (ex as FetchError).httpStatus !== 409) {
-                registerErrorI18N(
-                    "taskViews.transformRulesEditor.errors.fetchTransformEvaluationValues.msg",
-                    ex
-                );
+                registerErrorI18N("taskViews.transformRulesEditor.errors.fetchTransformEvaluationValues.msg", ex);
             } else {
                 throw ex;
             }
@@ -137,7 +137,7 @@ export const TransformRuleEvaluation: React.FC<TransformRuleEvaluationProps> = (
     /** Called by a rule operator node to register for evaluation updates. */
     const registerForEvaluationResults = (
         ruleOperatorId: string,
-        evaluationUpdate: (evaluationValues: string[][] | undefined) => void
+        evaluationUpdate: (evaluationValues: EvaluationResultType | undefined) => void
     ) => {
         nodeUpdateCallbacks.set(ruleOperatorId, evaluationUpdate);
         evaluationUpdate(evaluationResultMap.get(ruleOperatorId));
