@@ -3,6 +3,7 @@ import {
     IRuleOperator,
     IRuleSidebarPreConfiguredOperatorsTabConfig,
 } from "../../../views/shared/RuleEditor/RuleEditor.typings";
+import { EvaluationResultType } from "../linking/evaluation/LinkingRuleEvaluation";
 import { PathWithMetaData } from "../shared/rules/rule.typings";
 import { autoCompleteTransformSourcePath } from "./transform.requests";
 import { EvaluatedTransformEntity } from "./transform.types";
@@ -53,11 +54,11 @@ export const inputPathTab = (
     return inputPathTabConfig;
 };
 
-export const transformToValueMap = (transform: EvaluatedTransformEntity): Map<string, string[]> => {
-    const valueMap = new Map<string, string[]>();
+export const transformToValueMap = (transform: EvaluatedTransformEntity): Map<string, EvaluationResultType[number]> => {
+    const valueMap = new Map<string, { error?: string | null; value: string[] }>();
 
     const traverseTransformTree = (transform: EvaluatedTransformEntity) => {
-        valueMap.set(transform.operatorId, transform.values);
+        valueMap.set(transform.operatorId, { value: transform.values, error: transform.error });
         transform.children && transform.children.forEach((t) => traverseTransformTree(t));
     };
 

@@ -13,6 +13,6 @@ abstract class ProjectActivityFactory[ActivityType <: HasValue : ClassTag]
   /**
     * Returns the type of generated activity.
     */
-  def activityType: Class[_] = implicitly[ClassTag[ActivityType]].runtimeClass
+  override def activityType: Class[_] = implicitly[ClassTag[ActivityType]].runtimeClass
 
 }

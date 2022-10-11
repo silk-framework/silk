@@ -65,8 +65,8 @@ case class Table(name: String,
                                                                                  symbol.             |
 
     */
-  def toMarkdown: String = {
-    val MAX_CHARACTERS = 500
+  def toMarkdown(breakLongLines: Boolean = false): String = {
+    val MAX_CHARACTERS = if(breakLongLines) 500 else Int.MaxValue
     val sb = new StringBuilder()
 
     sb.append(header.mkString("| ", " | ", " |\n"))
@@ -87,8 +87,12 @@ case class Table(name: String,
         }
         val maxChars = cell._2
         // If there are line breaks in a value, we need to generate multiple rows
-        val lines = Table.softGrouped(cellValue, maxChars)
-        lineValues += lines.mkString("\\\n")
+        if(breakLongLines) {
+          val lines = Table.softGrouped(cellValue, maxChars)
+          lineValues += lines.mkString("\\\n")
+        } else {
+          lineValues += cellValue.replaceAll("""[\n\r]+""", "\\\\")
+        }
       }
       sb.append(lineValues.mkString(" | "))
       sb.append(" |\n")

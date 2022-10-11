@@ -1,10 +1,7 @@
 import React from "react";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
 import { Grid, GridColumn, GridRow, Icon, Spacing, Tabs, TabTitle } from "@eccenca/gui-elements";
-import { TabProps } from "@eccenca/gui-elements/src/components/Tabs/Tab";
-import getColorConfiguration from "@eccenca/gui-elements/src/common/utils/getColorConfiguration";
 import { extractSearchWords, matchesAllWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
-import { ISuggestionWithReplacementInfo } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
 import Loading from "../../../Loading";
 import { IPreConfiguredOperators, RuleOperatorList } from "./RuleOperatorList";
 import {
@@ -14,10 +11,13 @@ import {
 } from "../../RuleEditor.typings";
 import { SidebarSearchField } from "./SidebarSearchField";
 import { partitionArray, sortLexically } from "../../../../../utils/basicUtils";
+import { TabProps } from "@eccenca/gui-elements/src/components/Tabs/Tab";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { commonSel } from "@ducks/common";
+import { ISuggestionWithReplacementInfo } from "@eccenca/gui-elements/src/components/AutoSuggestion/AutoSuggestion";
+import ruleEditorUtils from "../../RuleEditor.utils";
 
 /** Contains the list of operators that can be dragged and dropped onto the editor canvas and supports filtering. */
 export const RuleEditorOperatorSidebar = () => {
@@ -162,23 +162,8 @@ export const RuleEditorOperatorSidebar = () => {
         }
     };
 
-    const tabColors = getColorConfiguration("react-flow-linking");
-    const getTabColor = (id: string): string | undefined => {
-        switch (id) {
-            case "sourcePaths":
-                return tabColors.sourcepathNodeBright;
-            case "targetPaths":
-                return tabColors.targetpathNodeBright;
-            case "comparison":
-                return tabColors.comparatorNodeBright;
-            case "transform":
-                return tabColors.transformationNodeBright;
-            case "aggregation":
-                return tabColors.aggregatorNodeBright;
-            default:
-                return undefined;
-        }
-    };
+    const getTabColor = ruleEditorUtils.linkingRuleOperatorTypeColorFunction();
+
     const tabs: TabProps[] = (editorContext.tabs ?? []).map((tab) => ({
         id: tab.id,
         title: (

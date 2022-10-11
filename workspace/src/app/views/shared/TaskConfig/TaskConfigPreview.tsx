@@ -1,16 +1,16 @@
-import { IProjectTask } from "@ducks/shared/typings";
+import {IProjectTask} from "@ducks/shared/typings";
 import {
+    Notification,
     OverflowText,
-    PropertyValueList,
-    PropertyValuePair,
     PropertyName,
     PropertyValue,
-    Notification,
+    PropertyValueList,
+    PropertyValuePair,
 } from "@eccenca/gui-elements";
 import React from "react";
-import { IArtefactItemProperty, IPluginDetails } from "@ducks/common/typings";
-import { useTranslation } from "react-i18next";
-import { INPUT_TYPES } from "../../../constants";
+import {IArtefactItemProperty, IPluginDetails} from "@ducks/common/typings";
+import {useTranslation} from "react-i18next";
+import {INPUT_TYPES} from "../../../constants";
 
 interface IProps {
     taskData: IProjectTask;
@@ -84,10 +84,14 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
     };
     // Because of line_height: 1, underscores are not rendered
     const fixStyle = { lineHeight: "normal" };
+    const taskParameterValues: Record<string, string> = taskValues(taskData.data.parameters)
+    if(taskDescription.taskType === "Dataset" && taskData.data.uriProperty) {
+        taskParameterValues[t("DatasetUriPropertyParameter.label")] = taskData.data.uriProperty
+    }
     return (
         <OverflowText passDown>
             <PropertyValueList>
-                {Object.entries(taskValues(taskData.data.parameters))
+                {Object.entries(taskParameterValues)
                     // Only non-empty parameter values are shown
                     .filter(([paramId, value]) => value.trim() !== "")
                     .map(([paramId, value]) => {

@@ -1,7 +1,8 @@
 package controllers.core.util
 
-import org.silkframework.runtime.validation.ValidationException
+import org.silkframework.runtime.validation.{BadUserInputException, ValidationException}
 import play.api.libs.json.{JsPath, JsValue, Json, JsonValidationError, Reads}
+import play.api.mvc.{AnyContent, Request}
 
 import java.io.InputStream
 import scala.util.control.NonFatal
@@ -41,6 +42,16 @@ object JsonUtils {
         obj
       }
     )
+  }
+
+  def validateJsonFromRequest[T](request: Request[AnyContent])
+                                (implicit rds: Reads[T]): T = {
+    request.body.asJson match {
+      case Some(json) =>
+        validateJsonFromValue[T](json)
+      case None =>
+        throw BadUserInputException("Expected JSON body.")
+    }
   }
 
   def errorsToString(errors: Seq[(JsPath, Seq[JsonValidationError])]): String = {

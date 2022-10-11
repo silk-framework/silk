@@ -4,15 +4,12 @@ package controllers.transform
 import helper.IntegrationTestTrait
 import org.scalatestplus.play.PlaySpec
 import org.silkframework.util.ConfigTestTrait
-import play.api.Logger
 import play.api.libs.json._
 
 /**
   * Base trait for transformation API tests.
   */
 trait TransformTaskApiTestBase extends PlaySpec with IntegrationTestTrait with ConfigTestTrait {
-
-  protected def log: Logger = Logger(getClass.getName)
 
   def printResponses: Boolean
 

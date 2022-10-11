@@ -1,10 +1,13 @@
 package controllers.linking.linkingTask
 
+import controllers.linking.evaluation.LinkageRuleEvaluationResult
 import controllers.workspace.taskApi.TaskApiUtils
+import org.silkframework.entity.ReferenceLink
 import org.silkframework.plugins.path.PathMetaDataPlugin
-import org.silkframework.rule.LinkSpec
+import org.silkframework.rule.evaluation.{EvaluationResult, LinkageRuleEvaluator, ReferenceEntities}
 import org.silkframework.rule.input.Transformer
 import org.silkframework.rule.similarity.{Aggregator, DistanceMeasure}
+import org.silkframework.rule.{LinkSpec, LinkageRule}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.serialization.WriteContext
@@ -41,9 +44,9 @@ object LinkingTaskApiUtils {
     JsObject(updatedDataFields)
   }
 
-  private case class LabelReplaceData(sourcePathLabels: Map[String, String],
-                                      targetPathLabels: Map[String, String],
-                                      isTarget: Boolean)
+  case class LabelReplaceData(sourcePathLabels: Map[String, String],
+                              targetPathLabels: Map[String, String],
+                              isTarget: Boolean)
 
   // Path to traverse in a linking rule without changing anything
   private val pathToTraverse = Seq(PARAMETERS, LinkSpecJsonFormat.RULE, OPERATOR)
@@ -58,14 +61,19 @@ object LinkingTaskApiUtils {
     JsArray(jsArray.value.map(v => addLabelsRecursive(v.as[JsObject], labelReplaceData)))
   }
 
-  // Add labels to operator parameter values if available
-  private def addLabelsRecursive(jsObject: JsObject,
-                                 labelReplaceData: LabelReplaceData)
-                                (implicit userContext: UserContext,
-                                 workspace: Workspace,
-                                 project: Project): JsObject = {
+  /** Adds labels to operator parameter values if available.
+    *
+    * @param jsObject         The JSON representation of any object that can occur in a linkage rule.
+    *                         This object can be the JSON representation of the link spec or linkage rule itself
+    * @param labelReplaceData Labels for source paths.
+    */
+  def addLabelsRecursive(jsObject: JsObject,
+                         labelReplaceData: LabelReplaceData)
+                        (implicit userContext: UserContext,
+                         workspace: Workspace,
+                         project: Project): JsObject = {
     (jsObject \ TYPE).asOpt[String] match {
-      case Some(operatorType) if(operatorTypes.contains(operatorType)) =>
+      case Some(operatorType) if (operatorTypes.contains(operatorType)) =>
         addLabelsRecursiveByType(jsObject, operatorType, labelReplaceData)
       case _ =>
         pathToTraverse.find(path => (jsObject \ path).asOpt[JsObject].isDefined) match {
@@ -143,5 +151,22 @@ object LinkingTaskApiUtils {
       val pathMetaDataPlugin = plugin.apply()(PluginContext.empty)
       (pathMetaDataPlugin.sourcePluginClass, pathMetaDataPlugin)
     }).toMap
+  }
+
+  /** Score of reference links for a given linking rule. */
+  def referenceLinkEvaluationScore(linkageRule: LinkageRule, referenceEntityCacheValue: ReferenceEntities): LinkageRuleEvaluationResult = {
+    val score = LinkageRuleEvaluator(linkageRule, referenceEntityCacheValue)
+    linkRuleEvaluationResult(score)
+  }
+
+  /** Score of reference links for a given linking rule. */
+  def referenceLinkEvaluationScore(linkageRule: LinkageRule, referenceLinks: Seq[ReferenceLink], threshold: Double = 0.0): LinkageRuleEvaluationResult = {
+    val score = LinkageRuleEvaluator(linkageRule, referenceLinks, threshold)
+    linkRuleEvaluationResult(score)
+  }
+
+  private def linkRuleEvaluationResult(evaluationResult: EvaluationResult): LinkageRuleEvaluationResult = {
+    LinkageRuleEvaluationResult(evaluationResult.truePositives, evaluationResult.trueNegatives, evaluationResult.falsePositives, evaluationResult.falseNegatives,
+      f"${evaluationResult.fMeasure}%.2f", f"${evaluationResult.precision}%.2f", f"${evaluationResult.recall}%.2f")
   }
 }

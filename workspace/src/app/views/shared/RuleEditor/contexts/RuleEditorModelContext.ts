@@ -43,6 +43,8 @@ export interface RuleEditorModelContextProps {
     centerNode: (nodeId: string) => boolean;
     /** Get the current rule as IRuleOperatorNode objects. */
     ruleOperatorNodes: () => IRuleOperatorNode[];
+    /** The ID of the rule editor canvas element. */
+    canvasId: string;
 }
 
 export interface IModelActions {
@@ -151,4 +153,5 @@ export const RuleEditorModelContext = React.createContext<RuleEditorModelContext
     isValidEdge: () => true,
     centerNode: () => true,
     ruleOperatorNodes: () => [],
+    canvasId: "canvasId",
 });

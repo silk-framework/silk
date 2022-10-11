@@ -17,6 +17,9 @@ export type RuleEditorNodeParameterValue = IOperatorNodeParameterValueWithLabel 
 export const ruleEditorNodeParameterValue = (value: RuleEditorNodeParameterValue): string | undefined => {
     return typeof value === "string" ? value : value?.value;
 };
+export const ruleEditorNodeParameterLabel = (value: RuleEditorNodeParameterValue): string | undefined => {
+    return typeof value === "string" ? value : value?.label ?? value?.value;
+};
 export type StickyNodePropType = { content?: string; style?: CSSProperties };
 
 export type RuleModelChangeType =

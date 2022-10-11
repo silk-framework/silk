@@ -157,6 +157,8 @@ GET           /activities/recent                                                
 GET           /activities/log                                                   controllers.workspace.ActivityApi.activityLog()
 GET           /activities/updates                                               controllers.workspace.ActivityApi.getActivityStatusUpdates(project: String ?= "", task: String ?= "", activity: String ?= "", instance: String ?= "", timestamp: Long ?= 0L)
 GET           /activities/updatesWebSocket                                      controllers.workspace.ActivityApi.activityStatusUpdatesWebSocket(project: String ?= "", task: String ?= "", activity: String ?= "", instance: String ?= "")
+GET           /activities/valueUpdates                                          controllers.workspace.ActivityApi.getActivityValueUpdates(project: String ?= "", task: String ?= "", activity: String ?= "", instance: String ?= "", timestamp: Long ?= 0L)
+GET           /activities/valueUpdatesWebSocket                                 controllers.workspace.ActivityApi.activityValuesUpdatesWebSocket(project: String ?= "", task: String ?= "", activity: String ?= "", instance: String ?= "", minIntervalMs: Int ?= 1000)
 GET           /activities/errorReport                                           controllers.workspace.ActivityApi.activityErrorReport(project ?= "", task ?= "", activity)
 
 ############################################################################################################################################

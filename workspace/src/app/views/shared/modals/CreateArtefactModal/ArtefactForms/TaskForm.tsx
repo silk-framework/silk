@@ -11,6 +11,7 @@ import useErrorHandler from "../../../../../hooks/useErrorHandler";
 import Loading from "../../../Loading";
 import { SUPPORTED_PLUGINS, pluginRegistry } from "../../../../plugins/PluginRegistry";
 import { DataPreviewProps, IDatasetConfigPreview } from "../../../../plugins/plugin.types";
+import {URI_PROPERTY_PARAMETER_ID, UriAttributeParameterInput} from "./UriAttributeParameterInput";
 
 export interface IProps {
     form: any;
@@ -29,6 +30,9 @@ export interface IProps {
         parameterValues: {
             [key: string]: string | object;
         };
+        dataParameters?: {
+            [key: string]: string
+        }
     };
 }
 
@@ -157,6 +161,9 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
             register({ name: DESCRIPTION });
             register({ name: IDENTIFIER });
         }
+        if(artefact.taskType === "Dataset") {
+            register({ name: URI_PROPERTY_PARAMETER_ID})
+        }
         registerParameters("", visibleParams, updateTask ? updateTask.parameterValues : {}, requiredRootParameters);
         setFormValueKeys(returnKeys);
 
@@ -282,6 +289,14 @@ export function TaskForm({ form, projectId, artefact, updateTask, taskId, detect
                         taskId={taskId}
                         projectId={projectId}
                     />
+                    {
+                        artefact.taskType === "Dataset" ?
+                            <UriAttributeParameterInput
+                                onValueChange={handleChange(URI_PROPERTY_PARAMETER_ID)}
+                                initialValue={updateTask?.dataParameters?.uriProperty}
+                            />
+                            : null
+                    }
                     {advancedParams.map(([key, param]) => (
                         <ParameterWidget
                             key={key}

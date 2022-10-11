@@ -60,6 +60,9 @@ export function TaskConfig(props: IProps) {
                     metaData: taskData.metadata,
                     taskPluginDetails: taskPluginDetails,
                     currentParameterValues: taskData.data.parameters,
+                    dataParameters: taskPluginDetails.taskType === "Dataset" && taskData.data.uriProperty ? {
+                        uriProperty: taskData.data.uriProperty
+                    } : undefined
                 })
             );
         } catch (e) {
