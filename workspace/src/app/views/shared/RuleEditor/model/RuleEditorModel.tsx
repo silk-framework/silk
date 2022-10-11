@@ -1714,7 +1714,12 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
                 ruleOperatorNodes,
             }}
         >
-            <InteractionGate showSpinner={initializing}>{children}</InteractionGate>
+            <InteractionGate
+                showSpinner={initializing}
+                useParentPositioning
+            >
+                {children}
+            </InteractionGate>
         </RuleEditorModelContext.Provider>
     );
 };
