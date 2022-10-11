@@ -13,13 +13,13 @@ import play.api.routing.Router
 
 import java.util.logging.{Level, Logger}
 import javax.inject.Provider
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionException, Future}
+import scala.concurrent.{ExecutionContext, ExecutionException, Future}
 
 class SilkErrorHandler (env: Environment,
                         config: Configuration,
                         sourceMapper: OptionalSourceMapper,
                         router: Provider[Router],
+                        implicit val executionContext: ExecutionContext,
                         workspaceReact: WorkspaceReact) extends DefaultHttpErrorHandler(env, config, sourceMapper, router) with AcceptExtractors {
 
   private val log = Logger.getLogger(classOf[SilkErrorHandler].getName)
