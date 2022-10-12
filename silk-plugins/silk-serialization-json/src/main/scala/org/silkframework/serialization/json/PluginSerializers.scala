@@ -2,13 +2,14 @@ package org.silkframework.serialization.json
 
 import org.silkframework.config.Prefixes
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.plugin.{ClassPluginDescription, PluginDescription, PluginList, PluginObjectParameterTypeTrait, PluginParameter}
+import org.silkframework.runtime.plugin._
 import org.silkframework.runtime.serialization.{Serialization, WriteContext}
 import org.silkframework.util.Identifier
 import org.silkframework.workspace.{ProjectTrait, WorkspaceReadTrait}
 import play.api.libs.json._
 
-import scala.util.Try
+import java.util.logging.{Level, Logger}
+import scala.util.control.NonFatal
 
 object PluginSerializers {
   final val MARKDOWN_DOCUMENTATION_PARAMETER = "markdownDocumentation"
@@ -18,6 +19,8 @@ object PluginSerializers {
     * The returned JSON format stays as close to JSON Schema as possible.
     */
   implicit object PluginListJsonFormat extends WriteOnlyJsonFormat[PluginList] {
+
+    private lazy val log = Logger.getLogger(getClass.getName)
 
     override def write(pluginList: PluginList)(implicit writeContext: WriteContext[JsValue]): JsValue = {
       JsObject(
@@ -112,7 +115,13 @@ object PluginSerializers {
             case Some(autoCompletion) if withLabels =>
               val label: Option[String] = if(autoCompletion.autoCompleteValueWithLabels) {
                 // No project ID/workspace available, only add label for parameters that do not need project/workspace information
-                Try(autoCompletion.autoCompletionProvider.valueToLabel("", value, Seq.empty, DummyWorkspaceRead)(UserContext.Empty)).toOption.flatten
+                try {
+                  autoCompletion.autoCompletionProvider.valueToLabel(writeContext.projectId.getOrElse("dummy"), value, Seq.empty, DummyWorkspaceRead)(UserContext.Empty)
+                } catch {
+                  case NonFatal(ex) =>
+                    log.log(Level.WARNING, s"Could not retrieve label for default parameter value '$value'", ex)
+                    None
+                }
               } else {
                 None
               }
