@@ -210,7 +210,7 @@ case class WorkflowRunContext(activityContext: ActivityContext[WorkflowExecution
                                    task: Task[_ <: TaskSpec],
                                    taskContext: ActivityMonitor[ExecutionReport]): Unit = {
     // Add initial task report
-    activityContext.value.updateWith(_.addReport(nodeId, SimpleExecutionReport(task, Seq.empty, Seq.empty, None, isDone = false, entityCount = 0)))
+    activityContext.value.updateWith(_.addReport(nodeId, SimpleExecutionReport.initial(task)))
     // Listen for changes and update the task report for each change
     val listener = new TaskReportListener(reportListeners.size, nodeId)
     taskContext.value.subscribe(listener)
