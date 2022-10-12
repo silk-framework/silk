@@ -102,8 +102,9 @@ class CsvSource(file: Resource,
   private def detectSeparatorChar(): Option[DetectedSeparator] = {
     try {
       CsvSeparatorDetector.detectSeparatorChar(bufferedReaderForCsvFile(), settings, linesForDetection)
-    } finally {
-      None
+    } catch {
+      case NonFatal(_) =>
+        None
     }
   }
 

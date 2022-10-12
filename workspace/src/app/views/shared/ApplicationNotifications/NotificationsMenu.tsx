@@ -18,21 +18,32 @@ import errorSelector from "@ducks/error/selectors";
 import { DIErrorFormat, DIErrorTypes } from "@ducks/error/typings";
 import { ErrorResponse, FetchError } from "../../../services/fetch/responseInterceptor";
 
-export function NotificationsMenu() {
+interface Props {
+    /** The size of the notification icon. */
+    iconSize?: "small" | "medium" | "large"
+    /** When true the last notification will be shown for some seconds. */
+    autoDisplayNotifications?: boolean
+    /** The unique instance ID of this notification menu. This allows to send specific errors only to this instance. */
+    errorNotificationInstanceId?: string
+}
+
+export function NotificationsMenu({iconSize = "large", autoDisplayNotifications = true, errorNotificationInstanceId}: Props) {
     const [displayNotifications, setDisplayNotifications] = useState<boolean>(false);
     const [displayLastNotification, setDisplayLastNotification] = useState<boolean>(false);
 
-    const notificationQueue = useNotificationsQueue();
+    const notificationQueue = useNotificationsQueue(errorNotificationInstanceId);
 
     useEffect(() => {
         if (notificationQueue.displayLastNotification) {
-            setDisplayLastNotification(true);
-            const timeout: number = window.setTimeout(async () => {
-                setDisplayLastNotification(false);
-            }, 6000);
-            return () => {
-                clearTimeout(timeout);
-            };
+            if(autoDisplayNotifications) {
+                setDisplayLastNotification(true);
+                const timeout: number = window.setTimeout(async () => {
+                    setDisplayLastNotification(false);
+                }, 6000);
+                return () => {
+                    clearTimeout(timeout);
+                };
+            }
         } else {
             setDisplayLastNotification(false);
             setDisplayNotifications(false);
@@ -52,12 +63,14 @@ export function NotificationsMenu() {
                 toggleNotifications();
             }}
         >
-            <Icon name="application-warning" description="Notification menu icon" large />
+            <Icon name="application-warning" description="Notification menu icon" large={iconSize === "large"} small={iconSize === "small"} />
         </ApplicationToolbarAction>
     );
 
+    const showLastNotification = displayLastNotification && notificationQueue.lastNotification
+
     const notificationIndicator =
-        displayLastNotification && notificationQueue.lastNotification ? (
+         showLastNotification ? (
             <ContextOverlay
                 isOpen={true}
                 minimal={true}
@@ -73,7 +86,9 @@ export function NotificationsMenu() {
             notificationIndicatorButton
         );
 
-    return notificationQueue.messages.length > 0 ? (
+    const filteredMessages = notificationQueue.messages.filter(m => showMessage(m))
+
+    return filteredMessages.length > 0 ? (
         <>
             {!displayNotifications && notificationIndicator}
             {displayNotifications && (
@@ -105,13 +120,22 @@ export const parseErrorCauseMsg = (cause?: DIErrorTypes | null): string | undefi
     return asString ? asString() : (cause as { message?: string })?.message;
 };
 
-export function useNotificationsQueue() {
+/** Decide if to show a message based on the instance ID. */
+const showMessage = (message?: DIErrorFormat & { errorNotificationInstanceId?: string },
+                     errorNotificationInstanceId?: string): boolean => {
+    return !!message && (message.errorNotificationInstanceId == null ||
+        message.errorNotificationInstanceId === errorNotificationInstanceId)
+}
+
+export function useNotificationsQueue(errorNotificationInstanceId?: string) {
     // condition: first message in array is handled as latest message, otherwise reverse it first
     const { clearErrors } = useErrorHandler();
     const [displayLastNotification, setDisplayLastNotification] = useState<boolean>(false);
     const { errors } = useSelector(errorSelector);
     //first message is the latest entry based on the timestamp
-    const messages = [...errors].sort((a, b) => b.timestamp - a.timestamp); //https://stackoverflow.com/questions/53420055/
+    const messages = [...errors]
+        .filter(error => showMessage(error, errorNotificationInstanceId))
+        .sort((a, b) => b.timestamp - a.timestamp); //https://stackoverflow.com/questions/53420055/
     const initTime = React.useRef(new Date().getTime());
 
     useEffect(() => {

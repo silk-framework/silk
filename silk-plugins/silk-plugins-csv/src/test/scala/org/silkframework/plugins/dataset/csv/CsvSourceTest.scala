@@ -38,6 +38,7 @@ class CsvSourceTest extends FlatSpec with Matchers {
   lazy val tabArraySeparated = CsvDataset(ReadOnlyResource(resources.get("tab_array_separated.csv")), arraySeparator = "\t")
   lazy val noHeaders = CsvDataset(ReadOnlyResource(resources.get("no_header.csv")), properties = "vals1,vals2,vals3")
   lazy val iso8859 = CsvDataset(ReadOnlyResource(resources.get("iso8859.csv")))
+  lazy val nonStandard = CsvDataset(ReadOnlyResource(resources.get("nonStandard.csv")))
   lazy val cmem4065withProperties = new CsvSource(resources.get("cmem-4065.csv"), settings, properties = "A/B,urn:prop:propA,https://test.com/some/valid?uri=true")
   lazy val cmem4065 = new CsvSource(resources.get("cmem-4065.csv"), settings)
 
@@ -174,6 +175,16 @@ class CsvSourceTest extends FlatSpec with Matchers {
   it should "detect ISO8859 encoding" in {
     val autoConfigured = iso8859.autoConfigured
     autoConfigured.charset shouldBe "ISO-8859-1"
+  }
+
+  it should "auto-configure random example correctly" in {
+    val autoConfigured = nonStandard.autoConfigured
+    autoConfigured.separator shouldBe ";"
+    autoConfigured.source.retrievePaths("").map(_.normalizedSerialization) shouldBe Seq("id", "label")
+    autoConfigured.linesToSkip shouldBe 3
+    autoConfigured.source.retrieve(EntitySchema("", IndexedSeq(UntypedPath.parse("id").asStringTypedPath)))
+      .headOption.toSeq
+      .flatMap(_.values.flatten) shouldBe Seq("1")
   }
 
   private def getEntities(dataSource: DataSource): Seq[Entity] = {
