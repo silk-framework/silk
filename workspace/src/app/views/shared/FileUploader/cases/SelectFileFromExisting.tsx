@@ -75,6 +75,8 @@ interface ProjectResourceAutoCompleteProps {
     handleChange: (value: string) => void;
     /** If true allows to clear the selection. */
     resettable: boolean;
+    /** If true the value cannot be edited. */
+    readonly?: boolean;
 }
 
 const ProjectResourceAutoComplete = ({

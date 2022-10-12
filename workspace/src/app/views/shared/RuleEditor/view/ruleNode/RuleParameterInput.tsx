@@ -51,7 +51,7 @@ export const RuleParameterInput = ({
         defaultValue: defaultValue,
         onChange,
         intent: hasValidationError ? Intent.DANGER : undefined,
-        disabled: ruleEditorContext.readOnlyMode || modelContext.readOnly,
+        readOnly: ruleEditorContext.readOnlyMode || modelContext.readOnly,
     };
 
     const handleFileSearch = async (input: string) => {
@@ -104,9 +104,11 @@ export const RuleParameterInput = ({
                     {...inputAttributes}
                     onChange={(value: boolean) => inputAttributes.onChange(`${value}`)}
                     defaultChecked={inputAttributes.defaultValue?.toLowerCase() === "true"}
+                    disabled={inputAttributes.readOnly}
                 />
             );
         case "code":
+            // FIXME: Add readOnly mode
             return <CodeEditor {...inputAttributes} />;
         case "password":
             return (
@@ -130,6 +132,9 @@ export const RuleParameterInput = ({
                         itemValueSelector: resourceNameFn,
                         itemValueString: resourceNameFn,
                         noResultText: t("common.messages.noResults", "No results."),
+                        inputProps: {
+                            readOnly: inputAttributes.readOnly,
+                        },
                     }}
                     required={ruleParameter.parameterSpecification.required}
                     {...inputAttributes}
@@ -159,7 +164,7 @@ export const RuleParameterInput = ({
                         formParamId={uniqueId}
                         dependentValue={dependentValue}
                         required={ruleParameter.parameterSpecification.required}
-                        disabled={inputAttributes.disabled}
+                        readOnly={inputAttributes.readOnly}
                     />
                 );
             } else {

@@ -331,9 +331,13 @@ const layoutGraph = (elements: Elements, zoomFactor: number, canvasId: string): 
     });
     const sizes = nodeSizes(zoomFactor, canvasId);
     const addNode = (node: RuleEditorNode) => {
+        const defaultHeight = (): number => {
+            const parameterCount = Object.values(node.data.businessData.originalRuleOperatorNode.parameters).length;
+            return 100 + parameterCount * 75;
+        };
         g.setNode(node.id, {
             label: node.id,
-            height: sizes.get(node.id)?.height ?? 100,
+            height: sizes.get(node.id)?.height ?? defaultHeight(),
             width: sizes.get(node.id)?.width ?? 250,
         });
     };
