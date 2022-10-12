@@ -21,13 +21,13 @@ import {
     ToolbarSection,
 } from "@eccenca/gui-elements";
 import {
-    ComparisionDataBody,
-    ComparisionDataCell,
-    ComparisionDataConnection,
-    ComparisionDataContainer,
-    ComparisionDataHead,
-    ComparisionDataHeader,
-    ComparisionDataRow,
+    ComparisonDataBody,
+    ComparisonDataCell,
+    ComparisonDataConnection,
+    ComparisonDataContainer,
+    ComparisonDataHead,
+    ComparisonDataHeader,
+    ComparisonDataRow,
 } from "./../components/ComparisionData";
 import { PropertyBox } from "./../components/PropertyBox";
 import { LinkingRuleActiveLearningFeedbackContext } from "../contexts/LinkingRuleActiveLearningFeedbackContext";
@@ -314,23 +314,23 @@ const EntityComparisonHeader = ({
 }: EntityComparisonHeaderProps) => {
     const [t] = useTranslation();
     return (
-        <ComparisionDataHead>
-            <ComparisionDataRow>
-                <ComparisionDataHeader className="diapp-linking-learningdata__source">
+        <ComparisonDataHead>
+            <ComparisonDataRow>
+                <ComparisonDataHeader className="diapp-linking-learningdata__source">
                     {(!sourceTitle && sourceUrl) ? <Link href={sourceUrl} target="_new">{t("ActiveLearning.feedback.sourceColumnTitle")}</Link> : t("ActiveLearning.feedback.sourceColumnTitle")}
                     {sourceTitle ? ": " : ""}
                     {(sourceTitle && sourceUrl) ? <Link href={sourceUrl} target="_new">{sourceTitle}</Link> : sourceTitle}
-                </ComparisionDataHeader>
-                <ComparisionDataConnection>
+                </ComparisonDataHeader>
+                <ComparisonDataConnection>
                     <ConnectionAvailable actions={<Tag emphasis="weak">owl:sameAs</Tag>} />
-                </ComparisionDataConnection>
-                <ComparisionDataHeader className="diapp-linking-learningdata__target">
+                </ComparisonDataConnection>
+                <ComparisonDataHeader className="diapp-linking-learningdata__target">
                 {(!targetTitle && targetUrl) ? <Link href={targetUrl} target="_new">{t("ActiveLearning.feedback.targetColumnTitle")}</Link> : t("ActiveLearning.feedback.targetColumnTitle")}
                 {targetTitle ? ": " : ""}
                 {(targetTitle && targetUrl) ? <Link href={targetUrl} target="_new">{targetTitle}</Link> : targetTitle}
-                </ComparisionDataHeader>
-            </ComparisionDataRow>
-        </ComparisionDataHead>
+                </ComparisonDataHeader>
+            </ComparisonDataRow>
+        </ComparisonDataHead>
     );
 };
 
@@ -357,14 +357,14 @@ const SelectedEntityLink = ({
     const sourceEntityLabel = labelPropertyPairValues.map((values) => values.sourceExamples.join(", ")).join(", ");
     const targetEntityLabel = labelPropertyPairValues.map((values) => values.targetExamples.join(", ")).join(", ");
     return (
-        <ComparisionDataContainer>
+        <ComparisonDataContainer>
             <EntityComparisonHeader
                 sourceUrl={resourceLinks ? resourceLinks.source : undefined}
                 targetUrl={resourceLinks ? resourceLinks.target : undefined}
                 sourceTitle={sourceEntityLabel}
                 targetTitle={targetEntityLabel}
             />
-            <ComparisionDataBody>
+            <ComparisonDataBody>
                 {(valuesToDisplay ?? []).map((selected: EntityLinkPropertyPairValues | ComparisonPair, idx) => {
                     const values: EntityLinkPropertyPairValues = {
                         sourceExamples: selected.sourceExamples.flat(),
@@ -381,8 +381,8 @@ const SelectedEntityLink = ({
                         />
                     );
                 })}
-            </ComparisionDataBody>
-        </ComparisionDataContainer>
+            </ComparisonDataBody>
+        </ComparisonDataContainer>
     );
 };
 
@@ -405,14 +405,14 @@ const EntitiesPropertyPair = ({
     const [t] = useTranslation();
     const sameExampleValues = sameValues(values.sourceExamples, values.targetExamples);
     return (
-        <ComparisionDataRow className="diapp-linking-learningdata__row-body">
+        <ComparisonDataRow className="diapp-linking-learningdata__row-body">
             <EntityPropertyValues
                 property={propertyPair.source}
                 values={values.sourceExamples}
                 sameExampleValues={sameExampleValues}
                 datasink="source"
             />
-            <ComparisionDataConnection>
+            <ComparisonDataConnection>
                 <ConnectionEnabled
                     label={utils.comparisonType(propertyPair)}
                     actions={
@@ -429,14 +429,14 @@ const EntitiesPropertyPair = ({
                     }
                     color={scoreColor}
                 />
-            </ComparisionDataConnection>
+            </ComparisonDataConnection>
             <EntityPropertyValues
                 property={propertyPair.target}
                 values={values.targetExamples}
                 sameExampleValues={sameExampleValues}
                 datasink="target"
             />
-        </ComparisionDataRow>
+        </ComparisonDataRow>
     );
 };
 
@@ -451,7 +451,7 @@ const EntityPropertyValues = ({ property, values, sameExampleValues, datasink }:
     const propertyLabel = property.label ? property.label : property.path;
     const exampleTitle = values.join(" | ");
     return (
-        <ComparisionDataCell className={datasink ? `diapp-linking-learningdata__${datasink}` : undefined}>
+        <ComparisonDataCell className={datasink ? `diapp-linking-learningdata__${datasink}` : undefined}>
             <PropertyBox
                 propertyName={propertyLabel}
                 exampleValues={values.length > 0 ? (
@@ -462,7 +462,7 @@ const EntityPropertyValues = ({ property, values, sameExampleValues, datasink }:
                 ) : undefined}
                 exampleTooltip={exampleTitle}
             />
-        </ComparisionDataCell>
+        </ComparisonDataCell>
     );
 };
 
