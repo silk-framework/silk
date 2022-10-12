@@ -26,7 +26,7 @@ trait HasMetaData {
     *
     * @param maxLength the max length in characters
     */
-  def label(maxLength: Int = MetaData.DEFAULT_LABEL_MAX_LENGTH)(implicit prefixes: Prefixes = Prefixes.empty): String = {
+  def label(maxLength: Int = Int.MaxValue)(implicit prefixes: Prefixes = Prefixes.empty): String = {
     metaData.formattedLabel(MetaData.labelFromId(id), maxLength)
   }
 
