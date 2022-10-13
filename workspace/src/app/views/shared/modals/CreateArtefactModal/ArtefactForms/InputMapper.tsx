@@ -69,7 +69,7 @@ export function InputMapper({
     const initialValue =
         initialOrExternalValue != null
             ? stringValueAsJs(parameter.param.parameterType, initialOrExternalValue)
-            : defaultValueAsJs(param);
+            : defaultValueAsJs(param, false);
 
     let onChangeUsed = onChange;
     if (highlightInput) {
