@@ -15,7 +15,8 @@ import { useTranslation } from "react-i18next";
 export type ErrorHandlerRegisterFuncType = (
     errorId: string,
     errorMessage: string,
-    cause: DIErrorTypes | null
+    cause: DIErrorTypes | null,
+    errorNotificationInstanceId?: string
 ) => JSX.Element | null;
 
 type ErrorHandlerRegisterShortFuncType = (
@@ -49,7 +50,8 @@ const useErrorHandler = (): ErrorHandlerDict => {
     const registerError: ErrorHandlerRegisterFuncType = (
         errorId: string,
         errorMessage: string,
-        cause: DIErrorTypes | null
+        cause: DIErrorTypes | null,
+        errorNotificationInstanceId?: string
     ) => {
         const error: RegisterErrorType = {
             id: errorId,
@@ -72,6 +74,7 @@ const useErrorHandler = (): ErrorHandlerDict => {
                         cause: null,
                         alternativeIntent: "warning",
                     },
+                    errorNotificationInstanceId
                 })
             );
             return <Notification message={tempUnavailableMessage} />;
@@ -80,7 +83,10 @@ const useErrorHandler = (): ErrorHandlerDict => {
             console.warn("Received 404 error.", cause);
             return null;
         } else {
-            dispatch(registerNewError({ newError: error }));
+            dispatch(registerNewError({
+                newError: error,
+                errorNotificationInstanceId
+            }));
             return <Notification message={errorMessage} warning />;
         }
     };

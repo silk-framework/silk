@@ -68,17 +68,21 @@ object CsvSeparatorDetector {
                                 reader: => java.io.Reader,
                                 csvSettings: CsvSettings): Option[DetectedSeparator] = {
     if(separatorDistribution.isEmpty || separatorDistribution.forall(d => d._2.nonEmpty && d._2.values.sum > 0)) {
+      var maxReadLines = 0
       // Ignore characters that did not split anything
       val candidates = separatorDistribution filter { case (c, dist) =>
         val oneFieldCount = dist.getOrElse(1, 0)
         val sum = dist.values.sum
+        if(sum > maxReadLines) {
+          maxReadLines = sum
+        }
         // Separators with too many 1-field lines are filtered out
         oneFieldCount.toDouble / sum < 0.5
       }
       val charEntropy = candidates map { case (c, dist) =>
         (c, entropy(dist))
       }
-      pickSeparatorBasedOnEntropy(separatorDistribution, charEntropy, reader, csvSettings)
+      pickSeparatorBasedOnEntropy(separatorDistribution, charEntropy, reader, csvSettings, maxReadLines)
     } else {
       None
     }
@@ -88,10 +92,13 @@ object CsvSeparatorDetector {
   private def pickSeparatorBasedOnEntropy(separatorDistribution: Map[Char, Map[Int, Int]],
                                           charEntropy: Map[Char, Double],
                                           reader: => java.io.Reader,
-                                          csvSettings: CsvSettings): Option[DetectedSeparator] = {
+                                          csvSettings: CsvSettings,
+                                          linesRead: Int): Option[DetectedSeparator] = {
     val lowestEntropySeparator = charEntropy.toSeq.sortWith(_._2 < _._2).headOption
     // Entropy must be < 0.1, which means that at most 6 out of [[linesForDetection]] lines may have a different number of fields than the majority
-    val separator = lowestEntropySeparator filter (_._2 < 0.1) map (_._1)
+    val separator = lowestEntropySeparator filter (charEntropy => charEntropy._2 < 0.1 ||
+      // If file has very few lines, make an exception
+      charEntropy._2 < 0.5 && linesRead - separatorDistribution(charEntropy._1).values.max < 8) map (_._1)
     separator map { c =>
       val dist = separatorDistribution(c)
       val numberOfFields = dist.toSeq.sortWith(_._2 > _._2).head._1

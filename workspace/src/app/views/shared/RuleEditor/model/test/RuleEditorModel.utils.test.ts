@@ -21,7 +21,9 @@ describe("Rule editor model utils", () => {
     });
 
     it("should auto-layout a graph", () => {
-        const initialNodes = [{ id: "nodeA" }, { id: "nodeB" }, { id: "nodeC" }] as any as Node[];
+        const data = { businessData: { originalRuleOperatorNode: { parameters: {} } } };
+        const node = (id: string) => ({ id, data });
+        const initialNodes = [node("nodeA"), node("nodeB"), node("nodeC")] as any as Node[];
         const layout = (edges: Edge[], nodes: Node[] = initialNodes): XYPosition[] => {
             const nodeMap = utils.autoLayout([...nodes, ...edges], 1, "id");
             return nodes.map((n) => nodeMap.get(n.id)!!);

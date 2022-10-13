@@ -1,6 +1,6 @@
-import React, {useEffect, useState} from "react";
-import {useDispatch, useSelector} from "react-redux";
-import {useForm} from "react-hook-form";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useForm } from "react-hook-form";
 import {
     Button,
     Card,
@@ -22,28 +22,29 @@ import {
     OverviewItemLine,
     OverviewItemList,
     SimpleDialog,
-    Spacing
+    Spacing,
 } from "@eccenca/gui-elements";
-import {createMultiWordRegex, extractSearchWords} from "@eccenca/gui-elements/src/components/Typography/Highlighter";
-import {commonOp, commonSel} from "@ducks/common";
-import {IArtefactModal, IPluginDetails, IPluginOverview} from "@ducks/common/typings";
+import { createMultiWordRegex, extractSearchWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
+import { commonOp, commonSel } from "@ducks/common";
+import { IArtefactModal, IPluginDetails, IPluginOverview } from "@ducks/common/typings";
 import Loading from "../../Loading";
-import {ProjectForm} from "./ArtefactForms/ProjectForm";
-import {TaskForm} from "./ArtefactForms/TaskForm";
-import {DATA_TYPES} from "../../../../constants";
+import { ProjectForm } from "./ArtefactForms/ProjectForm";
+import { TaskForm } from "./ArtefactForms/TaskForm";
+import { DATA_TYPES } from "../../../../constants";
 import ArtefactTypesList from "./ArtefactTypesList";
-import {SearchBar} from "../../SearchBar/SearchBar";
-import {routerOp} from "@ducks/router";
-import {useTranslation} from "react-i18next";
-import {TaskType} from "@ducks/shared/typings";
-import {ProjectImportModal} from "../ProjectImportModal";
+import { SearchBar } from "../../SearchBar/SearchBar";
+import { routerOp } from "@ducks/router";
+import { useTranslation } from "react-i18next";
+import { DatasetTaskPlugin, TaskType } from "@ducks/shared/typings";
+import { ProjectImportModal } from "../ProjectImportModal";
 import ItemDepiction from "../../../shared/ItemDepiction";
 import ProjectSelection from "./ArtefactForms/ProjectSelection";
-import {workspaceSel} from "@ducks/workspace";
-import {requestSearchList} from "@ducks/workspace/requests";
-import {uppercaseFirstChar} from "../../../../utils/transformers";
-import {requestProjectMetadata} from "@ducks/shared/requests";
-import useErrorHandler from "../../../../hooks/useErrorHandler";
+import { workspaceSel } from "@ducks/workspace";
+import { requestSearchList } from "@ducks/workspace/requests";
+import { uppercaseFirstChar } from "../../../../utils/transformers";
+import { requestProjectMetadata } from "@ducks/shared/requests";
+import { requestAutoConfiguredDataset } from "./CreateArtefactModal.requests";
+import { diErrorMessage } from "@ducks/error/typings";
 
 const ignorableFields = new Set(["label", "description"]);
 
@@ -52,11 +53,15 @@ export interface ProjectIdAndLabel {
     label: string;
 }
 
+export interface InfoMessage {
+    message: string;
+    removeAfterSeconds?: number;
+}
+
 export function CreateArtefactModal() {
     const dispatch = useDispatch();
     const form = useForm();
 
-    const { registerError } = useErrorHandler();
     const [searchValue, setSearchValue] = useState("");
     const [idEnhancedDescription, setIdEnhancedDescription] = useState("");
     const [actionLoading, setActionLoading] = useState(false);
@@ -81,6 +86,7 @@ export function CreateArtefactModal() {
     const [toBeAdded, setToBeAdded] = useState<IPluginOverview | undefined>(selectedArtefact);
     const [lastSelectedClick, setLastSelectedClick] = useState<number>(0);
     const [isProjectImport, setIsProjectImport] = useState<boolean>(false);
+    const [autoConfigPending, setAutoConfigPending] = useState(false);
     const DOUBLE_CLICK_LIMIT_MS = 500;
 
     const selectedArtefactKey: string | undefined = selectedArtefact?.key;
@@ -95,8 +101,37 @@ export function CreateArtefactModal() {
             isModified: boolean;
         };
     }>({});
+    const [infoMessage, setInfoMessage] = useState<InfoMessage | undefined>(undefined);
     const isEmptyWorkspace = useSelector(workspaceSel.isEmptyPageSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
+    const externalParameterUpdateMap = React.useRef(
+        new Map<string, (value: { value: string; label?: string }) => any>()
+    );
+    const NOTIFICATION_ID = "create-update-dialog";
+
+    React.useEffect(() => {
+        if (infoMessage?.removeAfterSeconds && infoMessage.removeAfterSeconds > 0) {
+            const timeoutId = setTimeout(() => {
+                setInfoMessage(undefined);
+            }, infoMessage.removeAfterSeconds * 1000);
+            return () => clearTimeout(timeoutId);
+        }
+    }, [infoMessage]);
+
+    const registerError = (errorId: string, errorMessage: string, error: any, notificationId: string) => {
+        const diServerMessage = diErrorMessage(error);
+        const errorDetails = diServerMessage ? ` Details: ${diServerMessage}` : "";
+        const m = errorMessage.trim().endsWith(".")
+            ? `${errorMessage}${errorDetails}`
+            : `${errorMessage.trim()}.${errorDetails}`;
+        const newError = {
+            ...error,
+            errorMessage: m,
+            details: diErrorMessage(error),
+            cause: error,
+        };
+        dispatch(commonOp.setModalError(newError));
+    };
 
     /** set the current Project when opening modal from a project
      * i.e project id already exists **/
@@ -110,7 +145,8 @@ export function CreateArtefactModal() {
                     registerError(
                         "CreateArtefactModal-fetch-project-meta-data",
                         "Could not fetch project information",
-                        e
+                        e,
+                        NOTIFICATION_ID
                     );
                 }
             })();
@@ -169,7 +205,12 @@ export function CreateArtefactModal() {
             const results = (await requestSearchList(payload)).results;
             return results;
         } catch (err) {
-            registerError("CreateArtefactModal-getWorkspaceProjects", "Could not fetch project list.", err);
+            registerError(
+                "CreateArtefactModal-getWorkspaceProjects",
+                "Could not fetch project list.",
+                err,
+                NOTIFICATION_ID
+            );
             return [];
         }
     };
@@ -392,6 +433,13 @@ export function CreateArtefactModal() {
         );
     }
 
+    const registerForExternalChanges = (
+        paramId: string,
+        handleUpdates: (value: { value: string; label?: string }) => any
+    ) => {
+        externalParameterUpdateMap.current.set(paramId, handleUpdates);
+    };
+
     if (updateExistingTask) {
         // Task update
         artefactForm = (
@@ -405,6 +453,7 @@ export function CreateArtefactModal() {
                     parameterValues: updateExistingTask.currentParameterValues,
                     dataParameters: updateExistingTask.dataParameters
                 }}
+                registerForExternalChanges={registerForExternalChanges}
             />
         );
     } else {
@@ -422,6 +471,7 @@ export function CreateArtefactModal() {
                             form={form}
                             artefact={detailedArtefact}
                             projectId={activeProjectId}
+                            registerForExternalChanges={registerForExternalChanges}
                         />
                     );
                 }
@@ -482,7 +532,80 @@ export function CreateArtefactModal() {
         }
     }, [artefactListWithProject.map((item) => item.key).join("|"), selectedDType]);
 
+    const handleAutoConfigure = async (projectId: string, artefactId: string) => {
+        const isValidFields = await form.triggerValidation();
+        if (!isValidFields) {
+            return;
+        }
+        try {
+            setAutoConfigPending(true);
+            const parameters = commonOp.buildTaskObject(form.getValues());
+            const requestBody: DatasetTaskPlugin<any> = {
+                taskType: taskType(artefactId) as TaskType,
+                type: artefactId,
+                parameters,
+            };
+            const parameterChanges: Record<string, string> = (
+                await requestAutoConfiguredDataset(projectId, requestBody)
+            ).data.parameters;
+            const formValues = form.getValues();
+            let valuesUpdated = 0;
+            Object.entries(parameterChanges).forEach(([paramId, value]) => {
+                if (
+                    formValues[paramId] != null &&
+                    `${formValues[paramId]}` !== value &&
+                    externalParameterUpdateMap.current.has(paramId)
+                ) {
+                    externalParameterUpdateMap.current.get(paramId)!({ value });
+                    valuesUpdated += 1;
+                }
+            });
+            setInfoMessage({
+                message: t("CreateModal.autoConfigParametersUpdated", { number: valuesUpdated }),
+                removeAfterSeconds: 5,
+            });
+        } catch (ex) {
+            registerError(
+                "CreateArtefactModal.handleAutConfigure",
+                "Auto-configuration has failed.",
+                ex,
+                NOTIFICATION_ID
+            );
+        } finally {
+            setAutoConfigPending(false);
+        }
+    };
+
     const isCreationUpdateDialog = selectedArtefactKey || updateExistingTask;
+    const additionalButtons: JSX.Element[] = [];
+    if (
+        projectId &&
+        (updateExistingTask || (selectedArtefactKey && cachedArtefactProperties[selectedArtefactKey]?.autoConfigurable))
+    ) {
+        additionalButtons.push(
+            <Button
+                data-test-id={"autoConfigureItem-btn"}
+                key="autoConfig"
+                tooltip={t("CreateModal.autoConfigTooltip")}
+                onClick={() =>
+                    handleAutoConfigure(
+                        projectId,
+                        selectedArtefactKey ?? updateExistingTask!.taskPluginDetails.pluginId
+                    )
+                }
+                loading={autoConfigPending}
+            >
+                {t("CreateModal.autoConfigButton")}
+            </Button>
+        );
+    }
+
+    const headerOptions: JSX.Element[] = [];
+    if (selectedArtefactTitle && (selectedArtefact?.markdownDocumentation || selectedArtefact?.description)) {
+        headerOptions.push(
+            <IconButton name="item-question" onClick={(e) => handleShowEnhancedDescription(e, selectedArtefact.key)} />
+        );
+    }
 
     const createDialog = (
         <SimpleDialog
@@ -498,14 +621,7 @@ export function CreateArtefactModal() {
                     ? t("CreateModal.createTitle", { type: selectedArtefactTitle })
                     : t("CreateModal.createTitleGeneric")
             }
-            headerOptions={
-                selectedArtefactTitle && (selectedArtefact?.markdownDocumentation || selectedArtefact?.description) ? (
-                    <IconButton
-                        name="item-question"
-                        onClick={(e) => handleShowEnhancedDescription(e, selectedArtefact.key)}
-                    />
-                ) : null
-            }
+            headerOptions={headerOptions}
             onClose={closeModal}
             isOpen={isOpen}
             actions={
@@ -526,6 +642,7 @@ export function CreateArtefactModal() {
                             <Button key="cancel" onClick={closeModal}>
                                 {t("common.action.cancel")}
                             </Button>,
+                            ...additionalButtons,
                             <CardActionsAux key="aux">
                                 {!updateExistingTask && (
                                     <Button data-test-id={"create-dialog-back-btn"} key="back" onClick={handleBack}>
@@ -549,19 +666,24 @@ export function CreateArtefactModal() {
                         <Button data-test-id="create-dialog-cancel-btn" key="cancel" onClick={closeModal}>
                             {t("common.action.cancel")}
                         </Button>,
+                        ...additionalButtons,
                     ]
                 )
             }
             notifications={
-                (!!error.detail && (
+                ((!!error.detail || !!error.errorMessage) && (
                     <Notification
-                        message={t("common.messages.actionFailed", {
-                            action: updateExistingTask ? t("common.action.update") : t("common.action.create"),
-                            error: error.detail.replace(/^(assertion failed: )/, ""),
-                        })}
+                        message={
+                            error.errorMessage ||
+                            t("common.messages.actionFailed", {
+                                action: updateExistingTask ? t("common.action.update") : t("common.action.create"),
+                                error: error.detail.replace(/^(assertion failed: )/, ""),
+                            })
+                        }
                         danger
                     />
                 )) ||
+                (infoMessage && <Notification message={infoMessage.message} />) ||
                 (projectArtefactSelected && (
                     <Notification
                         message={t("ProjectImportModal.restoreNotice", "Want to restore an existing project?")}
@@ -715,15 +837,13 @@ export function CreateArtefactModal() {
             }
         </SimpleDialog>
     );
-    return (
-        isProjectImport ? (
-            <ProjectImportModal
-                close={closeModal}
-                back={() => setIsProjectImport(false)}
-                maxFileUploadSizeBytes={maxFileUploadSize}
-            />
-        ) : (
-            createDialog
-        )
+    return isProjectImport ? (
+        <ProjectImportModal
+            close={closeModal}
+            back={() => setIsProjectImport(false)}
+            maxFileUploadSizeBytes={maxFileUploadSize}
+        />
+    ) : (
+        createDialog
     );
 }

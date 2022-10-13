@@ -93,6 +93,7 @@ export interface IPluginDetails {
     pluginId: string;
     pluginType?: PluginType;
     markdownDocumentation?: string;
+    autoConfigurable?: boolean
 }
 
 /** Overview version of an item description. */

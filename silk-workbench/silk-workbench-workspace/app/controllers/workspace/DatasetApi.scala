@@ -4,7 +4,7 @@ import config.WorkbenchConfig.WorkspaceReact
 import controllers.core.UserContextActions
 import controllers.core.util.ControllerUtilsTrait
 import controllers.util.SerializationUtils._
-import controllers.util.TextSearchUtils
+import controllers.util.{SerializationUtils, TextSearchUtils}
 import controllers.workspace.DatasetApi.TypeCacheFailedException
 import controllers.workspace.doc.DatasetApiDoc
 import io.swagger.v3.oas.annotations.enums.ParameterIn
@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
-import org.silkframework.config.{PlainTask, Prefixes}
+import org.silkframework.config.{PlainTask, Prefixes, Task, TaskSpec}
 import org.silkframework.dataset.DatasetSpec.GenericDatasetSpec
 import org.silkframework.dataset._
 import org.silkframework.dataset.rdf.{RdfDataset, SparqlResults}
