@@ -82,10 +82,16 @@ object ActivitySerializers {
     }
   }
 
-  class ExtendedStatusJsonFormat(project: String, task: String, activity: String, startTime: => Option[Instant]) extends WriteOnlyJsonFormat[Status] {
+  class ExtendedStatusJsonFormat(project: String, task: String, activity: String, activityLabel: String, startTime: => Option[Instant]) extends WriteOnlyJsonFormat[Status] {
 
     def this(activity: WorkspaceActivity[_]) = {
-      this(activity.projectOpt.map(_.id.toString).getOrElse(""), activity.taskOption.map(_.id.toString).getOrElse(""), activity.name, activity.startTime)
+      this(
+        activity.projectOpt.map(_.id.toString).getOrElse(""),
+        activity.taskOption.map(_.id.toString).getOrElse(""),
+        activity.name,
+        activity.label,
+        activity.startTime
+      )
     }
 
     override def write(status: Status)(implicit writeContext: WriteContext[JsValue]): JsValue = {
@@ -93,6 +99,7 @@ object ActivitySerializers {
       ("project" -> JsString(project)) +
       ("task" -> JsString(task)) +
       ("activity" -> JsString(activity)) +
+      ("activityLabel" -> JsString(activityLabel)) +
       ("startTime" -> startTime.map(t => JsString(t.toString)).getOrElse(JsNull))
     }
   }
