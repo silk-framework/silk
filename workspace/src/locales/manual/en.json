@@ -469,7 +469,11 @@
             "cycleTooltip": "Cycle through {{totalMatches}} current usages of this operator",
             "emptyList": "No operator found.",
             "searchInput": "Search for operators and paths...",
-            "searchTooltip": "Search for rule operators and input paths."
+            "searchTooltip": "Search for rule operators and input paths.",
+            "operator": {
+                "markdownTooltip": "{{shortDescription}}  Click to view full documentation",
+                "markdownModalTitle": "{{operatorName}}'s documentation"
+            }
         },
         "toolbar": {
             "advancedParameterMode": "advanced",
@@ -893,7 +897,7 @@
             "reset": "Reset",
             "failed": "Could not reset learning session."
         },
-        "saveDialog":{
+        "saveDialog": {
             "title": "Save reference links and/or best learned rule",
             "saveReferenceLinks": {
                 "label": "Save reference links",

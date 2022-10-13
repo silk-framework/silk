@@ -44,7 +44,9 @@ export interface IRuleOperator extends IRuleOperatorBase {
     /** Tags that will be displayed in the node operator. */
     tags: string[];
     /** If the operator inputs can be connected both in source-target or target-source order. The operator must have a boolean 'reverse' parameter. */
-    inputsCanBeSwitched: boolean
+    inputsCanBeSwitched: boolean;
+    /** Optional markdown description that would be visible via an open modal */
+    markdownDocumentation?: string;
 }
 
 /** A single node in the rule operator tree. This is displayed in the editor canvas. */
@@ -62,7 +64,7 @@ export interface IRuleOperatorNode extends IRuleOperatorBase {
     /** Tags that will be displayed inside the node. */
     tags?: string[];
     /** If the operator inputs can be connected both in source-target or target-source order. The operator must have a boolean 'reverse' parameter. */
-    inputsCanBeSwitched: boolean
+    inputsCanBeSwitched: boolean;
 }
 
 export interface IParameterSpecification {

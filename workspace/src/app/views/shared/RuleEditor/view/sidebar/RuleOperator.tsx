@@ -6,6 +6,8 @@ import utils from "../ruleNode/ruleNode.utils";
 import { SidebarRuleOperatorBase } from "./RuleEditorOperatorSidebar.typings";
 import Color from "color";
 import getColorConfiguration from "@eccenca/gui-elements/src/common/utils/getColorConfiguration";
+import RuleOperatorModal from "../components/RuleOperatorDocModal";
+import { useTranslation } from "react-i18next";
 
 interface RuleOperatorProps {
     // The rule operator that should be rendered
@@ -23,55 +25,88 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
             ? extractSearchSnippet(ruleOperator.description, createMultiWordRegex(searchWords))
             : undefined;
     const itemLabel = ruleOperator.label;
+    const [isDocModalOpen, setIsDocModalOpen] = React.useState<boolean>(false);
+    const [t] = useTranslation();
+
     return (
-        <OverviewItemDescription>
-            {wrapTooltip(
-                itemLabel.length > 30,
-                itemLabel,
-                <OverviewItemLine>
-                    <Spacing vertical={true} size={"tiny"} />
-                    <OverflowText ellipsis={"reverse"}>
-                        <Highlighter label={itemLabel} searchValue={textQuery} />
-                    </OverflowText>
-                    {ruleOperator.description && (
-                        <>
-                            <Spacing vertical={true} size={"tiny"} />
-                            <Icon
-                                name="item-info"
-                                small
-                                tooltipText={ruleOperator.description}
-                                tooltipProps={{
-                                    placement: "right",
-                                    rootBoundary: "viewport",
-                                }}
-                            />
-                        </>
-                    )}
-                </OverviewItemLine>,
-                "bottom-end",
-                "large"
+        <>
+            {ruleOperator.markdownDocumentation && (
+                <RuleOperatorModal
+                    isOpen={isDocModalOpen}
+                    onClose={() => setIsDocModalOpen(false)}
+                    markdownDescription={ruleOperator.markdownDocumentation}
+                    description={ruleOperator.description}
+                    title={t("RuleEditor.sidebar.operator.markdownModalTitle", {
+                        operatorName: ruleOperator.label,
+                    })}
+                />
             )}
-            {descriptionSearchSnippet && (
-                <OverviewItemLine data-test-id={"ruleOperator-sidebar-search-operator-description"}>
-                    {wrapTooltip(
-                        true,
-                        ruleOperator.description!!,
-                        <OverflowText>
-                            <Highlighter label={descriptionSearchSnippet} searchValue={textQuery} />
-                        </OverflowText>,
-                        "bottom-end",
-                        "medium"
+            <OverviewItemDescription>
+                {wrapTooltip(
+                    itemLabel.length > 30,
+                    itemLabel,
+                    <OverviewItemLine>
+                        <Spacing vertical={true} size={"tiny"} />
+                        <OverflowText ellipsis={"reverse"}>
+                            <Highlighter label={itemLabel} searchValue={textQuery} />
+                        </OverflowText>
+                        {ruleOperator.description && !ruleOperator.markdownDocumentation && (
+                            <>
+                                <Spacing vertical={true} size={"tiny"} />
+                                <Icon
+                                    name="item-info"
+                                    small
+                                    tooltipText={ruleOperator.description}
+                                    tooltipProps={{
+                                        placement: "right",
+                                        rootBoundary: "viewport",
+                                    }}
+                                />
+                            </>
+                        )}
+                        {ruleOperator.markdownDocumentation && (
+                            <>
+                                <Spacing vertical={true} size={"tiny"} />
+                                <Icon
+                                    name="item-question"
+                                    onClick={() => setIsDocModalOpen(true)}
+                                    small
+                                    tooltipText={t("RuleEditor.sidebar.operator.markdownTooltip", {
+                                        shortDescription: ruleOperator.description,
+                                    })}
+                                    tooltipProps={{
+                                        placement: "top",
+                                        rootBoundary: "viewport",
+                                    }}
+                                />
+                            </>
+                        )}
+                    </OverviewItemLine>,
+                    "bottom-end",
+                    "large"
+                )}
+                {descriptionSearchSnippet && (
+                    <OverviewItemLine data-test-id={"ruleOperator-sidebar-search-operator-description"}>
+                        {wrapTooltip(
+                            true,
+                            ruleOperator.description!!,
+                            <OverflowText>
+                                <Highlighter label={descriptionSearchSnippet} searchValue={textQuery} />
+                            </OverflowText>,
+                            "bottom-end",
+                            "medium"
+                        )}
+                    </OverviewItemLine>
+                )}
+                <OverviewItemLine>
+                    {utils.createOperatorTags(
+                        [...(ruleOperator.tags ?? []), ...(ruleOperator.categories ?? [])],
+                        textQuery,
+                        tagColor
                     )}
                 </OverviewItemLine>
-            )}
-            <OverviewItemLine>
-                {utils.createOperatorTags(
-                    [...(ruleOperator.tags ?? []), ...(ruleOperator.categories ?? [])],
-                    textQuery,
-                    tagColor
-                )}
-            </OverviewItemLine>
-        </OverviewItemDescription>
+            </OverviewItemDescription>
+        </>
     );
 };
 

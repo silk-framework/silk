@@ -49,7 +49,7 @@ const extractOperatorNodeFromPathInput = (
             maxInputPorts: 0,
         },
         description: "Specifies the property, attribute or path where the input values are coming from.",
-        inputsCanBeSwitched: false
+        inputsCanBeSwitched: false,
     });
     return pathInput.id;
 };
@@ -76,7 +76,7 @@ const extractOperatorNodeFromTransformInput = (
         },
         tags: ["Transform"],
         description: ruleOperator(transformInput.function, "TransformOperator")?.description,
-        inputsCanBeSwitched: false
+        inputsCanBeSwitched: false,
     });
     return transformInput.id;
 };
@@ -174,7 +174,7 @@ const inputPathOperator = (
         icon: undefined,
         description: description,
         tags: [],
-        inputsCanBeSwitched: false
+        inputsCanBeSwitched: false,
     };
 };
 
@@ -203,7 +203,7 @@ const parameterSpecification = ({
     };
 };
 
-const REVERSE_PARAMETER_ID = "reverse"
+const REVERSE_PARAMETER_ID = "reverse";
 
 /** Converts plugin details from the backend to rule operators.
  *
@@ -216,7 +216,9 @@ const convertRuleOperator = (
 ): IRuleOperator => {
     const required = (parameterId: string) => pluginDetails.required.includes(parameterId);
     // If this is true then source and target inputs can be connected in any order.
-    const inputsCanBeSwitched = pluginDetails.properties[REVERSE_PARAMETER_ID]?.parameterType === "boolean" && pluginDetails.pluginType === "ComparisonOperator"
+    const inputsCanBeSwitched =
+        pluginDetails.properties[REVERSE_PARAMETER_ID]?.parameterType === "boolean" &&
+        pluginDetails.pluginType === "ComparisonOperator";
     const additionalParamSpecs = addAdditionParameterSpecifications(pluginDetails);
     return {
         pluginType: pluginDetails.pluginType ?? "unknown",
@@ -225,26 +227,27 @@ const convertRuleOperator = (
         description: pluginDetails.description,
         categories: pluginDetails.categories,
         icon: undefined,
+        markdownDocumentation: pluginDetails.markdownDocumentation,
         parameterSpecification: Object.fromEntries([
             ...Object.entries(pluginDetails.properties)
                 .filter(([paramId, paramSpec]) => !inputsCanBeSwitched || paramId !== REVERSE_PARAMETER_ID)
                 .map(([parameterId, parameterSpec]) => {
-                const spec: IParameterSpecification = {
-                    label: parameterSpec.title,
-                    description: parameterSpec.description,
-                    advanced: parameterSpec.advanced,
-                    required: required(parameterId),
-                    type: convertPluginParameterType(parameterSpec.parameterType),
-                    autoCompletion: parameterSpec.autoCompletion,
-                    defaultValue: parameterSpec.value,
-                };
-                return [parameterId, spec];
-            }),
+                    const spec: IParameterSpecification = {
+                        label: parameterSpec.title,
+                        description: parameterSpec.description,
+                        advanced: parameterSpec.advanced,
+                        required: required(parameterId),
+                        type: convertPluginParameterType(parameterSpec.parameterType),
+                        autoCompletion: parameterSpec.autoCompletion,
+                        defaultValue: parameterSpec.value,
+                    };
+                    return [parameterId, spec];
+                }),
             ...additionalParamSpecs,
         ]),
         portSpecification: portSpecification(pluginDetails),
         tags: pluginTags(pluginDetails),
-        inputsCanBeSwitched
+        inputsCanBeSwitched,
     };
 };
 
@@ -461,13 +464,13 @@ const validateConnection = (
         case "PathInputOperator":
             // Target must be either a comparison or a transform operator
             if (targetPluginType === "ComparisonOperator") {
-                if(toRuleOperatorNode.node.inputsCanBeSwitched) {
+                if (toRuleOperatorNode.node.inputsCanBeSwitched) {
                     // Check that the other input is different or missing
-                    const otherPort = targetPortIdx === 0 ? 1 : 0
-                    const inputs = toRuleOperatorNode.inputs()
-                    const otherInput = inputs[otherPort]
-                    const sourceInputType = sourcePluginId === "sourcePathInput" ? "source" : "target"
-                    return otherInput == null || fromType(otherInput) !== sourceInputType
+                    const otherPort = targetPortIdx === 0 ? 1 : 0;
+                    const inputs = toRuleOperatorNode.inputs();
+                    const otherInput = inputs[otherPort];
+                    const sourceInputType = sourcePluginId === "sourcePathInput" ? "source" : "target";
+                    return otherInput == null || fromType(otherInput) !== sourceInputType;
                 } else {
                     return (
                         (sourcePluginId === "targetPathInput" && targetPortIdx === 1) ||
@@ -526,12 +529,12 @@ const fromType = (node: RuleEditorValidationNode, filterInputIdx?: number): Path
 const toType = (node: RuleEditorValidationNode, targetPortIdx: number): PathValidationType => {
     switch (node.node.pluginType) {
         case "ComparisonOperator":
-            if(node.node.inputsCanBeSwitched) {
+            if (node.node.inputsCanBeSwitched) {
                 // Return opposite type of other input if it exists
-                const otherPort = targetPortIdx === 0 ? 1 : 0
-                const inputs = node.inputs()
-                const otherInput = inputs[otherPort]
-                return otherInput == null ? undefined : fromType(otherInput) === "source" ? "target" : "source"
+                const otherPort = targetPortIdx === 0 ? 1 : 0;
+                const inputs = node.inputs();
+                const otherInput = inputs[otherPort];
+                return otherInput == null ? undefined : fromType(otherInput) === "source" ? "target" : "source";
             } else {
                 // Else it only depends on the requested target port
                 switch (targetPortIdx) {
