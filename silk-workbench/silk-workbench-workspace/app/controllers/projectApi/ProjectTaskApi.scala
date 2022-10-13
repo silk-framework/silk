@@ -333,7 +333,11 @@ class ProjectTaskApi @Inject()() extends InjectedController with UserContextActi
       relatedItems
     } else {
       relatedItems.filter(relatedItem => // Description is not displayed, so don't search in description.
-        TextSearchUtils.matchesSearchTerm(searchWords, s"${relatedItem.label} ${relatedItem.`type`} ${relatedItem.pluginLabel}".toLowerCase))
+        TextSearchUtils.matchesSearchTerm(
+          searchWords,
+          s"${relatedItem.label} ${relatedItem.`type`} ${relatedItem.pluginLabel} ${relatedItem.tags.map(_.label).mkString(" ")}".toLowerCase
+        )
+      )
     }
   }
 }
