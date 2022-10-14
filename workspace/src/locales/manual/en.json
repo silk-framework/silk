@@ -471,7 +471,7 @@
             "searchInput": "Search for operators and paths...",
             "searchTooltip": "Search for rule operators and input paths.",
             "operator": {
-                "markdownTooltip": "{{shortDescription}}  Click to view full documentation",
+                "markdownTooltip": "{{shortDescription}}\n\nClick to view full documentation",
                 "markdownModalTitle": "{{operatorName}}'s documentation"
             }
         },

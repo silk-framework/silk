@@ -135,19 +135,19 @@ object ClassPluginDescription {
     Option(pluginClass.getAnnotation(classOf[Plugin]))
   }
 
-  private def createFromAnnotation[T](pluginClass: Class[T], annotation: Plugin) = {
+  private def createFromAnnotation[T](pluginClass: Class[T], annotation: Plugin): ClassPluginDescription[T] = {
     new ClassPluginDescription(
       id = annotation.id,
       label = annotation.label,
       categories = annotation.categories,
       description = annotation.description.stripMargin,
-      documentation = loadMarkdownDocumentation(pluginClass, annotation.documentationFile) + addTransformDocumentation(pluginClass),
+      documentation = loadMarkdownDocumentation(pluginClass, annotation.documentationFile) + "\n" + addTransformDocumentation(pluginClass),
       parameters = getParameters(pluginClass),
       constructor = getConstructor(pluginClass)
     )
   }
 
-  private def createFromClass[T](pluginClass: Class[T]) = {
+  private def createFromClass[T](pluginClass: Class[T]): ClassPluginDescription[T] = {
     new ClassPluginDescription(
       id = Identifier.fromAllowed(pluginClass.getSimpleName),
       label = pluginClass.getSimpleName,
