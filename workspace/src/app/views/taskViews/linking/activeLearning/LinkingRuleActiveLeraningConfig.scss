@@ -76,18 +76,12 @@ $diapp-entitybox-cell-border: $eccgui-color-tablerow-hover !default;
 }
 
 .diapp-linking-learningdata__source {
-    text-align: right;
-
     .eccgui-overviewitem__item {
         flex-direction: row-reverse;
     }
 
     .eccgui-overviewitem__line {
-        align-self: end;
-        text-align: right;
-    }
-
-    * {
+        flex-direction: row-reverse;
         text-align: right;
     }
 }
