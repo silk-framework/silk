@@ -20,7 +20,7 @@ const RuleOperatorModal: React.FC<RuleOperatorModalProps> = ({
     const [t] = useTranslation();
     return (
         <SimpleDialog
-            data-test-id={"show-node-data"}
+            data-test-id="ruleOperator-markdownDoc-modal"
             size="small"
             title={title}
             isOpen={isOpen}
