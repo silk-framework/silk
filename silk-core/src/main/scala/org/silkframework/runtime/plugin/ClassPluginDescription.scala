@@ -136,12 +136,13 @@ object ClassPluginDescription {
   }
 
   private def createFromAnnotation[T](pluginClass: Class[T], annotation: Plugin): ClassPluginDescription[T] = {
+    val markdownDocString = loadMarkdownDocumentation(pluginClass, annotation.documentationFile)
     new ClassPluginDescription(
       id = annotation.id,
       label = annotation.label,
       categories = annotation.categories,
       description = annotation.description.stripMargin,
-      documentation = loadMarkdownDocumentation(pluginClass, annotation.documentationFile) + "\n" + addTransformDocumentation(pluginClass),
+      documentation = markdownDocString + (if(markdownDocString.nonEmpty) "\n" else "") + addTransformDocumentation(pluginClass),
       parameters = getParameters(pluginClass),
       constructor = getConstructor(pluginClass)
     )
@@ -181,15 +182,13 @@ object ClassPluginDescription {
 
     val transformExamples = TransformExampleValue.retrieve(pluginClass)
     if(transformExamples.nonEmpty) {
-      sb ++= "**Examples**"
+      sb ++= "### Examples"
       sb ++= "\n\n"
-      for(example <- transformExamples) {
-        for(description <- example.description) {
-          sb ++= "**"
-          sb ++= description
-          sb ++= "**\n"
-        }
-        sb ++= example.formatted
+      sb ++= "#### Notation\n\n"
+      sb ++= "List of values are represented via square brackets. Example: `[first, second]` represents a list of two values \"first\" and \"second\".\n\n"
+      for((example, idx) <- transformExamples.zipWithIndex) {
+        sb ++= s"#### Example ${idx + 1}\n\n"
+        sb ++= example.markdownFormatted
         sb ++= "\n\n"
       }
     }

@@ -12,6 +12,31 @@ case class TransformExampleValue(description: Option[String], parameters: Map[St
     }
   }
 
+  def markdownFormatted: String = {
+    val sb = new StringBuilder()
+    for(text <- description) {
+      sb ++= "* Description: "
+      sb ++= text
+      sb ++= "\n\n"
+    }
+    if(parameters.nonEmpty) {
+      sb ++= "* Parameters\n"
+      for((param, paramValue) <- parameters) {
+        sb ++= s"  * *$param*: `$paramValue`\n"
+      }
+      sb ++= "\n"
+    }
+    if(input.nonEmpty) {
+      sb ++= "* Input values:\n"
+      for((input, idx) <- input.zipWithIndex) {
+        sb ++= s"  ${idx + 1}. `${format(input)}`\n"
+      }
+      sb ++= "\n"
+    }
+    sb ++= s"* Returns:\n\n  → `${format(output)}`\n"
+    sb.toString()
+  }
+
   private def format(traversable: Traversable[_]): String = {
     traversable.mkString("[", ", ", "]")
   }

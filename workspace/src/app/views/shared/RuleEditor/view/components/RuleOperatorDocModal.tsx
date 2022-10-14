@@ -20,7 +20,6 @@ const RuleOperatorModal: React.FC<RuleOperatorModalProps> = ({
     const [t] = useTranslation();
     return (
         <SimpleDialog
-            canEscapeKeyClose
             data-test-id={"show-node-data"}
             size="small"
             title={title}
