@@ -68,6 +68,7 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
                             <>
                                 <Spacing vertical={true} size={"tiny"} />
                                 <Icon
+                                    data-test-id="operator-markdown-icon"
                                     name="item-question"
                                     onClick={() => setIsDocModalOpen(true)}
                                     small
