@@ -55,6 +55,7 @@ object ActivityFacade {
   private def activityEntry(mainActivities: Seq[String], activity: WorkspaceActivity[_ <: HasValue]): ActivityListEntry = {
     ActivityListEntry(
       name = activity.name.toString,
+      label = activity.label,
       instances = activity.allInstances.keys.toSeq.map(id => ActivityInstance(id.toString)),
       activityCharacteristics = ActivityCharacteristics(
         isMainActivity = mainActivities.contains(activity.name.toString),
@@ -68,6 +69,7 @@ object ActivityFacade {
   private def dependentActivityEntry(mainActivities: Seq[String], activity: WorkspaceActivity[_ <: HasValue]): ActivityListEntry = {
     ActivityListEntry(
       name = activity.name.toString,
+      label = activity.label,
       instances = activity.allInstances.keys.toSeq.map(id => ActivityInstance(id.toString)),
       activityCharacteristics = ActivityCharacteristics(
         isMainActivity = mainActivities.contains(activity.name.toString),
