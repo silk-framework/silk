@@ -15,4 +15,7 @@ trait WorkspaceActivityFactory extends AnyPlugin {
   /** Marks an activity as a cache activity, i.e. an activity that stores a cached value of something that is potentially
     * expensive to compute. */
   def isCacheActivity: Boolean = false
+
+  /** True if this activity caches data that may be derived from a dataset. */
+  def isDatasetRelatedCache: Boolean = false
 }

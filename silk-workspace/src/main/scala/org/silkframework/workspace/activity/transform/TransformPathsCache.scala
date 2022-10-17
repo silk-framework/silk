@@ -36,7 +36,8 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Cac
 
     // Only do this automatically if the input is a dataset
     val inputId = transformTask.data.selection.inputId
-    transformTask.project.taskOption[GenericDatasetSpec](inputId).foreach { inputTask =>
+    val inputTaskOpt = transformTask.project.taskOption[GenericDatasetSpec](inputId)
+    inputTaskOpt.foreach { inputTask =>
       inputTask.dataValueHolder.subscribe(fn)
     }
     datasetObserverFunctions = Some(fn)
@@ -63,7 +64,8 @@ class TransformPathsCache(transformTask: ProjectTask[TransformSpec]) extends Cac
     if (context.value().configuredSchema.typedPaths.isEmpty ||
         currentEntityDesc.typeUri != context.value().configuredSchema.typeUri ||
         inputId != context.value().inputTaskId ||
-        datasetParams != context.value().datasetParameters) {
+        datasetParams != context.value().datasetParameters ||
+        fullReload) {
       val currentCachedValue = context.value()
       // Set current cache value to empty
       context.value() = currentCachedValue.copy(configuredSchema = currentEntityDesc.copy(typedPaths = IndexedSeq.empty), untypedSchema = None)

@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.hierarchical
 
 import org.silkframework.config.Prefixes
-import org.silkframework.dataset.{EntitySink, TypedProperty}
+import org.silkframework.dataset.{DirtyTrackingFileDataSink, EntitySink, TypedProperty}
 import org.silkframework.entity.ValueType
 import HierarchicalSink.{DEFAULT_MAX_SIZE, RDF_TYPE}
 import org.silkframework.runtime.activity.UserContext
@@ -15,7 +15,7 @@ import scala.collection.mutable
 /**
   * Sink that writes entities into a hierarchical output, such as JSON or XML.
   */
-abstract class HierarchicalSink extends EntitySink {
+abstract class HierarchicalSink extends EntitySink with DirtyTrackingFileDataSink {
 
   // Holds root entities
   private val rootEntities: SequentialEntityCache = SequentialEntityCache()
@@ -101,6 +101,7 @@ abstract class HierarchicalSink extends EntitySink {
     } finally {
       cache.close()
       rootEntities.close()
+      super.close()
     }
   }
 

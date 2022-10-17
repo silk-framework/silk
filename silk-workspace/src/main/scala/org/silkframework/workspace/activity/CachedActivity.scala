@@ -56,6 +56,7 @@ trait CachedActivity[T] extends Activity[T] {
     val forceReload = dirty
     var currentDirty = true
     while(currentDirty) {
+      val dirtyFlagSet = dirty
       dirty = false
       if(!initialized) {
         initialized = true
@@ -69,7 +70,7 @@ trait CachedActivity[T] extends Activity[T] {
           update(context, forceReload)
         }
       } else {
-        update(context, forceReload || dirty)
+        update(context, forceReload || dirtyFlagSet)
       }
       currentDirty = dirty // dirty flag may have changed in the meantime
     }
@@ -77,7 +78,7 @@ trait CachedActivity[T] extends Activity[T] {
   }
 
   private def update(context: ActivityContext[T], fullReload: Boolean)
-                    (implicit userContext: UserContext)= {
+                    (implicit userContext: UserContext): Unit = {
     // Listen for value updates
     var updated = false
     val updateFunc = (value: T) => { updated = true }
@@ -117,6 +118,7 @@ trait CachedActivity[T] extends Activity[T] {
     }
   }
 
+  /** Sets the dirty flag of the cached activity and starts it if it is not already running. */
   def startDirty(taskActivity: ActivityControl[_])
                 (implicit userContext: UserContext): Unit = {
     dirty = true
