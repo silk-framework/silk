@@ -1,5 +1,6 @@
 import { IAutocompleteDefaultResponse, IMetadata, PluginType, TaskType } from "@ducks/shared/typings";
 import { IRenderModifiers } from "@eccenca/gui-elements/src/components/AutocompleteField/AutoCompleteField";
+import { OptionallyLabelledParameter } from "../../../views/taskViews/linking/linking.types";
 
 export interface IAvailableDataTypes {
     [key: string]: IAvailableDataType;
@@ -50,7 +51,8 @@ export interface IArtefactItemProperty {
     description: string;
     // Either "string" or "object"
     type: ValidPropertyJsonSchemaType;
-    value: string;
+    // The default value
+    value: OptionallyLabelledParameter<string> | null;
     advanced: boolean;
     parameterType: string;
     visibleInDialog: boolean;
@@ -93,6 +95,7 @@ export interface IPluginDetails {
     pluginId: string;
     pluginType?: PluginType;
     markdownDocumentation?: string;
+    autoConfigurable?: boolean
 }
 
 /** Overview version of an item description. */

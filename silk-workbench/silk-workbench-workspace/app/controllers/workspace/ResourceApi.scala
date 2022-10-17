@@ -14,18 +14,25 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import org.silkframework.config.TaskSpec
+import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.{UrlResource, WritableResource}
 import org.silkframework.runtime.validation.BadUserInputException
+import org.silkframework.util.Identifier
 import org.silkframework.workbench.utils.{ErrorResult, UnsupportedMediaTypeException}
-import org.silkframework.workspace.WorkspaceFactory
+import org.silkframework.workspace.activity.PathsCacheTrait
+import org.silkframework.workspace.{Project, ProjectTask, WorkspaceFactory}
 import play.api.libs.Files
 import play.api.libs.json.Json
 import play.api.mvc._
+import resources.ResourceHelper
 
 import java.io.File
 import java.net.URL
 import java.util.logging.Logger
 import javax.inject.Inject
+import scala.collection.mutable
+import scala.util.Try
 
 @Tag(name = "Project resources", description = "Manage file resources in a project.")
 class ResourceApi  @Inject() extends InjectedController with UserContextActions with ControllerUtilsTrait {
@@ -239,6 +246,7 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
     }
     if(response == NoContent) { // Successfully updated
       log.info(s"Created/updated resource '$resourceName' in project '$projectName'. " + userContext.logInfo)
+      ResourceHelper.refreshCachesOfDependingTasks(resourceName, project)
     }
     response
   }
@@ -304,8 +312,7 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
                     )
                     resourceName: String): Action[AnyContent] = UserContextAction { implicit userContext =>
     val project = super[ControllerUtilsTrait].getProject(projectId)
-    val dependentTasks: Seq[TaskLinkInfo] = project.allTasks
-      .filter(_.referencedResources.map(_.name).contains(resourceName))
+    val dependentTasks: Seq[TaskLinkInfo] = ResourceHelper.tasksDependingOnResource(resourceName, project)
       .map { task =>
         TaskLinkInfo(task.id, task.fullLabel, PluginApiCache.taskTypeByClass(task.taskType))
       }
@@ -347,5 +354,4 @@ class ResourceApi  @Inject() extends InjectedController with UserContextActions 
     log.info(s"Deleted resource '$resourceName' in project '$projectName'. " + userContext.logInfo)
     NoContent
   }
-
 }

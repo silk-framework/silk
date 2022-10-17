@@ -81,12 +81,12 @@ function PageHeaderContent({
 }: IPageHeaderContentBasicProps) {
     const dispatch = useDispatch();
 
-    const handleBreadcrumbItemClick = (itemUrl, e) => {
+    const handleBreadcrumbItemClick = React.useCallback((itemUrl, e) => {
         e.preventDefault();
         if (itemUrl) {
             dispatch(routerOp.goToPage(itemUrl, {}));
         }
-    };
+    }, []);
 
     const generatedPageTitle =
         autogeneratePageTitle && breadcrumbs && breadcrumbs.length > 0

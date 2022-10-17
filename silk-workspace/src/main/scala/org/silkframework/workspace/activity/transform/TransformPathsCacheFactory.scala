@@ -20,4 +20,6 @@ case class TransformPathsCacheFactory() extends TaskActivityFactory[TransformSpe
   }
 
   override def isCacheActivity: Boolean = true
+
+  override def isDatasetRelatedCache: Boolean = true
 }

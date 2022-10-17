@@ -59,7 +59,7 @@ export function InfoBoxOverlay({data, ...otherProps}: IDataStack) {
                         </colgroup>
                         <TableBody>
                             {
-                                data.map(item => item.value ? <TableRow key={item.key}>
+                                data.map((item, idx) => item.value ? <TableRow key={item.key ?? idx} data-test-id={`info-box-row-${item.key ?? idx}`}>
                                         <TableCell key={"label"}>
                                             <OverflowText passDown={true}>
                                                 <Label
@@ -68,7 +68,7 @@ export function InfoBoxOverlay({data, ...otherProps}: IDataStack) {
                                                 />
                                             </OverflowText>
                                         </TableCell>
-                                        <TableCell key={"description"}>
+                                        <TableCell key={"description"} data-test-id={"info-box-row-values"}>
                                             {item.value}
                                         </TableCell>
                                     </TableRow> :

@@ -24,4 +24,6 @@ case class LinkingPathsCacheFactory() extends TaskActivityFactory[LinkSpec, Link
   }
 
   override def isCacheActivity: Boolean = true
+
+  override def isDatasetRelatedCache: Boolean = true
 }

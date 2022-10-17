@@ -16,6 +16,8 @@ object ActivityListResponse {
   @Schema(description = "An activity and all of its instances. Non-singleton activities may have multiple parallel instances while singleton instances always have one instance.")
   case class ActivityListEntry(@Schema(description = "The name of the activity.")
                                name: String,
+                               @Schema(description = "The label of the activity.")
+                               label: String,
                                @ArraySchema(schema = new Schema(implementation = classOf[ActivityInstance]))
                                instances: Seq[ActivityInstance],
                                @Schema(implementation = classOf[ActivityCharacteristics])

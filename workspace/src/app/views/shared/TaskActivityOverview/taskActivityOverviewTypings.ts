@@ -5,6 +5,8 @@ import { ActivityAction } from "@eccenca/gui-elements/src/cmem/ActivityControl/S
 export interface IActivityListEntry {
     // name / ID of the activity
     name: string;
+    // Label of the activity
+    label: string;
     // Non-singleton activities may have multiple parallel instances while singleton instances always have one instance.
     instances: { id: string }[];
     // Characteristics of an activity.

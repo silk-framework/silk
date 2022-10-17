@@ -202,6 +202,22 @@ abstract class WorkspaceActivity[ActivityType <: HasValue : ClassTag]() {
   /** Marks an activity as a cache activity, i.e. an activity that stores a cached value of something that is potentially expensive to compute. */
   def isCacheActivity: Boolean = factory.isCacheActivity
 
+  /** True if this activity caches data that may be derived from a dataset. */
+  def isDatasetRelatedCache: Boolean = factory.isDatasetRelatedCache
+
+  /** Only if this is a cached activity start the activity dirty, i.e. even if the activity is currently running, it will run again. */
+  def startDirty()
+                (implicit user: UserContext): Unit = {
+    if(isCacheActivity) {
+      val a = control.underlying
+      a match {
+        case cacheActivity: CachedActivity[_] =>
+          cacheActivity.startDirty(control)
+        case _ =>
+      }
+    }
+  }
+
   /**
     * The class of the activity value.
     */

@@ -37,6 +37,8 @@ export type EvaluatedEntityLink = IEntityLink & { type: "positive" | "negative" 
 
 const REFERENCE_LINK_URL_PARAMETER = "referenceLinksUrl";
 
+export type EvaluationResultType = Array<{ value: string[]; error?: string | null }>;
+
 /** Linking rule evaluation component.
  * Shows (inline) evaluation of the currently shown linking rule.
  */
@@ -48,11 +50,13 @@ export const LinkingRuleEvaluation = ({
 }: LinkingRuleEvaluationProps) => {
     const [evaluationRunning, setEvaluationRunning] = React.useState<boolean>(false);
     const [evaluationResult, setEvaluationResult] = React.useState<EvaluatedEntityLink[]>([]);
-    const [evaluationResultMap] = React.useState<Map<string, string[][]>>(new Map());
+    const [evaluationResultMap] = React.useState<Map<string, EvaluationResultType>>(new Map());
     const [evaluationResultEntities] = React.useState<[string, string][]>([]);
     const [evaluationScore, setEvaluationScore] = React.useState<IEvaluatedReferenceLinksScore | undefined>(undefined);
     const [evaluatesQuickly, setEvaluatesQuickly] = React.useState(false);
-    const [nodeUpdateCallbacks] = React.useState(new Map<string, (evaluationValues: string[][] | undefined) => any>());
+    const [nodeUpdateCallbacks] = React.useState(
+        new Map<string, (evaluationValues: EvaluationResultType | undefined) => any>()
+    );
     const [referenceLinksUrl, setReferenceLinksUrl] = React.useState<string | undefined>(undefined);
     const [evaluationResultsShown, setEvaluationResultsShown] = React.useState<boolean>(false);
     const [ruleValidationError, setRuleValidationError] = React.useState<RuleValidationError | undefined>(undefined);
@@ -74,7 +78,7 @@ export const LinkingRuleEvaluation = ({
             const valueMaps = evaluationResult.map((link) => utils.linkToValueMap(link));
             nodeUpdateCallbacks.forEach((updateCallback, operatorId) => {
                 const evaluationValues = valueMaps.map((valueMap) => {
-                    return valueMap.get(operatorId) ?? [];
+                    return valueMap.get(operatorId) ?? { value: [] };
                 });
                 evaluationResultMap.set(operatorId, evaluationValues);
                 updateCallback(evaluationValues);
@@ -201,7 +205,7 @@ export const LinkingRuleEvaluation = ({
     /** Called by a rule operator node to register for evaluation updates. */
     const registerForEvaluationResults = (
         ruleOperatorId: string,
-        evaluationUpdate: (evaluationValues: string[][] | undefined) => void
+        evaluationUpdate: (evaluationValues: EvaluationResultType | undefined) => void
     ) => {
         nodeUpdateCallbacks.set(ruleOperatorId, evaluationUpdate);
         evaluationUpdate(evaluationResultMap.get(ruleOperatorId));

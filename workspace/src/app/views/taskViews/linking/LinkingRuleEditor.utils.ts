@@ -16,8 +16,7 @@ import {
     ILinkingRule,
     ILinkingTaskParameters,
     ISimilarityOperator,
-    LabelledParameterValue,
-    OptionallyLabelledParameter,
+    optionallyLabelledParameterToValue,
 } from "./linking.types";
 import { RuleOperatorFetchFnType } from "../../shared/RuleEditor/RuleEditor";
 import ruleUtils from "../shared/rules/rule.utils";
@@ -108,13 +107,6 @@ const extractSimilarityOperatorNode = (
         return operator.id;
     }
 };
-
-/** Get the value of an optionally labelled parameter value. */
-function optionallyLabelledParameterToValue<T>(optionallyLabelledValue: OptionallyLabelledParameter<T>): T {
-    return (optionallyLabelledValue as LabelledParameterValue<T>).value
-        ? (optionallyLabelledValue as LabelledParameterValue<T>).value
-        : (optionallyLabelledValue as T);
-}
 
 /** gets preloaded ui sticky notes */
 const getStickyNotes = (linkSpec: TaskPlugin<ILinkingTaskParameters>): IStickyNote[] =>

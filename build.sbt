@@ -401,7 +401,7 @@ lazy val workbenchOpenApi = (project in file("silk-workbench/silk-workbench-open
 
 lazy val workbench = (project in file("silk-workbench"))
     .enablePlugins(PlayScala)
-    .dependsOn(workbenchWorkspace, workbenchRules, workbenchWorkflow, workbenchOpenApi, plugins)
+    .dependsOn(workbenchWorkspace % "compile->compile;test->test", workbenchRules, workbenchWorkflow, workbenchOpenApi, plugins)
     .aggregate(workbenchWorkspace, workbenchRules, workbenchWorkflow, workbenchOpenApi, plugins)
     .settings(commonSettings: _*)
     .settings(

@@ -91,6 +91,9 @@ export const requestArtefactProperties = async (artefactKey: string): Promise<IP
     try {
         const { data } = await fetch({
             url: coreApi(`/plugins/${artefactKey}`),
+            query: {
+                withLabels: true,
+            },
         });
         return data;
     } catch (e) {

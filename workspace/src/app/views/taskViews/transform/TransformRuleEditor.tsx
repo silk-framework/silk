@@ -15,7 +15,7 @@ import {
 } from "../../shared/RuleEditor/RuleEditor.typings";
 import ruleUtils from "../shared/rules/rule.utils";
 import { IStickyNote } from "../shared/task.typings";
-import { LabelledParameterValue, OptionallyLabelledParameter } from "../linking/linking.types";
+import { optionallyLabelledParameterToValue } from "../linking/linking.types";
 import { IAutocompleteDefaultResponse } from "@ducks/shared/typings";
 import { inputPathTab } from "./transformEditor.utils";
 import { FetchError } from "../../../services/fetch/responseInterceptor";
@@ -158,13 +158,6 @@ export const TransformRuleEditor = ({
         });
         return operatorNodes;
     };
-
-    /** Get the value of an optionally labelled parameter value. */
-    function optionallyLabelledParameterToValue<T>(optionallyLabelledValue: OptionallyLabelledParameter<T>): T {
-        return (optionallyLabelledValue as LabelledParameterValue<T>).value
-            ? (optionallyLabelledValue as LabelledParameterValue<T>).value
-            : (optionallyLabelledValue as T);
-    }
 
     const getStickyNotes = (mapping: IComplexMappingRule): IStickyNote[] =>
         (mapping && optionallyLabelledParameterToValue(mapping.uiAnnotations.stickyNotes)) || [];

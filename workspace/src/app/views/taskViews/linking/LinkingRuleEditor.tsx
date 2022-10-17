@@ -26,7 +26,6 @@ import { IAutocompleteDefaultResponse, TaskPlugin } from "@ducks/shared/typings"
 import { FetchError } from "../../../services/fetch/responseInterceptor";
 import { LinkingRuleEvaluation } from "./evaluation/LinkingRuleEvaluation";
 import { LinkingRuleCacheInfo } from "./LinkingRuleCacheInfo";
-import { requestTaskMetadata } from "@ducks/shared/requests";
 import { IStickyNote } from "../shared/task.typings";
 
 export interface LinkingRuleEditorProps {
@@ -67,7 +66,6 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
     // Label for source paths
     const [sourcePathLabels] = React.useState<Map<string, string>>(new Map());
     const [targetPathLabels] = React.useState<Map<string, string>>(new Map());
-    const [editorTitle, setEditorTitle] = React.useState<string | undefined>(undefined);
     const hideGreyListedParameters =
         (
             new URLSearchParams(window.location.search).get(HIDE_GREY_LISTED_OPERATORS_QUERY_PARAMETER) ?? ""
@@ -109,10 +107,6 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
         } else {
             try {
                 const taskData = (await fetchLinkSpec(projectId, taskId, true, prefLang)).data;
-                if (viewActions?.integratedView) {
-                    const taskMetaData = (await requestTaskMetadata(taskId, projectId)).data;
-                    setEditorTitle(taskMetaData.label);
-                }
                 return taskData;
             } catch (err) {
                 registerError(
@@ -250,7 +244,6 @@ export const LinkingRuleEditor = ({ projectId, linkingTaskId, viewActions, insta
             numberOfLinkToShow={NUMBER_OF_LINKS_TO_SHOW}
         >
             <RuleEditor<TaskPlugin<ILinkingTaskParameters>, IPluginDetails>
-                editorTitle={editorTitle}
                 projectId={projectId}
                 taskId={linkingTaskId}
                 fetchRuleData={fetchTaskData}
