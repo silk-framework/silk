@@ -48,6 +48,10 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   @volatile
   private var modules = Seq[Module[_ <: TaskSpec]]()
 
+  lazy val cleanUpAfterTaskDeletion = {
+    TaskCleanupPlugin.cleanUpAfterTaskDeletionFunction
+  }
+
   loadTasks()
 
   /** Initializes the project, i.e. registers modules and loads tasks. */
@@ -315,7 +319,9 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
    */
   def removeTask[T <: TaskSpec : ClassTag](taskName: Identifier)
                                           (implicit userContext: UserContext): Unit = synchronized {
+    val taskOpt = module[T].taskOption(taskName)
     module[T].remove(taskName)
+    taskOpt.foreach(task => cleanUpAfterTaskDeletion(config.id, taskName, task))
   }
 
   /**
