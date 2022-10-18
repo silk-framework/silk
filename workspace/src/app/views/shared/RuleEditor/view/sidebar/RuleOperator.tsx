@@ -6,7 +6,6 @@ import utils from "../ruleNode/ruleNode.utils";
 import { SidebarRuleOperatorBase } from "./RuleEditorOperatorSidebar.typings";
 import Color from "color";
 import getColorConfiguration from "@eccenca/gui-elements/src/common/utils/getColorConfiguration";
-import RuleOperatorModal from "../components/RuleOperatorDocModal";
 import { useTranslation } from "react-i18next";
 import { RuleEditorUiContext } from "../../contexts/RuleEditorUiContext";
 
