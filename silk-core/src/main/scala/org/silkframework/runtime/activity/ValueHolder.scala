@@ -33,6 +33,11 @@ class ValueHolder[T](initialValue: => Option[T]) extends Observable[T] {
     publish(v)
   }
 
+  /** Re-publishes the current value. This is only used to force updates of subscribers even though the value has not changed. */
+  def republish(): Unit = {
+    publish(value)
+  }
+
   /**
     * Updates the value by calling a provided update function.
     * @param func Function to be called with the current value. The value will be updated to the result of the function.

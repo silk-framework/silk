@@ -1,7 +1,7 @@
 package org.silkframework.plugins.dataset.csv
 
 import org.silkframework.config.Prefixes
-import org.silkframework.dataset.{DataSink, TypedProperty}
+import org.silkframework.dataset.{DataSink, DirtyTrackingFileDataSink, TypedProperty}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.WritableResource
 import org.silkframework.util.Uri
@@ -9,7 +9,7 @@ import org.silkframework.util.Uri
 import java.io.{File, IOException}
 import java.util.logging.Logger
 
-class CsvSink(resource: WritableResource, settings: CsvSettings) extends DataSink {
+class CsvSink(val resource: WritableResource, settings: CsvSettings) extends DataSink with DirtyTrackingFileDataSink {
   private val log: Logger = Logger.getLogger(getClass.getName)
 
   @volatile
@@ -34,7 +34,9 @@ class CsvSink(resource: WritableResource, settings: CsvSettings) extends DataSin
     writerOpt = None
   }
 
-  override def close()(implicit userContext: UserContext): Unit = {}
+  override def close()(implicit userContext: UserContext): Unit = {
+    super.close()
+  }
 
   /**
     * Makes sure that the next write will start from an empty dataset.
