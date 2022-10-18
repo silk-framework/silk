@@ -65,6 +65,8 @@ export interface IRuleOperatorNode extends IRuleOperatorBase {
     tags?: string[];
     /** If the operator inputs can be connected both in source-target or target-source order. The operator must have a boolean 'reverse' parameter. */
     inputsCanBeSwitched: boolean;
+    /** Optional markdown description that would be visible via an open modal */
+    markdownDocumentation?: string;
 }
 
 export interface IParameterSpecification {

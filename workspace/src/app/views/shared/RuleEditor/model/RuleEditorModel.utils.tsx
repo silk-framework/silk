@@ -127,6 +127,7 @@ function createOperatorNode(
                 t={operatorContext.t}
                 handleDeleteNode={nodeOperations.handleDeleteNode}
                 ruleOperatorDescription={node.description}
+                ruleOperatorDocumentation={node.markdownDocumentation}
             />
         ),
         executionButtons:
