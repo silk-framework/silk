@@ -579,8 +579,9 @@ export function CreateArtefactModal() {
     const isCreationUpdateDialog = selectedArtefactKey || updateExistingTask;
     const additionalButtons: JSX.Element[] = [];
     if (
-        projectId &&
-        (updateExistingTask || (selectedArtefactKey && cachedArtefactProperties[selectedArtefactKey]?.autoConfigurable))
+        (projectId  || currentProject) &&
+        ((updateExistingTask && updateExistingTask.taskPluginDetails.autoConfigurable) ||
+            (selectedArtefactKey && cachedArtefactProperties[selectedArtefactKey]?.autoConfigurable))
     ) {
         additionalButtons.push(
             <Button
@@ -589,7 +590,7 @@ export function CreateArtefactModal() {
                 tooltip={t("CreateModal.autoConfigTooltip")}
                 onClick={() =>
                     handleAutoConfigure(
-                        projectId,
+                        projectId ?? currentProject!.id,
                         selectedArtefactKey ?? updateExistingTask!.taskPluginDetails.pluginId
                     )
                 }
