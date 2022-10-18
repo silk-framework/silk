@@ -1,6 +1,5 @@
 package org.silkframework.plugins.dataset.xml
 
-import java.util.logging.{Level, Logger}
 import org.silkframework.config.{PlainTask, Prefixes, Task}
 import org.silkframework.dataset._
 import org.silkframework.entity._
@@ -11,9 +10,8 @@ import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.resource.Resource
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.{Identifier, Uri}
-import org.xml.sax.SAXParseException
 
-import scala.xml.XML
+import java.util.logging.{Level, Logger}
 
 class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) extends DataSource
     with PathCoverageDataSource with ValueCoverageDataSource with PeakDataSource with XmlSourceTrait with HierarchicalSampleValueAnalyzerExtractionSource {
@@ -63,24 +61,20 @@ class XmlSourceInMemory(file: Resource, basePath: String, uriPattern: String) ex
     * @return
     */
   private def loadXmlNodes(typeUri: String): Seq[XmlTraverser] = {
+    // Load XML
+    val xml = new XmlSourceStreaming(file, basePath, uriPattern)
+    val rootTraverser = XmlTraverser(xml.buildNode())
+
+    // Move to base path
     val typeUriPart = if (typeUri.isEmpty) {
       ""
-    } else if(typeUri.startsWith("\\") || typeUri.startsWith("/") || typeUri.startsWith("[")) {
+    } else if (typeUri.startsWith("\\") || typeUri.startsWith("/") || typeUri.startsWith("[")) {
       typeUri
     } else {
       "/" + typeUri
     }
     val pathStr = basePath + typeUriPart
-    // Load XML
-    try {
-      val xml = file.read(XML.load)
-      val rootTraverser = XmlTraverser(xml)
-      // Move to base path
-      rootTraverser.evaluatePath(UntypedPath.parse(pathStr))
-    } catch {
-      case ex: SAXParseException =>
-        throw XMLReadException(s"Error occurred while reading XML file '${file.name}': " + ex.getMessage, ex)
-    }
+    rootTraverser.evaluatePath(UntypedPath.parse(pathStr))
   }
 
   private class Entities(entitySchema: EntitySchema) extends Traversable[Entity] {
