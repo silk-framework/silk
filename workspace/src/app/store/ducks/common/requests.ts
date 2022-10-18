@@ -93,6 +93,7 @@ export const requestArtefactProperties = async (artefactKey: string): Promise<IP
             url: coreApi(`/plugins/${artefactKey}`),
             query: {
                 withLabels: true,
+                addMarkdownDocumentation: true
             },
         });
         return data;
