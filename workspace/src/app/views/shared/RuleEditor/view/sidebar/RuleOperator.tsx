@@ -27,7 +27,7 @@ export const RuleOperator = ({ ruleOperator, textQuery, searchWords }: RuleOpera
     const itemLabel = ruleOperator.label;
     const [t] = useTranslation();
     const operatorDoc = `${ruleOperator.description ?? ""} ${
-        ruleOperator.markdownDocumentation ? `\n \n ${ruleOperator.markdownDocumentation}` : ""
+        ruleOperator.markdownDocumentation ? `\n\n ${ruleOperator.markdownDocumentation}` : ""
     }`;
     const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
 
