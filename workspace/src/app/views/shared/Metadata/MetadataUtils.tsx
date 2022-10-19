@@ -9,6 +9,7 @@ import { IMetadataExpanded } from "./Metadatatypings";
 import { ContentBlobToggler } from "@eccenca/gui-elements";
 import { SERVE_PATH } from "../../../constants/path";
 import { Keyword, Keywords } from "@ducks/workspace/typings";
+import { IMetadata } from "@ducks/shared/typings";
 
 /**
  * if both the taskId and projectId are available then fetch the EXPANDED metadata for tasks
@@ -47,6 +48,23 @@ export const queryTags = (projectId: string, filter?: string): Promise<FetchResp
     fetch({
         url: workspaceApi(`/projects/${projectId}/tags${filter?.length ? `?filter=${filter}` : ""}`),
     });
+
+export const updateMetaData = (
+    payload: Partial<{ label: string; description: string; tags: string[] }>,
+    projectId?: string,
+    taskId?: string
+): Promise<FetchResponse<IMetadata>> =>
+    projectId && taskId
+        ? fetch({
+              url: legacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/metadata`),
+              method: "put",
+              body: payload,
+          })
+        : fetch({
+              url: workspaceApi(`/projects/${projectId}/metaData`),
+              method: "put",
+              body: payload,
+          });
 
 const DisplayArtefactTags = (
     tags: Keywords,
@@ -100,6 +118,7 @@ const utils = {
     getExpandedMetaData,
     DisplayArtefactTags,
     createNewTag,
+    updateMetaData,
     generateFacetUrl,
     queryTags,
     sortTags,
