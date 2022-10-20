@@ -101,7 +101,7 @@ export function ValueRuleForm(props: IProps) {
     const [changed, setChanged] = useState(false);
     const [type, setType] = useState(MAPPING_RULE_TYPE_DIRECT);
     const [valueType, setValueType] = useState<IValueType>({ nodeType: "StringValueType" });
-    const [sourceProperty, setSourceProperty] = useState<string | { value: string }>("");
+    const sourceProperty = React.useRef<string | { value: string }>("")
     const [isAttribute, setIsAttribute] = useState(false);
     const [initialValues, setInitialValues] = useState<Partial<IState>>({});
     const [error, setError] = useState<any>(null);
@@ -110,6 +110,7 @@ export function ValueRuleForm(props: IProps) {
     const [targetProperty, setTargetProperty] = useState<string>("");
     const [valuePathValid, setValuePathValid] = useState<boolean>(false);
     const [valuePathInputHasFocus, setValuePathInputHasFocus] = useState<boolean>(false);
+    const lastEmittedEvent = React.useRef<string>("")
 
     const { id, parentId } = props;
 
@@ -120,7 +121,7 @@ export function ValueRuleForm(props: IProps) {
         changed,
         type,
         valueType,
-        sourceProperty,
+        sourceProperty: sourceProperty.current,
         isAttribute,
         initialValues,
         error,
@@ -162,7 +163,9 @@ export function ValueRuleForm(props: IProps) {
                     initialValues.label && setLabel(initialValues.label);
                     initialValues.targetProperty && setTargetProperty(initialValues.targetProperty);
                     initialValues.valueType && setValueType(initialValues.valueType);
-                    initialValues.sourceProperty && setSourceProperty(initialValues.sourceProperty);
+                    if(initialValues.sourceProperty) {
+                        sourceProperty.current = initialValues.sourceProperty
+                    }
                     initialValues.isAttribute && setIsAttribute(initialValues.isAttribute);
                     setInitialValues(initialValues);
                     setLoading(false);
@@ -194,7 +197,7 @@ export function ValueRuleForm(props: IProps) {
                 label: label,
                 targetProperty: trimValue(targetProperty),
                 valueType: valueType,
-                sourceProperty: trimValue(sourceProperty),
+                sourceProperty: trimValue(sourceProperty.current),
                 isAttribute: isAttribute,
             })
             .subscribe(
@@ -245,7 +248,9 @@ export function ValueRuleForm(props: IProps) {
         const touched = wasTouched(initialValues, currValues);
         const id = _.get(props, "id", 0);
 
-        if (id !== 0) {
+        const eventId = `${id}_${touched}`
+        if (id !== 0 && eventId !== lastEmittedEvent.current) {
+            lastEmittedEvent.current = eventId
             if (touched) {
                 EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, { id });
             } else {
@@ -298,6 +303,10 @@ export function ValueRuleForm(props: IProps) {
             />
         ) : null;
 
+    const updateSourceProperty = React.useMemo(() => (value: string | {value: string}) => {
+        sourceProperty.current = value
+    }, [])
+
     // template rendering
     const render = () => {
         if (loading) {
@@ -314,10 +323,10 @@ export function ValueRuleForm(props: IProps) {
                     <AutoSuggestion
                         id={"value-path-auto-suggestion"}
                         label="Value path"
-                        initialValue={typeof sourceProperty === "string" ? sourceProperty : sourceProperty.value}
+                        initialValue={initialValues.sourceProperty ?? ""}
                         clearIconText={"Clear value path"}
                         validationErrorText={"The entered value path is invalid."}
-                        onChange={handleChangeSelectBox.bind(null, "sourceProperty", setSourceProperty)}
+                        onChange={handleChangeSelectBox.bind(null, "sourceProperty", updateSourceProperty)}
                         fetchSuggestions={(input, cursorPosition) =>
                             fetchValuePathSuggestions(autoCompleteRuleId, input, cursorPosition, false)
                         }
@@ -340,11 +349,11 @@ export function ValueRuleForm(props: IProps) {
             );
         }
         const exampleView =
-            (!_.isEmpty(sourceProperty) && valuePathValid && !valuePathInputHasFocus) ||
+            (!_.isEmpty(sourceProperty.current) && valuePathValid && !valuePathInputHasFocus) ||
             (type === MAPPING_RULE_TYPE_COMPLEX && id) ? (
                 <ExampleView
                     id={type === MAPPING_RULE_TYPE_COMPLEX ? id!! : props.parentId || "root"}
-                    key={typeof sourceProperty === "string" ? sourceProperty : sourceProperty.value}
+                    key={typeof sourceProperty.current === "string" ? sourceProperty.current : sourceProperty.current.value}
                     rawRule={type === MAPPING_RULE_TYPE_COMPLEX ? undefined : state}
                     ruleType={type}
                 />
