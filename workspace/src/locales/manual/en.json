@@ -28,7 +28,8 @@
         }
     },
     "ShowIdentifierModal": {
-        "title": "Item identifier"
+        "title": "Item identifier",
+        "combinedIdentifier": "Combined project and task identifier"
     },
     "StickyNoteModal": {
         "title": "Add note",
@@ -245,6 +246,8 @@
             "update": "Update",
             "showApiDoc": "API",
             "copyClipboard": "Copy to clipboard",
+            "configure": "Configure",
+            "clearInput": "Clear input",
             "filterOn": "Use as filter",
             "filterOff": "Remove filter"
         },
@@ -472,11 +475,31 @@
             "cycleTooltip": "Cycle through {{totalMatches}} current usages of this operator",
             "emptyList": "No operator found.",
             "searchInput": "Search for operators and paths...",
-            "searchTooltip": "Search for rule operators and input paths."
+            "searchTooltip": "Search for rule operators and input paths.",
+            "tab": {
+                "all": "All",
+                "sourcePaths": "Source paths",
+                "targetPaths": "Target paths",
+                "transform": "Transform",
+                "comparison": "Comparison",
+                "aggregation": "Aggregation"
+            },
+            "operator": {
+                "sourcePathLabel": "Source path",
+                "sourcePathDesc": "The value path of the source input of the linking task.",
+                "targetPathLabel": "Target path",
+                "targetPathDesc": "The value path of the target input of the linking task."
+            },
+            "parameter": {
+                "weightLabel": "Weight",
+                "weightDesc": "The weight parameter can be used by the parent aggregation when combining its input values. Only certain aggregations will consider weighted inputs. Examples are the weighted average aggregation, quadraticMean and geometricMean.",
+                "thresholdLabel": "Threshold",
+                "thresholdDesc": "The maximum distance. For normalized distance measures, the threshold should be between 0.0 and 1.0."
+            }
         },
         "toolbar": {
             "advancedParameterMode": "advanced",
-            "autoLayout": "Auto-layout",
+            "autoLayout": "Layout automatically the rule tree",
             "readOnly": "Read-only mode is enabled. No saving possible.",
             "save": "Save",
             "saveError": {
