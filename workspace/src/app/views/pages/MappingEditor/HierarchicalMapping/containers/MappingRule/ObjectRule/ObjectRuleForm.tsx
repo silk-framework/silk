@@ -54,7 +54,14 @@ export const ObjectRuleForm = (props: IProps) => {
     const [changed, setChanged] = useState(false);
     const create = !props.id;
     // get a deep copy of origin data for modification
-    const [modifiedValues, setModifiedValues] = useState<any>(_.cloneDeep(props.ruleData));
+    const _modifiedValues = React.useRef<any>(_.cloneDeep(props.ruleData))
+    const modifiedValues = () => _modifiedValues.current
+    const setModifiedValues = (value: any) => {
+        _modifiedValues.current = value
+    }
+    const [targetEntityType, setTargetEntityType] = useState<(string | {value: string})[]>(_modifiedValues.current.targetEntityType)
+    // Used for setting a new URI pattern from the existing URI pattern selection
+    const [initialUriPattern, setInitialUriPattern] = useState<string>((props.ruleData as any).pattern ?? "")
     const [saveObjectError, setSaveObjectError] = useState<any>(undefined);
     const [uriPatternIsValid, setUriPatternIsValid] = useState<boolean>(true);
     const [objectPathValid, setObjectPathValid] = useState<boolean>(true);
@@ -63,6 +70,7 @@ export const ObjectRuleForm = (props: IProps) => {
     const [uriPatternSuggestions, setUriPatternSuggestions] = useState<IUriPattern[]>([]);
     const [showUriPatternModal, setShowUriPatternModal] = useState<boolean>(false);
     const [targetEntityTypeOptions] = useState<Map<string, any>>(new Map());
+    const lastEmittedEvent = React.useRef<string>("")
     const { project, transformTask } = useApiDetails();
     const { id, parentId, parent } = props;
 
@@ -70,7 +78,7 @@ export const ObjectRuleForm = (props: IProps) => {
 
     const distinctUriPatterns = Array.from(
         new Map(
-            uriPatternSuggestions.filter((p) => p.value !== (modifiedValues as any).pattern).map((p) => [p.value, p])
+            uriPatternSuggestions.filter((p) => p.value !== (modifiedValues() as any).pattern).map((p) => [p.value, p])
         ).values()
     );
 
@@ -92,8 +100,8 @@ export const ObjectRuleForm = (props: IProps) => {
 
     // Fetch labels for target entity types
     useEffect(() => {
-        if (modifiedValues.targetEntityType && modifiedValues.targetEntityType.length > 0 && project && transformTask) {
-            modifiedValues.targetEntityType.forEach((targetEntityType) => {
+        if (modifiedValues().targetEntityType && modifiedValues().targetEntityType.length > 0 && project && transformTask) {
+            modifiedValues().targetEntityType.forEach((targetEntityType) => {
                 if (typeof targetEntityType === "string") {
                     const value = uriValue(targetEntityType);
                     if (value !== targetEntityType || value.includes(":")) {
@@ -102,7 +110,7 @@ export const ObjectRuleForm = (props: IProps) => {
                 }
             });
         }
-    }, [id, parentId, !!modifiedValues.targetEntityType, project, transformTask]);
+    }, [id, parentId, !!modifiedValues().targetEntityType, project, transformTask]);
 
     const fetchTargetEntityUriInfo = async (uri: string, originalTargetEntityType: string) => {
         const { data } = await silkApi.retrieveTargetVocabularyTypeOrPropertyInfo(project!!, transformTask!!, uri);
@@ -127,15 +135,15 @@ export const ObjectRuleForm = (props: IProps) => {
     };
 
     const targetClassUris = () =>
-        modifiedValues.targetEntityType.map((t) => (typeof t === "string" ? pureUri(t) : pureUri(t.value)));
+        targetEntityType.map((t) => (typeof t === "string" ? pureUri(t) : pureUri(t.value)));
 
     useEffect(() => {
-        if (modifiedValues.targetEntityType && modifiedValues.targetEntityType.length > 0 && project) {
+        if (modifiedValues().targetEntityType && modifiedValues().targetEntityType.length > 0 && project) {
             silkApi.uriPatternsByTypes(project, targetClassUris()).then((result) => {
                 setUriPatternSuggestions(result.data.results);
             });
         }
-    }, [modifiedValues.targetEntityType ? targetClassUris().join("") : ""]);
+    }, [targetEntityType ? targetClassUris().join("") : ""]);
 
     /**
      * Saves the modified data
@@ -143,22 +151,22 @@ export const ObjectRuleForm = (props: IProps) => {
     const handleConfirm = (event) => {
         event.stopPropagation();
         event.persist();
-        const uriPattern = trimValue(modifiedValues.pattern);
+        const uriPattern = trimValue(modifiedValues().pattern);
         setLoading(true);
         createMappingAsync(
             {
                 id: props.id,
                 parentId: props.parentId,
-                type: modifiedValues.type,
-                comment: modifiedValues.comment,
-                label: modifiedValues.label,
-                sourceProperty: trimValue(modifiedValues.sourceProperty),
-                targetProperty: trimValue(modifiedValues.targetProperty),
-                targetEntityType: modifiedValues.targetEntityType,
-                isAttribute: modifiedValues.isAttribute,
+                type: modifiedValues().type,
+                comment: modifiedValues().comment,
+                label: modifiedValues().label,
+                sourceProperty: trimValue(modifiedValues().sourceProperty),
+                targetProperty: trimValue(modifiedValues().targetProperty),
+                targetEntityType: modifiedValues().targetEntityType,
+                isAttribute: modifiedValues().isAttribute,
                 // Reset URI pattern if it was previously set and is now empty
-                pattern: modifiedValues.uriRule?.type === MAPPING_RULE_TYPE_URI && !uriPattern ? null : uriPattern,
-                entityConnection: modifiedValues.entityConnection === "to",
+                pattern: modifiedValues().uriRule?.type === MAPPING_RULE_TYPE_URI && !uriPattern ? null : uriPattern,
+                entityConnection: modifiedValues().entityConnection === "to",
             },
             true
         ).subscribe(
@@ -185,13 +193,15 @@ export const ObjectRuleForm = (props: IProps) => {
         const { id, ruleData } = props;
 
         const newModifiedValues = {
-            ...modifiedValues,
+            ...modifiedValues(),
             [name]: value,
         };
 
         const changed = create || wasTouched(ruleData, newModifiedValues);
 
-        if (id) {
+        const eventId = `${id}_${changed}`
+        if (id && eventId !== lastEmittedEvent.current) {
+            lastEmittedEvent.current = eventId
             if (changed) {
                 EventEmitter.emit(MESSAGES.RULE_VIEW.CHANGE, { id });
             } else {
@@ -200,6 +210,10 @@ export const ObjectRuleForm = (props: IProps) => {
         }
         setChanged(changed);
         setModifiedValues(newModifiedValues);
+        if(name === "targetEntityType") {
+            // Need to react to target entity changes
+            setTargetEntityType(value)
+        }
     };
 
     /**
@@ -226,9 +240,9 @@ export const ObjectRuleForm = (props: IProps) => {
     }
 
     const allowConfirm =
-        modifiedValues.type === MAPPING_RULE_TYPE_ROOT ||
-        !_.isEmpty(modifiedValues.targetProperty) ||
-        (modifiedValues.sourceProperty && !_.isEmpty(modifiedValues.sourceProperty.trim()));
+        modifiedValues().type === MAPPING_RULE_TYPE_ROOT ||
+        !_.isEmpty(modifiedValues().targetProperty) ||
+        (modifiedValues().sourceProperty && !_.isEmpty(modifiedValues().sourceProperty.trim()));
     const errorMessage = saveObjectError && <ErrorView {...saveObjectError} />;
 
     const title = !id && <CardTitle>Add object mapping</CardTitle>;
@@ -241,13 +255,15 @@ export const ObjectRuleForm = (props: IProps) => {
     targetCardinality = (
         <TargetCardinality
             className="ecc-silk-mapping__ruleseditor__isAttribute"
-            isAttribute={modifiedValues.isAttribute}
+            isAttribute={modifiedValues().isAttribute}
             isObjectMapping={true}
             onChange={(value) => handleChangeValue("isAttribute", value)}
         />
     );
 
-    if (modifiedValues.type !== MAPPING_RULE_TYPE_ROOT) {
+    const initialValues: any = props.ruleData
+
+    if (modifiedValues().type !== MAPPING_RULE_TYPE_ROOT) {
         targetPropertyInput = (
             <AutoComplete
                 placeholder="Target property"
@@ -258,7 +274,7 @@ export const ObjectRuleForm = (props: IProps) => {
                 creatable
                 ruleId={autoCompleteRuleId}
                 data-id="autocomplete_target_prop"
-                value={modifiedValues.targetProperty}
+                value={modifiedValues().targetProperty}
                 onChange={(value) => {
                     handleChangeValue("targetProperty", value);
                 }}
@@ -272,7 +288,7 @@ export const ObjectRuleForm = (props: IProps) => {
                     onChange={({ value }) => {
                         handleChangeValue("entityConnection", value);
                     }}
-                    value={!_.isEmpty(modifiedValues.entityConnection) ? modifiedValues.entityConnection : "from"}
+                    value={!_.isEmpty(modifiedValues().entityConnection) ? modifiedValues().entityConnection : "from"}
                     name=""
                     disabled={false}
                     data-id="entity_radio_group"
@@ -297,11 +313,11 @@ export const ObjectRuleForm = (props: IProps) => {
             </FieldItem>
         );
         const valuePath =
-            modifiedValues.sourceProperty == null
+            initialValues.sourceProperty == null
                 ? ""
-                : typeof modifiedValues.sourceProperty === "string"
-                ? modifiedValues.sourceProperty
-                : modifiedValues.sourceProperty.value;
+                : typeof initialValues.sourceProperty === "string"
+                ? initialValues.sourceProperty
+                : initialValues.sourceProperty.value;
         sourcePropertyInput = (
             <AutoSuggestion
                 id={"object-value-path-auto-suggestion"}
@@ -324,8 +340,8 @@ export const ObjectRuleForm = (props: IProps) => {
     let patternInput: JSX.Element | undefined;
 
     // URI pattern
-    if (!id || modifiedValues.uriRuleType === "uri") {
-        if (!modifiedValues.pattern && !createCustomUriPatternForNewRule && (!id || !(props.ruleData as any).pattern)) {
+    if (!id || modifiedValues().uriRuleType === "uri") {
+        if (!modifiedValues().pattern && !createCustomUriPatternForNewRule && (!id || !(props.ruleData as any).pattern)) {
             patternInput = (
                 <FieldItem labelProps={{ text: "URI pattern" }}>
                     <TextField
@@ -348,7 +364,7 @@ export const ObjectRuleForm = (props: IProps) => {
                 <AutoSuggestion
                     id={"uri-pattern-auto-suggestion"}
                     label="URI pattern"
-                    initialValue={modifiedValues.pattern}
+                    initialValue={initialUriPattern}
                     clearIconText={"Clear URI pattern"}
                     validationErrorText={"The entered URI pattern is invalid."}
                     onChange={(value) => {
@@ -359,7 +375,7 @@ export const ObjectRuleForm = (props: IProps) => {
                             parentId ? parentId : "root",
                             input,
                             cursorPosition,
-                            modifiedValues.sourceProperty
+                            modifiedValues().sourceProperty
                         )
                     }
                     checkInput={checkUriPattern}
@@ -389,7 +405,7 @@ export const ObjectRuleForm = (props: IProps) => {
 
     let previewExamples: null | JSX.Element = null;
 
-    if (!modifiedValues.pattern && (!modifiedValues.uriRule || modifiedValues.uriRule.type === MAPPING_RULE_TYPE_URI)) {
+    if (!modifiedValues().pattern && (!modifiedValues().uriRule || modifiedValues().uriRule.type === MAPPING_RULE_TYPE_URI)) {
         previewExamples = (
             <Notification data-test-id={"object-rule-form-preview-no-pattern"}>
                 No preview shown for default URI pattern.
@@ -401,24 +417,24 @@ export const ObjectRuleForm = (props: IProps) => {
                 URI pattern or value path is invalid. No preview shown.
             </Notification>
         );
-    } else if (modifiedValues.pattern || modifiedValues.uriRule) {
+    } else if (modifiedValues().pattern || modifiedValues().uriRule) {
         previewExamples = (
             <ExampleView
                 id={parentId || "root"}
                 rawRule={
                     // when not "pattern" then it is "uriRule"
-                    modifiedValues.pattern
+                    modifiedValues().pattern
                         ? {
                               type: MAPPING_RULE_TYPE_URI,
-                              pattern: modifiedValues.pattern,
+                              pattern: modifiedValues().pattern,
                           }
-                        : modifiedValues.uriRule
+                        : modifiedValues().uriRule
                 }
                 ruleType={
                     // when not "pattern" then it is "uriRule"
-                    modifiedValues.pattern ? MAPPING_RULE_TYPE_URI : modifiedValues.uriRule.type
+                    modifiedValues().pattern ? MAPPING_RULE_TYPE_URI : modifiedValues().uriRule.type
                 }
-                objectSourcePathContext={modifiedValues.sourceProperty}
+                objectSourcePathContext={modifiedValues().sourceProperty}
             />
         );
     }
@@ -437,7 +453,7 @@ export const ObjectRuleForm = (props: IProps) => {
                         entity="targetEntityType"
                         isValidNewOption={newValueIsIRI}
                         ruleId={autoCompleteRuleId}
-                        value={modifiedValues.targetEntityType}
+                        value={modifiedValues().targetEntityType}
                         creatable
                         onChange={(value) => {
                             handleChangeValue("targetEntityType", value);
@@ -450,7 +466,10 @@ export const ObjectRuleForm = (props: IProps) => {
                         <UriPatternSelectionModal
                             onClose={() => setShowUriPatternModal(false)}
                             uriPatterns={distinctUriPatterns}
-                            onSelect={(uriPattern) => handleChangeValue("pattern", uriPattern.value)}
+                            onSelect={(uriPattern) => {
+                                setInitialUriPattern(uriPattern.value)
+                                handleChangeValue("pattern", uriPattern.value)
+                            }}
                         />
                     )}
                     {
@@ -465,7 +484,7 @@ export const ObjectRuleForm = (props: IProps) => {
                         data-test-id={"object-rule-form-label-input"}
                         label="Label"
                         className="ecc-silk-mapping__ruleseditor__label"
-                        value={modifiedValues.label}
+                        value={modifiedValues().label}
                         onChange={({ value }) => {
                             handleChangeValue("label", value);
                         }}
@@ -474,7 +493,7 @@ export const ObjectRuleForm = (props: IProps) => {
                         multiline
                         label="Description"
                         className="ecc-silk-mapping__ruleseditor__comment"
-                        value={modifiedValues.comment}
+                        value={modifiedValues().comment}
                         onChange={({ value }) => {
                             handleChangeValue("comment", value);
                         }}
@@ -488,7 +507,7 @@ export const ObjectRuleForm = (props: IProps) => {
                         disabled={
                             !allowConfirm ||
                             !changed ||
-                            (!uriPatternIsValid && modifiedValues.pattern) ||
+                            (!uriPatternIsValid && modifiedValues().pattern) ||
                             !objectPathValid
                         }
                     >
