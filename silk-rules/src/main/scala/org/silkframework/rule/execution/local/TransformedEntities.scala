@@ -43,9 +43,9 @@ class TransformedEntities(task: Task[TransformSpec],
   // For each schema path, collect all rules that map to it
   private val rulesPerPath = {
     if(isRequestedSchema) {
-      for(path <- outputSchema.typedPaths) yield propertyRules.filter(_.target.get.asPath() == path.asUntypedPath)
+      for(path <- outputSchema.typedPaths) yield (path, propertyRules.filter(_.target.get.asPath() == path.asUntypedPath))
     } else {
-      for(path <- outputSchema.typedPaths) yield propertyRules.filter(_.target.get.asTypedPath() == path)
+      for(path <- outputSchema.typedPaths) yield (path, propertyRules.filter(_.target.get.asTypedPath() == path))
     }
   }
 
@@ -95,9 +95,9 @@ class TransformedEntities(task: Task[TransformSpec],
 
     if(uris.nonEmpty) {
       for (uri <- uris) {
-        if(outputSchema.singleEntity && count > 1) {
-          throw new ValidationException(s"Tried to generate multiple entities, but the '$ruleLabel' mapping is configured to output a single entity.")
-        }
+        //if(outputSchema.singleEntity && count > 1) {
+        //  throw new ValidationException(s"Tried to generate multiple entities, but the '$ruleLabel' mapping is configured to output a single entity.")
+        //}
 
         lazy val objectEntity = { // Constructs an entity that only contains object source paths for object mappings
           val uriTypePaths = entity.schema.typedPaths.zip(entity.values).filter(_._1.valueType == ValueType.URI)
@@ -114,8 +114,12 @@ class TransformedEntities(task: Task[TransformSpec],
           }
         }
 
-        val values = for (rules <- rulesPerPath) yield {
-          rules.flatMap(evalRule)
+        val values = for ((path, rules) <- rulesPerPath) yield {
+          val value = rules.flatMap(evalRule)
+          if (path.isAttribute && value.size > 1) {
+            throw new ValidationException(s"Tried to generate multiple entities, but the '$ruleLabel' mapping is configured to output a single entity.")
+          }
+          value
         }
 
         f(Entity(uri, values, outputSchema, metadata = buildErrorMetadata()))
