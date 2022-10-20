@@ -115,4 +115,12 @@ class RdfFormatUtilTest extends FlatSpec with MustMatchers {
     format("http://example.org/resource", ValueType.UNTYPED) mustBe
         s"""$S_P "http://example.org/resource" .$NL"""
   }
+
+  it should "serialize single nodes" in {
+    def serialize(value: String, valueType: ValueType): String = RdfFormatUtil.serializeSingleNode(value, valueType)
+    serialize("urn:test", ValueType.URI) mustBe "<urn:test>"
+    serialize("some string with ä", ValueType.STRING) mustBe """"some string with ä""""
+    serialize("42", ValueType.INTEGER) mustBe """"42"^^<http://www.w3.org/2001/XMLSchema#integer>"""
+    serialize("lang-tagged", LanguageValueType("en")) mustBe """"lang-tagged"@en"""
+  }
 }

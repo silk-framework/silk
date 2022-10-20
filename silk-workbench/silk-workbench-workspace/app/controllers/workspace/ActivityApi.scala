@@ -246,7 +246,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                        schema = new Schema(implementation = classOf[String])
                      )
                      activityInstance: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    val activity = activityControl(projectName, taskName, activityName, activityInstance)
+    val (activity, _) = activityControl(projectName, taskName, activityName, activityInstance)
     activity.cancel()
     Ok
   }
@@ -256,7 +256,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                       activityName: String,
                       activityInstance: String,
                       blocking: Boolean): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    val activity = activityControl(projectName, taskName, activityName, activityInstance)
+    val (activity, _) = activityControl(projectName, taskName, activityName, activityInstance)
     activity.reset()
     if(blocking) {
       activity.startBlocking()
@@ -355,10 +355,10 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
                           schema = new Schema(implementation = classOf[String])
                         )
                         activityInstance: String): Action[AnyContent] = UserContextAction { implicit userContext: UserContext =>
-    val activity = activityControl(projectName, taskName, activityName, activityInstance)
+    val (activity, activityLabel) = activityControl(projectName, taskName, activityName, activityInstance)
     implicit val writeContext = WriteContext[JsValue]()
 
-    Ok(new ExtendedStatusJsonFormat(projectName, taskName, activityName, activity.startTime).write(activity.status()))
+    Ok(new ExtendedStatusJsonFormat(projectName, taskName, activityName, activityLabel, activity.startTime).write(activity.status()))
   }
 
   @Operation(
@@ -411,7 +411,7 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     } else {
       Some(WorkspaceFactory().workspace.project(projectName))
     }
-    val activity = activityControl(projectName, taskName, activityName, activityInstance)
+    val (activity, _) = activityControl(projectName, taskName, activityName, activityInstance)
     activity.value.get match {
       case Some(value) =>
         SerializationUtils.serializeRuntime(value)
@@ -835,9 +835,9 @@ class ActivityApi @Inject() (implicit system: ActorSystem, mat: Materializer) ex
     * Retrieves a single workspace activity.
     */
   private def activityControl(projectName: String, taskName: String, activityName: String, activityInstance: String)
-                             (implicit userContext: UserContext): ActivityControl[_] = {
+                             (implicit userContext: UserContext): (ActivityControl[_], String) = {
     val activity = ActivityFacade.getActivity(projectName, taskName, activityName)
-    activityControlForInstance(activity, activityInstance)
+    (activityControlForInstance(activity, activityInstance), activity.label)
   }
 
   /**

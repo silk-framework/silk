@@ -22,4 +22,6 @@ class TypesCacheFactory extends DatasetActivityFactory[Dataset, TypesCache] {
   }
 
   override def isCacheActivity: Boolean = true
+
+  override def isDatasetRelatedCache: Boolean = true
 }

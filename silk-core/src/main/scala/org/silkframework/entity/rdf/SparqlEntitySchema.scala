@@ -16,7 +16,7 @@ package org.silkframework.entity.rdf
 
 import org.silkframework.config.Prefixes
 import org.silkframework.entity.EntitySchema
-import org.silkframework.entity.paths.{Path, TypedPath, UntypedPath}
+import org.silkframework.entity.paths.{Path, UntypedPath}
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.util.Uri
 
@@ -71,7 +71,7 @@ object SparqlEntitySchema {
       s"?$variable"
     }
     if(entityUris.nonEmpty) {
-      val entityFilter = s"\nFILTER ($rootVariable IN (${entityUris.map(e => s"<$e>").mkString(", ")}))"
+      val entityFilter = s"""VALUES ($rootVariable) { ${entityUris.map(e => s"(<$e>)").mkString(" ")} }"""
       sparqlRestriction = SparqlRestriction.fromSparql(variable, sparqlRestriction.toSparql + entityFilter)
       SparqlEntitySchema(variable, sparqlRestriction, entitySchema.typedPaths.map(_.toUntypedPath))
     }
