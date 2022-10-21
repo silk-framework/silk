@@ -124,6 +124,7 @@ export const requestRuleOperatorPluginDetails = (
         url: coreApi("/ruleOperatorPlugins"),
         query: {
             inputOperatorsOnly: inputOperatorsOnly,
+            addMarkdownDocumentation: true,
         },
     });
 };
