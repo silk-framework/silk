@@ -28,6 +28,15 @@ object VariableWorkflowRequestUtils {
   final val xlsxMimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
   final val formUrlEncodedType = "application/x-www-form-urlencoded"
 
+  /* Separator to construct hierarchical query parameters. The minus char is allowed in query parameter names, but disallowed in Scala variable names.
+   */
+  final val QUERY_PARAM_SEPARATOR = "-"
+  // Prefix for query parameters that allow to configure specific features of the variable workflow endpoints.
+  final val QUERY_CONFIG_PREFIX = s"config$QUERY_PARAM_SEPARATOR"
+  final val QUERY_GENERAL_CONFIG_PREFIX = s"${QUERY_CONFIG_PREFIX}general$QUERY_PARAM_SEPARATOR"
+  // Auto-configure config parameter, either true or false.
+  final val QUERY_CONFIG_PARAM_AUTO_CONFIG = s"${QUERY_GENERAL_CONFIG_PREFIX}autoConfig"
+
   /** The mime types that the variable workflow supports as response. */
   val acceptedMimeType: Seq[String] = Seq(
     jsonMimeType, // JSON dataset
@@ -151,6 +160,9 @@ object VariableWorkflowRequestUtils {
       "Sinks" -> variableDataSinkConfigOpt.map(_.configJson).toSeq,
       "Resources" -> Json.obj(
         INPUT_FILE_RESOURCE_NAME -> resourceContentJson
+      ),
+      "config" -> Json.obj(
+        "autoConfig" -> request.getQueryString(QUERY_CONFIG_PARAM_AUTO_CONFIG).map(_.trim).contains("true")
       )
     )
     (Map(
@@ -172,8 +184,10 @@ object VariableWorkflowRequestUtils {
         throw BadUserInputException(s"Content-type (${mediaType.get}) is specified, but request body is empty! " +
             s"If you need to input an 'empty entity', use an empty JSON object or XML element instead as request payload.")
       case AnyContentAsEmpty =>
-        if(request.queryString.nonEmpty) {
-          parametersToJsonResource(request.queryString)
+        // Config parameters will also be included in the input parameters. However in this case, setting config parameters does not (yet) make sense.
+        val inputParameters = request.queryString
+        if(inputParameters.nonEmpty) {
+          parametersToJsonResource(inputParameters)
         } else {
           throw BadUserInputException(s"No input data posted or parameters specified in query string! " +
               s"If you need to input an 'empty entity', use an empty JSON object or XML element instead as request payload.")
