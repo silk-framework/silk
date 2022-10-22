@@ -114,6 +114,30 @@ const generateFacetUrl = (id: string, uri: string): string => {
     return `${SERVE_PATH}?${qs.stringify(queryParams)}`;
 };
 
+const getSelectedTagsAndCreateNew = async (
+    createdTags: Partial<Keyword>[] = [],
+    projectId: string | undefined,
+    selectedTags: Keywords = []
+) => {
+    if (createdTags.length) {
+        //create new tags if exists
+        const createdTagsResponse = await utils.createNewTag(
+            createdTags.map((t) => ({ label: t.label })),
+            projectId
+        );
+
+        //defensive correction to ensure uris match.
+        return selectedTags.map((tag) => {
+            const newlyCreatedTagMatch = (createdTagsResponse?.data ?? []).find((t) => t.label === tag.label);
+            if (newlyCreatedTagMatch) {
+                return newlyCreatedTagMatch.uri;
+            }
+            return tag.uri;
+        });
+    }
+    return selectedTags.map((tag) => tag.uri);
+};
+
 const utils = {
     getExpandedMetaData,
     DisplayArtefactTags,
@@ -122,6 +146,7 @@ const utils = {
     generateFacetUrl,
     queryTags,
     sortTags,
+    getSelectedTagsAndCreateNew,
 };
 
 export default utils;

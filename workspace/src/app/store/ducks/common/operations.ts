@@ -17,7 +17,8 @@ import { HttpError } from "../../../services/fetch/responseInterceptor";
 import i18Instance, { fetchStoredLang } from "../../../../language";
 import { URI_PROPERTY_PARAMETER_ID } from "../../../views/shared/modals/CreateArtefactModal/ArtefactForms/UriAttributeParameterInput";
 import utils from "../../../views/shared/Metadata/MetadataUtils";
-import { Keywords } from "@ducks/workspace/typings";
+import { Keyword } from "@ducks/workspace/typings";
+import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 
 const {
     setError,
@@ -195,22 +196,26 @@ const createArtefactAsync = (formData, taskType: TaskType | "Project", dataParam
     };
 };
 
+/** creates new tags for specific taskType and updates the metadata */
 const createTagsAndAddToMetadata = async (payload: {
     label: string;
     description?: string;
-    tags?: Keywords;
+    tags?: SelectedParamsType<Keyword>;
     projectId?: string;
     taskId?: string;
 }) => {
-    const createdTagsResponse = await utils.createNewTag(
-        (payload.tags ?? []).map((t) => ({ label: t.label })),
-        payload.projectId
+    if (!payload.tags?.createdItems.length || !payload.tags.selectedItems.length) return;
+    const tags = await utils.getSelectedTagsAndCreateNew(
+        payload.tags?.createdItems,
+        payload.projectId,
+        payload.tags?.selectedItems
     );
 
     await utils.updateMetaData(
         {
             label: payload.label,
-            tags: createdTagsResponse?.data.map((t) => t.uri) ?? [],
+            description: payload.description,
+            tags: tags ?? [],
         },
         payload.projectId,
         payload.taskId
@@ -310,7 +315,12 @@ const fetchUpdateTaskAsync = (
     };
 };
 
-const fetchCreateProjectAsync = (formData: { label: string; description?: string; id?: string; tags?: Keywords }) => {
+const fetchCreateProjectAsync = (formData: {
+    label: string;
+    description?: string;
+    id?: string;
+    tags?: SelectedParamsType<Keyword>;
+}) => {
     return async (dispatch) => {
         dispatch(setModalError({}));
         const { label, description, id, tags } = formData;
@@ -323,7 +333,7 @@ const fetchCreateProjectAsync = (formData: { label: string; description?: string
         if (id) payload["id"] = id;
         try {
             const data = await requestCreateProject(payload);
-            await createTagsAndAddToMetadata({ label, description, tags, projectId: data.id });
+            await createTagsAndAddToMetadata({ label, description, tags, projectId: data.name });
             // Added project, workspace state may have changed
             dispatch(commonOp.fetchCommonSettingsAsync());
             dispatch(closeArtefactModal());

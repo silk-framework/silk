@@ -45,8 +45,6 @@ import { uppercaseFirstChar } from "../../../../utils/transformers";
 import { requestProjectMetadata } from "@ducks/shared/requests";
 import { requestAutoConfiguredDataset } from "./CreateArtefactModal.requests";
 import { diErrorMessage } from "@ducks/error/typings";
-import utils from "../../../../views/shared/Metadata/MetadataUtils";
-import { Keywords } from "@ducks/workspace/typings";
 
 const ignorableFields = new Set(["label", "description"]);
 
@@ -106,7 +104,6 @@ export function CreateArtefactModal() {
     const [infoMessage, setInfoMessage] = useState<InfoMessage | undefined>(undefined);
     const isEmptyWorkspace = useSelector(workspaceSel.isEmptyPageSelector);
     const projectId = useSelector(commonSel.currentProjectIdSelector);
-    const taskId = useSelector(commonSel.currentTaskIdSelector);
     const externalParameterUpdateMap = React.useRef(
         new Map<string, (value: { value: string; label?: string }) => any>()
     );

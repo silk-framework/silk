@@ -191,6 +191,7 @@ export function TaskForm({
                 unregister(LABEL);
                 unregister(DESCRIPTION);
                 unregister(IDENTIFIER);
+                unregister({ name: TAGS });
             }
             returnKeys.forEach((key) => unregister(key));
         };
@@ -220,9 +221,10 @@ export function TaskForm({
         []
     );
 
-    const handleTagSelectionChange = React.useCallback((params: SelectedParamsType<Keyword>) => {
-        setValue("tags", params.createdItems);
-    }, []);
+    const handleTagSelectionChange = React.useCallback(
+        (params: SelectedParamsType<Keyword>) => setValue("tags", params),
+        []
+    );
 
     const handleTagQueryChange = React.useCallback(async (query: string) => {
         if (projectId) {
