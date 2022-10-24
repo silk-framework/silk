@@ -52,6 +52,7 @@ const pureUri = (uri: string) => (uri ? uri.replace(/^<|>$/g, "") : uri);
 export const ObjectRuleForm = (props: IProps) => {
     const [loading, setLoading] = useState(false);
     const [changed, setChanged] = useState(false);
+    const [allowConfirm, setAllowConfirm] = useState(false);
     const create = !props.id;
     // get a deep copy of origin data for modification
     const _modifiedValues = React.useRef<any>(_.cloneDeep(props.ruleData))
@@ -210,6 +211,11 @@ export const ObjectRuleForm = (props: IProps) => {
         }
         setChanged(changed);
         setModifiedValues(newModifiedValues);
+        const _allowConfirm: boolean =
+            modifiedValues().type === MAPPING_RULE_TYPE_ROOT ||
+            !_.isEmpty(modifiedValues().targetProperty) ||
+            (!!modifiedValues().sourceProperty && !_.isEmpty(modifiedValues().sourceProperty.trim()));
+        setAllowConfirm(_allowConfirm)
         if(name === "targetEntityType") {
             // Need to react to target entity changes
             setTargetEntityType(value)
@@ -239,10 +245,6 @@ export const ObjectRuleForm = (props: IProps) => {
         return <Spinner />;
     }
 
-    const allowConfirm =
-        modifiedValues().type === MAPPING_RULE_TYPE_ROOT ||
-        !_.isEmpty(modifiedValues().targetProperty) ||
-        (modifiedValues().sourceProperty && !_.isEmpty(modifiedValues().sourceProperty.trim()));
     const errorMessage = saveObjectError && <ErrorView {...saveObjectError} />;
 
     const title = !id && <CardTitle>Add object mapping</CardTitle>;
