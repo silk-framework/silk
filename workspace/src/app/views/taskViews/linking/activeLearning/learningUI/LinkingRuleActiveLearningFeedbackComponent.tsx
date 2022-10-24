@@ -422,7 +422,7 @@ const EntitiesPropertyPair = ({
                                     ? t("ActiveLearning.feedback.removeFromLabel")
                                     : t("ActiveLearning.feedback.addToLabel")
                             }
-                            name={selectedForLabel ? "favorite-filled" : "favorite-empty"}
+                            name={selectedForLabel ? "toggler-star-filled" : "toggler-star-empty"}
                             elevated
                             onClick={toggleLabelSelection}
                         />

@@ -43,7 +43,7 @@ export default function TypesList({onChange, selected}: IProps) {
         }}
     >
         <Button
-            rightIcon="select-caret"
+            rightIcon="toggler-caret"
             text={selected}
         />
     </TypesSelect>

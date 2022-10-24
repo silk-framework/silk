@@ -29,11 +29,11 @@ class EvaluateTransform @Inject() (implicit accessMonitor: WorkbenchAccessMonito
     val task = project.task[TransformSpec](taskName)
     val ruleSchema = ruleName match {
       case Some(name) =>
-        task.data.ruleSchemata
+        task.data.ruleSchemataWithoutEmptyObjectRules
             .find(_.transformRule.id.toString == name)
-            .getOrElse(throw new NotFoundException(s"Rule $ruleName is not part of task $taskName in project $projectName"))
+            .getOrElse(throw new NotFoundException(s"Rule $ruleName is an empty object rule or is not part of task $taskName in project $projectName"))
       case None =>
-        task.data.ruleSchemata.head
+        task.data.ruleSchemataWithoutEmptyObjectRules.head
     }
 
     // Create execution task

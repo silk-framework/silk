@@ -130,7 +130,7 @@ export default function TargetList({targets, onChange}: IProps) {
     >
         <Button
             fill={true}
-            rightIcon="select-caret"
+            rightIcon="toggler-caret"
             text={itemLabel(selected, context.search)}
         />
     </TargetSelect>

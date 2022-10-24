@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.replace
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 import scala.util.matching.Regex
 
@@ -24,11 +24,13 @@ import scala.util.matching.Regex
   categories = Array("Replace"),
   label = "Regex replace",
   description = "Replace all occurrences of a regex \"regex\" with \"replace\" in a string.")
-case class RegexReplaceTransformer(regex: String, replace: String) extends SimpleTransformer{
+case class RegexReplaceTransformer(@Param(value = "The regular expression to search for", example = "\\s*")
+                                   regex: String,
+                                   @Param(value = "The string that will replace each match")
+                                   replace: String = "") extends SimpleTransformer{
   private val compiledRegex = new Regex(regex)
 
-  def evaluate(value: String) = {
+  def evaluate(value: String): String = {
     compiledRegex.replaceAllIn(value, replace)
   }
 }
-
