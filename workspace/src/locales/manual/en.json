@@ -446,7 +446,7 @@
         "node": {
             "menu": {
                 "description": {
-                    "label": "Operator description"
+                    "label": "Show documentation"
                 },
                 "remove": {
                     "label": "Remove"
@@ -485,6 +485,8 @@
                 "aggregation": "Aggregation"
             },
             "operator": {
+                "markdownTooltip": "{{shortDescription}}\n\nClick to view full documentation",
+                "markdownModalTitle": "{{operatorName}}'s documentation",
                 "sourcePathLabel": "Source path",
                 "sourcePathDesc": "The value path of the source input of the linking task.",
                 "targetPathLabel": "Target path",
@@ -843,7 +845,7 @@
             "reset": "Reset",
             "failed": "Could not reset learning session."
         },
-        "saveDialog":{
+        "saveDialog": {
             "title": "Save reference links and/or best learned rule",
             "saveReferenceLinks": {
                 "label": "Save reference links",

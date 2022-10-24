@@ -107,7 +107,7 @@ export default function PrefixList({prefixes, selectedPrefix, onChange, disabled
             }}
         >
             <Button
-                rightIcon="select-caret"
+                rightIcon="toggler-caret"
                 text={(selectedItem === selectedPrefix) ? selectedItem : 'Select prefix for auto-generated properties'}
                 disabled={disabled}
             />

@@ -44,9 +44,9 @@ class ExecuteTransform(task: Task[TransformSpec],
 
     context.status.updateMessage("Retrieving entities")
     try {
-      for ((ruleSchemata, index) <- transform.ruleSchemata.zipWithIndex) {
+      for ((ruleSchemata, index) <- transform.ruleSchemataWithoutEmptyObjectRules.zipWithIndex) {
         transformEntities(dataSource, ruleSchemata, entitySink, errorEntitySink, context)
-        context.status.updateProgress((index + 1.0) / transform.ruleSchemata.size)
+        context.status.updateProgress((index + 1.0) / transform.ruleSchemataWithoutEmptyObjectRules.size)
       }
     } finally {
       entitySink.close()

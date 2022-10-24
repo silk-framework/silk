@@ -47,7 +47,7 @@ object TransformTaskUtils {
       if(typeUri.uri.isEmpty) {
         new TransformedDataSource(source, transformSpec.inputSchema, transformSpec.mappingRule, task)
       } else {
-        transformSpec.ruleSchemata.find(_.transformRule.rules.typeRules.map(_.typeUri).contains(typeUri)) match {
+        transformSpec.ruleSchemataWithoutEmptyObjectRules.find(_.transformRule.rules.typeRules.map(_.typeUri).contains(typeUri)) match {
           case Some(ruleSchemata) =>
             new TransformedDataSource(source, ruleSchemata.inputSchema, ruleSchemata.transformRule, task)
           case None =>
