@@ -14,11 +14,12 @@
 
 package org.silkframework.workspace
 
-import org.silkframework.config.{DefaultConfig, Prefixes}
+import org.silkframework.config.{DefaultConfig, Prefixes, TaskSpec}
 import org.silkframework.runtime.activity.{HasValue, UserContext}
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.validation.{NotFoundException, ServiceUnavailableException}
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.TaskCleanupPlugin.CleanUpAfterTaskDeletionFunction
 import org.silkframework.workspace.activity.{GlobalWorkspaceActivity, GlobalWorkspaceActivityFactory}
 import org.silkframework.workspace.exceptions.{IdentifierAlreadyExistsException, ProjectNotFoundException}
 import org.silkframework.workspace.resources.ResourceRepository
@@ -45,6 +46,10 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   // Time in milliseconds to wait for the workspace to be loaded
   private val waitForWorkspaceInitialization = cfg.getLong("workspace.timeouts.waitForWorkspaceInitialization")
   private val loadProjectsLock = new ReentrantLock()
+
+  lazy val cleanUpAfterTaskDeletion: CleanUpAfterTaskDeletionFunction = {
+    TaskCleanupPlugin.retrieveCleanUpAfterTaskDeletionFunction
+  }
 
   @volatile
   private var initialized = false
@@ -160,7 +165,8 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     loadUserProjects()
     // Cancel all project and task activities
     project(name).activities.foreach(_.control.cancel())
-    for(task <- project(name).allTasks;
+    val projectTasks = project(name).allTasks
+    for(task <- projectTasks;
         activity <- task.activities) {
       activity.control.cancel()
     }
@@ -168,6 +174,9 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
     repository.removeProjectResources(name)
     provider.removeExternalTaskLoadingErrors(name)
     removeProjectFromCache(name)
+    for(task <- projectTasks) {
+      cleanUpAfterTaskDeletion(name, task.id, task.data)
+    }
     log.info(s"Removed project '$name'. " + userContext.logInfo)
   }
 
