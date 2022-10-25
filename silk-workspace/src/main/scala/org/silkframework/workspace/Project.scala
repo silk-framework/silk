@@ -349,7 +349,9 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
 
     // Find the module which holds the named task and remove it
     for(m <- modules.find(_.taskOption(taskName).isDefined)) {
+      val taskOpt = m.taskOption(taskName)
       m.remove(taskName)
+      taskOpt.foreach(task => cleanUpAfterTaskDeletion(config.id, taskName, task))
     }
   }
 
