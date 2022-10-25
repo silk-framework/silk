@@ -36,7 +36,7 @@ import scala.util.control.NonFatal
 class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val resources: ResourceManager)
              (implicit userContext: UserContext) extends ProjectTrait {
 
-  private implicit val logger = Logger.getLogger(classOf[Project].getName)
+  private implicit val logger: Logger = Logger.getLogger(classOf[Project].getName)
 
   val tagManager = new TagManager(initialConfig.id, provider)
 
@@ -47,10 +47,6 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
 
   @volatile
   private var modules = Seq[Module[_ <: TaskSpec]]()
-
-  lazy val cleanUpAfterTaskDeletion = {
-    TaskCleanupPlugin.cleanUpAfterTaskDeletionFunction
-  }
 
   loadTasks()
 
@@ -72,7 +68,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
   }
 
   /** This must be executed once when the project was loaded into the workspace */
-  def startActivities()(implicit userContext: UserContext) {
+  def startActivities()(implicit userContext: UserContext): Unit = {
     allTasks.foreach(_.startActivities())
   }
 
@@ -319,9 +315,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
    */
   def removeTask[T <: TaskSpec : ClassTag](taskName: Identifier)
                                           (implicit userContext: UserContext): Unit = synchronized {
-    val taskOpt = module[T].taskOption(taskName)
     module[T].remove(taskName)
-    taskOpt.foreach(task => cleanUpAfterTaskDeletion(config.id, taskName, task))
   }
 
   /**
@@ -349,9 +343,7 @@ class Project(initialConfig: ProjectConfig, provider: WorkspaceProvider, val res
 
     // Find the module which holds the named task and remove it
     for(m <- modules.find(_.taskOption(taskName).isDefined)) {
-      val taskOpt = m.taskOption(taskName)
       m.remove(taskName)
-      taskOpt.foreach(task => cleanUpAfterTaskDeletion(config.id, taskName, task))
     }
   }
 

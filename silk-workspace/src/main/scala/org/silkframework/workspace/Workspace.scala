@@ -19,6 +19,7 @@ import org.silkframework.runtime.activity.{HasValue, UserContext}
 import org.silkframework.runtime.plugin.{PluginContext, PluginRegistry}
 import org.silkframework.runtime.validation.{NotFoundException, ServiceUnavailableException}
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.TaskCleanupPlugin.CleanUpAfterTaskDeletionFunction
 import org.silkframework.workspace.activity.{GlobalWorkspaceActivity, GlobalWorkspaceActivityFactory}
 import org.silkframework.workspace.exceptions.{IdentifierAlreadyExistsException, ProjectNotFoundException}
 import org.silkframework.workspace.resources.ResourceRepository
@@ -46,8 +47,8 @@ class Workspace(val provider: WorkspaceProvider, val repository: ResourceReposit
   private val waitForWorkspaceInitialization = cfg.getLong("workspace.timeouts.waitForWorkspaceInitialization")
   private val loadProjectsLock = new ReentrantLock()
 
-  lazy val cleanUpAfterTaskDeletion: (String, String, TaskSpec) => Unit = {
-    TaskCleanupPlugin.cleanUpAfterTaskDeletionFunction
+  lazy val cleanUpAfterTaskDeletion: CleanUpAfterTaskDeletionFunction = {
+    TaskCleanupPlugin.retrieveCleanUpAfterTaskDeletionFunction
   }
 
   @volatile
