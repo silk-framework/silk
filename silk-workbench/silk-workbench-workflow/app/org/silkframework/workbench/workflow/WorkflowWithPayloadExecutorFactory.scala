@@ -1,9 +1,9 @@
 package org.silkframework.workbench.workflow
 
-import controllers.util.ProjectUtils.{createDatasets, createInMemoryResourceManagerForResources}
-import org.silkframework.dataset.Dataset
+import controllers.util.ProjectUtils.{createDatasets, createInMemoryResourceManagerForResources, getProject}
+import org.silkframework.dataset.{Dataset, DatasetPluginAutoConfigurable}
 import org.silkframework.runtime.activity.{Activity, ActivityContext, UserContext}
-import org.silkframework.runtime.plugin.MultilineStringParameter
+import org.silkframework.runtime.plugin.{MultilineStringParameter, PluginContext}
 import org.silkframework.runtime.resource.ResourceManager
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.serialization.json.WriteOnlyJsonFormat
@@ -100,10 +100,13 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], configuration: St
     context.child(activity, 1.0).startBlocking()
   }
 
-  private def createSourceSinksFromJson(projectName: String, variableDatasets: AllVariableDatasets, sinkIds: Set[String], json: JsValue)
+  private def createSourceSinksFromJson(projectName: String,
+                                        variableDatasets: AllVariableDatasets,
+                                        sinkIds: Set[String],
+                                        json: JsValue)
                                        (implicit userContext: UserContext): (Map[String, Dataset], Map[String, Dataset], ResourceManager) = {
     val workflowJson = json.as[JsObject]
-    val dataSources = {
+    var dataSources = {
       implicit val (resourceManager, _) = createInMemoryResourceManagerForResources(workflowJson, projectName, withProjectResources = true)
       createDatasets(workflowJson, Some(variableDatasets.dataSources.toSet), property = "DataSources")
     }
@@ -111,6 +114,14 @@ class WorkflowWithPayloadExecutor(task: ProjectTask[Workflow], configuration: St
     val (sinkResourceManager, resultResourceManager) = createInMemoryResourceManagerForResources(workflowJson, projectName, withProjectResources = true)
     implicit val resourceManager: ResourceManager = sinkResourceManager
     val sinks = createDatasets(workflowJson, Some(sinkIds), property = "Sinks")
+    val autoConfig = (workflowJson \ "config" \ "autoConfig").asOpt[Boolean].getOrElse(false)
+    if(autoConfig) {
+      implicit val pluginContext: PluginContext = PluginContext.fromProject(getProject(projectName))
+      dataSources = dataSources.mapValues {
+        case autoConfigDataset: DatasetPluginAutoConfigurable[_] => autoConfigDataset.autoConfigured
+        case other: Dataset => other
+      }
+    }
     (dataSources, sinks, resultResourceManager)
   }
 
