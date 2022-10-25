@@ -53,18 +53,24 @@ export const updateMetaData = (
     payload: Partial<{ label: string; description: string; tags: string[] }>,
     projectId?: string,
     taskId?: string
-): Promise<FetchResponse<IMetadata>> =>
-    projectId && taskId
-        ? fetch({
-              url: legacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/metadata`),
-              method: "put",
-              body: payload,
-          })
-        : fetch({
-              url: workspaceApi(`/projects/${projectId}/metaData`),
-              method: "put",
-              body: payload,
-          });
+): Promise<FetchResponse<IMetadata>> | null => {
+    switch (true) {
+        case !!(projectId && taskId):
+            return fetch({
+                url: legacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/metadata`),
+                method: "put",
+                body: payload,
+            });
+        case !!projectId:
+            return fetch({
+                url: workspaceApi(`/projects/${projectId}/metaData`),
+                method: "put",
+                body: payload,
+            });
+        default:
+            return null;
+    }
+};
 
 const DisplayArtefactTags = (
     tags: Keywords,
