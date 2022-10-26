@@ -71,8 +71,8 @@ object SparqlEntitySchema {
       s"?$variable"
     }
     if(entityUris.nonEmpty) {
-      val entityFilter = s"""VALUES ($rootVariable) { ${entityUris.map(e => s"(<$e>)").mkString(" ")} }"""
-      sparqlRestriction = SparqlRestriction.fromSparql(variable, sparqlRestriction.toSparql + entityFilter)
+      val entityFilter = s"""VALUES ($rootVariable) { ${entityUris.map(e => s"(<$e>)").mkString(" ")} }\n"""
+      sparqlRestriction = SparqlRestriction.fromSparql(variable, entityFilter + sparqlRestriction.toSparql)
       SparqlEntitySchema(variable, sparqlRestriction, entitySchema.typedPaths.map(_.toUntypedPath))
     }
 

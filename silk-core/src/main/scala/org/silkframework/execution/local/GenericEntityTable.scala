@@ -10,7 +10,12 @@ class GenericEntityTable(genericEntities: Traversable[Entity],
                          override val globalErrors: Seq[String] = Seq.empty) extends LocalEntities {
 
   override def entities: Traversable[Entity] = {
-    new InterruptibleTraversable(genericEntities)
+    genericEntities match {
+      case iterable: Iterable[Entity] =>
+        iterable
+      case _ =>
+        new InterruptibleTraversable(genericEntities)
+    }
   }
 
   override def updateEntities(newEntities: Traversable[Entity], newSchema: EntitySchema): GenericEntityTable = {

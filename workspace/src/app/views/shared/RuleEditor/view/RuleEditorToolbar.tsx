@@ -180,7 +180,7 @@ export const RuleEditorToolbar = () => {
                     <IconButton
                         data-test-id={"rule-editor-auto-layout-btn"}
                         disabled={modelContext.isReadOnly() || modelContext.elements.length === 0}
-                        name="operation-auto-graph-layout"
+                        name="operation-autolayout"
                         text={t("RuleEditor.toolbar.autoLayout")}
                         onClick={() => modelContext.executeModelEditOperation.autoLayout(true)}
                     />
@@ -251,7 +251,7 @@ export const RuleEditorToolbar = () => {
                         loading={savingWorkflow}
                     >
                         {modelContext.isReadOnly() ? (
-                            <Icon name={"write-protected"} />
+                            <Icon name={"state-protected"} />
                         ) : (
                             t("common.action.save", "Save")
                         )}
