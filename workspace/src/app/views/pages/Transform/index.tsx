@@ -41,6 +41,9 @@ export default function TransformPage() {
                     <ProjectTaskTabView
                         taskViewConfig={{ pluginId: "transform", projectId: projectId, taskId: taskId }}
                         iFrameName={"detail-page-iframe"}
+                        componentAddedToIframeView={{
+                            execute: <TaskActivityOverview projectId={projectId} taskId={taskId} hideCacheActivities />,
+                        }}
                     />
                 </Section>
             </WorkspaceMain>

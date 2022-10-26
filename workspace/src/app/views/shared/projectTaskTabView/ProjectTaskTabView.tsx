@@ -33,9 +33,11 @@ const getBookmark = () => window.location.pathname.split("/").slice(-1)[0];
  * @param unBookmarkedSuffix Optional path suffix when no tab selection is present in the URL.
  * @param tabViews All tab views
  */
-const calculateBookmark = (id: string,
-                           unBookmarkedSuffix: string | undefined,
-                           tabViews: Partial<IProjectTaskView & IItemLink>[]) => {
+const calculateBookmark = (
+    id: string,
+    unBookmarkedSuffix: string | undefined,
+    tabViews: Partial<IProjectTaskView & IItemLink>[]
+) => {
     const pathnameArray = window.location.pathname.split("/");
     const [currentTab] = pathnameArray.slice(-1);
     const currentTabExist = tabViews.find((view) => view.id === currentTab);
@@ -67,6 +69,10 @@ interface IProjectTaskTabView {
         // If the views are not shown on the task details page, this must be set
         taskId?: string;
     };
+    //react components to be added together in the same tab view iframe element
+    componentAddedToIframeView?: {
+        [key: string]: JSX.Element | null;
+    };
     viewActions?: IViewActions;
 }
 
@@ -83,6 +89,7 @@ export function ProjectTaskTabView({
     taskViewConfig,
     iFrameName,
     viewActions,
+    componentAddedToIframeView,
     ...otherProps
 }: IProjectTaskTabView) {
     const globalProjectId = useSelector(commonSel.currentProjectIdSelector);
@@ -104,15 +111,16 @@ export function ProjectTaskTabView({
     // Stores request to change the tab. The requests is represented by the tab idx.
     const [tabRouteChangeRequest, setTabRouteChangeRequest] = React.useState<string | undefined>(undefined);
     // To react to task changes
-    const [selectedTask, setSelectedTask] = React.useState<string | undefined>(taskViewConfig?.taskId)
+    const [selectedTask, setSelectedTask] = React.useState<string | undefined>(taskViewConfig?.taskId);
 
     const viewsAndItemLink: Partial<IProjectTaskView & IItemLink>[] = [...(taskViews ?? []), ...itemLinks];
     const isTaskView = (viewOrItemLink: Partial<IProjectTaskView & IItemLink>) => !viewOrItemLink.path;
     const itemLinkActive = selectedTab != null && typeof selectedTab !== "string";
     // Either the ID of an IItemLink or the view ID or undefined
-    const activeTab: IProjectTaskView | IItemLink | undefined = activeIframePath?.id ?? itemLinkActive
-        ? (selectedTab as IItemLink)
-        : (taskViews ?? []).find((v) => v.id === selectedTab);
+    const activeTab: IProjectTaskView | IItemLink | undefined =
+        activeIframePath?.id ?? itemLinkActive
+            ? (selectedTab as IItemLink)
+            : (taskViews ?? []).find((v) => v.id === selectedTab);
 
     React.useEffect(() => {
         if (projectId && taskId) {
@@ -141,10 +149,10 @@ export function ProjectTaskTabView({
     }, [tabRouteChangeRequest]);
 
     React.useEffect(() => {
-        if(projectId && taskId && taskId !== selectedTask) {
-            setSelectedTask(taskId)
+        if (projectId && taskId && taskId !== selectedTask) {
+            setSelectedTask(taskId);
         }
-    }, [projectId, taskId, selectedTask])
+    }, [projectId, taskId, selectedTask]);
 
     // flag if the widget is shown as fullscreen modal
     const [displayFullscreen, setDisplayFullscreen] = useState(!!handlerRemoveModal || startFullscreen);
@@ -166,12 +174,15 @@ export function ProjectTaskTabView({
         !startFullscreen && dispatch(history.replace(calculateBookmark(tabRoute?.id ?? "", taskId, viewsAndItemLink)));
     };
 
-    const getInitialActiveLink = (itemLinks: IItemLink[], taskViews: IProjectTaskView[]): IItemLink | string | undefined => {
+    const getInitialActiveLink = (
+        itemLinks: IItemLink[],
+        taskViews: IProjectTaskView[]
+    ): IItemLink | string | undefined => {
         const initial = [...taskViews, ...itemLinks].find((elem) => {
             return elem.id === getBookmark();
         });
         if (initial) {
-            return (initial as IItemLink).path ? initial as IItemLink : initial.id;
+            return (initial as IItemLink).path ? (initial as IItemLink) : initial.id;
         } else {
             return taskViews[0]?.id ?? itemLinks[0];
         }
@@ -211,7 +222,7 @@ export function ProjectTaskTabView({
             // remove current page link
             const srcLinks = removeDuplicates(data.filter((item) => !item.path.startsWith(SERVE_PATH)));
             setItemLinks(srcLinks);
-            if(!startWithLink) {
+            if (!startWithLink) {
                 setSelectedTab(getInitialActiveLink(srcLinks, taskViews));
             }
         } catch (e) {
@@ -311,18 +322,21 @@ export function ProjectTaskTabView({
                 >
                     {!!selectedTab ? (
                         itemLinkActive ? (
-                            <iframe
-                                ref={iframeRef}
-                                name={iFrameName}
-                                data-test-id={iFrameName}
-                                src={createIframeUrl((selectedTab as IItemLink)?.path)}
-                                title={tLabel((selectedTab as IItemLink)?.label)}
-                                style={{
-                                    position: "absolute",
-                                    width: "100%",
-                                    height: "100%",
-                                }}
-                            />
+                            <>
+                                {componentAddedToIframeView && componentAddedToIframeView[selectedTab.id]}
+                                <iframe
+                                    ref={iframeRef}
+                                    name={iFrameName}
+                                    data-test-id={iFrameName}
+                                    src={createIframeUrl((selectedTab as IItemLink)?.path)}
+                                    title={tLabel((selectedTab as IItemLink)?.label)}
+                                    style={{
+                                        position: "absolute",
+                                        width: "100%",
+                                        height: "100%",
+                                    }}
+                                />
+                            </>
                         ) : (
                             projectId &&
                             taskId &&
