@@ -3,6 +3,7 @@ package org.silkframework.rule
 import org.silkframework.dataset.TypedProperty
 import org.silkframework.entity._
 import org.silkframework.entity.paths.{BackwardOperator, ForwardOperator, TypedPath, UntypedPath}
+import org.silkframework.rule.execution.local.MultipleValuesException
 import org.silkframework.runtime.serialization.{ReadContext, WriteContext, XmlFormat}
 import org.silkframework.runtime.validation.ValidationException
 import org.silkframework.util.Uri
@@ -39,7 +40,7 @@ case class MappingTarget(propertyUri: Uri,
     }
     // cardinality
     if(isAttribute && values.size > 1) {
-      throw new ValidationException(s"Property ${propertyUri} is only allowed to have one value, but got multiple values")
+      throw new MultipleValuesException(s"Property ${propertyUri} is only allowed to have one value, but got multiple values")
     }
   }
 

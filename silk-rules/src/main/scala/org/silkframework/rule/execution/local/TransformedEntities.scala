@@ -115,11 +115,7 @@ class TransformedEntities(task: Task[TransformSpec],
         }
 
         val values = for ((path, rules) <- rulesPerPath) yield {
-          val value = rules.flatMap(evalRule)
-          if (path.isAttribute && value.size > 1) {
-            throw new ValidationException(s"Tried to generate multiple entities, but the '$ruleLabel' mapping is configured to output a single entity.")
-          }
-          value
+          rules.flatMap(evalRule)
         }
 
         f(Entity(uri, values, outputSchema, metadata = buildErrorMetadata()))
