@@ -69,10 +69,6 @@ interface IProjectTaskTabView {
         // If the views are not shown on the task details page, this must be set
         taskId?: string;
     };
-    //react components to be added together in the same tab view iframe element
-    componentAddedToIframeView?: {
-        [key: string]: JSX.Element | null;
-    };
     viewActions?: IViewActions;
 }
 
@@ -89,7 +85,6 @@ export function ProjectTaskTabView({
     taskViewConfig,
     iFrameName,
     viewActions,
-    componentAddedToIframeView,
     ...otherProps
 }: IProjectTaskTabView) {
     const globalProjectId = useSelector(commonSel.currentProjectIdSelector);
@@ -322,21 +317,18 @@ export function ProjectTaskTabView({
                 >
                     {!!selectedTab ? (
                         itemLinkActive ? (
-                            <>
-                                {componentAddedToIframeView && componentAddedToIframeView[selectedTab.id]}
-                                <iframe
-                                    ref={iframeRef}
-                                    name={iFrameName}
-                                    data-test-id={iFrameName}
-                                    src={createIframeUrl((selectedTab as IItemLink)?.path)}
-                                    title={tLabel((selectedTab as IItemLink)?.label)}
-                                    style={{
-                                        position: "absolute",
-                                        width: "100%",
-                                        height: "100%",
-                                    }}
-                                />
-                            </>
+                            <iframe
+                                ref={iframeRef}
+                                name={iFrameName}
+                                data-test-id={iFrameName}
+                                src={createIframeUrl((selectedTab as IItemLink)?.path ?? "")}
+                                title={tLabel((selectedTab as IItemLink)?.label)}
+                                style={{
+                                    position: "absolute",
+                                    width: "100%",
+                                    height: "100%",
+                                }}
+                            />
                         ) : (
                             projectId &&
                             taskId &&

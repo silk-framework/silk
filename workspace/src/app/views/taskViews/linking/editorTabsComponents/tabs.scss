@@ -1,0 +1,8 @@
+.linking-report__wrapper {
+    position: relative;
+    margin-top: 60px;
+    & > div {
+        left: 0;
+        top: 0;
+    }
+}

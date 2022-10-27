@@ -42,12 +42,6 @@ export default function LinkingPage() {
                     <ProjectTaskTabView
                         taskViewConfig={{ pluginId: "linking", projectId: projectId, taskId: taskId }}
                         iFrameName={"detail-page-iframe"}
-                        componentAddedToIframeView={{
-                            evaluate: (
-                                <TaskActivityOverview projectId={projectId} taskId={taskId} hideCacheActivities />
-                            ),
-                            execute: <TaskActivityOverview projectId={projectId} taskId={taskId} hideCacheActivities />,
-                        }}
                     />
                 </Section>
             </WorkspaceMain>
