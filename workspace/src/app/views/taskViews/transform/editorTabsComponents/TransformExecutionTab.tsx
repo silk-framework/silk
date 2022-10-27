@@ -1,4 +1,5 @@
 import { Card, IconButton, OverviewItem, Spacing } from "@eccenca/gui-elements";
+import { CONTEXT_PATH } from "../../../../constants/path";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import TransformExecutionReport from "../../../../views/pages/MappingEditor/ExecutionReport/TransformExecutionReport";
@@ -34,7 +35,11 @@ const TransformExecutionTab = ({ projectId, taskId }: IProps) => {
                     />
                 </Card>
                 <Spacing size="tiny" vertical />
-                <IconButton name="item-download" text={t("common.action.download")} />
+                <IconButton
+                    name="item-download"
+                    text={t("common.action.download")}
+                    href={`${CONTEXT_PATH}/workspace/projects/${projectId}/tasks/${taskId}/downloadOutput`}
+                />
             </OverviewItem>
             <div className="transform-report__wrapper">
                 <TransformExecutionReport project={projectId} task={taskId} updateCounter={executionUpdateCounter} />
