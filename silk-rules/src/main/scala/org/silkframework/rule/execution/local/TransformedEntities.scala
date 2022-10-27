@@ -6,7 +6,7 @@ import org.silkframework.entity.{Entity, EntitySchema, ValueType}
 import org.silkframework.execution.{AbortExecutionException, ExecutionException}
 import org.silkframework.failures.EntityException
 import org.silkframework.rule.execution.{TransformReport, TransformReportBuilder}
-import org.silkframework.rule.{TransformRule, TransformSpec}
+import org.silkframework.rule.{RootMappingRule, TransformRule, TransformSpec}
 import org.silkframework.runtime.activity.ActivityContext
 import org.silkframework.runtime.validation.ValidationException
 
@@ -19,7 +19,7 @@ import scala.util.control.NonFatal
   *
   * @param task              The transform task these entities originate from.
   * @param entities          The source entities the transformation is applied to.
-  * @param rules             The transformation rules that are applied against the source entities.
+  * @param rule              The transformation rules that are applied against the source entities.
   * @param outputSchema      The output schema of the transformation.
   * @param isRequestedSchema True, if the output schema was requested by the following task. False if this is the output
   *                          schema defined by the mapping itself. A requested schema is type agnostic.
@@ -28,13 +28,15 @@ import scala.util.control.NonFatal
 class TransformedEntities(task: Task[TransformSpec],
                           entities: Traversable[Entity],
                           ruleLabel: String,
-                          rules: Seq[TransformRule],
+                          rule: TransformRule,
                           outputSchema: EntitySchema,
                           isRequestedSchema: Boolean,
                           abortIfErrorsOccur: Boolean,
                           context: ActivityContext[TransformReport])(implicit prefixes: Prefixes) extends Traversable[Entity] {
 
   private val log: Logger = Logger.getLogger(this.getClass.getName)
+
+  private val rules = rule.rules
 
   private val subjectRule = rules.find(_.target.isEmpty)
 
@@ -43,9 +45,9 @@ class TransformedEntities(task: Task[TransformSpec],
   // For each schema path, collect all rules that map to it
   private val rulesPerPath = {
     if(isRequestedSchema) {
-      for(path <- outputSchema.typedPaths) yield (path, propertyRules.filter(_.target.get.asPath() == path.asUntypedPath))
+      for(path <- outputSchema.typedPaths) yield propertyRules.filter(_.target.get.asPath() == path.asUntypedPath)
     } else {
-      for(path <- outputSchema.typedPaths) yield (path, propertyRules.filter(_.target.get.asTypedPath() == path))
+      for(path <- outputSchema.typedPaths) yield propertyRules.filter(_.target.get.asTypedPath() == path)
     }
   }
 
@@ -95,9 +97,9 @@ class TransformedEntities(task: Task[TransformSpec],
 
     if(uris.nonEmpty) {
       for (uri <- uris) {
-        //if(outputSchema.singleEntity && count > 1) {
-        //  throw new ValidationException(s"Tried to generate multiple entities, but the '$ruleLabel' mapping is configured to output a single entity.")
-        //}
+        if(count > 0 && outputSchema.singleEntity && rule.isInstanceOf[RootMappingRule]) {
+          throw new MultipleValuesException(s"Tried to generate multiple entities, but the '$ruleLabel' mapping is configured to output a single entity.")
+        }
 
         lazy val objectEntity = { // Constructs an entity that only contains object source paths for object mappings
           val uriTypePaths = entity.schema.typedPaths.zip(entity.values).filter(_._1.valueType == ValueType.URI)
@@ -114,7 +116,7 @@ class TransformedEntities(task: Task[TransformSpec],
           }
         }
 
-        val values = for ((path, rules) <- rulesPerPath) yield {
+        val values = for (rules <- rulesPerPath) yield {
           rules.flatMap(evalRule)
         }
 
@@ -153,6 +155,8 @@ class TransformedEntities(task: Task[TransformSpec],
       rule(entity)
     } catch {
       case ex: ExecutionException if ex.abortExecution =>
+        throw ex
+      case ex: MultipleValuesException =>
         throw ex
       case NonFatal(ex) =>
         addError(report, rule, entity, ex)

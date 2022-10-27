@@ -4,7 +4,6 @@ import org.scalatest.{FlatSpec, Matchers}
 import org.silkframework.config.{PlainTask, Prefixes}
 import org.silkframework.entity.ValueType
 import org.silkframework.entity.paths.UntypedPath
-import org.silkframework.execution.AbortExecutionException
 import org.silkframework.plugins.dataset.json.JsonDataset
 import org.silkframework.rule.execution.ExecuteTransform
 import org.silkframework.rule.execution.local.MultipleValuesException
@@ -13,17 +12,46 @@ import org.silkframework.runtime.resource.InMemoryResourceManager
 import org.silkframework.util.Uri
 import play.api.libs.json.{JsArray, JsNumber, JsValue, Json}
 
+/**
+  * Tests if transformations check the isAttribute/singleEntity flag.
+  */
 class TransformSingleEntityFlagTest extends FlatSpec with Matchers {
 
   behavior of "TransformedEntities"
 
-  //TODO
-  ignore should "check if multiple root entities are not allowed" in {
+  it should "generate single root entity with multiple children successfully, if a single root entity is allowed" in {
     executeTransform(
-      generateJson(rootCount = 1, childCount = 1, valueCount = 1),
-      generateRule(singleRoot = true, singleChild = true, singleChildValue = true),
+      generateJson(rootCount = 1, childCount = 3, valueCount = 2),
+      generateRule(singleRoot = true, singleChild = false, singleChildValue = false),
       expectFailure = false
     )
+  }
+
+  it should "generate multiple root entities successfully, if multiple root entities are allowed" in {
+    executeTransform(
+      generateJson(rootCount = 2, childCount = 1, valueCount = 1),
+      generateRule(singleRoot = false, singleChild = true, singleChildValue = true),
+      expectFailure = false
+    )
+  }
+
+  it should "generate multiple child entities successfully, if multiple child entities are allowed" in {
+    executeTransform(
+      generateJson(rootCount = 2, childCount = 2, valueCount = 1),
+      generateRule(singleRoot = false, singleChild = false, singleChildValue = true),
+      expectFailure = false
+    )
+  }
+
+  it should "generate multiple entities with single values successfully, if only a single value is allowed" in {
+    executeTransform(
+      generateJson(rootCount = 3, childCount = 3, valueCount = 1),
+      generateRule(singleRoot = false, singleChild = false, singleChildValue = true),
+      expectFailure = false
+    )
+  }
+
+  it should "fail if only a single root entity is allowed, but multiple are generated" in {
     executeTransform(
       generateJson(rootCount = 2, childCount = 1, valueCount = 1),
       generateRule(singleRoot = true, singleChild = true, singleChildValue = true),
@@ -31,21 +59,19 @@ class TransformSingleEntityFlagTest extends FlatSpec with Matchers {
     )
   }
 
-  it should "check if multiple child entities are not allowed" in {
+  it should "fail if only a single child entity is allowed, but multiple are generated" in {
     executeTransform(
       generateJson(rootCount = 1, childCount = 2, valueCount = 1),
       generateRule(singleRoot = true, singleChild = true, singleChildValue = true),
       expectFailure = true
     )
+  }
+
+  it should "fail if only a single value is allowed, but multiple are generated" in {
     executeTransform(
-      generateJson(rootCount = 1, childCount = 1, valueCount = 1),
+      generateJson(rootCount = 1, childCount = 1, valueCount = 2),
       generateRule(singleRoot = true, singleChild = true, singleChildValue = true),
-      expectFailure = false
-    )
-    executeTransform(
-      generateJson(rootCount = 1, childCount = 2, valueCount = 1),
-      generateRule(singleRoot = true, singleChild = false, singleChildValue = true),
-      expectFailure = false
+      expectFailure = true
     )
   }
 
@@ -66,13 +92,13 @@ class TransformSingleEntityFlagTest extends FlatSpec with Matchers {
     val outputDataset = JsonDataset(file = outputResource)
 
     // Execute transform
-    val transformTask = PlainTask("transformTask", TransformSpec(selection = DatasetSelection(inputId = "test"), mappingRule = rule, abortIfErrorsOccur = true))
+    val transformTask = PlainTask("transformTask", TransformSpec(selection = DatasetSelection(inputId = "test"), mappingRule = rule))
     val execute = new ExecuteTransform(transformTask, user => inputDataset.source(user), user => outputDataset.entitySink(user))
 
     try {
       Activity(execute).startBlocking()(UserContext.Empty)
     } catch {
-      case ex @ AbortExecutionException(_, Some(_: MultipleValuesException)) if expectFailure =>
+      case  _: MultipleValuesException if expectFailure =>
         return
     }
 

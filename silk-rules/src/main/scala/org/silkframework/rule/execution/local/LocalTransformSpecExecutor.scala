@@ -29,12 +29,12 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
       case mt: MultiEntityTable =>
         val outputTable = mutable.Buffer[LocalEntities]()
         val transformer = new EntityTransformer(task, (mt.asInstanceOf[LocalEntities] +: mt.subTables).to[mutable.Buffer], outputTable, output)
-        transformer.transformEntities("root", task.rules, task.outputSchema, transformContext)
+        transformer.transformEntities("root", task.mappingRule, task.outputSchema, transformContext)
         Some(MultiEntityTable(outputTable.head.entities, outputTable.head.entitySchema, task, outputTable.tail, transformContext.value().globalErrors))
       case _ =>
         val outputTable = mutable.Buffer[LocalEntities]()
         val transformer = new EntityTransformer(task, mutable.Buffer(input), outputTable, output)
-        transformer.transformEntities("root", task.rules, task.outputSchema, transformContext)
+        transformer.transformEntities("root", task.mappingRule, task.outputSchema, transformContext)
         Some(MultiEntityTable(outputTable.head.entities, outputTable.head.entitySchema, task, outputTable.tail, transformContext.value().globalErrors))
     }
   }
@@ -48,24 +48,25 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
     val requestedOutputType: Option[Uri] = requestedOutputSchema.map(_.typeUri)
 
     def transformEntities(ruleLabel: String,
-                          rules: Seq[TransformRule],
+                          rule: TransformRule,
                           outputSchema: EntitySchema,
                           context: ActivityContext[TransformReport])
                          (implicit prefixes: Prefixes): Unit = {
+      val rules = rule.rules
       requestedOutputType match {
         case Some(outputType) =>
           val activeOutputSchema = requestedOutputSchema.get
           // If a specific output type is requested only execute rules of that requested type. Only the result table of the matching container rule will be returned.
           val (requestedRuleLabel, requestedRules, inputTable) = findMappingRulesMatchingRequestedOutputSchema(rules, ruleLabel, outputType, inputTables)
           addInputErrorsToTransformReport(inputTable, context)
-          val transformedEntities = new TransformedEntities(task, inputTable.entities, requestedRuleLabel, requestedRules, activeOutputSchema,
+          val transformedEntities = new TransformedEntities(task, inputTable.entities, requestedRuleLabel, rule.withChildren(requestedRules), activeOutputSchema,
             isRequestedSchema = true, abortIfErrorsOccur = task.data.abortIfErrorsOccur, context = context)
           outputTables.append(GenericEntityTable(transformedEntities, activeOutputSchema, task))
         case _ =>
           // Else execute the complete mapping
           val inputTable = inputTables.remove(0)
           addInputErrorsToTransformReport(inputTable, context)
-          val transformedEntities = new TransformedEntities(task, inputTable.entities, ruleLabel, rules, outputSchema,
+          val transformedEntities = new TransformedEntities(task, inputTable.entities, ruleLabel, rule, outputSchema,
             isRequestedSchema = false, abortIfErrorsOccur = task.data.abortIfErrorsOccur, context = context)
           outputTables.append(GenericEntityTable(transformedEntities, outputSchema, task))
 
@@ -77,8 +78,8 @@ class LocalTransformSpecExecutor extends Executor[TransformSpec, LocalExecution]
                 typeUri = childRules.collectFirst { case tm: TypeMapping => tm.typeUri }.getOrElse(""),
                 typedPaths = childRules.flatMap(_.target).map(mt => mt.asTypedPath()).toIndexedSeq
               )
-
-            transformEntities(objectMapping.label(), updateChildRules(childRules, objectMapping), childOutputSchema, context)
+            val updatedRule = rule.withChildren(updateChildRules(childRules, objectMapping).allRules)
+            transformEntities(objectMapping.label(), updatedRule, childOutputSchema, context)
           }
       }
     }
