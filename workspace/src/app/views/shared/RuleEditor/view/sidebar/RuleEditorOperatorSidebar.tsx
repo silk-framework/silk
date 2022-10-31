@@ -1,6 +1,7 @@
 import React from "react";
 import { RuleEditorContext } from "../../contexts/RuleEditorContext";
 import { Grid, GridColumn, GridRow, Icon, Spacing, Tabs, TabTitle } from "@eccenca/gui-elements";
+import { extractSearchWords, matchesAllWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 import Loading from "../../../Loading";
 import { IPreConfiguredOperators, RuleOperatorList } from "./RuleOperatorList";
 import {
@@ -8,7 +9,6 @@ import {
     IRuleSideBarFilterTabConfig,
     IRuleSidebarPreConfiguredOperatorsTabConfig,
 } from "../../RuleEditor.typings";
-import { extractSearchWords, matchesAllWords } from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 import { SidebarSearchField } from "./SidebarSearchField";
 import { partitionArray, sortLexically } from "../../../../../utils/basicUtils";
 import { TabProps } from "@eccenca/gui-elements/src/components/Tabs/Tab";
@@ -168,9 +168,9 @@ export const RuleEditorOperatorSidebar = () => {
         id: tab.id,
         title: (
             <TabTitle
-                text={tab.icon ? null : tab.label}
+                text={tab.icon ? null : t("RuleEditor.sidebar.tab."+tab.id, tab.label)}
                 titlePrefix={tab.icon ? <Icon name={tab.icon} small /> : undefined}
-                tooltip={tab.icon ? tab.label : undefined}
+                tooltip={tab.icon ? t("RuleEditor.sidebar.tab."+tab.id, tab.label) : undefined}
                 small
             />
         ),

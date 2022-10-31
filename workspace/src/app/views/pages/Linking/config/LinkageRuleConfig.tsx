@@ -160,7 +160,7 @@ export const LinkageRuleConfig = ({ linkingTaskId, projectId }: IProps) => {
                     <IconButton
                         data-test-id="linkage-rule-config-edit-btn"
                         name={"item-edit"}
-                        text={"Configure"}
+                        text={t("common.action.configure", "Configure")}
                         onClick={() => setShowModal(true)}
                     />
                 </CardOptions>

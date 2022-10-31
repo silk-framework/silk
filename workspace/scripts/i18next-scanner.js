@@ -172,7 +172,7 @@ const foundLanguages = createTempLanguageFiles(manualLangFiles.concat(additional
 
 function generateEmptyLanguageFiles() {
     fs.mkdirSync("src/locales/generated", { recursive: true });
-    for (const lang of ["en", "de"]) {
+    for (const lang of ["de", "en", "fr"]) {
         // If a language file was not available write an empty language file. This is needed for the code to compile.
         if (!foundLanguages.includes(lang)) {
             writeJsonFile({}, `src/locales/generated/${lang}.json`);
@@ -183,7 +183,7 @@ function generateEmptyLanguageFiles() {
 /** Find missing keys and list them. Return error code if there exist missing values. */
 function validate() {
     const missingKeys = new Map();
-    for (const lang of ["en", "de"]) {
+    for (const lang of ["de", "en", "fr"]) {
         const missingKeySet = new Set();
         missingKeys.set(lang, missingKeySet);
 
