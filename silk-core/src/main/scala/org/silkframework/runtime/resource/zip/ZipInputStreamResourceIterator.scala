@@ -51,7 +51,7 @@ case class ZipInputStreamResourceIterator(private[zip] val zip: () => ZipInputSt
     }
   }
 
-  // Creates a compressed, in-memory or file bases resource from the ZIP input stream.
+  // Creates a compressed, in-memory or file based resource from the ZIP input stream.
   private def createCompressedResource[U](entry: ZipEntry, z: ZipInputStream): WritableResource with ResourceWithKnownTypes = {
     val r = if (entry.getCompressedSize <= maxCompressedSizeForInMemory) {
       CompressedInMemoryResource(entry.getName, entry.getName, ZipEntryUtil.getTypeAnnotation(entry).toIndexedSeq)
@@ -59,7 +59,7 @@ case class ZipInputStreamResourceIterator(private[zip] val zip: () => ZipInputSt
       val tempFile = File.createTempFile("zipResource", ".bin")
       tempFile.deleteOnExit()
       // Since there is no way to know when the last resource will not be used anymore, we set the deleteOnGC flag, so it gets eventually deleted.
-      CompressedFileResource(tempFile, entry.getName, entry.getName, ZipEntryUtil.getTypeAnnotation(entry).toIndexedSeq, deleteOnGC = true)
+      CompressedFileResource(tempFile, entry.getName, entry.getName, ZipEntryUtil.getTypeAnnotation(entry).toIndexedSeq, deleteOnGC = true, WritableResource.freeSpaceThreshold)
     }
     r.writeStream(z)
     r

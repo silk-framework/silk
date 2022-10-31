@@ -10,7 +10,7 @@ class FileResourceManagerTest extends FlatSpec with MustMatchers {
   it should "not allow access below its base path" in {
     val tempDir = File.createTempFile("prefix", "").getParentFile
     val tempDirName = tempDir.getName
-    val manager = FileResourceManager(tempDir)
+    val manager = FileResourceManager(tempDir, None)
     manager.get("someDir/../allowedAccess")
     manager.get(s"someDir/../../$tempDirName/allowedAccess")
     intercept[IllegalArgumentException] {
