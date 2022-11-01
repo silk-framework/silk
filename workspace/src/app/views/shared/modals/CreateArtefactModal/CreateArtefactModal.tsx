@@ -270,11 +270,11 @@ export function CreateArtefactModal() {
         const isValidFields = await form.triggerValidation();
         try {
             if (isValidFields) {
-                const formValues = form.getValues()
-                const type = updateExistingTask?.taskPluginDetails.taskType ?? taskType(selectedArtefactKey)
-                let dataParameters: any
-                if(type === "Dataset") {
-                    dataParameters = commonOp.extractDataAttributes(formValues)
+                const formValues = form.getValues();
+                const type = updateExistingTask?.taskPluginDetails.taskType ?? taskType(selectedArtefactKey);
+                let dataParameters: any;
+                if (type === "Dataset") {
+                    dataParameters = commonOp.extractDataAttributes(formValues);
                 }
                 if (updateExistingTask) {
                     await dispatch(
@@ -462,7 +462,7 @@ export function CreateArtefactModal() {
                 taskId={updateExistingTask.taskId}
                 updateTask={{
                     parameterValues: updateExistingTask.currentParameterValues,
-                    dataParameters: updateExistingTask.dataParameters
+                    dataParameters: updateExistingTask.dataParameters,
                 }}
                 registerForExternalChanges={registerForExternalChanges}
             />

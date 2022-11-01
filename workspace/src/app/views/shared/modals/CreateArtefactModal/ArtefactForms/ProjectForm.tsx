@@ -1,10 +1,13 @@
 import React from "react";
-import { FieldItem, TextField, TextArea } from "@eccenca/gui-elements";
+import { FieldItem, TextField, TextArea, MultiSelect } from "@eccenca/gui-elements";
 import { errorMessage } from "./ParameterWidget";
 import { useTranslation } from "react-i18next";
 import { AdvancedOptionsArea } from "../../../AdvancedOptionsArea/AdvancedOptionsArea";
 import CustomIdentifierInput, { handleCustomIdValidation } from "./CustomIdentifierInput";
 import useErrorHandler from "../../../../../hooks/useErrorHandler";
+import { Keyword } from "@ducks/workspace/typings";
+import { removeExtraSpaces } from "@eccenca/gui-elements/src/common/utils/stringUtils";
+import { SelectedParamsType } from "@eccenca/gui-elements/src/components/MultiSelect/MultiSelect";
 
 interface IProps {
     form: any;
@@ -13,6 +16,7 @@ interface IProps {
 const LABEL = "label";
 const DESCRIPTION = "description";
 const IDENTIFIER = "id";
+const TAGS = "tags";
 
 /** The project create form */
 export function ProjectForm({ form }: IProps) {
@@ -24,6 +28,7 @@ export function ProjectForm({ form }: IProps) {
         register({ name: LABEL }, { required: true });
         register({ name: DESCRIPTION });
         register({ name: IDENTIFIER });
+        register({ name: TAGS });
     }, []);
 
     const onValueChange = (key) => {
@@ -35,6 +40,12 @@ export function ProjectForm({ form }: IProps) {
             if (key === IDENTIFIER) handleCustomIdValidation(t, form, registerError, value);
         };
     };
+
+    const handleTagSelectionChange = React.useCallback(
+        (params: SelectedParamsType<Keyword>) => setValue("tags", params),
+        []
+    );
+
     return (
         <>
             <FieldItem
@@ -67,6 +78,33 @@ export function ProjectForm({ form }: IProps) {
                     growVertically={true}
                     placeholder={t("form.projectForm.projectDesc", "Project description")}
                     onChange={onValueChange(DESCRIPTION)}
+                />
+            </FieldItem>
+            <FieldItem
+                key={TAGS}
+                labelProps={{
+                    text: t("form.field.tags"),
+                    htmlFor: TAGS,
+                }}
+            >
+                <MultiSelect<Keyword>
+                    openOnKeyDown
+                    itemId={(keyword) => keyword.uri}
+                    itemLabel={(keyword) => keyword.label}
+                    items={[]}
+                    onSelection={handleTagSelectionChange}
+                    newItemCreationText={t("Metadata.addNewTag")}
+                    newItemPostfix={t("Metadata.newTagPostfix")}
+                    inputProps={{
+                        placeholder: `${t("form.field.searchOrEnterTags")}...`,
+                    }}
+                    tagInputProps={{
+                        placeholder: `${t("form.field.searchOrEnterTags")}...`,
+                    }}
+                    createNewItemFromQuery={(query) => ({
+                        uri: removeExtraSpaces(query),
+                        label: removeExtraSpaces(query),
+                    })}
                 />
             </FieldItem>
             <AdvancedOptionsArea>
