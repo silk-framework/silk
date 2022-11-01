@@ -48,12 +48,12 @@ Downloading and installing sbt is not necessary as it is available from this dir
   - Pull the docker image via: docker pull silkframework/silk-workbench
 - Run the docker container with: `docker run -d --name silk-workbench -p 80:80 silkframework/silk-workbench:latest`
 - In your browser, navigate to 'http://DOCKER_HOST:80'
-- To make the userdata available from outside the docker container you can add a volume mount, therefore add `-v $PWD:/opt/silk/workspace` to the docker run command.
+- To make the userdata available from outside the docker container you can add a volume mount, therefore add `-v $PWD:/root/.silk/workspace` to the docker run command.
 
 __Example__
 
 ```bash
-docker run -d --name silk-workbench -v $PWD:/opt/silk/workspace -p 80:80 silkframework/silk-workbench:latest
+docker run -d --name silk-workbench -v $PWD:/root/.silk/workspace -p 80:80 silkframework/silk-workbench:latest
 ```
 This will start a silk-workbench with a docker container and can be accessed via http port 80.
 
