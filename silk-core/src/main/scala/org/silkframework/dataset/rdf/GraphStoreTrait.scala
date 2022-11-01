@@ -1,14 +1,14 @@
 package org.silkframework.dataset.rdf
 
-import java.io.{BufferedOutputStream, File, FileOutputStream, InputStream, OutputStream}
-import java.net.{HttpURLConnection, SocketTimeoutException, URL, URLEncoder}
-import java.util.logging.Logger
 import org.silkframework.config.DefaultConfig
 import org.silkframework.runtime.activity.UserContext
-import org.silkframework.runtime.resource.{FileResource, WritableResource}
+import org.silkframework.runtime.resource.FileResource
 import org.silkframework.util.HttpURLConnectionUtils._
 
+import java.io._
+import java.net.{HttpURLConnection, SocketTimeoutException, URL, URLEncoder}
 import java.nio.file.Files
+import java.util.logging.Logger
 import scala.util.Try
 import scala.util.control.NonFatal
 
@@ -286,7 +286,7 @@ case class GraphStoreUploadOutputStream(fileUploadGraphStore: GraphStoreFileUplo
     val file = Files.createTempFile("graphStoreUpload", ".nt").toFile
     file.deleteOnExit()
     // Make sure this file is also deleted if the output stream is not correctly closed
-    val resource = FileResource(file, WritableResource.freeSpaceThreshold)
+    val resource = FileResource(file)
     resource.setDeleteOnGC(true)
     fileResource = Some(resource)
     initialized = true

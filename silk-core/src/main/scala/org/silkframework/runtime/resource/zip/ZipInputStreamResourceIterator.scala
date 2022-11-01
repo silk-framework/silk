@@ -59,7 +59,7 @@ case class ZipInputStreamResourceIterator(private[zip] val zip: () => ZipInputSt
       val tempFile = File.createTempFile("zipResource", ".bin")
       tempFile.deleteOnExit()
       // Since there is no way to know when the last resource will not be used anymore, we set the deleteOnGC flag, so it gets eventually deleted.
-      CompressedFileResource(tempFile, entry.getName, entry.getName, ZipEntryUtil.getTypeAnnotation(entry).toIndexedSeq, deleteOnGC = true, WritableResource.freeSpaceThreshold)
+      CompressedFileResource(tempFile, entry.getName, entry.getName, ZipEntryUtil.getTypeAnnotation(entry).toIndexedSeq, deleteOnGC = true)
     }
     r.writeStream(z)
     r

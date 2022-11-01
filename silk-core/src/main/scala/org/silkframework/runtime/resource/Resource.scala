@@ -4,7 +4,7 @@ import com.typesafe.config.Config
 import org.silkframework.config.ConfigValue
 import org.silkframework.runtime.resource.Resource.maxInMemorySizeParameterName
 
-import java.io.{ByteArrayOutputStream, InputStream}
+import java.io.{ByteArrayOutputStream, File, InputStream}
 import java.time.Instant
 import java.util.logging.Logger
 import scala.io.{Codec, Source}
@@ -159,11 +159,48 @@ object Resource {
 
   final val maxInMemorySizeParameterName = s"${classOf[Resource].getName}.maxInMemorySize"
 
+  final val freeSpaceThresholdParameterName = s"${classOf[Resource].getName}.minDiskSpace"
+
   /**
     * Maximum resource size in bytes that should be loaded into memory.
     */
   val maxInMemorySize: ConfigValue[Long] = (config: Config) => {
     config.getMemorySize(maxInMemorySizeParameterName).toBytes
+  }
+
+  /**
+    * Minimum amount of free space before files to the local file system are written.
+    */
+  val freeSpaceThreshold: ConfigValue[Option[Long]] = (config: Config) => {
+    if(!config.hasPath(freeSpaceThresholdParameterName)) {
+      None
+    } else {
+      Some(config.getMemorySize(freeSpaceThresholdParameterName).toBytes)
+    }
+  }
+
+  /**
+    * Checks if there is enough free space left on the file system the file resides on.
+    *
+    * @throws NotEnoughDiskSpaceException If there is not enough space left.
+    **/
+  def checkFreeSpace(file: File): Unit = {
+    freeSpaceThreshold() foreach { limit =>
+      def checkRecursive(file: File): Unit = {
+        // We can only get FS stats from existing files, so we need to recursively go up until a parent directory exists
+        if (!file.exists()) {
+          Option(file.getParentFile).foreach(parent => checkFreeSpace(parent))
+        } else {
+          val freeSpace = file.getUsableSpace
+          if (freeSpace < limit) {
+            throw new NotEnoughDiskSpaceException(s"Cannot write to file '${file.getName}'. Free space of $freeSpace is less than the configured" +
+              s" minimal value of $limit. You can change the threshold via " +
+              s"config parameter '${Resource.freeSpaceThresholdParameterName}'.")
+          }
+        }
+      }
+      checkRecursive(file.getAbsoluteFile)
+    }
   }
 
 }

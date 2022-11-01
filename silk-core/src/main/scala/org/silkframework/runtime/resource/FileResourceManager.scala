@@ -5,12 +5,11 @@ import java.io._
 /**
  * A resource manager that loads files from a base directory.
  */
-case class FileResourceManager(baseDir: File,
-                               freeSpaceThreshold: Option[Long]) extends ResourceManager {
+case class FileResourceManager(baseDir: File) extends ResourceManager {
 
   val basePath: String = baseDir.getAbsolutePath
 
-  def this(baseDir: String) = this(new File(baseDir), WritableResource.retrieveFreeSpaceThreshold())
+  def this(baseDir: String) = this(new File(baseDir))
 
   /**
    * Lists all files in the resources directory.
@@ -55,7 +54,7 @@ case class FileResourceManager(baseDir: File,
       else
         newFile
 
-    FileResource(file, freeSpaceThreshold)
+    FileResource(file)
   }
 
   override def delete(name: String): Unit = {
@@ -78,12 +77,12 @@ case class FileResourceManager(baseDir: File,
   }
 
   override def child(name: String): ResourceManager = {
-    FileResourceManager(new File(baseDir + "/" + name), freeSpaceThreshold)
+    FileResourceManager(new File(baseDir + "/" + name))
   }
 
   override def parent: Option[ResourceManager] = {
     for(parent <- Option(baseDir.getAbsoluteFile.getParentFile)) yield
-      FileResourceManager(parent, freeSpaceThreshold)
+      FileResourceManager(parent)
   }
 }
 

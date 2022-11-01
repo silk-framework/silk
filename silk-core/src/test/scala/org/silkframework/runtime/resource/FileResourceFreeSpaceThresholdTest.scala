@@ -1,33 +1,35 @@
 package org.silkframework.runtime.resource
 
-import org.scalatest.FlatSpec
-import org.silkframework.runtime.resource.WritableResource.WritableResourceException
-import org.silkframework.util.ConfigTestTrait
-
-import java.nio.file.Files
+import org.scalatest.{BeforeAndAfterAll, FlatSpec}
+import org.silkframework.config.DefaultConfig
 import org.silkframework.util.FileUtils._
 
-class FileResourceFreeSpaceThresholdTest extends FlatSpec with ConfigTestTrait {
+import java.nio.file.Files
+
+class FileResourceFreeSpaceThresholdTest extends FlatSpec with BeforeAndAfterAll {
   private val tempDir = Files.createTempDirectory("doesntmatter").toFile
   tempDir.deleteRecursiveOnExit()
   private val currentFreeSpace = tempDir.getFreeSpace
 
   it should "prevent writing a new file when not enough space is available" in {
+    System.setProperty(Resource.freeSpaceThresholdParameterName, s"${currentFreeSpace * 2}")
+    DefaultConfig.instance.refresh()
     val rm = new FileResourceManager(tempDir.getAbsolutePath)
-    assertThrows[WritableResourceException]{
+    assertThrows[NotEnoughDiskSpaceException]{
       rm.get("file").writeString("...")
     }
   }
 
   it should "allow writing files when enough space is available" in {
-    val rm = FileResourceManager(tempDir, Some(1L))
+    System.setProperty(Resource.freeSpaceThresholdParameterName, s"1")
+    DefaultConfig.instance.refresh()
+    val rm = FileResourceManager(tempDir)
     rm.get("file").writeString("...")
   }
 
-  override def propertyMap: Map[String, Option[String]] = {
-    Map(
-      // Require more free space than available
-      WritableResource.fileSystemFreeSpaceThresholdKey -> Some(s"${currentFreeSpace * 2}")
-    )
+  override def afterAll(): Unit = {
+    System.clearProperty(Resource.freeSpaceThresholdParameterName)
+    DefaultConfig.instance.refresh()
+    super.afterAll()
   }
 }

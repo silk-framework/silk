@@ -90,14 +90,12 @@ case class CompressedMultiByteArraysInputStream(byteArrays: IndexedSeq[Array[Byt
   * @param deleteOnGC         Deletes the given file when the resource object is garbage collected.
   *                           This should be used when the file has no use after the resource gets garbage collected and
   *                           it cannot be determined when to delete before the GC.
-  * @param freeSpaceThreshold If defined, a write operation will fail if not enough free space is available on disk.
   */
 case class CompressedFileResource(file: File,
                                   name: String,
                                   path: String,
                                   knownTypes: IndexedSeq[String],
-                                  deleteOnGC: Boolean,
-                                  freeSpaceThreshold: Option[Long])
+                                  deleteOnGC: Boolean)
     extends WritableResource
     with ResourceWithKnownTypes
     with DeleteUnderlyingResourceOnGC {
@@ -108,7 +106,7 @@ case class CompressedFileResource(file: File,
     * Using [[write()]] is preferred as it takes care of closing the output stream.
     */
   def createOutputStream(append: Boolean = false): OutputStream = {
-    WritableResource.checkFreeSpace(file, freeSpaceThreshold)
+    Resource.checkFreeSpace(file)
     new LZ4FrameOutputStream(new FileOutputStream(file, append))
   }
 
