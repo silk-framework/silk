@@ -16,7 +16,7 @@ import org.silkframework.config.{DefaultConfig, MetaData}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.resource.zip.ZipFileResourceLoader
-import org.silkframework.runtime.resource.{FileResource, ResourceLoader}
+import org.silkframework.runtime.resource.{FileResource, ResourceLoader, WritableResource}
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.{BadUserInputException, ConflictRequestException, NotFoundException, RequestException}
 import org.silkframework.util.DurationConverters._
@@ -153,7 +153,7 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
     val inputStream = new FileInputStream(inputFile)
     val outputStream = new FileOutputStream(tempFile)
     StreamUtils.fastStreamCopy(inputStream, outputStream, close = true)
-    val fileResource = FileResource(tempFile)
+    val fileResource = FileResource(tempFile, WritableResource.freeSpaceThreshold)
     fileResource.setDeleteOnGC(true)
     val id = fileResource.name
     val projectImport = ProjectImport(id, fileResource, Instant.now, None, None)

@@ -1,10 +1,13 @@
 package org.silkframework.runtime.resource
 
-import java.io.{File, FileInputStream, InputStream, OutputStream}
-
+import com.typesafe.config.ConfigException
+import org.silkframework.config.DefaultConfig
 import org.silkframework.util.StreamUtils
 
+import java.io.{File, FileInputStream, InputStream, OutputStream}
+import java.util.logging.Logger
 import scala.io.Codec
+import scala.util.control.NonFatal
 
 trait WritableResource extends Resource {
 
@@ -83,4 +86,49 @@ trait WritableResource extends Resource {
     */
   def delete(): Unit
 
+}
+
+object WritableResource {
+  private val log: Logger = Logger.getLogger(getClass.getName)
+  final val fileSystemFreeSpaceThresholdKey = "config.production.localFileSystemFreeSpaceThreshold"
+
+  class WritableResourceException(msg: String) extends RuntimeException(msg)
+
+  /** Checks if there is enough free space left on the file system the file resides on. */
+  def checkFreeSpace(file: File, threshold: Option[Long]): Unit = {
+    threshold foreach { limit =>
+      def checkRecursive(file: File, threshold: Option[Long]): Unit = {
+
+        // We can only get FS stats from existing files, so we need to recursively go up until a parent directory exists
+        if (!file.exists()) {
+          Option(file.getParentFile).foreach(parent => checkFreeSpace(parent, threshold))
+        } else {
+          val freeSpace = file.getUsableSpace
+          if (freeSpace < limit) {
+            throw new WritableResourceException(s"Cannot write to file '${file.getName}'. Free space of $freeSpace is less than the configured" +
+              s" minimal value of $limit. You can change the threshold via " +
+              s"config parameter '${WritableResource.fileSystemFreeSpaceThresholdKey}'.")
+          }
+        }
+      }
+      checkRecursive(file.getAbsoluteFile, threshold)
+    }
+  }
+
+  def retrieveFreeSpaceThreshold(): Option[Long] = {
+    val cfg = DefaultConfig.instance()
+    try {
+      Some(cfg.getMemorySize(fileSystemFreeSpaceThresholdKey).toBytes)
+    } catch {
+      case _: ConfigException.Missing =>
+        None
+      case ex: ConfigException =>
+        log.warning(s"Cannot read value of config parameter '$fileSystemFreeSpaceThresholdKey' to configure free space threshold. Details: ${ex.getMessage}")
+        None
+      case NonFatal(_) =>
+        None
+    }
+  }
+
+  lazy val freeSpaceThreshold: Option[Long] = retrieveFreeSpaceThreshold()
 }
