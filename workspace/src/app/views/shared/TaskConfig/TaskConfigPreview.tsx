@@ -1,16 +1,19 @@
-import {IProjectTask} from "@ducks/shared/typings";
+import { IProjectTask } from "@ducks/shared/typings";
 import {
+    IconButton,
     Notification,
     OverflowText,
     PropertyName,
     PropertyValue,
     PropertyValueList,
     PropertyValuePair,
+    Spacing,
 } from "@eccenca/gui-elements";
 import React from "react";
-import {IArtefactItemProperty, IPluginDetails} from "@ducks/common/typings";
-import {useTranslation} from "react-i18next";
-import {INPUT_TYPES} from "../../../constants";
+import { IArtefactItemProperty, IPluginDetails } from "@ducks/common/typings";
+import { useTranslation } from "react-i18next";
+import { INPUT_TYPES } from "../../../constants";
+import { CONTEXT_PATH } from "../../../constants/path";
 
 interface IProps {
     taskData: IProjectTask;
@@ -47,7 +50,10 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                     })
                     .forEach(([paramName, paramValue]) => {
                         const value = paramDisplayValue(paramValue);
-                        const propertyTitle = t("widget.ConfigWidget.properties."+paramDescriptions[paramName].title, paramDescriptions[paramName].title);
+                        const propertyTitle = t(
+                            "widget.ConfigWidget.properties." + paramDescriptions[paramName].title,
+                            paramDescriptions[paramName].title
+                        );
                         if (typeof value === "object" && value !== null) {
                             taskValuesRec(
                                 value,
@@ -69,11 +75,11 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
     /** Returns the string value if this is an atomic value, else it returns the parameter value object. */
     const paramDisplayValue = (parameterValue: any): string | any => {
         if (typeof parameterValue === "string") {
-            return t("widget.ConfigWidget.values."+parameterValue, parameterValue);
+            return t("widget.ConfigWidget.values." + parameterValue, parameterValue);
         } else if (typeof parameterValue.label === "string") {
-            return t("widget.ConfigWidget.values."+parameterValue.label, parameterValue.label);
+            return t("widget.ConfigWidget.values." + parameterValue.label, parameterValue.label);
         } else if (typeof parameterValue.value === "string") {
-            return t("widget.ConfigWidget.values."+parameterValue.value, parameterValue.value);
+            return t("widget.ConfigWidget.values." + parameterValue.value, parameterValue.value);
         } else if (parameterValue.value) {
             // withLabels "object" value
             return parameterValue.value;
@@ -84,10 +90,11 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
     };
     // Because of line_height: 1, underscores are not rendered
     const fixStyle = { lineHeight: "normal" };
-    const taskParameterValues: Record<string, string> = taskValues(taskData.data.parameters)
-    if(taskDescription.taskType === "Dataset" && taskData.data.uriProperty) {
-        taskParameterValues[t("DatasetUriPropertyParameter.label")] = taskData.data.uriProperty
+    const taskParameterValues: Record<string, string> = taskValues(taskData.data.parameters);
+    if (taskDescription.taskType === "Dataset" && taskData.data.uriProperty) {
+        taskParameterValues[t("DatasetUriPropertyParameter.label")] = taskData.data.uriProperty;
     }
+
     return (
         <OverflowText passDown>
             <PropertyValueList>
@@ -100,6 +107,20 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                                 <PropertyName title={paramId}>{paramId}</PropertyName>
                                 <PropertyValue>
                                     <code style={fixStyle}>{value}</code>
+                                    {paramId === "File" && (
+                                        <>
+                                            <Spacing vertical size="large" hasDivider />
+                                            <IconButton
+                                                data-test-id={"resource-download-btn"}
+                                                name="item-download"
+                                                text={t("common.action.download")}
+                                                small
+                                                href={`${CONTEXT_PATH}/workspace/projects/${
+                                                    taskData.project
+                                                }/resources/${encodeURIComponent(value)}`}
+                                            />
+                                        </>
+                                    )}
                                 </PropertyValue>
                             </PropertyValuePair>
                         );
