@@ -109,7 +109,7 @@ export const LinkRuleNodeEvaluation = ({
                 </ul>
             ) : referenceLinksUrl ? (
                 <div>
-                    <Link href={referenceLinksUrl}>{t("RuleEditor.evaluation.noResults")}</Link>
+                    <Link href={referenceLinksUrl} target={"_blank"}>{t("RuleEditor.evaluation.noResults")}</Link>
                 </div>
             ) : (
                 <div>{noResultMsg ?? t("RuleEditor.evaluation.noResults")}</div>
@@ -117,7 +117,7 @@ export const LinkRuleNodeEvaluation = ({
             {evaluationResult.length < numberOfLinksToShow && evaluationResult.length && referenceLinksUrl ? (
                 <div>
                     <Spacing hasDivider={true} />
-                    <Link href={referenceLinksUrl}>{t("RuleEditor.evaluation.addMoreResults")}</Link>
+                    <Link href={referenceLinksUrl} target={"_blank"}>{t("RuleEditor.evaluation.addMoreResults")}</Link>
                 </div>
             ) : null}
         </NodeContentExtension>
