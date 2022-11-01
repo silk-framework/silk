@@ -7,23 +7,23 @@ import controllers.util.FileMultiPartRequest
 import controllers.workspace.ProjectMarshalingApi
 import controllers.workspaceApi.ProjectImportApi.{ProjectImport, ProjectImportDetails, ProjectImportExecution}
 import io.swagger.v3.oas.annotations.enums.{ParameterIn, ParameterStyle}
-import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.media.{Content, ExampleObject, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import org.silkframework.config.{DefaultConfig, MetaData}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.runtime.execution.Execution
 import org.silkframework.runtime.resource.zip.ZipFileResourceLoader
-import org.silkframework.runtime.resource.{FileResource, ResourceLoader, WritableResource}
+import org.silkframework.runtime.resource.{FileResource, ResourceLoader}
 import org.silkframework.runtime.serialization.ReadContext
 import org.silkframework.runtime.validation.{BadUserInputException, ConflictRequestException, NotFoundException, RequestException}
 import org.silkframework.util.DurationConverters._
 import org.silkframework.util.{IdentifierUtils, StreamUtils}
 import org.silkframework.workspace.xml.XmlZipWithResourcesProjectMarshaling
 import play.api.libs.json._
-import play.api.mvc.{Action, AnyContent, _}
+import play.api.mvc._
 
 import java.io.{File, FileInputStream, FileOutputStream}
 import java.time.{Instant, Duration => JDuration}
@@ -153,7 +153,7 @@ class ProjectImportApi @Inject() (api: ProjectMarshalingApi) extends InjectedCon
     val inputStream = new FileInputStream(inputFile)
     val outputStream = new FileOutputStream(tempFile)
     StreamUtils.fastStreamCopy(inputStream, outputStream, close = true)
-    val fileResource = FileResource(tempFile, WritableResource.freeSpaceThreshold)
+    val fileResource = FileResource(tempFile)
     fileResource.setDeleteOnGC(true)
     val id = fileResource.name
     val projectImport = ProjectImport(id, fileResource, Instant.now, None, None)
