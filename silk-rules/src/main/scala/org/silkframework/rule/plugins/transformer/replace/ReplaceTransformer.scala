@@ -15,7 +15,7 @@
 package org.silkframework.rule.plugins.transformer.replace
 
 import org.silkframework.rule.input.SimpleTransformer
-import org.silkframework.runtime.plugin.annotations.Plugin
+import org.silkframework.runtime.plugin.annotations.{Param, Plugin}
 
 @Plugin(
   id = "replace",
@@ -23,8 +23,12 @@ import org.silkframework.runtime.plugin.annotations.Plugin
   label = "Replace",
   description = "Replace all occurrences of a string \"search\" with \"replace\" in a string."
 )
-case class ReplaceTransformer(search: String, replace: String) extends SimpleTransformer {
-  override def evaluate(value: String) = {
+case class ReplaceTransformer(@Param(value = "The string to search for")
+                              search: String,
+                              @Param(value = "The string that will replace each match")
+                              replace: String) extends SimpleTransformer {
+
+  override def evaluate(value: String): String = {
     value.replace(search, replace)
   }
 }

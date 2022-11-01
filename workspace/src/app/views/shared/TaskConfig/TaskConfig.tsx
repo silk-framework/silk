@@ -96,7 +96,7 @@ export function TaskConfig(props: IProps) {
 
     let titlePostfix = "";
     if (labelledTaskData) {
-        titlePostfix = `: ${labelledTaskData.taskDescription.title}`;
+        titlePostfix = `: ${t("common.dataTypes."+labelledTaskData.taskDescription.title.toLowerCase(), labelledTaskData.taskDescription.title)}`;
     }
 
     // FIXME: CMEM-3742: only return CardContent when it has items, so we need check content before rendering
@@ -113,7 +113,7 @@ export function TaskConfig(props: IProps) {
                     <IconButton
                         data-test-id="task-config-edit-btn"
                         name={"item-edit"}
-                        text={"Configure"}
+                        text={t("common.action.configure", "Configure")}
                         onClick={openConfigModal}
                     />
                 </CardOptions>

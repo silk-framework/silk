@@ -3,6 +3,7 @@ package org.silkframework.workspace
 import org.silkframework.config.{MetaData, TaskSpec}
 import org.silkframework.runtime.activity.UserContext
 import org.silkframework.util.Identifier
+import org.silkframework.workspace.TaskCleanupPlugin.CleanUpAfterTaskDeletionFunction
 import org.silkframework.workspace.exceptions.TaskNotFoundException
 
 import java.util.logging.{Level, Logger}
@@ -22,6 +23,10 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
                                              private[workspace] val validator: TaskValidator[TaskData] = new DefaultTaskValidator[TaskData]) {
 
   private val logger = Logger.getLogger(classOf[Module[_]].getName)
+
+  lazy val cleanUpAfterTaskDeletion: CleanUpAfterTaskDeletionFunction = {
+    TaskCleanupPlugin.retrieveCleanUpAfterTaskDeletionFunction
+  }
 
   /**
    * Caches all tasks of this module in memory.
@@ -89,7 +94,7 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
    * Removes a task from this module.
    */
   def remove(taskId: Identifier)
-            (implicit userContext: UserContext){
+            (implicit userContext: UserContext): Unit = {
     assertLoaded()
     // Cancel all activities
     for {
@@ -99,8 +104,10 @@ class Module[TaskData <: TaskSpec: ClassTag](private[workspace] val provider: Wo
       activity.control.cancel()
     }
     // Delete task
+    val taskOpt = taskOption(taskId)
     provider.deleteTask(project.id, taskId)
     cachedTasks -= taskId
+    taskOpt.foreach(task => cleanUpAfterTaskDeletion(project.id, taskId, task))
     logger.info(s"Removed task '$taskId' from project ${project.id}." + userContext.logInfo)
   }
 

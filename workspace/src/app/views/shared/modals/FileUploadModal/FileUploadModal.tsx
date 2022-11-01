@@ -47,7 +47,7 @@ export function FileUploadModal({ isOpen, onDiscard, uploaderOptions = {} }: IFi
                 preventSimpleClosing={true}
                 actions={
                     <Button data-test-id="file-upload-dialog-close-btn" key="close" onClick={onDiscard}>
-                        Close
+                        {t("common.action.close", "Close")}
                     </Button>
                 }
             >

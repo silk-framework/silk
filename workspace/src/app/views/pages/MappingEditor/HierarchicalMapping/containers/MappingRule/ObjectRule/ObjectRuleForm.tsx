@@ -263,7 +263,7 @@ export const ObjectRuleForm = (props: IProps) => {
                     handleChangeValue("targetProperty", value);
                 }}
                 resetQueryToValue={true}
-                itemDisplayLabel={(item) => (item.label ? `${item.label} <${item.value}>` : item.value)}
+                itemDisplayLabel={(item) => (item.label ? `${item.label} (${item.value})` : item.value)}
             />
         );
         entityRelationInput = (

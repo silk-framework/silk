@@ -189,7 +189,7 @@ export const LinkingRuleActiveLearningMain = ({ projectId, linkingTaskId }: Link
                         <Spacing vertical={true} size="small" />
                         <IconButton
                             text={t("ActiveLearning.feedback.propertyConfiguration")}
-                            name={"settings"}
+                            name={"item-settings"}
                             onClick={() => activeLearningContext.navigateTo("config")}
                         />
                         <Spacing vertical={true} size="small" />
