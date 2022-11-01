@@ -51,7 +51,7 @@ case class ZipInputStreamResourceIterator(private[zip] val zip: () => ZipInputSt
     }
   }
 
-  // Creates a compressed, in-memory or file bases resource from the ZIP input stream.
+  // Creates a compressed, in-memory or file based resource from the ZIP input stream.
   private def createCompressedResource[U](entry: ZipEntry, z: ZipInputStream): WritableResource with ResourceWithKnownTypes = {
     val r = if (entry.getCompressedSize <= maxCompressedSizeForInMemory) {
       CompressedInMemoryResource(entry.getName, entry.getName, ZipEntryUtil.getTypeAnnotation(entry).toIndexedSeq)

@@ -4,6 +4,8 @@ import Adapter from "enzyme-adapter-react-16";
 
 configure({ adapter: new Adapter() });
 
+jest.setTimeout(30000)
+
 if (window.document) {
     (window.document.body as any).createTextRange = function() {
         return {

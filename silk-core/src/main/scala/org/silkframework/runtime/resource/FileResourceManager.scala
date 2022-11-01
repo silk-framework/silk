@@ -7,14 +7,14 @@ import java.io._
  */
 case class FileResourceManager(baseDir: File) extends ResourceManager {
 
-  val basePath = baseDir.getAbsolutePath
+  val basePath: String = baseDir.getAbsolutePath
 
   def this(baseDir: String) = this(new File(baseDir))
 
   /**
    * Lists all files in the resources directory.
    */
-  override def list = {
+  override def list: List[String] = {
     val files = baseDir.listFiles
     if(files != null)
       files.toList.filter(_.isFile).map(_.getName)
@@ -54,10 +54,10 @@ case class FileResourceManager(baseDir: File) extends ResourceManager {
       else
         newFile
 
-    new FileResource(file)
+    FileResource(file)
   }
 
-  override def delete(name: String) {
+  override def delete(name: String): Unit = {
     def deleteRecursive(file: File): Unit = {
       if (file.isDirectory) {
         file.listFiles.foreach(deleteRecursive)
@@ -77,12 +77,12 @@ case class FileResourceManager(baseDir: File) extends ResourceManager {
   }
 
   override def child(name: String): ResourceManager = {
-    new FileResourceManager(new File(baseDir + "/" + name))
+    FileResourceManager(new File(baseDir + "/" + name))
   }
 
   override def parent: Option[ResourceManager] = {
     for(parent <- Option(baseDir.getAbsoluteFile.getParentFile)) yield
-      new FileResourceManager(parent)
+      FileResourceManager(parent)
   }
 }
 

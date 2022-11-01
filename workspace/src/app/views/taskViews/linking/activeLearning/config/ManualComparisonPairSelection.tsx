@@ -323,6 +323,7 @@ const PathAutoCompletion = ({
                     validationErrorText={t("ActiveLearning.config.errors.invalidPath")}
                     onInputChecked={onValidation}
                     autoCompletionRequestDelay={500}
+                    validationRequestDelay={250}
                 />
             )}
             {exampleValuesLoading && (
