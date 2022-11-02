@@ -95,6 +95,13 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
         taskParameterValues[t("DatasetUriPropertyParameter.label")] = taskData.data.uriProperty;
     }
 
+    const taskResourceParameterType = Object.values(taskDescription.properties).reduce((obj, property) => {
+        obj[property.title] = {
+            type: property.parameterType,
+        };
+        return obj;
+    }, {});
+
     return (
         <OverflowText passDown>
             <PropertyValueList>
@@ -107,7 +114,7 @@ export function TaskConfigPreview({ taskData, taskDescription }: IProps) {
                                 <PropertyName title={paramId}>{paramId}</PropertyName>
                                 <PropertyValue>
                                     <code style={fixStyle}>{value}</code>
-                                    {paramId === "File" && (
+                                    {taskResourceParameterType[paramId]?.type === "resource" && (
                                         <>
                                             <Spacing vertical size="large" hasDivider />
                                             <IconButton
