@@ -889,5 +889,14 @@
             "sourceEntity": "Source entity",
             "targetEntity": "Target entity"
         }
+    },
+    "HierarchicalMapping": {
+        "ExampleView": {
+            "errors": {
+                "emptyResult": "Preview has returned no results.",
+                "emptyWithExceptions": "Preview has returned no results, possibly because of transform validation errors.",
+                "notSupported": "Input source does not support the transform preview."
+            }
+        }
     }
 }
