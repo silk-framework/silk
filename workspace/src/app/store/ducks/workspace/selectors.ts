@@ -28,11 +28,6 @@ const prefixListSelector = createSelector([widgetsSelector], (widgets) => widget
 
 const warningListSelector = createSelector([widgetsSelector], (widgets) => widgets.warnings.results);
 
-// const numberWithCommas = (x: number) => {
-//     // From https://stackoverflow.com/a/2901298
-//     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-// };
-
 const filesListSelector = createSelector([widgetsSelector, commonSelector], (widgets, common) =>
     widgets.files.results.map((item) => ({
         id: item.name,
