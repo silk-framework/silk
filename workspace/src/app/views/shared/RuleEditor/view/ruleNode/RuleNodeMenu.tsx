@@ -7,6 +7,7 @@ interface NodeMenuProps {
     nodeId: string;
     t: (translationKey: string, defaultValue?: string) => string;
     handleDeleteNode: (nodeId: string) => void;
+    handleCloneNode: (nodeId: string) => void;
     ruleOperatorDescription?: string;
     ruleOperatorDocumentation?: string;
 }
@@ -16,6 +17,7 @@ export const RuleNodeMenu = ({
     nodeId,
     t,
     handleDeleteNode,
+    handleCloneNode,
     ruleOperatorDescription,
     ruleOperatorDocumentation,
 }: NodeMenuProps) => {
@@ -40,7 +42,19 @@ export const RuleNodeMenu = ({
                         handleDeleteNode(nodeId);
                     }}
                     text={t("RuleEditor.node.menu.remove.label")}
+                    htmlTitle={"Hotkey: <Backspace>"}
                     intent="danger"
+                />
+                <MenuItem
+                    data-test-id="rule-node-clone-btn"
+                    key="clone"
+                    icon={"item-clone"}
+                    onClick={(e) => {
+                        e.preventDefault();
+                        handleCloneNode(nodeId);
+                    }}
+                    htmlTitle={"Hotkey: CTRL/CMD + d"}
+                    text={t("common.action.clone")}
                 />
                 {ruleOperatorDescription || ruleOperatorDocumentation ? (
                     <MenuItem
