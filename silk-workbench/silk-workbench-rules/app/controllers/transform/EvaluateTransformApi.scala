@@ -109,7 +109,7 @@ class EvaluateTransformApi @Inject()(implicit accessMonitor: WorkbenchAccessMoni
 
     val ruleSchema = task.data.ruleSchemataWithoutEmptyObjectRules
       .find(_.transformRule.id == parentRuleId)
-      .getOrElse(throw new NotFoundException(s"Rule $parentRuleId is an empty object rule or is not part of task ${task.id} in project ${task.project.id}. " +
+      .getOrElse(throw new NotFoundException(s"Mapping rule '$parentRuleId' is either an empty object rule or is not part of task '${task.id}' in project '${task.project.id}'. " +
         s"Available rules: ${task.data.ruleSchemataWithoutEmptyObjectRules.map(_.transformRule.id).mkString(", ")}"))
 
     val inputSchema = ruleSchema.inputSchema.copy(typedPaths = transformRule.sourcePaths.toIndexedSeq)
