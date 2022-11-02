@@ -122,7 +122,7 @@ lazy val core = (project in file("silk-core"))
   )
 
 lazy val rules = (project in file("silk-rules"))
-  .dependsOn(core % "test->test;compile->compile", pluginsCsv % "test->compile")
+  .dependsOn(core % "test->test;compile->compile", pluginsCsv % "test->compile", pluginsJson % "test->compile")
   .settings(commonSettings: _*)
   .settings(
     name := "Silk Rules",

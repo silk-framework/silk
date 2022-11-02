@@ -125,8 +125,8 @@ sealed trait TransformRule extends Operator with HasMetaData {
   /**
     * Generates the same operator with new children.
     */
-  override def withChildren(newChildren: Seq[Operator]): Operator = {
-    if(newChildren.isEmpty) {
+  override def withChildren(newChildren: Seq[Operator]): TransformRule = {
+    if (newChildren.isEmpty) {
       this
     } else {
       throw new IllegalArgumentException(s"$this cannot have any children")
@@ -206,7 +206,7 @@ case class RootMappingRule(override val rules: MappingRules,
   /**
     * Generates the same operator with new children.
     */
-  override def withChildren(newChildren: Seq[Operator]): Operator = {
+  override def withChildren(newChildren: Seq[Operator]): TransformRule = {
     val newRules = newChildren.map(_.asInstanceOf[TransformRule])
     this.copy(rules = MappingRules.fromSeq(newRules))
   }
@@ -419,7 +419,7 @@ case class ObjectMapping(id: Identifier = "mapping",
   /**
     * Generates the same operator with new children.
     */
-  override def withChildren(newChildren: Seq[Operator]): Operator = {
+  override def withChildren(newChildren: Seq[Operator]): TransformRule = {
     val newRules = newChildren.map(_.asInstanceOf[TransformRule])
     this.copy(rules = MappingRules.fromSeq(newRules))
   }

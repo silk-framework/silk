@@ -83,7 +83,7 @@ export interface IModelActions {
     /** Delete multiple edges */
     deleteEdges: (edgeIds: string[]) => void;
     /** Copy and paste a selection of nodes. Move pasted selection by the defined offset. */
-    copyAndPasteNodes: (nodeIds: string[], offset: XYPosition) => void;
+    copyAndPasteNodes: (nodeIds: string[], offset?: XYPosition) => void;
     /** Move a single node to a new position. */
     moveNode: (nodeId: string, newPosition: XYPosition) => void;
     /** changes the size of a node to the given new dimensions */

@@ -67,7 +67,7 @@ export const RuleEditorCanvas = () => {
     /** Clones the given nodes with a small offset. */
     const cloneNodes = (nodeIds: string[]) => {
         modelContext.executeModelEditOperation.startChangeTransaction();
-        modelContext.executeModelEditOperation.copyAndPasteNodes(nodeIds, { x: 100, y: 100 });
+        modelContext.executeModelEditOperation.copyAndPasteNodes(nodeIds);
     };
     useHotKey({
         hotkey: "mod+d",
