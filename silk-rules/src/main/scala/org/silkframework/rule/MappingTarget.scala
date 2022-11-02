@@ -40,7 +40,7 @@ case class MappingTarget(propertyUri: Uri,
     }
     // cardinality
     if(isAttribute && values.size > 1) {
-      throw new MultipleValuesException(s"Property ${propertyUri} is only allowed to have one value, but got multiple values")
+      throw new MultipleValuesException(s"Property '$propertyUri' is only allowed to have one value per entity, but instead got ${values.size} values.")
     }
   }
 

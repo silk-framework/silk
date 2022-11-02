@@ -31,7 +31,7 @@ class EvaluateTransform @Inject() (implicit accessMonitor: WorkbenchAccessMonito
       case Some(name) =>
         task.data.ruleSchemataWithoutEmptyObjectRules
             .find(_.transformRule.id.toString == name)
-            .getOrElse(throw new NotFoundException(s"Rule $ruleName is an empty object rule or is not part of task $taskName in project $projectName"))
+            .getOrElse(throw new NotFoundException(s"Mapping rule '$name' is either an empty object rule, i.e. it has at most a URI rule, or is not part of task '$taskName' in project '$projectName'."))
       case None =>
         task.data.ruleSchemataWithoutEmptyObjectRules.head
     }

@@ -53,7 +53,7 @@ class JsonEntityWriter(outputStream: OutputStream, template: JsonTemplate) exten
     } else if(numberOfValues == 1) {
       generator.writeFieldName(property.propertyUri)
     } else if(numberOfValues > 1) {
-      throw new ValidationException(s"Property ${property.propertyUri} is only allowed to have one value, but got multiple values")
+      throw new ValidationException(s"Property '${property.propertyUri}' is only allowed to have one value per entity, but instead got $numberOfValues values.")
     }
   }
 
