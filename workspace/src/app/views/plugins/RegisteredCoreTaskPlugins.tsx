@@ -41,6 +41,16 @@ export const registerCorePlugins = () => {
         });
 
         pluginRegistry.registerTaskView("transform", {
+            id: "hierarchicalMappingEditor",
+            label: "Mapping editor",
+            render(projectId: string, taskId: string, _: IViewActions, startFullScreen: boolean): JSX.Element {
+                return (
+                    <HierarchicalMapping project={projectId} transformTask={taskId} startFullScreen={startFullScreen} />
+                );
+            },
+        });
+
+        pluginRegistry.registerTaskView("transform", {
             id: "TransformExecution",
             label: "Transform execution",
             render(projectId: string, taskId: string, viewActions: IViewActions | undefined): JSX.Element {
@@ -50,15 +60,6 @@ export const registerCorePlugins = () => {
 
         /** Transform plugins. FIXME: CMEM-4266: Find solution for opening mapping rules in the rule editor without redirecting. */
         // Hierarchical mapping editor
-        pluginRegistry.registerTaskView("transform", {
-            id: "hierarchicalMappingEditor",
-            label: "Mapping editor",
-            render(projectId: string, taskId: string, _: IViewActions, startFullScreen: boolean): JSX.Element {
-                return (
-                    <HierarchicalMapping project={projectId} transformTask={taskId} startFullScreen={startFullScreen} />
-                );
-            },
-        });
 
         // Mapping evaluation // FIXME: Does not render well when not in i-frame
         // pluginRegistry.registerTaskView("transform", {
