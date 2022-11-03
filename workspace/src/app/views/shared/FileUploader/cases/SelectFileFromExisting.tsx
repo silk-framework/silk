@@ -29,13 +29,16 @@ interface IProps {
 
     /** Indicator that there needs to be a value set/selected, else the file selection (from existing files) can e.g. be reset. */
     required: boolean;
+
+    /** When used inside a modal, the behavior of the auto-complete component will be optimized. */
+    insideModal: boolean
 }
 
 /**
  * The widget for "select from existing" option
  * @constructor
  */
-export function SelectFileFromExisting({ autocomplete, onChange, defaultValue, labelAttributes, required }: IProps) {
+export function SelectFileFromExisting({ autocomplete, onChange, defaultValue, labelAttributes, required, insideModal }: IProps) {
     const selectedValueState = useState(defaultValue);
     const setSelectedValue = selectedValueState[1];
     const [error, setError] = useState(false);
@@ -55,6 +58,7 @@ export function SelectFileFromExisting({ autocomplete, onChange, defaultValue, l
                 handleChange={handleChange}
                 initialValue={defaultValue}
                 resettable={!required}
+                insideModal={insideModal}
             />
         </FieldItem>
     ) : (
@@ -63,6 +67,7 @@ export function SelectFileFromExisting({ autocomplete, onChange, defaultValue, l
             handleChange={handleChange}
             initialValue={defaultValue}
             resettable={!required}
+            insideModal={insideModal}
         />
     );
 }
@@ -77,6 +82,8 @@ interface ProjectResourceAutoCompleteProps {
     resettable: boolean;
     /** If true the value cannot be edited. */
     readonly?: boolean;
+    /** When used inside a modal, the behavior of some components will be optimized. */
+    insideModal: boolean
 }
 
 const ProjectResourceAutoComplete = ({
@@ -84,6 +91,7 @@ const ProjectResourceAutoComplete = ({
     handleChange,
     initialValue,
     resettable,
+    insideModal
 }: ProjectResourceAutoCompleteProps) => {
     const [t] = useTranslation();
 
@@ -104,6 +112,7 @@ const ProjectResourceAutoComplete = ({
                       }
                     : undefined
             }
+            hasBackDrop={!insideModal}
         />
     );
 };

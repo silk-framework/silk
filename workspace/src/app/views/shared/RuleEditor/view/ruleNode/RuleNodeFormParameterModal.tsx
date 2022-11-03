@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { ruleEditorNodeParameterValue, RuleEditorNodeParameterValue } from "../../model/RuleEditorModel.typings";
 import { RuleEditorBaseModal } from "../components/RuleEditorBaseModal";
 
-type InheritedRuleNodeParameterProps = Omit<RuleNodeParametersProps, "large">;
+type InheritedRuleNodeParameterProps = Omit<RuleNodeParametersProps, "large" | "insideModal">;
 
 interface RuleNodeFormParameterModalProps extends InheritedRuleNodeParameterProps {
     onClose: () => any;
@@ -96,6 +96,7 @@ export const RuleNodeFormParameterModal = ({
                 {...adaptedRuleNodeParameterProps}
                 large={true}
                 hasAdvancedSection={true}
+                insideModal={true}
             />
         </RuleEditorBaseModal>
     );

@@ -15,6 +15,8 @@ interface RuleNodeFormParameterProps {
     dependentValue: (paramId: string) => string | undefined;
     /** If the form parameter will be rendered in a large area. The used input components might differ. */
     large: boolean;
+    /** When used inside a modal, the behavior of some components will be optimized. */
+    insideModal: boolean
 }
 
 /** A single form parameter, i.e. label, validation and input component. */
@@ -24,6 +26,7 @@ export const RuleNodeFormParameter = ({
     parameter,
     dependentValue,
     large,
+    insideModal
 }: RuleNodeFormParameterProps) => {
     const [t] = useTranslation();
     const [validationResult, setValidationResult] = React.useState<IParameterValidationResult>({ valid: true });
@@ -79,6 +82,7 @@ export const RuleNodeFormParameter = ({
                 hasValidationError={!validationResult.valid}
                 dependentValue={dependentValue}
                 large={large}
+                insideModal={insideModal}
             />
         </FieldItem>
     );
