@@ -1,4 +1,4 @@
-import { Card, IconButton, OverviewItem, Spacing } from "@eccenca/gui-elements";
+import { Card, Grid, GridColumn, GridRow, IconButton, OverviewItem, Spacing } from "@eccenca/gui-elements";
 import { CONTEXT_PATH } from "../../../../constants/path";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -7,7 +7,6 @@ import { TaskActivityWidget } from "../../../shared/TaskActivityWidget/TaskActiv
 import { checkIfTaskSupportsDownload } from "@ducks/common/requests";
 
 //styles
-import "./tabs.scss";
 import { ProjectTaskDownloadInfo } from "@ducks/common/typings";
 
 interface IProps {
@@ -35,29 +34,35 @@ const LinkingExecutionTab = ({ projectId, taskId }: IProps) => {
     }, [projectId, taskId]);
 
     return (
-        <>
-            <OverviewItem hasSpacing>
-                <Card>
-                    <TaskActivityWidget
-                        registerToReceiveUpdates={handleReceivedUpdates}
-                        projectId={projectId}
-                        taskId={taskId}
-                        activityName="ExecuteLinking"
-                        label="Execute Linking"
+        <Grid fullWidth>
+            <GridRow>
+                <OverviewItem hasSpacing>
+                    <Spacing size="small" vertical />
+                    <Card>
+                        <TaskActivityWidget
+                            registerToReceiveUpdates={handleReceivedUpdates}
+                            projectId={projectId}
+                            taskId={taskId}
+                            activityName="ExecuteLinking"
+                            label="Execute Linking"
+                        />
+                    </Card>
+                    <Spacing size="tiny" vertical />
+                    <IconButton
+                        name="item-download"
+                        text={taskDownloadInfo?.info || t("common.action.download")}
+                        disabled={!taskDownloadInfo?.downloadSupported}
+                        href={`${CONTEXT_PATH}/workspace/projects/${projectId}/tasks/${taskId}/downloadOutput`}
                     />
-                </Card>
-                <Spacing size="tiny" vertical />
-                <IconButton
-                    name="item-download"
-                    text={taskDownloadInfo?.info || t("common.action.download")}
-                    disabled={!taskDownloadInfo?.downloadSupported}
-                    href={`${CONTEXT_PATH}/workspace/projects/${projectId}/tasks/${taskId}/downloadOutput`}
-                />
-            </OverviewItem>
-            <div className="linking-report__wrapper">
-                <LinkingExecutionReport project={projectId} task={taskId} updateCounter={executionUpdateCounter} />
-            </div>
-        </>
+                </OverviewItem>
+            </GridRow>
+            <Spacing size="large" />
+            <GridRow>
+                <GridColumn full>
+                    <LinkingExecutionReport project={projectId} task={taskId} updateCounter={executionUpdateCounter} />
+                </GridColumn>
+            </GridRow>
+        </Grid>
     );
 };
 
