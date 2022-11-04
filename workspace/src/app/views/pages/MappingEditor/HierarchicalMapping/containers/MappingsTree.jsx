@@ -50,17 +50,22 @@ class MappingsTree extends React.Component {
         this.setState({
             navigationLoading: true,
         });
-        getRuleAsync(searchId, true).subscribe(({ rule }) => {
-            const navigationExpanded = {
-                ...rule.breadcrumbs.reduce((exp, breadcrumb) => {
-                    exp[breadcrumb.id] = true;
-                    return exp;
-                }, {}),
-                [rule.id]: true,
-            };
-            this.props.handleRuleNavigation({ newRuleId: searchId });
-            this.setState({ navigationExpanded });
-        });
+        getRuleAsync(searchId, true).subscribe(
+            ({ rule }) => {
+                const navigationExpanded = {
+                    ...rule.breadcrumbs.reduce((exp, breadcrumb) => {
+                        exp[breadcrumb.id] = true;
+                        return exp;
+                    }, {}),
+                    [rule.id]: true,
+                };
+                this.props.handleRuleNavigation({ newRuleId: searchId });
+                this.setState({ navigationExpanded });
+            },
+            () => {
+                this.setState({ navigationLoading: false });
+            }
+        );
     };
 
     updateNavigationTree = (args = {}) => {
