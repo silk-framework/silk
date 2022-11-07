@@ -16,6 +16,8 @@ export interface RuleNodeParametersProps {
     large: boolean;
     /** If this is true then the parameters are put into an advanced section that is collapsed by default. */
     hasAdvancedSection?: boolean;
+    /** When used inside a modal, the behavior of some components will be optimized. */
+    insideModal: boolean
 }
 
 /** The parameter widget of a rule node. */
@@ -25,7 +27,8 @@ export const RuleNodeParameterForm = ({
     parameters,
     dependentValue,
     large,
-    hasAdvancedSection
+    hasAdvancedSection,
+    insideModal
 }: RuleNodeParametersProps) => {
     const ruleEditorUiContext = React.useContext(RuleEditorUiContext);
     const {
@@ -46,6 +49,7 @@ export const RuleNodeParameterForm = ({
             dependentValue={dependentValue}
             pluginId={pluginId}
             large={large}
+            insideModal={insideModal}
         />
     }
 

@@ -64,10 +64,14 @@ describe("ExampleView Component", () => {
         it("should return false, when `example.sourcePaths` size equal to `example.results`", () => {
             setMockExampleResponse({
                 sourcePaths: [],
-                results: []
+                results: [],
+                status: {
+                    id: "success"
+                }
             })
             const wrapper = getWrapper()
-            expect(wrapper.text()).toMatch("no result")
+            // Match the translation key
+            expect(wrapper.text()).toMatch("HierarchicalMapping.ExampleView.errors.emptyResult")
         });
     });
 });

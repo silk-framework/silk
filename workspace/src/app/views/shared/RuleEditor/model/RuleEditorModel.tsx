@@ -1188,7 +1188,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     };
 
     /** Copy and paste nodes with a given offset. */
-    const copyAndPasteNodes = (nodeIds: string[], offset: XYPosition) => {
+    const copyAndPasteNodes = (nodeIds: string[], offset: XYPosition = { x: 100, y: 100 }) => {
         changeElementsInternal((els) => {
             const originalNodes = utils.nodesById(els, nodeIds);
             const nodeIdMap = new Map<string, string>();
@@ -1471,6 +1471,7 @@ export const RuleEditorModel = ({ children }: RuleEditorModelProps) => {
     const operatorNodeOperationsInternal: IOperatorNodeOperations = {
         handleDeleteNode: deleteNode,
         handleParameterChange: changeNodeParameter,
+        handleCloneNode: (nodeId) => copyAndPasteNodes([nodeId])
     };
 
     const nodePluginId = (nodeId: string) => nodeMap.get(nodeId)?.node.pluginId;

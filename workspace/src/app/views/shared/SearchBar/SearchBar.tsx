@@ -72,12 +72,12 @@ export function SearchBar({
                     {...otherProps}
                 />
             </ToolbarSection>
-            <ToolbarSection>
-                {!!sorters?.list.length && onSort && <Spacing size="tiny" vertical />}
-                {!!sorters?.list.length && onSort && (
+            {!!sorters && !!sorters.list.length && onSort && (
+                <ToolbarSection>
+                    <Spacing size="tiny" vertical />
                     <SortButton sortersList={sorters.list} onSort={onSort} activeSort={sorters.applied} />
-                )}
-            </ToolbarSection>
+                </ToolbarSection>
+            )}
         </Toolbar>
     );
 }

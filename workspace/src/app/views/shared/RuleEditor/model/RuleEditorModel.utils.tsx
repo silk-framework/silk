@@ -46,6 +46,7 @@ function createInputHandles(numberOfInputPorts: number, operatorContext?: IOpera
 /** The operations on a node. */
 export interface IOperatorNodeOperations {
     handleDeleteNode: (nodeId: string) => any;
+    handleCloneNode: (nodeId: string) => any;
     handleParameterChange: (nodeId: string, parameterId: string, value: RuleEditorNodeParameterValue) => any;
 }
 
@@ -128,6 +129,7 @@ function createOperatorNode(
                 handleDeleteNode={nodeOperations.handleDeleteNode}
                 ruleOperatorDescription={node.description}
                 ruleOperatorDocumentation={node.markdownDocumentation}
+                handleCloneNode={nodeOperations.handleCloneNode}
             />
         ),
         executionButtons:

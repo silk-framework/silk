@@ -8,7 +8,7 @@ import org.silkframework.util.FileUtils._
 /**
   * A resource on the file system.
   *
-  * @param file The file
+  * @param file               The file
   */
 case class FileResource(file: File)
     extends WritableResource
@@ -37,6 +37,7 @@ case class FileResource(file: File)
     * Using [[write()]] is preferred as it takes care of closing the output stream.
     */
   override def createOutputStream(append: Boolean): OutputStream = {
+    Resource.checkFreeSpace(file)
     createDirectory()
     new BufferedOutputStream(new FileOutputStream(file, append))
   }

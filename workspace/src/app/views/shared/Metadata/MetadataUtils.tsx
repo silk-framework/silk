@@ -9,6 +9,7 @@ import { IMetadataExpanded } from "./Metadatatypings";
 import { ContentBlobToggler } from "@eccenca/gui-elements";
 import { SERVE_PATH } from "../../../constants/path";
 import { Keyword, Keywords } from "@ducks/workspace/typings";
+import { IMetadata } from "@ducks/shared/typings";
 
 /**
  * if both the taskId and projectId are available then fetch the EXPANDED metadata for tasks
@@ -47,6 +48,29 @@ export const queryTags = (projectId: string, filter?: string): Promise<FetchResp
     fetch({
         url: workspaceApi(`/projects/${projectId}/tags${filter?.length ? `?filter=${filter}` : ""}`),
     });
+
+export const updateMetaData = (
+    payload: Partial<{ label: string; description: string; tags: string[] }>,
+    projectId?: string,
+    taskId?: string
+): Promise<FetchResponse<IMetadata>> | null => {
+    switch (true) {
+        case !!(projectId && taskId):
+            return fetch({
+                url: legacyApiEndpoint(`/projects/${projectId}/tasks/${taskId}/metadata`),
+                method: "put",
+                body: payload,
+            });
+        case !!projectId:
+            return fetch({
+                url: workspaceApi(`/projects/${projectId}/metaData`),
+                method: "put",
+                body: payload,
+            });
+        default:
+            return null;
+    }
+};
 
 const DisplayArtefactTags = (
     tags: Keywords,
@@ -96,13 +120,39 @@ const generateFacetUrl = (id: string, uri: string): string => {
     return `${SERVE_PATH}?${qs.stringify(queryParams)}`;
 };
 
+const getSelectedTagsAndCreateNew = async (
+    createdTags: Partial<Keyword>[] = [],
+    projectId: string | undefined,
+    selectedTags: Keywords = []
+) => {
+    if (createdTags.length) {
+        //create new tags if exists
+        const createdTagsResponse = await utils.createNewTag(
+            createdTags.map((t) => ({ label: t.label })),
+            projectId
+        );
+
+        //defensive correction to ensure uris match.
+        return selectedTags.map((tag) => {
+            const newlyCreatedTagMatch = (createdTagsResponse?.data ?? []).find((t) => t.label === tag.label);
+            if (newlyCreatedTagMatch) {
+                return newlyCreatedTagMatch.uri;
+            }
+            return tag.uri;
+        });
+    }
+    return selectedTags.map((tag) => tag.uri);
+};
+
 const utils = {
     getExpandedMetaData,
     DisplayArtefactTags,
     createNewTag,
+    updateMetaData,
     generateFacetUrl,
     queryTags,
     sortTags,
+    getSelectedTagsAndCreateNew,
 };
 
 export default utils;

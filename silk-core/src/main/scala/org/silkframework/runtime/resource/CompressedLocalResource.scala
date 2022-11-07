@@ -82,16 +82,20 @@ case class CompressedMultiByteArraysInputStream(byteArrays: IndexedSeq[Array[Byt
 
 /**
   * Resource that is held in a compressed file.
- *
-  * @param file The file that holds the compressed resource data.
-  * @param name The name of the resource.
-  * @param path The path of the resource.
-  * @param knownTypes Known types that should be returned, leave empty if types should be automatically determined.
-  * @param deleteOnGC Deletes the given file when the resource object is garbage collected.
-  *                   This should be used when the file has no use after the resource gets garbage collected and
-  *                   it cannot be determined when to delete before the GC.
+  *
+  * @param file               The file that holds the compressed resource data.
+  * @param name               The name of the resource.
+  * @param path               The path of the resource.
+  * @param knownTypes         Known types that should be returned, leave empty if types should be automatically determined.
+  * @param deleteOnGC         Deletes the given file when the resource object is garbage collected.
+  *                           This should be used when the file has no use after the resource gets garbage collected and
+  *                           it cannot be determined when to delete before the GC.
   */
-case class CompressedFileResource(file: File, name: String, path: String, knownTypes: IndexedSeq[String], deleteOnGC: Boolean)
+case class CompressedFileResource(file: File,
+                                  name: String,
+                                  path: String,
+                                  knownTypes: IndexedSeq[String],
+                                  deleteOnGC: Boolean)
     extends WritableResource
     with ResourceWithKnownTypes
     with DeleteUnderlyingResourceOnGC {
@@ -102,6 +106,7 @@ case class CompressedFileResource(file: File, name: String, path: String, knownT
     * Using [[write()]] is preferred as it takes care of closing the output stream.
     */
   def createOutputStream(append: Boolean = false): OutputStream = {
+    Resource.checkFreeSpace(file)
     new LZ4FrameOutputStream(new FileOutputStream(file, append))
   }
 

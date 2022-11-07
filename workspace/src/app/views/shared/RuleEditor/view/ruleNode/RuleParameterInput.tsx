@@ -26,6 +26,8 @@ interface RuleParameterInputProps {
     dependentValue: (paramId: string) => string | undefined;
     /** If the form parameter will be rendered in a large area. The used input components might differ. */
     large: boolean;
+    /** When used inside a modal, the behavior of some components will be optimized. */
+    insideModal: boolean
 }
 
 /** An input widget for a parameter value. */
@@ -36,6 +38,7 @@ export const RuleParameterInput = ({
     hasValidationError,
     dependentValue,
     large,
+    insideModal
 }: RuleParameterInputProps) => {
     const onChange = ruleParameter.update;
     const ruleEditorContext = React.useContext(RuleEditorContext);
@@ -138,6 +141,7 @@ export const RuleParameterInput = ({
                     }}
                     required={ruleParameter.parameterSpecification.required}
                     {...inputAttributes}
+                    insideModal={insideModal}
                 />
             );
         case "int":
@@ -165,6 +169,7 @@ export const RuleParameterInput = ({
                         dependentValue={dependentValue}
                         required={ruleParameter.parameterSpecification.required}
                         readOnly={inputAttributes.readOnly}
+                        hasBackDrop={!insideModal}
                     />
                 );
             } else {
