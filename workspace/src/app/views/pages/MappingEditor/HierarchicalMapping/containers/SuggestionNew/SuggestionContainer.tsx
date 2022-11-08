@@ -33,6 +33,7 @@ import {IInitFrontend, useInitFrontend} from "../../../api/silkRestApi.hooks";
 import {extractSearchWords, matchesAllWords} from "@eccenca/gui-elements/src/components/Typography/Highlighter";
 import ErrorView from "../../components/ErrorView";
 import _ from "lodash";
+import {useTranslation} from "react-i18next";
 
 interface ISuggestionListContext {
     // Can be deleted when popup issue gone
@@ -96,6 +97,8 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
     const [exampleValues, setExampleValues] = useState({});
 
     const [prefixList, setPrefixList] = useState<IPrefix[]>([]);
+
+    const [t] = useTranslation()
 
     const vocabulariesAvailable = vocabularies !== undefined && vocabularies.length > 0
 
@@ -383,10 +386,13 @@ export default function SuggestionContainer({ruleId, targetClassUris, onAskDisca
         if(suggestionsIssues && suggestionsIssues.notFoundClasses.length > 0) {
             const noClassFound = targetClassUris.length > 0 && suggestionsIssues.notFoundClasses.length === targetClassUris.length
             const classesString = suggestionsIssues.notFoundClasses.map(c => `\`${c}\``).join(", ")
-            let message: string = `Following target classes have not been found in any of the target vocabularies: ${classesString}.\n\n` +
-                `Matching only against ${targetClassUris.length - suggestionsIssues.notFoundClasses.length} of ${targetClassUris.length} target classes.`
+            let message: string = t("MappingSuggestion.suggestionIssues.notAllClassesFound", {
+                classesString,
+                numberOfFoundClasses: targetClassUris.length - suggestionsIssues.notFoundClasses.length,
+                numberOfAllClasses: targetClassUris.length
+            })
             if(noClassFound) {
-                message = `None of the target classes have been found in the target vocabularies. Falling back to matching against all properties instead.`
+                message = t("MappingSuggestion.suggestionIssues.noFoundClass")
             }
             return <>
                 <Notification warning={true}>

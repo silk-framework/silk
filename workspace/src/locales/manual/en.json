@@ -898,5 +898,11 @@
                 "notSupported": "Input source does not support the transform preview."
             }
         }
+    },
+    "MappingSuggestion": {
+        "suggestionIssues": {
+            "noFoundClass": "None of the target classes have been found in the target vocabularies. Falling back to matching against all properties instead.",
+            "notAllClassesFound": "Following target classes have not been found in any of the target vocabularies: {{classesString}}.\n\nMatching only against {{numberOfFoundClasses}} of {{numberOfAllClasses}} target classes."
+        }
     }
 }

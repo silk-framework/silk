@@ -978,9 +978,6 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
                                  offset: Int,
                                  limit: Int): Action[AnyContent] = RequestUserContextAction { implicit request => implicit userContext =>
     implicit val (project, task) = getProjectAndTask[LinkSpec](projectName, linkingTaskName)
-    val sources = task.dataSources
-    implicit val readContext: ReadContext = ReadContext(prefixes = project.config.prefixes, resources = project.resources)
-    implicit val prefixes: Prefixes = project.config.prefixes
 
     val evaluationActivity = task.activity[EvaluateLinkingActivity]
     if(evaluationActivity.control.status.get.isEmpty) {
@@ -989,7 +986,7 @@ class LinkingTaskApi @Inject() (accessMonitor: WorkbenchAccessMonitor) extends I
     evaluationActivity.value.get match {
       case Some(evaluationResult) =>
         val linkJsonFormat = new LinkJsonFormat(Some(task.data.rule))
-        implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue]()
+        implicit val writeContext: WriteContext[JsValue] = WriteContext[JsValue](prefixes = project.config.prefixes)
         val links = evaluationResult.links.slice(offset, offset + limit)
           .map(link => linkJsonFormat.write(link))
         Ok(Json.obj(
